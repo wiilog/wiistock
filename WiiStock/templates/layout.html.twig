@@ -1,0 +1,31 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Layout{% endblock %}
+
+{% block body %}
+	<div class="row">
+
+		<div class="col-1">
+			{% block menu %}{% endblock %}
+		</div>
+		<div class="col-11">
+			<div class="row">
+				{% block filter %}{% endblock %}
+			</div>
+
+			<div class="row">
+				{% block bouton_action_1 %}{% endblock %}
+			</div>
+			
+			<div class="row">
+				{% block page_content %}{% endblock %}
+			</div>
+			
+			<div class="row">
+				{% block bouton_action_2 %}{% endblock %}
+			</div>
+			
+		</div>
+
+	</div>
+{% endblock %}
