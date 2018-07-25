@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Allees{% endblock %}
+
+{% block body %}
+    <h1>Edit Allees</h1>
+
+    {{ include('allees/_form.html.twig', {'button_label': 'Update'}) }}
+
+    <a href="{{ path('allees_index') }}">back to list</a>
+
+    {{ include('allees/_delete_form.html.twig') }}
+{% endblock %}
