@@ -1,0 +1,11 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New Travees{% endblock %}
+
+{% block body %}
+    <h1>Create new Travees</h1>
+
+    {{ include('travees/_form.html.twig') }}
+
+    <a href="{{ path('travees_index') }}">back to list</a>
+{% endblock %}

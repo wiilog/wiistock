@@ -1,0 +1,30 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}DemandesLivraisons{% endblock %}
+
+{% block body %}
+    <h1>DemandesLivraisons</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ demandes_livraison.id }}</td>
+            </tr>
+            <tr>
+                <th>Date_livraison</th>
+                <td>{{ demandes_livraison.dateLivraison ? demandes_livraison.dateLivraison|date('Y-m-d H:i:s') : '' }}</td>
+            </tr>
+            <tr>
+                <th>Adresse_livraison</th>
+                <td>{{ demandes_livraison.adresseLivraison }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('demandes_livraisons_index') }}">back to list</a>
+
+    <a href="{{ path('demandes_livraisons_edit', {'id': demandes_livraison.id}) }}">edit</a>
+
+    {{ include('demandes_livraisons/_delete_form.html.twig') }}
+{% endblock %}

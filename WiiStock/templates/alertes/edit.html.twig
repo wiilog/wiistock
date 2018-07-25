@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Alertes{% endblock %}
+
+{% block body %}
+    <h1>Edit Alertes</h1>
+
+    {{ include('alertes/_form.html.twig', {'button_label': 'Update'}) }}
+
+    <a href="{{ path('alertes_index') }}">back to list</a>
+
+    {{ include('alertes/_delete_form.html.twig') }}
+{% endblock %}

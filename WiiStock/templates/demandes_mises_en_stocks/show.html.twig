@@ -1,0 +1,26 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}DemandesMisesEnStocks{% endblock %}
+
+{% block body %}
+    <h1>DemandesMisesEnStocks</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ demandes_mises_en_stock.id }}</td>
+            </tr>
+            <tr>
+                <th>Date_mise_en_stock</th>
+                <td>{{ demandes_mises_en_stock.dateMiseEnStock ? demandes_mises_en_stock.dateMiseEnStock|date('Y-m-d H:i:s') : '' }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('demandes_mises_en_stocks_index') }}">back to list</a>
+
+    <a href="{{ path('demandes_mises_en_stocks_edit', {'id': demandes_mises_en_stock.id}) }}">edit</a>
+
+    {{ include('demandes_mises_en_stocks/_delete_form.html.twig') }}
+{% endblock %}

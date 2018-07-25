@@ -1,0 +1,35 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Travees index{% endblock %}
+
+{% block body %}
+    <h1>Travees index</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Nom</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for travee in travees %}
+            <tr>
+                <td>{{ travee.id }}</td>
+                <td>{{ travee.nom }}</td>
+                <td>
+                    <a href="{{ path('travees_show', {'id': travee.id}) }}">show</a>
+                    <a href="{{ path('travees_edit', {'id': travee.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="3">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('travees_new') }}">Create new</a>
+{% endblock %}

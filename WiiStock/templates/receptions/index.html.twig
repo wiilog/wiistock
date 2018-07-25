@@ -1,0 +1,37 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Receptions index{% endblock %}
+
+{% block body %}
+    <h1>Receptions index</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Statut</th>
+                <th>Date_reception</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for reception in receptions %}
+            <tr>
+                <td>{{ reception.id }}</td>
+                <td>{{ reception.statut }}</td>
+                <td>{{ reception.dateReception ? reception.dateReception|date('Y-m-d H:i:s') : '' }}</td>
+                <td>
+                    <a href="{{ path('receptions_show', {'id': reception.id}) }}">show</a>
+                    <a href="{{ path('receptions_edit', {'id': reception.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="4">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('receptions_new') }}">Create new</a>
+{% endblock %}

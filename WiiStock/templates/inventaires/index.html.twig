@@ -1,0 +1,41 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Inventaires index{% endblock %}
+
+{% block body %}
+    <h1>Inventaires index</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Libelle</th>
+                <th>Avancement</th>
+                <th>Date_debut</th>
+                <th>Date_fin</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for inventaire in inventaires %}
+            <tr>
+                <td>{{ inventaire.id }}</td>
+                <td>{{ inventaire.libelle }}</td>
+                <td>{{ inventaire.avancement }}</td>
+                <td>{{ inventaire.dateDebut ? inventaire.dateDebut|date('Y-m-d H:i:s') : '' }}</td>
+                <td>{{ inventaire.dateFin ? inventaire.dateFin|date('Y-m-d H:i:s') : '' }}</td>
+                <td>
+                    <a href="{{ path('inventaires_show', {'id': inventaire.id}) }}">show</a>
+                    <a href="{{ path('inventaires_edit', {'id': inventaire.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="6">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('inventaires_new') }}">Create new</a>
+{% endblock %}

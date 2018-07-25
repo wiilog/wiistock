@@ -1,0 +1,11 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New Emplacements{% endblock %}
+
+{% block body %}
+    <h1>Create new Emplacements</h1>
+
+    {{ include('emplacements/_form.html.twig') }}
+
+    <a href="{{ path('emplacements_index') }}">back to list</a>
+{% endblock %}

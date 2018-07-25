@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Preparations{% endblock %}
+
+{% block body %}
+    <h1>Edit Preparations</h1>
+
+    {{ include('preparations/_form.html.twig', {'button_label': 'Update'}) }}
+
+    <a href="{{ path('preparations_index') }}">back to list</a>
+
+    {{ include('preparations/_delete_form.html.twig') }}
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Inventaires{% endblock %}
+
+{% block body %}
+    <h1>Inventaires</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ inventaire.id }}</td>
+            </tr>
+            <tr>
+                <th>Libelle</th>
+                <td>{{ inventaire.libelle }}</td>
+            </tr>
+            <tr>
+                <th>Avancement</th>
+                <td>{{ inventaire.avancement }}</td>
+            </tr>
+            <tr>
+                <th>Date_debut</th>
+                <td>{{ inventaire.dateDebut ? inventaire.dateDebut|date('Y-m-d H:i:s') : '' }}</td>
+            </tr>
+            <tr>
+                <th>Date_fin</th>
+                <td>{{ inventaire.dateFin ? inventaire.dateFin|date('Y-m-d H:i:s') : '' }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('inventaires_index') }}">back to list</a>
+
+    <a href="{{ path('inventaires_edit', {'id': inventaire.id}) }}">edit</a>
+
+    {{ include('inventaires/_delete_form.html.twig') }}
+{% endblock %}

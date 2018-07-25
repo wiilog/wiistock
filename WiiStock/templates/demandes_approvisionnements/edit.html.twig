@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit DemandesApprovisionnements{% endblock %}
+
+{% block body %}
+    <h1>Edit DemandesApprovisionnements</h1>
+
+    {{ include('demandes_approvisionnements/_form.html.twig', {'button_label': 'Update'}) }}
+
+    <a href="{{ path('demandes_approvisionnements_index') }}">back to list</a>
+
+    {{ include('demandes_approvisionnements/_delete_form.html.twig') }}
+{% endblock %}
