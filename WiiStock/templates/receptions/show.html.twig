@@ -1,0 +1,30 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Receptions{% endblock %}
+
+{% block body %}
+    <h1>Receptions</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ reception.id }}</td>
+            </tr>
+            <tr>
+                <th>Statut</th>
+                <td>{{ reception.statut }}</td>
+            </tr>
+            <tr>
+                <th>Date_reception</th>
+                <td>{{ reception.dateReception ? reception.dateReception|date('Y-m-d H:i:s') : '' }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('receptions_index') }}">back to list</a>
+
+    <a href="{{ path('receptions_edit', {'id': reception.id}) }}">edit</a>
+
+    {{ include('receptions/_delete_form.html.twig') }}
+{% endblock %}

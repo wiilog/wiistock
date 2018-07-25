@@ -1,0 +1,26 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}DemandesTransferts{% endblock %}
+
+{% block body %}
+    <h1>DemandesTransferts</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ demandes_transfert.id }}</td>
+            </tr>
+            <tr>
+                <th>Date_transfert</th>
+                <td>{{ demandes_transfert.dateTransfert ? demandes_transfert.dateTransfert|date('Y-m-d H:i:s') : '' }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('demandes_transferts_index') }}">back to list</a>
+
+    <a href="{{ path('demandes_transferts_edit', {'id': demandes_transfert.id}) }}">edit</a>
+
+    {{ include('demandes_transferts/_delete_form.html.twig') }}
+{% endblock %}

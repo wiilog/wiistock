@@ -1,0 +1,26 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}DemandesApprovisionnements{% endblock %}
+
+{% block body %}
+    <h1>DemandesApprovisionnements</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ demandes_approvisionnement.id }}</td>
+            </tr>
+            <tr>
+                <th>Date_approvisionnement</th>
+                <td>{{ demandes_approvisionnement.dateApprovisionnement ? demandes_approvisionnement.dateApprovisionnement|date('Y-m-d H:i:s') : '' }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('demandes_approvisionnements_index') }}">back to list</a>
+
+    <a href="{{ path('demandes_approvisionnements_edit', {'id': demandes_approvisionnement.id}) }}">edit</a>
+
+    {{ include('demandes_approvisionnements/_delete_form.html.twig') }}
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}DemandesMisesEnStocks index{% endblock %}
+
+{% block body %}
+    <h1>DemandesMisesEnStocks index</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Date_mise_en_stock</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for demandes_mises_en_stock in demandes_mises_en_stocks %}
+            <tr>
+                <td>{{ demandes_mises_en_stock.id }}</td>
+                <td>{{ demandes_mises_en_stock.dateMiseEnStock ? demandes_mises_en_stock.dateMiseEnStock|date('Y-m-d H:i:s') : '' }}</td>
+                <td>
+                    <a href="{{ path('demandes_mises_en_stocks_show', {'id': demandes_mises_en_stock.id}) }}">show</a>
+                    <a href="{{ path('demandes_mises_en_stocks_edit', {'id': demandes_mises_en_stock.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="3">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('demandes_mises_en_stocks_new') }}">Create new</a>
+{% endblock %}

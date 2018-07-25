@@ -1,0 +1,35 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}DemandesTransferts index{% endblock %}
+
+{% block body %}
+    <h1>DemandesTransferts index</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Date_transfert</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for demandes_transfert in demandes_transferts %}
+            <tr>
+                <td>{{ demandes_transfert.id }}</td>
+                <td>{{ demandes_transfert.dateTransfert ? demandes_transfert.dateTransfert|date('Y-m-d H:i:s') : '' }}</td>
+                <td>
+                    <a href="{{ path('demandes_transferts_show', {'id': demandes_transfert.id}) }}">show</a>
+                    <a href="{{ path('demandes_transferts_edit', {'id': demandes_transfert.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="3">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('demandes_transferts_new') }}">Create new</a>
+{% endblock %}

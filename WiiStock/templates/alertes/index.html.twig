@@ -1,0 +1,35 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Alertes index{% endblock %}
+
+{% block body %}
+    <h1>Alertes index</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Description</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for alerte in alertes %}
+            <tr>
+                <td>{{ alerte.id }}</td>
+                <td>{{ alerte.description }}</td>
+                <td>
+                    <a href="{{ path('alertes_show', {'id': alerte.id}) }}">show</a>
+                    <a href="{{ path('alertes_edit', {'id': alerte.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="3">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('alertes_new') }}">Create new</a>
+{% endblock %}

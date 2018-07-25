@@ -1,0 +1,45 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}ChampsPersonnalises index{% endblock %}
+
+{% block body %}
+    <h1>ChampsPersonnalises index</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Nom</th>
+                <th>Type</th>
+                <th>Unicite</th>
+                <th>Valeur_defaut</th>
+                <th>Nullable</th>
+                <th>Entite_cible</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for champs_personnalise in champs_personnalises %}
+            <tr>
+                <td>{{ champs_personnalise.id }}</td>
+                <td>{{ champs_personnalise.nom }}</td>
+                <td>{{ champs_personnalise.type }}</td>
+                <td>{{ champs_personnalise.unicite ? 'Yes' : 'No' }}</td>
+                <td>{{ champs_personnalise.valeurDefaut }}</td>
+                <td>{{ champs_personnalise.nullable ? 'Yes' : 'No' }}</td>
+                <td>{{ champs_personnalise.entiteCible }}</td>
+                <td>
+                    <a href="{{ path('champs_personnalises_show', {'id': champs_personnalise.id}) }}">show</a>
+                    <a href="{{ path('champs_personnalises_edit', {'id': champs_personnalise.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="8">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('champs_personnalises_new') }}">Create new</a>
+{% endblock %}

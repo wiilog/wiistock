@@ -1,0 +1,11 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New Sorties{% endblock %}
+
+{% block body %}
+    <h1>Create new Sorties</h1>
+
+    {{ include('sorties/_form.html.twig') }}
+
+    <a href="{{ path('sorties_index') }}">back to list</a>
+{% endblock %}
