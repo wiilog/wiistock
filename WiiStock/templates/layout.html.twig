@@ -1,33 +1,160 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Layout{% endblock %}
-
 {% block body %}
-	<div class="row">
 
-		<div class="col-1">
-			{% block menu %}
-				
-			{% endblock %}
-		</div>
-		<div class="col-11">
-			<div class="row">
-				{% block filters %}{% endblock %}
-			</div>
+    {% block menu %}
+        <nav>
+            <div id="sidemenu-bg" class="sidemenu-bg hide"></div>
+            <ul id="sidemenu" class="sidemenu">
+                <li>
+                    <a href="#">
+                        <i class="fa fa-user-circle-o"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <i class="fa fa-search"></i>
+                    </a>
+                </li>
+                <li>
+                    <a href="#">
+                        <i class="fa fa-home"></i>
+                    </a>
+                </li>
+                <li class="has-submenu">
+                    <a href="#">
+                        <i class="fa fa-truck"></i>
+                    </a>
+                    <ul class="sidemenu-sub">
+                        <li class="text">
+                            <h4>Activités</h4>
+                        </li>
+                        <li>
+                            <a href="#">• Visualisation stock</a>
+                        </li>
+                        <li>
+                            <a href="#">• Workflow ordre</a>
+                        </li>
+                        <li>
+                            <a href="#">• Créer un ordre</a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="has-submenu">
+                    <a href="#">
+                        <i class="fa fa-bell"></i>
+                    </a>
+                    <ul class="sidemenu-sub">
+                        <li class="text">
+                            <h4>Demandes</h4>
+                        </li>
+                        <li>
+                            <a href="#">• Workflow demande</a>
+                        </li>
+                        <li>
+                            <a href="#">• Créer une demande</a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="has-submenu">
+                    <a href="#">
+                        <i class="fa fa-file-text"></i>
+                    </a>
+                    <ul class="sidemenu-sub">
+                        <li class="text">
+                            <h4>Inventaire</h4>
+                        </li>
+                        <li>
+                            <a href="#">• Liste des inventaires</a>
+                        </li>
+                        <li>
+                            <a href="#">• Suivi de comptage</a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="has-submenu">
+                    <a href="#">
+                        <i class="fa fa-tags"></i>
+                    </a>
+                    <ul class="sidemenu-sub">
+                        <li class="text">
+                            <h4>Historique des transferts</h4>
+                        </li>
+                    </ul>
+                </li>
+                <li class="has-submenu">
+                    <a href="#">
+                        <i class="fa fa-book"></i>
+                    </a>
+                    <ul class="sidemenu-sub">
+                        <li class="text">
+                            <h4>Référenciel</h4>
+                        </li>
+                        <li>
+                            <a href="#">• Client</a>
+                        </li>
+                        <li>
+                            <a href="#">• Fournisseur</a>
+                        </li>
+                        <li>
+                            <a href="#">• Articles</a>
+                        </li>
+                        <li>
+                            <a href="#">• Catégorie d'articles</a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="has-submenu">
+                    <a href="#">
+                        <i class="fa fa-gear"></i>
+                    </a>
+                    <ul class="sidemenu-sub">
+                        <li class="text">
+                            <h4>Paramètres</h4>
+                        </li>
+                        <li>
+                            <a href="#">• Utilisateurs</a>
+                        </li>
+                        <li>
+                            <a href="#">• Groupes de droits</a>
+                        </li>
+                        <li>
+                            <a href="#">• Champs personnalisé</a>
+                        </li>
+                        <li>
+                            <a href="#">• Personnalisation</a>
+                        </li>
+                        <li>
+                            <a href="#">• Alerte de gestion de stock</a>
+                        </li>
+                        <li>
+                            <a href="#">• Dimensionnement</a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+    {% endblock %}
+    <div class="wrapper">
+        <div class="container-fluid">
 
-			<div class="row">
-				{% block bouton_action_1 %}{% endblock %}
-			</div>
-			
-			<div class="row">
-				{% block page_content %}{% endblock %}
-			</div>
-			
-			<div class="row">
-				{% block bouton_action_2 %}{% endblock %}
-			</div>
-			
-		</div>
+            <div class="row">
+			    <div class="col-md-12">
+                {% block filters %}{% endblock %}
+				</div>
+            </div>
 
-	</div>
+            <div class="row">
+                {% block bouton_action_1 %}{% endblock %}
+            </div>
+
+            <div class="row">
+                {% block page_content %}{% endblock %}
+            </div>
+
+            <div class="row">
+                {% block bouton_action_2 %}{% endblock %}
+            </div>
+        </div>
+    </div>
 {% endblock %}

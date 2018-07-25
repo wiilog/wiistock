@@ -1,0 +1,28 @@
+{% extends 'layout.html.twig' %}
+
+{% block page_content %}
+    <div class="row backgray">
+        <div class="col-md-4">
+            <div class="square backblue text-center">
+                <h1>Activités</h1>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="square backblue text-center">
+                <h1>Demandes</h1>
+                <div class="fa fa-bell">
+                    <div class="circle"></div>
+                    <div class="marker">999</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="square backblue text-center">
+                <h1>Alertes de seuil</h1>
+                <div class="fa fa-warning">
+                    <div class="marker">999</div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

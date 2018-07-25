@@ -1,0 +1,216 @@
+/*
+ * CSS 
+ */
+
+ /*
+ * blanc #fcfcfcfc
+ * rouge #CC0000
+ * gris #CCCCCC
+ * bleu #130078
+ */
+ 
+ * {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+html {
+	height: 100%;
+}
+
+body {
+  background: #fcfcfc;
+  font: 14px 'PT Sans', Helvetica, Arial, sans-serif;
+}
+
+
+.pull-right {
+   float: right;
+}
+.hide {
+	display: none !important;
+}
+
+.wrapper {
+	margin-left: 130px;
+	padding: 0px 15px;
+}
+
+/* Side menu
+================= */
+
+.sidemenu-bg {
+	position: fixed;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	background-color: rgba(0,0,0,0.37);
+	z-index: 99;
+}
+
+.sidemenu {
+  padding-top: 0%;
+  padding-bottom: 0%;
+  position: fixed;
+  top: 0;
+  display: table;
+  background-color: #cccccc;
+  z-index: 100;
+  height: 100%;
+  width: 130px;
+}
+
+.sidemenu > li {
+  display: table-row;
+}
+
+.sidemenu > li:hover,
+.sidemenu > li.active {
+   background-color: #CC0000;
+}
+
+.sidemenu > li:first-child > a,
+.sidemenu > li:last-child > a {
+   box-shadow: none;
+}
+
+.sidemenu > li.active .sidemenu-sub {
+   display: table-cell;
+}
+
+.sidemenu > li.full-height {
+	height: 100%;
+  }
+.sidemenu > li.full-height > a {
+   vertical-align: middle;
+}
+.sidemenu > li > a {
+  display: table-cell;
+  height: 71px;
+  width: 130px;
+  color: #fcfcfc;
+  text-align: center;
+  text-decoration: none;
+}
+.sidemenu > li > a:hover {
+  color: #fcfcfc;
+}
+.sidemenu > li > a > .fa {
+	padding-top: 16px;
+	font-size: 48px;
+	line-height: 71px;
+}
+
+.sidemenu > li .sidemenu-sub {
+  display: none;
+  list-style-type: none;
+  background-color: #CC0000;
+  width: 200px;
+  position: absolute;
+  top: 0;
+  left: 100%;
+  bottom: 0;
+  z-index: 101;
+}
+
+.sidemenu > li .sidemenu-sub > li.text,
+.sidemenu > li .sidemenu-sub > li > a {
+  padding: 10.65px 17.75px;
+}
+.sidemenu > li .sidemenu-sub > li.text > h4 {
+  color: #fcfcfc;
+  margin-top: 8px;
+  text-align: center;
+  font-size: 30px;
+}
+.sidemenu > li .sidemenu-sub > li.text > p {
+  color: #fcfcfc;
+}
+
+.sidemenu > li .sidemenu-sub > li.pull-down > a {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  line-height: 71px;
+}
+.sidemenu > li .sidemenu-sub > li > a {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fcfcfc;
+}
+ .sidemenu > li .sidemenu-sub > li > a:hover {
+  color: #424242;
+  text-decoration: none;
+  background-color: #dbdbdb;
+}
+.sidemenu > li .sidemenu-sub > li > a > .fa {
+  margin-top: 2px;
+}
+
+/* Accueil
+================= */
+
+.backgray {
+	background: #CCCCCC;
+	margin-top: 10px;
+	padding: 15px;
+}
+
+.backblue {
+	background: #130078;
+}
+
+.square {
+	color: #fcfcfc;
+	display: block;
+	margin: auto;
+	width: 300px;
+	height: 300px;
+}
+
+.square h1 {
+	text-align: left;
+	padding-top: 15px;
+	padding-left: 15px;
+}
+
+.square .fa {
+	position: relative;
+	font-size: 128px;
+	padding-top: 13%;
+}
+
+.square .marker {
+	position: absolute;
+	top: 37px;
+	right: 10px;
+	font-size: 28px;
+	font-weight: 600;
+	color: #000;
+	background-color: #fcfcfc;
+	border: #130078 2px solid;
+	display: inline-block;
+	border-radius: 48px;
+	line-height: 48px;
+	min-width: 48px;
+	text-align: center;
+}
+
+.square .circle {
+	position: absolute;
+	top: 15px;
+	right: -25px;
+	min-height: 180px;
+	min-width: 180px;
+	color: #000;
+	background-color: transparent;
+	border: #fcfcfc 7px solid;
+	display: inline-block;
+	border-radius: 300px;
+}
