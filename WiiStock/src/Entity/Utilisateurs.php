@@ -9,8 +9,10 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\UtilisateursRepository")
+ * @UniqueEntity(fields="email", message="Email déjà utilisé.")
+ * @UniqueEntity(fields="username", message="Username déjà utilisé.")
  */
-class Utilisateurs
+class Utilisateurs implements UserInterface
 {
     /**
      * @ORM\Id()
@@ -34,7 +36,6 @@ class Utilisateurs
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Assert\NotBlank()
      */
     private $password;
 
@@ -47,15 +48,25 @@ class Utilisateurs
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Groupes")
-     * @ORM\JoinColumn(nullable=false)
+     * @ORM\JoinColumn(nullable=true)
      */
     private $groupe;
 
     /**
+     * @ORM\Column(type="array")
+     */
+    private $roles;
+
+    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Themes")
-     * @ORM\JoinColumn(nullable=false)
+     * @ORM\JoinColumn(nullable=true)
      */
     private $theme;
+
+    public function __construct()
+    {
+        $this->roles = array('ROLE_USER');
+    }
 
     public function getId()
     {
@@ -130,5 +141,28 @@ class Utilisateurs
         $this->theme = $theme;
 
         return $this;
+    }
+
+    public function getSalt()
+    {
+        // you *may* need a real salt depending on your encoder
+        // see section on salt below
+        return null;
+    }
+
+    public function getRoles()
+    {
+        return $this->roles;
+    }
+
+    public function setRoles(array $roles): self
+    {
+        $this->roles = $roles;
+
+        return $this;
+    }
+
+    public function eraseCredentials()
+    {
     }
 }
