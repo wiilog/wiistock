@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
- * @Route("/champs/personnalises")
+ * @Route("/champs_personnalises")
  */
 class ChampsPersonnalisesController extends Controller
 {

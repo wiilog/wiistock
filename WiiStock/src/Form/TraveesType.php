@@ -6,6 +6,7 @@ use App\Entity\Travees;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 
 class TraveesType extends AbstractType
 {
@@ -13,7 +14,11 @@ class TraveesType extends AbstractType
     {
         $builder
             ->add('nom')
-            ->add('allee')
+            ->add('allee', EntityType::class, array(
+                'class' => 'App\Entity\Allees',
+                'choice_label' => 'nom',
+                'multiple' => false,
+                ))
         ;
     }
 

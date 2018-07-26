@@ -25,8 +25,21 @@ class ReceptionsType extends AbstractType
                 'choice_label' => 'nom',
                 'multiple' => false,
                 ))
-            ->add('commande_fournisseur')
-            ->add('historique')
+            ->add('commande_fournisseur', EntityType::class, array(
+                'class' => 'App\Entity\CommandesFournisseurs',
+                'choice_label' => 'libelle',
+                'multiple' => false,
+                ))
+            ->add('historique', EntityType::class, array(
+                'class' => 'App\Entity\Historiques',
+                'choice_label' => 'id',
+                'multiple' => false,
+                ))
+            ->add('ordre', EntityType::class, array(
+                'class' => 'App\Entity\Ordres',
+                'choice_label' => 'id',
+                'multiple' => false,
+            ))
         ;
     }
 
