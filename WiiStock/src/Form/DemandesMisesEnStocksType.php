@@ -6,6 +6,7 @@ use App\Entity\DemandesMisesEnStocks;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 
 class DemandesMisesEnStocksType extends AbstractType
 {
@@ -13,7 +14,11 @@ class DemandesMisesEnStocksType extends AbstractType
     {
         $builder
             ->add('date_mise_en_stock')
-            ->add('emplacement')
+            ->add('emplacement', EntityType::class, array(
+                'class' => 'App\Entity\Quais',
+                'choice_label' => 'nom',
+                'multiple' => false,
+                ))
             ->add('demande')
         ;
     }

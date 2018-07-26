@@ -6,6 +6,7 @@ use App\Entity\Entrees;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 
 class EntreesType extends AbstractType
 {
@@ -15,7 +16,11 @@ class EntreesType extends AbstractType
             ->add('statut')
             ->add('quantite')
             ->add('date_entree')
-            ->add('quai_entree')
+            ->add('quai_entree', EntityType::class, array(
+                'class' => 'App\Entity\Quais',
+                'choice_label' => 'nom',
+                'multiple' => false,
+                ))
             ->add('article')
             ->add('reception')
             ->add('historique')

@@ -6,6 +6,7 @@ use App\Entity\Clients;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Form\Extension\Core\Type\TelType;
 
 class ClientsType extends AbstractType
 {
@@ -15,7 +16,7 @@ class ClientsType extends AbstractType
             ->add('nom')
             ->add('adresse')
             ->add('adresse_livraison')
-            ->add('tel')
+            ->add('tel', TelType::class)
         ;
     }
 

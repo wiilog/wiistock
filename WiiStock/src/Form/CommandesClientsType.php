@@ -6,6 +6,7 @@ use App\Entity\CommandesClients;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 
 class CommandesClientsType extends AbstractType
 {
@@ -14,7 +15,11 @@ class CommandesClientsType extends AbstractType
         $builder
             ->add('libelle')
             ->add('date_commande')
-            ->add('client')
+            ->add('client', EntityType::class, array(
+                'class' => 'App\Entity\Clients',
+                'choice_label' => 'nom',
+                'multiple' => false,
+                ))
         ;
     }
 
