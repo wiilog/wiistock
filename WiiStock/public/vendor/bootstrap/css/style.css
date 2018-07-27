@@ -10,20 +10,42 @@
  */
  
  * {
+	box-sizing: border-box;
 	margin: 0;
 	padding: 0;
-	box-sizing: border-box;
 }
 
 html {
 	height: 100%;
+	overflow: hidden;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 16px;
 }
 
 body {
   background: #fcfcfc;
-  font: 14px 'PT Sans', Helvetica, Arial, sans-serif;
 }
 
+h1, h2, p {
+	color: #000;
+}
+
+h1 {
+	font-size: 28px;
+}
+
+a, a:hover, a:link, a:visited{
+	text-decoration: none;
+	color: #fcfcfc;
+}
+
+.in {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
 
 .pull-right {
    float: right;
@@ -35,6 +57,63 @@ body {
 .wrapper {
 	margin-left: 130px;
 	padding: 0px 15px;
+}
+
+/* Color
+================= */
+.backred {
+	background-color: #970000;
+}
+
+.backgreen {
+	background-color: #00b31e;
+}
+
+.backblue {
+	background-color: #130078;
+}
+
+.backorange {
+	background-color: #ffbc02;
+}
+
+.backviolet {
+	background-color: #b700ff;
+}
+
+/* Button
+================= */
+
+.button {
+	text-align: center;
+	text-decoration: none;
+	border: none;
+	display: inline-block;
+	background: #130078;
+	color: #fcfcfc;
+	border-radius: 50px;
+	padding: 10px 25px 10px 25px;
+	font-size: 18px;
+	border: #130078 1.5px solid;
+
+}
+
+.btn-right .fa{
+	font-size: 24px;
+	padding-left: 15px;
+	vertical-align: bottom;
+}
+
+.btn-left .fa{
+	font-size: 24px;
+	padding-right: 15px;
+	vertical-align: bottom;
+}
+
+.button:hover{
+	background: transparent;
+	color: #130078;
+	transition: 0.3s;
 }
 
 /* Side menu
@@ -92,7 +171,6 @@ body {
   width: 130px;
   color: #fcfcfc;
   text-align: center;
-  text-decoration: none;
 }
 .sidemenu > li > a:hover {
   color: #fcfcfc;
@@ -146,7 +224,6 @@ body {
 }
  .sidemenu > li .sidemenu-sub > li > a:hover {
   color: #424242;
-  text-decoration: none;
   background-color: #dbdbdb;
 }
 .sidemenu > li .sidemenu-sub > li > a > .fa {
@@ -157,42 +234,41 @@ body {
 ================= */
 
 .backgray {
-	background: #CCCCCC;
+	background: #999999;
 	margin-top: 10px;
 	padding: 15px;
 }
 
-.backblue {
-	background: #130078;
+.square-size {
+	height: 300px;
 }
 
 .square {
 	color: #fcfcfc;
 	display: block;
-	margin: auto;
-	width: 300px;
-	height: 300px;
+	margin: 30px 95px;
+	border: #000 solid 1px;
 }
 
 .square h1 {
 	text-align: left;
-	padding-top: 15px;
 	padding-left: 15px;
+	color: #fcfcfc;
 }
 
 .square .fa {
 	position: relative;
-	font-size: 128px;
-	padding-top: 13%;
+	font-size: 110px;
+	padding-top: 8%;
 }
 
 .square .marker {
 	position: absolute;
-	top: 37px;
-	right: 10px;
-	font-size: 28px;
+	top: 20px;
+	font-size: 20px;
 	font-weight: 600;
 	color: #000;
+	font-family: Arial, Helvetica, sans-serif;
 	background-color: #fcfcfc;
 	border: #130078 2px solid;
 	display: inline-block;
@@ -204,13 +280,134 @@ body {
 
 .square .circle {
 	position: absolute;
-	top: 15px;
+	top: 0px;
 	right: -25px;
-	min-height: 180px;
-	min-width: 180px;
+	min-height: 160px;
+	min-width: 160px;
 	color: #000;
 	background-color: transparent;
 	border: #fcfcfc 7px solid;
 	display: inline-block;
 	border-radius: 300px;
+}
+
+.square a:hover {
+  color: #CC0000;
+}
+
+.dummy {
+	height: 280px;
+}
+
+.box {
+	color: #fcfcfc;
+	display: block;
+	margin: 20px 30px;
+	border: #000 solid 1px;
+}
+.box h1 {
+	margin-left: 5px;
+	font-size: 20px;
+}
+
+.box input {
+	color: #000;
+	text-align: center;
+	margin-top: 75%;
+	margin-left: 12%;
+	border: none;
+	font-size: 24px;
+	background: #fcfcfc;
+}
+
+.date {
+	background-position: center;
+	background-image: url("../../img/calendrier.png");
+	background-size: 92%;
+	background-repeat: no-repeat;
+}
+
+.graph-container {
+  height: 560px;
+}
+
+.graph-container + .in h1 {
+	margin-top: 40px;
+	margin-left: 20px;
+	margin-bottom: 46px;
+}
+
+/* Workflow
+================= */
+
+.workflow-wrap {
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
+}
+
+.workflow-content {
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	margin-right: 0;
+}
+
+.board-canvas {
+	position: relative;
+	flex-grow: 1;
+}
+
+.workflow-sidebar {
+	overflow-y: scroll;
+  padding: 10px;
+}
+
+.workflow-sidebar::-webkit-scrollbar {
+  width: 10px;
+  background-color: #130078;
+}
+
+.workflow-sidebar::-webkit-scrollbar-thumb {
+  background-color: #7FDBFF;
+  background-image: -webkit-linear-gradient(45deg, rgba(255, 255, 255, .2) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .2) 50%, rgba(255, 255, 255, .2) 75%, transparent 75%, transparent)
+}
+
+.vignette {
+	margin: auto;
+	border: #000 2px solid;
+}
+
+
+.gommette {
+	margin-top: 15%;
+	min-height: 50px;
+	min-width: 50px;
+	color: #000;
+	display: inline-block;
+	border-radius: 60px;
+}
+
+.arrow-open {
+	margin-top: 50%;
+	color: #000;
+	min-height: 50px;
+	min-width: 50px;
+	background-color: #8d8d8d;
+	border-radius: 60px;
+	border: #000 2px solid;
+	cursor: pointer;
+}
+
+.vignette .fa{
+	font-size: 36px;
+	text-align: center;
+	padding-top: 3px;
+}
+
+.vignette h3 {
+	text-align: center;
+	margin-top: 25%;
 }

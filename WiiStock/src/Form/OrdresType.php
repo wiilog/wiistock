@@ -6,6 +6,7 @@ use App\Entity\Ordres;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 
 class OrdresType extends AbstractType
 {
@@ -15,7 +16,11 @@ class OrdresType extends AbstractType
             ->add('statut')
             ->add('type')
             ->add('date_ordre')
-            ->add('auteur')
+            ->add('auteur', EntityType::class, array(
+                'class' => 'App\Entity\Utilisateurs',
+                'choice_label' => 'username',
+                'multiple' => false,
+                ))
         ;
     }
 

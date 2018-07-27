@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use App\Repository\OrdresRepository;
 
 /**
  * @Route("/ordre")
@@ -13,10 +14,13 @@ class OrdreController extends Controller
     /**
      * @Route("/workflow", name="ordre_workflow")
      */
-    public function workflow()
+    public function workflow(OrdresRepository $ordresRepository)
     {
+        $ordres = $ordresRepository->findAll();
+
         return $this->render('ordre/workflow.html.twig', [
             'controller_name' => 'OrdreController',
+            'ordres' => $ordres,
         ]);
     }
     
