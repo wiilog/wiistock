@@ -17,7 +17,7 @@ class DemandesReferences
     private $id;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\References")
+     * @ORM\ManyToOne(targetEntity="App\Entity\ReferencesArticles")
      * @ORM\JoinColumn(nullable=false)
      */
     private $reference;
@@ -38,12 +38,12 @@ class DemandesReferences
         return $this->id;
     }
 
-    public function getReference(): ?References
+    public function getReference(): ?ReferencesArticles
     {
         return $this->reference;
     }
 
-    public function setReference(?References $reference): self
+    public function setReference(?ReferencesArticles $reference): self
     {
         $this->reference = $reference;
 

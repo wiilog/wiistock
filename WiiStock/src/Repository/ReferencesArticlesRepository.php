@@ -2,25 +2,25 @@
 
 namespace App\Repository;
 
-use App\Entity\References;
+use App\Entity\ReferencesArticles;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
- * @method References|null find($id, $lockMode = null, $lockVersion = null)
- * @method References|null findOneBy(array $criteria, array $orderBy = null)
- * @method References[]    findAll()
- * @method References[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method ReferencesArticles|null find($id, $lockMode = null, $lockVersion = null)
+ * @method ReferencesArticles|null findOneBy(array $criteria, array $orderBy = null)
+ * @method ReferencesArticles[]    findAll()
+ * @method ReferencesArticles[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class ReferencesRepository extends ServiceEntityRepository
+class ReferencesArticlesRepository extends ServiceEntityRepository
 {
     public function __construct(RegistryInterface $registry)
     {
-        parent::__construct($registry, References::class);
+        parent::__construct($registry, ReferencesArticles::class);
     }
 
 //    /**
-//     * @return References[] Returns an array of References objects
+//     * @return ReferencesArticles[] Returns an array of ReferencesArticles objects
 //     */
     /*
     public function findByExampleField($value)
@@ -37,7 +37,7 @@ class ReferencesRepository extends ServiceEntityRepository
     */
 
     /*
-    public function findOneBySomeField($value): ?References
+    public function findOneBySomeField($value): ?ReferencesArticles
     {
         return $this->createQueryBuilder('r')
             ->andWhere('r.exampleField = :val')

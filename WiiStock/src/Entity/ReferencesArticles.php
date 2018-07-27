@@ -5,9 +5,9 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity(repositoryClass="App\Repository\ReferencesRepository")
+ * @ORM\Entity(repositoryClass="App\Repository\ReferencesArticlesRepository")
  */
-class References
+class ReferencesArticles
 {
     /**
      * @ORM\Id()
@@ -29,7 +29,7 @@ class References
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $image;
+    private $photo_article;
 
     public function getId()
     {
@@ -60,14 +60,14 @@ class References
         return $this;
     }
 
-    public function getImage(): ?string
+    public function getPhotoArticle(): ?string
     {
-        return $this->image;
+        return $this->photo_article;
     }
 
-    public function setImage(?string $image): self
+    public function setPhotoArticle(?string $photo_article): self
     {
-        $this->image = $image;
+        $this->photo_article = $photo_article;
 
         return $this;
     }

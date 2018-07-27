@@ -1,0 +1,39 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}ReferencesArticles index{% endblock %}
+
+{% block body %}
+    <h1>ReferencesArticles index</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Libelle</th>
+                <th>Description</th>
+                <th>Photo_article</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for references_article in references_articles %}
+            <tr>
+                <td>{{ references_article.id }}</td>
+                <td>{{ references_article.libelle }}</td>
+                <td>{{ references_article.description }}</td>
+                <td>{{ references_article.photoArticle }}</td>
+                <td>
+                    <a href="{{ path('references_articles_show', {'id': references_article.id}) }}">show</a>
+                    <a href="{{ path('references_articles_edit', {'id': references_article.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="5">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('references_articles_new') }}">Create new</a>
+{% endblock %}

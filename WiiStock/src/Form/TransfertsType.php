@@ -17,12 +17,12 @@ class TransfertsType extends AbstractType
             ->add('quantite')
             ->add('date_transfert')
             ->add('emplacement_debut', EntityType::class, array(
-                'class' => 'App\Entity\Quais',
+                'class' => 'App\Entity\Emplacements',
                 'choice_label' => 'nom',
                 'multiple' => false,
                 ))
             ->add('emplacement_fin', EntityType::class, array(
-                'class' => 'App\Entity\Quais',
+                'class' => 'App\Entity\Emplacements',
                 'choice_label' => 'nom',
                 'multiple' => false,
                 ))

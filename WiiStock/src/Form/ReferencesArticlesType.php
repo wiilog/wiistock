@@ -2,26 +2,26 @@
 
 namespace App\Form;
 
-use App\Entity\References;
+use App\Entity\ReferencesArticles;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
-class ReferencesType extends AbstractType
+class ReferencesArticlesType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
             ->add('libelle')
             ->add('description')
-            ->add('image')
+            ->add('photo_article')
         ;
     }
 
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults([
-            'data_class' => References::class,
+            'data_class' => ReferencesArticles::class,
         ]);
     }
 }

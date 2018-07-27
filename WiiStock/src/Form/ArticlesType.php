@@ -30,7 +30,7 @@ class ArticlesType extends AbstractType
                 'multiple' => false,
                 ))
             ->add('reference', EntityType::class, array(
-                'class' => 'App\Entity\References',
+                'class' => 'App\Entity\ReferencesArticles',
                 'choice_label' => 'description',
                 'multiple' => false,
                 ))
