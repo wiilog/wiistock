@@ -1,20 +1,75 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout.html.twig' %}
 
-{% block title %}Hello {{ controller_name }}!{% endblock %}
+{% block title %}Visualisation du stock{% endblock %}
 
-{% block body %}
-<style>
-    .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
-    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
-</style>
+{% block page_content %}
 
-<div class="example-wrapper">
-    <h1>Hello {{ controller_name }}! ✅</h1>
+	<div class="row backgray">
+        <a href="#" class="button btn-right">
+        	Filtrer<span class="fa fa-angle-double-right"></span>
+        </a>
+    </div>
 
-    This friendly message is coming from:
-    <ul>
-        <li>Your controller at <code><a href="{{ 'src/Controller/StockController.php'|file_link(0) }}">src/Controller/StockController.php</a></code></li>
-        <li>Your template at <code><a href="{{ 'templates/stock/index.html.twig'|file_link(0) }}">templates/stock/index.html.twig</a></code></li>
-    </ul>
-</div>
+    <div class="row btn-grp">
+        <a href="#" class="button btn-left">
+        	<span class="fa fa-eye"></span>Visualisation 2D
+        </a>
+        <a href="#" class="button btn-left">
+        	<span class="fa fa-dollar"></span>Valorisation du stock
+        </a>
+    </div>
+
+    <table id="grid-data" class="table table-condensed table-hover" data-toggle="bootgrid">
+    	<thead>
+    		<tr>
+	    		<th data-column-id="ref">Réf. article</th>
+	    		<th data-column-id="sku">SKU</th>
+	    		<th data-column-id="libelle">Libellé</th>
+	    		<th data-column-id="qte">Qté</th>
+	    		<th data-column-id="commands" data-formatter="commands" data-sortable="false">Détail</th>
+    		</tr>
+    	</thead>
+    	
+       	<tr>
+    		<td>136737541</td>
+    		<td>251</td>
+    		<td>Iphone 1</td>
+    		<td>41</td>
+    		<td>
+    			<a href="#" class="button btn-right fa fa-star">
+        		</a>
+    		</td>
+    	</tr>
+   	  	<tr>
+    		<td>136737542</td>
+    		<td>252</td>
+    		<td>Iphone 2</td>
+    		<td>42</td>
+    		<td></td>
+    	</tr>
+       	<tr>
+    		<td>136737543</td>
+    		<td>253</td>
+    		<td>Iphone 3</td>
+    		<td>43</td>
+    		<td></td>
+    	</tr>
+       	<tr>
+    		<td>136737544</td>
+    		<td>254</td>
+    		<td>Iphone 4</td>
+    		<td>44</td>
+    		<td></td>
+    	</tr>    	
+    </table>
+
+
+	<div class="row">
+		<div class="col-md-12">
+            <a href="#" class="button btn-left pull-left">
+                <span class="fa fa-angle-double-left"></span>Retour</a>
+            <a href="#" class="button btn-left pull-right">
+                <span class="fa fa-cloud-download"></span>Télécharger</a>
+        </div>
+    </div>
 {% endblock %}

@@ -18,7 +18,7 @@ class ReferencesFournisseursType extends AbstractType
             ->add('dimension')
             ->add('description')
             ->add('reference', EntityType::class, array(
-                'class' => 'App\Entity\References',
+                'class' => 'App\Entity\ReferencesArticles',
                 'choice_label' => 'id',
                 'multiple' => false,
                 ))

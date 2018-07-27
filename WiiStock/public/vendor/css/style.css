@@ -116,6 +116,88 @@ a, a:hover, a:link, a:visited{
 	transition: 0.3s;
 }
 
+.btn-grp {
+	margin: 50px 5px;
+	padding: 10px 25px 10px 25px;
+}
+
+.btn-grp .button {
+	margin: 0px 10px;
+}
+
+/* Table
+================= */
+
+.table, th, td {
+   border: 1px solid black;
+    border-collapse: collapse;
+}
+
+.table thead tr th {
+	text-align: center;
+	border-bottom: 1px solid #000000;
+}
+
+
+
+/* Pagination
+================= */
+
+
+
+.pagination .button {
+	border-radius: 50px;
+	margin: 0px 3px;
+	color: #000000;
+	border-color: #000000;
+
+}
+
+.pagination .last a, .pagination .next a, .pagination .prev a, .pagination .first a {
+	background-color: #ffbc02;
+	color: #fcfcfcfc;
+	border-color: #ffbc02;
+}
+
+.pagination .last a:hover, .pagination .next a:hover, .pagination .prev a:hover, .pagination .first a:hover {
+	background-color: #fcfcfcfc;
+	color: #ffbc02;
+	border-color: #ffbc02;
+}
+
+.pagination .active a {
+	color: #000000;
+	border-color: #000000;
+	background-color: #cccccc;
+}
+
+.pagination .active a:hover {
+	color: #000000;
+	border-color: #000000;
+	background-color: #cccccc;
+}
+
+.pagination li a:hover {
+	color: #fcfcfcfc;
+	border-color: #cccccc;
+	background-color: #cccccc;
+}
+
+.pagination li:last-child a, .pagination li:last-child span, .pagination li:first-child a, .pagination li:first-child span {
+	border-radius: 50px;
+}
+
+.pagination .disabled a {
+	background-color: #e8c35a;
+	border-color: #e8c35a;
+}
+
+.pagination .disabled a:hover {
+	background-color: #e8c35a;
+	border-color: #e8c35a;
+	color: #fcfcfcfc
+}
+
 /* Side menu
 ================= */
 

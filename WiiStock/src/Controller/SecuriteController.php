@@ -18,7 +18,7 @@ class SecuriteController extends Controller
      * @Route("/", name="default")
      */
     public function index() {
-        return  $this->redirectToRoute('accueil');
+        return  $this->redirectToRoute('login');
     }
 
     /**

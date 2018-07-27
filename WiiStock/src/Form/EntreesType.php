@@ -36,6 +36,11 @@ class EntreesType extends AbstractType
                 'choice_label' => 'id',
                 'multiple' => false,
                 ))
+            ->add('ordre', EntityType::class, array(
+                'class' => 'App\Entity\Ordres',
+                'choice_label' => 'id',
+                'multiple' => false,
+                ))
         ;
     }
 
