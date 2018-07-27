@@ -1,5 +1,7 @@
 {% extends 'layout.html.twig' %}
 
+{% block title %}Workflow{% endblock %}
+
 {% block page_content %}
 
     <div class="row backgray">
@@ -8,32 +10,87 @@
     </div>
 
     {# {% for ordre in ordres %} #}
-
-    <div class="workflow-wrap">
-        <div class="workflow-content">
-            <div class="board-canvas">
+    <div class="row">
+        <div class="workflow-wrap">
+            <div class="workflow-content">
                 <div class="list-wrapper">
                     <div class="list">
                         <div class="list-header">Ordre</div>
                         <div class="list-cards workflow-sidebar">
-                            {# {% if ordre.statut == "A traiter" %} #}
                             <div class="card">
                                 <div class="card-details">
                                     <h3>Transfert</h3>
                                     <h4>01/11/2018</h4>
-                                    <span class="gommette backviolet"></span>
+                                    <span class="gommette backorange"></span>
+                                    <span class="card-name">Renon</span>
+                                </div>
+                                <a class="arrow-open fa fa-angle-double-right"></a>
+                            </div>
+                            <div class="card">
+                                <div class="card-details">
+                                    <h3>Préparations</h3>
+                                    <h4>01/11/2018</h4>
+                                    <span class="gommette backblue"></span>
+                                    <span class="card-name">Renon</span>
+                                </div>
+                                <a class="arrow-open fa fa-angle-double-right"></a>
+                            </div>
+                            <div class="card">
+                                <div class="card-details">
+                                    <h3>Transfert</h3>
+                                    <h4>01/11/2018</h4>
+                                    <span class="gommette backorange"></span>
+                                    <span class="card-name">Renon</span>
+                                </div>
+                                <a class="arrow-open fa fa-angle-double-right"></a>
+                            </div>
+                            <div class="card">
+                                <div class="card-details">
+                                    <h3>Transfert</h3>
+                                    <h4>01/11/2018</h4>
+                                    <span class="gommette backorange"></span>
+                                    <span class="card-name">Renon</span>
+                                </div>
+                                <a class="arrow-open fa fa-angle-double-right"></a>
+                            </div>
+                            <div class="card">
+                                <div class="card-details">
+                                    <h3>Transfert</h3>
+                                    <h4>01/11/2018</h4>
+                                    <span class="gommette backorange"></span>
+                                    <span class="card-name">Renon</span>
+                                </div>
+                                <a class="arrow-open fa fa-angle-double-right"></a>
+                            </div>
+                            <div class="card">
+                                <div class="card-details">
+                                    <h3>Transfert</h3>
+                                    <h4>01/11/2018</h4>
+                                    <span class="gommette backorange"></span>
+                                    <span class="card-name">Renon</span>
+                                </div>
+                                <a class="arrow-open fa fa-angle-double-right"></a>
+                            </div>
+                            <div class="card">
+                                <div class="card-details">
+                                    <h3>Transfert</h3>
+                                    <h4>01/11/2018</h4>
+                                    <span class="gommette backorange"></span>
                                     <span class="card-name">Renon</span>
                                 </div>
                                 <a class="arrow-open fa fa-angle-double-right"></a>
                             </div>
                         </div>
+                        <a class="list-footer" href="#">
+                            <span class="fa fa-plus"></span>
+                            Ajouter une nouvel ordre
+                        </a>
                     </div>
                 </div>
                 <div class="list-wrapper">
                     <div class="list">
                         <div class="list-header">En cours de traîtement</div>
                         <div class="list-cards workflow-sidebar">
-                            {# {% if ordre.statut == "A traiter" %} #}
                             <div class="card">
                                 <div class="card-details">
                                     <h3>Sortie</h3>
@@ -44,13 +101,13 @@
                                 <a class="arrow-open fa fa-angle-double-right"></a>
                             </div>
                         </div>
+                        <a class="list-footer"></a>
                     </div>
                 </div>
                 <div class="list-wrapper">
                     <div class="list">
                         <div class="list-header">Traitées</div>
                         <div class="list-cards workflow-sidebar">
-                            {# {% if ordre.statut == "A traiter" %} #}
                             <div class="card">
                                 <div class="card-details">
                                     <h3>Entrée</h3>
@@ -61,12 +118,14 @@
                                 <a class="arrow-open fa fa-angle-double-right"></a>
                             </div>
                         </div>
+                        <a class="list-footer"></a>
                     </div>
                 </div>
-                {# {% endfor %} #}
             </div>
         </div>
     </div>
+    {# {% endfor %} #}
+
     <div class="row">
         <div class="col-md-4">
             <a href="#" class="button btn-left">

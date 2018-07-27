@@ -1,39 +1,91 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout.html.twig' %}
 
-{% block title %}Historiques index{% endblock %}
+{% block title %}Historique des transferts{% endblock %}
 
-{% block body %}
-    <h1>Historiques index</h1>
+{% block page_content %}
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Date_debut</th>
-                <th>Date_fin</th>
-                <th>Type_mouvement</th>
-                <th>actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for historique in historiques %}
-            <tr>
-                <td>{{ historique.id }}</td>
-                <td>{{ historique.dateDebut ? historique.dateDebut|date('Y-m-d H:i:s') : '' }}</td>
-                <td>{{ historique.dateFin ? historique.dateFin|date('Y-m-d H:i:s') : '' }}</td>
-                <td>{{ historique.typeMouvement }}</td>
-                <td>
-                    <a href="{{ path('historiques_show', {'id': historique.id}) }}">show</a>
-                    <a href="{{ path('historiques_edit', {'id': historique.id}) }}">edit</a>
-                </td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="5">no records found</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+    <div class="row backgray">
+        <form class="form-inline">
+            <div class="form-group">
+                <select class="form-control">
+                    <option>Site1</option>
+                    <option>Site2</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <select class="form-control">
+                    <option>Emplacement1</option>
+                    <option>Emplacement2</option>
+                </select>
+            </div>
 
-    <a href="{{ path('historiques_new') }}">Create new</a>
+            <div class="input-group daterange">
+                <div class="input-group-addon">De</div>
+                <input type="text" class="form-control">
+                <div class="input-group-addon">à</div>
+                <input type="text" class="form-control">
+            </div>
+        <a href="#" class="button btn-right pull-right">
+            Filtrer<span class="fa fa-angle-double-right"></span></a>
+        </form>
+    </div>
+
+    <div class="row legende"></div>
+
+    <div class="row">
+        <h1>Historiques index</h1>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Date_debut</th>
+                    <th>Date_fin</th>
+                    <th>Type_mouvement</th>
+                    <th>actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for historique in historiques %}
+                    <tr>
+                        <td>{{ historique.id }}</td>
+                        <td>{{ historique.dateDebut ? historique.dateDebut|date('Y-m-d H:i:s') : '' }}</td>
+                        <td>{{ historique.dateFin ? historique.dateFin|date('Y-m-d H:i:s') : '' }}</td>
+                        <td>{{ historique.typeMouvement }}</td>
+                        <td>
+                            <a href="{{ path('historiques_show', {'id': historique.id}) }}">show</a>
+                            <a href="{{ path('historiques_edit', {'id': historique.id}) }}">edit</a>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="5">no records found</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <a href="{{ path('historiques_new') }}">Create new</a>
+
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <a href="#" class="button btn-left">
+                <span class="fa fa-angle-double-left"></span>Retour</a>
+        </div>
+        <div class="col-md-6">
+            <a href="#" class="button btn-left pull-right">
+                <span class="fa fa fa-download"></span>Exporter</a>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block javascripts %}
+    <script type="text/javascript">
+        $('.daterange input').each(function () {
+            $(this).datepicker('clearDates');
+        });
+    </script>
 {% endblock %}

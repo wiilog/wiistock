@@ -1,13 +1,4 @@
 $(document).ready(function () {
-
-    $( ".datepicker" ).datepicker({
-        language: 'fr',
-		format: 'dd/mm/yyyy',
-		todayBtn: true,
-		todayHighlight: true,
-		autoclose: true,
-    });
-
     /**
      * menu
      */
@@ -71,66 +62,4 @@ $(document).ready(function () {
 
     }).call(this);
 
-    /**
-    * Chart
-    */
-    var randomScalingFactor = function() {
-        return Math.round(Math.random() * 100);
-    };
-
-    var ctx = document.getElementById("graph").getContext('2d');
-    var graph = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"],
-            datasets: [{
-                label: 'Entrée',
-                fill: false,
-                backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                borderColor: 'rgba(255,99,132,1)',
-                data: [
-                    randomScalingFactor(),
-                    randomScalingFactor(),
-                    randomScalingFactor(),
-                    randomScalingFactor(),
-                    randomScalingFactor(),
-                    randomScalingFactor(),
-                    randomScalingFactor(),
-                    randomScalingFactor(),
-                    randomScalingFactor(),
-                    randomScalingFactor(),
-                    randomScalingFactor(),
-                    randomScalingFactor()
-                ]
-            }, {
-                label: 'Sortie',
-                fill: false,
-                backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                borderColor: 'rgba(54, 162, 235, 1)',
-                data: [
-                    randomScalingFactor(),
-                    randomScalingFactor(),
-                    randomScalingFactor(),
-                    randomScalingFactor(),
-                    randomScalingFactor(),
-                    randomScalingFactor(),
-                    randomScalingFactor(),
-                    randomScalingFactor(),
-                    randomScalingFactor(),
-                    randomScalingFactor(),
-                    randomScalingFactor(),
-                    randomScalingFactor()
-                ],
-            }]
-        },
-        options: {
-            scales: {
-                yAxes: [{
-                    ticks: {
-                        beginAtZero: true
-                    }
-                }]
-            }
-        }
-    });
 });

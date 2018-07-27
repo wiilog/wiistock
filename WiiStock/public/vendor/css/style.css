@@ -17,7 +17,7 @@
 
 html {
 	height: 100%;
-	overflow: hidden;
+	overflow: auto;
 	font-family: Arial, Helvetica, sans-serif;
 	font-size: 16px;
 }
@@ -36,7 +36,6 @@ h1 {
 
 a, a:hover, a:link, a:visited{
 	text-decoration: none;
-	color: #fcfcfc;
 }
 
 .in {
@@ -95,7 +94,7 @@ a, a:hover, a:link, a:visited{
 	padding: 10px 25px 10px 25px;
 	font-size: 18px;
 	border: #130078 1.5px solid;
-
+	margin: 5px;
 }
 
 .btn-right .fa{
@@ -341,7 +340,7 @@ a, a:hover, a:link, a:visited{
 ================= */
 
 .workflow-wrap {
-	margin: 2% 0;
+	margin: 2% 1%;
 	left: 0;
 	right: 0;
 	top: 0;
@@ -349,48 +348,33 @@ a, a:hover, a:link, a:visited{
 }
 
 .workflow-content {
-	height: 100%;
 	display: flex;
-	flex-direction: column;
-	margin-right: 0;
-}
-
-.board-canvas {
-	position: relative;
-	flex-grow: 1;
-}
-
-.board {
-	user-select: none;
-	white-space: nowrap;
-	margin-bottom: 8px;
-	overflow-x: auto;
-	overflow-y: hidden;
-	padding-bottom: 8px;
-	position: absolute;
-	top: 0;
-	right: 0;
-	bottom: 0;
-	left: 0
+	flex-flow: row wrap;
 }
 
 .list-wrapper {
-	width: 272px;
-    margin: 0 4px;
+	flex-grow: 1;
+	min-width: 33.3333%;
     height: 100%;
     box-sizing: border-box;
     display: inline-block;
     vertical-align: top;
-    white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+	.list-wrapper {
+		flex-grow: 1;
+		min-width: 100%;
+	}
 }
 
 .list {
+	margin: 5px 5px;
 	background: #e2e4e6;
     border-radius: 3px;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    max-height: 100%;
     position: relative;
     white-space: normal;
 }
@@ -410,21 +394,22 @@ a, a:hover, a:link, a:visited{
 
 .workflow-sidebar::-webkit-scrollbar {
 	width: 10px;
-	background-color: #130078;
+	background-color: #CC0000;
 }
 
 .workflow-sidebar::-webkit-scrollbar-thumb {
-	background-color: #7FDBFF;
+	background-color: #ff9090;
 	background-image: -webkit-linear-gradient(45deg, rgba(255, 255, 255, .2) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .2) 50%, rgba(255, 255, 255, .2) 75%, transparent 75%, transparent)
 }
 
 .list-cards {
 	flex: 1 1 auto;
-    margin-bottom: 0;
+	max-height: 500px;
+	margin-bottom: 0;
     overflow-y: auto;
     overflow-x: hidden;
     margin: 0 4px;
-    padding: 0 4px;
+	padding: 0 4px;
     z-index: 1;
     min-height: 0;
 }
@@ -435,7 +420,6 @@ a, a:hover, a:link, a:visited{
     box-shadow: 0 1px 0 #ccc;
     display: block;
     margin-bottom: 8px;
-    max-width: 300px;
     min-height: 20px;
     position: relative;
     text-decoration: none;
@@ -443,7 +427,6 @@ a, a:hover, a:link, a:visited{
 }
 
 .gommette {
-
     padding: 4px;
     position: absolute;
     left: 5px;
@@ -473,7 +456,14 @@ a, a:hover, a:link, a:visited{
 .card .fa{
 	font-size: 38px;
 	padding-top: 2px;
+	padding-left: 3px;
 	text-align: center;
+}
+
+.card a:hover {
+	color: #CC0000;
+	border: #CC0000 2px solid;
+	background: #ff9090;
 }
 
 .card h3, h4 {
@@ -495,3 +485,21 @@ a, a:hover, a:link, a:visited{
     text-decoration: none;
     color: #444;
 }
+
+.list-footer {
+	border-radius: 0 0 3px 3px;
+    color: #8c8c8c;
+    display: block;
+    flex: 0 0 auto;
+    padding: 8px 10px 14px 10px;
+    position: relative;
+    text-decoration: none;
+}
+
+/* Historique
+================= */
+
+.form-container {
+
+}
+
