@@ -34,7 +34,11 @@ class DemandesTransfertsType extends AbstractType
                 'choice_label' => 'nom',
                 'multiple' => false,
                 ))
-            ->add('demande')
+            ->add('demande', EntityType::class, array(
+                'class' => 'App\Entity\Demandes',
+                'choice_label' => 'id',
+                'multiple' => false,
+                ))
         ;
     }
 

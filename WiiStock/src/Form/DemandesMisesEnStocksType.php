@@ -15,11 +15,15 @@ class DemandesMisesEnStocksType extends AbstractType
         $builder
             ->add('date_mise_en_stock')
             ->add('emplacement', EntityType::class, array(
-                'class' => 'App\Entity\Quais',
+                'class' => 'App\Entity\Emplacements',
                 'choice_label' => 'nom',
                 'multiple' => false,
                 ))
-            ->add('demande')
+            ->add('demande', EntityType::class, array(
+                'class' => 'App\Entity\Demandes',
+                'choice_label' => 'id',
+                'multiple' => false,
+                ))
         ;
     }
 

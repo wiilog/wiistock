@@ -6,6 +6,7 @@ use App\Entity\Racks;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 
 class RacksType extends AbstractType
 {
@@ -13,7 +14,11 @@ class RacksType extends AbstractType
     {
         $builder
             ->add('nom')
-            ->add('travee')
+            ->add('travee', EntityType::class, array(
+                'class' => 'App\Entity\Travees',
+                'choice_label' => 'nom',
+                'multiple' => false,
+                ))
         ;
     }
 

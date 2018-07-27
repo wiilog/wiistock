@@ -10,6 +10,7 @@ use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 
 class UtilisateursType extends AbstractType
 {
@@ -23,8 +24,16 @@ class UtilisateursType extends AbstractType
                 'first_options'  => array('label' => 'Password'),
                 'second_options' => array('label' => 'Repeat Password'),
             ))
-            ->add('groupe')
-            ->add('theme')
+            ->add('groupe', EntityType::class, array(
+                'class' => 'App\Entity\Groupes',
+                'choice_label' => 'nom',
+                'multiple' => false,
+                ))
+            ->add('theme', EntityType::class, array(
+                'class' => 'App\Entity\Themes',
+                'choice_label' => 'nom',
+                'multiple' => false,
+                ))
         ;
     }
 

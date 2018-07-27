@@ -6,6 +6,7 @@ use App\Entity\Demandes;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 
 class DemandesType extends AbstractType
 {
@@ -15,7 +16,11 @@ class DemandesType extends AbstractType
             ->add('statut')
             ->add('type')
             ->add('date_demande')
-            ->add('auteur')
+            ->add('auteur', EntityType::class, array(
+                'class' => 'App\Entity\Utilisateurs',
+                'choice_label' => 'username',
+                'multiple' => false,
+                ))
         ;
     }
 

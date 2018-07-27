@@ -6,6 +6,7 @@ use App\Entity\Emplacements;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 
 class EmplacementsType extends AbstractType
 {
@@ -13,7 +14,11 @@ class EmplacementsType extends AbstractType
     {
         $builder
             ->add('nom')
-            ->add('rack')
+            ->add('rack', EntityType::class, array(
+                'class' => 'App\Entity\Racks',
+                'choice_label' => 'nom',
+                'multiple' => false,
+                ))
         ;
     }
 

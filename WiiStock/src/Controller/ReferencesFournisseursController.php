@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
- * @Route("/references/fournisseurs")
+ * @Route("/references_fournisseurs")
  */
 class ReferencesFournisseursController extends Controller
 {

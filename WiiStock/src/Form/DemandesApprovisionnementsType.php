@@ -6,6 +6,7 @@ use App\Entity\DemandesApprovisionnements;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 
 class DemandesApprovisionnementsType extends AbstractType
 {
@@ -13,7 +14,11 @@ class DemandesApprovisionnementsType extends AbstractType
     {
         $builder
             ->add('date_approvisionnement')
-            ->add('demande')
+            ->add('demande', EntityType::class, array(
+                'class' => 'App\Entity\Demandes',
+                'choice_label' => 'id',
+                'multiple' => false,
+                ))
         ;
     }
 
