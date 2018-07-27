@@ -40,11 +40,11 @@ a, a:hover, a:link, a:visited{
 }
 
 .in {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
 }
 
 .pull-right {
@@ -101,17 +101,17 @@ a, a:hover, a:link, a:visited{
 .btn-right .fa{
 	font-size: 24px;
 	padding-left: 15px;
-	vertical-align: bottom;
+	vertical-align: top;
 }
 
 .btn-left .fa{
 	font-size: 24px;
 	padding-right: 15px;
-	vertical-align: bottom;
+	vertical-align: top;
 }
 
 .button:hover{
-	background: transparent;
+	background: #fcfcfc;
 	color: #130078;
 	transition: 0.3s;
 }
@@ -341,7 +341,7 @@ a, a:hover, a:link, a:visited{
 ================= */
 
 .workflow-wrap {
-	position: absolute;
+	margin: 2% 0;
 	left: 0;
 	right: 0;
 	top: 0;
@@ -360,29 +360,94 @@ a, a:hover, a:link, a:visited{
 	flex-grow: 1;
 }
 
+.board {
+	user-select: none;
+	white-space: nowrap;
+	margin-bottom: 8px;
+	overflow-x: auto;
+	overflow-y: hidden;
+	padding-bottom: 8px;
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0
+}
+
+.list-wrapper {
+	width: 272px;
+    margin: 0 4px;
+    height: 100%;
+    box-sizing: border-box;
+    display: inline-block;
+    vertical-align: top;
+    white-space: nowrap;
+}
+
+.list {
+	background: #e2e4e6;
+    border-radius: 3px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    max-height: 100%;
+    position: relative;
+    white-space: normal;
+}
+
+.list-header {
+	flex: 0 0 auto;
+    padding: 10px 8px 8px;
+    position: relative;
+    min-height: 20px;
+	margin-bottom: 2px;
+	font-size: 22px;
+}
+
 .workflow-sidebar {
-	overflow-y: scroll;
-  padding: 10px;
+	padding: 10px;
 }
 
 .workflow-sidebar::-webkit-scrollbar {
-  width: 10px;
-  background-color: #130078;
+	width: 10px;
+	background-color: #130078;
 }
 
 .workflow-sidebar::-webkit-scrollbar-thumb {
-  background-color: #7FDBFF;
-  background-image: -webkit-linear-gradient(45deg, rgba(255, 255, 255, .2) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .2) 50%, rgba(255, 255, 255, .2) 75%, transparent 75%, transparent)
+	background-color: #7FDBFF;
+	background-image: -webkit-linear-gradient(45deg, rgba(255, 255, 255, .2) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .2) 50%, rgba(255, 255, 255, .2) 75%, transparent 75%, transparent)
 }
 
-.vignette {
-	margin: auto;
-	border: #000 2px solid;
+.list-cards {
+	flex: 1 1 auto;
+    margin-bottom: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    margin: 0 4px;
+    padding: 0 4px;
+    z-index: 1;
+    min-height: 0;
 }
 
+.card {
+    background-color: #fff;
+    border-radius: 3px;
+    box-shadow: 0 1px 0 #ccc;
+    display: block;
+    margin-bottom: 8px;
+    max-width: 300px;
+    min-height: 20px;
+    position: relative;
+    text-decoration: none;
+    z-index: 0;
+}
 
 .gommette {
-	margin-top: 15%;
+
+    padding: 4px;
+    position: absolute;
+    left: 5px;
+    top: 5px;
 	min-height: 50px;
 	min-width: 50px;
 	color: #000;
@@ -391,7 +456,11 @@ a, a:hover, a:link, a:visited{
 }
 
 .arrow-open {
-	margin-top: 50%;
+	background-clip: padding-box;
+    background-origin: padding-box;
+	position: absolute;
+	right: 5px;
+	top: 28px;
 	color: #000;
 	min-height: 50px;
 	min-width: 50px;
@@ -401,13 +470,28 @@ a, a:hover, a:link, a:visited{
 	cursor: pointer;
 }
 
-.vignette .fa{
-	font-size: 36px;
+.card .fa{
+	font-size: 38px;
+	padding-top: 2px;
 	text-align: center;
-	padding-top: 3px;
 }
 
-.vignette h3 {
+.card h3, h4 {
+	margin-top: 10px;
 	text-align: center;
-	margin-top: 25%;
+}
+
+.card-details {
+	overflow: hidden;
+    padding: 6px 8px 2px;
+    position: relative;
+}
+
+.card-name {
+	clear: both;
+    display: block;
+    margin: -5px 0 4px;
+    overflow: hidden;
+    text-decoration: none;
+    color: #444;
 }
