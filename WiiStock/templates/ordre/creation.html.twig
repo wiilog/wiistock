@@ -1,0 +1,154 @@
+{% extends 'layout.html.twig' %}
+
+{% block page_content %}
+	<h1>CREER UN ORDRE</h1>
+	<div class="row">
+		<div class="col-md-12">
+			<form class="form-inline">
+				<div class="input-group">
+					<label class="input-group-addon">
+						Ordre
+					</label>
+					<select name="Ordre" class="form-control" required>
+						<option value="Préparation">Préparation</option>
+						<option value="Réception">Réception</option>
+						<option value="Entrée">Entrée</option>
+						<option value="Sortie">Sortie</option>
+						<option value="Transfert">Transfert</option>
+					</select>
+				</div>
+			</form>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-12">
+			<form class="form-inline">
+				<div class="input-group">
+					<label class="input-group-addon">
+						<span class="fa fa-search"></span>
+					</label>
+					<input class="form-control" type="search" name="entities_search" placeholder="Client 1, Fournisseur 4, ...">
+				</div>
+				<div class="input-group">
+					<input type="submit" name="ajouter" class="button btn-right" value="Ajouter">
+				</div>
+			</form>
+		</div>
+	</div>
+
+	<div class="row">
+		<div class="col-md-4">
+			<div class="list-box">
+				<ul class="list-group">
+					<li class="list-group-item">Client 1</li>
+					<li class="list-group-item">Client 4</li>
+					<li class="list-group-item">Client 2</li>
+				</ul>
+			</div>
+		</div>
+		<div class="col-md-4">
+			<div class="list-box">
+				<ul class="list-group">
+					<li class="list-group-item">Fournisseurs 1</li>
+					<li class="list-group-item">Fournisseurs 4</li>
+					<li class="list-group-item">Fournisseurs 2</li>
+				</ul>
+			</div>	
+		</div>
+		<div class="col-md-4">
+			<div class="list-box">
+				<ul class="list-group">
+					<li class="list-group-item">Autres 1</li>
+					<li class="list-group-item">Autres 4</li>
+					<li class="list-group-item">Autres 2</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+
+	<div class="row">
+		<div class="col-md-3">
+			<form class="form-inline">
+				<div class="input-group">
+					<label class="input-group-addon">
+						<span class="fa fa-search"></span>
+					</label>
+					<input class="form-control" type="search" name="article_search" placeholder="Iphone, ...">
+					</select>
+				</div>
+			</form>
+
+			<div class="list-box">
+				<ul class="list-group">
+					<li class="list-group-item btn-left"><span class="fa fa-plus-square-o"></span>Iphone 1</li>
+					<li class="list-group-item btn-left"><span class="fa fa-plus-square-o"></span>Iphone 4</li>
+					<li class="list-group-item btn-left"><span class="fa fa-plus-square-o"></span>Iphone 2</li>
+				</ul>
+			</div>
+
+			<div>
+				<textarea class="form-control" rows="6" placeholder="Commentaires sur l'ordre"></textarea>
+			</div>
+		</div>
+		
+		<div class="col-md-9">
+			<table>
+				<tr>
+					<th>Ref.</th>
+					<th>Libellé</th>
+					<th>Emplacement</th>
+					<th class="qty">Qté</th>
+				</tr>
+				<tr>
+					<td>165353</td>
+					<td>Iphone 1</td>
+					<td>Emplacement 1</td>
+					<td>
+												<div class="form-inline">
+									<input class="form-control" type="number" value="2">
+								<span class="fa fa-trash"></span>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<td>165353</td>
+					<td>Iphone 2</td>
+					<td>Emplacement 2</td>
+					<td>
+												<div class="form-inline">
+									<input class="form-control" type="number" value="2">
+								<span class="fa fa-trash"></span>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<td>165353</td>
+					<td>Iphone 3</td>
+					<td>Emplacement 3</td>
+					<td>
+						<div class="form-inline">
+									<input class="form-control" type="number" value="2">
+								<span class="fa fa-trash"></span>
+						</div>
+						
+					</td>
+				</tr>
+				<tr>
+					<td>165353</td>
+					<td>Iphone 4</td>
+					<td>Emplacement 4</td>
+					<td>
+												<div class="form-inline">
+									<input class="form-control" type="number" value="2">
+								<span class="fa fa-trash"></span>
+						</div>
+					</td>
+				</tr>
+			</table>
+		</div>
+	</div>
+
+	
+
+
+{% endblock %}
