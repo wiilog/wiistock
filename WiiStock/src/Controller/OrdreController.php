@@ -43,4 +43,14 @@ class OrdreController extends Controller
             'controller_name' => 'OrdreController',
         ]);
     }
+
+    /**
+     * @Route("/creation", name="ordre_creation")
+     */
+    public function creation()
+    {
+        return $this->render('ordre/creation.html.twig', [
+            'controller_name' => 'OrdreController',
+        ]);
+    }
 }

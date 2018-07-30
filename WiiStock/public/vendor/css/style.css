@@ -136,17 +136,27 @@ a, a:hover, a:link, a:visited{
 /* Table
 ================= */
 
-.table, th, td {
-	border: 1px solid black;
-	border-collapse: collapse;
+table {
+	width: 100%;
+    border-collapse: collapse;
 }
 
-.table thead tr th {
-	text-align: center;
-	border-bottom: 1px solid #000000;
+tr {
+	text-align: left;
+	border: 1px solid #000000;
 }
 
+table .qty {
+	width: 200px; 
+}
 
+table input {
+	max-width: 150px;
+}
+
+table .fa {
+	font-size: 22px;
+}
 
 /* Pagination
 ================= */
@@ -318,6 +328,15 @@ a, a:hover, a:link, a:visited{
 }
 .sidemenu > li .sidemenu-sub > li > a > .fa {
   margin-top: 2px;
+}
+
+/* Creer un ordre
+================= */
+
+.list-box {
+	display: block;
+	margin: 20px 0px;
+	border: #000 solid 1px;
 }
 
 /* Accueil
