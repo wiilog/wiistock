@@ -58,6 +58,11 @@ a, a:hover, a:link, a:visited{
 	padding: 0px 15px;
 }
 
+.page-title {
+	font-size: 32px;
+	margin: 10px 15px;
+}
+
 /* Color
 ================= */
 .backred {
@@ -78,6 +83,10 @@ a, a:hover, a:link, a:visited{
 
 .backviolet {
 	background-color: #b700ff;
+}
+
+.backgray {
+	background: #999999;
 }
 
 /* Button
@@ -128,8 +137,8 @@ a, a:hover, a:link, a:visited{
 ================= */
 
 .table, th, td {
-   border: 1px solid black;
-    border-collapse: collapse;
+	border: 1px solid black;
+	border-collapse: collapse;
 }
 
 .table thead tr th {
@@ -314,26 +323,46 @@ a, a:hover, a:link, a:visited{
 /* Accueil
 ================= */
 
-.backgray {
-	background: #999999;
-	margin-top: 10px;
-	padding: 15px;
-}
-
-.square-size {
-	height: 300px;
+.accueil {
+	display: flex;
+	flex-flow: row wrap;
+	justify-content: space-evenly;
+	margin-top: 20px;
 }
 
 .square {
+	box-sizing: border-box;
+    display: inline-block;
+    vertical-align: top;
+}
+
+@media (max-width: 900px) {
+	.square {
+		flex-grow: 1;
+		min-width: 100%;
+	}
+}
+
+.square-content {
+	margin: 15px auto;
 	color: #fcfcfc;
-	display: block;
-	margin: 30px 95px;
 	border: #000 solid 1px;
+	width: 250px;
+	height: 250px;
+	background: #130078;
+	box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    white-space: normal;
 }
 
 .square h1 {
 	text-align: left;
 	padding-left: 15px;
+	color: #fcfcfc;
+}
+
+.square a {
 	color: #fcfcfc;
 }
 
@@ -346,6 +375,7 @@ a, a:hover, a:link, a:visited{
 .square .marker {
 	position: absolute;
 	top: 20px;
+	right: 70px;
 	font-size: 20px;
 	font-weight: 600;
 	color: #000;
@@ -362,7 +392,7 @@ a, a:hover, a:link, a:visited{
 .square .circle {
 	position: absolute;
 	top: 0px;
-	right: -25px;
+	right: 43px;
 	min-height: 160px;
 	min-width: 160px;
 	color: #000;
@@ -376,35 +406,48 @@ a, a:hover, a:link, a:visited{
   color: #CC0000;
 }
 
-.dummy {
-	height: 280px;
+.box-wrapper {
+	display: flex;
+	flex-flow: row wrap;
+	/* justify-content: space-evenly; */
 }
 
 .box {
+	min-width: 50%;
+	box-sizing: border-box;
+    display: inline-block;
+    vertical-align: top;
+}
+
+.box-container {
+	min-width: 180px;
+	height: 240px;
 	color: #fcfcfc;
 	display: block;
 	margin: 20px 30px;
 	border: #000 solid 1px;
 }
-.box h1 {
-	margin-left: 5px;
-	font-size: 20px;
+
+.box-container h1 {
+	margin-left: 15px;
+	font-size: 22px;
 }
 
-.box input {
+.box-container input {
+	position: relative;
+	display: block;
 	color: #000;
 	text-align: center;
-	margin-top: 75%;
-	margin-left: 12%;
+	margin: 125px auto;
 	border: none;
-	font-size: 24px;
+	font-size: 28px;
 	background: #fcfcfc;
 }
 
 .date {
 	background-position: center;
 	background-image: url("../../img/calendrier.png");
-	background-size: 92%;
+	background-size: 180px;
 	background-repeat: no-repeat;
 }
 
@@ -476,11 +519,11 @@ a, a:hover, a:link, a:visited{
 
 .workflow-sidebar::-webkit-scrollbar {
 	width: 10px;
-	background-color: #CC0000;
+	background-color: #ff9090;
 }
 
 .workflow-sidebar::-webkit-scrollbar-thumb {
-	background-color: #ff9090;
+	background-color: #CC0000;
 	background-image: -webkit-linear-gradient(45deg, rgba(255, 255, 255, .2) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .2) 50%, rgba(255, 255, 255, .2) 75%, transparent 75%, transparent)
 }
 
@@ -578,10 +621,98 @@ a, a:hover, a:link, a:visited{
     text-decoration: none;
 }
 
+/* Filtre
+================= */
+
+.filter-wrapper {
+	padding: 10px 0px 15px 20px;
+}
+
+.more-filter {
+	color: #fcfcfc;
+	border: #00644b 1px solid;
+	margin-left: 5px;
+	padding: 5px 10px;
+	background-color: #00a37a;
+}
+
+.more-filter:hover {
+	background: #fcfcfc;
+	color: #000;
+}
+
 /* Historique
 ================= */
 
-.form-container {
-
+.legende {
+	margin: 20px 0px;
+	font-size: 20px;
 }
 
+.legende span {
+	margin: 0px 10px;
+}
+
+.legende .fa {
+	font-size: 32px;
+	vertical-align: sub;
+}
+
+.fa-angle-right {
+	color: #00b31e;
+	margin-right: 5px;
+	font-size: 28px;
+}
+
+.fa-angle-left {
+	color: #CC0000;
+	margin-right: 5px;
+	font-size: 28px;
+}
+
+.fa-minus {
+	color: #e8c35a;
+	font-size: 18px;
+}
+
+.historique-wrapper {
+	margin: 0px 15px;
+}
+
+.date-list {
+	margin: 10px 0px 30px 20px; 
+}
+
+.historique-wrapper table {
+	width: 100%;
+	margin-bottom: 20px;
+}
+
+.line-list {
+	height: 40px;
+	border: #000 1px solid;
+}
+
+.date-list {
+	font-size: 28px;
+	height: 80px;
+	border: none;
+}
+
+.historique-wrapper td, .historique-wrapper th {
+	height: 30px;
+	border: none;
+	padding: 5px;
+	text-align: left;
+}
+
+.line-list .fa {
+	padding-left: 25px;
+	vertical-align: middle;
+	line-height: 30px;
+	font-size: 38px;
+}
+
+.line-list .fa-minus {
+	font-size: 26px;
+}

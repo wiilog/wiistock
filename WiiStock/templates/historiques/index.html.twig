@@ -4,7 +4,7 @@
 
 {% block page_content %}
 
-    <div class="row backgray">
+    <div class="row backgray filter-wrapper">
         <form class="form-inline">
             <div class="form-group">
                 <select class="form-control">
@@ -25,47 +25,97 @@
                 <div class="input-group-addon">à</div>
                 <input type="text" class="form-control">
             </div>
-        <a href="#" class="button btn-right pull-right">
-            Filtrer<span class="fa fa-angle-double-right"></span></a>
+            <a class="btn more-filter">Plus de filtres</a>
+            <a href="#" class="button btn-right">
+                Filtrer<span class="fa fa-angle-double-right"></span></a>
         </form>
     </div>
 
-    <div class="row legende"></div>
+	<div class="row page-title">
+		Historique des transferts
+	</div>
 
-    <div class="row">
-        <h1>Historiques index</h1>
+    <div class="row legende">
+        <span class="arrow-entree">
+            <span class="fa fa-angle-right"></span>Entrées</span>
+        <span class="arrow-sortie">
+            <span class="fa fa-angle-left"></span>Sorties</span>
+        <span class="line-interne">
+            <span class="fa fa-minus"></span>Transferts</span>
+    </div>
 
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Id</th>
-                    <th>Date_debut</th>
-                    <th>Date_fin</th>
-                    <th>Type_mouvement</th>
-                    <th>actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for historique in historiques %}
-                    <tr>
-                        <td>{{ historique.id }}</td>
-                        <td>{{ historique.dateDebut ? historique.dateDebut|date('Y-m-d H:i:s') : '' }}</td>
-                        <td>{{ historique.dateFin ? historique.dateFin|date('Y-m-d H:i:s') : '' }}</td>
-                        <td>{{ historique.typeMouvement }}</td>
-                        <td>
-                            <a href="{{ path('historiques_show', {'id': historique.id}) }}">show</a>
-                            <a href="{{ path('historiques_edit', {'id': historique.id}) }}">edit</a>
-                        </td>
-                    </tr>
-                {% else %}
-                    <tr>
-                        <td colspan="5">no records found</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
+    <div class="row historique-wrapper">
+        <table>
+            <tr class="line-list">
+                <th>Légende</th>
+                <th>Article</th>
+                <th>Référence</th>
+                <th>Position</th>
+                <th>Statut</th>
+            </tr>
+            <tr class="date-list">
+                <td> 12/05/18 </td>
+            </tr>
+
+            <tr class="line-list">
+                <td class="fa fa-angle-right"></td>
+                <td>Article1</td>
+                <td>Ref154646464</td>
+                <td>Pos1</td>
+                <td>Statut</td>
+            </tr>
+            <tr class="line-list">
+                <td class="fa fa-minus"></td>
+                <td>Article2</td>
+                <td>Ref2</td>
+                <td>Pos2</td>
+                <td>Statut</td>
+            </tr>
+
+            <tr class="date-list">
+                <td> 10/05/18 </td>
+            </tr>
+            <tr class="line-list">
+                <td class="fa fa-angle-left"></td>
+                <td>Article1464</td>
+                <td>Ref154646464</td>
+                <td>Pos1</td>
+                <td>Statut</td>
+            </tr>
         </table>
+        {# <h1>Historiques index</h1>
 
-        <a href="{{ path('historiques_new') }}">Create new</a>
+		<table class="table">
+			<thead>
+				<tr>
+					<th>Id</th>
+					<th>Date_debut</th>
+					<th>Date_fin</th>
+					<th>Type_mouvement</th>
+					<th>actions</th>
+				</tr>
+			</thead>
+			<tbody>
+				{% for historique in historiques %}
+					<tr>
+						<td>{{ historique.id }}</td>
+						<td>{{ historique.dateDebut ? historique.dateDebut|date('Y-m-d H:i:s') : '' }}</td>
+						<td>{{ historique.dateFin ? historique.dateFin|date('Y-m-d H:i:s') : '' }}</td>
+						<td>{{ historique.typeMouvement }}</td>
+						<td>
+							<a href="{{ path('historiques_show', {'id': historique.id}) }}">show</a>
+							<a href="{{ path('historiques_edit', {'id': historique.id}) }}">edit</a>
+						</td>
+					</tr>
+				{% else %}
+					<tr>
+						<td colspan="5">no records found</td>
+					</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+
+        <a href="{{ path('historiques_new') }}">Create new</a> #}
 
     </div>
 

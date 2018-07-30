@@ -1,16 +1,14 @@
 {% extends 'layout.html.twig' %}
 
 {% block page_content %}
-    <div class="row backgray">
-        <div class="col-md-4">
-            <div class="square-size"></div>
-            <div class="square backblue in text-center">
+    <div class="row backgray accueil">
+        <div class="square">
+            <div class="text-center square-content">
                 <h1>Activités</h1>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="square-size"></div>
-            <div class="square backblue in text-center">
+        <div class="square">
+            <div class="text-center square-content">
                 <h1>Demandes</h1>
                 <a class="fa fa-bell">
                     <div class="circle"></div>
@@ -18,9 +16,8 @@
                 </a>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="square-size"></div>
-            <div class="square backblue in text-center">
+        <div class="square">
+            <div class="text-center square-content">
                 <h1>Alertes de seuil</h1>
                 <a class="fa fa-warning">
                     <div class="marker">999</div>
@@ -29,38 +26,31 @@
         </div>
     </div>
     <div class="row">
-        <div class="col-md-8">
-            <div class="graph-container"></div>
-            <div class="in">
-            <h1>Activité dans l'année</h1>
-            <canvas id="graph"></canvas>
+        <div class="col-md-7">
+            <div class="graph-container">
+                <h1>Activité dans l'année</h1>
+                <canvas id="graph"></canvas>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="dummy"></div>
-                    <div class="box in">
+        <div class="col-md-5">
+            <div class="row box-wrapper">
+                <div class="box">
+                    <div class="box-container">
                         <h1>Reporting</h1>
                     </div>
                 </div>
-                <div class="col-md-6">
-                    <div class="dummy"></div>
-                    <div class="box in">
+                <div class="box">
+                    <div class="box-container">
                         <h1>Ordres du jour</h1>
                     </div>
                 </div>
-            </div>
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="dummy"></div>
-                    <div class="box in date">
+                <div class="box">
+                    <div class="box-container date">
                         <input type="text" class="datepicker" size="6" value="{{ date }}">
                     </div>
                 </div>
-                <div class="col-md-6">
-                    <div class="dummy"></div>
-                    <div class="box in">
+                <div class="box">
+                    <div class="box-container">
                         <h1></h1>
                     </div>
                 </div>
@@ -70,77 +60,88 @@
 {% endblock %}
 
 {% block javascripts %}
-<script type="text/javascript">
+    <script type="text/javascript">
 
-    $( ".datepicker" ).datepicker({
-        language: 'fr',
-		format: 'dd/mm/yyyy',
-		todayBtn: true,
-		todayHighlight: true,
-		autoclose: true,
-    });
+        $(".datepicker").datepicker({language: 'fr', format: 'dd/mm/yyyy', todayBtn: true, todayHighlight: true, autoclose: true});
 
-    /**
+        /**
     * Chart
     */
-    var randomScalingFactor = function() {
-        return Math.round(Math.random() * 100);
-    };
+        var randomScalingFactor = function () {
+            return Math.round(Math.random() * 100);
+        };
 
-    var ctx = document.getElementById("graph").getContext('2d');
-    var graph = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"],
-            datasets: [{
-                label: 'Entrée',
-                fill: false,
-                backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                borderColor: 'rgba(255,99,132,1)',
-                data: [
-                    randomScalingFactor(),
-                    randomScalingFactor(),
-                    randomScalingFactor(),
-                    randomScalingFactor(),
-                    randomScalingFactor(),
-                    randomScalingFactor(),
-                    randomScalingFactor(),
-                    randomScalingFactor(),
-                    randomScalingFactor(),
-                    randomScalingFactor(),
-                    randomScalingFactor(),
-                    randomScalingFactor()
-                ]
-            }, {
-                label: 'Sortie',
-                fill: false,
-                backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                borderColor: 'rgba(54, 162, 235, 1)',
-                data: [
-                    randomScalingFactor(),
-                    randomScalingFactor(),
-                    randomScalingFactor(),
-                    randomScalingFactor(),
-                    randomScalingFactor(),
-                    randomScalingFactor(),
-                    randomScalingFactor(),
-                    randomScalingFactor(),
-                    randomScalingFactor(),
-                    randomScalingFactor(),
-                    randomScalingFactor(),
-                    randomScalingFactor()
+        var ctx = document.getElementById("graph").getContext('2d');
+        var graph = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [
+                    "Janvier",
+                    "Février",
+                    "Mars",
+                    "Avril",
+                    "Mai",
+                    "Juin",
+                    "Juillet",
+                    "Août",
+                    "Septembre",
+                    "Octobre",
+                    "Novembre",
+                    "Décembre"
                 ],
-            }]
-        },
-        options: {
-            scales: {
-                yAxes: [{
-                    ticks: {
-                        beginAtZero: true
+                datasets: [
+                    {
+                        label: 'Entrée',
+                        fill: false,
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        borderColor: 'rgba(255,99,132,1)',
+                        data: [
+                            randomScalingFactor(),
+                            randomScalingFactor(),
+                            randomScalingFactor(),
+                            randomScalingFactor(),
+                            randomScalingFactor(),
+                            randomScalingFactor(),
+                            randomScalingFactor(),
+                            randomScalingFactor(),
+                            randomScalingFactor(),
+                            randomScalingFactor(),
+                            randomScalingFactor(),
+                            randomScalingFactor()
+                        ]
+                    }, {
+                        label: 'Sortie',
+                        fill: false,
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        data: [
+                            randomScalingFactor(),
+                            randomScalingFactor(),
+                            randomScalingFactor(),
+                            randomScalingFactor(),
+                            randomScalingFactor(),
+                            randomScalingFactor(),
+                            randomScalingFactor(),
+                            randomScalingFactor(),
+                            randomScalingFactor(),
+                            randomScalingFactor(),
+                            randomScalingFactor(),
+                            randomScalingFactor()
+                        ]
                     }
-                }]
+                ]
+            },
+            options: {
+                scales: {
+                    yAxes: [
+                        {
+                            ticks: {
+                                beginAtZero: true
+                            }
+                        }
+                    ]
+                }
             }
-        }
-    });
-</script>
+        });
+    </script>
 {% endblock %}

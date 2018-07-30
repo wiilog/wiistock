@@ -1,8 +1,73 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout.html.twig' %}
 
-{% block title %}Alertes index{% endblock %}
+{% block title %}Alertes de gestion de stock{% endblock %}
 
-{% block body %}
+{% block page_content %}
+
+    <div class="row backgray filter-wrapper">
+        <form class="form-inline">
+            <input class="form-control" type="text" placeholder="Référence">
+            <div class="form-group">
+                <select class="form-control">
+                    <option>Catégorie1</option>
+                    <option>Catégorie2</option>
+                </select>
+            </div>
+            <a class="btn more-filter">Plus de filtres</a>
+            <a href="#" class="button btn-right">
+                Filtrer<span class="fa fa-angle-double-right"></span></a>
+        </form>
+    </div>
+
+    <div class="row page-title">
+        Alertes de gestion de stock
+    </div>
+
+    <div class="row btn-grp">
+        <a href="#" class="button btn-left">
+            <span class="fa fa-plus"></span>Créer une alerte
+        </a>
+    </div>
+
+    <table id="grid-data" class="table table-condensed table-hover" data-toggle="bootgrid">
+        <thead>
+            <tr>
+                <th data-column-id="ref">Réf. article</th>
+                <th data-column-id="nom">Nom</th>
+                <th data-column-id="qte">Seuil d'alerte</th>
+                <th data-column-id="commands" data-formatter="commands" data-sortable="false">Actions</th>
+            </tr>
+        </thead>
+
+        <tr>
+            <td>136737541</td>
+            <td>Iphone 1</td>
+            <td>41</td>
+            <td>
+                <a href="#" class="button btn-right fa fa-star"></a>
+            </td>
+        </tr>
+        <tr>
+            <td>136737542</td>
+            <td>Macbook 2</td>
+            <td>3</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>136737543</td>
+            <td>Iphone 3</td>
+            <td>57</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>136737544</td>
+            <td>254</td>
+            <td>44</td>
+            <td></td>
+        </tr>
+    </table>
+
+    {# 
     <h1>Alertes index</h1>
 
     <table class="table">
@@ -31,5 +96,13 @@
         </tbody>
     </table>
 
-    <a href="{{ path('alertes_new') }}">Create new</a>
+    <a href="{{ path('alertes_new') }}">Create new</a> #}
+
+    <div class="row">
+        <div class="col-md-6">
+            <a href="#" class="button btn-left">
+                <span class="fa fa-angle-double-left"></span>Retour</a>
+        </div>
+    </div>
+
 {% endblock %}
