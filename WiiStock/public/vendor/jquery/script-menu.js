@@ -50,7 +50,7 @@ $(document).ready(function () {
                 return removeActive = setTimeout((function () {
                     $t.removeClass('active');
                     return $slidemenu_bg.addClass('hide');
-                }), 100);
+                }), 300);
             });
             hide = function () {
                 $slidemenu_bg.addClass('hide');

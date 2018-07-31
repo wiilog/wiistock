@@ -880,7 +880,7 @@ input:checked + .slider:before {
 	color:white !important;
 	text-align: center;
 	font-size: 30px;
-} 
+}
 
 .modal-header {
 	padding: 35px 50px;
@@ -888,4 +888,8 @@ input:checked + .slider:before {
 
 .modal-footer {
 	background-color: #f9f9f9;
+}
+
+.modal-footer, .modal-header {
+	border-radius: 5px;
 }

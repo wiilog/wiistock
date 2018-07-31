@@ -43,7 +43,7 @@
 }
 .bootgrid-header .actionBar .btn-group > .btn-group .dropdown-menu,
 .bootgrid-footer .infoBar .btn-group > .btn-group .dropdown-menu {
-  text-align: right;
+  text-align: left;
 }
 .bootgrid-header .actionBar .btn-group > .btn-group .dropdown-menu .dropdown-item,
 .bootgrid-footer .infoBar .btn-group > .btn-group .dropdown-menu .dropdown-item {
