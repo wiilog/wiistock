@@ -4,13 +4,37 @@
 
 {% block page_content %}
 
-    <div class="row backgray">
-        <a href="#" class="button btn-right">
-            Filtrer<span class="fa fa-angle-double-right"></span></a>
+    <div class="row backgray filter-wrapper">
+        <form class="form-inline">
+            <div class="form-group">
+                <select class="form-control">
+                    <option>Entrée</option>
+                    <option>Sortie</option>
+                    <option>Transfert</option>
+                    <option>Préparation</option>
+                    <option>Réception</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <input type="search" class="form-control" placeholder="Auteur">
+            </div>
+            <div class="form-group">
+                <input type="search" class="form-control" placeholder="Référence">
+            </div>
+            <div class="input-group daterange">
+                <div class="input-group-addon">De</div>
+                <input type="text" class="form-control">
+                <div class="input-group-addon">à</div>
+                <input type="text" class="form-control">
+            </div>
+            <a class="btn more-filter">Plus de filtres</a>
+            <a href="#" class="button btn-right">
+                Filtrer<span class="fa fa-angle-double-right"></span></a>
+        </form>
     </div>
 
 	<div class="row page-title">
-		Workflow ordres
+		WORKFLOW ORDRES
 	</div>
 
     {# {% for ordre in ordres %} #}
@@ -110,7 +134,7 @@
                 </div>
                 <div class="list-wrapper">
                     <div class="list">
-                        <div class="list-header">Traitées</div>
+                        <div class="list-header">Traités</div>
                         <div class="list-cards workflow-sidebar">
                             <div class="card">
                                 <div class="card-details">

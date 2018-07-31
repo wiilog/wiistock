@@ -1,20 +1,168 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout.html.twig' %}
 
-{% block title %}Hello {{ controller_name }}!{% endblock %}
+{% block title %}Workflow{% endblock %}
 
-{% block body %}
-<style>
-    .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
-    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
-</style>
+{% block page_content %}
 
-<div class="example-wrapper">
-    <h1>Hello {{ controller_name }}! ✅</h1>
+    <div class="row backgray filter-wrapper">
+        <form class="form-inline">
+            <div class="form-group">
+                <select class="form-control">
+                    <option>Livraison</option>
+                    <option>Approvisionnement</option>
+                    <option>Transfert</option>
+                    <option>Mise en stock</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <input type="search" class="form-control" placeholder="Auteur">
+            </div>
+            <div class="form-group">
+                <input type="search" class="form-control" placeholder="Référence">
+            </div>
+            <div class="input-group daterange">
+                <div class="input-group-addon">De</div>
+                <input type="text" class="form-control">
+                <div class="input-group-addon">à</div>
+                <input type="text" class="form-control">
+            </div>
+            <a class="btn more-filter">Plus de filtres</a>
+            <a href="#" class="button btn-right">
+                Filtrer<span class="fa fa-angle-double-right"></span></a>
+        </form>
+    </div>
 
-    This friendly message is coming from:
-    <ul>
-        <li>Your controller at <code><a href="{{ 'src/Controller/DemandeController.php'|file_link(0) }}">src/Controller/DemandeController.php</a></code></li>
-        <li>Your template at <code><a href="{{ 'templates/demande/index.html.twig'|file_link(0) }}">templates/demande/index.html.twig</a></code></li>
-    </ul>
-</div>
+	<div class="row page-title">
+		WORKFLOW DEMANDES
+	</div>
+
+    {# {% for ordre in ordres %} #}
+    <div class="row">
+        <div class="workflow-wrap">
+            <div class="workflow-content">
+                <div class="list-wrapper">
+                    <div class="list">
+                        <div class="list-header">A valider</div>
+                        <div class="list-cards workflow-sidebar">
+                            <div class="card">
+                                <div class="card-details">
+                                    <h3>Mise en stock</h3>
+                                    <h4>01/11/2018</h4>
+                                    <span class="gommette backorange"></span>
+                                    <span class="card-name">Renon</span>
+                                </div>
+                                <a class="arrow-open fa fa-angle-double-right"></a>
+                            </div>
+                            <div class="card">
+                                <div class="card-details">
+                                    <h3>Livraison</h3>
+                                    <h4>01/11/2018</h4>
+                                    <span class="gommette backblue"></span>
+                                    <span class="card-name">Renon</span>
+                                </div>
+                                <a class="arrow-open fa fa-angle-double-right"></a>
+                            </div>
+                            <div class="card">
+                                <div class="card-details">
+                                    <h3>Mise en stock</h3>
+                                    <h4>01/11/2018</h4>
+                                    <span class="gommette backorange"></span>
+                                    <span class="card-name">Renon</span>
+                                </div>
+                                <a class="arrow-open fa fa-angle-double-right"></a>
+                            </div>
+                            <div class="card">
+                                <div class="card-details">
+                                    <h3>Mise en stock</h3>
+                                    <h4>01/11/2018</h4>
+                                    <span class="gommette backorange"></span>
+                                    <span class="card-name">Renon</span>
+                                </div>
+                                <a class="arrow-open fa fa-angle-double-right"></a>
+                            </div>
+                            <div class="card">
+                                <div class="card-details">
+                                    <h3>Mise en stock</h3>
+                                    <h4>01/11/2018</h4>
+                                    <span class="gommette backorange"></span>
+                                    <span class="card-name">Renon</span>
+                                </div>
+                                <a class="arrow-open fa fa-angle-double-right"></a>
+                            </div>
+                            <div class="card">
+                                <div class="card-details">
+                                    <h3>Mise en stock</h3>
+                                    <h4>01/11/2018</h4>
+                                    <span class="gommette backorange"></span>
+                                    <span class="card-name">Renon</span>
+                                </div>
+                                <a class="arrow-open fa fa-angle-double-right"></a>
+                            </div>
+                            <div class="card">
+                                <div class="card-details">
+                                    <h3>Mise en stock</h3>
+                                    <h4>01/11/2018</h4>
+                                    <span class="gommette backorange"></span>
+                                    <span class="card-name">Renon</span>
+                                </div>
+                                <a class="arrow-open fa fa-angle-double-right"></a>
+                            </div>
+                        </div>
+                        <a class="list-footer" href="#">
+                            <span class="fa fa-plus"></span>
+                            Ajouter une nouvelle demande
+                        </a>
+                    </div>
+                </div>
+                <div class="list-wrapper">
+                    <div class="list">
+                        <div class="list-header">A traiter</div>
+                        <div class="list-cards workflow-sidebar">
+                            <div class="card">
+                                <div class="card-details">
+                                    <h3>Approvisionnement</h3>
+                                    <h4>12/06/2018</h4>
+                                    <span class="gommette backviolet"></span>
+                                    <span class="card-name">Le Fur</span>
+                                </div>
+                                <a class="arrow-open fa fa-angle-double-right"></a>
+                            </div>
+                        </div>
+                        <a class="list-footer"></a>
+                    </div>
+                </div>
+                <div class="list-wrapper">
+                    <div class="list">
+                        <div class="list-header">Traitées</div>
+                        <div class="list-cards workflow-sidebar">
+                            <div class="card">
+                                <div class="card-details">
+                                    <h3>Transfert</h3>
+                                    <h4>23/01/2018</h4>
+                                    <span class="gommette backgreen"></span>
+                                    <span class="card-name">Couffinhal</span>
+                                </div>
+                                <a class="arrow-open fa fa-angle-double-right"></a>
+                            </div>
+                        </div>
+                        <a class="list-footer"></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {# {% endfor %} #}
+
+    <div class="row">
+        <a href="#" class="button btn-left"><span class="fa fa-angle-double-left"></span>Retour</a>
+    </div>
+
+{% endblock %}
+
+{% block javascripts %}
+    <script type="text/javascript">
+        $('.daterange input').each(function () {
+            $(this).datepicker('clearDates');
+        });
+    </script>
 {% endblock %}
