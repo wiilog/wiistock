@@ -616,6 +616,7 @@ input:checked + .slider:before {
     white-space: normal;
 }
 
+
 .list-header {
 	flex: 0 0 auto;
     padding: 10px 8px 8px;
@@ -639,6 +640,20 @@ input:checked + .slider:before {
 	background-image: -webkit-linear-gradient(45deg, rgba(255, 255, 255, .2) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .2) 50%, rgba(255, 255, 255, .2) 75%, transparent 75%, transparent)
 }
 
+.workflow-sidebar-row {
+	padding: 10px;
+}
+
+.workflow-sidebar-row::-webkit-scrollbar {
+	height: 10px;
+	background-color: #ff9090;
+}
+
+.workflow-sidebar-row::-webkit-scrollbar-thumb {
+	background-color: #CC0000;
+	background-image: -webkit-linear-gradient(45deg, rgba(255, 255, 255, .2) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .2) 50%, rgba(255, 255, 255, .2) 75%, transparent 75%, transparent)
+}
+
 .list-cards {
 	flex: 1 1 auto;
 	max-height: 500px;
@@ -649,6 +664,19 @@ input:checked + .slider:before {
 	padding: 0 4px;
     z-index: 1;
     min-height: 0;
+}
+
+.list-cards-row {
+	display: flex;
+	flex-direction: row;
+	max-height: 500px;
+	margin-bottom: 0;
+    overflow-y: hidden;
+    overflow-x: auto;
+    margin: 0 4px;
+	padding: 0 4px;
+    z-index: 1;
+    min-height: 0;	
 }
 
 .card {
@@ -662,6 +690,12 @@ input:checked + .slider:before {
     text-decoration: none;
     z-index: 0;
     border: #fcfcfcfc 2px solid;
+}
+
+.card-row {
+	margin-right: 8px;
+	min-height: 200px;
+	max-width: 100px;	
 }
 
 .gommette {
@@ -896,6 +930,10 @@ input:checked + .slider:before {
 
 .modal-header {
 	padding: 35px 50px;
+}
+
+.modal-lg {
+	width: 85%;
 }
 
 .modal-footer {
