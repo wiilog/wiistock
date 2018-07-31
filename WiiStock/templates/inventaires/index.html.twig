@@ -1,10 +1,43 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout.html.twig' %}
 
-{% block title %}Inventaires index{% endblock %}
+{% block title %}Liste des inventaires{% endblock %}
 
-{% block body %}
-    <h1>Inventaires index</h1>
+{% block page_content %}
 
+    <div class="row backgray filter-wrapper">
+        <form class="form-inline">
+            <div class="form-group">
+                <select class="form-control">
+                    <option>Entrée</option>
+                    <option>Sortie</option>
+                    <option>Transfert</option>
+                    <option>Préparation</option>
+                    <option>Réception</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <input type="search" class="form-control" placeholder="Auteur">
+            </div>
+            <div class="form-group">
+                <input type="search" class="form-control" placeholder="Référence">
+            </div>
+            <div class="input-group daterange">
+                <div class="input-group-addon">De</div>
+                <input type="text" class="form-control">
+                <div class="input-group-addon">à</div>
+                <input type="text" class="form-control">
+            </div>
+            <a class="btn more-filter">Plus de filtres</a>
+            <a href="#" class="button btn-right">
+                Filtrer<span class="fa fa-angle-double-right"></span></a>
+        </form>
+    </div>
+
+	<div class="row page-title">
+		LISTE DES INVENTAIRES
+	</div>
+
+{# 
     <table class="table">
         <thead>
             <tr>
@@ -37,5 +70,28 @@
         </tbody>
     </table>
 
-    <a href="{{ path('inventaires_new') }}">Create new</a>
+    <a href="{{ path('inventaires_new') }}">Create new</a> #}
+{% endblock %}
+
+{% block javascripts %}
+<script type="text/javascript">
+var grid = $("#grid-data").bootgrid({
+    ajax: false,
+	/*
+    post: function ()
+    {
+        return {
+            id: "b0df282a-0d67-40e5-8558-c9e93b7befed"
+        };
+    },
+    url: "{{ path('stock') }}",
+	*/
+    formatters: {
+        "commands": function(column, row)
+        {
+            return "<button type=\"button\" class=\"btn btn-xs btn-default command-edit\" data-row-id=\"" + row.id + "\"><span class=\"fa fa-eye\"></span></button> "
+        }
+    }
+})
+</script>
 {% endblock %}

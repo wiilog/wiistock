@@ -4,11 +4,41 @@
 
 {% block page_content %}
 
-	<div class="row backgray">
-        <a href="#" class="button btn-right">
-        	Filtrer<span class="fa fa-angle-double-right"></span>
-        </a>
+    <div class="row backgray filter-wrapper">
+        <form class="form-inline">
+            <div class="form-group">
+                <select class="form-control">
+                    <option>Zone de stockage1</option>
+                    <option>Zone de stockage2</option>
+                    <option>Zone de stockage3</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <select class="form-control">
+                    <option>Rack1</option>
+                    <option>Rack2</option>
+                    <option>Rack3</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <input type="search" class="form-control" placeholder="Référence">
+            </div>
+            <div class="form-group">
+                <select class="form-control">
+                    <option>Catégorie1</option>
+                    <option>Catégorie2</option>
+                    <option>Catégorie3</option>
+                </select>
+            </div>
+            <a class="btn more-filter">Plus de filtres</a>
+            <a href="#" class="button btn-right">
+                Filtrer<span class="fa fa-angle-double-right"></span></a>
+        </form>
     </div>
+
+	<div class="row page-title">
+		VISUALISATION DU STOCK
+	</div>
 
     <div class="row btn-grp">
         <a href="#" class="button btn-left">

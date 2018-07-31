@@ -60,7 +60,7 @@ a, a:hover, a:link, a:visited{
 
 .page-title {
 	font-size: 32px;
-	margin: 10px 15px;
+	margin: 30px 15px;
 }
 
 /* Color
@@ -86,7 +86,7 @@ a, a:hover, a:link, a:visited{
 }
 
 .backgray {
-	background: #999999;
+	background-color: #999999;
 }
 
 /* Button
