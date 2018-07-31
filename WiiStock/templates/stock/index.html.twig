@@ -19,7 +19,7 @@
         </a>
     </div>
 
-    <table id="grid-data" class="table table-condensed table-hover" data-toggle="bootgrid">
+    <table id="grid-data" class="table table-condensed table-hover table-striped">
     	<thead>
     		<tr>
 	    		<th data-column-id="ref">Réf. article</th>
@@ -35,10 +35,7 @@
     		<td>251</td>
     		<td>Iphone 1</td>
     		<td>41</td>
-    		<td>
-    			<a href="#" class="button btn-right fa fa-star">
-        		</a>
-    		</td>
+    		<td></td>
     	</tr>
    	  	<tr>
     		<td>136737542</td>
@@ -63,7 +60,6 @@
     	</tr>    	
     </table>
 
-
 	<div class="row">
 		<div class="col-md-12">
             <a href="#" class="button btn-left pull-left">
@@ -72,4 +68,27 @@
                 <span class="fa fa-cloud-download"></span>Télécharger</a>
         </div>
     </div>
+{% endblock %}
+
+{% block javascripts %}
+<script type="text/javascript">
+var grid = $("#grid-data").bootgrid({
+    ajax: false,
+	/*
+    post: function ()
+    {
+        return {
+            id: "b0df282a-0d67-40e5-8558-c9e93b7befed"
+        };
+    },
+    url: "{{ path('stock') }}",
+	*/
+    formatters: {
+        "commands": function(column, row)
+        {
+            return "<button type=\"button\" class=\"btn btn-xs btn-default command-edit\" data-row-id=\"" + row.id + "\"><span class=\"fa fa-eye\"></span></button> "
+        }
+    }
+})
+</script>
 {% endblock %}

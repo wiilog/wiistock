@@ -1018,7 +1018,7 @@
         navigation: 3, // it's a flag: 0 = none, 1 = top, 2 = bottom, 3 = both (top and bottom)
         padding: 2, // page padding (pagination)
         columnSelection: true,
-        rowCount: [10, 25, 50, -1], // rows per page int or array of int (-1 represents "All")
+        rowCount: [2, 4, 10, -1], // rows per page int or array of int (-1 represents "All")
 
         /**
          * Enables row selection (to enable multi selection see also `multiSelect`). Default value is `false`.
@@ -1239,7 +1239,7 @@
             iconUp: "glyphicon-chevron-up",
             infos: "infos", // must be a unique class name or constellation of class names within the header and footer,
             left: "text-left",
-            pagination: "pagination", // must be a unique class name or constellation of class names within the header and footer
+            pagination: "pagination pull-right", // must be a unique class name or constellation of class names within the header and footer
             paginationButton: "button", // must be a unique class name or constellation of class names within the pagination
 
             /**
@@ -1361,7 +1361,7 @@
             actions: "<div class=\"{{css.actions}}\"></div>",
             body: "<tbody></tbody>",
             cell: "<td class=\"{{ctx.css}}\" style=\"{{ctx.style}}\">{{ctx.content}}</td>",
-            footer: "<div id=\"{{ctx.id}}\" class=\"{{css.footer}}\"><div class=\"row\"><div class=\"col-sm-6\"><p class=\"{{css.pagination}}\"></p></div><div class=\"col-sm-6 infoBar\"><p class=\"{{css.infos}}\"></p></div></div></div>",
+            footer: "<div id=\"{{ctx.id}}\" class=\"{{css.footer}}\"><div class=\"row\"><div class=\"col-sm-6 infoBar\"><p class=\"{{css.infos}}\"></p></div><div class=\"col-sm-6\"><p class=\"{{css.pagination}}\"></p></div></div></div>",
             header: "<div id=\"{{ctx.id}}\" class=\"{{css.header}}\"><div class=\"row\"><div class=\"col-sm-12 actionBar\"><p class=\"{{css.search}}\"></p><p class=\"{{css.actions}}\"></p></div></div></div>",
             headerCell: "<th data-column-id=\"{{ctx.column.id}}\" class=\"{{ctx.css}}\" style=\"{{ctx.style}}\"><a href=\"javascript:void(0);\" class=\"{{css.columnHeaderAnchor}} {{ctx.sortable}}\"><span class=\"{{css.columnHeaderText}}\">{{ctx.column.text}}</span>{{ctx.icon}}</a></th>",
             icon: "<span class=\"{{css.icon}} {{ctx.iconCss}}\"></span>",
