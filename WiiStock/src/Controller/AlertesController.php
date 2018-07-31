@@ -47,6 +47,16 @@ class AlertesController extends Controller
     }
 
     /**
+     * @Route("/creation", name="alertes_creation")
+     */
+    public function creation()
+    {
+        return $this->render('alertes/creation.html.twig', [
+            'controller_name' => 'AlertesController',
+        ]);
+    }
+
+    /**
      * @Route("/{id}", name="alertes_show", methods="GET")
      */
     public function show(Alertes $alerte): Response
