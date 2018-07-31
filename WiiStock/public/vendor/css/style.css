@@ -170,7 +170,7 @@ table input {
 }
 
 table .fa {
-	font-size: 22px;
+	font-size: 25px;
 }
 
 /* Pagination
@@ -642,6 +642,7 @@ input:checked + .slider:before {
     position: relative;
     text-decoration: none;
     z-index: 0;
+    border: #fcfcfcfc 2px solid;
 }
 
 .gommette {
@@ -688,6 +689,17 @@ input:checked + .slider:before {
 	margin-top: 10px;
 	text-align: center;
 }
+
+.card-a {
+	color: #000000;
+}
+
+.card-a:hover {
+	color: #000000;
+	background-color: #ff9090;
+	border: #CC0000 2px solid;
+}
+
 
 .card-details {
 	overflow: hidden;

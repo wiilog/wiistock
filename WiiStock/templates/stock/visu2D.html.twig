@@ -1,20 +1,184 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout.html.twig' %}
 
-{% block title %}Hello {{ controller_name }}!{% endblock %}
+{% block page_content %}
+	<div class="row page-title">
+		VISUALISATION DU STOCK
+	</div>
 
-{% block body %}
-<style>
-    .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
-    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
-</style>
+    <div class="row">
+        <div class="col-md-12">
+            <form class="form-inline">
+                <div class="input-group">
+                    <label class="input-group-addon">
+                        Entrepôt
+                    </label>
+                    <select name="Ordre" class="form-control" required>
+                        <option value="Préparation">Entrepôt 1</option>
+                        <option value="Réception">Entrepôt 2</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+    </div>
 
-<div class="example-wrapper">
-    <h1>Hello {{ controller_name }}! ✅</h1>
+    {# {% for ordre in ordres %} #}
+    <div class="row">
+        <div class="workflow-wrap">
+            <div class="workflow-content">
+                <div class="list-wrapper">
+                    <div class="list">
+                        <div class="list-header">Allées</div>
+                        <div class="list-cards workflow-sidebar">
+                            <a class="card card-a" data-toggle="modal" data-target="#modal-visu">
+                                <div class="card-details">
+                                    <h3>Allée 1</h3>
+                                </div>        
+                            </a>
+                            <a class="card card-a">
+                                <div class="card-details">
+                                    <h3>Allée 2</h3>
+                                </div>        
+                            </a>
+                            <a class="card card-a">
+                                <div class="card-details">
+                                    <h3>Allée 3</h3>
+                                </div>        
+                            </a>
+                            <a class="card card-a">
+                                <div class="card-details">
+                                    <h3>Allée 4</h3>
+                                </div>        
+                            </a>
+                            <a class="card card-a">
+                                <div class="card-details">
+                                    <h3>Allée 5</h3>
+                                </div>        
+                            </a>
+                            <a class="card card-a">
+                                <div class="card-details">
+                                    <h3>Allée 6</h3>
+                                </div>        
+                            </a>
+                            <a class="card card-a">
+                                <div class="card-details">
+                                    <h3>Allée 7</h3>
+                                </div>        
+                            </a>
+                            <a class="card card-a">
+                                <div class="card-details">
+                                    <h3>Allée 8</h3>
+                                </div>        
+                            </a>
+                            <a class="card card-a">
+                                <div class="card-details">
+                                    <h3>Allée 9</h3>
+                                </div>        
+                            </a>
+                            <a class="card card-a">
+                                <div class="card-details">
+                                    <h3>Allée 10</h3>
+                                </div>        
+                            </a>
+                            <a class="card card-a">
+                                <div class="card-details">
+                                    <h3>Allée 11</h3>
+                                </div>        
+                            </a>
+                            <a class="card card-a">
+                                <div class="card-details">
+                                    <h3>Allée 12</h3>
+                                </div>        
+                            </a>
+                            <a class="card card-a">
+                                <div class="card-details">
+                                    <h3>Allée 13</h3>
+                                </div>        
+                            </a>
+                            <a class="card card-a">
+                                <div class="card-details">
+                                    <h3>Allée 14</h3>
+                                </div>        
+                            </a>
+                            <a class="card card-a">
+                                <div class="card-details">
+                                    <h3>Allée 15</h3>
+                                </div>        
+                            </a>
+                            <a class="card card-a">
+                                <div class="card-details">
+                                    <h3>Allée 16</h3>
+                                </div>        
+                            </a>
+                        </div>
+                        <a class="list-footer" href="#">
+                            <span class="fa fa-plus"></span>
+                            Ajouter une nouvelle allée
+                        </a>
+                    </div>
+                </div>
+                <div class="list-wrapper">
+                    <div class="list">
+                        <div class="list-header">Zones</div>
+                        <div class="list-cards workflow-sidebar">
+                            <a class="card card-a">
+                                <div class="card-details">
+                                    <h3>Zone 1</h3>
+                                </div>        
+                            </a>                            
+                        </div>
+                        <a class="list-footer">
+                            <span class="fa fa-plus"></span>
+                            Ajouter une nouvelle zone
+                        </a>
+                    </div>
+                </div>
+                <div class="list-wrapper">
+                    <div class="list">
+                        <div class="list-header">Quais</div>
+                        <div class="list-cards workflow-sidebar">
+                            <a class="card card-a">
+                                <div class="card-details">
+                                    <h3>Quai 1</h3>
+                                </div>        
+                            </a>
+                            <a class="card card-a">
+                                <div class="card-details">
+                                    <h3>Quai 2</h3>
+                                </div>        
+                            </a>
+                        </div>
+                        <a class="list-footer">
+                            <span class="fa fa-plus"></span>
+                            Ajouter un nouveau quai
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {# {% endfor %} #}
 
-    This friendly message is coming from:
-    <ul>
-        <li>Your controller at <code><a href="{{ 'src/Controller/StockController.php'|file_link(0) }}">src/Controller/StockController.php</a></code></li>
-        <li>Your template at <code><a href="{{ 'templates/stock/index.html.twig'|file_link(0) }}">templates/stock/index.html.twig</a></code></li>
-    </ul>
-</div>
+    <div class="row">
+        <div class="col-md-12">
+            <a href="#" class="button btn-left">
+                <span class="fa fa-angle-double-left"></span>Retour</a>
+        </div>
+    </div>
+
+    <div id="modal-visu" class="modal fade" role="dialog">
+        <div class="modal-content">
+            <div class="modal-dialog">
+                <div class="modal-header page-title">
+                    <button type="button" class="close" data-dismis="modal">&times;</button>
+                    <h1 class="modal-title">VISUALISATION DU STOCK</h1>
+                </div>
+
+                <div class="modal-body">
+
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
 {% endblock %}
