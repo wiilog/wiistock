@@ -2,21 +2,20 @@
 
 {% block page_content %}
 	<div class="row page-title">
-		CREER UN ORDRE
+		CREER UNE DEMANDE
 	</div>
 	<div class="row">
 		<div class="col-md-12">
 			<form class="form-inline">
 				<div class="input-group">
 					<label class="input-group-addon">
-						Ordre
+						Demande
 					</label>
-					<select name="Ordre" class="form-control" required>
-						<option value="Préparation">Préparation</option>
-						<option value="Réception">Réception</option>
-						<option value="Entrée">Entrée</option>
-						<option value="Sortie">Sortie</option>
+					<select name="Demande" class="form-control" required>
+						<option value="Mise en stock">Mise en stock</option>
+						<option value="Livraison">Livraison</option>
 						<option value="Transfert">Transfert</option>
+						<option value="Approvisionnement">Approvisionnement</option>
 					</select>
 				</div>
 			</form>
@@ -92,7 +91,7 @@
 			</div>
 
 			<div>
-				<textarea class="form-control" rows="6" placeholder="Commentaires sur l'ordre"></textarea>
+				<textarea class="form-control" rows="6" placeholder="Commentaires sur la demande"></textarea>
 			</div>
 		</div>
 		

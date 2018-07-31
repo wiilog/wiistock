@@ -661,6 +661,15 @@ table .fa {
 	color: #000;
 }
 
+/* Fieldset
+================= */
+
+.well-legend {
+	width: auto;
+	margin: 0;
+	border: none;
+}
+
 /* Historique
 ================= */
 

@@ -19,4 +19,14 @@ class DemandeController extends Controller
             'controller_name' => 'DemandeController',
         ]);
     }
+
+	/**
+     * @Route("/creation", name="demande_creation")
+     */
+    public function creation()
+    {
+        return $this->render('demande/creation.html.twig', [
+            'controller_name' => 'DemandeController',
+        ]);
+    }    
 }
