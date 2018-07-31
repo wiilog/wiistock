@@ -24,6 +24,14 @@ class InventairesController extends Controller
     }
 
     /**
+     * @Route("/affichage/{id}", name="inventaires_affichage", methods="GET")
+     */
+    public function affichage(Inventaires $inventaire): Response
+    {
+        return $this->render('inventaires/affichage.html.twig', ['inventaire' => $inventaire]);
+    }
+
+    /**
      * @Route("/new", name="inventaires_new", methods="GET|POST")
      */
     public function new(Request $request): Response

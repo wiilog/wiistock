@@ -41,6 +41,8 @@ a, a:hover, a:link, a:visited{
 	text-decoration: none;
 }
 
+button:focus {outline:0;}
+
 .in {
 	position: absolute;
 	top: 0;
@@ -86,24 +88,32 @@ a, a:hover, a:link, a:visited{
 }
 
 .backgray {
-	background-color: #999999;
+	background-color: #ffbc02;
+	/* background-color: #8c8c8c; */
 }
 
 /* Button
 ================= */
 
-.button {
+.button, .button:focus {
 	text-align: center;
 	text-decoration: none;
-	border: none;
+	cursor: pointer;
 	display: inline-block;
-	background: #130078;
-	color: #fcfcfc;
+	-webkit-transition-duration: 0.4s;
+	transition-duration: 0.4s;
 	border-radius: 50px;
 	padding: 10px 20px 10px 20px;
-	font-size: 17px;
-	border: #130078 1.5px solid;
 	margin: 5px;
+	font-size: 17px;
+	background-color: #130078;
+	color: #fcfcfc;
+	border: #130078 1.5px solid;
+}
+
+.button:hover {
+	background: #fcfcfc;
+	color: #130078;
 }
 
 .btn-right .fa {
@@ -116,12 +126,6 @@ a, a:hover, a:link, a:visited{
 	font-size: 20px;
 	padding-right: 15px;
 	vertical-align: top;
-}
-
-.button:hover {
-	background: #fcfcfc;
-	color: #130078;
-	transition: 0.3s;
 }
 
 .btn-grp {
@@ -159,6 +163,20 @@ a, a:hover, a:link, a:visited{
 
 .table tr:hover td {
 	background-color: #e8c35a;
+}
+
+.table>tbody>tr>td, .table>tbody>tr>th, .table>tfoot>tr>td, .table>tfoot>tr>th, .table>thead>tr>td, .table>thead>tr>th {
+	vertical-align: middle;
+}
+
+.table .progress {
+	width: 75%;
+	margin: auto 0;
+	border: #130078 1px solid;
+}
+
+.table .progress-blue {
+	background-color: #130078;
 }
 
 table .qty {
@@ -251,6 +269,7 @@ table .fa {
   position: fixed;
   top: 0;
   display: table;
+  /* background-color: #f0b000; */
   background-color: #cccccc;
   z-index: 100;
   height: 100%;
@@ -722,11 +741,11 @@ input:checked + .slider:before {
 }
 
 .more-filter {
-	color: #fcfcfc;
-	border: #00644b 1px solid;
+	color: #000;
+	border: #8c8c8c 1px solid;
 	margin-left: 5px;
 	padding: 5px 10px;
-	background-color: #00a37a;
+	background-color: #cccccc;
 }
 
 .more-filter:hover {
@@ -740,7 +759,10 @@ input:checked + .slider:before {
 .well-legend {
 	width: auto;
 	margin: 0;
+	padding: 0 5px;
 	border: none;
+	background-color: #fcfcfc;
+	border-radius: 60px;
 }
 
 /* Historique
@@ -817,4 +839,53 @@ input:checked + .slider:before {
 
 .line-list .fa-minus {
 	font-size: 26px;
+}
+
+/* Inventaire
+================= */
+
+.state-waiting {
+	margin: auto;
+	color: #ff7b00;
+}
+
+.state-good {
+	margin: auto;
+	color: #00b31e;
+}
+
+.state-error {
+	margin: auto;
+	color: #CC0000;
+}
+
+.resume .progress {
+	margin: auto 0;
+	border: #130078 1px solid;
+}
+
+.resume .progress-bar {
+	font-size: 17px;
+}
+
+.resume .progress-blue {
+	background-color: #130078;
+}
+
+/* Modal
+================= */
+
+.modal-header, .modal h4, .close {
+	background-color: #f0b000;
+	color:white !important;
+	text-align: center;
+	font-size: 30px;
+} 
+
+.modal-header {
+	padding: 35px 50px;
+}
+
+.modal-footer {
+	background-color: #f9f9f9;
 }
