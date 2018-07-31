@@ -136,15 +136,13 @@ a, a:hover, a:link, a:visited{
 /* Table
 ================= */
 
-table {
-	width: 100%;
-    border-collapse: collapse;
+/* thead {
+	background: #130078;
 }
 
-tr {
-	text-align: left;
-	border: 1px solid #000000;
-}
+thead:hover {
+	background: #130078;
+} */
 
 table .qty {
 	width: 200px; 
@@ -165,10 +163,13 @@ table .fa {
 
 .pagination .button {
 	border-radius: 50px;
-	margin: 0px 3px;
+	margin: -7px 3px;
 	color: #000000;
 	border-color: #000000;
+}
 
+.pagination > li > a, .pagination > li > span {
+	padding: 1px 8px;
 }
 
 .pagination .last a, .pagination .next a, .pagination .prev a, .pagination .first a {
