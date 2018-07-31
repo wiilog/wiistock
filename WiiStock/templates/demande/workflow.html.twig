@@ -161,8 +161,8 @@
 
 {% block javascripts %}
     <script type="text/javascript">
-        $('.daterange input').each(function () {
-            $(this).datepicker('clearDates');
+	    $('.daterange input').each(function () {
+            $(this).datepicker({language: 'fr', format: 'dd/mm/yyyy', todayBtn: true, todayHighlight: true, autoclose: true});
         });
     </script>
 {% endblock %}

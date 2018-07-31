@@ -36,62 +36,62 @@
         </form>
     </div>
 
-	<div class="row page-title">
-		VISUALISATION DU STOCK
-	</div>
+    <div class="row page-title">
+        VISUALISATION DU STOCK
+    </div>
 
     <div class="row btn-grp">
         <a href="#" class="button btn-left">
-        	<span class="fa fa-eye"></span>Visualisation 2D
+            <span class="fa fa-eye"></span>Visualisation 2D
         </a>
         <a href="#" class="button btn-left">
-        	<span class="fa fa-dollar"></span>Valorisation du stock
+            <span class="fa fa-dollar"></span>Valorisation du stock
         </a>
     </div>
 
     <table id="grid-data" class="table table-condensed table-hover table-striped">
-    	<thead>
-    		<tr>
-	    		<th data-column-id="ref">Réf. article</th>
-	    		<th data-column-id="sku">SKU</th>
-	    		<th data-column-id="libelle">Libellé</th>
-	    		<th data-column-id="qte">Qté</th>
-	    		<th data-column-id="commands" data-formatter="commands" data-sortable="false">Détail</th>
-    		</tr>
-    	</thead>
-    	
-       	<tr>
-    		<td>136737541</td>
-    		<td>251</td>
-    		<td>Iphone 1</td>
-    		<td>41</td>
-    		<td></td>
-    	</tr>
-   	  	<tr>
-    		<td>136737542</td>
-    		<td>252</td>
-    		<td>Iphone 2</td>
-    		<td>42</td>
-    		<td></td>
-    	</tr>
-       	<tr>
-    		<td>136737543</td>
-    		<td>253</td>
-    		<td>Iphone 3</td>
-    		<td>43</td>
-    		<td></td>
-    	</tr>
-       	<tr>
-    		<td>136737544</td>
-    		<td>254</td>
-    		<td>Iphone 4</td>
-    		<td>44</td>
-    		<td></td>
-    	</tr>    	
+        <thead>
+            <tr>
+                <th data-column-id="ref">Réf. article</th>
+                <th data-column-id="sku">SKU</th>
+                <th data-column-id="libelle">Libellé</th>
+                <th data-column-id="qte">Qté</th>
+                <th data-column-id="commands" data-formatter="commands" data-sortable="false">Détail</th>
+            </tr>
+        </thead>
+
+        <tr>
+            <td>136737541</td>
+            <td>251</td>
+            <td>Iphone 1</td>
+            <td>41</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>136737542</td>
+            <td>252</td>
+            <td>Iphone 2</td>
+            <td>42</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>136737543</td>
+            <td>253</td>
+            <td>Iphone 3</td>
+            <td>43</td>
+            <td></td>
+        </tr>
+        <tr>
+            <td>136737544</td>
+            <td>254</td>
+            <td>Iphone 4</td>
+            <td>44</td>
+            <td></td>
+        </tr>
     </table>
 
-	<div class="row">
-		<div class="col-md-12">
+    <div class="row">
+        <div class="col-md-12">
             <a href="#" class="button btn-left pull-left">
                 <span class="fa fa-angle-double-left"></span>Retour</a>
             <a href="#" class="button btn-left pull-right">
@@ -101,10 +101,14 @@
 {% endblock %}
 
 {% block javascripts %}
-<script type="text/javascript">
-var grid = $("#grid-data").bootgrid({
-    ajax: false,
-	/*
+    <script type="text/javascript">
+        $('.daterange input').each(function () {
+            $(this).datepicker({language: 'fr', format: 'dd/mm/yyyy', todayBtn: true, todayHighlight: true, autoclose: true});
+        });
+
+        var grid = $("#grid-data").bootgrid({
+            ajax: false,
+            /*
     post: function ()
     {
         return {
@@ -113,12 +117,11 @@ var grid = $("#grid-data").bootgrid({
     },
     url: "{{ path('stock') }}",
 	*/
-    formatters: {
-        "commands": function(column, row)
-        {
-            return "<button type=\"button\" class=\"btn btn-xs btn-default command-edit\" data-row-id=\"" + row.id + "\"><span class=\"fa fa-eye\"></span></button> "
-        }
-    }
-})
-</script>
+            formatters: {
+                "commands": function (column, row) {
+                    return "<button type=\"button\" class=\"btn btn-xs btn-default command-view\" data-row-id=\"" + row.id + "\"><span class=\"fa fa-eye\"></span></button> "
+                }
+            }
+        })
+    </script>
 {% endblock %}
