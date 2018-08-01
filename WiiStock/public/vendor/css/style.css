@@ -191,6 +191,32 @@ table .fa {
 	font-size: 25px;
 }
 
+/* Groupes
+================= */
+
+.custom-check {
+	text-align: left;
+	width: 180px;
+	position: relative;
+	cursor: pointer;
+}
+
+.custom-check input {
+	position: absolute;
+	opacity: 0;
+}
+
+.custom-check input:checked ~ .checkmark {
+	opacity: 1;
+}
+
+
+.checkmark {
+	float: right;
+	opacity: 0;
+
+}
+
 /* Pagination
 ================= */
 
@@ -577,7 +603,7 @@ input:checked + .slider:before {
 ================= */
 
 .workflow-wrap {
-	margin: 2% 1%;
+	margin: 5px 10px;
 	left: 0;
 	right: 0;
 	top: 0;
@@ -598,12 +624,31 @@ input:checked + .slider:before {
     vertical-align: top;
 }
 
-@media (max-width: 900px) {
+.list-wrapper-col {
+	flex-grow: 1;
+	max-width: 15%;
+    height: 100%;
+    box-sizing: border-box;
+    display: inline-block;
+    vertical-align: top;
+}
+
+.list-wrapper-rack {
+	flex-grow: 1;
+	max-width: 30%;
+    height: 100%;
+    box-sizing: border-box;
+    display: inline-block;
+    vertical-align: top;
+}
+
+@media (max-width: 1200px) {
 	.list-wrapper {
 		flex-grow: 1;
 		min-width: 100%;
 	}
 }
+
 
 .list {
 	margin: 5px 5px;
@@ -679,6 +724,18 @@ input:checked + .slider:before {
     min-height: 0;	
 }
 
+.list-cards-rack {
+	flex: 1 1 auto;
+	max-height: 288px;
+	margin-bottom: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    margin: 0 4px;
+	padding: 0 4px;
+    z-index: 1;
+    min-height: 0;
+}
+
 .card {
     background-color: #fff;
     border-radius: 3px;
@@ -694,8 +751,24 @@ input:checked + .slider:before {
 
 .card-row {
 	margin-right: 8px;
-	min-height: 200px;
-	max-width: 100px;	
+	min-height: 300px;
+	min-width: 100px;	
+}
+
+.card-row-travee {
+	min-height: 300px;
+	min-width: 75%;
+}
+
+@media (max-width: 1000px) {
+	.list-wrapper-rack, .list-wrapper-col {
+		flex-grow: 1;
+		min-width: 100%;
+	}
+	.card-row-travee {
+		min-height: 20px;
+		min-width: 100%;
+	}
 }
 
 .gommette {
@@ -725,11 +798,22 @@ input:checked + .slider:before {
 	cursor: pointer;
 }
 
-.card .fa{
+.card .fa {
 	font-size: 38px;
 	padding-top: 2px;
 	padding-left: 3px;
 	text-align: center;
+}
+
+.list-cards-rack .card .fa {
+	transition: transform
+}
+
+.list-cards-rack .card .fa:hover {
+	cursor: pointer;
+	-ms-transform: scale(1.5); /* IE 9 */
+    -webkit-transform: scale(1.5); /* Safari 3-8 */
+    transform: scale(1.5);
 }
 
 .card a:hover {

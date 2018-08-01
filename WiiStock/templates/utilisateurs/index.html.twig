@@ -1,10 +1,127 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout.html.twig' %}
 
-{% block title %}Utilisateurs index{% endblock %}
+{% block title %}Utilisateurs{% endblock %}
 
-{% block body %}
-    <h1>Utilisateurs index</h1>
+{% block page_content %}
+    <div class="row page-title">
+        UTILISATEURS
+    </div>
 
+    <table class="table table-condensed table-hover table-striped">
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Groupe</th>
+                <th>Dernière connexion</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tr>
+            <td>Leo</td>
+            <td>leo.couffinhal@wiilog.fr</td>
+            <td>Sous-user</td>
+            <td>Il y a 10 ans environ</td>
+            <td>
+                <button type="button" class="btn btn-xs btn-default"><span class="fa fa-pencil"></span></a>
+                <button type="button" class="btn btn-xs btn-default"><span class="fa fa-trash"></span></a>
+            </td>
+        </tr>
+        <tr>
+            <td>Gwendal</td>
+            <td>gwendal.lefur@wiilog.fr</td>
+            <td>Super-user</td>
+            <td>Connecté</td>
+            <td>
+                <button type="button" class="btn btn-xs btn-default"><span class="fa fa-pencil"></span></a>
+                <button type="button" class="btn btn-xs btn-default"><span class="fa fa-trash"></span></a>
+            </td>
+        </tr>
+        <tr>
+            <td>Dorine</td>
+            <td>dorine.renon@wiilog.fr</td>
+            <td>User</td>
+            <td>Il y a 12 heures environ</td>
+            <td>
+                <button type="button" class="btn btn-xs btn-default"><span class="fa fa-pencil"></span></a>
+                <button type="button" class="btn btn-xs btn-default"><span class="fa fa-trash"></span></a>
+            </td>
+        </tr>
+        <tr>
+            <td>Benoit</td>
+            <td>benoit.coste@wiilog.fr</td>
+            <td>Admin</td>
+            <td>Il y a 15 minutes</td>
+            <td>
+                <button type="button" class="btn btn-xs btn-default"><span class="fa fa-pencil"></span></a>
+                <button type="button" class="btn btn-xs btn-default"><span class="fa fa-trash"></span></a>
+            </td>
+        </tr>
+    </table>
+
+    <div class="row">
+        <div class="col-md-6">
+            <fieldset class="well">
+                <legend class="well-legend">Créer un utilisateur</legend>
+                <form class="form-inline">
+                    <div class="input-group">
+                        <input type="text" class="form-control" name="username" placeholder="Username">
+                    </div>
+                    <div class="input-group">
+                        <input type="email" class="form-control" name="email" placeholder="E-mail">
+                    </div>
+                    <div class="input-group">
+                        <select class="form-control">
+                            <option>User</option>
+                            <option>Super-user</option>
+                            <option>Admin</option>
+                            <option>Super-admin</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <a href="#" class="button btn-left"><span class="fa fa-check"></span>
+                            Valider</a>
+                    </div>
+                </form>
+            </fieldset>
+        </div>
+        <div class="col-md-6">
+            <fieldset class="well">
+                <legend class="well-legend">Modifier un utilisateur</legend>
+                <form class="form-inline">
+                    <div class="input-group">
+                        <input type="text" class="form-control" name="username" placeholder="Username">
+                    </div>
+                    <div class="input-group">
+                        <input type="email" class="form-control" name="email" placeholder="E-mail">
+                    </div>
+                    <div class="input-group">
+                        <select class="form-control">
+                            <option>User</option>
+                            <option>Super-user</option>
+                            <option>Admin</option>
+                            <option>Super-admin</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <a href="#" class="button btn-left"><span class="fa fa-check"></span>
+                            Valider</a>
+                    </div>
+                </form>
+            </fieldset>
+        </div>
+    </div>    
+
+    <div class="row">
+        <div class="col-md-12">
+            <a href="#" class="button btn-left">
+                <span class="fa fa-angle-double-left"></span>Retour</a>
+        </div>
+
+{% endblock %}
+
+
+{# 
     <table class="table">
         <thead>
             <tr>
@@ -35,5 +152,4 @@
         </tbody>
     </table>
 
-    <a href="{{ path('utilisateurs_new') }}">Create new</a>
-{% endblock %}
+    <a href="{{ path('utilisateurs_new') }}">Create new</a> #}
