@@ -1,0 +1,247 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Article
+    {{ article.id }}
+{% endblock %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" type="text/css" href="{{ asset('vendor/css/timeline.css') }}">
+{% endblock %}
+
+{% block page_content %}
+
+    <div class="row page-title">
+        ARTICLE
+        {{ article.id }}
+    </div>
+
+    <section class="cd-horizontal-timeline row">
+        <div class="timeline">
+            <div class="events-wrapper">
+                <div class="events">
+                    <ol>
+                        <li>
+                            <a href="#0" data-date="16/01/2018" class="selected">16 Jan</a>
+                        </li>
+                        <li>
+                            <a href="#0" data-date="28/02/2018">28 Fev</a>
+                        </li>
+                        <li>
+                            <a href="#0" data-date="20/04/2018">20 Mar</a>
+                        </li>
+                        <li>
+                            <a href="#0" data-date="20/05/2018">20 Mai</a>
+                        </li>
+                        <li>
+                            <a href="#0" data-date="29/05/2018">29 Mai</a>
+                        </li>
+                    </ol>
+
+                    <span class="filling-line" aria-hidden="true"></span>
+                </div>
+                <!-- .events -->
+            </div>
+            <!-- .events-wrapper -->
+
+            <ul class="cd-timeline-navigation">
+                <li>
+                    <a href="#0" class="prev inactive">Prev</a>
+                </li>
+                <li>
+                    <a href="#0" class="next">Next</a>
+                </li>
+            </ul>
+            <!-- .cd-timeline-navigation -->
+        </div>
+        <!-- .timeline -->
+
+        <div class="events-content">
+            <ol>
+                <li class="selected" data-date="16/01/2018">
+                    <h2>Entrée</h2>
+                    <em>16 Janvier 2018</em>
+                    <p>
+                        Lorem ipsum dolor sit amet, consectetur adipisicing elit. Illum praesentium officia, fugit recusandae ipsa, quia velit nulla adipisci? Consequuntur aspernatur at, eaque hic repellendus sit dicta consequatur quae, ut harum ipsam molestias maxime non nisi reiciendis eligendi! Doloremque quia pariatur harum ea amet quibusdam quisquam, quae, temporibus dolores porro doloribus.
+                    </p>
+                </li>
+
+                <li data-date="28/02/2018">
+                    <h2>Transfert</h2>
+                    <em>28 Févier 2018</em>
+                    <p>
+                        Lorem ipsum dolor sit amet, consectetur adipisicing elit. Illum praesentium officia, fugit recusandae ipsa, quia velit nulla adipisci? Consequuntur aspernatur at, eaque hic repellendus sit dicta consequatur quae, ut harum ipsam molestias maxime non nisi reiciendis eligendi! Doloremque quia pariatur harum ea amet quibusdam quisquam, quae, temporibus dolores porro doloribus.
+                    </p>
+                </li>
+
+                <li data-date="20/04/2018">
+                    <h2>Transfert</h2>
+                    <em>20 Mars 2018</em>
+                    <p>
+                        Lorem ipsum dolor sit amet, consectetur adipisicing elit. Illum praesentium officia, fugit recusandae ipsa, quia velit nulla adipisci? Consequuntur aspernatur at, eaque hic repellendus sit dicta consequatur quae, ut harum ipsam molestias maxime non nisi reiciendis eligendi! Doloremque quia pariatur harum ea amet quibusdam quisquam, quae, temporibus dolores porro doloribus.
+                    </p>
+                </li>
+
+                <li data-date="20/05/2018">
+                    <h2>Transfert</h2>
+                    <em>20 May 2018</em>
+                    <p>
+                        Lorem ipsum dolor sit amet, consectetur adipisicing elit. Illum praesentium officia, fugit recusandae ipsa, quia velit nulla adipisci? Consequuntur aspernatur at, eaque hic repellendus sit dicta consequatur quae, ut harum ipsam molestias maxime non nisi reiciendis eligendi! Doloremque quia pariatur harum ea amet quibusdam quisquam, quae, temporibus dolores porro doloribus.
+                    </p>
+                </li>
+
+                <li data-date="29/05/2018">
+                    <h2>Sortie</h2>
+                    <em>29 Mai 2018</em>
+                    <p>
+                        Lorem ipsum dolor sit amet, consectetur adipisicing elit. Illum praesentium officia, fugit recusandae ipsa, quia velit nulla adipisci? Consequuntur aspernatur at, eaque hic repellendus sit dicta consequatur quae, ut harum ipsam molestias maxime non nisi reiciendis eligendi! Doloremque quia pariatur harum ea amet quibusdam quisquam, quae, temporibus dolores porro doloribus.
+                    </p>
+                </li>
+            </ol>
+        </div>
+        <!-- .events-content -->
+    </section>
+
+    <div class="row article-wrapper">
+        <div class="col-md-4">
+            <fieldset class="well list-box">
+                <legend class="well-legend">Informations</legend>
+                <form>
+                    <div class="input-group form-group">
+                        <label class="input-group-addon">
+                            Type
+                        </label>
+                        <select class="form-control">
+                            <option>Iphone X</option>
+                            <option>Iphone 5</option>
+                            <option>Iphone 1</option>
+                        </select>
+                    </div>
+                    <div class="input-group form-group">
+                        <label class="input-group-addon">
+                            Référence
+                        </label>
+                        <input value="{{ article.id }}" class="form-control" placeholder="Référence">
+                    </div>
+                </form>
+                <ul class="list-group">
+                    <label>
+                        Emplacement
+                    </label>
+                    <li class="list-group-item">Allée 1</li>
+                    <li class="list-group-item">Travée 4</li>
+                    <li class="list-group-item">Rack 2</li>
+                </ul>
+            </fieldset>
+        </div>
+        <div class="col-md-4">
+            <div class="carousel slide" data-ride="carousel" id="state-carousel" data-interval="false">
+                <ol class="carousel-indicators">
+                    <li data-target="#state-carousel" data-slide-to="0" class="active"></li>
+                    <li data-target="#state-carousel" data-slide-to="1"></li>
+                    <li data-target="#state-carousel" data-slide-to="2"></li>
+                </ol>
+                <div class="carousel-inner">
+                    <div class="item active">
+                        <blockquote>
+                            <div class="row">
+                                <div class="col-sm-4 text-center">
+                                    <span class="img-circle backorange"></span>
+                                </div>
+                                <div class="col-sm-8">
+                                    <p>Litige</p>
+                                </div>
+                            </div>
+                        </blockquote>
+                    </div>
+                    <!-- State 2 -->
+                    <div class="item">
+                        <blockquote>
+                            <div class="row">
+                                <div class="col-sm-4 text-center">
+                                    <span class="img-circle backgreen"></span>
+                                </div>
+                                <div class="col-sm-8">
+                                    <p>Conforme</p>
+                                </div>
+                            </div>
+                        </blockquote>
+                    </div>
+                    <!-- State 3 -->
+                    <div class="item">
+                        <blockquote>
+                            <div class="row">
+                                <div class="col-sm-4 text-center">
+                                    <span class="img-circle backred"></span>
+                                </div>
+                                <div class="col-sm-8">
+                                    <p>Abîmé</p>
+                                </div>
+                            </div>
+                        </blockquote>
+                    </div>
+                </div>
+
+                <!-- Carousel Buttons Next/Prev -->
+                <a data-slide="prev" href="#state-carousel" class="left carousel-control">
+                    <i class="fa fa-chevron-left"></i>
+                </a>
+                <a data-slide="next" href="#state-carousel" class="right carousel-control">
+                    <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+            <div class="form-group">
+                <label for="comment">Observations</label>
+                <textarea class="form-control" rows="5" id="comment"></textarea>
+            </div>
+        </div>
+
+        <div class="col-md-4 text-center">
+            <fieldset class="well list-box">
+                <div class="thumbnail">
+                    <div class="thumb-leg">Thumbnail</div>
+                </div>
+                <div class="custom-file btn btn-default">
+                    <input type="file" class="custom-file-input" id="customFile">
+                    <label class="custom-file-label" for="customFile">
+                        <span class="fa fa-file-image-o"></span>
+                        Importer une image</label>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+
+    {# <table class="table">
+		<tbody>
+			<tr>
+				<th>Id</th>
+				<td>{{ article.id }}</td>
+			</tr>
+			<tr>
+				<th>Etat</th>
+				<td>{{ article.etat }}</td>
+			</tr>
+		</tbody>
+	</table>
+
+	<a href="{{ path('articles_index') }}">back to list</a>
+
+	<a href="{{ path('articles_edit', {'id': article.id}) }}">edit</a>
+
+	{{ include('articles/_delete_form.html.twig') }} #}
+
+    <div class="row">
+        <div class="col-md-12">
+            <a href="#" class="button btn-left pull-left">
+                <span class="fa fa-angle-double-left"></span>Retour</a>
+            <a href="#" class="button btn-left pull-right">
+                <span class="fa fa-floppy-o"></span>Enregistrer</a>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block javascripts %}
+
+    <script src="{{ asset('js/timeline.js') }}"></script>
+
+{% endblock %}

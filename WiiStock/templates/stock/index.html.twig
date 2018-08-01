@@ -122,6 +122,11 @@
                     return "<button type=\"button\" class=\"btn btn-xs btn-default command-view\" data-row-id=\"" + row.id + "\"><span class=\"fa fa-eye\"></span></button> "
                 }
             }
-        })
+        }).on("loaded.rs.jquery.bootgrid", function () {
+            /* Executes after data is loaded and rendered */
+            grid.find(".command-view").on("click", function (e) {
+                window.location.href = "{{ path('articles_affichage', {'id': 1}) }}"
+            })
+        });
     </script>
 {% endblock %}
