@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Liste des clients{% endblock %}
+{% block title %}Liste des catégories{% endblock %}
 
 {% block page_content %}
 
@@ -8,21 +8,12 @@
         <form class="form-inline">
             <div class="input-group">
                 <label class="input-group-addon">
-                    Société
-                </label>
-                <select name="Societe" class="form-control">
-                    <option>Apple</option>
-                    <option>Microsof</option>
-                </select>
-            </div>
-            <div class="input-group">
-                <label class="input-group-addon">
-                    Catégorie
+                    Type
                 </label>
                 <select class="form-control">
-                    <option>Catégorie1</option>
-                    <option>Catégorie2</option>
-                    <option>Catégorie3</option>
+                    <option>Type1</option>
+                    <option>Type2</option>
+                    <option>Type3</option>
                 </select>
             </div>
             <div class="form-group">
@@ -35,7 +26,7 @@
     </div>
 
     <div class="row page-title">
-        REFERENTIEL CLIENTS
+        REFERENTIEL CATEGORIES
     </div>
 
     <div class="row btn-grp">
@@ -43,7 +34,7 @@
             <span class="fa fa-upload"></span>Importer
         </button>
         <button class="button btn-left">
-            <span class="fa fa-plus"></span>Ajouter un client
+            <span class="fa fa-plus"></span>Ajouter une catégorie
         </button>
     </div>
 
@@ -51,44 +42,30 @@
         <thead>
             <tr>
                 <th data-column-id="nom">Nom</th>
-                <th data-column-id="prenom">Prénom</th>
-                <th data-column-id="tel">Téléphone</th>
-                <th data-column-id="societe">Société</th>
-                <th data-column-id="adresse">Adresse</th>
+                <th data-column-id="prenom">Type</th>
                 <th data-column-id="commands" data-formatter="commands" data-sortable="false">Détail</th>
             </tr>
         </thead>
 
         <tr>
-            <td>Léo</td>
-            <td>Couffinhal</td>
-            <td>06.00.00.00.00</td>
-            <td>Apple</td>
-            <td>2-4 Rue Sainte-Catherine</td>
+            <td>Catégorie1</td>
+            <td>Type1</td>
+
             <td></td>
         </tr>
         <tr>
-            <td>Gwendal</td>
-            <td>Le Fur</td>
-            <td>06.00.00.00.00</td>
-            <td>Apple</td>
-            <td>2-4 Rue Sainte-Catherine</td>
+            <td>Catégorie2</td>
+            <td>Type2</td>
             <td></td>
         </tr>
         <tr>
-            <td>Dorine</td>
-            <td>Renon</td>
-            <td>06.00.00.00.00</td>
-            <td>Apple</td>
-            <td>2-4 Rue Sainte-Catherine</td>
+            <td>Catégorie3</td>
+            <td>Type1</td>
             <td></td>
         </tr>
         <tr>
-            <td>Benoît</td>
-            <td>Coste</td>
-            <td>06.00.00.00.00</td>
-            <td>Apple</td>
-            <td>2-4 Rue Sainte-Catherine</td>
+            <td>Catégorie4</td>
+            <td>Type3</td>
             <td></td>
         </tr>
     </table>

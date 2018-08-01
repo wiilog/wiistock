@@ -9,7 +9,7 @@
  * bleu #130078
  */
  
- * {
+ *, *::after, *::before {
 	box-sizing: border-box;
 	margin: 0;
 	padding: 0;
@@ -22,11 +22,13 @@ html {
 
 body {
 	font-family: 'Helvetica Neue', Helvetica, Arial;
-	font-size: 16px;
 	line-height: 20px;
 	font-weight: 400;
 	-webkit-font-smoothing: antialiased;
 	background: #fcfcfc;
+	font-size: 1.6rem;
+	color: #383838;
+	background-color: #f8f8f8;
 }
 
 h1, h2, p {
@@ -41,7 +43,9 @@ a, a:hover, a:link, a:visited{
 	text-decoration: none;
 }
 
-button:focus {outline:0;}
+button:focus {
+	outline: 0 !important;
+}
 
 .in {
 	position: absolute;
@@ -88,8 +92,7 @@ button:focus {outline:0;}
 }
 
 .backgray {
-	background-color: #ffbc02;
-	/* background-color: #8c8c8c; */
+	background-color: #8c8c8c;
 }
 
 /* Button
@@ -465,7 +468,8 @@ input:checked + .slider:before {
 	box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    white-space: normal;
+	white-space: normal;
+	border-radius: 5px;
 }
 
 .square h1 {
@@ -518,31 +522,67 @@ input:checked + .slider:before {
   color: #CC0000;
 }
 
+.accueil-wrapper {
+	margin-top: 20px;
+	background-color: #dbdbdb;
+	display: flex;
+	flex-flow: row wrap;
+	justify-content: space-around;
+}
+
+.col-graph {
+	width: 60%;
+}
+
+
+.col-box {
+	width: 40%;
+}
+
+@media (max-width:1300px) {
+	.col-box, .col-graph {
+		min-width: 100%;
+	}
+}
+
 .box-wrapper {
 	display: flex;
 	flex-flow: row wrap;
-	/* justify-content: space-evenly; */
 }
 
 .box {
+	flex-grow: 1;
 	min-width: 50%;
-	box-sizing: border-box;
+    height: 100%;
+    box-sizing: border-box;
     display: inline-block;
     vertical-align: top;
 }
 
 .box-container {
-	min-width: 180px;
-	height: 240px;
+	min-height: 240px;
 	color: #fcfcfc;
-	display: block;
-	margin: 20px 30px;
-	border: #000 solid 1px;
+	margin: 20px 20px;
+	background-color: #fcfcfc;
+}
+
+.box-shadow {
+	-moz-box-shadow: 2px 2px 25px 0px #656565;
+	-webkit-box-shadow: 2px 2px 25px 0px #656565;
+	-o-box-shadow: 2px 2px 25px 0px #656565;
+	box-shadow: 2px 2px 25px 0px #656565;
+	filter:progid:DXImageTransform.Microsoft.Shadow(color=#656565, Direction=134, Strength=25);
+	-moz-border-radius: 5px;
+	-webkit-border-radius: 5px;
+	border-radius: 5px;
 }
 
 .box-container h1 {
-	margin-left: 15px;
+	margin: 0;
+	padding: 15px 15px;
 	font-size: 22px;
+	background-color: #f0b000;
+	border-bottom: #000 1px solid;
 }
 
 .box-container input {
@@ -550,10 +590,11 @@ input:checked + .slider:before {
 	display: block;
 	color: #000;
 	text-align: center;
-	margin: 125px auto;
+	margin: auto;
+	top: 130px;
 	border: none;
 	font-size: 28px;
-	background: #fcfcfc;
+	background: transparent;
 }
 
 .date {
@@ -564,13 +605,13 @@ input:checked + .slider:before {
 }
 
 .graph-container {
-  height: 560px;
+	margin: 20px 15px;
+	padding: 10px 10px;
+	background-color: #fcfcfc;
 }
 
-.graph-container + .in h1 {
-	margin-top: 40px;
-	margin-left: 20px;
-	margin-bottom: 46px;
+.graph-container h1 {
+	padding: 10px 10px;
 }
 
 /* Workflow
@@ -942,4 +983,100 @@ input:checked + .slider:before {
 
 .modal-footer, .modal-header {
 	border-radius: 5px;
+}
+
+/* Article View
+================= */
+
+.article-wrapper {
+	margin: 10px 50px;
+}
+
+.article-wrapper fieldset {
+	border-color: #f0b000;
+}
+
+#state-carousel {
+  padding: 0 10px 20px 10px;
+  margin-top: 30px;
+}
+
+#state-carousel .carousel-control {
+  background: none;
+  color: #222;
+  font-size: 2.3em;
+  text-shadow: none;
+  margin-top: 30px;
+}
+
+#state-carousel .carousel-control.left {
+  left: -12px;
+}
+#state-carousel .carousel-control.right {
+  right: -12px !important;
+}
+
+#state-carousel .carousel-indicators {
+  right: 50%;
+  top: auto;
+  bottom: 0px;
+  margin-right: -19px;
+}
+/* Changes the color of the indicators */
+#state-carousel .carousel-indicators li 
+{
+  background: #c0c0c0;
+}
+#state-carousel .carousel-indicators .active 
+{
+  background: #333333;
+}
+#state-carousel span
+{
+	min-height: 50px;
+	min-width: 50px;
+	color: #000;
+	display: inline-block;
+	border-radius: 60px;
+	margin-left: 20px;
+}
+
+.item blockquote {
+    border-left: none; 
+    margin: 0;
+}
+
+.item blockquote span {
+	margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.item p {
+	font-size: 36px;
+	margin: 25px 0;
+}
+
+.custom-file-label {
+    cursor: pointer;
+    color: #000;
+	font-weight: bold;
+}
+.custom-file-label:hover {
+    color: #f0b000;
+}
+
+#customFile {
+    display: none;
+}
+
+.thumbnail {
+	margin: 5px auto 5px auto;
+	width: 200px;
+	height: 200px;
+}
+
+.thumb-leg {
+	display: block;
+	position: relative;
+	text-align: center;
 }

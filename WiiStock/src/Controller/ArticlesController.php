@@ -24,6 +24,15 @@ class ArticlesController extends Controller
     }
 
     /**
+     * @Route("/affichage/{id}", name="articles_affichage", methods="GET")
+     */
+    public function affichage(Articles $article): Response
+    {
+        return $this->render('articles/affichage.html.twig', ['article' => $article]);
+    }
+
+
+    /**
      * @Route("/new", name="articles_new", methods="GET|POST")
      */
     public function new(Request $request): Response
