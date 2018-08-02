@@ -1,11 +1,163 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout.html.twig' %}
 
-{% block title %}ChampsPersonnalises index{% endblock %}
+{% block title %}Champs Personnalises{% endblock %}
 
-{% block body %}
-    <h1>ChampsPersonnalises index</h1>
+{% block page_content %}
 
-    <table class="table">
+    <div class="row page-title">
+        <h1>CHAMPS PERSONNALISES</h1>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <a href="#" class="button btn-left" data-toggle="modal" data-target="#ajoutModal">
+                <span class="fa fa-plus"></span>Créer un champ personnalisé
+            </a>
+        </div>
+    </div>
+
+    <table class="table table-condensed table-hover table-striped">
+        <thead>
+            <tr>
+                <th>Nom</th>
+                <th>Type</th>
+                <th>Objet</th>
+                <th>Actif</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+
+        <tr>
+            <td>Numéro de commande</td>
+            <td>Nombre</td>
+            <td>Articles</td>
+            <td>
+                <div class="switch">
+                    <input type="checkbox">
+                    <span class="slider round"></span>
+                </div>
+            </td>
+            <td>
+                <button type="button" class="btn btn-xs btn-default"><span class="fa fa-pencil"></span></button>
+                <button type="button" class="btn btn-xs btn-default"><span class="fa fa-trash"></span></button>
+            </td>
+        </tr>
+        <tr>
+            <td>Référence fournisseur</td>
+            <td>Chaine de caractères</td>
+            <td>Réception</td>
+            <td>
+                <div class="switch">
+                    <input type="checkbox">
+                    <span class="slider round"></span>
+                </div>
+            </td>
+            <td>
+                <button type="button" class="btn btn-xs btn-default"><span class="fa fa-pencil"></span></button>
+                <button type="button" class="btn btn-xs btn-default"><span class="fa fa-trash"></span></button>
+            </td>
+        </tr>
+        <tr>
+            <td>Type client</td>
+            <td>Selection</td>
+            <td>Réceptions</td>
+            <td>
+                <div class="switch">
+                    <input type="checkbox">
+                    <span class="slider round"></span>
+                </div>
+            </td>
+            <td>
+                <button type="button" class="btn btn-xs btn-default"><span class="fa fa-pencil"></span></button>
+                <button type="button" class="btn btn-xs btn-default"><span class="fa fa-trash"></span></button>
+            </td>
+        </tr>
+        <tr>
+            <td>Type préparation</td>
+            <td>Texte</td>
+            <td>Préparations</td>
+            <td>
+                <div class="switch">
+                    <input type="checkbox">
+                    <span class="slider round"></span>
+                </div>
+            </td>
+            <td>
+                <button type="button" class="btn btn-xs btn-default"><span class="fa fa-pencil"></span></button>
+                <button type="button" class="btn btn-xs btn-default"><span class="fa fa-trash"></span></button>
+            </td>
+        </tr>
+    </table>
+
+
+    <!-- Modal-->
+    <div id="ajoutModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">
+                        <span class="glyphicon glyphicon-list-alt"></span>
+                        Nouveau champ personnalisé</h4>
+                </div>
+                <div class="modal-body">
+                    <p>Sélectionnez vos caractéristiques :</p>
+                    <form>
+                        <div class="form-group">
+                            <div class="form-group">
+                                <label>Nom du champ</label>
+                                <input type="text" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label>Type de champ</label>
+                                <select class="form-control">
+                                    <option>Nombre</option>
+                                    <option>Texte</option>
+                                    <option>Select</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Objets</label>
+                                <select class="form-control">
+                                    <option>Articles</option>
+                                    <option>Préparations</option>
+                                    <option>Réceptions</option>
+                                    <option>Historiques</option>
+                                    <option>Utilisateurs</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <textarea class="form-control" rows="6" placeholder="Commentaires sur le champ personnalisé"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-success btn-block">
+                                <span class="glyphicon glyphicon-check"></span>
+                                Valider
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-danger btn-default pull-left" data-dismiss="modal">
+                        <span class="glyphicon glyphicon-remove"></span>
+                        Annuler</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <a href="#" class="button btn-left">
+                <span class="fa fa-angle-double-left"></span>Retour</a>
+        </div>
+    </div>
+
+{% endblock %}
+
+{#    <table class="table">
         <thead>
             <tr>
                 <th>Id</th>
@@ -41,5 +193,4 @@
         </tbody>
     </table>
 
-    <a href="{{ path('champs_personnalises_new') }}">Create new</a>
-{% endblock %}
+    <a href="{{ path('champs_personnalises_new') }}">Create new</a> #}
