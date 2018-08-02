@@ -5,7 +5,272 @@
 {% block page_content %}
 
     <div class="row page-title">
-        Personnalisation
+        PERSONNALISATION
     </div>
 
+    <div class="row perso-wrapper">
+        <div class="col-md-5">
+            <h3>
+                Thèmes
+            </h3>
+            <div class="theme-header">Prédéfinis</div>
+            <div class="theme-wrapper text-center">
+                <div class="theme-donut">
+                    <canvas id="theme1"></canvas>
+                    <div class="radio">
+                        <input id="radio-1" name="radio" type="radio" checked="checked">
+                        <label for="radio-1" class="radio-label">Main</label>
+                    </div>
+                </div>
+                <div class="theme-donut">
+                    <canvas id="theme2"></canvas>
+                    <div class="radio">
+                        <input id="radio-2" name="radio" type="radio" checked="checked">
+                        <label for="radio-2" class="radio-label">Dark</label>
+                    </div>
+                </div>
+                <div class="theme-donut">
+                    <canvas id="theme3"></canvas>
+                    <div class="radio">
+                        <input id="radio-3" name="radio" type="radio" checked="checked">
+                        <label for="radio-3" class="radio-label">Light</label>
+                    </div>
+                </div>
+            </div>
+            <div class="theme-header">Personnalisés</div>
+            <div class="theme-wrapper text-center">
+                <div class="theme-donut">
+                    <canvas id="theme4"></canvas>
+                    <div class="radio">
+                        <input id="radio-4" name="radio" type="radio" checked="checked">
+                        <label for="radio-4" class="radio-label">Cool</label>
+                    </div>
+                </div>
+                <div class="theme-donut">
+                    <canvas id="theme5"></canvas>
+                    <div class="radio">
+                        <input id="radio-5" name="radio" type="radio" checked="checked">
+                        <label for="radio-5" class="radio-label">Swag</label>
+                    </div>
+                </div>
+                <div class="theme-donut"></div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <h3>
+                Nouveau thèmes
+            </h3>
+            <div class="theme-header">Global<a class="fa fa-chevron-down pull-right"></a>
+            </div>
+            <div class="theme-wrapper">
+                <div class="color-bar">
+                    <div>
+                        <label>Base color</label>
+                        <input class="pull-right" type="color" name="color" value="#ff0000"/>
+                    </div>
+                </div>
+                <div class="color-bar">
+                    <div>
+                        <label>Text color</label>
+                        <input class="pull-right" type="color" name="color" value="#e8c35a"/>
+                    </div>
+                </div>
+                <div class="color-bar">
+                    <div>
+                        <label>Icon color</label>
+                        <input class="pull-right" type="color" name="color" value="#3f87a6"/>
+                    </div>
+                </div>
+                <div class="color-bar">
+                    <div>
+                        <label>Button color</label>
+                        <input class="pull-right" type="color" name="color" value="#e66465"/>
+                    </div>
+                </div>
+            </div>
+            <div class="theme-header">Menu<a class="fa fa-chevron-down pull-right"></a>
+            </div>
+            <div class="theme-wrapper">
+                <div class="color-bar">
+                    <div>
+                        <label>Menu text color</label>
+                        <input class="pull-right" type="color" name="color" value="#f6b73c"/>
+                    </div>
+                </div>
+                <div class="color-bar">
+                    <div>
+                        <label>Menu icon color</label>
+                        <input class="pull-right" type="color" name="color" value="#e66465"/>
+                    </div>
+                </div>
+                <div class="color-bar">
+                    <div>
+                        <label>Menu background</label>
+                        <input class="pull-right" type="color" name="color" value="#0000ff"/>
+                    </div>
+                </div>
+            </div>
+            <div class="theme-footer">
+                <a>
+                    <span class="fa fa-plus"></span>
+                    Ajouter</a>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="tool-wrapper text-center">
+                <div class="tool-bar">
+                    <button type="button" class="btn btn-info btn-block btn-yellow">Sauvegarder</button>
+                    <div class="custom-file btn btn-default btn-block">
+                        <input type="file" class="custom-file-input" id="customFile">
+                        <label class="custom-file-label" for="customFile">
+                            Choisir un fichier</label>
+                    </div>
+                    <button type="button" class="btn btn-default btn-block disabled">Importer un thème</button>
+                    <button type="button" class="btn btn-default btn-block disabled">Exporter un thème</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <a href="#" class="button btn-left pull-left">
+                <span class="fa fa-angle-double-left"></span>Retour</a>
+            <a href="#" class="button btn-left pull-right">
+                <span class="fa fa-check"></span>Valider</a>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block javascripts %}
+    <script type="text/javascript">
+        function random_rgba() {
+            var o = Math.round,
+                r = Math.random,
+                s = 255;
+            return 'rgba(' + o(r() * s) + ',' + o(r() * s) + ',' + o(r() * s) + ',' + r().toFixed(1) + ')';
+        }
+
+        var ctx1 = document.getElementById("theme1").getContext('2d');
+        var graph1 = new Chart(ctx1, {
+            type: 'doughnut',
+            data: {
+                datasets: [
+                    {
+                        data: [
+                            33, 33, 33
+                        ],
+                        backgroundColor: [random_rgba(), random_rgba(), random_rgba()]
+                    }
+                ]
+            },
+            options: {
+                tooltips: {
+                    enabled: false
+                },
+                responsive: true,
+                animation: {
+                    animateScale: true,
+                    animateRotate: true
+                }
+            }
+        });
+        var ctx2 = document.getElementById("theme2").getContext('2d');
+        var graph2 = new Chart(ctx2, {
+            type: 'doughnut',
+            data: {
+                datasets: [
+                    {
+                        data: [
+                            33, 33, 33
+                        ],
+                        backgroundColor: [random_rgba(), random_rgba(), random_rgba()]
+                    }
+                ]
+            },
+            options: {
+                tooltips: {
+                    enabled: false
+                },
+                responsive: true,
+                animation: {
+                    animateScale: true,
+                    animateRotate: true
+                }
+            }
+        });
+        var ctx3 = document.getElementById("theme3").getContext('2d');
+        var graph3 = new Chart(ctx3, {
+            type: 'doughnut',
+            data: {
+                datasets: [
+                    {
+                        data: [
+                            33, 33, 33
+                        ],
+                        backgroundColor: [random_rgba(), random_rgba(), random_rgba()]
+                    }
+                ]
+            },
+            options: {
+                tooltips: {
+                    enabled: false
+                },
+                responsive: true,
+                animation: {
+                    animateScale: true,
+                    animateRotate: true
+                }
+            }
+        });
+        var ctx4 = document.getElementById("theme4").getContext('2d');
+        var graph4 = new Chart(ctx4, {
+            type: 'doughnut',
+            data: {
+                datasets: [
+                    {
+                        data: [
+                            33, 33, 33
+                        ],
+                        backgroundColor: [random_rgba(), random_rgba(), random_rgba()]
+                    }
+                ]
+            },
+            options: {
+                tooltips: {
+                    enabled: false
+                },
+                responsive: true,
+                animation: {
+                    animateScale: true,
+                    animateRotate: true
+                }
+            }
+        });
+        var ctx5 = document.getElementById("theme5").getContext('2d');
+        var graph5 = new Chart(ctx5, {
+            type: 'doughnut',
+            data: {
+                datasets: [
+                    {
+                        data: [
+                            33, 33, 33
+                        ],
+                        backgroundColor: [random_rgba(), random_rgba(), random_rgba()]
+                    }
+                ]
+            },
+            options: {
+                tooltips: {
+                    enabled: false
+                },
+                responsive: true,
+                animation: {
+                    animateScale: true,
+                    animateRotate: true
+                }
+            }
+        });
+    </script>
 {% endblock %}

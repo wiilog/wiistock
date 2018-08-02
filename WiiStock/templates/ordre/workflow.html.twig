@@ -154,6 +154,245 @@
     </div>
     {# {% endfor %} #}
 
+    <!-- Modal -->
+    <div id="visuModal" class="modal fade" role="dialog">
+        <div class="modal-dialog modal-md">
+
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">
+                        <span class="fa fa-thumb-tack"></span>
+                        Transfert</h4>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center">
+                        <form class="form-inline">
+                            <p>Voulez-traiter la demande ?</p>
+                            <div class="form-group">
+                                <button class="btn btn-danger btn-block danger">
+                                    <span class="fa fa-times"></span>
+                                    Refuser</button>
+                            </div>
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-success btn-block">
+                                    <span class="fa fa-check"></span>
+                                    Valider</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="progress-state">
+                        <ul class="progress-indicator custom-complex">
+                            <li class="completed">
+                                <a href="#">
+                                    <span class="bubble"></span>
+                                    <i class="fa fa-check-circle"></i>
+                                    Validé
+                                </a>
+                            </li>
+                            <li class="completed">
+                                <a href="#">
+                                    <span class="bubble"></span>
+                                    <i class="fa fa-check-circle"></i>
+                                    En cours de traîtement
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#">
+                                    <span class="bubble"></span>
+                                    Terminé
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <form class="info-ordre">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <fieldset class="well list-box">
+                                    <legend class="well-legend">Informations article(s)</legend>
+
+                                    <p>Articles 1</p>
+                                    <div class="input-group form-group">
+                                        <label class="input-group-addon">
+                                            Type
+                                        </label>
+                                        <select class="form-control">
+                                            <option>Iphone X</option>
+                                            <option>Iphone 5</option>
+                                            <option>Iphone 1</option>
+                                        </select>
+                                    </div>
+                                    <div class="input-group form-group">
+                                        <label class="input-group-addon">
+                                            Référence
+                                        </label>
+                                        <input value="" class="form-control" placeholder="Référence">
+                                    </div>
+
+                                    <ul class="list-group">
+                                        <label>
+                                            Emplacement
+                                        </label>
+                                        <li class="list-group-item">Allée 1</li>
+                                        <li class="list-group-item">Travée 4</li>
+                                        <li class="list-group-item">Rack 2</li>
+                                    </ul>
+                                    <p>Articles 2</p>
+                                    <div class="input-group form-group">
+                                        <label class="input-group-addon">
+                                            Type
+                                        </label>
+                                        <select class="form-control">
+                                            <option>Iphone X</option>
+                                            <option>Iphone 5</option>
+                                            <option>Iphone 1</option>
+                                        </select>
+                                    </div>
+                                    <div class="input-group form-group">
+                                        <label class="input-group-addon">
+                                            Référence
+                                        </label>
+                                        <input value="" class="form-control" placeholder="Référence">
+                                    </div>
+
+                                    <ul class="list-group">
+                                        <label>
+                                            Emplacement
+                                        </label>
+                                        <li class="list-group-item">Allée 1</li>
+                                        <li class="list-group-item">Travée 4</li>
+                                        <li class="list-group-item">Rack 2</li>
+                                    </ul>
+                                </fieldset>
+                            </div>
+                            <div class="col-md-6">
+                                <fieldset class="well list-box">
+                                    <legend class="well-legend">Client</legend>
+
+                                    <div class="row form-group">
+                                        <div class="col-md-2">
+                                            <input value="Mr." class="form-control" placeholder="Sexe">
+                                        </div>
+                                        <div class="col-md-5">
+                                            <input value="Léo" class="form-control" placeholder="Prénom">
+                                        </div>
+                                        <div class="col-md-5">
+                                            <input value="Couffinhal" class="form-control" placeholder="Nom">
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-12 form-group">
+                                            <label for="inputAdresse">Adresse</label>
+                                            <input value="2-4 Rue Sainte-Catherine" id="inputAdresse" class="form-control" placeholder="1234 Main St">
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 form-group">
+                                            <label for="inputAdresse">Zip</label>
+                                            <input value="33000" class="form-control" id="inputZip" placeholder="Zip">
+                                        </div>
+                                        <div class="col-md-6 form-group">
+                                            <label for="inputAdresse">Ville</label>
+                                            <input value="Bordeaux" class="form-control" id="inputCity" placeholder="Ville">
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-7">
+                                            <div class="form-group input-group">
+                                                <label class="input-group-addon">
+                                                    @
+                                                </label>
+                                                <input type="email" value="leo.couffinhal@wiilog.fr" class="form-control" id="inputEmail">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-7">
+                                            <div class="form-group input-group">
+                                                <label class="input-group-addon">
+                                                    <span class="fa fa-phone"></span>
+                                                </label>
+                                                <input type="text" value="06.00.00.00.00" class="form-control" id="inputPhone">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </fieldset>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <fieldset class="well list-box">
+                                <legend class="well-legend">Actions</legend>
+                                    <div class="row">
+                                        <div class="col-md-5">
+                                            <ul class="list-group">
+                                                <label>
+                                                    Emplacement initial article 1
+                                                </label>
+                                                <li class="list-group-item">Allée 1</li>
+                                                <li class="list-group-item">Travée 4</li>
+                                                <li class="list-group-item">Rack 2</li>
+                                            </ul>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="arrowed">
+                                                <div class="arrow-6"></div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-5">
+                                            <ul class="list-group">
+                                                <label>
+                                                    Emplacement final article 1
+                                                </label>
+                                                <li class="list-group-item">Allée 1</li>
+                                                <li class="list-group-item">Travée 4</li>
+                                                <li class="list-group-item">Rack 2</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="row more-actions">
+                                        <div class="col-md-5">
+                                            <ul class="list-group">
+                                                <label>
+                                                    Emplacement initial article 2
+                                                </label>
+                                                <li class="list-group-item">Allée 1</li>
+                                                <li class="list-group-item">Travée 4</li>
+                                                <li class="list-group-item">Rack 2</li>
+                                            </ul>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="arrowed">
+                                                <div class="arrow-6"></div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-5">
+                                            <ul class="list-group">
+                                                <label>
+                                                    Emplacement final article 2
+                                                </label>
+                                                <li class="list-group-item">Allée 1</li>
+                                                <li class="list-group-item">Travée 4</li>
+                                                <li class="list-group-item">Rack 2</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </fieldset>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-default pull-left" data-dismiss="modal">
+                        Annuler</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row">
         <div class="col-md-4">
             <a href="#" class="button btn-left">
@@ -173,6 +412,14 @@
     <script type="text/javascript">
         $('.daterange input').each(function () {
             $(this).datepicker({language: 'fr', format: 'dd/mm/yyyy', todayBtn: true, todayHighlight: true, autoclose: true});
+        });
+        $(".arrow-open").on("click", function (e) {
+            $("#visuModal").modal();
+        });
+        $('#visuModal').on('show', function () { //TODO
+            var id = $(this).data('id'),
+                removeBtn = $(this).find('.danger');
+            removeBtn.attr('href', removeBtn.attr('href').replace(/(&|\?)ref=\d*/, '$1ref=' + id));
         });
     </script>
 {% endblock %}
