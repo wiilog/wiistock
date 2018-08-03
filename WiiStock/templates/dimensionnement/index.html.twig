@@ -112,7 +112,7 @@
                                 </div>        
                             </a>
                         </div>
-                        <a class="list-footer" href="#">
+                        <a class="list-footer" href="#" data-toggle="modal" data-target="#ajoutAlleeModal">
                             <span class="fa fa-plus"></span>
                             Ajouter une nouvelle allée
                         </a>
@@ -183,7 +183,7 @@
                                 </div>
                             </a>
                         </div>
-                        <a class="list-footer" href="#">
+                        <a class="list-footer" href="#" data-toggle="modal" data-target="#ajoutTraveeModal">
                             <span class="fa fa-plus"></span>
                                 Ajouter une nouvelle travée
                         </a>
@@ -236,7 +236,7 @@
                                     </div>
                                 </a>
                             </div>
-                            <a class="list-footer" href="#">
+                            <a class="list-footer" href="#" data-toggle="modal" data-target="#ajoutRackModal">
                                 <span class="fa fa-plus"></span>
                                     Ajouter un nouveau rack
                             </a>                                        
@@ -259,7 +259,7 @@
                                 </div>        
                             </a>                            
                         </div>
-                        <a class="list-footer">
+                        <a class="list-footer" data-toggle="modal" data-target="#ajoutZoneModal">
                             <span class="fa fa-plus"></span>
                             Ajouter une nouvelle zone
                         </a>
@@ -280,13 +280,219 @@
                                 </div>        
                             </a>
                         </div>
-                        <a class="list-footer">
+                        <a class="list-footer" data-toggle="modal" data-target="#ajoutQuaiModal">
                             <span class="fa fa-plus"></span>
                             Ajouter un nouveau quai
                         </a>
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!--Modals-->
+    <div id="ajoutAlleeModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">
+                        <span class="glyphicon glyphicon-list-alt"></span>
+                        Nouvelle allée</h4>
+                </div>
+                <div class="modal-body">
+                    <p>Sélectionnez vos caractéristiques :</p>
+                    <form>
+                        <div class="form-group">
+                            <div class="form-group">
+                                <label>Dimensions</label>
+                                <input type="text" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label>Nombre de travées</label>
+                                <input type="number" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label>Nombre de racks par travée</label>
+                                <input type="number" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label>Nombre d'emplacements par racks</label>
+                                <input type="number" class="form-control">
+                            </div>                            
+                            <button type="submit" class="btn btn-success btn-block">
+                                <span class="glyphicon glyphicon-check"></span>
+                                Valider
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-danger btn-default pull-left" data-dismiss="modal">
+                        <span class="glyphicon glyphicon-remove"></span>
+                        Annuler</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="ajoutTraveeModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">
+                        <span class="glyphicon glyphicon-list-alt"></span>
+                        Nouvelle travée</h4>
+                </div>
+                <div class="modal-body">
+                    <p>Sélectionnez vos caractéristiques :</p>
+                    <form>
+                        <div class="form-group">
+                            <div class="form-group">
+                                <label>Dimensions</label>
+                                <input type="text" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label>Nombre de racks</label>
+                                <input type="number" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label>Nombre d'emplacements par rack</label>
+                                <input type="number" class="form-control">
+                            </div>
+                            <button type="submit" class="btn btn-success btn-block">
+                                <span class="glyphicon glyphicon-check"></span>
+                                Valider
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-danger btn-default pull-left" data-dismiss="modal">
+                        <span class="glyphicon glyphicon-remove"></span>
+                        Annuler</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+    <div id="ajoutRackModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">
+                        <span class="glyphicon glyphicon-list-alt"></span>
+                        Nouveau rack</h4>
+                </div>
+                <div class="modal-body">
+                    <p>Sélectionnez vos caractéristiques :</p>
+                    <form>
+                        <div class="form-group">
+                            <div class="form-group">
+                                <label>Dimensions</label>
+                                <input type="text" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label>Nombre d'emplacements</label>
+                                <input type="number" class="form-control">
+                            </div>
+                            <button type="submit" class="btn btn-success btn-block">
+                                <span class="glyphicon glyphicon-check"></span>
+                                Valider
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-danger btn-default pull-left" data-dismiss="modal">
+                        <span class="glyphicon glyphicon-remove"></span>
+                        Annuler</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="ajoutZoneModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">
+                        <span class="glyphicon glyphicon-list-alt"></span>
+                        Nouvelle zone</h4>
+                </div>
+                <div class="modal-body">
+                    <p>Sélectionnez vos caractéristiques :</p>
+                    <form>
+                        <div class="form-group">
+                            <div class="form-group">
+                                <label>Dimensions</label>
+                                <input type="text" class="form-control">
+                            </div>
+                            <button type="submit" class="btn btn-success btn-block">
+                                <span class="glyphicon glyphicon-check"></span>
+                                Valider
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-danger btn-default pull-left" data-dismiss="modal">
+                        <span class="glyphicon glyphicon-remove"></span>
+                        Annuler</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="ajoutQuaiModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">
+                        <span class="glyphicon glyphicon-list-alt"></span>
+                        Nouveau quai</h4>
+                </div>
+                <div class="modal-body">
+                    <p>Sélectionnez vos caractéristiques :</p>
+                    <form>
+                        <div class="form-group">
+                            <div class="form-group">
+                                <label>Dimensions</label>
+                                <input type="text" class="form-control">
+                            </div>
+                            <button type="submit" class="btn btn-success btn-block">
+                                <span class="glyphicon glyphicon-check"></span>
+                                Valider
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-danger btn-default pull-left" data-dismiss="modal">
+                        <span class="glyphicon glyphicon-remove"></span>
+                        Annuler</button>
+                </div>
+            </div>
+
         </div>
     </div>
 {% endblock %}
