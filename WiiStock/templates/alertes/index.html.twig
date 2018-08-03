@@ -20,21 +20,22 @@
     </div>
 
     <div class="row page-title">
-        Alertes de gestion de stock
+        ALERTES DE GESTION DE STOCK
     </div>
 
     <div class="row btn-grp">
-        <a href="#" class="button btn-left">
+        <a href="{{ path('alertes_creation') }}" class="button btn-left">
             <span class="fa fa-plus"></span>Créer une alerte
         </a>
     </div>
 
-    <table id="grid-data" class="table table-condensed table-hover table-striped" data-toggle="bootgrid">
+    <table id="grid-data" class="table table-condensed table-hover table-striped">
         <thead>
             <tr>
                 <th data-column-id="ref">Réf. article</th>
                 <th data-column-id="nom">Nom</th>
                 <th data-column-id="qte">Seuil d'alerte</th>
+                <th data-column-id="switch" data-formatter="switch" data-sortable="false">Active</th>
                 <th data-column-id="commands" data-formatter="commands" data-sortable="false">Actions</th>
             </tr>
         </thead>
@@ -43,14 +44,14 @@
             <td>136737541</td>
             <td>Iphone 1</td>
             <td>41</td>
-            <td>
-                <a href="#" class="button btn-right fa fa-star"></a>
-            </td>
+            <td></td>
+            <td></td>
         </tr>
         <tr>
             <td>136737542</td>
             <td>Macbook 2</td>
             <td>3</td>
+            <td></td>
             <td></td>
         </tr>
         <tr>
@@ -58,14 +59,46 @@
             <td>Iphone 3</td>
             <td>57</td>
             <td></td>
+            <td></td>
         </tr>
         <tr>
             <td>136737544</td>
             <td>254</td>
             <td>44</td>
             <td></td>
+            <td></td>
         </tr>
     </table>
+
+    <!-- Modal Confirmation-->
+    <div id="supprModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">
+                        <span class="glyphicon glyphicon-warning"></span>
+                        Suppression</h4>
+                </div>
+                <div class="modal-body">
+                    <p>Êtes-vous sûr de vouloir supprimer cet élément ?</p>
+                    <form>
+                        <button type="submit" class="btn btn-success btn-block">
+
+                            Oui</button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-danger btn-default pull-left" data-dismiss="modal">
+                        <span class="glyphicon glyphicon-remove"></span>
+                        Annuler</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
 
     {# 
     <h1>Alertes index</h1>
@@ -105,4 +138,25 @@
         </div>
     </div>
 
+{% endblock %}
+
+{% block javascripts %}
+    <script type="text/javascript">
+        var grid = $("#grid-data").bootgrid({
+            ajax: false,
+            formatters: {
+                "commands": function (column, row) {
+                    return "<button type=\"button\" class=\"btn btn-xs btn-default command-edit\" data-row-id=\"" + row.id + "\"><span class=\"fa fa-pencil\"></span></button> " + "<button type=\"button\" class=\"btn btn-xs btn-default command-delete\" data-row-id=\"" + row.id + "\"><span class=\"fa fa-trash-o\"></span></button>";
+                },
+                "switch": function (column, row) {
+                    return "<label class=\"switch\"><input type=\"checkbox\"><span class=\"slider round\"></span></label>";
+                }
+            }
+        }).on("loaded.rs.jquery.bootgrid", function () {
+            /* Executes after data is loaded and rendered */
+            grid.find(".command-delete").on("click", function (e) {
+                $("#supprModal").modal();
+            })
+        });
+    </script>
 {% endblock %}

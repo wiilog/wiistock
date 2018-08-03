@@ -1260,7 +1260,11 @@ input:checked+.slider:before {
 
 .line-list {
 	height: 40px;
-	border: #000 1px solid;
+	border: #cccccc 1px solid;
+}
+
+.table-histo tr:hover td {
+    background-color: #f8f8f8;
 }
 
 .date-list {

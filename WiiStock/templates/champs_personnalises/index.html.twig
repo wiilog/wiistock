@@ -5,10 +5,10 @@
 {% block page_content %}
 
     <div class="row page-title">
-        <h1>CHAMPS PERSONNALISES</h1>
+        CHAMPS PERSONNALISES
     </div>
 
-    <div class="row">
+    <div class="row btn-grp">
         <div class="col-md-12">
             <a href="#" class="button btn-left" data-toggle="modal" data-target="#ajoutModal">
                 <span class="fa fa-plus"></span>Créer un champ personnalisé
@@ -16,14 +16,14 @@
         </div>
     </div>
 
-    <table class="table table-condensed table-hover table-striped">
+    <table id="grid-data" class="table table-condensed table-hover table-striped">
         <thead>
             <tr>
                 <th>Nom</th>
                 <th>Type</th>
                 <th>Objet</th>
-                <th>Actif</th>
-                <th>Action</th>
+                <th data-column-id="switch" data-formatter="switch" data-sortable="false">Actif</th>
+                <th data-column-id="commands" data-formatter="commands" data-sortable="false">Actions</th>
             </tr>
         </thead>
 
@@ -31,64 +31,31 @@
             <td>Numéro de commande</td>
             <td>Nombre</td>
             <td>Articles</td>
-            <td>
-                <div class="switch">
-                    <input type="checkbox">
-                    <span class="slider round"></span>
-                </div>
-            </td>
-            <td>
-                <button type="button" class="btn btn-xs btn-default"><span class="fa fa-pencil"></span></button>
-                <button type="button" class="btn btn-xs btn-default"><span class="fa fa-trash"></span></button>
-            </td>
+            <td></td>
+            <td></td>
         </tr>
         <tr>
             <td>Référence fournisseur</td>
             <td>Chaine de caractères</td>
             <td>Réception</td>
-            <td>
-                <div class="switch">
-                    <input type="checkbox">
-                    <span class="slider round"></span>
-                </div>
-            </td>
-            <td>
-                <button type="button" class="btn btn-xs btn-default"><span class="fa fa-pencil"></span></button>
-                <button type="button" class="btn btn-xs btn-default"><span class="fa fa-trash"></span></button>
-            </td>
+            <td></td>
+            <td></td>
         </tr>
         <tr>
             <td>Type client</td>
             <td>Selection</td>
             <td>Réceptions</td>
-            <td>
-                <div class="switch">
-                    <input type="checkbox">
-                    <span class="slider round"></span>
-                </div>
-            </td>
-            <td>
-                <button type="button" class="btn btn-xs btn-default"><span class="fa fa-pencil"></span></button>
-                <button type="button" class="btn btn-xs btn-default"><span class="fa fa-trash"></span></button>
-            </td>
+            <td></td>
+            <td></td>
         </tr>
         <tr>
             <td>Type préparation</td>
             <td>Texte</td>
             <td>Préparations</td>
-            <td>
-                <div class="switch">
-                    <input type="checkbox">
-                    <span class="slider round"></span>
-                </div>
-            </td>
-            <td>
-                <button type="button" class="btn btn-xs btn-default"><span class="fa fa-pencil"></span></button>
-                <button type="button" class="btn btn-xs btn-default"><span class="fa fa-trash"></span></button>
-            </td>
+            <td></td>
+            <td></td>
         </tr>
     </table>
-
 
     <!-- Modal-->
     <div id="ajoutModal" class="modal fade" role="dialog">
@@ -148,6 +115,36 @@
         </div>
     </div>
 
+    <!-- Modal Confirmation-->
+    <div id="supprModal" class="modal fade" role="dialog">
+        <div class="modal-dialog">
+
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title">
+                        <span class="glyphicon glyphicon-warning"></span>
+                        Suppression</h4>
+                </div>
+                <div class="modal-body">
+                    <p>Êtes-vous sûr de vouloir supprimer cet élément ?</p>
+                    <form>
+                        <button type="submit" class="btn btn-success btn-block">
+                            
+                            Oui</button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-danger btn-default pull-left" data-dismiss="modal">
+                        <span class="glyphicon glyphicon-remove"></span>
+                        Annuler</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
     <div class="row">
         <div class="col-md-12">
             <a href="#" class="button btn-left">
@@ -194,3 +191,24 @@
     </table>
 
     <a href="{{ path('champs_personnalises_new') }}">Create new</a> #}
+
+{% block javascripts %}
+    <script type="text/javascript">
+        var grid = $("#grid-data").bootgrid({
+            ajax: false,
+            formatters: {
+                "commands": function (column, row) {
+                    return "<button type=\"button\" class=\"btn btn-xs btn-default command-edit\" data-row-id=\"" + row.id + "\"><span class=\"fa fa-pencil\"></span></button> " + "<button type=\"button\" class=\"btn btn-xs btn-default command-delete\" data-row-id=\"" + row.id + "\"><span class=\"fa fa-trash-o\"></span></button>";
+                },
+                "switch": function (column, row) {
+                    return "<label class=\"switch\"><input type=\"checkbox\"><span class=\"slider round\"></span></label>";
+                }
+            }
+        }).on("loaded.rs.jquery.bootgrid", function () {
+            /* Executes after data is loaded and rendered */
+            grid.find(".command-delete").on("click", function (e) {
+                $("#supprModal").modal();
+            })
+        });
+    </script>
+{% endblock %}
