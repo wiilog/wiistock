@@ -6,6 +6,8 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
+use Symfony\Component\Serializer\Annotation\Groups;
+
 /**
  * @ORM\Entity(repositoryClass="App\Repository\ParcsRepository")
  */
@@ -20,70 +22,84 @@ class Parcs
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"parc"})
      */
     private $modele;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"parc"})
      */
     private $statut;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"parc"})
      */
-    private $n_Parc;
+    private $n_parc;
 
     /**
      * @ORM\Column(type="date")
+     * @Groups({"parc"})
      */
     private $mise_en_circulation;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"parc"})
      */
     private $fournisseur;
 
     /**
      * @ORM\Column(type="integer")
+     * @Groups({"parc"})
      */
     private $poids;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"parc"})
      */
     private $mode_acquisition;
 
     /**
      * @ORM\Column(type="text")
+     * @Groups({"parc"})
      */
     private $commentaire;
 
     /**
      * @ORM\Column(type="date")
+     * @Groups({"parc"})
      */
     private $incorporation;
 
     /**
      * @ORM\Column(type="date")
+     * @Groups({"parc"})
      */
     private $mise_en_service;
 
     /**
      * @ORM\Column(type="date")
+     * @Groups({"parc"})
      */
     private $sortie;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"parc"})
      */
     private $motif;
 
     /**
      * @ORM\Column(type="text")
+     * @Groups({"parc"})
      */
     private $commentaire_sortie;
 
     /**
+<<<<<<< HEAD
      * @ORM\OneToMany(targetEntity="App\Entity\Filiales", mappedBy="parc")
      */
     private $filiales;
@@ -116,6 +132,15 @@ class Parcs
         $this->sites = new ArrayCollection();
         $this->sousCategoriesVehicules = new ArrayCollection();
     }
+     /** 
+      * @ORM\OneToOne(targetEntity="App\Entity\Chariots", mappedBy="parc", cascade={"persist", "remove"})
+     */
+    private $chariots;
+
+    /**
+     * @ORM\OneToOne(targetEntity="App\Entity\Vehicules", mappedBy="parc", cascade={"persist", "remove"})
+     */
+    private $vehicules;
 
     public function getId(): ?int
     {
@@ -148,12 +173,12 @@ class Parcs
 
     public function getNParc(): ?string
     {
-        return $this->n_Parc;
+        return $this->n_parc;
     }
 
-    public function setNParc(string $n_Parc): self
+    public function setNParc(string $n_parc): self
     {
-        $this->n_Parc = $n_Parc;
+        $this->n_parc = $n_parc;
 
         return $this;
     }
@@ -335,6 +360,20 @@ class Parcs
             if ($categoriesVehicule->getParc() === $this) {
                 $categoriesVehicule->setParc(null);
             }
+
+    public function getChariots(): ?Chariots
+    {
+        return $this->chariots;
+    }
+
+    public function setChariots(?Chariots $chariots): self
+    {
+        $this->chariots = $chariots;
+
+        // set (or unset) the owning side of the relation if necessary
+        $newParc = $chariots === null ? null : $this;
+        if ($newParc !== $chariots->getParc()) {
+            $chariots->setParc($newParc);
         }
 
         return $this;
@@ -428,6 +467,20 @@ class Parcs
             if ($sousCategoriesVehicule->getParc() === $this) {
                 $sousCategoriesVehicule->setParc(null);
             }
+
+    public function getVehicules(): ?Vehicules
+    {
+        return $this->vehicules;
+    }
+
+    public function setVehicules(?Vehicules $vehicules): self
+    {
+        $this->vehicules = $vehicules;
+
+        // set (or unset) the owning side of the relation if necessary
+        $newParc = $vehicules === null ? null : $this;
+        if ($newParc !== $vehicules->getParc()) {
+            $vehicules->setParc($newParc);
         }
 
         return $this;
