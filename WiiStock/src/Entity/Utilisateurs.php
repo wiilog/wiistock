@@ -4,15 +4,17 @@ namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Security\Core\User\EquatableInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+// use Proxies\__CG__\App\Entity\Utilisateurs;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\UtilisateursRepository")
  * @UniqueEntity(fields="email", message="Email déjà utilisé.")
  * @UniqueEntity(fields="username", message="Username déjà utilisé.")
  */
-class Utilisateurs implements UserInterface
+class Utilisateurs implements UserInterface, EquatableInterface
 {
     /**
      * @ORM\Id()
@@ -63,9 +65,15 @@ class Utilisateurs implements UserInterface
      */
     private $theme;
 
-    public function __construct()
+    private $salt;
+
+    public function __construct(/* $username, $password, $salt, array $roles */) 
     {
         $this->roles = array('ROLE_USER');
+        // $this->username = $username;
+        // $this->password = $password;
+        // $this->salt = $salt;
+        // $this->roles = $roles;
     }
 
     public function getId()
@@ -164,5 +172,26 @@ class Utilisateurs implements UserInterface
 
     public function eraseCredentials()
     {
+    }
+
+    public function isEqualTo(UserInterface $user)
+    {
+        if (!$user instanceof Utilisateurs) {
+            return false;
+        }
+
+        if ($this->password !== $user->getPassword()) {
+            return false;
+        }
+
+        if ($this->salt !== $user->getSalt()) {
+            return false;
+        }
+
+        if ($this->username !== $user->getUsername()) {
+            return false;
+        }
+
+        return true;
     }
 }

@@ -1,0 +1,8 @@
+{
+    "require": {
+        "friendsofsymfony/rest-bundle": "^2.4",
+        "nelmio/cors-bundle": "^1.5",
+        "symfony/validator": "^4.1",
+        "doctrine/annotations": "^1.6"
+    }
+}
