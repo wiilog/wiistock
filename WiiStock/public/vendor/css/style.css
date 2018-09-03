@@ -328,7 +328,7 @@ table .fa {
 
 .sidemenu>li>a {
 	display: table-cell;
-	height: 71px;
+	max-height: 71px;
 	width: 130px;
 	color: #fcfcfc;
 	text-align: center;
@@ -339,9 +339,15 @@ table .fa {
 }
 
 .sidemenu>li>a>.fa {
-	padding-top: 16px;
 	font-size: 48px;
 	line-height: 71px;
+}
+
+@media (max-height: 700px) {
+	.sidemenu>li>a>.fa {
+		font-size: 32px;
+		line-height: 36px;
+	}
 }
 
 .sidemenu>li .sidemenu-sub {
