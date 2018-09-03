@@ -5,6 +5,8 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Serializer\Annotation\Groups;
+
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\VehiculesRepository")
@@ -50,7 +52,7 @@ class Vehicules
     private $puissance_fiscale;
 
     /**
-     * @ORM\OneToOne(targetEntity="App\Entity\Parcs", inversedBy="vehicules", cascade={"persist", "remove"} , nullable="false")
+     * @ORM\OneToOne(targetEntity="App\Entity\Parcs", inversedBy="vehicules", cascade={"persist", "remove"})
      * @Groups({"parc"})
      */
     private $parc;
