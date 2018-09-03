@@ -29,7 +29,7 @@ class Parcs
     /**
      * @ORM\Column(type="string", length=255)
      */
-    private $n_Parc;
+    private $n_parc;
 
     /**
      * @ORM\Column(type="date")
@@ -81,6 +81,16 @@ class Parcs
      */
     private $commentaire_sortie;
 
+    /**
+     * @ORM\OneToOne(targetEntity="App\Entity\Chariots", mappedBy="parc", cascade={"persist", "remove"})
+     */
+    private $chariots;
+
+    /**
+     * @ORM\OneToOne(targetEntity="App\Entity\Vehicules", mappedBy="parc", cascade={"persist", "remove"})
+     */
+    private $vehicules;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -112,12 +122,12 @@ class Parcs
 
     public function getNParc(): ?string
     {
-        return $this->n_Parc;
+        return $this->n_parc;
     }
 
-    public function setNParc(string $n_Parc): self
+    public function setNParc(string $n_parc): self
     {
-        $this->n_Parc = $n_Parc;
+        $this->n_parc = $n_parc;
 
         return $this;
     }
@@ -238,6 +248,42 @@ class Parcs
     public function setCommentaireSortie(string $commentaire_sortie): self
     {
         $this->commentaire_sortie = $commentaire_sortie;
+
+        return $this;
+    }
+
+    public function getChariots(): ?Chariots
+    {
+        return $this->chariots;
+    }
+
+    public function setChariots(?Chariots $chariots): self
+    {
+        $this->chariots = $chariots;
+
+        // set (or unset) the owning side of the relation if necessary
+        $newParc = $chariots === null ? null : $this;
+        if ($newParc !== $chariots->getParc()) {
+            $chariots->setParc($newParc);
+        }
+
+        return $this;
+    }
+
+    public function getVehicules(): ?Vehicules
+    {
+        return $this->vehicules;
+    }
+
+    public function setVehicules(?Vehicules $vehicules): self
+    {
+        $this->vehicules = $vehicules;
+
+        // set (or unset) the owning side of the relation if necessary
+        $newParc = $vehicules === null ? null : $this;
+        if ($newParc !== $vehicules->getParc()) {
+            $vehicules->setParc($newParc);
+        }
 
         return $this;
     }
