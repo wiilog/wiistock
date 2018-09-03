@@ -15,36 +15,43 @@ class Vehicules
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
+     * @Groups({"parc"})
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=255, unique=true)
+     * @Groups({"parc"})
      */
     private $immatriculation;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"parc"})
      */
     private $genre;
 
     /**
      * @ORM\Column(type="float")
+     * @Groups({"parc"})
      */
     private $ptac;
 
     /**
      * @ORM\Column(type="float")
+     * @Groups({"parc"})
      */
     private $ptr;
 
     /**
      * @ORM\Column(type="integer")
+     * @Groups({"parc"})
      */
     private $puissance_fiscale;
 
     /**
      * @ORM\OneToOne(targetEntity="App\Entity\Parcs", inversedBy="vehicules", cascade={"persist", "remove"} , nullable="false")
+     * @Groups({"parc"})
      */
     private $parc;
 

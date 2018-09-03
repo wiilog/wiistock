@@ -15,21 +15,25 @@ class Chariots
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
+     * @Groups({"parc"})
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"parc"})
      */
     private $proprietaire;
 
     /**
      * @ORM\Column(type="string", length=255, unique=true)
+     * @Groups({"parc"})
      */
     private $n_serie;
 
     /**
      * @ORM\OneToOne(targetEntity="App\Entity\Parcs", inversedBy="chariots", cascade={"persist", "remove"}, nullable="false")
+     * @Groups({"parc"})
      */
     private $parc;
 

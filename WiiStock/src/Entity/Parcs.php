@@ -18,66 +18,79 @@ class Parcs
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"parc"})
      */
     private $modele;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"parc"})
      */
     private $statut;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"parc"})
      */
     private $n_parc;
 
     /**
      * @ORM\Column(type="date")
+     * @Groups({"parc"})
      */
     private $mise_en_circulation;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"parc"})
      */
     private $fournisseur;
 
     /**
      * @ORM\Column(type="integer")
+     * @Groups({"parc"})
      */
     private $poids;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"parc"})
      */
     private $mode_acquisition;
 
     /**
      * @ORM\Column(type="text")
+     * @Groups({"parc"})
      */
     private $commentaire;
 
     /**
      * @ORM\Column(type="date")
+     * @Groups({"parc"})
      */
     private $incorporation;
 
     /**
      * @ORM\Column(type="date")
+     * @Groups({"parc"})
      */
     private $mise_en_service;
 
     /**
      * @ORM\Column(type="date")
+     * @Groups({"parc"})
      */
     private $sortie;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"parc"})
      */
     private $motif;
 
     /**
      * @ORM\Column(type="text")
+     * @Groups({"parc"})
      */
     private $commentaire_sortie;
 
