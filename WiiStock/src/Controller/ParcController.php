@@ -13,6 +13,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+use App\Entity\SousCategoriesVehicules;
 
 /**
  * @Route("/parc")
@@ -77,7 +78,7 @@ class ParcController extends AbstractController
     /**
      * @Route("/edit", name="parc_edit", methods="GET|POST")
      */
-    public function edit(Request $request, Parcs $parc)
+    public function edit(Request $request, Parcs $parc) : Response
     {
         $form = $this->createForm(ParcsType::class, $parc);
         $form->handleRequest($request);
@@ -93,5 +94,35 @@ class ParcController extends AbstractController
             'parc' => $parc,
             'form' => $form->createView(),
         ]);
+    }
+
+    /**
+     * @Route("/generator", name="parc_number_generator", methods="GET|POST")
+     */
+    public function parc_number_generator(Request $request) : Response
+    {
+        if ($request->isXmlHttpRequest()) {
+            $em = $this->getDoctrine()->getManager();
+            $s_categorie = $request->request->get('s_categorie');
+            $m_acquisition = $request->request->get('m_acquisition');
+            $compteur = '0000' + count($em->getRepository(Parcs::class)->findAll());
+
+            $s_code = $em->getRepository(SousCategoriesVehicules::class)->findOneBy(array('nom' => $s_categorie))->getCode();
+            if (strcmp($m_acquisition, 'Achat neuf')) {
+                $m_code = '0';
+            } elseif (strcmp($m_acquisition, 'Achat d\'occasion')) {
+                $m_code = '8';
+            } else {
+                $m_code = '9';
+            }
+
+            dump($compteur, $s_code, $m_code);
+
+            $n_parc = $s_code + $m_code + $compteur;
+
+            dump($n_parc);
+
+            return new JsonResponse($n_parc);
+        }
     }
 }

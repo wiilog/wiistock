@@ -26,21 +26,21 @@
                     {{ form_row(form.modele) }}
                 </div>
                 <div class="col-md-4">
-                    {{ form_row(form.filiales) }}
+                    {{ form_row(form.filiale) }}
                 </div>
                 <div class="col-md-4">
-                    {{ form_row(form.sites) }}
+                    {{ form_row(form.site) }}
                 </div>
             </div>
             <div class="row">
                 <div class="col-md-4">
-                    {{ form_row(form.categoriesVehicules) }}
+                    {{ form_row(form.categorieVehicule) }}
                 </div>
                 <div class="col-md-4">
-                    {{ form_row(form.sousCategoriesVehicules) }}
+                    {{ form_row(form.sousCategorieVehicule) }}
                 </div>
                 <div class="col-md-4">
-                    {{ form_row(form.marques) }}
+                    {{ form_row(form.marque) }}
                 </div>
             </div>
             {{ form_row(form.commentaire) }}
@@ -74,7 +74,7 @@
             <legend class="well-legend">Numéro de parc</legend>
             <div class="form-inline">
                 {{ form_widget(form.n_parc) }}
-                <a class="btn btn-primary">
+                <a class="btn btn-primary" id="generator">
                     <span class="fa fa-refresh"></span>
                 </a>
             </div>
@@ -138,5 +138,23 @@
 {% block javascripts %}
     <script type="text/javascript">
         $('.datepicker').datepicker({language: 'fr', format: 'dd/mm/yyyy', todayBtn: true, todayHighlight: true, autoclose: true});
+
+        $(".parc-content").on('click', '#generator', function () {
+            var s = document.getElementById("parcs_sousCategoriesVehicules");
+            var s_categorie = s.options[s.selectedIndex].text;
+            var m = document.getElementById("parcs_mode_acquisition");
+            var m_acquisition = m.options[m.selectedIndex].text;
+            $.ajax({
+                url: "{{ path( 'parc_number_generator' ) }}",
+                type: "POST",
+                dataType: "json",
+                data: {
+                    "s_categorie": s_categorie,
+                    "m_acquisition": m_acquisition,
+                },
+                success: function (resp) {
+                }
+            });
+        });
     </script>
 {% endblock %}
