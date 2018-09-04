@@ -98,44 +98,6 @@ class Parcs
      */
     private $commentaire_sortie;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Filiales", mappedBy="parc")
-     * @Groups({"parc"})
-     */
-    private $filiales;
-
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\CategoriesVehicules", mappedBy="parc")
-     * @Groups({"parc"})
-     */
-    private $categoriesVehicules;
-
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Marques", mappedBy="parc")
-     * @Groups({"parc"})
-     */
-    private $marques;
-
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Sites", mappedBy="parc")
-     * @Groups({"parc"})
-     */
-    private $sites;
-
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\SousCategoriesVehicules", mappedBy="parc")
-     * @Groups({"parc"})
-     */
-    private $sousCategoriesVehicules;
-
-    public function __construct()
-    {
-        $this->filiales = new ArrayCollection();
-        $this->categoriesVehicules = new ArrayCollection();
-        $this->marques = new ArrayCollection();
-        $this->sites = new ArrayCollection();
-        $this->sousCategoriesVehicules = new ArrayCollection();
-    }
     /** 
      * @ORM\OneToOne(targetEntity="App\Entity\Chariots", mappedBy="parc", cascade={"persist", "remove"})
      */
@@ -145,6 +107,36 @@ class Parcs
      * @ORM\OneToOne(targetEntity="App\Entity\Vehicules", mappedBy="parc", cascade={"persist", "remove"})
      */
     private $vehicules;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Filiales", inversedBy="parcs")
+     * @Groups({"parc"})
+     */
+    private $filiale;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Marques", inversedBy="parcs")
+     * @Groups({"parc"})
+     */
+    private $marque;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Sites", inversedBy="parcs")
+     * @Groups({"parc"})
+     */
+    private $site;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\SousCategoriesVehicules", inversedBy="parcs")
+     * @Groups({"parc"})
+     */
+    private $sousCategorieVehicule;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\CategoriesVehicules", inversedBy="parcs")
+     * @Groups({"parc"})
+     */
+    private $categorieVehicule;
 
     public function getId() : ? int
     {
@@ -307,68 +299,6 @@ class Parcs
         return $this;
     }
 
-    /**
-     * @return Collection|Filiales[]
-     */
-    public function getFiliales() : Collection
-    {
-        return $this->filiales;
-    }
-
-    public function addFiliale(Filiales $filiale) : self
-    {
-        if (!$this->filiales->contains($filiale)) {
-            $this->filiales[] = $filiale;
-            $filiale->setParc($this);
-        }
-
-        return $this;
-    }
-
-    public function removeFiliale(Filiales $filiale) : self
-    {
-        if ($this->filiales->contains($filiale)) {
-            $this->filiales->removeElement($filiale);
-            // set the owning side to null (unless already changed)
-            if ($filiale->getParc() === $this) {
-                $filiale->setParc(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|CategoriesVehicules[]
-     */
-    public function getCategoriesVehicules() : Collection
-    {
-        return $this->categoriesVehicules;
-    }
-
-    public function addCategoriesVehicule(CategoriesVehicules $categoriesVehicule) : self
-    {
-        if (!$this->categoriesVehicules->contains($categoriesVehicule)) {
-            $this->categoriesVehicules[] = $categoriesVehicule;
-            $categoriesVehicule->setParc($this);
-        }
-
-        return $this;
-    }
-
-    public function removeCategoriesVehicule(CategoriesVehicules $categoriesVehicule) : self
-    {
-        if ($this->categoriesVehicules->contains($categoriesVehicule)) {
-            $this->categoriesVehicules->removeElement($categoriesVehicule);
-            // set the owning side to null (unless already changed)
-            if ($categoriesVehicule->getParc() === $this) {
-                $categoriesVehicule->setParc(null);
-            }
-        }
-
-        return $this;
-    }
-
     public function getChariots() : ? Chariots
     {
         return $this->chariots;
@@ -382,99 +312,6 @@ class Parcs
         $newParc = $chariots === null ? null : $this;
         if ($newParc !== $chariots->getParc()) {
             $chariots->setParc($newParc);
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|Marques[]
-     */
-    public function getMarques() : Collection
-    {
-        return $this->marques;
-    }
-
-    public function addMarque(Marques $marque) : self
-    {
-        if (!$this->marques->contains($marque)) {
-            $this->marques[] = $marque;
-            $marque->setParc($this);
-        }
-
-        return $this;
-    }
-
-    public function removeMarque(Marques $marque) : self
-    {
-        if ($this->marques->contains($marque)) {
-            $this->marques->removeElement($marque);
-            // set the owning side to null (unless already changed)
-            if ($marque->getParc() === $this) {
-                $marque->setParc(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|Sites[]
-     */
-    public function getSites() : Collection
-    {
-        return $this->sites;
-    }
-
-    public function addSite(Sites $site) : self
-    {
-        if (!$this->sites->contains($site)) {
-            $this->sites[] = $site;
-            $site->setParc($this);
-        }
-
-        return $this;
-    }
-
-    public function removeSite(Sites $site) : self
-    {
-        if ($this->sites->contains($site)) {
-            $this->sites->removeElement($site);
-            // set the owning side to null (unless already changed)
-            if ($site->getParc() === $this) {
-                $site->setParc(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|SousCategoriesVehicules[]
-     */
-    public function getSousCategoriesVehicules() : Collection
-    {
-        return $this->sousCategoriesVehicules;
-    }
-
-    public function addSousCategoriesVehicule(SousCategoriesVehicules $sousCategoriesVehicule) : self
-    {
-        if (!$this->sousCategoriesVehicules->contains($sousCategoriesVehicule)) {
-            $this->sousCategoriesVehicules[] = $sousCategoriesVehicule;
-            $sousCategoriesVehicule->setParc($this);
-        }
-
-        return $this;
-    }
-
-    public function removeSousCategoriesVehicule(SousCategoriesVehicules $sousCategoriesVehicule) : self
-    {
-        if ($this->sousCategoriesVehicules->contains($sousCategoriesVehicule)) {
-            $this->sousCategoriesVehicules->removeElement($sousCategoriesVehicule);
-            // set the owning side to null (unless already changed)
-            if ($sousCategoriesVehicule->getParc() === $this) {
-                $sousCategoriesVehicule->setParc(null);
-            }
         }
 
         return $this;
@@ -494,6 +331,66 @@ class Parcs
         if ($newParc !== $vehicules->getParc()) {
             $vehicules->setParc($newParc);
         }
+
+        return $this;
+    }
+
+    public function getFiliale(): ?Filiales
+    {
+        return $this->filiale;
+    }
+
+    public function setFiliale(?Filiales $filiale): self
+    {
+        $this->filiale = $filiale;
+
+        return $this;
+    }
+
+    public function getMarque(): ?Marques
+    {
+        return $this->marque;
+    }
+
+    public function setMarque(?Marques $marque): self
+    {
+        $this->marque = $marque;
+
+        return $this;
+    }
+
+    public function getSite(): ?Sites
+    {
+        return $this->site;
+    }
+
+    public function setSite(?Sites $site): self
+    {
+        $this->site = $site;
+
+        return $this;
+    }
+
+    public function getSousCategorieVehicule(): ?SousCategoriesVehicules
+    {
+        return $this->sousCategorieVehicule;
+    }
+
+    public function setSousCategorieVehicule(?SousCategoriesVehicules $sousCategorieVehicule): self
+    {
+        $this->sousCategorieVehicule = $sousCategorieVehicule;
+
+        return $this;
+    }
+
+    public function getCategorieVehicule(): ?CategoriesVehicules
+    {
+        return $this->categorieVehicule;
+    }
+
+    public function setCategorieVehicule(?CategoriesVehicules $categorieVehicule): self
+    {
+        $this->categorieVehicule = $categorieVehicule;
 
         return $this;
     }

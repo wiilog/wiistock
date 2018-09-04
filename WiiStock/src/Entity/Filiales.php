@@ -26,19 +26,20 @@ class Filiales
     private $nom;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Parcs", inversedBy="filiales")
-     */
-    private $parc;
-
-    /**
      * @ORM\OneToMany(targetEntity="App\Entity\Sites", mappedBy="filiale")
      * @Groups({"parc"})
      */
     private $sites;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Parcs", mappedBy="filiale")
+     */
+    private $parcs;
+
     public function __construct()
     {
         $this->sites = new ArrayCollection();
+        $this->parcs = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -54,18 +55,6 @@ class Filiales
     public function setNom(string $nom): self
     {
         $this->nom = $nom;
-
-        return $this;
-    }
-
-    public function getParc(): ?Parcs
-    {
-        return $this->parc;
-    }
-
-    public function setParc(?Parcs $parc): self
-    {
-        $this->parc = $parc;
 
         return $this;
     }
@@ -95,6 +84,37 @@ class Filiales
             // set the owning side to null (unless already changed)
             if ($site->getFiliale() === $this) {
                 $site->setFiliale(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Parcs[]
+     */
+    public function getParcs(): Collection
+    {
+        return $this->parcs;
+    }
+
+    public function addParc(Parcs $parc): self
+    {
+        if (!$this->parcs->contains($parc)) {
+            $this->parcs[] = $parc;
+            $parc->setFiliale($this);
+        }
+
+        return $this;
+    }
+
+    public function removeParc(Parcs $parc): self
+    {
+        if ($this->parcs->contains($parc)) {
+            $this->parcs->removeElement($parc);
+            // set the owning side to null (unless already changed)
+            if ($parc->getFiliale() === $this) {
+                $parc->setFiliale(null);
             }
         }
 

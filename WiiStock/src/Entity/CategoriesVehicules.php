@@ -27,19 +27,20 @@ class CategoriesVehicules
     private $nom;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Parcs", inversedBy="categoriesVehicules")
-     */
-    private $parc;
-
-    /**
      * @ORM\OneToMany(targetEntity="App\Entity\SousCategoriesVehicules", mappedBy="categorie")
      * @Groups({"parc"})
      */
     private $sousCategoriesVehicules;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Parcs", mappedBy="categorieVehicule")
+     */
+    private $parcs;
+
     public function __construct()
     {
         $this->sousCategoriesVehicules = new ArrayCollection();
+        $this->parcs = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -55,18 +56,6 @@ class CategoriesVehicules
     public function setNom(string $nom): self
     {
         $this->nom = $nom;
-
-        return $this;
-    }
-
-    public function getParc(): ?Parcs
-    {
-        return $this->parc;
-    }
-
-    public function setParc(?Parcs $parc): self
-    {
-        $this->parc = $parc;
 
         return $this;
     }
@@ -96,6 +85,37 @@ class CategoriesVehicules
             // set the owning side to null (unless already changed)
             if ($sousCategoriesVehicule->getCategorie() === $this) {
                 $sousCategoriesVehicule->setCategorie(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Parcs[]
+     */
+    public function getParcs(): Collection
+    {
+        return $this->parcs;
+    }
+
+    public function addParc(Parcs $parc): self
+    {
+        if (!$this->parcs->contains($parc)) {
+            $this->parcs[] = $parc;
+            $parc->setCategorieVehicule($this);
+        }
+
+        return $this;
+    }
+
+    public function removeParc(Parcs $parc): self
+    {
+        if ($this->parcs->contains($parc)) {
+            $this->parcs->removeElement($parc);
+            // set the owning side to null (unless already changed)
+            if ($parc->getCategorieVehicule() === $this) {
+                $parc->setCategorieVehicule(null);
             }
         }
 

@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -29,9 +31,14 @@ class Sites
     private $filiale;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Parcs", inversedBy="sites")
+     * @ORM\OneToMany(targetEntity="App\Entity\Parcs", mappedBy="site")
      */
-    private $parc;
+    private $parcs;
+
+    public function __construct()
+    {
+        $this->parcs = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -62,14 +69,33 @@ class Sites
         return $this;
     }
 
-    public function getParc(): ?Parcs
+    /**
+     * @return Collection|Parcs[]
+     */
+    public function getParcs(): Collection
     {
-        return $this->parc;
+        return $this->parcs;
     }
 
-    public function setParc(?Parcs $parc): self
+    public function addParc(Parcs $parc): self
     {
-        $this->parc = $parc;
+        if (!$this->parcs->contains($parc)) {
+            $this->parcs[] = $parc;
+            $parc->setSite($this);
+        }
+
+        return $this;
+    }
+
+    public function removeParc(Parcs $parc): self
+    {
+        if ($this->parcs->contains($parc)) {
+            $this->parcs->removeElement($parc);
+            // set the owning side to null (unless already changed)
+            if ($parc->getSite() === $this) {
+                $parc->setSite(null);
+            }
+        }
 
         return $this;
     }
