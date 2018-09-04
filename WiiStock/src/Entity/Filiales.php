@@ -6,6 +6,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
+use Symfony\Component\Serializer\Annotation\Groups;
 /**
  * @ORM\Entity(repositoryClass="App\Repository\FilialesRepository")
  */
@@ -20,6 +21,7 @@ class Filiales
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"parc"})
      */
     private $nom;
 
@@ -30,6 +32,7 @@ class Filiales
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Sites", mappedBy="filiale")
+     * @Groups({"parc"})
      */
     private $sites;
 

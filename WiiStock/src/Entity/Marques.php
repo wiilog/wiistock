@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 
+use Symfony\Component\Serializer\Annotation\Groups;
 /**
  * @ORM\Entity(repositoryClass="App\Repository\MarquesRepository")
  */
@@ -18,6 +19,7 @@ class Marques
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"parc"})
      */
     private $nom;
 
