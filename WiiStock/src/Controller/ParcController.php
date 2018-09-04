@@ -8,6 +8,11 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Form\ParcsType;
+use App\Repository\ParcsRepository;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\Serializer\Serializer;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 
 /**
  * @Route("/parc")
@@ -15,12 +20,29 @@ use App\Form\ParcsType;
 
 class ParcController extends AbstractController
 {
-
-    /**
-     * @Route("/list")
-     */
-    public function index()
+    
+	/**
+ 	 * @Route("/list")
+ 	 */    
+    public function index(ParcsRepository $parcsRepository, Request $request)
     {
+        $encoders = array(new JsonEncoder());
+        $normalizers = array(new ObjectNormalizer());
+
+        $serializer = new Serializer($normalizers, $encoders);
+
+        // Ajax
+        if ($request->isXmlHttpRequest()) {
+            $parcs = $parcsRepository->findAll();
+
+            // TODO : gestion des filtres
+            // 
+
+            $jsonContent = $serializer->serialize($parcs, 'json');
+            return new JsonResponse($jsonContent);
+        }
+
+
         return $this->render('parc/index.html.twig', [
             'controller_name' => 'ParcController',
         ]);

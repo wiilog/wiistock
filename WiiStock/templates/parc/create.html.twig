@@ -120,18 +120,19 @@
             </div>
             {{ form_row(form.vehicules.puissance_fiscale) }}
         </fieldset>
-        {{ form_row(form._token) }}
-        {{ form_end(form, {'render_rest' : false}) }}
     </div>
 
     <div class="row">
         <div class="col-md-12">
             <a href="#" class="button btn-left pull-left">
                 <span class="fa fa-angle-double-left"></span>Retour</a>
-            <a href="#" class="button btn-left pull-right">
-                <span class="fa fa-check"></span>Valider</a>
+            <button href="#" class="button btn-left pull-right">
+                <span class="fa fa-check"></span>Valider</button>
         </div>
     </div>
+
+    {{ form_row(form._token) }}
+    {{ form_end(form, {'render_rest' : false}) }}
 {% endblock %}
 
 {% block javascripts %}

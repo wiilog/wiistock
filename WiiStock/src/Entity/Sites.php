@@ -4,6 +4,7 @@ namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 
+use Symfony\Component\Serializer\Annotation\Groups;
 /**
  * @ORM\Entity(repositoryClass="App\Repository\SitesRepository")
  */
@@ -18,12 +19,12 @@ class Sites
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"parc"})
      */
     private $nom;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Filiales", inversedBy="sites")
-     * @ORM\JoinColumn(nullable=false)
      */
     private $filiale;
 

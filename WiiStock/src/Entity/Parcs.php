@@ -100,26 +100,31 @@ class Parcs
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Filiales", mappedBy="parc")
+     * @Groups({"parc"})
      */
     private $filiales;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\CategoriesVehicules", mappedBy="parc")
+     * @Groups({"parc"})
      */
     private $categoriesVehicules;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Marques", mappedBy="parc")
+     * @Groups({"parc"})
      */
     private $marques;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Sites", mappedBy="parc")
+     * @Groups({"parc"})
      */
     private $sites;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\SousCategoriesVehicules", mappedBy="parc")
+     * @Groups({"parc"})
      */
     private $sousCategoriesVehicules;
 
@@ -360,6 +365,8 @@ class Parcs
                 $categoriesVehicule->setParc(null);
             }
         }
+
+        return $this;
     }
 
     public function getChariots() : ? Chariots
@@ -469,6 +476,8 @@ class Parcs
                 $sousCategoriesVehicule->setParc(null);
             }
         }
+
+        return $this;
     }
 
     public function getVehicules() : ? Vehicules
