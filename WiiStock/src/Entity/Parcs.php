@@ -99,7 +99,6 @@ class Parcs
     private $commentaire_sortie;
 
     /**
-<<<<<<< HEAD
      * @ORM\OneToMany(targetEntity="App\Entity\Filiales", mappedBy="parc")
      */
     private $filiales;
@@ -132,8 +131,8 @@ class Parcs
         $this->sites = new ArrayCollection();
         $this->sousCategoriesVehicules = new ArrayCollection();
     }
-     /** 
-      * @ORM\OneToOne(targetEntity="App\Entity\Chariots", mappedBy="parc", cascade={"persist", "remove"})
+    /** 
+     * @ORM\OneToOne(targetEntity="App\Entity\Chariots", mappedBy="parc", cascade={"persist", "remove"})
      */
     private $chariots;
 
@@ -142,161 +141,161 @@ class Parcs
      */
     private $vehicules;
 
-    public function getId(): ?int
+    public function getId() : ? int
     {
         return $this->id;
     }
 
-    public function getModele(): ?string
+    public function getModele() : ? string
     {
         return $this->modele;
     }
 
-    public function setModele(string $modele): self
+    public function setModele(string $modele) : self
     {
         $this->modele = $modele;
 
         return $this;
     }
 
-    public function getStatut(): ?string
+    public function getStatut() : ? string
     {
         return $this->statut;
     }
 
-    public function setStatut(string $statut): self
+    public function setStatut(string $statut) : self
     {
         $this->statut = $statut;
 
         return $this;
     }
 
-    public function getNParc(): ?string
+    public function getNParc() : ? string
     {
         return $this->n_parc;
     }
 
-    public function setNParc(string $n_parc): self
+    public function setNParc(string $n_parc) : self
     {
         $this->n_parc = $n_parc;
 
         return $this;
     }
 
-    public function getMiseEnCirculation(): ?\DateTimeInterface
+    public function getMiseEnCirculation() : ? \DateTimeInterface
     {
         return $this->mise_en_circulation;
     }
 
-    public function setMiseEnCirculation(\DateTimeInterface $mise_en_circulation): self
+    public function setMiseEnCirculation(\DateTimeInterface $mise_en_circulation) : self
     {
         $this->mise_en_circulation = $mise_en_circulation;
 
         return $this;
     }
 
-    public function getFournisseur(): ?string
+    public function getFournisseur() : ? string
     {
         return $this->fournisseur;
     }
 
-    public function setFournisseur(string $fournisseur): self
+    public function setFournisseur(string $fournisseur) : self
     {
         $this->fournisseur = $fournisseur;
 
         return $this;
     }
 
-    public function getPoids(): ?int
+    public function getPoids() : ? int
     {
         return $this->poids;
     }
 
-    public function setPoids(int $poids): self
+    public function setPoids(int $poids) : self
     {
         $this->poids = $poids;
 
         return $this;
     }
 
-    public function getModeAcquisition(): ?string
+    public function getModeAcquisition() : ? string
     {
         return $this->mode_acquisition;
     }
 
-    public function setModeAcquisition(string $mode_acquisition): self
+    public function setModeAcquisition(string $mode_acquisition) : self
     {
         $this->mode_acquisition = $mode_acquisition;
 
         return $this;
     }
 
-    public function getCommentaire(): ?string
+    public function getCommentaire() : ? string
     {
         return $this->commentaire;
     }
 
-    public function setCommentaire(string $commentaire): self
+    public function setCommentaire(string $commentaire) : self
     {
         $this->commentaire = $commentaire;
 
         return $this;
     }
 
-    public function getIncorporation(): ?\DateTimeInterface
+    public function getIncorporation() : ? \DateTimeInterface
     {
         return $this->incorporation;
     }
 
-    public function setIncorporation(\DateTimeInterface $incorporation): self
+    public function setIncorporation(\DateTimeInterface $incorporation) : self
     {
         $this->incorporation = $incorporation;
 
         return $this;
     }
 
-    public function getMiseEnService(): ?\DateTimeInterface
+    public function getMiseEnService() : ? \DateTimeInterface
     {
         return $this->mise_en_service;
     }
 
-    public function setMiseEnService(\DateTimeInterface $mise_en_service): self
+    public function setMiseEnService(\DateTimeInterface $mise_en_service) : self
     {
         $this->mise_en_service = $mise_en_service;
 
         return $this;
     }
 
-    public function getSortie(): ?\DateTimeInterface
+    public function getSortie() : ? \DateTimeInterface
     {
         return $this->sortie;
     }
 
-    public function setSortie(\DateTimeInterface $sortie): self
+    public function setSortie(\DateTimeInterface $sortie) : self
     {
         $this->sortie = $sortie;
 
         return $this;
     }
 
-    public function getMotif(): ?string
+    public function getMotif() : ? string
     {
         return $this->motif;
     }
 
-    public function setMotif(string $motif): self
+    public function setMotif(string $motif) : self
     {
         $this->motif = $motif;
 
         return $this;
     }
 
-    public function getCommentaireSortie(): ?string
+    public function getCommentaireSortie() : ? string
     {
         return $this->commentaire_sortie;
     }
 
-    public function setCommentaireSortie(string $commentaire_sortie): self
+    public function setCommentaireSortie(string $commentaire_sortie) : self
     {
         $this->commentaire_sortie = $commentaire_sortie;
 
@@ -306,12 +305,12 @@ class Parcs
     /**
      * @return Collection|Filiales[]
      */
-    public function getFiliales(): Collection
+    public function getFiliales() : Collection
     {
         return $this->filiales;
     }
 
-    public function addFiliale(Filiales $filiale): self
+    public function addFiliale(Filiales $filiale) : self
     {
         if (!$this->filiales->contains($filiale)) {
             $this->filiales[] = $filiale;
@@ -321,7 +320,7 @@ class Parcs
         return $this;
     }
 
-    public function removeFiliale(Filiales $filiale): self
+    public function removeFiliale(Filiales $filiale) : self
     {
         if ($this->filiales->contains($filiale)) {
             $this->filiales->removeElement($filiale);
@@ -337,12 +336,12 @@ class Parcs
     /**
      * @return Collection|CategoriesVehicules[]
      */
-    public function getCategoriesVehicules(): Collection
+    public function getCategoriesVehicules() : Collection
     {
         return $this->categoriesVehicules;
     }
 
-    public function addCategoriesVehicule(CategoriesVehicules $categoriesVehicule): self
+    public function addCategoriesVehicule(CategoriesVehicules $categoriesVehicule) : self
     {
         if (!$this->categoriesVehicules->contains($categoriesVehicule)) {
             $this->categoriesVehicules[] = $categoriesVehicule;
@@ -352,7 +351,7 @@ class Parcs
         return $this;
     }
 
-    public function removeCategoriesVehicule(CategoriesVehicules $categoriesVehicule): self
+    public function removeCategoriesVehicule(CategoriesVehicules $categoriesVehicule) : self
     {
         if ($this->categoriesVehicules->contains($categoriesVehicule)) {
             $this->categoriesVehicules->removeElement($categoriesVehicule);
@@ -360,13 +359,15 @@ class Parcs
             if ($categoriesVehicule->getParc() === $this) {
                 $categoriesVehicule->setParc(null);
             }
+        }
+    }
 
-    public function getChariots(): ?Chariots
+    public function getChariots() : ? Chariots
     {
         return $this->chariots;
     }
 
-    public function setChariots(?Chariots $chariots): self
+    public function setChariots(? Chariots $chariots) : self
     {
         $this->chariots = $chariots;
 
@@ -382,12 +383,12 @@ class Parcs
     /**
      * @return Collection|Marques[]
      */
-    public function getMarques(): Collection
+    public function getMarques() : Collection
     {
         return $this->marques;
     }
 
-    public function addMarque(Marques $marque): self
+    public function addMarque(Marques $marque) : self
     {
         if (!$this->marques->contains($marque)) {
             $this->marques[] = $marque;
@@ -397,7 +398,7 @@ class Parcs
         return $this;
     }
 
-    public function removeMarque(Marques $marque): self
+    public function removeMarque(Marques $marque) : self
     {
         if ($this->marques->contains($marque)) {
             $this->marques->removeElement($marque);
@@ -413,12 +414,12 @@ class Parcs
     /**
      * @return Collection|Sites[]
      */
-    public function getSites(): Collection
+    public function getSites() : Collection
     {
         return $this->sites;
     }
 
-    public function addSite(Sites $site): self
+    public function addSite(Sites $site) : self
     {
         if (!$this->sites->contains($site)) {
             $this->sites[] = $site;
@@ -428,7 +429,7 @@ class Parcs
         return $this;
     }
 
-    public function removeSite(Sites $site): self
+    public function removeSite(Sites $site) : self
     {
         if ($this->sites->contains($site)) {
             $this->sites->removeElement($site);
@@ -444,12 +445,12 @@ class Parcs
     /**
      * @return Collection|SousCategoriesVehicules[]
      */
-    public function getSousCategoriesVehicules(): Collection
+    public function getSousCategoriesVehicules() : Collection
     {
         return $this->sousCategoriesVehicules;
     }
 
-    public function addSousCategoriesVehicule(SousCategoriesVehicules $sousCategoriesVehicule): self
+    public function addSousCategoriesVehicule(SousCategoriesVehicules $sousCategoriesVehicule) : self
     {
         if (!$this->sousCategoriesVehicules->contains($sousCategoriesVehicule)) {
             $this->sousCategoriesVehicules[] = $sousCategoriesVehicule;
@@ -459,7 +460,7 @@ class Parcs
         return $this;
     }
 
-    public function removeSousCategoriesVehicule(SousCategoriesVehicules $sousCategoriesVehicule): self
+    public function removeSousCategoriesVehicule(SousCategoriesVehicules $sousCategoriesVehicule) : self
     {
         if ($this->sousCategoriesVehicules->contains($sousCategoriesVehicule)) {
             $this->sousCategoriesVehicules->removeElement($sousCategoriesVehicule);
@@ -467,13 +468,15 @@ class Parcs
             if ($sousCategoriesVehicule->getParc() === $this) {
                 $sousCategoriesVehicule->setParc(null);
             }
+        }
+    }
 
-    public function getVehicules(): ?Vehicules
+    public function getVehicules() : ? Vehicules
     {
         return $this->vehicules;
     }
 
-    public function setVehicules(?Vehicules $vehicules): self
+    public function setVehicules(? Vehicules $vehicules) : self
     {
         $this->vehicules = $vehicules;
 

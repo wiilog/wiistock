@@ -1270,7 +1270,7 @@ input:checked+.slider:before {
 }
 
 .table-histo tr:hover td {
-    background-color: #f8f8f8;
+	background-color: #f8f8f8;
 }
 
 .date-list {
@@ -1608,4 +1608,40 @@ input:checked+.slider:before {
 .color-bar label {
 	font-weight: 250;
 	font-size: 14px;
+}
+
+/* Parcs
+================= */
+
+.parc-content label {
+	font-size: 14px;
+}
+
+.parc-content .form-flex {
+	display: flex;
+	justify-content: flex-start;
+	align-items: center;
+}
+
+.parc-content .form-flex div {
+	width: 35%;
+    padding-right: 15px;
+    padding-left: 15px;
+}
+
+.parc-content .form-flex a {
+	margin-top: 10px;
+	width: 15%;
+    margin-right: 15px;
+    margin-left: 15px;
+}
+
+.parc-content .form-flex .has-feedback {
+	padding: 0px;
+	width: 100%;
+}
+
+.parc-content .custom-file label {
+	font-weight: inherit;
+	margin: 0;
 }

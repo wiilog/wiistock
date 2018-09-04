@@ -1,20 +1,141 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout.html.twig' %}
 
-{% block title %}Hello {{ controller_name }}!{% endblock %}
+{% block title %}Nouveau parc{% endblock %}
 
-{% block body %}
-<style>
-    .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
-    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
-</style>
+{% form_theme form _self %}
 
-<div class="example-wrapper">
-    <h1>Hello {{ controller_name }}! ✅</h1>
+{% block date_widget %}
+    <div class="has-feedback">
+        {{ block('form_widget_simple') }}
+        <span class="glyphicon glyphicon-calendar form-control-feedback" aria-hidden="true"></span>
+    </div>
+{% endblock date_widget %}
 
-    This friendly message is coming from:
-    <ul>
-        <li>Your controller at <code><a href="{{ 'src/Controller/ParcController.php'|file_link(0) }}">src/Controller/ParcController.php</a></code></li>
-        <li>Your template at <code><a href="{{ 'templates/parc/index.html.twig'|file_link(0) }}">templates/parc/index.html.twig</a></code></li>
-    </ul>
-</div>
+{% block page_content %}
+
+    <div class="row page-title">
+        NOUVEAU PARC
+    </div>
+    <div class="parc-content col-md-12">
+        {{ form_start(form) }}
+        {{ form_errors(form) }}
+        <fieldset class="well list-box">
+            <legend class="well-legend">Données générales</legend>
+            <div class="row">
+                <div class="col-md-4">
+                    {{ form_row(form.modele) }}
+                </div>
+                <div class="col-md-4">
+                    {{ form_row(form.filiales) }}
+                </div>
+                <div class="col-md-4">
+                    {{ form_row(form.sites) }}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4">
+                    {{ form_row(form.categoriesVehicules) }}
+                </div>
+                <div class="col-md-4">
+                    {{ form_row(form.sousCategoriesVehicules) }}
+                </div>
+                <div class="col-md-4">
+                    {{ form_row(form.marques) }}
+                </div>
+            </div>
+            {{ form_row(form.commentaire) }}
+            <div class="row">
+                <div class="col-md-6">
+                    {{ form_row(form.sortie) }}
+                </div>
+                <div class="col-md-6">
+                    {{ form_row(form.motif) }}
+                </div>
+            </div>
+        </fieldset>
+        <fieldset class="well list-box">
+            <legend class="well-legend">Acquisition</legend>
+            <div class="row">
+                <div class="col-md-3">
+                    {{ form_row(form.fournisseur) }}
+                </div>
+                <div class="col-md-3">
+                    {{ form_row(form.mode_acquisition) }}
+                </div>
+                <div class="col-md-3">
+                    {{ form_row(form.incorporation) }}
+                </div>
+                <div class="col-md-3">
+                    {{ form_row(form.mise_en_service) }}
+                </div>
+            </div>
+        </fieldset>
+        <fieldset class="well list-box">
+            <legend class="well-legend">Numéro de parc</legend>
+            <div class="form-inline">
+                {{ form_widget(form.n_parc) }}
+                <a class="btn btn-primary">
+                    <span class="fa fa-refresh"></span>
+                </a>
+            </div>
+        </fieldset>
+        <fieldset class="well list-box">
+            <legend class="well-legend">Carte grise</legend>
+            <div class="row form-flex">
+
+                {{ form_row(form.poids) }}
+
+                {{ form_row(form.mise_en_circulation) }}
+
+                <a class="custom-file btn btn-default btn-block">
+                    <input type="file" class="custom-file-input" id="customFile">
+                    <span class="fa fa-cloud-upload"></span>
+                    <label class="custom-file-label" for="customFile">Importer</label>
+                </a>
+                <a class="btn btn-default disabled">
+                    <span class="fa fa-cloud-download"></span>
+                    Télécharger
+                </a>
+
+            </div>
+        </fieldset>
+        <fieldset class="well list-box">
+            <legend class="well-legend">Données chariot</legend>
+            {{ form_row(form.chariots.n_serie) }}
+            {{ form_row(form.chariots.proprietaire) }}
+        </fieldset>
+        <fieldset class="well list-box">
+            <legend class="well-legend">Données véhicule</legend>
+            {{ form_row(form.vehicules.immatriculation) }}
+            <div class="row">
+                <div class="col-md-4">
+                    {{ form_row(form.vehicules.genre) }}
+                </div>
+                <div class="col-md-4">
+                    {{ form_row(form.vehicules.ptac) }}
+                </div>
+                <div class="col-md-4">
+                    {{ form_row(form.vehicules.ptr) }}
+                </div>
+            </div>
+            {{ form_row(form.vehicules.puissance_fiscale) }}
+        </fieldset>
+        {{ form_row(form._token) }}
+        {{ form_end(form, {'render_rest' : false}) }}
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <a href="#" class="button btn-left pull-left">
+                <span class="fa fa-angle-double-left"></span>Retour</a>
+            <a href="#" class="button btn-left pull-right">
+                <span class="fa fa-check"></span>Valider</a>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    <script type="text/javascript">
+        $('.datepicker').datepicker({language: 'fr', format: 'dd/mm/yyyy', todayBtn: true, todayHighlight: true, autoclose: true});
+    </script>
 {% endblock %}

@@ -2,8 +2,12 @@
 
 namespace App\Controller;
 
+use App\Entity\Parcs;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Form\ParcsType;
 
 /**
  * @Route("/parc")
@@ -11,10 +15,10 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class ParcController extends AbstractController
 {
-    
-	/**
- 	 * @Route("/list")
- 	 */    
+
+    /**
+     * @Route("/list")
+     */
     public function index()
     {
         return $this->render('parc/index.html.twig', [
@@ -22,19 +26,50 @@ class ParcController extends AbstractController
         ]);
     }
 
-
-    public function create() 
+    /**
+     * @Route("/create", name="parc_create", methods="GET|POST")
+     */
+    public function create(Request $request) : Response
     {
-    	return $this->render('parc/create.html.twig', [
-    		'controller_name' => 'ParcController',
-    	]);
+        $parc = new Parcs();
+        $form = $this->createForm(ParcsType::class, $parc);
+
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+            if ($form->get('validation')->isClicked()) {
+                $parc = $form->getData();
+
+                $em->persist($parc);
+                $em->flush();
+            }
+
+            return $this->redirectToRoute('parc_list');
+        }
+
+        return $this->render('parc/create.html.twig', [
+            'controller_name' => 'CreateController',
+            'form' => $form->createView(),
+        ]);
     }
 
-
-    public function modify()
+    /**
+     * @Route("/edit", name="parc_edit", methods="GET|POST")
+     */
+    public function edit(Request $request, Parcs $parc)
     {
-    	return $this->render('parc/modify.html.twig', [
-    		'controller_name' => 'ParcController',
-    	]);
+        $form = $this->createForm(ParcsType::class, $parc);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $this->getDoctrine()->getManager()->flush();
+
+            return $this->redirectToRoute('parc_list');
+        }
+
+        return $this->render('parc/edit.html.twig', [
+            'controller_name' => 'EditController',
+            'parc' => $parc,
+            'form' => $form->createView(),
+        ]);
     }
 }
