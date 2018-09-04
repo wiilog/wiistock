@@ -34,10 +34,11 @@ class ParcController extends AbstractController
 
         // Ajax
         if ($request->isXmlHttpRequest()) {
+
+            /*$criteria = array('status' => $status, 'site' => $site, 'vehicules.immatriculation' => $immat, 'chariots.n_serie' => $nserie);
+            $parcs = $parcsRepository->findBy($criteria);*/
             $parcs = $parcsRepository->findAll();
 
-            // TODO : gestion des filtres
-            // 
 
             $jsonContent = $serializer->serialize($parcs, 'json');
             return new JsonResponse($jsonContent);
@@ -76,7 +77,7 @@ class ParcController extends AbstractController
     }
 
     /**
-     * @Route("/edit", name="parc_edit", methods="GET|POST")
+     * @Route("/edit/{id}", name="parc_edit", methods="GET|POST")
      */
     public function edit(Request $request, Parcs $parc) : Response
     {

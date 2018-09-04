@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -30,16 +32,20 @@ class SousCategoriesVehicules
      */
     private $code;
 
-
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Parcs", inversedBy="sousCategoriesVehicules")
-     */
-    private $parc;
-
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\CategoriesVehicules", inversedBy="sousCategoriesVehicules")
      */
     private $categorie;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Parcs", mappedBy="sousCategorieVehicule")
+     */
+    private $parcs;
+
+    public function __construct()
+    {
+        $this->parcs = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -70,18 +76,6 @@ class SousCategoriesVehicules
         return $this;
     }
 
-    public function getParc(): ?Parcs
-    {
-        return $this->parc;
-    }
-
-    public function setParc(?Parcs $parc): self
-    {
-        $this->parc = $parc;
-
-        return $this;
-    }
-
     public function getCategorie(): ?CategoriesVehicules
     {
         return $this->categorie;
@@ -90,6 +84,37 @@ class SousCategoriesVehicules
     public function setCategorie(?CategoriesVehicules $categorie): self
     {
         $this->categorie = $categorie;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Parcs[]
+     */
+    public function getParcs(): Collection
+    {
+        return $this->parcs;
+    }
+
+    public function addParc(Parcs $parc): self
+    {
+        if (!$this->parcs->contains($parc)) {
+            $this->parcs[] = $parc;
+            $parc->setSousCategorieVehicule($this);
+        }
+
+        return $this;
+    }
+
+    public function removeParc(Parcs $parc): self
+    {
+        if ($this->parcs->contains($parc)) {
+            $this->parcs->removeElement($parc);
+            // set the owning side to null (unless already changed)
+            if ($parc->getSousCategorieVehicule() === $this) {
+                $parc->setSousCategorieVehicule(null);
+            }
+        }
 
         return $this;
     }

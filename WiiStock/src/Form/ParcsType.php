@@ -28,27 +28,27 @@ class ParcsType extends AbstractType
 	{
 		$builder
 			->add('modele', TextType::class, array('label' => 'Modèle'))
-			->add('filiales', EntityType::class, array(
+			->add('filiale', EntityType::class, array(
 				'class' => Filiales::class,
 				'choice_label' => 'nom',
 				'label' => 'Filiale'
 			))
-			->add('sites', EntityType::class, array(
+			->add('site', EntityType::class, array(
 				'class' => Sites::class,
 				'choice_label' => 'nom',
 				'label' => 'Site'
 			))
-			->add('marques', EntityType::class, array(
+			->add('marque', EntityType::class, array(
 				'class' => Marques::class,
 				'choice_label' => 'nom',
 				'label' => 'Marque'
 			))
-			->add('categoriesVehicules', EntityType::class, array(
+			->add('categorieVehicule', EntityType::class, array(
 				'class' => CategoriesVehicules::class,
 				'choice_label' => 'nom',
 				'label' => 'Catégorie'
 			))
-			->add('sousCategoriesVehicules', EntityType::class, array(
+			->add('sousCategorieVehicule', EntityType::class, array(
 				'class' => SousCategoriesVehicules::class,
 				'choice_label' => 'nom',
 				'label' => 'Sous catégorie'

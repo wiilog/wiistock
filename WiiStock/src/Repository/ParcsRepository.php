@@ -19,6 +19,25 @@ class ParcsRepository extends ServiceEntityRepository
         parent::__construct($registry, Parcs::class);
     }
 
+    /**
+     * @return Parcs[] Returns an array of Parcs objects
+     */
+    public function findByStateSiteImmatriculation($state, $site, $immat, $nserie) {
+        return $this->createQueryBuilder('parc')
+            ->andWhere('parc.state = :valState')
+            ->setParameter('valState', $state)
+            ->andWhere('parc.site =: valSite')
+            ->setParameter('valSite', $site)
+            ->andWhere('parc.vehicules.immat =: valImmat')
+            ->setParameter('valImmat', $immat)
+            ->orWhere('parc.chariots.nserie =: valNserie')
+            ->setParameter('valNserie', $nserie)
+            ->orderBy('parc.id', 'ASC')
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
 //    /**
 //     * @return Parcs[] Returns an array of Parcs objects
 //     */
