@@ -22,20 +22,31 @@ class ParcsRepository extends ServiceEntityRepository
     /**
      * @return Parcs[] Returns an array of Parcs objects
      */
-    public function findByStateSiteImmatriculation($state, $site, $immat, $nserie)
+    public function findByStateSiteImmatriculation($state, $site, $immat)
     {
-        return $this->createQueryBuilder('parc')
-            ->andWhere('parc.state = :valState')
-            ->setParameter('valState', $state)
-            ->andWhere('parc.site =: valSite')
-            ->setParameter('valSite', $site)
-            ->andWhere('parc.vehicules.immat =: valImmat')
-            ->setParameter('valImmat', $immat)
-            ->orWhere('parc.chariots.nserie =: valNserie')
-            ->setParameter('valNserie', $nserie)
-            ->orderBy('parc.id', 'ASC')
-            ->getQuery()
-            ->getResult();
+        $qb = $this->createQueryBuilder('parc');
+
+        if ($state) {
+            $qb->andWhere('parc.statut = :valState')
+            ->setParameter('valState', $state);
+        }
+
+        if ($site) {
+            $qb->leftJoin('parc.site', 'site')
+            ->andwhere('site.nom = :valSite')
+            ->setParameter('valSite', $site);
+        }
+
+        if ($immat != "") {
+            $qb->leftJoin('parc.vehicules', 'vehicule')
+            ->leftJoin('parc.chariots', 'chariot')
+            ->andWhere('vehicule.immatriculation = :valImmat OR chariot.n_serie = :valImmat')
+            ->setParameter('valImmat', $immat);
+        }
+        
+        return $qb->orderBy('parc.id', 'ASC')
+                ->getQuery()
+                ->getResult();
     }
 
     public function findLast()

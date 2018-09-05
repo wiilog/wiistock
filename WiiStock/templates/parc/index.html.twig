@@ -8,6 +8,7 @@
         <form class="form-inline">
             <div class="form-group">
                 <select id="statut" class="form-control">
+                    <option value="">Statut</option>
                     <option>Actif</option>
                     <option>Demande création</option>
                     <option>Sorti</option>
@@ -16,15 +17,19 @@
             </div>
             <div class="form-group">
                 <select id="site" class="form-control">
-                    <option>Site1</option>
-                    <option>Site2</option>
-                    <option>Site3</option>
+                    <option value="">Site</option>
+                    {% for filiale in filiales %}
+                        <optgroup label="{{ filiale.nom }}"></optgroup>
+                        {% for site in filiale.sites %}
+                            <option>{{ site.nom }}</option>
+                        {% endfor %}
+                    {% endfor %}
                 </select>
             </div>
             <div class="form-group">
                 <input id="immat" type="search" class="form-control" placeholder="Immatriculation/numéro de série">
             </div>
-            <a class="btn more-filter">Plus de filtres</a>
+            {# <a class="btn more-filter">Plus de filtres</a> #}
             <a href="#" id="filter" class="button btn-right">
                 Filtrer<span class="fa fa-angle-double-right"></span></a>
         </form>
@@ -100,6 +105,8 @@
                 request.statut = $("#statut").val();
                 request.site = $("#site").val();
                 request.immat = $("#immat").val();
+                request.currentPage = $("#grid-data").bootgrid("getCurrentPage");
+                request.rowCount = $("#grid-data").bootgrid("getRowCount");
                 return request;
             },
             url: "{{ path('parc_list') }}",

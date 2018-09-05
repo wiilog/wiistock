@@ -9,6 +9,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Form\ParcsType;
 use App\Repository\ParcsRepository;
+use App\Repository\FilialesRepository;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
@@ -25,13 +26,16 @@ class ParcController extends AbstractController
 	/**
  	 * @Route("/list", name="parc_list")
  	 */    
-    public function index(ParcsRepository $parcsRepository, Request $request)
+    public function index(ParcsRepository $parcsRepository, FilialesRepository $filialesRepository, Request $request)
     {
 
         if ($request->isXmlHttpRequest()) {
             $statut = $request->request->get('statut');
-            if ($statut) {
-                $parcs = $parcsRepository->findByStatut($statut);
+            $site = $request->request->get('site');
+            $immat = $request->request->get('immat');
+            if ($statut || $site || $immat) {
+                $parcs = $parcsRepository->findByStateSiteImmatriculation($statut, $site, $immat);
+                /*dump($parcs);*/
             } else {
                 $parcs = $parcsRepository->findAll();
             }
@@ -48,8 +52,10 @@ class ParcController extends AbstractController
                 array_push($rows, $row);
             }
 
-            $data = array("current" => 1, // getCurrent
-                        "rowCount" => 10, // getRowCount
+            $current = $request->request->get('currentPage');
+            $rowCount = $request->request->get('rowCount');
+            $data = array("current" => $current,
+                        "rowCount" => $rowCount,
                         "rows" => $rows,
                         "total" => $count
             );
@@ -67,8 +73,12 @@ class ParcController extends AbstractController
 
         }
 
+        $filiales = $filialesRepository->findAll();
+
+
         return $this->render('parc/index.html.twig', [
             'controller_name' => 'ParcController',
+            'filiales' => $filiales,
         ]);
     }
 

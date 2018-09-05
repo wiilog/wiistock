@@ -125,6 +125,7 @@ class Parcs
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Sites", inversedBy="parcs")
      * @Groups({"parc"})
+     * @ORM\JoinColumn(name="site_id", referencedColumnName="id")
      */
     private $site;
 
