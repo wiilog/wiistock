@@ -140,7 +140,7 @@
         $('.datepicker').datepicker({language: 'fr', format: 'dd/mm/yyyy', todayBtn: true, todayHighlight: true, autoclose: true});
 
         $(".parc-content").on('click', '#generator', function () {
-            var s = document.getElementById("parcs_sousCategoriesVehicules");
+            var s = document.getElementById("parcs_sousCategorieVehicule");
             var s_categorie = s.options[s.selectedIndex].text;
             var m = document.getElementById("parcs_mode_acquisition");
             var m_acquisition = m.options[m.selectedIndex].text;
@@ -153,6 +153,10 @@
                     "m_acquisition": m_acquisition,
                 },
                 success: function (resp) {
+                    if (resp) {
+                        console.log(resp);
+                        document.getElementById("parcs_n_parc").value = resp;
+                    }
                 }
             });
         });
