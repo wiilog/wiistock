@@ -28,7 +28,6 @@ class CategoriesVehicules
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\SousCategoriesVehicules", mappedBy="categorie")
-     * @Groups({"parc"})
      */
     private $sousCategoriesVehicules;
 

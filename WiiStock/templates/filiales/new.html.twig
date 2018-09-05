@@ -1,0 +1,11 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New Filiales{% endblock %}
+
+{% block body %}
+    <h1>Create new Filiales</h1>
+
+    {{ include('filiales/_form.html.twig') }}
+
+    <a href="{{ path('filiales_index') }}">back to list</a>
+{% endblock %}

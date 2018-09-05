@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Sites{% endblock %}
+
+{% block body %}
+    <h1>Edit Sites</h1>
+
+    {{ include('sites/_form.html.twig', {'button_label': 'Update'}) }}
+
+    <a href="{{ path('sites_index') }}">back to list</a>
+
+    {{ include('sites/_delete_form.html.twig') }}
+{% endblock %}
