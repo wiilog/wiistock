@@ -95,6 +95,7 @@ class Parcs
     /**
      * @ORM\Column(type="text")
      * @Groups({"parc"})
+     * @ORM\JoinColumn(nullable=false)
      */
     private $commentaire_sortie;
 
@@ -105,6 +106,7 @@ class Parcs
 
     /**
      * @ORM\OneToOne(targetEntity="App\Entity\Vehicules", mappedBy="parc", cascade={"persist", "remove"})
+     * @Groups({"parc"})
      */
     private $vehicules;
 

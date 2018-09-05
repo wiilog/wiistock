@@ -52,6 +52,7 @@
                     {{ form_row(form.motif, {'required': false}) }}
                 </div>
             </div>
+            {{ form_row(form.commentaire_sortie) }}
         </fieldset>
         <fieldset class="well list-box">
             <legend class="well-legend">Acquisition</legend>
@@ -130,8 +131,8 @@
         <div class="col-md-12">
             <a href="#" class="button btn-left pull-left">
                 <span class="fa fa-angle-double-left"></span>Retour</a>
-            <button href="#" class="button btn-left pull-right">
-                <span class="fa fa-check"></span>Valider</button>
+            {{ form_row(form.validation, {"attr": {"class" : "button btn-left pull-right"}}) }}
+
         </div>
     </div>
 

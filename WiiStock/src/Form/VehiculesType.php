@@ -27,7 +27,7 @@ class VehiculesType extends AbstractType
             ->add('ptac', IntegerType::class, array('label' => 'Ptac (F2)'))
             ->add('ptr', IntegerType::class, array('label' => 'Ptr (F3)'))
             ->add('puissance_fiscale')
-            ->add('parc')
+            /*->add('parc')*/
         ;
     }
 

@@ -15,7 +15,7 @@ class ChariotsType extends AbstractType
         $builder
             ->add('proprietaire', TextType::class, array('label' => 'Propriétaire'))
 			->add('n_serie', TextType::class, array('label' => 'Numéro de série'))
-            ->add('parc')
+            /*->add('parc')*/
         ;
     }
 

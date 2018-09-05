@@ -29,32 +29,94 @@ use Symfony\Component\Serializer\Serializer;
 
 class ParcController extends AbstractController
 {
-    /**
-     * @Route("/list")
-     */
+    
+	/**
+ 	 * @Route("/list", name="parc_list")
+ 	 */    
     public function index(ParcsRepository $parcsRepository, Request $request)
     {
-        $encoders = array(new JsonEncoder());
-        $normalizers = array(new ObjectNormalizer());
 
-        $serializer = new Serializer($normalizers, $encoders);
+        if ($request->isXmlHttpRequest()) {
+            $statut = $request->request->get('statut');
+            if ($statut) {
+                $parcs = $parcsRepository->findByStatut($statut);
+            } else {
+                $parcs = $parcsRepository->findAll();
+            }
+            $count = count($parcsRepository->findAll());
 
-        // Ajax
+            $rows = array();
+            foreach ($parcs as $parc) {
+                $row = ["nparc" => $parc->getNParc(),
+                        "etat" => $parc->getStatut(),
+                        "nserie" => (($parc->getChariots() != null) ? $parc->getChariots()->getNSerie() : $parc->getVehicules()->getImmatriculation() ),
+                        "marque" => $parc->getMarque()->getNom(),
+                        "site" => $parc->getSite()->getNom(),
+                    ];
+                array_push($rows, $row);
+            }
+
+            $data = array("current" => 1, // getCurrent
+                        "rowCount" => 10, // getRowCount
+                        "rows" => $rows,
+                        "total" => $count
+            );
+
+
+            
+            /*$encoders = array(new JsonEncoder());
+            $normalizers = array(new ObjectNormalizer());
+
+            $serializer = new Serializer($normalizers, $encoders);
+            $jsonContent = $serializer->serialize($parcs, 'json', array('groups' => array('parc')));
+            */
+            dump($data);
+            return new JsonResponse($data);
+
+        }
+
+        return $this->render('parc/index.html.twig', [
+            'controller_name' => 'ParcController',
+        ]);
+    }
+
+    /**
+    * @Route("/index_ajax", name="parc_index_ajax")
+    */
+    public function index_ajax(Request $request) {
         if ($request->isXmlHttpRequest()) {
 
             /*$criteria = array('status' => $status, 'site' => $site, 'vehicules.immatriculation' => $immat, 'chariots.n_serie' => $nserie);
             $parcs = $parcsRepository->findBy($criteria);*/
             $parcs = $parcsRepository->findAll();
+            /*$rows = array();
+            foreach ($parcs as $parc) {
+                $row = ["nparc" => "parc",
+                        "etat" => "state",
+                        "nserie" => "chariot serie",
+                        "marque" => "marque",
+                        "site" => "site",
+                    ];
+                array_push($rows, $row);
+            }*/
 
+/*            $count = count($parcsRepository->findAll());*/
+            $data = array("current" => 1,
+                        "rowCount" => 1,
+                        "rows" => [
+                            ["nparc" => "parc",
+                             "etat" => "state",
+                             "nserie" => "chariot serie",
+                             "marque" => "marque",
+                             "site" => "site"],
+                        ],
+                        "total" => 1
+            );
 
-            $jsonContent = $serializer->serialize($parcs, 'json');
-            return new JsonResponse($jsonContent);
+            dump($data);
+            return new JsonResponse($data);
+
         }
-
-
-        return $this->render('parc/index.html.twig', [
-            'controller_name' => 'ParcController',
-        ]);
     }
 
     /**
@@ -69,7 +131,8 @@ class ParcController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             if ($form->get('validation')->isClicked()) {
                 $parc = $form->getData();
-
+                $parc->setStatut("Demande création");
+                $em = $this->getDoctrine()->getManager();
                 $em->persist($parc);
                 $em->flush();
             }
