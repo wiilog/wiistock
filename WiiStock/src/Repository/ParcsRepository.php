@@ -22,7 +22,8 @@ class ParcsRepository extends ServiceEntityRepository
     /**
      * @return Parcs[] Returns an array of Parcs objects
      */
-    public function findByStateSiteImmatriculation($state, $site, $immat, $nserie) {
+    public function findByStateSiteImmatriculation($state, $site, $immat, $nserie)
+    {
         return $this->createQueryBuilder('parc')
             ->andWhere('parc.state = :valState')
             ->setParameter('valState', $state)
@@ -34,10 +35,18 @@ class ParcsRepository extends ServiceEntityRepository
             ->setParameter('valNserie', $nserie)
             ->orderBy('parc.id', 'ASC')
             ->getQuery()
-            ->getResult()
-        ;
+            ->getResult();
     }
 
+    public function findLast()
+    {
+        $qb = $this->createQueryBuilder('parc');
+        $qb->setMaxResults(1);
+        $qb->orderBy('parc.id', 'DESC');
+
+        return $qb->getQuery()->getOneOrNullResult();
+    }
+        
 //    /**
 //     * @return Parcs[] Returns an array of Parcs objects
 //     */
@@ -53,7 +62,7 @@ class ParcsRepository extends ServiceEntityRepository
             ->getResult()
         ;
     }
-    */
+     */
 
     /*
     public function findOneBySomeField($value): ?Parcs
@@ -65,5 +74,5 @@ class ParcsRepository extends ServiceEntityRepository
             ->getOneOrNullResult()
         ;
     }
-    */
+     */
 }

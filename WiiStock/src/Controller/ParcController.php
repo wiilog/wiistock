@@ -162,15 +162,17 @@ class ParcController extends AbstractController
     /**
      * @Route("/generator", name="parc_number_generator", methods="GET|POST")
      */
-    public function parc_number_generator(Request $request) : Response
+    public function parc_number_generator(ParcsRepository $parcsRepository, Request $request) : Response
     {
         if ($request->isXmlHttpRequest()) {
             $em = $this->getDoctrine()->getManager();
             $s_categorie = $request->request->get('s_categorie');
             $m_acquisition = $request->request->get('m_acquisition');
-            $compteur = '0000' + count($em->getRepository(Parcs::class)->findAll());
+            // $compteur = count($em->getRepository(Parcs::class)->findAll());
+            $compteur = $parcsRepository->findLast();
+            $code =str_pad( $compteur, 4, "0", STR_PAD_LEFT );
 
-            $s_code = $em->getRepository(SousCategoriesVehicules::class)->findOneBy(array('nom' => $s_categorie))->getCode();
+            $s_code = strval($em->getRepository(SousCategoriesVehicules::class)->findOneBy(array('nom' => $s_categorie))->getCode());
             if (strcmp($m_acquisition, 'Achat neuf')) {
                 $m_code = '0';
             } elseif (strcmp($m_acquisition, 'Achat d\'occasion')) {
@@ -179,12 +181,8 @@ class ParcController extends AbstractController
                 $m_code = '9';
             }
 
-            dump($compteur, $s_code, $m_code);
-
-            $n_parc = $s_code + $m_code + $compteur;
-
-            dump($n_parc);
-
+            $n_parc = array();
+            $n_parc = $s_code . $m_code . $code;
             return new JsonResponse($n_parc);
         }
     }
