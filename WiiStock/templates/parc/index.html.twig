@@ -7,7 +7,7 @@
     <div class="row backgray filter-wrapper">
         <form class="form-inline">
             <div class="form-group">
-                <select class="form-control">
+                <select id="statut" class="form-control">
                     <option>Actif</option>
                     <option>Demande création</option>
                     <option>Sorti</option>
@@ -15,17 +15,17 @@
                 </select>
             </div>
             <div class="form-group">
-                <select class="form-control">
+                <select id="site" class="form-control">
                     <option>Site1</option>
                     <option>Site2</option>
                     <option>Site3</option>
                 </select>
             </div>
             <div class="form-group">
-                <input type="search" class="form-control" placeholder="Immatriculation/numéro de série">
+                <input id="immat" type="search" class="form-control" placeholder="Immatriculation/numéro de série">
             </div>
             <a class="btn more-filter">Plus de filtres</a>
-            <a href="#" class="button btn-right">
+            <a href="#" id="filter" class="button btn-right">
                 Filtrer<span class="fa fa-angle-double-right"></span></a>
         </form>
     </div>
@@ -94,13 +94,15 @@
     <script type="text/javascript">
         var grid = $("#grid-data").bootgrid({
             ajax: true,
-	       post: function ()
+	       requestHandler: function (request)
             {
-                return {
-                    id: "b0df282a-0d67-40e5-8558-c9e93b7befed"
-                };
+                request.id = "b0df282a-0d67-40e5-8558-c9e93b7befed";
+                request.statut = $("#statut").val();
+                request.site = $("#site").val();
+                request.immat = $("#immat").val();
+                return request;
             },
-            url: "parc/list",
+            url: "{{ path('parc_list') }}",
             formatters: {
                 "commands": function (column, row) {
                     return "<button type=\"button\" class=\"btn btn-xs btn-default command-view\" data-row-id=\"" + row.id + "\"><span class=\"fa fa-pencil\"></span></button> "
@@ -109,10 +111,29 @@
         }).on("loaded.rs.jquery.bootgrid", function () {
             /* Executes after data is loaded and rendered */
             grid.find(".command-view").on("click", function (e) {
-                window.location.href = "#"
+                window.location.href = "{{ path('parc_edit', {'id': '1'}) }}"
             })
         });
         
+
+        $("#filter").on("click", function() {
+            /*var statut = $("#statut").val();
+            var site = $("#site").val();
+            var immat = $("#immat").val();
+            $.ajax({
+                url: "{{ path('parc_list') }}",
+                type: "POST",
+                dataType: "json",
+                data: {"statut": statut, 
+                    "site": site,
+                    "immat": immat
+                },
+                async: true,
+                success: function (resp) {
+            */        $("#grid-data").bootgrid('reload');
+            /*    }
+            });*/
+        });
     </script>
 
 
