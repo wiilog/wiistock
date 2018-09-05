@@ -57,7 +57,7 @@
         <div class="col-md-12">
             <a href="#" class="button btn-left pull-left">
                 <span class="fa fa-angle-double-left"></span>Retour</a>
-            <a href="#" class="button btn-left pull-right">
+            <a href="{{ path('export_csv') }}" class="button btn-left pull-right">
                 <span class="fa fa-cloud-download"></span>Télécharger</a>
         </div>
     </div>
@@ -79,7 +79,7 @@
             url: "{{ path('parc_list') }}",
             formatters: {
                 "commands": function (column, row) {
-                    return "<button type=\"button\" class=\"btn btn-xs btn-default command-view\" data-row-id=\"" + row.id + "\"><span class=\"fa fa-pencil\"></span></button> "
+                    return "<button type=\"button\" class=\"btn btn-xs btn-default command-view\" data-row-id=\"" + row.id + "\"><span class=\"fa fa-pencil\"></span></button> ";
                 }
             }
         }).on("loaded.rs.jquery.bootgrid", function () {
