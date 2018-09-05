@@ -27,7 +27,6 @@ class Filiales
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Sites", mappedBy="filiale")
-     * @Groups({"parc"})
      */
     private $sites;
 

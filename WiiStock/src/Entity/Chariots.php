@@ -17,7 +17,6 @@ class Chariots
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
-     * @Groups({"parc"})
      */
     private $id;
 
@@ -35,7 +34,6 @@ class Chariots
 
     /**
      * @ORM\OneToOne(targetEntity="App\Entity\Parcs", inversedBy="chariots", cascade={"persist", "remove"})
-     * @Groups({"parc"})
      */
     private $parc;
 

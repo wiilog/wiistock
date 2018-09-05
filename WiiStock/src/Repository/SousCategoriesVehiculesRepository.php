@@ -19,6 +19,17 @@ class SousCategoriesVehiculesRepository extends ServiceEntityRepository
         parent::__construct($registry, SousCategoriesVehicules::class);
     }
 
+    public function findBySousCategory($category)
+    {
+        $qb = $this->createQueryBuilder('s')
+        ->add('select', 's')
+        ->leftJoin('s.categorie', 'c')
+        ->where('c.nom = :nom')
+        ->setParameter('nom', $category);
+
+        return $qb->getQuery()->getResult();
+    }
+
 //    /**
 //     * @return SousCategoriesVehicules[] Returns an array of SousCategoriesVehicules objects
 //     */

@@ -10,11 +10,19 @@ use Symfony\Component\Routing\Annotation\Route;
 use App\Form\ParcsType;
 use App\Repository\ParcsRepository;
 use App\Repository\FilialesRepository;
+use App\Repository\SousCategoriesVehiculesRepository;
+use App\Repository\SitesRepository;
+use App\Entity\SousCategoriesVehicules;
+
+use Doctrine\Common\Annotations\AnnotationReader;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
-use App\Entity\SousCategoriesVehicules;
+use Symfony\Component\Serializer\Encoder\CsvEncoder;
+use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactory;
+use Symfony\Component\Serializer\Mapping\Loader\AnnotationLoader;
+use Symfony\Component\Serializer\Normalizer\PropertyNormalizer;
+use Symfony\Component\Serializer\Serializer;
 
 /**
  * @Route("/parc")
@@ -170,7 +178,7 @@ class ParcController extends AbstractController
     }
 
     /**
-     * @Route("/generator", name="parc_number_generator", methods="GET|POST")
+     * @Route("/ajax/generator", name="parc_number_generator", methods="GET|POST")
      */
     public function parc_number_generator(ParcsRepository $parcsRepository, Request $request) : Response
     {
@@ -179,8 +187,8 @@ class ParcController extends AbstractController
             $s_categorie = $request->request->get('s_categorie');
             $m_acquisition = $request->request->get('m_acquisition');
             // $compteur = count($em->getRepository(Parcs::class)->findAll());
-            $compteur = $parcsRepository->findLast();
-            $code =str_pad( $compteur, 4, "0", STR_PAD_LEFT );
+            $compteur = $parcsRepository->findLast() + 1;
+            $code = str_pad($compteur, 4, "0", STR_PAD_LEFT);
 
             $s_code = strval($em->getRepository(SousCategoriesVehicules::class)->findOneBy(array('nom' => $s_categorie))->getCode());
             if (strcmp($m_acquisition, 'Achat neuf')) {
@@ -195,5 +203,76 @@ class ParcController extends AbstractController
             $n_parc = $s_code . $m_code . $code;
             return new JsonResponse($n_parc);
         }
+    }
+
+    /**
+     * @Route("/ajax/categories", name="parc_categories", methods="GET|POST")
+     */
+    public function parc_categories(SousCategoriesVehiculesRepository $repository, Request $request) : Response
+    {
+        if ($request->isXmlHttpRequest()) {
+            $em = $this->getDoctrine()->getManager();
+            $categorie = $request->request->get('categorie');
+
+            $s_categories = $repository->findBySousCategory($categorie);
+            foreach ($s_categories as $s_categorie) {
+                $output[] = array('nom' => $s_categorie->getNom());
+            }
+            return new JsonResponse($output);
+        }
+    }
+
+    /**
+     * @Route("/ajax/filiales", name="parc_filiales", methods="GET|POST")
+     */
+    public function parc_filiales(SitesRepository $repository, Request $request) : Response
+    {
+        if ($request->isXmlHttpRequest()) {
+            $em = $this->getDoctrine()->getManager();
+            $filiale = $request->request->get('filiale');
+
+            $sites = $repository->findByFiliale($filiale);
+            foreach ($sites as $site) {
+                $output[] = array('nom' => $site->getNom());
+            }
+            return new JsonResponse($output);
+        }
+    }
+
+    /**
+     * @Route("/export/csv", name="export_csv", methods="GET|POST")
+     */
+    public function generateCsvAction(ParcsRepository $parcsRepository): Response
+    {
+        $classMetadataFactory = new ClassMetadataFactory(new AnnotationLoader(new AnnotationReader()));
+        $encoder = new CsvEncoder();
+        $normalizer = new PropertyNormalizer($classMetadataFactory);
+        $serializer = new Serializer(array($normalizer), array($encoder));
+
+        $callback = function ($dateTime) {
+            return $dateTime instanceof \DateTime
+            ? $dateTime->format('d/m/y')
+            : '';
+        };
+
+        $normalizer->setCallbacks(array(
+            'sortie' => $callback,
+            'mise_en_circulation' => $callback,
+            'mise_en_service' => $callback,
+            'incorporation' => $callback,
+        ));
+
+        $org = $parcsRepository->findAll();
+        $data = $serializer->serialize($org, 'csv', ['groups' => ['parc']]);
+
+        $data = str_replace(",", ";", $data);
+
+        $fileName = "export_parcs_" . date("d_m_Y") . ".csv";
+        $response = new Response($data);
+        $response->setStatusCode(200);
+        $response->headers->set('Content-Type', 'text/csv; charset=UTF-8; application/excel');
+        $response->headers->set('Content-Disposition', 'attachment; filename=' . $fileName);
+        echo "\xEF\xBB\xBF"; // UTF-8 with BOM
+        return $response;
     }
 }

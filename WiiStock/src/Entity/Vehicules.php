@@ -17,7 +17,6 @@ class Vehicules
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
-     * @Groups({"parc"})
      */
     private $id;
 
@@ -53,7 +52,6 @@ class Vehicules
 
     /**
      * @ORM\OneToOne(targetEntity="App\Entity\Parcs", inversedBy="vehicules", cascade={"persist", "remove"})
-     * @Groups({"parc"})
      */
     private $parc;
 

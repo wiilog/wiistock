@@ -101,6 +101,7 @@ class Parcs
 
     /** 
      * @ORM\OneToOne(targetEntity="App\Entity\Chariots", mappedBy="parc", cascade={"persist", "remove"})
+     * @Groups({"parc"})
      */
     private $chariots;
 
