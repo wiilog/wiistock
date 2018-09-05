@@ -46,14 +46,6 @@ button:focus {
 	outline: 0 !important;
 }
 
-.in {
-	position: absolute;
-	top: 0;
-	bottom: 0;
-	left: 0;
-	right: 0;
-}
-
 .hide {
 	display: none !important;
 }
@@ -1677,5 +1669,30 @@ input, [type=file]+label {
 }
 
 .parc-content h5 {
-	font-size: 14px;
+	font-size: 18px;
+}
+
+.parc-content .nav {
+	margin-bottom: 10px;
+}
+
+/* Separator 
+================= */
+
+.separator {
+    margin: 25px 0;
+    border-top: 2px solid #CCCCCC;
+    position: relative;
+}
+
+.separator-text {
+    display: block;
+    position: absolute;
+    top: -18px;
+    left: 0%;
+    /* margin-left: -22px; */
+    padding: 0 15px 0 0;
+    background: #f3f3f4;
+    color: #8a8a8a;
+    font-size: 22px;
 }

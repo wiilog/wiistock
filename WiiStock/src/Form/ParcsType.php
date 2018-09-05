@@ -67,6 +67,9 @@ class ParcsType extends AbstractType
 						->where('c.id = :id')
 						->setParameter('id', '1');
 				},
+				'attr' => [
+					'class' => 'sousCategorieVehicule',
+				],
 			))
 			->add('statut', ChoiceType::class, array(
 				'label' => 'Statut',
@@ -77,7 +80,12 @@ class ParcsType extends AbstractType
 					'Sorti' => 'Sorti',
 				),
 			))
-			->add('n_parc', TextType::class, array('label' => 'Numéro de parc'))
+			->add('n_parc', TextType::class, array(
+				'label' => 'Numéro de parc',
+				'attr' => [
+					'class' => 'n_parc',
+				],
+			))
 			->add('mise_en_circulation', DateType::class, array(
 				'label' => 'Date de mise en circulation',
 				'widget' => 'single_text',
@@ -96,6 +104,9 @@ class ParcsType extends AbstractType
 					'Location longue durée' => 'Location longue durée',
 					'Mise à disposition' => 'Mise à disposition',
 				),
+				'attr' => [
+					'class' => 'mode_acquisition',
+				],
 			))
 			->add('commentaire', TextareaType::class, array('label' => 'Commentaire'))
 			->add('sortie', DateType::class, array(
@@ -147,9 +158,9 @@ class ParcsType extends AbstractType
 			// 	'entry_type' => VehiculesType::class,
 			// 	'entry_options' => array('label' => false),
 			// ))
-			->add('chariots', ChariotsType::class)
-			->add('vehicules', VehiculesType::class)
-			->add('validation', SubmitType::class, array('label' => 'Ajouter'));
+			// ->add('chariots', ChariotsType::class)
+			// ->add('vehicules', VehiculesType::class)
+			;
 	}
 
 	public function configureOptions(OptionsResolver $resolver)

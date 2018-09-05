@@ -3,12 +3,14 @@
 namespace App\Form;
 
 use App\Entity\Vehicules;
+use App\Entity\Parcs;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 
 class VehiculesType extends AbstractType
 {
@@ -27,7 +29,8 @@ class VehiculesType extends AbstractType
             ->add('ptac', IntegerType::class, array('label' => 'Ptac (F2)'))
             ->add('ptr', IntegerType::class, array('label' => 'Ptr (F3)'))
             ->add('puissance_fiscale')
-            /*->add('parc')*/
+            ->add('parc', ParcsType::class)
+            ->add('validation', SubmitType::class, array('label' => 'Ajouter'));
         ;
     }
 

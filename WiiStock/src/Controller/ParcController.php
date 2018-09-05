@@ -3,16 +3,21 @@
 namespace App\Controller;
 
 use App\Entity\Parcs;
+use App\Entity\Chariots;
+use App\Entity\Vehicules;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Form\ParcsType;
+use App\Form\ChariotsType;
+use App\Form\VehiculesType;
 use App\Repository\ParcsRepository;
 use App\Repository\FilialesRepository;
 use App\Repository\SousCategoriesVehiculesRepository;
 use App\Repository\SitesRepository;
 use App\Entity\SousCategoriesVehicules;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 use Doctrine\Common\Annotations\AnnotationReader;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -30,10 +35,10 @@ use Symfony\Component\Serializer\Serializer;
 
 class ParcController extends AbstractController
 {
-    
-	/**
- 	 * @Route("/list", name="parc_list")
- 	 */    
+
+    /**
+     * @Route("/list", name="parc_list")
+     */
     public function index(ParcsRepository $parcsRepository, FilialesRepository $filialesRepository, Request $request)
     {
 
@@ -43,7 +48,6 @@ class ParcController extends AbstractController
             $immat = $request->request->get('immat');
             if ($statut || $site || $immat) {
                 $parcs = $parcsRepository->findByStateSiteImmatriculation($statut, $site, $immat);
-                /*dump($parcs);*/
             } else {
                 $parcs = $parcsRepository->findAll();
             }
@@ -51,32 +55,35 @@ class ParcController extends AbstractController
 
             $rows = array();
             foreach ($parcs as $parc) {
-                $row = ["nparc" => $parc->getNParc(),
-                        "etat" => $parc->getStatut(),
-                        "nserie" => (($parc->getChariots() != null) ? $parc->getChariots()->getNSerie() : $parc->getVehicules()->getImmatriculation() ),
-                        "marque" => $parc->getMarque()->getNom(),
-                        "site" => $parc->getSite()->getNom(),
-                    ];
+                $row = [
+                    "id" => $parc->getId(),
+                    "nparc" => $parc->getNParc(),
+                    "etat" => $parc->getStatut(),
+                    "nserie" => (($parc->getChariots() != null) ? $parc->getChariots()->getNSerie() : $parc->getVehicules()->getImmatriculation()),
+                    "marque" => $parc->getMarque()->getNom(),
+                    "site" => $parc->getSite()->getNom(),
+                ];
                 array_push($rows, $row);
             }
 
             $current = $request->request->get('currentPage');
             $rowCount = $request->request->get('rowCount');
-            $data = array("current" => $current,
-                        "rowCount" => $rowCount,
-                        "rows" => $rows,
-                        "total" => $count
+            $data = array(
+                "current" => $current,
+                "rowCount" => $rowCount,
+                "rows" => $rows,
+                "total" => $count
             );
-
-
             
-            /*$encoders = array(new JsonEncoder());
+            /*
+            $encoders = array(new JsonEncoder());
             $normalizers = array(new ObjectNormalizer());
 
             $serializer = new Serializer($normalizers, $encoders);
             $jsonContent = $serializer->serialize($parcs, 'json', array('groups' => array('parc')));
-            */
+
             dump($data);
+             */
             return new JsonResponse($data);
 
         }
@@ -91,59 +98,36 @@ class ParcController extends AbstractController
     }
 
     /**
-    * @Route("/index_ajax", name="parc_index_ajax")
-    */
-    public function index_ajax(Request $request) {
-        if ($request->isXmlHttpRequest()) {
-
-            /*$criteria = array('status' => $status, 'site' => $site, 'vehicules.immatriculation' => $immat, 'chariots.n_serie' => $nserie);
-            $parcs = $parcsRepository->findBy($criteria);*/
-            $parcs = $parcsRepository->findAll();
-            /*$rows = array();
-            foreach ($parcs as $parc) {
-                $row = ["nparc" => "parc",
-                        "etat" => "state",
-                        "nserie" => "chariot serie",
-                        "marque" => "marque",
-                        "site" => "site",
-                    ];
-                array_push($rows, $row);
-            }*/
-
-/*            $count = count($parcsRepository->findAll());*/
-            $data = array("current" => 1,
-                        "rowCount" => 1,
-                        "rows" => [
-                            ["nparc" => "parc",
-                             "etat" => "state",
-                             "nserie" => "chariot serie",
-                             "marque" => "marque",
-                             "site" => "site"],
-                        ],
-                        "total" => 1
-            );
-
-            dump($data);
-            return new JsonResponse($data);
-
-        }
-    }
-
-    /**
      * @Route("/create", name="parc_create", methods="GET|POST")
      */
     public function create(Request $request) : Response
     {
-        $parc = new Parcs();
-        $form = $this->createForm(ParcsType::class, $parc);
+        $chariots = new Chariots();
+        $formChariots = $this->createForm(ChariotsType::class, $chariots);
 
-        $form->handleRequest($request);
-        if ($form->isSubmitted() && $form->isValid()) {
-            if ($form->get('validation')->isClicked()) {
-                $parc = $form->getData();
-                $parc->setStatut("Demande création");
-                $em = $this->getDoctrine()->getManager();
-                $em->persist($parc);
+        $vehicules = new Vehicules();
+        $formVehicules = $this->createForm(VehiculesType::class, $vehicules);
+
+        $em = $this->getDoctrine()->getManager();
+
+        $formChariots->handleRequest($request);
+        if ($formChariots->isSubmitted() && $formChariots->isValid()) {
+            if ($formChariots->get('validation')->isClicked()) {
+                $chariots = $formChariots->getData();
+                $chariots->getParc()->setStatut("Demande création");
+                $em->persist($chariots);
+                $em->flush();
+            }
+
+            return $this->redirectToRoute('parc_list');
+        }
+
+        $formVehicules->handleRequest($request);
+        if ($formVehicules->isSubmitted() && $formVehicules->isValid()) {
+            if ($formVehicules->get('validation')->isClicked()) {
+                $vehicules = $formVehicules->getData();
+                $vehicules->getParc()->setStatut("Demande création");
+                $em->persist($vehicules);
                 $em->flush();
             }
 
@@ -152,7 +136,8 @@ class ParcController extends AbstractController
 
         return $this->render('parc/create.html.twig', [
             'controller_name' => 'CreateController',
-            'form' => $form->createView(),
+            'formVehicules' => $formVehicules->createView(),
+            'formChariots' => $formChariots->createView(),
         ]);
     }
 
@@ -161,20 +146,39 @@ class ParcController extends AbstractController
      */
     public function edit(Request $request, Parcs $parc) : Response
     {
-        $form = $this->createForm(ParcsType::class, $parc);
-        $form->handleRequest($request);
+        if ($parc->getVehicules()) {
+            $formVehicules = $this->createForm(VehiculesType::class, $parc->getVehicules());
+            $formVehicules->handleRequest($request);
+    
+            if ($formVehicules->isSubmitted() && $formVehicules->isValid()) {
+                $this->getDoctrine()->getManager()->flush();
+    
+                return $this->redirectToRoute('parc_list');
+            }
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $this->getDoctrine()->getManager()->flush();
+            return $this->render('parc/edit.html.twig', [
+                'controller_name' => 'EditController',
+                'parc' => $parc,
+                'n_parc' => $parc->getNParc(),
+                'formVehicules' => $formVehicules->createView(),
+            ]);
+        } else {
+            $formChariots = $this->createForm(ChariotsType::class, $parc->getChariots());
+            $formChariots->handleRequest($request);
+    
+            if ($formChariots->isSubmitted() && $formChariots->isValid()) {
+                $this->getDoctrine()->getManager()->flush();
+    
+                return $this->redirectToRoute('parc_list');
+            }
 
-            return $this->redirectToRoute('parc_list');
+            return $this->render('parc/edit.html.twig', [
+                'controller_name' => 'EditController',
+                'parc' => $parc,
+                'n_parc' => $parc->getNParc(),
+                'formChariots' => $formChariots->createView(),
+            ]);
         }
-
-        return $this->render('parc/edit.html.twig', [
-            'controller_name' => 'EditController',
-            'parc' => $parc,
-            'form' => $form->createView(),
-        ]);
     }
 
     /**
@@ -187,7 +191,7 @@ class ParcController extends AbstractController
             $s_categorie = $request->request->get('s_categorie');
             $m_acquisition = $request->request->get('m_acquisition');
             // $compteur = count($em->getRepository(Parcs::class)->findAll());
-            $compteur = $parcsRepository->findLast() + 1;
+            $compteur = $parcsRepository->findLast()->getId() + 1;
             $code = str_pad($compteur, 4, "0", STR_PAD_LEFT);
 
             $s_code = strval($em->getRepository(SousCategoriesVehicules::class)->findOneBy(array('nom' => $s_categorie))->getCode());
@@ -203,6 +207,7 @@ class ParcController extends AbstractController
             $n_parc = $s_code . $m_code . $code;
             return new JsonResponse($n_parc);
         }
+        throw new NotFoundHttpException('404 Gwendal not found');
     }
 
     /**
@@ -220,6 +225,7 @@ class ParcController extends AbstractController
             }
             return new JsonResponse($output);
         }
+        throw new NotFoundHttpException('404 Gwendal not found');
     }
 
     /**
@@ -237,12 +243,13 @@ class ParcController extends AbstractController
             }
             return new JsonResponse($output);
         }
+        throw new NotFoundHttpException('404 Gwendal not found');
     }
 
     /**
      * @Route("/export/csv", name="export_csv", methods="GET|POST")
      */
-    public function generateCsvAction(ParcsRepository $parcsRepository): Response
+    public function generateCsvAction(ParcsRepository $parcsRepository) : Response
     {
         $classMetadataFactory = new ClassMetadataFactory(new AnnotationLoader(new AnnotationReader()));
         $encoder = new CsvEncoder();
@@ -251,8 +258,8 @@ class ParcController extends AbstractController
 
         $callback = function ($dateTime) {
             return $dateTime instanceof \DateTime
-            ? $dateTime->format('d/m/y')
-            : '';
+                ? $dateTime->format('d/m/y')
+                : '';
         };
 
         $normalizer->setCallbacks(array(

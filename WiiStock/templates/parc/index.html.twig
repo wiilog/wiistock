@@ -42,6 +42,7 @@
     <table id="grid-data" class="table table-condensed table-hover table-striped">
         <thead>
             <tr>
+                <th data-column-id="id">Id</th>
                 <th data-column-id="nparc">Numéro Parc</th>
                 <th data-column-id="etat">Etat</th>
                 <th data-column-id="nserie">Numéro de série/immatriculation</th>
@@ -50,39 +51,6 @@
                 <th data-column-id="commands" data-formatter="commands" data-sortable="false">Détail</th>
             </tr>
         </thead>
-
-        {# <tr>
-            <td>136737541</td>
-            <td>Actif</td>
-            <td>13JF4F</td>
-            <td>Volvo</td>
-            <td>Isover/Chemille</td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>136737541</td>
-            <td>Sorti</td>
-            <td>13JF4F</td>
-            <td>Volvo</td>
-            <td>Isover/Chemille</td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>136737541</td>
-            <td>Demande création</td>
-            <td>13JF4F</td>
-            <td>Volvo</td>
-            <td>Isover/Chemille</td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>136737541</td>
-            <td>Demande transfert/sortie</td>
-            <td>13JF4F</td>
-            <td>Volvo</td>
-            <td>Isover/Chemille</td>
-            <td></td>
-        </tr> #}
     </table>
 
     <div class="row">
@@ -99,8 +67,7 @@
     <script type="text/javascript">
         var grid = $("#grid-data").bootgrid({
             ajax: true,
-	       requestHandler: function (request)
-            {
+            requestHandler: function (request) {
                 request.id = "b0df282a-0d67-40e5-8558-c9e93b7befed";
                 request.statut = $("#statut").val();
                 request.site = $("#site").val();
@@ -118,12 +85,14 @@
         }).on("loaded.rs.jquery.bootgrid", function () {
             /* Executes after data is loaded and rendered */
             grid.find(".command-view").on("click", function (e) {
-                window.location.href = "{{ path('parc_edit', {'id': '1'}) }}"
+                var url = "{{ path('parc_edit', {'id': 'edit_id'}) }}";
+                var id = $(e.target).closest('tr').children('td:first-child').html();
+                url = url.replace("edit_id", id);
+                window.location.href = url;
             })
         });
-        
 
-        $("#filter").on("click", function() {
+        $("#filter").on("click", function () {
             /*var statut = $("#statut").val();
             var site = $("#site").val();
             var immat = $("#immat").val();
@@ -131,17 +100,17 @@
                 url: "{{ path('parc_list') }}",
                 type: "POST",
                 dataType: "json",
-                data: {"statut": statut, 
+                data: {"statut": statut,
                     "site": site,
                     "immat": immat
                 },
                 async: true,
                 success: function (resp) {
-            */        $("#grid-data").bootgrid('reload');
+            */
+            $("#grid-data").bootgrid('reload');
             /*    }
             });*/
         });
     </script>
-
 
 {% endblock %}

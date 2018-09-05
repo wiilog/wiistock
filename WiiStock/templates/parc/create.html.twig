@@ -2,8 +2,6 @@
 
 {% block title %}Nouveau parc{% endblock %}
 
-{% form_theme form _self %}
-
 {% block date_widget %}
     <div class="has-feedback">
         {{ block('form_widget_simple') }}
@@ -17,237 +15,293 @@
         NOUVEAU PARC
     </div>
     <div class="parc-content col-md-12">
-        {{ form_start(form) }}
-        {{ form_errors(form) }}
-        <fieldset class="well list-box">
-            <legend class="well-legend">Données générales</legend>
-            <div class="row">
-                <div class="col-md-4">
-                    {{ form_row(form.modele) }}
+        <ul class="nav nav-tabs">
+            <li class="active">
+                <a data-toggle="pill" href="#menu1">Véhicule</a>
+            </li>
+            <li>
+                <a data-toggle="pill" href="#menu2">Chariot</a>
+            </li>
+        </ul>
+
+        <div class="tab-content">
+            <div id="menu1" class="tab-pane fade">
+                {{ form_start(formVehicules) }}
+                {{ form_errors(formVehicules) }}
+                <fieldset class="well list-box">
+                    <legend class="well-legend">Données générales</legend>
+                    <div class="row">
+                        <div class="col-md-4">
+                            {{ form_row(formVehicules.parc.modele) }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form_row(formVehicules.parc.filiale) }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form_row(formVehicules.parc.site) }}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            {{ form_row(formVehicules.parc.categorieVehicule) }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form_row(formVehicules.parc.sousCategorieVehicule) }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form_row(formVehicules.parc.marque) }}
+                        </div>
+                    </div>
+                    {{ form_row(formVehicules.parc.commentaire, {'required': false}) }}
+
+                    <div class="separator"></div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            {{ form_row(formVehicules.parc.sortie, {'required': false}) }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form_row(formVehicules.parc.motif, {'required': false}) }}
+                        </div>
+                    </div>
+                    {{ form_row(formVehicules.parc.commentaire_sortie, {'required': false}) }}
+                </fieldset>
+                <fieldset class="well list-box">
+                    <legend class="well-legend">Acquisition</legend>
+                    <div class="row">
+                        <div class="col-md-3">
+                            {{ form_row(formVehicules.parc.fournisseur) }}
+                        </div>
+                        <div class="col-md-3">
+                            {{ form_row(formVehicules.parc.mode_acquisition) }}
+                        </div>
+                        <div class="col-md-3">
+                            {{ form_row(formVehicules.parc.incorporation) }}
+                        </div>
+                        <div class="col-md-3">
+                            {{ form_row(formVehicules.parc.mise_en_service) }}
+                        </div>
+                    </div>
+                </fieldset>
+
+                <fieldset class="well list-box">
+                    <legend class="well-legend">Carte grise</legend>
+                    <div class="row form-flex">
+
+                        {{ form_row(formVehicules.parc.poids) }}
+
+                        {{ form_row(formVehicules.parc.mise_en_circulation) }}
+
+                        <a>
+                            <input id="f02" type="file" placeholder="Importer"/>
+                            <label for="f02">
+                                <span class="fa fa-cloud-upload"></span>
+                                &nbsp;Importer
+                            </label>
+                        </a>
+                        <a class="btn btn-default disabled">
+                            <span class="fa fa-cloud-download"></span>
+                            Télécharger
+                        </a>
+
+                    </div>
+                </fieldset>
+
+                <fieldset class="well list-box">
+                    <legend class="well-legend">Données supplémentaire</legend>
+
+                    {{ form_row(formVehicules.immatriculation, {'required': false}) }}
+                    <div class="row">
+                        <div class="col-md-4">
+                            {{ form_row(formVehicules.genre, {'required': false}) }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form_row(formVehicules.ptac, {'required': false}) }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form_row(formVehicules.ptr, {'required': false}) }}
+                        </div>
+                    </div>
+                    {{ form_row(formVehicules.puissance_fiscale, {'required': false}) }}
+
+                </fieldset>
+
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <a href="#" class="button btn-left pull-left">
+                            <span class="fa fa-angle-double-left"></span>Retour</a>
+                        {{ form_row(formVehicules.validation, {"attr": {"class" : "button btn-left pull-right"}}) }}
+
+                    </div>
                 </div>
-                <div class="col-md-4">
-                    {{ form_row(form.filiale) }}
-                </div>
-                <div class="col-md-4">
-                    {{ form_row(form.site) }}
-                </div>
+
+                {{ form_row(formVehicules._token) }}
+                {{ form_end(formVehicules, {'render_rest' : false}) }}
             </div>
-            <div class="row">
-                <div class="col-md-4">
-                    {{ form_row(form.categorieVehicule) }}
-                </div>
-                <div class="col-md-4">
-                    {{ form_row(form.sousCategorieVehicule) }}
-                </div>
-                <div class="col-md-4">
-                    {{ form_row(form.marque) }}
-                </div>
-            </div>
-            {{ form_row(form.commentaire, {'required': false}) }}
-            <div class="row">
-                <div class="col-md-6">
-                    {{ form_row(form.sortie, {'required': false}) }}
-                </div>
-                <div class="col-md-6">
-                    {{ form_row(form.motif, {'required': false}) }}
-                </div>
-            </div>
-            {{ form_row(form.commentaire_sortie) }}
-        </fieldset>
-        <fieldset class="well list-box">
-            <legend class="well-legend">Acquisition</legend>
-            <div class="row">
-                <div class="col-md-3">
-                    {{ form_row(form.fournisseur) }}
-                </div>
-                <div class="col-md-3">
-                    {{ form_row(form.mode_acquisition) }}
-                </div>
-                <div class="col-md-3">
-                    {{ form_row(form.incorporation) }}
-                </div>
-                <div class="col-md-3">
-                    {{ form_row(form.mise_en_service) }}
-                </div>
-            </div>
-        </fieldset>
-        <fieldset class="well list-box">
-            <legend class="well-legend">Numéro de parc</legend>
-            <div class="form-inline">
-                {{ form_widget(form.n_parc, {'required': false}) }}
-                <a class="btn btn-primary" id="generator">
-                    <span class="fa fa-refresh"></span>
-                </a>
-            </div>
-        </fieldset>
-        <fieldset class="well list-box">
-            <legend class="well-legend">Carte grise</legend>
-            <div class="row form-flex">
 
-                {{ form_row(form.poids) }}
+            <div id="menu2" class="tab-pane fade in active">
 
-                {{ form_row(form.mise_en_circulation) }}
+                {{ form_start(formChariots) }}
+                {{ form_errors(formChariots) }}
+                <fieldset class="well list-box">
+                    <legend class="well-legend">Données générales</legend>
+                    <div class="row">
+                        <div class="col-md-4">
+                            {{ form_row(formChariots.parc.modele) }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form_row(formChariots.parc.filiale) }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form_row(formChariots.parc.site) }}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            {{ form_row(formChariots.parc.categorieVehicule) }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form_row(formChariots.parc.sousCategorieVehicule) }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form_row(formChariots.parc.marque) }}
+                        </div>
+                    </div>
+                    {{ form_row(formChariots.parc.commentaire, {'required': false}) }}
 
-                <a>
-                    <input id="f02" type="file" placeholder="Importer"/>
-                    <label for="f02">
-                        <span class="fa fa-cloud-upload"></span>
-                        &nbsp;Importer
-                    </label>
-                </a>
-                <a class="btn btn-default disabled">
-                    <span class="fa fa-cloud-download"></span>
-                    Télécharger
-                </a>
+                    <div class="separator"></div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            {{ form_row(formChariots.parc.sortie, {'required': false}) }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form_row(formChariots.parc.motif, {'required': false}) }}
+                        </div>
+                    </div>
+                    {{ form_row(formChariots.parc.commentaire_sortie, {'required': false}) }}
+                </fieldset>
+                <fieldset class="well list-box">
+                    <legend class="well-legend">Acquisition</legend>
+                    <div class="row">
+                        <div class="col-md-3">
+                            {{ form_row(formChariots.parc.fournisseur) }}
+                        </div>
+                        <div class="col-md-3">
+                            {{ form_row(formChariots.parc.mode_acquisition) }}
+                        </div>
+                        <div class="col-md-3">
+                            {{ form_row(formChariots.parc.incorporation) }}
+                        </div>
+                        <div class="col-md-3">
+                            {{ form_row(formChariots.parc.mise_en_service) }}
+                        </div>
+                    </div>
+                </fieldset>
 
-            </div>
-        </fieldset>
-        <fieldset class="well list-box">
-            <legend class="well-legend">Données supplémentaire</legend>
-            <h5>Chariot</h5>
-            {{ form_row(form.chariots.n_serie, {'required': false}) }}
-            {{ form_row(form.chariots.proprietaire, {'required': false}) }}
+                <fieldset class="well list-box">
+                    <legend class="well-legend">Carte grise</legend>
+                    <div class="row form-flex">
+                        {{ form_row(formChariots.parc.poids) }}
+                        {{ form_row(formChariots.parc.mise_en_circulation) }}
+                        <a>
+                            <input id="f02" type="file" placeholder="Importer"/>
+                            <label for="f02">
+                                <span class="fa fa-cloud-upload"></span>
+                                &nbsp;Importer
+                            </label>
+                        </a>
+                        <a class="btn btn-default disabled">
+                            <span class="fa fa-cloud-download"></span>
+                            Télécharger
+                        </a>
 
-            <h1 class="text-center">Ou</h1>
+                    </div>
+                </fieldset>
 
-            <h5>Véhicule</h5>
-            {{ form_row(form.vehicules.immatriculation, {'required': false}) }}
-            <div class="row">
-                <div class="col-md-4">
-                    {{ form_row(form.vehicules.genre, {'required': false}) }}
+                <fieldset class="well list-box">
+                    <legend class="well-legend">Données supplémentaire</legend>
+
+                    {{ form_row(formChariots.n_serie, {'required': false}) }}
+                    {{ form_row(formChariots.proprietaire, {'required': false}) }}
+
+                </fieldset>
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <a href="#" class="button btn-left pull-left">
+                            <span class="fa fa-angle-double-left"></span>Retour</a>
+                        {{ form_row(formChariots.validation, {"attr": {"class" : "button btn-left pull-right"}}) }}
+
+                    </div>
                 </div>
-                <div class="col-md-4">
-                    {{ form_row(form.vehicules.ptac, {'required': false}) }}
-                </div>
-                <div class="col-md-4">
-                    {{ form_row(form.vehicules.ptr, {'required': false}) }}
-                </div>
-            </div>
-            {{ form_row(form.vehicules.puissance_fiscale, {'required': false}) }}
-        </fieldset>
-    </div>
 
-    <div class="row">
-        <div class="col-md-12">
-            <a href="#" class="button btn-left pull-left">
-                <span class="fa fa-angle-double-left"></span>Retour</a>
-            {{ form_row(form.validation, {"attr": {"class" : "button btn-left pull-right"}}) }}
-
+                {{ form_row(formChariots._token) }}
+                {{ form_end(formChariots, {'render_rest' : false}) }}
         </div>
     </div>
-
-    {{ form_row(form._token) }}
-    {{ form_end(form, {'render_rest' : false}) }}
 {% endblock %}
 
 {% block javascripts %}
-    <script type="text/javascript">
-        $("[type=file]").on("change", function () {
-            var file = this.files[0].name;
-            var dflt = $(this).attr("placeholder");
-            if ($(this).val() != "") {
-                $(this).next().text(file);
-            } else {
-                $(this).next().text(dflt);
+<script type="text/javascript">
+    $("[type=file]").on("change", function () {
+        var file = this.files[0].name;
+        var dflt = $(this).attr("placeholder");
+        if ($(this).val() != "") {
+            $(this).next().text(file);
+        } else {
+            $(this).next().text(dflt);
+        }
+    });
+
+    $('.datepicker').datepicker({language: 'fr', format: 'dd/mm/yyyy', todayBtn: true, todayHighlight: true, autoclose: true});
+
+    $("#parcs_categorieVehicule").change(function () {
+        var c = document.getElementById("parcs_categorieVehicule");
+        var categorie = c.options[c.selectedIndex].text;
+        $.ajax({
+            url: "{{ path( 'parc_categories' ) }}",
+            type: "POST",
+            dataType: "json",
+            data: {
+                "categorie": categorie
+            },
+            success: function (resp) {
+                if (resp) {
+                    $("#parcs_sousCategorieVehicule").find('option').remove();
+                    $.each(resp, function (index, val) {
+                        $('#parcs_sousCategorieVehicule').append($('<option>', {
+                            value: index,
+                            text: val.nom
+                        }));
+                    });
+                }
             }
         });
+    });
 
-        $('.datepicker').datepicker({language: 'fr', format: 'dd/mm/yyyy', todayBtn: true, todayHighlight: true, autoclose: true});
-
-        $(".parc-content").on('click', '#generator', function () {
-            var s = document.getElementById("parcs_sousCategorieVehicule");
-            var s_categorie = s.options[s.selectedIndex].text;
-            var m = document.getElementById("parcs_mode_acquisition");
-            var m_acquisition = m.options[m.selectedIndex].text;
-            $.ajax({
-                url: "{{ path( 'parc_number_generator' ) }}",
-                type: "POST",
-                dataType: "json",
-                data: {
-                    "s_categorie": s_categorie,
-                    "m_acquisition": m_acquisition
-                },
-                success: function (resp) {
-                    if (resp) {
-                        document.getElementById("parcs_n_parc").value = resp;
-                    }
+    $("#parcs_filiale").change(function () {
+        var f = document.getElementById("parcs_filiale");
+        var filiale = f.options[f.selectedIndex].text;
+        console.log('filiale');
+        $.ajax({
+            url: "{{ path( 'parc_filiales' ) }}",
+            type: "POST",
+            dataType: "json",
+            data: {
+                "filiale": filiale
+            },
+            success: function (resp) {
+                if (resp) {
+                    $("#parcs_site").find('option').remove();
+                    $.each(resp, function (index, val) {
+                        $('#parcs_site').append($('<option>', {
+                            value: index,
+                            text: val.nom
+                        }));
+                    });
                 }
-            });
-        });
-
-        $("#parcs_categorieVehicule").change(function () {
-            var c = document.getElementById("parcs_categorieVehicule");
-            var categorie = c.options[c.selectedIndex].text;
-            $.ajax({
-                url: "{{ path( 'parc_categories' ) }}",
-                type: "POST",
-                dataType: "json",
-                data: {
-                    "categorie": categorie
-                },
-                success: function (resp) {
-                    if (resp) {
-                        $("#parcs_sousCategorieVehicule").find('option').remove();
-                        $.each(resp, function (index, val) {
-                            $('#parcs_sousCategorieVehicule').append($('<option>', {
-                                value: index,
-                                text: val.nom
-                            }));
-                        });
-                    }
-                }
-            });
-        });
-
-        $("#parcs_filiale").change(function () {
-            var f = document.getElementById("parcs_filiale");
-            var filiale = f.options[f.selectedIndex].text;
-            console.log('filiale');
-            $.ajax({
-                url: "{{ path( 'parc_filiales' ) }}",
-                type: "POST",
-                dataType: "json",
-                data: {
-                    "filiale": filiale
-                },
-                success: function (resp) {
-                    if (resp) {
-                        $("#parcs_site").find('option').remove();
-                        $.each(resp, function (index, val) {
-                            $('#parcs_site').append($('<option>', {
-                                value: index,
-                                text: val.nom
-                            }));
-                        });
-                    }
-                }
-            });
-        });
-
-        $(".form-group").change(function () {
-            console.log('change');
-            {
-                # $.ajax({
-                    url: "{{ path( 'parc_filiales' ) }}",
-                    type: "POST",
-                    dataType: "json",
-                    data: {
-                        "filiale": filiale
-                    },
-                    success: function (resp) {
-                        if (resp) {
-                            $("#parcs_site").find('option').remove();
-                            $.each(resp, function (index, val) {
-                                $('#parcs_site').append($('<option>', {
-                                    value: index,
-                                    text: val.nom
-                                }));
-                            });
-                        }
-                    }
-                });
-                #
             }
         });
-    </script>
+    });
+</script>
 {% endblock %}

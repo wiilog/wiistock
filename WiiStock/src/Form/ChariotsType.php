@@ -3,10 +3,12 @@
 namespace App\Form;
 
 use App\Entity\Chariots;
+use App\Entity\Parcs;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 
 class ChariotsType extends AbstractType
 {
@@ -15,7 +17,8 @@ class ChariotsType extends AbstractType
         $builder
             ->add('proprietaire', TextType::class, array('label' => 'Propriétaire'))
 			->add('n_serie', TextType::class, array('label' => 'Numéro de série'))
-            /*->add('parc')*/
+            ->add('parc', ParcsType::class)
+            ->add('validation', SubmitType::class, array('label' => 'Ajouter'));
         ;
     }
 

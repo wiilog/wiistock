@@ -33,7 +33,7 @@ class Parcs
     private $statut;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255, nullable=true)
      * @Groups({"parc"})
      */
     private $n_parc;
@@ -63,7 +63,7 @@ class Parcs
     private $mode_acquisition;
 
     /**
-     * @ORM\Column(type="text")
+     * @ORM\Column(type="text", nullable=true)
      * @Groups({"parc"})
      */
     private $commentaire;
@@ -81,21 +81,20 @@ class Parcs
     private $mise_en_service;
 
     /**
-     * @ORM\Column(type="date")
+     * @ORM\Column(type="date", nullable=true)
      * @Groups({"parc"})
      */
     private $sortie;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255, nullable=true)
      * @Groups({"parc"})
      */
     private $motif;
 
     /**
-     * @ORM\Column(type="text")
+     * @ORM\Column(type="text", nullable=true)
      * @Groups({"parc"})
-     * @ORM\JoinColumn(nullable=false)
      */
     private $commentaire_sortie;
 
