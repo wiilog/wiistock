@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Parcs;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
  * @method Parcs|null find($id, $lockMode = null, $lockVersion = null)
@@ -46,7 +47,7 @@ class ParcsRepository extends ServiceEntityRepository
 
         return $qb->getQuery()->getOneOrNullResult();
     }
-        
+    
 //    /**
 //     * @return Parcs[] Returns an array of Parcs objects
 //     */

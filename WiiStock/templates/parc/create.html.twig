@@ -43,13 +43,13 @@
                     {{ form_row(form.marque) }}
                 </div>
             </div>
-            {{ form_row(form.commentaire) }}
+            {{ form_row(form.commentaire, {'required': false}) }}
             <div class="row">
                 <div class="col-md-6">
-                    {{ form_row(form.sortie) }}
+                    {{ form_row(form.sortie, {'required': false}) }}
                 </div>
                 <div class="col-md-6">
-                    {{ form_row(form.motif) }}
+                    {{ form_row(form.motif, {'required': false}) }}
                 </div>
             </div>
         </fieldset>
@@ -73,7 +73,7 @@
         <fieldset class="well list-box">
             <legend class="well-legend">Numéro de parc</legend>
             <div class="form-inline">
-                {{ form_widget(form.n_parc) }}
+                {{ form_widget(form.n_parc, {'required': false}) }}
                 <a class="btn btn-primary" id="generator">
                     <span class="fa fa-refresh"></span>
                 </a>
@@ -87,10 +87,12 @@
 
                 {{ form_row(form.mise_en_circulation) }}
 
-                <a class="custom-file btn btn-default btn-block">
-                    <input type="file" class="custom-file-input" id="customFile">
-                    <span class="fa fa-cloud-upload"></span>
-                    <label class="custom-file-label" for="customFile">Importer</label>
+                <a>
+                    <input id="f02" type="file" placeholder="Importer"/>
+                    <label for="f02">
+                        <span class="fa fa-cloud-upload"></span>
+                        &nbsp;Importer
+                    </label>
                 </a>
                 <a class="btn btn-default disabled">
                     <span class="fa fa-cloud-download"></span>
@@ -100,25 +102,27 @@
             </div>
         </fieldset>
         <fieldset class="well list-box">
-            <legend class="well-legend">Données chariot</legend>
-            {{ form_row(form.chariots.n_serie) }}
-            {{ form_row(form.chariots.proprietaire) }}
-        </fieldset>
-        <fieldset class="well list-box">
-            <legend class="well-legend">Données véhicule</legend>
-            {{ form_row(form.vehicules.immatriculation) }}
+            <legend class="well-legend">Données supplémentaire</legend>
+            <h5>Chariot</h5>
+            {{ form_row(form.chariots.n_serie, {'required': false}) }}
+            {{ form_row(form.chariots.proprietaire, {'required': false}) }}
+
+            <h1 class="text-center">Ou</h1>
+
+            <h5>Véhicule</h5>
+            {{ form_row(form.vehicules.immatriculation, {'required': false}) }}
             <div class="row">
                 <div class="col-md-4">
-                    {{ form_row(form.vehicules.genre) }}
+                    {{ form_row(form.vehicules.genre, {'required': false}) }}
                 </div>
                 <div class="col-md-4">
-                    {{ form_row(form.vehicules.ptac) }}
+                    {{ form_row(form.vehicules.ptac, {'required': false}) }}
                 </div>
                 <div class="col-md-4">
-                    {{ form_row(form.vehicules.ptr) }}
+                    {{ form_row(form.vehicules.ptr, {'required': false}) }}
                 </div>
             </div>
-            {{ form_row(form.vehicules.puissance_fiscale) }}
+            {{ form_row(form.vehicules.puissance_fiscale, {'required': false}) }}
         </fieldset>
     </div>
 
@@ -137,6 +141,16 @@
 
 {% block javascripts %}
     <script type="text/javascript">
+        $("[type=file]").on("change", function () {
+            var file = this.files[0].name;
+            var dflt = $(this).attr("placeholder");
+            if ($(this).val() != "") {
+                $(this).next().text(file);
+            } else {
+                $(this).next().text(dflt);
+            }
+        });
+
         $('.datepicker').datepicker({language: 'fr', format: 'dd/mm/yyyy', todayBtn: true, todayHighlight: true, autoclose: true});
 
         $(".parc-content").on('click', '#generator', function () {
@@ -150,15 +164,89 @@
                 dataType: "json",
                 data: {
                     "s_categorie": s_categorie,
-                    "m_acquisition": m_acquisition,
+                    "m_acquisition": m_acquisition
                 },
                 success: function (resp) {
                     if (resp) {
-                        console.log(resp);
                         document.getElementById("parcs_n_parc").value = resp;
                     }
                 }
             });
+        });
+
+        $("#parcs_categorieVehicule").change(function () {
+            var c = document.getElementById("parcs_categorieVehicule");
+            var categorie = c.options[c.selectedIndex].text;
+            $.ajax({
+                url: "{{ path( 'parc_categories' ) }}",
+                type: "POST",
+                dataType: "json",
+                data: {
+                    "categorie": categorie
+                },
+                success: function (resp) {
+                    if (resp) {
+                        $("#parcs_sousCategorieVehicule").find('option').remove();
+                        $.each(resp, function (index, val) {
+                            $('#parcs_sousCategorieVehicule').append($('<option>', {
+                                value: index,
+                                text: val.nom
+                            }));
+                        });
+                    }
+                }
+            });
+        });
+
+        $("#parcs_filiale").change(function () {
+            var f = document.getElementById("parcs_filiale");
+            var filiale = f.options[f.selectedIndex].text;
+            console.log('filiale');
+            $.ajax({
+                url: "{{ path( 'parc_filiales' ) }}",
+                type: "POST",
+                dataType: "json",
+                data: {
+                    "filiale": filiale
+                },
+                success: function (resp) {
+                    if (resp) {
+                        $("#parcs_site").find('option').remove();
+                        $.each(resp, function (index, val) {
+                            $('#parcs_site').append($('<option>', {
+                                value: index,
+                                text: val.nom
+                            }));
+                        });
+                    }
+                }
+            });
+        });
+
+        $(".form-group").change(function () {
+            console.log('change');
+            {
+                # $.ajax({
+                    url: "{{ path( 'parc_filiales' ) }}",
+                    type: "POST",
+                    dataType: "json",
+                    data: {
+                        "filiale": filiale
+                    },
+                    success: function (resp) {
+                        if (resp) {
+                            $("#parcs_site").find('option').remove();
+                            $.each(resp, function (index, val) {
+                                $('#parcs_site').append($('<option>', {
+                                    value: index,
+                                    text: val.nom
+                                }));
+                            });
+                        }
+                    }
+                });
+                #
+            }
         });
     </script>
 {% endblock %}

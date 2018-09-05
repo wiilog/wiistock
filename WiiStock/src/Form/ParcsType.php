@@ -21,6 +21,7 @@ use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use App\Form\ChariotsType;
 use App\Form\VehiculesType;
+use Doctrine\ORM\EntityRepository;
 
 class ParcsType extends AbstractType
 {
@@ -36,7 +37,14 @@ class ParcsType extends AbstractType
 			->add('site', EntityType::class, array(
 				'class' => Sites::class,
 				'choice_label' => 'nom',
-				'label' => 'Site'
+				'label' => 'Site',
+				'query_builder' => function (EntityRepository $er) {
+					return $er->createQueryBuilder('p')
+						->add('select', 'p')
+						->leftJoin('p.filiale', 'f')
+						->where('f.id = :id')
+						->setParameter('id', '1');
+				},
 			))
 			->add('marque', EntityType::class, array(
 				'class' => Marques::class,
@@ -51,7 +59,14 @@ class ParcsType extends AbstractType
 			->add('sousCategorieVehicule', EntityType::class, array(
 				'class' => SousCategoriesVehicules::class,
 				'choice_label' => 'nom',
-				'label' => 'Sous catégorie'
+				'label' => 'Sous catégorie',
+				'query_builder' => function (EntityRepository $er) {
+					return $er->createQueryBuilder('p')
+						->add('select', 'p')
+						->leftJoin('p.categorie', 'c')
+						->where('c.id = :id')
+						->setParameter('id', '1');
+				},
 			))
 			->add('statut', ChoiceType::class, array(
 				'label' => 'Statut',

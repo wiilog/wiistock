@@ -19,6 +19,17 @@ class SitesRepository extends ServiceEntityRepository
         parent::__construct($registry, Sites::class);
     }
 
+    public function findByFiliale($filiale)
+    {
+        $qb = $this->createQueryBuilder('s')
+        ->add('select', 's')
+        ->leftJoin('s.filiale', 'f')
+        ->andWhere('f.nom = :nom')
+        ->setParameter('nom', $filiale);
+
+        return $qb->getQuery()->getResult();
+    }
+
 //    /**
 //     * @return Sites[] Returns an array of Sites objects
 //     */

@@ -1625,15 +1625,15 @@ input:checked+.slider:before {
 
 .parc-content .form-flex div {
 	width: 35%;
-    padding-right: 15px;
-    padding-left: 15px;
+	padding-right: 15px;
+	padding-left: 15px;
 }
 
 .parc-content .form-flex a {
 	margin-top: 10px;
 	width: 15%;
-    margin-right: 15px;
-    margin-left: 15px;
+	margin-right: 15px;
+	margin-left: 15px;
 }
 
 .parc-content .form-flex .has-feedback {
@@ -1644,4 +1644,38 @@ input:checked+.slider:before {
 .parc-content .custom-file label {
 	font-weight: inherit;
 	margin: 0;
+}
+
+[type=file] {
+	position: absolute;
+	filter: alpha(opacity=0);
+	opacity: 0;
+}
+
+input, [type=file]+label {
+	border: 1px solid #CCC;
+	border-radius: 3px;
+	text-align: left;
+	padding: 6px;
+	width: 13%;
+	margin: 0;
+	/* left: 0; */
+	position: relative;
+}
+
+[type=file]+label {
+	width: 100%;
+	text-align: center;
+	background: #333;
+	color: #fff;
+	border: none;
+	cursor: pointer;
+}
+
+[type=file]+label:hover {
+	background: #ffbc02;
+}
+
+.parc-content h5 {
+	font-size: 14px;
 }
