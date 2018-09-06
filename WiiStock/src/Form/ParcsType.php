@@ -86,8 +86,8 @@ class ParcsType extends AbstractType
 					'class' => 'n_parc',
 				],
 			))
-			->add('mise_en_circulation', DateType::class, array(
-				'label' => 'Date de mise en circulation',
+			->add('premiere_mise_en_circulation', DateType::class, array(
+				'label' => 'Date de première mise en circulation',
 				'widget' => 'single_text',
 				'format' => 'dd/MM/yyyy',
 				'attr' => [
@@ -111,14 +111,6 @@ class ParcsType extends AbstractType
 			->add('commentaire', TextareaType::class, array('label' => 'Commentaire'))
 			->add('sortie', DateType::class, array(
 				'label' => 'Date de sortie',
-				'widget' => 'single_text',
-				'format' => 'dd/MM/yyyy',
-				'attr' => [
-					'class' => 'datepicker',
-				],
-			))
-			->add('incorporation', DateType::class, array(
-				'label' => 'Date d\'incorporation',
 				'widget' => 'single_text',
 				'format' => 'dd/MM/yyyy',
 				'attr' => [
@@ -150,6 +142,19 @@ class ParcsType extends AbstractType
 				),
 			))
 			->add('commentaire_sortie', TextareaType::class, array('label' => 'Commentaire sortie'))
+			->add('n_serie', TextType::class, array('label' => 'Numéro de série'))
+			->add('immatriculation')
+			->add('genre', ChoiceType::class, array(
+				'label' => 'Genre (J1)',
+				'choices' => array(
+					'Genre 1' => 'Genre 1',
+                    'Genre 2' => 'Genre 2',
+                    'Genre 3' => 'Genre 3',
+				),
+			))
+			->add('ptac', IntegerType::class, array('label' => 'Ptac (F2)'))
+            ->add('ptr', IntegerType::class, array('label' => 'Ptr (F3)'))
+            ->add('puissance_fiscale')
 			// ->add('chariots', CollectionType::class, array(
 			// 	'entry_type' => ChariotsType::class,
 			// 	'entry_options' => array('label' => false),

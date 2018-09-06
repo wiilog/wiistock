@@ -42,7 +42,7 @@ class Parcs
      * @ORM\Column(type="date")
      * @Groups({"parc"})
      */
-    private $mise_en_circulation;
+    private $premiere_mise_en_circulation;
 
     /**
      * @ORM\Column(type="string", length=255)
@@ -72,12 +72,6 @@ class Parcs
      * @ORM\Column(type="date")
      * @Groups({"parc"})
      */
-    private $incorporation;
-
-    /**
-     * @ORM\Column(type="date")
-     * @Groups({"parc"})
-     */
     private $mise_en_service;
 
     /**
@@ -98,17 +92,41 @@ class Parcs
      */
     private $commentaire_sortie;
 
-    /** 
-     * @ORM\OneToOne(targetEntity="App\Entity\Chariots", mappedBy="parc", cascade={"persist", "remove"})
+    /**
+     * @ORM\Column(type="string", length=255, unique=true)
      * @Groups({"parc"})
      */
-    private $chariots;
+    private $n_serie;
 
     /**
-     * @ORM\OneToOne(targetEntity="App\Entity\Vehicules", mappedBy="parc", cascade={"persist", "remove"})
+     * @ORM\Column(type="string", length=255, unique=true)
      * @Groups({"parc"})
      */
-    private $vehicules;
+    private $immatriculation;
+
+    /**
+     * @ORM\Column(type="string", length=255)
+     * @Groups({"parc"})
+     */
+    private $genre;
+
+    /**
+     * @ORM\Column(type="float")
+     * @Groups({"parc"})
+     */
+    private $ptac;
+
+    /**
+     * @ORM\Column(type="float")
+     * @Groups({"parc"})
+     */
+    private $ptr;
+
+    /**
+     * @ORM\Column(type="integer")
+     * @Groups({"parc"})
+     */
+    private $puissance_fiscale;    
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Filiales", inversedBy="parcs")
@@ -393,6 +411,78 @@ class Parcs
     public function setCategorieVehicule(?CategoriesVehicules $categorieVehicule): self
     {
         $this->categorieVehicule = $categorieVehicule;
+
+        return $this;
+    }
+
+    public function getNSerie(): ?string
+    {
+        return $this->n_serie;
+    }
+
+    public function setNSerie(string $n_serie): self
+    {
+        $this->n_serie = $n_serie;
+
+        return $this;
+    }
+
+    public function getImmatriculation(): ?string
+    {
+        return $this->immatriculation;
+    }
+
+    public function setImmatriculation(string $immatriculation): self
+    {
+        $this->immatriculation = $immatriculation;
+
+        return $this;
+    }
+
+    public function getGenre(): ?string
+    {
+        return $this->genre;
+    }
+
+    public function setGenre(string $genre): self
+    {
+        $this->genre = $genre;
+
+        return $this;
+    }
+
+    public function getPtac(): ?float
+    {
+        return $this->ptac;
+    }
+
+    public function setPtac(float $ptac): self
+    {
+        $this->ptac = $ptac;
+
+        return $this;
+    }
+
+    public function getPtr(): ?float
+    {
+        return $this->ptr;
+    }
+
+    public function setPtr(float $ptr): self
+    {
+        $this->ptr = $ptr;
+
+        return $this;
+    }
+
+    public function getPuissanceFiscale(): ?int
+    {
+        return $this->puissance_fiscale;
+    }
+
+    public function setPuissanceFiscale(int $puissance_fiscale): self
+    {
+        $this->puissance_fiscale = $puissance_fiscale;
 
         return $this;
     }
