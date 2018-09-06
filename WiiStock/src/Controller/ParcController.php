@@ -175,8 +175,12 @@ class ParcController extends AbstractController
         
         if ($form->isSubmitted() && $form->isValid()) {
             if ($form->get('validation')->isClicked()) {
-                
+                $parc = $form->getData();
                 $parc->setStatut("Actif");
+                if ($parc->getSortie()) {
+                    $parc->setStatut("Demande sortie/transfert");
+                }
+
                 $this->getDoctrine()->getManager()->flush();
 
                 return $this->redirectToRoute('parc_list');

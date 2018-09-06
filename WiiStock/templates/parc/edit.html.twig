@@ -161,13 +161,13 @@
             <div class="row">
                 <div class="col-md-6">
                     <div class="radio">
-                        <input id="radio-1" name="radio" type="radio" checked="checked">
+                        <input id="radio-1" name="radio" type="radio">
                         <label for="radio-1" class="radio-label">Remise en service</label>
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="radio">
-                        <input id="radio-2" name="radio" type="radio" checked="checked">
+                        <input id="radio-2" name="radio" type="radio">
                         <label for="radio-2" class="radio-label">Sortie définitive</label>
                     </div>
                 </div>
@@ -204,10 +204,10 @@
         $('.datepicker').datepicker({language: 'fr', format: 'dd/mm/yyyy', todayBtn: true, todayHighlight: true, autoclose: true});
 
         $(".parc-content").on('click', '#generator', function () {
-            var s = document.getElementsByClassName("sousCategorieVehicule");
-            var s_categorie = s[0].options[s[0].selectedIndex].text;
-            var m = document.getElementsByClassName("mode_acquisition");
-            var m_acquisition = m[0].options[m[0].selectedIndex].text;
+            var s = document.getElementById("parcs_sousCategorieVehicule");
+            var s_categorie = s.options[s.selectedIndex].text;
+            var m = document.getElementById("parcs_mode_acquisition");
+            var m_acquisition = m.options[m.selectedIndex].text;
             $.ajax({
                 url: "{{ path( 'parc_number_generator' ) }}",
                 type: "POST",
@@ -218,7 +218,7 @@
                 },
                 success: function (resp) {
                     if (resp) {
-                        $(".n_parc").val(resp);
+                        $("#parcs_n_parc").val(resp);
                     }
                 }
             });
