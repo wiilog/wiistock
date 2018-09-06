@@ -55,7 +55,7 @@ class ParcController extends AbstractController
                     "id" => $parc->getId(),
                     "nparc" => $parc->getNParc(),
                     "etat" => $parc->getStatut(),
-                    "nserie" => (($parc->getChariots() != null) ? $parc->getChariots()->getNSerie() : $parc->getVehicules()->getImmatriculation()),
+                    "nserie" => (($parc->getNserie() != null) ? $parc->getNSerie() : $parc->getImmatriculation()),
                     "marque" => $parc->getMarque()->getNom(),
                     "site" => $parc->getSite()->getNom(),
                 ];

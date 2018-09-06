@@ -21,7 +21,7 @@ class Parcs
     private $id;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255, nullable=true)
      * @Groups({"parc"})
      */
     private $modele;
@@ -39,25 +39,25 @@ class Parcs
     private $n_parc;
 
     /**
-     * @ORM\Column(type="date")
+     * @ORM\Column(type="date", nullable=false)
      * @Groups({"parc"})
      */
     private $mise_en_circulation;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255, nullable=false)
      * @Groups({"parc"})
      */
     private $fournisseur;
 
     /**
-     * @ORM\Column(type="integer")
+     * @ORM\Column(type="integer", nullable=false)
      * @Groups({"parc"})
      */
     private $poids;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255, nullable=false)
      * @Groups({"parc"})
      */
     private $mode_acquisition;
@@ -69,13 +69,13 @@ class Parcs
     private $commentaire;
 
     /**
-     * @ORM\Column(type="date")
+     * @ORM\Column(type="date", nullable=false)
      * @Groups({"parc"})
      */
     private $mise_en_service;
 
     /**
-     * @ORM\Column(type="date", nullable=true)
+     * @ORM\Column(type="date")
      * @Groups({"parc"})
      */
     private $sortie;
@@ -93,37 +93,37 @@ class Parcs
     private $commentaire_sortie;
 
     /**
-     * @ORM\Column(type="string", length=255, unique=true)
+     * @ORM\Column(type="string", length=255, unique=true, nullable=true)
      * @Groups({"parc"})
      */
     private $n_serie;
 
     /**
-     * @ORM\Column(type="string", length=255, unique=true)
+     * @ORM\Column(type="string", length=255, unique=true, nullable=true)
      * @Groups({"parc"})
      */
     private $immatriculation;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255, nullable=true)
      * @Groups({"parc"})
      */
     private $genre;
 
     /**
-     * @ORM\Column(type="float")
+     * @ORM\Column(type="float", nullable=true)
      * @Groups({"parc"})
      */
     private $ptac;
 
     /**
-     * @ORM\Column(type="float")
+     * @ORM\Column(type="float", nullable=true)
      * @Groups({"parc"})
      */
     private $ptr;
 
     /**
-     * @ORM\Column(type="integer")
+     * @ORM\Column(type="integer", nullable=true)
      * @Groups({"parc"})
      */
     private $puissance_fiscale;    
@@ -131,30 +131,35 @@ class Parcs
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Filiales", inversedBy="parcs")
      * @Groups({"parc"})
+     * @ORM\JoinColumn(nullable=false)
      */
     private $filiale;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Marques", inversedBy="parcs")
      * @Groups({"parc"})
+     * @ORM\JoinColumn(nullable=false)
      */
     private $marque;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Sites", inversedBy="parcs")
      * @Groups({"parc"})
+     * @ORM\JoinColumn(nullable=false)
      */
     private $site;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\SousCategoriesVehicules", inversedBy="parcs")
      * @Groups({"parc"})
+     * @ORM\JoinColumn(nullable=false)
      */
     private $sousCategorieVehicule;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\CategoriesVehicules", inversedBy="parcs")
      * @Groups({"parc"})
+     * @ORM\JoinColumn(nullable=false)
      */
     private $categorieVehicule;
 
@@ -259,17 +264,6 @@ class Parcs
         return $this;
     }
 
-    public function getIncorporation() : ? \DateTimeInterface
-    {
-        return $this->incorporation;
-    }
-
-    public function setIncorporation(\DateTimeInterface $incorporation) : self
-    {
-        $this->incorporation = $incorporation;
-
-        return $this;
-    }
 
     public function getMiseEnService() : ? \DateTimeInterface
     {
@@ -315,42 +309,6 @@ class Parcs
     public function setCommentaireSortie(string $commentaire_sortie) : self
     {
         $this->commentaire_sortie = $commentaire_sortie;
-
-        return $this;
-    }
-
-    public function getChariots() : ? Chariots
-    {
-        return $this->chariots;
-    }
-
-    public function setChariots(? Chariots $chariots) : self
-    {
-        $this->chariots = $chariots;
-
-        // set (or unset) the owning side of the relation if necessary
-        $newParc = $chariots === null ? null : $this;
-        if ($newParc !== $chariots->getParc()) {
-            $chariots->setParc($newParc);
-        }
-
-        return $this;
-    }
-
-    public function getVehicules() : ? Vehicules
-    {
-        return $this->vehicules;
-    }
-
-    public function setVehicules(? Vehicules $vehicules) : self
-    {
-        $this->vehicules = $vehicules;
-
-        // set (or unset) the owning side of the relation if necessary
-        $newParc = $vehicules === null ? null : $this;
-        if ($newParc !== $vehicules->getParc()) {
-            $vehicules->setParc($newParc);
-        }
 
         return $this;
     }
