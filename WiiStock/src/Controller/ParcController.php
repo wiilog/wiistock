@@ -3,20 +3,16 @@
 namespace App\Controller;
 
 use App\Entity\Parcs;
-use App\Entity\Chariots;
-use App\Entity\Vehicules;
+use App\Entity\SousCategoriesVehicules;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Form\ParcsType;
-use App\Form\ChariotsType;
-use App\Form\VehiculesType;
 use App\Repository\ParcsRepository;
 use App\Repository\FilialesRepository;
 use App\Repository\SousCategoriesVehiculesRepository;
 use App\Repository\SitesRepository;
-use App\Entity\SousCategoriesVehicules;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 use Doctrine\Common\Annotations\AnnotationReader;
@@ -102,42 +98,26 @@ class ParcController extends AbstractController
      */
     public function create(Request $request) : Response
     {
-        $chariots = new Chariots();
-        $formChariots = $this->createForm(ChariotsType::class, $chariots);
-
-        $vehicules = new Vehicules();
-        $formVehicules = $this->createForm(VehiculesType::class, $vehicules);
+        $parc = new Parcs();
+        $form = $this->createForm(ParcsType::class, $parc);
 
         $em = $this->getDoctrine()->getManager();
 
-        $formChariots->handleRequest($request);
-        if ($formChariots->isSubmitted() && $formChariots->isValid()) {
-            if ($formChariots->get('validation')->isClicked()) {
-                $chariots = $formChariots->getData();
-                $chariots->getParc()->setStatut("Demande création");
-                $em->persist($chariots);
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+            if ($form->get('validation')->isClicked()) {
+                $parc = $form->getData();
+                $parc->setStatut("Demande création");
+                $em->persist($parc);
                 $em->flush();
+
+                return $this->redirectToRoute('parc_list');
             }
-
-            return $this->redirectToRoute('parc_list');
-        }
-
-        $formVehicules->handleRequest($request);
-        if ($formVehicules->isSubmitted() && $formVehicules->isValid()) {
-            if ($formVehicules->get('validation')->isClicked()) {
-                $vehicules = $formVehicules->getData();
-                $vehicules->getParc()->setStatut("Demande création");
-                $em->persist($vehicules);
-                $em->flush();
-            }
-
-            return $this->redirectToRoute('parc_list');
         }
 
         return $this->render('parc/create.html.twig', [
             'controller_name' => 'CreateController',
-            'formVehicules' => $formVehicules->createView(),
-            'formChariots' => $formChariots->createView(),
+            'form' => $form->createView(),
         ]);
     }
 
@@ -146,39 +126,21 @@ class ParcController extends AbstractController
      */
     public function edit(Request $request, Parcs $parc) : Response
     {
-        if ($parc->getVehicules()) {
-            $formVehicules = $this->createForm(VehiculesType::class, $parc->getVehicules());
-            $formVehicules->handleRequest($request);
-    
-            if ($formVehicules->isSubmitted() && $formVehicules->isValid()) {
-                $this->getDoctrine()->getManager()->flush();
-    
-                return $this->redirectToRoute('parc_list');
-            }
+        $form = $this->createForm(ParcsType::class, $parc);
+        $form->handleRequest($request);
 
-            return $this->render('parc/edit.html.twig', [
-                'controller_name' => 'EditController',
-                'parc' => $parc,
-                'n_parc' => $parc->getNParc(),
-                'formVehicules' => $formVehicules->createView(),
-            ]);
-        } else {
-            $formChariots = $this->createForm(ChariotsType::class, $parc->getChariots());
-            $formChariots->handleRequest($request);
-    
-            if ($formChariots->isSubmitted() && $formChariots->isValid()) {
-                $this->getDoctrine()->getManager()->flush();
-    
-                return $this->redirectToRoute('parc_list');
-            }
+        if ($form->isSubmitted() && $form->isValid()) {
+            $this->getDoctrine()->getManager()->flush();
 
-            return $this->render('parc/edit.html.twig', [
-                'controller_name' => 'EditController',
-                'parc' => $parc,
-                'n_parc' => $parc->getNParc(),
-                'formChariots' => $formChariots->createView(),
-            ]);
+            return $this->redirectToRoute('parc_list');
         }
+
+        return $this->render('parc/edit.html.twig', [
+            'controller_name' => 'EditController',
+            'parc' => $parc,
+            'n_parc' => $parc->getNParc(),
+            'form' => $form->createView(),
+        ]);
     }
 
     /**

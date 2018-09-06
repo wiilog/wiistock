@@ -11,255 +11,148 @@
 
 {% block page_content %}
 
-    {% if parc.vehicules %}
-
     <div class="row page-title">
-        PARC n°{% if n_parc %} {{ n_parc }} {% endif %}
+        PARC
+        {% if n_parc %}
+            n°{{ n_parc }}
+        {% endif %}
     </div>
     <div class="parc-etat">
-        <span class="img-circle {% if parc.statut == "Demande création" %} backorange {% else %} backgreen {% endif %}">
+        <span class="img-circle {% if parc.statut == "Demande création" %} backorange {% else %} backgreen {% endif %}"></span>
             {{ parc.statut }}
-        </span>
     </div>
 
     <div class="parc-content col-md-12">
-        {{ form_start(formVehicules) }}
-        {{ form_errors(formVehicules) }}
+        {{ form_start(form) }}
+        {{ form_errors(form) }}
+
         <fieldset class="well list-box">
             <legend class="well-legend">Données générales</legend>
             <div class="row">
-                <div class="col-md-4">
-                    {{ form_row(formVehicules.parc.modele) }}
+                <div class="col-md-6">
+                    {{ form_row(form.filiale) }}
                 </div>
-                <div class="col-md-4">
-                    {{ form_row(formVehicules.parc.filiale) }}
-                </div>
-                <div class="col-md-4">
-                    {{ form_row(formVehicules.parc.site) }}
+                <div class="col-md-6">
+                    {{ form_row(form.site) }}
                 </div>
             </div>
             <div class="row">
-                <div class="col-md-4">
-                    {{ form_row(formVehicules.parc.categorieVehicule) }}
+                <div class="col-md-6">
+                    {{ form_row(form.categorieVehicule) }}
                 </div>
-                <div class="col-md-4">
-                    {{ form_row(formVehicules.parc.sousCategorieVehicule) }}
-                </div>
-                <div class="col-md-4">
-                    {{ form_row(formVehicules.parc.marque) }}
+                <div class="col-md-6">
+                    {{ form_row(form.sousCategorieVehicule) }}
                 </div>
             </div>
-            {{ form_row(formVehicules.parc.commentaire, {'required': false}) }}
- 
-            <div class="separator"></div>
             <div class="row">
                 <div class="col-md-6">
-                    {{ form_row(formVehicules.parc.sortie, {'required': false}) }}
+                    {{ form_row(form.marque) }}
                 </div>
                 <div class="col-md-6">
-                    {{ form_row(formVehicules.parc.motif, {'required': false}) }}
+                    {{ form_row(form.modele) }}
                 </div>
             </div>
-            {{ form_row(formVehicules.parc.commentaire_sortie) }}
+            <div class="row">
+                <div class="col-md-6">
+                    {{ form_row(form.poids) }}
+                </div>
+                <div class="col-md-6">
+                    {{ form_row(form.mise_en_circulation) }}
+                </div>
+            </div>
+            {{ form_row(form.commentaire, {'required': false}) }}
         </fieldset>
+
+        <div class="row">
+            <fieldset class="well list-box col-md-6">
+                <legend class="well-legend">Véhicule</legend>
+                {{ form_row(form.immatriculation, {'required': false}) }}
+                <label class="control-label" for="carte_grise">Carte grise</label>
+                <div class="row form-flex" id="carte_grise">
+                    <a>
+                        <input id="f02" type="file" placeholder="Importer"/>
+                        <label for="f02">
+                            <span class="fa fa-cloud-upload"></span>
+                            &nbsp;Importer
+                        </label>
+                    </a>
+                    <a class="btn btn-default disabled">
+                        <span class="fa fa-cloud-download"></span>
+                        Télécharger
+                    </a>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        {{ form_row(form.genre, {'required': false}) }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form_row(form.ptac, {'required': false}) }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form_row(form.ptr, {'required': false}) }}
+                    </div>
+                </div>
+                {{ form_row(form.puissance_fiscale, {'required': false}) }}
+            </fieldset>
+
+            <fieldset class="well list-box col-md-6">
+                <legend class="well-legend">Chariot</legend>
+                {{ form_row(form.n_serie, {'required': false}) }}
+            </fieldset>
+        </div>
+
         <fieldset class="well list-box">
             <legend class="well-legend">Acquisition</legend>
             <div class="row">
-                <div class="col-md-3">
-                    {{ form_row(formVehicules.parc.fournisseur) }}
+                <div class="col-md-4">
+                    {{ form_row(form.fournisseur) }}
                 </div>
-                <div class="col-md-3">
-                    {{ form_row(formVehicules.parc.mode_acquisition) }}
+                <div class="col-md-4">
+                    {{ form_row(form.mode_acquisition) }}
                 </div>
-                <div class="col-md-3">
-                    {{ form_row(formVehicules.parc.incorporation) }}
-                </div>
-                <div class="col-md-3">
-                    {{ form_row(formVehicules.parc.mise_en_service) }}
+                <div class="col-md-4">
+                    {{ form_row(form.mise_en_service) }}
                 </div>
             </div>
         </fieldset>
+
         <fieldset class="well list-box">
             <legend class="well-legend">Numéro de parc</legend>
             <div class="form-inline">
-                {{ form_widget(formVehicules.parc.n_parc, {'required': false}) }}
+                {{ form_widget(form.parc.n_parc, {'required': false}) }}
                 <a class="btn btn-primary" id="generator">
                     <span class="fa fa-refresh"></span>
                 </a>
             </div>
         </fieldset>
+
         <fieldset class="well list-box">
-            <legend class="well-legend">Carte grise</legend>
-            <div class="row form-flex">
-
-                {{ form_row(formVehicules.parc.poids) }}
-
-                {{ form_row(formVehicules.parc.mise_en_circulation) }}
-
-                <a>
-                    <input id="f02" type="file" placeholder="Importer"/>
-                    <label for="f02">
-                        <span class="fa fa-cloud-upload"></span>
-                        &nbsp;Importer
-                    </label>
-                </a>
-                <a class="btn btn-default disabled">
-                    <span class="fa fa-cloud-download"></span>
-                    Télécharger
-                </a>
-
-            </div>
-        </fieldset>
-        <fieldset class="well list-box">
-            <legend class="well-legend">Données supplémentaire</legend>
-
-            {{ form_row(formVehicules.immatriculation, {'required': false}) }}
+            <legend class="well-legend">Sortie</legend>
             <div class="row">
                 <div class="col-md-4">
-                    {{ form_row(formVehicules.genre, {'required': false}) }}
+                    {{ form_row(form.motif, {'required': false}) }}
+
                 </div>
-                <div class="col-md-4">
-                    {{ form_row(formVehicules.ptac, {'required': false}) }}
-                </div>
-                <div class="col-md-4">
-                    {{ form_row(formVehicules.ptr, {'required': false}) }}
+                <div class="col-md-8">
+                    {{ form_row(form.commentaire_sortie, {'required': false}) }}
+
                 </div>
             </div>
-            {{ form_row(formVehicules.puissance_fiscale, {'required': false}) }}
+            {{ form_row(form.sortie, {'required': false}) }}
         </fieldset>
-    </div>
 
-    <div class="row">
-        <div class="col-md-12">
-            <a href="#" class="button btn-left pull-left">
-                <span class="fa fa-angle-double-left"></span>Retour</a>
-            {{ form_row(formVehicules.validation, {"attr": {"class" : "button btn-left pull-right"}}) }}
+        <div class="row">
+            <div class="col-md-12">
+                <a href="#" class="button btn-left pull-left">
+                    <span class="fa fa-angle-double-left"></span>Retour</a>
+                {{ form_row(form.validation, {"attr": {"class" : "button btn-left pull-right"}}) }}
 
+            </div>
         </div>
+
+        {{ form_row(form._token) }}
+        {{ form_end(form, {'render_rest' : false}) }}
     </div>
-
-    {{ form_row(formVehicules._token) }}
-    {{ form_end(formVehicules, {'render_rest' : false}) }}
-
-    {% else %}
-
-        <div class="row page-title">
-        PARC n°{% if n_parc %} {{ n_parc }} {% endif %}
-    </div>
-    <div class="parc-etat">
-        <span class="img-circle {% if parc.statut == "Demande création" %} backorange {% else %} backgreen {% endif %}">
-            {{ parc.statut }}
-        </span>
-    </div>
-
-    <div class="parc-content col-md-12">
-        {{ form_start(formChariots) }}
-        {{ form_errors(formChariots) }}
-        <fieldset class="well list-box">
-            <legend class="well-legend">Données générales</legend>
-            <div class="row">
-                <div class="col-md-4">
-                    {{ form_row(formChariots.parc.modele) }}
-                </div>
-                <div class="col-md-4">
-                    {{ form_row(formChariots.parc.filiale) }}
-                </div>
-                <div class="col-md-4">
-                    {{ form_row(formChariots.parc.site) }}
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-4">
-                    {{ form_row(formChariots.parc.categorieVehicule) }}
-                </div>
-                <div class="col-md-4">
-                    {{ form_row(formChariots.parc.sousCategorieVehicule) }}
-                </div>
-                <div class="col-md-4">
-                    {{ form_row(formChariots.parc.marque) }}
-                </div>
-            </div>
-            {{ form_row(formChariots.parc.commentaire, {'required': false}) }}
- 
-            <div class="separator"></div>
-            <div class="row">
-                <div class="col-md-6">
-                    {{ form_row(formChariots.parc.sortie, {'required': false}) }}
-                </div>
-                <div class="col-md-6">
-                    {{ form_row(formChariots.parc.motif, {'required': false}) }}
-                </div>
-            </div>
-            {{ form_row(formChariots.parc.commentaire_sortie) }}
-        </fieldset>
-        <fieldset class="well list-box">
-            <legend class="well-legend">Acquisition</legend>
-            <div class="row">
-                <div class="col-md-3">
-                    {{ form_row(formChariots.parc.fournisseur) }}
-                </div>
-                <div class="col-md-3">
-                    {{ form_row(formChariots.parc.mode_acquisition) }}
-                </div>
-                <div class="col-md-3">
-                    {{ form_row(formChariots.parc.incorporation) }}
-                </div>
-                <div class="col-md-3">
-                    {{ form_row(formChariots.parc.mise_en_service) }}
-                </div>
-            </div>
-        </fieldset>
-        <fieldset class="well list-box">
-            <legend class="well-legend">Numéro de parc</legend>
-            <div class="form-inline">
-                {{ form_widget(formChariots.parc.n_parc, {'required': false}) }}
-                <a class="btn btn-primary" id="generator">
-                    <span class="fa fa-refresh"></span>
-                </a>
-            </div>
-        </fieldset>
-        <fieldset class="well list-box">
-            <legend class="well-legend">Carte grise</legend>
-            <div class="row form-flex">
-
-                {{ form_row(formChariots.parc.poids) }}
-
-                {{ form_row(formChariots.parc.mise_en_circulation) }}
-
-                <a>
-                    <input id="f02" type="file" placeholder="Importer"/>
-                    <label for="f02">
-                        <span class="fa fa-cloud-upload"></span>
-                        &nbsp;Importer
-                    </label>
-                </a>
-                <a class="btn btn-default disabled">
-                    <span class="fa fa-cloud-download"></span>
-                    Télécharger
-                </a>
-
-            </div>
-        </fieldset>
-        <fieldset class="well list-box">
-            <legend class="well-legend">Données supplémentaire</legend>
-                {{ form_row(formChariots.n_serie, {'required': false}) }}
-                {{ form_row(formChariots.proprietaire, {'required': false}) }}
-        </fieldset>
-    </div>
-
-    <div class="row">
-        <div class="col-md-12">
-            <a href="#" class="button btn-left pull-left">
-                <span class="fa fa-angle-double-left"></span>Retour</a>
-            {{ form_row(formChariots.validation, {"attr": {"class" : "button btn-left pull-right"}}) }}
-
-        </div>
-    </div>
-
-    {{ form_row(formChariots._token) }}
-    {{ form_end(formChariots, {'render_rest' : false}) }}
-
-    {% endif %}
 
 {% endblock %}
 
@@ -276,7 +169,7 @@
         });
 
         $('.datepicker').datepicker({language: 'fr', format: 'dd/mm/yyyy', todayBtn: true, todayHighlight: true, autoclose: true});
-        
+
         $(".parc-content").on('click', '#generator', function () {
             var s = document.getElementsByClassName("sousCategorieVehicule");
             var s_categorie = s[0].options[s[0].selectedIndex].text;

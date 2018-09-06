@@ -86,7 +86,7 @@ class ParcsType extends AbstractType
 					'class' => 'n_parc',
 				],
 			))
-			->add('premiere_mise_en_circulation', DateType::class, array(
+			->add('mise_en_circulation', DateType::class, array(
 				'label' => 'Date de première mise en circulation',
 				'widget' => 'single_text',
 				'format' => 'dd/MM/yyyy',
@@ -155,16 +155,7 @@ class ParcsType extends AbstractType
 			->add('ptac', IntegerType::class, array('label' => 'Ptac (F2)'))
             ->add('ptr', IntegerType::class, array('label' => 'Ptr (F3)'))
             ->add('puissance_fiscale')
-			// ->add('chariots', CollectionType::class, array(
-			// 	'entry_type' => ChariotsType::class,
-			// 	'entry_options' => array('label' => false),
-			// ))
-			// ->add('vehicules', CollectionType::class, array(
-			// 	'entry_type' => VehiculesType::class,
-			// 	'entry_options' => array('label' => false),
-			// ))
-			// ->add('chariots', ChariotsType::class)
-			// ->add('vehicules', VehiculesType::class)
+            ->add('validation', SubmitType::class, array('label' => 'Enregistrer'))
 			;
 	}
 

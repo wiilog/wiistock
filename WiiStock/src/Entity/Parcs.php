@@ -42,7 +42,7 @@ class Parcs
      * @ORM\Column(type="date")
      * @Groups({"parc"})
      */
-    private $premiere_mise_en_circulation;
+    private $mise_en_circulation;
 
     /**
      * @ORM\Column(type="string", length=255)
