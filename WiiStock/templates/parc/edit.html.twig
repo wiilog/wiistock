@@ -18,8 +18,13 @@
         {% endif %}
     </div>
     <div class="parc-etat">
-        <span class="img-circle {% if parc.statut == "Demande création" %} backorange {% else %} backgreen {% endif %}"></span>
-            {{ parc.statut }}
+        <h3>Statut : </h3>
+        <span class="img-circle
+            {% if parc.statut == "Demande création" %} backorange 
+            {% else %} backgreen 
+            {% endif %}">
+        </span>
+        {{ parc.statut }}
     </div>
 
     <div class="parc-content col-md-12">
@@ -52,6 +57,7 @@
                     {{ form_row(form.modele) }}
                 </div>
             </div>
+            <div class="separator"></div>
             <div class="row">
                 <div class="col-md-6">
                     {{ form_row(form.poids) }}
@@ -64,44 +70,58 @@
         </fieldset>
 
         <div class="row">
-            <fieldset class="well list-box col-md-6">
-                <legend class="well-legend">Véhicule</legend>
-                {{ form_row(form.immatriculation, {'required': false}) }}
-                <label class="control-label" for="carte_grise">Carte grise</label>
-                <div class="row form-flex" id="carte_grise">
-                    <a>
-                        <input id="f02" type="file" placeholder="Importer"/>
-                        <label for="f02">
-                            <span class="fa fa-cloud-upload"></span>
-                            &nbsp;Importer
-                        </label>
-                    </a>
-                    <a class="btn btn-default disabled">
-                        <span class="fa fa-cloud-download"></span>
-                        Télécharger
-                    </a>
+            <div class="col-md-12 parc-flex">
+                <fieldset class="well list-box col-md-5">
+                    <legend class="well-legend">Véhicule</legend>
+                    {{ form_row(form.immatriculation, {'required': false}) }}
+                    <label class="control-label" for="carte_grise">Carte grise</label>
+                    <div class="row form-group" id="carte_grise">
+                        <div class="col-md-6">
+                            <a>
+                                <input id="f02" type="file" placeholder="Importer"/>
+                                <label for="f02">
+                                    <span class="fa fa-cloud-upload"></span>
+                                    &nbsp;Importer
+                                </label>
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a class="btn btn-default disabled" id="dwl">
+                                <span class="fa fa-cloud-download"></span>
+                                Télécharger
+                            </a>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4">
+                            {{ form_row(form.genre, {'required': false}) }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form_row(form.ptac, {'required': false}) }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form_row(form.ptr, {'required': false}) }}
+                        </div>
+                    </div>
+                    {{ form_row(form.puissance_fiscale, {'required': false}) }}
+                </fieldset>
+                <div class="col-md-2">
+                    <div class="hr">
+                        <div class="separator-v">
+                            <div class="separator-v-text">
+                                OU
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="row">
-                    <div class="col-md-4">
-                        {{ form_row(form.genre, {'required': false}) }}
-                    </div>
-                    <div class="col-md-4">
-                        {{ form_row(form.ptac, {'required': false}) }}
-                    </div>
-                    <div class="col-md-4">
-                        {{ form_row(form.ptr, {'required': false}) }}
-                    </div>
-                </div>
-                {{ form_row(form.puissance_fiscale, {'required': false}) }}
-            </fieldset>
-
-            <fieldset class="well list-box col-md-6">
-                <legend class="well-legend">Chariot</legend>
-                {{ form_row(form.n_serie, {'required': false}) }}
-            </fieldset>
+                <fieldset class="well list-box col-md-5">
+                    <legend class="well-legend">Chariot</legend>
+                    {{ form_row(form.n_serie, {'required': false}) }}
+                </fieldset>
+            </div>
         </div>
 
-        <fieldset class="well list-box">
+        <fieldset class="row well list-box">
             <legend class="well-legend">Acquisition</legend>
             <div class="row">
                 <div class="col-md-4">
@@ -119,31 +139,44 @@
         <fieldset class="well list-box">
             <legend class="well-legend">Numéro de parc</legend>
             <div class="form-inline">
-                {{ form_widget(form.parc.n_parc, {'required': false}) }}
+                {{ form_widget(form.n_parc, {'required': false}) }}
                 <a class="btn btn-primary" id="generator">
                     <span class="fa fa-refresh"></span>
                 </a>
             </div>
         </fieldset>
 
-        <fieldset class="well list-box">
+        <fieldset class="row well list-box">
             <legend class="well-legend">Sortie</legend>
             <div class="row">
                 <div class="col-md-4">
-                    {{ form_row(form.motif, {'required': false}) }}
-
+                    {{ form_row(form.sortie, {'required': false}) }}
                 </div>
                 <div class="col-md-8">
-                    {{ form_row(form.commentaire_sortie, {'required': false}) }}
-
+                    {{ form_row(form.motif, {'required': false}) }}
                 </div>
             </div>
-            {{ form_row(form.sortie, {'required': false}) }}
+            {{ form_row(form.commentaire_sortie, {'required': false}) }}
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="radio">
+                        <input id="radio-1" name="radio" type="radio" checked="checked">
+                        <label for="radio-1" class="radio-label">Remise en service</label>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="radio">
+                        <input id="radio-2" name="radio" type="radio" checked="checked">
+                        <label for="radio-2" class="radio-label">Sortie définitive</label>
+                    </div>
+                </div>
+            </div>
         </fieldset>
 
         <div class="row">
             <div class="col-md-12">
-                <a href="#" class="button btn-left pull-left">
+                <a href="{{ path ('parc_list') }}" class="button btn-left pull-left">
                     <span class="fa fa-angle-double-left"></span>Retour</a>
                 {{ form_row(form.validation, {"attr": {"class" : "button btn-left pull-right"}}) }}
 
