@@ -7,9 +7,13 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\ParcsRepository")
+ * @UniqueEntity(fields="n_parc", message="Ce numéro de parc est déjà attribué.")
+ * @UniqueEntity(fields="n_serie", message="Ce numéro de série est déjà attribué.")
+ * @UniqueEntity(fields="immatriculation", message="Ce numéro d'immatriculation' est déjà attribué.")
  */
 class Parcs
 {
@@ -33,7 +37,7 @@ class Parcs
     private $statut;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
+     * @ORM\Column(type="string", length=255, nullable=true, unique=true)
      * @Groups({"parc"})
      */
     private $n_parc;
@@ -75,7 +79,7 @@ class Parcs
     private $mise_en_service;
 
     /**
-     * @ORM\Column(type="date")
+     * @ORM\Column(type="date", nullable=true)
      * @Groups({"parc"})
      */
     private $sortie;
@@ -185,7 +189,7 @@ class Parcs
         return $this->statut;
     }
 
-    public function setStatut(string $statut) : self
+    public function setStatut(? string $statut) : self
     {
         $this->statut = $statut;
 

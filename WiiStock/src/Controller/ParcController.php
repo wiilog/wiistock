@@ -172,11 +172,15 @@ class ParcController extends AbstractController
     {
         $form = $this->createForm(ParcsType::class, $parc);
         $form->handleRequest($request);
-
+        
         if ($form->isSubmitted() && $form->isValid()) {
-            $this->getDoctrine()->getManager()->flush();
+            if ($form->get('validation')->isClicked()) {
+                
+                $parc->setStatut("Actif");
+                $this->getDoctrine()->getManager()->flush();
 
-            return $this->redirectToRoute('parc_list');
+                return $this->redirectToRoute('parc_list');
+            }
         }
 
         return $this->render('parc/edit.html.twig', [
