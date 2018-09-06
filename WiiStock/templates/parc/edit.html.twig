@@ -11,21 +11,26 @@
 
 {% block page_content %}
 
-    <div class="row page-title">
-        PARC
-        {% if n_parc %}
-            n°{{ n_parc }}
-        {% endif %}
-    </div>
-    <div class="parc-etat">
-        <b>Statut : </b>
-        <span class="circle
+    <div class="title-container">
+        <div class="row page-title">
+            PARC
+            {% if n_parc %}
+                n°{{ n_parc }}
+            {% endif %}
+        <span class="circle pull-right
             {% if parc.statut == "Demande création" %} backorange 
+            {% elseif parc.statut == "Sorti" %} backred 
+            {% elseif parc.statut == "Demande sortie/transfert" %} backblue 
             {% else %} backgreen 
             {% endif %}">
         </span>
+        </div>
+    </div>
+    <div class="parc-etat">
+        <b>Statut : </b>
         {{ parc.statut }}
     </div>
+
 
     <div class="parc-content col-md-12">
         {{ form_start(form) }}
@@ -223,5 +228,41 @@
                 }
             });
         });
+
+        var filiales = {{ sites|json_encode|raw }};
+        var categories = {{ sousCategories|json_encode|raw }};
+
+        update_sousCategorie();
+        $('#parcs_categorieVehicule').change(function () {
+            update_sousCategorie();
+        });
+
+        update_site();
+        $('#parcs_filiale').change(function () {
+            update_site();
+        });
+
+        function update_sousCategorie() {
+            $("#parcs_sousCategorieVehicule").find('option').remove();
+            $.each(categories, function (categorie) {
+                if (categorie === $('#parcs_categorieVehicule option:selected').text()) {
+                    $.each(categories[categorie], function (index, val) {
+                        $('#parcs_sousCategorieVehicule').append(new Option(val.nom, val.id,));
+                    });
+                }
+            });
+        }
+
+        function update_site() {
+            $("#parcs_site").find('option').remove();
+            $.each(filiales, function (site) {
+                if (site === $('#parcs_filiale option:selected').text()) {
+                    $.each(filiales[site], function (index, val) {
+                        $('#parcs_site').append(new Option(val.nom, val.id,));
+                    });
+                }
+            });
+        }
+
     </script>
 {% endblock %}

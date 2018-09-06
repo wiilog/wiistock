@@ -192,6 +192,8 @@ class ParcController extends AbstractController
             'parc' => $parc,
             'n_parc' => $parc->getNParc(),
             'form' => $form->createView(),
+            'sites' => $this->getSites(),
+            'sousCategories' => $this->getSousCategories(),
         ]);
     }
 

@@ -1607,6 +1607,18 @@ input:checked+.slider:before {
 
 .parc-content label {
 	font-size: 14px;
+	color: #130078;
+}
+
+.parc-content fieldset {
+	border: #ffbc02 2px solid;
+	-moz-box-shadow: 2px 2px 10px 0px #656565;
+	-webkit-box-shadow: 2px 2px 10px 0px #656565;
+	-o-box-shadow: 2px 2px 10px 0px #656565;
+	box-shadow: 2px 2px 10px 0px #656565;
+	/* background-image: url("../../img/traits.png");
+	background-repeat: no-repeat;
+	background-size: contain; */
 }
 
 .parc-content .custom-file label {
@@ -1658,9 +1670,10 @@ input, [type=file]+label {
 	margin: 0 20px;
 }
 
-.parc-content .circle {
-	width: 100px;
-	height: 100px;
+.circle {
+	display: block;
+	width: 50px;
+	height: 50px;
 	-moz-border-radius: 50px;
 	-webkit-border-radius: 50px;
 	border-radius: 50px;
