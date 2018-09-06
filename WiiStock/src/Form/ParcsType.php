@@ -38,13 +38,13 @@ class ParcsType extends AbstractType
 				'class' => Sites::class,
 				'choice_label' => 'nom',
 				'label' => 'Site',
-				'query_builder' => function (EntityRepository $er) {
-					return $er->createQueryBuilder('p')
-						->add('select', 'p')
-						->leftJoin('p.filiale', 'f')
-						->where('f.id = :id')
-						->setParameter('id', '1');
-				},
+				// 'query_builder' => function (EntityRepository $er) {
+				// 	return $er->createQueryBuilder('p')
+				// 		->add('select', 'p')
+				// 		->leftJoin('p.filiale', 'f')
+				// 		->where('f.id = :id')
+				// 		->setParameter('id', '1');
+				// },
 			))
 			->add('marque', EntityType::class, array(
 				'class' => Marques::class,
@@ -60,16 +60,13 @@ class ParcsType extends AbstractType
 				'class' => SousCategoriesVehicules::class,
 				'choice_label' => 'nom',
 				'label' => 'Sous catégorie',
-				'query_builder' => function (EntityRepository $er) {
-					return $er->createQueryBuilder('p')
-						->add('select', 'p')
-						->leftJoin('p.categorie', 'c')
-						->where('c.id = :id')
-						->setParameter('id', '1');
-				},
-				'attr' => [
-					'class' => 'sousCategorieVehicule',
-				],
+				// 'query_builder' => function (EntityRepository $er) {
+				// 	return $er->createQueryBuilder('p')
+				// 		->add('select', 'p')
+				// 		->leftJoin('p.categorie', 'c')
+				// 		->where('c.id = :id')
+				// 		->setParameter('id', '1');
+				// },
 			))
 			->add('statut', ChoiceType::class, array(
 				'label' => 'Statut',
@@ -82,9 +79,6 @@ class ParcsType extends AbstractType
 			))
 			->add('n_parc', TextType::class, array(
 				'label' => 'Numéro de parc',
-				'attr' => [
-					'class' => 'n_parc',
-				],
 			))
 			->add('mise_en_circulation', DateType::class, array(
 				'label' => 'Date de première mise en circulation',
@@ -104,9 +98,6 @@ class ParcsType extends AbstractType
 					'Location longue durée' => 'Location longue durée',
 					'Mise à disposition' => 'Mise à disposition',
 				),
-				'attr' => [
-					'class' => 'mode_acquisition',
-				],
 			))
 			->add('commentaire', TextareaType::class, array('label' => 'Commentaire'))
 			->add('sortie', DateType::class, array(
