@@ -215,43 +215,7 @@ class ParcController extends AbstractController
         }
         throw new NotFoundHttpException('404 Gwendal not found');
     }
-
-    // /**
-    //  * @Route("/ajax/categories", name="parc_categories", methods="GET|POST")
-    //  */
-    // public function parc_categories(SousCategoriesVehiculesRepository $repository, Request $request) : Response
-    // {
-    //     if ($request->isXmlHttpRequest()) {
-    //         $em = $this->getDoctrine()->getManager();
-    //         $categorie = $request->request->get('categorie');
-
-    //         $s_categories = $repository->findBySousCategory($categorie);
-    //         foreach ($s_categories as $s_categorie) {
-    //             $output[] = array('nom' => $s_categorie->getNom(), 'id' =>$s_categorie->getId());
-    //         }
-    //         return new JsonResponse($output);
-    //     }
-    //     throw new NotFoundHttpException('404 Gwendal not found');
-    // }
-
-    // /**
-    //  * @Route("/ajax/filiales", name="parc_filiales", methods="GET|POST")
-    //  */
-    // public function parc_filiales(SitesRepository $repository, Request $request) : Response
-    // {
-    //     if ($request->isXmlHttpRequest()) {
-    //         $em = $this->getDoctrine()->getManager();
-    //         $filiale = $request->request->get('filiale');
-
-    //         $sites = $repository->findByFiliale($filiale);
-    //         foreach ($sites as $site) {
-    //             $output[] = array('nom' => $site->getNom(), 'id' =>$site->getId());
-    //         }
-    //         return new JsonResponse($output);
-    //     }
-    //     throw new NotFoundHttpException('404 Gwendal not found');
-    // }
-
+    
     /**
      * @Route("/export/csv", name="export_csv", methods="GET|POST")
      */
