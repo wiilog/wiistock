@@ -282,7 +282,7 @@ class Parcs
         return $this->sortie;
     }
 
-    public function setSortie(\DateTimeInterface $sortie) : self
+    public function setSortie(? \DateTimeInterface $sortie) : self
     {
         $this->sortie = $sortie;
 
