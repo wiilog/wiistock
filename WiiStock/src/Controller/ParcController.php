@@ -3,6 +3,8 @@
 namespace App\Controller;
 
 use App\Entity\Parcs;
+use App\Entity\Filiales;
+use App\Entity\CategoriesVehicules;
 use App\Entity\SousCategoriesVehicules;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -118,7 +120,49 @@ class ParcController extends AbstractController
         return $this->render('parc/create.html.twig', [
             'controller_name' => 'CreateController',
             'form' => $form->createView(),
+            'sites' => $this->getSites(),
+            'sousCategories' => $this->getSousCategories(),
         ]);
+    }
+
+    private function getSites()
+    {
+        $em = $this->getDoctrine()->getManager();
+
+        $filiales = $em->getRepository(Filiales::class)->findAll();
+        $output = array();
+        foreach ($filiales as $filiale) {
+            $sites = $filiale->getSites();
+            $sites_array = array();
+            foreach ($sites as $site) {
+                $sites_array[] = array(
+                    'nom' => $site->getNom(),
+                    'id' => $site->getId()
+                );
+            }
+            $output[$filiale->getNom()] = $sites_array;
+        }
+        return $output;
+    }
+
+    private function getSousCategories()
+    {
+        $em = $this->getDoctrine()->getManager();
+
+        $categories = $em->getRepository(CategoriesVehicules::class)->findAll();
+        $output = array();
+        foreach ($categories as $categorie) {
+            $s_categories = $categorie->getSousCategoriesVehicules();
+            $s_categories_array = array();
+            foreach ($s_categories as $s_categorie) {
+                $s_categories_array[] = array(
+                    'nom' => $s_categorie->getNom(),
+                    'id' => $s_categorie->getId()
+                );
+            }
+            $output[$categorie->getNom()] = $s_categories_array;
+        }
+        return $output;
     }
 
     /**
@@ -176,41 +220,41 @@ class ParcController extends AbstractController
         throw new NotFoundHttpException('404 Gwendal not found');
     }
 
-    /**
-     * @Route("/ajax/categories", name="parc_categories", methods="GET|POST")
-     */
-    public function parc_categories(SousCategoriesVehiculesRepository $repository, Request $request) : Response
-    {
-        if ($request->isXmlHttpRequest()) {
-            $em = $this->getDoctrine()->getManager();
-            $categorie = $request->request->get('categorie');
+    // /**
+    //  * @Route("/ajax/categories", name="parc_categories", methods="GET|POST")
+    //  */
+    // public function parc_categories(SousCategoriesVehiculesRepository $repository, Request $request) : Response
+    // {
+    //     if ($request->isXmlHttpRequest()) {
+    //         $em = $this->getDoctrine()->getManager();
+    //         $categorie = $request->request->get('categorie');
 
-            $s_categories = $repository->findBySousCategory($categorie);
-            foreach ($s_categories as $s_categorie) {
-                $output[] = array('nom' => $s_categorie->getNom(), 'id' =>$s_categorie->getId());
-            }
-            return new JsonResponse($output);
-        }
-        throw new NotFoundHttpException('404 Gwendal not found');
-    }
+    //         $s_categories = $repository->findBySousCategory($categorie);
+    //         foreach ($s_categories as $s_categorie) {
+    //             $output[] = array('nom' => $s_categorie->getNom(), 'id' =>$s_categorie->getId());
+    //         }
+    //         return new JsonResponse($output);
+    //     }
+    //     throw new NotFoundHttpException('404 Gwendal not found');
+    // }
 
-    /**
-     * @Route("/ajax/filiales", name="parc_filiales", methods="GET|POST")
-     */
-    public function parc_filiales(SitesRepository $repository, Request $request) : Response
-    {
-        if ($request->isXmlHttpRequest()) {
-            $em = $this->getDoctrine()->getManager();
-            $filiale = $request->request->get('filiale');
+    // /**
+    //  * @Route("/ajax/filiales", name="parc_filiales", methods="GET|POST")
+    //  */
+    // public function parc_filiales(SitesRepository $repository, Request $request) : Response
+    // {
+    //     if ($request->isXmlHttpRequest()) {
+    //         $em = $this->getDoctrine()->getManager();
+    //         $filiale = $request->request->get('filiale');
 
-            $sites = $repository->findByFiliale($filiale);
-            foreach ($sites as $site) {
-                $output[] = array('nom' => $site->getNom(), 'id' =>$site->getId());
-            }
-            return new JsonResponse($output);
-        }
-        throw new NotFoundHttpException('404 Gwendal not found');
-    }
+    //         $sites = $repository->findByFiliale($filiale);
+    //         foreach ($sites as $site) {
+    //             $output[] = array('nom' => $site->getNom(), 'id' =>$site->getId());
+    //         }
+    //         return new JsonResponse($output);
+    //     }
+    //     throw new NotFoundHttpException('404 Gwendal not found');
+    // }
 
     /**
      * @Route("/export/csv", name="export_csv", methods="GET|POST")

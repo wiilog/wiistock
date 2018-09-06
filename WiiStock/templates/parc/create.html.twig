@@ -165,53 +165,39 @@
 
         $('.datepicker').datepicker({language: 'fr', format: 'dd/mm/yyyy', todayBtn: true, todayHighlight: true, autoclose: true});
 
-        $("#parcs_categorieVehicule").change(function () {
-            var c = document.getElementById("parcs_categorieVehicule");
-            var categorie = c.options[c.selectedIndex].text;
-            $.ajax({
-                url: "{{ path( 'parc_categories' ) }}",
-                type: "POST",
-                dataType: "json",
-                data: {
-                    "categorie": categorie
-                },
-                success: function (resp) {
-                    if (resp) {
-                        $("#parcs_sousCategorieVehicule").find('option').remove();
-                        $.each(resp, function (index, val) {
-                            $('#parcs_sousCategorieVehicule').append($('<option>', {
-                                value: val.id,
-                                text: val.nom
-                            }));
-                        });
-                    }
-                }
-            });
+        var filiales = {{ sites|json_encode|raw }};
+        var categories = {{ sousCategories|json_encode|raw }};
+
+        update_sousCategorie();
+        $('#parcs_categorieVehicule').change(function () {
+            update_sousCategorie();
         });
 
-        $("#parcs_filiale").change(function () {
-            var f = document.getElementById("parcs_filiale");
-            var filiale = f.options[f.selectedIndex].text;
-            console.log('filiale');
-            $.ajax({
-                url: "{{ path( 'parc_filiales' ) }}",
-                type: "POST",
-                dataType: "json",
-                data: {
-                    "filiale": filiale
-                },
-                success: function (resp) {
-                    if (resp) {
-                        $("#parcs_site").find('option').remove();
-                        $.each(resp, function (index, val) {
-                            $('#parcs_site').append($('<option>', {
-                                value: val.id,
-                                text: val.nom
-                            }));
-                        });
-                    }
+        update_site();
+        $('#parcs_filiale').change(function () {
+            update_site();
+        });
+
+        function update_sousCategorie() {
+            $("#parcs_sousCategorieVehicule").find('option').remove();
+            $.each(categories, function (categorie) {
+                if (categorie === $('#parcs_categorieVehicule option:selected').text()) {
+                    $.each(categories[categorie], function (index, val) {
+                        $('#parcs_sousCategorieVehicule').append(new Option(val.nom, val.id,));
+                    });
                 }
             });
-        });
+        }
+
+        function update_site() {
+            $("#parcs_site").find('option').remove();
+            $.each(filiales, function (site) {
+                if (site === $('#parcs_filiale option:selected').text()) {
+                    $.each(filiales[site], function (index, val) {
+                        $('#parcs_site').append(new Option(val.nom, val.id,));
+                    });
+                }
+            });
+        }
     </script>
 {% endblock %}
