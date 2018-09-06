@@ -320,7 +320,8 @@ table .fa {
 
 .sidemenu>li>a {
 	display: table-cell;
-	max-height: 71px;
+	vertical-align: middle;
+	margin: 0 auto;
 	width: 130px;
 	color: #fcfcfc;
 	text-align: center;
@@ -332,7 +333,6 @@ table .fa {
 
 .sidemenu>li>a>.fa {
 	font-size: 48px;
-	line-height: 71px;
 }
 
 @media (max-height: 700px) {

@@ -53,6 +53,8 @@ class ParcsRepository extends ServiceEntityRepository
     public function findLast()
     {
         $qb = $this->createQueryBuilder('parc');
+        $qb->andWhere('parc.statut = :value1 OR parc.statut = :value2 OR parc.statut = :value3');
+        $qb->setParameters(['value1' => 'Actif', 'value2' => 'Demande sortie/transfert', 'value3' => 'Sorti']);
         $qb->setMaxResults(1);
         $qb->orderBy('parc.id', 'DESC');
 

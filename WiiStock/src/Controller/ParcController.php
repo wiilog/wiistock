@@ -205,7 +205,12 @@ class ParcController extends AbstractController
             $s_categorie = $request->request->get('s_categorie');
             $m_acquisition = $request->request->get('m_acquisition');
             // $compteur = count($em->getRepository(Parcs::class)->findAll());
-            $compteur = $parcsRepository->findLast()->getId() + 1;
+            $compteur = $parcsRepository->findLast();
+            if ($compteur) {
+                $compteur = $compteur->getId() + 1;
+            } else {
+                $compteur = 0;
+            }
             $code = str_pad($compteur, 4, "0", STR_PAD_LEFT);
 
             $s_code = strval($em->getRepository(SousCategoriesVehicules::class)->findOneBy(array('nom' => $s_categorie))->getCode());
