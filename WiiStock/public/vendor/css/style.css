@@ -1654,8 +1654,16 @@ input, [type=file]+label {
 }
 
 .parc-etat {
-	float: right;
+	text-align: middle;
 	margin: 0 20px;
+}
+
+.parc-content .circle {
+	width: 100px;
+	height: 100px;
+	-moz-border-radius: 50px;
+	-webkit-border-radius: 50px;
+	border-radius: 50px;
 }
 
 /* Separator 
@@ -1691,7 +1699,8 @@ input, [type=file]+label {
 
 .hr {
 	position: absolute;
-	top: 50%; left: 50%; 
+	top: 50%;
+	left: 50%;
 	transform: translate(-50%, -50%);
 	width: 2px;
 	height: 150px;

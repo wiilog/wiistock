@@ -180,7 +180,7 @@
                         $("#parcs_sousCategorieVehicule").find('option').remove();
                         $.each(resp, function (index, val) {
                             $('#parcs_sousCategorieVehicule').append($('<option>', {
-                                value: val.nom,
+                                value: val.id,
                                 text: val.nom
                             }));
                         });
@@ -205,7 +205,7 @@
                         $("#parcs_site").find('option').remove();
                         $.each(resp, function (index, val) {
                             $('#parcs_site').append($('<option>', {
-                                value: val.nom,
+                                value: val.id,
                                 text: val.nom
                             }));
                         });

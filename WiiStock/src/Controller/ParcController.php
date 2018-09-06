@@ -183,7 +183,7 @@ class ParcController extends AbstractController
 
             $s_categories = $repository->findBySousCategory($categorie);
             foreach ($s_categories as $s_categorie) {
-                $output[] = array('nom' => $s_categorie->getNom());
+                $output[] = array('nom' => $s_categorie->getNom(), 'id' =>$s_categorie->getId());
             }
             return new JsonResponse($output);
         }
@@ -201,7 +201,7 @@ class ParcController extends AbstractController
 
             $sites = $repository->findByFiliale($filiale);
             foreach ($sites as $site) {
-                $output[] = array('nom' => $site->getNom());
+                $output[] = array('nom' => $site->getNom(), 'id' =>$site->getId());
             }
             return new JsonResponse($output);
         }
