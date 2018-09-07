@@ -8,6 +8,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
@@ -33,6 +34,17 @@ class UtilisateursType extends AbstractType
                 'class' => 'App\Entity\Themes',
                 'choice_label' => 'nom',
                 'multiple' => false,
+                ))
+            ->add('roles', ChoiceType::class, array(
+                'label' => "Rôles",
+                'choices' => array(
+                    'ROLE_PARC' => 'ROLE_PARC',
+                    'ROLE_USER' => 'ROLE_USER',
+                    'ROLE_ADMIN' => 'ROLE_ADMIN',
+                    'ROLE_PARC_ADMIN' => 'ROLE_PARC_ADMIN',
+                    'ROLE_API' => 'ROLE_API',
+                    ),
+                'multiple' => true,
                 ))
         ;
     }
