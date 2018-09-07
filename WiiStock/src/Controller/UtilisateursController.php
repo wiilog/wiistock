@@ -8,6 +8,7 @@ use App\Repository\UtilisateursRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
@@ -17,10 +18,48 @@ use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 class UtilisateursController extends Controller
 {
     /**
-     * @Route("/", name="utilisateurs_index", methods="GET")
+     * @Route("/", name="utilisateurs_index", methods="GET|POST")
      */
-    public function index(UtilisateursRepository $utilisateursRepository): Response
+    public function index(UtilisateursRepository $utilisateursRepository, Request $request): Response
     {
+        if ($request->isXmlHttpRequest()) {
+            $utilisateurs = $utilisateursRepository->findAll();
+            $count = count($utilisateursRepository->findAll());
+            $current = $request->request->get('currentPage');
+            $rowCount = $request->request->get('rowCount');
+
+            $rows = array();
+            foreach ($utilisateurs as $utilisateur) {
+                $roles = $utilisateur->getRoles();
+                $roles_string = "";
+                foreach ($roles as $role) {
+                    $roles_string = $role . ", " . $roles_string;
+                }
+
+                // enlève les deux derniers caractères
+                $roles_string = substr($roles_string, 0, -2);
+
+                $row = [
+                    "id" => $utilisateur->getId(),
+                    "username" => $utilisateur->getUsername(),
+                    "email" => $utilisateur->getEmail(),
+                    "groupe" => $utilisateur->getGroupe(),
+                    "lastCon" => "",
+                    "roles" => $roles_string,
+                ];
+                array_push($rows, $row);
+            }
+
+            $data = array(
+                "current" => $current,
+                "rowCount" => $rowCount,
+                "rows" => $rows,
+                "total" => $count
+            );
+            /*dump($data);*/
+            return new JsonResponse($data);
+        }
+
         return $this->render('utilisateurs/index.html.twig', ['utilisateurs' => $utilisateursRepository->findAll()]);
     }
 

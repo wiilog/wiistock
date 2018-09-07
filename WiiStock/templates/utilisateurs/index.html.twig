@@ -13,50 +13,11 @@
                 <th data-column-id="username">Username</th>
                 <th data-column-id="email">Email</th>
                 <th data-column-id="groupe">Groupe</th>
+                <th data-column-id="roles">Rôles</th>
                 <th data-column-id="lastCon">Dernière connexion</th>
                 <th data-colun-id="commands">Action</th>
             </tr>
         </thead>
-        <tr>
-            <td>Leo</td>
-            <td>leo.couffinhal@wiilog.fr</td>
-            <td>Sous-user</td>
-            <td>Il y a 10 ans environ</td>
-            <td>
-                <button type="button" class="btn btn-xs btn-default"><span class="fa fa-pencil"></span></a>
-                <button type="button" class="btn btn-xs btn-default"><span class="fa fa-trash"></span></a>
-            </td>
-        </tr>
-        <tr>
-            <td>Gwendal</td>
-            <td>gwendal.lefur@wiilog.fr</td>
-            <td>Super-user</td>
-            <td>Connecté</td>
-            <td>
-                <button type="button" class="btn btn-xs btn-default"><span class="fa fa-pencil"></span></a>
-                <button type="button" class="btn btn-xs btn-default"><span class="fa fa-trash"></span></a>
-            </td>
-        </tr>
-        <tr>
-            <td>Dorine</td>
-            <td>dorine.renon@wiilog.fr</td>
-            <td>User</td>
-            <td>Il y a 12 heures environ</td>
-            <td>
-                <button type="button" class="btn btn-xs btn-default"><span class="fa fa-pencil"></span></a>
-                <button type="button" class="btn btn-xs btn-default"><span class="fa fa-trash"></span></a>
-            </td>
-        </tr>
-        <tr>
-            <td>Benoit</td>
-            <td>benoit.coste@wiilog.fr</td>
-            <td>Admin</td>
-            <td>Il y a 15 minutes</td>
-            <td>
-                <button type="button" class="btn btn-xs btn-default"><span class="fa fa-pencil"></span></a>
-                <button type="button" class="btn btn-xs btn-default"><span class="fa fa-trash"></span></a>
-            </td>
-        </tr>
     </table>
 
     <div class="row">
@@ -120,6 +81,35 @@
 
 {% endblock %}
 
+{% block javascripts %}
+    <script type="text/javascript">
+        var grid = $("#grid-data").bootgrid({
+            ajax: true,
+            requestHandler: function (request) {
+                request.id = "b0df282a-0d67-40e5-8558-c9e93b7befed";
+                request.currentPage = $("#grid-data").bootgrid("getCurrentPage");
+                request.rowCount = $("#grid-data").bootgrid("getRowCount");
+                return request;
+            },
+            url: "{{ path('utilisateurs_index') }}",
+            formatters: {
+                "commands": function (column, row) {
+                    return "<button type=\"button\" class=\"btn btn-xs btn-default command-view\" data-row-id=\"" + row.id + "\"><span class=\"fa fa-pencil\"></span></button> ";
+                }
+            }
+        }).on("loaded.rs.jquery.bootgrid", function () {
+            /* Executes after data is loaded and rendered */
+            grid.find(".command-view").on("click", function (e) {
+                var url = "{{ path('utilisateurs_edit', {'id': 'edit_id'}) }}";
+                var id = $(this).attr("data-row-id");
+                url = url.replace("edit_id", id);
+                window.location.href = url;
+            });
+        });
+
+    </script>
+
+{% endblock %}
 
 {# 
     <table class="table">
