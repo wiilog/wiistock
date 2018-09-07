@@ -264,5 +264,47 @@
             });
         }
 
+        // Immatriculation_error
+        $("#parcs_immatriculation").change(function () {
+            $(this).parent().find('input, select').removeClass('is-invalid');
+            $(this).parent().find(".invalid-feedback").remove();
+            var immatriculation = $(this).val();
+            $.ajax({
+                url: "{{ path( 'parc_immatriculation_error' ) }}",
+                type: "POST",
+                dataType: "json",
+                data: {
+                    "immatriculation": immatriculation
+                },
+                success: function (resp) {
+                    if (resp) {
+                        var msg = '<span class="invalid-feedback d-block"><span class="mb-0 d-block"><span class="initialism form-error-icon badge badge-danger">Error</span><span class="form-error-message">Cette immatriculation est déjà utilisée</span></span></span>';
+                        $("#parcs_immatriculation").addClass('is-invalid').after(msg);
+                    }
+                }
+            });
+        });
+
+        // Serie_error
+        $("#parcs_n_serie").change(function () {
+            $(this).parent().find('input, select').removeClass('is-invalid');
+            $(this).parent().find(".invalid-feedback").remove();
+            var serie = $(this).val();
+            $.ajax({
+                url: "{{ path( 'parc_serie_error' ) }}",
+                type: "POST",
+                dataType: "json",
+                data: {
+                    "serie": serie
+                },
+                success: function (resp) {
+                    if (resp) {
+                        var msg = '<span class="invalid-feedback d-block"><span class="mb-0 d-block"><span class="initialism form-error-icon badge badge-danger">Error</span><span class="form-error-message">Ce numéro de série est déjà utilisée</span></span></span>';
+                        $("#parcs_n_serie").addClass('is-invalid').after(msg);
+                    }
+                }
+            });
+        });
+
     </script>
 {% endblock %}

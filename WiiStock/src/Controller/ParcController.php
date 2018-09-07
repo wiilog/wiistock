@@ -44,8 +44,10 @@ class ParcController extends AbstractController
             $statut = $request->request->get('statut');
             $site = $request->request->get('site');
             $immat = $request->request->get('immat');
+            $current = $request->request->get('currentPage');
+            $rowCount = $request->request->get('rowCount');
             if ($statut || $site || $immat) {
-                $parcs = $parcsRepository->findByStateSiteImmatriculation($statut, $site, $immat);
+                $parcs = $parcsRepository->findByStateSiteImmatriculation($statut, $site, $immat, $current, $rowCount);
             } else {
                 $parcs = $parcsRepository->findAll();
             }
@@ -64,8 +66,6 @@ class ParcController extends AbstractController
                 array_push($rows, $row);
             }
 
-            $current = $request->request->get('currentPage');
-            $rowCount = $request->request->get('rowCount');
             $data = array(
                 "current" => $current,
                 "rowCount" => $rowCount,
@@ -172,7 +172,7 @@ class ParcController extends AbstractController
     {
         $form = $this->createForm(ParcsType::class, $parc);
         $form->handleRequest($request);
-        
+
         if ($form->isSubmitted() && $form->isValid()) {
             if ($form->get('validation')->isClicked()) {
                 $parc = $form->getData();
@@ -230,7 +230,47 @@ class ParcController extends AbstractController
         }
         throw new NotFoundHttpException('404 Gwendal not found');
     }
-    
+
+    /**
+     * @Route("/ajax/immatriculation", name="parc_immatriculation_error", methods="GET|POST")
+     */
+    public function parc_immatriculation_error(Request $request) : Response
+    {
+        if ($request->isXmlHttpRequest()) {
+            $em = $this->getDoctrine()->getManager();
+            $immatriculation = $request->request->get('immatriculation');
+
+            $parcs = $em->getRepository(Parcs::class)->findAll();
+            foreach ($parcs as $parc) {
+                if (!strcmp($immatriculation, $parc->getImmatriculation()) && $parc->getImmatriculation() != NULL) {
+                    return new JsonResponse(true);
+                }
+            }
+            return new JsonResponse(false);
+        }
+        throw new NotFoundHttpException('404 Gwendal not found');
+    }
+
+    /**
+     * @Route("/ajax/serie", name="parc_serie_error", methods="GET|POST")
+     */
+    public function parc_serie_error(Request $request) : Response
+    {
+        if ($request->isXmlHttpRequest()) {
+            $em = $this->getDoctrine()->getManager();
+            $serie = $request->request->get('serie');
+
+            $parcs = $em->getRepository(Parcs::class)->findAll();
+            foreach ($parcs as $parc) {
+                if (!strcmp($serie, $parc->getNSerie()) &&  $parc->getNSerie() != NULL) {
+                    return new JsonResponse(true);
+                }
+            }
+            return new JsonResponse(false);
+        }
+        throw new NotFoundHttpException('404 Gwendal not found');
+    }
+
     /**
      * @Route("/export/csv", name="export_csv", methods="GET|POST")
      */

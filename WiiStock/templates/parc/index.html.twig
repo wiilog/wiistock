@@ -4,119 +4,119 @@
 
 {% block page_content %}
 
-    <div class="row backgray filter-wrapper">
-        <form class="form-inline">
-            <div class="form-group">
-                <select id="statut" class="form-control">
-                    <option value="">Statut</option>
-                    <option>Actif</option>
-                    <option>Demande création</option>
-                    <option>Sorti</option>
-                    <option>Demande sortie/transfert</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <select id="site" class="form-control">
-                    <option value="">Site</option>
-                    {% for filiale in filiales %}
-                        <optgroup label="{{ filiale.nom }}"></optgroup>
-                        {% for site in filiale.sites %}
-                            <option>{{ site.nom }}</option>
-                        {% endfor %}
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="form-group">
-                <input id="immat" type="search" class="form-control" placeholder="Immatriculation/numéro de série">
-            </div>
-            {# <a class="btn more-filter">Plus de filtres</a> #}
-            <a href="#" id="filter" class="button btn-right">
-                Filtrer<span class="fa fa-angle-double-right"></span></a>
-        </form>
-    </div>
+	<div class="row backgray filter-wrapper">
+		<form class="form-inline">
+			<div class="form-group">
+				<select id="statut" class="form-control">
+					<option value="">Statut</option>
+					<option>Actif</option>
+					<option>Demande création</option>
+					<option>Sorti</option>
+					<option>Demande sortie/transfert</option>
+				</select>
+			</div>
+			<div class="form-group">
+				<select id="site" class="form-control">
+					<option value="">Site</option>
+					{% for filiale in filiales %}
+						<optgroup label="{{ filiale.nom }}"></optgroup>
+						{% for site in filiale.sites %}
+							<option>{{ site.nom }}</option>
+						{% endfor %}
+					{% endfor %}
+				</select>
+			</div>
+			<div class="form-group">
+				<input id="immat" type="search" class="form-control" placeholder="Immatriculation/numéro de série">
+			</div>
+			{# <a class="btn more-filter">Plus de filtres</a> #}
+			<a href="#" id="filter" class="button btn-right">
+				Filtrer<span class="fa fa-angle-double-right"></span></a>
+		</form>
+	</div>
 
-    <div class="row page-title">
-        LISTE DES PARCS
-    </div>
+	<div class="row page-title">
+		LISTE DES VEHICULES
+	</div>
 
-    <div class="row btn-grp">
-        <a href="{{ path('parc_create') }}" class="button btn-left">
-            <span class="fa fa-plus"></span>Nouveau véhicule
-        </a>
-    </div>
+	<div class="row btn-grp">
+		<a href="{{ path('parc_create') }}" class="button btn-left">
+			<span class="fa fa-plus"></span>Nouveau véhicule
+		</a>
+	</div>
 
-    <table id="grid-data" class="table table-condensed table-hover table-striped">
-        <thead>
-            <tr>
-                <th data-column-id="id">Id</th>
-                <th data-column-id="nparc">Numéro Parc</th>
-                <th data-column-id="etat">Etat</th>
-                <th data-column-id="nserie">Numéro de série/immatriculation</th>
-                <th data-column-id="marque">Marque</th>
-                <th data-column-id="site">Site</th>
-                <th data-column-id="commands" data-formatter="commands" data-sortable="false">Détail</th>
-            </tr>
-        </thead>
-    </table>
+	<table id="grid-data" class="table table-condensed table-hover table-striped">
+		<thead>
+			<tr>
+				<th data-column-id="id" data-visible="false">Id</th>
+				<th data-column-id="nparc">Numéro Parc</th>
+				<th data-column-id="etat">Etat</th>
+				<th data-column-id="nserie">Numéro de série/immatriculation</th>
+				<th data-column-id="marque">Marque</th>
+				<th data-column-id="site">Site</th>
+				<th data-column-id="commands" data-formatter="commands" data-sortable="false">Détail</th>
+			</tr>
+		</thead>
+	</table>
 
-    <div class="row">
-        <div class="col-md-12">
-            <a href="#" class="button btn-left pull-left">
-                <span class="fa fa-angle-double-left"></span>Retour</a>
-            <a href="{{ path('export_csv') }}" class="button btn-left pull-right">
-                <span class="fa fa-cloud-download"></span>Télécharger</a>
-        </div>
-    </div>
+	<div class="row">
+		<div class="col-md-12">
+			<a href="#" class="button btn-left pull-left">
+				<span class="fa fa-angle-double-left"></span>Retour</a>
+			<a href="{{ path('export_csv') }}" class="button btn-left pull-right">
+				<span class="fa fa-cloud-download"></span>Télécharger</a>
+		</div>
+	</div>
 {% endblock %}
 
 {% block javascripts %}
-    <script type="text/javascript">
-        var grid = $("#grid-data").bootgrid({
-            ajax: true,
-            requestHandler: function (request) {
-                request.id = "b0df282a-0d67-40e5-8558-c9e93b7befed";
-                request.statut = $("#statut").val();
-                request.site = $("#site").val();
-                request.immat = $("#immat").val();
-                request.currentPage = $("#grid-data").bootgrid("getCurrentPage");
-                request.rowCount = $("#grid-data").bootgrid("getRowCount");
-                return request;
-            },
-            url: "{{ path('parc_list') }}",
-            formatters: {
-                "commands": function (column, row) {
-                    return "<button type=\"button\" class=\"btn btn-xs btn-default command-view\" data-row-id=\"" + row.id + "\"><span class=\"fa fa-pencil\"></span></button> ";
-                }
-            }
-        }).on("loaded.rs.jquery.bootgrid", function () {
-            /* Executes after data is loaded and rendered */
-            grid.find(".command-view").on("click", function (e) {
-                var url = "{{ path('parc_edit', {'id': 'edit_id'}) }}";
-                var id = $(e.target).closest('tr').children('td:first-child').html();
-                url = url.replace("edit_id", id);
-                window.location.href = url;
-            })
-        });
+	<script type="text/javascript">
+		var grid = $("#grid-data").bootgrid({
+			ajax: true,
+			requestHandler: function (request) {
+				request.id = "b0df282a-0d67-40e5-8558-c9e93b7befed";
+				request.statut = $("#statut").val();
+				request.site = $("#site").val();
+				request.immat = $("#immat").val();
+				request.currentPage = $("#grid-data").bootgrid("getCurrentPage");
+				request.rowCount = $("#grid-data").bootgrid("getRowCount");
+				return request;
+			},
+			url: "{{ path('parc_list') }}",
+			formatters: {
+				"commands": function (column, row) {
+					return "<button type=\"button\" class=\"btn btn-xs btn-default command-view\" data-row-id=\"" + row.id + "\"><span class=\"fa fa-pencil\"></span></button> ";
+				}
+			}
+		}).on("loaded.rs.jquery.bootgrid", function () {
+			/* Executes after data is loaded and rendered */
+			grid.find(".command-view").on("click", function (e) {
+				var url = "{{ path('parc_edit', {'id': 'edit_id'}) }}";
+				var id = $(this).attr("data-row-id");
+				url = url.replace("edit_id", id);
+				window.location.href = url;
+			})
+		});
 
-        $("#filter").on("click", function () {
-            /*var statut = $("#statut").val();
-            var site = $("#site").val();
-            var immat = $("#immat").val();
-            $.ajax({
-                url: "{{ path('parc_list') }}",
-                type: "POST",
-                dataType: "json",
-                data: {"statut": statut,
-                    "site": site,
-                    "immat": immat
-                },
-                async: true,
-                success: function (resp) {
-            */
-            $("#grid-data").bootgrid('reload');
-            /*    }
-            });*/
-        });
-    </script>
+		$("#filter").on("click", function () {
+			/*var statut = $("#statut").val();
+			var site = $("#site").val();
+			var immat = $("#immat").val();
+			$.ajax({
+				url: "{{ path('parc_list') }}",
+				type: "POST",
+				dataType: "json",
+				data: {"statut": statut,
+					"site": site,
+					"immat": immat
+				},
+				async: true,
+				success: function (resp) {
+			*/
+			$("#grid-data").bootgrid('reload');
+			/*    }
+			});*/
+		});
+	</script>
 
 {% endblock %}

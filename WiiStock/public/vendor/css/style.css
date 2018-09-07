@@ -53,6 +53,7 @@ button:focus {
 .wrapper {
 	margin-left: 130px;
 	padding: 0px 15px;
+	margin-bottom: 30px;
 }
 
 .page-title {
@@ -1679,6 +1680,20 @@ input, [type=file]+label {
 	border-radius: 50px;
 }
 
+.mask {
+	background: #CCC;
+	border-radius: 1%;
+    height: 100%;
+	width: 100%;
+	z-index: 0;
+    opacity: 0;
+    top: 0;
+    left: 0;
+    position: absolute;
+    padding: 0;
+    transition: opacity .5s;
+}
+
 /* Separator 
 ================= */
 
@@ -1729,4 +1744,22 @@ input, [type=file]+label {
 	.separator-v-text {
 		left: 50%;
 	}
+}
+
+/* Form error
+================= */
+
+.is-invalid {
+    border-color: red;
+    margin-bottom: 5px;
+}
+
+.form-error-message {
+    color: red;
+}
+
+.badge {
+	margin-right: 7px;
+	margin-top: -3px;
+    background-color: red;
 }

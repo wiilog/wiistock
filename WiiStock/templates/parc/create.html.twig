@@ -58,7 +58,8 @@
 
         <div class="row">
             <div class="col-md-12 parc-flex">
-                <fieldset class="well list-box col-md-5">
+                <fieldset class="well list-box col-md-5" id="vehicule">
+                    <div class="mask"></div>
                     <legend class="well-legend">Véhicule</legend>
                     {{ form_row(form.immatriculation, {'required': false}) }}
                     <label class="control-label" for="carte_grise">Carte grise</label>
@@ -101,7 +102,8 @@
                         </div>
                     </div>
                 </div>
-                <fieldset class="well list-box col-md-5">
+                <fieldset class="well list-box col-md-5" id="chariot">
+                    <div class="mask"></div>
                     <legend class="well-legend">Chariot</legend>
                     {{ form_row(form.n_serie, {'required': false}) }}
                 </fieldset>
@@ -140,7 +142,7 @@
             <div class="col-md-12">
                 <a href="{{ path ('parc_list') }}" class="button btn-left pull-left">
                     <span class="fa fa-angle-double-left"></span>Retour</a>
-                {{ form_row(form.validation, {"attr": {"class" : "button btn-left pull-right"}}) }}
+                {{ form_row(form.validation, {"attr": {"class" : "button btn-left pull-right", "disabled": "disabled"}}) }}
 
             </div>
         </div>
@@ -199,5 +201,67 @@
                 }
             });
         }
+
+        // Immatriculation_error
+        $("#parcs_immatriculation").change(function () {
+            $(this).parent().find('input, select').removeClass('is-invalid');
+            $(this).parent().find(".invalid-feedback").remove();
+            var immatriculation = $(this).val();
+            if ($("#vehicule").find('input').val()) {
+                $("#chariot .mask").css({"opacity": ".7", "z-index": "50"});
+                $("#chariot").find('input, select, a').prop('disabled', true);
+            } else {
+                $("#chariot").find('input, select, a').prop('disabled', false);
+                $("#chariot .mask").css({"opacity": "0", "z-index": "0"});
+            }
+            $.ajax({
+                url: "{{ path( 'parc_immatriculation_error' ) }}",
+                type: "POST",
+                dataType: "json",
+                data: {
+                    "immatriculation": immatriculation
+                },
+                success: function (resp) {
+                    if (resp) {
+                        var msg = '<span class="invalid-feedback d-block"><span class="mb-0 d-block"><span class="initialism form-error-icon badge badge-danger">Error</span><span class="form-error-message">Cette immatriculation est déjà utilisée</span></span></span>';
+                        $("#parcs_immatriculation").addClass('is-invalid').after(msg);
+                        document.getElementById("parcs_validation").disabled = true;
+                    } else {
+                        document.getElementById("parcs_validation").disabled = false;
+                    }
+                }
+            });
+        });
+
+        // Serie_error
+        $("#parcs_n_serie").change(function () {
+            $(this).parent().find('input, select').removeClass('is-invalid');
+            $(this).parent().find(".invalid-feedback").remove();
+            var serie = $(this).val();
+            if ($("#chariot").find('input').val()) {
+                $("#vehicule .mask").css({"opacity": ".7", "z-index": "50"});
+                $("#vehicule").find('input, select, a').prop('disabled', true);
+            } else {
+                $("#vehicule").find('input, select, a').prop('disabled', false);
+                $("#vehicule .mask").css({"opacity": "0", "z-index": "0"});
+            }
+            $.ajax({
+                url: "{{ path( 'parc_serie_error' ) }}",
+                type: "POST",
+                dataType: "json",
+                data: {
+                    "serie": serie
+                },
+                success: function (resp) {
+                    if (resp) {
+                        var msg = '<span class="invalid-feedback d-block"><span class="mb-0 d-block"><span class="initialism form-error-icon badge badge-danger">Error</span><span class="form-error-message">Ce numéro de série est déjà utilisée</span></span></span>';
+                        $("#parcs_n_serie").addClass('is-invalid').after(msg);
+                        document.getElementById("parcs_validation").disabled = true;
+                    } else {
+                        document.getElementById("parcs_validation").disabled = false;
+                    }
+                }
+            });
+        });
     </script>
 {% endblock %}

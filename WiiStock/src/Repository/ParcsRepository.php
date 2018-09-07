@@ -23,7 +23,7 @@ class ParcsRepository extends ServiceEntityRepository
     /**
      * @return Parcs[] Returns an array of Parcs objects
      */
-    public function findByStateSiteImmatriculation($state, $site, $immat)
+    public function findByStateSiteImmatriculation($state, $site, $immat, $current, $rowCount)
     {
         $qb = $this->createQueryBuilder('parc');
 
