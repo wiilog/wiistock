@@ -17,13 +17,13 @@
             {% if n_parc %}
                 n°{{ n_parc }}
             {% endif %}
-        <span class="circle pull-right
-            {% if parc.statut == "Demande création" %} backorange 
+        <div class="circle pull-right
+            {% if parc.statut == "Demande création" %} backviolet 
             {% elseif parc.statut == "Sorti" %} backred 
             {% elseif parc.statut == "Demande sortie/transfert" %} backblue 
             {% else %} backgreen 
             {% endif %}">
-        </span>
+        </div>
         </div>
     </div>
     <div class="parc-etat">
@@ -76,9 +76,10 @@
 
         <div class="row">
             <div class="col-md-12 parc-flex">
-                <fieldset class="well list-box col-md-5">
+                <fieldset class="well list-box col-md-5" id="vehicule">
                     <legend class="well-legend">Véhicule</legend>
-                    {{ form_row(form.immatriculation, {'required': false}) }}
+                    <div class="mask"></div>
+                    {{ form_row(form.immatriculation, {'required': false, 'attr': {'autocomplete': 'off'}}) }}
                     <label class="control-label" for="carte_grise">Carte grise</label>
                     <div class="row form-group" id="carte_grise">
                         <div class="col-md-6">
@@ -119,9 +120,10 @@
                         </div>
                     </div>
                 </div>
-                <fieldset class="well list-box col-md-5">
+                <fieldset class="well list-box col-md-5" id="chariot">
                     <legend class="well-legend">Chariot</legend>
-                    {{ form_row(form.n_serie, {'required': false}) }}
+                    <div class="mask"></div>
+                    {{ form_row(form.n_serie, {'required': false, 'attr': {'autocomplete': 'off'}}) }}
                 </fieldset>
             </div>
         </div>
@@ -145,14 +147,17 @@
             <legend class="well-legend">Numéro de parc</legend>
             <div class="form-inline">
                 {{ form_widget(form.n_parc, {'required': false}) }}
-                <a class="btn btn-primary" id="generator">
-                    <span class="fa fa-refresh"></span>
-                </a>
+
+                {% if is_granted('ROLE_PARC_ADMIN') %}
+                    <a class="btn btn-primary" id="generator">
+                        <span class="fa fa-refresh"></span>
+                    </a>
+                {% endif %}
             </div>
         </fieldset>
 
         <fieldset class="row well list-box">
-            <legend class="well-legend">Sortie</legend>
+            <legend class="well-legend">Sortie/Transfert</legend>
             <div class="row">
                 <div class="col-md-4">
                     {{ form_row(form.sortie, {'required': false}) }}
@@ -163,20 +168,17 @@
             </div>
             {{ form_row(form.commentaire_sortie, {'required': false}) }}
 
+            {% if is_granted('ROLE_PARC_ADMIN') %}
             <div class="row">
                 <div class="col-md-6">
-                    <div class="radio">
-                        <input id="radio-1" name="radio" type="radio" form="form">
-                        <label for="radio-1" class="radio-label">Remise en service</label>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="radio">
-                        <input id="radio-2" name="radio" type="radio" form="form">
-                        <label for="radio-2" class="radio-label">Sortie définitive</label>
+                    <div>
+                        <input type="checkbox" id="scales" name="feature"
+                            value="scales" checked />
+                        <label for="scales">Sortie définitive</label>
                     </div>
                 </div>
             </div>
+            {% endif %}
         </fieldset>
 
         <div class="row">
@@ -265,6 +267,7 @@
         }
 
         // Immatriculation_error
+        var immatriculation_init = $('#parcs_immatriculation').val();
         $("#parcs_immatriculation").change(function () {
             $(this).parent().find('input, select').removeClass('is-invalid');
             $(this).parent().find(".invalid-feedback").remove();
@@ -274,11 +277,12 @@
                 type: "POST",
                 dataType: "json",
                 data: {
-                    "immatriculation": immatriculation
+                    "immatriculation": immatriculation,
+                    "immatriculation_init": immatriculation_init,
                 },
                 success: function (resp) {
                     if (resp) {
-                        var msg = '<span class="invalid-feedback d-block"><span class="mb-0 d-block"><span class="initialism form-error-icon badge badge-danger">Error</span><span class="form-error-message">Cette immatriculation est déjà utilisée</span></span></span>';
+                        var msg = '<span class="invalid-feedback d-block"><span class="mb-0 d-block"><span class="initialism form-error-icon badge badge-danger">Erreur</span><span class="form-error-message">Ce numéro d\'immatriculation est déjà attribué.</span></span></span>';
                         $("#parcs_immatriculation").addClass('is-invalid').after(msg);
                     }
                 }
@@ -286,6 +290,7 @@
         });
 
         // Serie_error
+        var serie_init = $('#parcs_n_serie').val();
         $("#parcs_n_serie").change(function () {
             $(this).parent().find('input, select').removeClass('is-invalid');
             $(this).parent().find(".invalid-feedback").remove();
@@ -295,16 +300,27 @@
                 type: "POST",
                 dataType: "json",
                 data: {
-                    "serie": serie
+                    "serie": serie,
+                    "serie_init": serie_init,
                 },
                 success: function (resp) {
                     if (resp) {
-                        var msg = '<span class="invalid-feedback d-block"><span class="mb-0 d-block"><span class="initialism form-error-icon badge badge-danger">Error</span><span class="form-error-message">Ce numéro de série est déjà utilisée</span></span></span>';
+                        var msg = '<span class="invalid-feedback d-block"><span class="mb-0 d-block"><span class="initialism form-error-icon badge badge-danger">Erreur</span><span class="form-error-message">Ce numéro de série est déjà attribué.</span></span></span>';
                         $("#parcs_n_serie").addClass('is-invalid').after(msg);
                     }
                 }
             });
         });
+
+        if ($("#vehicule").find('input').val()) {
+            $("#chariot .mask").css({"opacity": ".7", "z-index": "50"});
+            $(".well-legend").css({"z-index": "51"});
+            $("#chariot").find('input, select, a').prop('disabled', true);
+        } else {
+            $("#vehicule .mask").css({"opacity": ".7", "z-index": "50"});
+            $(".well-legend").css({"z-index": "51"});
+            $("#vehicule").find('input, select, a').prop('disabled', true);
+        }
 
     </script>
 {% endblock %}

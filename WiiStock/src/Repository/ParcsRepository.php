@@ -39,9 +39,7 @@ class ParcsRepository extends ServiceEntityRepository
         }
 
         if ($immat != "") {
-            $qb->leftJoin('parc.vehicules', 'vehicule')
-            ->leftJoin('parc.chariots', 'chariot')
-            ->andWhere('vehicule.immatriculation = :valImmat OR chariot.n_serie = :valImmat')
+            $qb->andWhere('parc.immatriculation = :valImmat OR parc.n_serie = :valImmat')
             ->setParameter('valImmat', $immat);
         }
         

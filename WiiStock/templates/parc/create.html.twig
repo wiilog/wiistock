@@ -64,19 +64,13 @@
                     {{ form_row(form.immatriculation, {'required': false}) }}
                     <label class="control-label" for="carte_grise">Carte grise</label>
                     <div class="row form-group" id="carte_grise">
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <a>
                                 <input id="f02" type="file" placeholder="Importer"/>
                                 <label for="f02">
                                     <span class="fa fa-cloud-upload"></span>
                                     &nbsp;Importer
                                 </label>
-                            </a>
-                        </div>
-                        <div class="col-md-6">
-                            <a class="btn btn-default disabled" id="dwl">
-                                <span class="fa fa-cloud-download"></span>
-                                Télécharger
                             </a>
                         </div>
                     </div>
@@ -123,19 +117,6 @@
                     {{ form_row(form.mise_en_service) }}
                 </div>
             </div>
-        </fieldset>
-
-        <fieldset class="row well list-box">
-            <legend class="well-legend">Sortie</legend>
-            <div class="row">
-                <div class="col-md-4">
-                    {{ form_row(form.sortie, {'required': false}) }}
-                </div>
-                <div class="col-md-8">
-                    {{ form_row(form.motif, {'required': false}) }}
-                </div>
-            </div>
-            {{ form_row(form.commentaire_sortie, {'required': false}) }}
         </fieldset>
 
         <div class="row">
@@ -223,7 +204,7 @@
                 },
                 success: function (resp) {
                     if (resp) {
-                        var msg = '<span class="invalid-feedback d-block"><span class="mb-0 d-block"><span class="initialism form-error-icon badge badge-danger">Error</span><span class="form-error-message">Cette immatriculation est déjà utilisée</span></span></span>';
+                        var msg = '<span class="invalid-feedback d-block"><span class="mb-0 d-block"><span class="initialism form-error-icon badge badge-danger">Erreur</span><span class="form-error-message">Ce numéro d\'immatriculation est déjà attribué.</span></span></span>';
                         $("#parcs_immatriculation").addClass('is-invalid').after(msg);
                         document.getElementById("parcs_validation").disabled = true;
                     } else {
@@ -254,7 +235,7 @@
                 },
                 success: function (resp) {
                     if (resp) {
-                        var msg = '<span class="invalid-feedback d-block"><span class="mb-0 d-block"><span class="initialism form-error-icon badge badge-danger">Error</span><span class="form-error-message">Ce numéro de série est déjà utilisée</span></span></span>';
+                        var msg = '<span class="invalid-feedback d-block"><span class="mb-0 d-block"><span class="initialism form-error-icon badge badge-danger">Erreur</span><span class="form-error-message">Ce numéro de série est déjà attribué.</span></span></span>';
                         $("#parcs_n_serie").addClass('is-invalid').after(msg);
                         document.getElementById("parcs_validation").disabled = true;
                     } else {

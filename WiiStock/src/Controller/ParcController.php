@@ -239,10 +239,13 @@ class ParcController extends AbstractController
         if ($request->isXmlHttpRequest()) {
             $em = $this->getDoctrine()->getManager();
             $immatriculation = $request->request->get('immatriculation');
+            $immatriculation_init = $request->request->get('immatriculation_init');
 
             $parcs = $em->getRepository(Parcs::class)->findAll();
             foreach ($parcs as $parc) {
-                if (!strcmp($immatriculation, $parc->getImmatriculation()) && $parc->getImmatriculation() != NULL) {
+                if (!strcmp($immatriculation, $parc->getImmatriculation())
+                && $parc->getImmatriculation() != NULL
+                && $parc->getImmatriculation() != $immatriculation_init) {
                     return new JsonResponse(true);
                 }
             }
@@ -259,10 +262,14 @@ class ParcController extends AbstractController
         if ($request->isXmlHttpRequest()) {
             $em = $this->getDoctrine()->getManager();
             $serie = $request->request->get('serie');
+            $serie_init = $request->request->get('serie_init');
 
+            dump($serie_init);
             $parcs = $em->getRepository(Parcs::class)->findAll();
             foreach ($parcs as $parc) {
-                if (!strcmp($serie, $parc->getNSerie()) &&  $parc->getNSerie() != NULL) {
+                if (!strcmp($serie, $parc->getNSerie())
+                && $parc->getNSerie() != NULL
+                && $parc->getNSerie() != $serie_init) {
                     return new JsonResponse(true);
                 }
             }
@@ -279,7 +286,6 @@ class ParcController extends AbstractController
         $classMetadataFactory = new ClassMetadataFactory(new AnnotationLoader(new AnnotationReader()));
         $encoder = new CsvEncoder();
         $normalizer = new PropertyNormalizer($classMetadataFactory);
-        $serializer = new Serializer(array($normalizer), array($encoder));
 
         $callback = function ($dateTime) {
             return $dateTime instanceof \DateTime
@@ -295,15 +301,18 @@ class ParcController extends AbstractController
         ));
 
         $org = $parcsRepository->findAll();
-        $data = $serializer->serialize($org, 'csv', ['groups' => ['parc']]);
+
+        $serializer = new Serializer(array($normalizer), array($encoder));
+        // $data = $serializer->serialize($org, 'csv');
+        $data = $serializer->serialize($org, 'csv', array('groups' => array('parc')));
 
         $data = str_replace(",", ";", $data);
 
         $fileName = "export_parcs_" . date("d_m_Y") . ".csv";
         $response = new Response($data);
         $response->setStatusCode(200);
-        $response->headers->set('Content-Type', 'text/csv; charset=UTF-8; application/excel');
-        $response->headers->set('Content-Disposition', 'attachment; filename=' . $fileName);
+        // $response->headers->set('Content-Type', 'text/csv; charset=UTF-8; application/excel');
+        // $response->headers->set('Content-Disposition', 'attachment; filename=' . $fileName);
         echo "\xEF\xBB\xBF"; // UTF-8 with BOM
         return $response;
     }

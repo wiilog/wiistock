@@ -16,11 +16,6 @@
                         <i class="fa fa-search"></i>
                     </a>
                 </li>
-                <li>
-                    <a href="{{ path('accueil') }}">
-                        <i class="fa fa-home"></i>
-                    </a>
-                </li>
 
                 {% if is_granted('ROLE_PARC') %}
                     <li class="has-submenu">
@@ -65,6 +60,11 @@
                     </li>
 
                 {% else %}
+                    <li>
+                        <a href="{{ path('accueil') }}">
+                            <i class="fa fa-home"></i>
+                        </a>
+                    </li>
                     <li class="has-submenu">
                         <a href="#">
                             <i class="fa fa-truck"></i>

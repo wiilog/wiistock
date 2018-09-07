@@ -13,7 +13,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  * @ORM\Entity(repositoryClass="App\Repository\ParcsRepository")
  * @UniqueEntity(fields="n_parc", message="Ce numéro de parc est déjà attribué.")
  * @UniqueEntity(fields="n_serie", message="Ce numéro de série est déjà attribué.")
- * @UniqueEntity(fields="immatriculation", message="Ce numéro d'immatriculation' est déjà attribué.")
+ * @UniqueEntity(fields="immatriculation", message="Ce numéro d'immatriculation est déjà attribué.")
  */
 class Parcs
 {
@@ -55,7 +55,7 @@ class Parcs
     private $fournisseur;
 
     /**
-     * @ORM\Column(type="integer", nullable=false)
+     * @ORM\Column(type="float", nullable=false)
      * @Groups({"parc"})
      */
     private $poids;
@@ -134,36 +134,36 @@ class Parcs
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Filiales", inversedBy="parcs")
-     * @Groups({"parc"})
      * @ORM\JoinColumn(nullable=false)
+     * @Groups({"parc"})
      */
     private $filiale;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Marques", inversedBy="parcs")
-     * @Groups({"parc"})
      * @ORM\JoinColumn(nullable=false)
+     * @Groups({"parc"})
      */
     private $marque;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Sites", inversedBy="parcs")
-     * @Groups({"parc"})
      * @ORM\JoinColumn(nullable=false)
+     * @Groups({"parc"})
      */
     private $site;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\SousCategoriesVehicules", inversedBy="parcs")
-     * @Groups({"parc"})
      * @ORM\JoinColumn(nullable=false)
+     * @Groups({"parc"})
      */
     private $sousCategorieVehicule;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\CategoriesVehicules", inversedBy="parcs")
-     * @Groups({"parc"})
      * @ORM\JoinColumn(nullable=false)
+     * @Groups({"parc"})
      */
     private $categorieVehicule;
 

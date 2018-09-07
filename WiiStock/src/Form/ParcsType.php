@@ -79,6 +79,9 @@ class ParcsType extends AbstractType
 			))
 			->add('n_parc', TextType::class, array(
 				'label' => 'Numéro de parc',
+				'attr' => array(
+					'readonly' => true,
+				),
 			))
 			->add('mise_en_circulation', DateType::class, array(
 				'label' => 'Date de première mise en circulation',
@@ -127,6 +130,7 @@ class ParcsType extends AbstractType
 			->add('motif', ChoiceType::class, array(
 				'label' => 'Motif',
 				'choices' => array(
+					'' => '',
 					'Mise au rebus' => 'Mise au rebus',
 					'Transfert vers site d’une filiale différente' => 'Transfert vers site d’une filiale différente',
 					'Transfert vers site d’une même filiale' => 'Transfert vers site d’une même filiale',
@@ -138,6 +142,7 @@ class ParcsType extends AbstractType
 			->add('genre', ChoiceType::class, array(
 				'label' => 'Genre (J1)',
 				'choices' => array(
+					'' => '',
 					'Genre 1' => 'Genre 1',
                     'Genre 2' => 'Genre 2',
                     'Genre 3' => 'Genre 3',
