@@ -44,22 +44,35 @@ class ParcController extends AbstractController
             $statut = $request->request->get('statut');
             $site = $request->request->get('site');
             $immat = $request->request->get('immat');
-            $current = $request->request->get('currentPage');
+            $current = $request->request->get('current');
             $rowCount = $request->request->get('rowCount');
-            if ($statut || $site || $immat) {
-                $parcs = $parcsRepository->findByStateSiteImmatriculation($statut, $site, $immat, $current, $rowCount);
+            $searchPhrase = $request->request->get('searchPhrase');
+            $sort = $request->request->get('sort');
+
+            $parcs = $parcsRepository->findByStateSiteImmatriculation($statut, $site, $immat, $searchPhrase, $sort);
+
+            if ($searchPhrase != "" || $statut || $site) {
+                $count =  count($parcs->getQuery()->getResult());
             } else {
-                $parcs = $parcsRepository->findAll();
+                $count = count($parcsRepository->findAll());
             }
-            $count = count($parcsRepository->findAll());
+
+            if ($rowCount != -1) {
+                $min = ($current - 1) * $rowCount;
+                $max = $min + $rowCount;
+    
+                $parcs->setMaxResults($max)
+                    ->setFirstResult($min);
+            }
+            $parcs = $parcs->getQuery()->getResult();
 
             $rows = array();
             foreach ($parcs as $parc) {
                 $row = [
                     "id" => $parc->getId(),
-                    "nparc" => $parc->getNParc(),
+                    "n_parc" => $parc->getNParc(),
                     "etat" => $parc->getStatut(),
-                    "nserie" => (($parc->getNserie() != null) ? $parc->getNSerie() : $parc->getImmatriculation()),
+                    "n_serie" => (($parc->getNserie() != null) ? $parc->getNSerie() : $parc->getImmatriculation()),
                     "marque" => $parc->getMarque()->getNom(),
                     "site" => $parc->getSite()->getNom(),
                 ];
@@ -67,10 +80,10 @@ class ParcController extends AbstractController
             }
 
             $data = array(
-                "current" => $current,
-                "rowCount" => $rowCount,
+                "current" => intval($current),
+                "rowCount" => intval($rowCount),
                 "rows" => $rows,
-                "total" => $count
+                "total" =>  intval($count)
             );
             
             /*

@@ -23,29 +23,66 @@ class ParcsRepository extends ServiceEntityRepository
     /**
      * @return Parcs[] Returns an array of Parcs objects
      */
-    public function findByStateSiteImmatriculation($state, $site, $immat, $current, $rowCount)
+    public function findByStateSiteImmatriculation($statut, $site, $immat, $searchPhrase, $sort)
     {
         $qb = $this->createQueryBuilder('parc');
-
-        if ($state) {
-            $qb->andWhere('parc.statut = :valState')
-            ->setParameter('valState', $state);
-        }
+        $parameters = [];
+        $key_id = 0;
 
         if ($site) {
-            $qb->leftJoin('parc.site', 'site')
-            ->andwhere('site.nom = :valSite')
-            ->setParameter('valSite', $site);
+            $query = "";
+            foreach ($site as $key => $value) {
+                $query = $query . "site.nom = ?" . $key_id . " OR ";
+                $parameters[$key_id] = $value;
+                $key_id += 1;
+            }
+            $query = substr($query, 0, -4);
+            $qb
+                ->andWhere($query)
+                ->setParameters($parameters);
+        }
+
+        if ($statut) {
+            $query = "";
+            foreach ($statut as $key => $value) {
+                $query = $query . "parc.statut = ?" . $key_id . " OR ";
+                $parameters[$key_id] = $value;
+                $key_id += 1;
+            }
+            $query = substr($query, 0, -4);
+            $qb->andWhere($query)
+            ->setParameters($parameters);
         }
 
         if ($immat != "") {
             $qb->andWhere('parc.immatriculation = :valImmat OR parc.n_serie = :valImmat')
-            ->setParameter('valImmat', $immat);
+                ->setParameter('valImmat', $immat);
         }
-        
-        return $qb->orderBy('parc.id', 'ASC')
-                ->getQuery()
-                ->getResult();
+
+        if ($searchPhrase != "" || $site) {
+            $qb->leftJoin('parc.site', 'site');
+        }
+
+        if ($searchPhrase != "") {
+            $qb->leftJoin('parc.marque', 'marque')
+                ->andWhere('parc.statut LIKE :search
+                OR parc.n_serie LIKE :search
+                OR parc.n_parc LIKE :search
+                OR marque.nom LIKE :search
+                OR site.nom LIKE :search
+            ')
+                ->setParameter('search', '%' . $searchPhrase . '%');
+        }
+
+        if ($sort) {
+            foreach ($sort as $key => $value) {
+                $qb->orderBy('parc.' . $key, $value);
+            }
+        } else {
+            $qb->orderBy('parc.statut', 'ASC');
+        }
+
+        return $qb;
     }
 
     public function findLast()

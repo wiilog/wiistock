@@ -128,9 +128,6 @@ input:-webkit-autofill {
 	vertical-align: top;
 }
 
-.btn-grp {
-}
-
 .btn-grp .button {
 	margin-right: 20px;
 	margin-bottom: -50px;
@@ -1185,8 +1182,20 @@ input:checked+.slider:before {
 /* Filtre
 ================= */
 
+.select2 {
+	width: 100%!important;
+}
+
 .filter-wrapper {
-	padding: 10px 0px 15px 20px;
+	padding: 10px 0px 15px 0px;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: baseline;
+}
+
+.filter-wrapper div {
+	width: 25%;
 }
 
 .more-filter {
