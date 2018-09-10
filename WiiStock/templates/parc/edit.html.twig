@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Parc{% endblock %}
+{% block title %}Véhicule{% endblock %}
 
 {% block date_widget %}
     <div class="has-feedback">
@@ -13,7 +13,7 @@
 
     <div class="title-container">
         <div class="row page-title">
-            PARC
+            VEHICULE
             {% if n_parc %}
                 n°{{ n_parc }}
             {% endif %}
@@ -39,6 +39,8 @@
         <fieldset class="well list-box">
             <legend class="well-legend">Données générales</legend>
             <div class="row">
+                
+            {% if is_granted('ROLE_PARC_ADMIN') %}
                 <div class="col-md-6">
                     {{ form_row(form.filiale) }}
                 </div>
@@ -62,14 +64,50 @@
                     {{ form_row(form.modele) }}
                 </div>
             </div>
+
+            {% else %} {# role_parc #}
+                <div class="col-md-6">
+                    {{ form_row(form.filiale, { 'attr':{'disabled':'disabled'} }) }}
+                </div>
+                <div class="col-md-6">
+                    {{ form_row(form.site, { 'attr':{'disabled':'disabled'} }) }}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    {{ form_row(form.categorieVehicule, { 'attr':{'disabled':'disabled'} }) }}
+                </div>
+                <div class="col-md-6">
+                    {{ form_row(form.sousCategorieVehicule, { 'attr':{'disabled':'disabled'} }) }}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    {{ form_row(form.marque, { 'attr':{'disabled':'disabled'} }) }}
+                </div>
+                <div class="col-md-6">
+                    {{ form_row(form.modele, { 'attr':{'readonly':'readonly'} }) }}
+                </div>
+            </div>                
+            {% endif %}
+
             <div class="separator"></div>
             <div class="row">
+            {% if is_granted('ROLE_PARC_ADMIN') %}    
                 <div class="col-md-6">
                     {{ form_row(form.poids) }}
                 </div>
                 <div class="col-md-6">
                     {{ form_row(form.mise_en_circulation) }}
                 </div>
+            {% else %}
+                <div class="col-md-6">
+                    {{ form_row(form.poids, { 'attr':{'readonly':'readonly'} }) }}
+                </div>
+                <div class="col-md-6">
+                    {{ form_row(form.mise_en_circulation, { 'attr':{'disabled':'disabled'} }) }}
+                </div>
+            {% endif %}
             </div>
             {{ form_row(form.commentaire, {'required': false}) }}
         </fieldset>
@@ -131,6 +169,7 @@
         <fieldset class="row well list-box">
             <legend class="well-legend">Acquisition</legend>
             <div class="row">
+            {% if is_granted('ROLE_PARC_ADMIN') %}    
                 <div class="col-md-4">
                     {{ form_row(form.fournisseur) }}
                 </div>
@@ -140,6 +179,18 @@
                 <div class="col-md-4">
                     {{ form_row(form.mise_en_service) }}
                 </div>
+
+            {% else %} {# role_parc #}
+                <div class="col-md-4">
+                    {{ form_row(form.fournisseur, { 'attr':{'readonly':'readonly'} }) }}
+                </div>
+                <div class="col-md-4">
+                    {{ form_row(form.mode_acquisition, { 'attr':{'disabled':'disabled'} }) }}
+                </div>
+                <div class="col-md-4">
+                    {{ form_row(form.mise_en_service, { 'attr':{'disabled':'disabled'} }) }}
+                </div>
+            {% endif %}
             </div>
         </fieldset>
 
@@ -173,7 +224,7 @@
                 <div class="col-md-6">
                     <div>
                         <input type="checkbox" id="scales" name="feature"
-                            value="scales" checked />
+                            value="scales"/>
                         <label for="scales">Sortie définitive</label>
                     </div>
                 </div>

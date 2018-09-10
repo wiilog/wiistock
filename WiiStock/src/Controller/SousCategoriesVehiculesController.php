@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
- * @Route("/parc/sous_categories_vehicules")
+ * @Route("/parc/admin/sous_categories_vehicules")
  */
 class SousCategoriesVehiculesController extends Controller
 {

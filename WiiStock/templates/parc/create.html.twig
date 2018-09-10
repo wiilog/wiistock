@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Nouveau parc{% endblock %}
+{% block title %}Nouveau véhicule{% endblock %}
 
 {% block date_widget %}
     <div class="has-feedback">
@@ -12,7 +12,7 @@
 {% block page_content %}
 
     <div class="row page-title">
-        NOUVEAU PARC
+        NOUVEAU VEHICULE
     </div>
     <div class="parc-content col-md-12">
         {{ form_start(form) }}
@@ -183,6 +183,9 @@
             });
         }
 
+        $("#parcs_validation").attr("data-toggle", "tooltip");
+        $("#parcs_validation").attr("title", "Vous devez saisir un numéro d'immatriculation ou un numéro de série non existant pour pouvoir enregistrer le nouveau véhicule");
+
         // Immatriculation_error
         $("#parcs_immatriculation").change(function () {
             $(this).parent().find('input, select').removeClass('is-invalid');
@@ -194,6 +197,8 @@
             } else {
                 $("#chariot").find('input, select, a').prop('disabled', false);
                 $("#chariot .mask").css({"opacity": "0", "z-index": "0"});
+                $("#parcs_validation").attr("data-toggle", "tooltip");
+                $("#parcs_validation").attr("title", "Vous devez saisir un numéro d'immatriculation ou un numéro de série non existant pour pouvoir enregistrer le nouveau véhicule");
             }
             $.ajax({
                 url: "{{ path( 'parc_immatriculation_error' ) }}",
@@ -207,8 +212,12 @@
                         var msg = '<span class="invalid-feedback d-block"><span class="mb-0 d-block"><span class="initialism form-error-icon badge badge-danger">Erreur</span><span class="form-error-message">Ce numéro d\'immatriculation est déjà attribué.</span></span></span>';
                         $("#parcs_immatriculation").addClass('is-invalid').after(msg);
                         document.getElementById("parcs_validation").disabled = true;
+                        $("#parcs_validation").attr("data-toggle", "tooltip");
+                        $("#parcs_validation").attr("title", "Vous devez saisir un numéro d'immatriculation ou un numéro de série non existant pour pouvoir enregistrer le nouveau véhicule");
                     } else {
                         document.getElementById("parcs_validation").disabled = false;
+                        $("#parcs_validation").removeAttr("data-toggle");
+                        $("#parcs_validation").removeAttr("title");
                     }
                 }
             });
@@ -225,6 +234,8 @@
             } else {
                 $("#vehicule").find('input, select, a').prop('disabled', false);
                 $("#vehicule .mask").css({"opacity": "0", "z-index": "0"});
+                $("#parcs_validation").attr("data-toggle", "tooltip");
+                $("#parcs_validation").attr("title", "Vous devez saisir un numéro d'immatriculation ou un numéro de série non existant pour pouvoir enregistrer le nouveau véhicule");
             }
             $.ajax({
                 url: "{{ path( 'parc_serie_error' ) }}",
@@ -238,8 +249,12 @@
                         var msg = '<span class="invalid-feedback d-block"><span class="mb-0 d-block"><span class="initialism form-error-icon badge badge-danger">Erreur</span><span class="form-error-message">Ce numéro de série est déjà attribué.</span></span></span>';
                         $("#parcs_n_serie").addClass('is-invalid').after(msg);
                         document.getElementById("parcs_validation").disabled = true;
+                        $("#parcs_validation").attr("data-toggle", "tooltip");
+                        $("#parcs_validation").attr("title", "Vous devez saisir un numéro d'immatriculation ou un numéro de série non existant pour pouvoir enregistrer le nouveau véhicule");
                     } else {
                         document.getElementById("parcs_validation").disabled = false;
+                        $("#parcs_validation").removeAttr("data-toggle");
+                        $("#parcs_validation").removeAttr("title");
                     }
                 }
             });
