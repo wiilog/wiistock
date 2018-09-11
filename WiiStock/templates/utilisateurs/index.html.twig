@@ -25,7 +25,15 @@
         <div class="col-md-6">
             <fieldset class="well">
                 <legend class="well-legend">Créer un utilisateur</legend>
-                <form class="form-inline">
+                {{ form_start(form_creation) }}
+                    {{ form_row(form_creation.username) }}
+                    {{ form_row(form_creation.email) }}
+                    {{ form_row(form_creation.plainPassword.first) }}
+                    {{ form_row(form_creation.plainPassword.second) }}
+                    <button name="creation" class="button" type="submit">Créer</button>
+                    {{ form_row(form_creation._token) }}
+                {{ form_end(form_creation, {'render_rest' : false}) }}
+                {# <form class="form-inline">
                     <div class="input-group">
                         <input type="text" class="form-control" name="username" placeholder="Username">
                     </div>
@@ -44,13 +52,21 @@
                         <a href="#" class="button btn-left"><span class="fa fa-check"></span>
                             Valider</a>
                     </div>
-                </form>
+                </form> #}
             </fieldset>
         </div>
         <div class="col-md-6">
             <fieldset class="well">
                 <legend class="well-legend">Modifier un utilisateur</legend>
-                <form class="form-inline">
+
+                {{ form_start(form_modif) }}
+                    {{ form_row(form_modif.username) }}
+                    {{ form_row(form_modif.email) }}
+                    {{ form_row(form_modif.roles) }}
+                    <button class="button" type="submit">Modifier</button>
+                {{ form_end(form_modif) }}
+
+                {# <form class="form-inline">
                     <div class="input-group">
                         <input type="text" class="form-control" name="username" placeholder="Username">
                     </div>
@@ -69,7 +85,7 @@
                         <a href="#" class="button btn-left"><span class="fa fa-check"></span>
                             Valider</a>
                     </div>
-                </form>
+                </form> #}
             </fieldset>
         </div>
     </div>    

@@ -5,12 +5,18 @@ namespace App\Controller;
 use App\Entity\Utilisateurs;
 use App\Form\UtilisateursType;
 use App\Repository\UtilisateursRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
+use Symfony\Component\Form\Extension\Core\Type\EmailType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\PasswordType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 
 /**
  * @Route("/utilisateurs")
@@ -20,8 +26,9 @@ class UtilisateursController extends Controller
     /**
      * @Route("/", name="utilisateurs_index", methods="GET|POST")
      */
-    public function index(UtilisateursRepository $utilisateursRepository, Request $request): Response
+    public function index(UtilisateursRepository $utilisateursRepository, EntityManagerInterface $em, Request $request, UserPasswordEncoderInterface $passwordEncoder): Response
     {
+        // envoie des données en ajax pour la table
         if ($request->isXmlHttpRequest()) {
 
             $current = $request->request->get('current');
@@ -39,7 +46,7 @@ class UtilisateursController extends Controller
 
             if ($rowCount != -1) {
                 $min = ($current - 1) * $rowCount;
-                $max = $min + $rowCount;
+                $max = $rowCount;
     
                 $utilisateurs->setMaxResults($max)
                     ->setFirstResult($min);
@@ -110,9 +117,53 @@ class UtilisateursController extends Controller
             );
 
             return new JsonResponse($data);
+        } 
+
+        // gestion des formulaires
+
+        $user = new Utilisateurs();
+        
+        // creation
+        $form_creation = $this->createForm(UtilisateursType::class, $user);
+
+        $form_creation->handleRequest($request);
+
+        if ($form_creation->isSubmitted() && $form_creation->isValid()) {
+            $user = $form_creation->getData();
+
+            $password = $passwordEncoder->encodePassword($user, $user->getPlainPassword());
+            $user->setPassword($password);
+            
+            $em->persist($user);
+            $em->flush();
+            
+            return $this->redirectToRoute('utilisateurs_index');
         }
 
-        return $this->render('utilisateurs/index.html.twig', ['utilisateurs' => $utilisateursRepository->findAll()]);
+        // modification
+        $form_modif = $this->createFormBuilder()
+            ->add('id_user', HiddenType::class, array(
+                'mapped' => false,
+            ))
+            ->add('email', EmailType::class)
+            ->add('username', TextType::class)
+            ->add('roles', ChoiceType::class, array(
+                'label' => 'Rôles',
+                'choices' => array(
+                    'Utilisateur' => 'ROLE_USER',
+                    'Utilisateur parc' => 'ROLE_PARC',
+                    'Admin parc' => 'ROLE_ADMIN_PARC',
+                ),
+                'multiple' => true,
+            ))
+        ->getForm();
+
+
+        return $this->render('utilisateurs/index.html.twig', ['utilisateurs' => $utilisateursRepository->findAll(),
+            'form_creation' => $form_creation->createView(),
+            'form_modif' => $form_modif->createView()
+
+        ]);
     }
 
     /**
