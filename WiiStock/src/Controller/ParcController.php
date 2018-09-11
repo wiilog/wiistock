@@ -191,9 +191,16 @@ class ParcController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             if ($form->get('validation')->isClicked()) {
                 $parc = $form->getData();
-                $parc->setStatut("Actif");
-                if ($parc->getSortie()) {
-                    $parc->setStatut("Demande sortie/transfert");
+                if ($parc->getNParc()) {
+                        $parc->setStatut("Actif");
+                    if ($parc->getSortie()) {
+                        $parc->setStatut("Demande sortie/transfert");
+                    }
+                    if ($parc->getEstSorti()) {
+                        $parc->setStatut("Sorti");
+                    }
+                } else {
+                    $parc->setStatut("Demande création");
                 }
 
                 $this->getDoctrine()->getManager()->flush();

@@ -2,6 +2,8 @@
 
 {% block title %}Nouveau véhicule{% endblock %}
 
+{% form_theme form _self %}
+
 {% block date_widget %}
     <div class="has-feedback">
         {{ block('form_widget_simple') }}

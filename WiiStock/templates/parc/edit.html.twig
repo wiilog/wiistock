@@ -2,12 +2,29 @@
 
 {% block title %}Véhicule{% endblock %}
 
+{% form_theme form _self %}
+
 {% block date_widget %}
     <div class="has-feedback">
         {{ block('form_widget_simple') }}
         <span class="glyphicon glyphicon-calendar form-control-feedback" aria-hidden="true"></span>
     </div>
 {% endblock date_widget %}
+
+{% block checkbox_widget %}
+    <div class="checkbox">
+         {# {{ block('form_widget_simple') }} #}
+        <input class="inp-cbx" id="cbx" type="checkbox" {{ block('widget_attributes') }}{% if value is defined %} value="{{ value }}"{% endif %}{% if checked %} checked="checked"{% endif %} style="display: none;"/>
+        <label class="cbx" for="cbx">
+                <span>
+                    <svg width="12px" height="10px" viewbox="0 0 12 10">
+                        <polyline points="1.5 6 4.5 9 10.5 1"></polyline>
+                    </svg>
+                </span>
+            <span>Sortie Définitive</span>
+        </label>
+    </div>
+{% endblock checkbox_widget %}
 
 {% block page_content %}
 
@@ -219,20 +236,12 @@
             </div>
             {{ form_row(form.commentaire_sortie, {'required': false}) }}
 
-            {% if is_granted('ROLE_PARC_ADMIN') %}
-            <div class="row">
-                <div class="col-md-6 checkbox">
-                    <input class="inp-cbx" id="cbx" type="checkbox" style="display: none;"/>
-                    <label class="cbx" for="cbx">
-                        <span>
-                            <svg width="12px" height="10px" viewbox="0 0 12 10">
-                                <polyline points="1.5 6 4.5 9 10.5 1"></polyline>
-                            </svg>
-                        </span>
-                        <span>Sortie Définitive</span>
-                    </label>
+            {% if is_granted('ROLE_PARC_ADMIN') and (parc.statut == "Demande sortie/transfert" or parc.statut == "Sorti" ) %}
+                <div class="row">
+                    <div class="col-md-6">
+                        {{ form_widget(form.estSorti) }} 
+                    </div>
                 </div>
-            </div>
             {% endif %}
         </fieldset>
 
@@ -376,6 +385,15 @@
             $(".well-legend").css({"z-index": "51"});
             $("#vehicule").find('input, select, a').prop('disabled', true);
         }
+
+        $('#parcs_validation').on('click', function(e) {
+            console.log()
+            if ( ($('#parcs_sortie').val() && !($('#parcs_motif').val()))
+            || (!($('#parcs_sortie').val()) && $('#parcs_motif').val())) {
+                e.preventDefault();
+            }
+            //e.target.submit();
+        });
 
     </script>
 {% endblock %}

@@ -18,6 +18,8 @@ use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
+use Symfony\Component\Form\Extension\Core\Type\FileType;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use App\Form\ChariotsType;
 use App\Form\VehiculesType;
@@ -150,7 +152,13 @@ class ParcsType extends AbstractType
 			))
 			->add('ptac', IntegerType::class, array('label' => 'Ptac (F2)'))
             ->add('ptr', IntegerType::class, array('label' => 'Ptr (F3)'))
-            ->add('puissance_fiscale')
+			->add('puissance_fiscale')
+			
+			->add('estSorti', CheckboxType::class, array(
+				'label'    => 'Sortie Définitive',
+				'required' => false,
+			))
+			->add('img', FileType::class, array('label' => 'Carte grise'))
             ->add('validation', SubmitType::class, array('label' => 'Enregistrer'))
 			;
 	}

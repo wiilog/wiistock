@@ -1018,7 +1018,7 @@
         navigation: 3, // it's a flag: 0 = none, 1 = top, 2 = bottom, 3 = both (top and bottom)
         padding: 2, // page padding (pagination)
         columnSelection: true,
-        rowCount: [2, 4, 10, -1], // rows per page int or array of int (-1 represents "All")
+        rowCount: [10, 25, 50, -1], // rows per page int or array of int (-1 represents "All")
 
         /**
          * Enables row selection (to enable multi selection see also `multiSelect`). Default value is `false`.
@@ -1086,7 +1086,7 @@
              * @default 250
              * @for searchSettings
              **/
-            delay: 250,
+            delay: 500,
             
             /**
              * The characters to type before the search gets executed.
@@ -1295,7 +1295,7 @@
             all: "Tout",
             infos: "Affichage de l'élément {{ctx.start}} à {{ctx.end}} sur {{ctx.total}} éléments",
             loading: "Chargement...",
-            noResults: "Pas de résultat trouvé !",
+            noResults: "Aucun résultat trouvé !",
             refresh: "Rafraichir",
             search: "Recherche"
         },

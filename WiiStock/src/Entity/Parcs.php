@@ -167,6 +167,21 @@ class Parcs
      */
     private $categorieVehicule;
 
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $img;
+
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $estSorti;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $lastEdit;
+
     public function getId() : ? int
     {
         return $this->id;
@@ -445,6 +460,42 @@ class Parcs
     public function setPuissanceFiscale(int $puissance_fiscale): self
     {
         $this->puissance_fiscale = $puissance_fiscale;
+
+        return $this;
+    }
+
+    public function getImg(): ?string
+    {
+        return $this->img;
+    }
+
+    public function setImg(?string $img): self
+    {
+        $this->img = $img;
+
+        return $this;
+    }
+
+    public function getEstSorti(): ?bool
+    {
+        return $this->estSorti;
+    }
+
+    public function setEstSorti(?bool $estSorti): self
+    {
+        $this->estSorti = $estSorti;
+
+        return $this;
+    }
+
+    public function getLastEdit(): ?string
+    {
+        return $this->lastEdit;
+    }
+
+    public function setLastEdit(?string $lastEdit): self
+    {
+        $this->lastEdit = $lastEdit;
 
         return $this;
     }
