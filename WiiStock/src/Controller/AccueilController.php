@@ -13,7 +13,7 @@ class AccueilController extends Controller
      */
     public function index()
     {
-
+        
         $today = date("d/m/Y");
 
         return $this->render('accueil/index.html.twig', [
