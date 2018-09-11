@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
+use Symfony\Component\Config\Definition\Exception\Exception;
 
 class SecuriteController extends Controller
 {
@@ -47,14 +48,17 @@ class SecuriteController extends Controller
     {
 
     	$user = new Utilisateurs();
+        dump($user);
+
     	$form = $this->createForm(UtilisateursType::class, $user);
 
     	$form->handleRequest($request);
     	if ($form->isSubmitted() && $form->isValid()) {
     		$password = $passwordEncoder->encodePassword($user, $user->getPlainPassword());
     		$user->setPassword($password);
+            $user->setRoles(array('ROLE_USER'));
 
-
+            dump($user);
     		$em->persist($user);
     		$em->flush();
 
@@ -71,10 +75,11 @@ class SecuriteController extends Controller
      * @Route("/check_last_login", name="check_last_login")
      */
     public function checkLastLogin(EntityManagerInterface $em) {
+
         $user = $this->getUser();
         $user->setLastLogin(new \Datetime());
         $em->flush();
-
+        
         $roles = $user->getRoles();
         /*
         $new_roles = array("ROLE_PARC_ADMIN", "ROLE_USER");
@@ -87,6 +92,7 @@ class SecuriteController extends Controller
         }
 
         return $this->redirectToRoute('accueil');
+        
     }
 
     /**

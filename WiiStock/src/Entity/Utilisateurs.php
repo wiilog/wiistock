@@ -74,7 +74,7 @@ class Utilisateurs implements UserInterface, EquatableInterface
 
     public function __construct(/* $username, $password, $salt, array $roles */) 
     {
-        $this->roles = array('ROLE_USER');
+        /*$this->roles = array('ROLE_USER', 'ROLE_PARC');*/
         // $this->username = $username;
         // $this->password = $password;
         // $this->salt = $salt;
