@@ -23,10 +23,29 @@ class UtilisateursController extends Controller
     public function index(UtilisateursRepository $utilisateursRepository, Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-            $utilisateurs = $utilisateursRepository->findAll();
-            $count = count($utilisateursRepository->findAll());
-            $current = $request->request->get('currentPage');
+
+            $current = $request->request->get('current');
             $rowCount = $request->request->get('rowCount');
+            $searchPhrase = $request->request->get('searchPhrase');
+            $sort = $request->request->get('sort');
+
+            $utilisateurs = $utilisateursRepository->findBySearchSort($searchPhrase, $sort);
+
+            if ($searchPhrase != "") {
+                $count =  count($utilisateurs->getQuery()->getResult());
+            } else {
+                $count = count($utilisateursRepository->findAll());
+            }
+
+            if ($rowCount != -1) {
+                $min = ($current - 1) * $rowCount;
+                $max = $min + $rowCount;
+    
+                $utilisateurs->setMaxResults($max)
+                    ->setFirstResult($min);
+            }
+
+            $utilisateurs = $utilisateurs->getQuery()->getResult();
 
             $rows = array();
             foreach ($utilisateurs as $utilisateur) {
@@ -39,24 +58,57 @@ class UtilisateursController extends Controller
                 // enlève les deux derniers caractères
                 $roles_string = substr($roles_string, 0, -2);
 
+
+                // format de la derniere date de connexion
+                if ($utilisateur->getLastLogin()) {
+                    $lastLogin = date_diff(new \Datetime(), $utilisateur->getLastLogin());
+
+                    $format = "Il y a ";
+                    if ($lastLogin->y) {
+                        $format = $format . "environ " . $lastLogin->y . "an(s) " . $lastLogin->m . "mois";
+                    }
+                    else if ($lastLogin->m) {
+                        $format = $format . "environ " . $lastLogin->m . "mois " . $lastLogin->d . "jour(s)";
+                    }
+
+                    else if ($lastLogin->d) {
+                        $format = $format . $lastLogin->d . "jour(s) " . $lastLogin->h . "heure(s)";
+                    }
+                    
+                    else if ($lastLogin->h) {
+                        $format = $format . $lastLogin->h . "h" . $lastLogin->i . "min";
+                    }
+
+                    else {
+                        $format = $format . $lastLogin->i . "min";
+                    }
+                    
+                    $lastLogin = $lastLogin->format($format);    
+                
+                } else {
+                    $lastLogin = "Aucune connexion";
+                }
+                
+
                 $row = [
                     "id" => $utilisateur->getId(),
                     "username" => $utilisateur->getUsername(),
                     "email" => $utilisateur->getEmail(),
                     "groupe" => $utilisateur->getGroupe(),
-                    "lastCon" => "",
+                    "lastLogin" => $lastLogin,
                     "roles" => $roles_string,
                 ];
+                
                 array_push($rows, $row);
             }
 
             $data = array(
-                "current" => $current,
-                "rowCount" => $rowCount,
+                "current" => intval($current),
+                "rowCount" => intval($rowCount),
                 "rows" => $rows,
-                "total" => $count
+                "total" => intval($count)
             );
-            /*dump($data);*/
+
             return new JsonResponse($data);
         }
 

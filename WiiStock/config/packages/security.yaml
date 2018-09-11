@@ -26,7 +26,7 @@ security:
         our_db_provider:
             entity:
                 class: App\Entity\Utilisateurs
-                property: username
+                property: email
         in_memory: { memory: ~ }
 
     firewalls:
@@ -48,7 +48,7 @@ security:
                 login_path: login
                 check_path: login
                 provider: our_db_provider
-                default_target_path: /accueil
+                default_target_path: /check_last_login
                 always_use_default_target_path: true
                 csrf_token_generator: security.csrf.token_manager
             remember_me:

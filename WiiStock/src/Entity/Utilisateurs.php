@@ -24,13 +24,13 @@ class Utilisateurs implements UserInterface, EquatableInterface
     private $id;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255, unique=true)
      * @Assert\NotBlank()
      */
     private $username;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255, unique=true)
      * @Assert\NotBlank()
      * @Assert\Email()
      */
@@ -67,9 +67,14 @@ class Utilisateurs implements UserInterface, EquatableInterface
 
     private $salt;
 
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $lastLogin;
+
     public function __construct(/* $username, $password, $salt, array $roles */) 
     {
-        $this->roles = array('ROLE_PARC', 'ROLE_USER');
+        $this->roles = array('ROLE_USER');
         // $this->username = $username;
         // $this->password = $password;
         // $this->salt = $salt;
@@ -193,5 +198,17 @@ class Utilisateurs implements UserInterface, EquatableInterface
         }
 
         return true;
+    }
+
+    public function getLastLogin(): ?\DateTimeInterface
+    {
+        return $this->lastLogin;
+    }
+
+    public function setLastLogin(?\DateTimeInterface $lastLogin): self
+    {
+        $this->lastLogin = $lastLogin;
+
+        return $this;
     }
 }
