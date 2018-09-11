@@ -68,6 +68,28 @@ class SecuriteController extends Controller
     }
 
     /**
+     * @Route("/check_last_login", name="check_last_login")
+     */
+    public function checkLastLogin(EntityManagerInterface $em) {
+        $user = $this->getUser();
+        $user->setLastLogin(new \Datetime());
+        $em->flush();
+
+        $roles = $user->getRoles();
+        /*
+        $new_roles = array("ROLE_PARC_ADMIN", "ROLE_USER");
+        $this->getUser()->setRoles($new_roles);
+        $this->getDoctrine()->getManager()->flush();
+        */
+
+        if (in_array("ROLE_PARC", $roles) || in_array("ROLE_PARC_ADMIN", $roles)) {
+            return $this->redirectToRoute('parc_list');
+        }
+
+        return $this->redirectToRoute('accueil');
+    }
+
+    /**
      * @Route("/logout", name="logout")
      */
     public function logout() {

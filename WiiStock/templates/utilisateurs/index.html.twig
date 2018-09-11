@@ -10,12 +10,13 @@
     <table id="grid-data" class="table table-condensed table-hover table-striped">
         <thead>
             <tr>
+                <th data-column-id="id" data-visible="false" data-sortable="false">Id</th>
                 <th data-column-id="username">Username</th>
                 <th data-column-id="email">Email</th>
-                <th data-column-id="groupe">Groupe</th>
-                <th data-column-id="roles">Rôles</th>
-                <th data-column-id="lastCon">Dernière connexion</th>
-                <th data-colun-id="commands">Action</th>
+                {# <th data-column-id="groupe" data-visible="false" data-sortable="false">Groupe</th> #}
+                <th data-column-id="roles" data-sortable="false">Rôles</th>
+                <th data-column-id="lastLogin">Dernière connexion</th>
+                <th data-colun-id="commands" data-formatter="commands">Action</th>
             </tr>
         </thead>
     </table>
@@ -99,11 +100,26 @@
             }
         }).on("loaded.rs.jquery.bootgrid", function () {
             /* Executes after data is loaded and rendered */
-            grid.find(".command-view").on("click", function (e) {
+            grid.find(".command-view").on("click", function (e) {/*
                 var url = "{{ path('utilisateurs_edit', {'id': 'edit_id'}) }}";
-                var id = $(this).attr("data-row-id");
                 url = url.replace("edit_id", id);
-                window.location.href = url;
+                window.location.href = url;*/
+
+                var id = $(this).attr("data-row-id");
+                $.ajax({
+                    url: "#",
+                    type: "POST",
+                    dataType: "json",
+                    data: {id},
+                    async: true,
+                    success: function (resp) {
+                        user = resp;
+                        $("input[id='form_username']").val(user.username);
+                        $("input[id='form_email']").val(user.email);
+                    }
+
+                });
+
             });
         });
 
