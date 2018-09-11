@@ -26,6 +26,18 @@
     </div>
 {% endblock checkbox_widget %}
 
+{% block _parcs_img_widget %}
+        <div class="col-md-6">
+            <a>
+                <input id="f02" type="file" {{ block('widget_attributes') }} placeholder="Importer"></input>
+                <label for="f02">
+                    <span class="fa fa-cloud-upload"></span>
+                    &nbsp;Importer
+                </label>
+            </a>
+        </div>
+{% endblock %}
+
 {% block page_content %}
 
     <div class="title-container">
@@ -137,21 +149,15 @@
                     {{ form_row(form.immatriculation, {'required': false, 'attr': {'autocomplete': 'off'}}) }}
                     <label class="control-label" for="carte_grise">Carte grise</label>
                     <div class="row form-group" id="carte_grise">
+                        {{ form_widget(form.img) }}
+                        {% if parc.img %}
                         <div class="col-md-6">
-                            <a>
-                                <input id="f02" type="file" placeholder="Importer"/>
-                                <label for="f02">
-                                    <span class="fa fa-cloud-upload"></span>
-                                    &nbsp;Importer
-                                </label>
-                            </a>
-                        </div>
-                        <div class="col-md-6">
-                            <a class="btn btn-default disabled" id="dwl">
+                            <a class="btn btn-default" id="dwl" href="{{ asset('uploads/cards/' ~ parc.img) }}">
                                 <span class="fa fa-cloud-download"></span>
                                 Télécharger
                             </a>
                         </div>
+                        {% endif %}
                     </div>
                     <div class="row">
                         <div class="col-md-4">
@@ -224,7 +230,7 @@
             </div>
         </fieldset>
 
-        <fieldset class="row well list-box">
+        <fieldset class="row well list-box" id="sortie">
             <legend class="well-legend">Sortie/Transfert</legend>
             <div class="row">
                 <div class="col-md-4">
@@ -386,13 +392,25 @@
             $("#vehicule").find('input, select, a').prop('disabled', true);
         }
 
-        $('#parcs_validation').on('click', function(e) {
-            console.log()
+        function disableEnregistrer() {
+            document.getElementById("parcs_validation").disabled = true;
+            $("#parcs_validation").attr("data-toggle", "tooltip");
+            $("#parcs_validation").attr("title", "Vous devez saisir une date ET un motif de sortie pour pouvoir enregistrer");
+        }
+
+        function enableEnregistrer() {
+            document.getElementById("parcs_validation").disabled = false;
+            $("#parcs_validation").removeAttr("data-toggle");
+            $("#parcs_validation").removeAttr("title");
+        }
+
+        $('#sortie .form-control').change(function() {
             if ( ($('#parcs_sortie').val() && !($('#parcs_motif').val()))
             || (!($('#parcs_sortie').val()) && $('#parcs_motif').val())) {
-                e.preventDefault();
+                disableEnregistrer();
+            } else {
+                enableEnregistrer();
             }
-            //e.target.submit();
         });
 
     </script>

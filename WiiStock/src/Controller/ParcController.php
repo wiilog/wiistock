@@ -18,6 +18,7 @@ use App\Repository\FilialesRepository;
 use App\Repository\SousCategoriesVehiculesRepository;
 use App\Repository\SitesRepository;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use App\Service\FileUploader;
 
 use Doctrine\Common\Annotations\AnnotationReader;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -88,21 +89,10 @@ class ParcController extends AbstractController
                 "total" => intval($count)
             );
             
-            /*
-            $encoders = array(new JsonEncoder());
-            $normalizers = array(new ObjectNormalizer());
-
-            $serializer = new Serializer($normalizers, $encoders);
-            $jsonContent = $serializer->serialize($parcs, 'json', array('groups' => array('parc')));
-
-            dump($data);
-             */
             return new JsonResponse($data);
-
         }
 
         $filiales = $filialesRepository->findAll();
-
 
         return $this->render('parc/index.html.twig', [
             'controller_name' => 'ParcController',
@@ -113,16 +103,24 @@ class ParcController extends AbstractController
     /**
      * @Route("/create", name="parc_create", methods="GET|POST")
      */
-    public function create(Request $request) : Response
+    public function create(Request $request, FileUploader $fileUploader) : Response
     {
         $parc = new Parcs();
         $form = $this->createForm(ParcsType::class, $parc);
 
         $em = $this->getDoctrine()->getManager();
-
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             if ($form->get('validation')->isClicked()) {
+
+                /* start upload */
+                // $file = $parc->getImg();
+                $file = $form['img']->getData();
+                // getSize()
+                $fileName = $fileUploader->upload($file);
+                $parc->setImg($fileName);
+                /* end upload */
+
                 $parc = $form->getData();
                 $parc->setStatut("Demande création");
                 $em->persist($parc);
@@ -183,7 +181,7 @@ class ParcController extends AbstractController
     /**
      * @Route("/edit/{id}", name="parc_edit", methods="GET|POST")
      */
-    public function edit(Request $request, Parcs $parc) : Response
+    public function edit(Request $request, Parcs $parc, FileUploader $fileUploader) : Response
     {
         $form = $this->createForm(ParcsType::class, $parc);
         $form->handleRequest($request);
@@ -191,6 +189,15 @@ class ParcController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             if ($form->get('validation')->isClicked()) {
                 $parc = $form->getData();
+
+                /* start upload */
+                // $file = $parc->getImg();
+                $file = $form['img']->getData();
+                // getSize()
+                $fileName = $fileUploader->upload($file);
+                $parc->setImg($fileName);
+                /* end upload */
+
                 if ($parc->getNParc()) {
                         $parc->setStatut("Actif");
                     if ($parc->getSortie()) {

@@ -158,7 +158,10 @@ class ParcsType extends AbstractType
 				'label'    => 'Sortie Définitive',
 				'required' => false,
 			))
-			->add('img', FileType::class, array('label' => 'Carte grise'))
+			->add('img', FileType::class, array(
+				'label' => 'Carte grise',
+				'data_class' => null,
+			))
             ->add('validation', SubmitType::class, array('label' => 'Enregistrer'))
 			;
 	}

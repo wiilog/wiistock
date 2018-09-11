@@ -11,6 +11,20 @@
     </div>
 {% endblock date_widget %}
 
+{# {% block _parcs_img_widget %}
+    <div class="row form-group" id="carte_grise">
+        <div class="col-md-4">
+            <a>
+                <input id="f02" type="file" {{ block('widget_attributes') }} placeholder="Importer"></input>
+                <label for="f02">
+                    <span class="fa fa-cloud-upload"></span>
+                    &nbsp;Importer
+                </label>
+            </a>
+        </div>
+    </div>
+{% endblock %} #}
+
 {% block page_content %}
 
     <div class="row page-title">
@@ -64,18 +78,7 @@
                     <div class="mask"></div>
                     <legend class="well-legend">Véhicule</legend>
                     {{ form_row(form.immatriculation, {'required': false}) }}
-                    <label class="control-label" for="carte_grise">Carte grise</label>
-                    <div class="row form-group" id="carte_grise">
-                        <div class="col-md-4">
-                            <a>
-                                <input id="f02" type="file" placeholder="Importer"/>
-                                <label for="f02">
-                                    <span class="fa fa-cloud-upload"></span>
-                                    &nbsp;Importer
-                                </label>
-                            </a>
-                        </div>
-                    </div>
+                    {{ form_row(form.img) }}
                     <div class="row">
                         <div class="col-md-4">
                             {{ form_row(form.genre, {'required': false}) }}
@@ -138,7 +141,7 @@
 
 {% block javascripts %}
     <script type="text/javascript">
-        $("[type=file]").on("change", function () {
+        {# $("[type=file]").on("change", function () {
             var file = this.files[0].name;
             var dflt = $(this).attr("placeholder");
             if ($(this).val() != "") {
@@ -146,7 +149,7 @@
             } else {
                 $(this).next().text(dflt);
             }
-        });
+        }); #}
 
         $('.datepicker').datepicker({language: 'fr', format: 'dd/mm/yyyy', todayBtn: true, todayHighlight: true, autoclose: true});
 
@@ -207,7 +210,7 @@
             $(this).parent().find(".invalid-feedback").remove();
             var immatriculation = $(this).val();
             if ($("#vehicule").find('input').val()) {
-                $("#chariot .mask").css({"opacity": ".7", "z-index": "50"});
+                $("#chariot .mask").css({"opacity": ".7", "z-index": "10"});
                 $("#chariot").find('input, select, a').prop('disabled', true);
                 enableEnregistrer();
             } else {

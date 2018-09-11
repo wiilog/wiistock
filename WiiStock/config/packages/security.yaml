@@ -80,6 +80,6 @@ security:
         - { path: ^/tests, roles: ROLE_API }
         #- { path: ^/, roles: ROLE_USER }
         - { path: ^/parc/admin, roles: ROLE_PARC_ADMIN }
-        # - { path: ^/, role: IS_AUTHENTICATED_REMEMBERED}
+        - { path: ^/, role: IS_AUTHENTICATED_REMEMBERED}
         # - { path: ^/admin, roles: ROLE_ADMIN }
         # - { path: ^/profile, roles: ROLE_USER }
