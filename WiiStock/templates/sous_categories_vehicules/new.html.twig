@@ -1,11 +1,14 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout.html.twig' %}
 
-{% block title %}New SousCategoriesVehicules{% endblock %}
+{% block title %}Nouvelle sous-catégorie{% endblock %}
 
-{% block body %}
-    <h1>Create new SousCategoriesVehicules</h1>
+{% block page_content %}
+    <h1>AJOUTER UNE NOUVELLE SOUS-CATEGORIE</h1>
 
-    {{ include('sous_categories_vehicules/_form.html.twig') }}
+    <div class="quick-form">
+        {{ include('sous_categories_vehicules/_form.html.twig') }}
+    </div>
 
-    <a href="{{ path('sous_categories_vehicules_index') }}">back to list</a>
+    <a href="{{ path ('parc_parametrage') }}" class="button btn-left pull-left">
+        <span class="fa fa-angle-double-left"></span>Retour</a>
 {% endblock %}

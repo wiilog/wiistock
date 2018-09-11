@@ -1,26 +1,27 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout.html.twig' %}
 
-{% block title %}CategoriesVehicules{% endblock %}
+{% block title %}Suppression catégorie "{{ categories_vehicule.nom }}"{% endblock %}
 
-{% block body %}
-    <h1>CategoriesVehicules</h1>
+{% block page_content %}
+    <h1>SUPPRESSION CATEGORIE "{{ categories_vehicule.nom }}"</h1>
 
-    <table class="table">
-        <tbody>
+    <table class="table table-condensed table-striped">
+        <thead>
             <tr>
                 <th>Id</th>
-                <td>{{ categories_vehicule.id }}</td>
-            </tr>
-            <tr>
                 <th>Nom</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>{{ categories_vehicule.id }}</td>
                 <td>{{ categories_vehicule.nom }}</td>
             </tr>
         </tbody>
     </table>
 
-    <a href="{{ path('categories_vehicules_index') }}">back to list</a>
-
-    <a href="{{ path('categories_vehicules_edit', {'id': categories_vehicule.id}) }}">edit</a>
-
     {{ include('categories_vehicules/_delete_form.html.twig') }}
+
+    <a href="{{ path ('parc_parametrage') }}" class="button btn-left pull-left">
+        <span class="fa fa-angle-double-left"></span>Retour</a>
 {% endblock %}

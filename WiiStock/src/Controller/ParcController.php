@@ -4,6 +4,8 @@ namespace App\Controller;
 
 use App\Entity\Parcs;
 use App\Entity\Filiales;
+use App\Entity\Marques;
+use App\Entity\Sites;
 use App\Entity\CategoriesVehicules;
 use App\Entity\SousCategoriesVehicules;
 use Symfony\Component\HttpFoundation\Request;
@@ -52,7 +54,7 @@ class ParcController extends AbstractController
             $parcs = $parcsRepository->findByStateSiteImmatriculation($statut, $site, $immat, $searchPhrase, $sort);
 
             if ($searchPhrase != "" || $statut || $site) {
-                $count =  count($parcs->getQuery()->getResult());
+                $count = count($parcs->getQuery()->getResult());
             } else {
                 $count = count($parcsRepository->findAll());
             }
@@ -60,7 +62,7 @@ class ParcController extends AbstractController
             if ($rowCount != -1) {
                 $min = ($current - 1) * $rowCount;
                 $max = $min + $rowCount;
-    
+
                 $parcs->setMaxResults($max)
                     ->setFirstResult($min);
             }
@@ -83,7 +85,7 @@ class ParcController extends AbstractController
                 "current" => intval($current),
                 "rowCount" => intval($rowCount),
                 "rows" => $rows,
-                "total" =>  intval($count)
+                "total" => intval($count)
             );
             
             /*
@@ -257,8 +259,8 @@ class ParcController extends AbstractController
             $parcs = $em->getRepository(Parcs::class)->findAll();
             foreach ($parcs as $parc) {
                 if (!strcmp($immatriculation, $parc->getImmatriculation())
-                && $parc->getImmatriculation() != NULL
-                && $parc->getImmatriculation() != $immatriculation_init) {
+                    && $parc->getImmatriculation() != null
+                    && $parc->getImmatriculation() != $immatriculation_init) {
                     return new JsonResponse(true);
                 }
             }
@@ -281,8 +283,8 @@ class ParcController extends AbstractController
             $parcs = $em->getRepository(Parcs::class)->findAll();
             foreach ($parcs as $parc) {
                 if (!strcmp($serie, $parc->getNSerie())
-                && $parc->getNSerie() != NULL
-                && $parc->getNSerie() != $serie_init) {
+                    && $parc->getNSerie() != null
+                    && $parc->getNSerie() != $serie_init) {
                     return new JsonResponse(true);
                 }
             }
@@ -328,5 +330,22 @@ class ParcController extends AbstractController
         // $response->headers->set('Content-Disposition', 'attachment; filename=' . $fileName);
         echo "\xEF\xBB\xBF"; // UTF-8 with BOM
         return $response;
+    }
+
+    /**
+     * @Route("/admin/parametrage", name="parc_parametrage", methods="GET|POST")
+     */
+    public function parc_parametrage(Request $request) : Response
+    {
+        $em = $this->getDoctrine()->getManager();
+
+        return $this->render('parc/parametrage.html.twig', [
+            'controller_name' => 'CreateController',
+            'filiales' => $em->getRepository(Filiales::class)->findAll(),
+            'sites' => $em->getRepository(Sites::class)->findAll(),
+            'categories' => $em->getRepository(CategoriesVehicules::class)->findAll(),
+            'sousCategories' => $em->getRepository(SousCategoriesVehicules::class)->findAll(),
+            'marques' => $em->getRepository(Marques::class)->findAll(),
+        ]);
     }
 }

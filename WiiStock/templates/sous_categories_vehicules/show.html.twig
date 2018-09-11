@@ -1,30 +1,29 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout.html.twig' %}
 
-{% block title %}SousCategoriesVehicules{% endblock %}
+{% block title %}Suppression sous-catégorie "{{ sous_categories_vehicule.nom }}"{% endblock %}
 
-{% block body %}
-    <h1>SousCategoriesVehicules</h1>
+{% block page_content %}
+    <h1>SUPPRESSION SOUS-CATEGORIE "{{ sous_categories_vehicule.nom }}"</h1>
 
-    <table class="table">
-        <tbody>
+    <table class="table table-condensed table-striped">
+        <thead>
             <tr>
                 <th>Id</th>
-                <td>{{ sous_categories_vehicule.id }}</td>
-            </tr>
-            <tr>
                 <th>Nom</th>
-                <td>{{ sous_categories_vehicule.nom }}</td>
-            </tr>
-            <tr>
                 <th>Code</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>{{ sous_categories_vehicule.id }}</td>
+                <td>{{ sous_categories_vehicule.nom }}</td>
                 <td>{{ sous_categories_vehicule.code }}</td>
             </tr>
         </tbody>
     </table>
 
-    <a href="{{ path('sous_categories_vehicules_index') }}">back to list</a>
-
-    <a href="{{ path('sous_categories_vehicules_edit', {'id': sous_categories_vehicule.id}) }}">edit</a>
-
     {{ include('sous_categories_vehicules/_delete_form.html.twig') }}
+
+    <a href="{{ path ('parc_parametrage') }}" class="button btn-left pull-left">
+        <span class="fa fa-angle-double-left"></span>Retour</a>
 {% endblock %}

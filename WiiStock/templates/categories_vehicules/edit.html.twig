@@ -1,13 +1,14 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout.html.twig' %}
 
-{% block title %}Edit CategoriesVehicules{% endblock %}
+{% block title %}Modification catégorie{% endblock %}
 
-{% block body %}
-    <h1>Edit CategoriesVehicules</h1>
+{% block page_content %}
+    <h1>MODIFICATION CATEGORIE</h1>
 
-    {{ include('categories_vehicules/_form.html.twig', {'button_label': 'Update'}) }}
+    <div class="quick-form">
+    {{ include('categories_vehicules/_form.html.twig', {'button_label': 'Mettre à jour'}) }}
+        </div>
 
-    <a href="{{ path('categories_vehicules_index') }}">back to list</a>
-
-    {{ include('categories_vehicules/_delete_form.html.twig') }}
+    <a href="{{ path ('parc_parametrage') }}" class="button btn-left pull-left">
+        <span class="fa fa-angle-double-left"></span>Retour</a>
 {% endblock %}

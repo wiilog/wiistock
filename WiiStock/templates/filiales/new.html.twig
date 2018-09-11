@@ -1,11 +1,14 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout.html.twig' %}
 
-{% block title %}New Filiales{% endblock %}
+{% block title %}Nouvelle filiale{% endblock %}
 
-{% block body %}
-    <h1>Create new Filiales</h1>
+{% block page_content %}
+    <h1>AJOUTER UNE NOUVELLE FILIALE</h1>
 
-    {{ include('filiales/_form.html.twig') }}
+    <div class="quick-form">
+        {{ include('filiales/_form.html.twig') }}
+    </div>
 
-    <a href="{{ path('filiales_index') }}">back to list</a>
+    <a href="{{ path ('parc_parametrage') }}" class="button btn-left pull-left">
+        <span class="fa fa-angle-double-left"></span>Retour</a>
 {% endblock %}

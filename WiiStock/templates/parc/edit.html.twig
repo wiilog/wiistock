@@ -221,12 +221,16 @@
 
             {% if is_granted('ROLE_PARC_ADMIN') %}
             <div class="row">
-                <div class="col-md-6">
-                    <div>
-                        <input type="checkbox" id="scales" name="feature"
-                            value="scales"/>
-                        <label for="scales">Sortie définitive</label>
-                    </div>
+                <div class="col-md-6 checkbox">
+                    <input class="inp-cbx" id="cbx" type="checkbox" style="display: none;"/>
+                    <label class="cbx" for="cbx">
+                        <span>
+                            <svg width="12px" height="10px" viewbox="0 0 12 10">
+                                <polyline points="1.5 6 4.5 9 10.5 1"></polyline>
+                            </svg>
+                        </span>
+                        <span>Sortie Définitive</span>
+                    </label>
                 </div>
             </div>
             {% endif %}

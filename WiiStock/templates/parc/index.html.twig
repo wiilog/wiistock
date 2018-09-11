@@ -67,12 +67,8 @@
 
 {% block javascripts %}
     <script type="text/javascript">
-        $('.basic-multiple-etat').select2({
-            placeholder: 'Etat',
-        });
-        $('.basic-multiple-site').select2({
-            placeholder: 'Site',
-        });
+        $('.basic-multiple-etat').select2({placeholder: 'Etat'});
+        $('.basic-multiple-site').select2({placeholder: 'Site'});
 
         var grid = $("#grid-data").bootgrid({
             ajax: true,

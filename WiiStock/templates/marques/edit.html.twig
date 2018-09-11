@@ -1,13 +1,14 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout.html.twig' %}
 
-{% block title %}Edit Marques{% endblock %}
+{% block title %}Modification marque{% endblock %}
 
-{% block body %}
-    <h1>Edit Marques</h1>
+{% block page_content %}
+    <h1>MODIFICATION MARQUE</h1>
 
-    {{ include('marques/_form.html.twig', {'button_label': 'Update'}) }}
+    <div class="quick-form">
+        {{ include('marques/_form.html.twig', {'button_label': 'Mettre à jour'}) }}
+    </div>
 
-    <a href="{{ path('marques_index') }}">back to list</a>
-
-    {{ include('marques/_delete_form.html.twig') }}
+    <a href="{{ path ('parc_parametrage') }}" class="button btn-left pull-left">
+        <span class="fa fa-angle-double-left"></span>Retour</a>
 {% endblock %}
