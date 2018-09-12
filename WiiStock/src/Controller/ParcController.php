@@ -144,6 +144,7 @@ class ParcController extends AbstractController
                 /* end upload */
 
                 $parc->setStatut("Demande création");
+                $parc->setLastEdit($this->getUser()->getEmail());
                 $em->persist($parc);
                 $em->flush();
 
@@ -235,6 +236,8 @@ class ParcController extends AbstractController
                 } else {
                     $parc->setStatut("Demande création");
                 }
+
+                $parc->setLastEdit($this->getUser()->getEmail());
 
                 $this->getDoctrine()->getManager()->flush();
 
