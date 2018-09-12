@@ -90,7 +90,7 @@ class ParcController extends AbstractController
                 "rows" => $rows,
                 "total" => intval($count)
             );
-            
+
             return new JsonResponse($data);
         }
 
@@ -99,6 +99,7 @@ class ParcController extends AbstractController
         return $this->render('parc/index.html.twig', [
             'controller_name' => 'ParcController',
             'filiales' => $filiales,
+            'date' => date("d_m_Y"),
         ]);
     }
 
@@ -225,7 +226,7 @@ class ParcController extends AbstractController
                 /* end upload */
 
                 if ($parc->getNParc()) {
-                        $parc->setStatut("Actif");
+                    $parc->setStatut("Actif");
                     if ($parc->getSortie()) {
                         $parc->setStatut("Demande sortie/transfert");
                     }
@@ -336,37 +337,41 @@ class ParcController extends AbstractController
     /**
      * @Route("/export/csv", name="export_csv", methods="GET|POST")
      */
-    public function generateCsvAction(ParcsRepository $parcsRepository) : Response
+    public function generateCsvAction(ParcsRepository $parcsRepository, Request $request) : Response
     {
-        $classMetadataFactory = new ClassMetadataFactory(new AnnotationLoader(new AnnotationReader()));
-        $normalizer = new ObjectNormalizer($classMetadataFactory);
-        $serializer = new Serializer([$normalizer], [new CsvEncoder(';')]);
+        if ($request->isXmlHttpRequest()) {
+            $statut = $request->request->get('statut');
+            $site = $request->request->get('site');
+            $immatriculation = $request->request->get('immatriculation');
+            $searchPhrase = $request->request->get('searchPhrase');
+            $sort = null;
 
-        $callback = function ($dateTime) {
-            return $dateTime instanceof \DateTime
-                ? $dateTime->format('d/m/y')
-                : '';
-        };
-        $normalizer->setCallbacks(array(
-            'sortie' => $callback,
-            'mise_en_circulation' => $callback,
-            'mise_en_service' => $callback,
-            'incorporation' => $callback,
-        ));
+            $classMetadataFactory = new ClassMetadataFactory(new AnnotationLoader(new AnnotationReader()));
+            $normalizer = new ObjectNormalizer($classMetadataFactory);
+            $serializer = new Serializer([$normalizer], [new CsvEncoder(';')]);
 
-        $org = $parcsRepository->findAll();
-        $data = $serializer->serialize($org, 'csv', array('groups' => array('parc')));
-        $data = str_replace("statut;n_parc;filiale.nom;site.nom;categorieVehicule.nom;sousCategorieVehicule.nom;sousCategorieVehicule.code;marque.nom;modele;poids;mise_en_circulation;commentaire;fournisseur;mode_acquisition;mise_en_service;n_serie;immatriculation;genre;ptac;ptr;puissance_fiscale;sortie;motif;commentaire_sortie",
-            "Statut;Numéro de parc;Filiale;Site;Catégorie de véhicule;Sous-catégorie de véhicule;Code de sous-catégorie de véhicule;Marque;Modèle;Poids;Date de mise en circulation;Commentaire;Fournisseur;Mode d'acquisition;Date de mise en service;Numéro de série;Immatriculation;Genre;PTAC;PTR;Puissance fiscale;Date de sortie;Motif;Commentaire de sortie",
-            $data
-        );
-        $fileName = "export_parcs_" . date("d_m_Y") . ".csv";
-        $response = new Response($data);
-        $response->setStatusCode(200);
-        $response->headers->set('Content-Type', 'text/csv; charset=UTF-8; application/excel');
-        $response->headers->set('Content-Disposition', 'attachment; filename=' . $fileName);
-        echo "\xEF\xBB\xBF"; // UTF-8 with BOM
-        return $response;
+            $callback = function ($dateTime) {
+                return $dateTime instanceof \DateTime
+                    ? $dateTime->format('d/m/y')
+                    : '';
+            };
+            $normalizer->setCallbacks(array(
+                'sortie' => $callback,
+                'mise_en_circulation' => $callback,
+                'mise_en_service' => $callback,
+            ));
+            
+            $org = $parcsRepository->findByStateSiteImmatriculation($statut, $site, $immatriculation, $searchPhrase, $sort)->getQuery()->getResult();
+            $data = $serializer->serialize($org, 'csv', array('groups' => array('parc')));
+            $data = str_replace(
+                "statut;n_parc;filiale.nom;site.nom;categorieVehicule.nom;sousCategorieVehicule.nom;sousCategorieVehicule.code;marque.nom;modele;poids;mise_en_circulation;commentaire;fournisseur;mode_acquisition;mise_en_service;n_serie;immatriculation;genre;ptac;ptr;puissance_fiscale;sortie;motif;commentaire_sortie",
+                "Statut;Numéro de parc;Filiale;Site;Catégorie de véhicule;Sous-catégorie de véhicule;Code de sous-catégorie de véhicule;Marque;Modèle;Poids;Date de mise en circulation;Commentaire;Fournisseur;Mode d'acquisition;Date de mise en service;Numéro de série;Immatriculation;Genre;PTAC;PTR;Puissance fiscale;Date de sortie;Motif;Commentaire de sortie",
+                $data
+            );
+            $response = new JsonResponse($data);
+            return $response;
+        }
+        throw new NotFoundHttpException('404 Gwendal not found');
     }
 
     /**

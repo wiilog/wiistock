@@ -59,7 +59,7 @@
 
     <div class="row">
         <div class="col-md-12">
-            <a href="{{ path('export_csv') }}" class="button btn-left pull-right">
+            <a id="download" href="{{ path('export_csv') }}" class="button btn-left pull-right">
                 <span class="fa fa-cloud-download"></span>Télécharger</a>
         </div>
     </div>
@@ -69,6 +69,33 @@
     <script type="text/javascript">
         $('.basic-multiple-etat').select2({placeholder: 'Etat'});
         $('.basic-multiple-site').select2({placeholder: 'Site'});
+
+        $("#download").on('click', function (e) {
+            e.preventDefault();
+            var statut = $("#statut").val();
+            var site = $("#site").val();
+            var immatriculation = $("#immat").val();
+            var searchPhrase = $(".search-field").val();
+            $.ajax({
+                url: "{{ path( 'export_csv' ) }}",
+                type: "POST",
+                dataType: "json",
+                data: {
+                    "statut": statut,
+                    "site": site,
+                    "immatriculation": immatriculation,
+                    "searchPhrase": searchPhrase
+                },
+                success: function (resp) {
+                    var csv = resp;
+                    var hiddenElement = document.createElement('a');
+                    hiddenElement.href = 'data:text/csv;charset=utf-8,' + encodeURI("\ufeff" + csv);
+                    hiddenElement.target = '_blank';
+                    hiddenElement.download = 'export_parc_' + '{{ date }}' + '.csv';
+                    hiddenElement.click();
+                }
+            });
+        });
 
         var grid = $("#grid-data").bootgrid({
             ajax: true,
