@@ -19,6 +19,8 @@ use App\Repository\SousCategoriesVehiculesRepository;
 use App\Repository\SitesRepository;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use App\Service\FileUploader;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+
 
 use Doctrine\Common\Annotations\AnnotationReader;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -62,7 +64,7 @@ class ParcController extends AbstractController
 
             if ($rowCount != -1) {
                 $min = ($current - 1) * $rowCount;
-                $max = $min + $rowCount;
+                $max = $rowCount;
 
                 $parcs->setMaxResults($max)
                     ->setFirstResult($min);
@@ -101,27 +103,46 @@ class ParcController extends AbstractController
     }
 
     /**
+     * @Route("/upload", name="parc_upload", methods="GET|POST")
+     */
+    public function upload(Request $request, FileUploader $fileUploader) : Response
+    {
+        if ($request->isXmlHttpRequest()) {
+            $em = $this->getDoctrine()->getManager();
+            $file = $request->files->get('file');
+            $fileName = $fileUploader->upload($file);
+            return new Response($fileName);
+        }
+        throw new NotFoundHttpException('404 Gwendal not found');
+    }
+
+    /**
      * @Route("/create", name="parc_create", methods="GET|POST")
      */
     public function create(Request $request, FileUploader $fileUploader) : Response
     {
         $parc = new Parcs();
         $form = $this->createForm(ParcsType::class, $parc);
+        $form->add('url', TextType::class, array(
+            "mapped" => false,
+            "attr" => array(
+                'class' => "hidden"
+            ),
+        ));
 
         $em = $this->getDoctrine()->getManager();
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             if ($form->get('validation')->isClicked()) {
+                $parc = $form->getData();
 
                 /* start upload */
-                // $file = $parc->getImg();
-                $file = $form['img']->getData();
-                // getSize()
-                $fileName = $fileUploader->upload($file);
-                $parc->setImg($fileName);
+                if ($parc->getImmatriculation()) {
+                    $fileName = $form['url']->getData();
+                    $parc->setImg($fileName);
+                }
                 /* end upload */
 
-                $parc = $form->getData();
                 $parc->setStatut("Demande création");
                 $em->persist($parc);
                 $em->flush();
@@ -184,6 +205,12 @@ class ParcController extends AbstractController
     public function edit(Request $request, Parcs $parc, FileUploader $fileUploader) : Response
     {
         $form = $this->createForm(ParcsType::class, $parc);
+        $form->add('url', TextType::class, array(
+            "mapped" => false,
+            "attr" => array(
+                'class' => "hidden"
+            ),
+        ));
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -191,11 +218,10 @@ class ParcController extends AbstractController
                 $parc = $form->getData();
 
                 /* start upload */
-                // $file = $parc->getImg();
-                $file = $form['img']->getData();
-                // getSize()
-                $fileName = $fileUploader->upload($file);
-                $parc->setImg($fileName);
+                if ($parc->getImmatriculation()) {
+                    $fileName = $form['url']->getData();
+                    $parc->setImg($fileName);
+                }
                 /* end upload */
 
                 if ($parc->getNParc()) {
@@ -313,15 +339,14 @@ class ParcController extends AbstractController
     public function generateCsvAction(ParcsRepository $parcsRepository) : Response
     {
         $classMetadataFactory = new ClassMetadataFactory(new AnnotationLoader(new AnnotationReader()));
-        $encoder = new CsvEncoder();
-        $normalizer = new PropertyNormalizer($classMetadataFactory);
+        $normalizer = new ObjectNormalizer($classMetadataFactory);
+        $serializer = new Serializer([$normalizer], [new CsvEncoder(';')]);
 
         $callback = function ($dateTime) {
             return $dateTime instanceof \DateTime
                 ? $dateTime->format('d/m/y')
                 : '';
         };
-
         $normalizer->setCallbacks(array(
             'sortie' => $callback,
             'mise_en_circulation' => $callback,
@@ -330,18 +355,16 @@ class ParcController extends AbstractController
         ));
 
         $org = $parcsRepository->findAll();
-
-        $serializer = new Serializer(array($normalizer), array($encoder));
-        // $data = $serializer->serialize($org, 'csv');
         $data = $serializer->serialize($org, 'csv', array('groups' => array('parc')));
-
-        $data = str_replace(",", ";", $data);
-
+        $data = str_replace("statut;n_parc;filiale.nom;site.nom;categorieVehicule.nom;sousCategorieVehicule.nom;sousCategorieVehicule.code;marque.nom;modele;poids;mise_en_circulation;commentaire;fournisseur;mode_acquisition;mise_en_service;n_serie;immatriculation;genre;ptac;ptr;puissance_fiscale;sortie;motif;commentaire_sortie",
+            "Statut;Numéro de parc;Filiale;Site;Catégorie de véhicule;Sous-catégorie de véhicule;Code de sous-catégorie de véhicule;Marque;Modèle;Poids;Date de mise en circulation;Commentaire;Fournisseur;Mode d'acquisition;Date de mise en service;Numéro de série;Immatriculation;Genre;PTAC;PTR;Puissance fiscale;Date de sortie;Motif;Commentaire de sortie",
+            $data
+        );
         $fileName = "export_parcs_" . date("d_m_Y") . ".csv";
         $response = new Response($data);
         $response->setStatusCode(200);
-        // $response->headers->set('Content-Type', 'text/csv; charset=UTF-8; application/excel');
-        // $response->headers->set('Content-Disposition', 'attachment; filename=' . $fileName);
+        $response->headers->set('Content-Type', 'text/csv; charset=UTF-8; application/excel');
+        $response->headers->set('Content-Disposition', 'attachment; filename=' . $fileName);
         echo "\xEF\xBB\xBF"; // UTF-8 with BOM
         return $response;
     }
