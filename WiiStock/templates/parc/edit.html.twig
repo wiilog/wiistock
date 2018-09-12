@@ -59,6 +59,10 @@
         <b>Statut : </b>
         {{ parc.statut }}
     </div>
+    <div class="parc-etat">
+        <b>Dernière modification : </b>
+        {{ parc.lastEdit }}
+    </div>
 
 
     <div class="parc-content col-md-12">
@@ -149,7 +153,7 @@
                     {{ form_row(form.immatriculation, {'required': false, 'attr': {'autocomplete': 'off'}}) }}
                     <label class="control-label" for="carte_grise">Carte grise</label>
                     <div class="row form-group" id="carte_grise">
-                        {{ form_widget(form.img) }}
+                        {{ form_widget(form.img, {'required': false}) }}
                         {% if parc.img %}
                         <div class="col-md-6">
                             <a class="btn btn-default" id="dwl" href="{{ asset('uploads/cards/' ~ parc.img) }}">
@@ -166,7 +170,7 @@
                     </div>
                     <p id="upload-complete"></p>
                     <p id="errors"></p>
-                    {{ form_widget(form.url) }}
+                    {{ form_widget(form.url, {'required': false}) }}
                     <div class="row">
                         <div class="col-md-4">
                             {{ form_row(form.genre, {'required': false}) }}

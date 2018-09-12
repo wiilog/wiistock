@@ -20,7 +20,7 @@ use App\Repository\SitesRepository;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use App\Service\FileUploader;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
-
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 
 use Doctrine\Common\Annotations\AnnotationReader;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -124,7 +124,7 @@ class ParcController extends AbstractController
     {
         $parc = new Parcs();
         $form = $this->createForm(ParcsType::class, $parc);
-        $form->add('url', TextType::class, array(
+        $form->add('url', HiddenType::class, array(
             "mapped" => false,
             "attr" => array(
                 'class' => "hidden"
@@ -145,6 +145,7 @@ class ParcController extends AbstractController
                 /* end upload */
 
                 $parc->setStatut("Demande création");
+                $parc->setLastEdit($this->getUser()->getEmail());
                 $em->persist($parc);
                 $em->flush();
 
@@ -206,7 +207,7 @@ class ParcController extends AbstractController
     public function edit(Request $request, Parcs $parc, FileUploader $fileUploader) : Response
     {
         $form = $this->createForm(ParcsType::class, $parc);
-        $form->add('url', TextType::class, array(
+        $form->add('url', HiddenType::class, array(
             "mapped" => false,
             "attr" => array(
                 'class' => "hidden"
@@ -225,17 +226,19 @@ class ParcController extends AbstractController
                 }
                 /* end upload */
 
-                if ($parc->getNParc()) {
-                    $parc->setStatut("Actif");
+                if ($parc->getNParc() && in_array('ROLE_PARC_ADMIN', $this->getUser()->getRoles())) {
+                        $parc->setStatut("Actif");
                     if ($parc->getSortie()) {
                         $parc->setStatut("Demande sortie/transfert");
                     }
-                    if ($parc->getEstSorti()) {
+                    if ($parc->getEstSorti() && in_array('ROLE_PARC_ADMIN', $this->getUser()->getRoles())) {
                         $parc->setStatut("Sorti");
                     }
                 } else {
                     $parc->setStatut("Demande création");
                 }
+
+                $parc->setLastEdit($this->getUser()->getEmail());
 
                 $this->getDoctrine()->getManager()->flush();
 
@@ -360,7 +363,7 @@ class ParcController extends AbstractController
                 'mise_en_circulation' => $callback,
                 'mise_en_service' => $callback,
             ));
-            
+
             $org = $parcsRepository->findByStateSiteImmatriculation($statut, $site, $immatriculation, $searchPhrase, $sort)->getQuery()->getResult();
             $data = $serializer->serialize($org, 'csv', array('groups' => array('parc')));
             $data = str_replace(

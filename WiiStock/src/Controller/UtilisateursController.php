@@ -156,7 +156,7 @@ class UtilisateursController extends Controller
                 'choices' => array(
                     'Utilisateur' => 'ROLE_USER',
                     'Utilisateur parc' => 'ROLE_PARC',
-                    'Admin parc' => 'ROLE_ADMIN_PARC',
+                    'Admin parc' => 'ROLE_PARC_ADMIN',
                 ),
                 'multiple' => true,
             ))
