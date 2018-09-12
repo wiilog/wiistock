@@ -30,7 +30,7 @@
                     {{ form_row(form_creation.email) }}
                     {{ form_row(form_creation.plainPassword.first) }}
                     {{ form_row(form_creation.plainPassword.second) }}
-                    <button name="creation" class="button" type="submit">Créer</button>
+                    <button name="creation" class="button btn" type="submit">Créer</button>
                     {{ form_row(form_creation._token) }}
                 {{ form_end(form_creation, {'render_rest' : false}) }}
                 {# <form class="form-inline">
@@ -62,8 +62,9 @@
                 {{ form_start(form_modif) }}
                     {{ form_row(form_modif.username) }}
                     {{ form_row(form_modif.email) }}
-                    {{ form_row(form_modif.roles) }}
-                    <button class="button" type="submit">Modifier</button>
+                    {{ form_row(form_modif.id_user) }}
+                    {{ form_row(form_modif.roles, {"attr": {"class" : "basic-multiple-role"}}) }}
+                    <button name="modif" class="button btn" type="submit">Modifier</button>
                 {{ form_end(form_modif) }}
 
                 {# <form class="form-inline">
@@ -100,6 +101,9 @@
 
 {% block javascripts %}
     <script type="text/javascript">
+
+        $('.basic-multiple-role').select2({placeholder: 'Rôles'});
+
         var grid = $("#grid-data").bootgrid({
             ajax: true,
             requestHandler: function (request) {
@@ -123,20 +127,192 @@
 
                 var id = $(this).attr("data-row-id");
                 $.ajax({
-                    url: "#",
+                    url: "{{ path('utilisateurs_index_modif') }}",
                     type: "POST",
                     dataType: "json",
                     data: {id},
                     async: true,
                     success: function (resp) {
-                        user = resp;
-                        $("input[id='form_username']").val(user.username);
-                        $("input[id='form_email']").val(user.email);
+                        var user = JSON.parse(resp);
+                        $("#form_id_user").val(user.id);
+                        $("#form_username").val(user.username);
+                        $("#form_email").val(user.email);
+                        $("#form_roles").val(user.roles);
+                        $("#form_roles").trigger('change');
+                        
                     }
 
                 });
 
             });
+        });
+
+        // form creation
+        $('button[name=creation]').on('click', function(e) {
+            $('form[name=utilisateurs]').submit(function () {
+                e.preventDefault();
+                $("#utilisateurs_plainPassword_first").removeClass('is-invalid');
+                $("#regex").remove();
+                $("#len").remove();
+
+                var regex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.*\s).*$/;
+                var pass = $('#utilisateurs_plainPassword_first').val();
+                if (! regex.test(pass)) {
+                    
+                    var msg = '<span id="regex" class="invalid-feedback d-block"><span class="mb-0 d-block"><span class="initialism form-error-icon badge badge-danger">Erreur</span><span class="form-error-message">Doit contenir une majuscule, une minuscule, un chiffre et un symbole.</span></span></span>';
+                        $("#utilisateurs_plainPassword_first").addClass('is-invalid').after(msg);
+                        disableCreer();
+                    return false;
+                } else if (pass.length < 8) {
+                    
+                    var msg = '<span id="len" class="invalid-feedback d-block"><span class="mb-0 d-block"><span class="initialism form-error-icon badge badge-danger">Erreur</span><span class="form-error-message">Doit contenir au moins 8 caractères.</span></span></span>';
+                        $("#utilisateurs_plainPassword_first").addClass('is-invalid').after(msg);
+                        disableCreer();
+                    return false;
+                }
+
+                $.ajax({
+                    type: "POST",
+                    data: {user: $(this).serializeArray()},
+                    url: "{{ path('utilisateurs_index_create') }}",
+                    success: function() {
+                            $('form[name="utilisateurs"]')[0].reset();
+                            $("#grid-data").bootgrid('reload');
+                        }
+                });
+                return false;
+            });  
+        });
+
+
+        function disableCreer() {
+            $('button[name="creation"]').attr("disabled", true);
+
+        }
+
+        function enableCreer() {
+            $('button[name="creation"]').prop("disabled", false);
+        }
+
+        // username_error
+        $("#utilisateurs_username").change(function () {
+            $(this).parent().find('input, select').removeClass('is-invalid');
+            $(this).parent().find(".invalid-feedback").remove();
+            var username = $(this).val();
+            $.ajax({
+                url: "{{ path( 'utilisateurs_username_error' ) }}",
+                type: "POST",
+                dataType: "json",
+                data: {
+                    "username": username
+                },
+                success: function (resp) {
+                    if (resp) {
+                        var msg = '<span class="invalid-feedback d-block"><span class="mb-0 d-block"><span class="initialism form-error-icon badge badge-danger">Erreur</span><span class="form-error-message">Ce username est déjà attribué.</span></span></span>';
+                        $("#utilisateurs_username").addClass('is-invalid').after(msg);
+                        disableCreer();
+                        
+                    } else {
+                        if (username) {
+                            enableCreer();    
+                        }
+                    }
+                }
+            });
+        });
+
+
+        // email_error
+        $("#utilisateurs_email").change(function () {
+            $(this).parent().find('input, select').removeClass('is-invalid');
+            $(this).parent().find(".invalid-feedback").remove();
+            var email = $(this).val();
+            $.ajax({
+                url: "{{ path( 'utilisateurs_email_error' ) }}",
+                type: "POST",
+                dataType: "json",
+                data: {
+                    "email": email
+                },
+                success: function (resp) {
+                    if (resp) {
+                        var msg = '<span class="invalid-feedback d-block"><span class="mb-0 d-block"><span class="initialism form-error-icon badge badge-danger">Erreur</span><span class="form-error-message">Cet email est déjà attribué.</span></span></span>';
+                        $("#utilisateurs_email").addClass('is-invalid').after(msg);
+                        disableCreer();
+                        
+                    } else {
+                        if (email) {
+                            enableCreer();    
+                        }
+                    }
+                }
+            });
+        });
+
+
+        // password_error
+        $("#utilisateurs_plainPassword_second").change(function () {
+            $("#utilisateurs_plainPassword_first").parent().find('input, select').removeClass('is-invalid');
+            $("#utilisateurs_plainPassword_first").parent().find(".invalid-feedback").remove();
+            var password_second = $(this).val();
+            
+            var password_first = $("#utilisateurs_plainPassword_first").val();
+            
+            if(password_first && password_second && (password_first != password_second)) {
+                var msg = '<span class="invalid-feedback d-block"><span class="mb-0 d-block"><span class="initialism form-error-icon badge badge-danger">Erreur</span><span class="form-error-message">Les mots de passe ne sont pas identiques.</span></span></span>';
+                $("#utilisateurs_plainPassword_first").addClass('is-invalid').after(msg);
+                disableCreer();
+            } else {
+                if (password_second && password_first) {
+                    $("#utilisateurs_plainPassword_second").parent().find('input, select').removeClass('is-invalid');
+                    $("#utilisateurs_plainPassword_second").parent().find(".invalid-feedback").remove();
+                    enableCreer();
+                }
+            }
+
+
+
+        });
+
+        $("#utilisateurs_plainPassword_first").change(function () {
+            $("#utilisateurs_plainPassword_second").parent().find('input, select').removeClass('is-invalid');
+            $("#utilisateurs_plainPassword_second").parent().find(".invalid-feedback").remove();
+            var password_first = $(this).val();
+            
+
+            var password_second = $("#utilisateurs_plainPassword_second").val();
+            ;
+            if(password_second && password_first && (password_second != password_first)) {
+                var msg = '<span class="invalid-feedback d-block"><span class="mb-0 d-block"><span class="initialism form-error-icon badge badge-danger">Erreur</span><span class="form-error-message">Les mots de passe ne sont pas identiques.</span></span></span>';
+                $("#utilisateurs_plainPassword_second").addClass('is-invalid').after(msg);
+                disableCreer();
+            } else {
+                if (password_first && password_second) {
+                    $("#utilisateurs_plainPassword_first").parent().find('input, select').removeClass('is-invalid');
+                    $("#utilisateurs_plainPassword_first").parent().find(".invalid-feedback").remove();
+                    enableCreer();
+                }
+            }
+        });
+
+
+        // form modif
+        $('button[name=modif]').on('click', function(e) {
+            $('form[name=form]').submit(function () {
+                e.preventDefault();
+                
+                $.ajax({
+                    type: "POST",
+                    data: {user: $(this).serializeArray()},
+                    url: "{{ path('utilisateurs_index_modif_bis') }}",
+                    success: function() {
+                            $('form[name="form"]')[0].reset();
+                            $("#form_roles").trigger('change');
+                            $("#grid-data").bootgrid('reload');
+                        }
+                });
+                return false;
+            });  
         });
 
     </script>

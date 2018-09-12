@@ -12,6 +12,9 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\Serializer\Serializer;
+use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -123,9 +126,9 @@ class UtilisateursController extends Controller
 
         $user = new Utilisateurs();
         
-        // creation
+        // creation form
         $form_creation = $this->createForm(UtilisateursType::class, $user);
-
+/*
         $form_creation->handleRequest($request);
 
         if ($form_creation->isSubmitted() && $form_creation->isValid()) {
@@ -133,14 +136,15 @@ class UtilisateursController extends Controller
 
             $password = $passwordEncoder->encodePassword($user, $user->getPlainPassword());
             $user->setPassword($password);
+            $user->setRoles(array('ROLE_USER'));
             
             $em->persist($user);
             $em->flush();
             
             return $this->redirectToRoute('utilisateurs_index');
-        }
+        }*/
 
-        // modification
+        // modification form
         $form_modif = $this->createFormBuilder()
             ->add('id_user', HiddenType::class, array(
                 'mapped' => false,
@@ -165,6 +169,128 @@ class UtilisateursController extends Controller
 
         ]);
     }
+
+    /**
+     * @Route("/create", name="utilisateurs_index_create", methods="GET|POST")
+     */
+    public function create(Request $request, EntityManagerInterface $em, UserPasswordEncoderInterface $passwordEncoder) {
+        
+        if ($request->isXmlHttpRequest()) {
+            
+            $new_user = new Utilisateurs();
+
+            $user = $request->request->get('user');
+            
+            $new_user->setUsername($user[0]["value"]);
+            $new_user->setEmail($user[1]["value"]);
+
+            $password = $passwordEncoder->encodePassword($new_user, $user[2]["value"]);
+            $new_user->setPassword($password);
+
+            $new_user->setRoles(array('ROLE_USER'));
+
+            $em->persist($new_user);
+            $em->flush();
+
+            return new JsonResponse(true);
+        }
+        throw new NotFoundHttpException('404 Léo not found');
+    }
+
+
+    /**
+     * @Route("/modif", name="utilisateurs_index_modif", methods="GET|POST")
+     */
+    public function modif(Request $request, EntityManagerInterface $em, UserPasswordEncoderInterface $passwordEncoder) {
+        
+        if ($request->isXmlHttpRequest()) {
+            
+            $id = $request->request->get('id');
+            $user = $em->getRepository(Utilisateurs::class)->find($id);
+
+            $encoders = array(new JsonEncoder());
+            $normalizers = array(new ObjectNormalizer());
+
+            $serializer = new Serializer($normalizers, $encoders);
+            $jsonContent = $serializer->serialize($user, 'json');
+            return new JsonResponse($jsonContent);
+        }
+        throw new NotFoundHttpException('404 Léo not found');
+    }
+
+
+    /**
+     * @Route("/modif_bis", name="utilisateurs_index_modif_bis", methods="GET|POST")
+     */
+    public function modif_bis(Request $request, EntityManagerInterface $em, UserPasswordEncoderInterface $passwordEncoder) {
+        
+        if ($request->isXmlHttpRequest()) {
+            
+            $user_modif = $request->request->get('user');
+            
+
+            $id = $user_modif[2]["value"];
+            
+            $user = $em->getRepository(Utilisateurs::class)->find($id);
+
+            $user->setUsername($user_modif[0]["value"]);
+            $user->setEmail($user_modif[1]["value"]);
+            $roles = array();
+            for ($i = 3; $i < count($user_modif)-1; ++$i) {
+                array_push($roles, $user_modif[$i]["value"]);
+            }
+            $user->setRoles($roles);
+
+            $em->flush();
+
+            return new JsonResponse();
+        }
+        throw new NotFoundHttpException('404 Léo not found');
+    }
+
+
+    /**
+     * @Route("/ajax/username", name="utilisateurs_username_error", methods="GET|POST")
+     */
+    public function utlisateurs_username_error(Request $request) : Response
+    {
+        if ($request->isXmlHttpRequest()) {
+            $em = $this->getDoctrine()->getManager();
+            $username = $request->request->get('username');
+            
+            $utilisateurs = $em->getRepository(Utilisateurs::class)->findAll();
+            foreach ($utilisateurs as $utilisateur) {
+                if (!strcmp($username, $utilisateur->getUsername())
+                    && $utilisateur->getUsername() != null) {
+                    return new JsonResponse(true);
+                }
+            }
+            return new JsonResponse(false);
+        }
+        throw new NotFoundHttpException('404 Léo not found');
+    }
+
+    /**
+     * @Route("/ajax/email", name="utilisateurs_email_error", methods="GET|POST")
+     */
+    public function utlisateurs_email_error(Request $request) : Response
+    {
+        if ($request->isXmlHttpRequest()) {
+            $em = $this->getDoctrine()->getManager();
+            $email = $request->request->get('email');
+            
+            $utilisateurs = $em->getRepository(Utilisateurs::class)->findAll();
+            foreach ($utilisateurs as $utilisateur) {
+                if (!strcmp($email, $utilisateur->getEmail())
+                    && $utilisateur->getEmail() != null) {
+                    return new JsonResponse(true);
+                }
+            }
+            return new JsonResponse(false);
+        }
+        throw new NotFoundHttpException('404 Léo not found');
+    }
+
 
     /**
      * @Route("/new", name="utilisateurs_new", methods="GET|POST")
