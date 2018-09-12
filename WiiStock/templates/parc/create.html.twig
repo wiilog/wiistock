@@ -78,7 +78,7 @@
                     <div class="mask"></div>
                     <legend class="well-legend">Véhicule</legend>
                     {{ form_row(form.immatriculation, {'required': false}) }}
-                    {{ form_row(form.img) }}
+                    {{ form_row(form.img, {'required': false}) }}
                     <div class="progress">
                         <div id="progress-bar" class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100" style="width:0%">
                             <span id="progress-value"></span>
@@ -86,7 +86,7 @@
                     </div>
                     <p id="upload-complete"></p>
                     <p id="errors"></p>
-                    {{ form_widget(form.url) }}
+                    {{ form_widget(form.url, {'required': false}) }}
                     <div class="row">
                         <div class="col-md-4">
                             {{ form_row(form.genre, {'required': false}) }}

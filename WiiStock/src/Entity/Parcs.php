@@ -170,7 +170,6 @@ class Parcs
 
 	/**
 	 * @ORM\Column(type="string", length=255, nullable=true)
-	 * @Assert\File(maxSize="107400000")
 	 */
 	private $img;
 
@@ -278,7 +277,7 @@ class Parcs
 		return $this->commentaire;
 	}
 
-	public function setCommentaire(string $commentaire) : self
+	public function setCommentaire(? string $commentaire) : self
 	{
 		$this->commentaire = $commentaire;
 
@@ -327,7 +326,7 @@ class Parcs
 		return $this->commentaire_sortie;
 	}
 
-	public function setCommentaireSortie(string $commentaire_sortie) : self
+	public function setCommentaireSortie(? string $commentaire_sortie) : self
 	{
 		$this->commentaire_sortie = $commentaire_sortie;
 
