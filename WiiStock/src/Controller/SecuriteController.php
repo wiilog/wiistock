@@ -131,7 +131,7 @@ class SecuriteController extends Controller
                 $em->persist($user);
                 $em->flush();
                 $session->getFlashBag()->add('info', 'Le Mot de Passe a bien été modifié');
-                return $this->redirectToRoute('accueil');
+                return $this->redirectToRoute('check_last_login');
             }
         }
 

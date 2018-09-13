@@ -4,14 +4,23 @@ namespace App\DataFixtures;
 
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\Persistence\ObjectManager;
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use App\Entity\Sites;
 use App\Entity\Filiales;
 use App\Entity\SousCategoriesVehicules;
 use App\Entity\CategoriesVehicules;
 use App\Entity\Marques;
+use App\Entity\Utilisateurs;
 
 class ParcsFixtures extends Fixture
 {
+    private $encoder;
+
+    public function __construct(UserPasswordEncoderInterface $encoder)
+    {
+        $this->encoder = $encoder;
+    }
+
     public function load(ObjectManager $manager)
     {
     	
@@ -252,6 +261,15 @@ class ParcsFixtures extends Fixture
     		$manager->persist($ma);
     	}
 
+
+        //UTILISATEURS
+        $admin_parc = new Utilisateurs();
+        $admin_parc->setUsername("D.Caille");
+        $admin_parc->setEmail("d.caille@gt-logistics.fr");
+        $admin_parc->setRoles(array('ROLE_PARC_ADMIN'));
+        $password = $this->encoder->encodePassword($admin_parc, "PdDw,ABc0pCv3");
+        $admin_parc->setPassword($password);
+        $manager->persist($admin_parc);
 
         $manager->flush();
     }
