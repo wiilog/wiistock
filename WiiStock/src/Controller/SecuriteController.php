@@ -6,6 +6,11 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use App\Form\UtilisateursType;
 use App\Entity\Utilisateurs;
+use Symfony\Component\Form\Extension\Core\Type\EmailType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\PasswordType;
+use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
@@ -94,6 +99,48 @@ class SecuriteController extends Controller
         return $this->redirectToRoute('accueil');
         
     }
+
+
+    /**
+     * @Route("/change_password", name="change_password")
+     */
+    public function change_password(EntityManagerInterface $em, Request $request, UserPasswordEncoderInterface $passwordEncoder)
+    {
+        $session = $request->getSession();
+        $user = $this->getUser();
+        $form = $this->createFormBuilder()
+            ->add("password", PasswordType::class, array(
+                'label' => "Mot de Passe actuel"
+            ))
+            ->add("plainPassword", RepeatedType::class, array(
+                    'type' => PasswordType::class,
+                    'first_options'  => array('label' => 'Nouveau Mot de Passe'),
+                    'second_options' => array('label' => 'Confirmer Nouveau Mot de Passe')
+            ))
+            ->add("modifier", SubmitType::class)
+        ->getForm();
+
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $data = $form->getData();
+            if($passwordEncoder->isPasswordValid($user, $data["password"]))
+            {
+                $new_password = $passwordEncoder->encodePassword($user, $data["plainPassword"]);
+                $user->setPassword($new_password);
+                $em->persist($user);
+                $em->flush();
+                $session->getFlashBag()->add('info', 'Le Mot de Passe a bien été modifié');
+                return $this->redirectToRoute('accueil');
+            }
+        }
+
+        return $this->render('securite/change_password.html.twig', [
+            'controller_name' => 'SecuriteController',
+            'form' => $form->createView(),
+        ]);
+    }
+
 
     /**
      * @Route("/logout", name="logout")

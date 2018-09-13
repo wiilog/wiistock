@@ -16,6 +16,17 @@
         {% block stylesheets %}{% endblock %}
     </head>
     <body>
+        {# flashbag #}
+        {% if app.request.hasPreviousSession %}
+            {% for type, messages in app.session.flashbag.all() %}
+                {% for message in messages %}
+                    <div class="flash-{{ type }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endfor %}
+        {% endif %}
+
         {% block body %}{% endblock %}
         <script src="{{ asset('vendor/jquery/jquery.min.js') }}"></script>
         <script src="{{ asset('vendor/jquery/select2.full.min.js') }}"></script>

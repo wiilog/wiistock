@@ -11,12 +11,12 @@
         <thead>
             <tr>
                 <th data-column-id="id" data-visible="false" data-sortable="false">Id</th>
-                <th data-column-id="username">Username</th>
-                <th data-column-id="email">Email</th>
+                <th data-column-id="username">Nom d'utilisateur</th>
+                <th data-column-id="email">Adresse email</th>
                 {# <th data-column-id="groupe" data-visible="false" data-sortable="false">Groupe</th> #}
                 <th data-column-id="roles" data-sortable="false">Rôles</th>
                 <th data-column-id="lastLogin">Dernière connexion</th>
-                <th data-colun-id="commands" data-formatter="commands">Action</th>
+                <th data-colun-id="commands" data-formatter="commands">Modifier</th>
             </tr>
         </thead>
     </table>
@@ -63,6 +63,7 @@
                     {{ form_row(form_modif.username) }}
                     {{ form_row(form_modif.email) }}
                     {{ form_row(form_modif.id_user) }}
+                    {{ form_row(form_modif.plainPassword, {'required' : false}) }}
                     {{ form_row(form_modif.roles, {"attr": {"class" : "basic-multiple-role"}}) }}
                     <button name="modif" class="button btn" type="submit">Modifier</button>
                 {{ form_end(form_modif) }}
@@ -194,6 +195,16 @@
             $('button[name="creation"]').prop("disabled", false);
         }
 
+        function disableModifier() {
+            $('button[name="modif"]').attr("disabled", true);
+
+        }
+
+        function enableModifier() {
+            $('button[name="modif"]').prop("disabled", false);
+        }
+
+
         // username_error
         $("#utilisateurs_username").change(function () {
             $(this).parent().find('input, select').removeClass('is-invalid');
@@ -300,7 +311,26 @@
         $('button[name=modif]').on('click', function(e) {
             $('form[name=form]').submit(function () {
                 e.preventDefault();
-                
+                $("#form_plainPassword").removeClass('is-invalid');
+                $("#regex").remove();
+                $("#len").remove();
+                var regex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*\W)(?!.*\s).*$/;
+                var pass = $('#form_plainPassword').val();
+                if (! regex.test(pass)) {
+                    
+                    var msg = '<span id="regex" class="invalid-feedback d-block"><span class="mb-0 d-block"><span class="initialism form-error-icon badge badge-danger">Erreur</span><span class="form-error-message">Doit contenir une majuscule, une minuscule, un chiffre et un symbole.</span></span></span>';
+                        $("#form_plainPassword").addClass('is-invalid').after(msg);
+                        disableModifier();
+                    return false;
+                } else if (pass.length < 8) {
+                    
+                    var msg = '<span id="len" class="invalid-feedback d-block"><span class="mb-0 d-block"><span class="initialism form-error-icon badge badge-danger">Erreur</span><span class="form-error-message">Doit contenir au moins 8 caractères.</span></span></span>';
+                        $("#form_plainPassword").addClass('is-invalid').after(msg);
+                        disableModifier();
+                    return false;
+                }
+
+
                 $.ajax({
                     type: "POST",
                     data: {user: $(this).serializeArray()},
@@ -314,6 +344,14 @@
                 return false;
             });  
         });
+
+        // password_error
+        $("#form_plainPassword").change(function () {
+            $("#form_plainPassword").parent().find('input, select').removeClass('is-invalid');
+            $("#form_plainPassword").parent().find(".invalid-feedback").remove();
+            enableModifier();
+        });
+
 
     </script>
 

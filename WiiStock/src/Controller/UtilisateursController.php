@@ -149,8 +149,15 @@ class UtilisateursController extends Controller
             ->add('id_user', HiddenType::class, array(
                 'mapped' => false,
             ))
-            ->add('email', EmailType::class)
-            ->add('username', TextType::class)
+            ->add('email', EmailType::class, array(
+                'label' => "Adresse email"
+            ))
+            ->add('username', TextType::class, array(
+                'label' => "Nom d'utilisateur"
+            ))
+            ->add('plainPassword', PasswordType::class, array(
+                'label' => "Réinitialiser Mot de Passe",
+            ))
             ->add('roles', ChoiceType::class, array(
                 'label' => 'Rôles',
                 'choices' => array(
@@ -235,8 +242,15 @@ class UtilisateursController extends Controller
 
             $user->setUsername($user_modif[0]["value"]);
             $user->setEmail($user_modif[1]["value"]);
+
+            $plain_password = $user_modif[3]["value"];
+            if ($plain_password) {
+                $new_password = $passwordEncoder->encodePassword($user, $plain_password);
+                $user->setPassword($new_password);
+            }
+
             $roles = array();
-            for ($i = 3; $i < count($user_modif)-1; ++$i) {
+            for ($i = 4; $i < count($user_modif)-1; ++$i) {
                 array_push($roles, $user_modif[$i]["value"]);
             }
             $user->setRoles($roles);
