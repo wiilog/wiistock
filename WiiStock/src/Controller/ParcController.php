@@ -118,6 +118,20 @@ class ParcController extends AbstractController
     }
 
     /**
+     * @Route("/{id}", name="parc_delete", methods="DELETE")
+     */
+    public function delete(Request $request, Parcs $parc) : Response
+    {
+        if ($this->isCsrfTokenValid('delete'.$parc->getId(), $request->request->get('_token'))) {
+            $em = $this->getDoctrine()->getManager();
+            $em->remove($parc);
+            $em->flush();
+        }
+
+        return $this->redirectToRoute('parc_list');
+    }
+
+    /**
      * @Route("/create", name="parc_create", methods="GET|POST")
      */
     public function create(Request $request, FileUploader $fileUploader) : Response

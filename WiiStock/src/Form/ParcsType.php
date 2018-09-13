@@ -104,7 +104,9 @@ class ParcsType extends AbstractType
 					'Mise à disposition' => 'Mise à disposition',
 				),
 			))
-			->add('commentaire', TextareaType::class, array('label' => 'Commentaire'))
+			->add('commentaire', TextareaType::class, array(
+				'label' => 'Commentaire',
+			))
 			->add('sortie', DateType::class, array(
 				'label' => 'Date de sortie',
 				'widget' => 'single_text',
@@ -138,32 +140,29 @@ class ParcsType extends AbstractType
 					'Transfert vers site d’une même filiale' => 'Transfert vers site d’une même filiale',
 				),
 			))
-			->add('commentaire_sortie', TextareaType::class, array('label' => 'Commentaire sortie'))
+			->add('commentaire_sortie', TextareaType::class, array(
+				'label' => 'Commentaire sortie', 'attr' => [
+					'placeholder' => 'Veuillez saisir une filiale',
+				],
+			))
 			->add('n_serie', TextType::class, array('label' => 'Numéro de série'))
 			->add('immatriculation')
-			->add('genre', ChoiceType::class, array(
+			->add('genre', TextType::class, array(
 				'label' => 'Genre (J1)',
-				'choices' => array(
-					'' => '',
-					'Genre 1' => 'Genre 1',
-                    'Genre 2' => 'Genre 2',
-                    'Genre 3' => 'Genre 3',
-				),
 			))
 			->add('ptac', IntegerType::class, array('label' => 'Ptac (F2)'))
-            ->add('ptr', IntegerType::class, array('label' => 'Ptr (F3)'))
+			->add('ptr', IntegerType::class, array('label' => 'Ptr (F3)'))
 			->add('puissance_fiscale')
-			
+
 			->add('estSorti', CheckboxType::class, array(
-				'label'    => 'Sortie Définitive',
+				'label' => 'Sortie Définitive',
 				'required' => false,
 			))
 			->add('img', FileType::class, array(
 				'label' => 'Carte grise',
 				'data_class' => null,
 			))
-            ->add('validation', SubmitType::class, array('label' => 'Enregistrer'))
-			;
+			->add('validation', SubmitType::class, array('label' => 'Enregistrer'));
 	}
 
 	public function configureOptions(OptionsResolver $resolver)

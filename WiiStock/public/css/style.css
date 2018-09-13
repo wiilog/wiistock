@@ -109,6 +109,7 @@ input:-webkit-autofill {
 	background-color: #130078;
 	color: #fcfcfc;
 	border: #130078 1.5px solid;
+	line-height: inherit;
 }
 
 .button:hover {
@@ -116,15 +117,31 @@ input:-webkit-autofill {
 	color: #130078;
 }
 
+.button-danger:focus {
+	border-color: #CC0000;
+	background-color: #CC0000;
+	color: #fcfcfc;
+}
+
+.button-danger {
+	background-color: #CC0000;
+	border: #CC0000 1.5px solid;
+}
+
+.button-danger:hover {
+	color: #CC0000;
+	background-color: #fcfcfc;
+}
+
 .btn-right .fa {
 	font-size: 20px;
-	padding-left: 15px;
+	padding-left: 10px;
 	vertical-align: top;
 }
 
 .btn-left .fa {
 	font-size: 20px;
-	padding-right: 15px;
+	padding-right: 10px;
 	vertical-align: top;
 }
 
@@ -397,6 +414,28 @@ table .fa {
 	margin-top: 2px;
 }
 
+
+.sidemenu>li .fa {
+	margin: 10px 0;
+}
+
+.sidemenu .username {
+	/* text-shadow: -0.5px 0 black, 0 0.5px black, 0.5px 0 black, 0 -0.5px black; */
+	font-size: 16px;
+	font-weight: 700;
+	padding: 0 5px;
+	width: 130px;
+	/* word-wrap: break-word; */
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.sidemenu .logout {
+	padding: 0 5px;
+	font-size: 16px;
+	font-weight: 700;
+}
+
 /* Creer un ordre
 ================= */
 
@@ -625,7 +664,7 @@ input:checked+.slider:before {
 
 .date {
 	background-position: center;
-	background-image: url("../../img/calendrier.png");
+	background-image: url("../img/calendrier.png");
 	background-size: 180px;
 	background-repeat: no-repeat;
 }
@@ -1486,6 +1525,7 @@ input:checked+.slider:before {
 }
 
 .cbx span:first-child {
+	top: -1px;
 	position: relative;
 	width: 18px;
 	height: 18px;
@@ -1820,6 +1860,15 @@ input, [type=file]+label {
 	border-radius: 5%;
 }
 
+#file_name {
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+#dwl {
+	border-color: #130078;
+}
+
 /* Parc paramétrage 
 ================= */
 
@@ -1917,4 +1966,83 @@ input, [type=file]+label {
 	margin-right: 7px;
 	margin-top: -3px;
 	background-color: red;
+}
+
+
+/* Alert / Flashbag
+================= */
+.alert {
+	padding: 20px;
+    opacity: 0.9;
+    transition: opacity 0.7s;
+    margin-bottom: 15px;
+	position: fixed;
+	right: 0;
+	z-index: 10;
+	margin: 10px;
+}
+
+.closebtn {
+    margin-left: 15px;
+    color: inherit;
+    font-weight: bold;
+    float: right;
+    font-size: 22px;
+    line-height: 20px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.closebtn:hover {
+    color: black;
+}
+
+
+/* Login
+================= */
+
+.login-wrapper {
+	padding: 10px;
+}
+
+.login-wrapper .button {
+	margin: 5px 0 0px 0;
+}
+
+.login-wrapper .btn-right {
+	margin-top: 7px;
+	background-color: transparent;
+	color: #130078;
+	border: none;
+}
+
+.login-wrapper .form-check label {
+	width: 100%;
+}
+
+.login-wrapper .cbx {
+	margin: 10px 0 25px 0;	
+}
+
+.login-wrapper .login-header {
+	color: #656565;
+	margin: 30px 0;
+	text-align: center;
+	font-size: 32px;
+}
+
+.login-wrapper .box-login {
+	width: 50%;
+	margin: 0 auto;
+	max-width: 400px;
+	padding: 10px 0 0 0;
+	border-radius: 3%;
+	background-color: #ffbc02;
+}
+
+.login-wrapper .login-form {
+	padding: 20px 20px 65px 20px;
+	border-bottom-left-radius: 3%;
+	border-bottom-right-radius: 3%;
+	background-color: #fcfcfc;
 }

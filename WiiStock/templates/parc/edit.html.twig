@@ -32,7 +32,7 @@
                 <input id="file" type="file" {{ block('widget_attributes') }} placeholder="Importer"></input>
                 <label id="file_name" for="file">
                     <span class="fa fa-cloud-upload"></span>
-                    &nbsp;Importer
+                    &nbsp;{% if parc.img %} {{ parc.img }}{% else %} Importer {% endif %}
                 </label>
             </a>
         </div>
@@ -73,7 +73,7 @@
             <legend class="well-legend">Données générales</legend>
             <div class="row">
                 
-            {% if is_granted('ROLE_PARC_ADMIN') %}
+            {% if is_granted('ROLE_PARC_ADMIN') or parc.statut == "Demande création" %}
                 <div class="col-md-6">
                     {{ form_row(form.filiale) }}
                 </div>
@@ -126,7 +126,7 @@
 
             <div class="separator"></div>
             <div class="row">
-            {% if is_granted('ROLE_PARC_ADMIN') %}    
+            {% if is_granted('ROLE_PARC_ADMIN') or parc.statut == "Demande création" %}    
                 <div class="col-md-6">
                     {{ form_row(form.poids) }}
                 </div>
@@ -153,10 +153,18 @@
                     {{ form_row(form.immatriculation, {'required': false, 'attr': {'autocomplete': 'off'}}) }}
                     <label class="control-label" for="carte_grise">Carte grise</label>
                     <div class="row form-group" id="carte_grise">
-                        {{ form_widget(form.img, {'required': false}) }}
+                        <div class="col-md-6">
+                            <a id="upload">
+                                <input id="file" type="file" placeholder="Importer"></input>
+                                <label id="file_name" for="file">
+                                    <span class="fa fa-cloud-upload"></span>
+                                    &nbsp;{% if parc.img %} {{ parc.img }} {% else %} Importer {% endif %}
+                                </label>
+                            </a>
+                        </div>
                         {% if parc.img %}
                         <div class="col-md-6">
-                            <a class="btn btn-default" id="dwl" href="{{ asset('uploads/cards/' ~ parc.img) }}">
+                            <a class="btn btn-default" target="_blank" id="dwl" href="{{ asset('uploads/cards/' ~ parc.img) }}">
                                 <span class="fa fa-cloud-download"></span>
                                 Télécharger
                             </a>
@@ -204,7 +212,7 @@
         <fieldset class="row well list-box">
             <legend class="well-legend">Acquisition</legend>
             <div class="row">
-            {% if is_granted('ROLE_PARC_ADMIN') %}    
+            {% if is_granted('ROLE_PARC_ADMIN') or parc.statut == "Demande création" %}    
                 <div class="col-md-4">
                     {{ form_row(form.fournisseur) }}
                 </div>
@@ -263,17 +271,22 @@
             {% endif %}
         </fieldset>
 
-        <div class="row">
-            <div class="col-md-12">
-                <a href="{{ path ('parc_list') }}" class="button btn-left pull-left">
+                <a href="{{ path('parc_list') }}" class="button btn-left pull-left">
                     <span class="fa fa-angle-double-left"></span>Retour</a>
                 {{ form_row(form.validation, {"attr": {"class" : "button btn-left pull-right"}}) }}
 
-            </div>
-        </div>
+
 
         {{ form_row(form._token) }}
         {{ form_end(form, {'render_rest' : false}) }}
+
+            {% if is_granted('ROLE_PARC_ADMIN') and parc.statut == "Demande création" %}
+                    <form method="post" action="{{ path('parc_delete', {'id': parc.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce parc ?');">
+                        <input type="hidden" name="_method" value="DELETE">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ parc.id) }}">
+                        <button class="button button-danger btn-left pull-right"><span class="fa fa-trash"></span>Supprimer</button>
+                    </form>
+            {% endif %}
     </div>
 
 {% endblock %}

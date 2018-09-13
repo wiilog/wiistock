@@ -16,17 +16,21 @@
         {% block stylesheets %}{% endblock %}
     </head>
     <body>
-        {# flashbag #}
-        {% if app.request.hasPreviousSession %}
-            {% for type, messages in app.session.flashbag.all() %}
-                {% for message in messages %}
-                    <div class="flash-{{ type }}">
-                        {{ message }}
-                    </div>
+        <div class="row">
+            {# flashbag #}
+            {% if app.request.hasPreviousSession %}
+                {% set top = 0 %}
+                {% for type, messages in app.session.flashbag.all() %}
+                    {% for message in messages %}
+                        <div class="row alert alert-{{ type }} text-center box-shadow" style="top:{{ top }}px;">
+                            <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+                            {{ message }}
+                        </div>
+                        {% set top = top + 72 %}
+                    {% endfor %}
                 {% endfor %}
-            {% endfor %}
-        {% endif %}
-
+            {% endif %}
+        </div>
         {% block body %}{% endblock %}
         <script src="{{ asset('vendor/jquery/jquery.min.js') }}"></script>
         <script src="{{ asset('vendor/jquery/select2.full.min.js') }}"></script>

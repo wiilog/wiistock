@@ -51,9 +51,8 @@ class SecuriteController extends Controller
      */
     public function register(Request $request, UserPasswordEncoderInterface $passwordEncoder, EntityManagerInterface $em)
     {
-
+        $session = $request->getSession();
     	$user = new Utilisateurs();
-        dump($user);
 
     	$form = $this->createForm(UtilisateursType::class, $user);
 
@@ -63,10 +62,9 @@ class SecuriteController extends Controller
     		$user->setPassword($password);
             $user->setRoles(array('ROLE_USER'));
 
-            dump($user);
     		$em->persist($user);
     		$em->flush();
-
+            $session->getFlashBag()->add('success', 'Félicitations ! Votre nouveau compte a été créé avec succès !');
     		return $this->redirectToRoute('login');
     	}
 
@@ -130,7 +128,7 @@ class SecuriteController extends Controller
                 $user->setPassword($new_password);
                 $em->persist($user);
                 $em->flush();
-                $session->getFlashBag()->add('info', 'Le Mot de Passe a bien été modifié');
+                $session->getFlashBag()->add('success', 'Le mot de passe a bien été modifié');
                 return $this->redirectToRoute('accueil');
             }
         }

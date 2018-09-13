@@ -7,15 +7,16 @@
             <div id="sidemenu-bg" class="sidemenu-bg hide"></div>
             <ul id="sidemenu" class="sidemenu">
                 <li>
-                    <a href="#">
+                    <a>
+                        <div class="username">{{ app.user.username }}</div>
                         <i class="fa fa-user-circle-o"></i>
                     </a>
                 </li>
-                <li>
+                {# <li>
                     <a href="#">
                         <i class="fa fa-search"></i>
                     </a>
-                </li>
+                </li> #}
 
                 {% if is_granted('ROLE_PARC') %}
                     <li class="has-submenu">
@@ -47,17 +48,14 @@
                                     <a href="{{ path('utilisateurs_index') }}">• Utilisateurs</a>
                                 </li>
                                 <li>
-                                    <a href="{{ path('groupes_index') }}">• Groupes de droits</a>
-                                </li>
-                                <li>
-                                    <a href="{{ path('champs_personnalises_index') }}">• Champs personnalisé</a>
-                                </li>
-                                <li>
                                     <a href="{{ path('parc_parametrage') }}">• Paramétrage des données</a>
                                 </li>
                             {% endif %}
                             <li>
                                 <a href="{{ path('personnalisation') }}">• Personnalisation</a>
+                            </li>
+                            <li>
+                                <a href="{{ path('change_password') }}">• Changer de mot de passe</a>
                             </li>
                         </ul>
                     </li>
@@ -180,27 +178,24 @@
                         </ul>
                     </li>
                 {% endif %}
+                <li>
+                    <a href="{{ path('logout') }}">
+                        <i class="	fa fa-power-off"></i>
+                        {# <div class="logout">Se déconnecter</div> #}
+                    </a>
+                </li>
             </ul>
         </nav>
     {% endblock %}
     <div class="wrapper">
         <div class="container-fluid">
-
-            <div class="row">
-                {% block filters %}{% endblock %}
-            </div>
-
-            <div class="row">
-                {% block bouton_action_1 %}{% endblock %}
-            </div>
-
             <div class="row">
                 {% block page_content %}{% endblock %}
             </div>
-
-            <div class="row">
-                {% block bouton_action_2 %}{% endblock %}
-            </div>
         </div>
     </div>
+{% endblock %}
+
+{% block javascripts %}
+    <script type="text/javascript"></script>
 {% endblock %}
