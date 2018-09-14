@@ -104,6 +104,7 @@ class SecuriteController extends Controller
      */
     public function change_password(EntityManagerInterface $em, Request $request, UserPasswordEncoderInterface $passwordEncoder)
     {
+
         $session = $request->getSession();
         $user = $this->getUser();
         $form = $this->createFormBuilder()
@@ -129,7 +130,9 @@ class SecuriteController extends Controller
                 $em->persist($user);
                 $em->flush();
                 $session->getFlashBag()->add('success', 'Le mot de passe a bien été modifié');
-                return $this->redirectToRoute('accueil');
+                return $this->redirectToRoute('check_last_login');
+            } else {
+                $session->getFlashBag()->add('danger', 'Mot de passe invalide');
             }
         }
 
