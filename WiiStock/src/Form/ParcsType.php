@@ -144,7 +144,7 @@ class ParcsType extends AbstractType
 			->add('commentaire_sortie', TextareaType::class, array(
 				'label' => 'Commentaire sortie',
 				'attr' => [
-					'placeholder' => 'Veuillez saisir une filiale',
+					'placeholder' => 'Veuillez indiquer une filiale, un site et/ou toute autre information nécessaire pour validation',
 				],
 			))
 			->add('n_serie', TextType::class, array('label' => 'Numéro de série'))
