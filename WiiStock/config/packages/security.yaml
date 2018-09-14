@@ -80,6 +80,7 @@ security:
         - { path: ^/check_last_login, role: IS_AUTHENTICATED_ANONYMOUSLY}
         - { path: ^/tests, roles: ROLE_API }
         # - { path: ^/, roles: ROLE_USER }
+        - { path: ^/parc, roles: ROLE_PARC }
         - { path: ^/parc/admin, roles: ROLE_PARC_ADMIN }
         - { path: ^/, role: IS_AUTHENTICATED_REMEMBERED}
         # - { path: ^/admin, roles: ROLE_ADMIN }
