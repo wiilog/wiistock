@@ -13,7 +13,6 @@
 
 {% block checkbox_widget %}
     <div class="checkbox">
-         {# {{ block('form_widget_simple') }} #}
         <input class="inp-cbx" id="cbx" type="checkbox" {{ block('widget_attributes') }}{% if value is defined %} value="{{ value }}"{% endif %}{% if checked %} checked="checked"{% endif %} style="display: none;"/>
         <label class="cbx" for="cbx">
                 <span>
@@ -26,16 +25,16 @@
     </div>
 {% endblock checkbox_widget %}
 
-{% block _parcs_img_widget %}
-        <div class="col-md-6">
-            <a id="upload">
-                <input id="file" type="file" {{ block('widget_attributes') }} placeholder="Importer"></input>
-                <label id="file_name" for="file">
-                    <span class="fa fa-cloud-upload"></span>
-                    &nbsp;{% if parc.img %} {{ parc.img }}{% else %} Importer {% endif %}
-                </label>
+{% block _parcs_mise_en_circulation_widget %}
+    <div class="has-feedback">
+        <label class="control-label required" for="parcs_mise_en_circulation">{{ label }}
+        	<a data-tooltip="Date de sortie d'usine ou de fabrication" data-position="top" class="top">
+				<i class="fa fa-question-circle-o"></i>
             </a>
-        </div>
+        </label>
+        {{ block('form_widget_simple') }}
+        <span class="glyphicon glyphicon-calendar form-control-feedback" aria-hidden="true"></span>
+    </div>
 {% endblock %}
 
 {% block page_content %}
@@ -131,7 +130,7 @@
                     {{ form_row(form.poids) }}
                 </div>
                 <div class="col-md-6">
-                    {{ form_row(form.mise_en_circulation) }}
+                    {{ form_widget(form.mise_en_circulation) }}
                 </div>
             {% else %}
                 <div class="col-md-6">
@@ -271,29 +270,64 @@
             {% endif %}
         </fieldset>
 
-                <a href="{{ path('parc_list') }}" class="button btn-left pull-left">
-                    <span class="fa fa-angle-double-left"></span>Retour</a>
-                {{ form_row(form.validation, {"attr": {"class" : "button btn-left pull-right"}}) }}
-
-
+        <a href="{{ path('parc_list') }}" class="button btn-left pull-left">
+            <span class="fa fa-angle-double-left"></span>
+            Retour
+        </a>
+        {{ form_row(form.validation, {"attr": {"class" : "button btn-left pull-right"}}) }}
 
         {{ form_row(form._token) }}
         {{ form_end(form, {'render_rest' : false}) }}
 
-            {% if is_granted('ROLE_PARC_ADMIN') and parc.statut == "Demande création" %}
-                    <form method="post" action="{{ path('parc_delete', {'id': parc.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce parc ?');">
-                        <input type="hidden" name="_method" value="DELETE">
-                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ parc.id) }}">
-                        <button class="button button-danger btn-left pull-right"><span class="fa fa-trash"></span>Supprimer</button>
-                    </form>
-            {% endif %}
+        {% if is_granted('ROLE_PARC_ADMIN') and parc.statut == "Demande création" %}
+                <form id="deleteForm" method="post" action="{{ path('parc_delete', {'id': parc.id}) }}">
+                    <input type="hidden" name="_method" value="DELETE">
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ parc.id) }}">
+                    <button id="submitBtn" data-toggle="modal" data-target="#confirm-submit" class="button button-danger btn-left pull-right"><span class="fa fa-trash"></span>Supprimer</button>
+                </form>
+
+                <div class="modal fade" id="confirm-submit" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <!-- Modal content-->
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                <h4 class="modal-title">
+                                    <span class="glyphicon glyphicon-warning"></span>
+                                    Confirmation de suppression</h4>
+                            </div>
+                            <div class="modal-body">
+                                <p>Êtes-vous sûr de vouloir supprimer ce parc ?</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="submit" class="btn btn-default pull-left" data-dismiss="modal">
+                                    <span class="glyphicon glyphicon-remove"></span>
+                                    Annuler</button>
+                                <a href="#" id="submit" class="btn button-danger success">Confirmer</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+        {% endif %}
     </div>
 
 {% endblock %}
 
 {% block javascripts %}
     <script type="text/javascript">
-$('#upload').change('click', function () {
+        /* Delete parc
+        ================= */
+        $('#submitBtn').click(function(e) {
+            e.preventDefault();
+        });
+
+        $('#submit').click(function(){
+            $('#deleteForm').submit();
+        });
+
+        /* Ajax upload image
+        ================= */
+        $('#upload').change('click', function () {
             var formData = new FormData();
             var file = document.getElementById("file").files[0];
             formData.append("file", file);
@@ -360,8 +394,12 @@ $('#upload').change('click', function () {
             }
         });
 
+        /* Datepicker
+        ================= */
         $('.datepicker').datepicker({language: 'fr', format: 'dd/mm/yyyy', todayBtn: true, todayHighlight: true, autoclose: true});
 
+        /* NParc generator
+        ================= */
         $(".parc-content").on('click', '#generator', function () {
             var s = document.getElementById("parcs_sousCategorieVehicule");
             var s_categorie = s.options[s.selectedIndex].text;
@@ -378,25 +416,30 @@ $('#upload').change('click', function () {
                 success: function (resp) {
                     if (resp) {
                         $("#parcs_n_parc").val(resp);
+                        enableEnregistrer();
                     }
                 }
             });
         });
 
+        /* Sites / Sous-categories
+        ================= */
         var filiales = {{ sites|json_encode|raw }};
         var categories = {{ sousCategories|json_encode|raw }};
 
-        update_sousCategorie();
+        updateSousCategorie();
         $('#parcs_categorieVehicule').change(function () {
-            update_sousCategorie();
+            updateSousCategorie();
+            $('#parcs_sousCategorieVehicule').attr("placeholder", "").val("").focus().blur();
         });
 
-        update_site();
+        updateSite();
         $('#parcs_filiale').change(function () {
-            update_site();
+            updateSite();
+            $('#parcs_site').attr("placeholder", "").val("").focus().blur();
         });
 
-        function update_sousCategorie() {
+        function updateSousCategorie() {
             $("#parcs_sousCategorieVehicule").find('option').remove();
             $.each(categories, function (categorie) {
                 if (categorie === $('#parcs_categorieVehicule option:selected').text()) {
@@ -407,7 +450,7 @@ $('#upload').change('click', function () {
             });
         }
 
-        function update_site() {
+        function updateSite() {
             $("#parcs_site").find('option').remove();
             $.each(filiales, function (site) {
                 if (site === $('#parcs_filiale option:selected').text()) {
@@ -418,7 +461,8 @@ $('#upload').change('click', function () {
             });
         }
 
-        // Immatriculation_error
+        /* Immatriculation_error
+        ================= */
         var immatriculation_init = $('#parcs_immatriculation').val();
         $("#parcs_immatriculation").change(function () {
             $(this).parent().find('input, select').removeClass('is-invalid');
@@ -441,7 +485,8 @@ $('#upload').change('click', function () {
             });
         });
 
-        // Serie_error
+        /* Serie_error
+        ================= */
         var serie_init = $('#parcs_n_serie').val();
         $("#parcs_n_serie").change(function () {
             $(this).parent().find('input, select').removeClass('is-invalid');
@@ -464,6 +509,8 @@ $('#upload').change('click', function () {
             });
         });
 
+        /* Disabled
+        ================= */
         if ($("#vehicule").find('input').val()) {
             $("#chariot .mask").css({"opacity": ".7", "z-index": "50"});
             $(".well-legend").css({"z-index": "51"});
@@ -477,7 +524,6 @@ $('#upload').change('click', function () {
         function disableEnregistrer() {
             document.getElementById("parcs_validation").disabled = true;
             $("#parcs_validation").attr("data-toggle", "tooltip");
-            $("#parcs_validation").attr("title", "Vous devez saisir une date ET un motif de sortie pour pouvoir enregistrer");
         }
 
         function enableEnregistrer() {
@@ -487,11 +533,19 @@ $('#upload').change('click', function () {
         }
 
         $('#sortie .form-control').change(function() {
-            if ( ($('#parcs_sortie').val() && !($('#parcs_motif').val()))
-            || (!($('#parcs_sortie').val()) && $('#parcs_motif').val())) {
+            if ( ($('#parcs_sortie').val() || $('#parcs_motif').val() || $('#parcs_commentaire_sortie').val()) 
+            && !($('#parcs_sortie').val() && $('#parcs_motif').val() && $('#parcs_commentaire_sortie').val()) ) {
                 disableEnregistrer();
+                $("#parcs_validation").attr("title", "Vous devez saisir une date, un motif de sortie ET un commentaire de sortie pour pouvoir enregistrer");
             } else {
                 enableEnregistrer();
+            }
+        });
+
+        $('#parcs_sousCategorieVehicule, #parcs_mode_acquisition').change(function () {
+            if ($('#parcs_n_parc').val()) {
+                $("#parcs_validation").attr("title", "Vous devez regénérer un numéro de parc pour pouvoir enregistrer");
+                disableEnregistrer();
             }
         });
 

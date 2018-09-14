@@ -47,6 +47,7 @@ class Parcs
 	/**
 	 * @ORM\ManyToOne(targetEntity="App\Entity\Sites", inversedBy="parcs")
 	 * @ORM\JoinColumn(nullable=false)
+	 * @ORM\OrderBy({"nom" = "ASC"})
 	 * @Groups({"parc"})
 	 */
 	private $site;
@@ -61,6 +62,7 @@ class Parcs
 	/**
 	 * @ORM\ManyToOne(targetEntity="App\Entity\SousCategoriesVehicules", inversedBy="parcs")
 	 * @ORM\JoinColumn(nullable=false)
+	 * @ORM\OrderBy({"nom" = "ASC"})
 	 * @Groups({"parc"})
 	 */
 	private $sousCategorieVehicule;

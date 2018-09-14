@@ -28,6 +28,7 @@ class CategoriesVehicules
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\SousCategoriesVehicules", mappedBy="categorie")
+     * @ORM\OrderBy({"nom" = "ASC"})
      */
     private $sousCategoriesVehicules;
 

@@ -27,6 +27,7 @@ class Filiales
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Sites", mappedBy="filiale")
+     * @ORM\OrderBy({"nom" = "ASC"})
      */
     private $sites;
 

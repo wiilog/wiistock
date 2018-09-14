@@ -126,6 +126,8 @@ class ParcController extends AbstractController
             $em = $this->getDoctrine()->getManager();
             $em->remove($parc);
             $em->flush();
+            $session = $request->getSession();
+            $session->getFlashBag()->add('success', 'Félicitations ! Le véhicule a été supprimé avec succès !');
         }
 
         return $this->redirectToRoute('parc_list');

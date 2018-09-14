@@ -149,6 +149,9 @@
 
 {% block javascripts %}
     <script type="text/javascript">
+
+        /* Ajax upload image
+        ================= */
         $('#upload').change('click', function () {
             var formData = new FormData();
             var file = document.getElementById("file").files[0];
@@ -216,8 +219,12 @@
             }
         });
 
+        /* Datepicker
+        ================= */
         $('.datepicker').datepicker({language: 'fr', format: 'dd/mm/yyyy', todayBtn: true, todayHighlight: true, autoclose: true});
 
+        /* Sites / Sous-categories
+        ================= */
         var filiales = {{ sites|json_encode|raw }};
         var categories = {{ sousCategories|json_encode|raw }};
 
@@ -238,6 +245,7 @@
                     $.each(categories[categorie], function (index, val) {
                         $('#parcs_sousCategorieVehicule').append(new Option(val.nom, val.id,));
                     });
+                    $('#parcs_sousCategorieVehicule').attr("placeholder", "").val("").focus().blur();
                 }
             });
         }
@@ -249,6 +257,7 @@
                     $.each(filiales[site], function (index, val) {
                         $('#parcs_site').append(new Option(val.nom, val.id,));
                     });
+                    $('#parcs_site').attr("placeholder", "").val("").focus().blur();
                 }
             });
         }
@@ -268,7 +277,8 @@
         $("#parcs_validation").attr("data-toggle", "tooltip");
         $("#parcs_validation").attr("title", "Vous devez saisir un numéro d'immatriculation ou un numéro de série non existant pour pouvoir enregistrer le nouveau véhicule");
 
-        // Immatriculation_error
+        /* Immatriculation_error
+        ================= */
         $("#parcs_immatriculation").change(function () {
             $(this).parent().find('input, select').removeClass('is-invalid');
             $(this).parent().find(".invalid-feedback").remove();
@@ -304,7 +314,8 @@
             });
         });
 
-        // Serie_error
+        /* Serie_error
+        ================= */
         $("#parcs_n_serie").change(function () {
             $(this).parent().find('input, select').removeClass('is-invalid');
             $(this).parent().find(".invalid-feedback").remove();

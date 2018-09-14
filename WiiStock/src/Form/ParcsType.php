@@ -34,41 +34,40 @@ class ParcsType extends AbstractType
 			->add('filiale', EntityType::class, array(
 				'class' => Filiales::class,
 				'choice_label' => 'nom',
-				'label' => 'Filiale'
+				'label' => 'Filiale',
+				'query_builder' => function (EntityRepository $er) {
+					return $er->createQueryBuilder('f')
+						->orderBy('f.nom', 'ASC');
+				},
+				'placeholder' => '',
 			))
 			->add('site', EntityType::class, array(
 				'class' => Sites::class,
 				'choice_label' => 'nom',
 				'label' => 'Site',
-				// 'query_builder' => function (EntityRepository $er) {
-				// 	return $er->createQueryBuilder('p')
-				// 		->add('select', 'p')
-				// 		->leftJoin('p.filiale', 'f')
-				// 		->where('f.id = :id')
-				// 		->setParameter('id', '1');
-				// },
+				'placeholder' => '',
 			))
 			->add('marque', EntityType::class, array(
 				'class' => Marques::class,
 				'choice_label' => 'nom',
-				'label' => 'Marque'
+				'label' => 'Marque',
+				'placeholder' => '',
 			))
 			->add('categorieVehicule', EntityType::class, array(
 				'class' => CategoriesVehicules::class,
 				'choice_label' => 'nom',
-				'label' => 'Catégorie'
+				'label' => 'Catégorie',
+				'query_builder' => function (EntityRepository $er) {
+					return $er->createQueryBuilder('c')
+						->orderBy('c.nom', 'ASC');
+				},
+				'placeholder' => '',
 			))
 			->add('sousCategorieVehicule', EntityType::class, array(
 				'class' => SousCategoriesVehicules::class,
 				'choice_label' => 'nom',
 				'label' => 'Sous catégorie',
-				// 'query_builder' => function (EntityRepository $er) {
-				// 	return $er->createQueryBuilder('p')
-				// 		->add('select', 'p')
-				// 		->leftJoin('p.categorie', 'c')
-				// 		->where('c.id = :id')
-				// 		->setParameter('id', '1');
-				// },
+				'placeholder' => '',
 			))
 			->add('statut', ChoiceType::class, array(
 				'label' => 'Statut',
@@ -138,10 +137,13 @@ class ParcsType extends AbstractType
 					'Mise au rebus' => 'Mise au rebus',
 					'Transfert vers site d’une filiale différente' => 'Transfert vers site d’une filiale différente',
 					'Transfert vers site d’une même filiale' => 'Transfert vers site d’une même filiale',
+					'Fin de contrat de location longue durée' => 'Fin de contrat de location longue durée',
+					'Vente à un tiers externe' => 'Vente à un tiers externe',
 				),
 			))
 			->add('commentaire_sortie', TextareaType::class, array(
-				'label' => 'Commentaire sortie', 'attr' => [
+				'label' => 'Commentaire sortie',
+				'attr' => [
 					'placeholder' => 'Veuillez saisir une filiale',
 				],
 			))
