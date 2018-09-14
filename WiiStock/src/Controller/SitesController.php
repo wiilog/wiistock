@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Parcs;
 use App\Entity\Sites;
 use App\Form\SitesType;
 use App\Repository\SitesRepository;
@@ -59,13 +60,23 @@ class SitesController extends Controller
      */
     public function edit(Request $request, Sites $site): Response
     {
+        $filiale_init = $site->getFiliale();
         $form = $this->createForm(SitesType::class, $site);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $this->getDoctrine()->getManager()->flush();
+            $em = $this->getDoctrine()->getManager();
+            $filiale = $form->getData()->getFiliale();
+            $parcs = $em->getRepository(Parcs::class)->findAll(array('filiale' => $filiale_init->getId()));
 
-            return $this->redirectToRoute('sites_edit', ['id' => $site->getId()]);
+            foreach ($parcs as $parc) {
+                if ($filiale->getNom() != $filiale_init->getNom()) {
+                    $parc->setFiliale($filiale);
+                }
+            }
+            $em->flush();
+
+            return $this->redirectToRoute('parc_parametrage');
         }
 
         return $this->render('sites/edit.html.twig', [

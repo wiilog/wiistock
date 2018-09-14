@@ -427,13 +427,17 @@
         var filiales = {{ sites|json_encode|raw }};
         var categories = {{ sousCategories|json_encode|raw }};
 
+        var init_categories = $('#parcs_sousCategorieVehicule').val();
         updateSousCategorie();
+        $('#parcs_sousCategorieVehicule').val(init_categories);
         $('#parcs_categorieVehicule').change(function () {
             updateSousCategorie();
             $('#parcs_sousCategorieVehicule').attr("placeholder", "").val("").focus().blur();
         });
 
+        var init_filiales = $('#parcs_site').val();
         updateSite();
+        $('#parcs_site').val(init_filiales);
         $('#parcs_filiale').change(function () {
             updateSite();
             $('#parcs_site').attr("placeholder", "").val("").focus().blur();

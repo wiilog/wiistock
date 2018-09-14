@@ -7,6 +7,7 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use Doctrine\ORM\EntityRepository;
 
 class SousCategoriesVehiculesType extends AbstractType
 {
@@ -16,9 +17,13 @@ class SousCategoriesVehiculesType extends AbstractType
             ->add('nom')
             ->add('code')
             ->add('categorie', EntityType::class, array(
-                'class' => 'App\Entity\Filiales',
+                'class' => 'App\Entity\CategoriesVehicules',
                 'choice_label' => 'nom',
                 'multiple' => false,
+                'query_builder' => function (EntityRepository $er) {
+					return $er->createQueryBuilder('c')
+						->orderBy('c.nom', 'ASC');
+				},
             ));
     }
 

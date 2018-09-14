@@ -242,20 +242,35 @@ class ParcController extends AbstractController
                 }
                 /* end upload */
 
-                if ($parc->getNParc() && in_array('ROLE_PARC_ADMIN', $this->getUser()->getRoles())) {
-                        $parc->setStatut("Actif");
+                if (in_array('ROLE_PARC_ADMIN', $this->getUser()->getRoles())) {
+                    if ($parc->getStatut() == "Demande création" && $parc->getNParc()) {
+                        $parc->setStatut("Actif"); 
+                    }
                     if ($parc->getSortie()) {
                         $parc->setStatut("Demande sortie/transfert");
                     }
-                    if ($parc->getEstSorti() && in_array('ROLE_PARC_ADMIN', $this->getUser()->getRoles())) {
+                    if ($parc->getEstSorti()) {
                         $parc->setStatut("Sorti");
                     }
                 } else {
-                    $parc->setStatut("Demande création");
+                    if ($parc->getStatut() == "Actif" && $parc->getSortie()) {
+                        $parc->setStatut("Demande sortie/transfert"); 
+                    }
                 }
 
-                $parc->setLastEdit($this->getUser()->getEmail());
+                // if ($parc->getNParc() && in_array('ROLE_PARC_ADMIN', $this->getUser()->getRoles())) {
+                //         $parc->setStatut("Actif");
+                //     if ($parc->getSortie()) {
+                //         $parc->setStatut("Demande sortie/transfert");
+                //     }
+                //     if ($parc->getEstSorti() && in_array('ROLE_PARC_ADMIN', $this->getUser()->getRoles())) {
+                //         $parc->setStatut("Sorti");
+                //     }
+                // } else {
+                //     $parc->setStatut("Demande création");
+                // }
 
+                $parc->setLastEdit($this->getUser()->getEmail());
                 $this->getDoctrine()->getManager()->flush();
 
                 return $this->redirectToRoute('parc_list');

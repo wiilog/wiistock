@@ -25,6 +25,18 @@
     </div>
 {% endblock %}
 
+{% block _parcs_mise_en_circulation_widget %}
+    <div class="has-feedback">
+        <label class="control-label required" for="parcs_mise_en_circulation">{{ label }}
+        	<a data-tooltip="Date de sortie d'usine ou de fabrication" data-position="top" class="top">
+				<i class="fa fa-question-circle-o"></i>
+            </a>
+        </label>
+        {{ block('form_widget_simple') }}
+        <span class="glyphicon glyphicon-calendar form-control-feedback" aria-hidden="true"></span>
+    </div>
+{% endblock %}
+
 {% block page_content %}
 
     <div class="row page-title">
@@ -66,7 +78,7 @@
                     {{ form_row(form.poids) }}
                 </div>
                 <div class="col-md-6">
-                    {{ form_row(form.mise_en_circulation) }}
+                    {{ form_widget(form.mise_en_circulation) }}
                 </div>
             </div>
             {{ form_row(form.commentaire, {'required': false}) }}

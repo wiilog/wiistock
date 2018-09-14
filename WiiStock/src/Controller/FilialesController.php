@@ -18,7 +18,7 @@ class FilialesController extends Controller
     /**
      * @Route("/", name="filiales_index", methods="GET")
      */
-    public function index(FilialesRepository $filialesRepository): Response
+    public function index(FilialesRepository $filialesRepository) : Response
     {
         return $this->render('filiales/index.html.twig', ['filiales' => $filialesRepository->findAll()]);
     }
@@ -26,7 +26,7 @@ class FilialesController extends Controller
     /**
      * @Route("/new", name="filiales_new", methods="GET|POST")
      */
-    public function new(Request $request): Response
+    public function new(Request $request) : Response
     {
         $filiale = new Filiales();
         $form = $this->createForm(FilialesType::class, $filiale);
@@ -49,7 +49,7 @@ class FilialesController extends Controller
     /**
      * @Route("/{id}", name="filiales_show", methods="GET")
      */
-    public function show(Filiales $filiale): Response
+    public function show(Filiales $filiale) : Response
     {
         return $this->render('filiales/show.html.twig', ['filiale' => $filiale]);
     }
@@ -57,7 +57,7 @@ class FilialesController extends Controller
     /**
      * @Route("/{id}/edit", name="filiales_edit", methods="GET|POST")
      */
-    public function edit(Request $request, Filiales $filiale): Response
+    public function edit(Request $request, Filiales $filiale) : Response
     {
         $form = $this->createForm(FilialesType::class, $filiale);
         $form->handleRequest($request);
@@ -65,7 +65,7 @@ class FilialesController extends Controller
         if ($form->isSubmitted() && $form->isValid()) {
             $this->getDoctrine()->getManager()->flush();
 
-            return $this->redirectToRoute('filiales_edit', ['id' => $filiale->getId()]);
+            return $this->redirectToRoute('parc_parametrage');
         }
 
         return $this->render('filiales/edit.html.twig', [
@@ -77,9 +77,9 @@ class FilialesController extends Controller
     /**
      * @Route("/{id}", name="filiales_delete", methods="DELETE")
      */
-    public function delete(Request $request, Filiales $filiale): Response
+    public function delete(Request $request, Filiales $filiale) : Response
     {
-        if ($this->isCsrfTokenValid('delete'.$filiale->getId(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $filiale->getId(), $request->request->get('_token'))) {
             $em = $this->getDoctrine()->getManager();
             $em->remove($filiale);
             $em->flush();

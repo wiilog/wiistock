@@ -7,6 +7,7 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use Doctrine\ORM\EntityRepository;
 
 class SitesType extends AbstractType
 {
@@ -18,6 +19,10 @@ class SitesType extends AbstractType
                 'class' => 'App\Entity\Filiales',
                 'choice_label' => 'nom',
                 'multiple' => false,
+                'query_builder' => function (EntityRepository $er) {
+					return $er->createQueryBuilder('f')
+						->orderBy('f.nom', 'ASC');
+				},
             ));
     }
 

@@ -65,7 +65,7 @@ class MarquesController extends Controller
         if ($form->isSubmitted() && $form->isValid()) {
             $this->getDoctrine()->getManager()->flush();
 
-            return $this->redirectToRoute('marques_edit', ['id' => $marque->getId()]);
+            return $this->redirectToRoute('parc_parametrage');
         }
 
         return $this->render('marques/edit.html.twig', [

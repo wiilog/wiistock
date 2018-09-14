@@ -18,7 +18,7 @@ class CategoriesVehiculesController extends Controller
     /**
      * @Route("/", name="categories_vehicules_index", methods="GET")
      */
-    public function index(CategoriesVehiculesRepository $categoriesVehiculesRepository): Response
+    public function index(CategoriesVehiculesRepository $categoriesVehiculesRepository) : Response
     {
         return $this->render('categories_vehicules/index.html.twig', ['categories_vehicules' => $categoriesVehiculesRepository->findAll()]);
     }
@@ -26,7 +26,7 @@ class CategoriesVehiculesController extends Controller
     /**
      * @Route("/new", name="categories_vehicules_new", methods="GET|POST")
      */
-    public function new(Request $request): Response
+    public function new(Request $request) : Response
     {
         $categoriesVehicule = new CategoriesVehicules();
         $form = $this->createForm(CategoriesVehiculesType::class, $categoriesVehicule);
@@ -49,7 +49,7 @@ class CategoriesVehiculesController extends Controller
     /**
      * @Route("/{id}", name="categories_vehicules_show", methods="GET")
      */
-    public function show(CategoriesVehicules $categoriesVehicule): Response
+    public function show(CategoriesVehicules $categoriesVehicule) : Response
     {
         return $this->render('categories_vehicules/show.html.twig', ['categories_vehicule' => $categoriesVehicule]);
     }
@@ -57,7 +57,7 @@ class CategoriesVehiculesController extends Controller
     /**
      * @Route("/{id}/edit", name="categories_vehicules_edit", methods="GET|POST")
      */
-    public function edit(Request $request, CategoriesVehicules $categoriesVehicule): Response
+    public function edit(Request $request, CategoriesVehicules $categoriesVehicule) : Response
     {
         $form = $this->createForm(CategoriesVehiculesType::class, $categoriesVehicule);
         $form->handleRequest($request);
@@ -65,7 +65,7 @@ class CategoriesVehiculesController extends Controller
         if ($form->isSubmitted() && $form->isValid()) {
             $this->getDoctrine()->getManager()->flush();
 
-            return $this->redirectToRoute('categories_vehicules_edit', ['id' => $categoriesVehicule->getId()]);
+            return $this->redirectToRoute('parc_parametrage');
         }
 
         return $this->render('categories_vehicules/edit.html.twig', [
@@ -77,9 +77,9 @@ class CategoriesVehiculesController extends Controller
     /**
      * @Route("/{id}", name="categories_vehicules_delete", methods="DELETE")
      */
-    public function delete(Request $request, CategoriesVehicules $categoriesVehicule): Response
+    public function delete(Request $request, CategoriesVehicules $categoriesVehicule) : Response
     {
-        if ($this->isCsrfTokenValid('delete'.$categoriesVehicule->getId(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $categoriesVehicule->getId(), $request->request->get('_token'))) {
             $em = $this->getDoctrine()->getManager();
             $em->remove($categoriesVehicule);
             $em->flush();
