@@ -356,6 +356,11 @@
                         if (xhr.status === 200) {
                             console.log(xhr.response);
                             document.getElementById("parcs_url").value = xhr.response;
+                        } else {
+                            document.getElementById('progress-value').textContent = 'Erreur';
+                            document.getElementById("progress-bar").classList.remove("progress-bar-striped")
+                            document.getElementById("progress-bar").style.backgroundColor = '#CC0000';
+                            document.getElementById("progress-bar").style.width = '100%';
                         }
                     }
                 };
