@@ -185,321 +185,338 @@ class Parcs
 	 */
 	private $lastEdit;
 
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $img_origine;
+
 	public function getId() : ? int
-	{
-		return $this->id;
-	}
+         	{
+         		return $this->id;
+         	}
 
 	public function getModele() : ? string
-	{
-		return $this->modele;
-	}
+         	{
+         		return $this->modele;
+         	}
 
 	public function setModele(string $modele) : self
-	{
-		$this->modele = $modele;
-
-		return $this;
-	}
+         	{
+         		$this->modele = $modele;
+         
+         		return $this;
+         	}
 
 	public function getStatut() : ? string
-	{
-		return $this->statut;
-	}
+         	{
+         		return $this->statut;
+         	}
 
 	public function setStatut(? string $statut) : self
-	{
-		$this->statut = $statut;
-
-		return $this;
-	}
+         	{
+         		$this->statut = $statut;
+         
+         		return $this;
+         	}
 
 	public function getNParc() : ? string
-	{
-		return $this->n_parc;
-	}
+         	{
+         		return $this->n_parc;
+         	}
 
 	public function setNParc(string $n_parc) : self
-	{
-		$this->n_parc = $n_parc;
-
-		return $this;
-	}
+         	{
+         		$this->n_parc = $n_parc;
+         
+         		return $this;
+         	}
 
 	public function getMiseEnCirculation() : ? \DateTimeInterface
-	{
-		return $this->mise_en_circulation;
-	}
+         	{
+         		return $this->mise_en_circulation;
+         	}
 
 	public function setMiseEnCirculation(\DateTimeInterface $mise_en_circulation) : self
-	{
-		$this->mise_en_circulation = $mise_en_circulation;
-
-		return $this;
-	}
+         	{
+         		$this->mise_en_circulation = $mise_en_circulation;
+         
+         		return $this;
+         	}
 
 	public function getFournisseur() : ? string
-	{
-		return $this->fournisseur;
-	}
+         	{
+         		return $this->fournisseur;
+         	}
 
 	public function setFournisseur(string $fournisseur) : self
-	{
-		$this->fournisseur = $fournisseur;
-
-		return $this;
-	}
+         	{
+         		$this->fournisseur = $fournisseur;
+         
+         		return $this;
+         	}
 
 	public function getPoids() : ? int
-	{
-		return $this->poids;
-	}
+         	{
+         		return $this->poids;
+         	}
 
 	public function setPoids(int $poids) : self
-	{
-		$this->poids = $poids;
-
-		return $this;
-	}
+         	{
+         		$this->poids = $poids;
+         
+         		return $this;
+         	}
 
 	public function getModeAcquisition() : ? string
-	{
-		return $this->mode_acquisition;
-	}
+         	{
+         		return $this->mode_acquisition;
+         	}
 
 	public function setModeAcquisition(string $mode_acquisition) : self
-	{
-		$this->mode_acquisition = $mode_acquisition;
-
-		return $this;
-	}
+         	{
+         		$this->mode_acquisition = $mode_acquisition;
+         
+         		return $this;
+         	}
 
 	public function getCommentaire() : ? string
-	{
-		return $this->commentaire;
-	}
+         	{
+         		return $this->commentaire;
+         	}
 
 	public function setCommentaire(? string $commentaire) : self
-	{
-		$this->commentaire = $commentaire;
-
-		return $this;
-	}
+         	{
+         		$this->commentaire = $commentaire;
+         
+         		return $this;
+         	}
 
 
 	public function getMiseEnService() : ? \DateTimeInterface
-	{
-		return $this->mise_en_service;
-	}
+         	{
+         		return $this->mise_en_service;
+         	}
 
 	public function setMiseEnService(\DateTimeInterface $mise_en_service) : self
-	{
-		$this->mise_en_service = $mise_en_service;
-
-		return $this;
-	}
+         	{
+         		$this->mise_en_service = $mise_en_service;
+         
+         		return $this;
+         	}
 
 	public function getSortie() : ? \DateTimeInterface
-	{
-		return $this->sortie;
-	}
+         	{
+         		return $this->sortie;
+         	}
 
 	public function setSortie(? \DateTimeInterface $sortie) : self
-	{
-		$this->sortie = $sortie;
-
-		return $this;
-	}
+         	{
+         		$this->sortie = $sortie;
+         
+         		return $this;
+         	}
 
 	public function getMotif() : ? string
-	{
-		return $this->motif;
-	}
+         	{
+         		return $this->motif;
+         	}
 
 	public function setMotif(string $motif) : self
-	{
-		$this->motif = $motif;
-
-		return $this;
-	}
+         	{
+         		$this->motif = $motif;
+         
+         		return $this;
+         	}
 
 	public function getCommentaireSortie() : ? string
-	{
-		return $this->commentaire_sortie;
-	}
+         	{
+         		return $this->commentaire_sortie;
+         	}
 
 	public function setCommentaireSortie(? string $commentaire_sortie) : self
-	{
-		$this->commentaire_sortie = $commentaire_sortie;
-
-		return $this;
-	}
+         	{
+         		$this->commentaire_sortie = $commentaire_sortie;
+         
+         		return $this;
+         	}
 
 	public function getFiliale(): ?Filiales
-	{
-		return $this->filiale;
-	}
+         	{
+         		return $this->filiale;
+         	}
 
 	public function setFiliale(?Filiales $filiale): self
-	{
-		$this->filiale = $filiale;
-
-		return $this;
-	}
+         	{
+         		$this->filiale = $filiale;
+         
+         		return $this;
+         	}
 
 	public function getMarque(): ?Marques
-	{
-		return $this->marque;
-	}
+         	{
+         		return $this->marque;
+         	}
 
 	public function setMarque(?Marques $marque): self
-	{
-		$this->marque = $marque;
-
-		return $this;
-	}
+         	{
+         		$this->marque = $marque;
+         
+         		return $this;
+         	}
 
 	public function getSite(): ?Sites
-	{
-		return $this->site;
-	}
+         	{
+         		return $this->site;
+         	}
 
 	public function setSite(?Sites $site): self
-	{
-		$this->site = $site;
-
-		return $this;
-	}
+         	{
+         		$this->site = $site;
+         
+         		return $this;
+         	}
 
 	public function getSousCategorieVehicule(): ?SousCategoriesVehicules
-	{
-		return $this->sousCategorieVehicule;
-	}
+         	{
+         		return $this->sousCategorieVehicule;
+         	}
 
 	public function setSousCategorieVehicule(?SousCategoriesVehicules $sousCategorieVehicule): self
-	{
-		$this->sousCategorieVehicule = $sousCategorieVehicule;
-
-		return $this;
-	}
+         	{
+         		$this->sousCategorieVehicule = $sousCategorieVehicule;
+         
+         		return $this;
+         	}
 
 	public function getCategorieVehicule(): ?CategoriesVehicules
-	{
-		return $this->categorieVehicule;
-	}
+         	{
+         		return $this->categorieVehicule;
+         	}
 
 	public function setCategorieVehicule(?CategoriesVehicules $categorieVehicule): self
-	{
-		$this->categorieVehicule = $categorieVehicule;
-
-		return $this;
-	}
+         	{
+         		$this->categorieVehicule = $categorieVehicule;
+         
+         		return $this;
+         	}
 
 	public function getNSerie(): ?string
-	{
-		return $this->n_serie;
-	}
+         	{
+         		return $this->n_serie;
+         	}
 
 	public function setNSerie(string $n_serie): self
-	{
-		$this->n_serie = $n_serie;
-
-		return $this;
-	}
+         	{
+         		$this->n_serie = $n_serie;
+         
+         		return $this;
+         	}
 
 	public function getImmatriculation(): ?string
-	{
-		return $this->immatriculation;
-	}
+         	{
+         		return $this->immatriculation;
+         	}
 
 	public function setImmatriculation(string $immatriculation): self
-	{
-		$this->immatriculation = $immatriculation;
-
-		return $this;
-	}
+         	{
+         		$this->immatriculation = $immatriculation;
+         
+         		return $this;
+         	}
 
 	public function getGenre(): ?string
-	{
-		return $this->genre;
-	}
+         	{
+         		return $this->genre;
+         	}
 
 	public function setGenre(?string $genre): self
-	{
-		$this->genre = $genre;
-
-		return $this;
-	}
+         	{
+         		$this->genre = $genre;
+         
+         		return $this;
+         	}
 
 	public function getPtac(): ?float
-	{
-		return $this->ptac;
-	}
+         	{
+         		return $this->ptac;
+         	}
 
 	public function setPtac(float $ptac): self
-	{
-		$this->ptac = $ptac;
-
-		return $this;
-	}
+         	{
+         		$this->ptac = $ptac;
+         
+         		return $this;
+         	}
 
 	public function getPtr(): ?float
-	{
-		return $this->ptr;
-	}
+         	{
+         		return $this->ptr;
+         	}
 
 	public function setPtr(float $ptr): self
-	{
-		$this->ptr = $ptr;
-
-		return $this;
-	}
+         	{
+         		$this->ptr = $ptr;
+         
+         		return $this;
+         	}
 
 	public function getPuissanceFiscale(): ?int
-	{
-		return $this->puissance_fiscale;
-	}
+         	{
+         		return $this->puissance_fiscale;
+         	}
 
 	public function setPuissanceFiscale(int $puissance_fiscale): self
-	{
-		$this->puissance_fiscale = $puissance_fiscale;
-
-		return $this;
-	}
+         	{
+         		$this->puissance_fiscale = $puissance_fiscale;
+         
+         		return $this;
+         	}
 
 	public function getImg(): ?string
-	{
-		return $this->img;
-	}
+         	{
+         		return $this->img;
+         	}
 
 	public function setImg(?string $img): self
-	{
-		$this->img = $img;
-
-		return $this;
-	}
+         	{
+         		$this->img = $img;
+         
+         		return $this;
+         	}
 
 	public function getEstSorti(): ?bool
-	{
-		return $this->estSorti;
-	}
+         	{
+         		return $this->estSorti;
+         	}
 
 	public function setEstSorti(?bool $estSorti): self
-	{
-		$this->estSorti = $estSorti;
-
-		return $this;
-	}
+         	{
+         		$this->estSorti = $estSorti;
+         
+         		return $this;
+         	}
 
 	public function getLastEdit(): ?string
-	{
-		return $this->lastEdit;
-	}
+         	{
+         		return $this->lastEdit;
+         	}
 
 	public function setLastEdit(?string $lastEdit): self
-	{
-		$this->lastEdit = $lastEdit;
+         	{
+         		$this->lastEdit = $lastEdit;
+         
+         		return $this;
+         	}
 
-		return $this;
-	}
+    public function getImgOrigine(): ?string
+    {
+        return $this->img_origine;
+    }
+
+    public function setImgOrigine(?string $img_origine): self
+    {
+        $this->img_origine = $img_origine;
+
+        return $this;
+    }
 }

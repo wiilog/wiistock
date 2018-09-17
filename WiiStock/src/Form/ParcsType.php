@@ -20,6 +20,7 @@ use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\FileType;
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use App\Form\ChariotsType;
 use App\Form\VehiculesType;
@@ -164,6 +165,7 @@ class ParcsType extends AbstractType
 				'label' => 'Carte grise',
 				'data_class' => null,
 			))
+			->add('imgOrigine', HiddenType::class)
 			->add('validation', SubmitType::class, array('label' => 'Enregistrer'));
 	}
 

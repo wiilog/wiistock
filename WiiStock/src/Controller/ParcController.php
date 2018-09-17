@@ -121,7 +121,7 @@ class ParcController extends AbstractController
     public function upload(Request $request, FileUploader $fileUploader) : Response
     {
         if ($request->isXmlHttpRequest()) {
-            $em = $this->getDoctrine()->getManager();
+            //$em = $this->getDoctrine()->getManager();
             $file = $request->files->get('file');
             $fileName = $fileUploader->upload($file);
             return new Response($fileName);
@@ -167,8 +167,10 @@ class ParcController extends AbstractController
 
                 /* start upload */
                 if ($parc->getImmatriculation()) {
+                    $file = $form['img']->getData();
                     $fileName = $form['url']->getData();
                     $parc->setImg($fileName);
+                    $parc->setImgOrigine($file->getClientOriginalName());
                 }
                 /* end upload */
 
