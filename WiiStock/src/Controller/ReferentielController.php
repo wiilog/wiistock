@@ -6,7 +6,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 
 /**
- * @Route("/referentiel")
+ * @Route("/stock/referentiel")
  */
 class ReferentielController extends Controller
 {

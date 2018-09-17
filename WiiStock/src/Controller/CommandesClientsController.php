@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
- * @Route("/commandes/clients")
+ * @Route("/stock/commandes/clients")
  */
 class CommandesClientsController extends Controller
 {

@@ -10,7 +10,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Entity\Articles;
 
 /**
-* @Route("/stock")
+* @Route("/stock/stock")
 */
 class StockController extends Controller
 {

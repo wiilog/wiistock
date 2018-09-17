@@ -6,7 +6,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 
 /**
- * @Route("/demande")
+ * @Route("/stock/demande")
 */
 class DemandeController extends Controller
 {

@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
- * @Route("/alertes")
+ * @Route("/stock/admin/alertes")
  */
 class AlertesController extends Controller
 {

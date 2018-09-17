@@ -7,7 +7,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use App\Repository\OrdresRepository;
 
 /**
- * @Route("/ordre")
+ * @Route("/stock/ordre")
 */
 class OrdreController extends Controller
 {

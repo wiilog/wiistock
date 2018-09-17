@@ -22,7 +22,7 @@ use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 
 /**
- * @Route("/utilisateurs")
+ * @Route("/admin/utilisateurs")
  */
 class UtilisateursController extends Controller
 {
