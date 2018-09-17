@@ -150,14 +150,16 @@
                     <legend class="well-legend">Véhicule</legend>
                     <div class="mask"></div>
                     {{ form_row(form.immatriculation, {'required': false, 'attr': {'autocomplete': 'off'}}) }}
+                    {{ form_row(form.imgOrigine, {'required': false}) }}
                     <label class="control-label" for="carte_grise">Carte grise</label>
                     <div class="row form-group" id="carte_grise">
                         <div class="col-md-6">
+
                             <a id="upload">
                                 <input id="file" type="file" placeholder="Importer"></input>
                                 <label id="file_name" for="file">
                                     <span class="fa fa-cloud-upload"></span>
-                                    &nbsp;{% if parc.img %} {{ parc.img }} {% else %} Importer {% endif %}
+                                    &nbsp;{% if parc.img %} {{ parc.imgOrigine }} {% else %} Importer {% endif %}
                                 </label>
                             </a>
                         </div>
@@ -354,7 +356,7 @@
                 xhr.onload = function () {
                     if (xhr.readyState === xhr.DONE) {
                         if (xhr.status === 200) {
-                            console.log(xhr.response);
+                            document.getElementById("parcs_imgOrigine").value = file.name;
                             document.getElementById("parcs_url").value = xhr.response;
                         }
                     }
@@ -413,7 +415,6 @@
                 $(this).prop('disabled', false);
             });
             $('form[name="parcs"] input:enabled, form[name="parcs"] select:enabled').each(function() {
-                console.log($(this));
             });
         });
 

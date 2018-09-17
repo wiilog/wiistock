@@ -55,7 +55,7 @@ class CardUploadListener
     {
         $entity = $args->getEntity();
 
-        if (!$entity instanceof Product) {
+        if (!$entity instanceof Parcs) {
             return;
         }
 
