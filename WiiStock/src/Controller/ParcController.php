@@ -21,6 +21,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use App\Service\FileUploader;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
+use Symfony\Component\HttpFoundation\Session\Session;
 
 use Doctrine\Common\Annotations\AnnotationReader;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -44,11 +45,22 @@ class ParcController extends AbstractController
      */
     public function index(ParcsRepository $parcsRepository, FilialesRepository $filialesRepository, Request $request)
     {
+        $session = $request->getSession();
 
         if ($request->isXmlHttpRequest()) {
-            $statut = $request->request->get('statut');
-            $site = $request->request->get('site');
-            $immat = $request->request->get('immat');
+            if (!$request->request->get('start')) {
+                $statut = $session->get('statut');
+                $site = $session->get('site');
+                $immat = $session->get('immat');
+            } else {
+                $statut = $request->request->get('statut');
+                $immat = $request->request->get('immat');
+                $site = $request->request->get('site');
+            }
+            $session->set('statut', $request->request->get('statut'));
+            $session->set('site', $request->request->get('site'));
+            $session->set('immat', $request->request->get('immat'));
+
             $current = $request->request->get('current');
             $rowCount = $request->request->get('rowCount');
             $searchPhrase = $request->request->get('searchPhrase');
@@ -122,7 +134,7 @@ class ParcController extends AbstractController
      */
     public function delete(Request $request, Parcs $parc) : Response
     {
-        if ($this->isCsrfTokenValid('delete'.$parc->getId(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $parc->getId(), $request->request->get('_token'))) {
             $em = $this->getDoctrine()->getManager();
             $em->remove($parc);
             $em->flush();
@@ -222,6 +234,7 @@ class ParcController extends AbstractController
      */
     public function edit(Request $request, Parcs $parc, FileUploader $fileUploader) : Response
     {
+        $statut = $parc->getStatut();
         $form = $this->createForm(ParcsType::class, $parc);
         $form->add('url', HiddenType::class, array(
             "mapped" => false,
@@ -243,8 +256,9 @@ class ParcController extends AbstractController
                 /* end upload */
 
                 if (in_array('ROLE_PARC_ADMIN', $this->getUser()->getRoles())) {
-                    if ($parc->getStatut() == "Demande création" && $parc->getNParc()) {
-                        $parc->setStatut("Actif"); 
+                    $parc->setStatut($statut);
+                    if ($parc->getNParc()) {
+                        $parc->setStatut("Actif");
                     }
                     if ($parc->getSortie()) {
                         $parc->setStatut("Demande sortie/transfert");
@@ -253,22 +267,14 @@ class ParcController extends AbstractController
                         $parc->setStatut("Sorti");
                     }
                 } else {
-                    if ($parc->getStatut() == "Actif" && $parc->getSortie()) {
-                        $parc->setStatut("Demande sortie/transfert"); 
+                    $parc->setStatut($statut);
+                    if ($statut == "Actif" && $parc->getSortie()) {
+                        $parc->setStatut("Demande sortie/transfert");
+                    }
+                    if ($statut == "Demande sortie/transfert" && !$parc->getSortie()) {
+                        $parc->setStatut("Actif");
                     }
                 }
-
-                // if ($parc->getNParc() && in_array('ROLE_PARC_ADMIN', $this->getUser()->getRoles())) {
-                //         $parc->setStatut("Actif");
-                //     if ($parc->getSortie()) {
-                //         $parc->setStatut("Demande sortie/transfert");
-                //     }
-                //     if ($parc->getEstSorti() && in_array('ROLE_PARC_ADMIN', $this->getUser()->getRoles())) {
-                //         $parc->setStatut("Sorti");
-                //     }
-                // } else {
-                //     $parc->setStatut("Demande création");
-                // }
 
                 $parc->setLastEdit($this->getUser()->getEmail());
                 $this->getDoctrine()->getManager()->flush();
@@ -296,15 +302,18 @@ class ParcController extends AbstractController
             $em = $this->getDoctrine()->getManager();
             $s_categorie = $request->request->get('s_categorie');
             $m_acquisition = $request->request->get('m_acquisition');
-            // $compteur = count($em->getRepository(Parcs::class)->findAll());
-            $compteur = $parcsRepository->findLast();
-            if ($compteur) {
-                $compteur = $compteur->getId() + 1;
-            } else {
-                $compteur = 0;
+            $parcs = $em->getRepository(Parcs::class)->findAll();
+            $max = 0;
+            foreach ($parcs as $parc) {
+                $nparc = $parc->getNParc();
+                $val = intval(substr($nparc, -4));
+                dump($val);
+                if ($val > $max) {
+                    $max = $val;
+                }
             }
+            $compteur = $max + 1;
             $code = str_pad($compteur, 4, "0", STR_PAD_LEFT);
-
             $s_code = strval($em->getRepository(SousCategoriesVehicules::class)->findOneBy(array('nom' => $s_categorie))->getCode());
             if (strcmp($m_acquisition, 'Achat neuf')) {
                 $m_code = '0';

@@ -251,6 +251,18 @@
 
         <fieldset class="row well list-box" id="sortie">
             <legend class="well-legend">Sortie/Transfert</legend>
+
+            {% if is_granted('ROLE_PARC') and parc.statut == "Sorti" %}
+            <div class="row">
+                <div class="col-md-4">
+                    {{ form_row(form.sortie, {'required': false, 'attr':{'disabled':'disabled'} }) }}
+                </div>
+                <div class="col-md-8">
+                    {{ form_row(form.motif, {'required': false, 'attr':{'disabled':'disabled'} }) }}
+                </div>
+            </div>
+            {{ form_row(form.commentaire_sortie, {'required': false, 'attr':{'disabled':'disabled'} }) }}
+            {% endif %}
             <div class="row">
                 <div class="col-md-4">
                     {{ form_row(form.sortie, {'required': false}) }}

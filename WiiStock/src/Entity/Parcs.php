@@ -424,7 +424,7 @@ class Parcs
 		return $this->genre;
 	}
 
-	public function setGenre(string $genre): self
+	public function setGenre(?string $genre): self
 	{
 		$this->genre = $genre;
 

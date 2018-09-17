@@ -20,6 +20,7 @@ use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+// use Proxies\__CG__\App\Entity\Utilisateurs;
 
 /**
  * @Route("/utilisateurs")
@@ -29,7 +30,7 @@ class UtilisateursController extends Controller
     /**
      * @Route("/", name="utilisateurs_index", methods="GET|POST")
      */
-    public function index(UtilisateursRepository $utilisateursRepository, EntityManagerInterface $em, Request $request, UserPasswordEncoderInterface $passwordEncoder): Response
+    public function index(UtilisateursRepository $utilisateursRepository, EntityManagerInterface $em, Request $request, UserPasswordEncoderInterface $passwordEncoder) : Response
     {
         // envoie des données en ajax pour la table
         if ($request->isXmlHttpRequest()) {
@@ -42,7 +43,7 @@ class UtilisateursController extends Controller
             $utilisateurs = $utilisateursRepository->findBySearchSort($searchPhrase, $sort);
 
             if ($searchPhrase != "") {
-                $count =  count($utilisateurs->getQuery()->getResult());
+                $count = count($utilisateurs->getQuery()->getResult());
             } else {
                 $count = count($utilisateursRepository->findAll());
             }
@@ -50,7 +51,7 @@ class UtilisateursController extends Controller
             if ($rowCount != -1) {
                 $min = ($current - 1) * $rowCount;
                 $max = $rowCount;
-    
+
                 $utilisateurs->setMaxResults($max)
                     ->setFirstResult($min);
             }
@@ -76,29 +77,22 @@ class UtilisateursController extends Controller
                     $format = "Il y a ";
                     if ($lastLogin->y) {
                         $format = $format . "environ " . $lastLogin->y . "an(s) " . $lastLogin->m . "mois";
-                    }
-                    else if ($lastLogin->m) {
+                    } else if ($lastLogin->m) {
                         $format = $format . "environ " . $lastLogin->m . "mois " . $lastLogin->d . "jour(s)";
-                    }
-
-                    else if ($lastLogin->d) {
+                    } else if ($lastLogin->d) {
                         $format = $format . $lastLogin->d . "jour(s) " . $lastLogin->h . "heure(s)";
-                    }
-                    
-                    else if ($lastLogin->h) {
+                    } else if ($lastLogin->h) {
                         $format = $format . $lastLogin->h . "h" . $lastLogin->i . "min";
-                    }
-
-                    else {
+                    } else {
                         $format = $format . $lastLogin->i . "min";
                     }
-                    
-                    $lastLogin = $lastLogin->format($format);    
-                
+
+                    $lastLogin = $lastLogin->format($format);
+
                 } else {
                     $lastLogin = "Aucune connexion";
                 }
-                
+
 
                 $row = [
                     "id" => $utilisateur->getId(),
@@ -108,7 +102,7 @@ class UtilisateursController extends Controller
                     "lastLogin" => $lastLogin,
                     "roles" => $roles_string,
                 ];
-                
+
                 array_push($rows, $row);
             }
 
@@ -167,10 +161,11 @@ class UtilisateursController extends Controller
                 ),
                 'multiple' => true,
             ))
-        ->getForm();
+            ->getForm();
 
 
-        return $this->render('utilisateurs/index.html.twig', ['utilisateurs' => $utilisateursRepository->findAll(),
+        return $this->render('utilisateurs/index.html.twig', [
+            'utilisateurs' => $utilisateursRepository->findAll(),
             'form_creation' => $form_creation->createView(),
             'form_modif' => $form_modif->createView()
 
@@ -180,14 +175,15 @@ class UtilisateursController extends Controller
     /**
      * @Route("/create", name="utilisateurs_index_create", methods="GET|POST")
      */
-    public function create(Request $request, EntityManagerInterface $em, UserPasswordEncoderInterface $passwordEncoder) {
-        
+    public function create(Request $request, EntityManagerInterface $em, UserPasswordEncoderInterface $passwordEncoder)
+    {
+
         if ($request->isXmlHttpRequest()) {
-            
+
             $new_user = new Utilisateurs();
 
             $user = $request->request->get('user');
-            
+
             $new_user->setUsername($user[0]["value"]);
             $new_user->setEmail($user[1]["value"]);
 
@@ -208,10 +204,11 @@ class UtilisateursController extends Controller
     /**
      * @Route("/modif", name="utilisateurs_index_modif", methods="GET|POST")
      */
-    public function modif(Request $request, EntityManagerInterface $em, UserPasswordEncoderInterface $passwordEncoder) {
-        
+    public function modif(Request $request, EntityManagerInterface $em, UserPasswordEncoderInterface $passwordEncoder)
+    {
+
         if ($request->isXmlHttpRequest()) {
-            
+
             $id = $request->request->get('id');
             $user = $em->getRepository(Utilisateurs::class)->find($id);
 
@@ -229,15 +226,16 @@ class UtilisateursController extends Controller
     /**
      * @Route("/modif_bis", name="utilisateurs_index_modif_bis", methods="GET|POST")
      */
-    public function modif_bis(Request $request, EntityManagerInterface $em, UserPasswordEncoderInterface $passwordEncoder) {
-        
+    public function modif_bis(Request $request, EntityManagerInterface $em, UserPasswordEncoderInterface $passwordEncoder)
+    {
+
         if ($request->isXmlHttpRequest()) {
-            
+
             $user_modif = $request->request->get('user');
-            
+
 
             $id = $user_modif[2]["value"];
-            
+
             $user = $em->getRepository(Utilisateurs::class)->find($id);
 
             $user->setUsername($user_modif[0]["value"]);
@@ -250,7 +248,7 @@ class UtilisateursController extends Controller
             }
 
             $roles = array();
-            for ($i = 4; $i < count($user_modif)-1; ++$i) {
+            for ($i = 4; $i < count($user_modif) - 1; ++$i) {
                 array_push($roles, $user_modif[$i]["value"]);
             }
             $user->setRoles($roles);
@@ -271,7 +269,7 @@ class UtilisateursController extends Controller
         if ($request->isXmlHttpRequest()) {
             $em = $this->getDoctrine()->getManager();
             $username = $request->request->get('username');
-            
+
             $utilisateurs = $em->getRepository(Utilisateurs::class)->findAll();
             foreach ($utilisateurs as $utilisateur) {
                 if (!strcmp($username, $utilisateur->getUsername())
@@ -292,7 +290,7 @@ class UtilisateursController extends Controller
         if ($request->isXmlHttpRequest()) {
             $em = $this->getDoctrine()->getManager();
             $email = $request->request->get('email');
-            
+
             $utilisateurs = $em->getRepository(Utilisateurs::class)->findAll();
             foreach ($utilisateurs as $utilisateur) {
                 if (!strcmp($email, $utilisateur->getEmail())
@@ -309,7 +307,7 @@ class UtilisateursController extends Controller
     /**
      * @Route("/new", name="utilisateurs_new", methods="GET|POST")
      */
-    public function new(Request $request, UserPasswordEncoderInterface $passwordEncoder): Response
+    public function new(Request $request, UserPasswordEncoderInterface $passwordEncoder) : Response
     {
         $utilisateur = new Utilisateurs();
         $form = $this->createForm(UtilisateursType::class, $utilisateur);
@@ -334,7 +332,7 @@ class UtilisateursController extends Controller
     /**
      * @Route("/{id}", name="utilisateurs_show", methods="GET")
      */
-    public function show(Utilisateurs $utilisateur): Response
+    public function show(Utilisateurs $utilisateur) : Response
     {
         return $this->render('utilisateurs/show.html.twig', ['utilisateur' => $utilisateur]);
     }
@@ -342,7 +340,7 @@ class UtilisateursController extends Controller
     /**
      * @Route("/{id}/edit", name="utilisateurs_edit", methods="GET|POST")
      */
-    public function edit(Request $request, Utilisateurs $utilisateur, UserPasswordEncoderInterface $passwordEncoder): Response
+    public function edit(Request $request, Utilisateurs $utilisateur, UserPasswordEncoderInterface $passwordEncoder) : Response
     {
         $form = $this->createForm(UtilisateursType::class, $utilisateur);
         $form->handleRequest($request);
@@ -364,13 +362,28 @@ class UtilisateursController extends Controller
     /**
      * @Route("/{id}", name="utilisateurs_delete", methods="DELETE")
      */
-    public function delete(Request $request, Utilisateurs $utilisateur): Response
+    public function delete(Request $request, Utilisateurs $utilisateur) : Response
     {
-        if ($this->isCsrfTokenValid('delete'.$utilisateur->getId(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $utilisateur->getId(), $request->request->get('_token'))) {
             $em = $this->getDoctrine()->getManager();
             $em->remove($utilisateur);
             $em->flush();
         }
+
+        return $this->redirectToRoute('utilisateurs_index');
+    }
+
+    /**
+     * @Route("/{id}/remove", name="utilisateurs_remove", methods="DELETE")
+     */
+    public function remove(Request $request, Utilisateurs $utilisateur) : Response
+    {
+        $em = $this->getDoctrine()->getManager();
+        $em->remove($utilisateur);
+        $em->flush();
+        $session = $request->getSession();
+        $session->getFlashBag()->add('success', 'Félicitations ! L\'utilisateur a été supprimé avec succès !');
+
 
         return $this->redirectToRoute('utilisateurs_index');
     }
