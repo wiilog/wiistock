@@ -8,7 +8,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 class DimensionnementController extends Controller
 {
     /**
-     * @Route("/dimensionnement", name="dimensionnement")
+     * @Route("/stock/admin/dimensionnement", name="dimensionnement")
      */
     public function index()
     {

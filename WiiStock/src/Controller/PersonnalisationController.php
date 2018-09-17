@@ -8,7 +8,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 class PersonnalisationController extends Controller
 {
     /**
-     * @Route("/personnalisation", name="personnalisation")
+     * @Route("/super/admin/personnalisation", name="personnalisation")
      */
     public function index()
     {

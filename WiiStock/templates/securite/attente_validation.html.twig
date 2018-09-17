@@ -1,0 +1,19 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Attente validation{% endblock %}
+
+{% block page_content %}
+    <div class="login-wrapper">
+        <div class="row">
+            <div class="col-md-12 login-header">
+                Attente de validation
+            </div>
+        </div>
+
+        <div class="row text-center">
+        	<h1>Bienvenue <b>{{ app.user.username }}</b> !</h1>
+        	<h3>Votre compte est en attente de validation, vous ne possédez pas encore les droits nécessaires pour naviguer dans l'application.</h3> 
+        	<h4>Veuillez contacter votre administrateur pour obtenir les accès.</h4>
+        </div>
+    </div>
+{% endblock %}

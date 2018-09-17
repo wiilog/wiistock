@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
- * @Route("/inventaires")
+ * @Route("/stock/inventaires")
  */
 class InventairesController extends Controller
 {

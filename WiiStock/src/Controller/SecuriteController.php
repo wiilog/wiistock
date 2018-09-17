@@ -94,10 +94,22 @@ class SecuriteController extends Controller
             return $this->redirectToRoute('parc_list');
         }
 
-        return $this->redirectToRoute('accueil');
-        
+        if (in_array("ROLE_STOCK", $roles) || in_array("ROLE_STOCK_ADMIN", $roles)) {
+            return $this->redirectToRoute('accueil');
+        }
+
+        return $this->redirectToRoute('attente_validation');
+
     }
 
+    /**
+     * @Route("/attente_validation", name="attente_validation")
+     */
+    public function attente_validation() {
+         return $this->render('securite/attente_validation.html.twig', [
+            'controller_name' => 'SecuriteController',
+        ]);
+    }
 
     /**
      * @Route("/change_password", name="change_password")

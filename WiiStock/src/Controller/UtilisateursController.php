@@ -23,7 +23,7 @@ use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 // use Proxies\__CG__\App\Entity\Utilisateurs;
 
 /**
- * @Route("/utilisateurs")
+ * @Route("/admin/utilisateurs")
  */
 class UtilisateursController extends Controller
 {
