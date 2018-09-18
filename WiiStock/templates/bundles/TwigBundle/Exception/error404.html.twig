@@ -3,10 +3,17 @@
 {% block title %}Erreur 404{% endblock %}
 
 {% block body %}
-    <h1>Page not found</h1>
 
-    <p>
-        The requested page couldn't be located. Checkout for any URL
-        misspelling or <a href="{{ path('check_last_login') }}">return to the homepage</a>.
-    </p>
+    <div id="app">
+        <div class="error_wrapper">
+            <h1 class="glitch" data-text="ERROR 404">ERROR 404</h1>
+            <div class="sub">PAGE NOT FOUND!</div>
+            <a href="{{ path('check_last_login') }}">Retour</a>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block javascripts %}
+    <script type="text/javascript"></script>
 {% endblock %}

@@ -117,7 +117,7 @@
                     return "<button type=\"button\" class=\"btn btn-xs btn-default command-view\" data-row-id=\"" + row.id + "\"><span class=\"fa fa-pencil\"></span></button> ";
                 },
                 "etat": function (column, row) {
-                    var output = "<span class='color etiquette'>" + row[column.id] + "</span>";
+                    var output = "<button type=\"button\" class=\"btn btn-xs color etiquette\" data-row-id=\"" + row.id + "\">" + row[column.id] + "</button>";
                     var color;
                     switch (row[column.id]) {
                         case 'Actif':
@@ -141,7 +141,7 @@
             }
         }).on("loaded.rs.jquery.bootgrid", function () {
             /* Executes after data is loaded and rendered */
-            grid.find(".command-view").on("click", function (e) {
+            grid.find(".command-view, .etiquette").on("click", function (e) {
                 var url = "{{ path('parc_edit', {'id': 'edit_id'}) }}";
                 var id = $(this).attr("data-row-id");
                 url = url.replace("edit_id", id);

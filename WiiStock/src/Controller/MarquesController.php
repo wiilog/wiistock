@@ -51,7 +51,10 @@ class MarquesController extends Controller
      */
     public function show(Marques $marque): Response
     {
-        return $this->render('marques/show.html.twig', ['marque' => $marque]);
+        return $this->render('marques/show.html.twig', [
+            'marque' => $marque,
+            'parcs' => $marque->getParcs(),    
+        ]);
     }
 
     /**

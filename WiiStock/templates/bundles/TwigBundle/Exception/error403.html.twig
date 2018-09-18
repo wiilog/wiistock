@@ -3,10 +3,11 @@
 {% block title %}Erreur 403{% endblock %}
 
 {% block body %}
-    <h1>Page not found</h1>
-
-    <p>
-        The requested page couldn't be located. Checkout for any URL
-        misspelling or <a href="{{ path('check_last_login') }}">return to the homepage</a>.
-    </p>
+    <div id="app">
+        <div class="error_wrapper">
+            <h1 class="glitch" data-text="ERROR 403">ERROR 403</h1>
+            <div class="sub">FORBIDDEN</div>
+            <a href="{{ path('check_last_login') }}">Retour</a>
+        </div>
+    </div>
 {% endblock %}

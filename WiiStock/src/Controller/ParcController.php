@@ -22,6 +22,7 @@ use App\Service\FileUploader;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\HttpFoundation\Session\Session;
+use Symfony\Component\Finder\Finder;
 
 use Doctrine\Common\Annotations\AnnotationReader;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -434,5 +435,30 @@ class ParcController extends AbstractController
             'sousCategories' => $em->getRepository(SousCategoriesVehicules::class)->findAll(),
             'marques' => $em->getRepository(Marques::class)->findAll(),
         ]);
+    }
+
+    /**
+     * @Route("/admin/fixtures", name="parc_fixtures")
+     */
+    public function parc_fixtures(Request $request) : Response
+    {
+        $em = $this->getDoctrine()->getManager();
+
+        // $file = file_get_contents('../public/download/flotte.csv');
+        // dump($file);
+        $row = 1;
+        if (($handle = fopen('../public/download/flotte.csv', "r")) !== false) {
+            while (($data = fgetcsv($handle, 1000, ";")) !== false) {
+                $num = count($data);
+                echo "<p> $num champs à la ligne $row: <br /></p>\n";
+                $row++;
+                for ($c = 0; $c < $num; $c++) {
+                    echo $data[$c] . "<br />\n";
+                    // TODO
+                }
+            }
+            fclose($handle);
+        }
+        return new Response($handle);
     }
 }

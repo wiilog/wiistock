@@ -51,7 +51,10 @@ class CategoriesVehiculesController extends Controller
      */
     public function show(CategoriesVehicules $categoriesVehicule) : Response
     {
-        return $this->render('categories_vehicules/show.html.twig', ['categories_vehicule' => $categoriesVehicule]);
+        return $this->render('categories_vehicules/show.html.twig', [
+            'categories_vehicule' => $categoriesVehicule,
+            'parcs' => $categoriesVehicule->getParcs(),
+        ]);
     }
 
     /**

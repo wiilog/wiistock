@@ -575,12 +575,12 @@
             }
         });
 
-        $('#parcs_sousCategorieVehicule, #parcs_mode_acquisition').change(function () {
+        {# $('#parcs_sousCategorieVehicule, #parcs_mode_acquisition').change(function () {
             if ($('#parcs_n_parc').val()) {
                 $("#parcs_validation").attr("title", "Vous devez regénérer un numéro de parc pour pouvoir enregistrer");
                 disableEnregistrer();
             }
-        });
+        }); #}
 
     </script>
 {% endblock %}

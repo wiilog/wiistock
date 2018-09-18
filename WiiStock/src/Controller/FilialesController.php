@@ -51,7 +51,10 @@ class FilialesController extends Controller
      */
     public function show(Filiales $filiale) : Response
     {
-        return $this->render('filiales/show.html.twig', ['filiale' => $filiale]);
+        return $this->render('filiales/show.html.twig', [
+            'filiale' => $filiale,
+            'parcs' => $filiale->getParcs(),    
+        ]);
     }
 
     /**

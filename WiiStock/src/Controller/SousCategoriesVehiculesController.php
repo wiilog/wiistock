@@ -52,7 +52,10 @@ class SousCategoriesVehiculesController extends Controller
      */
     public function show(SousCategoriesVehicules $sousCategoriesVehicule) : Response
     {
-        return $this->render('sous_categories_vehicules/show.html.twig', ['sous_categories_vehicule' => $sousCategoriesVehicule]);
+        return $this->render('sous_categories_vehicules/show.html.twig', [
+            'sous_categories_vehicule' => $sousCategoriesVehicule,
+            'parcs' => $sousCategoriesVehicule->getParcs(),    
+            ]);
     }
 
     /**
