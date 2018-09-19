@@ -32,14 +32,15 @@ class ParcsFixtures extends Fixture
         	'CEA Cesta',
         	'Papeterie Emin leydier',
         	'CEA Saclay',
-        	'GT santé',
+			'GT santé',
+			'Euthanasie Volailles',
 
         	'Angers',
         	'Cadeaux naissance',
         	'GGB Annecy',
         	'Nogent le Phaye',
-        	'NTN Cran',
-        	'NTN Saint Vulba',
+        	'NTN Cran Gevrier',
+        	'NTN Saint Vulbas',
         	'PSA Polaris',
         	'PSA Sochaux',
         	
@@ -50,17 +51,19 @@ class ParcsFixtures extends Fixture
         	'Imeca',
         	'Isover Chemillé',
         	'Lidl Rives',
-        	'Papeterie Saint Miche',
+        	'PSM Thiollet',
         	'PSA Versailles',
-        	'Safran Fougères',
+			'Safran SED Fougères',
+			'AIA',
 
         	'ArianeGroup Le Haillan',
-        	'Arkema Feuchy',
+        	'CECA Feuchy',
         	'Arkema Jarrie',
         	'Arkema Mont',
         	'RTA Dunkerque',
         	'Safran Ceramics',
-        	'Trimet',
+			'Trimet',
+			'Blue Star',
 
         	'Smurfit',
 
@@ -69,9 +72,10 @@ class ParcsFixtures extends Fixture
         	'Poult',
         	'Prysmian',
 
-        	'Ratier Figeac',
+        	'Ratier-Figeac',
 
-        	'PSA Vesoul',
+			'PSA Vesoul Condi',
+			'PSA Vesoul Pneu',
 
         	'Figeac Aero',
         );
@@ -89,15 +93,15 @@ class ParcsFixtures extends Fixture
     	$filiales_obj = array();
     	$filiales = array(
     		'GT Logistics' => [0],
-    		'GT Logistics 01' => [1,2,3,4],
-    		'GT Logistics 02' => [5,6,7,8,9,10,11,12],
-    		'GT Logistics 03' => [13,14,15,16,17,18,19,20,21,22],
-    		'GT Logistics 04' => [23,24,25,26,27,28,29],
-    		'GT Logistics 05' => [30],
-    		'GT Logistics 06' => [31,32,33,34],
-    		'GT Logistics 07' => [35],
-    		'GT Logistics 08' => [36],
-    		'Flexlog' => [37],
+    		'GT Logistics.01' => [1,2,3,4,5],
+    		'GT Logistics.02' => [6,7,8,9,10,11,12,13],
+    		'GT Logistics.03' => [14,15,16,17,18,19,20,21,22,23,24],
+    		'GT Logistics.04' => [25,26,27,28,29,30,31,32],
+    		'GT Logistics.05' => [33],
+    		'GT Logistics.06' => [34,35,36,37],
+    		'GT Logistics.07' => [38],
+    		'GT Logistics.08' => [39,40],
+    		'Flexlog' => [41],
     	);
 
     	foreach ($filiales as $filiale => $value) {
@@ -117,22 +121,23 @@ class ParcsFixtures extends Fixture
     		'Chariot nacelle' => [4],
     		'Chariot rétractable' => [4],
     		'Gerbeur à conducteur accompagnant' => [4],
-    		'Gerbeur à conducteur auto porté' => [4],
+    		'Gerbeur à conducteur autoporté' => [4],
     		'Transpalette à conducteur accompagnant' => [4],
-    		'Transpalette à conducteur auto porté' => [4],
+    		'Transpalette à conducteur autoporté' => [4],
     		'Préparateur de commande' => [4],
-            'Chariot autonome' => [4],
+			'Chariot autonome' => [4],
+			'Auto palet mover' => [4],
     		
-    		'Chariot élévateur <2,5 T' => [4],
-    		'Chariot élévateur 2,5<à<5 T' => [4],
-    		'Chariot élévateur 5<à<9 T' => [4],
-    		'Chariot élévateur 9<à<16 T' => [4],
-    		'Chariot élévateur >16 T' => [4],
+    		'Chariot élévateur <2.5T' => [4],
+    		'Chariot élévateur 2.5T<à<5T' => [4],
+    		'Chariot élévateur 5T<à<=9T' => [4],
+    		'Chariot élévateur 9T<à<16T' => [4],
+    		'Chariot élévateur >16T' => [4],
 
     		'Chargeuse' => [4],
     		'Chariot télescopique' => [4],
-    		'Mini chargeuse' => [4],
-    		'Mini pelle' => [4],
+    		'Mini-chargeuse' => [4],
+    		'Mini-pelle' => [4],
     		'Pelle' => [4],
     		'Nacelle' => [4],
 
@@ -147,7 +152,7 @@ class ParcsFixtures extends Fixture
     		'Citerne' => [2],
     		'Remorque industrielle' => [6],
     		'Remorque routière' => [2],
-    		'Semi' => [2],
+    		'Semi sans plateau' => [2],
             'Caisse mobile' => [5],
 
     		'Véhicule de fonction' => [9],
@@ -177,14 +182,14 @@ class ParcsFixtures extends Fixture
     	// CATEGORIES VEHICULES
     	$categs_veh_obj = array();
     	$categs = array(
-    		'Engin de magasinage' => [0,1,2,3,4,5,6,7],
-    		'Chariot frontal' => [8,9,10,11,12],
-    		'Engin BTP' => [13,14,15,16,17,18],
-    		'Engin Divers' => [19,20],
-    		'Engin de traction' => [21,22,23,24],
-    		'Remorque' => [25,26,27,28,29],
-    		'Voiture' => [30,31,32],
-    		'Camion et camionnette' => [33,34,35,36,37,38,39,40],
+    		'Engin de magasinage' => [0,1,2,3,4,5,6,7,8],
+    		'Chariot frontal' => [9,10,11,12,13],
+    		'Engin BTP' => [14,15,16,17,18,19],
+    		'Engin divers' => [20,21],
+    		'Engin de traction' => [22,23,24,25],
+    		'Remorque' => [26,27,28,29,30],
+    		'Voiture' => [30,31,32,33],
+    		'Camion et camionnette' => [34,35,36,37,38,39,40,41],
     	);
 
     	foreach ($categs as $categ => $value) {
@@ -250,6 +255,16 @@ class ParcsFixtures extends Fixture
 			'Castera',
 			'Gruau',
 			'Elv',
+			'Volvo',
+			'Dulevo',
+			'PSA',
+			'Sman',
+			'Jungheinrich',
+			'Nilkfisk',
+			'Crown',
+			'IHI',
+			'Dulevo',
+			'Kassboher',
             'A définir',
     	);
 

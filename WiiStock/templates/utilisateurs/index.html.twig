@@ -79,7 +79,7 @@
                 {{ form_row(form_modif.id_user) }}
                 {{ form_widget(form_modif.plainPassword, {'required' : false}) }}
                 {{ form_row(form_modif.roles, {"attr": {"class" : "basic-multiple-role"}}) }}
-                <button name="modif" class="button btn" type="submit">Actions</button>
+                <button name="modif" class="button btn" type="submit">Modifier</button>
                 {{ form_end(form_modif) }}
 
                 {# <form class="form-inline">
@@ -108,7 +108,7 @@
 
     <div class="row">
         <div class="col-md-12">
-            <a href="#" class="button btn-left">
+            <a href="{{ path ('check_last_login') }}" class="button btn-left">
                 <span class="fa fa-angle-double-left"></span>Retour</a>
         </div>
     </div>

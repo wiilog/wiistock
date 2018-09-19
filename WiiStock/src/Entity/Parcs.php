@@ -87,7 +87,7 @@ class Parcs
 	private $poids;
 
 	/**
-	 * @ORM\Column(type="date", nullable=false)
+	 * @ORM\Column(type="date", nullable=true)
 	 * @Groups({"parc"})
 	 */
 	private $mise_en_circulation;
@@ -117,13 +117,13 @@ class Parcs
 	private $mise_en_service;
 
 	/**
-	 * @ORM\Column(type="string", length=255, unique=true, nullable=true)
+	 * @ORM\Column(type="string", length=255, nullable=true)
 	 * @Groups({"parc"})
 	 */
 	private $n_serie;
 
 	/**
-	 * @ORM\Column(type="string", length=255, unique=true, nullable=true)
+	 * @ORM\Column(type="string", length=255, nullable=true)
 	 * @Groups({"parc"})
 	 */
 	private $immatriculation;
@@ -236,7 +236,7 @@ class Parcs
          		return $this->mise_en_circulation;
          	}
 
-	public function setMiseEnCirculation(\DateTimeInterface $mise_en_circulation) : self
+	public function setMiseEnCirculation(? \DateTimeInterface $mise_en_circulation) : self
          	{
          		$this->mise_en_circulation = $mise_en_circulation;
          

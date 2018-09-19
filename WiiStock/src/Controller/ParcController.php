@@ -15,6 +15,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use App\Form\ParcsType;
 use App\Repository\ParcsRepository;
 use App\Repository\FilialesRepository;
+use App\Repository\CategoriesVehiculesRepository;
 use App\Repository\SousCategoriesVehiculesRepository;
 use App\Repository\SitesRepository;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -22,7 +23,7 @@ use App\Service\FileUploader;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\HttpFoundation\Session\Session;
-use Symfony\Component\Finder\Finder;
+// use Symfony\Component\Validator\Constraints\DateTime;
 
 use Doctrine\Common\Annotations\AnnotationReader;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -310,7 +311,6 @@ class ParcController extends AbstractController
             foreach ($parcs as $parc) {
                 $nparc = $parc->getNParc();
                 $val = intval(substr($nparc, -4));
-                dump($val);
                 if ($val > $max) {
                     $max = $val;
                 }
@@ -366,7 +366,6 @@ class ParcController extends AbstractController
             $serie = $request->request->get('serie');
             $serie_init = $request->request->get('serie_init');
 
-            dump($serie_init);
             $parcs = $em->getRepository(Parcs::class)->findAll();
             foreach ($parcs as $parc) {
                 if (!strcmp($serie, $parc->getNSerie())
@@ -440,25 +439,64 @@ class ParcController extends AbstractController
     /**
      * @Route("/admin/fixtures", name="parc_fixtures")
      */
-    public function parc_fixtures(Request $request) : Response
-    {
+    public function parc_fixtures(
+        Request $request,
+        CategoriesVehiculesRepository $categoriesVehiculesRepository,
+        SousCategoriesVehiculesRepository $sousCategoriesVehiculesRepository,
+        SitesRepository $sitesRepository
+    ) : Response {
         $em = $this->getDoctrine()->getManager();
 
-        // $file = file_get_contents('../public/download/flotte.csv');
-        // dump($file);
         $row = 1;
-        if (($handle = fopen('../public/download/flotte.csv', "r")) !== false) {
+        if (($handle = fopen('../public/download/flotte2.csv', "r")) !== false) {
             while (($data = fgetcsv($handle, 1000, ";")) !== false) {
+                $data = str_replace("\xC2\xA0", " ", $data);
                 $num = count($data);
-                echo "<p> $num champs à la ligne $row: <br /></p>\n";
+                // echo "<p> $num champs à la ligne $row: <br /></p>\n";
                 $row++;
-                for ($c = 0; $c < $num; $c++) {
-                    echo $data[$c] . "<br />\n";
-                    // TODO
+
+                if ($row > 2 && $data[0] != '') {
+                    $parc = new Parcs();
+                    $parc->setStatut("Actif");
+                    $filiale = $em->getRepository(Filiales::class)->findOneBy(['nom' => $data[0]]);
+                    $parc->setFiliale($filiale);
+                    $site = $sitesRepository->findBySiteName($data[1]);
+                    $parc->setSite($site);
+                    $parc->setNParc($data[2]);
+                    $words = explode(' ', $data[3]);
+                    $categorie = $categoriesVehiculesRepository->findByCategoryName($words);
+                    $parc->setCategorieVehicule($categorie);
+                    $sousCategorie = $sousCategoriesVehiculesRepository->findBySousCategoryName($data[4]);
+                    $parc->setSousCategorieVehicule($sousCategorie);
+                    $parc->setPoids(floatval(str_replace(',', '.', $data[5])));
+                    $parc->setMiseEnService(date_create_from_format('d/m/Y:H:i:s', $data[6] . ':00:00:00'));
+                    $parc->setModeAcquisition($data[7]);
+                    $marque = $em->getRepository(Marques::class)->findOneBy(['nom' => $data[8]]);
+                    $parc->setMarque($marque);
+                    $parc->setModele($data[9]);
+                    $parc->setFournisseur($data[10]);
+                    $parc->setImmatriculation($data[11]);
+                    if (date_create_from_format('d/m/Y:H:i:s', $data[12] . ':00:00:00')) {
+                        $parc->setMiseEnCirculation(date_create_from_format('d/m/Y:H:i:s', $data[12] . ':00:00:00'));
+                    } else {
+                        $parc->setMiseEnCirculation(null);
+                    }
+                    $parc->setNSerie($data[13]);
+                    $parc->setCommentaire($data[14]);
+                    $parc->setPtac(floatval(str_replace(',', '.', $data[15])));
+                    $parc->setPtr(floatval(str_replace(',', '.', $data[16])));
+                    $parc->setPuissanceFiscale(intval($data[17]));
+                    $parc->setGenre($data[18]);
+
+                    $em->persist($parc);
+                    $em->flush();
                 }
+                // for ($c = 0; $c < $num; $c++) {
+                //     echo $data[$c] . "<br />\n";
+                // }
             }
             fclose($handle);
         }
-        return new Response($handle);
+        return new Response();
     }
 }

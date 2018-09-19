@@ -53,6 +53,10 @@ class ParcsType extends AbstractType
 				'choice_label' => 'nom',
 				'label' => 'Marque',
 				'placeholder' => '',
+				'query_builder' => function (EntityRepository $er) {
+					return $er->createQueryBuilder('m')
+						->orderBy('m.nom', 'ASC');
+				},
 			))
 			->add('categorieVehicule', EntityType::class, array(
 				'class' => CategoriesVehicules::class,
@@ -97,6 +101,7 @@ class ParcsType extends AbstractType
 			->add('poids', IntegerType::class, array('label' => 'Poids (Tonne)'))
 			->add('mode_acquisition', ChoiceType::class, array(
 				'label' => 'Mode d\'acquisition',
+				'placeholder' => '',
 				'choices' => array(
 					'Achat neuf' => 'Achat neuf',
 					'Achat d’occasion' => 'Achat d’occasion',
@@ -133,12 +138,12 @@ class ParcsType extends AbstractType
 			))
 			->add('motif', ChoiceType::class, array(
 				'label' => 'Motif',
+				'placeholder' => '',
 				'choices' => array(
-					'' => '',
+					'Fin de contrat de location longue durée' => 'Fin de contrat de location longue durée',
 					'Mise au rebus' => 'Mise au rebus',
 					'Transfert vers site d’une filiale différente' => 'Transfert vers site d’une filiale différente',
 					'Transfert vers site d’une même filiale' => 'Transfert vers site d’une même filiale',
-					'Fin de contrat de location longue durée' => 'Fin de contrat de location longue durée',
 					'Vente à un tiers externe' => 'Vente à un tiers externe',
 				),
 			))

@@ -27,6 +27,7 @@ class Marques
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Parcs", mappedBy="marque")
+     * @ORM\OrderBy({"nom" = "ASC"})
      */
     private $parcs;
 

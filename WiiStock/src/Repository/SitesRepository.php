@@ -30,6 +30,15 @@ class SitesRepository extends ServiceEntityRepository
         return $qb->getQuery()->getResult();
     }
 
+    public function findBySiteName($name)
+    {
+        $qb = $this->createQueryBuilder('s')
+        ->where('s.nom LIKE :nom')
+        ->setParameter('nom', $name . '%');
+
+        return $qb->getQuery()->getOneOrNullResult();
+    }
+
 //    /**
 //     * @return Sites[] Returns an array of Sites objects
 //     */

@@ -19,6 +19,19 @@ class CategoriesVehiculesRepository extends ServiceEntityRepository
         parent::__construct($registry, CategoriesVehicules::class);
     }
 
+    public function findByCategoryName($name)
+    {
+        $qb = $this->createQueryBuilder('c');
+
+        foreach ($name as $key => $value) {
+            $qb->andWhere('c.nom LIKE ?' . $key)
+                ->setParameter($key, '%' . $value . '%');
+        }
+        // if ($name[0] == "ENGIN") {
+        //     dump($qb->getQuery());
+        // }
+        return $qb->getQuery()->getOneOrNullResult();
+    }
 //    /**
 //     * @return CategoriesVehicules[] Returns an array of CategoriesVehicules objects
 //     */
@@ -34,7 +47,7 @@ class CategoriesVehiculesRepository extends ServiceEntityRepository
             ->getResult()
         ;
     }
-    */
+     */
 
     /*
     public function findOneBySomeField($value): ?CategoriesVehicules
@@ -46,5 +59,5 @@ class CategoriesVehiculesRepository extends ServiceEntityRepository
             ->getOneOrNullResult()
         ;
     }
-    */
+     */
 }
