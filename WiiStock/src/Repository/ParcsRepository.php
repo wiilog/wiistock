@@ -55,8 +55,8 @@ class ParcsRepository extends ServiceEntityRepository
         }
 
         if ($immat != "") {
-            $qb->andWhere('parc.immatriculation = :valImmat OR parc.n_serie = :valImmat')
-                ->setParameter('valImmat', $immat);
+            $qb->andWhere('parc.immatriculation LIKE :valImmat OR parc.n_serie LIKE :valImmat')
+                ->setParameter('valImmat', '%' . $immat . '%');
         }
 
         if ($searchPhrase != "" || $site) {

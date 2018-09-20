@@ -30,6 +30,15 @@ class SousCategoriesVehiculesRepository extends ServiceEntityRepository
         return $qb->getQuery()->getResult();
     }
 
+    public function findBySousCategoryName($name)
+    {
+        $qb = $this->createQueryBuilder('s')
+        ->where('s.nom LIKE :nom')
+        ->setParameter('nom', $name . '%');
+
+        return $qb->getQuery()->getOneOrNullResult();
+    }
+
 //    /**
 //     * @return SousCategoriesVehicules[] Returns an array of SousCategoriesVehicules objects
 //     */
