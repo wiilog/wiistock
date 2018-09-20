@@ -21,14 +21,14 @@
                 <form class="form-signin login-form" action="{{ path('login') }}" method="post">
                     <div class="form-group">
                         <label for="inputEmail" class="form-control-label">Adresse email</label>
-                        <input type="text" id="inputEmail" name="_username" class="form-control" placeholder="Email" required="required" autofocus="autofocus">
+                        <input type="text" id="inputEmail" name="_username" class="form-control" placeholder="Adresse email" required="required" autofocus="autofocus">
                     </div>
                     <div class="form-group">
                         <label for="inputPassword" class="form-control-label">Mot de Passe</label>
-                        <input type="password" name="_password" id="inputPassword" class="form-control" placeholder="Password" aria-describedby="passwordHelp" required="required">
+                        <input type="password" name="_password" id="inputPassword" class="form-control" placeholder="Mot de Passe" aria-describedby="passwordHelp" required="required">
                     </div>
                     <div class="form-check checkbox">
-                        <input class="form-check-input inp-cbx" id="cbx" type="checkbox" value="remember-me" style="display: none;"/>
+                        <input class="form-check-input inp-cbx" id="cbx" type="checkbox" name="_remember_me" style="display: none;"/>
                         <label class="cbx" for="cbx">
                             <span>
                                 <svg width="12px" height="10px" viewbox="0 0 12 10">
@@ -41,6 +41,18 @@
                     <div class="form-group">
                         <button type="submit" class="button btn-left pull-left">Connexion</button>
                         <a class="button btn-right pull-right" href="{{ url('register') }}">Créer un compte</a>
+                    </div>
+                    <div class="pull-right">
+                        <span class="btn-right mdp-oublie" href="#">
+                            Mot de passe oublié
+                            <span class="has-feedback">
+                                <label class="control-label required">
+                                    <a data-tooltip="Effectuez la demande par mail auprès de votre administrateur" data-position="top" class="top">
+                                        <i class="fa fa-question-circle-o"></i>
+                                    </a>
+                                </label>
+                            </span>
+                        </span>
                     </div>
                     <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
                 </form>

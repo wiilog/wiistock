@@ -1525,7 +1525,7 @@ input:checked+.slider:before {
 	display: grid;
 	font-family: "Open Sans", sans-serif;
 	font-size: 16px;
-	color: #223254;
+	color: #000000;
 	margin: 0;
 }
 
@@ -1899,6 +1899,15 @@ input, [type=file]+label {
 #dwl {
 	border-color: #130078;
 }
+
+/* Mot de passe oublié
+================= */
+
+.mdp-oublie, .mdp-oublie:hover, .mdp-oublie:focus {
+	padding: 2px 0px;
+	font-size: 14px;
+}
+
 
 /* Parc paramétrage 
 ================= */

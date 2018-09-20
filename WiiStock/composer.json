@@ -8,6 +8,7 @@
         "friendsofsymfony/rest-bundle": "^2.4",
         "nelmio/cors-bundle": "^1.5",
         "sensio/framework-extra-bundle": "^5.2",
+        "sensiolabs/security-checker": "^4.1",
         "symfony/asset": "^4.1",
         "symfony/console": "^4.1",
         "symfony/expression-language": "^4.1",
@@ -29,7 +30,6 @@
     },
     "require-dev": {
         "doctrine/doctrine-fixtures-bundle": "^3.0",
-        "sensiolabs/security-checker": "^4.1",
         "symfony/debug-pack": "*",
         "symfony/dotenv": "^4.1",
         "symfony/maker-bundle": "^1.6",

@@ -52,7 +52,7 @@ security:
                 csrf_token_generator: security.csrf.token_manager
             remember_me:
                 secret: '%kernel.secret%'
-                lifetime: 604800
+                lifetime: 604800 # 1 semaine
             logout: true
             anonymous: true
 
