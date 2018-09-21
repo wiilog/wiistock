@@ -281,9 +281,11 @@
         }
 
         function enableEnregistrer() {
-            document.getElementById("parcs_validation").disabled = false;
-            $("#parcs_validation").removeAttr("data-toggle");
-            $("#parcs_validation").removeAttr("title");
+            if ( $('#parcs_immatriculation').val() || $('#parcs_n_serie').val()) {
+                document.getElementById("parcs_validation").disabled = false;
+                $("#parcs_validation").removeAttr("data-toggle");
+                $("#parcs_validation").removeAttr("title");
+            }
         }
 
         $("#parcs_validation").attr("data-toggle", "tooltip");

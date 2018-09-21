@@ -47,26 +47,6 @@
                 <button name="creation" class="button btn" type="submit">Créer</button>
                 {{ form_row(form_creation._token) }}
                 {{ form_end(form_creation, {'render_rest' : false}) }}
-                {# <form class="form-inline">
-                    <div class="input-group">
-                        <input type="text" class="form-control" name="username" placeholder="Username">
-                    </div>
-                    <div class="input-group">
-                        <input type="email" class="form-control" name="email" placeholder="E-mail">
-                    </div>
-                    <div class="input-group">
-                        <select class="form-control">
-                            <option>User</option>
-                            <option>Super-user</option>
-                            <option>Admin</option>
-                            <option>Super-admin</option>
-                        </select>
-                    </div>
-                    <div class="input-group">
-                        <a href="#" class="button btn-left"><span class="fa fa-check"></span>
-                            Valider</a>
-                    </div>
-                </form> #}
             </fieldset>
         </div>
         <div class="col-md-6">
@@ -74,34 +54,13 @@
                 <legend class="well-legend">Modifier un utilisateur</legend>
 
                 {{ form_start(form_modif) }}
-                {{ form_row(form_modif.username) }}
+                {{ form_row(form_modif.username, {'attr': {'autocomplete': 'off'}}) }}
                 {{ form_row(form_modif.email) }}
                 {{ form_row(form_modif.id_user) }}
-                {{ form_widget(form_modif.plainPassword, {'required' : false}) }}
+                {{ form_widget(form_modif.plainPassword, {'required' : false, 'attr': {'autocomplete': 'off'}}) }}
                 {{ form_row(form_modif.roles, {"attr": {"class" : "basic-multiple-role"}}) }}
                 <button name="modif" class="button btn" type="submit">Modifier</button>
                 {{ form_end(form_modif) }}
-
-                {# <form class="form-inline">
-                    <div class="input-group">
-                        <input type="text" class="form-control" name="username" placeholder="Username">
-                    </div>
-                    <div class="input-group">
-                        <input type="email" class="form-control" name="email" placeholder="E-mail">
-                    </div>
-                    <div class="input-group">
-                        <select class="form-control">
-                            <option>User</option>
-                            <option>Super-user</option>
-                            <option>Admin</option>
-                            <option>Super-admin</option>
-                        </select>
-                    </div>
-                    <div class="input-group">
-                        <a href="#" class="button btn-left"><span class="fa fa-check"></span>
-                            Valider</a>
-                    </div>
-                </form> #}
             </fieldset>
         </div>
     </div>
@@ -171,7 +130,7 @@
                     type: "POST",
                     dataType: "json",
                     data: {
-                        'id': id,
+                        'id': id
                     },
                     async: true,
                     success: function (resp) {
@@ -179,6 +138,7 @@
                         $("#form_id_user").val(user.id);
                         $("#form_username").val(user.username);
                         $("#form_email").val(user.email);
+                        $("#form_plainPassword").val('');
                         $("#form_roles").val(user.roles);
                         $("#form_roles").trigger('change');
                     }
@@ -304,7 +264,7 @@
         });
 
         // password_error
-        $("#utilisateurs_plainPassword_second").change(function () {
+        $("#utilisateurs_plainPassword_second").keyup(function () {
             $("#utilisateurs_plainPassword_first").parent().find('input, select').removeClass('is-invalid');
             $("#utilisateurs_plainPassword_first").parent().find(".invalid-feedback").remove();
             var password_second = $(this).val();
@@ -325,7 +285,7 @@
 
         });
 
-        $("#utilisateurs_plainPassword_first").change(function () {
+        $("#utilisateurs_plainPassword_first").keyup(function () {
             $("#utilisateurs_plainPassword_second").parent().find('input, select').removeClass('is-invalid');
             $("#utilisateurs_plainPassword_second").parent().find(".invalid-feedback").remove();
             var password_first = $(this).val();
@@ -386,7 +346,7 @@
         });
 
         // password_error
-        $("#form_plainPassword").change(function () {
+        $("#form_plainPassword").keyup(function () {
             $("#form_plainPassword").parent().find('input, select').removeClass('is-invalid');
             $("#form_plainPassword").parent().find(".invalid-feedback").remove();
             enableModifier();

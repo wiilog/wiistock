@@ -35,31 +35,27 @@
                             </li>
                         </ul>
                     </li>
-                    <li class="has-submenu">
-                        <a>
-                            <i class="fa fa-gear"></i>
-                        </a>
-                        <ul class="sidemenu-sub">
-                            <li class="text">
-                                <h4>Paramètres</h4>
-                            </li>
-                            {% if is_granted('ROLE_PARC_ADMIN') %}
+                    {% if is_granted('ROLE_PARC_ADMIN') %}
+                        <li class="has-submenu">
+                            <a>
+                                <i class="fa fa-gear"></i>
+                            </a>
+                            <ul class="sidemenu-sub">
+                                <li class="text">
+                                    <h4>Paramètres</h4>
+                                </li>
                                 <li>
                                     <a href="{{ path('utilisateurs_index') }}">• Utilisateurs</a>
                                 </li>
                                 <li>
                                     <a href="{{ path('parc_parametrage') }}">• Paramétrage des données</a>
                                 </li>
-                            {% endif %}
-                            <li>
-                                <a href="{{ path('personnalisation') }}">• Personnalisation</a>
-                            </li>
-                            <li>
-                                <a href="{{ path('change_password') }}">• Changer de mot de passe</a>
-                            </li>
-                        </ul>
-                    </li>
-
+                                <li>
+                                    <a href="{{ path('change_password') }}">• Changer de mot de passe</a>
+                                </li>
+                            </ul>
+                        </li>
+                    {% endif %}
                 {% elseif is_granted('ROLE_STOCK') %}
                     <li>
                         <a href="{{ path('accueil') }}">

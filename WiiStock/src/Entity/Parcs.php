@@ -70,6 +70,7 @@ class Parcs
 	/**
 	 * @ORM\ManyToOne(targetEntity="App\Entity\Marques", inversedBy="parcs")
 	 * @ORM\JoinColumn(nullable=false)
+	 * @ORM\OrderBy({"nom" = "ASC"})
 	 * @Groups({"parc"})
 	 */
 	private $marque;
@@ -405,7 +406,7 @@ class Parcs
          		return $this->n_serie;
          	}
 
-	public function setNSerie(string $n_serie): self
+	public function setNSerie(?string $n_serie): self
          	{
          		$this->n_serie = $n_serie;
          
@@ -417,7 +418,7 @@ class Parcs
          		return $this->immatriculation;
          	}
 
-	public function setImmatriculation(string $immatriculation): self
+	public function setImmatriculation(?string $immatriculation): self
          	{
          		$this->immatriculation = $immatriculation;
          

@@ -501,6 +501,15 @@
             $(this).parent().find('input, select').removeClass('is-invalid');
             $(this).parent().find(".invalid-feedback").remove();
             var immatriculation = $(this).val();
+            if ($("#vehicule").find('input').val()) {
+                $("#chariot .mask").css({"opacity": ".7", "z-index": "10"});
+                $("#chariot").find('input, select, a').prop('disabled', true);
+                enableEnregistrer();
+            } else {
+                $("#chariot").find('input, select, a').prop('disabled', false);
+                $("#chariot .mask").css({"opacity": "0", "z-index": "0"});
+                disableEnregistrer();
+            }
             $.ajax({
                 url: "{{ path( 'parc_immatriculation_error' ) }}",
                 type: "POST",
@@ -513,6 +522,12 @@
                     if (resp) {
                         var msg = '<span class="invalid-feedback d-block"><span class="mb-0 d-block"><span class="initialism form-error-icon badge badge-danger">Erreur</span><span class="form-error-message">Ce numéro d\'immatriculation est déjà attribué.</span></span></span>';
                         $("#parcs_immatriculation").addClass('is-invalid').after(msg);
+                        disableEnregistrer();
+
+                    } else {
+                        if (immatriculation) {
+                            enableEnregistrer();
+                        }
                     }
                 }
             });
@@ -525,6 +540,15 @@
             $(this).parent().find('input, select').removeClass('is-invalid');
             $(this).parent().find(".invalid-feedback").remove();
             var serie = $(this).val();
+            if ($("#chariot").find('input').val()) {
+                $("#vehicule .mask").css({"opacity": ".7", "z-index": "50"});
+                $("#vehicule").find('input, select, a').prop('disabled', true);
+                enableEnregistrer();
+            } else {
+                $("#vehicule").find('input, select, a').prop('disabled', false);
+                $("#vehicule .mask").css({"opacity": "0", "z-index": "0"});
+                disableEnregistrer();
+            }
             $.ajax({
                 url: "{{ path( 'parc_serie_error' ) }}",
                 type: "POST",
@@ -537,6 +561,11 @@
                     if (resp) {
                         var msg = '<span class="invalid-feedback d-block"><span class="mb-0 d-block"><span class="initialism form-error-icon badge badge-danger">Erreur</span><span class="form-error-message">Ce numéro de série est déjà attribué.</span></span></span>';
                         $("#parcs_n_serie").addClass('is-invalid').after(msg);
+                        disableEnregistrer();
+                    } else {
+                        if (serie) {
+                            enableEnregistrer();
+                        }
                     }
                 }
             });
@@ -546,17 +575,16 @@
         ================= */
         if ($("#vehicule").find('input').val()) {
             $("#chariot .mask").css({"opacity": ".7", "z-index": "50"});
-            $(".well-legend").css({"z-index": "51"});
             $("#chariot").find('input, select, a').prop('disabled', true);
         } else {
             $("#vehicule .mask").css({"opacity": ".7", "z-index": "50"});
-            $(".well-legend").css({"z-index": "51"});
             $("#vehicule").find('input, select, a').prop('disabled', true);
         }
 
         function disableEnregistrer() {
             document.getElementById("parcs_validation").disabled = true;
             $("#parcs_validation").attr("data-toggle", "tooltip");
+            $("#parcs_validation").attr("title", "Vous devez saisir un numéro d'immatriculation ou un numéro de série non existant pour pouvoir enregistrer le nouveau véhicule");
         }
 
         function enableEnregistrer() {

@@ -2288,18 +2288,25 @@ a[data-tooltip][data-position="bottom"]:after {
 	z-index: 1;
 }
 
-.error_wrapper {
+.error-wrapper {
 	text-align: center;
+	margin-top: -5%;
 }
 
-.error_wrapper .sub {
+.error-wrapper .sub {
 	color: #ffbc02;
 	letter-spacing: 1em;
 }
 
-.error_wrapper a {
+.error-wrapper .em {
+	position: relative;
+	color: white;
+	margin-top: 15%;
+}
+
+.error-wrapper a {
 	position: fixed;
-	top: 50%;
+	top: 45%;
 	left: 0;
 	right: 20px;
 	bottom: 0;
@@ -2321,7 +2328,7 @@ a[data-tooltip][data-position="bottom"]:after {
 	line-height: 257%;
 }
 
-.error_wrapper a::before {
+.error-wrapper a::before {
 	position: absolute;
 	top: 0;
 	left: 0;
@@ -2340,12 +2347,19 @@ a[data-tooltip][data-position="bottom"]:after {
 	z-index: -1;
 }
 
-.error_wrapper a:hover {
+.error-wrapper a:hover {
 	color: #fff;
 }
 
-.error_wrapper a:hover::before {
+.error-wrapper a:hover::before {
 	box-shadow: inset 0 0 0 10em #ffbc02;
+}
+
+.glitch-2 {
+	position: relative;
+	color: white;
+	font-size: 4em;
+	letter-spacing: .5em;
 }
 
 .glitch {

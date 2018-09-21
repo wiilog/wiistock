@@ -194,7 +194,9 @@ class UtilisateursController extends Controller
 
             $em->persist($new_user);
             $em->flush();
-
+            $session = $request->getSession();
+            $session->getFlashBag()->add('success', 'Félicitations ! L\'utilisateur a été créé avec succès !');
+    
             return new JsonResponse(true);
         }
         throw new NotFoundHttpException('404 Léo not found');
@@ -254,6 +256,8 @@ class UtilisateursController extends Controller
             $user->setRoles($roles);
 
             $em->flush();
+            $session = $request->getSession();
+            $session->getFlashBag()->add('success', 'Félicitations ! L\'utilisateur a été modifié avec succès !');
 
             return new JsonResponse();
         }

@@ -70,6 +70,15 @@
         $('.basic-multiple-etat').select2({placeholder: 'Etat'});
         $('.basic-multiple-site').select2({placeholder: 'Site'});
 
+        var f_statut = {{ f_statut|json_encode|raw }};
+        var f_site = {{ f_site|json_encode|raw }};
+        var f_immat = {{ f_immat|json_encode|raw }};
+
+        $('#statut').val(f_statut);
+        $('#site').val(f_site);
+        $('#immat').val(f_immat);
+        $('#immat, #statut, #site').trigger('change');
+
         $("#download").on('click', function (e) {
             e.preventDefault();
             var statut = $("#statut").val();

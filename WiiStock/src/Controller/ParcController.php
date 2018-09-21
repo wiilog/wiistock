@@ -58,10 +58,10 @@ class ParcController extends AbstractController
                 $statut = $request->request->get('statut');
                 $immat = $request->request->get('immat');
                 $site = $request->request->get('site');
+                $session->set('statut', $request->request->get('statut'));
+                $session->set('site', $request->request->get('site'));
+                $session->set('immat', $request->request->get('immat'));
             }
-            $session->set('statut', $request->request->get('statut'));
-            $session->set('site', $request->request->get('site'));
-            $session->set('immat', $request->request->get('immat'));
 
             $current = $request->request->get('current');
             $rowCount = $request->request->get('rowCount');
@@ -114,6 +114,9 @@ class ParcController extends AbstractController
             'controller_name' => 'ParcController',
             'filiales' => $filiales,
             'date' => date("d_m_Y"),
+            "f_statut" => $statut = $session->get('statut'),
+            "f_site" => $statut = $session->get('site'),
+            "f_immat" => $statut = $session->get('immat'),
         ]);
     }
 
@@ -172,7 +175,17 @@ class ParcController extends AbstractController
                     $file = $form['img']->getData();
                     $fileName = $form['url']->getData();
                     $parc->setImg($fileName);
-                    $parc->setImgOrigine($file->getClientOriginalName());
+                    if ($file) {
+                        $parc->setImgOrigine($file->getClientOriginalName());
+                    }
+                    $parc->setNSerie('');
+                } else {
+                    $parc->setImmatriculation('');
+                    $parc->setImg(null);
+                    $parc->setGenre(null);
+                    $parc->setPtac(0);
+                    $parc->setPtr(0);
+                    $parc->setPuissanceFiscale(0);
                 }
                 /* end upload */
 
@@ -180,6 +193,8 @@ class ParcController extends AbstractController
                 $parc->setLastEdit($this->getUser()->getEmail());
                 $em->persist($parc);
                 $em->flush();
+                $session = $request->getSession();
+                $session->getFlashBag()->add('success', 'Félicitations ! Le véhicule a été créé avec succès !');
 
                 return $this->redirectToRoute('parc_list');
             }
@@ -239,6 +254,7 @@ class ParcController extends AbstractController
     public function edit(Request $request, Parcs $parc, FileUploader $fileUploader) : Response
     {
         $statut = $parc->getStatut();
+        $img = $parc->getImg();
         $form = $this->createForm(ParcsType::class, $parc);
         $form->add('url', HiddenType::class, array(
             "mapped" => false,
@@ -253,11 +269,24 @@ class ParcController extends AbstractController
                 $parc = $form->getData();
 
                 /* start upload */
-                if ($parc->getImmatriculation()) {
+                if ($parc->getImmatriculation() && $form['url']->getData() != '') {
                     $fileName = $form['url']->getData();
                     $parc->setImg($fileName);
+                } else {
+                    $parc->setImg($img);
                 }
                 /* end upload */
+
+                if ($parc->getImmatriculation()) {
+                    $parc->setNSerie('');
+                } else {
+                    $parc->setImmatriculation('');
+                    $parc->setImg(null);
+                    $parc->setGenre(null);
+                    $parc->setPtac(0);
+                    $parc->setPtr(0);
+                    $parc->setPuissanceFiscale(0);
+                }
 
                 if (in_array('ROLE_PARC_ADMIN', $this->getUser()->getRoles())) {
                     $parc->setStatut($statut);
@@ -282,6 +311,8 @@ class ParcController extends AbstractController
 
                 $parc->setLastEdit($this->getUser()->getEmail());
                 $this->getDoctrine()->getManager()->flush();
+                $session = $request->getSession();
+                $session->getFlashBag()->add('success', 'Félicitations ! Le véhicule a été modifié avec succès !');
 
                 return $this->redirectToRoute('parc_list');
             }
