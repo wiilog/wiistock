@@ -5,8 +5,8 @@
 {% block body %}
     <div id="app">
         <div class="error-wrapper">
-            {# <h1 class="glitch" data-text="ERROR">ERROR</h1> #}
-            <h1 id="error-name" class="glitch-2">ERREUR</h1>
+            {# <h1 class="glitch" data-text="ERROR 500">ERROR 500</h1> #}
+            <h1 id="error-name" class="glitch-2">ERREUR 500</h1>
             <div class="sub">ERREUR INTERNE DU SERVEUR</div>
             <div class="em">L'application est en erreur, nous en sommes désolés.<br/> Si cela se reproduit, contactez l'équipe technique <strong>Wiilog</strong> au 07 72 32 19 03.</div>
             <a href="{{ path('check_last_login') }}">Retour</a>
@@ -17,8 +17,5 @@
 
 {% block javascripts %}
     <script type="text/javascript">
-        var path = window.location.pathname.split('/');;
-        var error_name = path.pop() || path.pop();
-        $('#error-name').html('ERREUR ' + error_name);
     </script>
 {% endblock %}

@@ -349,14 +349,15 @@ class ParcController extends AbstractController
             $compteur = $max + 1;
             $code = str_pad($compteur, 4, "0", STR_PAD_LEFT);
             $s_code = strval($em->getRepository(SousCategoriesVehicules::class)->findOneBy(array('nom' => $s_categorie))->getCode());
-            if (strcmp($m_acquisition, 'Achat neuf')) {
+            if (!strcmp($m_acquisition, "Achat neuf")) {
                 $m_code = '0';
-            } elseif (strcmp($m_acquisition, 'Achat d\'occasion')) {
+            } elseif (!strcmp($m_acquisition, "Achat d'occasion")) {
                 $m_code = '8';
             } else {
                 $m_code = '9';
             }
 
+            dump($m_code);
             $n_parc = array();
             $n_parc = $s_code . $m_code . $code;
             return new JsonResponse($n_parc);

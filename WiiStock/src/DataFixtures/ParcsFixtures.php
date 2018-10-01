@@ -188,7 +188,7 @@ class ParcsFixtures extends Fixture
     		'Engin divers' => [20,21],
     		'Engin de traction' => [22,23,24,25],
     		'Remorque' => [26,27,28,29,30],
-    		'Voiture' => [30,31,32,33],
+    		'Voiture' => [31,32,33],
     		'Camion et camionnette' => [34,35,36,37,38,39,40,41],
     	);
 

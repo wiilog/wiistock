@@ -23,14 +23,15 @@ class SecuriteController extends Controller
     /**
      * @Route("/", name="default")
      */
-    public function index() {
-        return  $this->redirectToRoute('login');
+    public function index()
+    {
+        return $this->redirectToRoute('login');
     }
 
     /**
      * @Route("/login", name="login")
      */
-    public function login(Request $request,  AuthenticationUtils $authenticationUtils)
+    public function login(Request $request, AuthenticationUtils $authenticationUtils)
     {
 
         // get the login error if there is one
@@ -52,21 +53,21 @@ class SecuriteController extends Controller
     public function register(Request $request, UserPasswordEncoderInterface $passwordEncoder, EntityManagerInterface $em)
     {
         $session = $request->getSession();
-    	$user = new Utilisateurs();
+        $user = new Utilisateurs();
 
-    	$form = $this->createForm(UtilisateursType::class, $user);
+        $form = $this->createForm(UtilisateursType::class, $user);
 
-    	$form->handleRequest($request);
-    	if ($form->isSubmitted() && $form->isValid()) {
-    		$password = $passwordEncoder->encodePassword($user, $user->getPlainPassword());
-    		$user->setPassword($password);
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+            $password = $passwordEncoder->encodePassword($user, $user->getPlainPassword());
+            $user->setPassword($password);
             $user->setRoles(array('ROLE_USER'));
 
-    		$em->persist($user);
-    		$em->flush();
+            $em->persist($user);
+            $em->flush();
             $session->getFlashBag()->add('success', 'Félicitations ! Votre nouveau compte a été créé avec succès !');
-    		return $this->redirectToRoute('login');
-    	}
+            return $this->redirectToRoute('login');
+        }
 
         return $this->render('securite/register.html.twig', [
             'controller_name' => 'SecuriteController',
@@ -77,18 +78,20 @@ class SecuriteController extends Controller
     /**
      * @Route("/check_last_login", name="check_last_login")
      */
-    public function checkLastLogin(EntityManagerInterface $em) {
+    public function checkLastLogin(EntityManagerInterface $em)
+    {
 
         $user = $this->getUser();
+
+        if (!$user) {
+            throw new UsernameNotFoundException(
+                sprintf('L\'utilisateur "%s" n\'existe pas.', $username)
+            );
+        }
         $user->setLastLogin(new \Datetime());
         $em->flush();
-        
+
         $roles = $user->getRoles();
-        /*
-        $new_roles = array("ROLE_PARC_ADMIN", "ROLE_USER");
-        $this->getUser()->setRoles($new_roles);
-        $this->getDoctrine()->getManager()->flush();
-        */
 
         if (in_array("ROLE_PARC", $roles) || in_array("ROLE_PARC_ADMIN", $roles)) {
             return $this->redirectToRoute('parc_list');
@@ -99,14 +102,14 @@ class SecuriteController extends Controller
         }
 
         return $this->redirectToRoute('attente_validation');
-
     }
 
     /**
      * @Route("/attente_validation", name="attente_validation")
      */
-    public function attente_validation() {
-         return $this->render('securite/attente_validation.html.twig', [
+    public function attente_validation()
+    {
+        return $this->render('securite/attente_validation.html.twig', [
             'controller_name' => 'SecuriteController',
         ]);
     }
@@ -124,19 +127,18 @@ class SecuriteController extends Controller
                 'label' => "Mot de Passe actuel"
             ))
             ->add("plainPassword", RepeatedType::class, array(
-                    'type' => PasswordType::class,
-                    'first_options'  => array('label' => 'Nouveau Mot de Passe'),
-                    'second_options' => array('label' => 'Confirmer Nouveau Mot de Passe')
+                'type' => PasswordType::class,
+                'first_options' => array('label' => 'Nouveau Mot de Passe'),
+                'second_options' => array('label' => 'Confirmer Nouveau Mot de Passe')
             ))
             ->add("modifier", SubmitType::class)
-        ->getForm();
+            ->getForm();
 
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $data = $form->getData();
-            if($passwordEncoder->isPasswordValid($user, $data["password"]))
-            {
+            if ($passwordEncoder->isPasswordValid($user, $data["password"])) {
                 $new_password = $passwordEncoder->encodePassword($user, $data["plainPassword"]);
                 $user->setPassword($new_password);
                 $em->persist($user);
@@ -158,7 +160,8 @@ class SecuriteController extends Controller
     /**
      * @Route("/logout", name="logout")
      */
-    public function logout() {
-        return  $this->redirectToRoute('login');
+    public function logout()
+    {
+        return $this->redirectToRoute('login');
     }
 }

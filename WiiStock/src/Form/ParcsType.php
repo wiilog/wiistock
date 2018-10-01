@@ -12,6 +12,7 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
+use Symfony\Component\Form\Extension\Core\Type\NumberType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
@@ -98,13 +99,13 @@ class ParcsType extends AbstractType
 				],
 			))
 			->add('fournisseur', TextType::class, array('label' => 'Fournisseur'))
-			->add('poids', IntegerType::class, array('label' => 'Poids (Tonne)'))
+			->add('poids', NumberType::class, array('label' => 'Poids (Tonne)'))
 			->add('mode_acquisition', ChoiceType::class, array(
 				'label' => 'Mode d\'acquisition',
 				'placeholder' => '',
 				'choices' => array(
 					'Achat neuf' => 'Achat neuf',
-					'Achat d’occasion' => 'Achat d’occasion',
+					'Achat d\'occasion' => 'Achat d\'occasion',
 					'Location longue durée' => 'Location longue durée',
 					'Mise à disposition' => 'Mise à disposition',
 				),
@@ -142,8 +143,8 @@ class ParcsType extends AbstractType
 				'choices' => array(
 					'Fin de contrat de location longue durée' => 'Fin de contrat de location longue durée',
 					'Mise au rebus' => 'Mise au rebus',
-					'Transfert vers site d’une filiale différente' => 'Transfert vers site d’une filiale différente',
-					'Transfert vers site d’une même filiale' => 'Transfert vers site d’une même filiale',
+					'Transfert vers site d\'une filiale différente' => 'Transfert vers site d\'une filiale différente',
+					'Transfert vers site d\'une même filiale' => 'Transfert vers site d\'une même filiale',
 					'Vente à un tiers externe' => 'Vente à un tiers externe',
 				),
 			))
@@ -158,8 +159,8 @@ class ParcsType extends AbstractType
 			->add('genre', TextType::class, array(
 				'label' => 'Genre (J1)',
 			))
-			->add('ptac', IntegerType::class, array('label' => 'Ptac (F2)'))
-			->add('ptr', IntegerType::class, array('label' => 'Ptr (F3)'))
+			->add('ptac', NumberType::class, array('label' => 'Ptac (F2)'))
+			->add('ptr', NumberType::class, array('label' => 'Ptr (F3)'))
 			->add('puissance_fiscale')
 
 			->add('estSorti', CheckboxType::class, array(

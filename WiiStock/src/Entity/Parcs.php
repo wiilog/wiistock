@@ -100,7 +100,7 @@ class Parcs
 	private $commentaire;
 
 	/**
-	 * @ORM\Column(type="string", length=255, nullable=false)
+	 * @ORM\Column(type="string", length=255, nullable=true)
 	 * @Groups({"parc"})
 	 */
 	private $fournisseur;
@@ -201,7 +201,7 @@ class Parcs
          		return $this->modele;
          	}
 
-	public function setModele(string $modele) : self
+	public function setModele(? string $modele) : self
          	{
          		$this->modele = $modele;
          
@@ -249,19 +249,19 @@ class Parcs
          		return $this->fournisseur;
          	}
 
-	public function setFournisseur(string $fournisseur) : self
+	public function setFournisseur(? string $fournisseur) : self
          	{
          		$this->fournisseur = $fournisseur;
          
          		return $this;
          	}
 
-	public function getPoids() : ? int
+	public function getPoids() : ? float
          	{
          		return $this->poids;
          	}
 
-	public function setPoids(int $poids) : self
+	public function setPoids(float $poids) : self
          	{
          		$this->poids = $poids;
          

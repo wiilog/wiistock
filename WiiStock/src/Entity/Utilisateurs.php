@@ -7,7 +7,6 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\EquatableInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
-// use Proxies\__CG__\App\Entity\Utilisateurs;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\UtilisateursRepository")
@@ -72,13 +71,8 @@ class Utilisateurs implements UserInterface, EquatableInterface
      */
     private $lastLogin;
 
-    public function __construct(/* $username, $password, $salt, array $roles */) 
+    public function __construct() 
     {
-        /*$this->roles = array('ROLE_USER', 'ROLE_PARC');*/
-        // $this->username = $username;
-        // $this->password = $password;
-        // $this->salt = $salt;
-        // $this->roles = $roles;
     }
 
     public function getId()
@@ -189,11 +183,7 @@ class Utilisateurs implements UserInterface, EquatableInterface
             return false;
         }
 
-        if ($this->salt !== $user->getSalt()) {
-            return false;
-        }
-
-        if ($this->username !== $user->getUsername()) {
+        if ($this->email !== $user->getEmail()) {
             return false;
         }
 
