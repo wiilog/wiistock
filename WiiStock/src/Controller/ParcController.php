@@ -357,10 +357,9 @@ class ParcController extends AbstractController
                 $m_code = '9';
             }
 
-            dump($m_code);
             $n_parc = array();
             $n_parc = $s_code . $m_code . $code;
-            return new JsonResponse($n_parc);
+            return new JsonResponse(array("num" => $n_parc));
         }
         throw new NotFoundHttpException('404 Gwendal not found');
     }

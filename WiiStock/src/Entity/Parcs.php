@@ -322,7 +322,7 @@ class Parcs
          		return $this->motif;
          	}
 
-	public function setMotif(string $motif) : self
+	public function setMotif(? string $motif) : self
          	{
          		$this->motif = $motif;
          

@@ -215,7 +215,7 @@
             <div class="row">
             {% if is_granted('ROLE_PARC_ADMIN') or parc.statut == "Demande création" %}    
                 <div class="col-md-4">
-                    {{ form_row(form.fournisseur) }}
+                    {{ form_row(form.fournisseur, {'required': false}) }}
                 </div>
                 <div class="col-md-4">
                     {{ form_row(form.mode_acquisition) }}
@@ -226,7 +226,7 @@
 
             {% else %} {# role_parc #}
                 <div class="col-md-4">
-                    {{ form_row(form.fournisseur, { 'attr':{'readonly':'readonly'} }) }}
+                    {{ form_row(form.fournisseur, { 'required': false, 'attr':{'readonly':'readonly'} }) }}
                 </div>
                 <div class="col-md-4">
                     {{ form_row(form.mode_acquisition, { 'attr':{'disabled':'disabled'} }) }}
@@ -416,10 +416,8 @@
         /* Disabled/Enabled
         ================= */
         $('#parcs_validation').on('click', function(e) {
-            $('form[name="parcs"] input:disabled, form[name="parcs"] select:disabled').each(function() {
+            $('form[name="parcs"] input:disabled, form[name="parcs"] select:disabled, form[name="parcs"] textarea:disabled').each(function() {
                 $(this).prop('disabled', false);
-            });
-            $('form[name="parcs"] input:enabled, form[name="parcs"] select:enabled').each(function() {
             });
         });
 
@@ -443,10 +441,7 @@
                     "m_acquisition": m_acquisition
                 },
                 success: function (resp) {
-                    if (resp) {
-                        $("#parcs_n_parc").val(resp);
-                        enableEnregistrer();
-                    }
+                    $("#parcs_n_parc").val(resp["num"]);
                 }
             });
         });
