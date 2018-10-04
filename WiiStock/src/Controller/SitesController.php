@@ -38,7 +38,7 @@ class SitesController extends Controller
             $em->persist($site);
             $em->flush();
 
-            return $this->redirectToRoute('sites_index');
+            return $this->redirectToRoute('parc_parametrage');
         }
 
         return $this->render('sites/new.html.twig', [
@@ -99,6 +99,6 @@ class SitesController extends Controller
             $em->flush();
         }
 
-        return $this->redirectToRoute('sites_index');
+        return $this->redirectToRoute('parc_parametrage');
     }
 }

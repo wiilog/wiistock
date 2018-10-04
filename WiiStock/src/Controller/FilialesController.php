@@ -37,7 +37,7 @@ class FilialesController extends Controller
             $em->persist($filiale);
             $em->flush();
 
-            return $this->redirectToRoute('filiales_index');
+            return $this->redirectToRoute('parc_parametrage');
         }
 
         return $this->render('filiales/new.html.twig', [
@@ -88,6 +88,6 @@ class FilialesController extends Controller
             $em->flush();
         }
 
-        return $this->redirectToRoute('filiales_index');
+        return $this->redirectToRoute('parc_parametrage');
     }
 }

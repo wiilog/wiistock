@@ -38,7 +38,7 @@ class SousCategoriesVehiculesController extends Controller
             $em->persist($sousCategoriesVehicule);
             $em->flush();
 
-            return $this->redirectToRoute('sous_categories_vehicules_index');
+            return $this->redirectToRoute('parc_parametrage');
         }
 
         return $this->render('sous_categories_vehicules/new.html.twig', [
@@ -108,6 +108,6 @@ class SousCategoriesVehiculesController extends Controller
             $em->flush();
         }
 
-        return $this->redirectToRoute('sous_categories_vehicules_index');
+        return $this->redirectToRoute('parc_parametrage');
     }
 }

@@ -37,7 +37,7 @@ class MarquesController extends Controller
             $em->persist($marque);
             $em->flush();
 
-            return $this->redirectToRoute('marques_index');
+            return $this->redirectToRoute('parc_parametrage');
         }
 
         return $this->render('marques/new.html.twig', [
@@ -88,6 +88,6 @@ class MarquesController extends Controller
             $em->flush();
         }
 
-        return $this->redirectToRoute('marques_index');
+        return $this->redirectToRoute('parc_parametrage');
     }
 }
