@@ -72,10 +72,10 @@ class SousCategoriesVehiculesController extends Controller
             $em = $this->getDoctrine()->getManager();
             $categorie = $form->getData()->getCategorie();
             $code = $form->getData()->getCode();
-            $parcs = $em->getRepository(Parcs::class)->findAll(array('sousCategorieVehicule' => $categorie_init->getId()));
+            $parcs = $em->getRepository(Parcs::class)->findBy(['sousCategorieVehicule' => $categorie_init->getId()]);
 
             foreach ($parcs as $parc) {
-                if ($categorie->getNom() != $categorie_init->getNom()) {
+                if (strcmp($categorie->getNom(), $categorie_init->getNom()) != 0) {
                     $parc->setCategorieVehicule($categorie);
                 }
                 if ($code != $code_init) {

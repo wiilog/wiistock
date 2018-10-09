@@ -92,7 +92,7 @@ class ParcController extends AbstractController
                     "n_parc" => $parc->getNParc(),
                     "etat" => $parc->getStatut(),
                     "n_serie" => (($parc->getNserie() != null) ? $parc->getNSerie() : $parc->getImmatriculation()),
-                    "sous_cat" => $parc->getSousCategorieVehicule()->getNom(),
+                    "sousCategorieVehicule" => $parc->getSousCategorieVehicule()->getNom(),
                     "site" => $parc->getSite()->getNom(),
                 ];
                 array_push($rows, $row);

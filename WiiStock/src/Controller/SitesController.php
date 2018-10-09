@@ -70,10 +70,10 @@ class SitesController extends Controller
         if ($form->isSubmitted() && $form->isValid()) {
             $em = $this->getDoctrine()->getManager();
             $filiale = $form->getData()->getFiliale();
-            $parcs = $em->getRepository(Parcs::class)->findAll(array('filiale' => $filiale_init->getId()));
+            $parcs = $em->getRepository(Parcs::class)->findBy(['filiale' => $filiale_init->getId()]);
 
             foreach ($parcs as $parc) {
-                if ($filiale->getNom() != $filiale_init->getNom()) {
+                if (strcmp($filiale->getNom(), $filiale_init->getNom()) != 0) {
                     $parc->setFiliale($filiale);
                 }
             }

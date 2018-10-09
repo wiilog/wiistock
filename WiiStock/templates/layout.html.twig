@@ -35,28 +35,9 @@
                             </li>
                         </ul>
                     </li>
-                    {% if is_granted('ROLE_PARC_ADMIN') %}
-                        <li class="has-submenu">
-                            <a>
-                                <i class="fa fa-gear"></i>
-                            </a>
-                            <ul class="sidemenu-sub">
-                                <li class="text">
-                                    <h4>Paramètres</h4>
-                                </li>
-                                <li>
-                                    <a href="{{ path('utilisateurs_index') }}">• Utilisateurs</a>
-                                </li>
-                                <li>
-                                    <a href="{{ path('parc_parametrage') }}">• Paramétrage des données</a>
-                                </li>
-                                <li>
-                                    <a href="{{ path('change_password') }}">• Changer de mot de passe</a>
-                                </li>
-                            </ul>
-                        </li>
-                    {% endif %}
-                {% elseif is_granted('ROLE_STOCK') %}
+                {% endif %}
+
+                {% if is_granted('ROLE_STOCK') %}
                     <li>
                         <a href="{{ path('accueil') }}">
                             <i class="fa fa-home"></i>
@@ -145,6 +126,8 @@
                             </li>
                         </ul>
                     </li>
+                {% endif %}
+                {% if is_granted('ROLE_ADMIN') %}
                     <li class="has-submenu">
                         <a href="#">
                             <i class="fa fa-gear"></i>
@@ -156,21 +139,31 @@
                             <li>
                                 <a href="{{ path('utilisateurs_index') }}">• Utilisateurs</a>
                             </li>
+                            {% if is_granted('ROLE_PARC_ADMIN') %}
+                                <li>
+                                    <a href="{{ path('parc_parametrage') }}">• Paramétrage des données</a>
+                                </li>
+                            {% endif %}
                             <li>
-                                <a href="{{ path('groupes_index') }}">• Groupes de droits</a>
+                                <a href="{{ path('change_password') }}">• Changer de mot de passe</a>
                             </li>
-                            <li>
-                                <a href="{{ path('champs_personnalises_index') }}">• Champs personnalisé</a>
-                            </li>
-                            <li>
-                                <a href="{{ path('personnalisation') }}">• Personnalisation</a>
-                            </li>
-                            <li>
-                                <a href="{{ path('alertes_index') }}">• Alerte de gestion de stock</a>
-                            </li>
-                            <li>
-                                <a href="{{ path('dimensionnement') }}">• Dimensionnement</a>
-                            </li>
+                            {% if is_granted('ROLE_STOCK_ADMIN') %}
+                                <li>
+                                    <a href="{{ path('groupes_index') }}">• Groupes de droits</a>
+                                </li>
+                                <li>
+                                    <a href="{{ path('champs_personnalises_index') }}">• Champs personnalisé</a>
+                                </li>
+                                <li>
+                                    <a href="{{ path('personnalisation') }}">• Personnalisation</a>
+                                </li>
+                                <li>
+                                    <a href="{{ path('alertes_index') }}">• Alerte de gestion de stock</a>
+                                </li>
+                                <li>
+                                    <a href="{{ path('dimensionnement') }}">• Dimensionnement</a>
+                                </li>
+                            {% endif %}
                         </ul>
                     </li>
                 {% endif %}

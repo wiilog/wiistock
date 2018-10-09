@@ -93,11 +93,11 @@ class SecuriteController extends Controller
 
         $roles = $user->getRoles();
 
-        if (in_array("ROLE_PARC", $roles) || in_array("ROLE_PARC_ADMIN", $roles)) {
+        if ($this->isGranted("ROLE_PARC")) {
             return $this->redirectToRoute('parc_list');
         }
 
-        if (in_array("ROLE_STOCK", $roles) || in_array("ROLE_STOCK_ADMIN", $roles)) {
+        if ($this->isGranted("ROLE_STOCK")) {
             return $this->redirectToRoute('accueil');
         }
 

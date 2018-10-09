@@ -27,9 +27,6 @@ class CategoriesVehiculesRepository extends ServiceEntityRepository
             $qb->andWhere('c.nom LIKE ?' . $key)
                 ->setParameter($key, '%' . $value . '%');
         }
-        // if ($name[0] == "ENGIN") {
-        //     dump($qb->getQuery());
-        // }
         return $qb->getQuery()->getOneOrNullResult();
     }
 //    /**
