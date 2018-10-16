@@ -74,14 +74,26 @@ security:
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control: # /!\ il faut bien faire attention à l'ordre dans lequel on écrit les règles d'accès /!\
-        - { path: ^/login, role: IS_AUTHENTICATED_ANONYMOUSLY, requires_channel: https}
-        - { path: ^/register, role: IS_AUTHENTICATED_ANONYMOUSLY, requires_channel: https}
-        - { path: ^/check_last_login, role: IS_AUTHENTICATED_ANONYMOUSLY, requires_channel: https}
-        - { path: ^/tests, roles: ROLE_API, requires_channel: https}
-        - { path: ^/stock/admin, roles: ROLE_STOCK_ADMIN, requires_channel: https}
-        - { path: ^/stock, roles: ROLE_STOCK, requires_channel: https}
-        - { path: ^/parc/admin, roles: ROLE_PARC_ADMIN, requires_channel: https}
-        - { path: ^/parc, roles: ROLE_PARC, requires_channel: https}
-        - { path: ^/admin, roles: ROLE_ADMIN, requires_channel: https}
-        - { path: ^/super/admin, roles: ROLE_SUPER_ADMIN, requires_channel: https}
-        - { path: ^/, role: IS_AUTHENTICATED_REMEMBERED, requires_channel: https}
+        # - { path: ^/login, role: IS_AUTHENTICATED_ANONYMOUSLY, requires_channel: https}
+        # - { path: ^/register, role: IS_AUTHENTICATED_ANONYMOUSLY, requires_channel: https}
+        # - { path: ^/check_last_login, role: IS_AUTHENTICATED_ANONYMOUSLY, requires_channel: https}
+        # - { path: ^/tests, roles: ROLE_API, requires_channel: https}
+        # - { path: ^/stock/admin, roles: ROLE_STOCK_ADMIN, requires_channel: https}
+        # - { path: ^/stock, roles: ROLE_STOCK, requires_channel: https}
+        # - { path: ^/parc/admin, roles: ROLE_PARC_ADMIN, requires_channel: https}
+        # - { path: ^/parc, roles: ROLE_PARC, requires_channel: https}
+        # - { path: ^/admin, roles: ROLE_ADMIN, requires_channel: https}
+        # - { path: ^/super/admin, roles: ROLE_SUPER_ADMIN, requires_channel: https}
+        # - { path: ^/, role: IS_AUTHENTICATED_REMEMBERED, requires_channel: https}
+
+        - { path: ^/login, role: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/register, role: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/check_last_login, role: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/tests, roles: ROLE_API }
+        - { path: ^/stock/admin, roles: ROLE_STOCK_ADMIN }
+        - { path: ^/stock, roles: ROLE_STOCK }
+        - { path: ^/parc/admin, roles: ROLE_PARC_ADMIN }
+        - { path: ^/parc, roles: ROLE_PARC }
+        - { path: ^/admin, roles: ROLE_ADMIN }
+        - { path: ^/super/admin, roles: ROLE_SUPER_ADMIN }
+        - { path: ^/, role: IS_AUTHENTICATED_REMEMBERED }

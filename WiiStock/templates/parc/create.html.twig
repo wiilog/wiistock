@@ -15,7 +15,7 @@
     <div class="row form-group" id="carte_grise">
         <div class="col-md-6">
             <a id="upload">
-                <input id="file" type="file" {{ block('widget_attributes') }} placeholder="Importer"></input>
+                <input id="file" type="file" {{ block('widget_attributes') }} placeholder="Importer"/>
                 <label id="file_name" for="file">
                     <span class="fa fa-cloud-upload"></span>
                     &nbsp;Importer
@@ -255,7 +255,7 @@
             $.each(categories, function (categorie) {
                 if (categorie === $('#parcs_categorieVehicule option:selected').text()) {
                     $.each(categories[categorie], function (index, val) {
-                        $('#parcs_sousCategorieVehicule').append(new Option(val.nom, val.id,));
+                        $('#parcs_sousCategorieVehicule').append(new Option(val.nom, val.id));
                     });
                     $('#parcs_sousCategorieVehicule').attr("placeholder", "").val("").focus().blur();
                 }
@@ -267,7 +267,7 @@
             $.each(filiales, function (site) {
                 if (site === $('#parcs_filiale option:selected').text()) {
                     $.each(filiales[site], function (index, val) {
-                        $('#parcs_site').append(new Option(val.nom, val.id,));
+                        $('#parcs_site').append(new Option(val.nom, val.id));
                     });
                     $('#parcs_site').attr("placeholder", "").val("").focus().blur();
                 }

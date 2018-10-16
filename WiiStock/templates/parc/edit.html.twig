@@ -156,7 +156,7 @@
                         <div class="col-md-6">
 
                             <a id="upload">
-                                <input id="file" type="file" placeholder="Importer"></input>
+                                <input id="file" type="file" placeholder="Importer"/>
                                 <label id="file_name" for="file">
                                     <span class="fa fa-cloud-upload"></span>
                                     &nbsp;{% if parc.img %} {{ parc.imgOrigine }} {% else %} Importer {% endif %}
@@ -295,8 +295,8 @@
 
         {% if is_granted('ROLE_PARC_ADMIN') and parc.statut == "Demande création" %}
                 <form id="deleteForm" method="post" action="{{ path('parc_delete', {'id': parc.id}) }}">
-                    <input type="hidden" name="_method" value="DELETE">
-                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ parc.id) }}">
+                    <input type="hidden" name="_method" value="DELETE"/>
+                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ parc.id) }}"/>
                     <button id="submitBtn" data-toggle="modal" data-target="#confirm-submit" class="button button-danger btn-left pull-right"><span class="fa fa-trash"></span>Supprimer</button>
                 </form>
 
@@ -472,7 +472,7 @@
             $.each(categories, function (categorie) {
                 if (categorie === $('#parcs_categorieVehicule option:selected').text()) {
                     $.each(categories[categorie], function (index, val) {
-                        $('#parcs_sousCategorieVehicule').append(new Option(val.nom, val.id,));
+                        $('#parcs_sousCategorieVehicule').append(new Option(val.nom, val.id));
                     });
                 }
             });
@@ -483,7 +483,7 @@
             $.each(filiales, function (site) {
                 if (site === $('#parcs_filiale option:selected').text()) {
                     $.each(filiales[site], function (index, val) {
-                        $('#parcs_site').append(new Option(val.nom, val.id,));
+                        $('#parcs_site').append(new Option(val.nom, val.id));
                     });
                 }
             });
