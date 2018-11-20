@@ -8,6 +8,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Entity\Articles;
+use App\Repository\ArticlesRepository;
 
 /**
 * @Route("/stock/stock")
@@ -17,40 +18,79 @@ class StockController extends Controller
 	/**
 	 * @Route("/", name="stock")
 	 */
-	public function index(EntityManagerInterface $em, Request $request)
+	public function index(EntityManagerInterface $em, ArticlesRepository $articlesRepository, Request $request)
 	{
-		if ($request->isXmlHttpRequest()) {
-			$articles = $em->getRepository(Articles::class)->findAll();
-			$data = array("current" => 1,
-						"rowCount" => 4,
-						"rows" => [
-							["ref" => "136737541",
-							"sku" => "265",
-							"libelle" => "Iphone1",
-							"qte" => "14"],
+		$session = $request->getSession();
 
-							["ref" => "136737542",
-							"sku" => "266",
-							"libelle" => "Iphone2",
-							"qte" => "69"],
+        if ($request->isXmlHttpRequest()) {
+            if (!$request->request->get('start')) {
+                $zone = $session->get('zone');
+                $quai = $session->get('quai');
+				$libelle = $session->get('libelle');
+				$numero = $session->get('numero');
+            } else {
+                $zone = $request->request->get('zone');
+                $quai = $request->request->get('quai');
+				$libelle = $request->request->get('libelle');
+				$numero = $request->request->get('numero');
+                $session->set('zone', $request->request->get('zone'));
+                $session->set('quai', $request->request->get('quai'));
+				$session->set('libelle', $request->request->get('libelle'));
+				$session->set('numero', $request->request->get('numero'));
+            }
 
-							["ref" => "136737543",
-							"sku" => "267",
-							"libelle" => "Iphone3",
-							"qte" => "3"],
+            $current = $request->request->get('current');
+            $rowCount = $request->request->get('rowCount');
+            $searchPhrase = $request->request->get('searchPhrase');
+            $sort = $request->request->get('sort');
 
-							["ref" => "136737544",
-							"sku" => "268",
-							"libelle" => "Iphone4",
-							"qte" => "42"],
-						],
-						"total" => 4
-			);
-			return new JsonResponse($data);
-		}
+			// $articles = $em->getRepository(Articles::class)->findAll();
+            $articles = $articlesRepository->findByFilters($zone, $quai, $libelle, $numero, $searchPhrase, $sort);
+
+            if ($searchPhrase != "" || $zone || $quai) {
+                $count = count($articles->getQuery()->getResult());
+            } else {
+                $count = count($articlesRepository->findAll());
+            }
+
+            if ($rowCount != -1) {
+                $min = ($current - 1) * $rowCount;
+                $max = $rowCount;
+
+                $articles->setMaxResults($max)
+                    ->setFirstResult($min);
+            }
+            $articles = $articles->getQuery()->getResult();
+
+            $rows = array();
+            foreach ($articles as $article) {
+                $row = [
+                    "id" => $article->getId(),
+                    "numero" => $article->getN(),
+					"statut" => $article->getStatut(),
+					"designation" => $article->getDesignation(),
+					"quantite" => $article->getQuantite(),
+					"libelle" => $article->getlibelle(),
+                ];
+                array_push($rows, $row);
+            }
+
+            $data = array(
+                "current" => intval($current),
+                "rowCount" => intval($rowCount),
+                "rows" => $rows,
+                "total" => intval($count)
+            );
+
+            return new JsonResponse($data);
+        }
 
 		return $this->render('stock/index.html.twig', [
 			'controller_name' => 'StockController',
+			"f_zone" => $session->get('zone'),
+            "f_quai" => $session->get('quai'),
+			"f_libelle" => $session->get('libelle'),
+			"f_numero" => $session->get('numero'),
 		]);
 	}
 

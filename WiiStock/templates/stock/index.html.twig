@@ -4,37 +4,25 @@
 
 {% block page_content %}
 
-    <div class="row backgray filter-wrapper">
-        <form class="form-inline">
-            <div class="form-group">
-                <select class="form-control">
-                    <option>Zone de stockage1</option>
-                    <option>Zone de stockage2</option>
-                    <option>Zone de stockage3</option>
-                </select>
+    <form>
+        <div class="row backgray filter-wrapper">
+            <div>
+                <select class="form-control basic-multiple-zone" multiple="multiple"></select>
             </div>
-            <div class="form-group">
-                <select class="form-control">
-                    <option>Rack1</option>
-                    <option>Rack2</option>
-                    <option>Rack3</option>
-                </select>
+            <div>
+                <select class="form-control basic-multiple-quai" multiple="multiple"></select>
             </div>
-            <div class="form-group">
-                <input type="search" class="form-control" placeholder="Référence">
+            <div>
+                <input type="search" class="form-control" placeholder="Libellé">
             </div>
-            <div class="form-group">
-                <select class="form-control">
-                    <option>Catégorie1</option>
-                    <option>Catégorie2</option>
-                    <option>Catégorie3</option>
-                </select>
+            <div>
+                <input type="search" class="form-control" placeholder="Numéro">
             </div>
             <a class="btn more-filter">Plus de filtres</a>
-            <a href="#" class="button btn-right">
+            <a href="#" id="filter" class="button btn-right">
                 Filtrer<span class="fa fa-angle-double-right"></span></a>
-        </form>
-    </div>
+        </div>
+    </form>
 
     <div class="row page-title">
         VISUALISATION DU STOCK
@@ -49,45 +37,19 @@
         </a>
     </div>
 
-    <table id="grid-data" class="table table-condensed table-hover table-striped">
+    <table id="grid-data" class="table table-condensed table-hover table-striped table-auto">
         <thead>
             <tr>
-                <th data-column-id="ref">Réf. article</th>
-                <th data-column-id="sku">SKU</th>
+                <th data-column-id="id" data-visible="false" data-sortable="false">Id</th>
+                <th data-column-id="statut" data-formatter="statut" data-sortable="false">Statut</th>
+                <th data-column-id="numero">Numéro</th>
+                <th data-column-id="designation">Désignation</th>
                 <th data-column-id="libelle">Libellé</th>
-                <th data-column-id="qte">Qté</th>
+                <th data-column-id="quantite">Quantité</th>
                 <th data-column-id="commands" data-formatter="commands" data-sortable="false">Détail</th>
             </tr>
         </thead>
 
-        <tr>
-            <td>136737541</td>
-            <td>251</td>
-            <td>Iphone 1</td>
-            <td>41</td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>136737542</td>
-            <td>252</td>
-            <td>Iphone 2</td>
-            <td>42</td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>136737543</td>
-            <td>253</td>
-            <td>Iphone 3</td>
-            <td>43</td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>136737544</td>
-            <td>254</td>
-            <td>Iphone 4</td>
-            <td>44</td>
-            <td></td>
-        </tr>
     </table>
 
     <div class="row">
@@ -102,31 +64,74 @@
 
 {% block javascripts %}
     <script type="text/javascript">
+        $('.basic-multiple-zone').select2({placeholder: 'Zone'});
+        $('.basic-multiple-quai').select2({placeholder: 'Quai'});
+
         $('.daterange input').each(function () {
             $(this).datepicker({language: 'fr', format: 'dd/mm/yyyy', todayBtn: true, todayHighlight: true, autoclose: true});
         });
 
+        $('#zone').val({{ f_zone|json_encode|raw }});
+        $('#quai').val({{ f_quai|json_encode|raw }});
+        $('#libelle').val({{ f_libelle|json_encode|raw }});
+        $('#numero').val({{ f_numero|json_encode|raw }});
+        $('#zone, #quai').trigger('change');
+
+        var start = 0;
+
         var grid = $("#grid-data").bootgrid({
-            ajax: false,
-            /*
-    post: function ()
-    {
-        return {
-            id: "b0df282a-0d67-40e5-8558-c9e93b7befed"
-        };
-    },
-    url: "{{ path('stock') }}",
-	*/
+            rowCount: [
+                10, 25, -1
+            ],
+            ajax: true,
+            requestHandler: function (request) {
+                // request.id = "b0df282a-0d67-40e5-8558-c9e93b7befed";
+                request.start = start;
+                request.zone = $("#zone").val();
+                request.quai = $("#quai").val();
+                request.libelle = $("#libelle").val();
+                request.numero = $("#numero").val();
+
+                return request;
+            },
+            url: "{{ path('stock') }}",
             formatters: {
                 "commands": function (column, row) {
-                    return "<button type=\"button\" class=\"btn btn-xs btn-default command-view\" data-row-id=\"" + row.id + "\"><span class=\"fa fa-eye\"></span></button> "
+                    return "<button type=\"button\" class=\"btn btn-xs btn-default command-view\" data-row-id=\"" + row.id + "\"><span class=\"fa fa-eye\"></span></button> ";
+                },
+                "statut": function (column, row) {
+                    var output = "<button type=\"button\" class=\"btn btn-xs color etiquette\" data-row-id=\"" + row.id + "\">" + row[column.id] + "</button>";
+                    var color;
+                    switch (row[column.id]) {
+                        case 'En attente':
+                            color = 'backred';
+                            break;
+                        case 'En cours':
+                            color = 'backorange';
+                            break;
+                        case 'En stock':
+                            color = 'backgreen';
+                            break;
+                        default:
+                            color = 'backblue';
+                    }
+                    output = output.replace('color', color);
+                    return output;
                 }
             }
         }).on("loaded.rs.jquery.bootgrid", function () {
             /* Executes after data is loaded and rendered */
-            grid.find(".command-view").on("click", function (e) {
-                window.location.href = "{{ path('articles_affichage', {'id': 1}) }}"
+            grid.find(".command-view, .etiquette").on("click", function (e) {
+                var url = "{{ path('articles_affichage', {'id': 'edit_id'}) }}";
+                var id = $(this).attr("data-row-id");
+                url = url.replace("edit_id", id);
+                window.location.href = url;
             })
+        });
+
+        $("#filter").on("click", function () {
+            start = 1;
+            $("#grid-data").bootgrid('reload');
         });
     </script>
 {% endblock %}

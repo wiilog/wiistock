@@ -4,286 +4,105 @@
 
 {% block page_content %}
 
-	<div class="row page-title">
-		DIMENSIONNEMENT
-	</div>
+    <div class="row page-title">
+        DIMENSIONNEMENT
+    </div>
 
-	<div class="row">
+    <div class="row">
         <div class="col-md-12">
             <form class="form-inline">
                 <div class="input-group">
                     <label class="input-group-addon">
                         Entrepôt
                     </label>
-                    <select name="Ordre" class="form-control" required>
-                        <option value="Préparation">Entrepôt 1</option>
-                        <option value="Réception">Entrepôt 2</option>
+                    <select name="entrepot" class="form-control" required="required">
+                        <option value="" disabled="disabled" selected="selected">Sélectionnez un entrepôt</option>
                     </select>
+                </div>
+
+                <div class="input-group pull-right">
+                    <input class="form-control entrepot-input" placeholder="Ajouter un nouvel entrepôt"/>
+                    <label class="input-group-addon add-entrepot">
+                        <span class="fa fa-plus"></span>
+                    </label>
                 </div>
             </form>
         </div>
-    </div>		
+    </div>
 
-    <div class="row">
-        <div class="workflow-wrap">
-            <div class="workflow-content">
-                <div class="list-wrapper">
-                    <div class="list">
-                        <div class="list-header">Allées</div>
-                        <div class="list-cards workflow-sidebar">
-                            <a class="card card-a">
-                                <div class="card-details">
-                                    <h3>Allée 1</h3>
-                                </div>        
-                            </a>
-                            <a class="card card-a">
-                                <div class="card-details">
-                                    <h3>Allée 2</h3>
-                                </div>        
-                            </a>
-                            <a class="card card-a">
-                                <div class="card-details">
-                                    <h3>Allée 3</h3>
-                                </div>        
-                            </a>
-                            <a class="card card-a">
-                                <div class="card-details">
-                                    <h3>Allée 4</h3>
-                                </div>        
-                            </a>
-                            <a class="card card-a">
-                                <div class="card-details">
-                                    <h3>Allée 5</h3>
-                                </div>        
-                            </a>
-                            <a class="card card-a">
-                                <div class="card-details">
-                                    <h3>Allée 6</h3>
-                                </div>        
-                            </a>
-                            <a class="card card-a">
-                                <div class="card-details">
-                                    <h3>Allée 7</h3>
-                                </div>        
-                            </a>
-                            <a class="card card-a">
-                                <div class="card-details">
-                                    <h3>Allée 8</h3>
-                                </div>        
-                            </a>
-                            <a class="card card-a">
-                                <div class="card-details">
-                                    <h3>Allée 9</h3>
-                                </div>        
-                            </a>
-                            <a class="card card-a">
-                                <div class="card-details">
-                                    <h3>Allée 10</h3>
-                                </div>        
-                            </a>
-                            <a class="card card-a">
-                                <div class="card-details">
-                                    <h3>Allée 11</h3>
-                                </div>        
-                            </a>
-                            <a class="card card-a">
-                                <div class="card-details">
-                                    <h3>Allée 12</h3>
-                                </div>        
-                            </a>
-                            <a class="card card-a">
-                                <div class="card-details">
-                                    <h3>Allée 13</h3>
-                                </div>        
-                            </a>
-                            <a class="card card-a">
-                                <div class="card-details">
-                                    <h3>Allée 14</h3>
-                                </div>        
-                            </a>
-                            <a class="card card-a">
-                                <div class="card-details">
-                                    <h3>Allée 15</h3>
-                                </div>        
-                            </a>
-                            <a class="card card-a">
-                                <div class="card-details">
-                                    <h3>Allée 16</h3>
-                                </div>        
-                            </a>
-                        </div>
-                        <a class="list-footer" href="#" data-toggle="modal" data-target="#ajoutAlleeModal">
-                            <span class="fa fa-plus"></span>
-                            Ajouter une nouvelle allée
-                        </a>
-                    </div>
-                </div>
-                <div class="list-wrapper-rack">
-                    <div class="list">
-                        <div class="list-header">Travées</div>
-                        <div class="list-cards-row workflow-sidebar-row">
-                            <a class="card card-row card-a">
-                                <div class="card-details">
-                                    <h3>Travée 1</h3>
-                                </div>
-                            </a>
-                            <a class="card card-row card-a">
-                                <div class="card-details">
-                                    <h3>Travée 2</h3>
-                                </div>
-                            </a>
-                            <a class="card card-row card-a">
-                                <div class="card-details">
-                                    <h3>Travée 3</h3>
-                                </div>
-                            </a>
-                            <a class="card card-row card-a">
-                                <div class="card-details">
-                                    <h3>Travée 4</h3>
-                                </div>
-                            </a>
-                            <a class="card card-row card-a">
-                                <div class="card-details">
-                                    <h3>Travée 5</h3>
-                                </div>
-                            </a>
-                            <a class="card card-row card-a">
-                                <div class="card-details">
-                                    <h3>Travée 6</h3>
-                                </div>
-                            </a>
-                            <a class="card card-row card-a">
-                                <div class="card-details">
-                                    <h3>Travée 7</h3>
-                                </div>
-                            </a>
-                            <a class="card card-row card-a">
-                                <div class="card-details">
-                                     <h3>Travée 8</h3>
-                                </div>
-                            </a>
-                            <a class="card card-row card-a">
-                                <div class="card-details">
-                                    <h3>Travée 9</h3>
-                                </div>
-                            </a>
-                            <a class="card card-row card-a">
-                                <div class="card-details">
-                                    <h3>Travée 10</h3>
-                                </div>
-                            </a>
-                            <a class="card card-row card-a">
-                                <div class="card-details">
-                                    <h3>Travée 11</h3>
-                                </div>
-                            </a>
-                            <a class="card card-row card-a">
-                                <div class="card-details">
-                                    <h3>Travée 12</h3>
-                                </div>
-                            </a>
-                        </div>
-                        <a class="list-footer" href="#" data-toggle="modal" data-target="#ajoutTraveeModal">
-                            <span class="fa fa-plus"></span>
-                                Ajouter une nouvelle travée
-                        </a>
-                    </div>
-                </div>
-                <div class="list-wrapper-rack">
-                    <div class="list">
-                        <div class="list-header">Racks</div>
-                            <div class="list-cards-rack workflow-sidebar">
-                                <a class="card card-a">
-                                    <div class="card-details">
-                                        <h3>Rack 1</h3>
-                                        4 emplacements
-                                    </div>
-                                </a>
-                                <a class="card card-a">
-                                    <div class="card-details">
-                                        <h3>Rack 2</h3>
-                                        4 emplacements                                                    
-                                    </div>
-                                </a>
-                                <a class="card card-a">
-                                    <div class="card-details">
-                                        <h3>Rack 3</h3>
-                                        4 emplacements                                                   
-                                    </div>
-                                </a>
-                                <a class="card card-a">
-                                    <div class="card-details">
-                                        <h3>Rack 3</h3>
-                                        4 emplacements
-                                    </div>
-                                </a>
-                                <a class="card card-a">
-                                    <div class="card-details">
-                                        <h3>Rack 4</h3>
-                                        4 emplacements
-                                    </div>
-                                </a>
-                                <a class="card card-a">
-                                    <div class="card-details">
-                                        <h3>Rack 4</h3>
-                                        4 emplacements                                                    
-                                    </div>
-                                </a>
-                                <a class="card card-a">
-                                    <div class="card-details">
-                                        <h3>Rack 4</h3>
-                                        4 emplacements
-                                    </div>
+    <div class="dimensionnement">
+        <div class="row">
+            <div class="workflow-wrap">
+                <div class="workflow-content">
+                    <div class="list-wrapper-rack">
+                        <div class="list">
+                            <div class="list-header">Allées</div>
+                            <div id="list-allees" class="list-cards list-cards-allee workflow-sidebar">
+                            </div>
+                            <div class="list-footer">
+                                <a href="#" data-toggle="modal" data-target="#ajoutAlleeModal">
+                                    <span class="fa fa-plus"></span>
+                                    Ajouter une nouvelle allée
                                 </a>
                             </div>
-                            <a class="list-footer" href="#" data-toggle="modal" data-target="#ajoutRackModal">
-                                <span class="fa fa-plus"></span>
-                                    Ajouter un nouveau rack
-                            </a>                                        
                         </div>
                     </div>
-                </div>                
-            </div>
-		</div>
-	</div>
-    <div class="row">
-        <div class="workflow-wrap">
-            <div class="workflow-content">            
-                <div class="list-wrapper">
-                    <div class="list">
-                        <div class="list-header">Zones</div>
-                        <div class="list-cards workflow-sidebar">
-                            <a class="card card-a">
-                                <div class="card-details">
-                                    <h3>Zone 1</h3>
-                                </div>        
-                            </a>                            
+                    <div class="list-wrapper-rack">
+                        <div class="list">
+                            <div class="list-header">Travées</div>
+                            <div id="list-travees" class="list-cards list-cards-row workflow-sidebar-row">
+                            </div>
+                            <div class="list-footer">
+                                <a href="#" data-toggle="modal" data-target="#ajoutTraveeModal">
+                                    <span class="fa fa-plus"></span>
+                                    Ajouter une nouvelle travée
+                                </a>
+                            </div>
                         </div>
-                        <a class="list-footer" data-toggle="modal" data-target="#ajoutZoneModal">
-                            <span class="fa fa-plus"></span>
-                            Ajouter une nouvelle zone
-                        </a>
+                    </div>
+                    <div class="list-wrapper-rack">
+                        <div class="list">
+                            <div class="list-header">Racks</div>
+                            <div id="list-racks" class="list-cards list-cards-rack workflow-sidebar">
+                            </div>
+                            <div class="list-footer">
+                                <a href="#" data-toggle="modal" data-target="#ajoutRackModal">
+                                    <span class="fa fa-plus"></span>
+                                    Ajouter un nouveau rack
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="list-wrapper">
-                    <div class="list">
-                        <div class="list-header">Quais</div>
-                        <div class="list-cards workflow-sidebar">
-                            <a class="card card-a">
-                                <div class="card-details">
-                                    <h3>Quai 1</h3>
-                                </div>        
-                            </a>
-                            <a class="card card-a">
-                                <div class="card-details">
-                                    <h3>Quai 2</h3>
-                                </div>        
-                            </a>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="workflow-wrap">
+                <div class="workflow-content">
+                    <div class="list-wrapper">
+                        <div class="list">
+                            <div class="list-header">Zones</div>
+                            <div id="list-zones" class="list-cards workflow-sidebar"></div>
+                            <div class="list-footer">
+                                <a data-toggle="modal" data-target="#ajoutZoneModal">
+                                    <span class="fa fa-plus"></span>
+                                    Ajouter une nouvelle zone
+                                </a>
+                            </div>
                         </div>
-                        <a class="list-footer" data-toggle="modal" data-target="#ajoutQuaiModal">
-                            <span class="fa fa-plus"></span>
-                            Ajouter un nouveau quai
-                        </a>
+                    </div>
+                    <div class="list-wrapper">
+                        <div class="list">
+                            <div class="list-header">Quais</div>
+                            <div id="list-quais" class="list-cards workflow-sidebar"></div>
+                            <div class="list-footer">
+                                <a data-toggle="modal" data-target="#ajoutQuaiModal">
+                                    <span class="fa fa-plus"></span>
+                                    Ajouter un nouveau quai
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -307,24 +126,24 @@
                     <form>
                         <div class="form-group">
                             <div class="form-group">
-                                <label>Dimensions</label>
-                                <input type="text" class="form-control">
+                                <label>Nom</label>
+                                <input name="nom" type="text" class="form-control">
                             </div>
                             <div class="form-group">
                                 <label>Nombre de travées</label>
-                                <input type="number" class="form-control">
+                                <input name="travee" type="number" class="form-control">
                             </div>
                             <div class="form-group">
                                 <label>Nombre de racks par travée</label>
-                                <input type="number" class="form-control">
+                                <input name="rack" type="number" class="form-control">
                             </div>
                             <div class="form-group">
                                 <label>Nombre d'emplacements par racks</label>
-                                <input type="number" class="form-control">
-                            </div>                            
-                            <button type="submit" class="btn btn-success btn-block">
-                                <span class="glyphicon glyphicon-check"></span>
-                                Valider
+                                <input name="emplacement" type="number" class="form-control">
+                            </div>
+                            <button type="submit" id="add-allee" class="btn btn-success btn-block">
+                                <span class="fa fa-plus"></span>
+                                Ajouter
                             </button>
                         </div>
                     </form>
@@ -355,20 +174,20 @@
                     <form>
                         <div class="form-group">
                             <div class="form-group">
-                                <label>Dimensions</label>
-                                <input type="text" class="form-control">
+                                <label>Nom</label>
+                                <input name="nom" type="text" class="form-control">
                             </div>
                             <div class="form-group">
                                 <label>Nombre de racks</label>
-                                <input type="number" class="form-control">
+                                <input name="rack" type="number" class="form-control">
                             </div>
                             <div class="form-group">
                                 <label>Nombre d'emplacements par rack</label>
-                                <input type="number" class="form-control">
+                                <input name="emplacement" type="number" class="form-control">
                             </div>
-                            <button type="submit" class="btn btn-success btn-block">
-                                <span class="glyphicon glyphicon-check"></span>
-                                Valider
+                            <button type="submit" id="add-travee" class="btn btn-success btn-block">
+                                <span class="fa fa-plus"></span>
+                                Ajouter
                             </button>
                         </div>
                     </form>
@@ -382,7 +201,6 @@
 
         </div>
     </div>
-
 
     <div id="ajoutRackModal" class="modal fade" role="dialog">
         <div class="modal-dialog">
@@ -400,16 +218,16 @@
                     <form>
                         <div class="form-group">
                             <div class="form-group">
-                                <label>Dimensions</label>
-                                <input type="text" class="form-control">
+                                <label>Nom</label>
+                                <input name="nom" type="text" class="form-control">
                             </div>
                             <div class="form-group">
                                 <label>Nombre d'emplacements</label>
-                                <input type="number" class="form-control">
+                                <input name="emplacement" type="number" class="form-control">
                             </div>
-                            <button type="submit" class="btn btn-success btn-block">
-                                <span class="glyphicon glyphicon-check"></span>
-                                Valider
+                            <button type="submit" id="add-rack" class="btn btn-success btn-block">
+                                <span class="fa fa-plus"></span>
+                                Ajouter
                             </button>
                         </div>
                     </form>
@@ -440,18 +258,18 @@
                     <form>
                         <div class="form-group">
                             <div class="form-group">
-                                <label>Dimensions</label>
+                                <label>Nom</label>
                                 <input type="text" class="form-control">
                             </div>
-                            <button type="submit" class="btn btn-success btn-block">
-                                <span class="glyphicon glyphicon-check"></span>
-                                Valider
+                            <button type="submit" id="add-zone" class="btn btn-success btn-block">
+                                <span class="fa fa-plus"></span>
+                                Ajouter
                             </button>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-danger btn-default pull-left" data-dismiss="modal">
+                    <button class="btn btn-danger btn-default pull-left" data-dismiss="modal">
                         <span class="glyphicon glyphicon-remove"></span>
                         Annuler</button>
                 </div>
@@ -476,18 +294,18 @@
                     <form>
                         <div class="form-group">
                             <div class="form-group">
-                                <label>Dimensions</label>
+                                <label>Nom</label>
                                 <input type="text" class="form-control">
                             </div>
-                            <button type="submit" class="btn btn-success btn-block">
-                                <span class="glyphicon glyphicon-check"></span>
-                                Valider
+                            <button type="submit" id="add-quai" class="btn btn-success btn-block">
+                                <span class="fa fa-plus"></span>
+                                Ajouter
                             </button>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-danger btn-default pull-left" data-dismiss="modal">
+                    <button class="btn btn-danger btn-default pull-left" data-dismiss="modal">
                         <span class="glyphicon glyphicon-remove"></span>
                         Annuler</button>
                 </div>
@@ -495,4 +313,339 @@
 
         </div>
     </div>
+{% endblock %}
+
+{% block javascripts %}
+    <script src="{{ asset('js/mousewheel.js') }}"></script>
+    <script type="text/javascript">
+        $(function () {
+            $(".workflow-sidebar-row").mousewheel(function (event, delta) {
+                this.scrollLeft -= (delta * 50);
+                event.preventDefault();
+            });
+        });
+
+        $('.add-entrepot').on('click', function (e) {
+            e.preventDefault();
+            $(this).parents('.modal').modal('toggle');
+            var entrepot = $('.entrepot-input').val();
+            if (entrepot) {
+                $.ajax({
+                    url: "{{ path('entrepots_add') }}",
+                    type: "POST",
+                    dataType: "json",
+                    data: {
+                        "entrepot": entrepot
+                    },
+                    success: function (resp) {
+                        $('select[name="entrepot"]').append('<option value="' + resp + '">' + entrepot + '</option>');
+                    }
+                });
+            };
+            $('.entrepot-input').val("");
+        });
+        $('#add-allee').on('click', function (e) {
+            e.preventDefault();
+            $(this).parents('.modal').modal('toggle');
+            var allee = $('#ajoutAlleeModal input[name="nom"]').val();
+            var travee = $('#ajoutAlleeModal input[name="travee"]').val();
+            var rack = $('#ajoutAlleeModal input[name="rack"]').val();
+            var emplacement = $('#ajoutAlleeModal input[name="emplacement"]').val();
+            var id = $('select[name="entrepot"]').val();
+
+            if (allee) {
+                $.ajax({
+                    url: "{{ path('allees_add') }}",
+                    type: "POST",
+                    dataType: "json",
+                    data: {
+                        "allee": allee,
+                        "travee": travee,
+                        "rack": rack,
+                        "emplacement": emplacement,
+                        "id": id
+                    },
+                    success: function (resp) {
+                        update_entrepots();
+                        $('#list-allees').append('<div><a data-id="' + resp + '" class="card card-a"><div class="card-details"><h3>' + allee + '</h3></div></a><a class="card-remove">&times;</a></div>')
+                    }
+                });
+            };
+        });
+        $('#add-travee').on('click', function (e) {
+            e.preventDefault();
+            $(this).parents('.modal').modal('toggle');
+            var travee = $('#ajoutTraveeModal input[name="nom"]').val();
+            var rack = $('#ajoutTraveeModal input[name="rack"]').val();
+            var emplacement = $('#ajoutTraveeModal input[name="emplacement"]').val();
+            var id = $('#list-allees').find('a.selected-item').attr('data-id');
+            if (rack) {
+                $.ajax({
+                    url: "{{ path('travees_add') }}",
+                    type: "POST",
+                    dataType: "json",
+                    data: {
+                        "travee": travee,
+                        "rack": rack,
+                        "emplacement": emplacement,
+                        "id": id
+                    },
+                    success: function (resp) {
+                        update_entrepots();
+                        $('#list-travees').append('<div><a data-id="' + resp + '" class="card card-row card-a"><div class="card-details"><h3>' + travee + '</h3></div></a><a class="card-remove">&times;</a></div>');
+                    }
+                });
+            };
+        });
+        $('#add-rack').on('click', function (e) {
+            e.preventDefault();
+            $(this).parents('.modal').modal('toggle');
+            var rack = $('#ajoutRackModal input[name="nom"]').val();
+            var emplacement = $('#ajoutRackModal input[name="emplacement"]').val();
+            var id = $('#list-travees').find('a.selected-item').attr('data-id');
+            if (rack) {
+                $.ajax({
+                    url: "{{ path('racks_add') }}",
+                    type: "POST",
+                    dataType: "json",
+                    data: {
+                        "rack": rack,
+                        "emplacement": emplacement,
+                        "id": id
+                    },
+                    success: function (resp) {
+                        update_entrepots();
+                        $('#list-racks').append('<div><a data-id="' + resp + '" class="card card-a"><div class="card-details"><h3>' + rack + '</h3>' + emplacements.length + ' emplacements</div></a><a class="card-remove">&times;</a></div>');
+                    }
+                });
+            };
+        });
+        $('#add-zone').on('click', function (e) {
+            e.preventDefault();
+            $(this).parents('.modal').modal('toggle');
+            var zone = $('#ajoutZoneModal input').val();
+            var id = $('select[name="entrepot"]').val();
+            if (zone) {
+                $.ajax({
+                    url: "{{ path('zones_add') }}",
+                    type: "POST",
+                    dataType: "json",
+                    data: {
+                        "zone": zone,
+                        "id": id
+                    },
+                    success: function (resp) {
+                        update_entrepots();
+                        $('#list-zones').append('<div><a data-id="' + resp + '" class="card card-a"><div class="card-details"><h3>' + zone + '</h3></div></a><a class="card-remove">&times;</a></div>');
+                    }
+                });
+            };
+        });
+        $('#add-quai').on('click', function (e) {
+            e.preventDefault();
+            $(this).parents('.modal').modal('toggle');
+            var quai = $('#ajoutQuaiModal input').val();
+            var id = $('select[name="entrepot"]').val();
+            if (quai) {
+                $.ajax({
+                    url: "{{ path('quais_add') }}",
+                    type: "POST",
+                    dataType: "json",
+                    data: {
+                        "quai": quai,
+                        "id": id
+                    },
+                    success: function (resp) {
+                        update_entrepots();
+                        $('#list-quais').append('<div><a data-id="' + resp + '" class="card card-a"><div class="card-details"><h3>' + quai + '</h3></div></a><a class="card-remove">&times;</a></div>');
+                    }
+                });
+            };
+        });
+
+        /* Select
+        ================= */
+        var selected;
+        var entrepots = {{ entrepots|json_encode|raw }};
+        entrepots = $.parseJSON(entrepots);
+        $('#list-travees').next().hide();
+        $('#list-racks').next().hide();
+
+        $('.workflow-wrap').on('click', '.list-cards a.card', function () {
+            if ($(this).hasClass('selected-item')) {
+                $(this).removeClass('selected-item');
+            } else {
+                $(this).parents('.list').find('a').removeClass('selected-item');
+                $(this).addClass('selected-item');
+            }
+            if ($(this).parent().parent().is('#list-allees')) {
+                var allee = $('#list-allees').find('a.selected-item').text();
+                $('#list-travees').empty();
+                $('#list-racks').empty();
+                $('#list-travees').next().hide();
+                $('#list-racks').next().hide();
+                if ($(this).hasClass('selected-item')) {
+                    $('#list-travees').next().show();
+                    $.each(entrepots, function (i) {
+                        if (entrepots[i].nom === selected) {
+                            $.each(entrepots[i].allees, function (j) {
+                                var allees = entrepots[i].allees[j];
+                                if (allees.nom === allee) {
+                                    $.each(allees.travees, function (k) {
+                                        var travees = allees.travees[k];
+                                        $('#list-travees').append('<div><a data-id="' + travees.id + '" class="card card-row card-a"><div class="card-details"><h3>' + travees.nom + '</h3></div></a><a class="card-remove">&times;</a></div>');
+                                    });
+                                    return true;
+                                };
+                            });
+                        };
+                    });
+                }
+            };
+
+            if ($(this).parent().parent().is('#list-travees')) {
+                var allee = $('#list-allees').find('a.selected-item').text();
+                var travee = $('#list-travees').find('a.selected-item').text();
+                $('#list-racks').empty();
+                $('#list-racks').next().hide();
+                if ($(this).hasClass('selected-item')) {
+                    $('#list-racks').next().show();
+                    $.each(entrepots, function (i) {
+                        if (entrepots[i].nom === selected) {
+                            $.each(entrepots[i].allees, function (j) {
+                                var allees = entrepots[i].allees[j];
+                                if (allees.nom === allee) {
+                                    $.each(allees.travees, function (k) {
+                                        var travees = allees.travees[k];
+                                        if (travees.nom === travee) {
+                                            $.each(travees.racks, function (l) {
+                                                $('#list-racks').append('<div><a data-id="' + travees.racks[l].id + '" class="card card-a"><div class="card-details"><h3>' + travees.racks[l].nom + '</h3>' + travees.racks[l].emplacements.length + ' emplacements</div></a><a class="card-remove">&times;</a></div>');
+                                            });
+                                            return true;
+                                        };
+                                    });
+                                };
+                            });
+                        };
+                    });
+                }
+            };
+        });
+
+        $.each(entrepots, function (i) {
+            $('select[name="entrepot"]').append('<option value="' + entrepots[i].id + '">' + entrepots[i].nom + '</option>');
+        });
+
+        $('select[name="entrepot"]').on('change', function () {
+            selected = $('select[name="entrepot"] option:selected').text();
+            $('.dimensionnement').show();
+            $('.list-cards').empty();
+            $('#list-travees').next().hide();
+            $('#list-racks').next().hide();
+            $.each(entrepots, function (i) {
+                if (entrepots[i].nom === selected) {
+                    $.each(entrepots[i].quais, function (j, val) {
+                        $('#list-quais').append('<div><a data-id="' + entrepots[i].quais[j].id + '" class="card card-a"><div class="card-details"><h3>' + entrepots[i].quais[j].nom + '</h3></div></a><a class="card-remove">&times;</a></div>');
+                    });
+                    $.each(entrepots[i].zones, function (j, val) {
+                        $('#list-zones').append('<div><a data-id="' + entrepots[i].zones[j].id + '" class="card card-a"><div class="card-details"><h3>' + entrepots[i].zones[j].nom + '</h3></div></a><a class="card-remove">&times;</a></div>');
+                    });
+                    $.each(entrepots[i].allees, function (j, val) {
+                        var allees = entrepots[i].allees[j];
+                        $('#list-allees').append('<div><a data-id="' + allees.id + '" class="card card-a"><div class="card-details"><h3>' + allees.nom + '</h3></div></a><a class="card-remove">&times;</a></div>');
+                    });
+                }
+            });
+        });
+
+        function update_entrepots() {
+            $.ajax({
+                url: "{{ path('getAjaxEntrepots') }}",
+                type: "GET",
+                dataType: "json",
+                success: function (resp) {
+                    entrepots = resp;
+                }
+            });
+        };
+
+        /* Delete
+        ================= */
+        $('.workflow-content').on('click', '.card-remove', function () {
+            var button = $(this).parent();
+            if (button.parent().is('#list-allees')) {
+                var id = $(this).parent().find('a.card').attr('data-id');
+                $.ajax({
+                    url: "{{ path('allees_remove') }}",
+                    type: "POST",
+                    data: {
+                        "id": id
+                    },
+                    success: function (resp) {
+                        update_entrepots();
+                        $('#list-travees').empty();
+                        $('#list-racks').empty();
+                        button.remove();
+                    }
+                });
+            }
+            if (button.parent().is('#list-travees')) {
+                var id = $(this).parent().find('a.card').attr('data-id');
+                $.ajax({
+                    url: "{{ path('travees_remove') }}",
+                    type: "POST",
+                    data: {
+                        "id": id
+                    },
+                    success: function (resp) {
+                        update_entrepots();
+                        $('#list-racks').empty();
+                        button.remove();
+                    }
+                });
+            }
+            if (button.parent().is('#list-racks')) {
+                var id = $(this).parent().find('a.card').attr('data-id');
+                $.ajax({
+                    url: "{{ path('racks_remove') }}",
+                    type: "POST",
+                    data: {
+                        "id": id
+                    },
+                    success: function (resp) {
+                        update_entrepots();
+                        button.remove();
+                    }
+                });
+            }
+            if (button.parent().is('#list-quais')) {
+                var id = $(this).parent().find('a.card').attr('data-id');
+                $.ajax({
+                    url: "{{ path('quais_remove') }}",
+                    type: "POST",
+                    data: {
+                        "id": id
+                    },
+                    success: function (resp) {
+                        update_entrepots();
+                        button.remove();
+                    }
+                });
+            }
+            if (button.parent().is('#list-zones')) {
+                var id = $(this).parent().find('a.card').attr('data-id');
+                $.ajax({
+                    url: "{{ path('zones_remove') }}",
+                    type: "POST",
+                    data: {
+                        "id": id
+                    },
+                    success: function (resp) {
+                        update_entrepots();
+                        button.remove();
+                    }
+                });
+            }
+        });
+    </script>
 {% endblock %}

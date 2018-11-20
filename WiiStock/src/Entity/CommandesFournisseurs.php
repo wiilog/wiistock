@@ -28,9 +28,18 @@ class CommandesFournisseurs
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Fournisseurs")
-     * @ORM\JoinColumn(nullable=false)
      */
     private $fournisseur;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $n_commande;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $n_affaire;
 
     public function getId()
     {
@@ -69,6 +78,30 @@ class CommandesFournisseurs
     public function setFournisseur(?Fournisseurs $fournisseur): self
     {
         $this->fournisseur = $fournisseur;
+
+        return $this;
+    }
+
+    public function getNCommande(): ?string
+    {
+        return $this->n_commande;
+    }
+
+    public function setNCommande(?string $n_commande): self
+    {
+        $this->n_commande = $n_commande;
+
+        return $this;
+    }
+
+    public function getNAffaire(): ?string
+    {
+        return $this->n_affaire;
+    }
+
+    public function setNAffaire(?string $n_affaire): self
+    {
+        $this->n_affaire = $n_affaire;
 
         return $this;
     }

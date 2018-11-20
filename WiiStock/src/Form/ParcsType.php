@@ -91,7 +91,7 @@ class ParcsType extends AbstractType
 				),
 			))
 			->add('mise_en_circulation', DateType::class, array(
-				'label' => 'Date de première mise en circulation',
+				'label' => 'Date de première immatriculation ',
 				'widget' => 'single_text',
 				'format' => 'dd/MM/yyyy',
 				'attr' => [

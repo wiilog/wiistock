@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -23,18 +25,16 @@ class Receptions
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Quais")
-     * @ORM\JoinColumn(nullable=false)
      */
     private $quai_reception;
 
     /**
-     * @ORM\Column(type="datetime")
+     * @ORM\Column(type="datetime", nullable=true)
      */
     private $date_reception;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Fournisseurs")
-     * @ORM\JoinColumn(nullable=false)
      */
     private $fournisseur;
 
@@ -50,10 +50,19 @@ class Receptions
     private $historique;
 
     /**
-     * @ORM\OneToOne(targetEntity="App\Entity\Ordres", cascade={"persist", "remove"})
-     * @ORM\JoinColumn(nullable=false)
+     * @ORM\ManyToOne(targetEntity="App\Entity\Ordres", inversedBy="receptions")
      */
-    private $ordre;
+    private $ordres;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Entrees", mappedBy="reception")
+     */
+    private $entrees;
+
+    public function __construct()
+    {
+        $this->entrees = new ArrayCollection();
+    }
 
     public function getId()
     {
@@ -89,7 +98,7 @@ class Receptions
         return $this->date_reception;
     }
 
-    public function setDateReception(\DateTimeInterface $date_reception): self
+    public function setDateReception(?\DateTimeInterface $date_reception): self
     {
         $this->date_reception = $date_reception;
 
@@ -132,14 +141,45 @@ class Receptions
         return $this;
     }
 
-    public function getOrdre(): ?Ordres
+    public function getOrdres(): ?Ordres
     {
-        return $this->ordre;
+        return $this->ordres;
     }
 
-    public function setOrdre(Ordres $ordre): self
+    public function setOrdres(?Ordres $ordres): self
     {
-        $this->ordre = $ordre;
+        $this->ordres = $ordres;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Entrees[]
+     */
+    public function getEntrees(): Collection
+    {
+        return $this->entrees;
+    }
+
+    public function addEntree(Entrees $entree): self
+    {
+        if (!$this->entrees->contains($entree)) {
+            $this->entrees[] = $entree;
+            $entree->setReception($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEntree(Entrees $entree): self
+    {
+        if ($this->entrees->contains($entree)) {
+            $this->entrees->removeElement($entree);
+            // set the owning side to null (unless already changed)
+            if ($entree->getReception() === $this) {
+                $entree->setReception(null);
+            }
+        }
 
         return $this;
     }

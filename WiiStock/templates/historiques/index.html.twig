@@ -55,73 +55,43 @@
                     <th>Statut</th>
                 </tr>
             </thead>
-            <tr class="date-list">
-                <td>
-                    12/05/18
-                </td>
-            </tr>
+            <div class="loader">Chargement...</div>
+            <tbody id="content">
+                <tr class="date-list">
+                    <td>
+                        12/05/18
+                    </td>
+                </tr>
 
-            <tr class="line-list">
-                <td class="fa fa-angle-right"></td>
-                <td>Article1</td>
-                <td>Ref154646464</td>
-                <td>Pos1</td>
-                <td>Statut</td>
-            </tr>
-            <tr class="line-list">
-                <td class="fa fa-minus"></td>
-                <td>Article2</td>
-                <td>Ref2</td>
-                <td>Pos2</td>
-                <td>Statut</td>
-            </tr>
+                <tr class="line-list">
+                    <td class="fa fa-angle-right"></td>
+                    <td>Article1</td>
+                    <td>Ref154646464</td>
+                    <td>Pos1</td>
+                    <td>Statut</td>
+                </tr>
+                <tr class="line-list">
+                    <td class="fa fa-minus"></td>
+                    <td>Article2</td>
+                    <td>Ref2</td>
+                    <td>Pos2</td>
+                    <td>Statut</td>
+                </tr>
 
-            <tr class="date-list">
-                <td>
-                    10/05/18
-                </td>
-            </tr>
-            <tr class="line-list">
-                <td class="fa fa-angle-left"></td>
-                <td>Article1464</td>
-                <td>Ref154646464</td>
-                <td>Pos1</td>
-                <td>Statut</td>
-            </tr>
+                <tr class="date-list">
+                    <td>
+                        10/05/18
+                    </td>
+                </tr>
+                <tr class="line-list">
+                    <td class="fa fa-angle-left"></td>
+                    <td>Article1464</td>
+                    <td>Ref154646464</td>
+                    <td>Pos1</td>
+                    <td>Statut</td>
+                </tr>
+            </tbody>
         </table>
-        {# <h1>Historiques index</h1>
-
-		<table class="table">
-			<thead>
-				<tr>
-					<th>Id</th>
-					<th>Date_debut</th>
-					<th>Date_fin</th>
-					<th>Type_mouvement</th>
-					<th>actions</th>
-				</tr>
-			</thead>
-			<tbody>
-				{% for historique in historiques %}
-					<tr>
-						<td>{{ historique.id }}</td>
-						<td>{{ historique.dateDebut ? historique.dateDebut|date('Y-m-d H:i:s') : '' }}</td>
-						<td>{{ historique.dateFin ? historique.dateFin|date('Y-m-d H:i:s') : '' }}</td>
-						<td>{{ historique.typeMouvement }}</td>
-						<td>
-							<a href="{{ path('historiques_show', {'id': historique.id}) }}">show</a>
-							<a href="{{ path('historiques_edit', {'id': historique.id}) }}">edit</a>
-						</td>
-					</tr>
-				{% else %}
-					<tr>
-						<td colspan="5">no records found</td>
-					</tr>
-				{% endfor %}
-			</tbody>
-		</table>
-
-        <a href="{{ path('historiques_new') }}">Create new</a> #}
 
     </div>
 
@@ -143,5 +113,54 @@
         $('.daterange input').each(function () {
             $(this).datepicker({language: 'fr', format: 'dd/mm/yyyy', todayBtn: true, todayHighlight: true, autoclose: true});
         });
+
+        /**
+        * infiniteScroll
+        */
+        var offset = 0;
+        var max = 2;
+        var deviceAgent = navigator.userAgent.toLowerCase();
+        var agentID = deviceAgent.match(/(iphone|ipod|ipad)/);
+
+        $(window).data('ajaxready', true);
+        // $('.loader').show();
+        infiniteScroll();
+        $(window).scroll(function () {
+            infiniteScroll();
+        });
+
+        function infiniteScroll() {
+            if ($(window).data('ajaxready') == false) 
+                return;
+            
+            if (($(window).scrollTop() + $(window).height()) == $(document).height() || agentID && ($(window).scrollTop() + $(window).height()) + 150 > $(document).height()) {
+                $(window).data('ajaxready', false);
+
+               $('.loader').fadeIn(400);
+                $.ajax({
+                    url: "{{ path('article_more') }}",
+                    type: "POST",
+                    dataType: "json",
+                    data: {
+                        "offset": offset,
+                        "max": max
+                    },
+                    success: function (data) {
+                        if (data.length > 2) {
+                            $('.loader').fadeIn(400);
+                            displayArticle(data);
+                            offset += max;
+                            $(window).data('ajaxready', true);
+                        }
+                    }
+                }).done(function () {
+                    $('.loader').fadeOut(400);
+                });
+            }
+        };
+
+        function displayArticle(data) {
+
+        }
     </script>
 {% endblock %}

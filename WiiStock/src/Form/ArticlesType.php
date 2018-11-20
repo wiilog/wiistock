@@ -7,6 +7,7 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use Symfony\Component\Form\Extension\Core\Type\MoneyType;
 
 class ArticlesType extends AbstractType
 {
@@ -14,27 +15,31 @@ class ArticlesType extends AbstractType
     {
         $builder
             ->add('etat')
+            ->add('designation')
+            ->add('valeur', MoneyType::class, array(
+                'divisor' => 100,
+            ))
+            ->add('commentaire')
             ->add('emplacement', EntityType::class, array(
                 'class' => 'App\Entity\Emplacements',
                 'choice_label' => 'nom',
                 'multiple' => false,
-                ))
+            ))
             ->add('zone', EntityType::class, array(
                 'class' => 'App\Entity\Zones',
                 'choice_label' => 'nom',
                 'multiple' => false,
-                ))
+            ))
             ->add('quai', EntityType::class, array(
                 'class' => 'App\Entity\Quais',
                 'choice_label' => 'nom',
                 'multiple' => false,
-                ))
+            ))
             ->add('reference', EntityType::class, array(
                 'class' => 'App\Entity\ReferencesArticles',
-                'choice_label' => 'description',
+                'choice_label' => 'reference',
                 'multiple' => false,
-                ))
-        ;
+            ));
     }
 
     public function configureOptions(OptionsResolver $resolver)

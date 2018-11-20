@@ -95,21 +95,45 @@
                     "immatriculation": immatriculation,
                     "searchPhrase": searchPhrase
                 },
-                success: function (resp) {
-                    var csv = resp;
-                    var hiddenElement = document.createElement('a');
-                    hiddenElement.href = 'data:text/csv;charset=utf-8,' + encodeURI("\ufeff" + csv);
-                    hiddenElement.target = '_blank';
-                    hiddenElement.download = 'export_parc_' + '{{ date }}' + '.csv';
-                    hiddenElement.click();
+                success: function (csv) {
+                    var fileName = 'export_parc_' + '{{ date }}';
+                    if (msieversion()) {
+                        var IEwindow = window.open();
+                        IEwindow.document.write('sep=,\r\n' + csv);
+                        IEwindow.document.close();
+                        IEwindow.document.execCommand('SaveAs', true, fileName + ".csv");
+                        IEwindow.close();
+                    } else {
+                        var uri = 'data:application/csv;charset=utf-8,' + escape(csv);
+                        var link = document.createElement("a");
+                        link.href = uri;
+                        link.style = "visibility:hidden";
+                        link.download = fileName + ".csv";
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    }
                 }
             });
         });
 
-        var start = 0
+        function msieversion() {
+            var ua = window.navigator.userAgent;
+            var msie = ua.indexOf("MSIE ");
+            if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./)) {
+                return true;
+            } else {
+                return false;
+            }
+            return false;
+        }
+
+        var start = 0;
 
         var grid = $("#grid-data").bootgrid({
-            rowCount: [25, -1],
+            rowCount: [
+                25, -1
+            ],
             ajax: true,
             requestHandler: function (request) {
                 request.id = "b0df282a-0d67-40e5-8558-c9e93b7befed";

@@ -13,7 +13,7 @@ class ReferencesArticlesType extends AbstractType
     {
         $builder
             ->add('libelle')
-            ->add('description')
+            ->add('reference')
             ->add('photo_article')
         ;
     }

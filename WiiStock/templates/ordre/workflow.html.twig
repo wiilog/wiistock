@@ -4,34 +4,31 @@
 
 {% block page_content %}
 
-    <div class="row backgray filter-wrapper">
-        <form class="form-inline">
-            <div class="form-group">
-                <select class="form-control">
-                    <option>Entrée</option>
-                    <option>Sortie</option>
-                    <option>Transfert</option>
-                    <option>Préparation</option>
-                    <option>Réception</option>
+    <form>
+        <div class="row backgray filter-wrapper">
+            <div>
+                <select id="type" class="form-control basic-multiple-type" name="types[]" multiple="multiple">
+                    <option value="entree">Entrée</option>
+                    <option value="sortie">Sortie</option>
+                    <option value="transfert">Transfert</option>
+                    <option value="preparation">Préparation</option>
+                    <option value="reception">Réception</option>
                 </select>
             </div>
-            <div class="form-group">
-                <input type="search" class="form-control" placeholder="Auteur">
-            </div>
-            <div class="form-group">
-                <input type="search" class="form-control" placeholder="Référence">
+            <div>
+                <input id="auteur" type="search" class="form-control" placeholder="Auteur">
             </div>
             <div class="input-group daterange">
                 <div class="input-group-addon">De</div>
-                <input type="text" class="form-control">
+                <input id="from" type="text" class="form-control">
                 <div class="input-group-addon">à</div>
-                <input type="text" class="form-control">
+                <input id="to" type="text" class="form-control">
             </div>
-            <a class="btn more-filter">Plus de filtres</a>
-            <a href="#" class="button btn-right">
+            {# <a class="btn more-filter">Plus de filtres</a> #}
+            <a href="#" id="filter" class="button btn-right">
                 Filtrer<span class="fa fa-angle-double-right"></span></a>
-        </form>
-    </div>
+        </div>
+    </form>
 
     <div class="row page-title">
         WORKFLOW ORDRES
@@ -44,109 +41,27 @@
                 <div class="list-wrapper">
                     <div class="list">
                         <div class="list-header">Ordre</div>
-                        <div class="list-cards workflow-sidebar">
-                            <div class="card">
-                                <div class="card-details">
-                                    <h3>Transfert</h3>
-                                    <h4>01/11/2018</h4>
-                                    <span class="gommette backorange"></span>
-                                    <span class="card-name">Renon</span>
-                                </div>
-                                <a class="arrow-open fa fa-angle-double-right"></a>
-                            </div>
-                            <div class="card">
-                                <div class="card-details">
-                                    <h3>Préparations</h3>
-                                    <h4>01/11/2018</h4>
-                                    <span class="gommette backblue"></span>
-                                    <span class="card-name">Renon</span>
-                                </div>
-                                <a class="arrow-open fa fa-angle-double-right"></a>
-                            </div>
-                            <div class="card">
-                                <div class="card-details">
-                                    <h3>Transfert</h3>
-                                    <h4>01/11/2018</h4>
-                                    <span class="gommette backorange"></span>
-                                    <span class="card-name">Renon</span>
-                                </div>
-                                <a class="arrow-open fa fa-angle-double-right"></a>
-                            </div>
-                            <div class="card">
-                                <div class="card-details">
-                                    <h3>Transfert</h3>
-                                    <h4>01/11/2018</h4>
-                                    <span class="gommette backorange"></span>
-                                    <span class="card-name">Renon</span>
-                                </div>
-                                <a class="arrow-open fa fa-angle-double-right"></a>
-                            </div>
-                            <div class="card">
-                                <div class="card-details">
-                                    <h3>Transfert</h3>
-                                    <h4>01/11/2018</h4>
-                                    <span class="gommette backorange"></span>
-                                    <span class="card-name">Renon</span>
-                                </div>
-                                <a class="arrow-open fa fa-angle-double-right"></a>
-                            </div>
-                            <div class="card">
-                                <div class="card-details">
-                                    <h3>Transfert</h3>
-                                    <h4>01/11/2018</h4>
-                                    <span class="gommette backorange"></span>
-                                    <span class="card-name">Renon</span>
-                                </div>
-                                <a class="arrow-open fa fa-angle-double-right"></a>
-                            </div>
-                            <div class="card">
-                                <div class="card-details">
-                                    <h3>Transfert</h3>
-                                    <h4>01/11/2018</h4>
-                                    <span class="gommette backorange"></span>
-                                    <span class="card-name">Renon</span>
-                                </div>
-                                <a class="arrow-open fa fa-angle-double-right"></a>
-                            </div>
+                        <div id="en-attente" class="list-cards workflow-sidebar"></div>
+                        <div class="list-footer">
+                            <a href="{{ path( 'ordre_creation' ) }}">
+                                <span class="fa fa-plus"></span>
+                                Ajouter une nouvel ordre
+                            </a>
                         </div>
-                        <a class="list-footer" href="#">
-                            <span class="fa fa-plus"></span>
-                            Ajouter une nouvel ordre
-                        </a>
                     </div>
                 </div>
                 <div class="list-wrapper">
                     <div class="list">
                         <div class="list-header">En cours de traîtement</div>
-                        <div class="list-cards workflow-sidebar">
-                            <div class="card">
-                                <div class="card-details">
-                                    <h3>Sortie</h3>
-                                    <h4>12/06/2018</h4>
-                                    <span class="gommette backviolet"></span>
-                                    <span class="card-name">Le Fur</span>
-                                </div>
-                                <a class="arrow-open fa fa-angle-double-right"></a>
-                            </div>
-                        </div>
-                        <a class="list-footer"></a>
+                        <div id="en-cours" class="list-cards workflow-sidebar"></div>
+                        <div class="list-footer"></div>
                     </div>
                 </div>
                 <div class="list-wrapper">
                     <div class="list">
                         <div class="list-header">Traités</div>
-                        <div class="list-cards workflow-sidebar">
-                            <div class="card">
-                                <div class="card-details">
-                                    <h3>Entrée</h3>
-                                    <h4>23/01/2018</h4>
-                                    <span class="gommette backgreen"></span>
-                                    <span class="card-name">Couffinhal</span>
-                                </div>
-                                <a class="arrow-open fa fa-angle-double-right"></a>
-                            </div>
-                        </div>
-                        <a class="list-footer"></a>
+                        <div id="traites" class="list-cards workflow-sidebar"></div>
+                        <div class="list-footer"></div>
                     </div>
                 </div>
             </div>
@@ -160,16 +75,17 @@
 
             <!-- Modal content-->
             <div class="modal-content">
-                <div class="modal-header">
+                <div class="modal-header backblue">
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
-                    <h4 class="modal-title">
+                    <div class="modal-title">
                         <span class="fa fa-thumb-tack"></span>
-                        Transfert</h4>
+                        <span class="title">Transfert</span>
+                    </div>
                 </div>
                 <div class="modal-body">
                     <div class="text-center">
                         <form class="form-inline">
-                            <p>Voulez-traiter la demande ?</p>
+                            <p>Voulez-vous traiter la demande ?</p>
                             <div class="form-group">
                                 <button class="btn btn-danger btn-block danger">
                                     <span class="fa fa-times"></span>
@@ -209,66 +125,15 @@
                     </div>
 
                     <form class="info-ordre">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <fieldset class="well list-box">
+                        <div class="row articles">
+                            <div class="col-md-12">
+                                <fieldset id="articles" class="well list-box">
                                     <legend class="well-legend">Informations article(s)</legend>
-
-                                    <p>Articles 1</p>
-                                    <div class="input-group form-group">
-                                        <label class="input-group-addon">
-                                            Type
-                                        </label>
-                                        <select class="form-control">
-                                            <option>Iphone X</option>
-                                            <option>Iphone 5</option>
-                                            <option>Iphone 1</option>
-                                        </select>
-                                    </div>
-                                    <div class="input-group form-group">
-                                        <label class="input-group-addon">
-                                            Référence
-                                        </label>
-                                        <input value="" class="form-control" placeholder="Référence">
-                                    </div>
-
-                                    <ul class="list-group">
-                                        <label>
-                                            Emplacement
-                                        </label>
-                                        <li class="list-group-item">Allée 1</li>
-                                        <li class="list-group-item">Travée 4</li>
-                                        <li class="list-group-item">Rack 2</li>
-                                    </ul>
-                                    <p>Articles 2</p>
-                                    <div class="input-group form-group">
-                                        <label class="input-group-addon">
-                                            Type
-                                        </label>
-                                        <select class="form-control">
-                                            <option>Iphone X</option>
-                                            <option>Iphone 5</option>
-                                            <option>Iphone 1</option>
-                                        </select>
-                                    </div>
-                                    <div class="input-group form-group">
-                                        <label class="input-group-addon">
-                                            Référence
-                                        </label>
-                                        <input value="" class="form-control" placeholder="Référence">
-                                    </div>
-
-                                    <ul class="list-group">
-                                        <label>
-                                            Emplacement
-                                        </label>
-                                        <li class="list-group-item">Allée 1</li>
-                                        <li class="list-group-item">Travée 4</li>
-                                        <li class="list-group-item">Rack 2</li>
-                                    </ul>
                                 </fieldset>
                             </div>
-                            <div class="col-md-6">
+                        </div>
+                        <div class="row client">
+                            <div class="col-md-12">
                                 <fieldset class="well list-box">
                                     <legend class="well-legend">Client</legend>
 
@@ -322,67 +187,6 @@
                                 </fieldset>
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="col-md-12">
-                                <fieldset class="well list-box">
-                                <legend class="well-legend">Actions</legend>
-                                    <div class="row">
-                                        <div class="col-md-5">
-                                            <ul class="list-group">
-                                                <label>
-                                                    Emplacement initial article 1
-                                                </label>
-                                                <li class="list-group-item">Allée 1</li>
-                                                <li class="list-group-item">Travée 4</li>
-                                                <li class="list-group-item">Rack 2</li>
-                                            </ul>
-                                        </div>
-                                        <div class="col-md-2">
-                                            <div class="arrowed">
-                                                <div class="arrow-6"></div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-5">
-                                            <ul class="list-group">
-                                                <label>
-                                                    Emplacement final article 1
-                                                </label>
-                                                <li class="list-group-item">Allée 1</li>
-                                                <li class="list-group-item">Travée 4</li>
-                                                <li class="list-group-item">Rack 2</li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                    <div class="row more-actions">
-                                        <div class="col-md-5">
-                                            <ul class="list-group">
-                                                <label>
-                                                    Emplacement initial article 2
-                                                </label>
-                                                <li class="list-group-item">Allée 1</li>
-                                                <li class="list-group-item">Travée 4</li>
-                                                <li class="list-group-item">Rack 2</li>
-                                            </ul>
-                                        </div>
-                                        <div class="col-md-2">
-                                            <div class="arrowed">
-                                                <div class="arrow-6"></div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-5">
-                                            <ul class="list-group">
-                                                <label>
-                                                    Emplacement final article 2
-                                                </label>
-                                                <li class="list-group-item">Allée 1</li>
-                                                <li class="list-group-item">Travée 4</li>
-                                                <li class="list-group-item">Rack 2</li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                </fieldset>
-                            </div>
-                        </div>
                     </form>
                 </div>
                 <div class="modal-footer">
@@ -394,14 +198,12 @@
     </div>
 
     <div class="row">
-        <div class="col-md-4">
+        <div class="col-md-12">
             <a href="#" class="button btn-left">
                 <span class="fa fa-angle-double-left"></span>Retour</a>
-        </div>
-        <div class="col-md-8">
-            <a href="#" class="button btn-right">
+            <a href="#" class="button btn-right pull-right">
                 Liste des réceptions<span class="fa fa-angle-double-right"></span></a>
-            <a href="#" class="button btn-right">
+            <a href="#" class="button btn-right pull-right">
                 Liste des préparations<span class="fa fa-angle-double-right"></span></a>
         </div>
     </div>
@@ -410,16 +212,248 @@
 
 {% block javascripts %}
     <script type="text/javascript">
+        $('.basic-multiple-type').select2({placeholder: 'Types'});
+
         $('.daterange input').each(function () {
             $(this).datepicker({language: 'fr', format: 'dd/mm/yyyy', todayBtn: true, todayHighlight: true, autoclose: true});
-        });
-        $(".arrow-open").on("click", function (e) {
-            $("#visuModal").modal();
         });
         $('#visuModal').on('show', function () { //TODO
             var id = $(this).data('id'),
                 removeBtn = $(this).find('.danger');
             removeBtn.attr('href', removeBtn.attr('href').replace(/(&|\?)ref=\d*/, '$1ref=' + id));
         });
+
+        /* Filter
+        ================= */
+        $('#type').val({{ f_type|json_encode|raw }});
+        $('#auteur').val({{ f_auteur|json_encode|raw }});
+        $('#from').val({{ f_from|json_encode|raw }});
+        $('#to').val({{ f_to|json_encode|raw }});
+        $('#type').trigger('change');
+
+        ajaxLoad(0);
+        $('#filter').on('click', function () {
+            ajaxLoad(1);
+        });
+
+        function ajaxLoad(start) {
+            var type = $("#type").val();
+            var auteur = $("#auteur").val();
+            var from = $("#from").val();
+            var to = $("#to").val();
+            $.ajax({
+                url: "{{ path('ordre_workflow') }}",
+                type: "POST",
+                dataType: "json",
+                data: {
+                    "start": start,
+                    "type": type,
+                    "auteur": auteur,
+                    "from": from,
+                    "to": to
+                },
+                success: function (resp) {
+                    $('#en-attente, en-cours, traites').empty();
+                    $.each(resp, function (i, val) {
+                        list = resp[i].list;
+                        $.each(list, function (j, id) {
+                            createCard(resp[i], id);
+                        });
+                    });
+                }
+            });
+        };
+
+        function createCard(data, id) {
+            var col;
+            var date = formatDate(new Date(data.dateOrdre.date));
+            var card = `<div data-id="` + data.id + `" type="` + data.type + `" class="card">
+                            <div class="card-details">`;
+            if (data.type == "transfert") {
+                card += `<h3>Transfert</h3>
+                         <h4>` + date + `</h4>
+                         <span class="gommette backorange"></span>`;
+            } else if (data.type == "preparation") {
+                card += `<h3>Préparation</h3>
+                         <h4>` + date + `</h4>
+                         <span class="gommette backblue"></span>`;
+            } else if (data.type == "sortie") {
+                card += `<h3>Sortie</h3>
+                         <h4>` + date + `</h4>
+                         <span class="gommette backviolet"></span>`;
+            } else if (data.type == "entree") {
+                card += `<h3>Entrée</h3>
+                         <h4>` + date + `</h4>
+                         <span class="gommette backgreen"></span>`;
+            } else {
+                card += `<h3>Réception</h3>
+                         <h4>` + date + `</h4>
+                         <span class="gommette backred"></span>`;
+            }
+            card += `<span class="card-name">` + data.auteur + `</span>
+                </div>
+                <a data-id="` + id + `" class="arrow-open fa fa-angle-double-right"></a>
+            </div>`;
+
+            if (data.statut == 'En attente') {
+                col = "#en-attente";
+            } else if (data.statut == 'En cours') {
+                col = "#en-cours";
+            } else {
+                col = "#traites";
+            }
+            $(col).prepend(card);
+        };
+
+        function formatDate(date) {
+            var monthNames = [
+                "Janvier",
+                "Février",
+                "Mars",
+                "Avril",
+                "Mai",
+                "Juin",
+                "Juillet",
+                "Août",
+                "Septembre",
+                "Octobre",
+                "Novembre",
+                "Décembre"
+            ];
+            var day = date.getDate();
+            var monthIndex = date.getMonth();
+            var year = date.getFullYear();
+            return day + ' ' + monthNames[monthIndex] + ' ' + year;
+        }
+
+        /* Details
+        ================= */
+        $('.list-cards').on('click', 'a.arrow-open', function () {
+            var id = $(this).attr('data-id');
+            var type = $(this).parent().attr('type');
+            var card = $(this).parent();
+            $.ajax({
+                url: "{{ path('ordre_details') }}",
+                type: "POST",
+                dataType: "json",
+                data: {
+                    "id": id,
+                    "type": type
+                },
+                success: function (resp) {
+                    var name = card.find('h3').text();
+                    $('.modal-header').removeClass().addClass('modal-header ' + findColor(name));
+                    $('.modal-title .title').text(name);
+                    $('.progress-indicator li').removeClass('completed');
+                    $('.progress-indicator li>a>i').removeClass('fa-check-circle');
+                    if (card.parent().is('#en-attente')) {
+                        $('.progress-indicator li:lt(1)').addClass('completed');
+                        $('.progress-indicator li>a>i:lt(1)').addClass('fa-check-circle');
+                    } else if (card.parent().is('#en-cours')) {
+                        $('.progress-indicator li:lt(2)').addClass('completed');
+                        $('.progress-indicator li>a>i:lt(2)').addClass('fa-check-circle');
+                    } else {
+                        $('.progress-indicator li:lt(3)').addClass('completed');
+                        $('.progress-indicator li>a>i:lt(3)').addClass('fa-check-circle');
+                    }
+                    $('#articles').empty();
+                    $.each(resp, function (i, val) {
+                        createArticle(resp[i]);
+                    });
+
+                    $("#visuModal").modal();
+                }
+            });
+        });
+
+        function createArticle(data) {
+            var article = `
+                <p class="bold">Article n° ` + data.numero + `</p>
+                <div class="form-flex">
+                    <div class="input-group form-group">
+                        <label class="input-group-addon">
+                                Libellé code
+                        </label>
+                        <input value="` + data.libelle + `" class="form-control">
+                    </div>
+                    <div class="input-group form-group">
+                        <label class="input-group-addon">
+                                Code tâche
+                        </label>
+                        <input value="` + data.tache + `" class="form-control">
+                    </div>
+                </div>
+
+                <div class="form-flex">
+                    <div class="input-group form-group">
+                        <label class="input-group-addon">
+                                Numéro document
+                        </label>
+                        <input value="` + data.document + `" class="form-control">
+                    </div>
+                    <div class="input-group form-group">
+                        <label class="input-group-addon">
+                                Quantité
+                        </label>
+                        <input value="` + data.quantite + `" class="form-control">
+                    </div>
+                </div>
+
+                <div class="row more-actions">
+                    <div class="col-md-5">
+                        <ul class="list-group">
+                            <label>
+                                Emplacement initial
+                            </label>`;
+            $.each(data[0], function (i, val) {
+                if (val === '') {
+                    val = '&nbsp;';
+                }
+                article += `<li class="list-group-item">` + val + `</li>`
+            })
+            article += `
+                        </ul>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="arrowed">
+                            <div class="arrow-6"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-5">
+                        <ul class="list-group">
+                            <label>
+                                Emplacement final
+                            </label>`;
+            $.each(data[1], function (i, val) {
+                if (val === '') {
+                    val = '&nbsp;';
+                }
+                article += `<li class="list-group-item">` + val + `</li>`
+            })
+            article += `
+                        </ul>
+                    </div>
+                </div>
+                `;
+            $('#articles').append(article);
+        };
+
+        function findColor(name) {
+            if (name == 'Transfert') {
+                return ('backorange');
+            }
+            if (name == 'Sortie') {
+                return ('backviolet');
+            }
+            if (name == 'Entrée') {
+                return ('backgreen');
+            }
+            if (name == 'Réception') {
+                return ('backred');
+            }
+            if (name == 'Préparation') {
+                return ('backblue');
+            }
+        }
     </script>
 {% endblock %}

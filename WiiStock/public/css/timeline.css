@@ -9,7 +9,7 @@ html {
 }
 
 a {
-  color: #f0b000;
+  color: #ffbc02;
   text-decoration: none;
 }
 
@@ -87,7 +87,7 @@ Main Components
   top: 0;
   height: 100%;
   width: 100%;
-  background-color: #f0b000;
+  background-color: #ffbc02;
   -webkit-transform: scaleX(0);
   -moz-transform: scaleX(0);
   -ms-transform: scaleX(0);
@@ -140,18 +140,18 @@ Main Components
 }
 .no-touch .cd-horizontal-timeline .events a:hover::after,
 .cd-horizontal-timeline .events a:hover::after {
-  background-color: #f0b000;
-  border-color: #f0b000;
+  background-color: #ffbc02;
+  border-color: #ffbc02;
 }
 .cd-horizontal-timeline .events a.selected {
   pointer-events: none;
 }
 .cd-horizontal-timeline .events a.selected::after {
-  background-color: #f0b000;
-  border-color: #f0b000;
+  background-color: #ffbc02;
+  border-color: #ffbc02;
 }
 .cd-horizontal-timeline .events a.older-event::after {
-  border-color: #f0b000;
+  border-color: #ffbc02;
 }
 @media only screen and (min-width: 1100px) {
   .cd-horizontal-timeline {
@@ -202,7 +202,7 @@ Main Components
   -ms-transform: translateX(-50%) translateY(-50%);
   -o-transform: translateX(-50%) translateY(-50%);
   transform: translateX(-50%) translateY(-50%);
-  background: url(../../img/cd-arrow.png) no-repeat 0 0;
+  background: url(../img/cd-arrow.png) no-repeat 0 0;
 }
 .cd-timeline-navigation a.prev {
   left: 0;
@@ -217,7 +217,7 @@ Main Components
 }
 .no-touch .cd-timeline-navigation a:hover,
 .cd-timeline-navigation a:hover {
-  border-color: #f0b000;
+  border-color: #ffbc02;
 }
 
 .cd-timeline-navigation a.inactive {

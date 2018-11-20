@@ -17,6 +17,7 @@ use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Config\Definition\Exception\Exception;
+use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 
 class SecuriteController extends Controller
 {
@@ -85,7 +86,7 @@ class SecuriteController extends Controller
 
         if (!$user) {
             throw new UsernameNotFoundException(
-                sprintf('L\'utilisateur "%s" n\'existe pas.', $username)
+                sprintf('L\'utilisateur n\'existe pas.')
             );
         }
         $user->setLastLogin(new \Datetime());

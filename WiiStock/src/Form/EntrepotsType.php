@@ -2,30 +2,24 @@
 
 namespace App\Form;
 
-use App\Entity\Travees;
+use App\Entity\Entrepots;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 
-class TraveesType extends AbstractType
+class EntrepotsType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
             ->add('nom')
-            ->add('allees', EntityType::class, array(
-                'class' => 'App\Entity\Allees',
-                'choice_label' => 'nom',
-                'multiple' => false,
-                ))
         ;
     }
 
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults([
-            'data_class' => Travees::class,
+            'data_class' => Entrepots::class,
         ]);
     }
 }

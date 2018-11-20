@@ -442,7 +442,7 @@ class Parcs
          		return $this->ptac;
          	}
 
-	public function setPtac(float $ptac): self
+	public function setPtac(?float $ptac): self
          	{
          		$this->ptac = $ptac;
          
@@ -454,7 +454,7 @@ class Parcs
          		return $this->ptr;
          	}
 
-	public function setPtr(float $ptr): self
+	public function setPtr(?float $ptr): self
          	{
          		$this->ptr = $ptr;
          
@@ -466,7 +466,7 @@ class Parcs
          		return $this->puissance_fiscale;
          	}
 
-	public function setPuissanceFiscale(int $puissance_fiscale): self
+	public function setPuissanceFiscale(?int $puissance_fiscale): self
          	{
          		$this->puissance_fiscale = $puissance_fiscale;
          

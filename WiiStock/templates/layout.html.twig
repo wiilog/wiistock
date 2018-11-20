@@ -12,6 +12,12 @@
                         <i class="fa fa-user-circle-o"></i>
                     </a>
                 </li>
+
+                <li>
+                    <a href="{{ path('check_last_login') }}">
+                        <i class="fa fa-home"></i>
+                    </a>
+                </li>
                 {# <li>
                     <a href="#">
                         <i class="fa fa-search"></i>
@@ -38,11 +44,6 @@
                 {% endif %}
 
                 {% if is_granted('ROLE_STOCK') %}
-                    <li>
-                        <a href="{{ path('accueil') }}">
-                            <i class="fa fa-home"></i>
-                        </a>
-                    </li>
                     <li class="has-submenu">
                         <a href="#">
                             <i class="fa fa-truck"></i>

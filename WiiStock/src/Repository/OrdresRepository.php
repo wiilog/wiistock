@@ -19,6 +19,39 @@ class OrdresRepository extends ServiceEntityRepository
         parent::__construct($registry, Ordres::class);
     }
 
+    public function findOrdresByFilters($type, $auteur, $from, $to)
+    {
+        $parameters = [];
+        $key_id = 0;
+        $qb = $this->createQueryBuilder('o');
+
+        if ($type) {
+            $query = "";
+            foreach ($type as $key => $value) {
+                $query = $query . "o.type = ?" . $key_id . " OR ";
+                $parameters[$key_id] = $value;
+                $key_id += 1;
+            }
+            $query = substr($query, 0, -4);
+            $qb->andWhere($query)
+            ->setParameters($parameters);
+        }
+        if ($auteur) {
+            $qb->leftJoin('o.auteur', 'a')
+            ->andWhere('a.username = :username')
+            ->setParameter('username', $auteur);
+        }
+
+        if ($from && $to) {
+            $qb->andWhere('o.date_ordre >= :from')
+			->andWhere('o.date_ordre <= :to')
+			->setParameter('from', $from)
+			->setParameter('to', $to);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
 //    /**
 //     * @return Ordres[] Returns an array of Ordres objects
 //     */

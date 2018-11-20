@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -27,7 +29,7 @@ class Transferts
     private $quantite;
 
     /**
-     * @ORM\Column(type="datetime")
+     * @ORM\Column(type="datetime", nullable=true)
      */
     private $date_transfert;
 
@@ -52,22 +54,25 @@ class Transferts
     private $zone_fin;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Articles")
-     * @ORM\JoinColumn(nullable=false)
-     */
-    private $article;
-
-    /**
      * @ORM\OneToOne(targetEntity="App\Entity\Historiques", cascade={"persist", "remove"})
      * @ORM\JoinColumn(nullable=false)
      */
     private $historique;
 
     /**
-     * @ORM\OneToOne(targetEntity="App\Entity\Ordres", cascade={"persist", "remove"})
-     * @ORM\JoinColumn(nullable=false)
+     * @ORM\ManyToMany(targetEntity="App\Entity\Articles", mappedBy="transferts", cascade={"persist"})
      */
-    private $ordre;
+    private $articles;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Ordres", inversedBy="transferts")
+     */
+    private $ordres;
+
+    public function __construct()
+    {
+        $this->articles = new ArrayCollection();
+    }
 
     public function getId()
     {
@@ -103,7 +108,7 @@ class Transferts
         return $this->date_transfert;
     }
 
-    public function setDateTransfert(\DateTimeInterface $date_transfert): self
+    public function setDateTransfert(?\DateTimeInterface $date_transfert): self
     {
         $this->date_transfert = $date_transfert;
 
@@ -158,18 +163,6 @@ class Transferts
         return $this;
     }
 
-    public function getArticle(): ?Articles
-    {
-        return $this->article;
-    }
-
-    public function setArticle(?Articles $article): self
-    {
-        $this->article = $article;
-
-        return $this;
-    }
-
     public function getHistorique(): ?Historiques
     {
         return $this->historique;
@@ -182,14 +175,42 @@ class Transferts
         return $this;
     }
 
-    public function getOrdre(): ?Ordres
+    /**
+     * @return Collection|Articles[]
+     */
+    public function getArticles(): Collection
     {
-        return $this->ordre;
+        return $this->articles;
     }
 
-    public function setOrdre(Ordres $ordre): self
+    public function addArticle(Articles $article): self
     {
-        $this->ordre = $ordre;
+        if (!$this->articles->contains($article)) {
+            $this->articles[] = $article;
+            $article->addTransfert($this);
+        }
+
+        return $this;
+    }
+
+    public function removeArticle(Articles $article): self
+    {
+        if ($this->articles->contains($article)) {
+            $this->articles->removeElement($article);
+            $article->removeTransfert($this);
+        }
+
+        return $this;
+    }
+
+    public function getOrdres(): ?Ordres
+    {
+        return $this->ordres;
+    }
+
+    public function setOrdres(?Ordres $ordres): self
+    {
+        $this->ordres = $ordres;
 
         return $this;
     }

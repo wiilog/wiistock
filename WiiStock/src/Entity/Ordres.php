@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -36,6 +38,40 @@ class Ordres
      * @ORM\JoinColumn(nullable=false)
      */
     private $auteur;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Receptions", mappedBy="ordres")
+     */
+    private $receptions;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Transferts", mappedBy="ordres")
+     */
+    private $transferts;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Preparations", mappedBy="ordres")
+     */
+    private $preparations;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Sorties", mappedBy="ordres")
+     */
+    private $sorties;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Entrees", mappedBy="ordres")
+     */
+    private $entrees;
+
+    public function __construct()
+    {
+        $this->receptions = new ArrayCollection();
+        $this->transferts = new ArrayCollection();
+        $this->preparations = new ArrayCollection();
+        $this->sorties = new ArrayCollection();
+        $this->entrees = new ArrayCollection();
+    }
 
     public function getId()
     {
@@ -86,6 +122,161 @@ class Ordres
     public function setAuteur(?Utilisateurs $auteur): self
     {
         $this->auteur = $auteur;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Receptions[]
+     */
+    public function getReceptions(): Collection
+    {
+        return $this->receptions;
+    }
+
+    public function addReception(Receptions $reception): self
+    {
+        if (!$this->receptions->contains($reception)) {
+            $this->receptions[] = $reception;
+            $reception->setOrdres($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReception(Receptions $reception): self
+    {
+        if ($this->receptions->contains($reception)) {
+            $this->receptions->removeElement($reception);
+            // set the owning side to null (unless already changed)
+            if ($reception->getOrdres() === $this) {
+                $reception->setOrdres(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Transferts[]
+     */
+    public function getTransferts(): Collection
+    {
+        return $this->transferts;
+    }
+
+    public function addTransfert(Transferts $transfert): self
+    {
+        if (!$this->transferts->contains($transfert)) {
+            $this->transferts[] = $transfert;
+            $transfert->setOrdres($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTransfert(Transferts $transfert): self
+    {
+        if ($this->transferts->contains($transfert)) {
+            $this->transferts->removeElement($transfert);
+            // set the owning side to null (unless already changed)
+            if ($transfert->getOrdres() === $this) {
+                $transfert->setOrdres(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Preparations[]
+     */
+    public function getPreparations(): Collection
+    {
+        return $this->preparations;
+    }
+
+    public function addPreparation(Preparations $preparation): self
+    {
+        if (!$this->preparations->contains($preparation)) {
+            $this->preparations[] = $preparation;
+            $preparation->setOrdres($this);
+        }
+
+        return $this;
+    }
+
+    public function removePreparation(Preparations $preparation): self
+    {
+        if ($this->preparations->contains($preparation)) {
+            $this->preparations->removeElement($preparation);
+            // set the owning side to null (unless already changed)
+            if ($preparation->getOrdres() === $this) {
+                $preparation->setOrdres(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Sorties[]
+     */
+    public function getSorties(): Collection
+    {
+        return $this->sorties;
+    }
+
+    public function addSorty(Sorties $sorty): self
+    {
+        if (!$this->sorties->contains($sorty)) {
+            $this->sorties[] = $sorty;
+            $sorty->setOrdres($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSorty(Sorties $sorty): self
+    {
+        if ($this->sorties->contains($sorty)) {
+            $this->sorties->removeElement($sorty);
+            // set the owning side to null (unless already changed)
+            if ($sorty->getOrdres() === $this) {
+                $sorty->setOrdres(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Entrees[]
+     */
+    public function getEntrees(): Collection
+    {
+        return $this->entrees;
+    }
+
+    public function addEntree(Entrees $entree): self
+    {
+        if (!$this->entrees->contains($entree)) {
+            $this->entrees[] = $entree;
+            $entree->setOrdres($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEntree(Entrees $entree): self
+    {
+        if ($this->entrees->contains($entree)) {
+            $this->entrees->removeElement($entree);
+            // set the owning side to null (unless already changed)
+            if ($entree->getOrdres() === $this) {
+                $entree->setOrdres(null);
+            }
+        }
 
         return $this;
     }

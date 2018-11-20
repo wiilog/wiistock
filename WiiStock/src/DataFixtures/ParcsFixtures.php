@@ -286,6 +286,14 @@ class ParcsFixtures extends Fixture
         $admin_parc->setPassword($password);
         $manager->persist($admin_parc);
 
+        $admin_parc = new Utilisateurs();
+        $admin_parc->setUsername("Leo");
+        $admin_parc->setEmail("leo.couffinhal@wiilog.fr");
+        $admin_parc->setRoles(array('ROLE_SUPER_ADMIN'));
+        $password = $this->encoder->encodePassword($admin_parc, "Admin123!");
+        $admin_parc->setPassword($password);
+        $manager->persist($admin_parc);
+
         $manager->flush();
     }
 }

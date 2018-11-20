@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\EmplacementsRepository")
@@ -13,19 +14,20 @@ class Emplacements
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
+     * @Groups({"emplacements"})
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"emplacements", "entrepots"})
      */
     private $nom;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Racks")
-     * @ORM\JoinColumn(nullable=false)
+     * @ORM\ManyToOne(targetEntity="App\Entity\Racks", inversedBy="emplacements")
      */
-    private $rack;
+    private $racks;
 
     public function getId()
     {
@@ -44,14 +46,14 @@ class Emplacements
         return $this;
     }
 
-    public function getRack(): ?Racks
+    public function getRacks(): ?Racks
     {
-        return $this->rack;
+        return $this->racks;
     }
 
-    public function setRack(?Racks $rack): self
+    public function setRacks(?Racks $racks): self
     {
-        $this->rack = $rack;
+        $this->racks = $racks;
 
         return $this;
     }

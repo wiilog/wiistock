@@ -19,6 +19,80 @@ class ArticlesRepository extends ServiceEntityRepository
         parent::__construct($registry, Articles::class);
     }
 
+    /**
+     * @return Articles[] Returns an array of Articles objects
+     */
+    public function findByFilters($zone, $quai, $libelle, $numero, $searchPhrase, $sort)
+    {
+        $qb = $this->createQueryBuilder('article');
+        $parameters = [];
+        $key_id = 0;
+
+        if ($zone) {
+            $query = "";
+            foreach ($zone as $key => $value) {
+                $query = $query . "article.zone = ?" . $key_id . " OR ";
+                $parameters[$key_id] = $value;
+                $key_id += 1;
+            }
+            $query = substr($query, 0, -4);
+            $qb->andWhere($query)
+            ->setParameters($parameters);
+        }
+
+        if ($quai) {
+            $query = "";
+            foreach ($quai as $key => $value) {
+                $query = $query . "article.quai = ?" . $key_id . " OR ";
+                $parameters[$key_id] = $value;
+                $key_id += 1;
+            }
+            $query = substr($query, 0, -4);
+            $qb->andWhere($query)
+            ->setParameters($parameters);
+        }
+
+        if ($libelle != "") {
+            $qb->andWhere('article.libelle LIKE :libelle')
+                ->setParameter('libelle', '%' . $libelle . '%');
+        }
+
+        if ($numero != "") {
+            $qb->andWhere('article.n LIKE :numero')
+                ->setParameter('numero', '%' . $numero . '%');
+        }
+
+        if ($searchPhrase != "") {
+            $qb->andWhere('article.statut LIKE :search
+                OR article.n LIKE :search
+                OR article.libelle LIKE :search
+                OR article.quantite LIKE :search
+            ')
+                ->setParameter('search', '%' . $searchPhrase . '%');
+        }
+
+        if ($sort) {
+            foreach ($sort as $key => $value) {
+                $qb->orderBy('article.' . $key, $value);
+            }
+        } else {
+            $qb->orderBy('article.date_comptabilisation', 'ASC');
+        }
+
+        return $qb;
+    }
+
+    public function findByDesignation($value)
+    {
+        return $this->createQueryBuilder('r')
+            ->andWhere('r.designation like :val')
+            ->setParameter('val', '%' . $value . '%')
+            ->orderBy('r.id', 'ASC')
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
 //    /**
 //     * @return Articles[] Returns an array of Articles objects
 //     */

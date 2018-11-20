@@ -17,19 +17,19 @@ class ReferencesArticles
     private $id;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $libelle;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $description;
+    private $photo_article;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $photo_article;
+    private $reference;
 
     public function getId()
     {
@@ -48,18 +48,6 @@ class ReferencesArticles
         return $this;
     }
 
-    public function getDescription(): ?string
-    {
-        return $this->description;
-    }
-
-    public function setDescription(?string $description): self
-    {
-        $this->description = $description;
-
-        return $this;
-    }
-
     public function getPhotoArticle(): ?string
     {
         return $this->photo_article;
@@ -68,6 +56,18 @@ class ReferencesArticles
     public function setPhotoArticle(?string $photo_article): self
     {
         $this->photo_article = $photo_article;
+
+        return $this;
+    }
+
+    public function getReference(): ?string
+    {
+        return $this->reference;
+    }
+
+    public function setReference(?string $reference): self
+    {
+        $this->reference = $reference;
 
         return $this;
     }

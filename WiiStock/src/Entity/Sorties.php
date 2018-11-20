@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -22,26 +24,14 @@ class Sorties
     private $statut;
 
     /**
-     * @ORM\Column(type="integer")
-     */
-    private $quantite;
-
-    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Quais")
-     * @ORM\JoinColumn(nullable=false)
      */
     private $quai_sortie;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Articles")
-     * @ORM\JoinColumn(nullable=false)
+     * @ORM\Column(type="datetime", nullable=true)
      */
-    private $article;
-
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Preparations")
-     */
-    private $preparation;
+    private $date_sortie;
 
     /**
      * @ORM\OneToOne(targetEntity="App\Entity\Historiques", cascade={"persist", "remove"})
@@ -50,10 +40,29 @@ class Sorties
     private $historique;
 
     /**
-     * @ORM\OneToOne(targetEntity="App\Entity\Ordres", cascade={"persist", "remove"})
-     * @ORM\JoinColumn(nullable=false)
+     * @ORM\ManyToMany(targetEntity="App\Entity\Articles", mappedBy="sorties", cascade={"persist"})
      */
-    private $ordre;
+    private $articles;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Ordres", inversedBy="sorties")
+     */
+    private $ordres;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Preparations", inversedBy="sorties")
+     */
+    private $preparation;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $quantite;
+
+    public function __construct()
+    {
+        $this->articles = new ArrayCollection();
+    }
 
     public function getId()
     {
@@ -72,18 +81,6 @@ class Sorties
         return $this;
     }
 
-    public function getQuantite(): ?int
-    {
-        return $this->quantite;
-    }
-
-    public function setQuantite(int $quantite): self
-    {
-        $this->quantite = $quantite;
-
-        return $this;
-    }
-
     public function getQuaiSortie(): ?Quais
     {
         return $this->quai_sortie;
@@ -92,30 +89,6 @@ class Sorties
     public function setQuaiSortie(?Quais $quai_sortie): self
     {
         $this->quai_sortie = $quai_sortie;
-
-        return $this;
-    }
-
-    public function getArticle(): ?Articles
-    {
-        return $this->article;
-    }
-
-    public function setArticle(?Articles $article): self
-    {
-        $this->article = $article;
-
-        return $this;
-    }
-
-    public function getPreparation(): ?Preparations
-    {
-        return $this->preparation;
-    }
-
-    public function setPreparation(?Preparations $preparation): self
-    {
-        $this->preparation = $preparation;
 
         return $this;
     }
@@ -132,14 +105,78 @@ class Sorties
         return $this;
     }
 
-    public function getOrdre(): ?Ordres
+    /**
+     * @return Collection|Articles[]
+     */
+    public function getArticles(): Collection
     {
-        return $this->ordre;
+        return $this->articles;
     }
 
-    public function setOrdre(Ordres $ordre): self
+    public function addArticle(Articles $article): self
     {
-        $this->ordre = $ordre;
+        if (!$this->articles->contains($article)) {
+            $this->articles[] = $article;
+            $article->addSorty($this);
+        }
+
+        return $this;
+    }
+
+    public function removeArticle(Articles $article): self
+    {
+        if ($this->articles->contains($article)) {
+            $this->articles->removeElement($article);
+            $article->removeSorty($this);
+        }
+
+        return $this;
+    }
+
+    public function getOrdres(): ?Ordres
+    {
+        return $this->ordres;
+    }
+
+    public function setOrdres(?Ordres $ordres): self
+    {
+        $this->ordres = $ordres;
+
+        return $this;
+    }
+
+    public function getDateSortie(): ?\DateTimeInterface
+    {
+        return $this->date_sortie;
+    }
+
+    public function setDateSortie(?\DateTimeInterface $date_sortie): self
+    {
+        $this->date_sortie = $date_sortie;
+
+        return $this;
+    }
+
+    public function getPreparation(): ?Preparations
+    {
+        return $this->preparation;
+    }
+
+    public function setPreparation(?Preparations $preparation): self
+    {
+        $this->preparation = $preparation;
+
+        return $this;
+    }
+
+    public function getQuantite(): ?string
+    {
+        return $this->quantite;
+    }
+
+    public function setQuantite(?string $quantite): self
+    {
+        $this->quantite = $quantite;
 
         return $this;
     }

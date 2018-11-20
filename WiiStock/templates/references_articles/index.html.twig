@@ -10,7 +10,6 @@
             <tr>
                 <th>Id</th>
                 <th>Libelle</th>
-                <th>Description</th>
                 <th>Photo_article</th>
                 <th>actions</th>
             </tr>
@@ -20,7 +19,6 @@
             <tr>
                 <td>{{ references_article.id }}</td>
                 <td>{{ references_article.libelle }}</td>
-                <td>{{ references_article.description }}</td>
                 <td>{{ references_article.photoArticle }}</td>
                 <td>
                     <a href="{{ path('references_articles_show', {'id': references_article.id}) }}">show</a>

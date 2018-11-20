@@ -19,6 +19,17 @@ class ReferencesArticlesRepository extends ServiceEntityRepository
         parent::__construct($registry, ReferencesArticles::class);
     }
 
+    public function findByLibelleOrRef($value)
+    {
+        return $this->createQueryBuilder('r')
+            ->andWhere('r.libelle like :val OR r.reference like :val')
+            ->setParameter('val', '%' . $value . '%')
+            ->orderBy('r.libelle', 'ASC')
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
 //    /**
 //     * @return ReferencesArticles[] Returns an array of ReferencesArticles objects
 //     */

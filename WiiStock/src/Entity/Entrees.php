@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -22,31 +24,14 @@ class Entrees
     private $statut;
 
     /**
-     * @ORM\Column(type="integer")
-     */
-    private $quantite;
-
-    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Quais")
-     * @ORM\JoinColumn(nullable=false)
      */
     private $quai_entree;
 
     /**
-     * @ORM\Column(type="datetime")
+     * @ORM\Column(type="datetime", nullable=true)
      */
     private $date_entree;
-
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Articles")
-     * @ORM\JoinColumn(nullable=false)
-     */
-    private $article;
-
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Receptions")
-     */
-    private $reception;
 
     /**
      * @ORM\OneToOne(targetEntity="App\Entity\Historiques", cascade={"persist", "remove"})
@@ -55,10 +40,29 @@ class Entrees
     private $historique;
 
     /**
-     * @ORM\OneToOne(targetEntity="App\Entity\Ordres", cascade={"persist", "remove"})
-     * @ORM\JoinColumn(nullable=false)
+     * @ORM\ManyToMany(targetEntity="App\Entity\Articles", mappedBy="entrees", cascade={"persist"})
      */
-    private $ordre;
+    private $articles;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Ordres", inversedBy="entrees")
+     */
+    private $ordres;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Receptions", inversedBy="entrees")
+     */
+    private $reception;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $quantite;
+
+    public function __construct()
+    {
+        $this->articles = new ArrayCollection();
+    }
 
     public function getId()
     {
@@ -73,18 +77,6 @@ class Entrees
     public function setStatut(string $statut): self
     {
         $this->statut = $statut;
-
-        return $this;
-    }
-
-    public function getQuantite(): ?int
-    {
-        return $this->quantite;
-    }
-
-    public function setQuantite(int $quantite): self
-    {
-        $this->quantite = $quantite;
 
         return $this;
     }
@@ -106,33 +98,9 @@ class Entrees
         return $this->date_entree;
     }
 
-    public function setDateEntree(\DateTimeInterface $date_entree): self
+    public function setDateEntree(?\DateTimeInterface $date_entree): self
     {
         $this->date_entree = $date_entree;
-
-        return $this;
-    }
-
-    public function getArticle(): ?Articles
-    {
-        return $this->article;
-    }
-
-    public function setArticle(?Articles $article): self
-    {
-        $this->article = $article;
-
-        return $this;
-    }
-
-    public function getReception(): ?Receptions
-    {
-        return $this->reception;
-    }
-
-    public function setReception(?Receptions $reception): self
-    {
-        $this->reception = $reception;
 
         return $this;
     }
@@ -149,14 +117,66 @@ class Entrees
         return $this;
     }
 
-    public function getOrdre(): ?Ordres
+    /**
+     * @return Collection|Articles[]
+     */
+    public function getArticles(): Collection
     {
-        return $this->ordre;
+        return $this->articles;
     }
 
-    public function setOrdre(Ordres $ordre): self
+    public function addArticle(Articles $article): self
     {
-        $this->ordre = $ordre;
+        if (!$this->articles->contains($article)) {
+            $this->articles[] = $article;
+            $article->addEntree($this);
+        }
+
+        return $this;
+    }
+
+    public function removeArticle(Articles $article): self
+    {
+        if ($this->articles->contains($article)) {
+            $this->articles->removeElement($article);
+            $article->removeEntree($this);
+        }
+
+        return $this;
+    }
+
+    public function getOrdres(): ?Ordres
+    {
+        return $this->ordres;
+    }
+
+    public function setOrdres(?Ordres $ordres): self
+    {
+        $this->ordres = $ordres;
+
+        return $this;
+    }
+
+    public function getReception(): ?Receptions
+    {
+        return $this->reception;
+    }
+
+    public function setReception(?Receptions $reception): self
+    {
+        $this->reception = $reception;
+
+        return $this;
+    }
+
+    public function getQuantite(): ?string
+    {
+        return $this->quantite;
+    }
+
+    public function setQuantite(?string $quantite): self
+    {
+        $this->quantite = $quantite;
 
         return $this;
     }

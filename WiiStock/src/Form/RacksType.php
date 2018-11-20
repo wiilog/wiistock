@@ -14,7 +14,7 @@ class RacksType extends AbstractType
     {
         $builder
             ->add('nom')
-            ->add('travee', EntityType::class, array(
+            ->add('travees', EntityType::class, array(
                 'class' => 'App\Entity\Travees',
                 'choice_label' => 'nom',
                 'multiple' => false,

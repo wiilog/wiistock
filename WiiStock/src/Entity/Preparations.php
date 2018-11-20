@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -23,18 +25,16 @@ class Preparations
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Quais")
-     * @ORM\JoinColumn(nullable=false)
      */
     private $quai_preparation;
 
     /**
-     * @ORM\Column(type="datetime")
+     * @ORM\Column(type="datetime", nullable=true)
      */
     private $date_preparation;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Clients")
-     * @ORM\JoinColumn(nullable=false)
      */
     private $client;
 
@@ -50,10 +50,20 @@ class Preparations
     private $historique;
 
     /**
-     * @ORM\OneToOne(targetEntity="App\Entity\Ordres", cascade={"persist", "remove"})
-     * @ORM\JoinColumn(nullable=false)
+     * @ORM\ManyToOne(targetEntity="App\Entity\Ordres", inversedBy="preparations")
      */
-    private $ordre;
+    private $ordres;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Sorties", mappedBy="preparation")
+     */
+    private $sorties;
+
+    public function __construct()
+    {
+        $this->articles = new ArrayCollection();
+        $this->sorties = new ArrayCollection();
+    }
 
     public function getId()
     {
@@ -89,7 +99,7 @@ class Preparations
         return $this->date_preparation;
     }
 
-    public function setDatePreparation(\DateTimeInterface $date_preparation): self
+    public function setDatePreparation(?\DateTimeInterface $date_preparation): self
     {
         $this->date_preparation = $date_preparation;
 
@@ -132,14 +142,45 @@ class Preparations
         return $this;
     }
 
-    public function getOrdre(): ?Ordres
+    public function getOrdres(): ?Ordres
     {
-        return $this->ordre;
+        return $this->ordres;
     }
 
-    public function setOrdre(Ordres $ordre): self
+    public function setOrdres(?Ordres $ordres): self
     {
-        $this->ordre = $ordre;
+        $this->ordres = $ordres;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Sorties[]
+     */
+    public function getSorties(): Collection
+    {
+        return $this->sorties;
+    }
+
+    public function addSorty(Sorties $sorty): self
+    {
+        if (!$this->sorties->contains($sorty)) {
+            $this->sorties[] = $sorty;
+            $sorty->setPreparation($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSorty(Sorties $sorty): self
+    {
+        if ($this->sorties->contains($sorty)) {
+            $this->sorties->removeElement($sorty);
+            // set the owning side to null (unless already changed)
+            if ($sorty->getPreparation() === $this) {
+                $sorty->setPreparation(null);
+            }
+        }
 
         return $this;
     }
