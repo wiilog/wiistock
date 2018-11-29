@@ -17,6 +17,7 @@
         {% block stylesheets %}{% endblock %}
     </head>
     <body>
+        
         <div class="row">
             {# flashbag #}
             {% if app.request.hasPreviousSession %}
@@ -33,6 +34,8 @@
             {% endif %}
         </div>
         {% block body %}{% endblock %}
+        {% block header %}{% endblock %}
+
         <script src="{{ asset('vendor/jquery/jquery.min.js') }}"></script>
         <script src="{{ asset('vendor/jquery/select2.full.min.js') }}"></script>
         <script src="{{ asset('vendor/jquery/bootstrap-datepicker.min.js') }}"></script>
