@@ -65,13 +65,79 @@
                 <span class="hl">réception</span>
             </div>
             <form>
-                <div class="form-group"></div>
-                <div class="form-group"></div>
-                <div class="commentaire">
-                    <div class="col-md-12">
-                        <textarea class="form-control" rows="2" placeholder="Commentaires sur l'ordre"></textarea>
+                {{ form_start(form_rec) }}
+                {{ form_errors(form_rec) }}
+
+                {{ form_row(form_rec.reference_SAP, {'required': false}) }}
+
+                <div class="h2">CEA</div>
+                <div class="row">
+                    <div class="col-md-3">
+                        {{ form_row(form_rec.nom_CEA, {'required': false}) }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ form_row(form_rec.prenom_CEA, {'required': false}) }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ form_row(form_rec.mail_CEA, {'required': false}) }}
                     </div>
                 </div>
+
+                <div class="h2">Date</div>
+                <div class="row">
+                    <div class="col-md-4">
+                        {{ form_row(form_rec.date_au_plus_tot, {'required': false}) }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form_row(form_rec.date_au_plus_tard, {'required': false}) }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form_row(form_rec.date_prevue, {'required': false}) }}
+                    </div>
+                </div>
+
+                <div class="h2">Fournisseur</div>
+                <div class="row reference">
+                    <div class="col-md-5">
+                        <h3>Sélectionnez un fournisseur...</h3>
+                        <form>
+                            <select class="js-data-ajax-fournisseur"></select>
+                            <button class="btn btn-danger select-reset">Reset</button>
+                        </form>
+                    </div>
+                    <div class="col-md-2">
+                        <div class="hr">
+                            <div class="separator-v"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-5">
+                        <h3>... ou ajoutez-en un</h3>
+
+                        {{ form_start(form_fou) }}
+                        {{ form_errors(form_fou) }}
+
+                        {{ form_row(form_fou.nom, {'required': false}) }}
+                        {{ form_row(form_fou.code_reference, {'required': false}) }}
+
+                        {{ form_row(form_fou._token) }}
+                        {{ form_end(form_fou, {'render_rest' : false}) }}
+                    </div>
+                </div>
+
+                <div class="h2">Transporteur</div>
+                <div class="row">
+                    <div class="col-md-6">
+                        {{ form_row(form_rec.nom_transporteur, {'required': false}) }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ form_row(form_rec.code_ref_transporteur, {'required': false}) }}
+                    </div>
+                </div>
+
+                {{ form_row(form_rec.commentaire, {'required': false}) }}
+
+                {{ form_row(form_rec._token) }}
+                {{ form_end(form_rec, {'render_rest' : false}) }}
             </form>
         </div>
         <div class="col-md-12">
@@ -82,11 +148,11 @@
             <table id="list-table" class="table table-condensed table-hover table-striped">
                 <thead>
                     <tr>
-                        <th>Désignation</th>
-                        <th>Valeur</th>
-                        <th>Commentaire</th>
-                        <th>Emplacement</th>
+                        <th>Libellé</th>
+                        <th>Référence</th>
                         <th class="qty">Quantité</th>
+                        <th>Emplacement</th>
+                        <th>Action</th>
                         <th class="hidden">id-emplacement</th>
                         <th class="hidden">id-ref</th>
                     </tr>
@@ -145,9 +211,9 @@
                         <h3>
                             Caractéristiques
                         </h3>
-                        {# {{ form_row(form_art.designation, {'required': false}) }}
-                        {{ form_row(form_art.valeur, {'required': false}) }}
-                        {{ form_row(form_art.commentaire, {'required': false}) }} #}
+                        {{ form_row(form_art.libelle_CEA, {'required': false}) }}
+                        {{ form_row(form_art.reference_CEA, {'required': false}) }}
+                        {{ form_row(form_art.quantite, {'required': false}) }}
                     </div>
                     <div class="col-md-6 emplacements">
                         <h3>
@@ -307,6 +373,37 @@
         return ref.libelle;
     }
 
+    /* Select reference article
+    ================= */
+    $(".js-data-ajax-fournisseur").select2({
+        ajax: {
+            url: "{{ path('fournisseurs_get') }}",
+            delay: 250,
+            processResults: function (data, params) {
+                return {results: data.items};
+            },
+        },
+        placeholder: 'Chercher un fournisseur',
+        allowClear: true,
+        escapeMarkup: function (markup) {
+            return markup;
+        },
+        minimumInputLength: 1,
+        templateResult: formatFou,
+        templateSelection: formatFouSelection
+    });
+
+    function formatFou(ref) {
+        if (ref.loading) {
+            return ref.text;
+        }
+        return "<div class='select2-result-ref clearfix'>" + "<div class='select2-result-ref__nom'>" + ref.nom + "</div>" + "<div class='select2-result-ref__code_reference'>" + ref.code_reference + "</div></div>";
+    }
+
+    function formatFouSelection(ref) {
+        return ref.libelle;
+    }
+
     /* Read file
     ================= */
     var file;
@@ -322,16 +419,15 @@
                 $('.image-title-wrap .button').html('Supprimer "' + name + '"');
             };
             reader.readAsDataURL(input.files[0]);
-            readFile(input.files[0], "{{ path( 'import_csv' ) }}", '', false);
+            readFile(input.files[0], "{{ path( 'import_csv' ) }}", false);
         } else {
             removeUpload();
         }
     }
 
-    function readFile(file, url, ordre, toggle) {
+    function readFile(file, url, toggle) {
         var formData = new FormData();
         formData.append("file", file);
-        formData.append("ordre", ordre);
         formData.append("toggle", toggle);
         var xhr = new XMLHttpRequest();
         xhr.open("POST", url, true);
@@ -401,28 +497,36 @@
     $('#order-add').on('click', function (e) {
         e.preventDefault();
         if (!toggleNumber) {
-            readFile(file, "{{ path( 'ordre_add' ) }}", orderType.val(), toggleNumber);
+            readFile(file, "{{ path( 'ordre_import_reception' ) }}", toggleNumber);
             removeUpload();
         } else {
-            if (orderType.val() == "sortie") {
-                if (data.length > 0) {
-                    ajaxAddOrder(data, orderType.val(), toggleNumber);
-                }
-            } else {
-                var data = [];
-                $('#list-table > tbody > tr').each(function (i) {
-                    item = {};
-                    item["designation"] = $(this).find('td:eq(0)').text();
-                    item["valeur"] = $(this).find('td:eq(1)').text();
-                    item["commentaire"] = $(this).find('td:eq(2)').text();
-                    item["quantite"] = $(this).find('td:eq(4) input').val();
-                    item["emplacement"] = $(this).find('td:eq(5)').text();
-                    item["ref"] = $(this).find('td:eq(6)').text();
-                    data.push(item);
-                });
-                if (data.length > 0) {
-                    ajaxAddOrder(data, orderType.val(), toggleNumber);
-                }
+            var data = [];
+            reception = {};
+            reception["reference_SAP"] = $("#receptions_reference_SAP").val();
+            reception["nom_CEA"] = $("#receptions_nom_CEA").val();
+            reception["prenom_CEA"] = $("#receptions_prenom_CEA").val();
+            reception["mail_CEA"] = $("#receptions_mail_CEA").val();
+            reception["date_au_plus_tot"] = $("#receptions_date_au_plus_tot").val();
+            reception["date_au_plus_tard"] = $("#receptions_date_au_plus_tard").val();
+            reception["date_prévue"] = $("#receptions_date_prevue").val();
+            reception["nom_transporteur"] = $("#receptions_nom_transporteur").val();
+            reception["code_ref_transporteur"] = $("#receptions_code_ref_transporteur").val();
+            reception["commentaire"] = $("#receptions_commentaire").val();
+            reception["fournisseur_nom"] = $("#fournisseurs_nom").val();
+            reception["fournisseur_code_reference"] = $("#fournisseurs_code_reference").val();
+            reception["fournisseur"] = $(".js-data-ajax-fournisseur").select2('data')[0].id;
+            data.push(reception);
+            $('#list-table > tbody > tr').each(function (i) {
+                item = {};
+                item["libelle"] = $(this).find('td:eq(0)').text();
+                item["reference"] = $(this).find('td:eq(1)').text();
+                item["quantite"] = $(this).find('td:eq(2) input').val();
+                item["emplacement"] = $(this).find('td:eq(4)').text();
+                item["ref"] = $(this).find('td:eq(5)').text();
+                data.push(item);
+            });
+            if (data.length > 0) {
+                ajaxAddOrder(data, toggleNumber);
             }
         }
     });
@@ -470,34 +574,12 @@
         $(this).parents('tr').remove();
     });
 
-    function ajaxAddArticleIn() {
-        var data = $('.js-data-ajax-article').select2('data')
-        $('.js-data-ajax-article').val(null).trigger('change');
-        var line = `<tr>
-                        <td>` + data[0].designation + `</td>
-                        <td>` + data[0].valeur + `</td>
-                        <td>` + data[0].commentaire + `</td>
-                        <td>` + data[0].emplacement + `</td>
-                        <td>
-                            <div class="form-inline">
-                                <input class="form-control" type="number" value="0">
-                                <span class="fa fa-times"></span>
-                            </div>
-                        </td>
-                        <td class="hidden">` + '' + `</td>
-                        <td class="hidden">` + '' + `</td>
-                    </tr>`;
-        $('#list-table tbody').append(line);
-    }
-
     function ajaxAddArticleOut() {
-        var libelle = $("#references_articles_libelle").val();
-        var reference = $("#references_articles_reference").val();
+        var libelle = $("#articles_libelle_CEA").val();
+        var reference = $("#articles_reference_CEA").val();
+        var quantite = $("#articles_quantite").val();
         var ref = $(".js-data-ajax-ref").val();
         var emplacement = getEmplacementsName();
-        var designation = $("#articles_designation").val();
-        var valeur = $("#articles_valeur").val();
-        var commentaire = $("#articles_commentaire").val();
         $.ajax({
             url: "{{ path('references_articles_add') }}",
             type: "POST",
@@ -505,25 +587,21 @@
             data: {
                 "libelle": libelle,
                 "reference": reference,
+                "quantite": quantite,
                 "ref": ref
             },
             success: function (resp) {
                 $('form').find('input[type=text]').val('');
                 $('.js-data-ajax-ref').val(null).trigger('change');
                 var line = `<tr>
-                        <td>` + designation + `</td>
-                        <td>` + valeur + `</td>
-                        <td>` + commentaire + `</td>
+                        <td>` + libelle + `</td>
+                        <td>` + reference + `</td>
+                        <td>` + quantite + `</td>
                         <td>` + emplacement + `</td>
-                        <td>
-                            <div class="form-inline">
-                                <input class="form-control" type="number" value="0">
-                                <span class="fa fa-times"></span>
-                            </div>
-                        </td>
-                        <td class="hidden">` + getEmplacementsId() + `</td>
-                        <td class="hidden">` + resp + `</td>
-                        </tr>`;
+                        <td><span class="fa fa-times"></span></td>
+                        <td class="hidden">` + '' + `</td>
+                        <td class="hidden">` + '' + `</td>
+                    </tr>`;
                 $('#list-table tbody').append(line);
             }
         });
@@ -557,14 +635,13 @@
         return text;
     }
 
-    function ajaxAddOrder(data, ordre, toggle) {
+    function ajaxAddOrder(data, toggle) {
         $.ajax({
-            url: "{{ path('ordre_add') }}",
+            url: "{{ path('ordre_reception_add') }}",
             type: "POST",
             dataType: "json",
             data: {
                 "toggle": toggle,
-                "ordre": ordre,
                 "data": data
             },
             success: function (resp) {

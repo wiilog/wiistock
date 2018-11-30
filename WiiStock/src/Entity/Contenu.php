@@ -36,6 +36,11 @@ class Contenu
      */
     private $preparation;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Articles", inversedBy="contenu")
+     */
+    private $articles;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -85,6 +90,18 @@ class Contenu
     public function setPreparation(?Preparations $preparation): self
     {
         $this->preparation = $preparation;
+
+        return $this;
+    }
+
+    public function getArticles(): ?Articles
+    {
+        return $this->articles;
+    }
+
+    public function setArticles(?Articles $articles): self
+    {
+        $this->articles = $articles;
 
         return $this;
     }

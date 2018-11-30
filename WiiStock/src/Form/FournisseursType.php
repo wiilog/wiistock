@@ -7,17 +7,20 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\TelType;
-
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 
 class FournisseursType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
-            ->add('nom')
-            ->add('adresse')
-            ->add('tel', TelType::class)
-        ;
+            ->add('nom', TextType::class, array(
+                'label' => 'Nom',
+            ))
+            ->add('code_reference', TextType::class, array(
+                'label' => 'Code référence',
+            ))
+            ;
     }
 
     public function configureOptions(OptionsResolver $resolver)

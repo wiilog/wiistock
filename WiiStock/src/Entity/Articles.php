@@ -28,7 +28,6 @@ class Articles
      */
     private $emplacement;
 
-   
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\ReferencesArticles")
      */
@@ -54,11 +53,27 @@ class Articles
      */
     private $quai;
 
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $reference_CEA;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $libelle_CEA;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Contenu", mappedBy="articles")
+     */
+    private $contenu;
+
     public function __construct()
     {
         $this->entrees = new ArrayCollection();
         $this->sorties = new ArrayCollection();
         $this->transferts = new ArrayCollection();
+        $this->contenu = new ArrayCollection();
     }
 
     public function getId()
@@ -147,6 +162,61 @@ class Articles
     public function setQuai(?Quais $quai): self
     {
         $this->quai = $quai;
+
+        return $this;
+    }
+
+    public function getReferenceCEA(): ?string
+    {
+        return $this->reference_CEA;
+    }
+
+    public function setReferenceCEA(?string $reference_CEA): self
+    {
+        $this->reference_CEA = $reference_CEA;
+
+        return $this;
+    }
+
+    public function getLibelleCEA(): ?string
+    {
+        return $this->libelle_CEA;
+    }
+
+    public function setLibelleCEA(?string $libelle_CEA): self
+    {
+        $this->libelle_CEA = $libelle_CEA;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Contenu[]
+     */
+    public function getContenu(): Collection
+    {
+        return $this->contenu;
+    }
+
+    public function addContenu(Contenu $contenu): self
+    {
+        if (!$this->contenu->contains($contenu)) {
+            $this->contenu[] = $contenu;
+            $contenu->setArticles($this);
+        }
+
+        return $this;
+    }
+
+    public function removeContenu(Contenu $contenu): self
+    {
+        if ($this->contenu->contains($contenu)) {
+            $this->contenu->removeElement($contenu);
+            // set the owning side to null (unless already changed)
+            if ($contenu->getArticles() === $this) {
+                $contenu->setArticles(null);
+            }
+        }
 
         return $this;
     }

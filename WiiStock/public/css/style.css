@@ -553,13 +553,13 @@ table .fa:hover {
 }
 
 .out {
-	margin: 15px -15px;
-	padding: 5px 15px 70px 15px;
+	margin: 15px -30px;
+	padding: 5px 30px 70px 30px;
 	background-color: #DDDDDD;
 	position: relative;	
 }
 
-.out .hr {
+.manuel .hr {
 	transform: translate(-50%, 10%);
 }
 
@@ -577,6 +577,7 @@ table .fa:hover {
 }
 
 .manuel .h2 {
+	margin-top: 10px;
 	display: inline-grid;
 	font-size: 22px;
 	border-bottom: #ffbc02 solid 1px;

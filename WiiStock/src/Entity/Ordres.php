@@ -54,23 +54,11 @@ class Ordres
      */
     private $preparations;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Sorties", mappedBy="ordres")
-     */
-    private $sorties;
-
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Entrees", mappedBy="ordres")
-     */
-    private $entrees;
-
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
         $this->transferts = new ArrayCollection();
         $this->preparations = new ArrayCollection();
-        $this->sorties = new ArrayCollection();
-        $this->entrees = new ArrayCollection();
     }
 
     public function getId()
@@ -213,68 +201,6 @@ class Ordres
             // set the owning side to null (unless already changed)
             if ($preparation->getOrdres() === $this) {
                 $preparation->setOrdres(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|Sorties[]
-     */
-    public function getSorties(): Collection
-    {
-        return $this->sorties;
-    }
-
-    public function addSorty(Sorties $sorty): self
-    {
-        if (!$this->sorties->contains($sorty)) {
-            $this->sorties[] = $sorty;
-            $sorty->setOrdres($this);
-        }
-
-        return $this;
-    }
-
-    public function removeSorty(Sorties $sorty): self
-    {
-        if ($this->sorties->contains($sorty)) {
-            $this->sorties->removeElement($sorty);
-            // set the owning side to null (unless already changed)
-            if ($sorty->getOrdres() === $this) {
-                $sorty->setOrdres(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|Entrees[]
-     */
-    public function getEntrees(): Collection
-    {
-        return $this->entrees;
-    }
-
-    public function addEntree(Entrees $entree): self
-    {
-        if (!$this->entrees->contains($entree)) {
-            $this->entrees[] = $entree;
-            $entree->setOrdres($this);
-        }
-
-        return $this;
-    }
-
-    public function removeEntree(Entrees $entree): self
-    {
-        if ($this->entrees->contains($entree)) {
-            $this->entrees->removeElement($entree);
-            // set the owning side to null (unless already changed)
-            if ($entree->getOrdres() === $this) {
-                $entree->setOrdres(null);
             }
         }
 

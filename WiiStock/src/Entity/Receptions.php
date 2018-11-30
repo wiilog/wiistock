@@ -44,23 +44,53 @@ class Receptions
     private $fournisseur;
 
     /**
-     * @ORM\Column(type="datetime", nullable=true)
-     */
-    private $date_reception;
-
-    /**
      * @ORM\OneToMany(targetEntity="App\Entity\Contenu", mappedBy="reception")
      */
-    private $transfert;
+    private $contenu;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Historiques", mappedBy="reception")
      */
     private $historiques;
 
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $commentaire;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $reference_SAP;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $nom_CEA;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $prenom_CEA;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $mail_CEA;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $code_ref_transporteur;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $nom_transporteur;
+
     public function __construct()
     {
-        $this->transfert = new ArrayCollection();
+        $this->contenu = new ArrayCollection();
         $this->historiques = new ArrayCollection();
     }
 
@@ -117,26 +147,14 @@ class Receptions
         return $this;
     }
 
-    public function getFournisseurs(): ?Fournisseurs
+    public function getFournisseur(): ?Fournisseurs
     {
         return $this->fournisseur;
     }
 
-    public function setFournisseurs(?Fournisseurs $fournisseur): self
+    public function setFournisseur(?Fournisseurs $fournisseur): self
     {
         $this->fournisseur = $fournisseur;
-
-        return $this;
-    }
-
-    public function getDateReception(): ?\DateTimeInterface
-    {
-        return $this->date_reception;
-    }
-
-    public function setDateReception(?\DateTimeInterface $date_reception): self
-    {
-        $this->date_reception = $date_reception;
 
         return $this;
     }
@@ -144,28 +162,28 @@ class Receptions
     /**
      * @return Collection|Contenu[]
      */
-    public function getTransfert(): Collection
+    public function getContenu(): Collection
     {
-        return $this->transfert;
+        return $this->contenu;
     }
 
-    public function addTransfert(Contenu $transfert): self
+    public function addContenu(Contenu $contenu): self
     {
-        if (!$this->transfert->contains($transfert)) {
-            $this->transfert[] = $transfert;
-            $transfert->setReception($this);
+        if (!$this->contenu->contains($contenu)) {
+            $this->contenu[] = $contenu;
+            $contenu->setReception($this);
         }
 
         return $this;
     }
 
-    public function removeTransfert(Contenu $transfert): self
+    public function removeContenu(Contenu $contenu): self
     {
-        if ($this->transfert->contains($transfert)) {
-            $this->transfert->removeElement($transfert);
+        if ($this->contenu->contains($contenu)) {
+            $this->contenu->removeElement($contenu);
             // set the owning side to null (unless already changed)
-            if ($transfert->getReception() === $this) {
-                $transfert->setReception(null);
+            if ($contenu->getReception() === $this) {
+                $contenu->setReception(null);
             }
         }
 
@@ -199,6 +217,90 @@ class Receptions
                 $historique->setReception(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getCommentaire(): ?string
+    {
+        return $this->commentaire;
+    }
+
+    public function setCommentaire(?string $commentaire): self
+    {
+        $this->commentaire = $commentaire;
+
+        return $this;
+    }
+
+    public function getReferenceSAP(): ?string
+    {
+        return $this->reference_SAP;
+    }
+
+    public function setReferenceSAP(?string $reference_SAP): self
+    {
+        $this->reference_SAP = $reference_SAP;
+
+        return $this;
+    }
+
+    public function getNomCEA(): ?string
+    {
+        return $this->nom_CEA;
+    }
+
+    public function setNomCEA(?string $nom_CEA): self
+    {
+        $this->nom_CEA = $nom_CEA;
+
+        return $this;
+    }
+
+    public function getPrenomCEA(): ?string
+    {
+        return $this->prenom_CEA;
+    }
+
+    public function setPrenomCEA(?string $prenom_CEA): self
+    {
+        $this->prenom_CEA = $prenom_CEA;
+
+        return $this;
+    }
+
+    public function getMailCEA(): ?string
+    {
+        return $this->mail_CEA;
+    }
+
+    public function setMailCEA(?string $mail_CEA): self
+    {
+        $this->mail_CEA = $mail_CEA;
+
+        return $this;
+    }
+
+    public function getCodeRefTransporteur(): ?string
+    {
+        return $this->code_ref_transporteur;
+    }
+
+    public function setCodeRefTransporteur(?string $code_ref_transporteur): self
+    {
+        $this->code_ref_transporteur = $code_ref_transporteur;
+
+        return $this;
+    }
+
+    public function getNomTransporteur(): ?string
+    {
+        return $this->nom_transporteur;
+    }
+
+    public function setNomTransporteur(?string $nom_transporteur): self
+    {
+        $this->nom_transporteur = $nom_transporteur;
 
         return $this;
     }

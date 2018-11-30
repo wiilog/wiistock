@@ -49,11 +49,6 @@ class Preparations
     private $ordres;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Sorties", mappedBy="preparation")
-     */
-    private $sorties;
-
-    /**
      * @ORM\OneToMany(targetEntity="App\Entity\Historiques", mappedBy="preparation")
      */
     private $historiques;
@@ -66,7 +61,6 @@ class Preparations
     public function __construct()
     {
         $this->articles = new ArrayCollection();
-        $this->sorties = new ArrayCollection();
         $this->historiques = new ArrayCollection();
         $this->contenus = new ArrayCollection();
     }
@@ -144,37 +138,6 @@ class Preparations
     public function setOrdres(?Ordres $ordres): self
     {
         $this->ordres = $ordres;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|Sorties[]
-     */
-    public function getSorties(): Collection
-    {
-        return $this->sorties;
-    }
-
-    public function addSorty(Sorties $sorty): self
-    {
-        if (!$this->sorties->contains($sorty)) {
-            $this->sorties[] = $sorty;
-            $sorty->setPreparation($this);
-        }
-
-        return $this;
-    }
-
-    public function removeSorty(Sorties $sorty): self
-    {
-        if ($this->sorties->contains($sorty)) {
-            $this->sorties->removeElement($sorty);
-            // set the owning side to null (unless already changed)
-            if ($sorty->getPreparation() === $this) {
-                $sorty->setPreparation(null);
-            }
-        }
 
         return $this;
     }

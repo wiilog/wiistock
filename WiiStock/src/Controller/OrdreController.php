@@ -14,8 +14,11 @@ use App\Entity\Historiques;
 use App\Entity\CommandesFournisseurs;
 use App\Entity\CommandesClients;
 use App\Entity\Entrepots;
+use App\Entity\Fournisseurs;
 use App\Entity\Zones;
 
+use App\Form\ReceptionsType;
+use App\Form\FournisseursType;
 use App\Form\ReferencesArticlesType;
 use App\Form\ArticlesType;
 
@@ -195,11 +198,15 @@ class OrdreController extends Controller
      */
     public function reception()
     {
+        $form_rec = $this->createForm(ReceptionsType::class, new Receptions());
+        $form_fou = $this->createForm(FournisseursType::class, new Fournisseurs());
         $form_ref = $this->createForm(ReferencesArticlesType::class, new ReferencesArticles());
         $form_art = $this->createForm(ArticlesType::class, new Articles());
 
         return $this->render('ordre/ordre_reception.html.twig', [
             'controller_name' => 'OrdreController',
+            'form_rec' => $form_rec->createView(),
+            'form_fou' => $form_fou->createView(),
             'form_ref' => $form_ref->createView(),
             'form_art' => $form_art->createView(),
             'emplacements' => $this->getEmplacements(),
@@ -250,105 +257,87 @@ class OrdreController extends Controller
     }
 
     /**
-     * @Route("/add", name="ordre_add", methods="GET|POST")
+     * @Route("/add/reception", name="ordre_reception_add", methods="GET|POST")
      */
-    public function add(Request $request) : Response
+    public function manualReception(Request $request) : Response
     {
+        $data = $request->request->get('data');
+
         if ($request->isXmlHttpRequest()) {
+            $em = $this->getDoctrine()->getManager();
 
             $ordre = new Ordres();
             $ordre->setStatut('En attente');
-            $ordre->setType($request->request->get('ordre'));
+            $ordre->setType('reception');
             $ordre->setDateOrdre(new \DateTime());
             $ordre->setAuteur($this->getUser());
-
-            $em = $this->getDoctrine()->getManager();
             $em->persist($ordre);
             $em->flush();
 
-            $response = 0;
+            $historique = new Historiques();
+            $historique->setDateDebut(new \DateTime());
+            $historique->setTypeMouvement('reception');
+            $em->persist($historique);
+            $em->flush();
 
-            if (strcmp($request->request->get('toggle'), "false") == 0) {
-                $file = $request->files->get('file');
-                $csv = file_get_contents($file);
-                $array = array_map("str_getcsv", explode("\n", $csv));
-                switch ($request->request->get('ordre')) {
-                    case "preparation":
-                        $data = $this->sortAffaire($array);
-                        foreach ($data as $key => $value) {
-                            $response = $this->preparation($ordre, $data[$key]);
-                        }
-                        break;
-                    case "reception":
-                        $data = $this->sortAffaire($array);
-                        foreach ($data as $key => $value) {
-                            $response = $this->reception($ordre, $data[$key]);
-                        }
-                        break;
-                    case "transfert":
-                        $this->transfert();
-                        break;
-                };
-            } else {
-                $data = $request->request->get('data');
-                switch ($request->request->get('ordre')) {
-                    case "preparation":
-                        $this->manualPreparation($ordre, $data);
-                        break;
-                    case "reception":
-                        $this->manualReception($ordre, $data);
-                        break;
-                    case "transfert":
-                        $this->manualTransfert($ordre, $data);
-                        break;
+            for ($i = 0; $i < count($data); $i++) {
+                if ($i == 0) {
+                    $reception = new Receptions();
+                    $reception->setStatut('En cours');
+                    $reception->setHistorique($historique);
+                    $reception->setDateAuPlusTot($data[$i]["date_au_plus_tot"]);
+                    $reception->setDateAuPlusTard($data[$i]["date_au_plus_tard"]);
+                    $reception->setDatePrevue($data[$i]["date_prevue"]);
+                    $reception->setCommentaire($data[$i]["commentaire"]);
+                    $reception->setNomCEA($data[$i]["nom_CEA"]);
+                    $reception->setPrenomCEA($data[$i]["prenom_CEA"]);
+                    $reception->setMailCEA($data[$i]["mail_CEA"]);
+                    $reception->setCodeRefTransporteur($data[$i]["code_ref_transporteur"]);
+                    $reception->setNomTransporteur($data[$i]["nom_transporteur"]);
+                    if ($data[$i]["fournisseur"] != "") {
+                        $reception->setFournisseur($this->getDoctrine()->getRepository(Fournisseurs::class)->findOneBy(['id' => $data[$i]["fournisseur"]]));
+                    } else {
+                        $fournisseur = new Fournisseurs();
+                        $fournisseur->setNom($data[$i]["fournisseur_nom"]);
+                        $fournisseur->setCodeReference($data[$i]["fournisseur_code_reference"]);
+                        $em->persist($fournisseur);
+                        $em->flush();
+                        $reception->setFournisseur($fournisseur);
+                    }
+                    $em->persist($reception);
+                    $em->flush();
+                } else {
+                    $contenu = new Contenu();
+                    $contenu->setQuantite($data[$i]["quantite"]);
+                    $contenu->setReception($reception);
+                    $em->persist($contenu);
+                    $em->flush();
+
+                    $article = new Articles();
+                    $article->setStatut('En attente');
+                    $article->setEtat('Non défini');
+                    $article->setReference($this->getDoctrine()->getRepository(ReferencesArticles::class)->findOneBy(['id' => $data[$i]["ref"]]));
+                    $article->setLibelleCEA($data[$i]["libelle"]);
+                    $article->setReferenceCEA($data[$i]["reference"]);
+                    $article->setQuantite(0);
+                    $l_empl = explode(' ', $data[$i]["emplacement"]);
+                    if ($l_empl[1] == "true") {
+                        $article->setZone($this->getDoctrine()->getRepository(Zones::class)->findOneBy(['id' => $l_empl[2]]));
+                    } else {
+                        $article->setEmplacement($this->getDoctrine()->getRepository(Emplacements::class)->findOneBy(['id' => $l_empl[5]]));
+                    }
+                    $em->persist($article);
+                    $em->flush();
+                    $contenu->addArticle($article);
                 }
-                return new JsonResponse($response);
             }
-            throw new NotFoundHttpException('404 not found');
+
+            $ordre->addReception($reception);
+            $em->flush();
+
+            return new JsonResponse($response);
         }
-    }
-
-    private function manualReception($ordre, $data)
-    {
-        // $em = $this->getDoctrine()->getManager();
-
-        // $historique = new Historiques();
-        // $historique->setDateDebut(new \DateTime());
-        // $historique->setTypeMouvement('entree');
-        // $em->persist($historique);
-        // $em->flush();
-
-        // $reception = new Receptions();
-        // $reception->setStatut('En cours');
-        // $reception->setHistorique($historique);
-        // $em->persist($reception);
-        // $em->flush();
-
-        // for ($i = 0; $i < count($data); $i++) {
-        //     $article = new Articles();
-        //     $article->setStatut('En attente');
-        //     $article->setEtat('Non défini');
-        //     $article->setReference($this->getDoctrine()->getRepository(ReferencesArticles::class)->findOneBy(['id' => $data[$i]["ref"]]));
-        //     $article->setDesignation($data[$i]["designation"]);
-        //     $article->setCommentaire($data[$i]["commentaire"]);
-        //     $article->setQuantite($data[$i]["quantite"]);
-        //     $article->setValeur($data[$i]["valeur"]);
-        //     $l_empl = explode(' ', $data[$i]["emplacement"]);
-        //     if ($l_empl[1] == "true") {
-        //         $article->setZone($this->getDoctrine()->getRepository(Zones::class)->findOneBy(['id' => $l_empl[2]]));
-        //     } else {
-        //         $article->setEmplacement($this->getDoctrine()->getRepository(Emplacements::class)->findOneBy(['id' => $l_empl[5]]));
-        //     }
-        //     $em->persist($article);
-        //     $em->flush();
-        //     $reception->addArticle($article);
-        // }
-
-        // $em->persist($reception);
-        // $em->flush();
-
-        // $ordre->addReception($reception);
-        // $em->flush();
+        throw new NotFoundHttpException('404 not found');
     }
 
     private function manualPreparation($ordre, $data)
@@ -428,6 +417,15 @@ class OrdreController extends Controller
 
     private function importPreparation(Ordres $ordre, $data)
     {
+        $file = $request->files->get('file');
+        $csv = file_get_contents($file);
+        $array = array_map("str_getcsv", explode("\n", $csv));
+
+        $data = $this->sortAffaire($array);
+        foreach ($data as $key => $value) {
+            $response = $this->preparation($ordre, $data[$key]);
+        }
+
         // $em = $this->getDoctrine()->getManager();
         // list($date_comptabilisation, $n_document, $libelle, $code_magasin, $consigne_entree, $emplacement, $consigne_sortie, $n, $designation, $n_affaire, $code_tache, $quantite, $n_commande) = explode(";", $data[0]);
 
@@ -467,6 +465,9 @@ class OrdreController extends Controller
         // $em->flush();
     }
 
+    /**
+     * @Route("/import/reception", name="ordre_import_reception", methods="GET|POST")
+     */
     private function importReception(Ordres $ordre, $data)
     {
         // $em = $this->getDoctrine()->getManager();

@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -25,16 +27,6 @@ class Fournisseurs
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $nom;
-
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
-    private $adresse;
-
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
-    private $tel;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Receptions", mappedBy="fournisseur")
@@ -71,30 +63,6 @@ class Fournisseurs
     public function setNom(? string $nom) : self
     {
         $this->nom = $nom;
-
-        return $this;
-    }
-
-    public function getAdresse() : ? string
-    {
-        return $this->adresse;
-    }
-
-    public function setAdresse(? string $adresse) : self
-    {
-        $this->adresse = $adresse;
-
-        return $this;
-    }
-
-    public function getTel() : ? string
-    {
-        return $this->tel;
-    }
-
-    public function setTel(? string $tel) : self
-    {
-        $this->tel = $tel;
 
         return $this;
     }

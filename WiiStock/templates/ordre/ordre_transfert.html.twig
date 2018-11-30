@@ -496,59 +496,19 @@
         var data = $('.js-data-ajax-article').select2('data')
         $('.js-data-ajax-article').val(null).trigger('change');
         var line = `<tr>
-                        <td>` + data[0].designation + `</td>
-                        <td>` + data[0].valeur + `</td>
-                        <td>` + data[0].commentaire + `</td>
-                        <td>` + data[0].emplacement + `</td>
+                        <td>` + data[0].libelle + `</td>
+                        <td>` + data[0].reference + `</td>
                         <td>
                             <div class="form-inline">
-                                <input class="form-control" type="number" value="0">
+                                <input class="form-control" type="number" value="` + data[0].emplacement + `">
                                 <span class="fa fa-times"></span>
                             </div>
                         </td>
+                        <td>` + data[0].emplacement + `</td>
                         <td class="hidden">` + '' + `</td>
                         <td class="hidden">` + '' + `</td>
                     </tr>`;
         $('#list-table tbody').append(line);
-    }
-
-    function ajaxAddArticleOut() {
-        var libelle = $("#references_articles_libelle").val();
-        var reference = $("#references_articles_reference").val();
-        var ref = $(".js-data-ajax-ref").val();
-        var emplacement = getEmplacementsName();
-        var designation = $("#articles_designation").val();
-        var valeur = $("#articles_valeur").val();
-        var commentaire = $("#articles_commentaire").val();
-        $.ajax({
-            url: "{{ path('references_articles_add') }}",
-            type: "POST",
-            dataType: "json",
-            data: {
-                "libelle": libelle,
-                "reference": reference,
-                "ref": ref
-            },
-            success: function (resp) {
-                $('form').find('input[type=text]').val('');
-                $('.js-data-ajax-ref').val(null).trigger('change');
-                var line = `<tr>
-                        <td>` + designation + `</td>
-                        <td>` + valeur + `</td>
-                        <td>` + commentaire + `</td>
-                        <td>` + emplacement + `</td>
-                        <td>
-                            <div class="form-inline">
-                                <input class="form-control" type="number" value="0">
-                                <span class="fa fa-times"></span>
-                            </div>
-                        </td>
-                        <td class="hidden">` + getEmplacementsId() + `</td>
-                        <td class="hidden">` + resp + `</td>
-                        </tr>`;
-                $('#list-table tbody').append(line);
-            }
-        });
     }
 
     function getEmplacementsName() {

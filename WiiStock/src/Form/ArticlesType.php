@@ -8,6 +8,8 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\Extension\Core\Type\MoneyType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 
 class ArticlesType extends AbstractType
 {
@@ -15,10 +17,18 @@ class ArticlesType extends AbstractType
     {
         $builder
             ->add('etat')
+            ->add('reference_CEA', TextType::class, array(
+				'label' => 'Référence CEA',
+			))
+            ->add('libelle_CEA', TextType::class, array(
+				'label' => 'Libellé CEA',
+			))
+            ->add('quantite', IntegerType::class, array(
+				'label' => 'Quantité',
+			))
             // ->add('valeur', MoneyType::class, array(
             //     'divisor' => 100,
             // ))
-            // ->add('commentaire')
             ->add('emplacement', EntityType::class, array(
                 'class' => 'App\Entity\Emplacements',
                 'choice_label' => 'nom',
