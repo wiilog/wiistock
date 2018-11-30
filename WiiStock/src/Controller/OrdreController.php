@@ -152,10 +152,6 @@ class OrdreController extends Controller
                 }
                 $row = [
                     "libelle" => $article->getLibelle(),
-                    "numero" => $article->getN(),
-                    "designation" => $article->getDesignation(),
-                    "tache" => $article->getCodeTache(),
-                    "document" => $article->getNDocument(),
                     "quantite" => $article->getQuantite(),
                     $init = [
                         "emplacement" => $emplacement,
@@ -314,75 +310,75 @@ class OrdreController extends Controller
 
     private function manualReception($ordre, $data)
     {
-        $em = $this->getDoctrine()->getManager();
+        // $em = $this->getDoctrine()->getManager();
 
-        $historique = new Historiques();
-        $historique->setDateDebut(new \DateTime());
-        $historique->setTypeMouvement('entree');
-        $em->persist($historique);
-        $em->flush();
+        // $historique = new Historiques();
+        // $historique->setDateDebut(new \DateTime());
+        // $historique->setTypeMouvement('entree');
+        // $em->persist($historique);
+        // $em->flush();
 
-        $reception = new Receptions();
-        $reception->setStatut('En cours');
-        $reception->setHistorique($historique);
-        $em->persist($reception);
-        $em->flush();
+        // $reception = new Receptions();
+        // $reception->setStatut('En cours');
+        // $reception->setHistorique($historique);
+        // $em->persist($reception);
+        // $em->flush();
 
-        for ($i = 0; $i < count($data); $i++) {
-            $article = new Articles();
-            $article->setStatut('En attente');
-            $article->setEtat('Non défini');
-            $article->setReference($this->getDoctrine()->getRepository(ReferencesArticles::class)->findOneBy(['id' => $data[$i]["ref"]]));
-            $article->setDesignation($data[$i]["designation"]);
-            $article->setCommentaire($data[$i]["commentaire"]);
-            $article->setQuantite($data[$i]["quantite"]);
-            $article->setValeur($data[$i]["valeur"]);
-            $l_empl = explode(' ', $data[$i]["emplacement"]);
-            if ($l_empl[1] == "true") {
-                $article->setZone($this->getDoctrine()->getRepository(Zones::class)->findOneBy(['id' => $l_empl[2]]));
-            } else {
-                $article->setEmplacement($this->getDoctrine()->getRepository(Emplacements::class)->findOneBy(['id' => $l_empl[5]]));
-            }
-            $em->persist($article);
-            $em->flush();
-            $reception->addArticle($article);
-        }
+        // for ($i = 0; $i < count($data); $i++) {
+        //     $article = new Articles();
+        //     $article->setStatut('En attente');
+        //     $article->setEtat('Non défini');
+        //     $article->setReference($this->getDoctrine()->getRepository(ReferencesArticles::class)->findOneBy(['id' => $data[$i]["ref"]]));
+        //     $article->setDesignation($data[$i]["designation"]);
+        //     $article->setCommentaire($data[$i]["commentaire"]);
+        //     $article->setQuantite($data[$i]["quantite"]);
+        //     $article->setValeur($data[$i]["valeur"]);
+        //     $l_empl = explode(' ', $data[$i]["emplacement"]);
+        //     if ($l_empl[1] == "true") {
+        //         $article->setZone($this->getDoctrine()->getRepository(Zones::class)->findOneBy(['id' => $l_empl[2]]));
+        //     } else {
+        //         $article->setEmplacement($this->getDoctrine()->getRepository(Emplacements::class)->findOneBy(['id' => $l_empl[5]]));
+        //     }
+        //     $em->persist($article);
+        //     $em->flush();
+        //     $reception->addArticle($article);
+        // }
 
-        $em->persist($reception);
-        $em->flush();
+        // $em->persist($reception);
+        // $em->flush();
 
-        $ordre->addReception($reception);
-        $em->flush();
+        // $ordre->addReception($reception);
+        // $em->flush();
     }
 
     private function manualPreparation($ordre, $data)
     {
-        $em = $this->getDoctrine()->getManager();
+        // $em = $this->getDoctrine()->getManager();
 
-        $historique = new Historiques();
-        $historique->setDateDebut(new \DateTime());
-        $historique->setTypeMouvement('sortie');
-        $em->persist($historique);
-        $em->flush();
+        // $historique = new Historiques();
+        // $historique->setDateDebut(new \DateTime());
+        // $historique->setTypeMouvement('sortie');
+        // $em->persist($historique);
+        // $em->flush();
 
-        $sortie = new Sortie();
-        $sortie->setStatut('En cours');
-        $sortie->setHistorique($historique);
-        $em->persist($sortie);
-        $em->flush();
+        // $sortie = new Sortie();
+        // $sortie->setStatut('En cours');
+        // $sortie->setHistorique($historique);
+        // $em->persist($sortie);
+        // $em->flush();
 
-        for ($i = 0; $i < count($data); $i++) {
-            $article = $this->getDoctrine()->getRepository(Articles::class)->findOneBy(['id' => $data[$i]["id"]]);
-            $article->setStatut('En attente');
-            $em->flush();
-            $sortie->addArticle($article);
-        }
+        // for ($i = 0; $i < count($data); $i++) {
+        //     $article = $this->getDoctrine()->getRepository(Articles::class)->findOneBy(['id' => $data[$i]["id"]]);
+        //     $article->setStatut('En attente');
+        //     $em->flush();
+        //     $sortie->addArticle($article);
+        // }
 
-        $em->persist($sortie);
-        $em->flush();
+        // $em->persist($sortie);
+        // $em->flush();
 
-        $ordre->addSortie($sortie);
-        $em->flush();
+        // $ordre->addSortie($sortie);
+        // $em->flush();
     }
 
     private function isSameCommande($array, $num)
@@ -432,96 +428,96 @@ class OrdreController extends Controller
 
     private function importPreparation(Ordres $ordre, $data)
     {
-        $em = $this->getDoctrine()->getManager();
-        list($date_comptabilisation, $n_document, $libelle, $code_magasin, $consigne_entree, $emplacement, $consigne_sortie, $n, $designation, $n_affaire, $code_tache, $quantite, $n_commande) = explode(";", $data[0]);
+        // $em = $this->getDoctrine()->getManager();
+        // list($date_comptabilisation, $n_document, $libelle, $code_magasin, $consigne_entree, $emplacement, $consigne_sortie, $n, $designation, $n_affaire, $code_tache, $quantite, $n_commande) = explode(";", $data[0]);
 
-        $historique = new Historiques();
-        $historique->setDateDebut(new \DateTime());
-        $historique->setTypeMouvement('preparation');
-        $em->persist($historique);
-        $em->flush();
+        // $historique = new Historiques();
+        // $historique->setDateDebut(new \DateTime());
+        // $historique->setTypeMouvement('preparation');
+        // $em->persist($historique);
+        // $em->flush();
 
-        $commande_client = new CommandesClients();
-        $commande_client->setDateCommande(new \DateTime());
-        $commande_client->setNCommande($n_commande);
-        $commande_client->setNAffaire($n_affaire);
-        $em->persist($commande_client);
-        $em->flush();
+        // $commande_client = new CommandesClients();
+        // $commande_client->setDateCommande(new \DateTime());
+        // $commande_client->setNCommande($n_commande);
+        // $commande_client->setNAffaire($n_affaire);
+        // $em->persist($commande_client);
+        // $em->flush();
 
-        $preparation = new Preparations();
-        $preparation->setStatut('En cours');
-        $preparation->setCommandeClient($commande_client);
-        $preparation->setHistorique($historique);
-        $em->persist($preparation);
-        $em->flush();
+        // $preparation = new Preparations();
+        // $preparation->setStatut('En cours');
+        // $preparation->setCommandeClient($commande_client);
+        // $preparation->setHistorique($historique);
+        // $em->persist($preparation);
+        // $em->flush();
 
-        $i = 0;
-        while ($i < count($data)) {
-            list($date_comptabilisation, $n_document, $libelle, $code_magasin, $consigne_entree, $emplacement, $consigne_sortie, $n, $designation, $n_affaire, $code_tache, $quantite, $n_commande) = explode(";", $data[0]);
-            $article = $this->getDoctrine()->getRepository(Articles::class)->findOneBy(['n' => $n]);
-            if ($preparation === null) {
-                return 1;
-            }
-            $article->addPreparation($preparation);
-            $em->flush();
-            $i += 1;
-        }
+        // $i = 0;
+        // while ($i < count($data)) {
+        //     list($date_comptabilisation, $n_document, $libelle, $code_magasin, $consigne_entree, $emplacement, $consigne_sortie, $n, $designation, $n_affaire, $code_tache, $quantite, $n_commande) = explode(";", $data[0]);
+        //     $article = $this->getDoctrine()->getRepository(Articles::class)->findOneBy(['n' => $n]);
+        //     if ($preparation === null) {
+        //         return 1;
+        //     }
+        //     $article->addPreparation($preparation);
+        //     $em->flush();
+        //     $i += 1;
+        // }
 
-        $ordre->addPreparation($preparation);
-        $em->flush();
+        // $ordre->addPreparation($preparation);
+        // $em->flush();
     }
 
     private function importReception(Ordres $ordre, $data)
     {
-        $em = $this->getDoctrine()->getManager();
-        list($date_comptabilisation, $n_document, $libelle, $code_magasin, $consigne_entree, $emplacement, $consigne_sortie, $n, $designation, $n_affaire, $code_tache, $quantite, $n_commande) = explode(";", $data[0]);
+        // $em = $this->getDoctrine()->getManager();
+        // list($date_comptabilisation, $n_document, $libelle, $code_magasin, $consigne_entree, $emplacement, $consigne_sortie, $n, $designation, $n_affaire, $code_tache, $quantite, $n_commande) = explode(";", $data[0]);
 
-        $historique = new Historiques();
-        $historique->setDateDebut(new \DateTime());
-        $historique->setTypeMouvement('reception');
-        $em->persist($historique);
-        $em->flush();
+        // $historique = new Historiques();
+        // $historique->setDateDebut(new \DateTime());
+        // $historique->setTypeMouvement('reception');
+        // $em->persist($historique);
+        // $em->flush();
 
-        $commande_fournisseur = new CommandesFournisseurs();
-        $commande_fournisseur->setDateCommande(new \DateTime());
-        $commande_fournisseur->setNCommande($n_commande);
-        $commande_fournisseur->setNAffaire($n_affaire);
-        $em->persist($commande_fournisseur);
-        $em->flush();
+        // $commande_fournisseur = new CommandesFournisseurs();
+        // $commande_fournisseur->setDateCommande(new \DateTime());
+        // $commande_fournisseur->setNCommande($n_commande);
+        // $commande_fournisseur->setNAffaire($n_affaire);
+        // $em->persist($commande_fournisseur);
+        // $em->flush();
 
-        $reception = new Receptions();
-        $reception->setStatut('En cours');
-        $reception->setCommandeFournisseur($commande_fournisseur);
-        $reception->setHistorique($historique);
+        // $reception = new Receptions();
+        // $reception->setStatut('En cours');
+        // $reception->setCommandeFournisseur($commande_fournisseur);
+        // $reception->setHistorique($historique);
 
-        $i = 0;
-        while ($i < count($data)) {
-            list($date_comptabilisation, $n_document, $libelle, $code_magasin, $consigne_entree, $emplacement, $consigne_sortie, $n, $designation, $n_affaire, $code_tache, $quantite, $n_commande) = explode(";", $data[$i]);
-            $article = new Articles();
-            $article->setStatut('En attente');
-            $article->setEtat('Non défini');
-            $article->setDateComptabilisation(date_create_from_format('d/m/Y', $date_comptabilisation));
-            $article->setNDocument($n_document);
-            $article->setLibelle($libelle);
-            $article->setCodeMagasin($code_magasin);
-            $article->setConsigneEntree($consigne_entree);
-            $article->setEmplacementReel($emplacement);
-            $article->setConsigneSortie($consigne_sortie);
-            $article->setN($n);
-            $article->setDesignation($designation);
-            $article->setCodeTache($code_tache);
-            $article->setQuantite($quantite);
-            $em->persist($article);
-            $em->flush();
-            $reception->addArticle($article);
-            $i += 1;
-        }
+        // $i = 0;
+        // while ($i < count($data)) {
+        //     list($date_comptabilisation, $n_document, $libelle, $code_magasin, $consigne_entree, $emplacement, $consigne_sortie, $n, $designation, $n_affaire, $code_tache, $quantite, $n_commande) = explode(";", $data[$i]);
+        //     $article = new Articles();
+        //     $article->setStatut('En attente');
+        //     $article->setEtat('Non défini');
+        //     $article->setDateComptabilisation(date_create_from_format('d/m/Y', $date_comptabilisation));
+        //     $article->setNDocument($n_document);
+        //     $article->setLibelle($libelle);
+        //     $article->setCodeMagasin($code_magasin);
+        //     $article->setConsigneEntree($consigne_entree);
+        //     $article->setEmplacementReel($emplacement);
+        //     $article->setConsigneSortie($consigne_sortie);
+        //     $article->setN($n);
+        //     $article->setDesignation($designation);
+        //     $article->setCodeTache($code_tache);
+        //     $article->setQuantite($quantite);
+        //     $em->persist($article);
+        //     $em->flush();
+        //     $reception->addArticle($article);
+        //     $i += 1;
+        // }
 
-        $em->persist($reception);
-        $em->flush();
+        // $em->persist($reception);
+        // $em->flush();
 
-        $ordre->addReception($reception);
-        $em->flush();
+        // $ordre->addReception($reception);
+        // $em->flush();
     }
 
     private function importTransfert()

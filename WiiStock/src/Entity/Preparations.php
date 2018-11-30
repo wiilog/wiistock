@@ -44,12 +44,6 @@ class Preparations
     private $commande_client;
 
     /**
-     * @ORM\OneToOne(targetEntity="App\Entity\Historiques", cascade={"persist", "remove"})
-     * @ORM\JoinColumn(nullable=false)
-     */
-    private $historique;
-
-    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Ordres", inversedBy="preparations")
      */
     private $ordres;
@@ -60,7 +54,7 @@ class Preparations
     private $sorties;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Historique", mappedBy="preparation")
+     * @ORM\OneToMany(targetEntity="App\Entity\Historiques", mappedBy="preparation")
      */
     private $historiques;
 
@@ -142,18 +136,6 @@ class Preparations
         return $this;
     }
 
-    public function getHistorique(): ?Historiques
-    {
-        return $this->historique;
-    }
-
-    public function setHistorique(?Historiques $historique): self
-    {
-        $this->historique = $historique;
-
-        return $this;
-    }
-
     public function getOrdres(): ?Ordres
     {
         return $this->ordres;
@@ -205,7 +187,7 @@ class Preparations
         return $this->historiques;
     }
 
-    public function addHistorique(Historique $historique): self
+    public function addHistoriques(Historiques $historique): self
     {
         if (!$this->historiques->contains($historique)) {
             $this->historiques[] = $historique;
@@ -215,7 +197,7 @@ class Preparations
         return $this;
     }
 
-    public function removeHistorique(Historique $historique): self
+    public function removeHistoriques(Historiques $historique): self
     {
         if ($this->historiques->contains($historique)) {
             $this->historiques->removeElement($historique);

@@ -11,7 +11,7 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Transferts
 {
-    /**
+/**
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
@@ -19,62 +19,32 @@ class Transferts
     private $id;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $statut;
 
     /**
-     * @ORM\Column(type="integer")
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $quantite;
+    private $emplacement_arrivee;
 
     /**
-     * @ORM\Column(type="datetime", nullable=true)
+     * @ORM\OneToMany(targetEntity="App\Entity\Historiques", mappedBy="transfert")
      */
-    private $date_transfert;
+    private $historiques;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacements")
+     * @ORM\OneToMany(targetEntity="App\Entity\Contenu", mappedBy="transfert")
      */
-    private $emplacement_debut;
-
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacements")
-     */
-    private $emplacement_fin;
-
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Zones")
-     */
-    private $zone_debut;
-
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Zones")
-     */
-    private $zone_fin;
-
-    /**
-     * @ORM\OneToOne(targetEntity="App\Entity\Historiques", cascade={"persist", "remove"})
-     * @ORM\JoinColumn(nullable=false)
-     */
-    private $historique;
-
-    /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Articles", mappedBy="transferts", cascade={"persist"})
-     */
-    private $articles;
-
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Ordres", inversedBy="transferts")
-     */
-    private $ordres;
+    private $contenus;
 
     public function __construct()
     {
-        $this->articles = new ArrayCollection();
+        $this->historiques = new ArrayCollection();
+        $this->contenus = new ArrayCollection();
     }
 
-    public function getId()
+    public function getId(): ?int
     {
         return $this->id;
     }
@@ -84,133 +54,83 @@ class Transferts
         return $this->statut;
     }
 
-    public function setStatut(string $statut): self
+    public function setStatut(?string $statut): self
     {
         $this->statut = $statut;
 
         return $this;
     }
 
-    public function getQuantite(): ?int
+    public function getEmplacementArrivee(): ?string
     {
-        return $this->quantite;
+        return $this->emplacement_arrivee;
     }
 
-    public function setQuantite(int $quantite): self
+    public function setEmplacementArrivee(?string $emplacement_arrivee): self
     {
-        $this->quantite = $quantite;
-
-        return $this;
-    }
-
-    public function getDateTransfert(): ?\DateTimeInterface
-    {
-        return $this->date_transfert;
-    }
-
-    public function setDateTransfert(?\DateTimeInterface $date_transfert): self
-    {
-        $this->date_transfert = $date_transfert;
-
-        return $this;
-    }
-
-    public function getEmplacementDebut(): ?Emplacements
-    {
-        return $this->emplacement_debut;
-    }
-
-    public function setEmplacementDebut(?Emplacements $emplacement_debut): self
-    {
-        $this->emplacement_debut = $emplacement_debut;
-
-        return $this;
-    }
-
-    public function getEmplacementFin(): ?Emplacements
-    {
-        return $this->emplacement_fin;
-    }
-
-    public function setEmplacementFin(?Emplacements $emplacement_fin): self
-    {
-        $this->emplacement_fin = $emplacement_fin;
-
-        return $this;
-    }
-
-    public function getZoneDebut(): ?Zones
-    {
-        return $this->zone_debut;
-    }
-
-    public function setZoneDebut(?Zones $zone_debut): self
-    {
-        $this->zone_debut = $zone_debut;
-
-        return $this;
-    }
-
-    public function getZoneFin(): ?Zones
-    {
-        return $this->zone_fin;
-    }
-
-    public function setZoneFin(?Zones $zone_fin): self
-    {
-        $this->zone_fin = $zone_fin;
-
-        return $this;
-    }
-
-    public function getHistorique(): ?Historiques
-    {
-        return $this->historique;
-    }
-
-    public function setHistorique(Historiques $historique): self
-    {
-        $this->historique = $historique;
+        $this->emplacement_arrivee = $emplacement_arrivee;
 
         return $this;
     }
 
     /**
-     * @return Collection|Articles[]
+     * @return Collection|Historiques[]
      */
-    public function getArticles(): Collection
+    public function getHistoriques(): Collection
     {
-        return $this->articles;
+        return $this->historiques;
     }
 
-    public function addArticle(Articles $article): self
+    public function addHistoriques(Historiques $historique): self
     {
-        if (!$this->articles->contains($article)) {
-            $this->articles[] = $article;
-            $article->addTransfert($this);
+        if (!$this->historiques->contains($historique)) {
+            $this->historiques[] = $historique;
+            $historique->setTransfert($this);
         }
 
         return $this;
     }
 
-    public function removeArticle(Articles $article): self
+    public function removeHistoriques(Historiques $historique): self
     {
-        if ($this->articles->contains($article)) {
-            $this->articles->removeElement($article);
-            $article->removeTransfert($this);
+        if ($this->historiques->contains($historique)) {
+            $this->historiques->removeElement($historique);
+            // set the owning side to null (unless already changed)
+            if ($historique->getTransfert() === $this) {
+                $historique->setTransfert(null);
+            }
         }
 
         return $this;
     }
 
-    public function getOrdres(): ?Ordres
+    /**
+     * @return Collection|Contenu[]
+     */
+    public function getContenus(): Collection
     {
-        return $this->ordres;
+        return $this->contenus;
     }
 
-    public function setOrdres(?Ordres $ordres): self
+    public function addContenus(Contenu $contenus): self
     {
-        $this->ordres = $ordres;
+        if (!$this->contenus->contains($contenus)) {
+            $this->contenus[] = $contenus;
+            $contenus->setTransfert($this);
+        }
+
+        return $this;
+    }
+
+    public function removeContenus(Contenu $contenus): self
+    {
+        if ($this->contenus->contains($contenus)) {
+            $this->contenus->removeElement($contenus);
+            // set the owning side to null (unless already changed)
+            if ($contenus->getTransfert() === $this) {
+                $contenus->setTransfert(null);
+            }
+        }
 
         return $this;
     }

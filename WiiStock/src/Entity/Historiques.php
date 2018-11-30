@@ -17,57 +17,74 @@ class Historiques
     private $id;
 
     /**
-     * @ORM\Column(type="datetime")
-     */
-    private $date_debut;
-
-    /**
      * @ORM\Column(type="datetime", nullable=true)
      */
-    private $date_fin;
+    private $date;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\ManyToOne(targetEntity="App\Entity\Receptions", inversedBy="historiques")
      */
-    private $type_mouvement;
+    private $reception;
 
-    public function getId()
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Transferts", inversedBy="historiques")
+     */
+    private $transfert;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Preparations", inversedBy="historiques")
+     */
+    private $preparation;
+
+    public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getDateDebut(): ?\DateTimeInterface
+    public function getDate(): ?\DateTimeInterface
     {
-        return $this->date_debut;
+        return $this->date;
     }
 
-    public function setDateDebut(\DateTimeInterface $date_debut): self
+    public function setDate(?\DateTimeInterface $date): self
     {
-        $this->date_debut = $date_debut;
+        $this->date = $date;
 
         return $this;
     }
 
-    public function getDateFin(): ?\DateTimeInterface
+    public function getReceptions(): ?Receptions
     {
-        return $this->date_fin;
+        return $this->reception;
     }
 
-    public function setDateFin(?\DateTimeInterface $date_fin): self
+    public function setReceptions(?Receptions $reception): self
     {
-        $this->date_fin = $date_fin;
+        $this->reception = $reception;
 
         return $this;
     }
 
-    public function getTypeMouvement(): ?string
+    public function getTransfert(): ?Transfert
     {
-        return $this->type_mouvement;
+        return $this->transfert;
     }
 
-    public function setTypeMouvement(string $type_mouvement): self
+    public function setTransfert(?Transfert $transfert): self
     {
-        $this->type_mouvement = $type_mouvement;
+        $this->transfert = $transfert;
+
+        return $this;
+    }
+
+    public function getPreparation(): ?Preparations
+    {
+        return $this->preparation;
+    }
+
+    public function setPreparation(?Preparations $preparation): self
+    {
+        $this->preparation = $preparation;
 
         return $this;
     }

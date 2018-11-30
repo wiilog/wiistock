@@ -18,6 +18,10 @@ class Articles
      */
     private $id;
 
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $etat;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Emplacements")
@@ -39,6 +43,16 @@ class Articles
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $photo;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Zones", inversedBy="articles")
+     */
+    private $zone;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Quais", inversedBy="articles")
+     */
+    private $quai;
 
     public function __construct()
     {
@@ -109,6 +123,30 @@ class Articles
     public function setPhoto(?string $photo): self
     {
         $this->photo = $photo;
+
+        return $this;
+    }
+
+    public function getZone(): ?Zones
+    {
+        return $this->zone;
+    }
+
+    public function setZone(?Zones $zone): self
+    {
+        $this->zone = $zone;
+
+        return $this;
+    }
+
+    public function getQuai(): ?Quais
+    {
+        return $this->quai;
+    }
+
+    public function setQuai(?Quais $quai): self
+    {
+        $this->quai = $quai;
 
         return $this;
     }

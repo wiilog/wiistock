@@ -11,7 +11,7 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Receptions
 {
-    /**
+/**
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
@@ -19,14 +19,29 @@ class Receptions
     private $id;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $statut;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Quais")
+     * @ORM\Column(type="datetime", nullable=true)
      */
-    private $quai_reception;
+    private $date_au_plus_tot;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $date_au_plus_tard;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $date_prevue;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Fournisseurs", inversedBy="receptions")
+     */
+    private $fournisseur;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
@@ -34,37 +49,22 @@ class Receptions
     private $date_reception;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Fournisseurs")
+     * @ORM\OneToMany(targetEntity="App\Entity\Contenu", mappedBy="reception")
      */
-    private $fournisseur;
+    private $transfert;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\CommandesFournisseurs")
+     * @ORM\OneToMany(targetEntity="App\Entity\Historiques", mappedBy="reception")
      */
-    private $commande_fournisseur;
-
-    /**
-     * @ORM\OneToOne(targetEntity="App\Entity\Historiques", cascade={"persist", "remove"})
-     * @ORM\JoinColumn(nullable=false)
-     */
-    private $historique;
-
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Ordres", inversedBy="receptions")
-     */
-    private $ordres;
-
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Entrees", mappedBy="reception")
-     */
-    private $entrees;
+    private $historiques;
 
     public function __construct()
     {
-        $this->entrees = new ArrayCollection();
+        $this->transfert = new ArrayCollection();
+        $this->historiques = new ArrayCollection();
     }
 
-    public function getId()
+    public function getId(): ?int
     {
         return $this->id;
     }
@@ -74,21 +74,57 @@ class Receptions
         return $this->statut;
     }
 
-    public function setStatut(string $statut): self
+    public function setStatut(?string $statut): self
     {
         $this->statut = $statut;
 
         return $this;
     }
 
-    public function getQuaiReception(): ?Quais
+    public function getDateAuPlusTot(): ?\DateTimeInterface
     {
-        return $this->quai_reception;
+        return $this->date_au_plus_tot;
     }
 
-    public function setQuaiReception(?Quais $quai_reception): self
+    public function setDateAuPlusTot(?\DateTimeInterface $date_au_plus_tot): self
     {
-        $this->quai_reception = $quai_reception;
+        $this->date_au_plus_tot = $date_au_plus_tot;
+
+        return $this;
+    }
+
+    public function getDateAuPlusTard(): ?\DateTimeInterface
+    {
+        return $this->date_au_plus_tard;
+    }
+
+    public function setDateAuPlusTard(?\DateTimeInterface $date_au_plus_tard): self
+    {
+        $this->date_au_plus_tard = $date_au_plus_tard;
+
+        return $this;
+    }
+
+    public function getDatePrevue(): ?\DateTimeInterface
+    {
+        return $this->date_prevue;
+    }
+
+    public function setDatePrevue(?\DateTimeInterface $date_prevue): self
+    {
+        $this->date_prevue = $date_prevue;
+
+        return $this;
+    }
+
+    public function getFournisseurs(): ?Fournisseurs
+    {
+        return $this->fournisseur;
+    }
+
+    public function setFournisseurs(?Fournisseurs $fournisseur): self
+    {
+        $this->fournisseur = $fournisseur;
 
         return $this;
     }
@@ -105,79 +141,62 @@ class Receptions
         return $this;
     }
 
-    public function getFournisseur(): ?Fournisseurs
-    {
-        return $this->fournisseur;
-    }
-
-    public function setFournisseur(?Fournisseurs $fournisseur): self
-    {
-        $this->fournisseur = $fournisseur;
-
-        return $this;
-    }
-
-    public function getCommandeFournisseur(): ?CommandesFournisseurs
-    {
-        return $this->commande_fournisseur;
-    }
-
-    public function setCommandeFournisseur(?CommandesFournisseurs $commande_fournisseur): self
-    {
-        $this->commande_fournisseur = $commande_fournisseur;
-
-        return $this;
-    }
-
-    public function getHistorique(): ?Historiques
-    {
-        return $this->historique;
-    }
-
-    public function setHistorique(Historiques $historique): self
-    {
-        $this->historique = $historique;
-
-        return $this;
-    }
-
-    public function getOrdres(): ?Ordres
-    {
-        return $this->ordres;
-    }
-
-    public function setOrdres(?Ordres $ordres): self
-    {
-        $this->ordres = $ordres;
-
-        return $this;
-    }
-
     /**
-     * @return Collection|Entrees[]
+     * @return Collection|Contenu[]
      */
-    public function getEntrees(): Collection
+    public function getTransfert(): Collection
     {
-        return $this->entrees;
+        return $this->transfert;
     }
 
-    public function addEntree(Entrees $entree): self
+    public function addTransfert(Contenu $transfert): self
     {
-        if (!$this->entrees->contains($entree)) {
-            $this->entrees[] = $entree;
-            $entree->setReception($this);
+        if (!$this->transfert->contains($transfert)) {
+            $this->transfert[] = $transfert;
+            $transfert->setReception($this);
         }
 
         return $this;
     }
 
-    public function removeEntree(Entrees $entree): self
+    public function removeTransfert(Contenu $transfert): self
     {
-        if ($this->entrees->contains($entree)) {
-            $this->entrees->removeElement($entree);
+        if ($this->transfert->contains($transfert)) {
+            $this->transfert->removeElement($transfert);
             // set the owning side to null (unless already changed)
-            if ($entree->getReception() === $this) {
-                $entree->setReception(null);
+            if ($transfert->getReception() === $this) {
+                $transfert->setReception(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Historiques[]
+     */
+    public function getHistoriques(): Collection
+    {
+        return $this->historiques;
+    }
+
+    public function addHistoriques(Historiques $historique): self
+    {
+        if (!$this->historiques->contains($historique)) {
+            $this->historiques[] = $historique;
+            $historique->setReception($this);
+        }
+
+        return $this;
+    }
+
+    public function removeHistoriques(Historiques $historique): self
+    {
+        if ($this->historiques->contains($historique)) {
+            $this->historiques->removeElement($historique);
+            // set the owning side to null (unless already changed)
+            if ($historique->getReception() === $this) {
+                $historique->setReception(null);
             }
         }
 

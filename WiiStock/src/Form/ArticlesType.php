@@ -15,11 +15,10 @@ class ArticlesType extends AbstractType
     {
         $builder
             ->add('etat')
-            ->add('designation')
-            ->add('valeur', MoneyType::class, array(
-                'divisor' => 100,
-            ))
-            ->add('commentaire')
+            // ->add('valeur', MoneyType::class, array(
+            //     'divisor' => 100,
+            // ))
+            // ->add('commentaire')
             ->add('emplacement', EntityType::class, array(
                 'class' => 'App\Entity\Emplacements',
                 'choice_label' => 'nom',

@@ -22,12 +22,12 @@ class Contenu
     private $quantite;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\reception", inversedBy="transfert")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Receptions", inversedBy="transfert")
      */
     private $reception;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Transfert", inversedBy="contenus")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Transferts", inversedBy="contenus")
      */
     private $transfert;
 
@@ -35,11 +35,6 @@ class Contenu
      * @ORM\ManyToOne(targetEntity="App\Entity\Preparations", inversedBy="contenus")
      */
     private $preparation;
-
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\ZoneQuai", inversedBy="contenus")
-     */
-    private $zone_quai;
 
     public function getId(): ?int
     {
@@ -58,12 +53,12 @@ class Contenu
         return $this;
     }
 
-    public function getReception(): ?reception
+    public function getReceptions(): ?Receptions
     {
         return $this->reception;
     }
 
-    public function setReception(?reception $reception): self
+    public function setReceptions(?Receptions $reception): self
     {
         $this->reception = $reception;
 
@@ -90,18 +85,6 @@ class Contenu
     public function setPreparation(?Preparations $preparation): self
     {
         $this->preparation = $preparation;
-
-        return $this;
-    }
-
-    public function getZoneQuai(): ?ZoneQuai
-    {
-        return $this->zone_quai;
-    }
-
-    public function setZoneQuai(?ZoneQuai $zone_quai): self
-    {
-        $this->zone_quai = $zone_quai;
 
         return $this;
     }
