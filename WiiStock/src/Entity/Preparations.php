@@ -59,10 +59,22 @@ class Preparations
      */
     private $sorties;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Historique", mappedBy="preparation")
+     */
+    private $historiques;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Contenu", mappedBy="preparation")
+     */
+    private $contenus;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
         $this->sorties = new ArrayCollection();
+        $this->historiques = new ArrayCollection();
+        $this->contenus = new ArrayCollection();
     }
 
     public function getId()
@@ -179,6 +191,68 @@ class Preparations
             // set the owning side to null (unless already changed)
             if ($sorty->getPreparation() === $this) {
                 $sorty->setPreparation(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Historique[]
+     */
+    public function getHistoriques(): Collection
+    {
+        return $this->historiques;
+    }
+
+    public function addHistorique(Historique $historique): self
+    {
+        if (!$this->historiques->contains($historique)) {
+            $this->historiques[] = $historique;
+            $historique->setPreparation($this);
+        }
+
+        return $this;
+    }
+
+    public function removeHistorique(Historique $historique): self
+    {
+        if ($this->historiques->contains($historique)) {
+            $this->historiques->removeElement($historique);
+            // set the owning side to null (unless already changed)
+            if ($historique->getPreparation() === $this) {
+                $historique->setPreparation(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Contenu[]
+     */
+    public function getContenus(): Collection
+    {
+        return $this->contenus;
+    }
+
+    public function addContenus(Contenu $contenus): self
+    {
+        if (!$this->contenus->contains($contenus)) {
+            $this->contenus[] = $contenus;
+            $contenus->setPreparation($this);
+        }
+
+        return $this;
+    }
+
+    public function removeContenus(Contenu $contenus): self
+    {
+        if ($this->contenus->contains($contenus)) {
+            $this->contenus->removeElement($contenus);
+            // set the owning side to null (unless already changed)
+            if ($contenus->getPreparation() === $this) {
+                $contenus->setPreparation(null);
             }
         }
 
