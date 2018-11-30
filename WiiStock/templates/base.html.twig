@@ -11,12 +11,14 @@
         <link rel="stylesheet" type="text/css" href="{{ asset('css/reset.css') }}">
         <link rel="stylesheet" type="text/css" href="{{ asset('vendor/bootstrap/css/bootstrap.min.css') }}">
         <link rel="stylesheet" type="text/css" href="{{ asset('css/style.css') }}">
-        <link rel="stylesheet" type="text/css" href="{{ asset('vendor/jquery/jquery.bootgrid.css') }}">
-        <link rel="stylesheet" type="text/css" href="{{ asset('vendor/jquery/bootstrap-datepicker.css') }}">
-        <link rel="stylesheet" type="text/css" href="{{ asset('vendor/jquery/select2.css') }}">
+        <link rel="stylesheet" type="text/css" href="{{ asset('css/jquery.bootgrid.css') }}">
+        <link rel="stylesheet" type="text/css" href="{{ asset('css/bootstrap-datepicker.css') }}">
+        <link rel="stylesheet" type="text/css" href="{{ asset('css/select2.css') }}">
         {% block stylesheets %}{% endblock %}
     </head>
     <body>
+        {% include 'menu.html.twig' %}
+
         <div class="row">
             {# flashbag #}
             {% if app.request.hasPreviousSession %}
@@ -32,13 +34,14 @@
                 {% endfor %}
             {% endif %}
         </div>
+        
         {% block body %}{% endblock %}
         <script src="{{ asset('vendor/jquery/jquery.min.js') }}"></script>
-        <script src="{{ asset('vendor/jquery/select2.full.min.js') }}"></script>
-        <script src="{{ asset('vendor/jquery/bootstrap-datepicker.min.js') }}"></script>
-        <script src="{{ asset('vendor/jquery/bootstrap-datepicker.fr.min.js') }}"></script>
-        <script src="{{ asset('vendor/jquery/jquery.bootgrid.js') }}"></script>
-        <script src="{{ asset('vendor/jquery/Chart.min.js') }}"></script>
+        <script src="{{ asset('js/select2.full.min.js') }}"></script>
+        <script src="{{ asset('js/bootstrap-datepicker.min.js') }}"></script>
+        <script src="{{ asset('js/bootstrap-datepicker.fr.min.js') }}"></script>
+        <script src="{{ asset('js/jquery.bootgrid.js') }}"></script>
+        <script src="{{ asset('js/Chart.min.js') }}"></script>
         <script src="{{ asset('js/script-menu.js') }}"></script>
         <script src="{{ asset('vendor/bootstrap/js/bootstrap.min.js') }}"></script>
         {% block javascripts %}{% endblock %}

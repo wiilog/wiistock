@@ -94,12 +94,12 @@ class SecuriteController extends Controller
 
         $roles = $user->getRoles();
 
-        if ($this->isGranted("ROLE_PARC")) {
-            return $this->redirectToRoute('parc_list');
-        }
-
         if ($this->isGranted("ROLE_STOCK")) {
             return $this->redirectToRoute('accueil');
+        }
+
+        if ($this->isGranted("ROLE_PARC")) {
+            return $this->redirectToRoute('parc_list');
         }
 
         return $this->redirectToRoute('attente_validation');

@@ -194,6 +194,54 @@ class OrdreController extends Controller
         ]);
     }
 
+    /**
+     * @Route("/reception", name="ordre_reception")
+     */
+    public function reception()
+    {
+        $form_ref = $this->createForm(ReferencesArticlesType::class, new ReferencesArticles());
+        $form_art = $this->createForm(ArticlesType::class, new Articles());
+
+        return $this->render('ordre/ordre_reception.html.twig', [
+            'controller_name' => 'OrdreController',
+            'form_ref' => $form_ref->createView(),
+            'form_art' => $form_art->createView(),
+            'emplacements' => $this->getEmplacements(),
+        ]);
+    }
+
+    /**
+     * @Route("/preparation", name="ordre_preparation")
+     */
+    public function preparation()
+    {
+        $form_ref = $this->createForm(ReferencesArticlesType::class, new ReferencesArticles());
+        $form_art = $this->createForm(ArticlesType::class, new Articles());
+
+        return $this->render('ordre/ordre_preparation.html.twig', [
+            'controller_name' => 'OrdreController',
+            'form_ref' => $form_ref->createView(),
+            'form_art' => $form_art->createView(),
+            'emplacements' => $this->getEmplacements(),
+        ]);
+    }
+
+    /**
+     * @Route("/transfert", name="ordre_transfert")
+     */
+    public function transfert()
+    {
+        $form_ref = $this->createForm(ReferencesArticlesType::class, new ReferencesArticles());
+        $form_art = $this->createForm(ArticlesType::class, new Articles());
+
+        return $this->render('ordre/ordre_transfert.html.twig', [
+            'controller_name' => 'OrdreController',
+            'form_ref' => $form_ref->createView(),
+            'form_art' => $form_art->createView(),
+            'emplacements' => $this->getEmplacements(),
+        ]);
+    }
+
     private function getEmplacements()
     {
         $classMetadataFactory = new ClassMetadataFactory(new AnnotationLoader(new AnnotationReader()));
@@ -203,20 +251,6 @@ class OrdreController extends Controller
         $entrepots = $this->getDoctrine()->getManager()->getRepository(Entrepots::class)->findAll();
         $data = $serializer->serialize($entrepots, 'json', array('groups' => array('emplacements')));
         return $data;
-    }
-
-    /**
-     * @Route("/import/csv", name="import_csv", methods="GET|POST")
-     */
-    public function import_csv(Request $request) : Response
-    {
-        if ($request->isXmlHttpRequest()) {
-            $file = $request->files->get('file');
-            $csv = file_get_contents($file);
-            $array = array_map("str_getcsv", explode("\n", $csv));
-            return new JsonResponse($array);
-        }
-        throw new NotFoundHttpException('404 not found');
     }
 
     /**
@@ -382,7 +416,21 @@ class OrdreController extends Controller
         return ($data);
     }
 
-    private function preparation(Ordres $ordre, $data)
+    /**
+     * @Route("/import/csv", name="import_csv", methods="GET|POST")
+     */
+    public function import_csv(Request $request) : Response
+    {
+        if ($request->isXmlHttpRequest()) {
+            $file = $request->files->get('file');
+            $csv = file_get_contents($file);
+            $array = array_map("str_getcsv", explode("\n", $csv));
+            return new JsonResponse($array);
+        }
+        throw new NotFoundHttpException('404 not found');
+    }
+
+    private function importPreparation(Ordres $ordre, $data)
     {
         $em = $this->getDoctrine()->getManager();
         list($date_comptabilisation, $n_document, $libelle, $code_magasin, $consigne_entree, $emplacement, $consigne_sortie, $n, $designation, $n_affaire, $code_tache, $quantite, $n_commande) = explode(";", $data[0]);
@@ -423,7 +471,7 @@ class OrdreController extends Controller
         $em->flush();
     }
 
-    private function reception(Ordres $ordre, $data)
+    private function importReception(Ordres $ordre, $data)
     {
         $em = $this->getDoctrine()->getManager();
         list($date_comptabilisation, $n_document, $libelle, $code_magasin, $consigne_entree, $emplacement, $consigne_sortie, $n, $designation, $n_affaire, $code_tache, $quantite, $n_commande) = explode(";", $data[0]);
@@ -476,15 +524,7 @@ class OrdreController extends Controller
         $em->flush();
     }
 
-    private function entree()
-    {
-    }
-
-    private function sortie()
-    {
-    }
-
-    private function transfert()
+    private function importTransfert()
     {
     }
 }

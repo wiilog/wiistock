@@ -2,7 +2,7 @@
 
 {% block page_content %}
     <div class="row page-title">
-        CREER UN ORDRE
+        NOUVELLE PREPARATION
     </div>
     <div class="row">
         <div class="col-md-12">
@@ -92,96 +92,6 @@
             <span class="hl">article</span>
         </div>
 
-        <div class="out">
-            <div class="h2">Référence article</div>
-            <div class="row reference">
-                <div class="col-md-5">
-                    <h3>Sélectionnez une référence article...</h3>
-                    <form>
-                        <select class="js-data-ajax-ref"></select>
-                        <button class="btn btn-danger select-reset">Reset</button>
-                    </form>
-                </div>
-                <div class="col-md-2">
-                    <div class="hr">
-                        <div class="separator-v">
-                            {# <div class="separator-v-text">
-                            OU
-                        </div> #}
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-5">
-                    <h3>... ou ajoutez-en une</h3>
-
-                    {{ form_start(form_ref) }}
-                    {{ form_errors(form_ref) }}
-
-                    {{ form_row(form_ref.libelle, {'required': false}) }}
-                    {{ form_row(form_ref.reference, {'required': false}) }}
-
-                    {{ form_row(form_ref._token) }}
-                    {{ form_end(form_ref, {'render_rest' : false}) }}
-                </div>
-            </div>
-
-            <div class="h2">Pièce</div>
-
-            <div class="row piece">
-                {{ form_start(form_art) }}
-                {{ form_errors(form_art) }}
-                <div class="col-md-6">
-                    <h3>
-                        Caractéristiques
-                    </h3>
-                    {{ form_row(form_art.designation, {'required': false}) }}
-                    {{ form_row(form_art.valeur, {'required': false}) }}
-                    {{ form_row(form_art.commentaire, {'required': false}) }}
-                </div>
-                <div class="col-md-6 emplacements">
-                    <h3>
-                        Emplacement
-                    </h3>
-                    <select class="js-basic-single-entrepot" name="entrepot"></select>
-                    <div id="switch" class="switch-type">
-                        <div class="inner-switch">
-                            <div class="toggle">
-                                <p>Zone</p>
-                            </div>
-                            <div class="toggle">
-                                <p>Stock</p>
-                            </div>
-                        </div>
-                        <div class="inner-switch" id='toggle-switch'>
-                            <div class="toggle">
-                                <p>Zone</p>
-                            </div>
-                            <div class="toggle">
-                                <p>Stock</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="stock">
-                        <select class="js-basic-single-allee" name="allee"></select>
-                        <select class="js-basic-single-travee" name="travee"></select>
-                        <select class="js-basic-single-rack" name="rack"></select>
-                        <select class="js-basic-single-emplacement" name="emplacement"></select>
-                    </div>
-                    <div class="zone">
-                        <select class="js-basic-single-zone" name="zone"></select>
-                    </div>
-                </div>
-                {{ form_row(form_art._token) }}
-                {{ form_end(form_art, {'render_rest' : false}) }}
-            </div>
-
-            <div class="row"></div>
-            <a href="#" id="article-add-out" class="button btn-left pull-right">
-                <span class="fa fa-plus"></span>
-                Ajouter
-            </a>
-        </div>
-
         <div class="in">
             <div class="h2">Article</div>
             <div class="row reference">
@@ -226,197 +136,36 @@
         toggleOrder();
     });
 
-    /* Emplacements
-    ================= */
-    var l_emplacement = $.parseJSON({{emplacements|json_encode|raw}});
-    l_emplacement = parseEmplacements(l_emplacement);
-
-    var toggleType = false;
-    $('.switch-type').on('click', function () {
-        var toggleSwitch = $('.switch-type #toggle-switch');
-        toggleType = !toggleType;
-        if (toggleType) {
-            toggleSwitch.css('clipPath', 'inset(0 0 0 50%)');
-            toggleSwitch.css('backgroundColor', '#ffbc02');
-            $('.manuel .zone').show();
-            $('.manuel .stock').hide();
-        } else {
-            toggleSwitch.css('clipPath', 'inset(0 50% 0 0)');
-            toggleSwitch.css('backgroundColor', '#130078');
-            $('.manuel .zone').hide();
-            $('.manuel .stock').show();
-        }
-        console.log(toggleType);
+    var orderType = $('select[name="ordre-type"]');
+    orderType.on('change', function () {
+        toggleOrder();
+        removeUpload();
+        $('#list-table tbody').empty();
     });
 
-    function isEmpty(obj) {
-        for (var key in obj) {
-            if (obj.hasOwnProperty(key)) 
-                return false;
+    function toggleOrder() {
+        if (orderType.val()) {
+            if (toggleNumber) {
+                $('.manuel').show();
+                $('.import').hide();
+                if (orderType.val() == "sortie") {
+                    $('.in').show();
+                    $('.out').hide();
+                } else {
+                    $('.out').show();
+                    $('.in').hide();
+                }
+            } else {
+                $('.import').show();
+                $('.manuel').hide();
             }
-        return true;
-    }
-
-    function parseEmplacements(entrepots) {
-        var data = new Array(6);
-        var a,
-            t,
-            r,
-            e,
-            z;
-        a = t = r = e = z = 0;
-        $.each(entrepots, function (i, val) {
-            if (!data[0]) 
-                data[0] = [];
-            var allees = entrepots[i].allees;
-            var zones = entrepots[i].zones;
-            data[0][i] = [
-                -1, entrepots[i]
-            ];
-            $.each(zones, function (j, val) {
-                if (!data[5]) 
-                    data[5] = [];
-                data[5][z++] = [
-                    entrepots[i].id,
-                    zones[j]
-                ];
-            });
-            $.each(allees, function (j, val) {
-                if (!data[1]) 
-                    data[1] = [];
-                var travees = allees[j].travees;
-                data[1][a++] = [
-                    entrepots[i].id,
-                    allees[j]
-                ];
-                $.each(travees, function (k, val) {
-                    if (!data[2]) 
-                        data[2] = [];
-                    var racks = travees[k].racks;
-                    data[2][t++] = [
-                        allees[j].id,
-                        travees[k]
-                    ];
-                    $.each(racks, function (l, val) {
-                        if (!data[3]) 
-                            data[3] = [];
-                        var emplacements = racks[l].emplacements;
-                        data[3][r++] = [
-                            travees[k].id,
-                            racks[l]
-                        ];
-                        $.each(emplacements, function (m, val) {
-                            if (!data[4]) 
-                                data[4] = [];
-                            data[4][e++] = [
-                                racks[l].id,
-                                emplacements[m]
-                            ];
-                        });
-                    });
-                });
-            });
-        });
-        return data;
-    }
-
-    function getJsonFromArray(array) {
-        var data = [];
-        if (array && !isEmpty(array)) {
-            $.each(array, function (i) {
-                item = {};
-                item["id"] = array[i].id;
-                item["text"] = array[i].nom;
-                data.push(item);
-            });
-            return data;
-        } else {
-            item = {};
-            item["id"] = -1;
-            item["text"] = 'vide';
-            data.push(item);
-            return data;
         }
     }
 
-    function getEntrepots() {
-        var data = [];
-
-        $.each(l_emplacement[0], function (i, val) {
-            data.push(l_emplacement[0][i][1]);
-        });
-        return data;
-    }
-
-    function getZones(entrepot) {
-        var data = [];
-        if (entrepot == "") {
-            return data;
-        } else {
-            $.each(l_emplacement[5], function (i, val) {
-                if (l_emplacement[5][i][0] == entrepot) {
-                    data.push(l_emplacement[5][i][1]);
-                }
-            });
-            return data;
-        }
-    }
-
-    function getAllees(entrepot) {
-        var data = [];
-        if (entrepot == "") {
-            return data;
-        } else {
-            $.each(l_emplacement[1], function (i, val) {
-                if (l_emplacement[1][i][0] == entrepot) {
-                    data.push(l_emplacement[1][i][1]);
-                }
-            });
-            return data;
-        }
-    }
-
-    function getTravees(allee) {
-        var data = [];
-        if (allee == "") {
-            return data;
-        } else {
-            $.each(l_emplacement[2], function (i, val) {
-                if (l_emplacement[2][i][0] == allee) {
-                    data.push(l_emplacement[2][i][1]);
-                }
-            });
-            return data;
-        }
-    }
-
-    function getRacks(travee) {
-        var data = [];
-        if (travee == "") {
-            return data;
-        } else {
-            $.each(l_emplacement[3], function (i, val) {
-                if (l_emplacement[3][i][0] == travee) {
-                    data.push(l_emplacement[3][i][1]);
-                }
-            });
-            return data;
-        }
-    }
-
-    function getEmplacements(rack) {
-        var data = [];
-        if (rack == "") {
-            return data;
-        } else {
-            $.each(l_emplacement[4], function (i, val) {
-                if (l_emplacement[4][i][0] == rack) {
-                    data.push(l_emplacement[4][i][1]);
-                }
-            });
-            return data;
-        }
-    }
+    /* Emplacements
+    ================= */
+    l_emplacement = $.parseJSON({{emplacements|json_encode|raw}});
+    l_emplacement = parseEmplacements(l_emplacement);
 
     $(".js-basic-single-entrepot").select2({
         data: getJsonFromArray(getEntrepots())
@@ -444,36 +193,6 @@
     $(".js-basic-single-emplacement").select2({
         data: getJsonFromArray(getEmplacements(parseInt($(".js-basic-single-rack").val())))
     })
-
-    function updateEntrepot() {
-        $(".js-basic-single-allee").empty().select2({
-            data: getJsonFromArray(getAllees(parseInt($(".js-basic-single-entrepot").val())))
-        });
-        $(".js-basic-single-zone").empty().select2({
-            data: getJsonFromArray(getZones(parseInt($(".js-basic-single-entrepot").val())))
-        });
-        updateAllee();
-    }
-
-    function updateAllee() {
-        $(".js-basic-single-travee").empty().select2({
-            data: getJsonFromArray(getTravees(parseInt($(".js-basic-single-allee").val())))
-        });
-        updateTravee()
-    }
-
-    function updateTravee() {
-        $(".js-basic-single-rack").empty().select2({
-            data: getJsonFromArray(getRacks(parseInt($(".js-basic-single-travee").val())))
-        });
-        updateRack()
-    }
-
-    function updateRack() {
-        $(".js-basic-single-emplacement").empty().select2({
-            data: getJsonFromArray(getEmplacements(parseInt($(".js-basic-single-rack").val())))
-        });
-    }
 
     /* Select article
     ================= */
@@ -518,51 +237,6 @@
 
     function formatArticleSelection(article) {
         return article.designation;
-    }
-
-    /* Select reference article
-    ================= */
-    $(".js-data-ajax-ref").select2({
-        ajax: {
-            url: "{{ path('references_articles_get') }}",
-            delay: 250,
-            data: function (params) {
-                return {q: params.term, page: params.page};
-            },
-            processResults: function (data, params) {
-                params.page = params.page || 1;
-                return {
-                    results: data.items,
-                    pagination: {
-                        more: (params.page * 30) < data.total_count
-                    }
-                };
-            },
-            cache: true
-        },
-        placeholder: 'Chercher un référentiel article',
-        allowClear: true,
-        escapeMarkup: function (markup) {
-            return markup;
-        },
-        minimumInputLength: 1,
-        templateResult: formatRef,
-        templateSelection: formatRefSelection
-    });
-
-    function formatRef(ref) {
-        if (ref.loading) {
-            return ref.text;
-        }
-        var markup = "<div class='select2-result-ref clearfix'>" + "<div class='select2-result-ref__meta'>" + "<div class='select2-result-ref__title'>" + ref.libelle + "</div>" + "<div class='select2-result-ref__ref'>" + ref.reference + "</div></div>";
-        if (ref.photo_article) {
-            markup += "<div class='select2-result-ref__photo'><img src='" + ref.photo_article + "'></div>";
-        }
-        return markup;
-    }
-
-    function formatRefSelection(ref) {
-        return ref.libelle;
     }
 
     /* Read file
