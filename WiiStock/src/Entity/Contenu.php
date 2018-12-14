@@ -22,11 +22,6 @@ class Contenu
     private $quantite;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Receptions", inversedBy="transfert")
-     */
-    private $reception;
-
-    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Transferts", inversedBy="contenus")
      */
     private $transfert;
@@ -37,9 +32,29 @@ class Contenu
     private $preparation;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Articles", inversedBy="contenu")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Articles", inversedBy="contenus")
      */
-    private $articles;
+    private $article;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Receptions", inversedBy="contenus")
+     */
+    private $reception;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacements", inversedBy="contenus")
+     */
+    private $emplacement;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Zones", inversedBy="contenus")
+     */
+    private $zone;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Quais", inversedBy="contenus")
+     */
+    private $quai;
 
     public function getId(): ?int
     {
@@ -54,18 +69,6 @@ class Contenu
     public function setQuantite(?int $quantite): self
     {
         $this->quantite = $quantite;
-
-        return $this;
-    }
-
-    public function getReceptions(): ?Receptions
-    {
-        return $this->reception;
-    }
-
-    public function setReceptions(?Receptions $reception): self
-    {
-        $this->reception = $reception;
 
         return $this;
     }
@@ -96,12 +99,60 @@ class Contenu
 
     public function getArticles(): ?Articles
     {
-        return $this->articles;
+        return $this->article;
     }
 
-    public function setArticles(?Articles $articles): self
+    public function setArticles(?Articles $article): self
     {
-        $this->articles = $articles;
+        $this->article = $article;
+
+        return $this;
+    }
+
+    public function getReception(): ?Receptions
+    {
+        return $this->reception;
+    }
+
+    public function setReception(?Receptions $reception): self
+    {
+        $this->reception = $reception;
+
+        return $this;
+    }
+
+    public function getEmplacement(): ?Emplacements
+    {
+        return $this->emplacement;
+    }
+
+    public function setEmplacement(?Emplacements $emplacement): self
+    {
+        $this->emplacement = $emplacement;
+
+        return $this;
+    }
+
+    public function getZone(): ?Zones
+    {
+        return $this->zone;
+    }
+
+    public function setZone(?Zones $zone): self
+    {
+        $this->zone = $zone;
+
+        return $this;
+    }
+
+    public function getQuai(): ?Quais
+    {
+        return $this->quai;
+    }
+
+    public function setQuai(?Quais $quai): self
+    {
+        $this->quai = $quai;
 
         return $this;
     }

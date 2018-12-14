@@ -66,48 +66,48 @@ class Ordres
         return $this->id;
     }
 
-    public function getStatut(): ?string
+    public function getStatut() : ? string
     {
         return $this->statut;
     }
 
-    public function setStatut(string $statut): self
+    public function setStatut(string $statut) : self
     {
         $this->statut = $statut;
 
         return $this;
     }
 
-    public function getType(): ?string
+    public function getType() : ? string
     {
         return $this->type;
     }
 
-    public function setType(string $type): self
+    public function setType(string $type) : self
     {
         $this->type = $type;
 
         return $this;
     }
 
-    public function getDateOrdre(): ?\DateTimeInterface
+    public function getDateOrdre() : ? \DateTimeInterface
     {
         return $this->date_ordre;
     }
 
-    public function setDateOrdre(\DateTimeInterface $date_ordre): self
+    public function setDateOrdre(\DateTimeInterface $date_ordre) : self
     {
         $this->date_ordre = $date_ordre;
 
         return $this;
     }
 
-    public function getAuteur(): ?Utilisateurs
+    public function getAuteur() : ? Utilisateurs
     {
         return $this->auteur;
     }
 
-    public function setAuteur(?Utilisateurs $auteur): self
+    public function setAuteur(? Utilisateurs $auteur) : self
     {
         $this->auteur = $auteur;
 
@@ -117,12 +117,12 @@ class Ordres
     /**
      * @return Collection|Receptions[]
      */
-    public function getReceptions(): Collection
+    public function getReceptions() : Collection
     {
         return $this->receptions;
     }
 
-    public function addReception(Receptions $reception): self
+    public function addReception(Receptions $reception) : self
     {
         if (!$this->receptions->contains($reception)) {
             $this->receptions[] = $reception;
@@ -132,7 +132,7 @@ class Ordres
         return $this;
     }
 
-    public function removeReception(Receptions $reception): self
+    public function removeReception(Receptions $reception) : self
     {
         if ($this->receptions->contains($reception)) {
             $this->receptions->removeElement($reception);
@@ -148,12 +148,12 @@ class Ordres
     /**
      * @return Collection|Transferts[]
      */
-    public function getTransferts(): Collection
+    public function getTransferts() : Collection
     {
         return $this->transferts;
     }
 
-    public function addTransfert(Transferts $transfert): self
+    public function addTransfert(Transferts $transfert) : self
     {
         if (!$this->transferts->contains($transfert)) {
             $this->transferts[] = $transfert;
@@ -163,7 +163,7 @@ class Ordres
         return $this;
     }
 
-    public function removeTransfert(Transferts $transfert): self
+    public function removeTransfert(Transferts $transfert) : self
     {
         if ($this->transferts->contains($transfert)) {
             $this->transferts->removeElement($transfert);

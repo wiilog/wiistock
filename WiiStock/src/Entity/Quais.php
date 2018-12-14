@@ -36,9 +36,15 @@ class Quais
      */
     private $articles;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Contenu", mappedBy="quai")
+     */
+    private $contenus;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
+        $this->contenus = new ArrayCollection();
     }
 
     public function getId()
@@ -95,6 +101,37 @@ class Quais
             // set the owning side to null (unless already changed)
             if ($article->getQuai() === $this) {
                 $article->setQuai(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Contenu[]
+     */
+    public function getContenus(): Collection
+    {
+        return $this->contenus;
+    }
+
+    public function addContenus(Contenu $contenus): self
+    {
+        if (!$this->contenus->contains($contenus)) {
+            $this->contenus[] = $contenus;
+            $contenus->setQuai($this);
+        }
+
+        return $this;
+    }
+
+    public function removeContenus(Contenu $contenus): self
+    {
+        if ($this->contenus->contains($contenus)) {
+            $this->contenus->removeElement($contenus);
+            // set the owning side to null (unless already changed)
+            if ($contenus->getQuai() === $this) {
+                $contenus->setQuai(null);
             }
         }
 

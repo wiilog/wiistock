@@ -19,6 +19,18 @@ class ChampsPersonnalisesRepository extends ServiceEntityRepository
         parent::__construct($registry, ChampsPersonnalises::class);
     }
 
+    public function findByName($name, $entity)
+    {
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.nom = :val')
+            ->setParameter('val', $name)
+            ->andWhere('c.entite_cible = :ent')
+            ->setParameter('ent', $entity)
+            ->getQuery()
+            ->getOneOrNullResult()
+        ;
+    }
+
 //    /**
 //     * @return ChampsPersonnalises[] Returns an array of ChampsPersonnalises objects
 //     */
@@ -34,7 +46,7 @@ class ChampsPersonnalisesRepository extends ServiceEntityRepository
             ->getResult()
         ;
     }
-    */
+     */
 
     /*
     public function findOneBySomeField($value): ?ChampsPersonnalises
@@ -46,5 +58,5 @@ class ChampsPersonnalisesRepository extends ServiceEntityRepository
             ->getOneOrNullResult()
         ;
     }
-    */
+     */
 }

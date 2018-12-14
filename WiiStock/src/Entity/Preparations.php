@@ -44,9 +44,9 @@ class Preparations
     private $commande_client;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Ordres", inversedBy="preparations")
+     * @ORM\OneToMany(targetEntity="App\Entity\Contenu", mappedBy="preparation")
      */
-    private $ordres;
+    private $contenus;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Historiques", mappedBy="preparation")
@@ -54,9 +54,9 @@ class Preparations
     private $historiques;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Contenu", mappedBy="preparation")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Ordres", inversedBy="preparations")
      */
-    private $contenus;
+    private $ordres;
 
     public function __construct()
     {
@@ -130,49 +130,6 @@ class Preparations
         return $this;
     }
 
-    public function getOrdres(): ?Ordres
-    {
-        return $this->ordres;
-    }
-
-    public function setOrdres(?Ordres $ordres): self
-    {
-        $this->ordres = $ordres;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|Historique[]
-     */
-    public function getHistoriques(): Collection
-    {
-        return $this->historiques;
-    }
-
-    public function addHistoriques(Historiques $historique): self
-    {
-        if (!$this->historiques->contains($historique)) {
-            $this->historiques[] = $historique;
-            $historique->setPreparation($this);
-        }
-
-        return $this;
-    }
-
-    public function removeHistoriques(Historiques $historique): self
-    {
-        if ($this->historiques->contains($historique)) {
-            $this->historiques->removeElement($historique);
-            // set the owning side to null (unless already changed)
-            if ($historique->getPreparation() === $this) {
-                $historique->setPreparation(null);
-            }
-        }
-
-        return $this;
-    }
-
     /**
      * @return Collection|Contenu[]
      */
@@ -200,6 +157,49 @@ class Preparations
                 $contenus->setPreparation(null);
             }
         }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Historiques[]
+     */
+    public function getHistoriques(): Collection
+    {
+        return $this->historiques;
+    }
+
+    public function addHistorique(Historiques $historique): self
+    {
+        if (!$this->historiques->contains($historique)) {
+            $this->historiques[] = $historique;
+            $historique->setPreparation($this);
+        }
+
+        return $this;
+    }
+
+    public function removeHistorique(Historiques $historique): self
+    {
+        if ($this->historiques->contains($historique)) {
+            $this->historiques->removeElement($historique);
+            // set the owning side to null (unless already changed)
+            if ($historique->getPreparation() === $this) {
+                $historique->setPreparation(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getOrdres(): ?Ordres
+    {
+        return $this->ordres;
+    }
+
+    public function setOrdres(?Ordres $ordres): self
+    {
+        $this->ordres = $ordres;
 
         return $this;
     }

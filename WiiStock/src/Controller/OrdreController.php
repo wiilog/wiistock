@@ -16,6 +16,7 @@ use App\Entity\CommandesClients;
 use App\Entity\Entrepots;
 use App\Entity\Fournisseurs;
 use App\Entity\Zones;
+use App\Entity\Contenu;
 
 use App\Form\ReceptionsType;
 use App\Form\FournisseursType;
@@ -77,18 +78,11 @@ class OrdreController extends Controller
             foreach ($ordres as $ordre) {
                 $list = array();
                 $ents = $ordre->getTransferts();
-
                 if ($ents->isEmpty()) {
                     $ents = $ordre->getReceptions();
                 }
                 if ($ents->isEmpty()) {
                     $ents = $ordre->getPreparations();
-                }
-                if ($ents->isEmpty()) {
-                    $ents = $ordre->getSorties();
-                }
-                if ($ents->isEmpty()) {
-                    $ents = $ordre->getEntrees();
                 }
                 foreach ($ents as $ent) {
                     array_push($list, $ent->getId());
@@ -141,34 +135,51 @@ class OrdreController extends Controller
             }
 
             $data = array();
-            $articles = $detail->getArticles();
-            foreach ($articles as $article) {
+            $contenus = $detail->getContenus();
+            foreach ($contenus as $contenu) {
+                $c_emplacement = $contenu->getEmplacement();
+                if ($c_emplacement) {
+                    $c_rack = $c_emplacement->getRacks();
+                    $c_travee = $c_rack->getTravees();
+                    $c_allee = $c_travee->getAllees();
+                    $c_entrepot = $c_allee->getEntrepots();
+                } else {
+                    $c_rack = $c_travee = $c_allee = $c_entrepot = $c_emplacement;
+                }
+
+                $article = $contenu->getArticles();
                 $emplacement = $article->getEmplacement();
                 if ($emplacement) {
-                    $rack = $emplacement->getRack()->getNom();
-                    $travee = $emplacement->getRack()->getTravee()->getNom();
-                    $allee = $emplacement->getRack()->getTravee()->getAllee()->getNom();
-                    $entrepot = $emplacement->getRack()->getTravee()->getAllee()->getEntrepot()->getNom();
-                    $emplacement = $emplacement->getNom();
+                    $rack = $emplacement->getRacks();
+                    $travee = $rack->getTravees();
+                    $allee = $travee->getAllees();
+                    $entrepot = $allee->getEntrepots();
                 } else {
-                    $rack = $travee = $allee = $entrepot = $emplacement = '';
+                    $rack = $travee = $allee = $entrepot = $emplacement;
                 }
                 $row = [
-                    "libelle" => $article->getLibelle(),
+                    "id" => $article->getId(),
+                    "libelle" => $article->getLibelleCEA(),
+                    "reference" => $article->getReferenceCEA(),
                     "quantite" => $article->getQuantite(),
+                    "statut" => $article->getStatut(),
                     $init = [
                         "emplacement" => $emplacement,
                         "rack" => $rack,
                         "travee" => $travee,
                         "allee" => $allee,
                         "entrepot" => $entrepot,
+                        "quai" => $article->getQuai(),
+                        "zone" => $article->getZone(),
                     ],
                     $final = [
-                        "magasin" => $article->getCodeMagasin(),
-                        "entree" => $article->getConsigneEntree(),
-                        "emplacement" => $article->getEmplacementReel(),
-                        "sortie" => $article->getConsigneSortie(),
-                        "" => "",
+                        "emplacement" => json_encode($c_emplacement),
+                        "rack" => $c_rack,
+                        "travee" => $c_travee,
+                        "allee" => $c_allee,
+                        "entrepot" => $c_entrepot,
+                        "quai" => $contenu->getQuai(),
+                        "zone" => $contenu->getZone(),
                     ],
                 ];
                 array_push($data, $row);
@@ -275,19 +286,21 @@ class OrdreController extends Controller
             $em->flush();
 
             $historique = new Historiques();
-            $historique->setDateDebut(new \DateTime());
-            $historique->setTypeMouvement('reception');
+            $historique->setDate(new \DateTime());
+            $historique->setType('reception');
             $em->persist($historique);
             $em->flush();
+
+            dump($data);
 
             for ($i = 0; $i < count($data); $i++) {
                 if ($i == 0) {
                     $reception = new Receptions();
                     $reception->setStatut('En cours');
-                    $reception->setHistorique($historique);
-                    $reception->setDateAuPlusTot($data[$i]["date_au_plus_tot"]);
-                    $reception->setDateAuPlusTard($data[$i]["date_au_plus_tard"]);
-                    $reception->setDatePrevue($data[$i]["date_prevue"]);
+                    $reception->addHistorique($historique);
+                    $reception->setDateAuPlusTot(date_create_from_format('d/m/Y:H:i:s', $data[$i]["date_au_plus_tot"] . ':00:00:00'));
+                    $reception->setDateAuPlusTard(date_create_from_format('d/m/Y:H:i:s', $data[$i]["date_au_plus_tard"] . ':00:00:00'));
+                    $reception->setDatePrevue(date_create_from_format('d/m/Y:H:i:s', $data[$i]["date_prévue"] . ':00:00:00'));
                     $reception->setCommentaire($data[$i]["commentaire"]);
                     $reception->setNomCEA($data[$i]["nom_CEA"]);
                     $reception->setPrenomCEA($data[$i]["prenom_CEA"]);
@@ -310,6 +323,12 @@ class OrdreController extends Controller
                     $contenu = new Contenu();
                     $contenu->setQuantite($data[$i]["quantite"]);
                     $contenu->setReception($reception);
+                    $l_empl = explode(' ', $data[$i]["emplacement"]);
+                    if ($data[$i]["emplacement"] != "" && $l_empl[1] == "true") {
+                        $contenu->setZone($this->getDoctrine()->getRepository(Zones::class)->findOneBy(['id' => $l_empl[2]]));
+                    } else if ($data[$i]["emplacement"] != "") {
+                        $contenu->setEmplacement($this->getDoctrine()->getRepository(Emplacements::class)->findOneBy(['id' => $l_empl[5]]));
+                    }
                     $em->persist($contenu);
                     $em->flush();
 
@@ -320,22 +339,17 @@ class OrdreController extends Controller
                     $article->setLibelleCEA($data[$i]["libelle"]);
                     $article->setReferenceCEA($data[$i]["reference"]);
                     $article->setQuantite(0);
-                    $l_empl = explode(' ', $data[$i]["emplacement"]);
-                    if ($l_empl[1] == "true") {
-                        $article->setZone($this->getDoctrine()->getRepository(Zones::class)->findOneBy(['id' => $l_empl[2]]));
-                    } else {
-                        $article->setEmplacement($this->getDoctrine()->getRepository(Emplacements::class)->findOneBy(['id' => $l_empl[5]]));
-                    }
                     $em->persist($article);
                     $em->flush();
-                    $contenu->addArticle($article);
+
+                    $contenu->setArticles($article);
                 }
             }
 
             $ordre->addReception($reception);
             $em->flush();
 
-            return new JsonResponse($response);
+            return new JsonResponse(1);
         }
         throw new NotFoundHttpException('404 not found');
     }

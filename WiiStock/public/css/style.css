@@ -1431,7 +1431,7 @@ input:checked+.slider:before {
 	display: flex;
 	flex-flow: row;
 	justify-content: space-between;
-	align-items: center;
+	/* align-items: center; */
 	margin-bottom: 20px;
 	border-bottom: #f0b000 solid 1px;
 }

@@ -29,19 +29,24 @@ class Transferts
     private $emplacement_arrivee;
 
     /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Contenu", mappedBy="transfert")
+     */
+    private $contenus;
+
+    /**
      * @ORM\OneToMany(targetEntity="App\Entity\Historiques", mappedBy="transfert")
      */
     private $historiques;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Contenu", mappedBy="transfert")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Ordres", inversedBy="transferts")
      */
-    private $contenus;
+    private $ordres;
 
     public function __construct()
     {
-        $this->historiques = new ArrayCollection();
         $this->contenus = new ArrayCollection();
+        $this->historiques = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -74,37 +79,6 @@ class Transferts
     }
 
     /**
-     * @return Collection|Historiques[]
-     */
-    public function getHistoriques(): Collection
-    {
-        return $this->historiques;
-    }
-
-    public function addHistoriques(Historiques $historique): self
-    {
-        if (!$this->historiques->contains($historique)) {
-            $this->historiques[] = $historique;
-            $historique->setTransfert($this);
-        }
-
-        return $this;
-    }
-
-    public function removeHistoriques(Historiques $historique): self
-    {
-        if ($this->historiques->contains($historique)) {
-            $this->historiques->removeElement($historique);
-            // set the owning side to null (unless already changed)
-            if ($historique->getTransfert() === $this) {
-                $historique->setTransfert(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
      * @return Collection|Contenu[]
      */
     public function getContenus(): Collection
@@ -131,6 +105,49 @@ class Transferts
                 $contenus->setTransfert(null);
             }
         }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Historiques[]
+     */
+    public function getHistoriques(): Collection
+    {
+        return $this->historiques;
+    }
+
+    public function addHistorique(Historiques $historique): self
+    {
+        if (!$this->historiques->contains($historique)) {
+            $this->historiques[] = $historique;
+            $historique->setTransfert($this);
+        }
+
+        return $this;
+    }
+
+    public function removeHistorique(Historiques $historique): self
+    {
+        if ($this->historiques->contains($historique)) {
+            $this->historiques->removeElement($historique);
+            // set the owning side to null (unless already changed)
+            if ($historique->getTransfert() === $this) {
+                $historique->setTransfert(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getOrdres(): ?Ordres
+    {
+        return $this->ordres;
+    }
+
+    public function setOrdres(?Ordres $ordres): self
+    {
+        $this->ordres = $ordres;
 
         return $this;
     }

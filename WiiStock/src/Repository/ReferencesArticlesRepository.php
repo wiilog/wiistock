@@ -26,8 +26,12 @@ class ReferencesArticlesRepository extends ServiceEntityRepository
             ->setParameter('val', '%' . $value . '%')
             ->orderBy('r.libelle', 'ASC')
             ->getQuery()
-            ->getResult()
-        ;
+            ->getResult();
+    }
+
+    public function findOne()
+    {
+        return $this->createQueryBuilder('r')->setMaxResults(1)->getQuery()->getOneOrNullResult();
     }
 
 //    /**
@@ -45,7 +49,7 @@ class ReferencesArticlesRepository extends ServiceEntityRepository
             ->getResult()
         ;
     }
-    */
+     */
 
     /*
     public function findOneBySomeField($value): ?ReferencesArticles
@@ -57,5 +61,5 @@ class ReferencesArticlesRepository extends ServiceEntityRepository
             ->getOneOrNullResult()
         ;
     }
-    */
+     */
 }

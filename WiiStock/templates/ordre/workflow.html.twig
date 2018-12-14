@@ -368,19 +368,19 @@
 
         function createArticle(data) {
             var article = `
-                <p class="bold">Article n° ` + data.numero + `</p>
+                <p class="bold">Article n° ` + data.id + `</p>
                 <div class="form-flex">
                     <div class="input-group form-group">
                         <label class="input-group-addon">
-                                Libellé code
+                                Libellé CEA
                         </label>
                         <input value="` + data.libelle + `" class="form-control">
                     </div>
                     <div class="input-group form-group">
                         <label class="input-group-addon">
-                                Code tâche
+                                Référence CEA
                         </label>
-                        <input value="` + data.tache + `" class="form-control">
+                        <input value="` + data.reference + `" class="form-control">
                     </div>
                 </div>
 
@@ -401,14 +401,12 @@
 
                 <div class="row more-actions">
                     <div class="col-md-5">
-                        <ul class="list-group">
-                            <label>
-                                Emplacement initial
-                            </label>`;
+                        <label>
+                            Emplacement initial
+                        </label>
+                        <ul class="list-group">`;
             $.each(data[0], function (i, val) {
-                if (val === '') {
-                    val = '&nbsp;';
-                }
+
                 article += `<li class="list-group-item">` + val + `</li>`
             })
             article += `
@@ -420,15 +418,16 @@
                         </div>
                     </div>
                     <div class="col-md-5">
-                        <ul class="list-group">
-                            <label>
-                                Emplacement final
-                            </label>`;
+                        <label>
+                            Emplacement final
+                        </label>
+                        <ul class="list-group">`;
             $.each(data[1], function (i, val) {
-                if (val === '') {
-                    val = '&nbsp;';
+                if (val != null) {
+                    console.log(val);
+                    console.log(val["nom"]);
+                    article += `<li class="list-group-item">` + val["nom"] + `</li>`
                 }
-                article += `<li class="list-group-item">` + val + `</li>`
             })
             article += `
                         </ul>

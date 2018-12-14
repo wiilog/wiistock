@@ -64,16 +64,21 @@ class Articles
     private $libelle_CEA;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Contenu", mappedBy="articles")
+     * @ORM\OneToMany(targetEntity="App\Entity\Contenu", mappedBy="article")
      */
-    private $contenu;
+    private $contenus;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $statut;
 
     public function __construct()
     {
         $this->entrees = new ArrayCollection();
         $this->sorties = new ArrayCollection();
         $this->transferts = new ArrayCollection();
-        $this->contenu = new ArrayCollection();
+        $this->contenus = new ArrayCollection();
     }
 
     public function getId()
@@ -81,36 +86,36 @@ class Articles
         return $this->id;
     }
 
-    public function getEtat(): ?string
+    public function getEtat() : ? string
     {
         return $this->etat;
     }
 
-    public function setEtat(string $etat): self
+    public function setEtat(string $etat) : self
     {
         $this->etat = $etat;
 
         return $this;
     }
 
-    public function getEmplacement(): ?Emplacements
+    public function getEmplacement() : ? Emplacements
     {
         return $this->emplacement;
     }
 
-    public function setEmplacement(?Emplacements $emplacement): self
+    public function setEmplacement(? Emplacements $emplacement) : self
     {
         $this->emplacement = $emplacement;
 
         return $this;
     }
 
-    public function getReference(): ?ReferencesArticles
+    public function getReference() : ? ReferencesArticles
     {
         return $this->reference;
     }
 
-    public function setReference(?ReferencesArticles $reference): self
+    public function setReference(? ReferencesArticles $reference) : self
     {
         $this->reference = $reference;
 
@@ -118,72 +123,72 @@ class Articles
     }
 
 
-    public function getQuantite(): ?int
+    public function getQuantite() : ? int
     {
         return $this->quantite;
     }
 
-    public function setQuantite(?int $quantite): self
+    public function setQuantite(? int $quantite) : self
     {
         $this->quantite = $quantite;
 
         return $this;
     }
 
-    public function getPhoto(): ?string
+    public function getPhoto() : ? string
     {
         return $this->photo;
     }
 
-    public function setPhoto(?string $photo): self
+    public function setPhoto(? string $photo) : self
     {
         $this->photo = $photo;
 
         return $this;
     }
 
-    public function getZone(): ?Zones
+    public function getZone() : ? Zones
     {
         return $this->zone;
     }
 
-    public function setZone(?Zones $zone): self
+    public function setZone(? Zones $zone) : self
     {
         $this->zone = $zone;
 
         return $this;
     }
 
-    public function getQuai(): ?Quais
+    public function getQuai() : ? Quais
     {
         return $this->quai;
     }
 
-    public function setQuai(?Quais $quai): self
+    public function setQuai(? Quais $quai) : self
     {
         $this->quai = $quai;
 
         return $this;
     }
 
-    public function getReferenceCEA(): ?string
+    public function getReferenceCEA() : ? string
     {
         return $this->reference_CEA;
     }
 
-    public function setReferenceCEA(?string $reference_CEA): self
+    public function setReferenceCEA(? string $reference_CEA) : self
     {
         $this->reference_CEA = $reference_CEA;
 
         return $this;
     }
 
-    public function getLibelleCEA(): ?string
+    public function getLibelleCEA() : ? string
     {
         return $this->libelle_CEA;
     }
 
-    public function setLibelleCEA(?string $libelle_CEA): self
+    public function setLibelleCEA(? string $libelle_CEA) : self
     {
         $this->libelle_CEA = $libelle_CEA;
 
@@ -193,30 +198,42 @@ class Articles
     /**
      * @return Collection|Contenu[]
      */
-    public function getContenu(): Collection
+    public function getContenu() : Collection
     {
-        return $this->contenu;
+        return $this->contenus;
     }
 
-    public function addContenu(Contenu $contenu): self
+    public function addContenu(Contenu $contenus) : self
     {
-        if (!$this->contenu->contains($contenu)) {
-            $this->contenu[] = $contenu;
-            $contenu->setArticles($this);
+        if (!$this->contenus->contains($contenus)) {
+            $this->contenus[] = $contenus;
+            $contenus->setArticles($this);
         }
 
         return $this;
     }
 
-    public function removeContenu(Contenu $contenu): self
+    public function removeContenu(Contenu $contenus) : self
     {
-        if ($this->contenu->contains($contenu)) {
-            $this->contenu->removeElement($contenu);
+        if ($this->contenus->contains($contenus)) {
+            $this->contenus->removeElement($contenus);
             // set the owning side to null (unless already changed)
-            if ($contenu->getArticles() === $this) {
-                $contenu->setArticles(null);
+            if ($contenus->getArticles() === $this) {
+                $contenus->setArticles(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getStatut(): ?string
+    {
+        return $this->statut;
+    }
+
+    public function setStatut(?string $statut): self
+    {
+        $this->statut = $statut;
 
         return $this;
     }

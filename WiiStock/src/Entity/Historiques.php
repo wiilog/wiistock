@@ -22,19 +22,24 @@ class Historiques
     private $date;
 
     /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $type;
+
+    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Receptions", inversedBy="historiques")
      */
     private $reception;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Transferts", inversedBy="historiques")
-     */
-    private $transfert;
-
-    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Preparations", inversedBy="historiques")
      */
     private $preparation;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Transferts", inversedBy="historiques")
+     */
+    private $transfert;
 
     public function getId(): ?int
     {
@@ -53,26 +58,26 @@ class Historiques
         return $this;
     }
 
-    public function getReceptions(): ?Receptions
+    public function getType(): ?string
     {
-        return $this->reception;
+        return $this->type;
     }
 
-    public function setReceptions(?Receptions $reception): self
+    public function setType(string $type): self
     {
-        $this->reception = $reception;
+        $this->type = $type;
 
         return $this;
     }
 
-    public function getTransfert(): ?Transfert
+    public function getReception(): ?Receptions
     {
-        return $this->transfert;
+        return $this->reception;
     }
 
-    public function setTransfert(?Transfert $transfert): self
+    public function setReception(?Receptions $reception): self
     {
-        $this->transfert = $transfert;
+        $this->reception = $reception;
 
         return $this;
     }
@@ -85,6 +90,18 @@ class Historiques
     public function setPreparation(?Preparations $preparation): self
     {
         $this->preparation = $preparation;
+
+        return $this;
+    }
+
+    public function getTransfert(): ?Transferts
+    {
+        return $this->transfert;
+    }
+
+    public function setTransfert(?Transferts $transfert): self
+    {
+        $this->transfert = $transfert;
 
         return $this;
     }

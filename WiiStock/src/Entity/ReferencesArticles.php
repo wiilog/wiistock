@@ -31,6 +31,11 @@ class ReferencesArticles
      */
     private $reference;
 
+    /**
+     * @ORM\Column(type="json", nullable=true)
+     */
+    private $custom;
+
     public function getId()
     {
         return $this->id;
@@ -68,6 +73,18 @@ class ReferencesArticles
     public function setReference(?string $reference): self
     {
         $this->reference = $reference;
+
+        return $this;
+    }
+
+    public function getCustom(): ?array
+    {
+        return $this->custom;
+    }
+
+    public function setCustom(?array $custom): self
+    {
+        $this->custom = $custom;
 
         return $this;
     }

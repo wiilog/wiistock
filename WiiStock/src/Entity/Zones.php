@@ -36,9 +36,15 @@ class Zones
      */
     private $articles;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Contenu", mappedBy="zone")
+     */
+    private $contenus;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
+        $this->contenus = new ArrayCollection();
     }
 
     public function getId()
@@ -95,6 +101,37 @@ class Zones
             // set the owning side to null (unless already changed)
             if ($article->getZone() === $this) {
                 $article->setZone(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Contenu[]
+     */
+    public function getContenus(): Collection
+    {
+        return $this->contenus;
+    }
+
+    public function addContenus(Contenu $contenus): self
+    {
+        if (!$this->contenus->contains($contenus)) {
+            $this->contenus[] = $contenus;
+            $contenus->setZone($this);
+        }
+
+        return $this;
+    }
+
+    public function removeContenus(Contenu $contenus): self
+    {
+        if ($this->contenus->contains($contenus)) {
+            $this->contenus->removeElement($contenus);
+            // set the owning side to null (unless already changed)
+            if ($contenus->getZone() === $this) {
+                $contenus->setZone(null);
             }
         }
 

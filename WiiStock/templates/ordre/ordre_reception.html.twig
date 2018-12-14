@@ -66,7 +66,6 @@
             </div>
             <form>
                 {{ form_start(form_rec) }}
-                {{ form_errors(form_rec) }}
 
                 {{ form_row(form_rec.reference_SAP, {'required': false}) }}
 
@@ -95,17 +94,18 @@
                         {{ form_row(form_rec.date_prevue, {'required': false}) }}
                     </div>
                 </div>
+                {{ form_end(form_rec, {'render_rest' : false}) }}
 
                 <div class="h2">Fournisseur</div>
                 <div class="row reference">
-                    <div class="col-md-5">
-                        <h3>Sélectionnez un fournisseur...</h3>
+                    <div class="col-md-6">
+                        <h3>Sélectionnez un fournisseur</h3>
                         <form>
                             <select class="js-data-ajax-fournisseur"></select>
                             <button class="btn btn-danger select-reset">Reset</button>
                         </form>
                     </div>
-                    <div class="col-md-2">
+                    {# <div class="col-md-2">
                         <div class="hr">
                             <div class="separator-v"></div>
                         </div>
@@ -121,8 +121,10 @@
 
                         {{ form_row(form_fou._token) }}
                         {{ form_end(form_fou, {'render_rest' : false}) }}
-                    </div>
+                    </div> #}
                 </div>
+
+                {{ form_start(form_rec) }}
 
                 <div class="h2">Transporteur</div>
                 <div class="row">
@@ -136,7 +138,6 @@
 
                 {{ form_row(form_rec.commentaire, {'required': false}) }}
 
-                {{ form_row(form_rec._token) }}
                 {{ form_end(form_rec, {'render_rest' : false}) }}
             </form>
         </div>
@@ -160,8 +161,9 @@
                 <tbody></tbody>
             </table>
         </div>
-        <a href="#" id="order-add" class="button btn-left d-block mr-0 ml-auto">
-            <span class="fa fa-plus"></span>Créer la réception</a>
+        <a id="order-add" class="button btn-left d-block mr-0 ml-auto">
+            <span class="fa fa-plus"></span>Créer la réception
+        </a>
 
         <div class="out">
             <div class="h1">
@@ -172,20 +174,16 @@
             <div>
                 <div class="h2">Référence article</div>
                 <div class="row reference">
-                    <div class="col-md-5">
-                        <h3>Sélectionnez une référence article...</h3>
+                    <div class="col-md-6">
+                        <h3>Sélectionnez une référence article</h3>
                         <form>
                             <select class="js-data-ajax-ref"></select>
                             <button class="btn btn-danger select-reset">Reset</button>
                         </form>
                     </div>
-                    <div class="col-md-2">
+                    {# <div class="col-md-2">
                         <div class="hr">
-                            <div class="separator-v">
-                                {# <div class="separator-v-text">
-                            OU
-                        </div> #}
-                            </div>
+                            <div class="separator-v"></div>
                         </div>
                     </div>
                     <div class="col-md-5">
@@ -199,7 +197,7 @@
 
                         {{ form_row(form_ref._token) }}
                         {{ form_end(form_ref, {'render_rest' : false}) }}
-                    </div>
+                    </div> #}
                 </div>
 
                 <div class="h2">Pièce</div>
@@ -272,6 +270,8 @@
 {% block javascripts %}
 <script src="{{ asset('js/emplacement.js') }}"></script>
 <script type="text/javascript">
+    $('#receptions_date_au_plus_tot, #receptions_date_au_plus_tard, #receptions_date_prevue').datepicker({language: 'fr', format: 'dd/mm/yyyy', todayBtn: true, todayHighlight: true, autoclose: true});
+
     var toggleNumber;
     $('.switch-mode').on('click', function () {
         var toggleSwitch = $('.switch-mode #toggle-switch');
@@ -381,7 +381,7 @@
             delay: 250,
             processResults: function (data, params) {
                 return {results: data.items};
-            },
+            }
         },
         placeholder: 'Chercher un fournisseur',
         allowClear: true,
@@ -401,7 +401,7 @@
     }
 
     function formatFouSelection(ref) {
-        return ref.libelle;
+        return ref.nom;
     }
 
     /* Read file
@@ -494,9 +494,10 @@
 
     /* Add button
     ================= */
-    $('#order-add').on('click', function (e) {
+    $('.manuel').on('click', '#order-add', function (e) {
         e.preventDefault();
-        if (!toggleNumber) {
+        if (toggleNumber) {
+            console.log("hey");
             readFile(file, "{{ path( 'ordre_import_reception' ) }}", toggleNumber);
             removeUpload();
         } else {
@@ -512,21 +513,21 @@
             reception["nom_transporteur"] = $("#receptions_nom_transporteur").val();
             reception["code_ref_transporteur"] = $("#receptions_code_ref_transporteur").val();
             reception["commentaire"] = $("#receptions_commentaire").val();
-            reception["fournisseur_nom"] = $("#fournisseurs_nom").val();
-            reception["fournisseur_code_reference"] = $("#fournisseurs_code_reference").val();
+            // reception["fournisseur_nom"] = $("#fournisseurs_nom").val();
+            // reception["fournisseur_code_reference"] = $("#fournisseurs_code_reference").val();
             reception["fournisseur"] = $(".js-data-ajax-fournisseur").select2('data')[0].id;
             data.push(reception);
             $('#list-table > tbody > tr').each(function (i) {
                 item = {};
                 item["libelle"] = $(this).find('td:eq(0)').text();
                 item["reference"] = $(this).find('td:eq(1)').text();
-                item["quantite"] = $(this).find('td:eq(2) input').val();
-                item["emplacement"] = $(this).find('td:eq(4)').text();
-                item["ref"] = $(this).find('td:eq(5)').text();
+                item["quantite"] = $(this).find('td:eq(2)').text();
+                item["emplacement"] = $(this).find('td:eq(5)').text();
+                item["ref"] = $(this).find('td:eq(6)').text();
                 data.push(item);
             });
             if (data.length > 0) {
-                ajaxAddOrder(data, toggleNumber);
+                ajaxAddOrder(data);
             }
         }
     });
@@ -575,9 +576,11 @@
     });
 
     function ajaxAddArticleOut() {
-        var libelle = $("#articles_libelle_CEA").val();
-        var reference = $("#articles_reference_CEA").val();
+        var libelle_CEA = $("#articles_libelle_CEA").val();
+        var reference_CEA = $("#articles_reference_CEA").val();
         var quantite = $("#articles_quantite").val();
+        var libelle = $("#references_articles_libelle").val();
+        var reference = $("#references_articles_reference").val();
         var ref = $(".js-data-ajax-ref").val();
         var emplacement = getEmplacementsName();
         $.ajax({
@@ -587,20 +590,19 @@
             data: {
                 "libelle": libelle,
                 "reference": reference,
-                "quantite": quantite,
                 "ref": ref
             },
             success: function (resp) {
-                $('form').find('input[type=text]').val('');
+                $('form[name="articles"]').find('input').val('');
                 $('.js-data-ajax-ref').val(null).trigger('change');
                 var line = `<tr>
-                        <td>` + libelle + `</td>
-                        <td>` + reference + `</td>
+                        <td>` + libelle_CEA + `</td>
+                        <td>` + reference_CEA + `</td>
                         <td>` + quantite + `</td>
                         <td>` + emplacement + `</td>
                         <td><span class="fa fa-times"></span></td>
-                        <td class="hidden">` + '' + `</td>
-                        <td class="hidden">` + '' + `</td>
+                        <td class="hidden">` + getEmplacementsId() + `</td>
+                        <td class="hidden">` + ref + `</td>
                     </tr>`;
                 $('#list-table tbody').append(line);
             }
@@ -635,13 +637,12 @@
         return text;
     }
 
-    function ajaxAddOrder(data, toggle) {
+    function ajaxAddOrder(data) {
         $.ajax({
             url: "{{ path('ordre_reception_add') }}",
             type: "POST",
             dataType: "json",
             data: {
-                "toggle": toggle,
                 "data": data
             },
             success: function (resp) {

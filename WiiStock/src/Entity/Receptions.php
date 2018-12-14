@@ -44,16 +44,6 @@ class Receptions
     private $fournisseur;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Contenu", mappedBy="reception")
-     */
-    private $contenu;
-
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Historiques", mappedBy="reception")
-     */
-    private $historiques;
-
-    /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $commentaire;
@@ -88,9 +78,24 @@ class Receptions
      */
     private $nom_transporteur;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Contenu", mappedBy="reception")
+     */
+    private $contenus;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Historiques", mappedBy="reception")
+     */
+    private $historiques;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Ordres", inversedBy="receptions")
+     */
+    private $ordres;
+
     public function __construct()
     {
-        $this->contenu = new ArrayCollection();
+        $this->contenus = new ArrayCollection();
         $this->historiques = new ArrayCollection();
     }
 
@@ -155,68 +160,6 @@ class Receptions
     public function setFournisseur(?Fournisseurs $fournisseur): self
     {
         $this->fournisseur = $fournisseur;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|Contenu[]
-     */
-    public function getContenu(): Collection
-    {
-        return $this->contenu;
-    }
-
-    public function addContenu(Contenu $contenu): self
-    {
-        if (!$this->contenu->contains($contenu)) {
-            $this->contenu[] = $contenu;
-            $contenu->setReception($this);
-        }
-
-        return $this;
-    }
-
-    public function removeContenu(Contenu $contenu): self
-    {
-        if ($this->contenu->contains($contenu)) {
-            $this->contenu->removeElement($contenu);
-            // set the owning side to null (unless already changed)
-            if ($contenu->getReception() === $this) {
-                $contenu->setReception(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|Historiques[]
-     */
-    public function getHistoriques(): Collection
-    {
-        return $this->historiques;
-    }
-
-    public function addHistoriques(Historiques $historique): self
-    {
-        if (!$this->historiques->contains($historique)) {
-            $this->historiques[] = $historique;
-            $historique->setReception($this);
-        }
-
-        return $this;
-    }
-
-    public function removeHistoriques(Historiques $historique): self
-    {
-        if ($this->historiques->contains($historique)) {
-            $this->historiques->removeElement($historique);
-            // set the owning side to null (unless already changed)
-            if ($historique->getReception() === $this) {
-                $historique->setReception(null);
-            }
-        }
 
         return $this;
     }
@@ -301,6 +244,80 @@ class Receptions
     public function setNomTransporteur(?string $nom_transporteur): self
     {
         $this->nom_transporteur = $nom_transporteur;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Contenu[]
+     */
+    public function getContenus(): Collection
+    {
+        return $this->contenus;
+    }
+
+    public function addContenus(Contenu $contenus): self
+    {
+        if (!$this->contenus->contains($contenus)) {
+            $this->contenus[] = $contenus;
+            $contenus->setReception($this);
+        }
+
+        return $this;
+    }
+
+    public function removeContenus(Contenu $contenus): self
+    {
+        if ($this->contenus->contains($contenus)) {
+            $this->contenus->removeElement($contenus);
+            // set the owning side to null (unless already changed)
+            if ($contenus->getReception() === $this) {
+                $contenus->setReception(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Historiques[]
+     */
+    public function getHistoriques(): Collection
+    {
+        return $this->historiques;
+    }
+
+    public function addHistorique(Historiques $historique): self
+    {
+        if (!$this->historiques->contains($historique)) {
+            $this->historiques[] = $historique;
+            $historique->setReception($this);
+        }
+
+        return $this;
+    }
+
+    public function removeHistorique(Historiques $historique): self
+    {
+        if ($this->historiques->contains($historique)) {
+            $this->historiques->removeElement($historique);
+            // set the owning side to null (unless already changed)
+            if ($historique->getReception() === $this) {
+                $historique->setReception(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getOrdres(): ?Ordres
+    {
+        return $this->ordres;
+    }
+
+    public function setOrdres(?Ordres $ordres): self
+    {
+        $this->ordres = $ordres;
 
         return $this;
     }

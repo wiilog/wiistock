@@ -19,7 +19,7 @@ class ReferencesArticlesType extends AbstractType
             ->add('reference', TextType::class, array(
 				'label' => 'Référence',
 			))
-            ->add('photo_article')
+            ->add('custom')
         ;
     }
 

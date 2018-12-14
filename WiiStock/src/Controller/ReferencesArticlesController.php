@@ -11,6 +11,9 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use App\Entity\ChampsPersonnalises;
+
+use App\Service\FileUploader;
 
 /**
  * @Route("/stock/references_articles")
@@ -43,6 +46,59 @@ class ReferencesArticlesController extends Controller
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException('404 not found');
+    }
+
+    private function createCustomFieldJson($repository)
+    {
+        $em = $this->getDoctrine()->getManager();
+
+        $q = $repository->findOne();
+        if ($q) {
+            $json_data = $q->getCustom();
+
+            $array = array();
+            $i = 0;
+            while ($name = current($json_data)) {
+                $custom_field = $em->getRepository(ChampsPersonnalises::class)->findOneBy(["id" => key($json_data[$i])]);
+                $field = array(
+                    "id" => key($json_data[$i]),
+                    "name" => $custom_field->getNom(),
+                );
+                // dump(key($json_data[$i]));
+                next($json_data);
+                $i++;
+                array_push($array, $field);
+            }
+            return (json_encode($array, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE));
+        } else {
+            return json_encode(array());
+        }
+    }
+
+    /**
+     * @Route("/create", name="references_articles_create", methods="GET|POST")
+     */
+    public function create(Request $request) : Response
+    {
+        $referencesArticle = new ReferencesArticles();
+        $form = $this->createForm(ReferencesArticlesType::class, $referencesArticle);
+
+        $array = $this->createCustomFieldJson($this->getDoctrine()->getManager()->getRepository(ReferencesArticles::class));
+
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+            $em = $this->getDoctrine()->getManager();
+            $em->persist($referencesArticle);
+            $em->flush();
+
+            return $this->redirectToRoute('references_articles_index');
+        }
+
+        return $this->render('references_articles/create.html.twig', [
+            'references_article' => $referencesArticle,
+            'form' => $form->createView(),
+            'custom_json' => $array,
+        ]);
     }
 
     /**
@@ -124,20 +180,35 @@ class ReferencesArticlesController extends Controller
     public function add(Request $request) : Response
     {
         if ($request->isXmlHttpRequest()) {
+            $data = $request->request->all();
             $em = $this->getDoctrine()->getManager();
-            $libelle = $request->request->get('libelle');
-            $reference = $request->request->get('reference');
+            dump($data['data']);
+
             $ref = $request->request->get('ref');
             $id = -1;
-            if ($reference != "" && $libelle != "") {
+            if ($ref != "") {
+                $id = $em->getRepository(ReferencesArticles::class)->findOneBy(['id' => $ref])->getId();
+            } else {
                 $referencesArticle = new ReferencesArticles();
-                $referencesArticle->setLibelle($libelle);
-                $referencesArticle->setReference($reference);
+                $referencesArticle->setLibelle($data['data'][0]['value']);
+                $referencesArticle->setReference($data['data'][1]['value']);
+
+                $i = 2;
+                $array = array();
+                while ($i < count($data['data']) - 1) {
+                    $name = explode('[', substr($data['data'][$i]['name'], 0, -1))[1];
+                    $id_field = $em->getRepository(ChampsPersonnalises::class)->findByName($name, "references_articles")->getId();
+                    $item = array(
+                        $id_field => $data['data'][$i]['value'],
+                    );
+                    array_push($array, $item);
+                    $i++;
+                }
+                $referencesArticle->setCustom($array);
+                dump($referencesArticle);
                 $em->persist($referencesArticle);
                 $em->flush();
                 $id = $referencesArticle->getId();
-            } else {
-                $id = $em->getRepository(ReferencesArticles::class)->findOneBy(['id' => $ref])->getId();
             }
             return new JsonResponse($id);
         }

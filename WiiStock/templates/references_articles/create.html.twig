@@ -1,0 +1,59 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Nouvelle référence article{% endblock %}
+
+{% block page_content %}
+    <h1>Créer une nouvelle référence article</h1>
+
+    {{ include('references_articles/_test_form.html.twig') }}
+
+    <div class="row">
+        <div class="col-md-12">
+            <a href="{{ path('referentiel_articles') }}" class="button btn-left pull-left">
+                <span class="fa fa-angle-double-left"></span>Retour</a>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {# <script src="http://malsup.github.com/jquery.form.js"></script> #}
+
+    <script>
+
+        /* Custom fields */
+        var custom_fields_json = jQuery.parseJSON({{ custom_json|json_encode|raw }}).reverse();
+        console.log(custom_fields_json);
+
+        var form_row = $("form .form-group").last();
+        let id = form_row.find('input').attr('id');
+        let name = id.split("_");
+        $.each(custom_fields_json, function (i, val) {
+            let new_row = form_row.clone();
+            new_row.find("label").text(val.name).attr({
+                'for': id + "_" + i
+            });
+            new_row.find("input").val('').attr({
+                'value': '',
+                'id': id + "_" + i,
+                'name' : name[0] + '_' + name[1] + '[' + val.name + ']',
+            });
+            form_row.after(new_row);
+        });
+        form_row.remove();
+
+        $('button[type="submit"]').on('click', function (e) {
+            e.preventDefault();
+            $.ajax({
+                url: "{{ path('references_articles_add') }}",
+                type: "POST",
+                dataType: "json",
+                data: {
+                    "data": $('form').serializeArray()
+                },
+                success: function (resp) {
+                    window.location.href = "{{ path('referentiel_articles') }}";
+                }
+            });
+        });
+    </script>
+{% endblock %}
