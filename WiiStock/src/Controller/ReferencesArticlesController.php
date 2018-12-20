@@ -214,4 +214,27 @@ class ReferencesArticlesController extends Controller
         }
         throw new NotFoundHttpException('404 not found');
     }
+
+    /**
+     * @Route("/remove", name="references_articles_remove", methods="POST")
+     */
+    public function remove(Request $request, ReferencesArticlesRepository $referencesArticlesRepository) : Response
+    {
+        if ($request->isXmlHttpRequest()) {
+            $em = $this->getDoctrine()->getManager();
+            $referencesArticle = $referencesArticlesRepository->findOneBy(['id' => $request->request->get('id')]);
+            $em->remove($champsPersonnalise);
+            $em->flush();
+            return $this->redirectToRoute('referentiel_articles');
+        }
+        throw new NotFoundHttpException('404 not found');
+    }
+
+    /**
+     * @Route("/modifiy", name="references_articles_modifiy", methods="GET|POST")
+     */
+    public function modifiy(Request $request) : Response
+    {
+
+    }
 }

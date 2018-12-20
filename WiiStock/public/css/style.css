@@ -79,7 +79,7 @@ input:-webkit-autofill {
 
 .wrapper {
 	margin-left: 130px;
-	padding: 0px 15px;
+	/* padding: 0px 15px; */
 	margin-bottom: 30px;
 }
 
@@ -556,7 +556,7 @@ table .fa:hover {
 	margin: 15px -30px;
 	padding: 5px 30px 70px 30px;
 	background-color: #DDDDDD;
-	position: relative;	
+	position: relative;
 }
 
 .manuel .hr {
@@ -1690,20 +1690,24 @@ input:checked+.slider:before {
 ================= */
 
 .select2 {
-	width: 100%!important;
+	width: 100% !important;
 }
 
 .filter-wrapper {
-	padding: 10px 0px 15px 0px;
+	padding: 10px 10px 15px 10px;
 	display: flex;
 	flex-direction: row;
 	justify-content: space-between;
 	align-items: center;
+	margin-bottom: 1%;
 }
 
-.filter-wrapper>div {
-	flex: 1;
+.filter-wrapper>* {
 	margin: 0 5px;
+}
+
+.filter-wrapper>*:not(a) {
+	flex: 1;
 }
 
 .filter-wrapper .daterange {
@@ -1725,7 +1729,7 @@ input:checked+.slider:before {
 
 .select2-selection {
 	border: 1px solid #ccc !important;
-	height: 34px !important;
+	min-height: 34px !important;
 	line-height: 1.42857143!important;
 	color: #555 !important;
 	background-color: #fff !important;
@@ -1733,7 +1737,11 @@ input:checked+.slider:before {
 }
 
 .select2-container--default .select2-selection--single .select2-selection__arrow {
-	height: 34px !important;
+	min-height: 34px !important;
+}
+
+.backgrey {
+	background-color: #8c8c8c !important;
 }
 
 /* Fieldset
@@ -2468,7 +2476,7 @@ input, [type=file]+label {
 }
 
 .login-wrapper .button {
-	margin: 5px 0 0px 0;
+	margin: 0 10px;
 }
 
 .login-wrapper .btn-right {

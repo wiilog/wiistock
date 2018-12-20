@@ -5,24 +5,22 @@
 {% block page_content %}
 
     <div class="row backgray filter-wrapper">
-        <form class="form-inline">
-            <div class="input-group">
-                <label class="input-group-addon">
-                    Catégorie
-                </label>
-                <select class="form-control">
-                    <option>Catégorie1</option>
-                    <option>Catégorie2</option>
-                    <option>Catégorie3</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <input type="search" class="form-control" placeholder="Référence">
-            </div>
-            <a class="btn more-filter">Plus de filtres</a>
-            <a href="#" class="button btn-right">
-                Filtrer<span class="fa fa-angle-double-right"></span></a>
-        </form>
+        <div class="input-group">
+            <label class="input-group-addon">
+                Catégorie
+            </label>
+            <select class="form-control">
+                <option>Catégorie1</option>
+                <option>Catégorie2</option>
+                <option>Catégorie3</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <input type="search" class="form-control" placeholder="Référence">
+        </div>
+        <a class="btn more-filter">Plus de filtres</a>
+        <a href="#" class="button btn-right">
+            Filtrer<span class="fa fa-angle-double-right"></span></a>
     </div>
 
     <div class="row page-title">
@@ -41,32 +39,11 @@
     <table id="grid-data" class="table table-condensed table-hover table-striped">
         <thead>
             <tr>
-                <th data-column-id="nom">Référence</th>
-                <th data-column-id="prenom">Catégorie</th>
-                <th data-column-id="commands" data-formatter="commands" data-sortable="false">Détail</th>
+                <th data-column-id="libelle">Libellé</th>
+                <th data-column-id="reference">Référence</th>
+                <th data-column-id="commands" data-formatter="commands" data-sortable="false">Actions</th>
             </tr>
         </thead>
-
-        <tr>
-            <td>543348421</td>
-            <td>Catégorie1</td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>768717816</td>
-            <td>Catégorie2</td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>6121414825</td>
-            <td>Catégorie1</td>
-            <td></td>
-        </tr>
-        <tr>
-            <td>7113646944</td>
-            <td>Catégorie3</td>
-            <td></td>
-        </tr>
     </table>
 
     <!-- Modal Confirmation-->
@@ -85,7 +62,7 @@
                     <p>Êtes-vous sûr de vouloir supprimer cet élément ?</p>
                     <form>
                         <button type="submit" class="btn btn-success btn-block">
-                            
+
                             Oui</button>
                     </form>
                 </div>
@@ -111,16 +88,15 @@
 {% block javascripts %}
     <script type="text/javascript">
         var grid = $("#grid-data").bootgrid({
-            ajax: false,
-            /*
-            post: function ()
-            {
-                return {
-                    id: "b0df282a-0d67-40e5-8558-c9e93b7befed"
-                };
+            rowCount: [
+                10, 25, 50, -1
+            ],
+            ajax: true,
+            requestHandler: function (request) {
+                request.start = start;
+                return request;
             },
-            url: "{{ path('stock') }}",
-            */
+            url: "{{ path('referentiel_articles') }}",
             formatters: {
                 "commands": function (column, row) {
                     return "<button type=\"button\" class=\"btn btn-xs btn-default command-edit\" data-row-id=\"" + row.id + "\"><span class=\"fa fa-pencil\"></span></button> " + "<button type=\"button\" class=\"btn btn-xs btn-default command-delete\" data-row-id=\"" + row.id + "\"><span class=\"fa fa-trash-o\"></span></button>";
@@ -128,6 +104,12 @@
             }
         }).on("loaded.rs.jquery.bootgrid", function () {
             /* Executes after data is loaded and rendered */
+            grid.find(".command-edit").on("click", function (e) {
+                let url = "{{ path('activite_edit', {'id': 'edit_id'}) }}";
+                let id = $(this).attr("data-row-id");
+                url = url.replace("edit_id", id);
+                window.location.href = url;
+            }),
             grid.find(".command-delete").on("click", function (e) {
                 $("#supprModal").modal();
             })

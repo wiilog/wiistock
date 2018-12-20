@@ -8,25 +8,3 @@
 
 {{ form_row(form._token) }}
 {{ form_end(form, {'render_rest' : false}) }}
-
-<script>
-    
-    /* Parse and display json val in input */
-    /*
-    var custom = jQuery.parseJSON($('#references_articles_custom').val());
-    var form_row = $("#references_articles_custom").parent();
-    let id = form_row.find('input').attr('id');
-    $.each(custom, function (i) {
-        let new_row = form_row.clone();
-        new_row.find("label").text(custom[i].name).attr({
-            'for': id + "_" + i,
-        });
-        new_row.find("input").val(custom[i].value).attr({
-            'value': custom[i].value,
-            'id': id + "_" + i
-        });
-        form_row.after(new_row);
-    });
-    form_row.remove();
-    */
-</script>

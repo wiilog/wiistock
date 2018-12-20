@@ -186,12 +186,25 @@ class ChampsPersonnalisesController extends Controller
             $champsPersonnalise = $champsPersonnalisesRepository->findOneBy(['id' => $request->request->get('id')]);
 
             // $rawSql = "UPDATE references_articles SET custom = JSON_REMOVE(custom, '$[0]') ";
-            $id = '"29"';
+            $id = '"8"';
             $test = '"grenouille"';
             // $rawSql = "SELECT JSON_REMOVE(custom, '$." . $id . "')";
             // $rawSql = "SELECT `custom`, JSON_REMOVE(`custom`, JSON_UNQUOTE(JSON_SEARCH(`custom`, 'all', " . $id . "))) FROM `references_articles`";
-            $rawSql = "SELECT JSON_UNQUOTE(JSON_SEARCH(`custom`, 'all', " . $test . ")) FROM `references_articles`";
-            // $rawSql = "SELECT JSON_UNQUOTE(JSON_EXTRACT(`custom`,'$[*]." . $id . "')) FROM `references_articles`";
+            // $rawSql = "SELECT JSON_EXTRACT(custom, '$[*]." . $id . "') AS `value` FROM `references_articles`, SELECT JSON_UNQUOTE(JSON_SEARCH(`custom`, 'all', " . $test . ")) FROM `references_articles`";
+
+            // $rawSql = "SELECT JSON_UNQUOTE(JSON_SEARCH(`custom`, 'all', JSON_EXTRACT(custom, '$[*]." . $id . "'))) FROM `references_articles`";
+            // $rawSql = "SELECT JSON_UNQUOTE(JSON_SEARCH(`custom`, 'all', " . $test . ")) FROM `references_articles`";
+
+            // $rawSql = "SELECT JSON_EXTRACT(custom, '$[*]." . $id . "') AS `value` FROM `references_articles`";
+            // $rawSql = "SELECT JSON_EXTRACT(`value`, '$[0]') FROM (SELECT JSON_EXTRACT(custom, '$[*]." . $id . "') AS `value` FROM `references_articles`) AS `value`";
+
+            
+            $rawSql =
+            " SELECT JSON_SEARCH(`custom`, 'all', `value`) FROM (SELECT JSON_EXTRACT(`value`, '$[0]') FROM (SELECT JSON_EXTRACT(custom, '$[*]." . $id . "') AS `value` FROM `references_articles`) AS `value`) AS `value`, `references_articles` ";
+            
+            // $rawSql = "SELECT @start := JSON_EXTRACT(custom, '$[*]." . $id . "') AS `value` FROM `references_articles`";
+
+            // $rawSql = "SELECT JSON_UNQUOTE(JSON_SEARCH(`custom`, 'all', JSON_EXTRACT(custom, '$[*]." . $id . "'))) FROM `references_articles`";
             $rest = $em->getConnection()->prepare($rawSql);
             $rest->execute();
             $rest = $rest->fetchAll();

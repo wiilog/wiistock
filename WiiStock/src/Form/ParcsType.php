@@ -142,10 +142,11 @@ class ParcsType extends AbstractType
 				'placeholder' => '',
 				'choices' => array(
 					'Fin de contrat de location longue durée' => 'Fin de contrat de location longue durée',
-					'Mise au rebus' => 'Mise au rebus',
+					'Mise au rebut' => 'Mise au rebut',
 					'Transfert vers site d\'une filiale différente' => 'Transfert vers site d\'une filiale différente',
 					'Transfert vers site d\'une même filiale' => 'Transfert vers site d\'une même filiale',
 					'Vente à un tiers externe' => 'Vente à un tiers externe',
+					'Mise à jour convention de prêt' => 'Mise à jour convention de prêt',
 				),
 			))
 			->add('commentaire_sortie', TextareaType::class, array(
