@@ -7,9 +7,9 @@
             <div id="sidemenu-bg" class="sidemenu-bg hide"></div>
             <ul id="sidemenu" class="sidemenu">
                 <li>
-                    <a>
+                    <a href={{path("utilisateurs_edit", {"id": app.user.id})}}>
                         <div class="username">{{ app.user.username }}</div>
-                        <i class="fa fa-user-circle-o"></i>
+                        <i class="fa fa-user"></i>
                     </a>
                 </li>
 
@@ -18,13 +18,18 @@
                         <i class="fa fa-home"></i>
                     </a>
                 </li>
+                <li>
+                    <a href={{path("receptions_index")}}>
+                            <i class="fa fa-box"></i>
+                    </a>
+                </li>
                 {# <li>
                     <a href="#">
                         <i class="fa fa-search"></i>
                     </a>
                 </li> #}
-
-                {% if is_granted('ROLE_PARC') %}
+<!-- PARC -->
+                <!-- {% if is_granted('ROLE_PARC') %}
                     <li class="has-submenu">
                         <a>
                             <i class="fa fa-automobile"></i>
@@ -41,7 +46,7 @@
                             </li>
                         </ul>
                     </li>
-                {% endif %}
+                {% endif %} -->
 
                 {% if is_granted('ROLE_STOCK') %}
                     <li class="has-submenu">
@@ -85,7 +90,8 @@
                             </li>
                         </ul>
                     </li>
-                    <li class="has-submenu">
+<!-- INVENTAIRE -->
+                    <!-- <li class="has-submenu">
                         <a href="#">
                             <i class="fa fa-file-text"></i>
                         </a>
@@ -100,8 +106,9 @@
                                 <a href="#">• Suivi de comptage</a>
                             </li>
                         </ul>
-                    </li>
-                    <li class="has-submenu">
+                    </li> -->
+<!-- HISTORIQUE -->
+                    <!-- <li class="has-submenu">
                         <a href="{{ path('historiques_index') }}">
                             <i class="fa fa-tags"></i>
                         </a>
@@ -110,7 +117,14 @@
                                 <h4>Historique des transferts</h4>
                             </li>
                         </ul>
-                    </li>
+                    </li> -->
+<!-- ALERTE -->
+                    <!-- <li class='has-sebmenu'>
+                        <a href={{path("alertes_index")}}>
+                            <i class="fa fa-exclamation-triangle"></i>
+                        </a>
+
+                    </li> -->
                     <li class="has-submenu">
                         <a href="#">
                             <i class="fa fa-book"></i>
@@ -119,9 +133,9 @@
                             <li class="text">
                                 <h4>Référenciel</h4>
                             </li>
-                            <li>
+                            <!-- <li>
                                 <a href="{{ path('referentiel_clients') }}">• Client</a>
-                            </li>
+                            </li> -->
                             <li>
                                 <a href="{{ path('referentiel_fournisseurs') }}">• Fournisseur</a>
                             </li>
@@ -146,11 +160,12 @@
                             <li>
                                 <a href="{{ path('utilisateurs_index') }}">• Utilisateurs</a>
                             </li>
-                            {% if is_granted('ROLE_PARC_ADMIN') %}
+<!-- PARAMETRAGE PARC -->
+                            <!-- {% if is_granted('ROLE_PARC_ADMIN') %}
                                 <li>
                                     <a href="{{ path('parc_parametrage') }}">• Paramétrage des données</a>
                                 </li>
-                            {% endif %}
+                            {% endif %} -->
                             <li>
                                 <a href="{{ path('change_password') }}">• Changer de mot de passe</a>
                             </li>
@@ -160,12 +175,6 @@
                                 </li>
                                 <li>
                                     <a href="{{ path('champs_personnalises_index') }}">• Champs personnalisé</a>
-                                </li>
-                                <li>
-                                    <a href="{{ path('personnalisation') }}">• Personnalisation</a>
-                                </li>
-                                <li>
-                                    <a href="{{ path('alertes_index') }}">• Alerte de gestion de stock</a>
                                 </li>
                                 <li>
                                     <a href="{{ path('dimensionnement') }}">• Dimensionnement</a>

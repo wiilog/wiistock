@@ -251,7 +251,7 @@ class OrdreController extends Controller
         return $this->render('ordre/ordre_transfert.html.twig', [
             'controller_name' => 'OrdreController',
             'form_ref' => $form_ref->createView(),
-            'form_art' => $form_art->createView(),
+             'form_art' => $form_art->createView(),
             'emplacements' => $this->getEmplacements(),
         ]);
     }

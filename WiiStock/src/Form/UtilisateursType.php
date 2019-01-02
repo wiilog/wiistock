@@ -29,27 +29,23 @@ class UtilisateursType extends AbstractType
                 'first_options'  => array('label' => 'Mot de Passe'),
                 'second_options' => array('label' => 'Confirmer Mot de Passe'),
             ))
-            ->add('groupe', EntityType::class, array(
-                'class' => 'App\Entity\Groupes',
-                'choice_label' => 'nom',
-                'multiple' => false,
-                ))
-            ->add('theme', EntityType::class, array(
-                'class' => 'App\Entity\Themes',
-                'choice_label' => 'nom',
-                'multiple' => false,
-                ))
-            ->add('roles', ChoiceType::class, array(
-                'label' => "Rôles",
-                'choices' => array(
-                    'ROLE_PARC' => 'ROLE_PARC',
-                    'ROLE_USER' => 'ROLE_USER',
-                    'ROLE_ADMIN' => 'ROLE_ADMIN',
-                    'ROLE_PARC_ADMIN' => 'ROLE_PARC_ADMIN',
-                    'ROLE_API' => 'ROLE_API',
-                    ),
-                'multiple' => true,
-                ))
+            // ->add('groupe', EntityType::class, array(
+            //     'class' => 'App\Entity\Groupes',
+            //     'choice_label' => 'nom',
+            //     'multiple' => false,
+            //     ))
+          
+            // ->add('roles', ChoiceType::class, array(
+            //     'label' => "Rôles",
+            //     'choices' => array(
+            //         'ROLE_PARC' => 'ROLE_PARC',
+            //         'ROLE_USER' => 'ROLE_USER',
+            //         'ROLE_ADMIN' => 'ROLE_ADMIN',
+            //         'ROLE_PARC_ADMIN' => 'ROLE_PARC_ADMIN',
+            //         'ROLE_API' => 'ROLE_API',
+            //         ),
+            //     'multiple' => true,
+            //     ))
         ;
     }
 

@@ -1,82 +1,45 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Receptions{% endblock %}
+{% block title %}Receptions index{% endblock %}
 
 {% block page_content %}
-<form>
-    <div class="row backgray filter-wrapper">
-       
-        <div>
-            <input id="immat" type="search" class="form-control" placeholder="Immat/série">
-        </div>
-        {# <a class="btn more-filter">Plus de filtres</a> #}
-        <a href="#" id="filter" class="button btn-right">
-            Filtrer<span class="fa fa-angle-double-right"></span></a>
+    <h1>Receptions</h1>
+    <div class='row btn pull-right' >
+        <a href="{{ path('receptions_new') }}" class="button btn-left">
+            <span class="fa fa-plus"></span>Nouvelle reception
+        </a >
     </div>
-</form>
-<div class="row page-title">
-    RECEPTIONS
-</div>
-<div class="row btn-grp">
-    <a href="#" class="button btn-left">
-        <span class="fa fa-dollar"></span>nouvelle reception
-    </a>
-</div>
-
-    <table id="grid-data" class="table table-condensed table-hover table-striped">
+    <table class="table">
         <thead>
             <tr>
-                <th data-column-id="id" data-visible='false' data-sortable='false'>Id</th>
-                <th data-column-id="statut">Statut</th>
-                <th data-column-id="dateReception">Date_reception</th>
-                <th data-column-id="commands" data-formatter='commands' data-sortable='false'>actions</th>
+                <th>Statut</th>
+                <th>Commentaire</th>
+                <th>Date</th>
+                <th>NumeroArrivage</th>
+                <th>NumeroReception</th>
+                <th>actions</th>
             </tr>
         </thead>
         <tbody>
-            {% for reception in receptions %}
+        {% for reception in receptions %}
             <tr>
-                <td>{{ reception.id }}</td>
-                <td>{{ site.statut }}</td>
-                <td>{{ reception.date_reception }}</td>
-
+                <td>{{ reception.statut }}</td>
+                <td>{{ reception.commentaire }}</td>
+                <td>{{ reception.date ? reception.date|date('Y-m-d H:i:s') : '' }}</td>
+                <td>{{ reception.numeroArrivage }}</td>
+                <td>{{ reception.numeroReception }}</td>
+                <td>
+                    <a href="{{ path('receptions_show', {'id': reception.id}) }}" class="btn btn-xs btn-default command-edit"><i class="fas fa-eye fa-2x"></i></a>
+                    <a href="{{ path('receptions_edit', {'id': reception.id}) }}"class="btn btn-xs btn-default command-edit"><i class="fas fa-pencil-alt fa-2x"></i></a>
+                </td>
             </tr>
-            {% else %}
+        {% else %}
             <tr>
-                <td colspan="3">no records found</td>
+                <td colspan="7">no records found</td>
             </tr>
-            {% endfor %}
+        {% endfor %}
         </tbody>
     </table>
 
-   
+    
 {% endblock %}
-{% block javascript %}
-    <script >
-
-        var grid = $("#grid-data").bootgrid({
-            rowCount: [
-                10, 25, -1
-            ],
-            ajax: false,
-           
-            url: "{{ path('reception_index') }}",
-            formatters: {
-                "commands": function (column, row) {
-                    return "<button type=\"button\" class=\"btn btn-xs btn-default command-view\" data-row-id=\"" + row.id + "\"><span class=\"fa fa-eye\"></span></button> ";
-                },
-            }
-        }).on("loaded.rs.jquery.bootgrid", function () {
-            /* Executes after data is loaded and rendered */
-            grid.find(".command-view, .etiquette").on("click", function (e) {
-                var url = "{{ path('articles_affichage', {'id': 'edit_id'}) }}";
-                var id = $(this).attr("data-row-id");
-                url = url.replace("edit_id", id);
-                window.location.href = url;
-            })
-        });
-
-       
-
-    </script>    
-
-{% endblock  %}

@@ -21,7 +21,7 @@ class Fournisseurs
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $code_reference;
+    private $codeReference;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
@@ -45,12 +45,12 @@ class Fournisseurs
 
     public function getCodeReference() : ? string
     {
-        return $this->code_reference;
+        return $this->codeReference;
     }
 
-    public function setCodeReference(? string $code_reference) : self
+    public function setCodeReference(? string $codeReference) : self
     {
-        $this->code_reference = $code_reference;
+        $this->codeReference = $codeReference;
 
         return $this;
     }
@@ -96,5 +96,10 @@ class Fournisseurs
         }
 
         return $this;
+    }
+
+    public function __toString()
+    {
+        return $this->nom;
     }
 }

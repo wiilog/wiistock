@@ -333,7 +333,7 @@
     $('#order-add').on('click', function (e) {
         e.preventDefault();
         if (!toggleNumber) {
-            readFile(file, "{{ path( 'ordre_add' ) }}", orderType.val(), toggleNumber);
+            readFile(file, "{{ path( 'ordre_reception_add' ) }}", orderType.val(), toggleNumber);
             removeUpload();
         } else {
             if (orderType.val() == "sortie") {
@@ -451,7 +451,7 @@
 
     function ajaxAddOrder(data, ordre, toggle) {
         $.ajax({
-            url: "{{ path('ordre_add') }}",
+            url: "{{ path('ordre_reception_add') }}",
             type: "POST",
             dataType: "json",
             data: {

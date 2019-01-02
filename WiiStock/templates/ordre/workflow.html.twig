@@ -34,6 +34,8 @@
         WORKFLOW ORDRES
     </div>
 
+
+
     {# {% for ordre in ordres %} #}
     <div class="row">
         <div class="workflow-wrap">
@@ -43,10 +45,10 @@
                         <div class="list-header">Ordre</div>
                         <div id="en-attente" class="list-cards workflow-sidebar"></div>
                         <div class="list-footer">
-                            <a href="{{ path( 'ordre_creation' ) }}">
+                            <!-- <a href="{{ path( 'ordre_creation' ) }}">
                                 <span class="fa fa-plus"></span>
                                 Ajouter une nouvel ordre
-                            </a>
+                            </a> -->
                         </div>
                     </div>
                 </div>
@@ -201,7 +203,7 @@
         <div class="col-md-12">
             <a href="#" class="button btn-left">
                 <span class="fa fa-angle-double-left"></span>Retour</a>
-            <a href="#" class="button btn-right pull-right">
+            <a href={{path("receptions_index")}} class="button btn-right pull-right">
                 Liste des réceptions<span class="fa fa-angle-double-right"></span></a>
             <a href="#" class="button btn-right pull-right">
                 Liste des préparations<span class="fa fa-angle-double-right"></span></a>

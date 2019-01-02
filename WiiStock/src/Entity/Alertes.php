@@ -73,4 +73,8 @@ class Alertes
 
         return $this;
     }
+    public function __toString()
+    {
+        return $this->reference;
+    }
 }

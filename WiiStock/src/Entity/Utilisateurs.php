@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\EquatableInterface;
@@ -58,11 +60,7 @@ class Utilisateurs implements UserInterface, EquatableInterface
      */
     private $roles;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Themes")
-     * @ORM\JoinColumn(nullable=true)
-     */
-    private $theme;
+   
 
     private $salt;
 
@@ -71,8 +69,14 @@ class Utilisateurs implements UserInterface, EquatableInterface
      */
     private $lastLogin;
 
-    public function __construct() 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Receptions", mappedBy="utilisateur")
+     */
+    private $receptions;
+
+    public function __construct()
     {
+        $this->receptions = new ArrayCollection();
     }
 
     public function getId()
@@ -138,17 +142,7 @@ class Utilisateurs implements UserInterface, EquatableInterface
         return $this;
     }
 
-    public function getTheme(): ?Themes
-    {
-        return $this->theme;
-    }
-
-    public function setTheme(?Themes $theme): self
-    {
-        $this->theme = $theme;
-
-        return $this;
-    }
+   
 
     public function getSalt()
     {
@@ -200,5 +194,41 @@ class Utilisateurs implements UserInterface, EquatableInterface
         $this->lastLogin = $lastLogin;
 
         return $this;
+    }
+
+    /**
+     * @return Collection|Receptions[]
+     */
+    public function getReceptions(): Collection
+    {
+        return $this->receptions;
+    }
+
+    public function addReception(Receptions $reception): self
+    {
+        if (!$this->receptions->contains($reception)) {
+            $this->receptions[] = $reception;
+            $reception->setUtilisateur($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReception(Receptions $reception): self
+    {
+        if ($this->receptions->contains($reception)) {
+            $this->receptions->removeElement($reception);
+            // set the owning side to null (unless already changed)
+            if ($reception->getUtilisateur() === $this) {
+                $reception->setUtilisateur(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function __toString()
+    {
+        return $this->username;
     }
 }

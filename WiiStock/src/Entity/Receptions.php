@@ -23,20 +23,6 @@ class Receptions
      */
     private $statut;
 
-    /**
-     * @ORM\Column(type="datetime", nullable=true)
-     */
-    private $date_au_plus_tot;
-
-    /**
-     * @ORM\Column(type="datetime", nullable=true)
-     */
-    private $date_au_plus_tard;
-
-    /**
-     * @ORM\Column(type="datetime", nullable=true)
-     */
-    private $date_prevue;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Fournisseurs", inversedBy="receptions")
@@ -49,54 +35,28 @@ class Receptions
     private $commentaire;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
+     * @ORM\Column(type="datetime", nullable=true)
      */
-    private $reference_SAP;
+    private $date;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
+     * @ORM\Column(type="integer", nullable=true)
      */
-    private $nom_CEA;
+    private $numeroArrivage;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
+     * @ORM\Column(type="integer", nullable=true)
      */
-    private $prenom_CEA;
+    private $numeroReception;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
+     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateurs", inversedBy="receptions")
      */
-    private $mail_CEA;
-
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
-    private $code_ref_transporteur;
-
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
-    private $nom_transporteur;
-
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Contenu", mappedBy="reception")
-     */
-    private $contenus;
-
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Historiques", mappedBy="reception")
-     */
-    private $historiques;
-
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Ordres", inversedBy="receptions")
-     */
-    private $ordres;
+    private $utilisateur;
 
     public function __construct()
     {
-        $this->contenus = new ArrayCollection();
-        $this->historiques = new ArrayCollection();
+        
     }
 
     public function getId(): ?int
@@ -112,42 +72,6 @@ class Receptions
     public function setStatut(?string $statut): self
     {
         $this->statut = $statut;
-
-        return $this;
-    }
-
-    public function getDateAuPlusTot(): ?\DateTimeInterface
-    {
-        return $this->date_au_plus_tot;
-    }
-
-    public function setDateAuPlusTot(?\DateTimeInterface $date_au_plus_tot): self
-    {
-        $this->date_au_plus_tot = $date_au_plus_tot;
-
-        return $this;
-    }
-
-    public function getDateAuPlusTard(): ?\DateTimeInterface
-    {
-        return $this->date_au_plus_tard;
-    }
-
-    public function setDateAuPlusTard(?\DateTimeInterface $date_au_plus_tard): self
-    {
-        $this->date_au_plus_tard = $date_au_plus_tard;
-
-        return $this;
-    }
-
-    public function getDatePrevue(): ?\DateTimeInterface
-    {
-        return $this->date_prevue;
-    }
-
-    public function setDatePrevue(?\DateTimeInterface $date_prevue): self
-    {
-        $this->date_prevue = $date_prevue;
 
         return $this;
     }
@@ -176,148 +100,56 @@ class Receptions
         return $this;
     }
 
-    public function getReferenceSAP(): ?string
+  
+    public function __toString()
     {
-        return $this->reference_SAP;
+        return $this->id;
     }
 
-    public function setReferenceSAP(?string $reference_SAP): self
+    public function getDate(): ?\DateTimeInterface
     {
-        $this->reference_SAP = $reference_SAP;
+        return $this->date;
+    }
+
+    public function setDate(?\DateTimeInterface $date): self
+    {
+        $this->date = $date;
 
         return $this;
     }
 
-    public function getNomCEA(): ?string
+    public function getNumeroArrivage(): ?int
     {
-        return $this->nom_CEA;
+        return $this->numeroArrivage;
     }
 
-    public function setNomCEA(?string $nom_CEA): self
+    public function setNumeroArrivage(?int $numeroArrivage): self
     {
-        $this->nom_CEA = $nom_CEA;
+        $this->numeroArrivage = $numeroArrivage;
 
         return $this;
     }
 
-    public function getPrenomCEA(): ?string
+    public function getNumeroReception(): ?int
     {
-        return $this->prenom_CEA;
+        return $this->numeroReception;
     }
 
-    public function setPrenomCEA(?string $prenom_CEA): self
+    public function setNumeroReception(?int $numeroReception): self
     {
-        $this->prenom_CEA = $prenom_CEA;
+        $this->numeroReception = $numeroReception;
 
         return $this;
     }
 
-    public function getMailCEA(): ?string
+    public function getUtilisateur(): ?Utilisateurs
     {
-        return $this->mail_CEA;
+        return $this->utilisateur;
     }
 
-    public function setMailCEA(?string $mail_CEA): self
+    public function setUtilisateur(?Utilisateurs $utilisateur): self
     {
-        $this->mail_CEA = $mail_CEA;
-
-        return $this;
-    }
-
-    public function getCodeRefTransporteur(): ?string
-    {
-        return $this->code_ref_transporteur;
-    }
-
-    public function setCodeRefTransporteur(?string $code_ref_transporteur): self
-    {
-        $this->code_ref_transporteur = $code_ref_transporteur;
-
-        return $this;
-    }
-
-    public function getNomTransporteur(): ?string
-    {
-        return $this->nom_transporteur;
-    }
-
-    public function setNomTransporteur(?string $nom_transporteur): self
-    {
-        $this->nom_transporteur = $nom_transporteur;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|Contenu[]
-     */
-    public function getContenus(): Collection
-    {
-        return $this->contenus;
-    }
-
-    public function addContenus(Contenu $contenus): self
-    {
-        if (!$this->contenus->contains($contenus)) {
-            $this->contenus[] = $contenus;
-            $contenus->setReception($this);
-        }
-
-        return $this;
-    }
-
-    public function removeContenus(Contenu $contenus): self
-    {
-        if ($this->contenus->contains($contenus)) {
-            $this->contenus->removeElement($contenus);
-            // set the owning side to null (unless already changed)
-            if ($contenus->getReception() === $this) {
-                $contenus->setReception(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|Historiques[]
-     */
-    public function getHistoriques(): Collection
-    {
-        return $this->historiques;
-    }
-
-    public function addHistorique(Historiques $historique): self
-    {
-        if (!$this->historiques->contains($historique)) {
-            $this->historiques[] = $historique;
-            $historique->setReception($this);
-        }
-
-        return $this;
-    }
-
-    public function removeHistorique(Historiques $historique): self
-    {
-        if ($this->historiques->contains($historique)) {
-            $this->historiques->removeElement($historique);
-            // set the owning side to null (unless already changed)
-            if ($historique->getReception() === $this) {
-                $historique->setReception(null);
-            }
-        }
-
-        return $this;
-    }
-
-    public function getOrdres(): ?Ordres
-    {
-        return $this->ordres;
-    }
-
-    public function setOrdres(?Ordres $ordres): self
-    {
-        $this->ordres = $ordres;
+        $this->utilisateur = $utilisateur;
 
         return $this;
     }

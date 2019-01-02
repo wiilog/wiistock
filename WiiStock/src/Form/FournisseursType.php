@@ -17,9 +17,7 @@ class FournisseursType extends AbstractType
             ->add('nom', TextType::class, array(
                 'label' => 'Nom',
             ))
-            ->add('code_reference', TextType::class, array(
-                'label' => 'Code référence',
-            ))
+            ->add('code_reference')
             ;
     }
 

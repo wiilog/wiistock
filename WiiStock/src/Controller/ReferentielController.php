@@ -4,6 +4,16 @@ namespace App\Controller;
 
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use App\Entity\Fournisseurs;
+use App\Form\FournisseursType;
+use App\Repository\FournisseursRepository;
+use App\Entity\ReferencesArticles;
+use App\Form\ReferencesArticlesType;
+use App\Repository\ReferencesArticlesRepository;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 /**
  * @Route("/stock/referentiel")
@@ -37,6 +47,7 @@ class ReferentielController extends Controller
     {
         return $this->render('referentiel/fournisseurs.html.twig', [
             'controller_name' => 'ReferentielController',
+            'fournisseurs' => $this->getDoctrine()->getRepository(Fournisseurs::class)->findAll()
         ]);
     }
 
@@ -47,6 +58,7 @@ class ReferentielController extends Controller
     {
         return $this->render('referentiel/articles.html.twig', [
             'controller_name' => 'ReferentielController',
+            'articles' =>  $this->getDoctrine()->getRepository(ReferencesArticles::class)->findAll()
         ]);
     }
 
