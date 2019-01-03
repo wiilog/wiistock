@@ -2,30 +2,25 @@
 
 namespace App\Form;
 
-use App\Entity\Emplacements;
+use App\Entity\Emplacement;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 
-class EmplacementsType extends AbstractType
+class EmplacementType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
             ->add('nom')
-            ->add('rack', EntityType::class, array(
-                'class' => 'App\Entity\Racks',
-                'choice_label' => 'nom',
-                'multiple' => false,
-                ))
+            ->add('status')
         ;
     }
 
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults([
-            'data_class' => Emplacements::class,
+            'data_class' => Emplacement::class,
         ]);
     }
 }

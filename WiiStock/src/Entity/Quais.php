@@ -36,15 +36,9 @@ class Quais
      */
     private $articles;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Contenu", mappedBy="quai")
-     */
-    private $contenus;
-
     public function __construct()
     {
         $this->articles = new ArrayCollection();
-        $this->contenus = new ArrayCollection();
     }
 
     public function getId()
@@ -76,65 +70,4 @@ class Quais
         return $this;
     }
 
-    /**
-     * @return Collection|Articles[]
-     */
-    public function getArticles(): Collection
-    {
-        return $this->articles;
-    }
-
-    public function addArticle(Articles $article): self
-    {
-        if (!$this->articles->contains($article)) {
-            $this->articles[] = $article;
-            $article->setQuai($this);
-        }
-
-        return $this;
-    }
-
-    public function removeArticle(Articles $article): self
-    {
-        if ($this->articles->contains($article)) {
-            $this->articles->removeElement($article);
-            // set the owning side to null (unless already changed)
-            if ($article->getQuai() === $this) {
-                $article->setQuai(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|Contenu[]
-     */
-    public function getContenus(): Collection
-    {
-        return $this->contenus;
-    }
-
-    public function addContenus(Contenu $contenus): self
-    {
-        if (!$this->contenus->contains($contenus)) {
-            $this->contenus[] = $contenus;
-            $contenus->setQuai($this);
-        }
-
-        return $this;
-    }
-
-    public function removeContenus(Contenu $contenus): self
-    {
-        if ($this->contenus->contains($contenus)) {
-            $this->contenus->removeElement($contenus);
-            // set the owning side to null (unless already changed)
-            if ($contenus->getQuai() === $this) {
-                $contenus->setQuai(null);
-            }
-        }
-
-        return $this;
-    }
 }

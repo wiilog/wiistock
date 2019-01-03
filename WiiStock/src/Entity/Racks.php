@@ -33,11 +33,10 @@ class Racks
     private $travees;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Emplacements", mappedBy="racks", cascade={"persist"})
-     * @ORM\JoinColumn(nullable=false)
-     * @Groups({"entrepots", "emplacements"})
+     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="racks")
      */
-    private $emplacements;
+    private $emplacement;
+
 
     public function __construct()
     {
@@ -73,34 +72,16 @@ class Racks
         return $this;
     }
 
-    /**
-     * @return Collection|Emplacements[]
-     */
-    public function getEmplacements(): Collection
+    public function getEmplacement(): ?Emplacement
     {
-        return $this->emplacements;
+        return $this->emplacement;
     }
 
-    public function addEmplacement(Emplacements $emplacement): self
+    public function setEmplacement(?Emplacement $emplacement): self
     {
-        if (!$this->emplacements->contains($emplacement)) {
-            $this->emplacements[] = $emplacement;
-            $emplacement->setRacks($this);
-        }
+        $this->emplacement = $emplacement;
 
         return $this;
     }
 
-    public function removeEmplacement(Emplacements $emplacement): self
-    {
-        if ($this->emplacements->contains($emplacement)) {
-            $this->emplacements->removeElement($emplacement);
-            // set the owning side to null (unless already changed)
-            if ($emplacement->getRacks() === $this) {
-                $emplacement->setRacks(null);
-            }
-        }
-
-        return $this;
-    }
 }

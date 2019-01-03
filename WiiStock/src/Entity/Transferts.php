@@ -28,15 +28,7 @@ class Transferts
      */
     private $emplacement_arrivee;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Contenu", mappedBy="transfert")
-     */
-    private $contenus;
-
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Historiques", mappedBy="transfert")
-     */
-    private $historiques;
+   
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Ordres", inversedBy="transferts")
@@ -74,68 +66,6 @@ class Transferts
     public function setEmplacementArrivee(?string $emplacement_arrivee): self
     {
         $this->emplacement_arrivee = $emplacement_arrivee;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|Contenu[]
-     */
-    public function getContenus(): Collection
-    {
-        return $this->contenus;
-    }
-
-    public function addContenus(Contenu $contenus): self
-    {
-        if (!$this->contenus->contains($contenus)) {
-            $this->contenus[] = $contenus;
-            $contenus->setTransfert($this);
-        }
-
-        return $this;
-    }
-
-    public function removeContenus(Contenu $contenus): self
-    {
-        if ($this->contenus->contains($contenus)) {
-            $this->contenus->removeElement($contenus);
-            // set the owning side to null (unless already changed)
-            if ($contenus->getTransfert() === $this) {
-                $contenus->setTransfert(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|Historiques[]
-     */
-    public function getHistoriques(): Collection
-    {
-        return $this->historiques;
-    }
-
-    public function addHistorique(Historiques $historique): self
-    {
-        if (!$this->historiques->contains($historique)) {
-            $this->historiques[] = $historique;
-            $historique->setTransfert($this);
-        }
-
-        return $this;
-    }
-
-    public function removeHistorique(Historiques $historique): self
-    {
-        if ($this->historiques->contains($historique)) {
-            $this->historiques->removeElement($historique);
-            // set the owning side to null (unless already changed)
-            if ($historique->getTransfert() === $this) {
-                $historique->setTransfert(null);
-            }
-        }
 
         return $this;
     }

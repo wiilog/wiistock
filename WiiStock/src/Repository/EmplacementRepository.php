@@ -2,25 +2,25 @@
 
 namespace App\Repository;
 
-use App\Entity\Emplacements;
+use App\Entity\Emplacement;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
- * @method Emplacements|null find($id, $lockMode = null, $lockVersion = null)
- * @method Emplacements|null findOneBy(array $criteria, array $orderBy = null)
- * @method Emplacements[]    findAll()
- * @method Emplacements[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method Emplacement|null find($id, $lockMode = null, $lockVersion = null)
+ * @method Emplacement|null findOneBy(array $criteria, array $orderBy = null)
+ * @method Emplacement[]    findAll()
+ * @method Emplacement[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class EmplacementsRepository extends ServiceEntityRepository
+class EmplacementRepository extends ServiceEntityRepository
 {
     public function __construct(RegistryInterface $registry)
     {
-        parent::__construct($registry, Emplacements::class);
+        parent::__construct($registry, Emplacement::class);
     }
 
 //    /**
-//     * @return Emplacements[] Returns an array of Emplacements objects
+//     * @return Emplacement[] Returns an array of Emplacement objects
 //     */
     /*
     public function findByExampleField($value)
@@ -37,7 +37,7 @@ class EmplacementsRepository extends ServiceEntityRepository
     */
 
     /*
-    public function findOneBySomeField($value): ?Emplacements
+    public function findOneBySomeField($value): ?Emplacement
     {
         return $this->createQueryBuilder('e')
             ->andWhere('e.exampleField = :val')

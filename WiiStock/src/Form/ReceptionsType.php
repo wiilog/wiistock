@@ -15,7 +15,6 @@ class ReceptionsType extends AbstractType
             ->add('numeroArrivage')
             ->add('numeroReception')
             ->add('fournisseur')
-            ->add('statut')
             ->add('utilisateur')
             ->add('commentaire')
             ;

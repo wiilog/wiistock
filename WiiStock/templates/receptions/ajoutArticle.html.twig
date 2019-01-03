@@ -1,0 +1,67 @@
+{% extends "layout.html.twig" %}
+{% block title %}Receptions index{% endblock %}
+{% block page_content %}
+<pre>{{ dump(articles) }}</pre>
+
+    <h1>RECEPTION n°{{reception.numeroReception}}</h1>
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Statut</th>
+                <td>{{ reception.statut }}</td>
+            </tr>
+            <tr>
+                <th>Commentaire</th>
+                <td>{{ reception.commentaire }}</td>
+            </tr>
+            <tr>
+                <th>Date</th>
+                <td>{{ reception.date ? reception.date|date('Y-m-d H:i:s') : '' }}</td>
+            </tr>
+            <tr>
+                <th>NumeroArrivage</th>
+                <td>{{ reception.numeroArrivage }}</td>
+            </tr>
+        </tbody>
+    </table>    
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Nom</th>
+                <th>Statu</th>
+                <th>Quantite</th>
+                <th>état</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for article in articles %}
+            <tr>
+                <td>{{ article.id }}</td>
+                <td>{{ article.nom }}</td>
+                <td>{{ article.statu }}</td>
+                <td>{{ article.quantite }}</td>
+                <td>{{ article.etat ? 'conforme': 'non-conforme' }}</td>
+                <td>
+                    <a href="{{ path('articles_edit', {'id': article.id}) }}">edit</a>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="7">no records found</td>
+            </tr>
+         {% endfor %}
+        </tbody>    
+    </table>
+        {{ form_start(formView) }}
+        {{ form_widget(formView) }}
+        <button class="btn pull-right button btn-left">{{ button_label|default('Save') }}</button>
+        {{ form_end(formView) }}
+     
+    <a href={{path('reception_fin')}}>fin reception</a>
+   
+
+
+{% endblock %}

@@ -10,6 +10,14 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
+use App\Entity\Articles;
+use App\Form\ArticlesType;
+use App\Repository\ArticlesRepository;
+
+use App\Entity\Emplacement;
+use App\Form\EmplacementType;
+use App\Repository\EmplacementRepository;
+
 /**
  * @Route("/receptions")
  */
@@ -33,6 +41,7 @@ class ReceptionsController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            $reception-> setStatut('en cours de reception');
             $reception->setDate(new \DateTime('now'));
             $em = $this->getDoctrine()->getManager();
             $em->persist($reception);
@@ -88,4 +97,46 @@ class ReceptionsController extends AbstractController
 
         return $this->redirectToRoute('receptions_index');
     }
+
+    /**
+     * @Route("/article/{id}", name="reception_ajout_article", methods="GET|POST")
+     */
+    public function ajoutArticle(Request $request, Receptions $reception, ArticlesRepository $articlesRepository,  EmplacementRepository $emplacementRepository, $id): Response
+    {
+        $articles = $articlesRepository->findByReception($id);
+        $article = new Articles();
+        $form = $this->createForm(ArticlesType::class, $article);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $article->setStatu('en cours de reception');
+            $article->setReception($reception);
+            $em = $this->getDoctrine()->getManager();
+            $em->persist($article);
+            $em->flush();
+
+            return $this->redirectToRoute('reception_ajout_article', array('id'=> $id));
+        }
+
+        $articles = $articlesRepository->findByReception($id);
+
+        return $this->render("receptions/ajoutArticle.html.twig", array(
+            'reception' => $reception,
+            'articles' => $articles,
+            'emplacement' => $emplacementRepository->findAll(),
+            'formView' => $form->createView(),
+            'id'=> $id,    
+        ));
+    }
+
+    /**
+     * @Route ("/receptionFin", name="reception_fin", methods="GET|POST")
+     */
+    public function receptionFin(Request $request, Receptions $reception):reponse
+    {
+        $reception->setStatut('terminer');
+        $this->getDoctrine()->getManager()->flush();
+        return $this->redirectToRoute('receptions_index');
+    }
+
 }

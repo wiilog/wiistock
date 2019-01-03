@@ -21,7 +21,7 @@
             </tr>
         </thead>
         <tbody>
-        {% for reception in receptions %}
+        {% for reception in receptions |reverse %}
             <tr>
                 <td>{{ reception.statut }}</td>
                 <td>{{ reception.commentaire }}</td>
@@ -31,6 +31,8 @@
                 <td>
                     <a href="{{ path('receptions_show', {'id': reception.id}) }}" class="btn btn-xs btn-default command-edit"><i class="fas fa-eye fa-2x"></i></a>
                     <a href="{{ path('receptions_edit', {'id': reception.id}) }}"class="btn btn-xs btn-default command-edit"><i class="fas fa-pencil-alt fa-2x"></i></a>
+                    <a href="{{ path('reception_ajout_article', {'id': reception.id}) }}"class="btn btn-xs btn-default command-edit"><i class="fas fa-plus fa-2x"></i> Articles</a>
+
                 </td>
             </tr>
         {% else %}

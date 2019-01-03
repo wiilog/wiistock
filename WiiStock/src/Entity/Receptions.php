@@ -54,9 +54,14 @@ class Receptions
      */
     private $utilisateur;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Articles", mappedBy="reception")
+     */
+    private $articles;
+
     public function __construct()
     {
-        
+        $this->articles = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -150,6 +155,37 @@ class Receptions
     public function setUtilisateur(?Utilisateurs $utilisateur): self
     {
         $this->utilisateur = $utilisateur;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Articles[]
+     */
+    public function getArticles(): Collection
+    {
+        return $this->articles;
+    }
+
+    public function addArticle(Articles $article): self
+    {
+        if (!$this->articles->contains($article)) {
+            $this->articles[] = $article;
+            $article->setReception($this);
+        }
+
+        return $this;
+    }
+
+    public function removeArticle(Articles $article): self
+    {
+        if ($this->articles->contains($article)) {
+            $this->articles->removeElement($article);
+            // set the owning side to null (unless already changed)
+            if ($article->getReception() === $this) {
+                $article->setReception(null);
+            }
+        }
 
         return $this;
     }

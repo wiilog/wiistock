@@ -21,17 +21,12 @@ class Articles
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $etat;
+    private $nom;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacements")
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $emplacement;
-
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\ReferencesArticles")
-     */
-    private $reference;
+    private $statu;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
@@ -39,202 +34,125 @@ class Articles
     private $quantite;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
+     * @ORM\ManyToOne(targetEntity="App\Entity\ReferencesArticles", inversedBy="articles")
      */
-    private $photo;
+    private $refArticle;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Zones", inversedBy="articles")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Receptions", inversedBy="articles")
      */
-    private $zone;
+    private $reception;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Quais", inversedBy="articles")
+     * @ORM\Column(type="boolean", nullable=true)
      */
-    private $quai;
+    private $etat;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
+     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="articles")
      */
-    private $reference_CEA;
-
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
-    private $libelle_CEA;
-
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Contenu", mappedBy="article")
-     */
-    private $contenus;
-
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
-    private $statut;
+    private $direction;
 
     public function __construct()
     {
-        $this->entrees = new ArrayCollection();
-        $this->sorties = new ArrayCollection();
-        $this->transferts = new ArrayCollection();
-        $this->contenus = new ArrayCollection();
+       
     }
 
-    public function getId()
+    public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function getEtat() : ? string
+    public function getNom(): ?string
     {
-        return $this->etat;
+        return $this->nom;
     }
 
-    public function setEtat(string $etat) : self
+    public function setNom(?string $nom): self
     {
-        $this->etat = $etat;
+        $this->nom = $nom;
 
         return $this;
     }
 
-    public function getEmplacement() : ? Emplacements
+    public function getStatu(): ?string
     {
-        return $this->emplacement;
+        return $this->statu;
     }
 
-    public function setEmplacement(? Emplacements $emplacement) : self
+    public function setStatu(?string $statu): self
     {
-        $this->emplacement = $emplacement;
+        $this->statu = $statu;
 
         return $this;
     }
 
-    public function getReference() : ? ReferencesArticles
-    {
-        return $this->reference;
-    }
-
-    public function setReference(? ReferencesArticles $reference) : self
-    {
-        $this->reference = $reference;
-
-        return $this;
-    }
-
-
-    public function getQuantite() : ? int
+    public function getQuantite(): ?int
     {
         return $this->quantite;
     }
 
-    public function setQuantite(? int $quantite) : self
+    public function setQuantite(?int $quantite): self
     {
         $this->quantite = $quantite;
 
         return $this;
     }
 
-    public function getPhoto() : ? string
+
+    public function __toString()
     {
-        return $this->photo;
+        return $this->nom;
     }
 
-    public function setPhoto(? string $photo) : self
+    public function getRefArticle(): ?ReferencesArticles
     {
-        $this->photo = $photo;
+        return $this->refArticle;
+    }
+
+    public function setRefArticle(?ReferencesArticles $refArticle): self
+    {
+        $this->refArticle = $refArticle;
 
         return $this;
     }
 
-    public function getZone() : ? Zones
+   
+
+    public function getReception(): ?Receptions
     {
-        return $this->zone;
+        return $this->reception;
     }
 
-    public function setZone(? Zones $zone) : self
+    public function setReception(?Receptions $reception): self
     {
-        $this->zone = $zone;
+        $this->reception = $reception;
 
         return $this;
     }
 
-    public function getQuai() : ? Quais
+    public function getEtat(): ?bool
     {
-        return $this->quai;
+        return $this->etat;
     }
 
-    public function setQuai(? Quais $quai) : self
+    public function setEtat(?bool $etat): self
     {
-        $this->quai = $quai;
+        $this->etat = $etat;
 
         return $this;
     }
 
-    public function getReferenceCEA() : ? string
+    public function getDirection(): ?Emplacement
     {
-        return $this->reference_CEA;
+        return $this->direction;
     }
 
-    public function setReferenceCEA(? string $reference_CEA) : self
+    public function setDirection(?Emplacement $direction): self
     {
-        $this->reference_CEA = $reference_CEA;
+        $this->direction = $direction;
 
         return $this;
     }
 
-    public function getLibelleCEA() : ? string
-    {
-        return $this->libelle_CEA;
-    }
-
-    public function setLibelleCEA(? string $libelle_CEA) : self
-    {
-        $this->libelle_CEA = $libelle_CEA;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|Contenu[]
-     */
-    public function getContenu() : Collection
-    {
-        return $this->contenus;
-    }
-
-    public function addContenu(Contenu $contenus) : self
-    {
-        if (!$this->contenus->contains($contenus)) {
-            $this->contenus[] = $contenus;
-            $contenus->setArticles($this);
-        }
-
-        return $this;
-    }
-
-    public function removeContenu(Contenu $contenus) : self
-    {
-        if ($this->contenus->contains($contenus)) {
-            $this->contenus->removeElement($contenus);
-            // set the owning side to null (unless already changed)
-            if ($contenus->getArticles() === $this) {
-                $contenus->setArticles(null);
-            }
-        }
-
-        return $this;
-    }
-
-    public function getStatut(): ?string
-    {
-        return $this->statut;
-    }
-
-    public function setStatut(?string $statut): self
-    {
-        $this->statut = $statut;
-
-        return $this;
-    }
 }

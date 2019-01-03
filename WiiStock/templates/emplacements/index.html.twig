@@ -1,8 +1,8 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout.html.twig' %}
 
 {% block title %}Emplacements index{% endblock %}
 
-{% block body %}
+{% block page_content %}
     <h1>Emplacements index</h1>
 
     <table class="table">
@@ -17,7 +17,7 @@
         {% for emplacement in emplacements %}
             <tr>
                 <td>{{ emplacement.id }}</td>
-                <td>{{ emplacement.nom }}</td>
+                <td>{{ emplacement.name }}</td>
                 <td>
                     <a href="{{ path('emplacements_show', {'id': emplacement.id}) }}">show</a>
                     <a href="{{ path('emplacements_edit', {'id': emplacement.id}) }}">edit</a>

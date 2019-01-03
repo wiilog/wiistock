@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
@@ -35,6 +37,16 @@ class ReferencesArticles
      * @ORM\Column(type="json", nullable=true)
      */
     private $custom;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Articles", mappedBy="refArticle")
+     */
+    private $articles;
+
+    public function __construct()
+    {
+        $this->articles = new ArrayCollection();
+    }
 
     public function getId()
     {
@@ -85,6 +97,44 @@ class ReferencesArticles
     public function setCustom(?array $custom): self
     {
         $this->custom = $custom;
+
+        return $this;
+    }
+
+    
+
+    public function __toString()
+    {
+        return $this->reference;
+    }
+
+    /**
+     * @return Collection|Articles[]
+     */
+    public function getArticles(): Collection
+    {
+        return $this->articles;
+    }
+
+    public function addArticle(Articles $article): self
+    {
+        if (!$this->articles->contains($article)) {
+            $this->articles[] = $article;
+            $article->setRefArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeArticle(Articles $article): self
+    {
+        if ($this->articles->contains($article)) {
+            $this->articles->removeElement($article);
+            // set the owning side to null (unless already changed)
+            if ($article->getRefArticle() === $this) {
+                $article->setRefArticle(null);
+            }
+        }
 
         return $this;
     }

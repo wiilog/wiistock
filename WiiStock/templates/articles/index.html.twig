@@ -1,15 +1,17 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout.html.twig' %}
 
 {% block title %}Articles index{% endblock %}
 
-{% block body %}
-    <h1>Articles index</h1>
-
+{% block page_content %}
+    <h1>Articles</h1>
+<pre>{{ dump(articles) }}</pre>
     <table class="table">
         <thead>
             <tr>
                 <th>Id</th>
-                <th>Etat</th>
+                <th>Nom</th>
+                <th>Statu</th>
+                <th>Quantite</th>
                 <th>actions</th>
             </tr>
         </thead>
@@ -17,7 +19,9 @@
         {% for article in articles %}
             <tr>
                 <td>{{ article.id }}</td>
-                <td>{{ article.etat }}</td>
+                <td>{{ article.nom }}</td>
+                <td>{{ article.statu }}</td>
+                <td>{{ article.quantite }}</td>
                 <td>
                     <a href="{{ path('articles_show', {'id': article.id}) }}">show</a>
                     <a href="{{ path('articles_edit', {'id': article.id}) }}">edit</a>
@@ -25,7 +29,7 @@
             </tr>
         {% else %}
             <tr>
-                <td colspan="3">no records found</td>
+                <td colspan="5">no records found</td>
             </tr>
         {% endfor %}
         </tbody>
