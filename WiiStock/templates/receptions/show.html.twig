@@ -1,42 +1,43 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Receptions{% endblock %}
+{% block title %}Reception{% endblock %}
 
 {% block page_content %}
-    <h1>Receptions</h1>
-
+    <h1>Réceptions</h1>
     <table class="table">
         <tbody>
             <tr>
-                <th>Id</th>
+                <th class="backtablejv">Id</th>
                 <td>{{ reception.id }}</td>
             </tr>
             <tr>
                 <th>Statut</th>
-                <td>{{ reception.statut }}</td>
+                <td class="backtablejv">{{ reception.statut }}</td>
             </tr>
             <tr>
-                <th>Commentaire</th>
+                <th class="backtablejv">Commentaire</th>
                 <td>{{ reception.commentaire }}</td>
             </tr>
             <tr>
                 <th>Date</th>
-                <td>{{ reception.date ? reception.date|date('Y-m-d H:i:s') : '' }}</td>
+                <td class="backtablejv">{{ reception.date ? reception.date|date('Y-m-d H:i:s') : '' }}</td>
             </tr>
             <tr>
-                <th>NumeroArrivage</th>
+                <th class="backtablejv">NumeroArrivage</th>
                 <td>{{ reception.numeroArrivage }}</td>
             </tr>
             <tr>
                 <th>NumeroReception</th>
-                <td>{{ reception.numeroReception }}</td>
+                <td class="backtablejv">{{ reception.numeroReception }}</td>
+            </tr>
+            <tr>
+                <th class="backtablejv">Créer par </th>
+                <td>{{ reception.utilisateur.username }}</td>
             </tr>
         </tbody>
     </table>
-
-    <a href="{{ path('receptions_index') }}" class='button btn-left'>Retour</a>
-
-    <a href="{{ path('receptions_edit', {'id': reception.id}) }}" class='button btn-left'>edit</a>
-
+    <a href="{{ path('receptions_index') }}" class='button pull-left btn-left'>Retour</a>
     {{ include('receptions/_delete_form.html.twig') }}
+    <a href="{{ path('receptions_edit', {'id': reception.id}) }}" class='button pull-right btn-left'>Modifier</a>
+
 {% endblock %}

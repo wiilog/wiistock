@@ -22,11 +22,34 @@ class ArticlesRepository extends ServiceEntityRepository
     public function findByReception($id)
     {
         $entityManager = $this->getEntityManager();
-
         $query = $entityManager->createQuery(
             'SELECT a
             FROM App\Entity\Articles a
             WHERE a.reception = :id'
+        )->setParameter('id', $id);
+        ;
+        return $query->execute(); 
+    }
+
+    public function findByStatut($statut)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            'SELECT a
+            FROM App\Entity\Articles a
+            WHERE a.statu = :statut'
+        )->setParameter('statut', $statut);
+        ;
+        return $query->execute(); 
+    }
+    
+    public function findById($id)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            'SELECT a
+            FROM App\Entity\Articles a
+            WHERE a.id = :id'
         )->setParameter('id', $id);
         ;
         return $query->execute(); 

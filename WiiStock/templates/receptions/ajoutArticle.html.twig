@@ -1,7 +1,6 @@
 {% extends "layout.html.twig" %}
-{% block title %}Receptions index{% endblock %}
+{% block title %}Ajout d'articles{% endblock %}
 {% block page_content %}
-<pre>{{ dump(articles) }}</pre>
 
     <h1>RECEPTION n°{{reception.numeroReception}}</h1>
     <table class="table">
@@ -37,15 +36,19 @@
             </tr>
         </thead>
         <tbody>
-        {% for article in articles %}
-            <tr>
+        {% set i = 0 %}
+        {% for article in reception.articles %}
+            <tr{% if i % 2 == 1 %}
+                    class="backtablejv"
+                {% endif %}>
+                {% set i = i + 1 %}
                 <td>{{ article.id }}</td>
                 <td>{{ article.nom }}</td>
                 <td>{{ article.statu }}</td>
                 <td>{{ article.quantite }}</td>
                 <td>{{ article.etat ? 'conforme': 'non-conforme' }}</td>
                 <td>
-                    <a href="{{ path('articles_edit', {'id': article.id}) }}">edit</a>
+                    <a href="{{ path('articles_edit', {'id': article.id}) }}" class="btn btn-xs btn-default command-edit"><i class="fas fa-pencil-alt fa-2x"></i></a>
                 </td>
             </tr>
             {% else %}
@@ -57,10 +60,10 @@
     </table>
         {{ form_start(formView) }}
         {{ form_widget(formView) }}
-        <button class="btn pull-right button btn-left">{{ button_label|default('Save') }}</button>
+        <button class="btn pull-left button btn-left">{{ button_label|default('Save') }}</button>
         {{ form_end(formView) }}
      
-    <a href={{path('reception_fin')}}>fin reception</a>
+    <a class="btn pull-right button btn-right" href={{path('reception_ajout_article', {'id': id, 'k': true})}}>fin reception</a>
    
 
 

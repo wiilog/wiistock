@@ -19,6 +19,22 @@ class ReceptionsRepository extends ServiceEntityRepository
         parent::__construct($registry, Receptions::class);
     }
 
+    public function findByDateOrStatut($date)
+    {
+        $entityManager = $this->getEntityManager();
+        //formatage de la date pour l'utilisé => 2019-01-22%
+        $dateF = date_format($date, 'Y-m-d ');
+        $dateF = $dateF . '%';
+        //récupération des champs selon la date du jour ou selon un statut sp2cifique  
+        $query = $entityManager->createQuery(
+            "SELECT r
+            FROM App\Entity\Receptions r
+            WHERE r.statut = 'en cours de reception' OR r.date LIKE :date "
+        )->setParameter('date', $dateF);
+        ;
+        return $query->execute(); 
+    }
+
 //    /**
 //     * @return Receptions[] Returns an array of Receptions objects
 //     */

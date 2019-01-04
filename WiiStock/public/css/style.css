@@ -3125,3 +3125,11 @@ a[data-tooltip][data-position="bottom"]:after {
 	background-color: black;
 	border-radius: 50%;
 }
+
+/**
+*	JVcss
+***/
+
+.backtablejv{
+	background-color: rgba(233, 233, 233, 1);
+}

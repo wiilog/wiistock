@@ -53,6 +53,11 @@ class Articles
      */
     private $direction;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="position")
+     */
+    private $position;
+
     public function __construct()
     {
        
@@ -151,6 +156,18 @@ class Articles
     public function setDirection(?Emplacement $direction): self
     {
         $this->direction = $direction;
+
+        return $this;
+    }
+
+    public function getPosition(): ?Emplacement
+    {
+        return $this->position;
+    }
+
+    public function setPosition(?Emplacement $position): self
+    {
+        $this->position = $position;
 
         return $this;
     }

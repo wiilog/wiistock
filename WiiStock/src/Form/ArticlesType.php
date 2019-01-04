@@ -7,6 +7,8 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\IntegerType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
 
 class ArticlesType extends AbstractType
 {
@@ -20,8 +22,13 @@ class ArticlesType extends AbstractType
                     'non conforme' => 'non confomre'
                 ]
             ))
+            ->add('position')
             ->add('direction')
-            ->add('quantite')
+            ->add('quantite', IntegerType::class, array(
+                'attr' => array(
+                    'placeholder' => 'quantité',
+                    'min' => 0, 'max' => 10000
+            )))
             ->add('refArticle')           
         ;
     }

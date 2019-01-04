@@ -40,12 +40,12 @@ class Receptions
     private $date;
 
     /**
-     * @ORM\Column(type="integer", nullable=true)
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $numeroArrivage;
 
     /**
-     * @ORM\Column(type="integer", nullable=true)
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $numeroReception;
 
@@ -123,24 +123,24 @@ class Receptions
         return $this;
     }
 
-    public function getNumeroArrivage(): ?int
+    public function getNumeroArrivage(): ?string
     {
         return $this->numeroArrivage;
     }
 
-    public function setNumeroArrivage(?int $numeroArrivage): self
+    public function setNumeroArrivage(?string $numeroArrivage): self
     {
         $this->numeroArrivage = $numeroArrivage;
 
         return $this;
     }
 
-    public function getNumeroReception(): ?int
+    public function getNumeroReception(): ?string
     {
         return $this->numeroReception;
     }
 
-    public function setNumeroReception(?int $numeroReception): self
+    public function setNumeroReception(?string $numeroReception): self
     {
         $this->numeroReception = $numeroReception;
 

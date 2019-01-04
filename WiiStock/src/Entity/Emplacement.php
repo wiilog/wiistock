@@ -38,10 +38,16 @@ class Emplacement
      */
     private $articles;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Articles", mappedBy="position")
+     */
+    private $position;
+
     public function __construct()
     {
         $this->racks = new ArrayCollection();
         $this->articles = new ArrayCollection();
+        $this->position = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -138,6 +144,37 @@ class Emplacement
     public function __toString()
     {
         return $this->nom;
+    }
+
+    /**
+     * @return Collection|Articles[]
+     */
+    public function getPosition(): Collection
+    {
+        return $this->position;
+    }
+
+    public function addPosition(Articles $position): self
+    {
+        if (!$this->position->contains($position)) {
+            $this->position[] = $position;
+            $position->setPosition($this);
+        }
+
+        return $this;
+    }
+
+    public function removePosition(Articles $position): self
+    {
+        if ($this->position->contains($position)) {
+            $this->position->removeElement($position);
+            // set the owning side to null (unless already changed)
+            if ($position->getPosition() === $this) {
+                $position->setPosition(null);
+            }
+        }
+
+        return $this;
     }
 
 }
