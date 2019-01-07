@@ -20,14 +20,30 @@
                 </li>
 <!-- RECEPTION -->
                 <li>
-                    <a href={{path("receptions_index")}}>
+                    <a href={{path("receptions_index", {'history': 0})}}>
                             <i class="fa fa-box"></i>
                     </a>
                 </li>
 <!-- ARTICLES -->
-                <li>
+                <li class="has-submenu">
                     <a href={{path("articles_index", {'statut': 'all', 'id': 0})}}>
                         <i class="fa fa-boxes"></i>
+                    </a>
+                    <ul class="sidemenu-sub">
+                        <li class="text">
+                            <h4>Articles</h4>
+                        </li>
+                        <li><a href={{path('articles_index', {'statut': 'en cours de reception', 'id': '0'})}}>• En cours de réception</a></li>
+                        <li><a href={{path('articles_index', {'statut': ' demande de mise en stock', 'id': '0'})}}>• Demande de mise en stock</a></li>
+                        <li><a href={{path('articles_index', {'statut': 'en stock', 'id': '0'})}}>• En stock</a></li>
+                        <li><a href={{path('articles_index', {'statut': 'all', 'id': 0})}}>•</a></li>   
+                        <li><a href={{path('articles_index', {'statut': 'anomalie', 'id': '0'})}}>• Anomalie</a></li>
+                    </ul>
+               </li>                
+<!-- COLLECTE -->
+                <li>
+                    <a href={{path('preparation_index')}}>
+                        <i class="fa fa-shopping-cart"></i>
                     </a>
                 </li>
                 {# <li>
@@ -64,8 +80,8 @@
                             <li class="text">
                                 <h4>Activités</h4>
                             </li>
-                            <li>
-                                <a href="{{ path('stock') }}">• Visualisation stock</a>
+                            <!-- <li>
+                                <a href="">• Visualisation stock</a>
                             </li>
                             <li>
                                 <a href="{{ path('ordre_workflow') }}">• Workflow ordre</a>
@@ -75,7 +91,7 @@
                             </li>
                             <li>
                                 <a href="{{ path('ordre_transfert') }}">• Nouveau transfert</a>
-                            </li>
+                            </li> -->
                         </ul>
                     </li>
                     <li class="has-submenu">
@@ -87,10 +103,10 @@
                                 <h4>Demandes</h4>
                             </li>
                             <li>
-                                <a href="{{ path('demande_workflow') }}">• Workflow demande</a>
+                                <a href="{{ path('demandes_index') }}">• Workflow demande</a>
                             </li>
                             <li>
-                                <a href="{{ path('demande_creation') }}">• Créer une demande</a>
+                                <a href="{{ path('demandes_new') }}">• Créer une demande</a>
                             </li>
                         </ul>
                     </li>

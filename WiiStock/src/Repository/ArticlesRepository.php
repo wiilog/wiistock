@@ -35,9 +35,9 @@ class ArticlesRepository extends ServiceEntityRepository
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-            'SELECT a
+            "SELECT a
             FROM App\Entity\Articles a
-            WHERE a.statu = :statut'
+            WHERE a.statu = :statut "
         )->setParameter('statut', $statut);
         ;
         return $query->execute(); 
@@ -51,6 +51,30 @@ class ArticlesRepository extends ServiceEntityRepository
             FROM App\Entity\Articles a
             WHERE a.id = :id'
         )->setParameter('id', $id);
+        ;
+        return $query->execute(); 
+    }
+
+    public function findQteByRefAndConf($refArticle)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT a.quantite
+            FROM App\Entity\Articles a
+            WHERE a.refArticle = :ref AND a.etat = TRUE  "
+        )->setParameter('ref', $refArticle);
+        ;
+        return $query->execute(); 
+    }
+
+    public function findByEtat($etat)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            'SELECT a
+            FROM App\Entity\Articles a
+            WHERE a.etat = :etat'
+        )->setParameter('etat', $etat);
         ;
         return $query->execute(); 
     }

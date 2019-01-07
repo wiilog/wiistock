@@ -49,16 +49,13 @@ class Ordres
      */
     private $transferts;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Preparations", mappedBy="ordres")
-     */
-    private $preparations;
+  
 
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
         $this->transferts = new ArrayCollection();
-        $this->preparations = new ArrayCollection();
+       
     }
 
     public function getId()
@@ -176,34 +173,4 @@ class Ordres
         return $this;
     }
 
-    /**
-     * @return Collection|Preparations[]
-     */
-    public function getPreparations(): Collection
-    {
-        return $this->preparations;
-    }
-
-    public function addPreparation(Preparations $preparation): self
-    {
-        if (!$this->preparations->contains($preparation)) {
-            $this->preparations[] = $preparation;
-            $preparation->setOrdres($this);
-        }
-
-        return $this;
-    }
-
-    public function removePreparation(Preparations $preparation): self
-    {
-        if ($this->preparations->contains($preparation)) {
-            $this->preparations->removeElement($preparation);
-            // set the owning side to null (unless already changed)
-            if ($preparation->getOrdres() === $this) {
-                $preparation->setOrdres(null);
-            }
-        }
-
-        return $this;
-    }
 }

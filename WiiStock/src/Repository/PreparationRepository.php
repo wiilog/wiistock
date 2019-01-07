@@ -2,25 +2,25 @@
 
 namespace App\Repository;
 
-use App\Entity\Preparations;
+use App\Entity\Preparation;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
- * @method Preparations|null find($id, $lockMode = null, $lockVersion = null)
- * @method Preparations|null findOneBy(array $criteria, array $orderBy = null)
- * @method Preparations[]    findAll()
- * @method Preparations[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method Preparation|null find($id, $lockMode = null, $lockVersion = null)
+ * @method Preparation|null findOneBy(array $criteria, array $orderBy = null)
+ * @method Preparation[]    findAll()
+ * @method Preparation[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class PreparationsRepository extends ServiceEntityRepository
+class PreparationRepository extends ServiceEntityRepository
 {
     public function __construct(RegistryInterface $registry)
     {
-        parent::__construct($registry, Preparations::class);
+        parent::__construct($registry, Preparation::class);
     }
 
 //    /**
-//     * @return Preparations[] Returns an array of Preparations objects
+//     * @return Preparation[] Returns an array of Preparation objects
 //     */
     /*
     public function findByExampleField($value)
@@ -37,7 +37,7 @@ class PreparationsRepository extends ServiceEntityRepository
     */
 
     /*
-    public function findOneBySomeField($value): ?Preparations
+    public function findOneBySomeField($value): ?Preparation
     {
         return $this->createQueryBuilder('p')
             ->andWhere('p.exampleField = :val')

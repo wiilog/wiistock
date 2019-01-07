@@ -58,9 +58,19 @@ class Articles
      */
     private $position;
 
+    /**
+     * @ORM\Column(type="text", nullable=true)
+     */
+    private $commentaire;
+
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\Preparation", mappedBy="articles")
+     */
+    private $preparations;
+
     public function __construct()
     {
-       
+        $this->preparations = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -168,6 +178,46 @@ class Articles
     public function setPosition(?Emplacement $position): self
     {
         $this->position = $position;
+
+        return $this;
+    }
+
+    public function getCommentaire(): ?string
+    {
+        return $this->commentaire;
+    }
+
+    public function setCommentaire(?string $commentaire): self
+    {
+        $this->commentaire = $commentaire;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Preparation[]
+     */
+    public function getPreparations(): Collection
+    {
+        return $this->preparations;
+    }
+
+    public function addPreparation(Preparation $preparation): self
+    {
+        if (!$this->preparations->contains($preparation)) {
+            $this->preparations[] = $preparation;
+            $preparation->addArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removePreparation(Preparation $preparation): self
+    {
+        if ($this->preparations->contains($preparation)) {
+            $this->preparations->removeElement($preparation);
+            $preparation->removeArticle($this);
+        }
 
         return $this;
     }

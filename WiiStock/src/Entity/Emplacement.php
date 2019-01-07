@@ -43,11 +43,18 @@ class Emplacement
      */
     private $position;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Preparation", mappedBy="destination")
+     */
+    private $preparations;
+
     public function __construct()
     {
         $this->racks = new ArrayCollection();
         $this->articles = new ArrayCollection();
         $this->position = new ArrayCollection();
+        $this->preparations = new ArrayCollection();
+       
     }
 
     public function getId(): ?int
@@ -171,6 +178,37 @@ class Emplacement
             // set the owning side to null (unless already changed)
             if ($position->getPosition() === $this) {
                 $position->setPosition(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Preparation[]
+     */
+    public function getPreparations(): Collection
+    {
+        return $this->preparations;
+    }
+
+    public function addPreparation(Preparation $preparation): self
+    {
+        if (!$this->preparations->contains($preparation)) {
+            $this->preparations[] = $preparation;
+            $preparation->setDestination($this);
+        }
+
+        return $this;
+    }
+
+    public function removePreparation(Preparation $preparation): self
+    {
+        if ($this->preparations->contains($preparation)) {
+            $this->preparations->removeElement($preparation);
+            // set the owning side to null (unless already changed)
+            if ($preparation->getDestination() === $this) {
+                $preparation->setDestination(null);
             }
         }
 

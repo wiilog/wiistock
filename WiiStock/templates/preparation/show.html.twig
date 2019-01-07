@@ -1,0 +1,30 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Preparation{% endblock %}
+
+{% block body %}
+    <h1>Preparation</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ preparation.id }}</td>
+            </tr>
+            <tr>
+                <th>Date</th>
+                <td>{{ preparation.date ? preparation.date|date('Y-m-d H:i:s') : '' }}</td>
+            </tr>
+            <tr>
+                <th>Statut</th>
+                <td>{{ preparation.statut }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('preparation_index') }}">back to list</a>
+
+    <a href="{{ path('preparation_edit', {'id': preparation.id}) }}">edit</a>
+
+    {{ include('preparation/_delete_form.html.twig') }}
+{% endblock %}

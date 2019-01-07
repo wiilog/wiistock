@@ -18,26 +18,36 @@ use App\Entity\Emplacement;
 use App\Form\EmplacementType;
 use App\Repository\EmplacementRepository;
 
+use App\Entity\ReferencesArticles;
+use App\Form\ReferencesArticlesType;
+use App\Repository\ReferencesArticlesRepository;
+
 /**
  * @Route("/receptions")
  */
 class ReceptionsController extends AbstractController
 {
     /**
-     * @Route("/", name="receptions_index", methods="GET")
+     * @Route("/{history}", name="receptions_index", methods="GET")
      */
-    public function index(ReceptionsRepository $receptionsRepository): Response
+    public function index(ReceptionsRepository $receptionsRepository, $history): Response
     {
-        //filtrage par la date du jour et le statut, requete SQL dédié
-        $date = (new \DateTime('now'));
-        return $this->render('receptions/index.html.twig', [
-            'receptions' => $receptionsRepository->findByDateOrStatut($date),
-            'date' => $date,
+        if($history === '1'){
+            return $this->render('receptions/index.html.twig', [
+                'receptions' => $receptionsRepository->findAll(),
+                ]);
+        }else{
+            //filtrage par la date du jour et le statut, requete SQL dédié
+            $date = (new \DateTime('now'));
+            return $this->render('receptions/index.html.twig', [
+                'receptions' => $receptionsRepository->findByDateOrStatut($date),
+                'date' => $date,
             ]);
+        }    
     }
 
     /**
-     * @Route("/new", name="receptions_new", methods="GET|POST")
+     * @Route("/new/creation", name="receptions_new", methods="GET|POST")
      */
     public function new(Request $request): Response
     {
@@ -50,7 +60,7 @@ class ReceptionsController extends AbstractController
             $em = $this->getDoctrine()->getManager();
             $em->persist($reception);
             $em->flush();
-            return $this->redirectToRoute('receptions_index');
+            return $this->redirectToRoute('receptions_index', array('history'=> 0));
         }
         return $this->render('receptions/new.html.twig', [
             'reception' => $reception,
@@ -99,7 +109,7 @@ class ReceptionsController extends AbstractController
     /**
      * @Route("/article/{id}/{k}", name="reception_ajout_article", methods="GET|POST")
      */
-    public function ajoutArticle(Request $request, Receptions $reception, ArticlesRepository $articlesRepository,  EmplacementRepository $emplacementRepository, $id, $k): Response
+    public function ajoutArticle(Request $request, Receptions $reception, ArticlesRepository $articlesRepository,  EmplacementRepository $emplacementRepository,ReferencesArticlesRepository $referencesArticlesRepository , $id, $k): Response
     {
         //findByReception requete SQl dédié 
         $article = new Articles();
@@ -107,27 +117,41 @@ class ReceptionsController extends AbstractController
         $form->handleRequest($request);
         //création des articles en relation avec la reception
         if ($form->isSubmitted() && $form->isValid() && $k == false) {
-            $article->setStatu('en cours de reception');
+            if ($article->getEtat()){
+                $article->setStatu('en cours de reception');
+            }else {
+                $article->setStatu('anomalie');
+            }
             $article->setReception($reception);
             $em = $this->getDoctrine()->getManager();
             $em->persist($article);
             $em->flush();
             return $this->redirectToRoute('reception_ajout_article', array('id'=> $id, 'k'=>0));
         }
-        
         //fin de reception/mise en stock des articles
         // k sert à vérifier et identifier la fin de la reception, en suite on modifie les "setStatut" des variables 
         if ($k){
             $articles =  $articlesRepository->findByReception($id);
             foreach ($articles as $article) {
                 //vérifie si l'article est bien encore en reception
-                if ($article->getStatu() === 'en cours de reception'){
+                if ($article->getStatu() === 'en cours de reception' && $article->getEtat() === true){
                 $article->setStatu(' demande de mise en stock');
                 }
             }
             $reception->setStatut('terminer');
+            //calcul de la quantite des stocks par artciles de reference
+            $refArticles = $referencesArticlesRepository->findAll();
+            foreach ($refArticles as $refArticle) {
+                //on recupere seulement la quantite des articles requete SQL dédié
+                $articleByRef = $articlesRepository->findQteByRefAndConf($refArticle);
+                $quantityRef = 0;
+                foreach ($articleByRef as $article) {
+                    $quantityRef = $quantityRef + $article['quantite'];
+                }
+                $refArticle->setQuantity($quantityRef);  
+            }
             $this->getDoctrine()->getManager()->flush();
-            return $this->redirectToRoute('receptions_index');
+            return $this->redirectToRoute('receptions_index', array('history'=> 0));
         }
 
         return $this->render("receptions/ajoutArticle.html.twig", array(

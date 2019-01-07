@@ -29,7 +29,7 @@
             <tr>
                 <th>Id</th>
                 <th>Nom</th>
-                <th>Statu</th>
+                <th>Statut</th>
                 <th>Quantite</th>
                 <th>état</th>
                 <th>actions</th>
@@ -60,7 +60,7 @@
     </table>
         {{ form_start(formView) }}
         {{ form_widget(formView) }}
-        <button class="btn pull-left button btn-left">{{ button_label|default('Save') }}</button>
+        <button class="btn pull-left button btn-left">{{ button_label|default('Créer') }}</button>
         {{ form_end(formView) }}
      
     <a class="btn pull-right button btn-right" href={{path('reception_ajout_article', {'id': id, 'k': true})}}>fin reception</a>

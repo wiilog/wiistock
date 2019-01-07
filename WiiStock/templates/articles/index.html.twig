@@ -5,19 +5,26 @@
 {% block page_content %}
     <h1>Articles</h1>
 
-    <a href={{path('articles_index', {'statut': ' demande de mise en stock', 'id': '0'})}}  class="btn pull-right button btn-right">Mise en stock</a>
+    
     <a href={{path('articles_index', {'statut': 'en cours de reception', 'id': '0'})}}  class="btn pull-left button btn-right">En cours de reception</a>
+    <a href={{path('articles_index', {'statut': ' demande de mise en stock', 'id': '0'})}}  class="btn pull-left button btn-right">Mise en stock</a>
     <a href={{path('articles_index', {'statut': 'en stock',  'id': '0'})}}  class="btn pull-left button btn-right">En stock</a>
+
+    <a href={{path('articles_index', {'statut': 'anomalie', 'id': '0'})}}  class="btn pull-right button button-danger btn-right">Réception non conforme</a>
+
 
     <table class="table">
         <thead>
             <tr>
                 <th>Nom</th>
                 <th>Statut</th>
+                <th>Conformité</th>
+                <th>Reférences Articles</th>
                 <th>position</th>
                 <th>direction</th>
-                <th>actions</th>
                 <th>Quantite</th>
+                <th>actions</th>
+               
             </tr>
         </thead>
         <tbody>
@@ -29,6 +36,8 @@
                 {% set i = i + 1 %}
                 <td>{{ article.nom }}</td>
                 <td>{{ article.statu }}</td>
+                <td>{{ article.etat ? 'oui' : article.commentaire }}</td>
+                <td>{{ article.refArticle.reference }}</td>
                 <td>{{ article.position }}</td>
                 <td>{{ article.direction }}</td>
                 <td>{{ article.quantite }}</td>
@@ -42,7 +51,7 @@
             </tr>
         {% else %}
             <tr>
-                <td colspan="5">no records found</td>
+                <td colspan="10">aucun résultat</td>
             </tr>
         {% endfor %}
         </tbody>

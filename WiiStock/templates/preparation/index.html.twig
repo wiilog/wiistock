@@ -1,0 +1,44 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Preparation index{% endblock %}
+
+{% block page_content %}
+    <h1>Préparation</h1>
+
+    <div class="row btn pull-left">
+        <a href='#' class="button btn-left"><span class="fas fa-history"></span> Historique</a>
+    </div>
+    <div class='row btn pull-right' >
+        <a href="{{ path('preparation_new') }}" class="button btn-left">
+            <span class="fa fa-plus"></span>Nouvelle préparation
+        </a >
+    </div>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Date</th>
+                <th>Statut</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for preparation in preparations %}
+            <tr>
+                <td>{{ preparation.id }}</td>
+                <td>{{ preparation.date ? preparation.date|date('Y-m-d H:i:s') : '' }}</td>
+                <td>{{ preparation.statut }}</td>
+                <td>
+                    <a href="{{ path('preparation_show', {'id': preparation.id}) }}">show</a>
+                    <a href="{{ path('preparation_edit', {'id': preparation.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="10">aucun résultat</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+{% endblock %}

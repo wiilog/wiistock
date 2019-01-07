@@ -18,10 +18,11 @@ class ArticlesType extends AbstractType
             ->add('nom')
             ->add('etat', ChoiceType::class, array(
                 'choices' => [
-                    'conforme' => 'conforme',
-                    'non conforme' => 'non confomre'
+                    'conforme' => true,
+                    'non conforme' => false, 
                 ]
             ))
+            ->add('commentaire')
             ->add('position')
             ->add('direction')
             ->add('quantite', IntegerType::class, array(

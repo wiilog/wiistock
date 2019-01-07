@@ -3,10 +3,18 @@
 {% block title %}Réceptions{% endblock %}
 
 {% block page_content %}
-    <h1>Receptions</h1>
-
+    <h1>Réceptions</h1>
+    {% if date is not defined %}
+    <div class="row btn pull-left">
+        <a href={{path("receptions_index", {'history': 0})}} class="button btn-left"><span class="fas fa-history"></span> Réception journaliére</a>
+    </div>
+    {% else %}
+        <div class="row btn pull-left">
+            <a href={{path("receptions_index", {'history': 1})}} class="button btn-left"><span class="fas fa-history"></span> Historique</a>
+        </div>
+    {% endif %}
     <div class='row btn pull-right' >
-        <a href="{{ path('receptions_new') }}" class="button btn-left">
+        <a href={{ path('receptions_new') }} class="button btn-left">
             <span class="fa fa-plus"></span>Nouvelle reception
         </a >
     </div>

@@ -22,7 +22,7 @@ class ArticlesController extends AbstractController
      */
     public function index(ArticlesRepository $articlesRepository, $statut, $id): Response
     {   
-        //liste des articles + action selon statut requete SQL dédié "systéme de filtre"
+        //liste des articles + action selon statut et si conforme requete SQL dédié "systéme de filtre"
         if ($statut ===  " demande de mise en stock") {
             return $this->render('articles/index.html.twig', ['articles'=> $articlesRepository->findByStatut($statut)]);
         }else if( $statut === "en cours de reception"){
@@ -41,10 +41,13 @@ class ArticlesController extends AbstractController
                 $article->setDirection(null);
             }
             $this->getDoctrine()->getManager()->flush();
-            return $this->render('articles/index.html.twig', ['articles'=> $articlesRepository->findByStatut(' demande de mise en stock')]);  
+            return $this->render('articles/index.html.twig', ['articles'=> $articlesRepository->findByStatut(' demande de mise en stock')]);
+        }else if($statut === 'anomalie'){
+            return $this->render('articles/index.html.twig', ['articles'=> $articlesRepository->findByStatut($statut)]);
         }else{
-            //chemin par défaut 
-            return $this->render('articles/index.html.twig', ['articles' => $articlesRepository->findAll()]);
+            //chemin par défaut Basé sur un requete SQL basée sur l
+            $etat = true;
+            return $this->render('articles/index.html.twig', ['articles' => $articlesRepository->findByEtat($etat)]);
         }
     }
 
@@ -57,6 +60,7 @@ class ArticlesController extends AbstractController
         $form = $this->createForm(ArticlesType::class, $article);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
+            $article->setStatu('en cours de reception');
             $em = $this->getDoctrine()->getManager();
             $em->persist($article);
             $em->flush();
@@ -84,6 +88,9 @@ class ArticlesController extends AbstractController
         $form = $this->createForm(ArticlesType::class, $article);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
+            if ($article->getEtat() === false ){
+                $article->setStatu('anomalie');
+            }
             $this->getDoctrine()->getManager()->flush();
             return $this->redirectToRoute('articles_index', ['statut' => 'all', 'id' => 0,]);
         }
@@ -104,6 +111,6 @@ class ArticlesController extends AbstractController
             $em->remove($article);
             $em->flush();
         }
-        return $this->redirectToRoute('articles_index');
+        return $this->redirectToRoute('articles_index', ['statut' => 'all', 'id' => 0,]);
     }
 }
