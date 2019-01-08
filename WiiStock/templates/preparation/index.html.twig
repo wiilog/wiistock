@@ -5,11 +5,13 @@
 {% block page_content %}
     <h1>Préparation</h1>
 
+    <pre>{{ dump(preparations[0]) }}</pre>
+
     <div class="row btn pull-left">
         <a href='#' class="button btn-left"><span class="fas fa-history"></span> Historique</a>
     </div>
     <div class='row btn pull-right' >
-        <a href="{{ path('preparation_new') }}" class="button btn-left">
+        <a href="{{ path('creation_preparation') }}" class="button btn-left">
             <span class="fa fa-plus"></span>Nouvelle préparation
         </a >
     </div>

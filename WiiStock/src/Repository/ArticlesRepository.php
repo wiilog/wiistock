@@ -67,6 +67,18 @@ class ArticlesRepository extends ServiceEntityRepository
         return $query->execute(); 
     }
 
+    public function findByRefAndConf($refArticle)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT a
+            FROM App\Entity\Articles a
+            WHERE a.refArticle = :ref AND a.etat = TRUE  "
+        )->setParameter('ref', $refArticle);
+        ;
+        return $query->execute(); 
+    }
+
     public function findByEtat($etat)
     {
         $entityManager = $this->getEntityManager();

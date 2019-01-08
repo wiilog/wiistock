@@ -7,16 +7,23 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
+use App\Entity\Articles;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+
 class PreparationType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
-            ->add('date')
             ->add('statut')
             ->add('destination')
             ->add('utilisateur')
-            ->add('articles')
+            ->add('articles',  EntityType::class, array(
+                'class' => Articles::class,
+                'choice_label' =>  'nom',
+                'multiple' => true,
+            ))
         ;
     }
 

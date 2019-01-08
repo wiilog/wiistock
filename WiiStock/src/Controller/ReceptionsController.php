@@ -146,7 +146,7 @@ class ReceptionsController extends AbstractController
                 $articleByRef = $articlesRepository->findQteByRefAndConf($refArticle);
                 $quantityRef = 0;
                 foreach ($articleByRef as $article) {
-                    $quantityRef = $quantityRef + $article['quantite'];
+                    $quantityRef ++;
                 }
                 $refArticle->setQuantity($quantityRef);  
             }

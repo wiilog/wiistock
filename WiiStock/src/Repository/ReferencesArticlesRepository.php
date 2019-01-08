@@ -34,6 +34,19 @@ class ReferencesArticlesRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('r')->setMaxResults(1)->getQuery()->getOneOrNullResult();
     }
 
+    
+    public function findQteByRefAndConf($refArticle)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT a.quantite
+            FROM App\Entity\Articles a
+            WHERE a.refArticle = :ref AND a.etat = TRUE  "
+        )->setParameter('ref', $refArticle);
+        ;
+        return $query->execute(); 
+    }
+
 //    /**
 //     * @return ReferencesArticles[] Returns an array of ReferencesArticles objects
 //     */
