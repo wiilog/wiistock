@@ -51,4 +51,5 @@ class CreateRefArticleCommand extends Command
         $output->writeln('Whoa!');
 
     }
+
 }

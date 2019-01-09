@@ -19,6 +19,19 @@ class EmplacementRepository extends ServiceEntityRepository
         parent::__construct($registry, Emplacement::class);
     }
 
+    // Récupére les emplacements pour les preparation de commande, ajout d'une variable et d'un WHERE pour filtrer 
+    public function findEptBy()
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            'SELECT e.id, e.nom
+            FROM App\Entity\Emplacement e'
+        )
+        ;
+        return $query->execute(); 
+    }
+
+
 //    /**
 //     * @return Emplacement[] Returns an array of Emplacement objects
 //     */

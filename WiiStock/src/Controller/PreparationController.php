@@ -22,6 +22,9 @@ use App\Entity\Emplacement;
 use App\Form\EmplacementType;
 use App\Repository\EmplacementRepository;
 
+use Doctrine\Common\Collections\ArrayCollection;
+
+
 /**
  * @Route("/preparation")
  */
@@ -30,7 +33,7 @@ class PreparationController extends AbstractController
     /**
      * @Route("/", name="preparation_index", methods="GET")
      */
-    public function index(PreparationRepository $preparationRepository): Response
+    public function index(PreparationRepository $preparationRepository, ReferencesArticlesRepository $referencesArticlesRepository): Response
     {
         return $this->render('preparation/index.html.twig', ['preparations' => $preparationRepository->findAll()]);
     }
@@ -44,13 +47,8 @@ class PreparationController extends AbstractController
         $form = $this->createForm(PreparationType::class, $preparation);
         $form->handleRequest($request);
 
-        // dump($request);
-
         if ($form->isSubmitted() && $form->isValid()) {
-            $table= $articlesRepository->findOneBy(['id'=> 26]);
-            $preparation->addArticle($table);
             $preparation->setDate( new \DateTime('now'));
-            // dump($preparation);
             $em = $this->getDoctrine()->getManager();
             $em->persist($preparation);
             $em->flush();
@@ -69,42 +67,60 @@ class PreparationController extends AbstractController
      */
     public function creationPrepa(Request $request, ReferencesArticlesRepository $referencesArticlesRepository,ArticlesRepository $articlesRepository, EmplacementRepository $emplacementRepository): Response 
     {   
-        $refArticle = $referencesArticlesRepository->findAll();//a modifier
+        //la creation de preparation n'utilise pas le formulaire symfony, les utilisateur demandent des articles de Reference non pas les articles
+        // on recupere la liste de article de reference et on créer une instance de preparation
+        $refArticles = $referencesArticlesRepository->findAll();
         $preparation = new Preparation();
-
+        // si renvoie d'un réponse POST 
         if ($_POST) {
-            $preparation->setDestination($emplacementRepository->findOneBy(array('id' =>$_POST['direction'])));
+            // on recupere la destination des articles 
+            $destination = $emplacementRepository->findOneBy(array('id' =>$_POST['direction']));
+            // on 'remplie' la $preparation avec les data les plus simple
+            $preparation->setDestination($destination);
             $preparation->setStatut('commande demandé');
             $preparation->setUtilisateur($this->getUser());
             $preparation->setDate( new \DateTime('now'));
+            // on recupere un array sous la forme ['id de l'article de réference' => 'quantite de l'article de réference voulu', ....]
             $refArtQte = $_POST["piece"];
-
-
-
-            dump($refArticle[3]->getId());
-            dump($refArtQte);
-            dump($refArtQte[5]);
-
-            $table= NUll;
-             for($i=0;$i<count($refArticle);$i++){
-                $articles= $articlesRepository->findByRefAndConf($refArticle[$i]);
-                if(array_key_exists($i, $refArtQte) === true && $refArtQte[$i] !== '0' && $refArticle[$i]->getId()===$refArtQte[$i]){
-                    $table= $articlesRepository->findOneBy(['id'=> 26]);
+            //on créer un array qui recupere les key de valeur de nos id 
+            $refArtKey = array_keys($refArtQte);
+            for($i=0;$i<count($refArticles);$i++){
+                //verifie si la key de larray existe, si la quantite n'est pas nul et si id de l'article de ref est egal a l'id renvoyer en POST  
+                if( array_key_exists($i, $refArtQte) === true && $refArtQte[$i] !== '0' && $refArticles[$i]->getId() == $refArtKey[$i]){       
+                    // on recupere les artcicle par reference article par conformite et si en stock ou demande de mise en stock
+                    $articles = $articlesRepository->findByRefAndConfAndStock($i);
+                    //on lie l'article a la preparation selon $n la quantité voulu et en priorite ceux en 'demande de mis en stock  
+                    for($n=0; $n<$refArtQte[$i]; $n++){
+                        $preparation->addArticle($articles[$n]);
+                        //on modifie le statut de l'article et sa destination 
+                        $articles[$n]->setStatu('demande de sortie');
+                        $articles[$n]->setDirection($destination);
+                    }
                 }
-             }
-            if( $table !== NULL){
-                $preparation->addArticle($table);
             }
-
-            // dump($preparation);
-            // $em = $this->getDoctrine()->getManager();
-            // $em->persist($preparation);
-            // $em->flush();
+            $em = $this->getDoctrine()->getManager();
+            $em->persist($preparation);
+            $em->flush();
+            return $this->redirectToRoute('preparation_index');  
         }
 
+        // calcul des quantite avant la creation des preparations 
+        $articles = $articlesRepository->findByRefAndConfAndStock(7);
+        foreach ($refArticles as $refArticle) {
+            //on recupere seulement la quantite des articles requete SQL dédié
+            $articleByRef = $articlesRepository->findQteByRefAndConf($refArticle);
+            $quantityRef = 0;
+            foreach ($articleByRef as $article){
+                $quantityRef ++;
+            }
+            $refArticle->setQuantity($quantityRef);  
+        }
+        $this->getDoctrine()->getManager()->flush();
+        
         return $this->render('preparation/creationPrepa.html.twig', [
-            'refArticles' => $refArticle,
-            'emplacements' => $emplacementRepository->findAll(),//a modifier
+            'refArticles' => $referencesArticlesRepository->findRefArtByQte(),
+            'emplacements' => $emplacementRepository->findEptBy(),
+            'articles' => $articles,//varibles de test 
         ]);
     }
 

@@ -1,30 +1,71 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout.html.twig' %}
 
 {% block title %}Preparation{% endblock %}
 
-{% block body %}
-    <h1>Preparation</h1>
+{% block page_content %}
+    <h1>Préparation</h1>
+
+    {{ dump(preparation.articles[0]) }}
 
     <table class="table">
         <tbody>
             <tr>
-                <th>Id</th>
+                <th class="backtablejv">Id</th>
                 <td>{{ preparation.id }}</td>
             </tr>
             <tr>
                 <th>Date</th>
-                <td>{{ preparation.date ? preparation.date|date('Y-m-d H:i:s') : '' }}</td>
+                <td class="backtablejv">{{ preparation.date ? preparation.date|date('Y-m-d H:i:s') : '' }}</td>
             </tr>
             <tr>
-                <th>Statut</th>
+                <th class="backtablejv">Statut</th>
                 <td>{{ preparation.statut }}</td>
+            </tr>
+            <tr>
+                <th>Destination</th>
+                <td class="backtablejv">{{ preparation.destination.nom }}</td>
+            </tr>
+            <tr>
+                <th class="backtablejv">Utilisateur</th>
+                <td>{{ preparation.utilisateur.username }}</td>
             </tr>
         </tbody>
     </table>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Nom</th>
+                <th>Statut</th>
+                <th>Reférences Articles</th>
+                <th>position</th>
+                <th>direction</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% set i = 0 %}
+            {% for article in preparation.articles |reverse %}
+                <tr {% if i % 2 == 1 %}
+                        class="backtablejv"
+                    {% endif %}>
+                    {% set i = i + 1 %}
+                    <td>{{ article.nom }}</td>
+                    <td>{{ article.statu }}</td>
+                    <td>{{ article.refArticle.reference }}</td>
+                    <td>{{ article.position }}</td>
+                    <td>{{ article.direction }}</td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="10">aucun résultat</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+    </table>
 
-    <a href="{{ path('preparation_index') }}">back to list</a>
+    <a href="{{ path('preparation_index') }}" class="btn pull-left button btn-right">Retour</a>
 
-    <a href="{{ path('preparation_edit', {'id': preparation.id}) }}">edit</a>
+    <!-- <a href="{{ path('preparation_edit', {'id': preparation.id}) }}">modifier</a> -->
 
     {{ include('preparation/_delete_form.html.twig') }}
+
 {% endblock %}

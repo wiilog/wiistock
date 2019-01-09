@@ -69,7 +69,7 @@ class ReceptionsController extends AbstractController
     }
 
     /**
-     * @Route("/{id}", name="receptions_show", methods="GET")
+     * @Route("/show/{id}", name="receptions_show", methods="GET")
      */
     public function show(Receptions $reception): Response
     {
@@ -132,15 +132,16 @@ class ReceptionsController extends AbstractController
         // k sert à vérifier et identifier la fin de la reception, en suite on modifie les "setStatut" des variables 
         if ($k){
             $articles =  $articlesRepository->findByReception($id);
+            // modification du statut
             foreach ($articles as $article) {
                 //vérifie si l'article est bien encore en reception
                 if ($article->getStatu() === 'en cours de reception' && $article->getEtat() === true){
-                $article->setStatu(' demande de mise en stock');
+                $article->setStatu('demande de mise en stock');
                 }
             }
             $reception->setStatut('terminer');
             //calcul de la quantite des stocks par artciles de reference
-            $refArticles = $referencesArticlesRepository->findAll();
+            $refArticles = $referencesArticlesRepository->findAllByRef();
             foreach ($refArticles as $refArticle) {
                 //on recupere seulement la quantite des articles requete SQL dédié
                 $articleByRef = $articlesRepository->findQteByRefAndConf($refArticle);

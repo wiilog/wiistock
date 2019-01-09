@@ -5,8 +5,6 @@
 {% block page_content %}
     <h1>Préparation</h1>
 
-    <pre>{{ dump(preparations[0]) }}</pre>
-
     <div class="row btn pull-left">
         <a href='#' class="button btn-left"><span class="fas fa-history"></span> Historique</a>
     </div>
@@ -31,8 +29,8 @@
                 <td>{{ preparation.date ? preparation.date|date('Y-m-d H:i:s') : '' }}</td>
                 <td>{{ preparation.statut }}</td>
                 <td>
-                    <a href="{{ path('preparation_show', {'id': preparation.id}) }}">show</a>
-                    <a href="{{ path('preparation_edit', {'id': preparation.id}) }}">edit</a>
+                    <a href="{{ path('preparation_show', {'id': preparation.id}) }}">Détail</a>
+                    <!-- <a href="{{ path('preparation_edit', {'id': preparation.id}) }}">edit</a> -->
                 </td>
             </tr>
         {% else %}

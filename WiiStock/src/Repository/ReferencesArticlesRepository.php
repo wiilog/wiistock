@@ -34,15 +34,27 @@ class ReferencesArticlesRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('r')->setMaxResults(1)->getQuery()->getOneOrNullResult();
     }
 
-    
-    public function findQteByRefAndConf($refArticle)
+    // récupération de ID REfERENCE QUANTITE pour la preparation des commandes 
+    public function findRefArtByQte()
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-            "SELECT a.quantite
-            FROM App\Entity\Articles a
-            WHERE a.refArticle = :ref AND a.etat = TRUE  "
-        )->setParameter('ref', $refArticle);
+            "SELECT r.id, r.quantity, r.reference 
+            FROM App\Entity\ReferencesArticles r
+            WHERE r.quantity <> 0 "
+        )
+        ;
+        return $query->execute(); 
+    }
+
+    public function findQteBy()
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT r.id, r.quantity 
+            FROM App\Entity\ReferencesArticles r
+           "
+        )
         ;
         return $query->execute(); 
     }

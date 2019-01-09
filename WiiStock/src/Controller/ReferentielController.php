@@ -4,12 +4,19 @@ namespace App\Controller;
 
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+
 use App\Entity\Fournisseurs;
 use App\Form\FournisseursType;
 use App\Repository\FournisseursRepository;
+
 use App\Entity\ReferencesArticles;
 use App\Form\ReferencesArticlesType;
 use App\Repository\ReferencesArticlesRepository;
+
+use App\Entity\Articles;
+use App\Form\ArticlesType;
+use App\Repository\ArticlesRepository;
+
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -54,8 +61,20 @@ class ReferentielController extends Controller
     /**
      * @Route("/articles", name="referentiel_articles")
      */
-    public function articles()
+    public function articles(ReferencesArticlesRepository $referencesArticlesRepository, ArticlesRepository $articlesRepository)
     {
+        $refArticles = $referencesArticlesRepository->findAll();
+        foreach ($refArticles as $refArticle) {
+            //on recupere seulement la quantite des articles requete SQL dédié
+            $articleByRef = $articlesRepository->findQteByRefAndConf($refArticle);
+            $quantityRef = 0;
+            foreach ($articleByRef as $article) {
+                $quantityRef ++;
+            }
+            $refArticle->setQuantity($quantityRef);  
+        }
+        $this->getDoctrine()->getManager()->flush();
+
         return $this->render('referentiel/articles.html.twig', [
             'controller_name' => 'ReferentielController',
             'articles' =>  $this->getDoctrine()->getRepository(ReferencesArticles::class)->findAll()

@@ -61,13 +61,26 @@ class ArticlesRepository extends ServiceEntityRepository
         $query = $entityManager->createQuery(
             "SELECT a.quantite
             FROM App\Entity\Articles a
-            WHERE a.refArticle = :ref AND a.etat = TRUE  "
+            WHERE a.refArticle = :ref AND a.etat = TRUE AND (a.statu = 'en stock' OR a.statu = 'demande de mise en stock')"
         )->setParameter('ref', $refArticle);
         ;
         return $query->execute(); 
     }
 
     public function findByRefAndConf($refArticle)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT a
+            FROM App\Entity\Articles a
+            WHERE a.refArticle = :ref AND a.etat = TRUE AND (a.statu = 'en stock' OR a.statu = 'demande de mise en stock')
+            ORDER BY a.statu ASC"
+        )->setParameter('ref', $refArticle);
+        ;
+        return $query->execute(); 
+    }
+
+    public function findByRefAndConfAndStock($refArticle)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(

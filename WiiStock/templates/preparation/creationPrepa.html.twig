@@ -4,8 +4,6 @@
     
 <h1>Nouvelle préparation</h1>
 
-{{ dump(refArticles) }}
-
 <form class="container-fluid" action={{path("creation_preparation")}} method="POST">
     <div class="form-group row">
         <h3>Lieux de livraison</h3>
@@ -29,5 +27,7 @@
     <input class="button btn-left" type="submit" value="Commander">
 
 </form>
+
+<pre>{{ dump(articles) }}</pre>
 
 {% endblock  %}
