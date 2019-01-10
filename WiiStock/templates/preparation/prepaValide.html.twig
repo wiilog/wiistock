@@ -1,0 +1,37 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Preparation index{% endblock %}
+
+{% block page_content %}    
+    <div class="container">
+        <form action={{path("preparation_validation")}} method="post" class="container-fluid">
+            {% for prepa in prepaDemande %}
+                <div class="row">
+                    <input class="col-1" type="checkbox" id="scales" name="prepaValide[{{ prepa.id}}]" checked>
+                    <label class="col-4" for="scales">Préparation n°{{prepa.id}} datant du {{prepa.date |date("m/d/Y")}} pour l'emplacement: {{prepa.destination.nom}}</label>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Nom</th>
+                                <th>Reférences Articles</th>
+                                <th>position</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% set i = 0 %}
+                        {% for article in prepa.articles %}
+                            <tr {% if i % 2 == 1 %} class="backtablejv" {% endif %}>
+                                {% set i = i + 1 %}
+                                <td>{{ article.nom }}</td>
+                                <td>{{ article.refArticle.reference }}</td>
+                                <td>{{ article.position }}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endfor %}
+            <input class="button btn-left" type="submit" value="Valider">
+        </form>
+    </div>
+{% endblock %}

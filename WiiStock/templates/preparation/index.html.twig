@@ -23,22 +23,25 @@
             </tr>
         </thead>
         <tbody>
+            {% set i = 0  %}
         {% for preparation in preparations %}
-            <tr>
+            <tr {% if i % 2 == 1 %} class="backtablejv" {% endif %}>
+                    {% set i = i + 1 %}
                 <td>{{ preparation.id }}</td>
                 <td>{{ preparation.date ? preparation.date|date('Y-m-d H:i:s') : '' }}</td>
                 <td>{{ preparation.statut }}</td>
                 <td>
-                    <a href="{{ path('preparation_show', {'id': preparation.id}) }}">Détail</a>
-                    <!-- <a href="{{ path('preparation_edit', {'id': preparation.id}) }}">edit</a> -->
+                    <a href={{ path('preparation_show', {'id': preparation.id}) }} class="btn btn-xs btn-default command-edit"><i class="fas fa-eye fa-2x"></i></a>
                 </td>
             </tr>
         {% else %}
             <tr>
                 <td colspan="10">aucun résultat</td>
             </tr>
+            
         {% endfor %}
         </tbody>
     </table>
-
+    
+   
 {% endblock %}

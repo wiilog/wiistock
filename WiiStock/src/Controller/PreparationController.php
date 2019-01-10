@@ -31,11 +31,40 @@ use Doctrine\Common\Collections\ArrayCollection;
 class PreparationController extends AbstractController
 {
     /**
-     * @Route("/", name="preparation_index", methods="GET")
+     * @Route("/", name="preparation_index", methods="GET|POST")
      */
-    public function index(PreparationRepository $preparationRepository, ReferencesArticlesRepository $referencesArticlesRepository): Response
+    public function index(PreparationRepository $preparationRepository, ReferencesArticlesRepository $referencesArticlesRepository, EmplacementRepository $emplacementRepository): Response
     {
-        return $this->render('preparation/index.html.twig', ['preparations' => $preparationRepository->findAll()]);
+        // dump($this->getUser()->getId());
+        return $this->render('preparation/index.html.twig', [
+            'preparations' => $preparationRepository->findAllByUser($this->getUser()->getId()),
+            ]);
+    }
+
+    /**
+     * @Route ("/validation", name="preparation_validation", methods="GET|POST")
+     */
+    public function validation(PreparationRepository $preparationRepository, ReferencesArticlesRepository $referencesArticlesRepository, EmplacementRepository $emplacementRepository): Response
+    {
+        if($_POST){
+            $prepaKey = array_keys($_POST['prepaValide']);
+            foreach ($prepaKey as $key) { 
+                $prepa = $preparationRepository->findOneById($key);
+                $prepa->setStatut('Validé');
+                $articles = $prepa->getArticles();
+                
+                foreach ($articles as $article) {
+                    $article->setStatu("demande de  sortie");
+                    $article->setDirection($prepa->getDestination());
+                    dump($article);
+                }
+            }
+            $this->getDoctrine()->getManager()->flush();
+            return $this->redirectToRoute('preparation_index');
+        }
+        return $this->render('preparation/prepaValide.html.twig', [
+            'prepaDemande' => $preparationRepository->findPrepaByStatut('commande demandé'),
+            ]); 
     }
 
     /**
@@ -71,8 +100,9 @@ class PreparationController extends AbstractController
         // on recupere la liste de article de reference et on créer une instance de preparation
         $refArticles = $referencesArticlesRepository->findAll();
         $preparation = new Preparation();
+       
         // si renvoie d'un réponse POST 
-        if ($_POST) {
+        if ( $_POST) {
             // on recupere la destination des articles 
             $destination = $emplacementRepository->findOneBy(array('id' =>$_POST['direction']));
             // on 'remplie' la $preparation avec les data les plus simple
@@ -84,28 +114,23 @@ class PreparationController extends AbstractController
             $refArtQte = $_POST["piece"];
             //on créer un array qui recupere les key de valeur de nos id 
             $refArtKey = array_keys($refArtQte);
-            for($i=0;$i<count($refArticles);$i++){
-                //verifie si la key de larray existe, si la quantite n'est pas nul et si id de l'article de ref est egal a l'id renvoyer en POST  
-                if( array_key_exists($i, $refArtQte) === true && $refArtQte[$i] !== '0' && $refArticles[$i]->getId() == $refArtKey[$i]){       
-                    // on recupere les artcicle par reference article par conformite et si en stock ou demande de mise en stock
-                    $articles = $articlesRepository->findByRefAndConfAndStock($i);
-                    //on lie l'article a la preparation selon $n la quantité voulu et en priorite ceux en 'demande de mis en stock  
-                    for($n=0; $n<$refArtQte[$i]; $n++){
+                foreach ($refArtKey as $key) {
+                    $articles = $articlesRepository->findByRefAndConfAndStock($key);
+                    for($n=0; $n<$refArtQte[$key]; $n++){
                         $preparation->addArticle($articles[$n]);
                         //on modifie le statut de l'article et sa destination 
                         $articles[$n]->setStatu('demande de sortie');
                         $articles[$n]->setDirection($destination);
                     }
                 }
-            }
+            if (count($preparation->getArticles()) > 0){
             $em = $this->getDoctrine()->getManager();
             $em->persist($preparation);
             $em->flush();
+            }
             return $this->redirectToRoute('preparation_index');  
         }
-
         // calcul des quantite avant la creation des preparations 
-        $articles = $articlesRepository->findByRefAndConfAndStock(7);
         foreach ($refArticles as $refArticle) {
             //on recupere seulement la quantite des articles requete SQL dédié
             $articleByRef = $articlesRepository->findQteByRefAndConf($refArticle);
@@ -120,7 +145,7 @@ class PreparationController extends AbstractController
         return $this->render('preparation/creationPrepa.html.twig', [
             'refArticles' => $referencesArticlesRepository->findRefArtByQte(),
             'emplacements' => $emplacementRepository->findEptBy(),
-            'articles' => $articles,//varibles de test 
+            // 'articles' => $articles,//varibles de test 
         ]);
     }
 

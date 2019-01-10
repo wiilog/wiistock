@@ -29,36 +29,35 @@ class ArticlesController extends AbstractController
             return $this->render('articles/index.html.twig', ['articles'=> $articlesRepository->findByStatut($statut)]);
         }else if($statut ==="en stock"){
             return $this->render('articles/index.html.twig', ['articles'=> $articlesRepository->findByStatut($statut)]);
+        }else if($statut === 'demande de sortie'){
+            return $this->render('articles/index.html.twig', ['articles'=> $articlesRepository->findByStatut($statut)]);
+        }else if($statut === 'destockage'){
+            return $this->render('articles/index.html.twig', ['articles'=> $articlesRepository->findByStatut($statut)]);
         }else if($statut === 'mis en stock' && $id !== 0){
             //validation de la mise en stock/magasin
             $articles = $articlesRepository->findById($id);
             foreach ($articles as $article) {
-                $article->setStatu('en stock');
-            //vérifie si la direction n'est pas nul, pour ne pas perdre l'emplacement si il y a des erreur au niveau des receptions 
-                if($article->getDirection() !== null){
+                $article->setStatu('en stock'); 
+                if($article->getDirection() !== null){//vérifie si la direction n'est pas nul, pour ne pas perdre l'emplacement si il y a des erreur au niveau des receptions
                     $article->setPosition($article->getDirection());
                 }
                 $article->setDirection(null);
             }
             $this->getDoctrine()->getManager()->flush();
             return $this->render('articles/index.html.twig', ['articles'=> $articlesRepository->findByStatut('demande de mise en stock')]);
+        }else if($statut === 'livré'){
+            $articles = $articlesRepository->findById($id);
+            foreach ($articles as $article) {
+                $article->setStatu('destockage');
+                $article->setDirection(null);
+            }
+            $this->getDoctrine()->getManager()->flush();
+            return $this->render('articles/index.html.twig', ['articles'=> $articlesRepository->findByStatut('demande de sortie')]);
         }else if($statut === 'anomalie'){
             return $this->render('articles/index.html.twig', ['articles'=> $articlesRepository->findByStatut($statut)]);
         }else{
             //chemin par défaut Basé sur un requete SQL basée sur l
             $etat = true;
-/*
-* debug statu 
-*/
-            // $articles = $articlesRepository->findAll();
-            // foreach ($articles as $value) {
-            //     if($value->getStatu()==='demande de sortie'){
-            //         $value->setStatu('en stock');
-            //     }
-            // }
-            // $em = $this->getDoctrine()->getManager();
-            // $em->flush();
-
             return $this->render('articles/index.html.twig', ['articles' => $articlesRepository->findByEtat($etat)]);
         }
     }

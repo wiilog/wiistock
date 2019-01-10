@@ -36,15 +36,23 @@
                         <li><a href={{path('articles_index', {'statut': 'en cours de reception', 'id': '0'})}}>• En cours de réception</a></li>
                         <li><a href={{path('articles_index', {'statut': 'demande de mise en stock', 'id': '0'})}}>• Demande de mise en stock</a></li>
                         <li><a href={{path('articles_index', {'statut': 'en stock', 'id': '0'})}}>• En stock</a></li>
-                        <li><a href={{path('articles_index', {'statut': 'all', 'id': 0})}}>•</a></li>   
+                        <li><a href={{path('articles_index', {'statut': 'demande de sortie', 'id': '0'})}}>• Demande de sortie</a></li>   
+                        <li><a href={{path('articles_index', {'statut': 'destockage', 'id': '0'})}}>• Destockage</a></li>   
                         <li><a href={{path('articles_index', {'statut': 'anomalie', 'id': '0'})}}>• Anomalie</a></li>
                     </ul>
                </li>                
-<!-- COLLECTE -->
-                <li>
+<!-- PREPARATION -->
+                <li class="has-submenu">
                     <a href={{path('preparation_index')}}>
                         <i class="fa fa-shopping-cart"></i>
                     </a>
+                    <ul class="sidemenu-sub">
+                        <li class="text">
+                            <h4>Préparation</h4>
+                        </li>
+                        <li><a href={{path("preparation_validation")}}>• Validation</a></li>
+                        <li><a href={{ path('creation_preparation') }}>• Nouvelle préparation</a></li>
+                    </ul>
                 </li>
                 {# <li>
                     <a href="#">
