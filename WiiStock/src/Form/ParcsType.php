@@ -1,7 +1,5 @@
 <?php
-
 namespace App\Form;
-
 use App\Entity\Parcs;
 use App\Entity\Filiales;
 use App\Entity\Sites;
@@ -26,7 +24,6 @@ use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use App\Form\ChariotsType;
 use App\Form\VehiculesType;
 use Doctrine\ORM\EntityRepository;
-
 class ParcsType extends AbstractType
 {
 	public function buildForm(FormBuilderInterface $builder, array $options)
@@ -163,7 +160,6 @@ class ParcsType extends AbstractType
 			->add('ptac', NumberType::class, array('label' => 'Ptac (F2)'))
 			->add('ptr', NumberType::class, array('label' => 'Ptr (F3)'))
 			->add('puissance_fiscale')
-
 			->add('estSorti', CheckboxType::class, array(
 				'label' => 'Sortie Définitive',
 				'required' => false,
@@ -175,7 +171,6 @@ class ParcsType extends AbstractType
 			->add('imgOrigine', HiddenType::class)
 			->add('validation', SubmitType::class, array('label' => 'Enregistrer'));
 	}
-
 	public function configureOptions(OptionsResolver $resolver)
 	{
 		$resolver->setDefaults([

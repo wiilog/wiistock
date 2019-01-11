@@ -50,12 +50,6 @@ class Utilisateurs implements UserInterface, EquatableInterface
     private $plainPassword;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Groupes")
-     * @ORM\JoinColumn(nullable=true)
-     */
-    private $groupe;
-
-    /**
      * @ORM\Column(type="array")
      */
     private $roles;
@@ -79,10 +73,16 @@ class Utilisateurs implements UserInterface, EquatableInterface
      */
     private $preparations;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Demande", mappedBy="utilisateur")
+     */
+    private $demandes;
+
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
         $this->preparations = new ArrayCollection();
+        $this->demandes = new ArrayCollection();
     }
 
     public function getId()
@@ -135,20 +135,6 @@ class Utilisateurs implements UserInterface, EquatableInterface
     {
         $this->plainPassword = $password;
     }
-
-    public function getGroupe(): ?Groupes
-    {
-        return $this->groupe;
-    }
-
-    public function setGroupe(?Groupes $groupe): self
-    {
-        $this->groupe = $groupe;
-
-        return $this;
-    }
-
-   
 
     public function getSalt()
     {
@@ -263,6 +249,37 @@ class Utilisateurs implements UserInterface, EquatableInterface
             // set the owning side to null (unless already changed)
             if ($preparation->getUtilisateur() === $this) {
                 $preparation->setUtilisateur(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Demande[]
+     */
+    public function getDemandes(): Collection
+    {
+        return $this->demandes;
+    }
+
+    public function addDemande(Demande $demande): self
+    {
+        if (!$this->demandes->contains($demande)) {
+            $this->demandes[] = $demande;
+            $demande->setUtilisateur($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDemande(Demande $demande): self
+    {
+        if ($this->demandes->contains($demande)) {
+            $this->demandes->removeElement($demande);
+            // set the owning side to null (unless already changed)
+            if ($demande->getUtilisateur() === $this) {
+                $demande->setUtilisateur(null);
             }
         }
 

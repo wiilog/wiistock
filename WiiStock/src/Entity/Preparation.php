@@ -29,23 +29,24 @@ class Preparation
     private $statut;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="preparations")
+     * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $destination;
+    private $numero;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateurs", inversedBy="preparations")
-     */
-    private $utilisateur;
-
-    /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Articles", inversedBy="preparations")
+     * @ORM\OneToMany(targetEntity="App\Entity\Articles", mappedBy="preparation")
      */
     private $articles;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Demande", mappedBy="preparation")
+     */
+    private $demandes;
 
     public function __construct()
     {
         $this->articles = new ArrayCollection();
+        $this->demandes = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -77,26 +78,14 @@ class Preparation
         return $this;
     }
 
-    public function getDestination(): ?Emplacement
+    public function getNumero(): ?string
     {
-        return $this->destination;
+        return $this->numero;
     }
 
-    public function setDestination(?Emplacement $destination): self
+    public function setNumero(?string $numero): self
     {
-        $this->destination = $destination;
-
-        return $this;
-    }
-
-    public function getUtilisateur(): ?Utilisateurs
-    {
-        return $this->utilisateur;
-    }
-
-    public function setUtilisateur(?Utilisateurs $utilisateur): self
-    {
-        $this->utilisateur = $utilisateur;
+        $this->numero = $numero;
 
         return $this;
     }
@@ -113,6 +102,7 @@ class Preparation
     {
         if (!$this->articles->contains($article)) {
             $this->articles[] = $article;
+            $article->setPreparation($this);
         }
 
         return $this;
@@ -122,8 +112,44 @@ class Preparation
     {
         if ($this->articles->contains($article)) {
             $this->articles->removeElement($article);
+            // set the owning side to null (unless already changed)
+            if ($article->getPreparation() === $this) {
+                $article->setPreparation(null);
+            }
         }
 
         return $this;
     }
+
+    /**
+     * @return Collection|Demande[]
+     */
+    public function getDemandes(): Collection
+    {
+        return $this->demandes;
+    }
+
+    public function addDemande(Demande $demande): self
+    {
+        if (!$this->demandes->contains($demande)) {
+            $this->demandes[] = $demande;
+            $demande->setPreparation($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDemande(Demande $demande): self
+    {
+        if ($this->demandes->contains($demande)) {
+            $this->demandes->removeElement($demande);
+            // set the owning side to null (unless already changed)
+            if ($demande->getPreparation() === $this) {
+                $demande->setPreparation(null);
+            }
+        }
+
+        return $this;
+    }
+
 }

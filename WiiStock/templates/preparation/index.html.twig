@@ -9,14 +9,15 @@
         <a href='#' class="button btn-left"><span class="fas fa-history"></span> Historique</a>
     </div>
     <div class='row btn pull-right' >
-        <a href="{{ path('creation_preparation') }}" class="button btn-left">
-            <span class="fa fa-plus"></span>Nouvelle préparation
+        <a href="{{ path('preparation_creation') }}" class="button btn-left">
+            <span class="fa fa-plus"></span>Nouvelle preparation
         </a >
     </div>
     <table class="table">
         <thead>
             <tr>
                 <th>Id</th>
+                <th>Numero</th>
                 <th>Date</th>
                 <th>Statut</th>
                 <th>actions</th>
@@ -28,6 +29,7 @@
             <tr {% if i % 2 == 1 %} class="backtablejv" {% endif %}>
                     {% set i = i + 1 %}
                 <td>{{ preparation.id }}</td>
+                <td>{{preparation.numero}}</td>
                 <td>{{ preparation.date ? preparation.date|date('Y-m-d H:i:s') : '' }}</td>
                 <td>{{ preparation.statut }}</td>
                 <td>

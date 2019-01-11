@@ -34,10 +34,10 @@
                             <h4>Articles</h4>
                         </li>
                         <li><a href={{path('articles_index', {'statut': 'en cours de reception', 'id': '0'})}}>• En cours de réception</a></li>
-                        <li><a href={{path('articles_index', {'statut': 'demande de mise en stock', 'id': '0'})}}>• Demande de mise en stock</a></li>
-                        <li><a href={{path('articles_index', {'statut': 'en stock', 'id': '0'})}}>• En stock</a></li>
-                        <li><a href={{path('articles_index', {'statut': 'demande de sortie', 'id': '0'})}}>• Demande de sortie</a></li>   
-                        <li><a href={{path('articles_index', {'statut': 'destockage', 'id': '0'})}}>• Destockage</a></li>   
+                        <li><a href={{path('articles_index', {'statut': 'demande de mise en stock', 'id': '0'})}}>• Entré stock</a></li>
+                        <li><a href={{path('articles_index', {'statut': 'en stock', 'id': '0'})}}>• Stock</a></li>
+                        <li><a href={{path('articles_index', {'statut': 'demande de sortie', 'id': '0'})}}>• En attente de livraison </a></li>   
+                        <li><a href={{path('articles_index', {'statut': 'destockage', 'id': '0'})}}>• Sortie</a></li>   
                         <li><a href={{path('articles_index', {'statut': 'anomalie', 'id': '0'})}}>• Anomalie</a></li>
                     </ul>
                </li>                
@@ -48,10 +48,16 @@
                     </a>
                     <ul class="sidemenu-sub">
                         <li class="text">
-                            <h4>Préparation</h4>
+                            <h4>Demande</h4>
                         </li>
-                        <li><a href={{path("preparation_validation")}}>• Validation</a></li>
-                        <li><a href={{ path('creation_preparation') }}>• Nouvelle préparation</a></li>
+                        
+                        <li><a href={{ path('creation_demande') }}>• Nouvelle demande</a></li>
+                        <li><a href={{ path('demande_index') }}>• Demande</a></li>
+                        <li><a href={{ path('preparation_creation') }}>• Nouvelle Préparation</a></li>
+                        <li><a href={{ path('preparation_index') }}>• Préparation</a></li>
+                        <li><a href={{path("livraison_index")}}>• Livraison</a></li>
+
+                        
                     </ul>
                 </li>
                 {# <li>
@@ -77,87 +83,24 @@
                             </li>
                         </ul>
                     </li>
-                {% endif %} -->
+                {% endif %}  -->
 
-                {% if is_granted('ROLE_STOCK') %}
-                    <li class="has-submenu">
-                        <a href="#">
-                            <i class="fa fa-truck"></i>
-                        </a>
-                        <ul class="sidemenu-sub">
-                            <li class="text">
-                                <h4>Activités</h4>
-                            </li>
-                            <!-- <li>
-                                <a href="">• Visualisation stock</a>
-                            </li>
-                            <li>
-                                <a href="{{ path('ordre_workflow') }}">• Workflow ordre</a>
-                            </li>
-                            <li>
-                                <a href="{{ path('ordre_preparation') }}">• Nouvelle préparation</a>
-                            </li>
-                            <li>
-                                <a href="{{ path('ordre_transfert') }}">• Nouveau transfert</a>
-                            </li> -->
-                        </ul>
-                    </li>
+                <!-- {% if is_granted('ROLE_STOCK') %}
                     <li class="has-submenu">
                         <a href="#">
                             <i class="fa fa-bell"></i>
                         </a>
-                        <ul class="sidemenu-sub">
-                            <li class="text">
-                                <h4>Demandes</h4>
-                            </li>
-                            <li>
-                                <a href="{{ path('demandes_index') }}">• Workflow demande</a>
-                            </li>
-                            <li>
-                                <a href="{{ path('demandes_new') }}">• Créer une demande</a>
-                            </li>
-                        </ul>
-                    </li>
-<!-- INVENTAIRE -->
-                    <!-- <li class="has-submenu">
-                        <a href="#">
-                            <i class="fa fa-file-text"></i>
-                        </a>
-                        <ul class="sidemenu-sub">
-                            <li class="text">
-                                <h4>Inventaire</h4>
-                            </li>
-                            <li>
-                                <a href="{{ path('inventaires_index') }}">• Liste des inventaires</a>
-                            </li>
-                            <li>
-                                <a href="#">• Suivi de comptage</a>
-                            </li>
-                        </ul>
-                    </li> -->
-<!-- HISTORIQUE -->
-                    <!-- <li class="has-submenu">
-                        <a href="">
-                            <i class="fa fa-tags"></i>
-                        </a>
-                        <ul class="sidemenu-sub">
-                            <li class="text">
-                                <h4>Historique des transferts</h4>
-                            </li>
-                        </ul>
-                    </li> -->
-<!-- ALERTE -->
-                    <!-- <li class='has-sebmenu'>
-                        <a href={{path("alertes_index")}}>
-                            <i class="fa fa-exclamation-triangle"></i>
-                        </a>
-
-                    </li> -->
+                        
+                    </li>            
                     <li class="has-submenu">
                         <a href="#">
                             <i class="fa fa-book"></i>
                         </a>
 <!-- REFERENCE -->
+                    <li class="has-submenu">
+                            <a href="#">
+                                <i class="fa fa-sync-alt"></i>
+                            </a>
                         <ul class="sidemenu-sub">
                             <li class="text">
                                 <h4>Référenciel</h4>
@@ -171,13 +114,12 @@
                             <li>
                                 <a href="{{ path('referentiel_articles') }}">• Articles</a>
                             </li>
-                            
-                            <li>
+                            <!-- <li>
                                 <a href="{{ path('referentiel_categories') }}">• Catégorie d'articles</a>
-                            </li>
+                            </li> -->
                         </ul>
                     </li>
-                {% endif %}
+                <!-- {% endif %} -->
                 {% if is_granted('ROLE_ADMIN') %}
                     <li class="has-submenu">
                         <a href="#">
@@ -200,9 +142,6 @@
                                 <a href="{{ path('change_password') }}">• Changer de mot de passe</a>
                             </li>
                             {% if is_granted('ROLE_STOCK_ADMIN') %}
-                                <li>
-                                    <a href="{{ path('groupes_index') }}">• Groupes de droits</a>
-                                </li>
                                 <li>
                                     <a href="{{ path('champs_personnalises_index') }}">• Champs personnalisé</a>
                                 </li>

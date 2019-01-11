@@ -3,26 +3,34 @@
 {% block title %}Fournisseurs index{% endblock %}
 
 {% block page_content %}
-    <h1>Fournisseurs index</h1>
-
-    {{ dump(fournisseurs) }} 
+    <h1>Fournisseurs</h1>
     
+    <div class='row btn pull-right' >
+        <a href={{ path('fournisseurs_new') }} class="button btn-left">
+            <span class="fa fa-plus"></span>Nouveau fournisseur
+        </a >
+    </div>
+
     <table class="table">
         <thead>
             <tr>
                 <th>Id</th>
                 <th>Nom</th>
+                <th>Code de réference</th>
                 <th>actions</th>
             </tr>
         </thead>
         <tbody>
+        {% set i = 0  %}
         {% for fournisseur in fournisseurs %}
-            <tr>
+            <tr {% if i % 2 == 1 %} class="backtablejv" {% endif %}>
+                    {% set i = i + 1 %}
                 <td>{{ fournisseur.id }}</td>
                 <td>{{ fournisseur.nom }}</td>
+                <td>{{ fournisseur.codeReference}}</td>
                 <td>
-                    <a href="{{ path('fournisseurs_show', {'id': fournisseur.id}) }}">show</a>
-                    <a href="{{ path('fournisseurs_edit', {'id': fournisseur.id}) }}">edit</a>
+                    <a href="{{ path('fournisseurs_show', {'id': fournisseur.id}) }}" class="btn btn-xs btn-default command-edit"><i class="fas fa-eye fa-2x"></i></a>
+                    <a href="{{ path('fournisseurs_edit', {'id': fournisseur.id}) }}" class="btn btn-xs btn-default command-edit"><i class="fas fa-pencil-alt fa-2x"></i></a>
                 </td>
             </tr>
         {% else %}
@@ -32,6 +40,5 @@
         {% endfor %}
         </tbody>
     </table>
-
-    <a href="{{ path('fournisseurs_new') }}">Create new</a>
+    
 {% endblock %}

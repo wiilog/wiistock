@@ -53,10 +53,12 @@ class ReferencesArticles
      */
     private $preparations;
 
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
         $this->preparations = new ArrayCollection();
+        $this->demandes = new ArrayCollection();
     }
 
     public function getId()
@@ -189,4 +191,5 @@ class ReferencesArticles
 
         return $this;
     }
+
 }

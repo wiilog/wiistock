@@ -1,12 +1,9 @@
 <?php
-
 namespace App\Form;
-
 use App\Entity\Filiales;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-
 class FilialesType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options)
@@ -15,7 +12,6 @@ class FilialesType extends AbstractType
             ->add('nom')
         ;
     }
-
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults([

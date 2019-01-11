@@ -7,11 +7,12 @@
 
     
     <a href={{path('articles_index', {'statut': 'en cours de reception', 'id': '0'})}}  class="btn pull-left button btn-right">En cours de reception</a>
-    <a href={{path('articles_index', {'statut': 'demande de mise en stock', 'id': '0'})}}  class="btn pull-left button btn-right">Mise en stock</a>
-    <a href={{path('articles_index', {'statut': 'en stock',  'id': '0'})}}  class="btn pull-left button btn-right">En stock</a>
-    <a href={{path('articles_index', {'statut': 'demande de sortie',  'id': '0'})}}  class="btn pull-left button btn-right">Demande de sortie</a>
-    <a href={{path('articles_index', {'statut': 'destockage', 'id': '0'})}}  class="btn pull-left button btn-right">destockage</a>
-    <a href={{path('articles_index', {'statut': 'anomalie', 'id': '0'})}}  class="btn pull-right button button-danger btn-right">Réception non conforme</a>
+    <a href={{path('articles_index', {'statut': 'demande de mise en stock', 'id': '0'})}}  class="btn pull-left button btn-right">Entré stock</a>
+    <a href={{path('articles_index', {'statut': 'en stock',  'id': '0'})}}  class="btn pull-left button btn-right">Stock</a>
+    <a href={{path('articles_index', {'statut': 'demande de sortie',  'id': '0'})}}  class="btn pull-left button btn-right">En attente de livraison</a>
+    <a href={{path('articles_index', {'statut': 'destockage', 'id': '0'})}}  class="btn pull-left button btn-right">Sortie</a>
+
+    <a href={{path('articles_index', {'statut': 'anomalie', 'id': '0'})}}  class="btn pull-right button button-danger btn-right">Réception Anomalie</a>
     
 
 
@@ -47,8 +48,6 @@
                     <a href="{{ path('articles_edit', {'id': article.id}) }}" class="btn btn-xs btn-default command-edit"><i class="fas fa-pencil-alt fa-2x"></i></a>
                     {% if article.statu == 'demande de mise en stock' %}
                         <a href={{path('articles_index', {'statut': 'mis en stock',  'id': article.id})}} class="btn btn-xs btn-default command-edit backgreen"><i class="fas fa-check fa-2x"></i></a>
-                    {% elseif article.statu =='demande de sortie'%}
-                        <a href={{path('articles_index', {'statut': 'livré',  'id': article.id})}} class="btn btn-xs btn-default command-edit backgreen"><i class="fas fa-check fa-2x"></i></a>
                     {% endif %}
                 </td>
             </tr>

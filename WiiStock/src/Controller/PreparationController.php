@@ -22,8 +22,15 @@ use App\Entity\Emplacement;
 use App\Form\EmplacementType;
 use App\Repository\EmplacementRepository;
 
-use Doctrine\Common\Collections\ArrayCollection;
+use App\Entity\Livraison;
+use App\Form\LivraisonType;
+use App\Repository\LivraisonRepository;
 
+use App\Entity\Demande;
+use App\Form\DemandeType;
+use App\Repository\DemandeRepository;
+
+use Doctrine\Common\Collections\ArrayCollection;
 
 /**
  * @Route("/preparation")
@@ -33,14 +40,14 @@ class PreparationController extends AbstractController
     /**
      * @Route("/", name="preparation_index", methods="GET|POST")
      */
-    public function index(PreparationRepository $preparationRepository, ReferencesArticlesRepository $referencesArticlesRepository, EmplacementRepository $emplacementRepository): Response
+    public function index(PreparationRepository $preparationRepository,DemandeRepository $demandeRepository, ReferencesArticlesRepository $referencesArticlesRepository, EmplacementRepository $emplacementRepository): Response
     {
-        // dump($this->getUser()->getId());
-        return $this->render('preparation/index.html.twig', [
-            'preparations' => $preparationRepository->findAllByUser($this->getUser()->getId()),
-            ]);
+        return $this->render('preparation/index.html.twig', array(
+            'preparations'=>$preparationRepository->findAll(),
+        ));
     }
 
+//A VOIR SUPPRIMER
     /**
      * @Route ("/validation", name="preparation_validation", methods="GET|POST")
      */
@@ -92,61 +99,33 @@ class PreparationController extends AbstractController
     }
 
     /**
-     * @Route("/creationPrepa", name="creation_preparation", methods="GET|POST")
+     * @Route("/creation", name="preparation_creation", methods="GET|POST" )
      */
-    public function creationPrepa(Request $request, ReferencesArticlesRepository $referencesArticlesRepository,ArticlesRepository $articlesRepository, EmplacementRepository $emplacementRepository): Response 
+    public function creationPreparation(DemandeRepository $demandeRepository, PreparationRepository $preparationRepository, ReferencesArticlesRepository $referencesArticlesRepository, EmplacementRepository $emplacementRepository)
     {   
-        //la creation de preparation n'utilise pas le formulaire symfony, les utilisateur demandent des articles de Reference non pas les articles
-        // on recupere la liste de article de reference et on créer une instance de preparation
-        $refArticles = $referencesArticlesRepository->findAll();
-        $preparation = new Preparation();
-       
-        // si renvoie d'un réponse POST 
-        if ( $_POST) {
-            // on recupere la destination des articles 
-            $destination = $emplacementRepository->findOneBy(array('id' =>$_POST['direction']));
-            // on 'remplie' la $preparation avec les data les plus simple
-            $preparation->setDestination($destination);
-            $preparation->setStatut('commande demandé');
-            $preparation->setUtilisateur($this->getUser());
-            $preparation->setDate( new \DateTime('now'));
-            // on recupere un array sous la forme ['id de l'article de réference' => 'quantite de l'article de réference voulu', ....]
-            $refArtQte = $_POST["piece"];
-            //on créer un array qui recupere les key de valeur de nos id 
-            $refArtKey = array_keys($refArtQte);
-                foreach ($refArtKey as $key) {
-                    $articles = $articlesRepository->findByRefAndConfAndStock($key);
-                    for($n=0; $n<$refArtQte[$key]; $n++){
-                        $preparation->addArticle($articles[$n]);
-                        //on modifie le statut de l'article et sa destination 
-                        $articles[$n]->setStatu('demande de sortie');
-                        $articles[$n]->setDirection($destination);
-                    }
-                }
-            if (count($preparation->getArticles()) > 0){
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($preparation);
-            $em->flush();
+        dump($_POST);
+        if ($_POST){
+            $preparation = new Preparation;
+            $date =  new \DateTime('now');
+            $preparation->setNumero('P-'. $date->format('YmdHis'));
+            $preparation->setDate($date);
+            $demandeKey = array_keys($_POST['preparation']);
+            foreach ($demandeKey as $key ) {
+                $demande= $demandeRepository->findOneBy(['id'=> $key]);
+                $demande->setPreparation($preparation);
+                $demande->setStatut('préparation commande');
+                $this->getDoctrine()->getManager();
             }
-            return $this->redirectToRoute('preparation_index');  
-        }
-        // calcul des quantite avant la creation des preparations 
-        foreach ($refArticles as $refArticle) {
-            //on recupere seulement la quantite des articles requete SQL dédié
-            $articleByRef = $articlesRepository->findQteByRefAndConf($refArticle);
-            $quantityRef = 0;
-            foreach ($articleByRef as $article){
-                $quantityRef ++;
-            }
-            $refArticle->setQuantity($quantityRef);  
-        }
-        $this->getDoctrine()->getManager()->flush();
-        
-        return $this->render('preparation/creationPrepa.html.twig', [
-            'refArticles' => $referencesArticlesRepository->findRefArtByQte(),
-            'emplacements' => $emplacementRepository->findEptBy(),
-            // 'articles' => $articles,//varibles de test 
-        ]);
+            return $this->redirectToRoute('preparation_index');
+           $em = $this->getDoctrine()->getManager();
+           $em->persist($preparation);
+//FlushBloque
+          $em->flush();
+       }
+
+        return $this->render("preparation/creation.html.twig", array(
+            "demandes" =>$demandeRepository->findAll() //A modifier 
+        ));
     }
 
     /**

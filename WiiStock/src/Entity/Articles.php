@@ -64,13 +64,15 @@ class Articles
     private $commentaire;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Preparation", mappedBy="articles")
+     * @ORM\ManyToMany(targetEntity="App\Entity\Demande", mappedBy="articles")
      */
-    private $preparations;
+    private $demandes;
+
 
     public function __construct()
     {
         $this->preparations = new ArrayCollection();
+        $this->demandes = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -195,28 +197,28 @@ class Articles
     }
 
     /**
-     * @return Collection|Preparation[]
+     * @return Collection|Demande[]
      */
-    public function getPreparations(): Collection
+    public function getDemandes(): Collection
     {
-        return $this->preparations;
+        return $this->demandes;
     }
 
-    public function addPreparation(Preparation $preparation): self
+    public function addDemande(Demande $demande): self
     {
-        if (!$this->preparations->contains($preparation)) {
-            $this->preparations[] = $preparation;
-            $preparation->addArticle($this);
+        if (!$this->demandes->contains($demande)) {
+            $this->demandes[] = $demande;
+            $demande->addArticle($this);
         }
 
         return $this;
     }
 
-    public function removePreparation(Preparation $preparation): self
+    public function removeDemande(Demande $demande): self
     {
-        if ($this->preparations->contains($preparation)) {
-            $this->preparations->removeElement($preparation);
-            $preparation->removeArticle($this);
+        if ($this->demandes->contains($demande)) {
+            $this->demandes->removeElement($demande);
+            $demande->removeArticle($this);
         }
 
         return $this;
