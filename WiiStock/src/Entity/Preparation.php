@@ -34,18 +34,12 @@ class Preparation
     private $numero;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Articles", mappedBy="preparation")
-     */
-    private $articles;
-
-    /**
      * @ORM\OneToMany(targetEntity="App\Entity\Demande", mappedBy="preparation")
      */
     private $demandes;
 
     public function __construct()
     {
-        $this->articles = new ArrayCollection();
         $this->demandes = new ArrayCollection();
     }
 
@@ -86,37 +80,6 @@ class Preparation
     public function setNumero(?string $numero): self
     {
         $this->numero = $numero;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|Articles[]
-     */
-    public function getArticles(): Collection
-    {
-        return $this->articles;
-    }
-
-    public function addArticle(Articles $article): self
-    {
-        if (!$this->articles->contains($article)) {
-            $this->articles[] = $article;
-            $article->setPreparation($this);
-        }
-
-        return $this;
-    }
-
-    public function removeArticle(Articles $article): self
-    {
-        if ($this->articles->contains($article)) {
-            $this->articles->removeElement($article);
-            // set the owning side to null (unless already changed)
-            if ($article->getPreparation() === $this) {
-                $article->setPreparation(null);
-            }
-        }
 
         return $this;
     }

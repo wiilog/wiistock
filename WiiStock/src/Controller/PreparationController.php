@@ -40,38 +40,22 @@ class PreparationController extends AbstractController
     /**
      * @Route("/", name="preparation_index", methods="GET|POST")
      */
-    public function index(PreparationRepository $preparationRepository,DemandeRepository $demandeRepository, ReferencesArticlesRepository $referencesArticlesRepository, EmplacementRepository $emplacementRepository): Response
+    public function index(PreparationRepository $preparationRepository, DemandeRepository $demandeRepository, ReferencesArticlesRepository $referencesArticlesRepository, EmplacementRepository $emplacementRepository): Response
     {
+        dump($_POST);
+       if (array_key_exists('fin', $_POST)) {
+           $preparation = $preparationRepository->findOneBy(["id"=>$_POST["fin"]]);
+           $preparation->setStatut('fin');
+           $demandes = $demandeRepository->findByPrepa($preparation);
+           foreach ($demandes as $demande) {
+               $demande->setStatut("préparation terminé");
+           }
+           $this->getDoctrine()->getManager()->flush();
+           return $this->redirectToRoute('preparation_index');
+       }
         return $this->render('preparation/index.html.twig', array(
             'preparations'=>$preparationRepository->findAll(),
         ));
-    }
-
-//A VOIR SUPPRIMER
-    /**
-     * @Route ("/validation", name="preparation_validation", methods="GET|POST")
-     */
-    public function validation(PreparationRepository $preparationRepository, ReferencesArticlesRepository $referencesArticlesRepository, EmplacementRepository $emplacementRepository): Response
-    {
-        if($_POST){
-            $prepaKey = array_keys($_POST['prepaValide']);
-            foreach ($prepaKey as $key) { 
-                $prepa = $preparationRepository->findOneById($key);
-                $prepa->setStatut('Validé');
-                $articles = $prepa->getArticles();
-                
-                foreach ($articles as $article) {
-                    $article->setStatu("demande de  sortie");
-                    $article->setDirection($prepa->getDestination());
-                    dump($article);
-                }
-            }
-            $this->getDoctrine()->getManager()->flush();
-            return $this->redirectToRoute('preparation_index');
-        }
-        return $this->render('preparation/prepaValide.html.twig', [
-            'prepaDemande' => $preparationRepository->findPrepaByStatut('commande demandé'),
-            ]); 
     }
 
     /**
@@ -103,28 +87,31 @@ class PreparationController extends AbstractController
      */
     public function creationPreparation(DemandeRepository $demandeRepository, PreparationRepository $preparationRepository, ReferencesArticlesRepository $referencesArticlesRepository, EmplacementRepository $emplacementRepository)
     {   
-        dump($_POST);
         if ($_POST){
             $preparation = new Preparation;
             $date =  new \DateTime('now');
             $preparation->setNumero('P-'. $date->format('YmdHis'));
             $preparation->setDate($date);
+            $preparation->setStatut('Nouvelle préparation');
             $demandeKey = array_keys($_POST['preparation']);
             foreach ($demandeKey as $key ) {
                 $demande= $demandeRepository->findOneBy(['id'=> $key]);
                 $demande->setPreparation($preparation);
                 $demande->setStatut('préparation commande');
+                $articles = $demande->getArticles();
+                foreach ($articles as $article) {
+                    $article->setStatu('préparation');
+                    $article->setDirection($demande->getDestination());
+                }
                 $this->getDoctrine()->getManager();
             }
+            $em = $this->getDoctrine()->getManager();
+            $em->persist($preparation);
+            $em->flush();
             return $this->redirectToRoute('preparation_index');
-           $em = $this->getDoctrine()->getManager();
-           $em->persist($preparation);
-//FlushBloque
-          $em->flush();
-       }
-
+        }
         return $this->render("preparation/creation.html.twig", array(
-            "demandes" =>$demandeRepository->findAll() //A modifier 
+            "demandes" =>$demandeRepository->findDmdByStatut('commande demandé'), //A modifier 
         ));
     }
 

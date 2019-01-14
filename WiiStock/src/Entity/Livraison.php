@@ -29,18 +29,18 @@ class Livraison
     private $destination;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Preparation", mappedBy="livraison")
-     */
-    private $preparations;
-
-    /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $statut;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Demande", mappedBy="livraison")
+     */
+    private $demande;
+
     public function __construct()
     {
-        $this->preparations = new ArrayCollection();
+        $this->demande = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -72,37 +72,6 @@ class Livraison
         return $this;
     }
 
-    /**
-     * @return Collection|Preparation[]
-     */
-    public function getPreparations(): Collection
-    {
-        return $this->preparations;
-    }
-
-    public function addPreparation(Preparation $preparation): self
-    {
-        if (!$this->preparations->contains($preparation)) {
-            $this->preparations[] = $preparation;
-            $preparation->setLivraison($this);
-        }
-
-        return $this;
-    }
-
-    public function removePreparation(Preparation $preparation): self
-    {
-        if ($this->preparations->contains($preparation)) {
-            $this->preparations->removeElement($preparation);
-            // set the owning side to null (unless already changed)
-            if ($preparation->getLivraison() === $this) {
-                $preparation->setLivraison(null);
-            }
-        }
-
-        return $this;
-    }
-
     public function getStatut(): ?string
     {
         return $this->statut;
@@ -111,6 +80,37 @@ class Livraison
     public function setStatut(?string $statut): self
     {
         $this->statut = $statut;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Demande[]
+     */
+    public function getDemande(): Collection
+    {
+        return $this->demande;
+    }
+
+    public function addDemande(Demande $demande): self
+    {
+        if (!$this->demande->contains($demande)) {
+            $this->demande[] = $demande;
+            $demande->setLivraison($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDemande(Demande $demande): self
+    {
+        if ($this->demande->contains($demande)) {
+            $this->demande->removeElement($demande);
+            // set the owning side to null (unless already changed)
+            if ($demande->getLivraison() === $this) {
+                $demande->setLivraison(null);
+            }
+        }
 
         return $this;
     }

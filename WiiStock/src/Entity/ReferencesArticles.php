@@ -48,16 +48,9 @@ class ReferencesArticles
      */
     private $quantity;
 
-    /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Preparation", mappedBy="articles")
-     */
-    private $preparations;
-
-
     public function __construct()
     {
         $this->articles = new ArrayCollection();
-        $this->preparations = new ArrayCollection();
         $this->demandes = new ArrayCollection();
     }
 
@@ -160,34 +153,6 @@ class ReferencesArticles
     public function setQuantity(?int $quantity): self
     {
         $this->quantity = $quantity;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|Preparation[]
-     */
-    public function getPreparations(): Collection
-    {
-        return $this->preparations;
-    }
-
-    public function addPreparation(Preparation $preparation): self
-    {
-        if (!$this->preparations->contains($preparation)) {
-            $this->preparations[] = $preparation;
-            $preparation->addArticle($this);
-        }
-
-        return $this;
-    }
-
-    public function removePreparation(Preparation $preparation): self
-    {
-        if ($this->preparations->contains($preparation)) {
-            $this->preparations->removeElement($preparation);
-            $preparation->removeArticle($this);
-        }
 
         return $this;
     }

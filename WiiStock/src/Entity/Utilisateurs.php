@@ -68,10 +68,6 @@ class Utilisateurs implements UserInterface, EquatableInterface
      */
     private $receptions;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Preparation", mappedBy="utilisateur")
-     */
-    private $preparations;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Demande", mappedBy="utilisateur")
@@ -81,7 +77,6 @@ class Utilisateurs implements UserInterface, EquatableInterface
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
-        $this->preparations = new ArrayCollection();
         $this->demandes = new ArrayCollection();
     }
 
@@ -222,37 +217,6 @@ class Utilisateurs implements UserInterface, EquatableInterface
     public function __toString()
     {
         return $this->username;
-    }
-
-    /**
-     * @return Collection|Preparation[]
-     */
-    public function getPreparations(): Collection
-    {
-        return $this->preparations;
-    }
-
-    public function addPreparation(Preparation $preparation): self
-    {
-        if (!$this->preparations->contains($preparation)) {
-            $this->preparations[] = $preparation;
-            $preparation->setUtilisateur($this);
-        }
-
-        return $this;
-    }
-
-    public function removePreparation(Preparation $preparation): self
-    {
-        if ($this->preparations->contains($preparation)) {
-            $this->preparations->removeElement($preparation);
-            // set the owning side to null (unless already changed)
-            if ($preparation->getUtilisateur() === $this) {
-                $preparation->setUtilisateur(null);
-            }
-        }
-
-        return $this;
     }
 
     /**

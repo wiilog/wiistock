@@ -55,8 +55,59 @@ class DemandeRepository extends ServiceEntityRepository
         ;
         return $query->execute(); 
     }
-    
 
+    public function findByPrepa($preparation)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT d
+            FROM App\Entity\Demande d
+            WHERE d.preparation = :prepa "
+        )->setParameter('prepa', $preparation);
+        ;
+        return $query->execute(); 
+    }
+    
+    public function findEmplacementByStatut($statut)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT DISTINCT t.id, t.nom, t.status
+            FROM App\Entity\Demande d
+            JOIN d.destination t
+            WHERE d.statut = :statut "
+        )->setParameter('statut', $statut);
+        ;
+        return $query->execute(); 
+    }
+
+    public function findByDestiAndStatut($destination, $statut)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT d
+            FROM App\Entity\Demande d
+            WHERE d.destination = :destination AND d.statut = :statut"
+        )->setParameter('destination', $destination)
+         ->setParameter('statut', $statut);
+        ;
+        return $query->execute(); 
+    }
+
+    public function findByLivrais($livraison)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT d
+            FROM App\Entity\Demande d
+            WHERE d.livraison = :livraison"
+        )->setParameter('livraison', $livraison);
+        ;
+        return $query->execute(); 
+    }
+
+
+    
     // /**
     //  * @return Demande[] Returns an array of Demande objects
     //  */

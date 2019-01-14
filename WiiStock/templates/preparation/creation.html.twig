@@ -21,7 +21,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                        {{ dump(demande.articles) }}
+                        
                         {% set i = 0 %}
                         {% for article in demande.articles %}
                             <tr {% if i % 2 == 1 %} class="backtablejv" {% endif %}>
@@ -35,7 +35,15 @@
                     </table>
                 </div>
             {% endfor %}
-            <input class="button btn-left" type="submit" value="Valider">
+            {% if demandes|length > 0  %}
+                <input class="button btn-left" type="submit" value="Valider">
+            {% else %}
+                <p>aucune demande en attente</p>
+
+                <a href="{{ path('preparation_index') }}" class="btn pull-left button btn-right">Retour</a>
+            {% endif %}
+
+            
         </form>
     </div>
      

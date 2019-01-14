@@ -54,6 +54,11 @@ class Demande
      */
     private $preparation;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Livraison", inversedBy="demande")
+     */
+    private $livraison;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
@@ -164,6 +169,18 @@ class Demande
     public function setPreparation(?Preparation $preparation): self
     {
         $this->preparation = $preparation;
+
+        return $this;
+    }
+
+    public function getLivraison(): ?Livraison
+    {
+        return $this->livraison;
+    }
+
+    public function setLivraison(?Livraison $livraison): self
+    {
+        $this->livraison = $livraison;
 
         return $this;
     }

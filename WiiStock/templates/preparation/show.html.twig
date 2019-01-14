@@ -5,8 +5,6 @@
 {% block page_content %}
     <h1>Préparation</h1>
 
-   
-
     <table class="table">
         <tbody>
             <tr>
@@ -22,12 +20,8 @@
                 <td>{{ preparation.statut }}</td>
             </tr>
             <tr>
-                <th>Destination</th>
-                <td class="backtablejv">{{ preparation.destination.nom }}</td>
-            </tr>
-            <tr>
-                <th class="backtablejv">Utilisateur</th>
-                <td>{{ preparation.utilisateur.username }}</td>
+                <th> Numero</th>
+                <td class="backtablejv">{{preparation.numero}}</td>
             </tr>
         </tbody>
     </table>
@@ -42,8 +36,10 @@
             </tr>
         </thead>
         <tbody>
+            {% for demande in preparation.demandes %}
+           
             {% set i = 0 %}
-            {% for article in preparation.articles |reverse %}
+            {% for article in demande.articles |reverse %}
                 <tr {% if i % 2 == 1 %}
                         class="backtablejv"
                     {% endif %}>
@@ -58,6 +54,8 @@
                 <tr>
                     <td colspan="10">aucun résultat</td>
                 </tr>
+            {% endfor %}
+                 
             {% endfor %}
             </tbody>
     </table>

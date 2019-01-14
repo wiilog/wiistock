@@ -79,7 +79,6 @@ class DemandeController extends AbstractController
             if (count($demande->getArticles()) > 0){
             $em = $this->getDoctrine()->getManager();
             $em->persist($demande);
-//FlushBloque
            $em->flush();
            
             }
