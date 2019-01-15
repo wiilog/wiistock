@@ -1,30 +1,59 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout.html.twig' %}
 
 {% block title %}Demande{% endblock %}
 
-{% block body %}
+{% block page_content %}
     <h1>Demande</h1>
 
     <table class="table">
         <tbody>
             <tr>
-                <th>Id</th>
+                <th  class="backtablejv">Id</th>
                 <td>{{ demande.id }}</td>
             </tr>
             <tr>
-                <th>Numero</th>
-                <td>{{ demande.numero }}</td>
+                <th >Numero</th>
+                <td  class="backtablejv">{{ demande.numero }}</td>
             </tr>
             <tr>
-                <th>Statut</th>
+                <th class="backtablejv">Statut</th>
                 <td>{{ demande.statut }}</td>
             </tr>
         </tbody>
     </table>
 
-    <a href="{{ path('demande_index') }}">back to list</a>
+    <table class="table">
+            <thead>
+                <tr>
+                    <th>Nom</th>
+                    <th>Statut</th>
+                    <th>Reférences Articles</th>
+                    <th>position</th>
+                    <th>direction</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% set i = 0 %}
+                {% for article in demande.articles |reverse %}
+                    <tr {% if i % 2 == 1 %}
+                            class="backtablejv"
+                        {% endif %}>
+                        {% set i = i + 1 %}
+                        <td>{{ article.nom }}</td>
+                        <td>{{ article.statu }}</td>
+                        <td>{{ article.refArticle.reference }}</td>
+                        <td>{{ article.position }}</td>
+                        <td>{{ article.direction }}</td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="10">aucun résultat</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+        </table>
 
-    <a href="{{ path('demande_edit', {'id': demande.id}) }}">edit</a>
+    <a href={{ path('demande_index', {'history': 'false'}) }} class='button pull-left btn-left'>retour</a>
 
-    {{ include('demande/_delete_form.html.twig') }}
+    {#{ include('demande/_delete_form.html.twig') }#}
 {% endblock %}

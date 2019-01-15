@@ -4,10 +4,16 @@
 
 {% block page_content %}
     <h1>Préparation</h1>
+    {% if history is defined %}
+        <div class="row btn pull-left">
+            <a href={{path('preparation_index', {'history': 'false'})}} class="button btn-left"><span class="fas fa-history"></span> Préparation en cours</a>
+        </div>        
+    {% else %}
+        <div class="row btn pull-left">
+            <a href={{path('preparation_index', {'history': 'true'})}} class="button btn-left"><span class="fas fa-history"></span> Historique</a>
+        </div>
+    {% endif %}
 
-    <div class="row btn pull-left">
-        <a href='#' class="button btn-left"><span class="fas fa-history"></span> Historique</a>
-    </div>
     <div class='row btn pull-right' >
         <a href="{{ path('preparation_creation') }}" class="button btn-left">
             <span class="fa fa-plus"></span>Nouvelle preparation
@@ -33,7 +39,7 @@
                 <td>{{ preparation.date ? preparation.date|date('Y-m-d H:i:s') : '' }}</td>
                 <td>{{ preparation.statut }}</td>
                 <td>
-                <form action={{path('preparation_index')}} method="post">
+                <form action={{path('preparation_index', {'history': 'false'})}} method="post">
                     {% if preparation.statut == 'Nouvelle préparation' %}              
                         <button type="submit" name="fin" value={{preparation.id}} class="btn btn-xs btn-default command-edit backgreen"><i class="fas fa-check fa-2x"></i></button>                   
                     {% endif %}
@@ -50,5 +56,5 @@
         </tbody>
     </table>
     
-   {{ dump(livraison) }}
+
 {% endblock %}

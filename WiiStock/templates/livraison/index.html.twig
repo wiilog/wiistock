@@ -5,11 +5,17 @@
 {% block page_content %}
     <h1>Livraison index</h1>
 
-    {{ dump(livraisons) }}
-
-    <div class="row btn pull-left">
-            <a href='#' class="button btn-left"><span class="fas fa-history"></span> Historique</a>
+    
+    {% if history is defined %}
+        <div class="row btn pull-left">
+            <a href={{path('livraison_index', {'history':'false'})}} class="button btn-left"><span class="fas fa-history"></span> Livraison en cours</a>
         </div>
+    {% else %}
+        <div class="row btn pull-left">
+            <a href={{path('livraison_index', {'history':'true'})}} class="button btn-left"><span class="fas fa-history"></span> Historique</a>
+        </div>
+    {% endif %}
+    
         <div class='row btn pull-right' >
             <a href={{ path('livraison_creation') }} class="button btn-left">
                 <span class="fa fa-plus"></span>Nouvelle livraison
@@ -36,7 +42,7 @@
                 <td>
                 
                     <!-- <a href="{{ path('livraison_edit', {'id': livraison.id}) }}">edit</a> -->
-                <form action={{path('livraison_index')}} method="post">
+                <form action={{path('livraison_index', {'history': 'false'})}} method="post">
                         {% if livraison.statut == 'demande de livraison' %}              
                             <button type="submit" name="id" value={{livraison.id}} class="btn btn-xs btn-default command-edit backgreen"><i class="fas fa-check fa-2x"></i></button>                   
                         {% endif %}

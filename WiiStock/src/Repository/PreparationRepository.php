@@ -31,6 +31,18 @@ class PreparationRepository extends ServiceEntityRepository
         return $query->execute(); 
     }
 
+    public function findByNoStatut($statut)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT p
+            FROM App\Entity\Preparation p
+            WHERE p.statut <> :statut "
+        )->setParameter('statut', $statut);
+        ;
+        return $query->execute(); 
+    }
+
     public function findById($id)
     {
         $entityManager = $this->getEntityManager();

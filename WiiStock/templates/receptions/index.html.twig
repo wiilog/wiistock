@@ -3,7 +3,9 @@
 {% block title %}Réceptions{% endblock %}
 
 {% block page_content %}
-    <h1>Réceptions</h1>
+    <h1>
+        Réceptions {% if date is defined %} du {{date}} {% endif %}
+    </h1>
     {% if date is not defined %}
     <div class="row btn pull-left">
         <a href={{path("receptions_index", {'history': 0})}} class="button btn-left"><span class="fas fa-history"></span> Réception journaliére</a>

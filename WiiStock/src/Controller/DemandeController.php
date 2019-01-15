@@ -31,17 +31,25 @@ use App\Repository\LivraisonRepository;
 class DemandeController extends AbstractController
 {
     /**
-     * @Route("/", name="demande_index", methods={"GET"})
+     * @Route("/{history}/index", name="demande_index", methods={"GET"})
      */
-    public function index(DemandeRepository $demandeRepository): Response
+    public function index(DemandeRepository $demandeRepository, $history): Response
     {
-        return $this->render('demande/index.html.twig', [
-            'demandes' => $demandeRepository->findAll(),
-        ]);
+        if ($history === 'true') {
+            return $this->render('demande/index.html.twig', [
+                'demandes' => $demandeRepository->findAll(),
+                'history' => 'true',
+            ]);
+        } else {
+            return $this->render('demande/index.html.twig', [
+                'demandes' => $demandeRepository->findAllByUser($this->getUser()), 
+                
+            ]);
+        }
     }
 
     /**
-     * @Route("/creation", name="creation_demande", methods="GET|POST")
+     * @Route("/creationDemande", name="creation_demande", methods="GET|POST")
      */
     public function creationDemande(LivraisonRepository $livraisonRepository, Request $request, ReferencesArticlesRepository $referencesArticlesRepository,ArticlesRepository $articlesRepository, EmplacementRepository $emplacementRepository): Response 
     {   
@@ -49,7 +57,6 @@ class DemandeController extends AbstractController
         // on recupere la liste de article de reference et on créer une instance de demande
         $refArticles = $referencesArticlesRepository->findAll();
         $demande = new Demande();
-       
         // si renvoie d'un réponse POST 
         if ( $_POST) {
             // on recupere la destination des articles 
@@ -68,19 +75,16 @@ class DemandeController extends AbstractController
             foreach ($refArtKey as $key) {
                 $articles = $articlesRepository->findByRefAndConfAndStock($key);
                 for($n=0; $n<$refArtQte[$key]; $n++){
-                    dump($articles);
                     $demande->addArticle($articles[$n]);
                     //on modifie le statut de l'article et sa destination 
                     $articles[$n]->setStatu('demande de sortie');
                     $articles[$n]->setDirection($destination);
                 }
             }
-
             if (count($demande->getArticles()) > 0){
             $em = $this->getDoctrine()->getManager();
             $em->persist($demande);
-           $em->flush();
-           
+            $em->flush();
             }
             return $this->redirectToRoute('demande_index');  
         }
@@ -127,7 +131,7 @@ class DemandeController extends AbstractController
     }
 
     /**
-     * @Route("/{id}", name="demande_show", methods={"GET"})
+     * @Route("/show/{id}", name="demande_show", methods={"GET"})
      */
     public function show(Demande $demande): Response
     {
