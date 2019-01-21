@@ -43,7 +43,7 @@
                </li>                
 <!-- PREPARATION -->
                 <li class="has-submenu">
-                    <a href={{path('preparation_index')}}>
+                    <a href=>
                         <i class="fa fa-shopping-cart"></i>
                     </a>
                     <ul class="sidemenu-sub">
@@ -52,11 +52,11 @@
                         </li>
                         
                         <li><a href={{ path('creation_demande') }}>• Nouvelle demande</a></li>
-                        <li><a href={{ path('demande_index') }}>• Demande</a></li>
+                        <li><a href={{ path('demande_index', {'history': 'false'}) }}>• Demande</a></li>
                         <li><a href={{ path('preparation_creation') }}>• Nouvelle Préparation</a></li>
-                        <li><a href={{ path('preparation_index') }}>• Préparation</a></li>
+                        <li><a href={{ path('preparation_index',  {'history': 'false'} ) }}>• Préparation</a></li>
                         <li><a href={{ path('livraison_creation') }}>• Nouvelle Livraison</a></li>
-                        <li><a href={{path("livraison_index")}}>• Livraison</a></li>
+                        <li><a href={{path("livraison_index", {'history':'false'})}}>• Livraison</a></li>
 
                         
                     </ul>

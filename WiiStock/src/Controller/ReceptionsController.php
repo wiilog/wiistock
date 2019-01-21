@@ -41,7 +41,7 @@ class ReceptionsController extends AbstractController
             $date = (new \DateTime('now'));
             return $this->render('receptions/index.html.twig', [
                 'receptions' => $receptionsRepository->findByDateOrStatut($date),
-                'date' => $date,
+                'date' => $date = date("d-m-y"),
             ]);
         }    
     }

@@ -4,12 +4,11 @@
 
 {% block page_content %}
     <h1>Mes alertes</h1>
-
     <table class="table">
         <thead>
             <tr>
-                <th>Id</th>
                 <th>Nom</th>
+                <th>Code</th>
                 <th>Seuil d'alerte</th>
                 <th>Actions</th>
             </tr>
@@ -42,6 +41,9 @@
         {% endfor %}
         </tbody>
     </table>
-
     <a class="button" href="{{ path('alerte_new') }}">Nouvelle alerte</a>
+
+    <div class="pagination">
+        {{ knp_pagination_render(alertes) }}
+    </div>
 {% endblock %}

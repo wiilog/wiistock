@@ -31,6 +31,17 @@ class LivraisonRepository extends ServiceEntityRepository
         return $query->execute(); 
     }
 
+    public function findByNoStatut($statut)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT l
+            FROM App\Entity\Livraison l
+            WHERE l.statut <> :statut"
+        )->setParameter('statut', $statut);
+        ;
+        return $query->execute(); 
+    }
     // /**
     //  * @return Livraison[] Returns an array of Livraison objects
     //  */

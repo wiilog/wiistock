@@ -24,11 +24,11 @@ use App\Repository\EmplacementRepository;
 class LivraisonController extends AbstractController
 {
     /**
-     * @Route("/", name="livraison_index", methods={"GET", "POST"})
+     * @Route("/{history}/index", name="livraison_index", methods={"GET", "POST"})
      */
-    public function index(LivraisonRepository $livraisonRepository, DemandeRepository $demandeRepository ): Response
+    public function index($history, LivraisonRepository $livraisonRepository, DemandeRepository $demandeRepository ): Response
     {
-        dump($_POST);
+        // modification des statut lorsque la livraison est terminé 
         if ($_POST) {
             $livraison = $livraisonRepository->findOneBy(['id'=>$_POST['id']]);
             $livraison->setStatut('livré');
@@ -38,17 +38,24 @@ class LivraisonController extends AbstractController
                 $articles = $demande->getArticles();
                 foreach ($articles as $article) {
                     $article->setStatu('livré');
-                    $article->setPosition($article->getDirection());
-                    $article->setDirection(NULL);
-                    dump($article); //ATTENTION
+                    if($article->getDirection()){
+                        $article->setPosition($article->getDirection());
+                        $article->setDirection(NULL);
+                    }
                 }
             }
-            dump($demande);
-            // $this->getDoctrine()->getManager()->flush();
-            return $this->redirectToRoute('livraison_index');
+            $this->getDoctrine()->getManager()->flush();
+            return $this->redirectToRoute('livraison_index', ['history' => 'false']);
         }
+        if($history === 'true'){
+            return $this->render('livraison/index.html.twig', [
+                'livraisons' => $livraisonRepository->findAll(),
+                'history' => 'true',
+            ]);    
+        }
+        $statut = 'livré'; 
         return $this->render('livraison/index.html.twig', [
-            'livraisons' => $livraisonRepository->findAll(),
+            'livraisons' => $livraisonRepository->findByNoStatut($statut),
         ]);
     }
     
@@ -57,15 +64,21 @@ class LivraisonController extends AbstractController
      */
     public function creation(DemandeRepository $demandeRepository, EmplacementRepository $emplacementRepository, Request $request): Response
     {
+        // generation automatique des livraison selon leur lieux de destination
         if ($_POST){
-            $destinations = $demandeRepository->findEmplacementByStatut("préparation terminé");
-            foreach ($destinations as $destination) {
+            // recuperation des destination ID distincte des demandes selon le statut "preparation terminé"
+            $destinationsId = $demandeRepository->findEmplacementByStatut("préparation terminé");
+            foreach ($destinationsId as $destinationId) {
+                // création des livraisons selon les differentes destinations unique 
                 $livraison = new Livraison();
+                // Systeme de numerotation identique aux dmendes et aux preparations => L-20190114154
                 $date =  new \DateTime('now');
                 $livraison->setNumero('L-'. $date->format('YmdHis'));
                 $livraison->setStatut("demande de livraison");
-                $livraison->setDestination($emplacementRepository->findOneBy(['id' => $destination['id']]));
-                $demandes = $demandeRepository->findByDestiAndStatut($emplacementRepository->findOneBy(['id' => $destination['id']]), 'préparation terminé');
+                $livraison->setDestination($emplacementRepository->findOneBy(['id' => $destinationId['id']]));
+                // recuperation des demande selon leurs destination et si elles sont terminées
+                $demandes = $demandeRepository->findByDestiAndStatut($emplacementRepository->findOneBy(['id' => $destinationId['id']]), 'préparation terminé');
+                // liaison avec la livraison et changement du statut
                 foreach ($demandes as $demande) {
                     $demande->setStatut('en cours de livraison');
                     $demande->setLivraison($livraison);

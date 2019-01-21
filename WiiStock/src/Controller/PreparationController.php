@@ -38,13 +38,16 @@ use Doctrine\Common\Collections\ArrayCollection;
 class PreparationController extends AbstractController
 {
     /**
-     * @Route("/", name="preparation_index", methods="GET|POST")
+     * @Route("/{history}/index", name="preparation_index", methods="GET|POST")
      */
-    public function index(PreparationRepository $preparationRepository, DemandeRepository $demandeRepository, ReferencesArticlesRepository $referencesArticlesRepository, EmplacementRepository $emplacementRepository): Response
-    {
-        dump($_POST);
-       if (array_key_exists('fin', $_POST)) {
+    public function index($history, PreparationRepository $preparationRepository, DemandeRepository $demandeRepository, ReferencesArticlesRepository $referencesArticlesRepository, EmplacementRepository $emplacementRepository): Response
+    {   
+        // validation de fin de prparation
+        // verification de l existance de la variable 
+        if (array_key_exists('fin', $_POST)) {
+        // on recupere l id en post 
            $preparation = $preparationRepository->findOneBy(["id"=>$_POST["fin"]]);
+        //on modifie les statuts de la preparation et des demande liées
            $preparation->setStatut('fin');
            $demandes = $demandeRepository->findByPrepa($preparation);
            foreach ($demandes as $demande) {
@@ -52,9 +55,14 @@ class PreparationController extends AbstractController
            }
            $this->getDoctrine()->getManager()->flush();
            return $this->redirectToRoute('preparation_index');
-       }
+        }
+        if ($history === 'true') {
+            return $this->render('preparation/index.html.twig', array(
+                'preparations'=>$preparationRepository->findAll(),
+        ));   
+        }
         return $this->render('preparation/index.html.twig', array(
-            'preparations'=>$preparationRepository->findAll(),
+            'preparations'=>$preparationRepository->findByNoStatut('fin'),
         ));
     }
 
@@ -83,16 +91,19 @@ class PreparationController extends AbstractController
     }
 
     /**
-     * @Route("/creation", name="preparation_creation", methods="GET|POST" )
+     * @Route("/creationPreparation", name="preparation_creation", methods="GET|POST" )
      */
     public function creationPreparation(DemandeRepository $demandeRepository, PreparationRepository $preparationRepository, ReferencesArticlesRepository $referencesArticlesRepository, EmplacementRepository $emplacementRepository)
     {   
+        // creation d'une nouvelle preparation  bassée sur une selection de demandes
         if ($_POST){
             $preparation = new Preparation;
+            //declaration de la date pour remplir Date et Numero
             $date =  new \DateTime('now');
             $preparation->setNumero('P-'. $date->format('YmdHis'));
             $preparation->setDate($date);
             $preparation->setStatut('Nouvelle préparation');
+            //plus de detail voir creation demande meme principe 
             $demandeKey = array_keys($_POST['preparation']);
             foreach ($demandeKey as $key ) {
                 $demande= $demandeRepository->findOneBy(['id'=> $key]);

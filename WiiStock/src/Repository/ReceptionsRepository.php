@@ -25,7 +25,7 @@ class ReceptionsRepository extends ServiceEntityRepository
         //formatage de la date pour l'utilisé => 2019-01-22%
         $dateF = date_format($date, 'Y-m-d ');
         $dateF = $dateF . '%';
-        //récupération des champs selon la date du jour ou selon un statut sp2cifique  
+        //récupération des champs selon la date du jour ou selon un statut spécifique  
         $query = $entityManager->createQuery(
             "SELECT r
             FROM App\Entity\Receptions r

@@ -44,14 +44,14 @@ class DemandeRepository extends ServiceEntityRepository
         return $query->execute(); 
     }
 
-    public function findAllByUser($id)
+    public function findAllByUser($user)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT d
             FROM App\Entity\Demande d
-            WHERE d.utilisateur = :id "
-        )->setParameter('id', $id);
+            WHERE d.utilisateur = :user"
+        )->setParameter('user', $user);
         ;
         return $query->execute(); 
     }
@@ -72,7 +72,7 @@ class DemandeRepository extends ServiceEntityRepository
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-            "SELECT DISTINCT t.id, t.nom, t.status
+            "SELECT DISTINCT t.id
             FROM App\Entity\Demande d
             JOIN d.destination t
             WHERE d.statut = :statut "

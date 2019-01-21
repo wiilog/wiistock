@@ -1,45 +1,51 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Demande index{% endblock %}
+{% block title %}Demande{% endblock %}
 
 {% block page_content %}
-    <h1>Demande index</h1>
+    <h1>Demande</h1>
+    {% if history is defined %}
+        <div class="row btn pull-left">
+                <a href={{path('demande_index', {'history': 'false'})}} class="button btn-left"><span class="fas fa-history"></span>Mes demandes</a>
+        </div>
+    {% else %}
+        <div class="row btn pull-left">
+            <a href= {{ path('demande_index', {'history': 'true'})}} class="button btn-left"><span class="fas fa-history"></span> Historique</a>
+        </div>
+    {% endif %}
 
-    <div class="row btn pull-left">
-            <a href='#' class="button btn-left"><span class="fas fa-history"></span> Historique</a>
-        </div>
-        <div class='row btn pull-right' >
-            <a href="{{ path('creation_demande') }}" class="button btn-left">
-                <span class="fa fa-plus"></span>Nouvelle demande
-            </a >
-        </div>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Id</th>
-                    <th>namero</th>
-                    <th>Statut</th>
-                    <th>actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% set i = 0  %}
-            {% for demande in demandes %}
-                <tr {% if i % 2 == 1 %} class="backtablejv" {% endif %}>
-                        {% set i = i + 1 %}
-                    <td>{{ demande.id }}</td>
-                    <td>{{ demande.numero }}</td>
-                    <td>{{ demande.statut }}</td>
-                    <td>
-                        <a href={{ path('demande_show', {'id': demande.id}) }} class="btn btn-xs btn-default command-edit"><i class="fas fa-eye fa-2x"></i></a>
-                    </td>
-                </tr>
-            {% else %}
-                <tr>
-                    <td colspan="10">aucun résultat</td>
-                </tr>
-                
-            {% endfor %}
-            </tbody>
-        </table>
+    <div class='row btn pull-right' >
+        <a href="{{ path('creation_demande') }}" class="button btn-left">
+            <span class="fa fa-plus"></span>Nouvelle demande
+        </a >
+    </div>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>numero</th>
+                <th>Statut</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% set i = 0  %}
+        {% for demande in demandes %}
+            <tr {% if i % 2 == 1 %} class="backtablejv" {% endif %}>
+                    {% set i = i + 1 %}
+                <td>{{ demande.id }}</td>
+                <td>{{ demande.numero }}</td>
+                <td>{{ demande.statut }}</td>
+                <td>
+                    <a href={{ path('demande_show', {'id': demande.id}) }} class="btn btn-xs btn-default command-edit"><i class="fas fa-eye fa-2x"></i></a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="10">aucun résultat</td>
+            </tr>
+            
+        {% endfor %}
+        </tbody>
+    </table>
 {% endblock %}
