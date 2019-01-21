@@ -48,10 +48,16 @@ class ReferencesArticles
      */
     private $quantity;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Alerte", mappedBy="AlerteRefArticle")
+     */
+    private $RefArticleAlerte;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
         $this->demandes = new ArrayCollection();
+        $this->RefArticleAlerte = new ArrayCollection();
     }
 
     public function getId()
@@ -153,6 +159,37 @@ class ReferencesArticles
     public function setQuantity(?int $quantity): self
     {
         $this->quantity = $quantity;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Alerte[]
+     */
+    public function getRefArticleAlerte(): Collection
+    {
+        return $this->RefArticleAlerte;
+    }
+
+    public function addRefArticleAlerte(Alerte $refArticleAlerte): self
+    {
+        if (!$this->RefArticleAlerte->contains($refArticleAlerte)) {
+            $this->RefArticleAlerte[] = $refArticleAlerte;
+            $refArticleAlerte->setAlerteRefArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeRefArticleAlerte(Alerte $refArticleAlerte): self
+    {
+        if ($this->RefArticleAlerte->contains($refArticleAlerte)) {
+            $this->RefArticleAlerte->removeElement($refArticleAlerte);
+            // set the owning side to null (unless already changed)
+            if ($refArticleAlerte->getAlerteRefArticle() === $this) {
+                $refArticleAlerte->setAlerteRefArticle(null);
+            }
+        }
 
         return $this;
     }

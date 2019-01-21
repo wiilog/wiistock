@@ -68,7 +68,7 @@ class Articles
      */
     private $demandes;
 
-
+    
     public function __construct()
     {
         $this->preparations = new ArrayCollection();

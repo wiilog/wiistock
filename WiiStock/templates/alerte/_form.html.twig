@@ -1,0 +1,9 @@
+{{ form_start(form) }}
+    <p>Nom de l'alerte</p>
+    {{ form_widget(form.AlerteNom) }}
+    <p>Seuil de l'alerte</p>
+    {{ form_widget(form.AlerteSeuil) }}
+    <p>Reference article</p>
+    {{ form_widget(form.AlerteRefArticle) }}
+    <button class="button">{{ button_label|default('Créer') }}</button>
+{{ form_end(form) }}

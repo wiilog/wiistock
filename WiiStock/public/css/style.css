@@ -119,6 +119,14 @@ input:-webkit-autofill {
 	background-color: #8c8c8c !important;
 }
 
+.red{
+	color: red;
+}
+
+.green{
+	color: green;
+}
+
 /* Button
 ================= */
 
