@@ -1,0 +1,37 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Collecte index{% endblock %}
+
+{% block page_content %}
+    <h1>Collecte index</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Numero</th>
+                <th>Date</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for collecte in collectes %}
+            <tr>
+                <td>{{ collecte.id }}</td>
+                <td>{{ collecte.numero }}</td>
+                <td>{{ collecte.date ? collecte.date|date('Y-m-d H:i:s') : '' }}</td>
+                <td>
+                    <a href="{{ path('collecte_show', {'id': collecte.id}) }}">show</a>
+                    <a href="{{ path('collecte_edit', {'id': collecte.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="4">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('collecte_new') }}">Create new</a>
+{% endblock %}

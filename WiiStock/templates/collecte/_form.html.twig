@@ -1,0 +1,4 @@
+{{ form_start(form) }}
+    {{ form_widget(form , {label_attr: {class: 'checkbox-custom'} }) }}
+    <button class="btn">{{ button_label|default('Save') }}</button>
+{{ form_end(form) }}

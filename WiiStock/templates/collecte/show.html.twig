@@ -1,0 +1,30 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Collecte{% endblock %}
+
+{% block page_content %}
+    <h1>Collecte</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ collecte.id }}</td>
+            </tr>
+            <tr>
+                <th>Numero</th>
+                <td>{{ collecte.numero }}</td>
+            </tr>
+            <tr>
+                <th>Date</th>
+                <td>{{ collecte.date ? collecte.date|date('Y-m-d H:i:s') : '' }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('collecte_index') }}">back to list</a>
+
+    <a href="{{ path('collecte_edit', {'id': collecte.id}) }}">edit</a>
+
+    {{ include('collecte/_delete_form.html.twig') }}
+{% endblock %}
