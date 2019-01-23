@@ -4,7 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Alerte;
 use App\Form\AlerteType;
-// use Knp\Component\Pager\PaginatorInterface;
+use Knp\Component\Pager\PaginatorInterface;
 use App\Repository\AlerteRepository;
 use App\Repository\ReferencesArticlesRepository;
 use App\Repository\ArticlesRepository;
@@ -21,9 +21,11 @@ class AlerteController extends AbstractController
     /**
      * @Route("/", name="alerte_index", methods={"GET"})
      */
-    public function index(AlerteRepository $alerteRepository, \Swift_Mailer $mailer,  Request $request): Response
+    public function index(AlerteRepository $alerteRepository, \Swift_Mailer $mailer, PaginatorInterface $paginator,  Request $request): Response
     {
-        $alertes = $alerteRepository->findAlerteByUser($this->getUser()->getId());
+        $alertes = $alerteRepository
+                ->findAlerteByUser($this->getUser()->getId(), $alerteRepository)
+                ->getResult();
 
         $alertesUser = []; /* Un tableau d'alertes qui sera envoyer au mailer */
 
@@ -45,14 +47,16 @@ class AlerteController extends AbstractController
 
         // /* Pagination grâce au bundle Knp Paginator */
 
-        // $pagination = $paginator->paginate(
-        //     $alertes,
-        //     $request->query->getInt('page', 1),
-        //     10
-        // );
+
+        $pagination = $paginator->paginate(
+            $alerteRepository->findAlerteByUser($this->getUser()->getId(), $alerteRepository),
+            $request->query->getInt('page', 1),
+            2
+        );
+
 
         return $this->render('alerte/index.html.twig', [
-            // 'alertes' => $pagination,
+            'alertes' => $pagination,
         ]);
     }
 
