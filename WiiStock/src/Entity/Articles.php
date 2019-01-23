@@ -68,11 +68,17 @@ class Articles
      */
     private $demandes;
 
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\Collecte", mappedBy="articles")
+     */
+    private $collectes;
+
     
     public function __construct()
     {
         $this->preparations = new ArrayCollection();
         $this->demandes = new ArrayCollection();
+        $this->collectes = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -218,6 +224,34 @@ class Articles
         if ($this->demandes->contains($demande)) {
             $this->demandes->removeElement($demande);
             $demande->removeArticle($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Collecte[]
+     */
+    public function getCollectes(): Collection
+    {
+        return $this->collectes;
+    }
+
+    public function addCollecte(Collecte $collecte): self
+    {
+        if (!$this->collectes->contains($collecte)) {
+            $this->collectes[] = $collecte;
+            $collecte->addArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCollecte(Collecte $collecte): self
+    {
+        if ($this->collectes->contains($collecte)) {
+            $this->collectes->removeElement($collecte);
+            $collecte->removeArticle($this);
         }
 
         return $this;

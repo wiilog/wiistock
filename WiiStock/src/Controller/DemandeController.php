@@ -38,7 +38,7 @@ class DemandeController extends AbstractController
         if ($history === 'true') {
             return $this->render('demande/index.html.twig', [
                 'demandes' => $demandeRepository->findAll(),
-                'history' => 'true',
+                'history' => 'false',
             ]);
         } else {
             return $this->render('demande/index.html.twig', [
@@ -58,7 +58,7 @@ class DemandeController extends AbstractController
         $refArticles = $referencesArticlesRepository->findAll();
         $demande = new Demande();
         // si renvoie d'un réponse POST 
-        if ( $_POST) {
+        if ( array_key_exists('piece', $_POST)) {
             // on recupere la destination des articles 
             $destination = $emplacementRepository->findOneBy(array('id' =>$_POST['direction']));
             // on 'remplie' la $demande avec les data les plus simple
@@ -86,7 +86,7 @@ class DemandeController extends AbstractController
             $em->persist($demande);
             $em->flush();
             }
-            return $this->redirectToRoute('demande_index');  
+            return $this->redirectToRoute('demande_index', array('history'=>'false'));  
         }
         // calcul des quantite avant la creation des demandes 
         foreach ($refArticles as $refArticle) {
@@ -96,6 +96,7 @@ class DemandeController extends AbstractController
             foreach ($articleByRef as $article){
                 $quantityRef ++;
             }
+            dump($quantityRef, $articleByRef);
             $refArticle->setQuantity($quantityRef);  
         }
         $this->getDoctrine()->getManager()->flush();

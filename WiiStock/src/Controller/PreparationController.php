@@ -59,6 +59,7 @@ class PreparationController extends AbstractController
         if ($history === 'true') {
             return $this->render('preparation/index.html.twig', array(
                 'preparations'=>$preparationRepository->findAll(),
+                'history' => 'false',
         ));   
         }
         return $this->render('preparation/index.html.twig', array(

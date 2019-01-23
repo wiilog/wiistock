@@ -37,7 +37,7 @@ class LivraisonController extends AbstractController
                 $demande->setStatut('livré');
                 $articles = $demande->getArticles();
                 foreach ($articles as $article) {
-                    $article->setStatu('livré');
+                    $article->setStatu('destokage');
                     if($article->getDirection()){
                         $article->setPosition($article->getDirection());
                         $article->setDirection(NULL);

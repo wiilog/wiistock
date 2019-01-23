@@ -57,6 +57,8 @@
                         <li><a href={{ path('preparation_index',  {'history': 'false'} ) }}>• Préparation</a></li>
                         <li><a href={{ path('livraison_creation') }}>• Nouvelle Livraison</a></li>
                         <li><a href={{path("livraison_index", {'history':'false'})}}>• Livraison</a></li>
+                        <li><a href={{ path('collecte_new') }}>• Demande de collecte</a></li>
+                        <li><a href={{path("collecte_index", {'history':'false'})}}>• collecte</a></li>
 
                         
                     </ul>
@@ -113,7 +115,7 @@
                                 <a href="{{ path('fournisseurs_index') }}">• Fournisseur</a>
                             </li>
                             <li>
-                                <a href="{{ path('referentiel_articles') }}">• Articles</a>
+                                <a href="{{ path('references_articles_index') }}">• Articles</a>
                             </li>
                             <!-- <li>
                                 <a href="{{ path('referentiel_categories') }}">• Catégorie d'articles</a>

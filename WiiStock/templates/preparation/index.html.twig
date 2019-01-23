@@ -4,7 +4,7 @@
 
 {% block page_content %}
     <h1>Préparation</h1>
-    {% if history is defined %}
+    {% if history is defined  %}
         <div class="row btn pull-left">
             <a href={{path('preparation_index', {'history': 'false'})}} class="button btn-left"><span class="fas fa-history"></span> Préparation en cours</a>
         </div>        
@@ -56,8 +56,4 @@
         </tbody>
     </table>
     
-<<<<<<< HEAD
-=======
-
->>>>>>> 483300f14b66960ad5fa46e069f94f79b0a9d417
 {% endblock %}

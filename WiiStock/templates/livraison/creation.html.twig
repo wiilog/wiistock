@@ -4,16 +4,16 @@
 
 {% block page_content %}
     <h1>Génération des livraisons</h1>
-
-    {{ dump(demandes) }}
-
-<form action={{path("livraison_creation")}} method="post">
-    {% if demandes|length > 0  %}
-            <input name="valid" class="button btn-left" type="submit" value="Valider">
-        {% else %}
-            <p>aucune demande en attente</p>
-            <a href="{{ path('livraison_index') }}" class="btn pull-left button btn-right">Retour</a>
-        {% endif %}
-</form>
-
+<div class="container-fluid">
+    <form class="row" action={{path("livraison_creation")}} method="post">
+        {% if demandes|length > 0  %}
+                <input name="valid" class="button btn-left" type="submit" value="Valider">
+            {% else %}
+            <div class="col-12">
+                <p>aucune préparation terminé</p>
+                <a href={{ path('livraison_index', {'history': 'false'}) }} class="btn pull-left button btn-right">Retour</a>
+            </div>
+            {% endif %}
+    </form>
+</div>
 {% endblock %}
