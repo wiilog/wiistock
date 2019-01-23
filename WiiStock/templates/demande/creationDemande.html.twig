@@ -15,10 +15,10 @@
     </div>
     <div class="form-group">        
         <h3>Articles</h3>
-       
-        {% for refArticle in refArticles %}
-            <div class="form-group row">
-                <p class=" col-form-label"><strong>{{ refArticle.reference}}</strong> (quantité disponible: {{refArticle.quantity}})</p>
+       <div class="row">
+        {% for refArticle in refArticles |sort %}
+            <div class="form-group col-4">
+                <p class=" col-form-label"><strong>{{ refArticle.libelle}}</strong> (quantité disponible: {{refArticle.quantity}})</p>
                 <input class="form-control" type="number" name="piece[{{refArticle.id}}]" value=0 min="0" max={{refArticle.quantity}}>
             </div>
         {% endfor %}

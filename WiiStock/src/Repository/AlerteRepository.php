@@ -31,6 +31,18 @@ class AlerteRepository extends ServiceEntityRepository
         return $query->execute(); 
     }
 
+    /* Knp Paginator */
+
+    /**
+     * @return Query
+     */
+
+    public function paginate(): Query
+    {
+        return $this->findVisibleQuery()
+            ->getQuery();
+    }
+
     // /**
     //  * @return Alerte[] Returns an array of Alerte objects
     //  */

@@ -6,12 +6,12 @@
 
 <h1>Nouvelle préparation</h1>
 
-<div class="container">
-        <form action={{path("preparation_creation")}} method="post" class="container-fluid">
+<div class="container-fluid">
+        <form action={{path("preparation_creation")}} method="post" class="row">
             {% for demande in demandes %}
-                <div class="row">
+                <div class="col-6">
                     <input class="col-1" type="checkbox" id="scales" name="preparation[{{ demande.id}}]" checked>
-                    <label class="col-4" for="scales">demande n°{{demande.numero}} datant du {{demande.date |date("m/d/Y")}} pour l'emplacement: {{demande.destination.nom}}</label>
+                    <label class="col-10" for="scales">demande n°{{demande.numero}} datant du {{demande.date |date("m/d/Y")}} pour l'emplacement: {{demande.destination.nom}}</label>
                     <table class="table">
                         <thead>
                             <tr>
@@ -36,10 +36,11 @@
                 </div>
             {% endfor %}
             {% if demandes|length > 0  %}
+            <div class="col-12">
                 <input class="button btn-left" type="submit" value="Valider">
+            </div>
             {% else %}
                 <p>aucune demande en attente</p>
-
                 <a href={{ path('preparation_index', {'history': 'false'}) }} class="btn pull-left button btn-right">Retour</a>
             {% endif %}
 

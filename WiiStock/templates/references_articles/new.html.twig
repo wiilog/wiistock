@@ -1,11 +1,11 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout.html.twig' %}
 
 {% block title %}New ReferencesArticles{% endblock %}
 
-{% block body %}
-    <h1>Create new ReferencesArticles</h1>
+{% block page_content %}
+    <h1>Nouvelle article de référence</h1>
 
     {{ include('references_articles/_form.html.twig') }}
 
-    <a href="{{ path('references_articles_index') }}">back to list</a>
+    <a href="{{ path('references_articles_index') }}"class='button btn-left'>retour</a>
 {% endblock %}

@@ -39,7 +39,7 @@ class ReferencesArticlesRepository extends ServiceEntityRepository
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-            "SELECT r.id, r.quantity, r.reference 
+            "SELECT r.id, r.quantity, r.reference, r.libelle 
             FROM App\Entity\ReferencesArticles r
             WHERE r.quantity <> 0 "
         )

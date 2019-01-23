@@ -3,11 +3,10 @@
 namespace App\Controller;
 
 use App\Entity\Alerte;
-use App\Entity\Utilisateurs;
 use App\Form\AlerteType;
+// use Knp\Component\Pager\PaginatorInterface;
 use App\Repository\AlerteRepository;
 use App\Repository\ReferencesArticlesRepository;
-use App\Repository\UtilisateursRepository;
 use App\Repository\ArticlesRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -22,22 +21,38 @@ class AlerteController extends AbstractController
     /**
      * @Route("/", name="alerte_index", methods={"GET"})
      */
-    public function index(AlerteRepository $alerteRepository, UtilisateursRepository $utilisateursRepository): Response
+    public function index(AlerteRepository $alerteRepository, \Swift_Mailer $mailer,  Request $request): Response
     {
-        $alerteRepo = $alerteRepository->findAlerteByUser($this->getUser()->getId());
-        $userRepo = $utilisateursRepository->find($this->getUser());
+        $alertes = $alerteRepository->findAlerteByUser($this->getUser()->getId());
 
-        foreach($alerteRepo as $alerte)
+        $alertesUser = []; /* Un tableau d'alertes qui sera envoyer au mailer */
+
+        foreach($alertes as $alerte)
         {
-            if($alerte->getAlerteRefArticle()->getQuantity() > $alerte->getAlerteSeuil())
-            {
-                /* En cours */
+            $condition = $alerte->getAlerteRefArticle()->getQuantity() > $alerte->getAlerteSeuil(); 
+            $seuil = ($condition) ? false : true; /* Si le seuil est inférieur à la quantité, seuil atteint = false sinon true */
+            $alerte->setSeuilAtteint($seuil);
+
+            if($seuil){
+                array_push($alertesUser, $alerte); /* Si seuil atteint est "true" alors on insère l'alerte dans le tableaux */
             }
+            $this->getDoctrine()->getManager()->flush();
         }
 
+        if(count($alertesUser) > 0){
+            $this->mailer($alertesUser, $mailer); /* On envoie le tableau d'alertes au mailer */
+        }
+
+        // /* Pagination grâce au bundle Knp Paginator */
+
+        // $pagination = $paginator->paginate(
+        //     $alertes,
+        //     $request->query->getInt('page', 1),
+        //     10
+        // );
+
         return $this->render('alerte/index.html.twig', [
-            'alertes' => $alerteRepo,
-            'utilisateur' => $userRepo
+            // 'alertes' => $pagination,
         ]);
     }
 
@@ -120,24 +135,22 @@ class AlerteController extends AbstractController
         return $this->redirectToRoute('alerte_index');
     }
 
-    /**
-     * @Route("/{mail}", name="mailer")
-     */
 
-     
-    /* public function index($name, \Swift_Mailer $mailer)
-    { */
-    /* $message = (new \Swift_Message('Hello Email'))
-        ->setFrom('contact@wiilog.fr')
-        ->setTo($utilisateurs)
+    /* Mailer */
+
+    public function mailer($alertes, \Swift_Mailer $mailer)
+    {
+    $message = (new \Swift_Message('Alerte Email'))
+        ->setFrom('contact@wiilog.com')
+        ->setTo($this->getUser()->getEmail())
         ->setBody(
             $this->renderView(
-                templates/emails/registration.html.twig
-                'alerte/registration.html.twig',
-                ['utilisateurs' => $utilisateurs]
+                // templates/mailer/index.html.twig
+                'mailer/index.html.twig',
+                ['alertes' => $alertes]
             ),
             'text/html'
-        ) */
+        )
         /*
          * If you also want to include a plaintext version of the message
         ->addPart(
@@ -148,10 +161,12 @@ class AlerteController extends AbstractController
             'text/plain'
         )
         */
-    /* ; */
+    ;
 
-    /* $mailer->send($message);
+    $mailer->send($message);
 
-    return $this->render(...);
-    } */
+    return $this->render('mailer/index.html.twig', [
+        'alertes' => $alertes
+    ]);
+    }
 }
