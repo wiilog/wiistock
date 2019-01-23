@@ -19,7 +19,9 @@ class AlerteRepository extends ServiceEntityRepository
         parent::__construct($registry, Alerte::class);
     }
 
-    public function findAlerteByUser($user)
+    /* Récupération des alertes utilisateurs avec DQL */
+
+    /* public function findAlerteByUser($user)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
@@ -29,6 +31,17 @@ class AlerteRepository extends ServiceEntityRepository
         )->setParameter('user', $user);
         ;
         return $query->execute(); 
+    } */
+
+    /* Récupération des alertes utilisateurs avec QueryBuilder */
+
+    public function findAlerteByUser($user, AlerteRepository $repository)
+    {
+        return $query = $repository
+            ->createQueryBuilder('a')
+            ->where('a.AlerteUtilisateur = :user')
+            ->setParameter('user', $user)
+            ->getQuery();
     }
 
     /* Knp Paginator */
