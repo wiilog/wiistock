@@ -26,6 +26,14 @@ class CollecteController extends AbstractController
     }
 
     /**
+     * @Route("/create", name="collecte_create", methods={"GET", "POST"})
+     */
+    public function creation()
+    {
+        return $this->render('collecte/create.html.twig');
+    }
+
+    /**
      * @Route("/new", name="collecte_new", methods={"GET","POST"})
      */
     public function new(Request $request): Response

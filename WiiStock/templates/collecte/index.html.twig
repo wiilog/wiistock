@@ -3,8 +3,22 @@
 {% block title %}Collecte index{% endblock %}
 
 {% block page_content %}
-    <h1>Collecte index</h1>
+    <h1>Collecte</h1>
 
+    {% if history is defined %}
+        <div class="row btn pull-left">
+            <a href={{path('demande_index', {'history': 'false'})}} class="button btn-left"><span class="fas fa-history"></span> Mes demandes</a>
+        </div>
+    {% else %}
+        <div class="row btn pull-left">
+            <a href= '#' class="button btn-left"><span class="fas fa-history"></span> Historique</a>
+        </div>
+    {% endif %}
+    <div class='row btn pull-right' >
+        <a href="#" class="button btn-left">
+            <span class="fa fa-plus"></span>Nouvelle collecte
+        </a >
+    </div>
     <table class="table">
         <thead>
             <tr>
@@ -21,17 +35,16 @@
                 <td>{{ collecte.numero }}</td>
                 <td>{{ collecte.date ? collecte.date|date('Y-m-d H:i:s') : '' }}</td>
                 <td>
-                    <a href="{{ path('collecte_show', {'id': collecte.id}) }}">show</a>
+                    <a href="{{ path('collecte_show', {'id': collecte.id}) }}"class="btn btn-xs btn-default command-edit"><i class="fas fa-eye fa-2x"></i></a>
                     <a href="{{ path('collecte_edit', {'id': collecte.id}) }}">edit</a>
                 </td>
             </tr>
         {% else %}
             <tr>
-                <td colspan="4">no records found</td>
+                <td colspan="4">aucun résultat</td>
             </tr>
         {% endfor %}
         </tbody>
     </table>
 
-    <a href="{{ path('collecte_new') }}">Create new</a>
 {% endblock %}

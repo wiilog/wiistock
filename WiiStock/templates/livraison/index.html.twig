@@ -33,7 +33,7 @@
             </tr>
         </thead>
         <tbody>
-        {% for livraison in livraisons %}
+        {% for livraison in livraisons | reverse  %}
             <tr>
                 <td>{{ livraison.id }}</td>
                 <td>{{ livraison.numero }}</td>

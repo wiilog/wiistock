@@ -64,10 +64,10 @@ class LivraisonController extends AbstractController
      */
     public function creation(DemandeRepository $demandeRepository, EmplacementRepository $emplacementRepository, Request $request): Response
     {
+         // recuperation des destination ID distincte des demandes selon le statut "preparation terminé"
+         $destinationsId = $demandeRepository->findEmplacementByStatut("préparation terminé");
         // generation automatique des livraison selon leur lieux de destination
         if ($_POST){
-            // recuperation des destination ID distincte des demandes selon le statut "preparation terminé"
-            $destinationsId = $demandeRepository->findEmplacementByStatut("préparation terminé");
             foreach ($destinationsId as $destinationId) {
                 // création des livraisons selon les differentes destinations unique 
                 $livraison = new Livraison();
@@ -91,11 +91,11 @@ class LivraisonController extends AbstractController
                 $entityManager->persist($livraison);               
            }
             $entityManager->flush();
-            return $this->redirectToRoute('livraison_index');
+            return $this->redirectToRoute('livraison_index', array('history'=>'false'));
         }
         return $this->render('livraison/creation.html.twig',array(
             'demandes'=>$demandeRepository->findDmdByStatut('préparation terminé'),
-
+            'destinations'=>$demandeRepository->findEmplacementByStatut("préparation terminé"),
         ));
     }
 

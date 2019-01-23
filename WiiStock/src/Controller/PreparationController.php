@@ -54,7 +54,7 @@ class PreparationController extends AbstractController
                $demande->setStatut("préparation terminé");
            }
            $this->getDoctrine()->getManager()->flush();
-           return $this->redirectToRoute('preparation_index');
+           return $this->redirectToRoute('preparation_index', array('history'=> 'false'));
         }
         if ($history === 'true') {
             return $this->render('preparation/index.html.twig', array(
@@ -82,7 +82,7 @@ class PreparationController extends AbstractController
             $em->persist($preparation);
             $em->flush();
 
-            return $this->redirectToRoute('preparation_index');
+            return $this->redirectToRoute('preparation_index', array('history'=> 'false'));
         }
 
         return $this->render('preparation/new.html.twig', [
@@ -120,7 +120,7 @@ class PreparationController extends AbstractController
             $em = $this->getDoctrine()->getManager();
             $em->persist($preparation);
             $em->flush();
-            return $this->redirectToRoute('preparation_index');
+            return $this->redirectToRoute('preparation_index', array('history'=> 'false'));
         }
         return $this->render("preparation/creation.html.twig", array(
             "demandes" =>$demandeRepository->findDmdByStatut('commande demandé'), //A modifier 

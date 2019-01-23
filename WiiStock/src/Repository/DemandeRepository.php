@@ -72,7 +72,7 @@ class DemandeRepository extends ServiceEntityRepository
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-            "SELECT DISTINCT t.id
+            "SELECT DISTINCT t.id, t.nom
             FROM App\Entity\Demande d
             JOIN d.destination t
             WHERE d.statut = :statut "
