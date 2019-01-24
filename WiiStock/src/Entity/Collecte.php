@@ -38,6 +38,11 @@ class Collecte
      */
     private $articles;
 
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $statut;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
@@ -106,6 +111,18 @@ class Collecte
         if ($this->articles->contains($article)) {
             $this->articles->removeElement($article);
         }
+
+        return $this;
+    }
+
+    public function getStatut(): ?string
+    {
+        return $this->statut;
+    }
+
+    public function setStatut(?string $statut): self
+    {
+        $this->statut = $statut;
 
         return $this;
     }

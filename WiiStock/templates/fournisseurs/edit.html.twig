@@ -1,11 +1,11 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Edit Fournisseurs{% endblock %}
+{% block title %}Modifier fournisseurs{% endblock %}
 
 {% block page_content %}
-    <h1>Edit Fournisseurs</h1>
+    <h1>Modifier fournisseurs</h1>
 
-    {{ include('fournisseurs/_form.html.twig', {'button_label': 'Update'}) }}
+    {{ include('fournisseurs/_form.html.twig', {'button_label': 'Modifier'}) }}
 
     <a href="{{ path('fournisseurs_index') }}"class="btn pull-left button btn-left">retour à la liste</a>
 

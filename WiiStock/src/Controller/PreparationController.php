@@ -43,9 +43,7 @@ class PreparationController extends AbstractController
      */
     public function index($history, PreparationRepository $preparationRepository, DemandeRepository $demandeRepository, ReferencesArticlesRepository $referencesArticlesRepository, EmplacementRepository $emplacementRepository, Request $request, PaginatorInterface $paginator): Response
     {   
-
         $préparationQuery = ($history === 'true') ? $preparationRepository->findAll() : $preparationRepository->findByNoStatut('fin');
-
         $pagination = $paginator->paginate(
             $préparationQuery, /* On récupère la requête et on la pagine */
             $request->query->getInt('page', 1),
@@ -84,7 +82,6 @@ class PreparationController extends AbstractController
         $preparation = new Preparation();
         $form = $this->createForm(PreparationType::class, $preparation);
         $form->handleRequest($request);
-
         if ($form->isSubmitted() && $form->isValid()) {
             $preparation->setDate( new \DateTime('now'));
             $em = $this->getDoctrine()->getManager();
@@ -151,13 +148,10 @@ class PreparationController extends AbstractController
     {
         $form = $this->createForm(PreparationType::class, $preparation);
         $form->handleRequest($request);
-
         if ($form->isSubmitted() && $form->isValid()) {
             $this->getDoctrine()->getManager()->flush();
-
             return $this->redirectToRoute('preparation_edit', ['id' => $preparation->getId()]);
         }
-
         return $this->render('preparation/edit.html.twig', [
             'preparation' => $preparation,
             'form' => $form->createView(),
@@ -174,7 +168,6 @@ class PreparationController extends AbstractController
             $em->remove($preparation);
             $em->flush();
         }
-
         return $this->redirectToRoute('preparation_index');
     }
 }

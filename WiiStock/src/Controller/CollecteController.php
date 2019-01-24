@@ -22,10 +22,15 @@ use App\Repository\EmplacementRepository;
 class CollecteController extends AbstractController
 {
     /**
-     * @Route("/", name="collecte_index", methods={"GET"})
+     * @Route("/", name="collecte_index", methods={"GET", "POST"})
      */
     public function index(CollecteRepository $collecteRepository): Response
     {
+        if (array_key_exists('fin', $_POST)){
+            $collecte = $collecteRepository->findById($_POST['fin']);
+            $collecte[0]->setStatut('récupéré');
+            $this->getDoctrine()->getManager()->flush();
+        }
         return $this->render('collecte/index.html.twig', [
             'collectes' => $collecteRepository->findAll(),
         ]);
@@ -36,23 +41,37 @@ class CollecteController extends AbstractController
      */
     public function creation(ArticlesRepository $articlesRepository, EmplacementRepository $emplacementRepository): Response
     {
-        dump($_POST);
+        // creation d'une demande de collecte 
         if (array_key_exists('collecte', $_POST)) {
-            $articleId = array_keys($_POST['collecte']);
-            dump($articleId);
+            // construction de la new collecte plus d'info voir demande_creation
+            $articlesId = array_keys($_POST['collecte']);
+            $destinationId = $_POST['destination'];
             $collecte = new collecte();
             $date = new \DateTime('now');
             $collecte->setdate($date);
-            $collecte->setNumero("D-" . $date->format('YmdHis'));
+            $collecte->setNumero("C-". $date->format('YmdHis'));
             $collecte->setDemandeur($this->getUser());
-            
-
+            $collecte->setStatut('demande de collecte');
+            foreach ($articlesId as $key) {
+                $article = $articlesRepository->findById($key);
+                $destination = $emplacementRepository->findEptById($destinationId[$key]);
+                $article[0]->setDirection($destination[0]);
+                $article[0]->setStatu('collecte');
+                $collecte->addArticle($article[0]);
+            }
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->persist($collecte);
+            $entityManager->flush();
             return $this->redirectToRoute('collecte_index');
         }
-        if(array_key_exists('emplacement', $_POST)){
+
+        // systéme de filtre par emplacement => recherche les articles selon l'emplacement choisi et l'statut
+        // verifie l'existence de la clef dans $_POST et si elle n'est pas vide 
+        if(array_key_exists('emplacement', $_POST) && $_POST['emplacement']){
             $empl = $emplacementRepository->findEptById($_POST['emplacement']);
+            // recuperation de l'emplacement utilisé pour recuperer les articles en lien avec SQL => requete dédié
             return $this->render('collecte/create.html.twig', array(
-                'articles'=>$articlesRepository->findByEtatAndEmpl($empl),
+                'articles'=>$articlesRepository->findBystatutAndEmpl($empl),
                 'emplacements'=>$emplacementRepository->findAll(),
                 'empl'=>$empl,
             ));
@@ -79,7 +98,7 @@ class CollecteController extends AbstractController
             $collecte->setDemandeur($this->getUser());
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($collecte);
-            // $entityManager->flush();
+            $entityManager->flush();
 
             return $this->redirectToRoute('collecte_index');
         }
@@ -91,10 +110,29 @@ class CollecteController extends AbstractController
     }
 
     /**
-     * @Route("/{id}", name="collecte_show", methods={"GET"})
+     * @Route("/{id}", name="collecte_show", methods={"GET", "POST"})
      */
-    public function show(Collecte $collecte): Response
-    {
+    public function show(Collecte $collecte, ArticlesRepository $articlesRepository): Response
+    {   
+
+        if(array_key_exists('fin', $_POST)){
+            $article = $articlesRepository->findById($_POST['fin']);
+           
+            if( $article[0]->getDirection() !== null){//vérifie si la direction n'est pas nul, pour ne pas perdre l'emplacement si il y a des erreurs au niveau des receptions
+                $article[0]->setPosition( $article[0]->getDirection());
+            }
+            $article[0]->setDirection(null);
+            $article[0]->setStatu('en stock');
+            $this->getDoctrine()->getManager()->flush();
+        }
+        
+        $fin = $articlesRepository->findCountByStatutAndCollecte($collecte);
+        $fin = $fin[0];
+        if($fin[1] === '0'){
+            $collecte->setStatut('fin');
+            dump($collecte);
+            $this->getDoctrine()->getManager()->flush();
+        }
         return $this->render('collecte/show.html.twig', [
             'collecte' => $collecte,
         ]);
@@ -110,7 +148,6 @@ class CollecteController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $this->getDoctrine()->getManager()->flush();
-
             return $this->redirectToRoute('collecte_index', [
                 'id' => $collecte->getId(),
             ]);
