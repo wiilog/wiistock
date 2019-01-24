@@ -22,6 +22,8 @@ use App\Entity\ReferencesArticles;
 use App\Form\ReferencesArticlesType;
 use App\Repository\ReferencesArticlesRepository;
 
+use Knp\Component\Pager\PaginatorInterface;
+
 /**
  * @Route("/receptions")
  */
@@ -30,17 +32,28 @@ class ReceptionsController extends AbstractController
     /**
      * @Route("/{history}", name="receptions_index", methods="GET")
      */
-    public function index(ReceptionsRepository $receptionsRepository, $history): Response
+    public function index(ReceptionsRepository $receptionsRepository, PaginatorInterface $paginator, Request $request, $history): Response
     {
+        /* On regarde si l'history = 1 , si oui alors on récupère la requête findAll sinon findByDateOrStatut */
+        $date = ($history === '1') ? null : new \DateTime('now') ;
+        $historyQuery = ($history === '1') ? $receptionsRepository->findAll() : $receptionsRepository->findByDateOrStatut($date);
+
+        // /* Pagination grâce au bundle Knp Paginator */
+
+        $pagination = $paginator->paginate(
+            $historyQuery, /* On récupère la requête en fonction de history et on la pagine */
+            $request->query->getInt('page', 1),
+            5
+        );
+
         if($history === '1'){
             return $this->render('receptions/index.html.twig', [
-                'receptions' => $receptionsRepository->findAll(),
+                'receptions' => $pagination,
                 ]);
         }else{
             //filtrage par la date du jour et le statut, requete SQL dédié
-            $date = (new \DateTime('now'));
             return $this->render('receptions/index.html.twig', [
-                'receptions' => $receptionsRepository->findByDateOrStatut($date),
+                'receptions' => $pagination,
                 'date' => $date = date("d-m-y"),
             ]);
         }    

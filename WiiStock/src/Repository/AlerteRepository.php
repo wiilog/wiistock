@@ -21,27 +21,15 @@ class AlerteRepository extends ServiceEntityRepository
 
     /* Récupération des alertes utilisateurs avec DQL */
 
-    /* public function findAlerteByUser($user)
+    public function findAlerteByUser($user)
     {
         $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
+        return $query = $entityManager->createQuery(
             "SELECT a
             FROM App\Entity\Alerte a
             WHERE a.AlerteUtilisateur = :user "
         )->setParameter('user', $user);
         ;
-        return $query->execute(); 
-    } */
-
-    /* Récupération des alertes utilisateurs avec QueryBuilder */
-
-    public function findAlerteByUser($user, AlerteRepository $repository)
-    {
-        return $query = $repository
-            ->createQueryBuilder('a')
-            ->where('a.AlerteUtilisateur = :user')
-            ->setParameter('user', $user)
-            ->getQuery();
     }
 
     /* Knp Paginator */

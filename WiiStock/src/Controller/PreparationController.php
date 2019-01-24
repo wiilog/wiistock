@@ -31,6 +31,7 @@ use App\Form\DemandeType;
 use App\Repository\DemandeRepository;
 
 use Doctrine\Common\Collections\ArrayCollection;
+use Knp\Component\Pager\PaginatorInterface;
 
 /**
  * @Route("/preparation")
@@ -40,8 +41,16 @@ class PreparationController extends AbstractController
     /**
      * @Route("/{history}/index", name="preparation_index", methods="GET|POST")
      */
-    public function index($history, PreparationRepository $preparationRepository, DemandeRepository $demandeRepository, ReferencesArticlesRepository $referencesArticlesRepository, EmplacementRepository $emplacementRepository): Response
+    public function index($history, PreparationRepository $preparationRepository, DemandeRepository $demandeRepository, ReferencesArticlesRepository $referencesArticlesRepository, EmplacementRepository $emplacementRepository, Request $request, PaginatorInterface $paginator): Response
     {   
+
+        $préparationQuery = ($history === 'true') ? $preparationRepository->findAll() : $preparationRepository->findByNoStatut('fin');
+
+        $pagination = $paginator->paginate(
+            $préparationQuery, /* On récupère la requête et on la pagine */
+            $request->query->getInt('page', 1),
+            2
+        );
         // validation de fin de prparation
         // verification de l existance de la variable 
         if (array_key_exists('fin', $_POST)) {
@@ -58,12 +67,12 @@ class PreparationController extends AbstractController
         }
         if ($history === 'true') {
             return $this->render('preparation/index.html.twig', array(
-                'preparations'=>$preparationRepository->findAll(),
+                'preparations'=> $pagination,
                 'history' => 'false',
-        ));   
+            ));   
         }
         return $this->render('preparation/index.html.twig', array(
-            'preparations'=>$preparationRepository->findByNoStatut('fin'),
+            'preparations'=> $pagination,
         ));
     }
 

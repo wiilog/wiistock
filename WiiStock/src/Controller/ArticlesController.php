@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Articles;
 use App\Form\ArticlesType;
 use App\Repository\ArticlesRepository;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -20,31 +21,35 @@ class ArticlesController extends AbstractController
     /**
      * @Route("/index/{statut}/{id}", name="articles_index", methods="GET")
      */
-    public function index(ArticlesRepository $articlesRepository, $statut, $id): Response
+    public function index(ArticlesRepository $articlesRepository, PaginatorInterface $paginator, Request $request, $statut, $id): Response
     {   
+        $pagination = $paginator->paginate(
+            $articlesRepository->findByStatut($statut), /* On récupère la requête et on la pagine */
+            $request->query->getInt('page', 1),
+            2
+        );
+
         //liste des articles + action selon statut et si conforme requete SQL dédié "systéme de filtre"
-        if ($statut ===  "demande de mise en stock") {
-            return $this->render('articles/index.html.twig', ['articles'=> $articlesRepository->findByStatut($statut)]);
-        }else if( $statut === "en cours de reception"){
-            return $this->render('articles/index.html.twig', ['articles'=> $articlesRepository->findByStatut($statut)]);
-        }else if($statut ==="en stock"){
-            return $this->render('articles/index.html.twig', ['articles'=> $articlesRepository->findByStatut($statut)]);
-        }else if($statut === 'demande de sortie'){
-            return $this->render('articles/index.html.twig', ['articles'=> $articlesRepository->findByStatut($statut)]);
-        }else if($statut === 'destockage'){
-            return $this->render('articles/index.html.twig', ['articles'=> $articlesRepository->findByStatut($statut)]);
-        }else if($statut === 'mis en stock' && $id !== 0){
-            //validation de la mise en stock/magasin
+        if (($statut !== 'mis en stock' && $id == 0) && $statut !== 'livré' && $statut !== 'all') 
+        {
+            return $this->render('articles/index.html.twig', ['articles'=> $pagination]);
+        }
+        else if($statut === 'mis en stock' && $id !== 0)
+        {
+            //Validation de la mise en stock/magasin
             $articles = $articlesRepository->findById($id);
             foreach ($articles as $article) {
                 $article->setStatu('en stock'); 
-                if($article->getDirection() !== null){//vérifie si la direction n'est pas nul, pour ne pas perdre l'emplacement si il y a des erreur au niveau des receptions
+                if($article->getDirection() !== null){//vérifie si la direction n'est pas nul, pour ne pas perdre l'emplacement si il y a des erreurs au niveau des receptions
                     $article->setPosition($article->getDirection());
                 }
                 $article->setDirection(null);
             }
             $this->getDoctrine()->getManager()->flush();
-            return $this->render('articles/index.html.twig', ['articles'=> $articlesRepository->findByStatut('demande de mise en stock')]);
+
+            return $this->render('articles/index.html.twig', ['articles'=> $pagination]); 
+
+        /* 'demande de mise en stock' */
         }else if($statut === 'livré'){
             $articles = $articlesRepository->findById($id);
             foreach ($articles as $article) {
@@ -52,14 +57,20 @@ class ArticlesController extends AbstractController
                 $article->setDirection(null);
             }
             $this->getDoctrine()->getManager()->flush();
-            return $this->render('articles/index.html.twig', ['articles'=> $articlesRepository->findByStatut('demande de sortie')]);
-        }else if($statut === 'anomalie'){
-            return $this->render('articles/index.html.twig', ['articles'=> $articlesRepository->findByStatut($statut)]);
-        }else{
-            //chemin par défaut Basé sur un requete SQL basée sur l
-            $etat = true;
-            return $this->render('articles/index.html.twig', ['articles' => $articlesRepository->findByEtat($etat)]);
+            return $this->render('articles/index.html.twig', ['articles'=> $pagination]); 
+            /* demande de sortie */
         }
+        else
+        {
+            //chemin par défaut Basé sur un requete SQL basée sur l
+           
+            return $this->render('articles/index.html.twig', ['articles' => $paginator->paginate(
+                $articlesRepository->findAll(),
+                $request->query->getInt('page', 1),
+                5
+                )
+            ]);
+        }    
     }
 
     /**
