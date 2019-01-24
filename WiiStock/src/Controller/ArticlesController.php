@@ -29,13 +29,29 @@ class ArticlesController extends AbstractController
             2
         );
 
-        //liste des articles + action selon statut et si conforme requete SQL dédié "systéme de filtre"
-        if (($statut !== 'mis en stock' && $id == 0) && $statut !== 'livré' && $statut !== 'all') 
-        {
+        //Liste des articles + action selon statut et si conforme requete SQL dédié "systéme de filtre"
+        if ($statut === 'en cours de reception') {
+            return $this->render('articles/index.html.twig', ['articles'=> $pagination]);
+        } 
+        else if ($statut === 'demande de mise en stock') {
             return $this->render('articles/index.html.twig', ['articles'=> $pagination]);
         }
-        else if($statut === 'mis en stock' && $id !== 0)
-        {
+        else if($statut === 'en stock') {
+            return $this->render('articles/index.html.twig', ['articles'=> $pagination]);
+        }
+        else if($statut === 'préparation') {
+            return $this->render('articles/index.html.twig', ['articles'=> $pagination]);
+        }
+        else if($statut === 'destockage') {
+            return $this->render('articles/index.html.twig', ['articles'=> $pagination]);
+        }
+        else if($statut === 'anomalie') {
+            return $this->render('articles/index.html.twig', ['articles'=> $pagination]);
+        }
+        else if($statut === 'collecte') {
+            return $this->render('articles/index.html.twig', ['articles'=> $pagination]);
+        }
+        else if($statut === 'mis en stock' && $id !== 0) {
             //Validation de la mise en stock/magasin
             $articles = $articlesRepository->findById($id);
             foreach ($articles as $article) {
@@ -50,7 +66,7 @@ class ArticlesController extends AbstractController
             return $this->render('articles/index.html.twig', ['articles'=> $pagination]); 
 
         /* 'demande de mise en stock' */
-        }else if($statut === 'demande de sortie'){
+        }else if($statut === 'demande de sortie') {
             $articles = $articlesRepository->findById($id);
             foreach ($articles as $article) {
                 $article->setStatu('destockage');

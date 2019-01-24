@@ -17,6 +17,7 @@ use App\Repository\DemandeRepository;
 use App\Entity\Emplacement;
 use App\Form\EmplacementType;
 use App\Repository\EmplacementRepository;
+use Knp\Component\Pager\PaginatorInterface;
 
 /**
  * @Route("/livraison")
@@ -26,7 +27,7 @@ class LivraisonController extends AbstractController
     /**
      * @Route("/{history}/index", name="livraison_index", methods={"GET", "POST"})
      */
-    public function index($history, LivraisonRepository $livraisonRepository, DemandeRepository $demandeRepository ): Response
+    public function index($history, LivraisonRepository $livraisonRepository, PaginatorInterface $paginator, DemandeRepository $demandeRepository, Request $request): Response
     {
         // modification des statut lorsque la livraison est terminé 
         if ($_POST) {
@@ -49,13 +50,13 @@ class LivraisonController extends AbstractController
         }
         if($history === 'true'){
             return $this->render('livraison/index.html.twig', [
-                'livraisons' => $livraisonRepository->findAll(),
+                'livraisons' => $paginator->paginate($livraisonRepository->findAll(), $request->query->getInt('page', 1), 2),
                 'history' => 'true',
             ]);    
         }
         $statut = 'livré'; 
         return $this->render('livraison/index.html.twig', [
-            'livraisons' => $livraisonRepository->findByNoStatut($statut),
+            'livraisons' => $paginator->paginate($livraisonRepository->findByNoStatut($statut), $request->query->getInt('page', 1), 2)
         ]);
     }
     
