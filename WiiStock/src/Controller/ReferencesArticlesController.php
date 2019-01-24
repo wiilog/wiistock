@@ -12,6 +12,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Entity\ChampsPersonnalises;
+use Knp\Component\Pager\PaginatorInterface;
 
 use App\Service\FileUploader;
 
@@ -104,9 +105,15 @@ class ReferencesArticlesController extends Controller
     /**
      * @Route("/", name="references_articles_index", methods="GET")
      */
-    public function index(ReferencesArticlesRepository $referencesArticlesRepository) : Response
+    public function index(ReferencesArticlesRepository $referencesArticlesRepository, Request $request, PaginatorInterface $paginator) : Response
     {
-        return $this->render('references_articles/index.html.twig', ['references_articles' => $referencesArticlesRepository->findAll()]);
+
+        $pagination = $paginator->paginate(
+            $referencesArticlesRepository->findAll(),
+            $request->query->getInt('page', 1),
+            2
+        );
+        return $this->render('references_articles/index.html.twig', ['references_articles' => $pagination]);
     }
 
     /**

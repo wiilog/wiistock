@@ -11,6 +11,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Knp\Component\Pager\PaginatorInterface;
 
 /**
  * @Route("/stock/fournisseurs")
@@ -47,9 +48,15 @@ class FournisseursController extends Controller
     /**
      * @Route("/", name="fournisseurs_index", methods="GET")
      */
-    public function index(FournisseursRepository $fournisseursRepository) : Response
+    public function index(FournisseursRepository $fournisseursRepository, Request $request, PaginatorInterface $paginator) : Response
     {
-        return $this->render('fournisseurs/index.html.twig', ['fournisseurs' => $fournisseursRepository->findAll()]);
+
+        $pagination = $paginator->paginate(
+            $fournisseursRepository->findAll(),
+            $request->query->getInt('page', 1),
+            2
+        );
+        return $this->render('fournisseurs/index.html.twig', ['fournisseurs' => $pagination]);
     }
 
     /**

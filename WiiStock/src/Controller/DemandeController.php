@@ -24,6 +24,8 @@ use App\Entity\Livraison;
 use App\Form\LivraisonType;
 use App\Repository\LivraisonRepository;
 
+use Knp\Component\Pager\PaginatorInterface;
+
 
 /**
  * @Route("/demande")
@@ -33,16 +35,25 @@ class DemandeController extends AbstractController
     /**
      * @Route("/{history}/index", name="demande_index", methods={"GET"})
      */
-    public function index(DemandeRepository $demandeRepository, $history): Response
+    public function index(DemandeRepository $demandeRepository, PaginatorInterface $paginator, Request $request, $history): Response
     {
+        
+        $demandeQuery = ($history === 'true') ? $demandeRepository->findAll() : $demandeRepository->findAllByUser($this->getUser());
+
+        $pagination = $paginator->paginate(
+            $demandeQuery, /* On récupère la requête et on la pagine */
+            $request->query->getInt('page', 1),
+            2
+        );
+
         if ($history === 'true') {
             return $this->render('demande/index.html.twig', [
-                'demandes' => $demandeRepository->findAll(),
+                'demandes' => $pagination,
                 'history' => 'false',
             ]);
         } else {
             return $this->render('demande/index.html.twig', [
-                'demandes' => $demandeRepository->findAllByUser($this->getUser()), 
+                'demandes' => $pagination, 
                 
             ]);
         }

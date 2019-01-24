@@ -58,6 +58,6 @@
         {% endfor %}
         </tbody>
     </table>
-
+    {{ knp_pagination_render(articles) }}
     {#<a href="{{ path('articles_new') }}">Create new</a>#}
 {% endblock %}
