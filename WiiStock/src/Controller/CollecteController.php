@@ -34,7 +34,7 @@ class CollecteController extends AbstractController
             $this->getDoctrine()->getManager()->flush();
         }
         return $this->render('collecte/index.html.twig', [
-            'collectes' => $paginator->paginate($collecteRepository->findAll(), $request->query->getInt('page', 1), 2),
+            'collectes' => $paginator->paginate($collecteRepository->findAll(), $request->query->getInt('page', 1), 10),
         ]);
     }
 

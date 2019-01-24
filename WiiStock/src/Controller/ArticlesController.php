@@ -26,7 +26,7 @@ class ArticlesController extends AbstractController
         $pagination = $paginator->paginate(
             $articlesRepository->findByStatut($statut), /* On récupère la requête et on la pagine */
             $request->query->getInt('page', 1),
-            2
+            10
         );
 
         //Liste des articles + action selon statut et si conforme requete SQL dédié "systéme de filtre"
@@ -42,7 +42,7 @@ class ArticlesController extends AbstractController
         else if($statut === 'préparation') {
             return $this->render('articles/index.html.twig', ['articles'=> $pagination]);
         }
-        else if($statut === 'destockage') {
+        else if($statut === 'destokage') {
             return $this->render('articles/index.html.twig', ['articles'=> $pagination]);
         }
         else if($statut === 'anomalie') {
@@ -80,7 +80,7 @@ class ArticlesController extends AbstractController
             return $this->render('articles/index.html.twig', ['articles' => $paginator->paginate(
                 $articlesRepository->findAll(),
                 $request->query->getInt('page', 1),
-                5
+                10
                 )
             ]);
         }    

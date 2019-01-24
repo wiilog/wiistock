@@ -47,7 +47,7 @@ class PreparationController extends AbstractController
         $pagination = $paginator->paginate(
             $préparationQuery, /* On récupère la requête et on la pagine */
             $request->query->getInt('page', 1),
-            2
+            10
         );
         // validation de fin de prparation
         // verification de l existance de la variable 

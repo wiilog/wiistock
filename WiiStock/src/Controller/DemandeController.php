@@ -43,7 +43,7 @@ class DemandeController extends AbstractController
         $pagination = $paginator->paginate(
             $demandeQuery, /* On récupère la requête et on la pagine */
             $request->query->getInt('page', 1),
-            2
+            10
         );
 
         if ($history === 'true') {

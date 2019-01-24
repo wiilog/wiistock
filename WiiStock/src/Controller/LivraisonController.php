@@ -50,13 +50,13 @@ class LivraisonController extends AbstractController
         }
         if($history === 'true'){
             return $this->render('livraison/index.html.twig', [
-                'livraisons' => $paginator->paginate($livraisonRepository->findAll(), $request->query->getInt('page', 1), 2),
+                'livraisons' => $paginator->paginate($livraisonRepository->findAll(), $request->query->getInt('page', 1), 10),
                 'history' => 'true',
             ]);    
         }
         $statut = 'livré'; 
         return $this->render('livraison/index.html.twig', [
-            'livraisons' => $paginator->paginate($livraisonRepository->findByNoStatut($statut), $request->query->getInt('page', 1), 2)
+            'livraisons' => $paginator->paginate($livraisonRepository->findByNoStatut($statut), $request->query->getInt('page', 1),10)
         ]);
     }
     
