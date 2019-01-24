@@ -50,7 +50,7 @@ class ArticlesController extends AbstractController
             return $this->render('articles/index.html.twig', ['articles'=> $pagination]); 
 
         /* 'demande de mise en stock' */
-        }else if($statut === 'livré'){
+        }else if($statut === 'demande de sortie'){
             $articles = $articlesRepository->findById($id);
             foreach ($articles as $article) {
                 $article->setStatu('destockage');
@@ -59,11 +59,8 @@ class ArticlesController extends AbstractController
             $this->getDoctrine()->getManager()->flush();
             return $this->render('articles/index.html.twig', ['articles'=> $pagination]); 
             /* demande de sortie */
-        }
-        else
-        {
+        }else{
             //chemin par défaut Basé sur un requete SQL basée sur l
-           
             return $this->render('articles/index.html.twig', ['articles' => $paginator->paginate(
                 $articlesRepository->findAll(),
                 $request->query->getInt('page', 1),

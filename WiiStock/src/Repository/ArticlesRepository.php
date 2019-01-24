@@ -105,7 +105,17 @@ class ArticlesRepository extends ServiceEntityRepository
         return $query->execute(); 
     }
 
-
+    public function findByEtatAndEmpl($emplacement)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT a
+            FROM App\Entity\Articles a
+            WHERE a.statu = 'destokage'AND a.position = :empl"
+        )->setParameter('empl', $emplacement);
+        ;
+        return $query->execute(); 
+    }
 //    /**
 //     * @return Articles[] Returns an array of Articles objects
 //     */

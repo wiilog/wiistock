@@ -31,6 +31,18 @@ class EmplacementRepository extends ServiceEntityRepository
         return $query->execute(); 
     }
 
+    public function findEptById($empl)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            'SELECT e
+            FROM App\Entity\Emplacement e
+            WHERE e.id = :id'
+             )->setParameter('id', $empl);
+        ;
+        return $query->execute(); 
+    }
+
 
 //    /**
 //     * @return Emplacement[] Returns an array of Emplacement objects

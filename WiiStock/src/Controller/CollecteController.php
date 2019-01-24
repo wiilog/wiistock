@@ -10,6 +10,12 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
+use App\Entity\Articles;
+use App\Form\ArticlesType;
+use App\Repository\ArticlesRepository;
+
+use App\Repository\EmplacementRepository;
+
 /**
  * @Route("/collecte")
  */
@@ -28,9 +34,33 @@ class CollecteController extends AbstractController
     /**
      * @Route("/create", name="collecte_create", methods={"GET", "POST"})
      */
-    public function creation()
+    public function creation(ArticlesRepository $articlesRepository, EmplacementRepository $emplacementRepository): Response
     {
-        return $this->render('collecte/create.html.twig');
+        dump($_POST);
+        if (array_key_exists('collecte', $_POST)) {
+            $articleId = array_keys($_POST['collecte']);
+            dump($articleId);
+            $collecte = new collecte();
+            $date = new \DateTime('now');
+            $collecte->setdate($date);
+            $collecte->setNumero("D-" . $date->format('YmdHis'));
+            $collecte->setDemandeur($this->getUser());
+            
+
+            return $this->redirectToRoute('collecte_index');
+        }
+        if(array_key_exists('emplacement', $_POST)){
+            $empl = $emplacementRepository->findEptById($_POST['emplacement']);
+            return $this->render('collecte/create.html.twig', array(
+                'articles'=>$articlesRepository->findByEtatAndEmpl($empl),
+                'emplacements'=>$emplacementRepository->findAll(),
+                'empl'=>$empl,
+            ));
+        }
+        return $this->render('collecte/create.html.twig', array(
+            'articles'=> $articlesRepository->findByStatut('destokage'),
+            'emplacements'=>$emplacementRepository->findAll(),
+        ));
     }
 
     /**

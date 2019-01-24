@@ -1,7 +1,47 @@
 {% extends 'layout.html.twig' %}
 {% block title %}Demande de collecte{% endblock %}
 {% block page_content %}
- 
-<h1>Demande de collecte</h1>
+<div class="container">
+    <form action={{path("collecte_create")}} method="post" class="row">
+        <select name="emplacement" id="" class="custom-select custom-select-lg mb-3 col-4">
+            {% for emplacement in emplacements %}
+                <option value={{emplacement.id}}> {{emplacement.nom}}</option>
+            {% endfor %}
+        </select>
+        <input type="submit" value="Valider" class="button btn-left">    
+    </form>
+<h1>Demande de collecte
+    {% if empl is defined %}
+        pour {{empl.0.nom}}
+    {% endif %}
+</h1>
 
+<form action={{path("collecte_create")}} method="post" class='row'>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>selection</th>
+                <th>Nom</th>
+                <th>Reférences Articles</th>
+                <th>position</th>
+            </tr>
+        </thead>
+        <tbody>
+     {% set i = 0 %}
+     {% for article in articles | reverse %}          
+         <tr {% if i % 2 == 1 %} class="backtablejv" {% endif %}>
+             {% set i = i + 1 %}
+             <td><input class="form-check-input"  type="checkbox" name="collecte[{{article.id}}]" id="" ></td>
+             <td>{{ article.nom }}</td>
+             <td>{{ article.refArticle.libelle }}</td>
+             <td>{{ article.position }}</td>
+         </tr>
+     {% endfor %}
+         </tbody>
+     </table>
+     <div class="col-12">
+        <input class="button btn-left" type="submit" value="Valider">
+    </div>
+</form>
+</div>
 {% endblock %}
