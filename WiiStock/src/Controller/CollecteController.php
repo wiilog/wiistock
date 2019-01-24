@@ -16,6 +16,8 @@ use App\Repository\ArticlesRepository;
 
 use App\Repository\EmplacementRepository;
 
+use Knp\Component\Pager\PaginatorInterface;
+
 /**
  * @Route("/collecte")
  */
@@ -24,7 +26,7 @@ class CollecteController extends AbstractController
     /**
      * @Route("/", name="collecte_index", methods={"GET", "POST"})
      */
-    public function index(CollecteRepository $collecteRepository): Response
+    public function index(CollecteRepository $collecteRepository, PaginatorInterface $paginator, Request $request): Response
     {
         if (array_key_exists('fin', $_POST)){
             $collecte = $collecteRepository->findById($_POST['fin']);
@@ -32,7 +34,7 @@ class CollecteController extends AbstractController
             $this->getDoctrine()->getManager()->flush();
         }
         return $this->render('collecte/index.html.twig', [
-            'collectes' => $collecteRepository->findAll(),
+            'collectes' => $paginator->paginate($collecteRepository->findAll(), $request->query->getInt('page', 1), 2),
         ]);
     }
 
