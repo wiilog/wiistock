@@ -136,7 +136,7 @@ class CollecteController extends AbstractController
      */
     public function show(Collecte $collecte, ArticlesRepository $articlesRepository): Response
     {   
-
+    //modifie le statut, la position et la direction des articles correspondant à ceux recupere par les operateurs 
         if(array_key_exists('fin', $_POST)){
             $article = $articlesRepository->findById($_POST['fin']);
             if( $article[0]->getDirection() !== null){//vérifie si la direction n'est pas nul, pour ne pas perdre l'emplacement si il y a des erreurs au niveau des receptions
@@ -146,11 +146,13 @@ class CollecteController extends AbstractController
             $article[0]->setStatu('en stock');
             $this->getDoctrine()->getManager()->flush();
         }
+        // verifie si une collecte est terminer 
+        //Comptage des articles selon le statut 'collecte' et la collecte lié
         $fin = $articlesRepository->findCountByStatutAndCollecte($collecte);
         $fin = $fin[0];
+        // si $fin === 0 alors il ne reste plus d'articles à récupérer donjc collecte fini
         if($fin[1] === '0'){
             $collecte->setStatut('fin');
-            dump($collecte);
             $this->getDoctrine()->getManager()->flush();
         }
         return $this->render('collecte/show.html.twig', [

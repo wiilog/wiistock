@@ -54,7 +54,7 @@ class PreparationController extends AbstractController
         if (array_key_exists('en_cours', $_POST)) {
         // on recupere l id en post 
            $preparation = $preparationRepository->findOneBy(["id"=>$_POST["en_cours"]]);
-        //on modifie les statuts de la preparation et des demande liées
+        //on modifie les statuts de la preparation et des demandes liées
            $preparation->setStatut('en cours');
            $demandes = $demandeRepository->findByPrepa($preparation);
            foreach ($demandes as $demande) {
@@ -63,6 +63,7 @@ class PreparationController extends AbstractController
            $this->getDoctrine()->getManager()->flush();
            return $this->redirectToRoute('preparation_index', array('history'=> 'false'));
         }
+        // permet d'affiché rapidement un historique ou les demandes en cours
         if ($history === 'true') {
             return $this->render('preparation/index.html.twig', array(
                 'preparations'=> $pagination,
@@ -138,15 +139,15 @@ class PreparationController extends AbstractController
      */
     public function show(Preparation $preparation, PreparationRepository $preparationRepository, DemandeRepository $demandeRepository, ArticlesRepository $articlesRepository): Response
     {
-        dump($_POST);
+        // modelise l'action de prendre l'article dan sle stock pour constituer la preparation  
         if(array_key_exists('fin', $_POST)){
             $article = $articlesRepository->findById($_POST['fin']);
             $article[0]->setStatu('préparation');
             $this->getDoctrine()->getManager()->flush();
+            // Meme principe que pour collecte_show =>comptage des articles selon un statut et une preparation si nul alors preparation fini 
             $demande = $demandeRepository->findById(array_keys($_POST['fin']));
             $finDemande = $articlesRepository->findCountByStatutAndDemande($demande);
             $fin = $finDemande[0];
-            dump($fin);
             if($fin[1] === '0'){
                 $demande[0]->setStatut('préparation terminé');   
             }
@@ -160,8 +161,7 @@ class PreparationController extends AbstractController
             $preparation->setStatut('fin');            
             $this->getDoctrine()->getManager()->flush();
         }
-       
-
+        
         return $this->render('preparation/show.html.twig', ['preparation' => $preparation]);
     }
 
