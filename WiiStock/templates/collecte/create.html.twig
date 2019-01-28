@@ -4,6 +4,7 @@
 <div class="container">
     <form action={{path("collecte_create")}} method="post" class="row">
         <select name="emplacement" id="" class="custom-select custom-select-lg mb-3 col-4">
+                <option value="">tout</option>
             {% for emplacement in emplacements %}
                 <option value={{emplacement.id}}> {{emplacement.nom}}</option>
             {% endfor %}
@@ -21,6 +22,7 @@
         <thead>
             <tr>
                 <th>selection</th>
+                <th>destination</th>
                 <th>Nom</th>
                 <th>Reférences Articles</th>
                 <th>position</th>
@@ -29,19 +31,28 @@
         <tbody>
      {% set i = 0 %}
      {% for article in articles | reverse %}          
-         <tr {% if i % 2 == 1 %} class="backtablejv" {% endif %}>
-             {% set i = i + 1 %}
-             <td><input class="form-check-input"  type="checkbox" name="collecte[{{article.id}}]" id="" ></td>
-             <td>{{ article.nom }}</td>
-             <td>{{ article.refArticle.libelle }}</td>
-             <td>{{ article.position }}</td>
-         </tr>
-     {% endfor %}
-         </tbody>
-     </table>
-     <div class="col-12">
+        <tr{% if i % 2 == 1 %} class="backtablejv" {% endif %}>
+            {% set i = i + 1 %}
+            <td><input class=" form-check-input"  type="checkbox" name="collecte[{{article.id}}]" id="" ></td>
+            <td>    
+                <select name="destination[{{article.id}}]" id="" class=" custom-select custom-select-lg mb-3">
+                        <option value=""></option>
+                    {% for emplacement in emplacements %}
+                        <option value={{emplacement.id}}> {{emplacement.nom}}</option>
+                    {% endfor %}
+                </select>
+            </td>
+            <td>{{ article.nom }}</td>
+            <td>{{ article.refArticle.libelle }}</td>
+            <td>{{ article.position }}</td>
+        </tr>
+    {% endfor %}
+        </tbody>
+    </table>
+    <div class="col-12">
         <input class="button btn-left" type="submit" value="Valider">
     </div>
 </form>
 </div>
+<a href={{ path('collecte_index', {'history': 'false'}) }}>back to list</a>
 {% endblock %}

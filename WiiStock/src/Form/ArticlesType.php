@@ -7,7 +7,13 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Doctrine\ORM\EntityRepository;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+
+use App\Entity\ReferencesArticles;
+
 class ArticlesType extends AbstractType
+
 {
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
@@ -27,7 +33,10 @@ class ArticlesType extends AbstractType
                     'placeholder' => 'quantité',
                     'min' => 0, 'max' => 10000
             )))
-            ->add('refArticle')           
+            ->add('refArticle', EntityType::class,[
+                'class'=> ReferencesArticles::class,
+                'choice_label'=> 'libelle'
+                ])           
         ;
     }
     public function configureOptions(OptionsResolver $resolver)

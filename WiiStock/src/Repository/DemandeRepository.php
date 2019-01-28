@@ -44,13 +44,14 @@ class DemandeRepository extends ServiceEntityRepository
         return $query->execute(); 
     }
 
-    public function findAllByUser($user)
+    //demande index
+    public function findAllByUserAndStatut($user)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT d
             FROM App\Entity\Demande d
-            WHERE d.utilisateur = :user"
+            WHERE d.statut <> 'livré' AND d.utilisateur = :user"
         )->setParameter('user', $user);
         ;
         return $query->execute(); 
@@ -106,6 +107,18 @@ class DemandeRepository extends ServiceEntityRepository
         return $query->execute(); 
     }
 
+    public function findCountByStatutAndPrepa($preparation)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT COUNT (d)
+            FROM App\Entity\Demande d
+            JOIN d.preparation p
+            WHERE d.statut <> 'préparer' AND p = :preparation"
+        )->setParameter('preparation', $preparation);
+        ;
+        return $query->execute(); 
+    }
 
     
     // /**

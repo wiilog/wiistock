@@ -55,18 +55,6 @@ class ArticlesRepository extends ServiceEntityRepository
         return $query->execute(); 
     }
 
-    public function findQteByRefAndConf($refArticle)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT a.quantite
-            FROM App\Entity\Articles a
-            WHERE a.refArticle = :ref AND a.etat = TRUE AND (a.statu = 'en stock')"
-        )->setParameter('ref', $refArticle);
-        ;
-        return $query->execute(); 
-    }
-
     // Creation des preparations 
     public function findByRefAndConfAndStock($refArticle)
     {
@@ -105,7 +93,7 @@ class ArticlesRepository extends ServiceEntityRepository
         return $query->execute(); 
     }
 
-    public function findByEtatAndEmpl($emplacement)
+    public function findByStatutAndEmpl($emplacement)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
@@ -113,6 +101,44 @@ class ArticlesRepository extends ServiceEntityRepository
             FROM App\Entity\Articles a
             WHERE a.statu = 'destokage'AND a.position = :empl"
         )->setParameter('empl', $emplacement);
+        ;
+        return $query->execute(); 
+    }
+
+    public function findCountByStatutAndCollecte($collecte)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT COUNT (a)
+            FROM App\Entity\Articles a
+            JOIN a.collectes c
+            WHERE a.statu = 'collecte' AND c = :collecte"
+        )->setParameter('collecte', $collecte);
+        ;
+        return $query->execute(); 
+    }
+
+    public function findCountByStatutAndDemande($demande)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT COUNT(a)
+            FROM App\Entity\Articles a
+            JOIN a.demandes d
+            WHERE a.statu = 'demande de sortie' AND d = :demande"
+        )->setParameter('demande', $demande);
+        ;
+        return $query->execute(); 
+    }
+
+    public function findCountByRefArticle($refArticle)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT COUNT(a)
+            FROM App\Entity\Articles a
+            WHERE a.refArticle = :refArticle AND a.etat = TRUE AND (a.statu = 'en stock')"
+        )->setParameter('refArticle', $refArticle);
         ;
         return $query->execute(); 
     }

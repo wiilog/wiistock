@@ -19,71 +19,79 @@ use Symfony\Component\Routing\Annotation\Route;
 class ArticlesController extends AbstractController
 {
     /**
-     * @Route("/index/{statut}/{id}", name="articles_index", methods="GET")
+     * @Route("/", name="articles_index", methods={"GET", "POST"})
      */
-    public function index(ArticlesRepository $articlesRepository, PaginatorInterface $paginator, Request $request, $statut, $id): Response
+    public function index(ArticlesRepository $articlesRepository, PaginatorInterface $paginator, Request $request): Response
     {   
-        $pagination = $paginator->paginate(
-            $articlesRepository->findByStatut($statut), /* On récupère la requête et on la pagine */
-            $request->query->getInt('page', 1),
-            2
-        );
+        dump($_POST);
 
-        //Liste des articles + action selon statut et si conforme requete SQL dédié "systéme de filtre"
-        if ($statut === 'en cours de reception') {
-            return $this->render('articles/index.html.twig', ['articles'=> $pagination]);
-        } 
-        else if ($statut === 'demande de mise en stock') {
-            return $this->render('articles/index.html.twig', ['articles'=> $pagination]);
-        }
-        else if($statut === 'en stock') {
-            return $this->render('articles/index.html.twig', ['articles'=> $pagination]);
-        }
-        else if($statut === 'préparation') {
-            return $this->render('articles/index.html.twig', ['articles'=> $pagination]);
-        }
-        else if($statut === 'destockage') {
-            return $this->render('articles/index.html.twig', ['articles'=> $pagination]);
-        }
-        else if($statut === 'anomalie') {
-            return $this->render('articles/index.html.twig', ['articles'=> $pagination]);
-        }
-        else if($statut === 'collecte') {
-            return $this->render('articles/index.html.twig', ['articles'=> $pagination]);
-        }
-        else if($statut === 'mis en stock' && $id !== 0) {
-            //Validation de la mise en stock/magasin
-            $articles = $articlesRepository->findById($id);
-            foreach ($articles as $article) {
-                $article->setStatu('en stock'); 
-                if($article->getDirection() !== null){//vérifie si la direction n'est pas nul, pour ne pas perdre l'emplacement si il y a des erreurs au niveau des receptions
-                    $article->setPosition($article->getDirection());
-                }
-                $article->setDirection(null);
+        if(isset($_POST['status'])) /* Si $_POST['status'] existe on rentre dans la condition*/
+        {
+            dump($_POST['status']);
+            if($_POST['status'] != "Non selectionné"){
+                return $this->render('articles/index.html.twig', ['articles'=> $paginator->paginate(
+                    $articlesRepository->findByStatut($_POST['status']), /* On récupère la requête et on la pagine */
+                    $request->query->getInt('page', 1),
+                    10
+                )]);
             }
-            $this->getDoctrine()->getManager()->flush();
 
-            return $this->render('articles/index.html.twig', ['articles'=> $pagination]); 
-
-        /* 'demande de mise en stock' */
-        }else if($statut === 'demande de sortie') {
-            $articles = $articlesRepository->findById($id);
-            foreach ($articles as $article) {
-                $article->setStatu('destockage');
-                $article->setDirection(null);
-            }
-            $this->getDoctrine()->getManager()->flush();
-            return $this->render('articles/index.html.twig', ['articles'=> $pagination]); 
-            /* demande de sortie */
-        }else{
             //chemin par défaut Basé sur un requete SQL basée sur l
             return $this->render('articles/index.html.twig', ['articles' => $paginator->paginate(
                 $articlesRepository->findAll(),
                 $request->query->getInt('page', 1),
-                5
-                )
-            ]);
-        }    
+                10
+                )]);  
+
+        }
+        else if(isset($_POST['miseEnStock']))
+        {
+             //Validation de la mise en stock/magasin
+             $articles = $articlesRepository->findById($_POST['miseEnStock']);
+             foreach ($articles as $article) {
+                 $article->setStatu('en stock'); 
+                 if($article->getDirection() !== null){//vérifie si la direction n'est pas nul, pour ne pas perdre l'emplacement si il y a des erreurs au niveau des receptions
+                     $article->setPosition($article->getDirection());
+                 }
+                 $article->setDirection(null);
+             }
+             $this->getDoctrine()->getManager()->flush();
+ 
+             return $this->render('articles/index.html.twig', ['articles'=> $paginator->paginate(
+                $articlesRepository->findByStatut($_POST['miseEnStock']), /* On récupère la requête et on la pagine */
+                $request->query->getInt('page', 1),
+                10
+            )]);
+
+        /* 'demande de mise en stock' */
+        }
+        else if(isset($_POST['demandeSortie'])) 
+        {
+            $articles = $articlesRepository->findById($_POST['demandeSortie']);
+
+            foreach ($articles as $article)
+            {
+                $article->setStatu('destockage');
+                $article->setDirection(null);
+            }
+            
+            $this->getDoctrine()->getManager()->flush();
+            return $this->render('articles/index.html.twig', ['articles'=> $paginator->paginate(
+                $articlesRepository->findByStatut($_POST['demandeSortie']), /* On récupère la requête et on la pagine */
+                $request->query->getInt('page', 1),
+                10
+            )]);
+            /* demande de sortie */
+        }
+        else
+        {
+            //chemin par défaut Basé sur un requete SQL basée sur l
+            return $this->render('articles/index.html.twig', ['articles' => $paginator->paginate(
+            $articlesRepository->findAll(),
+            $request->query->getInt('page', 1),
+            10
+            )]);  
+        }
     }
 
     /**

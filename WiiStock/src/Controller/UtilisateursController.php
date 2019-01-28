@@ -165,26 +165,26 @@ class UtilisateursController extends Controller
             ))
             ->getForm(); */
 
-        dump($_POST);
+        /* dump($_POST); */
 
         if($_POST) 
         {
             $utilisateurId = array_keys($_POST); /* Chaque clé représente l'id d'un utilisateur */
-            dump($utilisateurId); /* On regarde les clés = Id */
+            /* dump($utilisateurId); */ /* On regarde les clés = Id */
 
             for($i = 0; $i < count($utilisateurId); $i++) /* Pour chaque utilisateur on regarde si le rôle a changé */
             {
                 $utilisateur = $utilisateursRepository->find($utilisateurId[$i]);
-                $roles = $utilisateur->getRoles();
-                dump($_POST[$utilisateurId[$i]]);
+                $roles = $utilisateur->getRoles(); /* On regarde le rôle de l'utilisateur */
+                /* dump($_POST[$utilisateurId[$i]]); */
 
-                if($roles[0] != $_POST[$utilisateurId[$i]])
+                if($roles[0] != $_POST[$utilisateurId[$i]]) /* Si le rôle a changé on le modifie dans la bdd */
                 {
                     $em = $this->getDoctrine()->getEntityManager();
                     $utilisateur->setRoles([$_POST[$utilisateurId[$i]]]);
                     $em->flush();
                 }
-                dump($utilisateur);
+                /* dump($utilisateur); */
             }
         }
 

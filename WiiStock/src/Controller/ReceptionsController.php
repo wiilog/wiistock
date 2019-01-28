@@ -153,16 +153,14 @@ class ReceptionsController extends AbstractController
                 }
             }
             $reception->setStatut('terminer');
+
             //calcul de la quantite des stocks par artciles de reference
             $refArticles = $referencesArticlesRepository->findAll();
             foreach ($refArticles as $refArticle) {
-                //on recupere seulement la quantite des articles requete SQL dédié
-                $articleByRef = $articlesRepository->findQteByRefAndConf($refArticle);
-                $quantityRef = 0;
-                foreach ($articleByRef as $article) {
-                    $quantityRef ++;
-                }
-                $refArticle->setQuantity($quantityRef);  
+                // requete Count en SQL dédié
+                $quantityRef = $articlesRepository->findCountByRefArticle($refArticle);
+                $quantity = $quantityRef[0];
+                $refArticle->setQuantity($quantity[1]);
             }
             $this->getDoctrine()->getManager()->flush();
             return $this->redirectToRoute('receptions_index', array('history'=> 0));

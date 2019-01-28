@@ -33,6 +33,7 @@
                 <th>Reférences Articles</th>
                 <th>position</th>
                 <th>direction</th>
+                <th>Action</th>
             </tr>
         </thead>
         <tbody>
@@ -49,6 +50,13 @@
                     <td>{{ article.refArticle.reference }}</td>
                     <td>{{ article.position }}</td>
                     <td>{{ article.direction }}</td>
+                    <td>
+                        <form action="{{ path('preparation_show', {'id': preparation.id}) }}"  method="post">
+                            {% if article.statu == 'demande de sortie' and demande.statut == 'en cours de préparation' %}
+                                <button type="submit" name="fin[{{demande.id}}]" value={{article.id}} class="btn btn-xs btn-default command-edit backgreen"><i class="fas fa-check fa-2x"></i></button> 
+                            {% endif %}
+                        </form>
+                    </td>
                 </tr>
             {% else %}
                 <tr>

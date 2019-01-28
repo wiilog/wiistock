@@ -951,6 +951,9 @@ input:checked+.slider:before {
 	min-width: 48px;
 	text-align: center;
 }
+.square .marker:hover {
+	color: #CC0000;
+}
 
 .square .circle {
 	position: absolute;
@@ -963,6 +966,10 @@ input:checked+.slider:before {
 	border: #fcfcfc 7px solid;
 	display: inline-block;
 	border-radius: 300px;
+}
+
+.square .cilcle:hover {
+	color: #CC0000;
 }
 
 .square a:hover {
@@ -3138,6 +3145,3 @@ a[data-tooltip][data-position="bottom"]:after {
 *	JVcss
 ***/
 
-.backtablejv{
-	background-color: rgba(233, 233, 233, 1);
-}

@@ -1,13 +1,13 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout.html.twig' %}
 
-{% block title %}Edit Emplacement{% endblock %}
+{% block title %}Modification emplacement{% endblock %}
 
-{% block body %}
-    <h1>Edit Emplacement</h1>
+{% block page_content %}
+    <h1>Mpdification emplacement</h1>
 
-    {{ include('emplacement/_form.html.twig', {'button_label': 'Update'}) }}
+    {{ include('emplacement/_form.html.twig', {'button_label': 'Modifier'}) }}
 
-    <a href="{{ path('emplacement_index') }}">back to list</a>
+    <a href="{{ path('emplacement_index') }}"class="btn pull-left button btn-left">retour à la liste</a>
 
     {{ include('emplacement/_delete_form.html.twig') }}
 {% endblock %}

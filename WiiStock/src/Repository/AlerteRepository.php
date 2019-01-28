@@ -30,8 +30,21 @@ class AlerteRepository extends ServiceEntityRepository
             WHERE a.AlerteUtilisateur = :user "
         )->setParameter('user', $user)->execute();
         ;
+        return $query->execute(); 
     }
 
+    public function findCountAlerte()
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT COUNT(a)
+            FROM App\Entity\Alerte a
+            WHERE a.SeuilAtteint = TRUE "
+        );
+        ;
+        return $query->execute(); 
+    }
+    
     // /**
     //  * @return Alerte[] Returns an array of Alerte objects
     //  */

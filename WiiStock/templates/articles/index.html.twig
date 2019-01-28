@@ -2,20 +2,23 @@
 
 {% block title %}Articles index{% endblock %}
 
-{% block page_content %}
-    <h1>Articles</h1>
+{% block page_content %} 
 
-    
-    <a href={{path('articles_index', {'statut': 'en cours de reception', 'id': '0'})}}  class="btn pull-left button btn-right">En cours de reception</a>
-    <a href={{path('articles_index', {'statut': 'demande de mise en stock', 'id': '0'})}}  class="btn pull-left button btn-right">Entré stock</a>
-    <a href={{path('articles_index', {'statut': 'en stock',  'id': '0'})}}  class="btn pull-left button btn-right">Stock</a>
-    <a href={{path('articles_index', {'statut': 'préparation',  'id': '0'})}}  class="btn pull-left button btn-right">En attente de livraison</a>
-    <a href={{path('articles_index', {'statut': 'destockage', 'id': '0'})}}  class="btn pull-left button btn-right">Sortie</a>
+<form method="POST">
+    <select name="status">
+        <option>Non selectionné</option>
+        <option value="en cours de reception">en cours de reception</option>
+        <option value="demande de mise en stock">demande de mise en stock</option>
+        <option value="en stock">En stock</option>
+        <option value="destokage">destockage</option>
+        <option value="anomalie">anomalie</option>
+    </select>
 
-    <a href={{path('articles_index', {'statut': 'anomalie', 'id': '0'})}}  class="btn pull-right button button-danger btn-right">Réception Anomalie</a>
-    
-
-
+    <button type="submit" class="btn pull-right button btn-right">
+        Rechercher
+    </button>
+</form>
+<h1>Articles</h1>
     <table class="table">
         <thead>
             <tr>
@@ -44,11 +47,19 @@
                 <td>{{ article.direction }}</td>
                 <td>{{ article.quantite }}</td>
                 <td>
-                    <a href="{{ path('articles_show', {'id': article.id}) }}" class="btn btn-xs btn-default command-edit"><i class="fas fa-eye fa-2x"></i></a>
-                    <a href="{{ path('articles_edit', {'id': article.id}) }}" class="btn btn-xs btn-default command-edit"><i class="fas fa-pencil-alt fa-2x"></i></a>
-                    {% if article.statu == 'demande de mise en stock' %}
-                        <a href={{path('articles_index', {'statut': 'mis en stock',  'id': article.id})}} class="btn btn-xs btn-default command-edit backgreen"><i class="fas fa-check fa-2x"></i></a>
-                    {% endif %}
+                    <form method="POST">
+                        <a href="{{ path('articles_show', {'id': article.id}) }}" class="btn btn-xs btn-default command-edit"><i class="fas fa-eye fa-2x"></i></a>
+                        <a href="{{ path('articles_edit', {'id': article.id}) }}" class="btn btn-xs btn-default command-edit"><i class="fas fa-pencil-alt fa-2x"></i></a>
+                        {% if article.statu == 'demande de mise en stock' %}
+                            <button type="submit" class="btn btn-xs btn-default command-edit backgreen" name="miseEnStock" value="{{ article.id }}">
+                                <i class="fas fa-check fa-2x"></i>
+                            </button>
+                        {% elseif article.statu == 'demande de sortie' %}
+                            <button type="submit" class="btn btn-xs btn-default command-edit backgreen" name="demandeSortie" value="{{ article.id }}">
+                                <i class="fas fa-check fa-2x"></i>
+                            </button>
+                        {% endif %}
+                    </form>
                 </td>
             </tr>
         {% else %}

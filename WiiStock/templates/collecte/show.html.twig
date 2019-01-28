@@ -3,8 +3,7 @@
 {% block title %}Collecte{% endblock %}
 
 {% block page_content %}
-    <h1>Collecte</h1>
-
+    <h1>Collecte n°{{ collecte.numero }}</h1>
     <table class="table">
         <tbody>
             <tr>
@@ -12,8 +11,8 @@
                 <td>{{ collecte.id }}</td>
             </tr>
             <tr>
-                <th>Numero</th>
-                <td>{{ collecte.numero }}</td>
+                <th>Statut</th>
+                <td>{{ collecte.statut }}</td>
             </tr>
             <tr>
                 <th>Date</th>
@@ -22,9 +21,50 @@
         </tbody>
     </table>
 
-    <a href="{{ path('collecte_index') }}">back to list</a>
-
-    <a href="{{ path('collecte_edit', {'id': collecte.id}) }}">edit</a>
-
-    {{ include('collecte/_delete_form.html.twig') }}
+    <table class="table">
+            <thead>
+                <tr>
+                    <th>Nom</th>
+                    <th>Statut</th>
+                    <th>Conformité</th>
+                    <th>Reférences Articles</th>
+                    <th>position</th>
+                    <th>destination</th>
+                    <th>Quantite</th>
+                    <th>actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% set i = 0 %}
+            {% for article in collecte.articles |reverse %}
+                <tr {% if i % 2 == 1 %}
+                        class="backtablejv"
+                    {% endif %}>
+                    {% set i = i + 1 %}
+                    <td>{{ article.nom }}</td>
+                    <td>{{ article.statu }}</td>
+                    <td>{{ article.etat ? 'oui' : article.commentaire }}</td>
+                    <td>{{ article.refArticle.reference }}</td>
+                    <td>{{ article.position }}</td>
+                    <td>{{ article.direction }}</td>
+                    <td>{{ article.quantite }}</td>
+                    <td>
+                        <form action="{{ path('collecte_show', {'id': collecte.id}) }}"  method="post">
+                            {% if collecte.statut == 'récupéré' and article.statu == 'collecte' %}
+                                <button type="submit" name="fin" value={{article.id}} class="btn btn-xs btn-default command-edit backgreen"><i class="fas fa-check fa-2x"></i></button> 
+                            {% endif %}
+                        </form>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="10">aucun résultat</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <a href="{{ path('collecte_index', {'history': 'false'}) }}" class='button pull-left btn-left'>retour</a>
+        {{ include('collecte/_delete_form.html.twig') }}
+        <!-- <a href="{{ path('collecte_edit', {'id': collecte.id}) }}" class='button pull-right btn-left'>Modifier</a> -->
+    
 {% endblock %}
