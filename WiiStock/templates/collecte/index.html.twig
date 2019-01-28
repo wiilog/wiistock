@@ -41,10 +41,11 @@
             </tr>
         {% else %}
             <tr>
-                <td colspan="4">aucun résultat</td>
+                <td colspan="4">Aucun résultat</td>
             </tr>
         {% endfor %}
         </tbody>
     </table>
+ {{ knp_pagination_render(collectes) }}
 
 {% endblock %}

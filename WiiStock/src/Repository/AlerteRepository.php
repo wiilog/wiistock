@@ -24,24 +24,12 @@ class AlerteRepository extends ServiceEntityRepository
     public function findAlerteByUser($user)
     {
         $entityManager = $this->getEntityManager();
-        return $query = $entityManager->createQuery(
+        $query = $entityManager->createQuery(
             "SELECT a
             FROM App\Entity\Alerte a
             WHERE a.AlerteUtilisateur = :user "
-        )->setParameter('user', $user);
+        )->setParameter('user', $user)->execute();
         ;
-    }
-
-    /* Knp Paginator */
-
-    /**
-     * @return Query
-     */
-
-    public function paginate(): Query
-    {
-        return $this->findVisibleQuery()
-            ->getQuery();
     }
 
     // /**

@@ -1,34 +1,78 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout.html.twig' %}
 
 {% block title %}Utilisateurs{% endblock %}
 
-{% block body %}
-    <h1>Utilisateurs</h1>
+{% block page_content %}
+    <div class="jumbotron">
+             
+        <div class="row">
+            <div class="col-11 mx-auto">
+                <h3 class="display-4">{{ utilisateur.username }}</h3>
+                <table class="table">
+                    <tbody>
+                        <tr>
+                            <th>Identifiant</th>
+                            <td>{{ utilisateur.id }}</td>
+                        </tr>
+                        <tr>
+                            <th>Nom d'utilisateur</th>
+                            <td>{{ utilisateur.username }}</td>
+                        </tr>
+                        <tr>
+                            <th>Email</th>
+                            <td>{{ utilisateur.email }}</td>
+                        </tr>
+                        <tr>
+                            <th>Mot de passe </th>
+                            <td>{{ utilisateur.password }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 
-    <table class="table">
-        <tbody>
-            <tr>
-                <th>Id</th>
-                <td>{{ utilisateur.id }}</td>
-            </tr>
-            <tr>
-                <th>Username</th>
-                <td>{{ utilisateur.username }}</td>
-            </tr>
-            <tr>
-                <th>Email</th>
-                <td>{{ utilisateur.email }}</td>
-            </tr>
-            <tr>
-                <th>Password</th>
-                <td>{{ utilisateur.password }}</td>
-            </tr>
-        </tbody>
-    </table>
+    <!-- Example row of columns -->
+    <div class="row">
+        <div class="col-md-4">
+            <h2>Receptions</h2>
+            {% for reception in receptions %}
+            <ul>
+                <li>N°reception : {{ reception.numeroreception }} </li>
+            </ul>
+            {% endfor %}
+        </div>
+        <div class="col-md-4">
+            <h2>Demandes</h2>
+            {% for demande in demandes %}
+            <ul>
+                <li>Code : {{ demande.numero }}</li>
+            </ul>
+            {% endfor %}
+        </div>
+        <div class="col-md-4">
+            <h2>Alertes</h2>
+            {% for alerte in alertes %}
+            <ul>
+                <li>Nom : {{ alerte.AlerteNom }}</li>
+            </ul>
+            {% endfor %}
+        </div>
 
-    <a href="{{ path('utilisateurs_index') }}">back to list</a>
 
-    <a href="{{ path('utilisateurs_edit', {'id': utilisateur.id}) }}">edit</a>
+        <hr>
 
-    {{ include('utilisateurs/_delete_form.html.twig') }}
+      </div>
+
+    <div class="row">
+        <div class="col-12 mx-auto">
+            <a href="{{ path('utilisateurs_index') }}" class="button btn-left">Voir la liste</a>
+            <a href="{{ path('utilisateurs_edit', {'id': utilisateur.id}) }}" class="button btn-left">Modifier</a>
+        </div>
+    </div>
+
+
+    
+
+    
 {% endblock %}

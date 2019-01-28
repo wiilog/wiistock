@@ -20,6 +20,8 @@ use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Knp\Component\Pager\PaginatorInterface;
+
 // use Proxies\__CG__\App\Entity\Utilisateurs;
 
 /**
@@ -30,10 +32,10 @@ class UtilisateursController extends Controller
     /**
      * @Route("/", name="utilisateurs_index", methods="GET|POST")
      */
-    public function index(UtilisateursRepository $utilisateursRepository, EntityManagerInterface $em, Request $request, UserPasswordEncoderInterface $passwordEncoder) : Response
+    public function index(UtilisateursRepository $utilisateursRepository, /* EntityManagerInterface $em, */ Request $request, PaginatorInterface $paginator/* UserPasswordEncoderInterface $passwordEncoder */) : Response
     {
         // envoie des données en ajax pour la table
-        if ($request->isXmlHttpRequest()) {
+        /* if ($request->isXmlHttpRequest()) {
 
             $current = $request->request->get('current');
             $rowCount = $request->request->get('rowCount');
@@ -65,13 +67,13 @@ class UtilisateursController extends Controller
                 foreach ($roles as $role) {
                     $roles_string = $role . ", " . $roles_string;
                 }
-
+ */
                 // enlève les deux derniers caractères
-                $roles_string = substr($roles_string, 0, -2);
+               /*  $roles_string = substr($roles_string, 0, -2); */
 
 
                 // format de la derniere date de connexion
-                if ($utilisateur->getLastLogin()) {
+                /* if ($utilisateur->getLastLogin()) {
                     $lastLogin = date_diff(new \Datetime(), $utilisateur->getLastLogin());
 
                     $format = "Il y a ";
@@ -114,14 +116,14 @@ class UtilisateursController extends Controller
             );
 
             return new JsonResponse($data);
-        } 
+        }  */
 
         // gestion des formulaires
 
-        $user = new Utilisateurs();
+        /* $user = new Utilisateurs(); */
         
         // creation form
-        $form_creation = $this->createForm(UtilisateursType::class, $user);
+        /* $form_creation = $this->createForm(UtilisateursType::class, $user); */
 /*
         $form_creation->handleRequest($request);
 
@@ -139,7 +141,7 @@ class UtilisateursController extends Controller
         }*/
 
         // modification form
-        $form_modif = $this->createFormBuilder()
+        /* $form_modif = $this->createFormBuilder()
             ->add('id_user', HiddenType::class, array(
                 'mapped' => false,
             ))
@@ -161,13 +163,42 @@ class UtilisateursController extends Controller
                 ),
                 'multiple' => true,
             ))
-            ->getForm();
+            ->getForm(); */
 
+        dump($_POST);
+
+        if($_POST) 
+        {
+            $utilisateurId = array_keys($_POST); /* Chaque clé représente l'id d'un utilisateur */
+            dump($utilisateurId); /* On regarde les clés = Id */
+
+            for($i = 0; $i < count($utilisateurId); $i++) /* Pour chaque utilisateur on regarde si le rôle a changé */
+            {
+                $utilisateur = $utilisateursRepository->find($utilisateurId[$i]);
+                $roles = $utilisateur->getRoles();
+                dump($_POST[$utilisateurId[$i]]);
+
+                if($roles[0] != $_POST[$utilisateurId[$i]])
+                {
+                    $em = $this->getDoctrine()->getEntityManager();
+                    $utilisateur->setRoles([$_POST[$utilisateurId[$i]]]);
+                    $em->flush();
+                }
+                dump($utilisateur);
+            }
+        }
+
+        $pagination = $paginator->paginate(
+            $utilisateursRepository->findAll(), /* On récupère la requête et on la pagine */
+            $request->query->getInt('page', 1),
+            2
+        );
+        
 
         return $this->render('utilisateurs/index.html.twig', [
-            'utilisateurs' => $utilisateursRepository->findAll(),
-            'form_creation' => $form_creation->createView(),
-            'form_modif' => $form_modif->createView()
+            'utilisateurs' => $pagination,
+/*             'form_creation' => $form_creation->createView(),
+            'form_modif' => $form_modif->createView() */
 
         ]);
     }
@@ -175,10 +206,80 @@ class UtilisateursController extends Controller
     /**
      * @Route("/create", name="utilisateurs_index_create", methods="GET|POST")
      */
-    public function create(Request $request, EntityManagerInterface $em, UserPasswordEncoderInterface $passwordEncoder)
+    public function create(Request $request, EntityManagerInterface $em, UtilisateursRepository $utilisateursRepository/* , UserPasswordEncoderInterface $passwordEncoder */)
     {
 
-        if ($request->isXmlHttpRequest()) {
+        /* Création nouvel utilisateur si POST */
+        if (array_key_exists('username', $_POST) 
+        && array_key_exists('email', $_POST)
+        && array_key_exists('password', $_POST)
+        && array_key_exists('password2', $_POST)
+        ) {
+            /* On vérifie les erreurs */
+            dump($_POST['email']);
+            echo "1";
+            $erreurs = array();
+            $userSearch = $utilisateursRepository->findCountEmail($_POST['email']);
+            $userCount = $userSearch[0][1];
+            dump($userSearch);
+
+
+            /* On vérifie si l'email est valide ou si l'utilisateur existe déja */
+            if(!filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) {
+                array_push($erreurs, "L'adresse email est incorrect");
+            }
+            else if($userCount === '1')
+            {
+                array_push($erreurs, "Cette adresse est déja utilisée");
+            }
+            
+            /* Si le mot de passe est trop court */
+            if($_POST['password'] < 4) {
+                array_push($erreurs, "Votre mot de passe est trop court");
+                if($_POST['password'] != $_POST['password2']) {
+                    array_push($erreurs, "Veuillez rentrer le même mot de passe");
+                }
+            }
+
+
+            if(count($erreurs) === 0) { /* Si la création d'utilisateur est valide on crée l'utilisateur */
+
+                $utilisateur = new Utilisateurs(); 
+                
+                foreach($_POST as $information) { 
+                    strip_tags($information);
+                }
+
+                $password = $_POST['password']; /* Pour futur traitement comme le hashage*/
+
+                $utilisateur->setUsername($_POST['username']);
+                $utilisateur->setEmail($_POST['email']);
+                $utilisateur->setPassword($password);
+                
+                /* Il faut ajouter le rôle utilisateur */
+
+                $em = $this->getDoctrine()->getManager();
+                $em->persist($utilisateur);
+                $em->flush();
+                return $this->redirectToRoute('utilisateurs_index');
+
+            }
+            else /* Sinon on envoi un tableau d'erreurs */
+            {
+                dump($erreurs);
+                return $this->render('utilisateurs/create.html.twig', [
+                    'erreurs' => $erreurs
+                ]);
+            }
+            
+        }
+        else
+        {
+            return $this->render('utilisateurs/create.html.twig');
+        }
+
+        
+        /* if ($request->isXmlHttpRequest()) {
 
             $new_user = new Utilisateurs();
 
@@ -199,7 +300,7 @@ class UtilisateursController extends Controller
     
             return new JsonResponse(true);
         }
-        throw new NotFoundHttpException('404 Léo not found');
+        throw new NotFoundHttpException('404 Léo not found'); */
     }
 
 
@@ -306,7 +407,7 @@ class UtilisateursController extends Controller
         }
         throw new NotFoundHttpException('404 Léo not found');
     }
-
+ 
 
     /**
      * @Route("/new", name="utilisateurs_new", methods="GET|POST")
@@ -338,7 +439,16 @@ class UtilisateursController extends Controller
      */
     public function show(Utilisateurs $utilisateur) : Response
     {
-        return $this->render('utilisateurs/show.html.twig', ['utilisateur' => $utilisateur]);
+        $receptions = $utilisateur->getReceptions();
+        $demandes = $utilisateur->getDemandes();
+        $alertes = $utilisateur->getUtilisateurAlertes();
+
+        return $this->render('utilisateurs/show.html.twig', [
+            'utilisateur' => $utilisateur, 
+            'receptions' => $receptions,
+            'demandes' => $demandes,
+            'alertes' => $alertes
+        ]);
     }
 
     /**
