@@ -40,10 +40,15 @@
                 <td>{{ preparation.statut }}</td>
                 <td>
                 <form action={{path('preparation_index', {'history': 'false'})}} method="post">
-                    {% if preparation.statut == 'Nouvelle préparation' %}              
-                        <button type="submit" name="fin" value={{preparation.id}} class="btn btn-xs btn-default command-edit backgreen"><i class="fas fa-check fa-2x"></i></button>                   
+
+                    {% if preparation.statut == 'en cours' %}
+                        <a href="{{ path('preparation_show', {'id': preparation.id}) }}"class="btn btn-xs btn-default command-edit backIconListjv"><i class="fas fa-list fa-2x"></i></i></a>
+                    {% else %}
+                        <a href="{{ path('preparation_show', {'id': preparation.id}) }}"class="btn btn-xs btn-default command-edit"><i class="fas fa-eye fa-2x"></i></a>                        
                     {% endif %}
-                    <a href={{ path('preparation_show', {'id': preparation.id}) }} class="btn btn-xs btn-default command-edit"><i class="fas fa-eye fa-2x"></i></a>
+                    {% if preparation.statut == 'Nouvelle préparation' %}
+                        <button type="submit" name="en_cours" value={{preparation.id}} class="btn btn-xs btn-default command-edit backgreen"><i class="fas fa-check fa-2x"></i></button> 
+                    {% endif %}
                 </form>
                 </td>
             </tr>

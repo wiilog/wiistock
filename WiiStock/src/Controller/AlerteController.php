@@ -23,8 +23,7 @@ class AlerteController extends AbstractController
      */
     public function index(AlerteRepository $alerteRepository, \Swift_Mailer $mailer, PaginatorInterface $paginator,  Request $request): Response
     {
-        $alertes = $alerteRepository->findAlerteByUser($this->getUser()->getId())->execute();
-
+        $alertes = $alerteRepository->findAlerteByUser($this->getUser());
         $alertesUser = []; /* Un tableau d'alertes qui sera envoyer au mailer */
 
         foreach($alertes as $alerte)

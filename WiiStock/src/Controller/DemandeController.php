@@ -38,7 +38,7 @@ class DemandeController extends AbstractController
     public function index(DemandeRepository $demandeRepository, PaginatorInterface $paginator, Request $request, $history): Response
     {
         
-        $demandeQuery = ($history === 'true') ? $demandeRepository->findAll() : $demandeRepository->findAllByUser($this->getUser());
+        $demandeQuery = ($history === 'true') ? $demandeRepository->findAll() : $demandeRepository->findAllByUserAndStatut($this->getUser());
 
         $pagination = $paginator->paginate(
             $demandeQuery, /* On récupère la requête et on la pagine */
@@ -99,18 +99,15 @@ class DemandeController extends AbstractController
             }
             return $this->redirectToRoute('demande_index', array('history'=>'false'));  
         }
-        // calcul des quantite avant la creation des demandes 
-        foreach ($refArticles as $refArticle) {
-            //on recupere seulement la quantite des articles requete SQL dédié
-            $articleByRef = $articlesRepository->findQteByRefAndConf($refArticle);
-            $quantityRef = 0;
-            foreach ($articleByRef as $article){
-                $quantityRef ++;
-            }
-            dump($quantityRef, $articleByRef);
-            $refArticle->setQuantity($quantityRef);  
-        }
-        $this->getDoctrine()->getManager()->flush();
+         //calcul de la quantite des stocks par artciles de reference
+         $refArticles = $referencesArticlesRepository->findAll();
+         foreach ($refArticles as $refArticle) {
+             // requete Count en SQL dédié
+             $quantityRef = $articlesRepository->findCountByRefArticle($refArticle);
+             $quantity = $quantityRef[0];
+             $refArticle->setQuantity($quantity[1]);
+         }
+         $this->getDoctrine()->getManager()->flush();
         
         return $this->render('demande/creationDemande.html.twig', [
             'refArticles' => $referencesArticlesRepository->findRefArtByQte(),

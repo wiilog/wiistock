@@ -111,7 +111,7 @@ class ReferencesArticlesController extends Controller
         $pagination = $paginator->paginate(
             $referencesArticlesRepository->findAll(),
             $request->query->getInt('page', 1),
-            2
+            3
         );
         return $this->render('references_articles/index.html.twig', ['references_articles' => $pagination]);
     }

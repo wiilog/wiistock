@@ -1,17 +1,17 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Collecte index{% endblock %}
+{% block title %}Collecte{% endblock %}
 
 {% block page_content %}
     <h1>Collecte</h1>
 
     {% if history is defined %}
         <div class="row btn pull-left">
-            <a href={{path('demande_index', {'history': 'false'})}} class="button btn-left"><span class="fas fa-history"></span> collecte</a>
+            <a href={{path('collecte_index', {'history': 'false'})}} class="button btn-left"><span class="fas fa-history"></span> collecte en cours</a>
         </div>
     {% else %}
         <div class="row btn pull-left">
-            <a href= '#' class="button btn-left"><span class="fas fa-history"></span> Historique</a>
+            <a href={{path('collecte_index', {'history': 'true'})}} class="button btn-left"><span class="fas fa-history"></span> Historique</a>
         </div>
     {% endif %}
     <div class='row btn pull-right' >
@@ -40,12 +40,18 @@
                 <td>{{ collecte.date ? collecte.date|date('Y-m-d H:i:s') : '' }}</td>
                 <td>
                     <!-- , {'history': 'false'}) -->
-                    <form action={{path('collecte_index')}} method="post">
-                        <a href="{{ path('collecte_show', {'id': collecte.id}) }}"class="btn btn-xs btn-default command-edit"><i class="fas fa-eye fa-2x"></i></a>
-                        <a href="{{ path('collecte_edit', {'id': collecte.id}) }}"class="btn btn-xs btn-default command-edit"><i class="fas fa-pencil-alt fa-2x"></i></a>
-                    {% if collecte.statut == 'demande de collecte' %}
-                        <button type="submit" name="fin" value={{collecte.id}} class="btn btn-xs btn-default command-edit backgreen"><i class="fas fa-check fa-2x"></i></button> 
-                    {% endif %}
+                    <form action="{{ path('collecte_index', {'history': 'false'}) }}" method="post">
+                        {% if collecte.statut == 'récupéré' %}
+                            <a href="{{ path('collecte_show', {'id': collecte.id}) }}"class="btn btn-xs btn-default command-edit backIconListjv"><i class="fas fa-list fa-2x"></i></i></a>
+                        {% else %}
+                            <a href="{{ path('collecte_show', {'id': collecte.id}) }}"class="btn btn-xs btn-default command-edit"><i class="fas fa-eye fa-2x"></i></a>                        
+                        {% endif %}
+                        {% if collecte.statut == 'demande de collecte' %}
+                            <a href="{{ path('collecte_edit', {'id': collecte.id}) }}"class="btn btn-xs btn-default command-edit"><i class="fas fa-pencil-alt fa-2x"></i></a>
+                        {% endif %}
+                        {% if collecte.statut == 'demande de collecte' %}
+                            <button type="submit" name="fin" value={{collecte.id}} class="btn btn-xs btn-default command-edit backgreen"><i class="fas fa-check fa-2x"></i></button> 
+                        {% endif %}
                     </form>
                 </td>
             </tr>
@@ -56,5 +62,5 @@
         {% endfor %}
         </tbody>
     </table>
-
+    
 {% endblock %}

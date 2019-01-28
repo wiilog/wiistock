@@ -24,18 +24,38 @@ use Knp\Component\Pager\PaginatorInterface;
 class CollecteController extends AbstractController
 {
     /**
-     * @Route("/", name="collecte_index", methods={"GET", "POST"})
+     * @Route("/{history}/index", name="collecte_index", methods={"GET", "POST"})
      */
-    public function index(CollecteRepository $collecteRepository, PaginatorInterface $paginator, Request $request): Response
+    public function index(CollecteRepository $collecteRepository, PaginatorInterface $paginator, Request $request, $history): Response
     {
         if (array_key_exists('fin', $_POST)){
             $collecte = $collecteRepository->findById($_POST['fin']);
             $collecte[0]->setStatut('récupéré');
             $this->getDoctrine()->getManager()->flush();
         }
-        return $this->render('collecte/index.html.twig', [
-            'collectes' => $paginator->paginate($collecteRepository->findAll(), $request->query->getInt('page', 1), 10),
-        ]);
+        $statut = 'fin';
+        $collecteQuery = ($history === 'true') ? $collecteRepository->findAll() : $collecteRepository->findByNoStatut($statut);
+
+        $pagination = $paginator->paginate(
+            $collecteQuery, /* On récupère la requête et on la pagine */
+            $request->query->getInt('page', 1),
+            10
+        );
+
+        if ($history === 'true') {
+            return $this->render('collecte/index.html.twig', [
+                'collectes' => $pagination,
+                'history' => 'false',
+            ]);
+        } else {
+            return $this->render('collecte/index.html.twig', [
+                'collectes' => $pagination, 
+                
+            ]);
+        }
+        // return $this->render('collecte/index.html.twig', [
+        //     'collectes' => $paginator->paginate($collecteRepository->findAll(), $request->query->getInt('page', 1), 10),
+        // ]);
     }
 
     /**
@@ -64,7 +84,7 @@ class CollecteController extends AbstractController
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($collecte);
             $entityManager->flush();
-            return $this->redirectToRoute('collecte_index');
+            return $this->redirectToRoute('collecte_index', array('history'=>'false'));
         }
 
         // systéme de filtre par emplacement => recherche les articles selon l'emplacement choisi et l'statut
@@ -119,7 +139,6 @@ class CollecteController extends AbstractController
 
         if(array_key_exists('fin', $_POST)){
             $article = $articlesRepository->findById($_POST['fin']);
-           
             if( $article[0]->getDirection() !== null){//vérifie si la direction n'est pas nul, pour ne pas perdre l'emplacement si il y a des erreurs au niveau des receptions
                 $article[0]->setPosition( $article[0]->getDirection());
             }
@@ -127,7 +146,6 @@ class CollecteController extends AbstractController
             $article[0]->setStatu('en stock');
             $this->getDoctrine()->getManager()->flush();
         }
-        
         $fin = $articlesRepository->findCountByStatutAndCollecte($collecte);
         $fin = $fin[0];
         if($fin[1] === '0'){

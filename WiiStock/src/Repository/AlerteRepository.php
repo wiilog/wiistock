@@ -24,25 +24,39 @@ class AlerteRepository extends ServiceEntityRepository
     public function findAlerteByUser($user)
     {
         $entityManager = $this->getEntityManager();
-        return $query = $entityManager->createQuery(
+        $query = $entityManager->createQuery(
             "SELECT a
             FROM App\Entity\Alerte a
             WHERE a.AlerteUtilisateur = :user "
         )->setParameter('user', $user);
         ;
+        return $query->execute(); 
     }
 
-    /* Knp Paginator */
-
-    /**
-     * @return Query
-     */
-
-    public function paginate(): Query
+    public function findCountAlerte()
     {
-        return $this->findVisibleQuery()
-            ->getQuery();
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT COUNT(a)
+            FROM App\Entity\Alerte a
+            WHERE a.SeuilAtteint = TRUE "
+        );
+        ;
+        return $query->execute(); 
     }
+
+    
+    // /* Knp Paginator */
+
+    // /**
+    //  * @return Query
+    //  */
+
+    // public function paginate(): Query
+    // {
+    //     return $this->findVisibleQuery()
+    //         ->getQuery();
+    // }
 
     // /**
     //  * @return Alerte[] Returns an array of Alerte objects

@@ -51,14 +51,14 @@ class PreparationController extends AbstractController
         );
         // validation de fin de prparation
         // verification de l existance de la variable 
-        if (array_key_exists('fin', $_POST)) {
+        if (array_key_exists('en_cours', $_POST)) {
         // on recupere l id en post 
-           $preparation = $preparationRepository->findOneBy(["id"=>$_POST["fin"]]);
+           $preparation = $preparationRepository->findOneBy(["id"=>$_POST["en_cours"]]);
         //on modifie les statuts de la preparation et des demande liées
-           $preparation->setStatut('fin');
+           $preparation->setStatut('en cours');
            $demandes = $demandeRepository->findByPrepa($preparation);
            foreach ($demandes as $demande) {
-               $demande->setStatut("préparation terminé");
+               $demande->setStatut("en cours de préparation");
            }
            $this->getDoctrine()->getManager()->flush();
            return $this->redirectToRoute('preparation_index', array('history'=> 'false'));
@@ -115,10 +115,10 @@ class PreparationController extends AbstractController
             foreach ($demandeKey as $key ) {
                 $demande= $demandeRepository->findOneBy(['id'=> $key]);
                 $demande->setPreparation($preparation);
-                $demande->setStatut('préparation commande');
+                $demande->setStatut('demande préparation');
                 $articles = $demande->getArticles();
                 foreach ($articles as $article) {
-                    $article->setStatu('préparation');
+                    $article->setStatu('demande de sortie');
                     $article->setDirection($demande->getDestination());
                 }
                 $this->getDoctrine()->getManager();
@@ -134,10 +134,34 @@ class PreparationController extends AbstractController
     }
 
     /**
-     * @Route("/{id}", name="preparation_show", methods="GET")
+     * @Route("/{id}", name="preparation_show", methods="GET|POST")
      */
-    public function show(Preparation $preparation): Response
+    public function show(Preparation $preparation, PreparationRepository $preparationRepository, DemandeRepository $demandeRepository, ArticlesRepository $articlesRepository): Response
     {
+        dump($_POST);
+        if(array_key_exists('fin', $_POST)){
+            $article = $articlesRepository->findById($_POST['fin']);
+            $article[0]->setStatu('préparation');
+            $this->getDoctrine()->getManager()->flush();
+            $demande = $demandeRepository->findById(array_keys($_POST['fin']));
+            $finDemande = $articlesRepository->findCountByStatutAndDemande($demande);
+            $fin = $finDemande[0];
+            dump($fin);
+            if($fin[1] === '0'){
+                $demande[0]->setStatut('préparation terminé');   
+            }
+            $this->getDoctrine()->getManager()->flush();
+        }
+
+        //vérification de la fin de la praparation requete SQL => dédié
+        $fin = $demandeRepository->findCountByStatutAndPrepa($preparation);
+        $fin = $fin[0];
+        if($fin[1] === '0'){
+            $preparation->setStatut('fin');            
+            $this->getDoctrine()->getManager()->flush();
+        }
+       
+
         return $this->render('preparation/show.html.twig', ['preparation' => $preparation]);
     }
 
@@ -168,6 +192,6 @@ class PreparationController extends AbstractController
             $em->remove($preparation);
             $em->flush();
         }
-        return $this->redirectToRoute('preparation_index');
+        return $this->redirectToRoute('preparation_index', ['history'=> 'false']);
     }
 }
