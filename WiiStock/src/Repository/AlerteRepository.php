@@ -28,7 +28,7 @@ class AlerteRepository extends ServiceEntityRepository
             "SELECT a
             FROM App\Entity\Alerte a
             WHERE a.AlerteUtilisateur = :user "
-        )->setParameter('user', $user);
+        )->setParameter('user', $user)->execute();
         ;
         return $query->execute(); 
     }
@@ -44,20 +44,7 @@ class AlerteRepository extends ServiceEntityRepository
         ;
         return $query->execute(); 
     }
-
     
-    // /* Knp Paginator */
-
-    // /**
-    //  * @return Query
-    //  */
-
-    // public function paginate(): Query
-    // {
-    //     return $this->findVisibleQuery()
-    //         ->getQuery();
-    // }
-
     // /**
     //  * @return Alerte[] Returns an array of Alerte objects
     //  */

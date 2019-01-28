@@ -45,7 +45,7 @@ class AlerteController extends AbstractController
         // /* Pagination grâce au bundle Knp Paginator */
 
         $pagination = $paginator->paginate(
-            $alerteRepository->findAlerteByUser($this->getUser()->getId()), /* On récupère la requête et on la pagine */
+            $alerteRepository->findAlerteByUser($this->getUser()), /* On récupère la requête et on la pagine */
             $request->query->getInt('page', 1),
             2
         );

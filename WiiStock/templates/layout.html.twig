@@ -26,19 +26,19 @@
                 </li>
 <!-- ARTICLES -->
                 <li class="has-submenu">
-                    <a href={{path("articles_index", {'statut': 'all', 'id': 0})}}>
+                    <a href={{path("articles_index", {'id': 0})}}>
                         <i class="fa fa-boxes"></i>
                     </a>
                     <ul class="sidemenu-sub">
                         <li class="text">
                             <h4>Articles</h4>
                         </li>
-                        <li><a href={{path('articles_index', {'statut': 'en cours de reception', 'id': '0'})}}>• En cours de réception</a></li>
+                        {# <li><a href={{path('articles_index', {'statut': 'en cours de reception', 'id': '0'})}}>• En cours de réception</a></li>
                         <li><a href={{path('articles_index', {'statut': 'demande de mise en stock', 'id': '0'})}}>• Entré stock</a></li>
                         <li><a href={{path('articles_index', {'statut': 'en stock', 'id': '0'})}}>• Stock</a></li>
                         <li><a href={{path('articles_index', {'statut': 'demande de sortie', 'id': '0'})}}>• En attente de livraison </a></li>   
                         <li><a href={{path('articles_index', {'statut': 'destockage', 'id': '0'})}}>• Sortie</a></li>   
-                        <li><a href={{path('articles_index', {'statut': 'anomalie', 'id': '0'})}}>• Anomalie</a></li>
+                        <li><a href={{path('articles_index', {'statut': 'anomalie', 'id': '0'})}}>• Anomalie</a></li> #}
                     </ul>
                </li>                
 <!-- PREPARATION -->

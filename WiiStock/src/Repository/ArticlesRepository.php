@@ -30,7 +30,7 @@ class ArticlesRepository extends ServiceEntityRepository
         ;
         return $query->execute(); 
     }
-
+    
     public function findByStatut($statut)
     {
         $entityManager = $this->getEntityManager();

@@ -51,6 +51,17 @@ class UtilisateursRepository extends ServiceEntityRepository
         return $qb;
     }
 
+    public function findCountEmail($email)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT COUNT(u)
+            FROM App\Entity\Utilisateurs u
+            WHERE u.email = :email"
+        )->setParameter('email', $email);
+        ;
+        return $query->execute(); 
+    }
 //    /**
 //     * @return Utilisateurs[] Returns an array of Utilisateurs objects
 //     */
