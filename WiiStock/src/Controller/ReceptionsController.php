@@ -23,12 +23,14 @@ use App\Form\ReferencesArticlesType;
 use App\Repository\ReferencesArticlesRepository;
 
 use Knp\Component\Pager\PaginatorInterface;
+use App\Repository\StatutsRepository;
 
 /**
  * @Route("/receptions")
  */
 class ReceptionsController extends AbstractController
 {
+
     /**
      * @Route("/{history}", name="receptions_index", methods="GET")
      */
@@ -62,23 +64,29 @@ class ReceptionsController extends AbstractController
     /**
      * @Route("/new/creation", name="receptions_new", methods="GET|POST")
      */
-    public function new(Request $request): Response
+    public function new(Request $request, StatutsRepository $statutsRepository): Response
     {
         $reception = new Receptions();
         $form = $this->createForm(ReceptionsType::class, $reception);
         $form->handleRequest($request);
-        if ($form->isSubmitted() && $form->isValid()) {
-            $reception-> setStatut('en cours de reception');
+
+        if ($form->isSubmitted() && $form->isValid()) 
+        {
+            $statut = $statutsRepository->findById(1);
+            $reception->setStatut($statut[0]);
             $reception->setDate(new \DateTime('now'));
             $em = $this->getDoctrine()->getManager();
             $em->persist($reception);
             $em->flush();
+
             return $this->redirectToRoute('receptions_index', array('history'=> 0));
         }
+
         return $this->render('receptions/new.html.twig', [
             'reception' => $reception,
             'form' => $form->createView(),
         ]);
+
     }
 
     /**
@@ -96,14 +104,18 @@ class ReceptionsController extends AbstractController
     {
         $form = $this->createForm(ReceptionsType::class, $reception);
         $form->handleRequest($request);
-        if ($form->isSubmitted() && $form->isValid()) {
+
+        if ($form->isSubmitted() && $form->isValid()) 
+        {
             $this->getDoctrine()->getManager()->flush();
-            return $this->redirectToRoute('receptions_index');
+            return $this->redirectToRoute('receptions_index', ['history'=>'0']);
         }
+
         return $this->render('receptions/edit.html.twig', [
             'reception' => $reception,
             'form' => $form->createView(),
         ]);
+
     }
 
     /**
@@ -122,48 +134,70 @@ class ReceptionsController extends AbstractController
     /**
      * @Route("/article/{id}/{k}", name="reception_ajout_article", methods="GET|POST")
      */
-    public function ajoutArticle(Request $request, Receptions $reception, ArticlesRepository $articlesRepository,  EmplacementRepository $emplacementRepository,ReferencesArticlesRepository $referencesArticlesRepository , $id, $k): Response
+    public function ajoutArticle(Request $request, Receptions $reception, ArticlesRepository $articlesRepository, StatutsRepository $statutsRepository, EmplacementRepository $emplacementRepository, ReferencesArticlesRepository $referencesArticlesRepository , $id, $k): Response
     {
         //findByReception requete SQl dédié 
         $article = new Articles();
         $form = $this->createForm(ArticlesType::class, $article);
         $form->handleRequest($request);
+        
         //création des articles en relation avec la reception
-        if ($form->isSubmitted() && $form->isValid() && $k == false) {
-            if ($article->getEtat()){
-                $article->setStatu('en cours de reception');
-            }else {
-                $article->setStatu('anomalie');
+        if ($form->isSubmitted() && $form->isValid() && $k == false) 
+        {
+            if ($article->getEtat())
+            {
+                $statut = $statutsRepository->findById(1);
+                $article->setStatut($statut[0]);
             }
+            else 
+            {
+                $statut = $statutsRepository->findById(5);
+                $article->setStatut($statut[0]);
+            }
+
             $article->setReception($reception);
             $em = $this->getDoctrine()->getManager();
             $em->persist($article);
             $em->flush();
+
             return $this->redirectToRoute('reception_ajout_article', array('id'=> $id, 'k'=>0));
         }
         //fin de reception/mise en stock des articles
         // k sert à vérifier et identifier la fin de la reception, en suite on modifie les "setStatut" des variables 
-        if ($k){
+        if ($k)
+        {
             $articles =  $articlesRepository->findByReception($id);
             // modification du statut
-            foreach ($articles as $article) {
+            foreach ($articles as $article) 
+            {
+                $statut = $statutsRepository->findById(1);
                 //vérifie si l'article est bien encore en reception
-                if ($article->getStatu() === 'en cours de reception' && $article->getEtat() === true){
-                $article->setStatu('demande de mise en stock');
+
+                if ($article->getStatut() === $statut[0]  && $article->getEtat() === true)
+                {
+                    $statut = $statutsRepository->findById(2);
+                    $article->setStatut($statut[0]);
                 }
             }
-            $reception->setStatut('terminer');
+
+            $statut = $statutsRepository->findById(7);
+            $reception->setStatut($statut[0]);
 
             //calcul de la quantite des stocks par artciles de reference
             $refArticles = $referencesArticlesRepository->findAll();
-            foreach ($refArticles as $refArticle) {
+
+            foreach ($refArticles as $refArticle) 
+            {
                 // requete Count en SQL dédié
                 $quantityRef = $articlesRepository->findCountByRefArticle($refArticle);
                 $quantity = $quantityRef[0];
                 $refArticle->setQuantity($quantity[1]);
+                dump($quantity);
             }
+
             $this->getDoctrine()->getManager()->flush();
             return $this->redirectToRoute('receptions_index', array('history'=> 0));
+
         }
 
         return $this->render("receptions/ajoutArticle.html.twig", array(

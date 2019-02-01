@@ -15,6 +15,7 @@ use App\Form\ArticlesType;
 use App\Repository\ArticlesRepository;
 
 use App\Repository\EmplacementRepository;
+use App\Repository\StatutsRepository;
 
 use Knp\Component\Pager\PaginatorInterface;
 
@@ -26,13 +27,16 @@ class CollecteController extends AbstractController
     /**
      * @Route("/{history}/index", name="collecte_index", methods={"GET", "POST"})
      */
-    public function index(CollecteRepository $collecteRepository, PaginatorInterface $paginator, Request $request, $history): Response
+    public function index(CollecteRepository $collecteRepository, StatutsRepository $statutsRepository, PaginatorInterface $paginator, Request $request, $history): Response
     {
-        if (array_key_exists('fin', $_POST)){
+        if (array_key_exists('fin', $_POST))
+        {
             $collecte = $collecteRepository->findById($_POST['fin']);
-            $collecte[0]->setStatut('récupéré');
+            $statut = $statutsRepository->findById(18); /* 18 = Récupéré */
+            $collecte[0]->setStatut($statut[0]);
             $this->getDoctrine()->getManager()->flush();
         }
+
         $statut = 'fin';
         $collecteQuery = ($history === 'true') ? $collecteRepository->findAll() : $collecteRepository->findByNoStatut($statut);
 
@@ -42,12 +46,15 @@ class CollecteController extends AbstractController
             10
         );
 
-        if ($history === 'true') {
+        if ($history === 'true') 
+        {
             return $this->render('collecte/index.html.twig', [
                 'collectes' => $pagination,
                 'history' => 'false',
             ]);
-        } else {
+        } 
+        else 
+        {
             return $this->render('collecte/index.html.twig', [
                 'collectes' => $pagination, 
                 
@@ -61,10 +68,11 @@ class CollecteController extends AbstractController
     /**
      * @Route("/create", name="collecte_create", methods={"GET", "POST"})
      */
-    public function creation(ArticlesRepository $articlesRepository, EmplacementRepository $emplacementRepository): Response
+    public function creation(ArticlesRepository $articlesRepository, StatutsRepository $statutsRepository, EmplacementRepository $emplacementRepository): Response
     {
         // creation d'une demande de collecte 
-        if (array_key_exists('collecte', $_POST)) {
+        if (array_key_exists('collecte', $_POST)) 
+        {
             // construction de la new collecte plus d'info voir demande_creation
             $articlesId = array_keys($_POST['collecte']);
             $destinationId = $_POST['destination'];
@@ -73,17 +81,23 @@ class CollecteController extends AbstractController
             $collecte->setdate($date);
             $collecte->setNumero("C-". $date->format('YmdHis'));
             $collecte->setDemandeur($this->getUser());
-            $collecte->setStatut('demande de collecte');
-            foreach ($articlesId as $key) {
+            $statut = $statutsRepository->findById(19); /* Statut 19 = Demande de collecte */
+            $collecte->setStatut($statut[0]);
+
+            foreach ($articlesId as $key) 
+            {
                 $article = $articlesRepository->findById($key);
                 $destination = $emplacementRepository->findEptById($destinationId[$key]);
                 $article[0]->setDirection($destination[0]);
-                $article[0]->setStatu('collecte');
+                $statut = $statutsRepository->findById(4);
+                $article[0]->setStatut($statut[0]);
                 $collecte->addArticle($article[0]);
             }
+
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($collecte);
             $entityManager->flush();
+
             return $this->redirectToRoute('collecte_index', array('history'=>'false'));
         }
 
@@ -99,7 +113,7 @@ class CollecteController extends AbstractController
             ));
         }
         return $this->render('collecte/create.html.twig', array(
-            'articles'=> $articlesRepository->findByStatut('destokage'),
+            'articles'=> $articlesRepository->findByStatut(4),
             'emplacements'=>$emplacementRepository->findAll(),
         ));
     }
@@ -113,7 +127,8 @@ class CollecteController extends AbstractController
         $form = $this->createForm(CollecteType::class, $collecte);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
+        if ($form->isSubmitted() && $form->isValid()) 
+        {
             $date =  new \DateTime('now');
             $collecte->setdate($date);
             $collecte->setNumero("D-" . $date->format('YmdHis'));
@@ -134,27 +149,38 @@ class CollecteController extends AbstractController
     /**
      * @Route("/{id}", name="collecte_show", methods={"GET", "POST"})
      */
-    public function show(Collecte $collecte, ArticlesRepository $articlesRepository): Response
+    public function show(Collecte $collecte, StatutsRepository $statutsRepository, ArticlesRepository $articlesRepository): Response
     {   
     //modifie le statut, la position et la direction des articles correspondant à ceux recupere par les operateurs 
-        if(array_key_exists('fin', $_POST)){
+        if(array_key_exists('fin', $_POST))
+        {
             $article = $articlesRepository->findById($_POST['fin']);
-            if( $article[0]->getDirection() !== null){//vérifie si la direction n'est pas nul, pour ne pas perdre l'emplacement si il y a des erreurs au niveau des receptions
+
+            if( $article[0]->getDirection() !== null)
+            {   //vérifie si la direction n'est pas nul, pour ne pas perdre l'emplacement si il y a des erreurs au niveau des receptions
                 $article[0]->setPosition( $article[0]->getDirection());
             }
+
             $article[0]->setDirection(null);
-            $article[0]->setStatu('en stock');
+            $statut = $statutsRepository->findById(20); /* Collecté */
+            $article[0]->setStatut($statut[0]);
             $this->getDoctrine()->getManager()->flush();
         }
         // verifie si une collecte est terminer 
         //Comptage des articles selon le statut 'collecte' et la collecte lié
         $fin = $articlesRepository->findCountByStatutAndCollecte($collecte);
+        dump($fin);
         $fin = $fin[0];
+        dump($fin);
         // si $fin === 0 alors il ne reste plus d'articles à récupérer donjc collecte fini
-        if($fin[1] === '0'){
-            $collecte->setStatut('fin');
+
+        if($fin[1] === '0')
+        {
+            $statut = $statutsRepository->findById(17);
+            $collecte->setStatut($statut[0]);
             $this->getDoctrine()->getManager()->flush();
         }
+
         return $this->render('collecte/show.html.twig', [
             'collecte' => $collecte,
         ]);
@@ -168,7 +194,8 @@ class CollecteController extends AbstractController
         $form = $this->createForm(CollecteType::class, $collecte);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
+        if ($form->isSubmitted() && $form->isValid()) 
+        {
             $this->getDoctrine()->getManager()->flush();
             return $this->redirectToRoute('collecte_index', [
                 'id' => $collecte->getId(),
@@ -186,7 +213,8 @@ class CollecteController extends AbstractController
      */
     public function delete(Request $request, Collecte $collecte): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$collecte->getId(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('delete'.$collecte->getId(), $request->request->get('_token'))) 
+        {
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($collecte);
             $entityManager->flush();

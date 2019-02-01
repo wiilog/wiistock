@@ -31,7 +31,7 @@ class ArticlesType extends AbstractType
             ->add('quantite', IntegerType::class, array(
                 'attr' => array(
                     'placeholder' => 'quantité',
-                    'min' => 0, 'max' => 10000
+                    'min' => 1, 'max' => 10000
             )))
             ->add('refArticle', EntityType::class,[
                 'class'=> ReferencesArticles::class,

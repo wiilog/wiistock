@@ -34,12 +34,12 @@
             </thead>
             <tbody>
             {% set i = 0 %}
-            {% for reception in receptions |reverse %}
+            {% for reception in receptions | reverse %}
                 <tr{% if i % 2 == 1 %}
                         class="backtablejv"
                     {% endif %}>
                     {% set i = i + 1 %}
-                    <td>{{ reception.statut }}</td>
+                    <td>{{ reception.statut.nom }}</td>
                     <td>{{ reception.numeroArrivage }}</td>
                     <td>{{ reception.numeroReception }}</td>
                     <td>{{ reception.commentaire }}</td>

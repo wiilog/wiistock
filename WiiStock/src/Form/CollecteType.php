@@ -21,7 +21,7 @@ class CollecteType extends AbstractType
                 'class' => Articles::class,
                 'query_builder' => function (EntityRepository $er) {
                     return $er->createQueryBuilder('a')
-                        ->where('a.statu = :statut')
+                        ->where('a.Statut = :statut')
                         ->setParameter('statut', 'destokage')
                         ;
                        

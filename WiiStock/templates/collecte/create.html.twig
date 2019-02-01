@@ -35,7 +35,7 @@
             {% set i = i + 1 %}
             <td><input class=" form-check-input"  type="checkbox" name="collecte[{{article.id}}]" id="" ></td>
             <td>    
-                <select name="destination[{{article.id}}]" id="" class=" custom-select custom-select-lg mb-3">
+                <select name="destination[{{article.id}}]" id="" class="custom-select custom-select-lg mb-3">
                         <option value=""></option>
                     {% for emplacement in emplacements %}
                         <option value={{emplacement.id}}> {{emplacement.nom}}</option>

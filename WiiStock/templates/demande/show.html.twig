@@ -17,7 +17,7 @@
             </tr>
             <tr>
                 <th class="backtablejv">Statut</th>
-                <td>{{ demande.statut }}</td>
+                <td>{{ demande.statut.nom }}</td>
             </tr>
         </tbody>
     </table>
@@ -40,7 +40,7 @@
                         {% endif %}>
                         {% set i = i + 1 %}
                         <td>{{ article.nom }}</td>
-                        <td>{{ article.statu }}</td>
+                        <td>{{ article.statut.nom }}</td>
                         <td>{{ article.refArticle.reference }}</td>
                         <td>{{ article.position }}</td>
                         <td>{{ article.direction }}</td>

@@ -24,11 +24,6 @@ class Articles
     private $nom;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
-    private $statu;
-
-    /**
      * @ORM\Column(type="integer", nullable=true)
      */
     private $quantite;
@@ -73,6 +68,11 @@ class Articles
      */
     private $collectes;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Statuts", inversedBy="articles")
+     */
+    private $Statut;
+
     
     public function __construct()
     {
@@ -98,17 +98,6 @@ class Articles
         return $this;
     }
 
-    public function getStatu(): ?string
-    {
-        return $this->statu;
-    }
-
-    public function setStatu(?string $statu): self
-    {
-        $this->statu = $statu;
-
-        return $this;
-    }
 
     public function getQuantite(): ?int
     {
@@ -138,8 +127,6 @@ class Articles
 
         return $this;
     }
-
-   
 
     public function getReception(): ?Receptions
     {
@@ -253,6 +240,18 @@ class Articles
             $this->collectes->removeElement($collecte);
             $collecte->removeArticle($this);
         }
+
+        return $this;
+    }
+
+    public function getStatut(): ?Statuts
+    {
+        return $this->Statut;
+    }
+
+    public function setStatut(?Statuts $Statut): self
+    {
+        $this->Statut = $Statut;
 
         return $this;
     }

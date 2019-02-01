@@ -39,9 +39,9 @@ class Collecte
     private $articles;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
+     * @ORM\ManyToOne(targetEntity="App\Entity\Statuts", inversedBy="collectes")
      */
-    private $statut;
+    private $Statut;
 
     public function __construct()
     {
@@ -115,14 +115,14 @@ class Collecte
         return $this;
     }
 
-    public function getStatut(): ?string
+    public function getStatut(): ?Statuts
     {
-        return $this->statut;
+        return $this->Statut;
     }
 
-    public function setStatut(?string $statut): self
+    public function setStatut(?Statuts $Statut): self
     {
-        $this->statut = $statut;
+        $this->Statut = $Statut;
 
         return $this;
     }

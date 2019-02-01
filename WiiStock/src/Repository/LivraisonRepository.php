@@ -25,7 +25,7 @@ class LivraisonRepository extends ServiceEntityRepository
         $query = $entityManager->createQuery(
             "SELECT l
             FROM App\Entity\Livraison l
-            WHERE l.destination = :destination AND l.statut ='en attente'"
+            WHERE l.destination = :destination AND l.Statut ='en attente'"
         )->setParameter('destination', $destination);
         ;
         return $query->execute(); 
@@ -37,8 +37,8 @@ class LivraisonRepository extends ServiceEntityRepository
         $query = $entityManager->createQuery(
             "SELECT l
             FROM App\Entity\Livraison l
-            WHERE l.statut <> :statut"
-        )->setParameter('statut', $statut);
+            WHERE l.Statut <> :Statut"
+        )->setParameter('Statut', $statut);
         ;
         return $query->execute(); 
     }

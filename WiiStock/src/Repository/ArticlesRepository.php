@@ -37,11 +37,23 @@ class ArticlesRepository extends ServiceEntityRepository
         $query = $entityManager->createQuery(
             "SELECT a
             FROM App\Entity\Articles a
-            WHERE a.statu = :statut "
-        )->setParameter('statut', $statut);
+            WHERE a.Statut = :Statut "
+        )->setParameter('Statut', $statut);
         ;
         return $query->execute(); 
     }
+
+    // public function findByStatutNom($statut)
+    // {
+    //     $entityManager = $this->getEntityManager();
+    //     $query = $entityManager->createQuery(
+    //         "SELECT a
+    //         FROM App\Entity\Articles a
+    //         WHERE a.StatutNom = :Statut "
+    //     )->setParameter('Statut', $statut);
+    //     ;
+    //     return $query->execute(); 
+    // }
     
     public function findById($id)
     {
@@ -62,7 +74,7 @@ class ArticlesRepository extends ServiceEntityRepository
         $query = $entityManager->createQuery(
             "SELECT a
             FROM App\Entity\Articles a
-            WHERE a.refArticle = :ref AND a.etat = TRUE AND a.statu = 'en stock' 
+            WHERE a.refArticle = :ref AND a.etat = TRUE AND a.Statut = 3 
             "
         )->setParameter('ref', $refArticle);
         ;
@@ -99,7 +111,7 @@ class ArticlesRepository extends ServiceEntityRepository
         $query = $entityManager->createQuery(
             "SELECT a
             FROM App\Entity\Articles a
-            WHERE a.statu = 'destokage'AND a.position = :empl"
+            WHERE a.Statut = 4 AND a.position = :empl"
         )->setParameter('empl', $emplacement);
         ;
         return $query->execute(); 
@@ -112,7 +124,7 @@ class ArticlesRepository extends ServiceEntityRepository
             "SELECT COUNT (a)
             FROM App\Entity\Articles a
             JOIN a.collectes c
-            WHERE a.statu = 'collecte' AND c = :collecte"
+            WHERE a.Statut <> 20 AND c = :collecte"
         )->setParameter('collecte', $collecte);
         ;
         return $query->execute(); 
@@ -125,7 +137,7 @@ class ArticlesRepository extends ServiceEntityRepository
             "SELECT COUNT(a)
             FROM App\Entity\Articles a
             JOIN a.demandes d
-            WHERE a.statu = 'demande de sortie' AND d = :demande"
+            WHERE a.Statut = 13 AND d = :demande"
         )->setParameter('demande', $demande);
         ;
         return $query->execute(); 
@@ -137,11 +149,22 @@ class ArticlesRepository extends ServiceEntityRepository
         $query = $entityManager->createQuery(
             "SELECT COUNT(a)
             FROM App\Entity\Articles a
-            WHERE a.refArticle = :refArticle AND a.etat = TRUE AND (a.statu = 'en stock')"
+            WHERE a.refArticle = :refArticle AND a.etat = TRUE AND (a.Statut = 3)"
         )->setParameter('refArticle', $refArticle);
         ;
         return $query->execute(); 
     }
+
+    public function CountByStatut($statut)
+    {
+        $entityManager = $this->getEntityManager();
+        return $query = $entityManager->createQuery(
+            "SELECT COUNT (a) FROM App\Entity\Articles a WHERE a.Statut = :statut")
+            ->setParameter('statut', $statut)
+            ->execute()
+            ;
+    }
+
 //    /**
 //     * @return Articles[] Returns an array of Articles objects
 //     */

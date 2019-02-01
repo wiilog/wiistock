@@ -17,7 +17,7 @@
             </tr>
             <tr>
                 <th class="backtablejv">Statut</th>
-                <td>{{ preparation.statut }}</td>
+                <td>{{ preparation.statut.nom }}</td>
             </tr>
             <tr>
                 <th> Numero</th>
@@ -46,13 +46,13 @@
                     {% endif %}>
                     {% set i = i + 1 %}
                     <td>{{ article.nom }}</td>
-                    <td>{{ article.statu }}</td>
+                    <td>{{ article.statut.nom }}</td>
                     <td>{{ article.refArticle.reference }}</td>
                     <td>{{ article.position }}</td>
                     <td>{{ article.direction }}</td>
                     <td>
                         <form action="{{ path('preparation_show', {'id': preparation.id}) }}"  method="post">
-                            {% if article.statu == 'demande de sortie' and demande.statut == 'en cours de préparation' %}
+                            {% if article.statut.id == 13 and demande.statut.id == 30 %}
                                 <button type="submit" name="fin[{{demande.id}}]" value={{article.id}} class="btn btn-xs btn-default command-edit backgreen"><i class="fas fa-check fa-2x"></i></button> 
                             {% endif %}
                         </form>

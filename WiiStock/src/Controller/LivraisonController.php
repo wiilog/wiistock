@@ -13,6 +13,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use App\Entity\Demande;
 use App\Form\DemandeType;
 use App\Repository\DemandeRepository;
+use App\Repository\StatutsRepository;
 
 use App\Entity\Emplacement;
 use App\Form\EmplacementType;
@@ -24,81 +25,148 @@ use Knp\Component\Pager\PaginatorInterface;
  */
 class LivraisonController extends AbstractController
 {
+
+
     /**
      * @Route("/{history}/index", name="livraison_index", methods={"GET", "POST"})
      */
-    public function index($history, LivraisonRepository $livraisonRepository, PaginatorInterface $paginator, DemandeRepository $demandeRepository, Request $request): Response
+    public function index($history, LivraisonRepository $livraisonRepository, StatutsRepository $statutsRepository, PaginatorInterface $paginator, DemandeRepository $demandeRepository, Request $request): Response
     {
         // modification des statut lorsque la livraison est terminé 
-        if ($_POST) {
-            $livraison = $livraisonRepository->findOneBy(['id'=>$_POST['id']]);
-            $livraison->setStatut('livré');
-            $demandes = $demandeRepository->findByLivrais($_POST['id']);
-            foreach ($demandes as $demande) {
-                $demande->setStatut('livré');
+        if (isset($_POST['enCoursLivraison'])) 
+        {
+            $livraison = $livraisonRepository->findOneBy(['id'=>$_POST['enCoursLivraison']]);
+            $statut = $statutsRepository->findById(22); /* En cours de livraison */
+            $livraison->setStatut($statut[0]);
+            $demandes = $demandeRepository->findByLivrais($_POST['enCoursLivraison']);
+
+            foreach ($demandes as $demande) 
+            {
+                $statut = $statutsRepository->findById(29); 
+                $demande->setStatut($statut[0]);
                 $articles = $demande->getArticles();
-                foreach ($articles as $article) {
-                    $article->setStatu('destokage');
-                    if($article->getDirection()){
+
+                foreach ($articles as $article) 
+                {
+                    $statut = $statutsRepository->findById(23);
+                    $article->setStatut($statut[0]);
+
+                    if($article->getDirection())
+                    {
                         $article->setPosition($article->getDirection());
                         $article->setDirection(NULL);
                     }
                 }
             }
+
             $this->getDoctrine()->getManager()->flush();
             return $this->redirectToRoute('livraison_index', ['history' => 'false']);
         }
-        if($history === 'true'){
+        else if(isset($_POST['livraisonTerminée']))
+        {
+            $livraison = $livraisonRepository->findOneBy(['id'=>$_POST['livraisonTerminée']]);
+            $statut = $statutsRepository->findById(26); /* Livraison terminée */
+            $livraison->setStatut($statut[0]);
+            $demandes = $demandeRepository->findByLivrais($_POST['livraisonTerminée']);
+
+            foreach ($demandes as $demande) 
+            {
+                $statut = $statutsRepository->findById(9);
+                $demande->setStatut($statut[0]);
+                $articles = $demande->getArticles();
+
+                foreach ($articles as $article) 
+                {
+                    $statut = $statutsRepository->findById(4);
+                    $article->setStatut($statut[0]);
+
+                    if($article->getDirection())
+                    {
+                        $article->setPosition($article->getDirection());
+                        $article->setDirection(NULL);
+                    }
+                }
+            }
+
+            $this->getDoctrine()->getManager()->flush();
+            return $this->redirectToRoute('livraison_index', ['history' => 'false']);
+        }
+
+        if($history === 'true')
+        {
             return $this->render('livraison/index.html.twig', [
                 'livraisons' => $paginator->paginate($livraisonRepository->findAll(), $request->query->getInt('page', 1), 10),
                 'history' => 'true',
             ]);    
         }
+
         $statut = 'livré'; 
         return $this->render('livraison/index.html.twig', [
-            'livraisons' => $paginator->paginate($livraisonRepository->findByNoStatut($statut), $request->query->getInt('page', 1),10)
+            'livraisons' => $paginator->paginate($livraisonRepository->findByNoStatut($statut), $request->query->getInt('page', 1), 10)
         ]);
     }
     
+
     /**
      *  @Route("creation", name="livraison_creation", methods={"GET","POST"} )
      */
-    public function creation(DemandeRepository $demandeRepository, EmplacementRepository $emplacementRepository, Request $request): Response
+    public function creation(DemandeRepository $demandeRepository, StatutsRepository $statutsRepository, EmplacementRepository $emplacementRepository, Request $request): Response
     {
-         // recuperation des destination ID distincte des demandes selon le statut "preparation terminé"
-         $destinationsId = $demandeRepository->findEmplacementByStatut("préparation terminé");
+         // recuperation des destination ID distincte des demandes selon le statut "preparation terminée"
+         $destinationsId = $demandeRepository->findEmplacementByStatut(8); /* 8 = Préparation terminée (Catégorie : Demandes) */
+         dump($destinationsId);
+
         // generation automatique des livraison selon leur lieux de destination
-        if ($_POST){
-            foreach ($destinationsId as $destinationId) {
+        if ($_POST)
+        {
+            
+            foreach ($destinationsId as $destinationId) 
+            {
+               
                 // création des livraisons selon les differentes destinations unique 
                 $livraison = new Livraison();
                 // Systeme de numerotation identique aux dmendes et aux preparations => L-20190114154
                 $date =  new \DateTime('now');
                 $livraison->setNumero('L-'. $date->format('YmdHis'));
-                $livraison->setStatut("demande de livraison");
+                $statut = $statutsRepository->findById(21); /* Demande de livraison */
+                $livraison->setStatut($statut[0]);
                 $livraison->setDestination($emplacementRepository->findOneBy(['id' => $destinationId['id']]));
+
                 // recuperation des demande selon leurs destination et si elles sont terminées
-                $demandes = $demandeRepository->findByDestiAndStatut($emplacementRepository->findOneBy(['id' => $destinationId['id']]), 'préparation terminé');
+                $demandes = $demandeRepository->findByDestiAndStatut($emplacementRepository->findOneBy(['id' => $destinationId['id']]), 8);
+                dump($demandes);
                 // liaison avec la livraison et changement du statut
-                foreach ($demandes as $demande) {
-                    $demande->setStatut('en cours de livraison');
+                foreach ($demandes as $demande) 
+                {
+                    $statut = $statutsRepository->findById(22);
+                    $demande->setStatut($statut[0]);
                     $demande->setLivraison($livraison);
                     $articles = $demande->getArticles();
-                    foreach ($articles as $article) {
-                        $article->setStatu('en livraison');
+                    
+                    foreach ($articles as $article)
+                    {
+                        $statut = $statutsRepository->findById(23);
+                        $article->setStatut($statut[0]);
                     }
+
                 }
+
                 $entityManager = $this->getDoctrine()->getManager(); 
                 $entityManager->persist($livraison);               
            }
+
+            $entityManager = $this->getDoctrine()->getManager();
             $entityManager->flush();
             return $this->redirectToRoute('livraison_index', array('history'=>'false'));
         }
+        dump($demandeRepository->findDmdByStatut(8));
+        dump($demandeRepository->findEmplacementByStatut(8));
         return $this->render('livraison/creation.html.twig',array(
-            'demandes'=>$demandeRepository->findDmdByStatut('préparation terminé'),
-            'destinations'=>$demandeRepository->findEmplacementByStatut("préparation terminé"),
+            'demandes'=> $demandeRepository->findDmdByStatut(8),
+            'destinations'=> $demandeRepository->findEmplacementByStatut(8),
         ));
     }
+
 
     /**
      * @Route("/new", name="livraison_new", methods={"GET","POST"})
@@ -109,7 +177,8 @@ class LivraisonController extends AbstractController
         $form = $this->createForm(LivraisonType::class, $livraison);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
+        if ($form->isSubmitted() && $form->isValid()) 
+        {
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($livraison);
             $entityManager->flush();
@@ -160,7 +229,8 @@ class LivraisonController extends AbstractController
      */
     public function delete(Request $request, Livraison $livraison): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$livraison->getId(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('delete'.$livraison->getId(), $request->request->get('_token'))) 
+        {
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($livraison);
             $entityManager->flush();
