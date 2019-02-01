@@ -29,14 +29,14 @@ class Livraison
     private $destination;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
-    private $statut;
-
-    /**
      * @ORM\OneToMany(targetEntity="App\Entity\Demande", mappedBy="livraison")
      */
     private $demande;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Statuts", inversedBy="livraisons")
+     */
+    private $Statut;
 
     public function __construct()
     {
@@ -72,18 +72,6 @@ class Livraison
         return $this;
     }
 
-    public function getStatut(): ?string
-    {
-        return $this->statut;
-    }
-
-    public function setStatut(?string $statut): self
-    {
-        $this->statut = $statut;
-
-        return $this;
-    }
-
     /**
      * @return Collection|Demande[]
      */
@@ -111,6 +99,18 @@ class Livraison
                 $demande->setLivraison(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getStatut(): ?Statuts
+    {
+        return $this->Statut;
+    }
+
+    public function setStatut(?Statuts $Statut): self
+    {
+        $this->Statut = $Statut;
 
         return $this;
     }

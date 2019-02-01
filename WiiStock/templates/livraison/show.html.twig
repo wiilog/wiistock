@@ -12,7 +12,7 @@
             </tr>
            <tr>
                <th>Statut</th>
-               <td>{{ livraison.statut}}</td>
+               <td>{{ livraison.statut.nom }}</td>
            </tr>
         </tbody>
     </table>
@@ -36,7 +36,7 @@
                     <tr {% if i % 2 == 1 %} class="backtablejv" {% endif %}>
                         {% set i = i + 1 %}
                         <td>{{ article.nom }}</td>
-                        <td>{{ article.statu }}</td>
+                        <td>{{ article.statut.nom }}</td>
                         <td>{{ article.etat ? 'oui' : article.commentaire }}</td>
                         <td>{{ article.refArticle.reference }}</td>
                         <td>{{ article.position }}</td>
@@ -45,7 +45,7 @@
                         <td>
                             <a href="{{ path('articles_show', {'id': article.id}) }}" class="btn btn-xs btn-default command-edit"><i class="fas fa-eye fa-2x"></i></a>
                             <a href="{{ path('articles_edit', {'id': article.id}) }}" class="btn btn-xs btn-default command-edit"><i class="fas fa-pencil-alt fa-2x"></i></a>
-                            {% if article.statu == 'demande de mise en stock' %}
+                            {% if article.statut.nom == 2 %}
                                 <a href={{path('articles_index', {'statut': 'mis en stock',  'id': article.id})}} class="btn btn-xs btn-default command-edit backgreen"><i class="fas fa-check fa-2x"></i></a>
                             {% endif %}
                         </td>

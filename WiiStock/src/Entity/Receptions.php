@@ -19,12 +19,6 @@ class Receptions
     private $id;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
-    private $statut;
-
-
-    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Fournisseurs", inversedBy="receptions")
      */
     private $fournisseur;
@@ -59,6 +53,11 @@ class Receptions
      */
     private $articles;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Statuts", inversedBy="receptions")
+     */
+    private $Statut;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
@@ -67,18 +66,6 @@ class Receptions
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getStatut(): ?string
-    {
-        return $this->statut;
-    }
-
-    public function setStatut(?string $statut): self
-    {
-        $this->statut = $statut;
-
-        return $this;
     }
 
     public function getFournisseur(): ?Fournisseurs
@@ -186,6 +173,18 @@ class Receptions
                 $article->setReception(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getStatut(): ?Statuts
+    {
+        return $this->Statut;
+    }
+
+    public function setStatut(?Statuts $Statut): self
+    {
+        $this->Statut = $Statut;
 
         return $this;
     }

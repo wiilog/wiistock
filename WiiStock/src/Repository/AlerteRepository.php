@@ -24,13 +24,12 @@ class AlerteRepository extends ServiceEntityRepository
     public function findAlerteByUser($user)
     {
         $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
+        return $query = $entityManager->createQuery(
             "SELECT a
             FROM App\Entity\Alerte a
             WHERE a.AlerteUtilisateur = :user "
         )->setParameter('user', $user)->execute();
         ;
-        return $query->execute(); 
     }
 
     public function findCountAlerte()

@@ -37,8 +37,8 @@ class CollecteRepository extends ServiceEntityRepository
         $query = $entityManager->createQuery(
             "SELECT c
             FROM App\Entity\Collecte c
-            WHERE c.statut <> :statut"
-        )->setParameter('statut', $statut);
+            WHERE c.Statut <> :Statut"
+        )->setParameter('Statut', $statut);
         ;
         return $query->execute();
     }

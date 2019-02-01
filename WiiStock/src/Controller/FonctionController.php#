@@ -1,0 +1,19 @@
+<?php
+
+/* namespace App\Controller; */
+
+
+/* use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
+use App\Repository\StatutsRepository; */
+
+/* class FunctionController extends AbstractController
+{
+    public function ChangeStatuts($id)
+    {
+        $statut = $statutsRepository->findById($id);
+        return $statut[0];
+    }
+} */

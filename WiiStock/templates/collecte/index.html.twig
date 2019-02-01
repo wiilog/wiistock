@@ -35,21 +35,21 @@
             <tr {% if i % 2 == 1 %} class="backtablejv" {% endif %}>
                     {% set i = i + 1 %}
                 <td>{{ collecte.id }}</td>
-                <td>{{collecte.statut}}</td>
+                <td>{{ collecte.statut.nom }}</td>
                 <td>{{ collecte.numero }}</td>
-                <td>{{ collecte.date ? collecte.date|date('Y-m-d H:i:s') : '' }}</td>
+                <td>{{ collecte.date ? collecte.date | date('Y-m-d H:i:s') : '' }}</td>
                 <td>
                     <!-- , {'history': 'false'}) -->
                     <form action="{{ path('collecte_index', {'history': 'false'}) }}" method="post">
-                        {% if collecte.statut == 'récupéré' %}
+                        {% if collecte.statut.id == 18 %}
                             <a href="{{ path('collecte_show', {'id': collecte.id}) }}"class="btn btn-xs btn-default command-edit backIconListjv"><i class="fas fa-list fa-2x"></i></i></a>
                         {% else %}
                             <a href="{{ path('collecte_show', {'id': collecte.id}) }}"class="btn btn-xs btn-default command-edit"><i class="fas fa-eye fa-2x"></i></a>                        
                         {% endif %}
-                        {% if collecte.statut == 'demande de collecte' %}
+                        {% if collecte.statut.id == 19 %}
                             <a href="{{ path('collecte_edit', {'id': collecte.id}) }}"class="btn btn-xs btn-default command-edit"><i class="fas fa-pencil-alt fa-2x"></i></a>
                         {% endif %}
-                        {% if collecte.statut == 'demande de collecte' %}
+                        {% if collecte.statut.id == 19 %}
                             <button type="submit" name="fin" value={{collecte.id}} class="btn btn-xs btn-default command-edit backgreen"><i class="fas fa-check fa-2x"></i></button> 
                         {% endif %}
                     </form>

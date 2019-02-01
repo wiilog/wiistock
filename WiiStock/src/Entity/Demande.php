@@ -34,11 +34,6 @@ class Demande
     private $utilisateur;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
-    private $statut;
-
-    /**
      * @ORM\Column(type="datetime", nullable=true)
      */
     private $date;
@@ -57,6 +52,11 @@ class Demande
      * @ORM\ManyToOne(targetEntity="App\Entity\Livraison", inversedBy="demande")
      */
     private $livraison;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Statuts", inversedBy="demandes")
+     */
+    private $Statut;
 
     public function __construct()
     {
@@ -103,19 +103,6 @@ class Demande
 
         return $this;
     }
-
-    public function getStatut(): ?string
-    {
-        return $this->statut;
-    }
-
-    public function setStatut(?string $statut): self
-    {
-        $this->statut = $statut;
-
-        return $this;
-    }
-
 
     public function __toString()
     {
@@ -180,6 +167,18 @@ class Demande
     public function setLivraison(?Livraison $livraison): self
     {
         $this->livraison = $livraison;
+
+        return $this;
+    }
+
+    public function getStatut(): ?Statuts
+    {
+        return $this->Statut;
+    }
+
+    public function setStatut(?Statuts $Statut): self
+    {
+        $this->Statut = $Statut;
 
         return $this;
     }

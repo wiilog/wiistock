@@ -13,6 +13,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use App\Entity\ReferencesArticles;
 use App\Form\ReferencesArticlesType;
 use App\Repository\ReferencesArticlesRepository;
+use App\Repository\StatutsRepository;
 
 use App\Repository\ArticlesRepository;
 
@@ -35,7 +36,7 @@ class DemandeController extends AbstractController
     /**
      * @Route("/{history}/index", name="demande_index", methods={"GET"})
      */
-    public function index(DemandeRepository $demandeRepository, PaginatorInterface $paginator, Request $request, $history): Response
+    public function index(DemandeRepository $demandeRepository, PaginatorInterface $paginator, Request $request, StatutsRepository $statutsRepository, $history): Response
     {
         
         $demandeQuery = ($history === 'true') ? $demandeRepository->findAll() : $demandeRepository->findAllByUserAndStatut($this->getUser());
@@ -62,7 +63,7 @@ class DemandeController extends AbstractController
     /**
      * @Route("/creationDemande", name="creation_demande", methods="GET|POST")
      */
-    public function creationDemande(LivraisonRepository $livraisonRepository, Request $request, ReferencesArticlesRepository $referencesArticlesRepository,ArticlesRepository $articlesRepository, EmplacementRepository $emplacementRepository): Response 
+    public function creationDemande(LivraisonRepository $livraisonRepository, Request $request, StatutsRepository $statutsRepository, ReferencesArticlesRepository $referencesArticlesRepository, ArticlesRepository $articlesRepository, EmplacementRepository $emplacementRepository): Response 
     {   
         //la creation de demandes n'utilise pas le formulaire symfony, les utilisateur demandent des articles de Reference non pas les articles
         // on recupere la liste de article de reference et on créer une instance de demande
@@ -74,7 +75,8 @@ class DemandeController extends AbstractController
             $destination = $emplacementRepository->findOneBy(array('id' =>$_POST['direction']));
             // on 'remplie' la $demande avec les data les plus simple
             $demande->setDestination($destination);
-            $demande->setStatut('commande demandé');
+            $statut = $statutsRepository->findById(14);
+            $demande->setStatut($statut[0]);
             $demande->setUtilisateur($this->getUser());
             $date =  new \DateTime('now');
             $demande->setdate($date);
@@ -88,7 +90,8 @@ class DemandeController extends AbstractController
                 for($n=0; $n<$refArtQte[$key]; $n++){
                     $demande->addArticle($articles[$n]);
                     //on modifie le statut de l'article et sa destination 
-                    $articles[$n]->setStatu('demande de sortie');
+                    $statut = $statutsRepository->findById(13);
+                    $articles[$n]->setStatut($statut[0]);
                     $articles[$n]->setDirection($destination);
                 }
             }

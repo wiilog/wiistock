@@ -14,7 +14,7 @@
         </div>
     {% endif %}
 
-    <div class='row btn pull-right' >
+    <div class='row btn pull-right'>
         <a href="{{ path('preparation_creation') }}" class="button btn-left">
             <span class="fa fa-plus"></span>Nouvelle preparation
         </a >
@@ -37,17 +37,17 @@
                 <td>{{ preparation.id }}</td>
                 <td>{{preparation.numero}}</td>
                 <td>{{ preparation.date ? preparation.date|date('Y-m-d H:i:s') : '' }}</td>
-                <td>{{ preparation.statut }}</td>
+                <td>{{ preparation.statut.nom }}</td>
                 <td>
                 <form action={{path('preparation_index', {'history': 'false'})}} method="post">
 
-                    {% if preparation.statut == 'en cours' %}
+                    {% if preparation.statut.nom == 'en cours' %}
                         <a href="{{ path('preparation_show', {'id': preparation.id}) }}"class="btn btn-xs btn-default command-edit backIconListjv"><i class="fas fa-list fa-2x"></i></i></a>
                     {% else %}
                         <a href="{{ path('preparation_show', {'id': preparation.id}) }}"class="btn btn-xs btn-default command-edit"><i class="fas fa-eye fa-2x"></i></a>                        
                     {% endif %}
-                    {% if preparation.statut == 'Nouvelle préparation' %}
-                        <button type="submit" name="en_cours" value={{preparation.id}} class="btn btn-xs btn-default command-edit backgreen"><i class="fas fa-check fa-2x"></i></button> 
+                    {% if preparation.statut.nom == 'nouvelle préparation' %}
+                        <button type="submit" name="en_cours" value={{ preparation.id }} class="btn btn-xs btn-default command-edit backgreen"><i class="fas fa-check fa-2x"></i></button> 
                     {% endif %}
                 </form>
                 </td>

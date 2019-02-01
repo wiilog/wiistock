@@ -29,7 +29,7 @@ class ReceptionsRepository extends ServiceEntityRepository
         $query = $entityManager->createQuery(
             "SELECT r
             FROM App\Entity\Receptions r
-            WHERE r.statut = 'en cours de reception' OR r.date LIKE :date "
+            WHERE r.Statut = 6 OR r.date LIKE :date "
         )->setParameter('date', $dateF);
         ;
         return $query->execute(); 

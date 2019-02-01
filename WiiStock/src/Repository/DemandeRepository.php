@@ -20,14 +20,14 @@ class DemandeRepository extends ServiceEntityRepository
     }
 
 
-    public function findDmdByStatut($statut)
+    public function findDmdByStatut($Statut)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT d
             FROM App\Entity\Demande d
-            WHERE d.statut = :statut "
-        )->setParameter('statut', $statut);
+            WHERE d.Statut = :Statut "
+        )->setParameter('Statut', $Statut);
         ;
         return $query->execute(); 
     }
@@ -51,7 +51,7 @@ class DemandeRepository extends ServiceEntityRepository
         $query = $entityManager->createQuery(
             "SELECT d
             FROM App\Entity\Demande d
-            WHERE d.statut <> 'livré' AND d.utilisateur = :user"
+            WHERE d.Statut <> 9 AND d.utilisateur = :user"
         )->setParameter('user', $user);
         ;
         return $query->execute(); 
@@ -69,28 +69,28 @@ class DemandeRepository extends ServiceEntityRepository
         return $query->execute(); 
     }
     
-    public function findEmplacementByStatut($statut)
+    public function findEmplacementByStatut($Statut)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT DISTINCT t.id, t.nom
             FROM App\Entity\Demande d
             JOIN d.destination t
-            WHERE d.statut = :statut "
-        )->setParameter('statut', $statut);
+            WHERE d.Statut = :Statut "
+        )->setParameter('Statut', $Statut);
         ;
         return $query->execute(); 
     }
 
-    public function findByDestiAndStatut($destination, $statut)
+    public function findByDestiAndStatut($destination, $Statut)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT d
             FROM App\Entity\Demande d
-            WHERE d.destination = :destination AND d.statut = :statut"
+            WHERE d.destination = :destination AND d.Statut = :Statut"
         )->setParameter('destination', $destination)
-         ->setParameter('statut', $statut);
+         ->setParameter('Statut', $Statut);
         ;
         return $query->execute(); 
     }
@@ -107,19 +107,19 @@ class DemandeRepository extends ServiceEntityRepository
         return $query->execute(); 
     }
 
-    public function findCountByStatutAndPrepa($preparation)
+    public function findCountByStatutAndPrepa($statut, $preparation)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT COUNT (d)
             FROM App\Entity\Demande d
             JOIN d.preparation p
-            WHERE d.statut <> 'préparer' AND p = :preparation"
-        )->setParameter('preparation', $preparation);
+            WHERE d.Statut <> :statut AND p = :preparation"
+        )->setParameter('preparation', $preparation)
+        ->setParameter('statut', $statut);
         ;
         return $query->execute(); 
     }
-
     
     // /**
     //  * @return Demande[] Returns an array of Demande objects

@@ -26,17 +26,17 @@ class Preparation
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $statut;
-
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
     private $numero;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Demande", mappedBy="preparation")
      */
     private $demandes;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Statuts", inversedBy="preparations")
+     */
+    private $Statut;
 
     public function __construct()
     {
@@ -56,18 +56,6 @@ class Preparation
     public function setDate(?\DateTimeInterface $date): self
     {
         $this->date = $date;
-
-        return $this;
-    }
-
-    public function getStatut(): ?string
-    {
-        return $this->statut;
-    }
-
-    public function setStatut(?string $statut): self
-    {
-        $this->statut = $statut;
 
         return $this;
     }
@@ -111,6 +99,18 @@ class Preparation
                 $demande->setPreparation(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getStatut(): ?Statuts
+    {
+        return $this->Statut;
+    }
+
+    public function setStatut(?Statuts $Statut): self
+    {
+        $this->Statut = $Statut;
 
         return $this;
     }

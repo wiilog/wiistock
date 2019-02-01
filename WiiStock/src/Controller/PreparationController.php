@@ -32,6 +32,7 @@ use App\Repository\DemandeRepository;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Knp\Component\Pager\PaginatorInterface;
+use App\Repository\StatutsRepository;
 
 /**
  * @Route("/preparation")
@@ -41,7 +42,7 @@ class PreparationController extends AbstractController
     /**
      * @Route("/{history}/index", name="preparation_index", methods="GET|POST")
      */
-    public function index($history, PreparationRepository $preparationRepository, DemandeRepository $demandeRepository, ReferencesArticlesRepository $referencesArticlesRepository, EmplacementRepository $emplacementRepository, Request $request, PaginatorInterface $paginator): Response
+    public function index($history, PreparationRepository $preparationRepository, StatutsRepository $statutsRepository, DemandeRepository $demandeRepository, ReferencesArticlesRepository $referencesArticlesRepository, EmplacementRepository $emplacementRepository, Request $request, PaginatorInterface $paginator): Response
     {   
         $préparationQuery = ($history === 'true') ? $preparationRepository->findAll() : $preparationRepository->findByNoStatut('fin');
         $pagination = $paginator->paginate(
@@ -49,27 +50,36 @@ class PreparationController extends AbstractController
             $request->query->getInt('page', 1),
             10
         );
-        // validation de fin de prparation
+        // validation de fin de preparation
         // verification de l existance de la variable 
         if (array_key_exists('en_cours', $_POST)) {
         // on recupere l id en post 
-           $preparation = $preparationRepository->findOneBy(["id"=>$_POST["en_cours"]]);
+            $preparation = $preparationRepository->findOneBy(["id"=>$_POST["en_cours"]]);
         //on modifie les statuts de la preparation et des demandes liées
-           $preparation->setStatut('en cours');
-           $demandes = $demandeRepository->findByPrepa($preparation);
-           foreach ($demandes as $demande) {
-               $demande->setStatut("en cours de préparation");
+            dump($preparation);
+
+            /* On modifie le statut de la préparation à en cours de préparation */
+            $statut = $statutsRepository->findById(12); /* Demande de préparation Catégorie : préparation */
+            dump($statut);
+            $preparation->setStatut($statut[0]);
+            $demandes = $demandeRepository->findByPrepa($preparation);
+            foreach ($demandes as $demande)
+            {
+               $statut = $statutsRepository->findById(30);  /* Demande de préparation Catégorie : Demandes */
+               $demande->setStatut($statut[0]);
            }
            $this->getDoctrine()->getManager()->flush();
            return $this->redirectToRoute('preparation_index', array('history'=> 'false'));
         }
         // permet d'affiché rapidement un historique ou les demandes en cours
-        if ($history === 'true') {
+        if ($history === 'true') 
+        {
             return $this->render('preparation/index.html.twig', array(
                 'preparations'=> $pagination,
                 'history' => 'false',
             ));   
         }
+
         return $this->render('preparation/index.html.twig', array(
             'preparations'=> $pagination,
         ));
@@ -101,74 +111,104 @@ class PreparationController extends AbstractController
     /**
      * @Route("/creationPreparation", name="preparation_creation", methods="GET|POST" )
      */
-    public function creationPreparation(DemandeRepository $demandeRepository, PreparationRepository $preparationRepository, ReferencesArticlesRepository $referencesArticlesRepository, EmplacementRepository $emplacementRepository)
+    public function creationPreparation(DemandeRepository $demandeRepository, StatutsRepository $statutsRepository, PreparationRepository $preparationRepository, ReferencesArticlesRepository $referencesArticlesRepository, EmplacementRepository $emplacementRepository)
     {   
-        // creation d'une nouvelle preparation  bassée sur une selection de demandes
-        if ($_POST){
+        // creation d'une nouvelle preparation basée sur une selection de demandes
+        if ($_POST)
+        {
             $preparation = new Preparation;
             //declaration de la date pour remplir Date et Numero
             $date =  new \DateTime('now');
             $preparation->setNumero('P-'. $date->format('YmdHis'));
             $preparation->setDate($date);
-            $preparation->setStatut('Nouvelle préparation');
+            $statut = $statutsRepository->findById(11); /* Statut : nouvelle préparation */
+            $preparation->setStatut($statut[0]);
             //plus de detail voir creation demande meme principe 
             $demandeKey = array_keys($_POST['preparation']);
-            foreach ($demandeKey as $key ) {
-                $demande= $demandeRepository->findOneBy(['id'=> $key]);
+
+            foreach ($demandeKey as $key)
+            {
+                $demande = $demandeRepository->findOneBy(['id'=> $key]);
                 $demande->setPreparation($preparation);
-                $demande->setStatut('demande préparation');
+                $statut = $statutsRepository->findById(15); /* Statut : Demande de préparation */
+                $demande->setStatut($statut[0]);
                 $articles = $demande->getArticles();
-                foreach ($articles as $article) {
-                    $article->setStatu('demande de sortie');
+
+                foreach ($articles as $article) 
+                {
+                    $statut = $statutsRepository->findById(13); /* Statut : Demande de sortie */
+                    $article->setStatut($statut[0]);
                     $article->setDirection($demande->getDestination());
                 }
+
                 $this->getDoctrine()->getManager();
             }
+
             $em = $this->getDoctrine()->getManager();
             $em->persist($preparation);
             $em->flush();
             return $this->redirectToRoute('preparation_index', array('history'=> 'false'));
+
         }
+
         return $this->render("preparation/creation.html.twig", array(
-            "demandes" =>$demandeRepository->findDmdByStatut('commande demandé'), //A modifier 
+            "demandes" =>$demandeRepository->findDmdByStatut(14), /* Nouvelle demande */ 
         ));
     }
 
     /**
      * @Route("/{id}", name="preparation_show", methods="GET|POST")
      */
-    public function show(Preparation $preparation, PreparationRepository $preparationRepository, DemandeRepository $demandeRepository, ArticlesRepository $articlesRepository): Response
+    public function show(Preparation $preparation, StatutsRepository $statutsRepository, PreparationRepository $preparationRepository, DemandeRepository $demandeRepository, ArticlesRepository $articlesRepository): Response
     {
         // modelise l'action de prendre l'article dan sle stock pour constituer la preparation  
-        if(array_key_exists('fin', $_POST)){
+        if(array_key_exists('fin', $_POST))
+        {
             $article = $articlesRepository->findById($_POST['fin']);
-            $article[0]->setStatu('préparation');
+            $statut = $statutsRepository->findById(16); /*  Le statut passe en préparation */
+            $article[0]->setStatut($statut[0]);
             $this->getDoctrine()->getManager()->flush();
+            
             // Meme principe que pour collecte_show =>comptage des articles selon un statut et une preparation si nul alors preparation fini 
             $demande = $demandeRepository->findById(array_keys($_POST['fin']));
             $finDemande = $articlesRepository->findCountByStatutAndDemande($demande);
             $fin = $finDemande[0];
-            if($fin[1] === '0'){
-                $demande[0]->setStatut('préparation terminé');   
+
+            dump($fin);
+
+            if($fin[1] === '0')
+            {
+                $statut = $statutsRepository->findById(8);
+                $demande[0]->setStatut($statut[0]); 
+                $statut = $statutsRepository->findById(24);
+                $preparation->setStatut($statut[0]);
             }
             $this->getDoctrine()->getManager()->flush();
         }
 
-        //vérification de la fin de la praparation requete SQL => dédié
-        $fin = $demandeRepository->findCountByStatutAndPrepa($preparation);
-        $fin = $fin[0];
-        if($fin[1] === '0'){
-            $preparation->setStatut('fin');            
+        //vérification de la fin de la preparation requete SQL => dédié
+       /*  dump($preparation);
+        $statut = $statutsRepository->findById(24) */; /* On cherche demande de sortie */
+        /* $fin = $demandeRepository->findCountByStatutAndPrepa($statut, $preparation); */ /* On compte le nombre  */
+/*         $fin = $fin[0];
+
+        dump($fin);
+        dump($fin[1]);
+
+        if($fin[1] === '0')
+        {
+            $statut = $statutsRepository->findById(17); 
+            $preparation->setStatut($statut[0]);
             $this->getDoctrine()->getManager()->flush();
-        }
+        } */
         
         return $this->render('preparation/show.html.twig', ['preparation' => $preparation]);
     }
 
     /**
-     * @Route("/{id}/edit", name="preparation_edit", methods="GET|POST")
+     * @Route("/{id}/edit", name="preparation_edit", methods="GET | POST")
      */
-    public function edit(Request $request, Preparation $preparation): Response
+    public function edit(Request $request, StatutsRepository $statutsRepository, Preparation $preparation): Response
     {
         $form = $this->createForm(PreparationType::class, $preparation);
         $form->handleRequest($request);
@@ -185,7 +225,7 @@ class PreparationController extends AbstractController
     /**
      * @Route("/{id}", name="preparation_delete", methods="DELETE")
      */
-    public function delete(Request $request, Preparation $preparation): Response
+    public function delete(Request $request, StatutsRepository $statutsRepository, Preparation $preparation): Response
     {
         if ($this->isCsrfTokenValid('delete'.$preparation->getId(), $request->request->get('_token'))) {
             $em = $this->getDoctrine()->getManager();
