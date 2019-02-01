@@ -37,6 +37,7 @@
             <tbody>
             {% set i = 0 %}
             {% for article in collecte.articles |reverse %}
+            <form action="{{ path('collecte_show', {'id': collecte.id}) }}"  method="post">
                 <tr {% if i % 2 == 1 %}
                         class="backtablejv"
                     {% endif %}>
@@ -47,15 +48,14 @@
                     <td>{{ article.refArticle.reference }}</td>
                     <td>{{ article.position }}</td>
                     <td>{{ article.direction }}</td>
-                    <td>{{ article.quantite }}</td>
+                    <td><input type="number" name="article[{{article.id}}]" id="" value="{{ article.quantite }}" class="mb-3 form-control"></td>
                     <td>
-                        <form action="{{ path('collecte_show', {'id': collecte.id}) }}"  method="post">
                             {% if collecte.statut == 'récupéré' and article.statu == 'collecte' %}
                                 <button type="submit" name="fin" value={{article.id}} class="btn btn-xs btn-default command-edit backgreen"><i class="fas fa-check fa-2x"></i></button> 
                             {% endif %}
-                        </form>
                     </td>
                 </tr>
+            </form>
             {% else %}
                 <tr>
                     <td colspan="10">aucun résultat</td>

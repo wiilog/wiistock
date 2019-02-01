@@ -38,7 +38,6 @@ class Demande
      */
     private $statut;
 
-
     /**
      * @ORM\Column(type="datetime", nullable=true)
      */

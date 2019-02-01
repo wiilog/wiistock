@@ -8,67 +8,113 @@
             <ul id="sidemenu" class="sidemenu">
                 <li>
                     <a href={{path("utilisateurs_edit", {"id": app.user.id})}}>
+                        <i class="fas fa-user"></i>
                         <div class="username">{{ app.user.username }}</div>
-                        <i class="fa fa-user"></i>
                     </a>
                 </li>
-
                 <li>
                     <a href="{{ path('check_last_login') }}">
-                        <i class="fa fa-home"></i>
+                        <i class="fas fa-home"></i>
+                        <h4 class="username">Acceuil</h4>
                     </a>
                 </li>
-<!-- RECEPTION -->
-                <li>
-                    <a href={{path("receptions_index", {'history': 0})}}>
-                            <i class="fa fa-box"></i>
-                    </a>
-                </li>
-<!-- ARTICLES -->
+<!-- DEMANDE   -->
                 <li class="has-submenu">
-                    <a href={{path("articles_index", {'id': 0})}}>
-                        <i class="fa fa-boxes"></i>
+                    <a href="#">
+                        <i class="fas fa-shopping-cart"></i>
+                        <h4 class="username">Demande</h4>
                     </a>
                     <ul class="sidemenu-sub">
-                        <li class="text">
-                            <h4>Articles</h4>
-                        </li>
-                        {# <li><a href={{path('articles_index', {'statut': 'en cours de reception', 'id': '0'})}}>• En cours de réception</a></li>
-                        <li><a href={{path('articles_index', {'statut': 'demande de mise en stock', 'id': '0'})}}>• Entré stock</a></li>
-                        <li><a href={{path('articles_index', {'statut': 'en stock', 'id': '0'})}}>• Stock</a></li>
-                        <li><a href={{path('articles_index', {'statut': 'demande de sortie', 'id': '0'})}}>• En attente de livraison </a></li>   
-                        <li><a href={{path('articles_index', {'statut': 'destockage', 'id': '0'})}}>• Sortie</a></li>   
-                        <li><a href={{path('articles_index', {'statut': 'anomalie', 'id': '0'})}}>• Anomalie</a></li> #}
+                        <li ><a href={{path("collecte_index", {'history':'false'})}}>• collecte</a></li>
+                        <li ><a href={{ path('demande_index', {'history': 'false'}) }}>• Livraison</a></li>
+                    </ul>
+                </li>
+<!-- ORDRE -->
+                <li class="has-submenu">
+                    <a href="#">
+                        <i class="fas fa-network-wired"></i>
+                        <h4 class="username">Ordre</h4>
+                    </a>
+                    <ul class="sidemenu-sub">
+                        <li><a href={{path("receptions_index", {'history': 0})}}>• Réception</a></li>
+                        <li><a href={{ path('preparation_index',  {'history': 'false'} ) }}>• Préparation</a></li>
+                        <li><a href={{path("livraison_index", {'history':'false'})}}>• Livraison</a></li>
                     </ul>
                </li>                
-<!-- PREPARATION -->
+<!-- STOCK -->
                 <li class="has-submenu">
                     <a href=>
-                        <i class="fa fa-shopping-cart"></i>
+                        <i class="fas fa-box"></i>
+                        <h4 class="username">Stock</h4>
                     </a>
                     <ul class="sidemenu-sub">
-                        <li class="text">
-                            <h4>Demande</h4>
-                        </li>
-                        
-                        <li><a href={{ path('creation_demande') }}>• Nouvelle demande</a></li>
-                        <li><a href={{ path('demande_index', {'history': 'false'}) }}>• Demande</a></li>
-                        <li><a href={{ path('preparation_creation') }}>• Nouvelle Préparation</a></li>
-                        <li><a href={{ path('preparation_index',  {'history': 'false'} ) }}>• Préparation</a></li>
-                        <li><a href={{ path('livraison_creation') }}>• Nouvelle Livraison</a></li>
-                        <li><a href={{path("livraison_index", {'history':'false'})}}>• Livraison</a></li>
-                        <li><a href={{ path('collecte_create') }}>• Demande de collecte</a></li>
-                        <li><a href={{path("collecte_index", {'history':'false'})}}>• collecte</a></li>
-
-                        
+                        <li><a href={{ path('articles_index', {'history':0}) }}>• Article</a></li>
+                        <li><a href="#">• Mouvement</a></li>
+                        <li><a href={{path('emplacement_index')}}>• Emplacement</a></li>
+                        <li><a href="#">• Inventaire</a></li>       
                     </ul>
                 </li>
-                {# <li>
-                    <a href="#">
-                        <i class="fa fa-search"></i>
+<!-- REFERENCE -->
+                <li class="has-submenu">
+                        <a href="#">
+                            <i class="fas fa-sync-alt"></i>
+                            <h4 class="username">Référenciel</h4>
+                        </a>
+                    <ul class="sidemenu-sub">
+                        <li>
+                            <a href="{{ path('fournisseurs_index') }}">• Fournisseur</a>
+                        </li>
+                        <li>
+                            <a href="{{ path('references_articles_index') }}">• Article référence</a>
+                        </li>
+                        <li>
+                            <a href="#">• Article type</a>
+                        </li>
+                        <li>
+                            <a href="#">• Article Fournisseur</a>
+                        </li>
+                    </ul>
+                </li>
+
+                {% if is_granted('ROLE_ADMIN') %}
+                    <li class="has-submenu">
+                        <a href="#">
+                            <i class="fas fa-gear"></i>
+                            <h4 class="username">Paramétrage</h4>
+                        </a>
+                        <ul class="sidemenu-sub">
+                            <li>
+                                <a href="{{ path('utilisateurs_index') }}">• Utilisateurs</a>
+                            </li>
+                            <li>
+                                <a href="{{ path('change_password') }}">• Changer de mot de passe</a>
+                            </li>
+                            {% if is_granted('ROLE_STOCK_ADMIN') %}
+                                <li>
+                                    <a href="{{ path('champs_personnalises_index') }}">• Champs personnalisé</a>
+                                </li>
+                                <li>
+                                    <a href="{{ path('alerte_index') }}">• Alertes</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </li>
+                {% endif %}
+                <li>
+                    <a href="{{ path('logout') }}">
+                        <i class="	fas fa-power-off"></i>
+                        <h4 class="username">Deconnexion</h4>
                     </a>
-                </li> #}
-<!-- PARC -->
+                </li>
+            </ul>
+            <!-- PARAMETRAGE PARC -->
+                            <!-- {% if is_granted('ROLE_PARC_ADMIN') %}
+                                <li>
+                                    <a href="{{ path('parc_parametrage') }}">• Paramétrage des données</a>
+                                </li>
+                            {% endif %} -->
+
+                <!-- PARC -->
                 <!-- {% if is_granted('ROLE_PARC') %}
                     <li class="has-submenu">
                         <a>
@@ -99,77 +145,9 @@
                         <a href="#">
                             <i class="fa fa-book"></i>
                         </a>
-<!-- REFERENCE -->
-                    <li class="has-submenu">
-                            <a href="#">
-                                <i class="fa fa-sync-alt"></i>
-                            </a>
-                        <ul class="sidemenu-sub">
-                            <li class="text">
-                                <h4>Référenciel</h4>
-                            </li>
-                            <!-- <li>
-                                <a href="{{ path('referentiel_clients') }}">• Client</a>
-                            </li> -->
-                            <li>
-                                <a href="{{ path('fournisseurs_index') }}">• Fournisseur</a>
-                            </li>
-                            <li>
-                                <a href="{{ path('references_articles_index') }}">• Articles</a>
-                            </li>
-                            <li>
-                                <a href={{path('emplacement_index')}}>• Emplacement</a>
-                            </li>
-                            <!-- <li>
-                                <a href="{{ path('referentiel_categories') }}">• Catégorie d'articles</a>
-                            </li> -->
-                        </ul>
-                    </li>
                 <!-- {% endif %} -->
-                {% if is_granted('ROLE_ADMIN') %}
-                    <li class="has-submenu">
-                        <a href="#">
-                            <i class="fa fa-gear"></i>
-                        </a>
-                        <ul class="sidemenu-sub">
-                            <li class="text">
-                                <h4>Paramètres</h4>
-                            </li>
-                            <li>
-                                <a href="{{ path('utilisateurs_index') }}">• Utilisateurs</a>
-                            </li>
-<!-- PARAMETRAGE PARC -->
-                            <!-- {% if is_granted('ROLE_PARC_ADMIN') %}
-                                <li>
-                                    <a href="{{ path('parc_parametrage') }}">• Paramétrage des données</a>
-                                </li>
-                            {% endif %} -->
-                            <li>
-                                <a href="{{ path('change_password') }}">• Changer de mot de passe</a>
-                            </li>
-                            {% if is_granted('ROLE_STOCK_ADMIN') %}
-                                <li>
-                                    <a href="{{ path('champs_personnalises_index') }}">• Champs personnalisé</a>
-                                </li>
-                                <li>
-                                    <a href="{{ path('dimensionnement') }}">• Dimensionnement</a>
-                                </li>
-                                <li>
-                                    <a href="{{ path('alerte_index') }}">• Alertes</a>
-                                </li>
-                            {% endif %}
-                        </ul>
-                    </li>
-                {% endif %}
-                <li>
-                    <a href="{{ path('logout') }}">
-                        <i class="	fa fa-power-off"></i>
-                    </a>
-                </li>
-            </ul>
         </nav>
     {% endblock %}
-
     <div class="wrapper">
         <div class="container-fluid">
             {% block page_content %}{% endblock %}
