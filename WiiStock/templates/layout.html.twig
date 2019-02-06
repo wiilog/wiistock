@@ -87,16 +87,14 @@
                                 <a href="{{ path('utilisateurs_index') }}">• Utilisateurs</a>
                             </li>
                             <li>
-                                <a href="{{ path('change_password') }}">• Changer de mot de passe</a>
+                                <a href="#">• Rôle</a>
                             </li>
-                            {% if is_granted('ROLE_STOCK_ADMIN') %}
-                                <li>
-                                    <a href="{{ path('champs_personnalises_index') }}">• Champs personnalisé</a>
-                                </li>
-                                <li>
-                                    <a href="{{ path('alerte_index') }}">• Alertes</a>
-                                </li>
-                            {% endif %}
+                            <li>
+                                <a href="{{ path('champs_personnalises_index') }}">• Champs personnalisé</a>
+                            </li>
+                            <li>
+                                <a href="{{ path('alerte_index') }}">• Alertes</a>
+                            </li>
                         </ul>
                     </li>
                 {% endif %}

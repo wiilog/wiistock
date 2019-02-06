@@ -59,6 +59,18 @@ class ReferencesArticlesRepository extends ServiceEntityRepository
         return $query->execute(); 
     }
 
+    public function findById($id)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT r 
+            FROM App\Entity\ReferencesArticles r
+            WHERE r.id = :id "
+             )->setParameter('id', $id);
+        ;
+        return $query->execute(); 
+    }
+
 //    /**
 //     * @return ReferencesArticles[] Returns an array of ReferencesArticles objects
 //     */

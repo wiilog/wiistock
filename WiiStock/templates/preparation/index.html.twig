@@ -19,7 +19,7 @@
             <span class="fa fa-plus"></span>Nouvelle preparation
         </a >
     </div>
-    <table class="table">
+    <table class="table table-striped">
         <thead>
             <tr>
                 <th>Id</th>
@@ -30,10 +30,8 @@
             </tr>
         </thead>
         <tbody>
-            {% set i = 0  %}
-        {% for preparation in preparations %}
-            <tr {% if i % 2 == 1 %} class="backtablejv" {% endif %}>
-                    {% set i = i + 1 %}
+         {% for preparation in preparations %}
+            <tr>
                 <td>{{ preparation.id }}</td>
                 <td>{{preparation.numero}}</td>
                 <td>{{ preparation.date ? preparation.date|date('Y-m-d H:i:s') : '' }}</td>
@@ -41,7 +39,7 @@
                 <td>
                 <form action={{path('preparation_index', {'history': 'false'})}} method="post">
 
-                    {% if preparation.statut.nom == 'en cours' %}
+                    {% if preparation.statut.id == 12 %}
                         <a href="{{ path('preparation_show', {'id': preparation.id}) }}"class="btn btn-xs btn-default command-edit backIconListjv"><i class="fas fa-list fa-2x"></i></i></a>
                     {% else %}
                         <a href="{{ path('preparation_show', {'id': preparation.id}) }}"class="btn btn-xs btn-default command-edit"><i class="fas fa-eye fa-2x"></i></a>                        

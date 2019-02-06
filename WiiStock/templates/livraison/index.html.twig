@@ -22,7 +22,7 @@
             </a >
         </div>
 
-    <table class="table">
+    <table class="table table-striped">
         <thead>
             <tr>
                 <th>Id</th>
@@ -47,7 +47,7 @@
                             <button type="submit" name="enCoursLivraison" value={{ livraison.id }} class="btn btn-xs btn-default command-edit backgreen"><i class="fas fa-check fa-2x"></i></button>                   
                         {% endif %}
                         {% if livraison.statut.id == 22 %}              
-                            <button type="submit" name="livraisonTerminée" value={{ livraison.id }} class="btn btn-xs btn-default command-edit backgreen"><i class="fas fa-check fa-2x"></i></button>                   
+                            <button type="submit" name="livraisonTerminée" value={{ livraison.id }} class="btn btn-xs btn-default command-edit backgreen"><i class="far fa-arrow-alt-circle-down"></i></button>                   
                         {% endif %}
                         <a href="{{ path('livraison_show', {'id': livraison.id}) }}"class="btn btn-xs btn-default command-edit"><i class="fas fa-eye fa-2x"></i></a>
                     </form>

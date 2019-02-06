@@ -25,11 +25,68 @@ use App\Repository\ReferencesArticlesRepository;
 use Knp\Component\Pager\PaginatorInterface;
 use App\Repository\StatutsRepository;
 
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+
 /**
  * @Route("/receptions")
  */
 class ReceptionsController extends AbstractController
 {
+
+    /**
+     * @Route("/json", name="reception_json", methods={"GET", "POST"}) 
+     */
+    public function receptionJson(Request $request, ReceptionsRepository $receptionsRepository, ArticlesRepository $articlesRepository, StatutsRepository $statutsRepository, EmplacementRepository $emplacementRepository, ReferencesArticlesRepository $referencesArticlesRepository ) : Response
+    {
+        // recuperation du fichier JSON via la requete
+        if (!$request->isXmlHttpRequest()) {
+            // decodage en tavleau php
+            $myJSON = json_decode($request->getContent(), true);
+            // traitement des données => récuperation des objets via leur id 
+            $position = $emplacementRepository->findEptById($myJSON['position']);
+            $direction = $emplacementRepository->findEptById($myJSON['direction']);
+            $refArticle= $referencesArticlesRepository->findById($myJSON['refArticle']);
+            $reception= $receptionsRepository->findById($myJSON['reception']);
+            // creation d'un nouvelle objet article + set des donnees
+            $article = new Articles();
+            $article->setNom($myJSON['nom']);
+            $article->setPosition($position[0]);
+            $article->setDirection($direction[0]);
+            $article->setRefArticle($refArticle[0]);
+            $article->setQuantite(intval($myJSON['quantite']));
+            $article->setEtat($myJSON['etat']);
+            $article->setCommentaire($myJSON['commentaire']);
+            $article->setReception($reception[0]);
+            if ($article->getEtat())
+            {
+                $statut = $statutsRepository->findById(1);
+                $article->setStatut($statut[0]);
+            }
+            else 
+            {
+                $statut = $statutsRepository->findById(5);
+                $article->setStatut($statut[0]);
+            }
+            // flush du nouvelle objet article dans la base
+            $em = $this->getDoctrine()->getManager();
+            $em->persist($article);
+            $em->flush();
+            // contruction de la reponse =>recuperation de l'article cree + traitement des donnees
+            $reponseJSON =[ 
+                'id'=> $article->getId(),
+                'nom'=> $article->getNom(),
+                'statut'=> $article->getStatut()->getNom(),
+                'quantite'=>$article->getQuantite(),
+                 'etat'=>($article->getEtat() ? 'conforme': 'non-conforme'),
+            ];
+            // encodage de la reponse en JSON + envoie 
+            $reponseJSON = json_encode($reponseJSON);
+            return new JsonResponse($reponseJSON);
+        }
+        throw new NotFoundHttpException('404 not found');
+        
+    }
 
     /**
      * @Route("/{history}", name="receptions_index", methods="GET")
@@ -62,7 +119,7 @@ class ReceptionsController extends AbstractController
     }
 
     /**
-     * @Route("/new/creation", name="receptions_new", methods="GET|POST")
+     * @Route("/new/creation", name="receptions_new", methods={"GET", "POST"})
      */
     public function new(Request $request, StatutsRepository $statutsRepository): Response
     {
@@ -98,7 +155,7 @@ class ReceptionsController extends AbstractController
     }
 
     /**
-     * @Route("/{id}/edit", name="receptions_edit", methods="GET|POST")
+     * @Route("/{id}/edit", name="receptions_edit", methods={"GET", "POST"})
      */
     public function edit(Request $request, Receptions $reception): Response
     {
@@ -132,36 +189,10 @@ class ReceptionsController extends AbstractController
     }
 
     /**
-     * @Route("/article/{id}/{k}", name="reception_ajout_article", methods="GET|POST")
+     * @Route("/article/{id}/{k}", name="reception_ajout_article", methods={"GET", "POST"})
      */
     public function ajoutArticle(Request $request, Receptions $reception, ArticlesRepository $articlesRepository, StatutsRepository $statutsRepository, EmplacementRepository $emplacementRepository, ReferencesArticlesRepository $referencesArticlesRepository , $id, $k): Response
     {
-        //findByReception requete SQl dédié 
-        $article = new Articles();
-        $form = $this->createForm(ArticlesType::class, $article);
-        $form->handleRequest($request);
-        
-        //création des articles en relation avec la reception
-        if ($form->isSubmitted() && $form->isValid() && $k == false) 
-        {
-            if ($article->getEtat())
-            {
-                $statut = $statutsRepository->findById(1);
-                $article->setStatut($statut[0]);
-            }
-            else 
-            {
-                $statut = $statutsRepository->findById(5);
-                $article->setStatut($statut[0]);
-            }
-
-            $article->setReception($reception);
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($article);
-            $em->flush();
-
-            return $this->redirectToRoute('reception_ajout_article', array('id'=> $id, 'k'=>0));
-        }
         //fin de reception/mise en stock des articles
         // k sert à vérifier et identifier la fin de la reception, en suite on modifie les "setStatut" des variables 
         if ($k)
@@ -202,10 +233,12 @@ class ReceptionsController extends AbstractController
 
         return $this->render("receptions/ajoutArticle.html.twig", array(
             'reception' => $reception,
+            'refArticle'=> $referencesArticlesRepository->findAll(),
             'emplacement' => $emplacementRepository->findAll(),
-            'formView' => $form->createView(),
             'id'=> $id,    
         ));
     }
 
+    
 }
+

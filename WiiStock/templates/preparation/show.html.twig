@@ -25,7 +25,7 @@
             </tr>
         </tbody>
     </table>
-    <table class="table">
+    <table class="table table-striped">
         <thead>
             <tr>
                 <th>Nom</th>
@@ -38,13 +38,8 @@
         </thead>
         <tbody>
             {% for demande in preparation.demandes %}
-           
-            {% set i = 0 %}
             {% for article in demande.articles |reverse %}
-                <tr {% if i % 2 == 1 %}
-                        class="backtablejv"
-                    {% endif %}>
-                    {% set i = i + 1 %}
+                <tr>
                     <td>{{ article.nom }}</td>
                     <td>{{ article.statut.nom }}</td>
                     <td>{{ article.refArticle.reference }}</td>

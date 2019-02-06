@@ -124,7 +124,7 @@ class ArticlesRepository extends ServiceEntityRepository
             "SELECT COUNT (a)
             FROM App\Entity\Articles a
             JOIN a.collectes c
-            WHERE a.Statut <> 20 AND c = :collecte"
+            WHERE a.Statut <> 3 AND c = :collecte"
         )->setParameter('collecte', $collecte);
         ;
         return $query->execute(); 
@@ -163,6 +163,18 @@ class ArticlesRepository extends ServiceEntityRepository
             ->setParameter('statut', $statut)
             ->execute()
             ;
+    }
+
+    public function findLast()
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT MAX(a.id)
+            FROM App\Entity\Articles a
+           "
+        )
+        ;
+        return $query->execute(); 
     }
 
 //    /**

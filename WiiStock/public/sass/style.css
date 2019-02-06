@@ -68,7 +68,7 @@ body {
   line-height: 20px;
   font-weight: 400;
   -webkit-font-smoothing: antialiased;
-  font-size: 1.6rem;
+  font-size: 1em;
   color: #383838;
   background-color: #f8f8f8;
   overflow-x: hidden;
@@ -123,11 +123,11 @@ input:-webkit-autofill {
   font-weight: 700;
 }
 
-.backtablejv {
-  background-color: #e9e9e9;
-}
-
 .backIconListjv {
   background-color: #00a5f1;
+}
+
+.table td, .table th {
+  padding: .2rem;
 }
 /*# sourceMappingURL=style.css.map */

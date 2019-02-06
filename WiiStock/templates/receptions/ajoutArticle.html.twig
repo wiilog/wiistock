@@ -2,69 +2,204 @@
 {% block title %}Ajout d'articles{% endblock %}
 {% block page_content %}
 
-    <h1>RECEPTION n°{{reception.numeroReception}}</h1>
-    <table class="table">
-        <tbody>
-            <tr>
-                <th>Statut</th>
-                <td>{{ reception.statut.nom }}</td>
-            </tr>
-            <tr>
-                <th>Commentaire</th>
-                <td>{{ reception.commentaire }}</td>
-            </tr>
-            <tr>
-                <th>Date</th>
-                <td>{{ reception.date ? reception.date|date('Y-m-d H:i:s') : '' }}</td>
-            </tr>
-            <tr>
-                <th>NumeroArrivage</th>
-                <td>{{ reception.numeroArrivage }}</td>
-            </tr>
-        </tbody>
-    </table>    
+<h1>RECEPTION n°{{reception.numeroReception}}</h1>
+<table class="table">
+    <tbody>
+        <tr>
+            <th>Statut</th>
+            <td>{{ reception.statut.nom }}</td>
+        </tr>
+        <tr>
+            <th>Commentaire</th>
+            <td>{{ reception.commentaire }}</td>
+        </tr>
+        <tr>
+            <th>Date</th>
+            <td>{{ reception.date ? reception.date|date('Y-m-d H:i:s') : '' }}</td>
+        </tr>
+        <tr>
+            <th>NumeroArrivage</th>
+            <td>{{ reception.numeroArrivage }}</td>
+        </tr>
+    </tbody>
+</table>
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Nom</th>
-                <th>Statut</th>
-                <th>Quantite</th>
-                <th>état</th>
-                <th>actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% set i = 0 %}
-        {% for article in reception.articles %}
-            <tr{% if i % 2 == 1 %}
-                    class="backtablejv"
-                {% endif %}>
-                {% set i = i + 1 %}
-                <td>{{ article.id }}</td>
-                <td>{{ article.nom }}</td>
-                <td>{{ article.statut.nom }}</td>
-                <td>{{ article.quantite }}</td>
-                <td>{{ article.etat ? 'conforme': 'non-conforme' }}</td>
-                <td>
-                    <a href="{{ path('articles_edit', {'id': article.id}) }}" class="btn btn-xs btn-default command-edit"><i class="fas fa-pencil-alt fa-2x"></i></a>
-                </td>
-            </tr>
-            {% else %}
-            <tr>
-                <td colspan="7">no records found</td>
-            </tr>
-         {% endfor %}
-        </tbody>    
-    </table>
-        {{ form_start(formView) }}
-        {{ form_widget(formView) }}
-        <button class="btn pull-left button btn-left">{{ button_label|default('Créer') }}</button>
-        {{ form_end(formView) }}
-     
-    <a class="btn pull-right button btn-right" href={{ path('reception_ajout_article', {'id': id, 'k': true}) }}>fin reception</a>
-   
-
+<table id="result" class="table table-striped">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Nom</th>
+            <th>Statut</th>
+            <th>Quantite</th>
+            <th>état</th>
+            <th>actions</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for article in reception.articles %}
+        <tr>
+            <td>{{ article.id }}</td>
+            <td>{{ article.nom }}</td>
+            <td>{{ article.statut.nom }}</td>
+            <td>{{ article.quantite }}</td>
+            <td>{{ article.etat ? 'conforme': 'non-conforme' }}</td>
+            <td>
+                <a href="{{ path('articles_edit', {'id': article.id}) }}" class="btn btn-xs btn-default command-edit"><i
+                        class="fas fa-pencil-alt fa-2x"></i></a>
+            </td>
+        </tr>
+    {% else %}
+        <tr id='noResult'>
+            <td colspan="7">no records found</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+<div class="container-fluid">
+    <form class=' row'>
+        <div class="form-group col-12">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <label class="input-group-text" for="inputGroupSelect01">Nom</label>
+                </div>
+                <input class="form-control" type="text" name="nom" id="nom">
+            </div>
+        </div>
+        <div class="form-group col-6">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <label class="input-group-text" for="inputGroupSelect01">Position</label>
+                </div>
+                <select class="custom-select" id="position">
+                    <option>choisir...</option>
+                    {% for item in emplacement %}
+                    <option value={{item.id}}>{{item.nom}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="form-group col-6">
+            <div class="input-group ">
+                <div class="input-group-prepend">
+                    <label class="input-group-text" for="inputGroupSelect01">Direction</label>
+                </div>
+                <select class="custom-select" name="direction" id="direction">
+                    <option>choisir...</option>
+                    {% for item in emplacement %}
+                    <option value={{item.id}}>{{item.nom}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="form-group col-6">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <label class="input-group-text" for="inputGroupSelect01">Article de référence</label>
+                </div>
+                <select class="custom-select" name="refArticle" id="refArticle">
+                    <option>choisir...</option>
+                    {% for item in refArticle %}
+                    <option value={{item.id}}>{{item.libelle}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="form-group col-2">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <label class="input-group-text" for="inputGroupSelect01">Etat</label>
+                </div>
+                <select class="custom-select" id="etat">
+                    <option value='1'>conforme</option>
+                    <option value='0'>non-conforme</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group col-4">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <label for="" class="input-group-text">Quantité</label>
+                </div>
+                <input type="number" class="form-control" name="" id="quantite" min=0>
+            </div>
+        </div>
+        <div class="input-group col-12">
+            <div class="input-group-prepend">
+                <span class="input-group-text">Commentaire</span>
+            </div>
+            <textarea class="form-control" id='commentaire'></textarea>
+        </div>
+        <input type="button" value="créer" class=" col-2 btn button btn-right" onclick="recupData()">
+        <a class="btn offset-5 col-2 button btn-right" href={{ path('reception_ajout_article', {'id': id, 'k': true}) }}>fin
+            reception</a>
+    </form>
+</div>
+<script>
+    //AJAX envoie de données pour la création d'un article + ajout dans un tableau
+    function recupData() {
+        //déclaration de la requete AJAX
+        var xmlhttp = new XMLHttpRequest()
+        //action pour la réponse
+        xmlhttp.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                //conversion de la reponse JSON en tableau js
+                let tabAlfa = JSON.parse(JSON.parse(this.responseText))
+                var refTable = document.getElementById('result');
+                var rowCount = refTable.rows.length;
+                // Insère d'une ligne  dans la table avec un indice dynamique + création de la ligne 
+                var nouvelleLigne = refTable.insertRow(rowCount);
+                var nouvelleCellule = nouvelleLigne.insertCell();
+                var nouveauTexte = document.createTextNode(tabAlfa.id)
+                nouvelleCellule.appendChild(nouveauTexte)
+                var nouvelleCellule = nouvelleLigne.insertCell(1);
+                var nouveauTexte = document.createTextNode(tabAlfa.nom)
+                nouvelleCellule.appendChild(nouveauTexte)
+                var nouvelleCellule = nouvelleLigne.insertCell(2);
+                var nouveauTexte = document.createTextNode(tabAlfa.statut)
+                nouvelleCellule.appendChild(nouveauTexte)
+                var nouvelleCellule = nouvelleLigne.insertCell(3);
+                var nouveauTexte = document.createTextNode(tabAlfa.quantite)
+                nouvelleCellule.appendChild(nouveauTexte)
+                var nouvelleCellule = nouvelleLigne.insertCell(4);
+                var nouveauTexte = document.createTextNode(tabAlfa.etat)
+                nouvelleCellule.appendChild(nouveauTexte)
+                var url = 'http://localhost/WiiStock/WiiStock/public/index.php/articles/edite/' + tabAlfa.id
+                var nouvelleCellule = nouvelleLigne.insertCell(5);
+                var a = document.createElement("a")
+                a.className = 'btn btn-xs btn-default command-edit'
+                a.setAttribute('href', url)
+                var i = document.createElement("i")
+                i.className = 'fas fa-pencil-alt fa-2x'
+                nouvelleCellule.appendChild(a).appendChild(i)
+                document.getElementById('noResult').deleteRow(0)
+            }
+        }
+        // préparation des données envoie insertion dans le tableau
+        let nom = document.getElementById('nom').value
+        let position = document.getElementById('position').value
+        let direction = document.getElementById('direction').value
+        let etat = document.getElementById('etat').value
+        let refArticle = document.getElementById('refArticle').value
+        let commentaire = document.getElementById('commentaire').value
+        let quantite = document.getElementById('quantite').value
+        let reception = {{ reception.id }}
+        //création du tableau de données 
+        let data = []
+        data = {
+        'nom': nom,
+        'position': position,
+        'direction': direction,
+        'etat': etat,
+        'refArticle': refArticle,
+        'commentaire': commentaire,
+        'reception': reception,
+        'quantite': quantite
+    }
+        //création du JSON depuis le tableau de données + envoie en POST par la requéte
+        var myJSON = JSON.stringify(data)
+        xmlhttp.open("POST", "{{path('reception_json')}}", true)
+        xmlhttp.send(myJSON)  
+    }
+</script>
 
 {% endblock %}

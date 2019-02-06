@@ -83,7 +83,7 @@
                 </a>
             </div>
 
-            <table class="table">
+            <table class="table table-striped">
                 <thead>
                     <tr>
                         <th>Nom d'utilisateur</th>
@@ -94,10 +94,8 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% set i = 0 %}
                     {% for utilisateur in utilisateurs | reverse %}
-                    <tr {% if i % 2==1 %} class="backtablejv" {% endif %}>
-                        {% set i = i + 1 %}
+                    <tr>
                         <td>{{ utilisateur.username }}</td>
                         <td>{{ utilisateur.email }}</td>
                         <td>
