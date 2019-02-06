@@ -17,120 +17,110 @@
 {% endblock %} #}
 
 {% block page_content %}
-<div class="row page-title">
-    UTILISATEURS
+<div id="barre-filtre" class="row">
+    <div class="col-3 page-title">UTILISATEURS</div>
+
+    <div class="col-9">
+        <form method="POST">
+
+            <label for="roles">Rôles</label>
+            <select id="roles">
+                <option value="">Test 1</option>
+                <option value="">Test 2</option>
+                <option value="">Test 3</option>
+            </select>
+
+            <label for="roles">Rôles</label>
+            <select>
+                <option value="">Test 1</option>
+                <option value="">Test 2</option>
+                <option value="">Test 3</option>
+            </select>
+
+        </form>
+    </div>
 </div>
 
-{# <table id="grid-data" class="table table-condensed table-hover table-striped">
-    <thead>
-        <tr>
-            <th data-column-id="id" data-visible="false" data-sortable="false">Id</th>
-            <th data-column-id="username">Nom d'utilisateur</th>
-            <th data-column-id="email">Adresse email</th> #}
-            {# <th data-column-id="groupe" data-visible="false" data-sortable="false">Groupe</th> #}
-            {# <th data-column-id="roles" data-sortable="false">Rôles</th>
-            <th data-column-id="lastLogin">Dernière connexion</th>
-            <th data-colun-id="commands" data-formatter="commands">Modifier</th>
-        </tr>
-    </thead>
-</table> #}
+<div id="actionsPrincipales" class="row">
 
-{# <div class="row">
-    <div class="col-md-6">
-        <fieldset class="well">
-            <legend class="well-legend">Créer un utilisateur</legend>
-            {{ form_start(form_creation) }}
-            {{ form_row(form_creation.username) }}
-            {{ form_row(form_creation.email) }}
-            {{ form_row(form_creation.plainPassword.first) }}
-            {{ form_row(form_creation.plainPassword.second) }}
-            <button name="creation" class="button btn" type="submit">Créer</button>
-            {{ form_row(form_creation._token) }}
-            {{ form_end(form_creation, {'render_rest' : false}) }}
-        </fieldset>
+    <div class="infos">
+
     </div>
-    <div class="col-md-6">
-        <fieldset class="well">
-            <legend class="well-legend">Modifier un utilisateur</legend>
 
-            {{ form_start(form_modif) }}
-            {{ form_row(form_modif.username, {'attr': {'autocomplete': 'off'}}) }}
-            {{ form_row(form_modif.email) }}
-            {{ form_row(form_modif.id_user) }}
-            {{ form_widget(form_modif.plainPassword, {'required' : false, 'attr': {'autocomplete': 'off'}}) }}
-            {{ form_row(form_modif.roles, {"attr": {"class" : "basic-multiple-role"}}) }}
-            <button name="modif" class="button btn" type="submit">Modifier</button>
-            {{ form_end(form_modif) }}
-        </fieldset>
+    <div class="actions">
+
     </div>
-</div> #}
+</div>
 
+<div class="affichagePrincipale">
+    <form method="POST" name="role">
+        <div class="row">
+            <div class=" col-11 mx-auto">
+                <div class="row btn pull-left">
+                    <button type="submit" class="button btn-left">
+                        Actualiser les rôles <i class="fas fa-check"></i>
+                    </button>
+                </div>
 
+                <div class="row btn pull-right">
+                    <a href="{{ path('utilisateurs_index_create') }}" class="button btn-left">
+                        Nouvelle utilisateur <i class="fas fa-plus-circle"></i>
+                    </a>
+                </div>
 
-<form method="POST" name="role">
-    <div class="row">
-        <div class=" col-11 mx-auto">
-
-            <div class="row btn pull-left">
-                <button type="submit" class="button btn-left">
-                    Actualiser les rôles <i class="fas fa-check"></i>
-                </button>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Nom d'utilisateur</th>
+                            <th>Email</th>
+                            <th>Rôle</th>
+                            <th>Dernière connexion</th>
+                            <th>actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% set i = 0 %}
+                        {% for utilisateur in utilisateurs | reverse %}
+                        <tr {% if i % 2==1 %} class="backtablejv" {% endif %}>
+                            {% set i = i + 1 %}
+                            <td>{{ utilisateur.username }}</td>
+                            <td>{{ utilisateur.email }}</td>
+                            <td>
+                                <select name="{{utilisateur.id}}">
+                                    {% if utilisateur.roles == null %}
+                                    <option value="Aucun rôle" selected>Aucun rôle</option>
+                                    {% else %}
+                                    <option value="{{ utilisateur.roles[0] }}" selected>{{ utilisateur.roles[0] }}</option>
+                                    {% endif %}
+                                    <option value="ROLE_PARC_ADMIN">ROLE_PARC_ADMIN</option>
+                                    <option value="ROLE_SUPER_ADMIN">ROLE_SUPER_ADMIN</option>
+                                    <option value="ROLE_ROLE_USER">ROLE_USER</option>
+                                </select>
+                            </td>
+                            <td>{{ utilisateur.lastLogin | date("d/m/Y H:i:s") }}</td>
+                            <td>
+                                <a href="{{ path('utilisateurs_show', {'id': utilisateur.id}) }}" class="btn btn-xs btn-default command-edit"><i
+                                        class="fas fa-eye fa-2x"></i></a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7">Aucun résultat</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {{ knp_pagination_render(utilisateurs) }}
             </div>
-
-            <div class="row btn pull-right">
-                <a href="{{ path('utilisateurs_index_create') }}" class="button btn-left">
-                    Nouvelle utilisateur <i class="fas fa-plus-circle"></i>
-                </a>
-            </div>
-
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Nom d'utilisateur</th>
-                        <th>Email</th>
-                        <th>Rôle</th>
-                        <th>Dernière connexion</th>
-                        <th>actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% set i = 0 %}
-                    {% for utilisateur in utilisateurs | reverse %}
-                    <tr {% if i % 2==1 %} class="backtablejv" {% endif %}>
-                        {% set i = i + 1 %}
-                        <td>{{ utilisateur.username }}</td>
-                        <td>{{ utilisateur.email }}</td>
-                        <td>
-                            <select name="{{utilisateur.id}}">
-                                {% if utilisateur.roles == null %}
-                                <option value="Aucun rôle" selected>Aucun rôle</option>
-                                {% else %}
-                                <option value="{{ utilisateur.roles[0] }}" selected>{{ utilisateur.roles[0] }}</option>
-                                {% endif %}
-                                <option value="ROLE_PARC_ADMIN">ROLE_PARC_ADMIN</option>
-                                <option value="ROLE_SUPER_ADMIN">ROLE_SUPER_ADMIN</option>
-                                <option value="ROLE_ROLE_USER">ROLE_USER</option>
-                            </select>
-                        </td>
-                        <td>{{ utilisateur.lastLogin | date("d/m/Y H:i:s") }}</td>
-                        <td>
-                            <a href="{{ path('utilisateurs_show', {'id': utilisateur.id}) }}" class="btn btn-xs btn-default command-edit"><i
-                                    class="fas fa-eye fa-2x"></i></a>
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr>
-                        <td colspan="7">Aucun résultat</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            {{ knp_pagination_render(utilisateurs) }}
         </div>
-    </div>
-</form>
+    </form>
+</div>
 
 
+
+<div class="actionsSecondaires">
+
+</div>
 
 
 <div class="modal fade" id="confirm-submit" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">

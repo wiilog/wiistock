@@ -74,6 +74,10 @@ body {
   overflow-x: hidden;
 }
 
+p {
+  padding: 10px;
+}
+
 h1, h2 {
   color: #000;
   margin: 20px 0;
@@ -121,6 +125,10 @@ input:-webkit-autofill {
 
 .bold {
   font-weight: 700;
+}
+
+.modal-dialog {
+  max-width: 60%;
 }
 
 .backtablejv {

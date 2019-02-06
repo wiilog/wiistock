@@ -1,0 +1,208 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}{% endblock %}
+
+{% block page_content %}
+
+<div id="barre-filtre" class="row">
+    <div class="col-3 page-title">Rôles</div>
+
+    <div class="col-9">
+        <form method="POST">
+
+            <label for="roles">Rôles</label>
+            <select id="roles">
+                <option value="">Test 1</option>
+                <option value="">Test 2</option>
+                <option value="">Test 3</option>
+            </select>
+
+            <label for="roles">Rôles</label>
+            <select>
+                <option value="">Test 1</option>
+                <option value="">Test 2</option>
+                <option value="">Test 3</option>
+            </select>
+
+        </form>
+    </div>
+</div>
+
+<div id="actionsPrincipales" class="row">
+
+    <div class="infos">
+
+    </div>
+
+    <div class="actions">
+
+    </div>
+</div>
+
+<div class="affichagePrincipale">
+
+
+    <!-- Button trigger modal -->
+<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModalCenter">
+  Launch demo modal
+</button>
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLongTitle">Modal title</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="roles" method="POST">
+                    <div class="col-10">
+                        <label for="nom">Nom</label>
+                        <input type="text" name="nom" id="nom">
+                        <button>actif</button>
+                        <button>inactif</button>
+                    </div>
+                    <div class="col-12">
+                        <div class="row">
+                            <h4>Réception</h4>
+                            <input type="checkbox" name="" id="">
+                            <label>Lister</label>
+                            <input type="checkbox" name="" id="">
+                            <label>Créer</label>
+                            <input type="checkbox" name="" id="">
+                            <label>Modif</label>
+                        </div>
+
+                    </div>
+                    <div class="col-12">
+                        <div class="row">
+                            <h4>Réception</h4>
+                            <input type="checkbox" name="" id="">
+                            <label>Lister</label>
+                            <input type="checkbox" name="" id="">
+                            <label>Créer</label>
+                            <input type="checkbox" name="" id="">
+                            <label>Modif</label>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="row">
+                            <h4>Réception</h4>
+                            <input type="checkbox" name="" id="">
+                            <label>Lister</label>
+                            <input type="checkbox" name="" id="">
+                            <label>Créer</label>
+                            <input type="checkbox" name="" id="">
+                            <label>Modif</label>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="row">
+                            <h4>Réception</h4>
+                            <input type="checkbox" name="" id="">
+                            <label>Lister</label>
+                            <input type="checkbox" name="" id="">
+                            <label>Créer</label>
+                            <input type="checkbox" name="" id="">
+                            <label>Modif</label>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="row">
+                            <h4>Réception</h4>
+                            <input type="checkbox" name="" id="">
+                            <label>Lister</label>
+                            <input type="checkbox" name="" id="">
+                            <label>Créer</label>
+                            <input type="checkbox" name="" id="">
+                            <label>Modif</label>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="row">
+                            <h4>Réception</h4>
+                            <input type="checkbox" name="" id="">
+                            <label>Lister</label>
+                            <input type="checkbox" name="" id="">
+                            <label>Créer</label>
+                            <input type="checkbox" name="" id="">
+                            <label>Modif</label>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="nomade">Utilisation Nomade
+                        </label>
+                        <input type="checkbox" name="" id="">
+                    </div>
+                    <div>
+                        <label for="nomade">
+                            Administrateur des rôles
+                        </label>
+                        <input type="checkbox" name="" id="">
+                    </div>
+                    <div>
+                        <button>
+                            Annuler
+                        </button>
+                        <button>
+                            Modifier
+                        </button>
+                    </div>
+                </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary">Save changes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+    <div id="roleModal" class="modal-body">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-12">
+                    Créer un rôle
+                </div>
+            </div>
+            <div class="row">
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+<script>
+$('#exampleModalCenter').on('show.bs.modal', function (event) {
+  var button = $(event.relatedTarget) // Button that triggered the modal
+  var recipient = button.data('whatever') // Extract info from data-* attributes
+  // If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
+  // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
+  xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+      document.querySelector(".modal-body").innerHTML = this.responseText;
+    }
+  };
+  xhttp.open("POST", "traitement.php", true);
+  xhttp.send();
+
+  var modal = $(this)
+  modal.find('.modal-title').text('New message to ' + recipient)
+  modal.find('.modal-body input').val(recipient)
+})
+
+
+$('#exampleModalCenter').on('hidden.bs.modal', function (e) {
+  // do something...
+})
+</script>
+
+{% endblock %}

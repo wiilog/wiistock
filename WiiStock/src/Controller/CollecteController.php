@@ -34,7 +34,7 @@ class CollecteController extends AbstractController
             $collecte = $collecteRepository->findById($_POST['fin']);
             $statut = $statutsRepository->findById(18); /* 18 = Récupéré */
             $collecte[0]->setStatut($statut[0]);
-            $this->getDoctrine()->getManager()->flush();
+            // $this->getDoctrine()->getManager()->flush();
         }
 
         $statut = 'fin';
