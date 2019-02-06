@@ -21,24 +21,20 @@
         </a>
     </div>
     <div>
-        <table class="table">
+        <table class="table table-striped">
             <thead>
                 <tr>
                     <th>Statut</th>
-                    <th>NumeroArrivage</th>
-                    <th>NumeroReception</th>
+                    <th>Numero d'arrivage</th>
+                    <th>Numero de reception</th>
                     <th>Commentaire</th>
                     <th>Date</th>                
-                    <th>actions</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody id="tbody-receptions">
-            {% set i = 0 %}
             {% for reception in receptions | reverse %}
-                <tr{% if i % 2 == 1 %}
-                        class="backtablejv"
-                    {% endif %}>
-                    {% set i = i + 1 %}
+                <tr>
                     <td>{{ reception.statut.nom }}</td>
                     <td>{{ reception.numeroArrivage }}</td>
                     <td>{{ reception.numeroReception }}</td>
@@ -116,7 +112,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
-                <button id="submitButton" type="button" class="btn btn-primary btn-success">Enregistrer</button>
+                <button id="submitButton" type="button" data-dismiss="modal" class="btn btn-primary btn-success">Enregistrer</button>
             </div>
     </div>
   </div>
@@ -127,8 +123,6 @@
 
   var ReceptionModal = document.getElementById("ReceptionsModalCenter");
   var ButtonSubmit = document.getElementById("submitButton");
-    console.log(ReceptionModal);
-    
 
   ReceptionModal.addEventListener('show.bs.modal', function (event) {
     var button = $(event.relatedTarget) // Button that triggered the modal
@@ -142,14 +136,8 @@
         
       }
     };
-
-    
     xhttp.open("POST", "traitement.php", true);
     xhttp.send();
-
-    var modal = $(this)
-    modal.find('.modal-title').text('New message to ' + recipient)
-    modal.find('.modal-body input').val(recipient)
   })
 
   ButtonSubmit.addEventListener("click", function (event) {
@@ -157,20 +145,21 @@
     xhttp.onreadystatechange = function() {
       if (this.readyState == 4 && this.status == 200) {
           var obj = JSON.parse(JSON.parse(this.responseText));
+          var url = obj.reception.Id;
         //document.querySelector(".modal-body").innerHTML = "Votre reception à bien été enregistrer"; // On change le texte une fois la reception envoyé
-        document.querySelector("#tbody-receptions").innerHTML = '<tr class="backtablejv">'
-                    '<td>' obj.reception.Statut'</td>' +
-                    '<td>' obj.reception.NumeroArrivage'</td>' +
-                    '<td>' obj.reception.NumeroReception'</td>' +
-                    '<td>' obj.reception.Commentaire'</td>' +
-                    '<td></td>' +
+        document.getElementById("tbody-receptions").innerHTML += 
+                '<tr class="backtablejv">' +
+                    '<td>' + obj.reception.Statut + '</td>' +
+                    '<td>' + obj.reception.NumeroArrivage + '</td>' +
+                    '<td>' + obj.reception.NumeroReception + '</td>' +
+                    '<td>' + obj.reception.Commentaire +'</td>' +
+                    '<td>' + '{% if date is defined %} {{ date("now") | date("d-m-Y H:i:s")}} {% endif %}' + '</td>' +
                     '<td>' +
-                        '<a href="{{ path('receptions_show', {'id': 'obj.reception.id'}) }}" class="btn btn-xs btn-default command-edit"><i class="fas fa-eye fa-2x"></i></a>' +
-                        '<a href="{{ path('receptions_edit', {'id': 'obj.reception.id'}) }}" class="btn btn-xs btn-default command-edit"><i class="fas fa-pencil-alt fa-2x"></i></a>' +
-                        '<a href="{{ path('reception_ajout_article', {'id': 'obj.reception.id' , 'k': 0}) }}" class="btn btn-xs btn-default command-edit"><i class="fas fa-plus fa-2x"></i> Articles</a>' +
-                    '</td>'+
+                        '<a href="' + 'http://localhost/WiiStock/WiiStock/public/index.php/receptions/show/' + url + '" class="btn btn-xs btn-default command-edit"><i class="fas fa-eye fa-2x"></i></a>' +
+                        '<a href="' + 'http://localhost/WiiStock/WiiStock/public/index.php/receptions/' + url +'/edit' +'" class="btn btn-xs btn-default command-edit"><i class="fas fa-pencil-alt fa-2x"></i></a>' +
+                        '<a href="' + 'http://localhost/WiiStock/WiiStock/public/index.php/receptions/article/' + url + '/0' +'" class="btn btn-xs btn-default command-edit"><i class="fas fa-plus fa-2x"></i> Articles</a>' +
+                    '</td>' +
                 '</tr>';
-        console.log(obj.reception);
       }
     };
 
@@ -179,7 +168,7 @@
 
     var Data = []; // Tableau de données
 
-    inputs.forEach( input => { //Pour chaque input on fait un tableau avec pour clé son nom et comme valeur la valeur dans l'input
+    inputs.forEach( input => { // Pour chaque input on fait un tableau avec pour clé son nom et comme valeur la valeur dans l'input
         var name = input.name;
         Data.push({ [input.name] : input.value });
         console.log(Data);
@@ -189,7 +178,6 @@
     console.log(Json);
     xhttp.open("POST", "{{path('createReception')}}", true);
     xhttp.send(Json);
-    console.log("f");
     });
 </script>
 

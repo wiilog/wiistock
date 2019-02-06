@@ -35,6 +35,18 @@ class ReceptionsRepository extends ServiceEntityRepository
         return $query->execute(); 
     }
 
+    public function findById($id)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT r 
+            FROM App\Entity\Receptions r
+            WHERE r.id = :id "
+             )->setParameter('id', $id);
+        ;
+        return $query->execute(); 
+    }
+
 //    /**
 //     * @return Receptions[] Returns an array of Receptions objects
 //     */

@@ -34,11 +34,64 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Knp\Component\Pager\PaginatorInterface;
 use App\Repository\StatutsRepository;
 
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+
 /**
  * @Route("/preparation")
  */
 class PreparationController extends AbstractController
 {
+
+    /**
+     * @Route("/creationpreparation", name="createPreparation", methods="POST")
+     */
+    public function createPreparation(Request $request, StatutsRepository $statutsRepository, DemandeRepository $demandeRepository) : Response
+    {
+        if(!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) //Si la requête est de type Xml et que data est attribuée
+        {
+            // creation d'une nouvelle preparation basée sur une selection de demandes
+            $preparation = new Preparation;
+
+            //declaration de la date pour remplir Date et Numero
+            $date =  new \DateTime('now');
+            $preparation->setNumero('P-'. $date->format('YmdHis'));
+            $preparation->setDate($date);
+            $statut = $statutsRepository->findById(11); /* Statut : nouvelle préparation */
+            $preparation->setStatut($statut[0]);
+            //plus de detail voir creation demande meme principe 
+            $demandeKey = array_keys($data['préparation']);
+            dump($demandeKey);
+
+            foreach ($demandeKey as $key)
+            {
+                $demande = $demandeRepository->findById(['id'=> $key]);
+                dump($demande);
+                $demande->setPreparation($preparation);
+                $statut = $statutsRepository->findById(15); /* Statut : Demande de préparation */
+                $demande->setStatut($statut[0]);
+                $articles = $demande->getArticles();
+
+                foreach ($articles as $article) 
+                {
+                    $statut = $statutsRepository->findById(13); /* Statut : Demande de sortie */
+                    $article->setStatut($statut[0]);
+                    $article->setDirection($demande->getDestination());
+                }
+
+                $this->getDoctrine()->getManager();
+            }
+
+            $em = $this->getDoctrine()->getManager();
+            $em->persist($preparation);
+            $em->flush();
+            return $data;
+        }
+
+        throw new NotFoundHttpException("404");
+    }
+
+
     /**
      * @Route("/{history}/index", name="preparation_index", methods="GET|POST")
      */
@@ -77,11 +130,13 @@ class PreparationController extends AbstractController
             return $this->render('preparation/index.html.twig', array(
                 'preparations'=> $pagination,
                 'history' => 'false',
+                "demandes" =>$demandeRepository->findDmdByStatut(14), /* Nouvelle demande */ 
             ));   
         }
 
         return $this->render('preparation/index.html.twig', array(
             'preparations'=> $pagination,
+            "demandes" =>$demandeRepository->findDmdByStatut(14), /* Nouvelle demande */ 
         ));
     }
 
@@ -114,8 +169,6 @@ class PreparationController extends AbstractController
     public function creationPreparation(DemandeRepository $demandeRepository, StatutsRepository $statutsRepository, PreparationRepository $preparationRepository, ReferencesArticlesRepository $referencesArticlesRepository, EmplacementRepository $emplacementRepository)
     {   
         // creation d'une nouvelle preparation basée sur une selection de demandes
-        if ($_POST)
-        {
             $preparation = new Preparation;
             //declaration de la date pour remplir Date et Numero
             $date =  new \DateTime('now');
@@ -148,8 +201,6 @@ class PreparationController extends AbstractController
             $em->persist($preparation);
             $em->flush();
             return $this->redirectToRoute('preparation_index', array('history'=> 'false'));
-
-        }
 
         return $this->render("preparation/creation.html.twig", array(
             "demandes" =>$demandeRepository->findDmdByStatut(14), /* Nouvelle demande */ 

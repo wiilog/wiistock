@@ -17,7 +17,7 @@
     </button>
 </form>
 <h1>Articles</h1>
-    <table class="table">
+    <table class="table table-striped">
         <thead>
             <tr>
                 <th>Nom</th>
@@ -31,12 +31,8 @@
             </tr>
         </thead>
         <tbody>
-        {% set i = 0 %}
         {% for article in articles | reverse %}
-            <tr {% if i % 2 == 1 %}
-                    class="backtablejv"
-                {% endif %}>
-                {% set i = i + 1 %}
+            <tr>
                 <td>{{ article.nom }}</td>
                 <td>{{ article.statut.nom }}</td>
                 <td>{{ article.etat ? 'oui' : article.commentaire }}</td>

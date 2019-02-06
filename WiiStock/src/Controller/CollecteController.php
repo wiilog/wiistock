@@ -153,28 +153,30 @@ class CollecteController extends AbstractController
     {   
         dump($_POST);
     //modifie le statut, la position et la direction des articles correspondant à ceux recupere par les operateurs 
-        if(array_key_exists('fin', $_POST))
+        if(array_key_exists('prise', $_POST))
         {
-            $article = $articlesRepository->findById($_POST['fin']);
-
+            $article = $articlesRepository->findById($_POST['prise']);
+            $statut = $statutsRepository->findById(20); /* Collecté */
+            $article[0]->setQuantite($_POST['quantite']);
+            $article[0]->setStatut($statut[0]);
+            $this->getDoctrine()->getManager()->flush();
+        }
+        //si $fin === 0 alors il ne reste plus d'articles à récupérer donjc collecte fini
+        if (array_key_exists('depose', $_POST)) {
+            $article = $articlesRepository->findById($_POST['depose']);
             if( $article[0]->getDirection() !== null)
             {   //vérifie si la direction n'est pas nul, pour ne pas perdre l'emplacement si il y a des erreurs au niveau des receptions
                 $article[0]->setPosition( $article[0]->getDirection());
             }
-
             $article[0]->setDirection(null);
-            $statut = $statutsRepository->findById(20); /* Collecté */
+            $statut = $statutsRepository->findById(3); /* en stock */
             $article[0]->setStatut($statut[0]);
             $this->getDoctrine()->getManager()->flush();
         }
-        // verifie si une collecte est terminer 
+         //verifie si une collecte est terminer 
         //Comptage des articles selon le statut 'collecte' et la collecte lié
         $fin = $articlesRepository->findCountByStatutAndCollecte($collecte);
-        dump($fin);
         $fin = $fin[0];
-        dump($fin);
-        // si $fin === 0 alors il ne reste plus d'articles à récupérer donjc collecte fini
-
         if($fin[1] === '0')
         {
             $statut = $statutsRepository->findById(17);

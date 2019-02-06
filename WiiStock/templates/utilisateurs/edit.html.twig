@@ -4,7 +4,7 @@
 
 {% block page_content %}
     <h1>Modification information utilisateur</h1>
-
+    {{ include('utilisateurs/_form.html.twig', {'button_label': 'Modifier'}) }}
     <a href="{{ path('utilisateurs_index') }}" class="button btn-left">Voir la liste</a>
 
     {% endblock %}

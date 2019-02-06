@@ -21,7 +21,7 @@
         </tbody>
     </table>
 
-    <table class="table">
+    <table class="table table-striped">
             <thead>
                 <tr>
                     <th>Nom</th>
@@ -35,28 +35,29 @@
                 </tr>
             </thead>
             <tbody>
-            {% set i = 0 %}
             {% for article in collecte.articles |reverse %}
             <form action="{{ path('collecte_show', {'id': collecte.id}) }}"  method="post">
-                <tr {% if i % 2 == 1 %}
-                        class="backtablejv"
-                    {% endif %}>
-                    {% set i = i + 1 %}
+                <tr>
                     <td>{{ article.nom }}</td>
                     <td>{{ article.statut.nom }}</td>
                     <td>{{ article.etat ? 'oui' : article.commentaire }}</td>
                     <td>{{ article.refArticle.reference }}</td>
                     <td>{{ article.position }}</td>
                     <td>{{ article.direction }}</td>
-                    <td><input type="number" name="article[{{article.id}}]" id="" value="{{ article.quantite }}" class="mb-3 form-control"></td>
-                    <td>
-                        <form action="{{ path('collecte_show', {'id': collecte.id}) }}"  method="post">
-                            {% if collecte.statut.id == 18 and article.statut.id == 4 %}
-                                <button type="submit" name="fin" value={{ article.id }} class="btn btn-xs btn-default command-edit backgreen"><i class="fas fa-check fa-2x"></i></button> 
-                            {% endif %}
-                    </td>
+                        {% if collecte.statut.id == 18 and article.statut.id == 4 %}
+                            <td><input type="number" name="quantite" id="" min=0 value="{{ article.quantite }}" class="mb-3 form-control"></td>
+                            <td>
+                                <button type="submit" name="prise" value={{ article.id }} class="btn btn-xs btn-default command-edit backgreen"><i class="fas fa-check fa-2x"></i></button> 
+                            </td>
+                        {% elseif article.statut.id == 20 %}
+                            <td>{{ article.quantite }}</td>
+                            <td><button type="submit" name="depose" value={{ article.id }} class="btn btn-xs btn-default command-edit backgreen"><i class="far fa-arrow-alt-circle-down fa-2x"></i></button></td>
+                        {% else %}
+                        <td>{{ article.quantite }}</td> 
+                        <td><a href="{{ path('articles_show', {'id': article.id}) }}" class="btn btn-xs btn-default command-edit"><i class="fas fa-eye fa-2x"></i></a></td>   
+                        {% endif %}
+                    </form>
                 </tr>
-            </form>
             {% else %}
                 <tr>
                     <td colspan="10">aucun résultat</td>
