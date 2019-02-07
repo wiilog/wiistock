@@ -27,7 +27,7 @@ class CollecteController extends AbstractController
     /**
      * @Route("/{history}/index", name="collecte_index", methods={"GET", "POST"})
      */
-    public function index(CollecteRepository $collecteRepository, StatutsRepository $statutsRepository, PaginatorInterface $paginator, Request $request, $history): Response
+    public function index(CollecteRepository $collecteRepository, ArticlesRepository $articlesRepository, StatutsRepository $statutsRepository, EmplacementRepository $emplacementRepository, PaginatorInterface $paginator, Request $request, $history): Response
     {
         if (array_key_exists('fin', $_POST))
         {
@@ -46,10 +46,14 @@ class CollecteController extends AbstractController
             10
         );
 
+        
+
         if ($history === 'true') 
         {
             return $this->render('collecte/index.html.twig', [
                 'collectes' => $pagination,
+                'articles'=>$articlesRepository->findBystatutAndEmpl($empl),
+                'emplacements'=>$emplacementRepository->findAll(),
                 'history' => 'false',
             ]);
         } 
@@ -57,6 +61,8 @@ class CollecteController extends AbstractController
         {
             return $this->render('collecte/index.html.twig', [
                 'collectes' => $pagination, 
+                'articles'=>$articlesRepository->findBystatutAndEmpl($empl),
+                'emplacements'=>$emplacementRepository->findAll(),
                 
             ]);
         }

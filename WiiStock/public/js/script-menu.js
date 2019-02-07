@@ -2,7 +2,7 @@ $(document).ready(function () {
     /**
      * menu
      */
-    (function () {
+    $(function () {
 
         $(function () {
             var $doc, $has_submenu, $no_submenu, $sidemenu, $slidemenu_bg, hide, move, removeActive;

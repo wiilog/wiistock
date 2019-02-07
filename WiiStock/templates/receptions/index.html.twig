@@ -39,7 +39,7 @@
                     <td>{{ reception.numeroArrivage }}</td>
                     <td>{{ reception.numeroReception }}</td>
                     <td>{{ reception.commentaire }}</td>
-                    <td>{{ reception.date ? reception.date|date('d-m-Y H:i:s') : '' }}</td>
+                    <td>{{ reception.date ? reception.date | date('d-m-Y H:i:s') : '' }}</td>
                     <td>
                         <a href="{{ path('receptions_show', {'id': reception.id}) }}" class="btn btn-xs btn-default command-edit"><i class="fas fa-eye fa-2x"></i></a>
                         <a href="{{ path('receptions_edit', {'id': reception.id}) }}" class="btn btn-xs btn-default command-edit"><i class="fas fa-pencil-alt fa-2x"></i></a>
@@ -168,8 +168,7 @@
 
     var Data = []; // Tableau de données
 
-    inputs.forEach( input => { // Pour chaque input on fait un tableau avec pour clé son nom et comme valeur la valeur dans l'input
-        var name = input.name;
+    inputs.forEach(input => { // Pour chaque input on fait un tableau avec pour clé son nom et comme valeur la valeur dans l'input
         Data.push({ [input.name] : input.value });
         console.log(Data);
     })

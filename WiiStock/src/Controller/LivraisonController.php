@@ -20,11 +20,84 @@ use App\Form\EmplacementType;
 use App\Repository\EmplacementRepository;
 use Knp\Component\Pager\PaginatorInterface;
 
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+
 /**
  * @Route("/livraison")
  */
 class LivraisonController extends AbstractController
 {
+
+    /**
+     *  @Route("creation", name="createLivraison", methods={"GET","POST"} )
+     */
+    public function creationLivraison(DemandeRepository $demandeRepository, StatutsRepository $statutsRepository, EmplacementRepository $emplacementRepository, Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest())
+        {
+            $data = json_decode($request->getContent(), true);
+
+            // recuperation des destination ID distincte des demandes selon le statut "preparation terminée"
+            $destinationsId = $demandeRepository->findEmplacementByStatut(8); /* 8 = Préparation terminée (Catégorie : Demandes) */
+            dump($destinationsId);
+
+            $data = [];
+            // generation automatique des livraison selon leur lieux de destination
+            foreach ($destinationsId as $destinationId) 
+            {
+                // création des livraisons selon les differentes destinations unique 
+                $livraison = new Livraison();
+                
+                // Systeme de numerotation identique aux demandes et aux preparations => L-20190114154
+                $date =  new \DateTime('now');
+                $livraison->setNumero('L-'. $date->format('YmdHis'));
+                $statut = $statutsRepository->findById(21); /* Demande de livraison */
+                $livraison->setStatut($statut[0]);
+                $livraison->setDestination($emplacementRepository->findOneBy(['id' => $destinationId['id']]));
+
+                // recuperation des demande selon leurs destination et si elles sont terminées
+                $demandes = $demandeRepository->findByDestiAndStatut($emplacementRepository->findOneBy(['id' => $destinationId['id']]), 8);
+                dump($demandes);
+                // liaison avec la livraison et changement du statut
+                foreach ($demandes as $demande) 
+                {
+                    $statut = $statutsRepository->findById(22);
+                    $demande->setStatut($statut[0]);
+                    $demande->setLivraison($livraison);
+                    $articles = $demande->getArticles();
+                    
+                    foreach ($articles as $article)
+                    {
+                        $statut = $statutsRepository->findById(23);
+                        $article->setStatut($statut[0]);
+                    }
+                }
+
+                $tableauLivraison = [
+                    "id" => $livraison->getId(),
+                    "numero" => $livraison->getNumero(),
+                    "statut" => $livraison->getStatut()->getNom(),
+                    "destination" => $livraison->getDestination()->getNom()
+                ];
+
+                array_push($data, $tableauLivraison);
+
+                $entityManager = $this->getDoctrine()->getManager(); 
+                $entityManager->persist($livraison);               
+           }
+            $entityManager = $this->getDoctrine()->getManager();
+            //$entityManager->flush();
+        }
+
+        dump($demandeRepository->findDmdByStatut(8));
+        dump($demandeRepository->findEmplacementByStatut(8));
+
+        dump($data);
+        $data = json_encode($data);
+        return new JsonResponse($data);
+    }
+
 
 
     /**
@@ -60,7 +133,7 @@ class LivraisonController extends AbstractController
             }
 
             $this->getDoctrine()->getManager()->flush();
-            return $this->redirectToRoute('livraison_index', ['history' => 'false']);
+            return $this->redirectToRoute('livraison_index', ['history' => 'false', 'destinations'=> $demandeRepository->findEmplacementByStatut(8), 'demandes'=> $demandeRepository->findDmdByStatut(8)]);
         }
         else if(isset($_POST['livraisonTerminée']))
         {
@@ -89,7 +162,7 @@ class LivraisonController extends AbstractController
             }
 
             $this->getDoctrine()->getManager()->flush();
-            return $this->redirectToRoute('livraison_index', ['history' => 'false']);
+            return $this->redirectToRoute('livraison_index', ['history' => 'false', 'destinations'=> $demandeRepository->findEmplacementByStatut(8), 'demandes'=> $demandeRepository->findDmdByStatut(8)]);
         }
 
         if($history === 'true')
@@ -97,12 +170,16 @@ class LivraisonController extends AbstractController
             return $this->render('livraison/index.html.twig', [
                 'livraisons' => $paginator->paginate($livraisonRepository->findAll(), $request->query->getInt('page', 1), 10),
                 'history' => 'true',
+                'demandes'=> $demandeRepository->findDmdByStatut(8),
+                'destinations'=> $demandeRepository->findEmplacementByStatut(8)
             ]);    
         }
 
         $statut = 'livré'; 
         return $this->render('livraison/index.html.twig', [
-            'livraisons' => $paginator->paginate($livraisonRepository->findByNoStatut($statut), $request->query->getInt('page', 1), 10)
+            'livraisons' => $paginator->paginate($livraisonRepository->findByNoStatut($statut), $request->query->getInt('page', 1), 10),
+            'demandes'=> $demandeRepository->findDmdByStatut(8),
+            'destinations'=> $demandeRepository->findEmplacementByStatut(8)
         ]);
     }
     
