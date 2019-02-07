@@ -28,7 +28,14 @@ class ArticlesController extends AbstractController
     {   
         $statuts = $statutsRepository->findByCategorie("articles"); /* On spécifie la catégorie voulu */
         if(isset($_POST['statuts'])) /* Si $_POST['statuts'] existe on rentre dans la condition*/
-        {   
+        {
+            dump($_POST['statuts']);
+/* 
+            if(isset($_GET['page']))
+            {
+                $_GET['page'] = '1';
+            } */
+
             if($_POST['statuts'] != "Non selectionné")
             {
                 return $this->render('articles/index.html.twig', ['articles'=> 

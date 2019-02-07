@@ -3,62 +3,206 @@
 {% block title %}Preparation index{% endblock %}
 
 {% block page_content %}
-    <h1>Préparation</h1>
-    {% if history is defined  %}
-        <div class="row btn pull-left">
-            <a href={{path('preparation_index', {'history': 'false'})}} class="button btn-left"><span class="fas fa-history"></span> Préparation en cours</a>
-        </div>        
-    {% else %}
-        <div class="row btn pull-left">
-            <a href={{path('preparation_index', {'history': 'true'})}} class="button btn-left"><span class="fas fa-history"></span> Historique</a>
-        </div>
-    {% endif %}
+<h1>Préparation</h1>
+{% if history is defined %}
+<div class="row btn pull-left">
+    <a href={{path('preparation_index', {'history': 'false'})}} class="button btn-left"><span class="fas fa-history"></span>
+        Préparation en cours</a>
+</div>
+{% else %}
+<div class="row btn pull-left">
+    <a href={{path('preparation_index', {'history': 'true'})}} class="button btn-left"><span class="fas fa-history"></span>
+        Historique</a>
+</div>
+{% endif %}
 
-    <div class='row btn pull-right'>
-        <a href="{{ path('preparation_creation') }}" class="button btn-left">
-            <span class="fa fa-plus"></span>Nouvelle preparation
-        </a >
-    </div>
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Numero</th>
-                <th>Date</th>
-                <th>Statut</th>
-                <th>actions</th>
-            </tr>
-        </thead>
-        <tbody>
-         {% for preparation in preparations %}
-            <tr>
-                <td>{{ preparation.id }}</td>
-                <td>{{preparation.numero}}</td>
-                <td>{{ preparation.date ? preparation.date|date('Y-m-d H:i:s') : '' }}</td>
-                <td>{{ preparation.statut.nom }}</td>
-                <td>
+<div class='row btn pull-right'>
+    <a href="" data-toggle="modal" data-target="#ReceptionsModalCenter" class="button btn-left">
+        <span class="fa fa-plus"></span>Nouvelle preparation
+    </a>
+</div>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Numero</th>
+            <th>Date</th>
+            <th>Statut</th>
+            <th>actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for preparation in preparations %}
+        <tr>
+            <td>{{ preparation.id }}</td>
+            <td>{{preparation.numero}}</td>
+            <td>{{ preparation.date ? preparation.date|date('Y-m-d H:i:s') : '' }}</td>
+            <td>{{ preparation.statut.nom }}</td>
+            <td>
                 <form action={{path('preparation_index', {'history': 'false'})}} method="post">
 
                     {% if preparation.statut.id == 12 %}
-                        <a href="{{ path('preparation_show', {'id': preparation.id}) }}"class="btn btn-xs btn-default command-edit backIconListjv"><i class="fas fa-list fa-2x"></i></i></a>
+                    <a href="{{ path('preparation_show', {'id': preparation.id}) }}" class="btn btn-xs btn-default command-edit backIconListjv"><i
+                            class="fas fa-list fa-2x"></i></i></a>
                     {% else %}
-                        <a href="{{ path('preparation_show', {'id': preparation.id}) }}"class="btn btn-xs btn-default command-edit"><i class="fas fa-eye fa-2x"></i></a>                        
+                    <a href="{{ path('preparation_show', {'id': preparation.id}) }}" class="btn btn-xs btn-default command-edit"><i
+                            class="fas fa-eye fa-2x"></i></a>
                     {% endif %}
                     {% if preparation.statut.nom == 'nouvelle préparation' %}
-                        <button type="submit" name="en_cours" value={{ preparation.id }} class="btn btn-xs btn-default command-edit backgreen"><i class="fas fa-check fa-2x"></i></button> 
+                    <button type="submit" name="en_cours" value={{ preparation.id }} class="btn btn-xs btn-default command-edit backgreen"><i
+                            class="fas fa-check fa-2x"></i></button>
                     {% endif %}
                 </form>
-                </td>
-            </tr>
+            </td>
+        </tr>
         {% else %}
-            <tr>
-                <td colspan="10">aucun résultat</td>
-            </tr>
-            
-        {% endfor %}
-        </tbody>
-    </table>
-    {{ knp_pagination_render(preparations) }}
+        <tr>
+            <td colspan="10">aucun résultat</td>
+        </tr>
 
+        {% endfor %}
+    </tbody>
+</table>
+{{ knp_pagination_render(preparations) }}
+
+<!-- Modal -->
+<form method="" class="modal fade" id="ReceptionsModalCenter" tabindex="-1" role="dialog" aria-labelledby="ReceptionsModalCenterTitle"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Créer une nouvelle réception</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body modal-input container-fluid">
+                <h1>Nouvelle préparation</h1>
+
+                <div class="container-fluid">
+                    <form action={{path("preparation_creation")}} method="post" class="row">
+                        {% for demande in demandes %}
+                        <div class="col-6">
+                            <input class="col-1" type="checkbox" id="scales" name="preparation[{{ demande.id}}]"
+                                checked>
+                            <label class="col-10" for="scales">demande n°{{demande.numero}} datant du {{demande.date
+                                |date("m/d/Y")}} pour l'emplacement: {{demande.destination.nom}}</label>
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Nom</th>
+                                        <th>Reférences Articles</th>
+                                        <th>position</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+
+                                    {% set i = 0 %}
+                                    {% for article in demande.articles %}
+                                    <tr {% if i % 2==1 %} class="backtablejv" {% endif %}>
+                                        {% set i = i + 1 %}
+                                        <td>{{ article.nom }}</td>
+                                        <td>{{ article.refArticle.reference }}</td>
+                                        <td>{{ article.position }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% endfor %}
+
+
+
+                    </form>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                <button id="submitButton" type="button" data-dismiss="modal" class="btn btn-primary btn-success">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+</form>
+
+<script>
+    var ReceptionModal = document.getElementById("ReceptionsModalCenter");
+    var ButtonSubmit = document.getElementById("submitButton");
+
+    ReceptionModal.addEventListener('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget) // Button that triggered the modal
+        var recipient = button.data('whatever') // Extract info from data-* attributes
+        document.getElementById("ReceptionsModalCenter").innerHTML = ReceptionModal;
+        // If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
+        // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
+        xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+
+            }
+        };
+        xhttp.open("POST", "traitement.php", true);
+        xhttp.send();
+    })
+
+    ButtonSubmit.addEventListener("click", function (event) {
+        xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+
+                //Lorsque la réponse Json est renvoyé en enlève le modal
+                document.body.classList.remove("modal-open");
+                ReceptionModal.classList.remove("show");
+                ReceptionModal.style.display = "none";
+                ReceptionModal.style.paddingRight = "0px";
+                document.body.style.paddingRight = "0px";
+                ReceptionModal.setAttribute("aria-hidden", true);
+                var backdrop = document.querySelector('.modal-backdrop');
+                console.log(backdrop);
+                backdrop.parentNode.removeChild(backdrop);
+                var obj = JSON.parse(JSON.parse(this.responseText));
+                var url = obj.reception.Id;
+                //document.querySelector(".modal-body").innerHTML = "Votre reception à bien été enregistrer"; // On change le texte une fois la reception envoyé
+                document.getElementById("tbody-receptions").innerHTML +=
+                    '<tr class="backtablejv">' +
+                    '<td>' + obj.reception.Statut + '</td>' +
+                    '<td>' + obj.reception.NumeroArrivage + '</td>' +
+                    '<td>' + obj.reception.NumeroReception + '</td>' +
+                    '<td>' + obj.reception.Commentaire + '</td>' +
+                    '<td>' + '{% if date is defined %} {{ date("now") | date("d-m-Y H:i:s")}} {% endif %}' +
+                    '</td>' +
+                    '<td>' +
+                    '<a href="' + 'http://localhost/WiiStock/WiiStock/public/index.php/receptions/show/' +
+                    url +
+                    '" class="btn btn-xs btn-default command-edit"><i class="fas fa-eye fa-2x"></i></a>' +
+                    '<a href="' + 'http://localhost/WiiStock/WiiStock/public/index.php/receptions/' + url +
+                    '/edit' +
+                    '" class="btn btn-xs btn-default command-edit"><i class="fas fa-pencil-alt fa-2x"></i></a>' +
+                    '<a href="' + 'http://localhost/WiiStock/WiiStock/public/index.php/receptions/article/' +
+                    url + '/0' +
+                    '" class="btn btn-xs btn-default command-edit"><i class="fas fa-plus fa-2x"></i> Articles</a>' +
+                    '</td>' +
+                    '</tr>';
+            }
+        };
+
+        let inputs = document.querySelectorAll("#data"); // On récupère tout les inputs qui nous intéresse avec le querySelectorAll
+        console.log(inputs);
+
+        var Data = []; // Tableau de données
+
+        inputs.forEach(input => { //Pour chaque input on fait un tableau avec pour clé son nom et comme valeur la valeur dans l'input
+            var name = input.name;
+            Data.push({
+                [input.name]: input.value
+            });
+            console.log(Data);
+        })
+
+        Json = JSON.stringify(Data); // On transforme les données en JSON
+        console.log(Json);
+        xhttp.open("POST", "{{path('createPreparation')}}", true);
+        xhttp.send(Json);
+    });
+</script>
 
 {% endblock %}

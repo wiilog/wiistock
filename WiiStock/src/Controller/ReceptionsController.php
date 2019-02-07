@@ -17,6 +17,8 @@ use App\Repository\ArticlesRepository;
 use App\Entity\Emplacement;
 use App\Form\EmplacementType;
 use App\Repository\EmplacementRepository;
+use App\Repository\FournisseursRepository;
+use App\Repository\UtilisateursRepository;
 
 use App\Entity\ReferencesArticles;
 use App\Form\ReferencesArticlesType;
@@ -35,6 +37,53 @@ class ReceptionsController extends AbstractController
 {
 
     /**
+     * @Route("/creationReception", name="createReception", methods="POST")
+     */
+    public function createReception(Request $request, StatutsRepository $statutsRepository, ReceptionsRepository $receptionsRepository, FournisseursRepository $fournisseursRepository, UtilisateursRepository $utilisateursRepository) : Response
+    {
+        if(!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) //Si la requête est de type Xml et que data est attribuée
+        {
+            if(count($data) != 4)// On regarde si le nombre de données reçu est conforme et on envoi dans la base
+            {
+                $fournisseur = $fournisseursRepository->findById(intval($data[2]['fournisseur']));
+                $utilisateur = $utilisateursRepository->findById(intval($data[3]['utilisateur']));
+
+                $reception = new Receptions();
+                $statut = $statutsRepository->findById(1);
+                $reception->setStatut($statut[0]);
+                $reception->setDate(new \DateTime('now'));
+                $reception->setNumeroArrivage($data[0]['NumeroArrivage']);
+                $reception->setNumeroReception($data[1]['NumeroReception']);
+                $reception->setFournisseur($fournisseur[0]);
+                $reception->setUtilisateur($utilisateur[0]);
+                $reception->setCommentaire($data[4]['commentaire']);
+                $em = $this->getDoctrine()->getManager();
+                $em->persist($reception);
+                $em->flush();
+
+                $data = array(
+                    'reception' => [
+                        "NumeroArrivage" => $reception->getNumeroArrivage(),
+                        "NumeroReception" => $reception->getNumeroReception(),
+                        "Fournisseur" => $reception->getFournisseur(),
+                        "Utilisateur" => $reception->getUtilisateur(),
+                        "Commentaire" => $reception->getCommentaire(),
+                        "Statut" => $reception->getStatut()->getNom(),
+                        "Id" => $reception->getId()
+                    ],
+                    'message' => 'La réception à bien été enregistrer !'
+                );
+                
+                $data = json_encode($data);
+                return new JsonResponse($data);
+            }
+        }
+
+        throw new NotFoundHttp;
+    }
+
+    /**
+     * @Route("/{history}", name="receptions_index")
      * @Route("/json", name="reception_json", methods={"GET", "POST"}) 
      */
     public function receptionJson(Request $request, ReceptionsRepository $receptionsRepository, ArticlesRepository $articlesRepository, StatutsRepository $statutsRepository, EmplacementRepository $emplacementRepository, ReferencesArticlesRepository $referencesArticlesRepository ) : Response
@@ -78,7 +127,7 @@ class ReceptionsController extends AbstractController
                 'nom'=> $article->getNom(),
                 'statut'=> $article->getStatut()->getNom(),
                 'quantite'=>$article->getQuantite(),
-                 'etat'=>($article->getEtat() ? 'conforme': 'non-conforme'),
+                'etat'=>($article->getEtat() ? 'conforme': 'non-conforme'),
             ];
             // encodage de la reponse en JSON + envoie 
             $reponseJSON = json_encode($reponseJSON);
@@ -91,29 +140,37 @@ class ReceptionsController extends AbstractController
     /**
      * @Route("/{history}", name="receptions_index", methods="GET")
      */
-    public function index(ReceptionsRepository $receptionsRepository, PaginatorInterface $paginator, Request $request, $history): Response
+    public function index(ReceptionsRepository $receptionsRepository, FournisseursRepository $fournisseursRepository, UtilisateursRepository $utilisateurRepository, StatutsRepository $statutsRepository, PaginatorInterface $paginator, Request $request, $history): Response
     {
+        $fournisseursRepository = $fournisseursRepository->findAll();
+        $utilisateurRepository = $utilisateurRepository->findAll();
+
         /* On regarde si l'history = 1 , si oui alors on récupère la requête findAll sinon findByDateOrStatut */
         $date = ($history === '1') ? null : new \DateTime('now') ;
         $historyQuery = ($history === '1') ? $receptionsRepository->findAll() : $receptionsRepository->findByDateOrStatut($date);
 
         // /* Pagination grâce au bundle Knp Paginator */
-
         $pagination = $paginator->paginate(
             $historyQuery, /* On récupère la requête en fonction de history et on la pagine */
             $request->query->getInt('page', 1),
-            5
+            10
         );
 
         if($history === '1'){
             return $this->render('receptions/index.html.twig', [
                 'receptions' => $pagination,
-                ]);
-        }else{
+                'fournisseurs' => $fournisseursRepository,
+                'utilisateurs' => $utilisateurRepository
+            ]);
+        }
+        else
+        {
             //filtrage par la date du jour et le statut, requete SQL dédié
             return $this->render('receptions/index.html.twig', [
                 'receptions' => $pagination,
-                'date' => $date = date("d-m-y"),
+                'fournisseurs' => $fournisseursRepository,
+                'utilisateurs' => $utilisateurRepository,
+                'date' => $date = date("d-m-y")
             ]);
         }    
     }
