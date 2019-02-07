@@ -43,17 +43,18 @@ class ArticlesRepository extends ServiceEntityRepository
         return $query->execute(); 
     }
 
-    // public function findByStatutNom($statut)
-    // {
-    //     $entityManager = $this->getEntityManager();
-    //     $query = $entityManager->createQuery(
-    //         "SELECT a
-    //         FROM App\Entity\Articles a
-    //         WHERE a.StatutNom = :Statut "
-    //     )->setParameter('Statut', $statut);
-    //     ;
-    //     return $query->execute(); 
-    // }
+    //filtre de recherche par le nom
+    public function findFiltreByNom($nom)
+    {   $nomB = $nom . '%';
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT a
+            FROM App\Entity\Articles a
+            WHERE a.nom LIKE :nom"
+        )->setParameter('nom', $nomB);
+        ;
+        return $query->execute(); 
+    }
     
     public function findById($id)
     {

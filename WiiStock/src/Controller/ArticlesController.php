@@ -13,6 +13,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
  * @Route("/articles")
@@ -24,9 +26,7 @@ class ArticlesController extends AbstractController
      */
     public function index(ArticlesRepository $articlesRepository, StatutsRepository $statutsRepository, PaginatorInterface $paginator, Request $request): Response
     {   
-        dump($_POST);
         $statuts = $statutsRepository->findByCategorie("articles"); /* On spécifie la catégorie voulu */
-
         if(isset($_POST['statuts'])) /* Si $_POST['statuts'] existe on rentre dans la condition*/
         {
             dump($_POST['statuts']);
@@ -42,14 +42,14 @@ class ArticlesController extends AbstractController
                     $paginator->paginate(
                     $articlesRepository->findByStatut($_POST['statuts']), /* On récupère la requête et on la pagine */
                     $request->query->getInt('page', 1),
-                    5), 'statuts' => $statuts]);
+                    25), 'statuts' => $statuts]);
             }
 
             //chemin par défaut Basé sur un requete SQL basée sur l
             return $this->render('articles/index.html.twig', ['articles' => $paginator->paginate(
                 $articlesRepository->findAll(),
                 $request->query->getInt('page', 1),
-                5
+                25
                 ), 'statuts' => $statuts]);
 
         }
@@ -73,7 +73,7 @@ class ArticlesController extends AbstractController
             return $this->render('articles/index.html.twig', ['articles'=> $paginator->paginate(
                 $articlesRepository->findByStatut(2), /* On récupère la requête et on la pagine */
                 $request->query->getInt('page', 1),
-                5
+                25
             ), 'statuts' => $statuts]);
 
         /* 'demande de mise en stock' */
@@ -93,7 +93,7 @@ class ArticlesController extends AbstractController
             return $this->render('articles/index.html.twig', ['articles'=> $paginator->paginate(
                 $articlesRepository->findByStatut($_POST['demandeSortie']), /* On récupère la requête et on la pagine */
                 $request->query->getInt('page', 1),
-                10
+                25
             ), 'statuts' => $statuts]);
             /* demande de sortie */
         }
@@ -103,10 +103,48 @@ class ArticlesController extends AbstractController
             return $this->render('articles/index.html.twig', ['articles' => $paginator->paginate(
             $articlesRepository->findAll(),
             $request->query->getInt('page', 1),
-            5
+            25
             ), 'statuts' => $statuts]);
         }
     }
+
+    /**
+     * @Route("/new", name="articles_filtre_json", methods="GET|POST")
+     */
+    public function articleFiltreJson(ArticlesRepository $articlesRepository, Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest()) {
+            // decodage en tavleau php
+            $myJSON = json_decode($request->getContent(), true);
+            dump($myJSON);
+            if ($myJSON) {
+                $articles = $articlesRepository->findFiltreByNom($myJSON);
+            }else{
+                // $articles = $articlesRepository->findAll();
+            }
+            
+            // contruction de la reponse =>recuperation de l'article cree + traitement des donnees
+            foreach ($articles as $article) {
+                $reponseJSON[] =[ 
+                    'id'=> ($article->getId() ? $article->getId() : "null" ),
+                    'nom'=>( $article->getNom() ?  $article->getNom():"null"),
+                    'refArticle'=> ($article->getRefArticle() ? $article->getRefArticle()->getLibelle() : "null"),
+                    'position'=> ($article->getPosition() ? $article->getPosition()->getNom() : "null"),
+                    'direction'=> ($article->getDirection() ? $article->getDirection()->getNom() : "null"),
+                    'statut'=> ($article->getStatut()->getNom() ? $article->getStatut()->getNom() : "null"),
+                    'quantite'=>($article->getQuantite() ? $article->getQuantite() : "null"),
+                    'etat'=>($article->getEtat() ? 'conforme': 'non-conforme'),
+                ];
+            }
+            if(isset($reponseJSON)){
+                $reponseJSON = json_encode($reponseJSON);
+            }else{
+                $reponseJSON = 'hello';
+            }
+            return new JsonResponse($reponseJSON);
+        }
+        throw new NotFoundHttpException('404 not found');
+    } 
 
     /**
      * @Route("/new", name="articles_new", methods="GET|POST")
