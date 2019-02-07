@@ -46,12 +46,12 @@ class PreparationController extends AbstractController
     /**
      * @Route("/creationpreparation", name="createPreparation", methods="POST")
      */
-    public function createPreparation(Request $request, StatutsRepository $statutsRepository, DemandeRepository $demandeRepository) : Response
+    public function createPreparation(Request $request, DemandeRepository $demandeRepository, StatutsRepository $statutsRepository, PreparationRepository $preparationRepository, ReferencesArticlesRepository $referencesArticlesRepository, EmplacementRepository $emplacementRepository) : Response
     {
         if(!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) //Si la requête est de type Xml et que data est attribuée
         {
             // creation d'une nouvelle preparation basée sur une selection de demandes
-            $preparation = new Preparation;
+            $preparation = new Preparation();
 
             //declaration de la date pour remplir Date et Numero
             $date =  new \DateTime('now');
@@ -59,14 +59,13 @@ class PreparationController extends AbstractController
             $preparation->setDate($date);
             $statut = $statutsRepository->findById(11); /* Statut : nouvelle préparation */
             $preparation->setStatut($statut[0]);
-            //plus de detail voir creation demande meme principe 
-            $demandeKey = array_keys($data['préparation']);
-            dump($demandeKey);
+            //Plus de detail voir creation demande meme principe
 
-            foreach ($demandeKey as $key)
+            foreach ($data as $key)
             {
-                $demande = $demandeRepository->findById(['id'=> $key]);
-                dump($demande);
+                $demande = $demandeRepository->findById($key);
+                $demande = $demande[0];
+                dump($demande); // On avance dans le tableau
                 $demande->setPreparation($preparation);
                 $statut = $statutsRepository->findById(15); /* Statut : Demande de préparation */
                 $demande->setStatut($statut[0]);
@@ -78,14 +77,24 @@ class PreparationController extends AbstractController
                     $article->setStatut($statut[0]);
                     $article->setDirection($demande->getDestination());
                 }
-
                 $this->getDoctrine()->getManager();
             }
 
             $em = $this->getDoctrine()->getManager();
             $em->persist($preparation);
             $em->flush();
-            return $data;
+
+            $data = [
+                "preparation" => [
+                    "id" =>  $preparation->getId(),
+                    "numero" =>  $preparation->getNumero(),
+                    "date" => $preparation->getDate()->format("Y-m-d H:i:s"),
+                    "Statut" => $preparation->getStatut()->getNom()
+                ],
+                "message" => "Votre préparation à été enregistrer"
+            ];
+            $data = json_encode($data);
+            return new JsonResponse($data);
         }
 
         throw new NotFoundHttpException("404");
@@ -236,23 +245,6 @@ class PreparationController extends AbstractController
             }
             $this->getDoctrine()->getManager()->flush();
         }
-
-        //vérification de la fin de la preparation requete SQL => dédié
-       /*  dump($preparation);
-        $statut = $statutsRepository->findById(24) */; /* On cherche demande de sortie */
-        /* $fin = $demandeRepository->findCountByStatutAndPrepa($statut, $preparation); */ /* On compte le nombre  */
-/*         $fin = $fin[0];
-
-        dump($fin);
-        dump($fin[1]);
-
-        if($fin[1] === '0')
-        {
-            $statut = $statutsRepository->findById(17); 
-            $preparation->setStatut($statut[0]);
-            $this->getDoctrine()->getManager()->flush();
-        } */
-        
         return $this->render('preparation/show.html.twig', ['preparation' => $preparation]);
     }
 

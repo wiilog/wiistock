@@ -31,7 +31,7 @@
             <th>actions</th>
         </tr>
     </thead>
-    <tbody>
+    <tbody id="tbody-preparations">
         {% for preparation in preparations %}
         <tr>
             <td>{{ preparation.id }}</td>
@@ -66,7 +66,7 @@
 {{ knp_pagination_render(preparations) }}
 
 <!-- Modal -->
-<form method="" class="modal fade" id="ReceptionsModalCenter" tabindex="-1" role="dialog" aria-labelledby="ReceptionsModalCenterTitle"
+<form action={{ path("preparation_creation") }} method="" class="modal fade" id="ReceptionsModalCenter" tabindex="-1" role="dialog" aria-labelledby="ReceptionsModalCenterTitle"
     aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -78,15 +78,14 @@
             </div>
             <div class="modal-body modal-input container-fluid">
                 <h1>Nouvelle préparation</h1>
-
                 <div class="container-fluid">
-                    <form action={{path("preparation_creation")}} method="post" class="row">
                         {% for demande in demandes %}
-                        <div class="col-6">
-                            <input class="col-1" type="checkbox" id="scales" name="preparation[{{ demande.id}}]"
-                                checked>
-                            <label class="col-10" for="scales">demande n°{{demande.numero}} datant du {{demande.date
+                        <div class="row">
+                            <label class="col-11">Demande n°{{demande.numero}} datant du {{demande.date
                                 |date("m/d/Y")}} pour l'emplacement: {{demande.destination.nom}}</label>
+                            <input class="col-1" type="checkbox" id="preparation" name="préparation" value="{{ demande.id }}"
+                                checked>
+                            
                             <table class="table">
                                 <thead>
                                     <tr>
@@ -110,10 +109,6 @@
                             </table>
                         </div>
                         {% endfor %}
-
-
-
-                    </form>
                 </div>
             </div>
             <div class="modal-footer">
@@ -150,52 +145,48 @@
             if (this.readyState == 4 && this.status == 200) {
 
                 //Lorsque la réponse Json est renvoyé en enlève le modal
-                document.body.classList.remove("modal-open");
-                ReceptionModal.classList.remove("show");
-                ReceptionModal.style.display = "none";
-                ReceptionModal.style.paddingRight = "0px";
-                document.body.style.paddingRight = "0px";
-                ReceptionModal.setAttribute("aria-hidden", true);
-                var backdrop = document.querySelector('.modal-backdrop');
-                console.log(backdrop);
-                backdrop.parentNode.removeChild(backdrop);
                 var obj = JSON.parse(JSON.parse(this.responseText));
-                var url = obj.reception.Id;
-                //document.querySelector(".modal-body").innerHTML = "Votre reception à bien été enregistrer"; // On change le texte une fois la reception envoyé
-                document.getElementById("tbody-receptions").innerHTML +=
-                    '<tr class="backtablejv">' +
-                    '<td>' + obj.reception.Statut + '</td>' +
-                    '<td>' + obj.reception.NumeroArrivage + '</td>' +
-                    '<td>' + obj.reception.NumeroReception + '</td>' +
-                    '<td>' + obj.reception.Commentaire + '</td>' +
-                    '<td>' + '{% if date is defined %} {{ date("now") | date("d-m-Y H:i:s")}} {% endif %}' +
-                    '</td>' +
-                    '<td>' +
-                    '<a href="' + 'http://localhost/WiiStock/WiiStock/public/index.php/receptions/show/' +
-                    url +
-                    '" class="btn btn-xs btn-default command-edit"><i class="fas fa-eye fa-2x"></i></a>' +
-                    '<a href="' + 'http://localhost/WiiStock/WiiStock/public/index.php/receptions/' + url +
-                    '/edit' +
-                    '" class="btn btn-xs btn-default command-edit"><i class="fas fa-pencil-alt fa-2x"></i></a>' +
-                    '<a href="' + 'http://localhost/WiiStock/WiiStock/public/index.php/receptions/article/' +
-                    url + '/0' +
-                    '" class="btn btn-xs btn-default command-edit"><i class="fas fa-plus fa-2x"></i> Articles</a>' +
-                    '</td>' +
-                    '</tr>';
+                var url = obj.preparation.id;
+                var refTable = document.getElementById('tbody-preparations');
+                var rowCount = refTable.rows.length;
+
+                // Insère d'une ligne  dans la table avec un indice dynamique + création de la ligne 
+                var nouvelleLigne = refTable.insertRow(rowCount);
+                var nouvelleCellule = nouvelleLigne.insertCell();
+                var nouveauTexte = document.createTextNode(obj.preparation.id)
+                nouvelleCellule.appendChild(nouveauTexte)
+                var nouvelleCellule = nouvelleLigne.insertCell(1);
+                var nouveauTexte = document.createTextNode(obj.preparation.numero)
+                nouvelleCellule.appendChild(nouveauTexte)
+                var nouvelleCellule = nouvelleLigne.insertCell(2);
+                var nouveauTexte = document.createTextNode(obj.preparation.date)
+                nouvelleCellule.appendChild(nouveauTexte)
+                var nouvelleCellule = nouvelleLigne.insertCell(3);
+                var nouveauTexte = document.createTextNode(obj.preparation.Statut)
+                nouvelleCellule.appendChild(nouveauTexte)
+                var url = 'http://localhost/WiiStock/WiiStock/public/index.php/preparation/' + obj.preparation.id;
+                var nouvelleCellule = nouvelleLigne.insertCell(4);
+                var a = document.createElement("a");
+                a.className = 'btn btn-xs btn-default command-edit'
+                a.setAttribute('href', url)
+                var i = document.createElement("i")
+                i.className = 'fas fa-eye fa-2x'
+                nouvelleCellule.appendChild(a).appendChild(i)
+                //document.getElementById('noResult').deleteRow(0)
             }
         };
 
-        let inputs = document.querySelectorAll("#data"); // On récupère tout les inputs qui nous intéresse avec le querySelectorAll
-        console.log(inputs);
+        let inputs = document.querySelectorAll("#preparation"); // On récupère tout les inputs qui nous intéresse avec le querySelectorAll
 
         var Data = []; // Tableau de données
 
-        inputs.forEach(input => { //Pour chaque input on fait un tableau avec pour clé son nom et comme valeur la valeur dans l'input
-            var name = input.name;
-            Data.push({
-                [input.name]: input.value
-            });
-            console.log(Data);
+        inputs.forEach(input => { // Pour chaque input on fait un tableau avec pour clé son nom et comme valeur la valeur dans l'input
+            if(input.checked == true)
+            {
+                console.log(input.checked);
+                Data.push(input.value);
+                console.log(Data);
+            }
         })
 
         Json = JSON.stringify(Data); // On transforme les données en JSON
