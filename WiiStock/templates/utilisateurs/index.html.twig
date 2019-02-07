@@ -3,29 +3,7 @@
 {% block title %}Utilisateurs{% endblock %}
 
 {% block page_content %}
-<div id="barre-filtre" class="row">
-    <div class="col-3 page-title">UTILISATEURS</div>
 
-    <div class="col-9">
-        <form method="POST">
-
-            <label for="roles">Rôles</label>
-            <select id="roles">
-                <option value="">Test 1</option>
-                <option value="">Test 2</option>
-                <option value="">Test 3</option>
-            </select>
-
-            <label for="roles">Rôles</label>
-            <select>
-                <option value="">Test 1</option>
-                <option value="">Test 2</option>
-                <option value="">Test 3</option>
-            </select>
-
-        </form>
-    </div>
-</div>
 
 <div id="actionsPrincipales" class="row">
 
@@ -54,7 +32,7 @@
                     </a>
                 </div>
 
-                <table class="table">
+                <table class="table table-striped">
                     <thead>
                         <tr>
                             <th>Nom d'utilisateur</th>
@@ -65,10 +43,9 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {% set i = 0 %}
+                      
                         {% for utilisateur in utilisateurs | reverse %}
-                        <tr {% if i % 2==1 %} class="backtablejv" {% endif %}>
-                            {% set i = i + 1 %}
+                        <tr>
                             <td>{{ utilisateur.username }}</td>
                             <td>{{ utilisateur.email }}</td>
                             <td>
@@ -99,47 +76,8 @@
                 {{ knp_pagination_render(utilisateurs) }}
             </div>
 
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Nom d'utilisateur</th>
-                        <th>Email</th>
-                        <th>Rôle</th>
-                        <th>Dernière connexion</th>
-                        <th>actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for utilisateur in utilisateurs | reverse %}
-                    <tr>
-                        <td>{{ utilisateur.username }}</td>
-                        <td>{{ utilisateur.email }}</td>
-                        <td>
-                            <select name="{{utilisateur.id}}">
-                                {% if utilisateur.roles == null %}
-                                <option value="Aucun rôle" selected>Aucun rôle</option>
-                                {% else %}
-                                <option value="{{ utilisateur.roles[0] }}" selected>{{ utilisateur.roles[0] }}</option>
-                                {% endif %}
-                                <option value="ROLE_PARC_ADMIN">ROLE_PARC_ADMIN</option>
-                                <option value="ROLE_SUPER_ADMIN">ROLE_SUPER_ADMIN</option>
-                                <option value="ROLE_ROLE_USER">ROLE_USER</option>
-                            </select>
-                        </td>
-                        <td>{{ utilisateur.lastLogin | date("d/m/Y H:i:s") }}</td>
-                        <td>
-                            <a href="{{ path('utilisateurs_show', {'id': utilisateur.id}) }}" class="btn btn-xs btn-default command-edit"><i
-                                    class="fas fa-eye fa-2x"></i></a>
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr>
-                        <td colspan="7">Aucun résultat</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            {{ knp_pagination_render(utilisateurs) }}
+           
+           
         </div>
     </form>
 </div>

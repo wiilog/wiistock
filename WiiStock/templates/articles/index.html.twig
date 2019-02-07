@@ -10,12 +10,12 @@
                 <div class="input-group-prepend">
                     <div class="input-group-text">recherche</div>
                 </div>
-                <input type="text" class="col-6" id="" onkeyup="showHint(this.value)">
+                <input type="text" class="col-6" id="recherche" onkeyup="showHint(this.value)">
             </div>
         </div>
         <div class="col-2">
             <div class="input-group mb-2">
-                <select class="custom-selec my-1 mr-sm-2" name="statuts">
+                <select class="custom-selec my-1 mr-sm-2" name="statuts" id='status' onclick="filtreStatut(this.value)">
                     <option value="Non selectionné">Non selectionné</option>
                     {% for statut in statuts %}
                     <option value="{{ statut.id }}">{{ statut.nom }}</options>
@@ -81,74 +81,40 @@
     </tbody>
 </table>
 {{ knp_pagination_render(articles) }}
-{#<a href="{{ path('articles_new') }}">Create new</a>#}
+{% endblock  %}
+{% block javascript %}
+    
 <script>
 
+//FILTRE
+
     function showHint(str) {
-        console.log("hello")
-        if (str) {
+        if (str.length > 0) {
             var xmlhttp = new XMLHttpRequest()
             xmlhttp.onreadystatechange = function () {
                 if (this.readyState == 4 && this.status == 200) {
-                    $("#content").children().remove()
-                    let articles = JSON.parse(JSON.parse(this.responseText))
-                    //document.getElementById("table").innerHTML("a")
-                    var refTable = document.getElementById('content')
-                    var rowCount = refTable.rows.length
-                    articles.forEach(function (article) {
-                        var nouvelleLigne = refTable.insertRow()
-
-                        var nouvelleCellule = nouvelleLigne.insertCell(0)
-                        var nouveauTexte = document.createTextNode(article.nom)
-                        nouvelleCellule.appendChild(nouveauTexte)
-
-                        var nouvelleCellule = nouvelleLigne.insertCell(1)
-                        var nouveauTexte = document.createTextNode(article.statut)
-                        nouvelleCellule.appendChild(nouveauTexte)
-
-                        var nouvelleCellule = nouvelleLigne.insertCell(2)
-                        var nouveauTexte = document.createTextNode(article.etat)
-                        nouvelleCellule.appendChild(nouveauTexte)
-
-                        var nouvelleCellule = nouvelleLigne.insertCell(3)
-                        var nouveauTexte = document.createTextNode(article.refArticle)
-                        nouvelleCellule.appendChild(nouveauTexte)
-
-                        var nouvelleCellule = nouvelleLigne.insertCell(4)
-                        var nouveauTexte = document.createTextNode(article.position)
-                        nouvelleCellule.appendChild(nouveauTexte)
-
-                        var nouvelleCellule = nouvelleLigne.insertCell(5)
-                        var nouveauTexte = document.createTextNode(article.direction)
-                        nouvelleCellule.appendChild(nouveauTexte)
-
-                        var nouvelleCellule = nouvelleLigne.insertCell(6)
-                        var nouveauTexte = document.createTextNode(article.quantite)
-                        nouvelleCellule.appendChild(nouveauTexte)
-
-                        var urlShow = 'http://localhost/WiiStock/WiiStock/public/index.php/articles/show/' + article.id
-                        var urlEdit = 'http://localhost/WiiStock/WiiStock/public/index.php/articles/edite/' + article.id
-                        var nouvelleCellule = nouvelleLigne.insertCell(7)
-                        var a = document.createElement("a")
-                        a.className = 'btn btn-xs btn-default command-edit'
-                        a.setAttribute('href', urlShow)
-                        var i = document.createElement("i")
-                        i.className = 'fas fa-eye fa-2x'
-                        nouvelleCellule.appendChild(a).appendChild(i)
-                        var a = document.createElement("a")
-                        a.className = 'btn btn-xs btn-default command-edit'
-                        a.setAttribute('href', urlEdit)
-                        var i = document.createElement("i")
-                        i.className = 'fas fa-pencil-alt fa-2x'
-                        nouvelleCellule.appendChild(a).appendChild(i)
-                    });
+                    traitementDataArticle(this.responseText)
                 }
             }
             var myJSON = JSON.stringify(str)
             xmlhttp.open("POST", "{{path('articles_filtre_json')}}", true)
             xmlhttp.send(myJSON)
         }
+    }
 
+    function filtreStatut(value) {
+        if (value.length > 0) {
+            var xmlhttp = new XMLHttpRequest()
+            xmlhttp.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    console.log(JSON.parse(JSON.parse(this.responseText)))
+                    traitementDataArticle(this.responseText)
+                }
+            }
+            var myJSON = JSON.stringify(value)
+            xmlhttp.open("POST", "{{ path('articles_filtre_statut') }}", true)
+            xmlhttp.send(myJSON)
+        }
     }
 
 </script>

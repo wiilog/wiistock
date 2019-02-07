@@ -3,69 +3,90 @@
 {% block title %}Réceptions{% endblock %}
 
 {% block page_content %}
-    <h1>
-        Réceptions {% if date is defined %} du {{date}} {% endif %}
-    </h1>
-    {% if date is not defined %}
-    <div class="row btn pull-left">
-        <a href={{path("receptions_index", {'history': 0})}} class="button btn-left"><span class="fas fa-history"></span> Réception journaliére</a>
-    </div>
-    {% else %}
-        <div class="row btn pull-left">
-            <a href={{path("receptions_index", {'history': 1})}} class="button btn-left"><span class="fas fa-history"></span> Historique</a>
+<form action="">
+    <div class='form-row align-items-center'>
+        <div class="col-2">
+            <div class="input-group my-2 mb-2">
+                <div class="input-group-prepend">
+                    <div class="input-group-text">recherche</div>
+                </div>
+                <input type="text" class="col-6" id="recherche" onkeyup="showHint(this.value)">
+            </div>
         </div>
-    {% endif %}
-    <div class='row btn pull-right' >
-        <a href="" data-toggle="modal" data-target="#ReceptionsModalCenter" class="button btn-left">
-            <span class="fa fa-plus"></span>Nouvelle reception
-        </a>
+        <div class="col-2">
+            <div class="input-group mb-2">
+                <select class="custom-selec my-1 mr-sm-2" name="statuts" id='status' onclick="filtreStatut(this.value)">
+                    <option value="Non selectionné">Non selectionné</option>
+                    {% for statut in statuts %}
+                    <option value="{{ statut.id }}">{{ statut.nom }}</options>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <button type="submit" class="btn pull-right button btn-right">
+            Rechercher
+        </button>
     </div>
-    <div>
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Statut</th>
-                    <th>Numero d'arrivage</th>
-                    <th>Numero de reception</th>
-                    <th>Commentaire</th>
-                    <th>Date</th>                
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody id="tbody-receptions">
+</form>
+
+<h1>
+    Réceptions {% if date is defined %} du {{date}} {% endif %}
+</h1>
+<div class='row btn pull-right'>
+    <a href="" data-toggle="modal" data-target="#ReceptionsModalCenter" class="button btn-left">
+        <span class="fa fa-plus"></span>Nouvelle reception
+    </a>
+</div>
+<div>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Statut</th>
+                <th>Numero d'arrivage</th>
+                <th>Numero de reception</th>
+                <th>Commentaire</th>
+                <th>Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody id="tbody-receptions">
             {% for reception in receptions | reverse %}
-                <tr>
-                    <td>{{ reception.statut.nom }}</td>
-                    <td>{{ reception.numeroArrivage }}</td>
-                    <td>{{ reception.numeroReception }}</td>
-                    <td>{{ reception.commentaire }}</td>
-                    <td>{{ reception.date ? reception.date|date('d-m-Y H:i:s') : '' }}</td>
-                    <td>
-                        <a href="{{ path('receptions_show', {'id': reception.id}) }}" class="btn btn-xs btn-default command-edit"><i class="fas fa-eye fa-2x"></i></a>
-                        <a href="{{ path('receptions_edit', {'id': reception.id}) }}" class="btn btn-xs btn-default command-edit"><i class="fas fa-pencil-alt fa-2x"></i></a>
-                        <a href="{{ path('reception_ajout_article', {'id': reception.id , 'k': 0}) }}" class="btn btn-xs btn-default command-edit"><i class="fas fa-plus fa-2x"></i> Articles</a>
-                    </td>
-                </tr>
+            <tr>
+                <td>{{ reception.statut.nom }}</td>
+                <td>{{ reception.numeroArrivage }}</td>
+                <td>{{ reception.numeroReception }}</td>
+                <td>{{ reception.commentaire }}</td>
+                <td>{{ reception.date ? reception.date|date('d-m-Y H:i:s') : '' }}</td>
+                <td>
+                    <a href="{{ path('receptions_show', {'id': reception.id}) }}" class="btn btn-xs btn-default command-edit"><i
+                            class="fas fa-eye fa-2x"></i></a>
+                    <a href="{{ path('receptions_edit', {'id': reception.id}) }}" class="btn btn-xs btn-default command-edit"><i
+                            class="fas fa-pencil-alt fa-2x"></i></a>
+                    <a href="{{ path('reception_ajout_article', {'id': reception.id , 'k': 0}) }}" class="btn btn-xs btn-default command-edit"><i
+                            class="fas fa-plus fa-2x"></i> Articles</a>
+                </td>
+            </tr>
             {% else %}
-                <tr>
-                    <td colspan="7">aucun résultat</td>
-                </tr>
+            <tr>
+                <td colspan="7">aucun résultat</td>
+            </tr>
             {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    <div class="col-12">
-        {{ knp_pagination_render(receptions) }}
-    </div>
-    
+        </tbody>
+    </table>
+</div>
+<div class="col-12">
+    {{ knp_pagination_render(receptions) }}
+</div>
+
 <!-- Modal -->
-<form method="" class="modal fade" id="ReceptionsModalCenter" tabindex="-1" role="dialog" aria-labelledby="ReceptionsModalCenterTitle" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered" role="document">
-    <div class="modal-content">
+<form method="" class="modal fade" id="ReceptionsModalCenter" tabindex="-1" role="dialog" aria-labelledby="ReceptionsModalCenterTitle"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="exampleModalLongTitle">Créer une nouvelle réception</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
+                    <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body modal-input container-fluid">
@@ -87,9 +108,9 @@
                     </div>
                     <div class="col-12">
                         <select name="fournisseur" id="reception-data">
-                        {% for fournisseur in fournisseurs %} 
-                            <option value="{{ fournisseur.id }}"> {{ fournisseur.nom }} </option> 
-                        {% endfor %}
+                            {% for fournisseur in fournisseurs %}
+                            <option value="{{ fournisseur.id }}"> {{ fournisseur.nom }} </option>
+                            {% endfor %}
                         </select>
                     </div>
                     <div class="col-12">
@@ -97,9 +118,9 @@
                     </div>
                     <div class="col-12">
                         <select name="utilisateur" id="reception-data">
-                        {% for utilisateur in utilisateurs %} 
-                            <option value="{{ utilisateur.id }}"> {{ utilisateur.username }} </option> 
-                        {% endfor %}
+                            {% for utilisateur in utilisateurs %}
+                            <option value="{{ utilisateur.id }}"> {{ utilisateur.username }} </option>
+                            {% endfor %}
                         </select>
                     </div>
                     <div class="col-12">
@@ -108,77 +129,178 @@
                     <div class="col-12">
                         <input type="text" name="commentaire" id="reception-data">
                     </div>
-                </div>  
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
                 <button id="submitButton" type="button" data-dismiss="modal" class="btn btn-primary btn-success">Enregistrer</button>
             </div>
+        </div>
     </div>
-  </div>
 </form>
 
 
 <script>
 
-  var ReceptionModal = document.getElementById("ReceptionsModalCenter");
-  var ButtonSubmit = document.getElementById("submitButton");
+    var ReceptionModal = document.getElementById("ReceptionsModalCenter");
+    var ButtonSubmit = document.getElementById("submitButton");
 
-  ReceptionModal.addEventListener('show.bs.modal', function (event) {
-    var button = $(event.relatedTarget) // Button that triggered the modal
-    var recipient = button.data('whatever') // Extract info from data-* attributes
-    document.getElementById("ReceptionsModalCenter").innerHTML = ReceptionModal;
-    // If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
-    // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
-    xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function() {
-      if (this.readyState == 4 && this.status == 200) {
-        
-      }
-    };
-    xhttp.open("POST", "traitement.php", true);
-    xhttp.send();
-  })
+    ReceptionModal.addEventListener('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget) // Button that triggered the modal
+        var recipient = button.data('whatever') // Extract info from data-* attributes
+        document.getElementById("ReceptionsModalCenter").innerHTML = ReceptionModal;
+        // If necessary, you could initiate an AJAX request here (and then do the updating in a callback).
+        // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
+        xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
 
-  ButtonSubmit.addEventListener("click", function (event) {
-    xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function() {
-      if (this.readyState == 4 && this.status == 200) {
-          var obj = JSON.parse(JSON.parse(this.responseText));
-          var url = obj.reception.Id;
-        //document.querySelector(".modal-body").innerHTML = "Votre reception à bien été enregistrer"; // On change le texte une fois la reception envoyé
-        document.getElementById("tbody-receptions").innerHTML += 
-                '<tr class="backtablejv">' +
+            }
+        };
+        xhttp.open("POST", "traitement.php", true);
+        xhttp.send();
+    })
+
+    ButtonSubmit.addEventListener("click", function (event) {
+        xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                var obj = JSON.parse(JSON.parse(this.responseText));
+                var url = obj.reception.Id;
+                //document.querySelector(".modal-body").innerHTML = "Votre reception à bien été enregistrer"; // On change le texte une fois la reception envoyé
+                document.getElementById("tbody-receptions").innerHTML +=
+                    '<tr class="backtablejv">' +
                     '<td>' + obj.reception.Statut + '</td>' +
                     '<td>' + obj.reception.NumeroArrivage + '</td>' +
                     '<td>' + obj.reception.NumeroReception + '</td>' +
-                    '<td>' + obj.reception.Commentaire +'</td>' +
+                    '<td>' + obj.reception.Commentaire + '</td>' +
                     '<td>' + '{% if date is defined %} {{ date("now") | date("d-m-Y H:i:s")}} {% endif %}' + '</td>' +
                     '<td>' +
-                        '<a href="' + 'http://localhost/WiiStock/WiiStock/public/index.php/receptions/show/' + url + '" class="btn btn-xs btn-default command-edit"><i class="fas fa-eye fa-2x"></i></a>' +
-                        '<a href="' + 'http://localhost/WiiStock/WiiStock/public/index.php/receptions/' + url +'/edit' +'" class="btn btn-xs btn-default command-edit"><i class="fas fa-pencil-alt fa-2x"></i></a>' +
-                        '<a href="' + 'http://localhost/WiiStock/WiiStock/public/index.php/receptions/article/' + url + '/0' +'" class="btn btn-xs btn-default command-edit"><i class="fas fa-plus fa-2x"></i> Articles</a>' +
+                    '<a href="' + 'http://localhost/WiiStock/WiiStock/public/index.php/receptions/show/' + url + '" class="btn btn-xs btn-default command-edit"><i class="fas fa-eye fa-2x"></i></a>' +
+                    '<a href="' + 'http://localhost/WiiStock/WiiStock/public/index.php/receptions/' + url + '/edit' + '" class="btn btn-xs btn-default command-edit"><i class="fas fa-pencil-alt fa-2x"></i></a>' +
+                    '<a href="' + 'http://localhost/WiiStock/WiiStock/public/index.php/receptions/article/' + url + '/0' + '" class="btn btn-xs btn-default command-edit"><i class="fas fa-plus fa-2x"></i> Articles</a>' +
                     '</td>' +
-                '</tr>';
-      }
-    };
+                    '</tr>';
+            }
+        };
 
-    let inputs = document.querySelectorAll("#reception-data"); // On récupère tout les inputs qui nous intéresse avec le querySelectorAll
-    console.log(inputs);
+        let inputs = document.querySelectorAll("#reception-data"); // On récupère tout les inputs qui nous intéresse avec le querySelectorAll
+        console.log(inputs);
 
-    var Data = []; // Tableau de données
+        var Data = []; // Tableau de données
 
-    inputs.forEach( input => { // Pour chaque input on fait un tableau avec pour clé son nom et comme valeur la valeur dans l'input
-        var name = input.name;
-        Data.push({ [input.name] : input.value });
-        console.log(Data);
-    })
+        inputs.forEach(input => { // Pour chaque input on fait un tableau avec pour clé son nom et comme valeur la valeur dans l'input
+            var name = input.name;
+            Data.push({ [input.name]: input.value });
+            console.log(Data);
+        })
 
-    Json = JSON.stringify(Data); // On transforme les données en JSON
-    console.log(Json);
-    xhttp.open("POST", "{{path('createReception')}}", true);
-    xhttp.send(Json);
+        Json = JSON.stringify(Data); // On transforme les données en JSON
+        console.log(Json);
+        xhttp.open("POST", "{{path('createReception')}}", true);
+        xhttp.send(Json);
     });
+
+//FILTRE
+    function traitementData(reponse) {
+        $("#content").children().remove()
+        let articles = JSON.parse(JSON.parse(reponse))
+        var refTable = document.getElementById('content')
+        if (articles !== "patate") {
+            var rowCount = refTable.rows.length
+            articles.forEach(function (article) {
+                var nouvelleLigne = refTable.insertRow()
+
+                var nouvelleCellule = nouvelleLigne.insertCell(0)
+                var nouveauTexte = document.createTextNode(article.nom)
+                nouvelleCellule.appendChild(nouveauTexte)
+
+                var nouvelleCellule = nouvelleLigne.insertCell(1)
+                var nouveauTexte = document.createTextNode(article.statut)
+                nouvelleCellule.appendChild(nouveauTexte)
+
+                var nouvelleCellule = nouvelleLigne.insertCell(2)
+                var nouveauTexte = document.createTextNode(article.etat)
+                nouvelleCellule.appendChild(nouveauTexte)
+
+                var nouvelleCellule = nouvelleLigne.insertCell(3)
+                var nouveauTexte = document.createTextNode(article.refArticle)
+                nouvelleCellule.appendChild(nouveauTexte)
+
+                var nouvelleCellule = nouvelleLigne.insertCell(4)
+                var nouveauTexte = document.createTextNode(article.position)
+                nouvelleCellule.appendChild(nouveauTexte)
+
+                var nouvelleCellule = nouvelleLigne.insertCell(5)
+                var nouveauTexte = document.createTextNode(article.direction)
+                nouvelleCellule.appendChild(nouveauTexte)
+
+                var nouvelleCellule = nouvelleLigne.insertCell(6)
+                var nouveauTexte = document.createTextNode(article.quantite)
+                nouvelleCellule.appendChild(nouveauTexte)
+
+                var urlShow = 'http://localhost/WiiStock/WiiStock/public/index.php/articles/show/' + article.id
+                var urlEdit = 'http://localhost/WiiStock/WiiStock/public/index.php/articles/edite/' + article.id
+                var nouvelleCellule = nouvelleLigne.insertCell(7)
+                var a = document.createElement("a")
+                a.className = 'btn btn-xs btn-default command-edit'
+                a.setAttribute('href', urlShow)
+                var i = document.createElement("i")
+                i.className = 'fas fa-eye fa-2x'
+                nouvelleCellule.appendChild(a).appendChild(i)
+                var a = document.createElement("a")
+                a.className = 'btn btn-xs btn-default command-edit'
+                a.setAttribute('href', urlEdit)
+                var i = document.createElement("i")
+                i.className = 'fas fa-pencil-alt fa-2x'
+                nouvelleCellule.appendChild(a).appendChild(i)
+            });
+        }else {
+            var nouvelleLigne = refTable.insertRow()
+            var nouvelleCellule = nouvelleLigne.insertCell(0)
+            var nouveauTexte = document.createTextNode("aucun résultat")
+            nouvelleCellule.appendChild(nouveauTexte)
+        }
+    }
+
+
+    function showHint(str) {
+        if (str.length > 0) {
+            var xmlhttp = new XMLHttpRequest()
+            xmlhttp.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    traitementData(this.responseText)
+                }
+            }
+            var myJSON = JSON.stringify(str)
+            xmlhttp.open("POST", "{{path('articles_filtre_json')}}", true)
+            xmlhttp.send(myJSON)
+        }
+
+    }
+
+    function filtreStatut(value) {
+        if (value.length > 0) {
+            var xmlhttp = new XMLHttpRequest()
+            xmlhttp.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    console.log(JSON.parse(JSON.parse(this.responseText)))
+                    traitementData(this.responseText)
+                }
+            }
+            var myJSON = JSON.stringify(value)
+            xmlhttp.open("POST", "{{ path('articles_filtre_statut') }}", true)
+            xmlhttp.send(myJSON)
+        }
+    }
+
+
+
+
+
+
+
+
 </script>
 
 {% endblock %}

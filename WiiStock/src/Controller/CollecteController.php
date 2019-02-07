@@ -151,7 +151,7 @@ class CollecteController extends AbstractController
      */
     public function show(Collecte $collecte, StatutsRepository $statutsRepository, ArticlesRepository $articlesRepository): Response
     {   
-        dump($_POST);
+        $session = $_SERVER['HTTP_REFERER'];
     //modifie le statut, la position et la direction des articles correspondant à ceux recupere par les operateurs 
         if(array_key_exists('prise', $_POST))
         {
@@ -186,6 +186,7 @@ class CollecteController extends AbstractController
 
         return $this->render('collecte/show.html.twig', [
             'collecte' => $collecte,
+            'session' => $session
         ]);
     }
 

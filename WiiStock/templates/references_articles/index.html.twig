@@ -11,7 +11,7 @@
         </a >
     </div>
 
-    <table class="table">
+    <table class="table table-striped">
         <thead>
             <tr>
                 <th>Id</th>
@@ -23,10 +23,9 @@
             </tr>
         </thead>
         <tbody>
-        {% set i = 0  %}
+      
         {% for references_article in references_articles %}
-            <tr {% if i % 2 == 1 %} class="backtablejv" {% endif %}>
-                    {% set i = i + 1 %}
+            <tr>
                 <td>{{ references_article.id }}</td>
                 <td>{{ references_article.libelle }}</td>
                 <td>{{ references_article.reference}}</td>

@@ -36,7 +36,7 @@
         </tr>
     </thead>
     <tbody>
-    {% for article in reception.articles %}
+        {% for article in reception.articles %}
         <tr>
             <td>{{ article.id }}</td>
             <td>{{ article.nom }}</td>
@@ -48,16 +48,16 @@
                         class="fas fa-pencil-alt fa-2x"></i></a>
             </td>
         </tr>
-    {% else %}
+        {% else %}
         <tr id='noResult'>
             <td colspan="7">no records found</td>
         </tr>
-    {% endfor %}
+        {% endfor %}
     </tbody>
 </table>
 <div class="container-fluid">
-    <form class=' row'>
-        <div class="form-group col-12">
+    <form class='row' autocomplete="off">
+        <div class="form-group col-4">
             <div class="input-group">
                 <div class="input-group-prepend">
                     <label class="input-group-text" for="inputGroupSelect01">Nom</label>
@@ -65,46 +65,7 @@
                 <input class="form-control" type="text" name="nom" id="nom">
             </div>
         </div>
-        <div class="form-group col-6">
-            <div class="input-group">
-                <div class="input-group-prepend">
-                    <label class="input-group-text" for="inputGroupSelect01">Position</label>
-                </div>
-                <select class="custom-select" id="position">
-                    <option>choisir...</option>
-                    {% for item in emplacement %}
-                    <option value={{item.id}}>{{item.nom}}</option>
-                    {% endfor %}
-                </select>
-            </div>
-        </div>
-        <div class="form-group col-6">
-            <div class="input-group ">
-                <div class="input-group-prepend">
-                    <label class="input-group-text" for="inputGroupSelect01">Direction</label>
-                </div>
-                <select class="custom-select" name="direction" id="direction">
-                    <option>choisir...</option>
-                    {% for item in emplacement %}
-                    <option value={{item.id}}>{{item.nom}}</option>
-                    {% endfor %}
-                </select>
-            </div>
-        </div>
-        <div class="form-group col-6">
-            <div class="input-group">
-                <div class="input-group-prepend">
-                    <label class="input-group-text" for="inputGroupSelect01">Article de référence</label>
-                </div>
-                <select class="custom-select" name="refArticle" id="refArticle">
-                    <option>choisir...</option>
-                    {% for item in refArticle %}
-                    <option value={{item.id}}>{{item.libelle}}</option>
-                    {% endfor %}
-                </select>
-            </div>
-        </div>
-        <div class="form-group col-2">
+        <div class="form-group col-4">
             <div class="input-group">
                 <div class="input-group-prepend">
                     <label class="input-group-text" for="inputGroupSelect01">Etat</label>
@@ -123,12 +84,43 @@
                 <input type="number" class="form-control" name="" id="quantite" min=0>
             </div>
         </div>
-        <div class="input-group col-12">
+        <div class="form-group col-4">
+            <div class="input-group">
+                <div class="input-group-prepend ">
+                    <label class="input-group-text" for="inputGroupSelect01">Position</label>
+                </div>
+                <div class="autocomplete">
+                    <input class='col-12 form-control' id="position" type="text" placeholder="Position">
+                </div>
+            </div>
+        </div>
+        <div class="form-group col-4">
+            <div class="input-group ">
+                <div class="input-group-prepend">
+                    <label class="input-group-text" for="inputGroupSelect01">Direction</label>
+                </div>
+                <div class="autocomplete">
+                    <input class='col-12 form-control' id="direction" type="text" placeholder="Direction">
+                </div>
+            </div>
+        </div>
+        <div class="form-group col-4">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <label class="input-group-text" for="inputGroupSelect01">Article de référence</label>
+                </div>
+                <div class="autocomplete">
+                    <input class='col-12 form-control' id="refArticle" type="text" placeholder="référence article">
+                </div>
+            </div>
+        </div>
+        <div class="input-group col-12 my-2 mb-4">
             <div class="input-group-prepend">
                 <span class="input-group-text">Commentaire</span>
             </div>
             <textarea class="form-control" id='commentaire'></textarea>
         </div>
+
         <input type="button" value="créer" class=" col-2 btn button btn-right" onclick="recupData()">
         <a class="btn offset-5 col-2 button btn-right" href={{ path('reception_ajout_article', {'id': id, 'k': true}) }}>fin
             reception</a>
@@ -176,30 +168,140 @@
         }
         // préparation des données envoie insertion dans le tableau
         let nom = document.getElementById('nom').value
-        let position = document.getElementById('position').value
-        let direction = document.getElementById('direction').value
+        let position = emplacementId[document.getElementById('position').value]
+        let direction = emplacementId[document.getElementById('direction').value]
         let etat = document.getElementById('etat').value
-        let refArticle = document.getElementById('refArticle').value
+        let refArticle = refArticleId[document.getElementById('refArticle').value]
         let commentaire = document.getElementById('commentaire').value
         let quantite = document.getElementById('quantite').value
-        let reception = {{ reception.id }}
+        let reception = "{{ reception.id }}"
         //création du tableau de données 
         let data = []
         data = {
-        'nom': nom,
-        'position': position,
-        'direction': direction,
-        'etat': etat,
-        'refArticle': refArticle,
-        'commentaire': commentaire,
-        'reception': reception,
-        'quantite': quantite
-    }
+            'nom': nom,
+            'position': position,
+            'direction': direction,
+            'etat': etat,
+            'refArticle': refArticle,
+            'commentaire': commentaire,
+            'reception': reception,
+            'quantite': quantite
+        }
         //création du JSON depuis le tableau de données + envoie en POST par la requéte
         var myJSON = JSON.stringify(data)
         xmlhttp.open("POST", "{{path('reception_json')}}", true)
-        xmlhttp.send(myJSON)  
+        xmlhttp.send(myJSON)
     }
+
+    function autocomplete(inp, arr) {
+        /*the autocomplete function takes two arguments,
+        the text field element and an array of possible autocompleted values:*/
+        var currentFocus;
+        /*execute a function when someone writes in the text field:*/
+        inp.addEventListener("input", function (e) {
+            var a, b, i, val = this.value;
+            /*close any already open lists of autocompleted values*/
+            closeAllLists();
+            if (!val) { return false; }
+            currentFocus = -1;
+            /*create a DIV element that will contain the items (values):*/
+            a = document.createElement("DIV");
+            a.setAttribute("id", this.id + "autocomplete-list");
+            a.setAttribute("class", "autocomplete-items");
+            /*append the DIV element as a child of the autocomplete container:*/
+            this.parentNode.appendChild(a);
+            /*for each item in the array...*/
+            for (i = 0; i < arr.length; i++) {
+                /*check if the item starts with the same letters as the text field value:*/
+                if (arr[i].substr(0, val.length).toUpperCase() == val.toUpperCase()) {
+                    /*create a DIV element for each matching element:*/
+                    b = document.createElement("DIV");
+                    /*make the matching letters bold:*/
+                    b.innerHTML = "<strong>" + arr[i].substr(0, val.length) + "</strong>";
+                    b.innerHTML += arr[i].substr(val.length);
+                    /*insert a input field that will hold the current array item's value:*/
+                    b.innerHTML += "<input type='hidden' value='" + arr[i] + "'>";
+                    /*execute a function when someone clicks on the item value (DIV element):*/
+                    b.addEventListener("click", function (e) {
+                        /*insert the value for the autocomplete text field:*/
+                        inp.value = this.getElementsByTagName("input")[0].value;
+                        /*close the list of autocompleted values,
+                        (or any other open lists of autocompleted values:*/
+                        closeAllLists();
+                    });
+                    a.appendChild(b);
+                }
+            }
+        });
+        
+        /*execute a function presses a key on the keyboard:*/
+        inp.addEventListener("keydown", function (e) {
+            var x = document.getElementById(this.id + "autocomplete-list");
+            if (x) x = x.getElementsByTagName("div");
+            if (e.keyCode == 40) {
+                /*If the arrow DOWN key is pressed,
+                increase the currentFocus variable:*/
+                currentFocus++;
+                /*and and make the current item more visible:*/
+                addActive(x);
+            } else if (e.keyCode == 38) { //up
+                /*If the arrow UP key is pressed,
+                decrease the currentFocus variable:*/
+                currentFocus--;
+                /*and and make the current item more visible:*/
+                addActive(x);
+            } else if (e.keyCode == 13) {
+                /*If the ENTER key is pressed, prevent the form from being submitted,*/
+                e.preventDefault();
+                if (currentFocus > -1) {
+                    /*and simulate a click on the "active" item:*/
+                    if (x) x[currentFocus].click();
+                }
+            }
+        });
+        function addActive(x) {
+            /*a function to classify an item as "active":*/
+            if (!x) return false;
+            /*start by removing the "active" class on all items:*/
+            removeActive(x);
+            if (currentFocus >= x.length) currentFocus = 0;
+            if (currentFocus < 0) currentFocus = (x.length - 1);
+            /*add class "autocomplete-active":*/
+            x[currentFocus].classList.add("autocomplete-active");
+        }
+        function removeActive(x) {
+            /*a function to remove the "active" class from all autocomplete items:*/
+            for (var i = 0; i < x.length; i++) {
+                x[i].classList.remove("autocomplete-active");
+            }
+        }
+        function closeAllLists(elmnt) {
+            /*close all autocomplete lists in the document,
+            except the one passed as an argument:*/
+            var x = document.getElementsByClassName("autocomplete-items");
+            for (var i = 0; i < x.length; i++) {
+                if (elmnt != x[i] && elmnt != inp) {
+                    x[i].parentNode.removeChild(x[i]);
+                }
+            }
+        }
+        /*execute a function when someone clicks in the document:*/
+        document.addEventListener("click", function (e) {
+            closeAllLists(e.target);
+        });
+    }
+
+    /*An array containing all the country names in the world:*/
+    var emplacementList = [{% for item in emplacement %}"{{item.nom}}", {% endfor %} ]
+    var emplacementId = { {% for item in emplacement %}"{{item.nom}}" : "{{item.id}}", {% endfor %} }
+
+    var refArticleList = [{% for item in refArticle %}"{{item.libelle}}", {% endfor %} ]
+    var refArticleId = { {% for item in refArticle %}"{{item.libelle}}" : "{{ item.id}}", {% endfor %} }
+
+    /*initiate the autocomplete function on the "myInput" element, and pass along the emplacement array as possible autocomplete values:*/
+    autocomplete(document.getElementById("position"), emplacementList);
+    autocomplete(document.getElementById("direction"), emplacementList);
+    autocomplete(document.getElementById("refArticle"), refArticleList);
 </script>
 
 {% endblock %}
