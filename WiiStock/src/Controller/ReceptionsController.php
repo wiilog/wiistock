@@ -160,7 +160,7 @@ class ReceptionsController extends AbstractController
                 'fournisseurs' => $fournisseursRepository,
                 'utilisateurs' => $utilisateurRepository,
                 'date' => $date = date("d-m-y"),
-                'statuts' => $statutsRepository->findAll()
+                'statuts' => $statutsRepository->findByCategorie("Receptions")
             ]);
            
     }

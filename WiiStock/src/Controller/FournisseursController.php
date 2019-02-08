@@ -46,6 +46,25 @@ class FournisseursController extends Controller
     }
 
     /**
+     * @Route("/api", name="fournisseur_api", methods="GET")
+     */
+    public function fournisseursApi(Request $request, FournisseursRepository $fournisseursRepository) : Response
+    {
+        $refs = $fournisseursRepository->findAll();
+       $rows =[];
+        foreach ($refs as $ref) {
+            $row = [
+                "Nom" => $ref->getNom(),
+                "Code de réference" => $ref->getCodeReference(),
+            ];
+            array_push($rows, $row);
+        }
+        $data['data'] =  $rows;
+        return new JsonResponse($data);
+    
+    }
+
+    /**
      * @Route("/", name="fournisseurs_index", methods="GET")
      */
     public function index(FournisseursRepository $fournisseursRepository, Request $request, PaginatorInterface $paginator) : Response

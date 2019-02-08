@@ -106,33 +106,29 @@ class ArticlesController extends AbstractController
      */
     public function articleFiltreJson(ArticlesRepository $articlesRepository, Request $request): Response
     {
-        if (!$request->isXmlHttpRequest()) {
-            // decodage en tavleau php
-            $myJSON = json_decode($request->getContent(), true);
-            if ($myJSON) {
-                $articles = $articlesRepository->findFiltreByNom($myJSON);
-            }
+            $articles = $articlesRepository->findAll();
+            // if ($myJSON) {
+            //     // $articles = $articlesRepository->findFiltreByNom($myJSON);
+            // }
             // contruction de la reponse =>recuperation de l'article cree + traitement des donnees
+
+            $rows = [];
             foreach ($articles as $article) {
-                $reponseJSON[] =[ 
+                $row =[ 
                     'id'=> ($article->getId() ? $article->getId() : "null" ),
-                    'nom'=>( $article->getNom() ?  $article->getNom():"null"),
-                    'refArticle'=> ($article->getRefArticle() ? $article->getRefArticle()->getLibelle() : "null"),
+                    'Nom'=>( $article->getNom() ?  $article->getNom():"null"),
+                    'Statut'=> ($article->getStatut()->getNom() ? $article->getStatut()->getNom() : "null"),
+                    'Conformité'=>($article->getEtat() ? 'conforme': 'anomalie'),
+                    'Reférences Articles'=> ($article->getRefArticle() ? $article->getRefArticle()->getLibelle() : "null"),
                     'position'=> ($article->getPosition() ? $article->getPosition()->getNom() : "null"),
-                    'direction'=> ($article->getDirection() ? $article->getDirection()->getNom() : "null"),
-                    'statut'=> ($article->getStatut()->getNom() ? $article->getStatut()->getNom() : "null"),
-                    'quantite'=>($article->getQuantite() ? $article->getQuantite() : "null"),
-                    'etat'=>($article->getEtat() ? 'conforme': 'non-conforme'),
+                    'destination'=> ($article->getDirection() ? $article->getDirection()->getNom() : "null"),
+                    'Quantite'=>($article->getQuantite() ? $article->getQuantite() : "null"),
                 ];
+                array_push($rows, $row);
             }
-            if(isset($reponseJSON)){
-                $reponseJSON = json_encode($reponseJSON);
-            }else{
-                $reponseJSON = json_encode('patate');
-            }
-            return new JsonResponse($reponseJSON);
-        }
-        throw new NotFoundHttpException('404 not found');
+            $data['data'] =  $rows;
+            return new JsonResponse($data);
+       
     } 
 
     /**
@@ -151,13 +147,13 @@ class ArticlesController extends AbstractController
             foreach ($articles as $article) {
                 $reponseJSON[] =[ 
                     'id'=> ($article->getId() ? $article->getId() : "null" ),
-                    'nom'=>( $article->getNom() ?  $article->getNom():"null"),
-                    'refArticle'=> ($article->getRefArticle() ? $article->getRefArticle()->getLibelle() : "null"),
+                    'Nom'=>( $article->getNom() ?  $article->getNom():"null"),
+                    'Statut'=> ($article->getStatut()->getNom() ? $article->getStatut()->getNom() : "null"),
+                    'Conformité'=>($article->getEtat() ? 'conforme': 'non-conforme'),
+                    'réferences Articles'=> ($article->getRefArticle() ? $article->getRefArticle()->getLibelle() : "null"),
                     'position'=> ($article->getPosition() ? $article->getPosition()->getNom() : "null"),
-                    'direction'=> ($article->getDirection() ? $article->getDirection()->getNom() : "null"),
-                    'statut'=> ($article->getStatut()->getNom() ? $article->getStatut()->getNom() : "null"),
-                    'quantite'=>($article->getQuantite() ? $article->getQuantite() : "null"),
-                    'etat'=>($article->getEtat() ? 'conforme': 'non-conforme'),
+                    'destination'=> ($article->getDirection() ? $article->getDirection()->getNom() : "null"),
+                    'Quantite'=>($article->getQuantite() ? $article->getQuantite() : "null"),
                 ];
             }
             if(isset($reponseJSON)){

@@ -49,32 +49,56 @@ class ReferencesArticlesController extends Controller
         throw new NotFoundHttpException('404 not found');
     }
 
-    private function createCustomFieldJson($repository)
+    /**
+     * @Route("/refArticleAPI", name="ref_article_api", methods="GET")
+     */
+    public function refArticleApi(Request $request, ReferencesArticlesRepository $referencesArticlesRepository) : Response
     {
-        $em = $this->getDoctrine()->getManager();
+            $refs = $referencesArticlesRepository->findAll();
+            $rows = [];
+            foreach ($refs as $ref) {
+                $row = [
+                    "id" => $ref->getId(),
+                    "Libelle" => $ref->getLibelle(),
+                    "Référence" => $ref->getReference(),
+                    "Quantité" => $ref->getQuantity(),
 
-        $q = $repository->findOne();
-        if ($q) {
-            $json_data = $q->getCustom();
-
-            $array = array();
-            $i = 0;
-            while ($name = current($json_data)) {
-                $custom_field = $em->getRepository(ChampsPersonnalises::class)->findOneBy(["id" => key($json_data[$i])]);
-                $field = array(
-                    "id" => key($json_data[$i]),
-                    "name" => $custom_field->getNom(),
-                );
-                // dump(key($json_data[$i]));
-                next($json_data);
-                $i++;
-                array_push($array, $field);
+                ];
+                array_push($rows, $row);
             }
-            return (json_encode($array, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE));
-        } else {
-            return json_encode(array());
-        }
+
+            $data['data'] =  $rows;
+            return new JsonResponse($data);
     }
+
+
+    // INUTILE
+    // private function createCustomFieldJson($repository) 
+    // {
+    //     $em = $this->getDoctrine()->getManager();
+
+    //     $q = $repository->findOne();
+    //     if ($q) {
+    //         $json_data = $q->getCustom();
+
+    //         $array = array();
+    //         $i = 0;
+    //         while ($name = current($json_data)) {
+    //             $custom_field = $em->getRepository(ChampsPersonnalises::class)->findOneBy(["id" => key($json_data[$i])]);
+    //             $field = array(
+    //                 "id" => key($json_data[$i]),
+    //                 "name" => $custom_field->getNom(),
+    //             );
+    //             // dump(key($json_data[$i]));
+    //             next($json_data);
+    //             $i++;
+    //             array_push($array, $field);
+    //         }
+    //         return (json_encode($array, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE));
+    //     } else {
+    //         return json_encode(array());
+    //     }
+    // }
 
     /**
      * @Route("/create", name="references_articles_create", methods="GET|POST")
@@ -105,15 +129,9 @@ class ReferencesArticlesController extends Controller
     /**
      * @Route("/", name="references_articles_index", methods="GET")
      */
-    public function index(ReferencesArticlesRepository $referencesArticlesRepository, Request $request, PaginatorInterface $paginator) : Response
+    public function index(ReferencesArticlesRepository $referencesArticlesRepository, Request $request) : Response
     {
-
-        $pagination = $paginator->paginate(
-            $referencesArticlesRepository->findAll(),
-            $request->query->getInt('page', 1),
-            3
-        );
-        return $this->render('references_articles/index.html.twig', ['references_articles' => $pagination]);
+        return $this->render('references_articles/index.html.twig');
     }
 
     /**
