@@ -29,13 +29,6 @@ class ArticlesController extends AbstractController
         $statuts = $statutsRepository->findByCategorie("articles"); /* On spécifie la catégorie voulu */
         if(isset($_POST['statuts'])) /* Si $_POST['statuts'] existe on rentre dans la condition*/
         {
-            dump($_POST['statuts']);
-/* 
-            if(isset($_GET['page']))
-            {
-                $_GET['page'] = '1';
-            } */
-
             if($_POST['statuts'] != "Non selectionné")
             {
                 return $this->render('articles/index.html.twig', ['articles'=> 
@@ -109,18 +102,49 @@ class ArticlesController extends AbstractController
     }
 
     /**
-     * @Route("/new", name="articles_filtre_json", methods="GET|POST")
+     * @Route("/search", name="articles_filtre_json", methods="GET|POST")
      */
     public function articleFiltreJson(ArticlesRepository $articlesRepository, Request $request): Response
     {
         if (!$request->isXmlHttpRequest()) {
             // decodage en tavleau php
             $myJSON = json_decode($request->getContent(), true);
-            dump($myJSON);
             if ($myJSON) {
                 $articles = $articlesRepository->findFiltreByNom($myJSON);
+            }
+            // contruction de la reponse =>recuperation de l'article cree + traitement des donnees
+            foreach ($articles as $article) {
+                $reponseJSON[] =[ 
+                    'id'=> ($article->getId() ? $article->getId() : "null" ),
+                    'nom'=>( $article->getNom() ?  $article->getNom():"null"),
+                    'refArticle'=> ($article->getRefArticle() ? $article->getRefArticle()->getLibelle() : "null"),
+                    'position'=> ($article->getPosition() ? $article->getPosition()->getNom() : "null"),
+                    'direction'=> ($article->getDirection() ? $article->getDirection()->getNom() : "null"),
+                    'statut'=> ($article->getStatut()->getNom() ? $article->getStatut()->getNom() : "null"),
+                    'quantite'=>($article->getQuantite() ? $article->getQuantite() : "null"),
+                    'etat'=>($article->getEtat() ? 'conforme': 'non-conforme'),
+                ];
+            }
+            if(isset($reponseJSON)){
+                $reponseJSON = json_encode($reponseJSON);
             }else{
-                // $articles = $articlesRepository->findAll();
+                $reponseJSON = json_encode('patate');
+            }
+            return new JsonResponse($reponseJSON);
+        }
+        throw new NotFoundHttpException('404 not found');
+    } 
+
+    /**
+     * @Route("/filtrestatut", name="articles_filtre_statut", methods="GET|POST")
+     */
+    public function articleFiltreStatut(ArticlesRepository $articlesRepository, Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest()) {
+            // decodage en tavleau php
+            $myJSON = json_decode($request->getContent(), true);
+            if ($myJSON) {
+                $articles = $articlesRepository->findByStatut($myJSON);
             }
             
             // contruction de la reponse =>recuperation de l'article cree + traitement des donnees
@@ -139,15 +163,17 @@ class ArticlesController extends AbstractController
             if(isset($reponseJSON)){
                 $reponseJSON = json_encode($reponseJSON);
             }else{
-                $reponseJSON = 'hello';
+                $reponseJSON = json_encode('patate');
             }
+
+            dump($reponseJSON);
             return new JsonResponse($reponseJSON);
         }
         throw new NotFoundHttpException('404 not found');
     } 
 
     /**
-     * @Route("/new", name="articles_new", methods="GET|POST")
+     * @Route("/new", name="articles_new", methods="GET|POST")  INUTILE
      */
     public function new(Request $request, StatutsRepository $statutsRepository): Response
     {
@@ -176,7 +202,12 @@ class ArticlesController extends AbstractController
      */
     public function show(Articles $article): Response
     {
-        return $this->render('articles/show.html.twig', ['article' => $article]);
+        $session = $_SERVER['HTTP_REFERER'];
+
+        return $this->render('articles/show.html.twig', [
+            'article' => $article,
+            'session'=> $session
+            ]);
     }
 
     /**

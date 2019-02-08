@@ -35,7 +35,6 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
  */
 class ReceptionsController extends AbstractController
 {
-
     /**
      * @Route("/creationReception", name="createReception", methods="POST")
      */
@@ -83,7 +82,6 @@ class ReceptionsController extends AbstractController
     }
 
     /**
-     * @Route("/{history}", name="receptions_index")
      * @Route("/json", name="reception_json", methods={"GET", "POST"}) 
      */
     public function receptionJson(Request $request, ReceptionsRepository $receptionsRepository, ArticlesRepository $articlesRepository, StatutsRepository $statutsRepository, EmplacementRepository $emplacementRepository, ReferencesArticlesRepository $referencesArticlesRepository ) : Response
@@ -138,16 +136,16 @@ class ReceptionsController extends AbstractController
     }
 
     /**
-     * @Route("/{history}", name="receptions_index", methods="GET")
+     * @Route("/", name="receptions_index", methods={"GET", "POST"})
      */
-    public function index(ReceptionsRepository $receptionsRepository, FournisseursRepository $fournisseursRepository, UtilisateursRepository $utilisateurRepository, StatutsRepository $statutsRepository, PaginatorInterface $paginator, Request $request, $history): Response
+    public function index(ReceptionsRepository $receptionsRepository, FournisseursRepository $fournisseursRepository, UtilisateursRepository $utilisateurRepository, StatutsRepository $statutsRepository, PaginatorInterface $paginator, Request $request): Response
     {
         $fournisseursRepository = $fournisseursRepository->findAll();
         $utilisateurRepository = $utilisateurRepository->findAll();
 
         /* On regarde si l'history = 1 , si oui alors on récupère la requête findAll sinon findByDateOrStatut */
-        $date = ($history === '1') ? null : new \DateTime('now') ;
-        $historyQuery = ($history === '1') ? $receptionsRepository->findAll() : $receptionsRepository->findByDateOrStatut($date);
+        $date = new \DateTime('now');
+        $historyQuery = $receptionsRepository->findByDateOrStatut($date);
 
         // /* Pagination grâce au bundle Knp Paginator */
         $pagination = $paginator->paginate(
@@ -156,23 +154,15 @@ class ReceptionsController extends AbstractController
             10
         );
 
-        if($history === '1'){
-            return $this->render('receptions/index.html.twig', [
-                'receptions' => $pagination,
-                'fournisseurs' => $fournisseursRepository,
-                'utilisateurs' => $utilisateurRepository
-            ]);
-        }
-        else
-        {
-            //filtrage par la date du jour et le statut, requete SQL dédié
-            return $this->render('receptions/index.html.twig', [
-                'receptions' => $pagination,
-                'fournisseurs' => $fournisseursRepository,
-                'utilisateurs' => $utilisateurRepository,
-                'date' => $date = date("d-m-y")
-            ]);
-        }    
+        //Filtrage par la date du jour et le statut, requête SQL dédié
+        return $this->render('receptions/index.html.twig', [
+            'receptions' => $pagination,
+            'fournisseurs' => $fournisseursRepository,
+            'utilisateurs' => $utilisateurRepository,
+            'date' => $date = date("d-m-y"),
+            'statuts' => $statutsRepository->findAll()
+        ]);
+           
     }
 
     /**

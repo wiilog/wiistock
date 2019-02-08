@@ -36,7 +36,7 @@
                         <h4 class="username">Ordre</h4>
                     </a>
                     <ul class="sidemenu-sub">
-                        <li><a href={{path("receptions_index", {'history': 0})}}>• Réception</a></li>
+                        <li><a href={{path("receptions_index")}}>• Réception</a></li>
                         <li><a href={{ path('preparation_index',  {'history': 'false'} ) }}>• Préparation</a></li>
                         <li><a href={{path("livraison_index", {'history':'false'})}}>• Livraison</a></li>
                     </ul>
@@ -148,7 +148,9 @@
     {% endblock %}
     <div class="wrapper">
         <div class="container-fluid">
-            {% block page_content %}{% endblock %}
+            {% block page_content %}
+            
+            {% endblock %}
         </div>
     </div>
 

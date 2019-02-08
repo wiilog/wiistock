@@ -1,0 +1,50 @@
+
+<!-- Modal -->
+<form method="" class="modal fade" id="dataModalCenter" role="dialog" aria-labelledby="dataModalCenterTitle"
+aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Créer une réception</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body modal-input container-fluid">
+                    <div class="form-group">
+                        <label for="NumeroArrivage">Numero arrivage</label>
+                        <input type="text" class="form-control data" name="NumeroArrivage"
+                            placeholder="N°Arrivage">
+                    </div>
+        
+                    <div class="form-group">
+                        <label for="NumeroReception">Numero Reception</label>
+                        <input type="text" class="form-control data" name="NumeroReception" placeholder="N°Reception">
+                    </div>
+        
+                    <div class="form-group">
+                        <label for="fournisseurs">Fournisseurs</label>
+                        <select class="form-control select2 data" name="fournisseur">
+                            
+                        </select>
+                    </div>
+        
+                    <div class="form-group">
+                    <label for="utilisateur">Utilisateur</label>
+                        <select class="form-control select2 data" name="utilisateur">
+                            
+                        </select>
+                    </div>
+        
+                    <div class="form-group">
+                        <label for="NumeroReception">Commentaire</label>
+                        <input type="text" class="form-control data" name="commentaire" placeholder="Commentaire">
+                    </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                <button id="submitButton" type="button" data-dismiss="modal" class="btn btn-primary btn-success">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+</form>
