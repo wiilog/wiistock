@@ -35,7 +35,6 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
  */
 class ReceptionsController extends AbstractController
 {
-
     /**
      * @Route("/creationReception", name="createReception", methods="POST")
      */
@@ -79,7 +78,7 @@ class ReceptionsController extends AbstractController
             }
         }
 
-        throw new NotFoundHttp;
+        throw new NotFoundHttpException("404");
     }
 
     /**
@@ -137,7 +136,7 @@ class ReceptionsController extends AbstractController
     }
 
     /**
-     * @Route("/", name="receptions_index", methods="GET")
+     * @Route("/", name="receptions_index", methods={"GET", "POST"})
      */
     public function index(ReceptionsRepository $receptionsRepository, FournisseursRepository $fournisseursRepository, UtilisateursRepository $utilisateurRepository, StatutsRepository $statutsRepository, PaginatorInterface $paginator, Request $request): Response
     {
@@ -145,7 +144,7 @@ class ReceptionsController extends AbstractController
         $utilisateurRepository = $utilisateurRepository->findAll();
 
         /* On regarde si l'history = 1 , si oui alors on récupère la requête findAll sinon findByDateOrStatut */
-        $date =new \DateTime('now') ;
+        $date = new \DateTime('now');
         $historyQuery = $receptionsRepository->findByDateOrStatut($date);
 
         // /* Pagination grâce au bundle Knp Paginator */

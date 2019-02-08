@@ -119,6 +119,9 @@
     </div>
 </form>
 
+{% endblock %}
+
+{% block javascripts %}
 <script>
     var ReceptionModal = document.getElementById("ReceptionsModalCenter");
     var ButtonSubmit = document.getElementById("submitButton");
@@ -195,5 +198,4 @@
         xhttp.send(Json);
     });
 </script>
-
 {% endblock %}

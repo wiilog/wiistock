@@ -17,7 +17,12 @@ use App\Repository\ArticlesRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\StatutsRepository;
 
+use App\Repository\UtilisateursRepository;
+
 use Knp\Component\Pager\PaginatorInterface;
+
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
  * @Route("/collecte")
@@ -27,15 +32,8 @@ class CollecteController extends AbstractController
     /**
      * @Route("/{history}/index", name="collecte_index", methods={"GET", "POST"})
      */
-    public function index(CollecteRepository $collecteRepository, ArticlesRepository $articlesRepository, StatutsRepository $statutsRepository, EmplacementRepository $emplacementRepository, PaginatorInterface $paginator, Request $request, $history): Response
+    public function index(CollecteRepository $collecteRepository, UtilisateursRepository $utilisateursRepository, ArticlesRepository $articlesRepository, StatutsRepository $statutsRepository, EmplacementRepository $emplacementRepository, PaginatorInterface $paginator, Request $request, $history): Response
     {
-        if (array_key_exists('fin', $_POST))
-        {
-            $collecte = $collecteRepository->findById($_POST['fin']);
-            $statut = $statutsRepository->findById(18); /* 18 = Récupéré */
-            $collecte[0]->setStatut($statut[0]);
-            // $this->getDoctrine()->getManager()->flush();
-        }
 
         $statut = 'fin';
         $collecteQuery = ($history === 'true') ? $collecteRepository->findAll() : $collecteRepository->findByNoStatut($statut);
@@ -45,14 +43,21 @@ class CollecteController extends AbstractController
             $request->query->getInt('page', 1),
             10
         );
-
         
+        if (array_key_exists('fin', $_POST))
+        {
+            $collecte = $collecteRepository->findById($_POST['fin']);
+            $statut = $statutsRepository->findById(18); /* 18 = Récupéré */
+            $collecte[0]->setStatut($statut[0]);
+            // $this->getDoctrine()->getManager()->flush();
+        }
 
         if ($history === 'true') 
         {
             return $this->render('collecte/index.html.twig', [
                 'collectes' => $pagination,
-                'articles'=>$articlesRepository->findBystatutAndEmpl($empl),
+                'utilisateurs' => $utilisateursRepository->findAll(),
+                'articles'=> $articlesRepository->findByStatut(4),
                 'emplacements'=>$emplacementRepository->findAll(),
                 'history' => 'false',
             ]);
@@ -61,7 +66,8 @@ class CollecteController extends AbstractController
         {
             return $this->render('collecte/index.html.twig', [
                 'collectes' => $pagination, 
-                'articles'=>$articlesRepository->findBystatutAndEmpl($empl),
+                'utilisateurs' => $utilisateursRepository->findAll(),
+                'articles'=> $articlesRepository->findByStatut(4),
                 'emplacements'=>$emplacementRepository->findAll(),
                 
             ]);
@@ -111,7 +117,7 @@ class CollecteController extends AbstractController
         // verifie l'existence de la clef dans $_POST et si elle n'est pas vide 
         if(array_key_exists('emplacement', $_POST) && $_POST['emplacement']){
             $empl = $emplacementRepository->findEptById($_POST['emplacement']);
-            // recuperation de l'emplacement utilisé pour recuperer les articles en lien avec SQL => requete dédié
+            // recuperation de l'emplacement utilisé pour recuperer les articles en lien avec SQL => requête dédié
             return $this->render('collecte/create.html.twig', array(
                 'articles'=>$articlesRepository->findBystatutAndEmpl($empl),
                 'emplacements'=>$emplacementRepository->findAll(),
