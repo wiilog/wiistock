@@ -60,7 +60,7 @@ $(document).ready(function () {
             return $no_submenu.hover(hide);
         });
 
-    }).call(this);
+    });
 
     $('.alert').delay(2000).fadeOut(2000);
 

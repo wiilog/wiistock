@@ -79,7 +79,7 @@ class ReceptionsController extends AbstractController
             }
         }
 
-        throw new NotFoundHttp;
+        throw new NotFoundHttpException("404");
     }
 
     /**
