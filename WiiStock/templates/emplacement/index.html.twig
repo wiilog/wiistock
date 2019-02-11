@@ -6,7 +6,7 @@
     <h1>Emplacement</h1>
 
     <div class='row btn pull-right' >
-            <a href="{{ path('emplacement_new') }}" class="button btn-left">
+            <a href="" data-toggle="modal" data-target="#dataModalCenter" class="button btn-left">
                 <span class="fa fa-plus"></span>Nouveau emplacement
             </a >
         </div>
@@ -38,5 +38,7 @@
         {% endfor %}
         </tbody>
     </table>
+
+    {% include "emplacement/modalEmplacement.html.twig" %}
 
 {% endblock %}

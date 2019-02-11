@@ -52,9 +52,10 @@ class DemandeController extends AbstractController
             $refArticles = $referencesArticlesRepository->findAll();
             $demande = new Demande();
 
-            if (array_key_exists('piece', $data)) 
+            if (count($data) >= 2) 
             {
-                $destination = $emplacementRepository->findOneBy(array('id' => $data['direction'])); // On recupere la destination des articles
+                dump("1");
+                $destination = $emplacementRepository->findOneBy(array('id' => $data[0]['direction'])); // On recupere la destination des articles
                 $demande->setDestination($destination);// On 'remplie' la $demande avec les data les plus simple
                 $statut = $statutsRepository->findById(14);
                 $demande->setStatut($statut[0]);
@@ -62,12 +63,15 @@ class DemandeController extends AbstractController
                 $date =  new \DateTime('now');
                 $demande->setdate($date);
                 $demande->setNumero("D-" . $date->format('YmdHis')); // On recupere un array sous la forme ['id de l'article de réference' => 'quantite de l'article de réference voulu', ....]
-                $refArtQte = $data["piece"];
+                $refArtQte = $data[1];
+                dump($refArtQte);
                 $refArtKey = array_keys($refArtQte); //On créer un array qui recupere les key de valeur de nos id 
 
                 foreach ($refArtKey as $key) 
                 {
+                    dump("2");
                     $articles = $articlesRepository->findByRefAndConfAndStock($key);
+                    dump($articles);
 
                     for($n=0; $n<$refArtQte[$key]; $n++)
                     {
@@ -80,26 +84,26 @@ class DemandeController extends AbstractController
 
                 if (count($demande->getArticles()) > 0)
                 {
-                $em = $this->getDoctrine()->getManager();
-                $em->persist($demande);
-                $em->flush();
+                    $em = $this->getDoctrine()->getManager();
+                    $em->persist($demande);
+                    $em->flush();
                 }
 
-                $data = json_encode($data);
-                return new JsonResponse($data);
-            }
-
-            //calcul de la quantite des stocks par artciles de reference
-            $refArticles = $referencesArticlesRepository->findAll();
-            foreach ($refArticles as $refArticle) {
+                //calcul de la quantite des stocks par artciles de reference
+                $refArticles = $referencesArticlesRepository->findAll();
+                foreach ($refArticles as $refArticle) {
                 // requete Count en SQL dédié
                 $quantityRef = $articlesRepository->findCountByRefArticle($refArticle);
                 $quantity = $quantityRef[0];
                 $refArticle->setQuantity($quantity[1]);
+                $this->getDoctrine()->getManager()->flush();
+
+                $data = json_encode($data);
+                return new JsonResponse($data);
+
+                }
             }
 
-            $this->getDoctrine()->getManager()->flush();
-            
             $data = json_encode($data);
             return new JsonResponse($data);
         }

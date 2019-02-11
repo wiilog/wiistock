@@ -264,7 +264,7 @@ class ReceptionsController extends AbstractController
             //calcul de la quantite des stocks par artciles de reference
             $refArticles = $referencesArticlesRepository->findAll();
 
-            foreach ($refArticles as $refArticle) 
+            foreach ($refArticles as $refArticle)
             {
                 // requete Count en SQL dédié
                 $quantityRef = $articlesRepository->findCountByRefArticle($refArticle);
