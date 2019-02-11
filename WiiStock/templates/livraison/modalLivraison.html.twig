@@ -1,0 +1,52 @@
+<!-- Modal -->
+<form method="" class="modal fade" id="ReceptionsModalCenter" tabindex="-1" role="dialog" aria-labelledby="ReceptionsModalCenterTitle"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Créer une nouvelle réception</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body modal-input container-fluid">
+                <h1>Génération des livraisons</h1>
+                <div class="container-fluid">
+                    {% for destination in destinations %}
+                    <div class="row">
+                        <label class="col-10" for="scales"> Prévisualisation de la livraison pour l'emplacement:
+                            {{destination.nom}}</label>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Nom</th>
+                                    <th>Reférences Articles</th>
+                                    <th>position</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% set i = 0 %}
+                                {% for demande in demandes %}
+                                {% if destination.nom == demande.destination.nom %}
+                                {% for article in demande.articles %}
+                                <tr {% if i % 2==1 %} class="backtablejv" {% endif %}>
+                                    {% set i = i + 1 %}
+                                    <td>{{ article.nom }}</td>
+                                    <td>{{ article.refArticle.reference }}</td>
+                                    <td>{{ article.position }}</td>
+                                </tr>
+                                {% endfor %}
+                                {% endif %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                    <button id="submitButton" type="button" data-dismiss="modal" class="btn btn-primary btn-success">Enregistrer</button>
+                </div>
+            </div>
+        </div>
+</form>

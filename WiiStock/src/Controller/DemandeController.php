@@ -27,16 +27,91 @@ use App\Repository\LivraisonRepository;
 
 use Knp\Component\Pager\PaginatorInterface;
 
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+
 
 /**
  * @Route("/demande")
  */
 class DemandeController extends AbstractController
 {
+
+    /**
+     * @Route("/creationDemande", name="creation_demande", methods="GET|POST")
+     */
+    public function creationDemande(LivraisonRepository $livraisonRepository, Request $request, StatutsRepository $statutsRepository, ReferencesArticlesRepository $referencesArticlesRepository, ArticlesRepository $articlesRepository, EmplacementRepository $emplacementRepository): Response 
+    {   
+        // La creation de demandes n'utilise pas le formulaire symfony, les utilisateur demandent des articles de Reference non pas les articles
+        // on recupere la liste de article de reference et on créer une instance de demande
+
+        // si renvoie d'un réponse POST
+        if(!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true))
+        {
+            dump($data);
+            $refArticles = $referencesArticlesRepository->findAll();
+            $demande = new Demande();
+
+            if (array_key_exists('piece', $data)) 
+            {
+                $destination = $emplacementRepository->findOneBy(array('id' => $data['direction'])); // On recupere la destination des articles
+                $demande->setDestination($destination);// On 'remplie' la $demande avec les data les plus simple
+                $statut = $statutsRepository->findById(14);
+                $demande->setStatut($statut[0]);
+                $demande->setUtilisateur($this->getUser());
+                $date =  new \DateTime('now');
+                $demande->setdate($date);
+                $demande->setNumero("D-" . $date->format('YmdHis')); // On recupere un array sous la forme ['id de l'article de réference' => 'quantite de l'article de réference voulu', ....]
+                $refArtQte = $data["piece"];
+                $refArtKey = array_keys($refArtQte); //On créer un array qui recupere les key de valeur de nos id 
+
+                foreach ($refArtKey as $key) 
+                {
+                    $articles = $articlesRepository->findByRefAndConfAndStock($key);
+
+                    for($n=0; $n<$refArtQte[$key]; $n++)
+                    {
+                        $demande->addArticle($articles[$n]);//on modifie le statut de l'article et sa destination 
+                        $statut = $statutsRepository->findById(13);
+                        $articles[$n]->setStatut($statut[0]);
+                        $articles[$n]->setDirection($destination);
+                    }
+                }
+
+                if (count($demande->getArticles()) > 0)
+                {
+                $em = $this->getDoctrine()->getManager();
+                $em->persist($demande);
+                $em->flush();
+                }
+
+                $data = json_encode($data);
+                return new JsonResponse($data);
+            }
+
+            //calcul de la quantite des stocks par artciles de reference
+            $refArticles = $referencesArticlesRepository->findAll();
+            foreach ($refArticles as $refArticle) {
+                // requete Count en SQL dédié
+                $quantityRef = $articlesRepository->findCountByRefArticle($refArticle);
+                $quantity = $quantityRef[0];
+                $refArticle->setQuantity($quantity[1]);
+            }
+
+            $this->getDoctrine()->getManager()->flush();
+            
+            $data = json_encode($data);
+            return new JsonResponse($data);
+        }
+
+        throw new NotFoundHttpException("404");
+    }
+
+
     /**
      * @Route("/{history}/index", name="demande_index", methods={"GET"})
      */
-    public function index(DemandeRepository $demandeRepository, PaginatorInterface $paginator, Request $request, StatutsRepository $statutsRepository, $history): Response
+    public function index(DemandeRepository $demandeRepository, EmplacementRepository $emplacementRepository, ReferencesArticlesRepository $referencesArticlesRepository, PaginatorInterface $paginator, Request $request, StatutsRepository $statutsRepository, $history): Response
     {
         
         $demandeQuery = ($history === 'true') ? $demandeRepository->findAll() : $demandeRepository->findAllByUserAndStatut($this->getUser());
@@ -47,76 +122,27 @@ class DemandeController extends AbstractController
             10
         );
 
-        if ($history === 'true') {
+
+        dump($referencesArticlesRepository->findRefArtByQte());
+        dump($emplacementRepository->findEptBy());
+
+        if ($history === 'true') 
+        {
             return $this->render('demande/index.html.twig', [
                 'demandes' => $pagination,
                 'history' => 'false',
+                'refArticles' => $referencesArticlesRepository->findRefArtByQte(),
+                'emplacements' => $emplacementRepository->findEptBy(),
             ]);
-        } else {
+        }
+        else
+        {
             return $this->render('demande/index.html.twig', [
-                'demandes' => $pagination, 
-                
+                'demandes' => $pagination,
+                'refArticles' => $referencesArticlesRepository->findRefArtByQte(),
+                'emplacements' => $emplacementRepository->findEptBy(),
             ]);
         }
-    }
-
-    /**
-     * @Route("/creationDemande", name="creation_demande", methods="GET|POST")
-     */
-    public function creationDemande(LivraisonRepository $livraisonRepository, Request $request, StatutsRepository $statutsRepository, ReferencesArticlesRepository $referencesArticlesRepository, ArticlesRepository $articlesRepository, EmplacementRepository $emplacementRepository): Response 
-    {   
-        //la creation de demandes n'utilise pas le formulaire symfony, les utilisateur demandent des articles de Reference non pas les articles
-        // on recupere la liste de article de reference et on créer une instance de demande
-        $refArticles = $referencesArticlesRepository->findAll();
-        $demande = new Demande();
-        // si renvoie d'un réponse POST 
-        if ( array_key_exists('piece', $_POST)) {
-            // on recupere la destination des articles 
-            $destination = $emplacementRepository->findOneBy(array('id' =>$_POST['direction']));
-            // on 'remplie' la $demande avec les data les plus simple
-            $demande->setDestination($destination);
-            $statut = $statutsRepository->findById(14);
-            $demande->setStatut($statut[0]);
-            $demande->setUtilisateur($this->getUser());
-            $date =  new \DateTime('now');
-            $demande->setdate($date);
-            $demande->setNumero("D-" . $date->format('YmdHis'));
-            // on recupere un array sous la forme ['id de l'article de réference' => 'quantite de l'article de réference voulu', ....]
-            $refArtQte = $_POST["piece"];
-            //on créer un array qui recupere les key de valeur de nos id 
-            $refArtKey = array_keys($refArtQte);
-            foreach ($refArtKey as $key) {
-                $articles = $articlesRepository->findByRefAndConfAndStock($key);
-                for($n=0; $n<$refArtQte[$key]; $n++){
-                    $demande->addArticle($articles[$n]);
-                    //on modifie le statut de l'article et sa destination 
-                    $statut = $statutsRepository->findById(13);
-                    $articles[$n]->setStatut($statut[0]);
-                    $articles[$n]->setDirection($destination);
-                }
-            }
-            if (count($demande->getArticles()) > 0){
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($demande);
-            $em->flush();
-            }
-            return $this->redirectToRoute('demande_index', array('history'=>'false'));  
-        }
-         //calcul de la quantite des stocks par artciles de reference
-         $refArticles = $referencesArticlesRepository->findAll();
-         foreach ($refArticles as $refArticle) {
-             // requete Count en SQL dédié
-             $quantityRef = $articlesRepository->findCountByRefArticle($refArticle);
-             $quantity = $quantityRef[0];
-             $refArticle->setQuantity($quantity[1]);
-         }
-         $this->getDoctrine()->getManager()->flush();
-        
-        return $this->render('demande/creationDemande.html.twig', [
-            'refArticles' => $referencesArticlesRepository->findRefArtByQte(),
-            'emplacements' => $emplacementRepository->findEptBy(),
-            // 'articles' => $articles,//varibles de test 
-        ]);
     }
 
     /**

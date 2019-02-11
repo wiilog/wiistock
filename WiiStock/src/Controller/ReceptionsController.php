@@ -85,11 +85,11 @@ class ReceptionsController extends AbstractController
      * @Route("/json", name="reception_json", methods={"GET", "POST"}) 
      */
     public function receptionJson(Request $request, ReceptionsRepository $receptionsRepository, ArticlesRepository $articlesRepository, StatutsRepository $statutsRepository, EmplacementRepository $emplacementRepository, ReferencesArticlesRepository $referencesArticlesRepository ) : Response
-    {
-        // recuperation du fichier JSON via la requete
+    {// recuperation du fichier JSON via la requete
         if (!$request->isXmlHttpRequest()) {
             // decodage en tavleau php
             $myJSON = json_decode($request->getContent(), true);
+            dump($myJSON);
             // traitement des données => récuperation des objets via leur id 
             $position = $emplacementRepository->findEptById($myJSON['position']);
             $direction = $emplacementRepository->findEptById($myJSON['direction']);
@@ -132,6 +132,7 @@ class ReceptionsController extends AbstractController
             return new JsonResponse($reponseJSON);
         }
         throw new NotFoundHttpException('404 not found');
+        
         
     }
 
@@ -280,7 +281,7 @@ class ReceptionsController extends AbstractController
         return $this->render("receptions/ajoutArticle.html.twig", array(
             'reception' => $reception,
             'refArticle'=> $referencesArticlesRepository->findAll(),
-            'emplacement' => $emplacementRepository->findAll(),
+            'emplacements' => $emplacementRepository->findAll(),
             'id'=> $id,    
         ));
     }
