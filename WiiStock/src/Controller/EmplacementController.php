@@ -44,6 +44,8 @@ class EmplacementController extends AbstractController
                 return new JsonResponse($data);
             }
         }
+
+        throw new NotFoundHttpException("404");
     }
 
     /**
@@ -80,7 +82,7 @@ class EmplacementController extends AbstractController
     /**
      * @Route("/{id}", name="emplacement_show", methods="GET")
      */
-    public function show(Emplacement $emplacement): Response
+    public function show(Emplacement $emplacement, StatutsRepository $statutsRepository): Response
     {
         return $this->render('emplacement/show.html.twig', ['emplacement' => $emplacement]);
     }

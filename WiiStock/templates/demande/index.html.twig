@@ -1,9 +1,11 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Demande{% endblock %}
+{% block title %}Demande de livraison{% endblock %}
 
 {% block page_content %}
-    <h1>Demande</h1>
+
+<div class="barre-filtre">
+    <h1>Demande de livraison</h1>
     {% if history is defined %}
         <div class="row btn pull-left">
             <a href={{path('demande_index', {'history': 'false'})}} class="button btn-left"><span class="fas fa-history"></span> Mes demandes</a>
@@ -19,7 +21,12 @@
             <span class="fa fa-plus"></span> Nouvelle demande
         </a>
     </div>
-    
+</div>
+
+<div class="zone-actions">
+</div>
+
+<div class="zone-affichage">
     <table class="table">
         <thead>
             <tr>
@@ -49,6 +56,9 @@
         {% endfor %}
         </tbody>
     </table>
+</div>
+
+<div class="actions-secondaires"></div>
 
     {{ knp_pagination_render(demandes) }}
 
