@@ -10,6 +10,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
+use App\Repository\StatutsRepository;
+
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -18,10 +20,36 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
  */
 class EmplacementController extends AbstractController
 {
+
+    /**
+     * @Route("/nouvelEmplacement", name="createEmplacement")
+     */
+    public function createEmplacement(Request $request, StatutsRepository $statutsRepository): Response
+    {
+        if(!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true))
+        {
+            if(count($data) >= 2)
+            {
+                $emplacement = new Emplacement();
+                $em = $this->getDoctrine()->getManager();
+
+                $emplacement->setNom($data[0]['nom']);
+                $statut = $statutsRepository->findById($data[1]['statut']);
+                $emplacement->setStatut($statut[0]);
+
+                $em->persist($emplacement);
+                $em->flush();
+
+                $data = json_encode($data);
+                return new JsonResponse($data);
+            }
+        }
+    }
+
     /**
      * @Route("/", name="emplacement_index", methods="GET")
      */
-    public function index(EmplacementRepository $emplacementRepository): Response
+    public function index(EmplacementRepository $emplacementRepository, StatutsRepository $statutsRepository): Response
     {
         return $this->render('emplacement/index.html.twig');
     }

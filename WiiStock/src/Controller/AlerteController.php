@@ -20,6 +20,33 @@ use Symfony\Component\HttpFoundation\JsonResponse;
  */
 class AlerteController extends AbstractController
 {
+
+    /**
+     * @Route("/", name="alerte_index", methods={"GET"})
+     */
+    public function createAlerte(Request $request): Response
+    {
+
+        if(!$request->XmlHttpRequest() && $data = json_decode($data->getContent(), true))
+        {
+            $alerte = new Alertes();
+            $em = $this->getDoctrine()->getEntityManager();
+
+            $alerte->setNom($data[0]["nom"]);
+            $alerte->setSeuil($data[1]["seuil"]);
+            $alerte->setRefArticle($data[2]["refArticle"]);
+
+            $em->persist($alerte);
+            $em->flush();
+
+            $data = json_encode($data);
+            return new JsonResponse($data);
+        }
+
+        throw new XmlHttpException("404 not found");
+    }
+
+
     /**
      * @Route("/", name="alerte_index", methods={"GET"})
      */

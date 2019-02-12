@@ -58,6 +58,11 @@ class Emplacement
      */
     private $description;
 
+    /** 
+     * @ORM\ManyToOne(targetEntity="App\Entity\Statuts", inversedBy="emplacements")
+     */
+    private $Statut;
+
     public function __construct()
     {
         $this->racks = new ArrayCollection();
@@ -265,6 +270,16 @@ class Emplacement
     public function setDescription(?string $description): self
     {
         $this->description = $description;
+    }
+    
+    public function getStatut(): ?Statuts
+    {
+        return $this->Statut;
+    }
+
+    public function setStatut(?Statuts $Statut): self
+    {
+        $this->Statut = $Statut;
 
         return $this;
     }

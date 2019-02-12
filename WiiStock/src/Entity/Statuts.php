@@ -58,6 +58,11 @@ class Statuts
      */
     private $collectes;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Emplacement", mappedBy="Statut")
+     */
+    private $emplacements;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
@@ -66,6 +71,7 @@ class Statuts
         $this->preparations = new ArrayCollection();
         $this->livraisons = new ArrayCollection();
         $this->collectes = new ArrayCollection();
+        $this->emplacements = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -277,6 +283,37 @@ class Statuts
             // set the owning side to null (unless already changed)
             if ($collecte->getStatut() === $this) {
                 $collecte->setStatut(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Emplacement[]
+     */
+    public function getEmplacements(): Collection
+    {
+        return $this->emplacements;
+    }
+
+    public function addEmplacement(Emplacement $emplacement): self
+    {
+        if (!$this->emplacements->contains($emplacement)) {
+            $this->emplacements[] = $emplacement;
+            $emplacement->setStatut($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEmplacement(Emplacement $emplacement): self
+    {
+        if ($this->emplacements->contains($emplacement)) {
+            $this->emplacements->removeElement($emplacement);
+            // set the owning side to null (unless already changed)
+            if ($emplacement->getStatut() === $this) {
+                $emplacement->setStatut(null);
             }
         }
 

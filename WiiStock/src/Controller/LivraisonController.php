@@ -40,7 +40,7 @@ class LivraisonController extends AbstractController
 
             // recuperation des destination ID distincte des demandes selon le statut "preparation terminée"
             $destinationsId = $demandeRepository->findEmplacementByStatut(8); /* 8 = Préparation terminée (Catégorie : Demandes) */
-            dump($destinationsId);
+            /* dump($destinationsId); */
 
             $data = [];
             // generation automatique des livraison selon leur lieux de destination
@@ -58,7 +58,7 @@ class LivraisonController extends AbstractController
 
                 // recuperation des demande selon leurs destination et si elles sont terminées
                 $demandes = $demandeRepository->findByDestiAndStatut($emplacementRepository->findOneBy(['id' => $destinationId['id']]), 8);
-                dump($demandes);
+                /* dump($demandes); */
                 // liaison avec la livraison et changement du statut
                 foreach ($demandes as $demande) 
                 {
@@ -90,10 +90,10 @@ class LivraisonController extends AbstractController
             //$entityManager->flush();
         }
 
-        dump($demandeRepository->findDmdByStatut(8));
-        dump($demandeRepository->findEmplacementByStatut(8));
+        /* dump($demandeRepository->findDmdByStatut(8));
+        dump($demandeRepository->findEmplacementByStatut(8)); */
 
-        dump($data);
+        /* dump($data); */
         $data = json_encode($data);
         return new JsonResponse($data);
     }

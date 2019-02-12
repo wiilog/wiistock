@@ -1,4 +1,3 @@
-
 <!-- Modal -->
 <form method="" class="modal fade" id="dataModalCenter" role="dialog" aria-labelledby="dataModalCenterTitle"
 aria-hidden="true">
@@ -25,14 +24,18 @@ aria-hidden="true">
                     <div class="form-group">
                         <label for="fournisseurs">Fournisseurs</label>
                         <select class="form-control select2 data" name="fournisseur">
-                            
+                            {% for fournisseur in fournisseurs %}
+                                <option value="{{ fournisseur.id }}">{{ fournisseur.nom }}</option>
+                            {% endfor %}
                         </select>
                     </div>
         
                     <div class="form-group">
                     <label for="utilisateur">Utilisateur</label>
                         <select class="form-control select2 data" name="utilisateur">
-                            
+                            {% for utilisateur in utilisateurs %}
+                                <option value="{{ utilisateur.id }}">{{ utilisateur.username }}</option>
+                            {% endfor %}
                         </select>
                     </div>
         
