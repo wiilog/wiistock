@@ -22,34 +22,6 @@ use App\Service\FileUploader;
 class ReferencesArticlesController extends Controller
 {
     /**
-     * @Route("/get", name="references_articles_get", methods="GET")
-     */
-    public function getReferencesArticles(Request $request, ReferencesArticlesRepository $referencesArticlesRepository) : Response
-    {
-        if ($request->isXmlHttpRequest()) {
-            $q = $request->query->get('q');
-            $refs = $referencesArticlesRepository->findByLibelleOrRef($q);
-            $rows = array();
-            foreach ($refs as $ref) {
-                $row = [
-                    "id" => $ref->getId(),
-                    "libelle" => $ref->getLibelle(),
-                    "reference" => $ref->getReference(),
-                    "photo_article" => $ref->getPhotoArticle(),
-                ];
-                array_push($rows, $row);
-            }
-
-            $data = array(
-                "total_count" => count($rows),
-                "items" => $rows,
-            );
-            return new JsonResponse($data);
-        }
-        throw new NotFoundHttpException('404 not found');
-    }
-
-    /**
      * @Route("/refArticleAPI", name="ref_article_api", methods="GET")
      */
     public function refArticleApi(Request $request, ReferencesArticlesRepository $referencesArticlesRepository) : Response
@@ -62,6 +34,9 @@ class ReferencesArticlesController extends Controller
                     "Libelle" => $ref->getLibelle(),
                     "Référence" => $ref->getReference(),
                     "Quantité" => $ref->getQuantity(),
+                    'actions'=> "<a href='/WiiStock/WiiStock/public/index.php/stock/references_articles/".$ref->getId() ."/edit' class='btn btn-xs btn-default command-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
+                    <a href='/WiiStock/WiiStock/public/index.php/stock/references_articles/".$ref->getId() ."' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>", 
+            
 
                 ];
                 array_push($rows, $row);
@@ -70,35 +45,6 @@ class ReferencesArticlesController extends Controller
             $data['data'] =  $rows;
             return new JsonResponse($data);
     }
-
-
-    // INUTILE
-    // private function createCustomFieldJson($repository) 
-    // {
-    //     $em = $this->getDoctrine()->getManager();
-
-    //     $q = $repository->findOne();
-    //     if ($q) {
-    //         $json_data = $q->getCustom();
-
-    //         $array = array();
-    //         $i = 0;
-    //         while ($name = current($json_data)) {
-    //             $custom_field = $em->getRepository(ChampsPersonnalises::class)->findOneBy(["id" => key($json_data[$i])]);
-    //             $field = array(
-    //                 "id" => key($json_data[$i]),
-    //                 "name" => $custom_field->getNom(),
-    //             );
-    //             // dump(key($json_data[$i]));
-    //             next($json_data);
-    //             $i++;
-    //             array_push($array, $field);
-    //         }
-    //         return (json_encode($array, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE));
-    //     } else {
-    //         return json_encode(array());
-    //     }
-    // }
 
     /**
      * @Route("/create", name="references_articles_create", methods="GET|POST")

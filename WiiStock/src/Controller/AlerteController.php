@@ -4,14 +4,16 @@ namespace App\Controller;
 
 use App\Entity\Alerte;
 use App\Form\AlerteType;
-use Knp\Component\Pager\PaginatorInterface;
 use App\Repository\AlerteRepository;
-use App\Repository\ReferencesArticlesRepository;
 use App\Repository\ArticlesRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+
+
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpFoundation\JsonResponse;
 
 /**
  * @Route("/alerte")
@@ -21,10 +23,38 @@ class AlerteController extends AbstractController
     /**
      * @Route("/", name="alerte_index", methods={"GET"})
      */
-    public function index(AlerteRepository $alerteRepository, \Swift_Mailer $mailer, PaginatorInterface $paginator,  Request $request): Response
+    public function index(AlerteRepository $alerteRepository, \Swift_Mailer $mailer,  Request $request): Response
+    {
+        // $alertes = $alerteRepository->findAlerteByUser($this->getUser());
+        // $alertesUser = []; /* Un tableau d'alertes qui sera envoyer au mailer */
+
+        // foreach($alertes as $alerte)
+        // {
+        //     $condition = $alerte->getAlerteRefArticle()->getQuantity() > $alerte->getAlerteSeuil(); 
+        //     $seuil = ($condition) ? false : true; /* Si le seuil est inférieur à la quantité, seuil atteint = false sinon true */
+        //     $alerte->setSeuilAtteint($seuil);
+
+        //     if($seuil){
+        //         array_push($alertesUser, $alerte); /* Si seuil atteint est "true" alors on insère l'alerte dans le tableau */
+        //     }
+        //     $this->getDoctrine()->getManager()->flush();
+        // }
+
+        // if(count($alertesUser) > 0){
+        //     $this->mailer($alertesUser, $mailer); /* On envoie le tableau d'alertes au mailer */
+        // }
+
+        return $this->render('alerte/index.html.twig');
+    }
+
+     /**
+     * @Route("/api", name="alerte_api", methods={"GET"})
+     */
+    public function alerteApi( AlerteRepository $alerteRepository, \Swift_Mailer $mailer): Response
     {
         $alertes = $alerteRepository->findAlerteByUser($this->getUser());
         $alertesUser = []; /* Un tableau d'alertes qui sera envoyer au mailer */
+        $rows = [];
 
         foreach($alertes as $alerte)
         {
@@ -35,26 +65,32 @@ class AlerteController extends AbstractController
             if($seuil){
                 array_push($alertesUser, $alerte); /* Si seuil atteint est "true" alors on insère l'alerte dans le tableau */
             }
-            $this->getDoctrine()->getManager()->flush();
-        }
 
+            $this->getDoctrine()->getManager()->flush();
+
+            
+            $row = [
+                "id" => $alerte->getId(),
+                "Nom" => $alerte->getAlerteNom(),
+                "Code" => $alerte->getAlerteNumero(),
+                "Seuil"=> ($condition ? "<p><i class='fas fa-check-circle fa-2x green'></i>". $alerte->getAlerteRefArticle()->getQuantity()."/".$alerte->getAlerteSeuil(). "</p>" : 
+                 "<p><i class='fas fa-exclamation-circle fa-2x red'></i>". $alerte->getAlerteRefArticle()->getQuantity()."/".$alerte->getAlerteSeuil()." </p>"
+            ),
+                'actions'=> "<a href='/WiiStock/WiiStock/public/index.php/alerte/".$alerte->getId() ."/edit' class='btn btn-xs btn-default command-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
+                <a href='/WiiStock/WiiStock/public/index.php/alerte/".$alerte->getId() ."' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>", 
+            ];
+            array_push($rows, $row);
+        }
+        
         if(count($alertesUser) > 0){
             $this->mailer($alertesUser, $mailer); /* On envoie le tableau d'alertes au mailer */
-        }
-
-        // /* Pagination grâce au bundle Knp Paginator */
-
-        $pagination = $paginator->paginate(
-            $alerteRepository->findAlerteByUser($this->getUser()), /* On récupère la requête et on la pagine */
-            $request->query->getInt('page', 1),
-            2
-        );
-
-
-        return $this->render('alerte/index.html.twig', [
-            'alertes' => $pagination,
-        ]);
+        }       
+    
+        $data['data'] =  $rows;
+        return new JsonResponse($data);
     }
+
+
 
     /**
      * @Route("/new", name="alerte_new", methods={"GET","POST"})

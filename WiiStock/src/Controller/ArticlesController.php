@@ -107,11 +107,6 @@ class ArticlesController extends AbstractController
     public function articleFiltreJson(ArticlesRepository $articlesRepository, Request $request): Response
     {
             $articles = $articlesRepository->findAll();
-            // if ($myJSON) {
-            //     // $articles = $articlesRepository->findFiltreByNom($myJSON);
-            // }
-            // contruction de la reponse =>recuperation de l'article cree + traitement des donnees
-
             $rows = [];
             foreach ($articles as $article) {
                 $row =[ 
@@ -123,12 +118,13 @@ class ArticlesController extends AbstractController
                     'position'=> ($article->getPosition() ? $article->getPosition()->getNom() : "null"),
                     'destination'=> ($article->getDirection() ? $article->getDirection()->getNom() : "null"),
                     'Quantite'=>($article->getQuantite() ? $article->getQuantite() : "null"),
+                    'actions'=> "<a href='/WiiStock/WiiStock/public/index.php/articles/edite/".$article->getId() ."' class='btn btn-xs btn-default command-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
+                    <a href='/WiiStock/WiiStock/public/index.php/articles/show/".$article->getId() ."' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>", 
                 ];
                 array_push($rows, $row);
             }
             $data['data'] =  $rows;
             return new JsonResponse($data);
-       
     } 
 
     /**
@@ -154,6 +150,7 @@ class ArticlesController extends AbstractController
                     'position'=> ($article->getPosition() ? $article->getPosition()->getNom() : "null"),
                     'destination'=> ($article->getDirection() ? $article->getDirection()->getNom() : "null"),
                     'Quantite'=>($article->getQuantite() ? $article->getQuantite() : "null"),
+                   
                 ];
             }
             if(isset($reponseJSON)){

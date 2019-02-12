@@ -56,6 +56,8 @@ class FournisseursController extends Controller
             $row = [
                 "Nom" => $ref->getNom(),
                 "Code de réference" => $ref->getCodeReference(),
+                'actions'=> "<a href='/WiiStock/WiiStock/public/index.php/stock/fournisseurs/".$ref->getId() ."/edit' class='btn btn-xs btn-default command-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
+                    <a href='/WiiStock/WiiStock/public/index.php/stock/fournisseurs/".$ref->getId() ."' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>", 
             ];
             array_push($rows, $row);
         }

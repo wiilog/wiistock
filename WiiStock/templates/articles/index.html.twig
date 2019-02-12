@@ -8,7 +8,7 @@
 <table id="table_id" class="table table-striped table-bordered" style="width:100%">
     <thead>
         <tr>
-            <th id="Nom" data-identifier="true">Nom</th>
+            <th>Nom</th>
             <th id="Statut">Statut</th>
             <th id="Conformité">Conformité</th>
             <th id="Reférences Articles">Reférences Articles</th>
@@ -37,19 +37,10 @@
             { "data": 'position' },
             { "data": 'destination' },
             { "data": 'Quantite' },
+            { "data": 'actions'}
 
         ],
-        buttons: [
-            'copy', 'excel', 'pdf'
-        ]
     });
 
-    new $.fn.dataTable.Buttons(table, {
-        buttons: [
-            'copy', 'excel', 'pdf'
-        ]
-    });
-    table.buttons().container()
-        .appendTo($('.col-sm-6:eq(0)', table.table().container()));
 </script>
 {% endblock %}

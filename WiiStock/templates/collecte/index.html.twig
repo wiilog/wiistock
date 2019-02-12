@@ -40,7 +40,7 @@
                     <!-- , {'history': 'false'}) -->
                     <form action="{{ path('collecte_index', {'history': 'false'}) }}" method="post">
                         {% if collecte.statut.id == 18 %} <!--en cours de collecte -->
-                            <a href="{{ path('collecte_show', {'id': collecte.id}) }}"class="btn btn-xs btn-default command-edit backIconListjv"><i class="fas fa-list fa-2x"></i></i></a>
+                            <a href="{{ path('collecte_show', {'id': collecte.id}) }}"class="btn btn-xs btn-default command-edit backIconListjv"><i class="fas fa-list fa-2x"></i></a>
                         {% else %}
                             <a href="{{ path('collecte_show', {'id': collecte.id}) }}"class="btn btn-xs btn-default command-edit"><i class="fas fa-eye fa-2x"></i></a>                        
                         {% endif %}
