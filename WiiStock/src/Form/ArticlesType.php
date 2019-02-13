@@ -33,6 +33,11 @@ class ArticlesType extends AbstractType
                     'placeholder' => 'quantité',
                     'min' => 1, 'max' => 10000
             )))
+            ->add('quantiteARecevoir', IntegerType::class, array(
+                'attr' => array(
+                    'placeholder' => 'quantité à recevoir',
+                    'min' => 1, 'max' => 10000
+            )))
             ->add('refArticle', EntityType::class,[
                 'class'=> ReferencesArticles::class,
                 'choice_label'=> 'libelle'

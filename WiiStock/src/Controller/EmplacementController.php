@@ -51,7 +51,9 @@ class EmplacementController extends AbstractController
      */
     public function index(EmplacementRepository $emplacementRepository, StatutsRepository $statutsRepository): Response
     {
-        return $this->render('emplacement/index.html.twig');
+        return $this->render('emplacement/index.html.twig', [
+            'statuts'=> $statutsRepository->findall(),
+        ]);
     }
  
     /**
