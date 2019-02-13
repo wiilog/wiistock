@@ -4,45 +4,40 @@
 
 {% block page_content %}
     <h1>Mes alertes</h1>
-    <table class="table table-striped">
+    <table id="table_id" class="table table-striped table-bordered" style="width:100%">
     <a class="button" href="{{ path('alerte_new') }}">Nouvelle alerte</a>
         <thead>
             <tr>
                 <th>Nom</th>
                 <th>Code</th>
-                <th>Seuil d'alerte</th>
-                <th>Actions</th>
+                <th>Seuil</th>
+                <th>actions</th>
             </tr>
         </thead>
         <tbody>
-        {% for alerte in alertes %}
-            <tr>
-                <td>{{ alerte.AlerteNom }}</td>
-                <td>{{ alerte.AlerteNumero }}</td>
-                <td>
-                    <p>
-                        <i 
-                        {% if alerte.alerteRefArticle.quantity > alerte.AlerteSeuil %}
-                            class="fas fa-check-circle fa-2x green"
-                        {% else %}
-                            class="fas fa-exclamation-circle fa-2x red"
-                        {% endif %}>
-                        </i>
-
-                        {{ alerte.alerteRefArticle.quantity }}
-                        /
-                        {{ alerte.AlerteSeuil }}
-                    </p>
-                </td>
-                <td>
-                    <a href="{{ path('alerte_show', {'id': alerte.id}) }}" class="btn btn-xs btn-default command-edit"><i class="fas fa-eye fa-2x"></i></a>
-                    <a href="{{ path('alerte_edit', {'id': alerte.id}) }}" class="btn btn-xs btn-default command-edit"><i class="fas fa-pencil-alt fa-2x"></i></a>
-                </td>
-            </tr>
-        {% endfor %}
+       
         </tbody>
     </table>
-    <div class="pagination">
-        {{ knp_pagination_render(alertes) }}
-    </div>
+   
+{% endblock %}
+{% block javascript %}
+
+<script>
+    var table = $('#table_id').DataTable({
+        "language": {
+            "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
+        },
+        ajax: "{{path('alerte_api')}}",
+        columns: [
+            { "data": 'Nom' },
+            { "data": 'Code' },
+            { "data": 'Seuil' },
+            { "data": 'actions'},
+        ],
+        buttons: [
+            'copy', 'excel', 'pdf'
+        ]
+    });
+</script>
+
 {% endblock %}

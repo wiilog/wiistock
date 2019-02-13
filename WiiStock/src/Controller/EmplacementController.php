@@ -53,9 +53,11 @@ class EmplacementController extends AbstractController
      */
     public function index(EmplacementRepository $emplacementRepository, StatutsRepository $statutsRepository): Response
     {
-        return $this->render('emplacement/index.html.twig', ['emplacements' => $emplacementRepository->findAll(), 'statuts' => $statutsRepository->findAll()]);
+        return $this->render('emplacement/index.html.twig', [
+            'statuts'=> $statutsRepository->findall(),
+        ]);
     }
-
+ 
     /**
      * @Route("/new", name="emplacement_new", methods="GET|POST")
      */
@@ -77,6 +79,29 @@ class EmplacementController extends AbstractController
             'emplacement' => $emplacement,
             'form' => $form->createView(),
         ]);
+    }
+
+    /**
+     * @Route("/api", name="emplacement_api", methods="GET|POST")
+     */
+    public function fournisseurApi(Request $request, EmplacementRepository $emplacementRepository): Response
+    {
+            $emplacements = $emplacementRepository->findAll();
+            $rows = [];
+            foreach ($emplacements as $emplacement) {
+                $row =[ 
+                    'id'=> ($emplacement->getId() ? $emplacement->getId() : "null" ),
+                    'Nom'=>( $emplacement->getNom() ?  $emplacement->getNom():"null"),
+                    'Description'=>( $emplacement->getDescription() ?  $emplacement->getDescription():"null"),
+                    'Status'=>( $emplacement->getStatus() ?  $emplacement->getStatus():"null"),
+                    'actions'=> "<a href='/WiiStock/WiiStock/public/index.php/emplacement/".$emplacement->getId() ."/edit' class='btn btn-xs btn-default command-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
+                    <a href='/WiiStock/WiiStock/public/index.php/emplacement/'".$emplacement->getId()." class='btn btn-xs btn-default command-edit'><i class='fas fa-eye fa-2x'></i></a>", 
+                
+                ];
+                array_push($rows, $row);
+            }
+            $data['data'] =  $rows;
+            return new JsonResponse($data); 
     }
 
     /**

@@ -54,6 +54,11 @@ class Emplacement
     private $demandes;
 
     /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $description;
+
+    /** 
      * @ORM\ManyToOne(targetEntity="App\Entity\Statuts", inversedBy="emplacements")
      */
     private $Statut;
@@ -257,6 +262,16 @@ class Emplacement
         return $this;
     }
 
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(?string $description): self
+    {
+        $this->description = $description;
+    }
+    
     public function getStatut(): ?Statuts
     {
         return $this->Statut;

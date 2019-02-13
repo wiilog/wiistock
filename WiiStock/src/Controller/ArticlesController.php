@@ -26,79 +26,7 @@ class ArticlesController extends AbstractController
      */
     public function index(ArticlesRepository $articlesRepository, StatutsRepository $statutsRepository, PaginatorInterface $paginator, Request $request): Response
     {   
-        $statuts = $statutsRepository->findByCategorie("articles"); /* On spécifie la catégorie voulu */
-        if(isset($_POST['statuts'])) /* Si $_POST['statuts'] existe on rentre dans la condition*/
-        {
-            if($_POST['statuts'] != "Non selectionné")
-            {
-                return $this->render('articles/index.html.twig', ['articles'=> 
-                    $paginator->paginate(
-                    $articlesRepository->findByStatut($_POST['statuts']), /* On récupère la requête et on la pagine */
-                    $request->query->getInt('page', 1),
-                    25), 'statuts' => $statuts]);
-            }
-
-            //chemin par défaut Basé sur un requete SQL basée sur l
-            return $this->render('articles/index.html.twig', ['articles' => $paginator->paginate(
-                $articlesRepository->findAll(),
-                $request->query->getInt('page', 1),
-                25
-                ), 'statuts' => $statuts]);
-
-        }
-        else if(isset($_POST['miseEnStock']))
-        {
-            //Validation de la mise en stock/magasin
-            $articles = $articlesRepository->findById($_POST['miseEnStock']);
-            
-            foreach ($articles as $article) 
-            {
-                $statut = $statutsRepository->findById(3);
-                $article->setStatut($statut[0]);
-
-                if($article->getDirection() !== null){ //vérifie si la direction n'est pas nul, pour ne pas perdre l'emplacement si il y a des erreurs au niveau des receptions
-                    $article->setPosition($article->getDirection());
-                }
-                $article->setDirection(null);
-            }
-            $this->getDoctrine()->getManager()->flush();
- 
-            return $this->render('articles/index.html.twig', ['articles'=> $paginator->paginate(
-                $articlesRepository->findByStatut(2), /* On récupère la requête et on la pagine */
-                $request->query->getInt('page', 1),
-                25
-            ), 'statuts' => $statuts]);
-
-        /* 'demande de mise en stock' */
-        }
-        else if(isset($_POST['demandeSortie'])) 
-        {
-            $articles = $articlesRepository->findById($_POST['demandeSortie']);
-
-            foreach ($articles as $article)
-            {
-                $statut = $statutsRepository->findById(4); /* Statut : Destockage */
-                $article->setStatut($statut[0]);
-                $article->setDirection(null);
-            }
-            
-            $this->getDoctrine()->getManager()->flush();
-            return $this->render('articles/index.html.twig', ['articles'=> $paginator->paginate(
-                $articlesRepository->findByStatut($_POST['demandeSortie']), /* On récupère la requête et on la pagine */
-                $request->query->getInt('page', 1),
-                25
-            ), 'statuts' => $statuts]);
-            /* demande de sortie */
-        }
-        else
-        {
-            //chemin par défaut Basé sur un requete SQL basée sur l
-            return $this->render('articles/index.html.twig', ['articles' => $paginator->paginate(
-            $articlesRepository->findAll(),
-            $request->query->getInt('page', 1),
-            25
-            ), 'statuts' => $statuts]);
-        }
+        return $this->render('articles/index.html.twig');
     }
 
     /**
@@ -107,11 +35,6 @@ class ArticlesController extends AbstractController
     public function articleFiltreJson(ArticlesRepository $articlesRepository, Request $request): Response
     {
             $articles = $articlesRepository->findAll();
-            // if ($myJSON) {
-            //     // $articles = $articlesRepository->findFiltreByNom($myJSON);
-            // }
-            // contruction de la reponse =>recuperation de l'article cree + traitement des donnees
-
             $rows = [];
             foreach ($articles as $article) {
                 $row =[ 
@@ -123,12 +46,13 @@ class ArticlesController extends AbstractController
                     'position'=> ($article->getPosition() ? $article->getPosition()->getNom() : "null"),
                     'destination'=> ($article->getDirection() ? $article->getDirection()->getNom() : "null"),
                     'Quantite'=>($article->getQuantite() ? $article->getQuantite() : "null"),
+                    'actions'=> "<a href='/WiiStock/WiiStock/public/index.php/articles/edite/".$article->getId() ."' class='btn btn-xs btn-default command-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
+                    <a href='/WiiStock/WiiStock/public/index.php/articles/show/".$article->getId() ."' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>", 
                 ];
                 array_push($rows, $row);
             }
             $data['data'] =  $rows;
             return new JsonResponse($data);
-       
     } 
 
     /**
@@ -154,6 +78,7 @@ class ArticlesController extends AbstractController
                     'position'=> ($article->getPosition() ? $article->getPosition()->getNom() : "null"),
                     'destination'=> ($article->getDirection() ? $article->getDirection()->getNom() : "null"),
                     'Quantite'=>($article->getQuantite() ? $article->getQuantite() : "null"),
+                   
                 ];
             }
             if(isset($reponseJSON)){

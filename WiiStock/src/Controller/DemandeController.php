@@ -128,13 +128,10 @@ class DemandeController extends AbstractController
         // si renvoie d'un réponse POST
         if(!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true))
         {
-            dump($data);
             $refArticles = $referencesArticlesRepository->findAll();
             $demande = new Demande();
-
             if (count($data) >= 2) 
             {
-                dump("1");
                 $destination = $emplacementRepository->findOneBy(array('id' => $data[0]['direction'])); // On recupere la destination des articles
                 $demande->setDestination($destination);// On 'remplie' la $demande avec les data les plus simple
                 $statut = $statutsRepository->findById(14);
