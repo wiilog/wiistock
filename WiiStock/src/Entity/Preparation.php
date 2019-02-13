@@ -38,6 +38,11 @@ class Preparation
      */
     private $Statut;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateurs", inversedBy="preparations")
+     */
+    private $Utilisateur;
+
     public function __construct()
     {
         $this->demandes = new ArrayCollection();
@@ -111,6 +116,18 @@ class Preparation
     public function setStatut(?Statuts $Statut): self
     {
         $this->Statut = $Statut;
+
+        return $this;
+    }
+
+    public function getUtilisateur(): ?Utilisateurs
+    {
+        return $this->Utilisateur;
+    }
+
+    public function setUtilisateur(?Utilisateurs $Utilisateur): self
+    {
+        $this->Utilisateur = $Utilisateur;
 
         return $this;
     }

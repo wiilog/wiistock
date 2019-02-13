@@ -23,7 +23,7 @@
     <div class="col-3">
         <p>Date demande : {{ demande.date | date("d/m/Y") }}</p>
         <p>Référence : {{ demande.numero }}</p>
-        <a href="">Aller vers la préparation : A faire</a>
+        <a href="{{ path("preparationFromDemande", {"id" : demande.id }) }}">Aller vers la préparation</a>
     </div>
 
     <div class="col-2">
@@ -59,16 +59,17 @@
             </thead>
             <tbody>
                 {% set i = 0 %}
-                {% for article in demande.articles |reverse %}
+                {% for ligneArticle in lignesArticles |reverse %}
                     <tr {% if i % 2 == 1 %}
                             class="backtablejv"
                         {% endif %}>
                         {% set i = i + 1 %}
-                        <td>{{ article.nom }}</td>
-                        <td>{{ article.refArticle.reference }}</td>
-                        <td>fournisseurs</td>
-                        <td>{{ article.refArticle.libelle }}</td>
-                        <td>{{ article.direction }}</td>  
+                        <td>{{ ligneArticle.code }}</td>
+                        <td>{{ ligneArticle.reference }}</td>
+                        <td></td>
+                        <td>{{ ligneArticle.quantite }}</td>
+                        <td>{{ ligneArticle.libelle }}</td>
+                        <td>{{ demande.destination.nom }}</td>  
                     </tr>
                 {% else %}
                     <tr>

@@ -47,10 +47,10 @@
 <script>
     // In your Javascript (external .js resource or <script> tag)
 
-    var dataModal = document.getElementById("modifModalCenter");
-    var ButtonSubmit = document.getElementById("modifsubmitButton");
+    var dataModal1 = document.getElementById("modifModalCenter");
+    var ButtonSubmit1 = document.getElementById("modifsubmitButton");
 
-    ButtonSubmit.addEventListener("click", function () {
+    ButtonSubmit1.addEventListener("click", function () {
         xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function () {
             if (this.readyState == 4 && this.status == 200) {
@@ -60,7 +60,7 @@
             }
         };
 
-        let inputs = dataModal.querySelectorAll(".data"); // On récupère tout les inputs qui nous intéresse avec le querySelectorAll
+        let inputs = dataModal1.querySelectorAll(".data"); // On récupère tout les inputs qui nous intéresse avec le querySelectorAll
         let Data = []; // Tableau de données
 
         inputs.forEach(input => { // Pour chaque input on fait un tableau avec pour clé son nom et comme valeur la valeur dans l'input

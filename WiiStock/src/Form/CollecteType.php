@@ -17,19 +17,7 @@ class CollecteType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
-            ->add('articles', EntityType::class, array(
-                'class' => Articles::class,
-                'query_builder' => function (EntityRepository $er) {
-                    return $er->createQueryBuilder('a')
-                        ->where('a.Statut = :statut')
-                        ->setParameter('statut', 'destokage')
-                        ;
-                       
-                    },
-                'label' => 'articles',
-                'expanded' => true,
-                'multiple' => true))
-        ;
+           ;
     }
 
     public function configureOptions(OptionsResolver $resolver)

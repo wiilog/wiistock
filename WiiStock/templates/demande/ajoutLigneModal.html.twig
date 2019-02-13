@@ -40,10 +40,10 @@
 
 {% block javascript %}
 <script>
-    var dataModal = document.getElementById("ajoutLigneModalCenter");
-    var ButtonSubmit = document.getElementById("ajoutsubmitButton");
+    var dataModal2 = document.getElementById("ajoutLigneModalCenter");
+    var ButtonSubmit2 = document.getElementById("ajoutsubmitButton");
 
-    ButtonSubmit.addEventListener("click", function () {
+    ButtonSubmit2.addEventListener("click", function () {
         xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function () {
             if (this.readyState == 4 && this.status == 200) {
@@ -53,7 +53,7 @@
             }
         };
 
-        let inputs = dataModal.querySelectorAll(".data"); // On récupère tout les inputs qui nous intéresse avec le querySelectorAll
+        let inputs = dataModal2.querySelectorAll(".data"); // On récupère tout les inputs qui nous intéresse avec le querySelectorAll
         let Data = []; // Tableau de données
 
         inputs.forEach(input => { // Pour chaque input on fait un tableau avec pour clé son nom et comme valeur la valeur dans l'input

@@ -210,6 +210,13 @@ class Demande
         return $this->LigneArticle;
     }
 
+    public function addLigneArticle($LigneArticle): self
+    {
+        $this->LigneArticle[] = $LigneArticle;
+
+        return $this;
+    }
+
     public function setLigneArticle($LigneArticle): self
     {
         $this->LigneArticle = $LigneArticle;

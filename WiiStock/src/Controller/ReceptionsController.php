@@ -42,37 +42,26 @@ class ReceptionsController extends AbstractController
     {
         if(!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) //Si la requête est de type Xml et que data est attribuée
         {
-            if(count($data) != 4)// On regarde si le nombre de données reçu est conforme et on envoi dans la base
+            if(count($data) != 5)// On regarde si le nombre de données reçu est conforme et on envoi dans la base
             {
+
                 dump($data);
-                $fournisseur = $fournisseursRepository->findById(intval($data[2]['fournisseur']));
-                $utilisateur = $utilisateursRepository->findById(intval($data[3]['utilisateur']));
+                $fournisseur = $fournisseursRepository->findById(intval($data[3]['fournisseur']));
+                $utilisateur = $utilisateursRepository->findById(intval($data[4]['utilisateur']));
 
                 $reception = new Receptions();
                 $statut = $statutsRepository->findById(1);
                 $reception->setStatut($statut[0]);
-                $reception->setDate(new \DateTime('now'));
-                $reception->setNumeroReception($data[1]['NumeroReception']);
+                $reception->setNumeroReception($data[0]['NumeroReception']);
+                $reception->setDate(new \DateTime($data[1]['date-commande']));
+                $reception->setDateAttendu(new \DateTime($data[2]['date-attendu']));
                 $reception->setFournisseur($fournisseur[0]);
                 $reception->setUtilisateur($utilisateur[0]);
-                $reception->setCommentaire($data[4]['commentaire']);
+                $reception->setCommentaire($data[5]['commentaire']);
                 $em = $this->getDoctrine()->getManager();
                 $em->persist($reception);
                 $em->flush();
 
-                $data = array(
-                    'reception' => [
-                        "NumeroArrivage" => $reception->getNumeroArrivage(),
-                        "NumeroReception" => $reception->getNumeroReception(),
-                        "Fournisseur" => $reception->getFournisseur(),
-                        "Utilisateur" => $reception->getUtilisateur(),
-                        "Commentaire" => $reception->getCommentaire(),
-                        "Statut" => $reception->getStatut()->getNom(),
-                        "Id" => $reception->getId()
-                    ],
-                    'message' => 'La réception à bien été enregistrer !'
-                );
-                
                 $data = json_encode($data);
                 return new JsonResponse($data);
             }
@@ -93,8 +82,8 @@ class ReceptionsController extends AbstractController
                 $row =[ 
                     'id'=> ($reception->getId()),
                     "Statut"=>($reception->getStatut() ? $reception->getStatut()->getNom() : 'null'),
-                    "Date commande"=> ($reception->getDate() ? $reception->getDate()->format('Y-m-d') : 'null'),
-                    "Date attendu"=> ($reception->getDateAttendu() ? $reception->getDateAttendu()->format('Y-m-d') : 'null'),
+                    "Date commande"=> ($reception->getDate() ? $reception->getDate() : 'null')->format('d-m-Y'),
+                    "Date attendu"=> ($reception->getDateAttendu() ? $reception->getDateAttendu()->format('d-m-Y') : 'null'),
                     "Fournisseur"=> ($reception->getFournisseur() ? $reception->getFournisseur()->getNom() : 'null'),
                     "Référence"=> ($reception->getNumeroReception() ? $reception->getNumeroReception() : 'null'),
                     'Actions'=> "<a href='/WiiStock/WiiStock/public/index.php/receptions/article/".$reception->getId() ."/0' class='btn btn-xs btn-default command-edit'><i class='fas fa-plus fa-2x'></i> Articles</a>

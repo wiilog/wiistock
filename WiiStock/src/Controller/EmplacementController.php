@@ -10,8 +10,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-use App\Repository\StatutsRepository;
-
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -24,7 +22,7 @@ class EmplacementController extends AbstractController
     /**
      * @Route("/nouvelEmplacement", name="createEmplacement")
      */
-    public function createEmplacement(Request $request, StatutsRepository $statutsRepository): Response
+    public function createEmplacement(Request $request): Response
     {
         if(!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true))
         {
@@ -34,8 +32,6 @@ class EmplacementController extends AbstractController
                 $em = $this->getDoctrine()->getManager();
 
                 $emplacement->setNom($data[0]['nom']);
-                $statut = $statutsRepository->findById($data[1]['statut']);
-                $emplacement->setStatut($statut[0]);
 
                 $em->persist($emplacement);
                 $em->flush();
@@ -51,11 +47,9 @@ class EmplacementController extends AbstractController
     /**
      * @Route("/", name="emplacement_index", methods="GET")
      */
-    public function index(EmplacementRepository $emplacementRepository, StatutsRepository $statutsRepository): Response
+    public function index(EmplacementRepository $emplacementRepository): Response
     {
-        return $this->render('emplacement/index.html.twig', [
-            'statuts'=> $statutsRepository->findall(),
-        ]);
+        return $this->render('emplacement/index.html.twig');
     }
  
     /**
@@ -93,9 +87,8 @@ class EmplacementController extends AbstractController
                     'id'=> ($emplacement->getId() ? $emplacement->getId() : "null" ),
                     'Nom'=>( $emplacement->getNom() ?  $emplacement->getNom():"null"),
                     'Description'=>( $emplacement->getDescription() ?  $emplacement->getDescription():"null"),
-                    'Status'=>( $emplacement->getStatus() ?  $emplacement->getStatus():"null"),
                     'actions'=> "<a href='/WiiStock/WiiStock/public/index.php/emplacement/".$emplacement->getId() ."/edit' class='btn btn-xs btn-default command-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
-                    <a href='/WiiStock/WiiStock/public/index.php/emplacement/'".$emplacement->getId()." class='btn btn-xs btn-default command-edit'><i class='fas fa-eye fa-2x'></i></a>", 
+                    <a href='/WiiStock/WiiStock/public/index.php/emplacement/".$emplacement->getId()."' class='btn btn-xs btn-default command-edit'><i class='fas fa-eye fa-2x'></i></a>", 
                 
                 ];
                 array_push($rows, $row);
@@ -107,7 +100,7 @@ class EmplacementController extends AbstractController
     /**
      * @Route("/{id}", name="emplacement_show", methods="GET")
      */
-    public function show(Emplacement $emplacement, StatutsRepository $statutsRepository): Response
+    public function show(Emplacement $emplacement): Response
     {
         return $this->render('emplacement/show.html.twig', ['emplacement' => $emplacement]);
     }
