@@ -36,11 +36,6 @@ class Receptions
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $numeroArrivage;
-
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
     private $numeroReception;
 
     /**
@@ -57,6 +52,11 @@ class Receptions
      * @ORM\ManyToOne(targetEntity="App\Entity\Statuts", inversedBy="receptions")
      */
     private $Statut;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $dateAttendu;
 
     public function __construct()
     {
@@ -106,18 +106,6 @@ class Receptions
     public function setDate(?\DateTimeInterface $date): self
     {
         $this->date = $date;
-
-        return $this;
-    }
-
-    public function getNumeroArrivage(): ?string
-    {
-        return $this->numeroArrivage;
-    }
-
-    public function setNumeroArrivage(?string $numeroArrivage): self
-    {
-        $this->numeroArrivage = $numeroArrivage;
 
         return $this;
     }
@@ -185,6 +173,18 @@ class Receptions
     public function setStatut(?Statuts $Statut): self
     {
         $this->Statut = $Statut;
+
+        return $this;
+    }
+
+    public function getDateAttendu(): ?\DateTimeInterface
+    {
+        return $this->dateAttendu;
+    }
+
+    public function setDateAttendu(?\DateTimeInterface $dateAttendu): self
+    {
+        $this->dateAttendu = $dateAttendu;
 
         return $this;
     }

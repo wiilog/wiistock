@@ -10,6 +10,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
+use App\Entity\Articles;
 use App\Entity\ReferencesArticles;
 use App\Form\ReferencesArticlesType;
 use App\Repository\ReferencesArticlesRepository;
@@ -20,6 +21,7 @@ use App\Repository\ArticlesRepository;
 use App\Entity\Emplacement;
 use App\Form\EmplacementType;
 use App\Repository\EmplacementRepository;
+use App\Repository\UtilisateursRepository;
 
 use App\Entity\Livraison;
 use App\Form\LivraisonType;
@@ -38,6 +40,84 @@ class DemandeController extends AbstractController
 {
 
     /**
+     * @Route("/ajoutArticle/{id}", name="ajoutArticle", methods="GET|POST")
+     */
+    public function ajoutArticle(Demande $demande, ReferencesArticlesRepository $refArticlesRepository, Request $request, StatutsRepository $statutsRepository): Response 
+    {
+        if(!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true))
+        {
+            if(count($data) >= 3)
+            {
+                $em = $this->getDoctrine()->getEntityManager();
+
+                $refArticle = $refArticlesRepository->findById(intval($data[0]["reference"]));
+                $libelle = $refArticle->getLibelle();
+                $fournisseur = $fournisseursRepository->findBy($data[1]["code"]);
+
+
+                $json = [
+                    "reference" => $data[0]["reference"],
+                    "code" => $data[1]["code-trouve"],
+                    "libelle" => $data,
+                    "quantite" => $data[2]["quantite"],
+                    "destination" => $demande->getDestination(),
+                    ""
+                ];
+
+                $json = json_encode($json);
+                $demandeRepository->setLigneArticle($json);
+
+                $refArticles = $refArticlesRepository->findById(intval($data[0]["reference"]));
+                $article->setRefArticle($refArticles[0]);
+                $article->setNom($data[1]["code-trouve"]);
+                $statut = $statutsRepository->findById(16);
+                $article->setStatut($statut[0]);
+                $article->setDirection($demande->getDestination());
+                dump("3");
+                $em->persist($article);
+
+                $demande->addArticle($article);
+                
+                $em->persist($demande);
+                $em->flush();
+
+                $data = json_encode($data);
+                return new JsonResponse($data);
+            }
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/modifDemande/{id}", name="modifDemande", methods="GET|POST")
+     */
+    public function modifDemande(Demande $demande, UtilisateursRepository $utilisateursRepository, Request $request, StatutsRepository $statutsRepository): Response 
+    {
+        if(!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true))
+        {
+            if(count($data) >= 3)
+            {
+
+                $em = $this->getDoctrine()->getEntityManager();
+
+                $utilisateur = $utilisateursRepository->findById(intval($data[0]["demandeur"]));
+                $statut = $statutsRepository->findById($data[2]["statut"]);
+
+                $demande->setUtilisateur($utilisateur[0]);
+                $demande->setDateAttendu(new \Datetime($data[1]["date-attendu"]));
+                $demande->setStatut($statut[0]);
+
+                $em->persist($demande);
+                $em->flush();
+
+                $data = json_encode($data);
+                return new JsonResponse($data);
+            }
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
      * @Route("/creationDemande", name="creation_demande", methods="GET|POST")
      */
     public function creationDemande(LivraisonRepository $livraisonRepository, Request $request, StatutsRepository $statutsRepository, ReferencesArticlesRepository $referencesArticlesRepository, ArticlesRepository $articlesRepository, EmplacementRepository $emplacementRepository): Response 
@@ -48,13 +128,10 @@ class DemandeController extends AbstractController
         // si renvoie d'un réponse POST
         if(!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true))
         {
-            dump($data);
             $refArticles = $referencesArticlesRepository->findAll();
             $demande = new Demande();
-
             if (count($data) >= 2) 
             {
-                dump("1");
                 $destination = $emplacementRepository->findOneBy(array('id' => $data[0]['direction'])); // On recupere la destination des articles
                 $demande->setDestination($destination);// On 'remplie' la $demande avec les data les plus simple
                 $statut = $statutsRepository->findById(14);
@@ -175,10 +252,14 @@ class DemandeController extends AbstractController
     /**
      * @Route("/show/{id}", name="demande_show", methods={"GET"})
      */
-    public function show(Demande $demande): Response
+    public function show(Demande $demande, StatutsRepository $statutsRepository, EmplacementRepository $emplacementRepository, ReferencesArticlesRepository $referencesArticlesRepository, UtilisateursRepository $utilisateursRepository): Response
     {
         return $this->render('demande/show.html.twig', [
             'demande' => $demande,
+            'utilisateurs' => $utilisateursRepository->findAll(),
+            'statuts' => $statutsRepository->findAll(),
+            'destinations' => $emplacementRepository->findAll(),
+            'references' => $referencesArticlesRepository->findAll()
         ]);
     }
 

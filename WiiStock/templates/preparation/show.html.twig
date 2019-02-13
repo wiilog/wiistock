@@ -3,70 +3,77 @@
 {% block title %}Preparation{% endblock %}
 
 {% block page_content %}
-    <h1>Préparation</h1>
+<h1>Préparation</h1>
+<div class="row">
+    <div class="col-4">
+        <p>Statut: {{ preparation.statut.nom }}</p>
+        <p>Numéro: {{preparation.numero}}</p>
+        <p>Opérateur: {# {{preparation.utilisateur ? preparation.utilisateur.username : "null" }}#}</p>
+    </div>
+    <div class="col-4">
+        <p>Date prévu:
+            {{ preparation.demandes.0.date ? preparation.demandes.0.date|date('Y-m-d H:i:s') : '' }} </p>
+        <p>Date attendu:
+            {{ preparation.demandes.0.date ? preparation.demandes.0.date|date('Y-m-d H:i:s') : '' }} </p>
+        <p><a href={{path('createLivraison', {'id': preparation.demandes.0.id})}}>Aller vers la livraison</a></p>
+    </div>
+</div>
 
-    <table class="table">
-        <tbody>
-            <tr>
-                <th class="backtablejv">Id</th>
-                <td>{{ preparation.id }}</td>
-            </tr>
-            <tr>
-                <th>Date</th>
-                <td class="backtablejv">{{ preparation.date ? preparation.date|date('Y-m-d H:i:s') : '' }}</td>
-            </tr>
-            <tr>
-                <th class="backtablejv">Statut</th>
-                <td>{{ preparation.statut.nom }}</td>
-            </tr>
-            <tr>
-                <th> Numero</th>
-                <td class="backtablejv">{{preparation.numero}}</td>
-            </tr>
-        </tbody>
-    </table>
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Nom</th>
-                <th>Statut</th>
-                <th>Reférences Articles</th>
-                <th>position</th>
-                <th>direction</th>
-                <th>Action</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for demande in preparation.demandes %}
-            {% for article in demande.articles |reverse %}
-                <tr>
-                    <td>{{ article.nom }}</td>
-                    <td>{{ article.statut.nom }}</td>
-                    <td>{{ article.refArticle.reference }}</td>
-                    <td>{{ article.position }}</td>
-                    <td>{{ article.direction }}</td>
-                    <td>
-                        <form action="{{ path('preparation_show', {'id': preparation.id}) }}"  method="post">
-                            {% if article.statut.id == 13 and demande.statut.id == 30 %}
-                                <button type="submit" name="fin[{{demande.id}}]" value={{article.id}} class="btn btn-xs btn-default command-edit backgreen"><i class="fas fa-check fa-2x"></i></button> 
-                            {% endif %}
-                        </form>
-                    </td>
-                </tr>
-            {% else %}
-                <tr>
-                    <td colspan="10">aucun résultat</td>
-                </tr>
-            {% endfor %}
-                 
-            {% endfor %}
-            </tbody>
-    </table>
+<table id="table_id" class="table table-striped table-bordered" style="width:100%">
 
-    <a href="{{ path('preparation_index', {'history': 'false'}) }}" class="btn pull-left button btn-right">Retour</a>
+    <thead>
+        <tr>
+            <th>Nom</th>
+            <th>Statut</th>
+            <th>Reférences Articles</th>
+            <th>position</th>
+            <th>direction</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for demande in preparation.demandes %}
+        {% for article in demande.articles |reverse %}
+        <tr>
+            <td>{{ article.nom }}</td>
+            <td>{{ article.statut.nom }}</td>
+            <td>{{ article.refArticle.reference }}</td>
+            <td>{{ article.position }}</td>
+            <td>{{ article.direction }}</td>
+            <td>
+                <form action="{{ path('preparation_show', {'id': preparation.id}) }}" method="post">
+                    {% if article.statut.id == 13 and demande.statut.id == 30 %}
+                    <button type="submit" name="fin[{{demande.id}}]" value={{article.id}}
+                        class="btn btn-xs btn-default command-edit backgreen"><i
+                            class="fas fa-check fa-2x"></i></button>
+                    {% endif %}
+                </form>
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="10">aucun résultat</td>
+        </tr>
+        {% endfor %}
 
-    <!-- <a href="{{ path('preparation_edit', {'id': preparation.id}) }}">modifier</a> -->
+        {% endfor %}
+    </tbody>
+</table>
 
-    {{ include('preparation/_delete_form.html.twig') }}
+<a href="{{ path('preparation_index') }}" class="btn pull-left button btn-right">Retour</a>
+{{ include('preparation/_delete_form.html.twig') }}
+
+{% endblock %}
+
+{% block javascript %}
+<script>
+    $(document).ready(function () {
+        $('#table_id').DataTable({
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
+            },
+        });
+    });
+</script>
 
 {% endblock %}

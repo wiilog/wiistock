@@ -44,6 +44,7 @@ class ReceptionsController extends AbstractController
         {
             if(count($data) != 4)// On regarde si le nombre de données reçu est conforme et on envoi dans la base
             {
+                dump($data);
                 $fournisseur = $fournisseursRepository->findById(intval($data[2]['fournisseur']));
                 $utilisateur = $utilisateursRepository->findById(intval($data[3]['utilisateur']));
 
@@ -51,7 +52,6 @@ class ReceptionsController extends AbstractController
                 $statut = $statutsRepository->findById(1);
                 $reception->setStatut($statut[0]);
                 $reception->setDate(new \DateTime('now'));
-                $reception->setNumeroArrivage($data[0]['NumeroArrivage']);
                 $reception->setNumeroReception($data[1]['NumeroReception']);
                 $reception->setFournisseur($fournisseur[0]);
                 $reception->setUtilisateur($utilisateur[0]);
@@ -82,6 +82,32 @@ class ReceptionsController extends AbstractController
     }
 
     /**
+     * @Route("/api", name="reception_api", methods={"GET", "POST"}) 
+     */
+    public function receptionApi(Request $request, ReceptionsRepository $receptionsRepository, StatutsRepository $statutsRepository) : Response
+    {
+       
+            $receptions = $receptionsRepository->findAll();
+            $rows = [];
+            foreach ($receptions as $reception) {
+                $row =[ 
+                    'id'=> ($reception->getId()),
+                    "Statut"=>($reception->getStatut() ? $reception->getStatut()->getNom() : 'null'),
+                    "Date commande"=> ($reception->getDate() ? $reception->getDate()->format('Y-m-d') : 'null'),
+                    "Date attendu"=> ($reception->getDateAttendu() ? $reception->getDateAttendu()->format('Y-m-d') : 'null'),
+                    "Fournisseur"=> ($reception->getFournisseur() ? $reception->getFournisseur()->getNom() : 'null'),
+                    "Référence"=> ($reception->getNumeroReception() ? $reception->getNumeroReception() : 'null'),
+                    'Actions'=> "<a href='/WiiStock/WiiStock/public/index.php/receptions/article/".$reception->getId() ."/0' class='btn btn-xs btn-default command-edit'><i class='fas fa-plus fa-2x'></i> Articles</a>
+                    <a href='/WiiStock/WiiStock/public/index.php/receptions/".$reception->getId() ."/edit' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>", 
+                ];
+                array_push($rows, $row);
+            }
+            $data['data'] =  $rows;
+            return new JsonResponse($data);
+
+    }
+
+/**
      * @Route("/json", name="reception_json", methods={"GET", "POST"}) 
      */
     public function receptionJson(Request $request, ReceptionsRepository $receptionsRepository, ArticlesRepository $articlesRepository, StatutsRepository $statutsRepository, EmplacementRepository $emplacementRepository, ReferencesArticlesRepository $referencesArticlesRepository ) : Response
@@ -89,19 +115,15 @@ class ReceptionsController extends AbstractController
         if (!$request->isXmlHttpRequest()) {
             // decodage en tavleau php
             $myJSON = json_decode($request->getContent(), true);
-            dump($myJSON);
             // traitement des données => récuperation des objets via leur id 
-            $position = $emplacementRepository->findEptById($myJSON['position']);
-            $direction = $emplacementRepository->findEptById($myJSON['direction']);
             $refArticle= $referencesArticlesRepository->findById($myJSON['refArticle']);
             $reception= $receptionsRepository->findById($myJSON['reception']);
             // creation d'un nouvelle objet article + set des donnees
             $article = new Articles();
             $article->setNom($myJSON['nom']);
-            $article->setPosition($position[0]);
-            $article->setDirection($direction[0]);
             $article->setRefArticle($refArticle[0]);
             $article->setQuantite(intval($myJSON['quantite']));
+            $article->setQuantiteARecevoir(intval($myJSON['quantiteARecevoir']));
             $article->setEtat($myJSON['etat']);
             $article->setCommentaire($myJSON['commentaire']);
             $article->setReception($reception[0]);
@@ -125,6 +147,7 @@ class ReceptionsController extends AbstractController
                 'nom'=> $article->getNom(),
                 'statut'=> $article->getStatut()->getNom(),
                 'quantite'=>$article->getQuantite(),
+                'quantiteARecevoir'=>$article->getQuantiteARecevoir(),
                 'etat'=>($article->getEtat() ? 'conforme': 'non-conforme'),
             ];
             // encodage de la reponse en JSON + envoie 
@@ -141,26 +164,10 @@ class ReceptionsController extends AbstractController
      */
     public function index(ReceptionsRepository $receptionsRepository, FournisseursRepository $fournisseursRepository, UtilisateursRepository $utilisateurRepository, StatutsRepository $statutsRepository, PaginatorInterface $paginator, Request $request): Response
     {
-        $fournisseursRepository = $fournisseursRepository->findAll();
-        $utilisateurRepository = $utilisateurRepository->findAll();
-
-        /* On regarde si l'history = 1 , si oui alors on récupère la requête findAll sinon findByDateOrStatut */
-        $date = new \DateTime('now');
-        $historyQuery = $receptionsRepository->findByDateOrStatut($date);
-
-        // /* Pagination grâce au bundle Knp Paginator */
-        $pagination = $paginator->paginate(
-            $historyQuery, /* On récupère la requête en fonction de history et on la pagine */
-            $request->query->getInt('page', 1),
-            10
-        );
-            //filtrage par la date du jour et le statut, requete SQL dédié
+        
             return $this->render('receptions/index.html.twig', [
-                'receptions' => $pagination,
-                'fournisseurs' => $fournisseursRepository,
-                'utilisateurs' => $utilisateurRepository,
-                'date' => $date = date("d-m-y"),
-                'statuts' => $statutsRepository->findByCategorie("Receptions")
+                'fournisseurs' => $fournisseursRepository->findAll(),
+                'utilisateurs' =>$utilisateurRepository->findAll(),
             ]);
            
     }
@@ -253,7 +260,7 @@ class ReceptionsController extends AbstractController
 
                 if ($article->getStatut() === $statut[0]  && $article->getEtat() === true)
                 {
-                    $statut = $statutsRepository->findById(2);
+                    $statut = $statutsRepository->findById(3);
                     $article->setStatut($statut[0]);
                 }
             }
@@ -263,7 +270,6 @@ class ReceptionsController extends AbstractController
 
             //calcul de la quantite des stocks par artciles de reference
             $refArticles = $referencesArticlesRepository->findAll();
-
             foreach ($refArticles as $refArticle)
             {
                 // requete Count en SQL dédié

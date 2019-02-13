@@ -6,8 +6,12 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+
+
 /**
  * @ORM\Entity(repositoryClass="App\Repository\ArticlesRepository")
+ * @UniqueEntity("nom")
  */
 class Articles
 {
@@ -19,7 +23,7 @@ class Articles
     private $id;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
+     * @ORM\Column(type="string", length=255, nullable=true, unique=true)
      */
     private $nom;
 
@@ -73,6 +77,11 @@ class Articles
      */
     private $Statut;
 
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $quantiteARecevoir;
+
     
     public function __construct()
     {
@@ -97,7 +106,6 @@ class Articles
 
         return $this;
     }
-
 
     public function getQuantite(): ?int
     {
@@ -252,6 +260,18 @@ class Articles
     public function setStatut(?Statuts $Statut): self
     {
         $this->Statut = $Statut;
+
+        return $this;
+    }
+
+    public function getQuantiteARecevoir(): ?int
+    {
+        return $this->quantiteARecevoir;
+    }
+
+    public function setQuantiteARecevoir(?int $quantiteARecevoir): self
+    {
+        $this->quantiteARecevoir = $quantiteARecevoir;
 
         return $this;
     }

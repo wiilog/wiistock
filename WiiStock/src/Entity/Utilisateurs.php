@@ -84,12 +84,18 @@ class Utilisateurs implements UserInterface, EquatableInterface
      */
     private $collectes;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Livraison", mappedBy="utilisateur")
+     */
+    private $livraisons;
+
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
         $this->demandes = new ArrayCollection();
         $this->UtilisateurAlertes = new ArrayCollection();
         $this->collectes = new ArrayCollection();
+        $this->livraisons = new ArrayCollection();
     }
 
     public function getId()
@@ -318,6 +324,37 @@ class Utilisateurs implements UserInterface, EquatableInterface
             // set the owning side to null (unless already changed)
             if ($collecte->getDemandeur() === $this) {
                 $collecte->setDemandeur(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Livraison[]
+     */
+    public function getLivraisons(): Collection
+    {
+        return $this->livraisons;
+    }
+
+    public function addLivraison(Livraison $livraison): self
+    {
+        if (!$this->livraisons->contains($livraison)) {
+            $this->livraisons[] = $livraison;
+            $livraison->setUtilisateur($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLivraison(Livraison $livraison): self
+    {
+        if ($this->livraisons->contains($livraison)) {
+            $this->livraisons->removeElement($livraison);
+            // set the owning side to null (unless already changed)
+            if ($livraison->getUtilisateur() === $this) {
+                $livraison->setUtilisateur(null);
             }
         }
 

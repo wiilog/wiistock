@@ -1,0 +1,78 @@
+<!-- Modal -->
+<form method="" class="modal fade" id="modifModalCenter" role="dialog" aria-labelledby="dataModalCenterTitle"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Modifier la demande</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body modal-input container-fluid">
+
+                <div class="mb-3">
+                    <label for="demandeur">Demandeur</label>
+                    <select class="select2 form-control data" name="demandeur" required="true">
+                        <option value="{{ demande.utilisateur.id }}">{{ demande.utilisateur }}</option>
+                        {% for demandeur in utilisateurs %}
+                            <option value="{{ demandeur.id }}">{{ demandeur.username }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="date-attendu">Date attendu</label>
+                    <input type="date" class="form-control data" name="date-attendu" value="{{ demande.DateAttendu | date("d/m/Y") }}" required="true">
+                </div>
+
+                <div class="mb-3">
+                    <label for="statut">Statut</label>
+                    <select class="select2 data" name="statut" name="statut">
+                        {% for statut in statuts %}
+                        <option value="{{ statut.id }}">{{ statut.Nom }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                <button id="modifsubmitButton" type="button" data-dismiss="modal" class="btn btn-primary btn-success">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+</form>
+
+{% block javascript %}
+<script>
+    // In your Javascript (external .js resource or <script> tag)
+
+    var dataModal = document.getElementById("modifModalCenter");
+    var ButtonSubmit = document.getElementById("modifsubmitButton");
+
+    ButtonSubmit.addEventListener("click", function () {
+        xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                let obj = JSON.parse(JSON.parse(this.responseText));
+                let url = obj.reception.Id;
+                document.getElementById("tbody-data");
+            }
+        };
+
+        let inputs = dataModal.querySelectorAll(".data"); // On récupère tout les inputs qui nous intéresse avec le querySelectorAll
+        let Data = []; // Tableau de données
+
+        inputs.forEach(input => { // Pour chaque input on fait un tableau avec pour clé son nom et comme valeur la valeur dans l'input
+            Data.push({
+                [input.name]: input.value
+            });
+            console.log(input);
+        });
+
+        Json = JSON.stringify(Data); // On transforme les données en JSON
+        xhttp.open("POST", "{{ path('modifDemande', { 'id' : demande.id}) }}", true);
+        xhttp.send(Json);
+    });
+</script>
+{% endblock %}

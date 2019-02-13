@@ -2,35 +2,34 @@
 {% block title %}Ajout d'articles{% endblock %}
 {% block page_content %}
 
-<h1>RECEPTION n°{{reception.numeroReception}}</h1>
-<table class="table">
-    <tbody>
-        <tr>
-            <th>Statut</th>
-            <td>{{ reception.statut.nom }}</td>
-        </tr>
-        <tr>
-            <th>Commentaire</th>
-            <td>{{ reception.commentaire }}</td>
-        </tr>
-        <tr>
-            <th>Date</th>
-            <td>{{ reception.date ? reception.date|date('Y-m-d H:i:s') : '' }}</td>
-        </tr>
-        <tr>
-            <th>NumeroArrivage</th>
-            <td>{{ reception.numeroArrivage }}</td>
-        </tr>
-    </tbody>
-</table>
+<h1>RECEPTION</h1>
 
-<table id="result" class="table table-striped">
+
+<div class="row">
+    <div class='col-4'>
+        <p><strong>Statut:</strong> {{ reception.statut.nom }}</p>
+        <p><strong>Numéro de référence:</strong> {{ reception.numeroReception }}</p>
+        <p><strong>commentaire:</strong> {{ reception.commentaire }}</p>
+    </div>
+    <div class="col-4">
+        <p><strong>Date prévu:</strong> {{ reception.date ? reception.date|date('Y-m-d H:i:s') : 'null' }}</p>
+        <p><strong>Date attendu:</strong> {{ reception.dateAttendu }}</p>
+        <p><strong>fournissseur:</strong> {{ reception.fournisseur.nom }}</p>
+    </div>
+    <div class="col-4">
+        {{ include('receptions/_delete_form.html.twig') }}
+        <a href="{{ path('receptions_edit', {'id': reception.id}) }}" class='button pull-right btn-left'>Modifier</a>
+    </div>
+</div>
+<table id="result" class="table  table-striped">
+    
     <thead>
         <tr>
             <th>Id</th>
             <th>Nom</th>
             <th>Statut</th>
-            <th>Quantite</th>
+            <th>Quantité à recevoir</th>
+            <th>Quantité reçu</th>
             <th>état</th>
             <th>actions</th>
         </tr>
@@ -41,6 +40,7 @@
             <td>{{ article.id }}</td>
             <td>{{ article.nom }}</td>
             <td>{{ article.statut.nom }}</td>
+            <td>{{ article.quantiteARecevoir }}</td>
             <td>{{ article.quantite }}</td>
             <td>{{ article.etat ? 'conforme': 'non-conforme' }}</td>
             <td>
@@ -57,7 +57,7 @@
 </table>
 <div class="container-fluid">
     <form class='row' autocomplete="off">
-        <div class="form-group col-4">
+        <div class="form-group col-12">
             <div class="input-group">
                 <div class="input-group-prepend">
                     <label class="input-group-text" for="inputGroupSelect01">Nom</label>
@@ -65,7 +65,23 @@
                 <input class="form-control" type="text" name="nom" id="nom">
             </div>
         </div>
-        <div class="form-group col-4">
+        <div class="form-group col-6">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <label for="" class="input-group-text">Quantité à recevoir</label>
+                </div>
+                <input type="number" class="form-control" name="" id="quantiteARecevoir" min=0>
+            </div>
+        </div>
+        <div class="form-group col-6">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <label for="" class="input-group-text">Quantité reçu</label>
+                </div>
+                <input type="number" class="form-control" name="" id="quantite" min=0>
+            </div>
+        </div>
+        <div class="form-group col-6">
             <div class="input-group">
                 <div class="input-group-prepend">
                     <label class="input-group-text" for="inputGroupSelect01">Etat</label>
@@ -76,48 +92,16 @@
                 </select>
             </div>
         </div>
-        <div class="form-group col-4">
-            <div class="input-group">
-                <div class="input-group-prepend">
-                    <label for="" class="input-group-text">Quantité</label>
-                </div>
-                <input type="number" class="form-control" name="" id="quantite" min=0>
-            </div>
-        </div>
-        <div class="form-group col-4">
-            <div class="input-group">
-                <div class="input-group-prepend col-12">
-                    <label class="input-group-text" for="inputGroupSelect01">Position</label>
-                    <select class='form-control select2' id="position" type="text">
-                    {% for position in emplacements %}
-                        <option value="{{ position.id }}">{{ position.nom }}</option>
-                    {% endfor %}
-                    </select>
-                </div>
-            </div>
-        </div>
-        <div class="form-group col-4">
-            <div class="input-group">
-                <div class="input-group-prepend col-12">
-                    <label class="input-group-text" for="inputGroupSelect01">Direction</label>
-                    <select class='form-control select2' id="direction" type="text">
-                    {% for direction in emplacements %}
-                        <option value="{{ direction.id }}">{{ direction.nom }}</option>
-                    {% endfor %}
-                    </select>
-                </div>
-            </div>
-        </div>
-        <div class="form-group col-4">
+        <div class="form-group col-6">
             <div class="input-group">
                 <div class="input-group-prepend col-12">
                     <label class="input-group-text" for="inputGroupSelect01">Article de référence</label>
                     <select class='form-control select2' id="refArticle" type="text">
-                    {% for article in refArticle %}
+                        {% for article in refArticle %}
                         <option value="{{ article.id }}">
                             {{ article.libelle }}
                         </option>
-                    {% endfor %}
+                        {% endfor %}
                     </select>
                 </div>
             </div>
@@ -130,13 +114,14 @@
         </div>
 
         <input type="button" value="créer" class=" col-2 btn button btn-right" onclick="recupData()">
-        <a class="btn offset-5 col-2 button btn-right" href={{ path('reception_ajout_article', {'id': id, 'k': true}) }}>fin
+        <a class="btn offset-5 col-2 button btn-right"
+            href={{ path('reception_ajout_article', {'id': id, 'k': true}) }}>fin
             reception</a>
     </form>
 </div>
 <script>
 
-    $(document).ready(function() {
+    $(document).ready(function () {
         $('.select2').select2();
     });
 
@@ -147,9 +132,12 @@
         //action pour la réponse
         xmlhttp.onreadystatechange = function () {
             if (this.readyState == 4 && this.status == 200) {
+
+
                 //conversion de la reponse JSON en tableau js
                 let tabAlfa = JSON.parse(JSON.parse(this.responseText))
                 var refTable = document.getElementById('result');
+                console.log(tabAlfa);
                 var rowCount = refTable.rows.length;
                 // Insère d'une ligne  dans la table avec un indice dynamique + création de la ligne 
                 var nouvelleLigne = refTable.insertRow(rowCount);
@@ -163,13 +151,16 @@
                 var nouveauTexte = document.createTextNode(tabAlfa.statut)
                 nouvelleCellule.appendChild(nouveauTexte)
                 var nouvelleCellule = nouvelleLigne.insertCell(3);
-                var nouveauTexte = document.createTextNode(tabAlfa.quantite)
+                var nouveauTexte = document.createTextNode(tabAlfa.quantiteARecevoir)
                 nouvelleCellule.appendChild(nouveauTexte)
                 var nouvelleCellule = nouvelleLigne.insertCell(4);
+                var nouveauTexte = document.createTextNode(tabAlfa.quantite)
+                nouvelleCellule.appendChild(nouveauTexte)
+                var nouvelleCellule = nouvelleLigne.insertCell(5);
                 var nouveauTexte = document.createTextNode(tabAlfa.etat)
                 nouvelleCellule.appendChild(nouveauTexte)
                 var url = 'http://localhost/WiiStock/WiiStock/public/index.php/articles/edite/' + tabAlfa.id
-                var nouvelleCellule = nouvelleLigne.insertCell(5);
+                var nouvelleCellule = nouvelleLigne.insertCell(6);
                 var a = document.createElement("a")
                 a.className = 'btn btn-xs btn-default command-edit'
                 a.setAttribute('href', url)
@@ -181,24 +172,22 @@
         }
         // préparation des données envoie insertion dans le tableau
         let nom = document.getElementById('nom').value
-        let position = document.getElementById('position').value
-        let direction = document.getElementById('direction').value
         let etat = document.getElementById('etat').value
         let refArticle = document.getElementById('refArticle').value
         let commentaire = document.getElementById('commentaire').value
         let quantite = document.getElementById('quantite').value
+        let quantiteARecevoir = document.getElementById('quantiteARecevoir').value
         let reception = "{{ reception.id }}"
         //création du tableau de données 
         let data = []
         data = {
             'nom': nom,
-            'position': position,
-            'direction': direction,
             'etat': etat,
             'refArticle': refArticle,
             'commentaire': commentaire,
             'reception': reception,
-            'quantite': quantite
+            'quantite': quantite,
+            'quantiteARecevoir': quantiteARecevoir
         }
         //création du JSON depuis le tableau de données + envoie en POST par la requéte
         var myJSON = JSON.stringify(data)

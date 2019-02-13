@@ -9,10 +9,12 @@ class ReceptionsType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
-            ->add('numeroArrivage')
             ->add('numeroReception')
             ->add('fournisseur')
             ->add('utilisateur')
+            ->add('statut')
+            ->add('date')
+            ->add('dateAttendu')
             ->add('commentaire')
             ;
     }

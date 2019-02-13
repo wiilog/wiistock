@@ -58,6 +58,16 @@ class Demande
      */
     private $Statut;
 
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $DateAttendu;
+
+    /**
+     * @ORM\Column(type="json_array", nullable=true)
+     */
+    private $LigneArticle;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
@@ -179,6 +189,30 @@ class Demande
     public function setStatut(?Statuts $Statut): self
     {
         $this->Statut = $Statut;
+
+        return $this;
+    }
+
+    public function getDateAttendu(): ?\DateTimeInterface
+    {
+        return $this->DateAttendu;
+    }
+
+    public function setDateAttendu(?\DateTimeInterface $DateAttendu): self
+    {
+        $this->DateAttendu = $DateAttendu;
+
+        return $this;
+    }
+
+    public function getLigneArticle()
+    {
+        return $this->LigneArticle;
+    }
+
+    public function setLigneArticle($LigneArticle): self
+    {
+        $this->LigneArticle = $LigneArticle;
 
         return $this;
     }
