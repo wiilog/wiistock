@@ -24,16 +24,6 @@ class Emplacement
     private $nom;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
-    private $status;
-
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Racks", mappedBy="emplacement")
-     */
-    private $racks;
-
-    /**
      * @ORM\OneToMany(targetEntity="App\Entity\Articles", mappedBy="direction")
      */
     private $articles;
@@ -58,14 +48,8 @@ class Emplacement
      */
     private $description;
 
-    /** 
-     * @ORM\ManyToOne(targetEntity="App\Entity\Statuts", inversedBy="emplacements")
-     */
-    private $Statut;
-
     public function __construct()
     {
-        $this->racks = new ArrayCollection();
         $this->articles = new ArrayCollection();
         $this->position = new ArrayCollection();
         $this->livraisons = new ArrayCollection();
@@ -86,49 +70,6 @@ class Emplacement
     public function setNom(?string $nom): self
     {
         $this->nom = $nom;
-
-        return $this;
-    }
-
-    public function getStatus(): ?string
-    {
-        return $this->status;
-    }
-
-    public function setStatus(?string $status): self
-    {
-        $this->status = $status;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|Racks[]
-     */
-    public function getRacks(): Collection
-    {
-        return $this->racks;
-    }
-
-    public function addRack(Racks $rack): self
-    {
-        if (!$this->racks->contains($rack)) {
-            $this->racks[] = $rack;
-            $rack->setEmplacement($this);
-        }
-
-        return $this;
-    }
-
-    public function removeRack(Racks $rack): self
-    {
-        if ($this->racks->contains($rack)) {
-            $this->racks->removeElement($rack);
-            // set the owning side to null (unless already changed)
-            if ($rack->getEmplacement() === $this) {
-                $rack->setEmplacement(null);
-            }
-        }
 
         return $this;
     }
@@ -271,17 +212,4 @@ class Emplacement
     {
         $this->description = $description;
     }
-    
-    public function getStatut(): ?Statuts
-    {
-        return $this->Statut;
-    }
-
-    public function setStatut(?Statuts $Statut): self
-    {
-        $this->Statut = $Statut;
-
-        return $this;
-    }
-
 }

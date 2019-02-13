@@ -15,16 +15,6 @@ aria-hidden="true">
                         <input type="text" class="form-control data" name="nom"
                             placeholder="Nom">
                     </div>
-        
-                    <div class="form-group">
-                    <label for="statut">statut</label>
-                        <select class="form-control select2 data" name="statut">
-                            {% for statut in statuts %}
-                                <option value="{{ statut.id }}">{{ statut.Nom }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-        
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>

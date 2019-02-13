@@ -35,15 +35,18 @@ class LivraisonController extends AbstractController
     public function creationLivraison($id, DemandeRepository $demandeRepository, StatutsRepository $statutsRepository, EmplacementRepository $emplacementRepository, Request $request): Response
     {
         $demande = $demandeRepository->find($id);
+        $emplacement = $emplacementRepository->findById($demande->getDestination()->getId());
+        $statut = $statutsRepository->findById(22);
 
         $livraison = new Livraison();
         $date =  new \DateTime('now');
         $livraison->setNumero('L-'. $date->format('YmdHis'));
-        $livraison->setStatut($statutsRepository->getId(22));
-        $livraison->setDestination($emplacementRepository->getId($demande->get()));
-        $demande->setLivraison();
-
-
+        $livraison->setStatut($statut[0]);
+        $livraison->setDestination($emplacement[0]);
+        $livraison->setUtilisateur($this->getUser());
+        $demande->setLivraison($livraison);
+        
+        dump($emplacement);
         $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($livraison);
             $entityManager->flush();

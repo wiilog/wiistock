@@ -13,7 +13,7 @@ class EmplacementType extends AbstractType
     {
         $builder
             ->add('nom')
-            ->add('status')
+            ->add('description')
         ;
     }
 
