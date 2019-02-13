@@ -38,6 +38,16 @@ class Livraison
      */
     private $Statut;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateurs", inversedBy="livraisons")
+     */
+    private $utilisateur;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $date;
+
     public function __construct()
     {
         $this->demande = new ArrayCollection();
@@ -111,6 +121,30 @@ class Livraison
     public function setStatut(?Statuts $Statut): self
     {
         $this->Statut = $Statut;
+
+        return $this;
+    }
+
+    public function getUtilisateur(): ?Utilisateurs
+    {
+        return $this->utilisateur;
+    }
+
+    public function setUtilisateur(?Utilisateurs $utilisateur): self
+    {
+        $this->utilisateur = $utilisateur;
+
+        return $this;
+    }
+
+    public function getDate(): ?\DateTimeInterface
+    {
+        return $this->date;
+    }
+
+    public function setDate(?\DateTimeInterface $date): self
+    {
+        $this->date = $date;
 
         return $this;
     }

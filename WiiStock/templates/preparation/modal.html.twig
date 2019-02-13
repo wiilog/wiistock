@@ -1,6 +1,6 @@
 <!-- Modal -->
-{#<form method="" class="modal fade" id="ReceptionsModalCenter" tabindex="-1" role="dialog" aria-labelledby="ReceptionsModalCenterTitle"
-    aria-hidden="true">
+<form action={{ path("preparation_creation") }} method="" class="modal fade" id="ReceptionsModalCenter" tabindex="-1"
+    role="dialog" aria-labelledby="ReceptionsModalCenterTitle" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -10,12 +10,15 @@
                 </button>
             </div>
             <div class="modal-body modal-input container-fluid">
-                <h1>Génération des livraisons</h1>
+                <h1>Nouvelle préparation</h1>
                 <div class="container-fluid">
-                    {% for destination in destinations %}
+                    {% for demande in demandes %}
                     <div class="row">
-                        <label class="col-10" for="scales"> Prévisualisation de la livraison pour l'emplacement:
-                            {{destination.nom}}</label>
+                        <label class="col-11">Demande n°{{demande.numero}} datant du {{demande.date
+                                |date("m/d/Y")}} pour l'emplacement: {{demande.destination.nom}}</label>
+                        <input class="col-1" type="checkbox" id="preparation" name="préparation"
+                            value="{{ demande.id }}" checked>
+
                         <table class="table">
                             <thead>
                                 <tr>
@@ -26,8 +29,6 @@
                             </thead>
                             <tbody>
                                 {% set i = 0 %}
-                                {% for demande in demandes %}
-                                {% if destination.nom == demande.destination.nom %}
                                 {% for article in demande.articles %}
                                 <tr {% if i % 2==1 %} class="backtablejv" {% endif %}>
                                     {% set i = i + 1 %}
@@ -36,17 +37,17 @@
                                     <td>{{ article.position }}</td>
                                 </tr>
                                 {% endfor %}
-                                {% endif %}
-                                {% endfor %}
                             </tbody>
                         </table>
                     </div>
                     {% endfor %}
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
-                    <button id="submitButton" type="button" data-dismiss="modal" class="btn btn-primary btn-success">Enregistrer</button>
-                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                <button id="submitButton" type="button" data-dismiss="modal"
+                    class="btn btn-primary btn-success">Enregistrer</button>
             </div>
         </div>
-</form>#}
+    </div>
+</form>

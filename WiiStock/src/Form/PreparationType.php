@@ -17,13 +17,13 @@ class PreparationType extends AbstractType
     {
         $builder
             ->add('statut')
-            ->add('destination')
-            ->add('utilisateur')
-            ->add('articles',  EntityType::class, array(
-                'class' => Articles::class,
-                'choice_label' =>  'nom',
-                'multiple' => true,
-            ))
+            // ->add('destination')
+            // ->add('utilisateur')
+            // ->add('articles',  EntityType::class, array(
+            //     'class' => Articles::class,
+            //     'choice_label' =>  'nom',
+            //     'multiple' => true,
+            // ))
         ;
     }
 

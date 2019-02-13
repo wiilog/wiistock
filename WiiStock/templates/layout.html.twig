@@ -37,18 +37,18 @@
                     </a>
                     <ul class="sidemenu-sub">
                         <li><a href={{path("receptions_index")}}>• Réception</a></li>
-                        <li><a href={{ path('preparation_index',  {'history': 'false'} ) }}>• Préparation</a></li>
-                        <li><a href={{ path("livraison_index", {'history':'false'}) }}>• Livraison</a></li>
+                        <li><a href={{ path('preparation_index') }}>• Préparation</a></li>
+                        <li><a href={{ path("livraison_index") }}>• Livraison</a></li>
                     </ul>
                </li>                
 <!-- STOCK -->
                 <li class="has-submenu">
-                    <a href=>
+                    <a href="#">
                         <i class="fas fa-box"></i>
                         <h4 class="username">Stock</h4>
                     </a>
                     <ul class="sidemenu-sub">
-                        <li><a href={{ path('articles_index', {'history':0}) }}>• Article</a></li>
+                        <li><a href={{ path('articles_index') }}>• Article</a></li>
                         <li><a href="#">• Mouvement</a></li>
                         <li><a href={{path('emplacement_index')}}>• Emplacement</a></li>
                         <li><a href="#">• Inventaire</a></li>       

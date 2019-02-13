@@ -79,5 +79,4 @@ function showHint(str, url) {
         xmlhttp.open("POST", url, true)
         xmlhttp.send(myJSON)
     }
-
 }
