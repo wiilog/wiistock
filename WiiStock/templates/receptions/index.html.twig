@@ -19,8 +19,8 @@
         <thead>
             <tr>
                 <th>Statut</th>
-                <th>Date attandu</th>
                 <th>Date prévue</th>
+                <th>Date attendu</th>
                 <th>Fournisseur</th>
                 <th>Référence</th>
                 <th>Actions</th>
@@ -36,8 +36,6 @@
     <a href="" class="btn btn-xs btn-default command-edit"><i class="fas fa-plus fa-2x"></i> Articles</a> -->
 
 
-<<<<<<< HEAD
-=======
 {% include "receptions/modal.html.twig" %}
 
 {% endblock %}
@@ -58,8 +56,8 @@
 
         columns: [
             { "data": 'Statut' },
+            { "data": 'Date commande' },
             { "data": 'Date attendu' },
-            { "data": 'Date prévue' },
             { "data": 'Fournisseur' },
             { "data": 'Référence' },
             { "data": 'Actions' }
@@ -77,7 +75,7 @@
             xhttp = new XMLHttpRequest();
             xhttp.onreadystatechange = function () {
                 if (this.readyState == 4 && this.status == 200) {
-                    let obj = JSON.parse(JSON.parse(this.responseText));
+                    let obj = JSON.parse(this.responseText);
                     let url = obj.reception.Id;
                     document.getElementById("tbody-data");
                 }
@@ -98,5 +96,4 @@
     });
 
 </script>
->>>>>>> dc0c344ffb8f6eac2ccd06a22cb64aa555d598e0
 {% endblock %}

@@ -10,17 +10,22 @@ aria-hidden="true">
                 </button>
             </div>
             <div class="modal-body modal-input container-fluid">
-                    <div class="form-group">
-                        <label for="NumeroArrivage">Numero arrivage</label>
-                        <input type="text" class="form-control data" name="NumeroArrivage"
-                            placeholder="N°Arrivage">
-                    </div>
-        
+
                     <div class="form-group">
                         <label for="NumeroReception">Numero Reception</label>
                         <input type="text" class="form-control data" name="NumeroReception" placeholder="N°Reception">
                     </div>
         
+                    <div class="form-group">
+                        <label for="date-commande">Date commande</label>
+                        <input type="date" class="form-control data" name="date-commande" value="" required="true">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="date-attendu">Date attendu</label>
+                        <input type="date" class="form-control data" name="date-attendu" value="" required="true">
+                    </div>
+
                     <div class="form-group">
                         <label for="fournisseurs">Fournisseurs</label>
                         <select class="form-control select2 data" name="fournisseur">
@@ -56,36 +61,33 @@ aria-hidden="true">
 {% block javascript %}
 <script>
 
-// In your Javascript (external .js resource or <script> tag)
-$(document).ready(function() {
-    $('.select2').select2();
-    let dataModal = document.getElementById("dataModalCenter");
-    var ButtonSubmit = document.getElementById("submitButton");
+let dataModal = document.getElementById("dataModalCenter");
+var ButtonSubmit = document.getElementById("submitButton");
 
-    console.log(ButtonSubmit);
+console.log(ButtonSubmit);
 
-    ButtonSubmit.addEventListener("click", function (event) {
-    xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function() {
-    if (this.readyState == 4 && this.status == 200) {
-        let obj = JSON.parse(JSON.parse(this.responseText));
-        let url = obj.reception.Id;
-        document.getElementById("tbody-data");
-    }
-    };
+ButtonSubmit.addEventListener("click", function (event) {
+xhttp = new XMLHttpRequest();
+xhttp.onreadystatechange = function() {
+if (this.readyState == 4 && this.status == 200) {
+    let obj = JSON.parse(JSON.parse(this.responseText));
+    let url = obj.reception.Id;
+    document.getElementById("tbody-data");
+}
+};
 
-    let inputs = document.querySelectorAll(".data"); // On récupère tout les inputs qui nous intéresse avec le querySelectorAll
-    let Data = []; // Tableau de données
+let inputs = document.querySelectorAll(".data"); // On récupère tout les inputs qui nous intéresse avec le querySelectorAll
+let Data = []; // Tableau de données
 
-    inputs.forEach(input => { // Pour chaque input on fait un tableau avec pour clé son nom et comme valeur la valeur dans l'input
-    Data.push({ [input.name] : input.value });
-    console.log(input);
-    })
+inputs.forEach(input => { // Pour chaque input on fait un tableau avec pour clé son nom et comme valeur la valeur dans l'input
+Data.push({ [input.name] : input.value });
+console.log(input);
+})
 
-    Json = JSON.stringify(Data); // On transforme les données en JSON
-    xhttp.open("POST", "{{ path('createReception') }}", true);
-    xhttp.send(Json);
-    });
+Json = JSON.stringify(Data); // On transforme les données en JSON
+xhttp.open("POST", "{{ path('createReception') }}", true);
+xhttp.send(Json);
 });
+
 </script>
 {% endblock %}

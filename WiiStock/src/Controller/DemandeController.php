@@ -14,6 +14,7 @@ use App\Entity\Articles;
 use App\Entity\ReferencesArticles;
 use App\Form\ReferencesArticlesType;
 use App\Repository\ReferencesArticlesRepository;
+use App\Repository\FournisseursRepository;
 use App\Repository\StatutsRepository;
 
 use App\Repository\ArticlesRepository;
@@ -42,7 +43,7 @@ class DemandeController extends AbstractController
     /**
      * @Route("/ajoutArticle/{id}", name="ajoutArticle", methods="GET|POST")
      */
-    public function ajoutArticle(Demande $demande, ReferencesArticlesRepository $refArticlesRepository, Request $request, StatutsRepository $statutsRepository): Response 
+    public function ajoutArticle(Demande $demande, FournisseursRepository $fournisseursRepository, ReferencesArticlesRepository $refArticlesRepository, Request $request, StatutsRepository $statutsRepository): Response 
     {
         if(!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true))
         {
@@ -50,24 +51,27 @@ class DemandeController extends AbstractController
             {
                 $em = $this->getDoctrine()->getEntityManager();
 
-                $refArticle = $refArticlesRepository->findById(intval($data[0]["reference"]));
+               /*  $refArticle = $refArticlesRepository->findById(intval($data[0]["reference"]));
+                $refArticle = $refArticle[0];
                 $libelle = $refArticle->getLibelle();
-                $fournisseur = $fournisseursRepository->findBy($data[1]["code"]);
+                $fournisseur = $fournisseursRepository->findById($data[1]["code-trouve"]); */
 
 
                 $json = [
                     "reference" => $data[0]["reference"],
                     "code" => $data[1]["code-trouve"],
-                    "libelle" => $data,
                     "quantite" => $data[2]["quantite"],
-                    "destination" => $demande->getDestination(),
-                    ""
                 ];
 
-                $json = json_encode($json);
-                $demandeRepository->setLigneArticle($json);
+                dump($json);
 
-                $refArticles = $refArticlesRepository->findById(intval($data[0]["reference"]));
+
+
+                $demande->addLigneArticle($json);
+
+                dump($demande->getLigneArticle());
+
+                /* $refArticles = $refArticlesRepository->findById(intval($data[0]["reference"]));
                 $article->setRefArticle($refArticles[0]);
                 $article->setNom($data[1]["code-trouve"]);
                 $statut = $statutsRepository->findById(16);
@@ -76,13 +80,12 @@ class DemandeController extends AbstractController
                 dump("3");
                 $em->persist($article);
 
-                $demande->addArticle($article);
+                $demande->addArticle($article); */
                 
                 $em->persist($demande);
                 $em->flush();
 
-                $data = json_encode($data);
-                return new JsonResponse($data);
+                return new JsonResponse($json);
             }
         }
         throw new NotFoundHttpException("404");
@@ -254,8 +257,25 @@ class DemandeController extends AbstractController
      */
     public function show(Demande $demande, StatutsRepository $statutsRepository, EmplacementRepository $emplacementRepository, ReferencesArticlesRepository $referencesArticlesRepository, UtilisateursRepository $utilisateursRepository): Response
     {
+        $ligneArticle = $demande->getLigneArticle();
+        $lignes = [];
+        
+        foreach ($ligneArticle as $ligne) 
+        {
+            $refArticle = $referencesArticlesRepository->findById($ligne["reference"]);
+            $data = [
+                "code" => $ligne["code"],
+                "reference" => $ligne["reference"],
+                "quantite" =>$ligne["quantite"],
+                "libelle" => $refArticle[0]->getLibelle(), 
+
+            ];
+            array_push($lignes, $data);
+        }
+
         return $this->render('demande/show.html.twig', [
             'demande' => $demande,
+            'lignesArticles' => $lignes,
             'utilisateurs' => $utilisateursRepository->findAll(),
             'statuts' => $statutsRepository->findAll(),
             'destinations' => $emplacementRepository->findAll(),
