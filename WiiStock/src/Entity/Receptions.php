@@ -57,11 +57,7 @@ class Receptions
      * @ORM\Column(type="datetime", nullable=true)
      */
     private $dateAttendu;
-
-    /**
-     * @ORM\Column(type="datetime", nullable=true)
-     */
-    private $DateCommande;
+    
 
     public function __construct()
     {
@@ -190,18 +186,6 @@ class Receptions
     public function setDateAttendu(?\DateTimeInterface $dateAttendu): self
     {
         $this->dateAttendu = $dateAttendu;
-
-        return $this;
-    }
-
-    public function getDateCommande(): ?\DateTimeInterface
-    {
-        return $this->DateCommande;
-    }
-
-    public function setDateCommande(?\DateTimeInterface $DateCommande): self
-    {
-        $this->DateCommande = $DateCommande;
 
         return $this;
     }

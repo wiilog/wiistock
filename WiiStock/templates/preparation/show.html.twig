@@ -12,10 +12,10 @@
     </div>
     <div class="col-4">
         <p>Date prévu:
-            {{ preparation.demandes.0.date ? preparation.demandes.0.date|date('Y-m-d H:i:s') : '' }} </p>
+            {{ preparation.date ? preparation.date | date('Y-m-d H:i:s') : '' }} </p>
         <p>Date attendu:
-            {{ preparation.demandes.0.date ? preparation.demandes.0.date|date('Y-m-d H:i:s') : '' }} </p>
-        <p><a href={{path('createLivraison', {'id': preparation.demandes.0.id})}}>Aller vers la livraison</a></p>
+            {{ preparation.date ? preparation.date | date('Y-m-d H:i:s') : '' }} </p>
+        <p><a href={{path('createLivraison', {'id': preparation.id})}}>Aller vers la livraison</a></p>
     </div>
 </div>
 

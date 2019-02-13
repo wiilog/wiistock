@@ -52,8 +52,8 @@ class ReceptionsController extends AbstractController
                 $reception = new Receptions();
                 $statut = $statutsRepository->findById(1);
                 $reception->setStatut($statut[0]);
-                $reception->setDate(new \DateTime('now'));
                 $reception->setNumeroReception($data[0]['NumeroReception']);
+                $reception->setDate(new \DateTime($data[1]['date-commande']));
                 $reception->setDateAttendu(new \DateTime($data[2]['date-attendu']));
                 $reception->setFournisseur($fournisseur[0]);
                 $reception->setUtilisateur($utilisateur[0]);
@@ -82,8 +82,8 @@ class ReceptionsController extends AbstractController
                 $row =[ 
                     'id'=> ($reception->getId()),
                     "Statut"=>($reception->getStatut() ? $reception->getStatut()->getNom() : 'null'),
-                    "Date commande"=> ($reception->getDate() ? $reception->getDate() : 'null')->format('Y-m-d'),
-                    "Date attendu"=> ($reception->getDateAttendu() ? $reception->getDateAttendu() : 'null'),
+                    "Date commande"=> ($reception->getDate() ? $reception->getDate() : 'null')->format('d-m-Y'),
+                    "Date attendu"=> ($reception->getDateAttendu() ? $reception->getDateAttendu()->format('d-m-Y') : 'null'),
                     "Fournisseur"=> ($reception->getFournisseur() ? $reception->getFournisseur()->getNom() : 'null'),
                     "Référence"=> ($reception->getNumeroReception() ? $reception->getNumeroReception() : 'null'),
                     'Actions'=> "<a href='/WiiStock/WiiStock/public/index.php/receptions/article/".$reception->getId() ."/0' class='btn btn-xs btn-default command-edit'><i class='fas fa-plus fa-2x'></i> Articles</a>

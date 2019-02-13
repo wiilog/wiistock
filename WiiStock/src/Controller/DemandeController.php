@@ -20,6 +20,7 @@ use App\Repository\StatutsRepository;
 use App\Repository\ArticlesRepository;
 
 use App\Entity\Emplacement;
+use App\Entity\Preparation;
 use App\Form\EmplacementType;
 use App\Repository\EmplacementRepository;
 use App\Repository\UtilisateursRepository;
@@ -41,6 +42,42 @@ class DemandeController extends AbstractController
 {
 
     /**
+     * @Route("/preparation/{id}", name="preparationFromDemande")
+     */
+    public function creationPreparationDepuisDemande(Demande $demande, StatutsRepository $statutsRepository): Response
+    {  
+        dump("hello");
+        if(!$demande->getPreparation()){
+            // Creation d'une nouvelle preparation basée sur une selection de demandes
+            $preparation = new Preparation();
+
+            //declaration de la date pour remplir Date et Numero
+            $date = new \DateTime('now');
+            $preparation->setNumero('P-' . $date->format('YmdHis'));
+            $preparation->setDate($date);
+            $statut = $statutsRepository->findById(11); /* Statut : nouvelle préparation */
+            $preparation->setStatut($statut[0]);
+            //Plus de detail voir creation demande meme principe
+
+            $demande->setPreparation($preparation);
+            $statut = $statutsRepository->findById(15); /* Statut : Demande de préparation */
+            $demande->setStatut($statut[0]);
+            $articles = $demande->getArticles();
+
+            foreach ($articles as $article) {
+                $statut = $statutsRepository->findById(13); /* Statut : Demande de sortie */
+                $article->setStatut($statut[0]);
+                $article->setDirection($demande->getDestination());
+            }
+
+            $em = $this->getDoctrine()->getManager();
+            $em->persist($preparation);
+            $em->flush();
+        }
+        return $this->render('preparation/show.html.twig', ['preparation' => $demande->getPreparation()]);
+    }
+
+    /**
      * @Route("/ajoutArticle/{id}", name="ajoutArticle", methods="GET|POST")
      */
     public function ajoutArticle(Demande $demande, FournisseursRepository $fournisseursRepository, ReferencesArticlesRepository $refArticlesRepository, Request $request, StatutsRepository $statutsRepository): Response 
@@ -51,37 +88,13 @@ class DemandeController extends AbstractController
             {
                 $em = $this->getDoctrine()->getEntityManager();
 
-               /*  $refArticle = $refArticlesRepository->findById(intval($data[0]["reference"]));
-                $refArticle = $refArticle[0];
-                $libelle = $refArticle->getLibelle();
-                $fournisseur = $fournisseursRepository->findById($data[1]["code-trouve"]); */
-
-
                 $json = [
                     "reference" => $data[0]["reference"],
                     "code" => $data[1]["code-trouve"],
                     "quantite" => $data[2]["quantite"],
                 ];
 
-                dump($json);
-
-
-
                 $demande->addLigneArticle($json);
-
-                dump($demande->getLigneArticle());
-
-                /* $refArticles = $refArticlesRepository->findById(intval($data[0]["reference"]));
-                $article->setRefArticle($refArticles[0]);
-                $article->setNom($data[1]["code-trouve"]);
-                $statut = $statutsRepository->findById(16);
-                $article->setStatut($statut[0]);
-                $article->setDirection($demande->getDestination());
-                dump("3");
-                $em->persist($article);
-
-                $demande->addArticle($article); */
-                
                 $em->persist($demande);
                 $em->flush();
 
@@ -103,6 +116,7 @@ class DemandeController extends AbstractController
 
                 $em = $this->getDoctrine()->getEntityManager();
 
+                dump($data);
                 $utilisateur = $utilisateursRepository->findById(intval($data[0]["demandeur"]));
                 $statut = $statutsRepository->findById($data[2]["statut"]);
 
@@ -229,28 +243,6 @@ class DemandeController extends AbstractController
         }
     }
 
-    /**
-     * @Route("/new", name="demande_new", methods={"GET","POST"})
-     */
-    public function new(Request $request): Response
-    {
-        $demande = new Demande();
-        $form = $this->createForm(DemandeType::class, $demande);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->persist($demande);
-            $entityManager->flush();
-
-            return $this->redirectToRoute('demande_index');
-        }
-
-        return $this->render('demande/new.html.twig', [
-            'demande' => $demande,
-            'form' => $form->createView(),
-        ]);
-    }
 
     /**
      * @Route("/show/{id}", name="demande_show", methods={"GET"})
