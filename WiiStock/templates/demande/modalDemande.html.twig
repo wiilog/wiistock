@@ -42,11 +42,6 @@ aria-hidden="true">
 
 {% block javascript %}
 <script>
-// In your Javascript (external .js resource or <script> tag)
-
-$(document).ready(function() {
-    $('.select2').select2();
-});
 
 var dataModal = document.getElementById("dataModalCenter");
 var ButtonSubmit = document.getElementById("submitButton");
@@ -54,47 +49,15 @@ console.log(ButtonSubmit);
 
 
 ButtonSubmit.addEventListener("click", function () {
-xhttp = new XMLHttpRequest();
-xhttp.onreadystatechange = function() 
-{
-    if (this.readyState == 4 && this.status == 200) 
+    xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() 
     {
-        let obj = JSON.parse(JSON.parse(this.responseText));
-        let url = obj.reception.Id;
-        document.getElementById("tbody-data");
-        obj.forEach(collecte => {
-            let url = collecte.id;
-            let refTable = document.getElementById('tbody-data');
-            let rowCount = refTable.rows.length;
-
-            // Insère d'une ligne  dans la table avec un indice dynamique + création de la ligne 
-            let nouvelleLigne = refTable.insertRow(rowCount);
-            let nouvelleCellule = nouvelleLigne.insertCell();
-            let nouveauTexte = document.createTextNode(collecte.id)
-            nouvelleCellule.appendChild(nouveauTexte)
-            let nouvelleCellule = nouvelleLigne.insertCell(1);
-            let nouveauTexte = document.createTextNode(collecte.numero)
-            nouvelleCellule.appendChild(nouveauTexte)
-            let nouvelleCellule = nouvelleLigne.insertCell(2);
-            let nouveauTexte = document.createTextNode(collecte.statut)
-            nouvelleCellule.appendChild(nouveauTexte)
-            let nouvelleCellule = nouvelleLigne.insertCell(3);
-            let nouveauTexte = document.createTextNode(collecte.id)
-            nouvelleCellule.appendChild(nouveauTexte)
-            let url = 'http://localhost/WiiStock/WiiStock/public/index.php/livraison/' + livraison.id;
-            let nouvelleCellule = nouvelleLigne.insertCell(4);
-            let a = document.createElement("a");
-            a.className = 'btn btn-xs btn-default command-edit'
-            a.setAttribute('href', url)
-            let i = document.createElement("i")
-            i.className = 'fas fa-eye fa-2x'
-            nouvelleCellule.appendChild(a).appendChild(i)
-            //document.getElementById('noResult').deleteRow(0)
-        })
-
+        if (this.readyState == 4 && this.status == 200) 
+        {
+            
+        }
     }
-};
-
+    
     let inputs = document.querySelectorAll(".data"); // On récupère tout les inputs qui nous intéresse avec le querySelectorAll
     let Data = []; // Tableau de données
 

@@ -1,3 +1,7 @@
+$(document).ready(function () {
+    $('.select2').select2();
+});
+
 //Fonction de traitement des donnees post ajax pour un tableau
 function traitementDataArticle(reponse, id_table) {
     $(id_table).children().remove();

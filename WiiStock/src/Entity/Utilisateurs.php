@@ -54,7 +54,7 @@ class Utilisateurs implements UserInterface, EquatableInterface
      */
     private $roles;
 
-   
+
 
     private $salt;
 
@@ -85,12 +85,7 @@ class Utilisateurs implements UserInterface, EquatableInterface
     private $collectes;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Livraison", mappedBy="utilisateur")
-     */
-    private $livraisons;
-
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Preparation", mappedBy="utilisateur")
+     * @ORM\OneToMany(targetEntity="App\Entity\Preparation", mappedBy="Utilisateur")
      */
     private $preparations;
 
@@ -109,36 +104,36 @@ class Utilisateurs implements UserInterface, EquatableInterface
         return $this->id;
     }
 
-    public function getUsername(): ?string
+    public function getUsername() : ? string
     {
         return $this->username;
     }
 
-    public function setUsername(string $username): self
+    public function setUsername(string $username) : self
     {
         $this->username = $username;
 
         return $this;
     }
 
-    public function getEmail(): ?string
+    public function getEmail() : ? string
     {
         return $this->email;
     }
 
-    public function setEmail(string $email): self
+    public function setEmail(string $email) : self
     {
         $this->email = $email;
 
         return $this;
     }
 
-    public function getPassword(): ?string
+    public function getPassword() : ? string
     {
         return $this->password;
     }
 
-    public function setPassword(string $password): self
+    public function setPassword(string $password) : self
     {
         $this->password = $password;
 
@@ -167,7 +162,7 @@ class Utilisateurs implements UserInterface, EquatableInterface
         return $this->roles;
     }
 
-    public function setRoles(array $roles): self
+    public function setRoles(array $roles) : self
     {
         $this->roles = $roles;
 
@@ -195,12 +190,12 @@ class Utilisateurs implements UserInterface, EquatableInterface
         return true;
     }
 
-    public function getLastLogin(): ?\DateTimeInterface
+    public function getLastLogin() : ? \DateTimeInterface
     {
         return $this->lastLogin;
     }
 
-    public function setLastLogin(?\DateTimeInterface $lastLogin): self
+    public function setLastLogin(? \DateTimeInterface $lastLogin) : self
     {
         $this->lastLogin = $lastLogin;
 
@@ -210,12 +205,12 @@ class Utilisateurs implements UserInterface, EquatableInterface
     /**
      * @return Collection|Receptions[]
      */
-    public function getReceptions(): Collection
+    public function getReceptions() : Collection
     {
         return $this->receptions;
     }
 
-    public function addReception(Receptions $reception): self
+    public function addReception(Receptions $reception) : self
     {
         if (!$this->receptions->contains($reception)) {
             $this->receptions[] = $reception;
@@ -225,7 +220,7 @@ class Utilisateurs implements UserInterface, EquatableInterface
         return $this;
     }
 
-    public function removeReception(Receptions $reception): self
+    public function removeReception(Receptions $reception) : self
     {
         if ($this->receptions->contains($reception)) {
             $this->receptions->removeElement($reception);
@@ -246,12 +241,12 @@ class Utilisateurs implements UserInterface, EquatableInterface
     /**
      * @return Collection|Demande[]
      */
-    public function getDemandes(): Collection
+    public function getDemandes() : Collection
     {
         return $this->demandes;
     }
 
-    public function addDemande(Demande $demande): self
+    public function addDemande(Demande $demande) : self
     {
         if (!$this->demandes->contains($demande)) {
             $this->demandes[] = $demande;
@@ -261,7 +256,7 @@ class Utilisateurs implements UserInterface, EquatableInterface
         return $this;
     }
 
-    public function removeDemande(Demande $demande): self
+    public function removeDemande(Demande $demande) : self
     {
         if ($this->demandes->contains($demande)) {
             $this->demandes->removeElement($demande);
@@ -277,12 +272,12 @@ class Utilisateurs implements UserInterface, EquatableInterface
     /**
      * @return Collection|Alerte[]
      */
-    public function getUtilisateurAlertes(): Collection
+    public function getUtilisateurAlertes() : Collection
     {
         return $this->UtilisateurAlertes;
     }
 
-    public function addUtilisateurAlerte(Alerte $utilisateurAlerte): self
+    public function addUtilisateurAlerte(Alerte $utilisateurAlerte) : self
     {
         if (!$this->UtilisateurAlertes->contains($utilisateurAlerte)) {
             $this->UtilisateurAlertes[] = $utilisateurAlerte;
@@ -292,7 +287,7 @@ class Utilisateurs implements UserInterface, EquatableInterface
         return $this;
     }
 
-    public function removeUtilisateurAlerte(Alerte $utilisateurAlerte): self
+    public function removeUtilisateurAlerte(Alerte $utilisateurAlerte) : self
     {
         if ($this->UtilisateurAlertes->contains($utilisateurAlerte)) {
             $this->UtilisateurAlertes->removeElement($utilisateurAlerte);
@@ -308,12 +303,12 @@ class Utilisateurs implements UserInterface, EquatableInterface
     /**
      * @return Collection|Collecte[]
      */
-    public function getCollectes(): Collection
+    public function getCollectes() : Collection
     {
         return $this->collectes;
     }
 
-    public function addCollecte(Collecte $collecte): self
+    public function addCollecte(Collecte $collecte) : self
     {
         if (!$this->collectes->contains($collecte)) {
             $this->collectes[] = $collecte;
@@ -323,7 +318,7 @@ class Utilisateurs implements UserInterface, EquatableInterface
         return $this;
     }
 
-    public function removeCollecte(Collecte $collecte): self
+    public function removeCollecte(Collecte $collecte) : self
     {
         if ($this->collectes->contains($collecte)) {
             $this->collectes->removeElement($collecte);
@@ -337,45 +332,14 @@ class Utilisateurs implements UserInterface, EquatableInterface
     }
 
     /**
-     * @return Collection|Livraison[]
-     */
-    public function getLivraisons(): Collection
-    {
-        return $this->livraisons;
-    }
-
-    public function addLivraison(Livraison $livraison): self
-    {
-        if (!$this->livraisons->contains($livraison)) {
-            $this->livraisons[] = $livraison;
-            $livraison->setUtilisateur($this);
-        }
-
-        return $this;
-    }
-
-    public function removeLivraison(Livraison $livraison): self
-    {
-        if ($this->livraisons->contains($livraison)) {
-            $this->livraisons->removeElement($livraison);
-            // set the owning side to null (unless already changed)
-            if ($livraison->getUtilisateur() === $this) {
-                $livraison->setUtilisateur(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
      * @return Collection|Preparation[]
      */
-    public function getPreparations(): Collection
+    public function getPreparations() : Collection
     {
         return $this->preparations;
     }
 
-    public function addPreparation(Preparation $preparation): self
+    public function addPreparation(Preparation $preparation) : self
     {
         if (!$this->preparations->contains($preparation)) {
             $this->preparations[] = $preparation;
@@ -385,7 +349,7 @@ class Utilisateurs implements UserInterface, EquatableInterface
         return $this;
     }
 
-    public function removePreparation(Preparation $preparation): self
+    public function removePreparation(Preparation $preparation) : self
     {
         if ($this->preparations->contains($preparation)) {
             $this->preparations->removeElement($preparation);
@@ -397,4 +361,6 @@ class Utilisateurs implements UserInterface, EquatableInterface
 
         return $this;
     }
+
+
 }

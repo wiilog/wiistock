@@ -41,7 +41,7 @@ class Preparation
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateurs", inversedBy="preparations")
      */
-    private $utilisateur;
+    private $Utilisateur;
 
     public function __construct()
     {
@@ -122,12 +122,12 @@ class Preparation
 
     public function getUtilisateur(): ?Utilisateurs
     {
-        return $this->utilisateur;
+        return $this->Utilisateur;
     }
 
-    public function setUtilisateur(?Utilisateurs $utilisateur): self
+    public function setUtilisateur(?Utilisateurs $Utilisateur): self
     {
-        $this->utilisateur = $utilisateur;
+        $this->Utilisateur = $Utilisateur;
 
         return $this;
     }
