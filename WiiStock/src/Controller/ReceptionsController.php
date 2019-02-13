@@ -44,6 +44,7 @@ class ReceptionsController extends AbstractController
         {
             if(count($data) != 4)// On regarde si le nombre de données reçu est conforme et on envoi dans la base
             {
+                dump($data);
                 $fournisseur = $fournisseursRepository->findById(intval($data[2]['fournisseur']));
                 $utilisateur = $utilisateursRepository->findById(intval($data[3]['utilisateur']));
 
@@ -51,7 +52,6 @@ class ReceptionsController extends AbstractController
                 $statut = $statutsRepository->findById(1);
                 $reception->setStatut($statut[0]);
                 $reception->setDate(new \DateTime('now'));
-                $reception->setNumeroArrivage($data[0]['NumeroArrivage']);
                 $reception->setNumeroReception($data[1]['NumeroReception']);
                 $reception->setFournisseur($fournisseur[0]);
                 $reception->setUtilisateur($utilisateur[0]);
@@ -93,8 +93,8 @@ class ReceptionsController extends AbstractController
                 $row =[ 
                     'id'=> ($reception->getId()),
                     "Statut"=>($reception->getStatut() ? $reception->getStatut()->getNom() : 'null'),
-                    "Date attendu"=> ($reception->getDateAttendu() ? $reception->getDateAttendu() : 'null'),
-                    "Date prévue"=> ($reception->getDate() ? $reception->getDate() : 'null')->format('Y-m-d'),
+                    "Date commande"=> ($reception->getDate() ? $reception->getDate()->format('Y-m-d') : 'null'),
+                    "Date attendu"=> ($reception->getDateAttendu() ? $reception->getDateAttendu()->format('Y-m-d') : 'null'),
                     "Fournisseur"=> ($reception->getFournisseur() ? $reception->getFournisseur()->getNom() : 'null'),
                     "Référence"=> ($reception->getNumeroReception() ? $reception->getNumeroReception() : 'null'),
                     'Actions'=> "<a href='/WiiStock/WiiStock/public/index.php/receptions/article/".$reception->getId() ."/0' class='btn btn-xs btn-default command-edit'><i class='fas fa-plus fa-2x'></i> Articles</a>
