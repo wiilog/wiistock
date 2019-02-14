@@ -22,7 +22,6 @@ class AccueilController extends AbstractController
     public function index(AlerteRepository $arlerteRepository, Request $request): Response
     {  
         $nbAlerteQ = $arlerteRepository->findCountAlerte();
-        dump($nbAlerteQ);
         $nbAlerte = $nbAlerteQ[0];
         // $nbAlerte = 2;
         return $this->render('accueil/index.html.twig', [
