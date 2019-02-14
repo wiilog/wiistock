@@ -48,7 +48,6 @@
     <table class="table">
             <thead>
                 <tr>
-                    <th>Code</th>
                     <th>Références CEA</th>
                     <th>Fabriquant</th>
                     <th>Libellé</th>
@@ -64,16 +63,15 @@
                             class="backtablejv"
                         {% endif %}>
                         {% set i = i + 1 %}
-                        <td>{{ ligneArticle.code }}</td>
                         <td>{{ ligneArticle.reference }}</td>
                         <td></td>
-                        <td>{{ ligneArticle.quantite }}</td>
                         <td>{{ ligneArticle.libelle }}</td>
-                        <td>{{ demande.destination.nom }}</td>  
+                        <td>{{ ligneArticle.quantite }}</td>
+                        <td>Destination</td>  
                     </tr>
                 {% else %}
                     <tr>
-                        <td colspan="10">aucun résultat</td>
+                        <td colspan="10">Aucun résultat</td>
                     </tr>
                 {% endfor %}
                 </tbody>
@@ -84,5 +82,5 @@
 
     {% include 'demande/modifModal.html.twig' %}
     {% include 'demande/ajoutLigneModal.html.twig' %}
-    {#{ include('demande/_delete_form.html.twig') }#}
+
 {% endblock %}

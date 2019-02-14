@@ -1,6 +1,6 @@
 <!-- Modal -->
 <form method="" class="modal fade" id="dataModalCenter" role="dialog" aria-labelledby="dataModalCenterTitle"
-aria-hidden="true">
+    aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -10,28 +10,13 @@ aria-hidden="true">
                 </button>
             </div>
             <div class="modal-body modal-input container-fluid">
-                <div class="form-group row">
-                    <p class="col-form-label">Lieux de livraison</p>
-                    <select class="form-control data" name="direction">
-                        {% for item in emplacements %}
-                        <option value={{item.id}}>{{ item.nom }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="form-group">
-                    <h2>Articles</h2>
-                    <div class="row">
-                        {% for refArticle in refArticles | sort %}
-                        <div class="form-group col-4">
-                            <p class=" col-form-label"><strong>{{ refArticle.libelle }}</strong> (quantité disponible:
-                                {{ refArticle.quantity }})</p>
-                            <input class="form-control data" type="number" name="{{refArticle.id}}" value="0" min="0" max="{{refArticle.quantity}}">
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-                <input class="button btn-left" type="submit" value="Commander">
-                </div>
+                <label for="demandeur"></label>
+                <select name="demandeur" id="demandeur" class="form-control data select2">
+                    {% for utilisateur in utilisateurs %}
+                        <option value="{{ utilisateur.id }}">{{ utilisateur.username }}</option>
+                    {% endfor %}
+                </select>
+            </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
                 <button id="submitButton" type="button" data-dismiss="modal" class="btn btn-primary btn-success">Enregistrer</button>
@@ -42,33 +27,33 @@ aria-hidden="true">
 
 {% block javascript %}
 <script>
+    var dataModal = document.getElementById("dataModalCenter");
+    var ButtonSubmit = document.getElementById("submitButton");
+    console.log(ButtonSubmit);
 
-var dataModal = document.getElementById("dataModalCenter");
-var ButtonSubmit = document.getElementById("submitButton");
-console.log(ButtonSubmit);
 
+    ButtonSubmit.addEventListener("click", function () {
+        xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
 
-ButtonSubmit.addEventListener("click", function () {
-    xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function() 
-    {
-        if (this.readyState == 4 && this.status == 200) 
-        {
-            
+            }
         }
-    }
-    
-    let inputs = document.querySelectorAll(".data"); // On récupère tout les inputs qui nous intéresse avec le querySelectorAll
-    let Data = []; // Tableau de données
 
-    inputs.forEach(input => { // Pour chaque input on fait un tableau avec pour clé son nom et comme valeur la valeur dans l'input
-        Data.push({[input.name] : input.value});
-        console.log(input);
+        let inputs = document.querySelectorAll(".data"); // On récupère tout les inputs qui nous intéresse avec le querySelectorAll
+        let Data = []; // Tableau de données
+
+        inputs.forEach(input => { // Pour chaque input on fait un tableau avec pour clé son nom et comme valeur la valeur dans l'input
+            Data.push({
+                [input.name]: input.value
+            });
+            console.log(input);
+        });
+
+    console.log(Data);
+        Json = JSON.stringify(Data); // On transforme les données en JSON
+        xhttp.open("POST", "{{ path('creation_demande') }}", true);
+        xhttp.send(Json);
     });
-
-    Json = JSON.stringify(Data); // On transforme les données en JSON
-    xhttp.open("POST", "{{ path('creation_demande') }}", true);
-    xhttp.send(Json);
-});
 </script>
 {% endblock %}

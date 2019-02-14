@@ -12,9 +12,9 @@
         <p><strong>commentaire:</strong> {{ reception.commentaire }}</p>
     </div>
     <div class="col-4">
-        <p><strong>Date prévu:</strong> {{ reception.date ? reception.date|date('Y-m-d H:i:s') : 'null' }}</p>
-        <p><strong>Date attendu:</strong> {{ reception.dateAttendu }}</p>
-        <p><strong>fournissseur:</strong> {{ reception.fournisseur.nom }}</p>
+        <p><strong>Date commande:</strong> {{ reception.date ? reception.date| date('d-m-Y') : 'null' }}</p>
+        <p><strong>Date attendu:</strong> {{ reception.dateAttendu ? reception.dateAttendu | date('d-m-Y') : 'null' }}</p>
+        <p><strong>Fournisseur:</strong> {{ reception.fournisseur.nom }}</p>
     </div>
     <div class="col-4">
         {{ include('receptions/_delete_form.html.twig') }}

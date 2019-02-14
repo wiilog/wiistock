@@ -46,12 +46,22 @@ class ReferencesArticles
     /**
      * @ORM\Column(type="integer", nullable=true)
      */
-    private $quantity;
+    private $quantiteDisponible;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Alerte", mappedBy="AlerteRefArticle")
      */
     private $RefArticleAlerte;
+
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $quantiteReservee;
+
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $quantiteStock;
 
     public function __construct()
     {
@@ -151,14 +161,14 @@ class ReferencesArticles
         return $this;
     }
 
-    public function getQuantity(): ?int
+    public function getQuantiteDisponible(): ?int
     {
-        return $this->quantity;
+        return $this->QuantiteDisponible;
     }
 
-    public function setQuantity(?int $quantity): self
+    public function setQuantiteDisponible(?int $quantiteDisponible): self
     {
-        $this->quantity = $quantity;
+        $this->QuantiteDisponible = $quantiteDisponible;
 
         return $this;
     }
@@ -190,6 +200,30 @@ class ReferencesArticles
                 $refArticleAlerte->setAlerteRefArticle(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getQuantiteReservee(): ?int
+    {
+        return $this->quantiteReservee;
+    }
+
+    public function setQuantiteReservee(?int $quantiteReservee): self
+    {
+        $this->quantiteReservee = $quantiteReservee;
+
+        return $this;
+    }
+
+    public function getQuantiteStock(): ?int
+    {
+        return $this->quantiteStock;
+    }
+
+    public function setQuantiteStock(?int $quantiteStock): self
+    {
+        $this->quantiteStock = $quantiteStock;
 
         return $this;
     }

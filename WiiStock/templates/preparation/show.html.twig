@@ -7,15 +7,11 @@
 <div class="row">
     <div class="col-4">
         <p>Statut: {{ preparation.statut.nom }}</p>
-        <p>Numéro: {{preparation.numero}}</p>
-        <p>Opérateur: {{preparation.utilisateur ? preparation.utilisateur.username : "null" }}</p>
+        <p>Numéro: {{ preparation.numero }}</p>
+        <p>Opérateur: {{ preparation.utilisateur ? preparation.utilisateur.username : "null" }}</p>
     </div>
     <div class="col-4">
-        <p>Date de commande:
-            {{ preparation.demandes.0.date ? preparation.demandes.0.date|date('Y-m-d H:i:s') : '' }} </p>
-        <p>Date attendu:
-            {{ preparation.demandes.0.dateAttendu ? preparation.demandes.0.dateAttendu|date('Y-m-d H:i:s') : '' }} </p>
-        <p><a href={{path('createLivraison', {'id': preparation.demandes.0.id})}}>Aller vers la livraison</a></p>
+        <p><a href={{path('createLivraison', {'id': preparation.id})}}>Aller vers la livraison</a></p>
     </div>
 </div>
 

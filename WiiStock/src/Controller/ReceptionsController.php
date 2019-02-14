@@ -264,7 +264,7 @@ class ReceptionsController extends AbstractController
                 // requete Count en SQL dédié
                 $quantityRef = $articlesRepository->findCountByRefArticle($refArticle);
                 $quantity = $quantityRef[0];
-                $refArticle->setQuantity($quantity[1]);
+                $refArticle->setQuantiteDisponible($quantity[1]);
                 dump($quantity);
             }
 

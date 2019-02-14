@@ -40,39 +40,35 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
  */
 class DemandeController extends AbstractController
 {
-
     /**
      * @Route("/preparation/{id}", name="preparationFromDemande")
      */
     public function creationPreparationDepuisDemande(Demande $demande, StatutsRepository $statutsRepository): Response
     {  
-        dump("hello");
-        if(!$demande->getPreparation()){
+        if($demande->getPreparation() == null)
+        {
+            dump("heeey");
             // Creation d'une nouvelle preparation basée sur une selection de demandes
             $preparation = new Preparation();
 
-            //declaration de la date pour remplir Date et Numero
             $date = new \DateTime('now');
             $preparation->setNumero('P-' . $date->format('YmdHis'));
             $preparation->setDate($date);
+            $preparation->setUtilisateur($demande->getUtilisateur());
+
             $statut = $statutsRepository->findById(11); /* Statut : nouvelle préparation */
             $preparation->setStatut($statut[0]);
-            //Plus de detail voir creation demande meme principe
 
             $demande->setPreparation($preparation);
+            
             $statut = $statutsRepository->findById(15); /* Statut : Demande de préparation */
             $demande->setStatut($statut[0]);
-            $articles = $demande->getArticles();
-
-            foreach ($articles as $article) {
-                $statut = $statutsRepository->findById(13); /* Statut : Demande de sortie */
-                $article->setStatut($statut[0]);
-                $article->setDirection($demande->getDestination());
-            }
 
             $em = $this->getDoctrine()->getManager();
             $em->persist($preparation);
             $em->flush();
+
+            return $this->render('preparation/show.html.twig', ['preparation' => $demande->getPreparation()]);
         }
         return $this->render('preparation/show.html.twig', ['preparation' => $demande->getPreparation()]);
     }
@@ -80,7 +76,7 @@ class DemandeController extends AbstractController
     /**
      * @Route("/ajoutArticle/{id}", name="ajoutArticle", methods="GET|POST")
      */
-    public function ajoutArticle(Demande $demande, FournisseursRepository $fournisseursRepository, ReferencesArticlesRepository $refArticlesRepository, Request $request, StatutsRepository $statutsRepository): Response 
+    public function ajoutRefArticle(Demande $demande, FournisseursRepository $fournisseursRepository, ReferencesArticlesRepository $refArticlesRepository, Request $request, StatutsRepository $statutsRepository): Response 
     {
         if(!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true))
         {
@@ -90,7 +86,6 @@ class DemandeController extends AbstractController
 
                 $json = [
                     "reference" => $data[0]["reference"],
-                    "code" => $data[1]["code-trouve"],
                     "quantite" => $data[2]["quantite"],
                 ];
 
@@ -137,86 +132,91 @@ class DemandeController extends AbstractController
     /**
      * @Route("/creationDemande", name="creation_demande", methods="GET|POST")
      */
-    public function creationDemande(LivraisonRepository $livraisonRepository, Request $request, StatutsRepository $statutsRepository, ReferencesArticlesRepository $referencesArticlesRepository, ArticlesRepository $articlesRepository, EmplacementRepository $emplacementRepository): Response 
+    public function creationDemande(LivraisonRepository $livraisonRepository, Request $request, UtilisateursRepository $utilisateursRepository, StatutsRepository $statutsRepository, ReferencesArticlesRepository $referencesArticlesRepository, ArticlesRepository $articlesRepository, EmplacementRepository $emplacementRepository): Response 
     {   
-        // La creation de demandes n'utilise pas le formulaire symfony, les utilisateur demandent des articles de Reference non pas les articles
-        // on recupere la liste de article de reference et on créer une instance de demande
 
-        // si renvoie d'un réponse POST
         if(!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true))
         {
-            dump($data);
-            $refArticles = $referencesArticlesRepository->findAll();
+            $em = $this->getDoctrine()->getManager();
+            $demandeur = $data[0];
             $demande = new Demande();
-            if (count($data) >= 2) 
+            $statut = $statutsRepository->findById(14);
+            $demande->setStatut($statut[0]);
+            $utilisateur = $utilisateursRepository->findOneById($demandeur["demandeur"]);
+            $demande->setUtilisateur($utilisateur);
+            $date =  new \DateTime('now');
+            $demande->setdate($date);
+            $demande->setNumero("D-" . $date->format('YmdHis')); // On recupere un array sous la forme ['id de l'article de réference' => 'quantite de l'article de réference voulu', ....]
+            $em->persist($demande);
+            $em->flush();
+            
+            /* if (count($data) >= 2) 
             {
-                $destination = $emplacementRepository->findOneBy(array('id' => $data[0]['direction'])); // On recupere la destination des articles
-                $demande->setDestination($destination);// On 'remplie' la $demande avec les data les plus simple
-                $statut = $statutsRepository->findById(14);
-                $demande->setStatut($statut[0]);
-                $demande->setUtilisateur($this->getUser());
-                $date =  new \DateTime('now');
-                $demande->setdate($date);
-                $demande->setNumero("D-" . $date->format('YmdHis')); // On recupere un array sous la forme ['id de l'article de réference' => 'quantite de l'article de réference voulu', ....]
-                
                 $dataKeys = [];
 
                 foreach($data as $key)
                 {
                     if(!array_key_exists("direction", $key))
                     {
-                        array_push($dataKeys, $key);
-                        dump($dataKeys);
+                        $dataKeys += $key;
                     }
                 }
 
-                $refArtQte = $dataKeys;
-                dump($refArtQte);
-                $refArtKey = array_keys($refArtQte[0]); //On créer un array qui recupere les key de valeur de nos id 
-                dump($refArtKey);
+                $IdKey = array_keys($dataKeys);
+                $i = 0;
 
-                foreach ($refArtKey as $key)
+                foreach($IdKey as $key)
                 {
-                    dump("2");
-                    dump($key);
-                    $articles = $articlesRepository->findByRefAndConfAndStock($key);
-                    dump($articles);
-
-                    for($n=0; $n<$refArtQte[$key]; $n++)
+                    
+                    if($dataKeys[$key] <= 0)
                     {
-                        $demande->addArticle($articles[$n]);//on modifie le statut de l'article et sa destination 
-                        $statut = $statutsRepository->findById(13);
-                        $articles[$n]->setStatut($statut[0]);
-                        $articles[$n]->setDirection($destination);
+                        unset($dataKeys[$key]);
+                        unset($IdKey[$i]);
                     }
+                    $i++;
                 }
 
-                if (count($demande->getArticles()) > 0)
+                dump($IdKey);
+                dump($dataKeys);
+
+                if(count($dataKeys) !== 0)
                 {
+                    $demande = new Demande();
+                    $destination = $emplacementRepository->findOneBy(array('id' => $data[0]['direction'])); // On recupere la destination des articles
+
+                    $demande->setDestination($destination); // On 'remplie' la $demande avec les data les plus simple
+                    $statut = $statutsRepository->findById(14);
+
+                    $demande->setStatut($statut[0]);
+                    $demande->setUtilisateur($this->getUser());
+
+                    $date =  new \DateTime('now');
+                    $demande->setdate($date);
+                    $demande->setNumero("D-" . $date->format('YmdHis')); // On recupere un array sous la forme ['id de l'article de réference' => 'quantite de l'article de réference voulu', ....]
+                
                     $em = $this->getDoctrine()->getManager();
+
+                    foreach ($IdKey as $id)
+                    {
+                        $json = [
+                            "reference" => $id,
+                            "quantite" => $dataKeys[$id],
+                        ];
+                        $demande->addLigneArticle($json); // On modifie le statut de l'article et sa destination
+                        $refArticle = $referencesArticlesRepository->findOneById($id);
+                        $quantiteInitial = $refArticle->getQuantiteReservee();
+                        $refArticle->setQuantiteReservee($quantiteInitial + $dataKeys[$id]);
+                        $em->persist($refArticle);
+                    }
+
                     $em->persist($demande);
                     $em->flush();
+                    
+                    return new JsonResponse($data);
                 }
-
-                //calcul de la quantite des stocks par artciles de reference
-                $refArticles = $referencesArticlesRepository->findAll();
-                foreach ($refArticles as $refArticle) {
-                // requete Count en SQL dédié
-                $quantityRef = $articlesRepository->findCountByRefArticle($refArticle);
-                $quantity = $quantityRef[0];
-                $refArticle->setQuantity($quantity[1]);
-                $this->getDoctrine()->getManager()->flush();
-
-                $data = json_encode($data);
-                return new JsonResponse($data);
-
-                }
-            }
-
-            $data = json_encode($data);
+            } */
             return new JsonResponse($data);
         }
-
         throw new NotFoundHttpException("404");
     }
 
@@ -224,7 +224,7 @@ class DemandeController extends AbstractController
     /**
      * @Route("/{history}/index", name="demande_index", methods={"GET"})
      */
-    public function index(DemandeRepository $demandeRepository, EmplacementRepository $emplacementRepository, ReferencesArticlesRepository $referencesArticlesRepository, PaginatorInterface $paginator, Request $request, StatutsRepository $statutsRepository, $history): Response
+    public function index(DemandeRepository $demandeRepository, UtilisateursRepository $utilisateursRepository, EmplacementRepository $emplacementRepository, ReferencesArticlesRepository $referencesArticlesRepository, PaginatorInterface $paginator, Request $request, ArticlesRepository $articlesRepository, $history): Response
     {
         
         $demandeQuery = ($history === 'true') ? $demandeRepository->findAll() : $demandeRepository->findAllByUserAndStatut($this->getUser());
@@ -235,16 +235,38 @@ class DemandeController extends AbstractController
             10
         );
 
+        $RefArticle = $referencesArticlesRepository->findRefArtByQte();
+        dump($RefArticle);
+        $em = $this->getDoctrine()->getManager();
 
-        dump($referencesArticlesRepository->findRefArtByQte());
-        dump($emplacementRepository->findEptBy());
+        foreach($RefArticle as $referenceArticle)
+        {   
+            $Articles = $articlesRepository->findByRefArticle($referenceArticle['id']);
+            $quantiteArticle = 0;
+
+            foreach($Articles as $article)
+            {
+                if($article->getStatut()->getId() === 3){
+                    $quantiteArticle += intval($article->getQuantite());
+                    dump($quantiteArticle);
+                }
+            }
+
+            $referenceArticle = $referencesArticlesRepository->findOneById($referenceArticle['id']);
+            $referenceArticle->setQuantiteStock($quantiteArticle);
+            $quantiteArticleReservee = $referenceArticle->getQuantiteReservee();
+            $referenceArticle->setQuantiteDisponible($quantiteArticle - $quantiteArticleReservee);
+            $em->persist($referenceArticle);
+            $em->flush();
+        }
 
         if ($history === 'true') 
         {
             return $this->render('demande/index.html.twig', [
                 'demandes' => $pagination,
                 'history' => 'false',
-                'refArticles' => $referencesArticlesRepository->findRefArtByQte(),
+                'refArticles' => $RefArticle,
+                'utilisateurs' => $utilisateursRepository->findAll(),
                 'emplacements' => $emplacementRepository->findEptBy(),
             ]);
         }
@@ -252,7 +274,8 @@ class DemandeController extends AbstractController
         {
             return $this->render('demande/index.html.twig', [
                 'demandes' => $pagination,
-                'refArticles' => $referencesArticlesRepository->findRefArtByQte(),
+                'refArticles' => $RefArticle,
+                'utilisateurs' => $utilisateursRepository->findAll(),
                 'emplacements' => $emplacementRepository->findEptBy(),
             ]);
         }
@@ -271,7 +294,6 @@ class DemandeController extends AbstractController
         {
             $refArticle = $referencesArticlesRepository->findById($ligne["reference"]);
             $data = [
-                "code" => $ligne["code"],
                 "reference" => $ligne["reference"],
                 "quantite" =>$ligne["quantite"],
                 "libelle" => $refArticle[0]->getLibelle(), 
@@ -285,7 +307,6 @@ class DemandeController extends AbstractController
             'lignesArticles' => $lignes,
             'utilisateurs' => $utilisateursRepository->findAll(),
             'statuts' => $statutsRepository->findAll(),
-            'destinations' => $emplacementRepository->findAll(),
             'references' => $referencesArticlesRepository->findAll()
         ]);
     }

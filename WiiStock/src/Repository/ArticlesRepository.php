@@ -132,7 +132,7 @@ class ArticlesRepository extends ServiceEntityRepository
     }
 
     public function findCountByStatutAndDemande($demande)
-    {
+{
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT COUNT(a)
