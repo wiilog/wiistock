@@ -145,6 +145,7 @@ class DemandeController extends AbstractController
         // si renvoie d'un réponse POST
         if(!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true))
         {
+            dump($data);
             $refArticles = $referencesArticlesRepository->findAll();
             $demande = new Demande();
             if (count($data) >= 2) 
@@ -157,13 +158,27 @@ class DemandeController extends AbstractController
                 $date =  new \DateTime('now');
                 $demande->setdate($date);
                 $demande->setNumero("D-" . $date->format('YmdHis')); // On recupere un array sous la forme ['id de l'article de réference' => 'quantite de l'article de réference voulu', ....]
-                $refArtQte = $data[1];
-                dump($refArtQte);
-                $refArtKey = array_keys($refArtQte); //On créer un array qui recupere les key de valeur de nos id 
+                
+                $dataKeys = [];
 
-                foreach ($refArtKey as $key) 
+                foreach($data as $key)
+                {
+                    if(!array_key_exists("direction", $key))
+                    {
+                        array_push($dataKeys, $key);
+                        dump($dataKeys);
+                    }
+                }
+
+                $refArtQte = $dataKeys;
+                dump($refArtQte);
+                $refArtKey = array_keys($refArtQte[0]); //On créer un array qui recupere les key de valeur de nos id 
+                dump($refArtKey);
+
+                foreach ($refArtKey as $key)
                 {
                     dump("2");
+                    dump($key);
                     $articles = $articlesRepository->findByRefAndConfAndStock($key);
                     dump($articles);
 
