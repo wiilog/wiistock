@@ -25,7 +25,6 @@ hooks:
         set -e
         bin/console assets:install --symlink --relative public
         bin/console cache:clear
-
 # The relationships of the application with services or other applications.
 # The left-hand side is the name of the relationship as it will be exposed
 # to the application in the PLATFORM_RELATIONSHIPS variable. The right-hand
@@ -49,5 +48,4 @@ web:
             # The public directory of the app, relative to its root.
             root: "public"
             # The front-controller script to send non-static requests to.
-            passthru: "/index.php"
-
+            passthru: "WiiStock/public/index.php"
