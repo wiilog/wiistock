@@ -46,7 +46,6 @@ class LivraisonController extends AbstractController
         $livraison->setUtilisateur($this->getUser());
         $demande->setLivraison($livraison);
         
-        dump($emplacement);
         $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($livraison);
             $entityManager->flush();
@@ -81,7 +80,7 @@ class LivraisonController extends AbstractController
                 'Date'=> ($livraison->getDate() ? $livraison->getDate()->format('Y-m-d') : 'null'),
                 'Statut'=> ($livraison->getStatut() ? $livraison->getStatut()->getNom() : "null"),
                 'Opérateur'=> ($livraison->getUtilisateur() ? $livraison->getUtilisateur()->getUsername() : "null"),
-                'actions'=> "<a href='/WiiStock/WiiStock/public/index.php/livraison/".$livraison->getId() ."' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>", 
+                'actions'=> "<a href='/WiiStock/WiiStock/public/index.php/livraison/".$livraison->getId()."' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>", 
             ];
             array_push($rows, $row);
         }

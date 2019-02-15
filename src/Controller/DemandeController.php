@@ -114,7 +114,6 @@ class DemandeController extends AbstractController
         {
             if(count($data) >= 3)
             {
-
                 $em = $this->getDoctrine()->getEntityManager();
                 $utilisateur = $utilisateursRepository->findById(intval($data[0]["demandeur"]));
                 $statut = $statutsRepository->findById($data[2]["statut"]);
@@ -153,7 +152,6 @@ class DemandeController extends AbstractController
             $demande->setNumero("D-" . $date->format('YmdHis')); // On recupere un array sous la forme ['id de l'article de réference' => 'quantite de l'article de réference voulu', ....]
             $em->persist($demande);
             $em->flush();
-
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
