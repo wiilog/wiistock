@@ -47,7 +47,6 @@ class DemandeController extends AbstractController
     {  
         if($demande->getPreparation() == null)
         {
-            dump("heeey");
             // Creation d'une nouvelle preparation basée sur une selection de demandes
             $preparation = new Preparation();
 
@@ -108,10 +107,7 @@ class DemandeController extends AbstractController
         {
             if(count($data) >= 3)
             {
-
                 $em = $this->getDoctrine()->getEntityManager();
-
-                dump($data);
                 $utilisateur = $utilisateursRepository->findById(intval($data[0]["demandeur"]));
                 $statut = $statutsRepository->findById($data[2]["statut"]);
 
@@ -175,10 +171,6 @@ class DemandeController extends AbstractController
                     }
                     $i++;
                 }
-
-                dump($IdKey);
-                dump($dataKeys);
-
                 if(count($dataKeys) !== 0)
                 {
                     $demande = new Demande();
@@ -234,9 +226,7 @@ class DemandeController extends AbstractController
             $request->query->getInt('page', 1),
             10
         );
-
         $RefArticle = $referencesArticlesRepository->findRefArtByQte();
-        dump($RefArticle);
         $em = $this->getDoctrine()->getManager();
 
         foreach($RefArticle as $referenceArticle)
@@ -248,7 +238,6 @@ class DemandeController extends AbstractController
             {
                 if($article->getStatut()->getId() === 3){
                     $quantiteArticle += intval($article->getQuantite());
-                    dump($quantiteArticle);
                 }
             }
 
