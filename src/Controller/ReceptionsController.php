@@ -44,8 +44,6 @@ class ReceptionsController extends AbstractController
         {
             if(count($data) != 5)// On regarde si le nombre de données reçu est conforme et on envoi dans la base
             {
-
-                dump($data);
                 $fournisseur = $fournisseursRepository->findById(intval($data[3]['fournisseur']));
                 $utilisateur = $utilisateursRepository->findById(intval($data[4]['utilisateur']));
 
@@ -75,25 +73,24 @@ class ReceptionsController extends AbstractController
      */
     public function receptionApi(Request $request, ReceptionsRepository $receptionsRepository, StatutsRepository $statutsRepository) : Response
     {
-       
-            $receptions = $receptionsRepository->findAll();
-            $rows = [];
-            foreach ($receptions as $reception) {
-                $row =[ 
-                    'id'=> ($reception->getId()),
-                    "Statut"=>($reception->getStatut() ? $reception->getStatut()->getNom() : 'null'),
-                    "Date commande"=> ($reception->getDate() ? $reception->getDate() : 'null')->format('d-m-Y'),
-                    "Date attendu"=> ($reception->getDateAttendu() ? $reception->getDateAttendu()->format('d-m-Y') : 'null'),
-                    "Fournisseur"=> ($reception->getFournisseur() ? $reception->getFournisseur()->getNom() : 'null'),
-                    "Référence"=> ($reception->getNumeroReception() ? $reception->getNumeroReception() : 'null'),
-                    'Actions'=> "<a href='/WiiStock/WiiStock/public/index.php/receptions/article/".$reception->getId() ."/0' class='btn btn-xs btn-default command-edit'><i class='fas fa-plus fa-2x'></i> Articles</a>
-                    <a href='/WiiStock/WiiStock/public/index.php/receptions/".$reception->getId() ."/edit' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>", 
-                ];
-                array_push($rows, $row);
-            }
-            $data['data'] =  $rows;
-            return new JsonResponse($data);
-
+        $receptions = $receptionsRepository->findAll();
+        $rows = [];
+        foreach ($receptions as $reception) {
+            $row =
+            [ 
+                'id'=> ($reception->getId()),
+                "Statut"=>($reception->getStatut() ? $reception->getStatut()->getNom() : 'null'),
+                "Date commande"=> ($reception->getDate() ? $reception->getDate() : 'null')->format('d-m-Y'),
+                "Date attendu"=> ($reception->getDateAttendu() ? $reception->getDateAttendu()->format('d-m-Y') : 'null'),
+                "Fournisseur"=> ($reception->getFournisseur() ? $reception->getFournisseur()->getNom() : 'null'),
+                "Référence"=> ($reception->getNumeroReception() ? $reception->getNumeroReception() : 'null'),
+                'Actions'=> "<a href='/WiiStock/public/index.php/receptions/article/".$reception->getId() ."/0' class='btn btn-xs btn-default command-edit'><i class='fas fa-plus fa-2x'></i> Articles</a>
+                <a href='/WiiStock/public/index.php/receptions/".$reception->getId() ."/edit' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>", 
+            ];
+            array_push($rows, $row);
+        }
+        $data['data'] =  $rows;
+        return new JsonResponse($data);
     }
 
 /**
@@ -153,12 +150,10 @@ class ReceptionsController extends AbstractController
      */
     public function index(ReceptionsRepository $receptionsRepository, FournisseursRepository $fournisseursRepository, UtilisateursRepository $utilisateurRepository, StatutsRepository $statutsRepository, PaginatorInterface $paginator, Request $request): Response
     {
-        
-            return $this->render('receptions/index.html.twig', [
-                'fournisseurs' => $fournisseursRepository->findAll(),
-                'utilisateurs' =>$utilisateurRepository->findAll(),
-            ]);
-           
+        return $this->render('receptions/index.html.twig', [
+            'fournisseurs' => $fournisseursRepository->findAll(),
+            'utilisateurs' =>$utilisateurRepository->findAll(),
+        ]);
     }
 
     /**
