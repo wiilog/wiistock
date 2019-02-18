@@ -24,11 +24,10 @@ class AlerteController extends AbstractController
     /**
      * @Route("/", name="alerte_index", methods={"GET"})
      */
-    public function createAlerte(Request $request): Response
+    public function createAlerte(Request $request) : Response
     {
 
-        if(!$request->XmlHttpRequest() && $data = json_decode($data->getContent(), true))
-        {
+        if (!$request->XmlHttpRequest() && $data = json_decode($data->getContent(), true)) {
             $alerte = new Alertes();
             $em = $this->getDoctrine()->getEntityManager();
 
@@ -50,7 +49,7 @@ class AlerteController extends AbstractController
     /**
      * @Route("/", name="alerte_index", methods={"GET"})
      */
-    public function index(AlerteRepository $alerteRepository, \Swift_Mailer $mailer,  Request $request): Response
+    public function index(AlerteRepository $alerteRepository, \Swift_Mailer $mailer, Request $request) : Response
     {
         // $alertes = $alerteRepository->findAlerteByUser($this->getUser());
         // $alertesUser = []; /* Un tableau d'alertes qui sera envoyer au mailer */
@@ -74,47 +73,46 @@ class AlerteController extends AbstractController
         return $this->render('alerte/index.html.twig');
     }
 
-     /**
+    /**
      * @Route("/api", name="alerte_api", methods={"GET"})
      */
-    public function alerteApi( AlerteRepository $alerteRepository, \Swift_Mailer $mailer): Response
+    public function alerteApi(AlerteRepository $alerteRepository, \Swift_Mailer $mailer) : Response
     {
-        $alertes = $alerteRepository->findAlerteByUser($this->getUser());
-        $alertesUser = []; /* Un tableau d'alertes qui sera envoyer au mailer */
-        $rows = [];
+            $alertes = $alerteRepository->findAlerteByUser($this->getUser());
+            $alertesUser = []; /* Un tableau d'alertes qui sera envoyer au mailer */
+            $rows = [];
 
-        foreach($alertes as $alerte)
-        {
-            $condition = $alerte->getAlerteRefArticle()->getQuantity() > $alerte->getAlerteSeuil(); 
-            $seuil = ($condition) ? false : true; /* Si le seuil est inférieur à la quantité, seuil atteint = false sinon true */
-            $alerte->setSeuilAtteint($seuil);
+            foreach ($alertes as $alerte) {
+                $condition = $alerte->getAlerteRefArticle()->getQuantiteDisponible()->$alerte->getAlerteSeuil();
+                $seuil = ($condition) ? false : true; /* Si le seuil est inférieur à la quantité, seuil atteint = false sinon true */
+                $alerte->setSeuilAtteint($seuil);
 
-            if($seuil){
-                array_push($alertesUser, $alerte); /* Si seuil atteint est "true" alors on insère l'alerte dans le tableau */
+                if ($seuil) {
+                    array_push($alertesUser, $alerte); /* Si seuil atteint est "true" alors on insère l'alerte dans le tableau */
+                }
+
+                $this->getDoctrine()->getManager()->flush();
+
+
+                $row = [
+                    "id" => $alerte->getId(),
+                    "Nom" => $alerte->getAlerteNom(),
+                    "Code" => $alerte->getAlerteNumero(),
+                    "Seuil" => ($condition ? "<p><i class='fas fa-check-circle fa-2x green'></i>" . $alerte->getAlerteRefArticle()->getQuantity() . "/" . $alerte->getAlerteSeuil() . "</p>" :
+                        "<p><i class='fas fa-exclamation-circle fa-2x red'></i>" . $alerte->getAlerteRefArticle()->getQuantity() . "/" . $alerte->getAlerteSeuil() . " </p>"),
+                    'actions' => "<a href='/WiiStock/WiiStock/public/index.php/alerte/" . $alerte->getId() . "/edit' class='btn btn-xs btn-default command-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
+                <a href='/WiiStock/WiiStock/public/index.php/alerte/" . $alerte->getId() . "' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>",
+                ];
+                array_push($rows, $row);
             }
 
-            $this->getDoctrine()->getManager()->flush();
+            if (count($alertesUser) > 0) {
+                $this->mailer($alertesUser, $mailer); /* On envoie le tableau d'alertes au mailer */
+            }
 
-            
-            $row = [
-                "id" => $alerte->getId(),
-                "Nom" => $alerte->getAlerteNom(),
-                "Code" => $alerte->getAlerteNumero(),
-                "Seuil"=> ($condition ? "<p><i class='fas fa-check-circle fa-2x green'></i>". $alerte->getAlerteRefArticle()->getQuantity()."/".$alerte->getAlerteSeuil(). "</p>" : 
-                 "<p><i class='fas fa-exclamation-circle fa-2x red'></i>". $alerte->getAlerteRefArticle()->getQuantity()."/".$alerte->getAlerteSeuil()." </p>"
-            ),
-                'actions'=> "<a href='/WiiStock/WiiStock/public/index.php/alerte/".$alerte->getId() ."/edit' class='btn btn-xs btn-default command-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
-                <a href='/WiiStock/WiiStock/public/index.php/alerte/".$alerte->getId() ."' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>", 
-            ];
-            array_push($rows, $row);
-        }
-        
-        if(count($alertesUser) > 0){
-            $this->mailer($alertesUser, $mailer); /* On envoie le tableau d'alertes au mailer */
-        }       
-    
-        $data['data'] =  $rows;
-        return new JsonResponse($data);
+            $data['data'] = $rows;
+            return new JsonResponse($data);
+  
     }
 
 
@@ -122,10 +120,10 @@ class AlerteController extends AbstractController
     /**
      * @Route("/new", name="alerte_new", methods={"GET","POST"})
      */
-    public function new(Request $request): Response
+    public function new(Request $request) : Response
     {
         $alerte = new Alerte();
-        
+
         $form = $this->createForm(AlerteType::class, $alerte);
         $form->handleRequest($request);
 
@@ -155,7 +153,7 @@ class AlerteController extends AbstractController
     /**
      * @Route("/{id}", name="alerte_show", methods={"GET"})
      */
-    public function show(Alerte $alerte): Response
+    public function show(Alerte $alerte) : Response
     {
         return $this->render('alerte/show.html.twig', [
             'alerte' => $alerte,
@@ -165,7 +163,7 @@ class AlerteController extends AbstractController
     /**
      * @Route("/{id}/edit", name="alerte_edit", methods={"GET","POST"})
      */
-    public function edit(Request $request, Alerte $alerte): Response
+    public function edit(Request $request, Alerte $alerte) : Response
     {
         $form = $this->createForm(AlerteType::class, $alerte);
         $form->handleRequest($request);
@@ -187,9 +185,9 @@ class AlerteController extends AbstractController
     /**
      * @Route("/{id}", name="alerte_delete", methods={"DELETE"})
      */
-    public function delete(Request $request, Alerte $alerte): Response
+    public function delete(Request $request, Alerte $alerte) : Response
     {
-        if ($this->isCsrfTokenValid('delete'.$alerte->getId(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $alerte->getId(), $request->request->get('_token'))) {
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($alerte);
             $entityManager->flush();
@@ -203,17 +201,17 @@ class AlerteController extends AbstractController
 
     public function mailer($alertes, \Swift_Mailer $mailer)
     {
-    $message = (new \Swift_Message('Alerte Email'))
-        ->setFrom('contact@wiilog.com')
-        ->setTo($this->getUser()->getEmail())
-        ->setBody(
-            $this->renderView(
+        $message = (new \Swift_Message('Alerte Email'))
+            ->setFrom('contact@wiilog.com')
+            ->setTo($this->getUser()->getEmail())
+            ->setBody(
+                $this->renderView(
                 // templates/mailer/index.html.twig
-                'mailer/index.html.twig',
-                ['alertes' => $alertes]
-            ),
-            'text/html'
-        )
+                    'mailer/index.html.twig',
+                    ['alertes' => $alertes]
+                ),
+                'text/html'
+            )
         /*
          * If you also want to include a plaintext version of the message
         ->addPart(
@@ -223,13 +221,12 @@ class AlerteController extends AbstractController
             ),
             'text/plain'
         )
-        */
-    ;
+         */;
 
-    $mailer->send($message);
+        $mailer->send($message);
 
-    return $this->render('mailer/index.html.twig', [
-        'alertes' => $alertes
-    ]);
+        return $this->render('mailer/index.html.twig', [
+            'alertes' => $alertes
+        ]);
     }
 }

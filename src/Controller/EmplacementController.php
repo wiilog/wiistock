@@ -22,12 +22,10 @@ class EmplacementController extends AbstractController
     /**
      * @Route("/nouvelEmplacement", name="createEmplacement")
      */
-    public function createEmplacement(Request $request): Response
+    public function createEmplacement(Request $request) : Response
     {
-        if(!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true))
-        {
-            if(count($data) >= 2)
-            {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (count($data) >= 2) {
                 $emplacement = new Emplacement();
                 $em = $this->getDoctrine()->getManager();
 
@@ -47,15 +45,15 @@ class EmplacementController extends AbstractController
     /**
      * @Route("/", name="emplacement_index", methods="GET")
      */
-    public function index(EmplacementRepository $emplacementRepository): Response
+    public function index(EmplacementRepository $emplacementRepository) : Response
     {
         return $this->render('emplacement/index.html.twig');
     }
- 
+
     /**
      * @Route("/new", name="emplacement_new", methods="GET|POST")
      */
-    public function new(Request $request): Response
+    public function new(Request $request) : Response
     {
         $emplacement = new Emplacement();
         $form = $this->createForm(EmplacementType::class, $emplacement);
@@ -78,29 +76,33 @@ class EmplacementController extends AbstractController
     /**
      * @Route("/api", name="emplacement_api", methods="GET|POST")
      */
-    public function fournisseurApi(Request $request, EmplacementRepository $emplacementRepository): Response
+    public function fournisseurApi(Request $request, EmplacementRepository $emplacementRepository) : Response
     {
+        if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
+        {
             $emplacements = $emplacementRepository->findAll();
             $rows = [];
             foreach ($emplacements as $emplacement) {
-                $row =[ 
-                    'id'=> ($emplacement->getId() ? $emplacement->getId() : "null" ),
-                    'Nom'=>( $emplacement->getNom() ?  $emplacement->getNom():"null"),
-                    'Description'=>( $emplacement->getDescription() ?  $emplacement->getDescription():"null"),
-                    'actions'=> "<a href='/WiiStock/public/index.php/emplacement/".$emplacement->getId() ."/edit' class='btn btn-xs btn-default command-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
-                    <a href='/WiiStock/public/index.php/emplacement/".$emplacement->getId()."' class='btn btn-xs btn-default command-edit'><i class='fas fa-eye fa-2x'></i></a>", 
-                
+                $row = [
+                    'id' => ($emplacement->getId() ? $emplacement->getId() : "null"),
+                    'Nom' => ($emplacement->getNom() ? $emplacement->getNom() : "null"),
+                    'Description' => ($emplacement->getDescription() ? $emplacement->getDescription() : "null"),
+                    'actions' => "<a href='/WiiStock/public/index.php/emplacement/" . $emplacement->getId() . "/edit' class='btn btn-xs btn-default command-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
+                    <a href='/WiiStock/public/index.php/emplacement/" . $emplacement->getId() . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-eye fa-2x'></i></a>",
+
                 ];
                 array_push($rows, $row);
             }
-            $data['data'] =  $rows;
-            return new JsonResponse($data); 
+            $data['data'] = $rows;
+            return new JsonResponse($data);
+        }
+        throw new NotFoundHttpException("404");
     }
 
     /**
      * @Route("/{id}", name="emplacement_show", methods="GET")
      */
-    public function show(Emplacement $emplacement): Response
+    public function show(Emplacement $emplacement) : Response
     {
         return $this->render('emplacement/show.html.twig', ['emplacement' => $emplacement]);
     }
@@ -108,7 +110,7 @@ class EmplacementController extends AbstractController
     /**
      * @Route("/{id}/edit", name="emplacement_edit", methods="GET|POST")
      */
-    public function edit(Request $request, Emplacement $emplacement): Response
+    public function edit(Request $request, Emplacement $emplacement) : Response
     {
         $form = $this->createForm(EmplacementType::class, $emplacement);
         $form->handleRequest($request);
@@ -128,9 +130,9 @@ class EmplacementController extends AbstractController
     /**
      * @Route("/{id}", name="emplacement_delete", methods="DELETE")
      */
-    public function delete(Request $request, Emplacement $emplacement): Response
+    public function delete(Request $request, Emplacement $emplacement) : Response
     {
-        if ($this->isCsrfTokenValid('delete'.$emplacement->getId(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $emplacement->getId(), $request->request->get('_token'))) {
             $em = $this->getDoctrine()->getManager();
             $em->remove($emplacement);
             $em->flush();

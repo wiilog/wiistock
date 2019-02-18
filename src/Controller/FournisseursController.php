@@ -50,20 +50,23 @@ class FournisseursController extends Controller
      */
     public function fournisseursApi(Request $request, FournisseursRepository $fournisseursRepository) : Response
     {
-        $refs = $fournisseursRepository->findAll();
-       $rows =[];
-        foreach ($refs as $ref) {
-            $row = [
-                "Nom" => $ref->getNom(),
-                "Code de réference" => $ref->getCodeReference(),
-                'actions'=> "<a href='/WiiStock/public/index.php/stock/fournisseurs/".$ref->getId() ."/edit' class='btn btn-xs btn-default command-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
-                    <a href='/WiiStock/public/index.php/stock/fournisseurs/".$ref->getId() ."' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>", 
-            ];
-            array_push($rows, $row);
+        if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
+        {
+            $refs = $fournisseursRepository->findAll();
+            $rows = [];
+            foreach ($refs as $ref) {
+                $row = [
+                    "Nom" => $ref->getNom(),
+                    "Code de réference" => $ref->getCodeReference(),
+                    'actions' => "<a href='/WiiStock/public/index.php/stock/fournisseurs/" . $ref->getId() . "/edit' class='btn btn-xs btn-default command-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
+                    <a href='/WiiStock/public/index.php/stock/fournisseurs/" . $ref->getId() . "' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>",
+                ];
+                array_push($rows, $row);
+            }
+            $data['data'] = $rows;
+            return new JsonResponse($data);
         }
-        $data['data'] =  $rows;
-        return new JsonResponse($data);
-    
+        throw new NotFoundHttpException("404");
     }
 
     /**
