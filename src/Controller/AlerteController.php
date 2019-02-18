@@ -30,14 +30,11 @@ class AlerteController extends AbstractController
         if (!$request->XmlHttpRequest() && $data = json_decode($data->getContent(), true)) {
             $alerte = new Alertes();
             $em = $this->getDoctrine()->getEntityManager();
-
             $alerte->setNom($data[0]["nom"]);
             $alerte->setSeuil($data[1]["seuil"]);
             $alerte->setRefArticle($data[2]["refArticle"]);
-
             $em->persist($alerte);
             $em->flush();
-
             $data = json_encode($data);
             return new JsonResponse($data);
         }
@@ -64,36 +61,30 @@ class AlerteController extends AbstractController
             $alertes = $alerteRepository->findAlerteByUser($this->getUser());
             $alertesUser = []; /* Un tableau d'alertes qui sera envoyer au mailer */
             $rows = [];
-
             foreach ($alertes as $alerte) {
-                dump($alerte->getAlerteRefArticle()-> getQuantiteStock());
                 $condition = $alerte->getAlerteRefArticle()->getQuantiteStock() > $alerte->getAlerteSeuil();
                 $seuil = ($condition) ? false : true; /* Si le seuil est inférieur à la quantité, seuil atteint = false sinon true */
                 $alerte->setSeuilAtteint($seuil);
-
                 if ($seuil) {
                     array_push($alertesUser, $alerte); /* Si seuil atteint est "true" alors on insère l'alerte dans le tableau */
                 }
-
                 $this->getDoctrine()->getManager()->flush();
-
-
+                $urlEdite = $this->generateUrl('alerte_edit', ['id' => $alerte->getId()] );
+                $urlShow = $this->generateUrl('alerte_show', ['id' => $alerte->getId()] );
                 $row = [
                     "id" => $alerte->getId(),
                     "Nom" => $alerte->getAlerteNom(),
                     "Code" => $alerte->getAlerteNumero(),
                     "Seuil" => ($condition ? "<p><i class='fas fa-check-circle fa-2x green'></i>" . $alerte->getAlerteRefArticle()->getQuantiteStock() . "/" . $alerte->getAlerteSeuil() . "</p>" :
                         "<p><i class='fas fa-exclamation-circle fa-2x red'></i>" . $alerte->getAlerteRefArticle()->getQuantiteStock() . "/" . $alerte->getAlerteSeuil() . " </p>"),
-                    'actions' => "<a href='/WiiStock/WiiStock/public/index.php/alerte/" . $alerte->getId() . "/edit' class='btn btn-xs btn-default command-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
-                <a href='/WiiStock/WiiStock/public/index.php/alerte/" . $alerte->getId() . "' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>",
+                    'actions' => "<a href='" . $urlEdite . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
+                <a href='" . $urlShow . "' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>",
                 ];
                 array_push($rows, $row);
             }
-
             if (count($alertesUser) > 0) {
                 $this->mailer($alertesUser, $mailer); /* On envoie le tableau d'alertes au mailer */
             }
-
             $data['data'] = $rows;
             return new JsonResponse($data);
         }
