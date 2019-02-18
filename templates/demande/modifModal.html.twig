@@ -42,35 +42,3 @@
         </div>
     </div>
 </form>
-
-{% block javascript %}
-<script>
-    var dataModal1 = document.getElementById("modifModalCenter");
-    var ButtonSubmit1 = document.getElementById("modifsubmitButton");
-
-    ButtonSubmit1.addEventListener("click", function () {
-        xhttp = new XMLHttpRequest();
-        xhttp.onreadystatechange = function () {
-            if (this.readyState == 4 && this.status == 200) {
-                table.ajax.reload(function ( json ) {
-                    $('#myInput').val( json.lastInput );
-                });
-            }
-        };
-
-        let inputs = dataModal1.querySelectorAll(".data"); // On récupère tout les inputs qui nous intéresse avec le querySelectorAll
-        let Data = []; // Tableau de données
-
-        inputs.forEach(input => { // Pour chaque input on fait un tableau avec pour clé son nom et comme valeur la valeur dans l'input
-            Data.push({
-                [input.name]: input.value
-            });
-            console.log(input);
-        });
-
-        Json = JSON.stringify(Data); // On transforme les données en JSON
-        xhttp.open("POST", "{{ path('modifDemande', { 'id' : demande.id}) }}", true);
-        xhttp.send(Json);
-    });
-</script>
-{% endblock %}

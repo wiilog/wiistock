@@ -40,6 +40,8 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
  */
 class DemandeController extends AbstractController
 {
+
+
     /**
      * @Route("/preparation/{id}", name="preparationFromDemande")
      */
@@ -135,7 +137,6 @@ class DemandeController extends AbstractController
      */
     public function creationDemande(LivraisonRepository $livraisonRepository, Request $request, UtilisateursRepository $utilisateursRepository, StatutsRepository $statutsRepository, ReferencesArticlesRepository $referencesArticlesRepository, ArticlesRepository $articlesRepository, EmplacementRepository $emplacementRepository): Response 
     {   
-
         if(!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true))
         {
             $em = $this->getDoctrine()->getManager();

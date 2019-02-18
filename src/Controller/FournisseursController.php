@@ -84,26 +84,23 @@ class FournisseursController extends Controller
     }
 
     /**
-     * @Route("/new", name="fournisseurs_new", methods="GET|POST")
+     * @Route("/creation/fournisseur", name="creation_fournisseur", methods="GET|POST")
      */
-    public function new(Request $request) : Response
+    public function creationFournisseur(Request $request) : Response
     {
-        $fournisseur = new Fournisseurs();
-        $form = $this->createForm(FournisseursType::class, $fournisseur);
-        $form->handleRequest($request);
+        $em = $this->getDoctrine()->getEntityManager();
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $em = $this->getDoctrine()->getManager();
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true))
+        {
+            $fournisseur = new Fournisseurs();
+            $fournisseur->setNom($data[0]["Nom"]);
+            $fournisseur->setCodeReference($data[1]["Code"]);
             $em->persist($fournisseur);
             $em->flush();
-
-            return $this->redirectToRoute('referentiel_fournisseurs');
+            return new JsonResponse($data);
         }
 
-        return $this->render('fournisseurs/new.html.twig', [
-            'fournisseur' => $fournisseur,
-            'form' => $form->createView(),
-        ]);
+        throw new NotFoundHttpException("404");
     }
 
     /**

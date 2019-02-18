@@ -29,6 +29,12 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 class LivraisonController extends AbstractController
 {
 
+    private function initialize()
+    {
+        $em = $this->getDoctrine()->getEntityManager();
+        $demandeRepository = $em->getRepository(Demande::class);
+    }
+
     /**
      *  @Route("creation/{id}", name="createLivraison", methods={"GET","POST"} )
      */

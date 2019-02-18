@@ -35,38 +35,3 @@
         </div>
     </div>
 </form>
-
-{% block javascript %}
-<script>
-    var dataModal = document.getElementById("dataModalCenter");
-    var ButtonSubmit = document.getElementById("submitButton");
-    console.log(ButtonSubmit);
-
-
-    ButtonSubmit.addEventListener("click", function () {
-        xhttp = new XMLHttpRequest();
-        xhttp.onreadystatechange = function () {
-            if (this.readyState == 4 && this.status == 200) {
-                table.ajax.reload(function( json ) {
-                    $('#myInput').val( json.lastInput );
-                });
-            }
-        }
-
-        let inputs = document.querySelectorAll(".data"); // On récupère tout les inputs qui nous intéresse avec le querySelectorAll
-        let Data = []; // Tableau de données
-
-        inputs.forEach(input => { // Pour chaque input on fait un tableau avec pour clé son nom et comme valeur la valeur dans l'input
-            Data.push({
-                [input.name]: input.value
-            });
-            console.log(input);
-        });
-
-        console.log(Data);
-        Json = JSON.stringify(Data); // On transforme les données en JSON
-        xhttp.open("POST", "{{ path('creation_demande') }}", true);
-        xhttp.send(Json);
-    });
-</script>
-{% endblock %}

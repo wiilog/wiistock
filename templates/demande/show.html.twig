@@ -59,7 +59,7 @@
         </tbody>
     </table>
 
-    <a href={{ path('demande_index', {'history': 'false'}) }} class='button pull-left btn-left'>retour</a>
+    <a href={{ path('demande_index', {'history': 'false'}) }} class='button pull-left btn-left'>Retour</a>
 
 
     {% include 'demande/modifModal.html.twig' %}
@@ -78,6 +78,21 @@
             "url":"{{ path('LigneArticle_api', {'id' : demande.id}) }}",
             "type": "POST"
         },
+        columns: [
+            { "data": 'References CEA' },
+            { "data": 'Libelle' },
+            { "data": 'Quantite' },
+            { "data": 'Actions' },
+        ],
     });
+
+var dataModal1 = document.getElementById("modifModalCenter");
+var ButtonSubmit1 = document.getElementById("modifsubmitButton");
+InitialiserModal(dataModal1, ButtonSubmit1, "{{ path('modifDemande', { 'id' : demande.id}) }}");
+
+var dataModal2 = document.getElementById("ajoutLigneModalCenter");
+var ButtonSubmit2 = document.getElementById("ajoutsubmitButton");
+InitialiserModal(dataModal2, ButtonSubmit2, "{{ path('ajoutArticle', { 'id' : demande.id }) }}");
+
 </script>
 {% endblock %}
