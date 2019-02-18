@@ -18,7 +18,7 @@
         {% endif %}
 
         <div class='row btn pull-right' >
-            <a href="" data-toggle="modal" data-target="#dataModalCenter" class="button btn-left" class="button btn-left">
+            <a href="" data-toggle="modal" data-target="#dataModalCenter" class="button btn-left">
                 <span class="fa fa-plus"></span> Nouvelle demande
             </a>
         </div>
@@ -68,6 +68,10 @@ var table = $('#table_demande').DataTable({
             { "data": 'Actions' },
         ],
     });
+
+    var dataModal = document.getElementById("dataModalCenter");
+    var ButtonSubmit = document.getElementById("submitButton");
+    InitialiserModal(dataModal, ButtonSubmit, "{{ path('creation_demande') }}");
 
 </script>
 {% endblock %}

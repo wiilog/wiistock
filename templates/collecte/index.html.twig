@@ -65,3 +65,11 @@
 {% include 'collecte/modalCollecte.html.twig' %}
 
 {% endblock %}
+
+{% block javascript %}
+<script>
+    var dataModal = document.getElementById("dataModalCenter");
+    var ButtonSubmit = document.getElementById("submitButton");
+    InitialiserModal(dataModal, ButtonSubmit, "{{ path('collecte_create') }}");
+</script>
+{% endblock %}

@@ -29,6 +29,12 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 class LivraisonController extends AbstractController
 {
 
+    private function initialize()
+    {
+        $em = $this->getDoctrine()->getEntityManager();
+        $demandeRepository = $em->getRepository(Demande::class);
+    }
+
     /**
      *  @Route("creation/{id}", name="createLivraison", methods={"GET","POST"} )
      */
@@ -80,7 +86,7 @@ class LivraisonController extends AbstractController
                 'Date'=> ($livraison->getDate() ? $livraison->getDate()->format('Y-m-d') : 'null'),
                 'Statut'=> ($livraison->getStatut() ? $livraison->getStatut()->getNom() : "null"),
                 'Opérateur'=> ($livraison->getUtilisateur() ? $livraison->getUtilisateur()->getUsername() : "null"),
-                'actions'=> "<a href='/WiiStock/WiiStock/public/index.php/livraison/".$livraison->getId()."' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>", 
+                'actions'=> "<a href='/WiiStock/public/index.php/livraison/".$livraison->getId()."' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>", 
             ];
             array_push($rows, $row);
         }
