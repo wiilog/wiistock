@@ -29,12 +29,6 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 class LivraisonController extends AbstractController
 {
 
-    private function initialize()
-    {
-        $em = $this->getDoctrine()->getEntityManager();
-        $demandeRepository = $em->getRepository(Demande::class);
-    }
-
     /**
      *  @Route("creation/{id}", name="createLivraison", methods={"GET","POST"} )
      */
@@ -68,7 +62,6 @@ class LivraisonController extends AbstractController
      */
     public function index(LivraisonRepository $livraisonRepository, StatutsRepository $statutsRepository, PaginatorInterface $paginator, DemandeRepository $demandeRepository, Request $request): Response
     {
-        
         return $this->render('livraison/index.html.twig');
     }
 

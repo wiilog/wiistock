@@ -36,19 +36,53 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 class ReceptionsController extends AbstractController
 {
     /**
+     * @var StatutsRepository
+     */
+    private $statutsRepository;
+
+    /**
+     * @var EmplacementRepository
+     */
+    private $emplacementRepository;
+
+    /**
+     * @var UtilisateursRepository
+     */
+    private $utilisateursRepository;
+
+    /**
+     * @var ReferencesArticlesRepository
+     */
+    private $referencesArticlesRepository;
+
+    /**
+     * @var ReceptionsRepository
+     */
+    private $receptionsRepository;
+
+    public function __construct(StatutsRepository $statutsRepository, ReferencesArticlesRepository $referencesArticlesRepository, ReceptionsRepository $receptionsRepository, UtilisateursRepository $utilisateursRepository, EmplacementRepository $emplacementRepository)
+    {
+        $this->statutsRepository = $statutsRepository;
+        $this->emplacementRepository = $emplacementRepository;
+        $this->receptionsRepository = $receptionsRepository;
+        $this->utilisateursRepository = $utilisateursRepository;
+        $this->referencesArticlesRepository = $referencesArticlesRepository;
+    }
+
+    /**
      * @Route("/creationReception", name="createReception", methods="POST")
      */
-    public function createReception(Request $request, StatutsRepository $statutsRepository, ReceptionsRepository $receptionsRepository, FournisseursRepository $fournisseursRepository, UtilisateursRepository $utilisateursRepository) : Response
+    public function createReception(Request $request, FournisseursRepository $fournisseursRepository) : Response
     {
         if(!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) //Si la requête est de type Xml et que data est attribuée
         {
             if(count($data) != 5)// On regarde si le nombre de données reçu est conforme et on envoi dans la base
             {
                 $fournisseur = $fournisseursRepository->findById(intval($data[3]['fournisseur']));
-                $utilisateur = $utilisateursRepository->findById(intval($data[4]['utilisateur']));
+                $utilisateur = $this->utilisateursRepository->findById(intval($data[4]['utilisateur']));
 
                 $reception = new Receptions();
-                $statut = $statutsRepository->findById(1);
+                $statut = $this->statutsRepository->findById(1);
                 $reception->setStatut($statut[0]);
                 $reception->setNumeroReception($data[0]['NumeroReception']);
                 $reception->setDate(new \DateTime($data[1]['date-commande']));
@@ -71,9 +105,9 @@ class ReceptionsController extends AbstractController
     /**
      * @Route("/api", name="reception_api", methods={"GET", "POST"}) 
      */
-    public function receptionApi(Request $request, ReceptionsRepository $receptionsRepository, StatutsRepository $statutsRepository) : Response
+    public function receptionApi(Request $request) : Response
     {
-        $receptions = $receptionsRepository->findAll();
+        $receptions = $this->receptionsRepository->findAll();
         $rows = [];
         foreach ($receptions as $reception) {
             $row =
@@ -96,13 +130,13 @@ class ReceptionsController extends AbstractController
 /**
      * @Route("/json", name="reception_json", methods={"GET", "POST"}) 
      */
-    public function receptionJson(Request $request, ReceptionsRepository $receptionsRepository, ArticlesRepository $articlesRepository, StatutsRepository $statutsRepository, EmplacementRepository $emplacementRepository, ReferencesArticlesRepository $referencesArticlesRepository ) : Response
+    public function receptionJson(Request $request, ArticlesRepository $articlesRepository) : Response
     {// recuperation du fichier JSON via la requete
         if (!$request->isXmlHttpRequest()) {
             // decodage en tavleau php
             $myJSON = json_decode($request->getContent(), true);
             // traitement des données => récuperation des objets via leur id 
-            $refArticle= $referencesArticlesRepository->findById($myJSON['refArticle']);
+            $refArticle= $this->referencesArticlesRepository->findById($myJSON['refArticle']);
             $reception= $receptionsRepository->findById($myJSON['reception']);
             // creation d'un nouvelle objet article + set des donnees
             $article = new Articles();
@@ -115,12 +149,12 @@ class ReceptionsController extends AbstractController
             $article->setReception($reception[0]);
             if ($article->getEtat())
             {
-                $statut = $statutsRepository->findById(1);
+                $statut = $this->statutsRepository->findById(1);
                 $article->setStatut($statut[0]);
             }
             else 
             {
-                $statut = $statutsRepository->findById(5);
+                $statut = $this->statutsRepository->findById(5);
                 $article->setStatut($statut[0]);
             }
             // flush du nouvelle objet article dans la base
@@ -148,18 +182,18 @@ class ReceptionsController extends AbstractController
     /**
      * @Route("/", name="receptions_index", methods={"GET", "POST"})
      */
-    public function index(ReceptionsRepository $receptionsRepository, FournisseursRepository $fournisseursRepository, UtilisateursRepository $utilisateurRepository, StatutsRepository $statutsRepository, PaginatorInterface $paginator, Request $request): Response
+    public function index(FournisseursRepository $fournisseursRepository, Request $request): Response
     {
         return $this->render('receptions/index.html.twig', [
             'fournisseurs' => $fournisseursRepository->findAll(),
-            'utilisateurs' =>$utilisateurRepository->findAll(),
+            'utilisateurs' => $this->utilisateursRepository->findAll(),
         ]);
     }
 
     /**
      * @Route("/new/creation", name="receptions_new", methods={"GET", "POST"})
      */
-    public function new(Request $request, StatutsRepository $statutsRepository): Response
+    public function new(Request $request): Response
     {
         $reception = new Receptions();
         $form = $this->createForm(ReceptionsType::class, $reception);
@@ -167,7 +201,7 @@ class ReceptionsController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) 
         {
-            $statut = $statutsRepository->findById(1);
+            $statut = $this->statutsRepository->findById(1);
             $reception->setStatut($statut[0]);
             $reception->setDate(new \DateTime('now'));
             $em = $this->getDoctrine()->getManager();
@@ -229,7 +263,7 @@ class ReceptionsController extends AbstractController
     /**
      * @Route("/article/{id}/{k}", name="reception_ajout_article", methods={"GET", "POST"})
      */
-    public function ajoutArticle(Request $request, Receptions $reception, ArticlesRepository $articlesRepository, StatutsRepository $statutsRepository, EmplacementRepository $emplacementRepository, ReferencesArticlesRepository $referencesArticlesRepository , $id, $k): Response
+    public function ajoutArticle(Request $request, Receptions $reception, ArticlesRepository $articlesRepository, $id, $k): Response
     {
         //fin de reception/mise en stock des articles
         // k sert à vérifier et identifier la fin de la reception, en suite on modifie les "setStatut" des variables 
@@ -239,21 +273,21 @@ class ReceptionsController extends AbstractController
             // modification du statut
             foreach ($articles as $article) 
             {
-                $statut = $statutsRepository->findById(1);
+                $statut = $this->statutsRepository->findById(1);
                 //vérifie si l'article est bien encore en reception
 
                 if ($article->getStatut() === $statut[0]  && $article->getEtat() === true)
                 {
-                    $statut = $statutsRepository->findById(3);
+                    $statut = $this->statutsRepository->findById(3);
                     $article->setStatut($statut[0]);
                 }
             }
 
-            $statut = $statutsRepository->findById(7);
+            $statut = $this->statutsRepository->findById(7);
             $reception->setStatut($statut[0]);
 
             //calcul de la quantite des stocks par artciles de reference
-            $refArticles = $referencesArticlesRepository->findAll();
+            $refArticles = $this->referencesArticlesRepository->findAll();
             foreach ($refArticles as $refArticle)
             {
                 // requete Count en SQL dédié
@@ -270,7 +304,7 @@ class ReceptionsController extends AbstractController
 
         return $this->render("receptions/ajoutArticle.html.twig", array(
             'reception' => $reception,
-            'refArticle'=> $referencesArticlesRepository->findAll(),
+            'refArticle'=> $this->referencesArticlesRepository->findAll(),
             'emplacements' => $emplacementRepository->findAll(),
             'id'=> $id,    
         ));

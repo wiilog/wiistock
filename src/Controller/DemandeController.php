@@ -40,14 +40,40 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
  */
 class DemandeController extends AbstractController
 {
+    /**
+     * @var StatutsRepository
+     */
+    private $statutsRepository;
 
+    /**
+     * @var EmplacementRepository
+     */
+    private $emplacementRepository;
+
+    /**
+     * @var UtilisateursRepository
+     */
+    private $utilisateursRepository;
+
+    /**
+     * @var ReferencesArticlesRepository
+     */
+    private $referencesArticlesRepository;
+
+    public function __construct(StatutsRepository $statutsRepository, ReferencesArticlesRepository $referencesArticlesRepository, UtilisateursRepository $utilisateursRepository, EmplacementRepository $emplacementRepository)
+    {
+        $this->statutsRepository = $statutsRepository;
+        $this->emplacementRepository = $emplacementRepository;
+        $this->utilisateursRepository = $utilisateursRepository;
+        $this->referencesArticlesRepository = $referencesArticlesRepository;
+    }
 
     /**
      * @Route("/preparation/{id}", name="preparationFromDemande")
      */
-    public function creationPreparationDepuisDemande(Demande $demande, StatutsRepository $statutsRepository, EmplacementRepository $emplacementRepository, ReferencesArticlesRepository $referencesArticlesRepository, UtilisateursRepository $utilisateursRepository): Response
+    public function creationPreparationDepuisDemande(Demande $demande): Response
     {  
-        if($demande->getPreparation() == null && $demande->getLigneArticle() != null)
+        if($demande->getPreparation() == null && count($demande->getLigneArticle()) > 0)
         {
             // Creation d'une nouvelle preparation basée sur une selection de demandes
             $preparation = new Preparation();
@@ -55,29 +81,29 @@ class DemandeController extends AbstractController
             $date = new \DateTime('now');
             $preparation->setNumero('P-' . $date->format('YmdHis'));
             $preparation->setDate($date);
-            $preparation->setUtilisateur($demande->getUtilisateur());
+            $preparation->setUtilisateur($this->getUser());
 
-            $statut = $statutsRepository->findById(11); /* Statut : nouvelle préparation */
+            $statut = $this->statutsRepository->findById(11); /* Statut : nouvelle préparation */
             $preparation->setStatut($statut[0]);
 
             $demande->setPreparation($preparation);
             
-            $statut = $statutsRepository->findById(15); /* Statut : Demande de préparation */
+            $statut = $this->statutsRepository->findById(15); /* Statut : Demande de préparation */
             $demande->setStatut($statut[0]);
 
             $em = $this->getDoctrine()->getManager();
+            $em->persist($demande);
             $em->persist($preparation);
             $em->flush();
-
             return $this->render('preparation/show.html.twig', ['preparation' => $demande->getPreparation()]);
         }
-        return $this->show($demande, $statutsRepository, $emplacementRepository, $referencesArticlesRepository, $utilisateursRepository);
+        return $this->show($demande);
     }
 
     /**
      * @Route("/ajoutArticle/{id}", name="ajoutArticle", methods="GET|POST")
      */
-    public function ajoutRefArticle(Demande $demande, FournisseursRepository $fournisseursRepository, ReferencesArticlesRepository $refArticlesRepository, Request $request, StatutsRepository $statutsRepository): Response 
+    public function ajoutRefArticle(Demande $demande, FournisseursRepository $fournisseursRepository, Request $request): Response 
     {
         if(!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true))
         {
@@ -110,15 +136,15 @@ class DemandeController extends AbstractController
     /**
      * @Route("/modifDemande/{id}", name="modifDemande", methods="GET|POST")
      */
-    public function modifDemande(Demande $demande, UtilisateursRepository $utilisateursRepository, Request $request, StatutsRepository $statutsRepository): Response 
+    public function modifDemande(Demande $demande, Request $request): Response 
     {
         if(!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true))
         {
             if(count($data) >= 3)
             {
                 $em = $this->getDoctrine()->getEntityManager();
-                $utilisateur = $utilisateursRepository->findById(intval($data[0]["demandeur"]));
-                $statut = $statutsRepository->findById($data[2]["statut"]);
+                $utilisateur = $this->utilisateursRepository->findById(intval($data[0]["demandeur"]));
+                $statut = $this->statutsRepository->findById($data[2]["statut"]);
                 $demande->setUtilisateur($utilisateur[0]);
                 $demande->setDateAttendu(new \Datetime($data[1]["date-attendu"]));
                 $demande->setStatut($statut[0]);
@@ -135,20 +161,20 @@ class DemandeController extends AbstractController
     /**
      * @Route("/creationDemande", name="creation_demande", methods="GET|POST")
      */
-    public function creationDemande(LivraisonRepository $livraisonRepository, Request $request, UtilisateursRepository $utilisateursRepository, StatutsRepository $statutsRepository, ReferencesArticlesRepository $referencesArticlesRepository, ArticlesRepository $articlesRepository, EmplacementRepository $emplacementRepository): Response 
+    public function creationDemande(LivraisonRepository $livraisonRepository, Request $request, ArticlesRepository $articlesRepository): Response 
     {   
         if(!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true))
         {
             $em = $this->getDoctrine()->getManager();
             $demandeur = $data[0];
             $demande = new Demande();
-            $statut = $statutsRepository->findById(14);
+            $statut = $this->statutsRepository->findById(14);
             $demande->setStatut($statut[0]);
-            $utilisateur = $utilisateursRepository->findOneById($demandeur["demandeur"]);
+            $utilisateur = $this->utilisateursRepository->findOneById($demandeur["demandeur"]);
             $demande->setUtilisateur($utilisateur);
             $date =  new \DateTime('now');
             $demande->setdate($date);
-            $destination = $emplacementRepository->findOneById($data[1]["destination"]);
+            $destination = $this->emplacementRepository->findOneById($data[1]["destination"]);
             $demande->setDestination($destination);
             $demande->setNumero("D-" . $date->format('YmdHis')); // On recupere un array sous la forme ['id de l'article de réference' => 'quantite de l'article de réference voulu', ....]
             $em->persist($demande);
@@ -162,7 +188,7 @@ class DemandeController extends AbstractController
     /**
      * @Route("/{history}/index", name="demande_index", methods={"GET"})
      */
-    public function index(DemandeRepository $demandeRepository, UtilisateursRepository $utilisateursRepository, EmplacementRepository $emplacementRepository, PaginatorInterface $paginator, Request $request, ArticlesRepository $articlesRepository, $history): Response
+    public function index(DemandeRepository $demandeRepository, PaginatorInterface $paginator, Request $request, ArticlesRepository $articlesRepository, $history): Response
     {
         
         $demandeQuery = ($history === 'true') ? $demandeRepository->findAll() : $demandeRepository->findAllByUserAndStatut($this->getUser());
@@ -178,16 +204,16 @@ class DemandeController extends AbstractController
             return $this->render('demande/index.html.twig', [
                 'demandes' => $pagination,
                 'history' => 'false',
-                'utilisateurs' => $utilisateursRepository->findAll(),
-                'emplacements' => $emplacementRepository->findEptBy(),
+                'utilisateurs' => $this->utilisateursRepository->findAll(),
+                'emplacements' => $this->emplacementRepository->findEptBy(),
             ]);
         }
         else
         {
             return $this->render('demande/index.html.twig', [
                 'demandes' => $pagination,
-                'utilisateurs' => $utilisateursRepository->findAll(),
-                'emplacements' => $emplacementRepository->findEptBy(),
+                'utilisateurs' => $this->utilisateursRepository->findAll(),
+                'emplacements' => $this->emplacementRepository->findEptBy(),
             ]);
         }
     }
@@ -196,14 +222,14 @@ class DemandeController extends AbstractController
     /**
      * @Route("/show/{id}", name="demande_show", methods={"GET"})
      */
-    public function show(Demande $demande, StatutsRepository $statutsRepository, EmplacementRepository $emplacementRepository, ReferencesArticlesRepository $referencesArticlesRepository, UtilisateursRepository $utilisateursRepository): Response
+    public function show(Demande $demande): Response
     {
         $ligneArticle = $demande->getLigneArticle();
         $lignes = [];
         
         foreach ($ligneArticle as $ligne) 
         {
-            $refArticle = $referencesArticlesRepository->findById($ligne["reference"]);
+            $refArticle = $this->referencesArticlesRepository->findById($ligne["reference"]);
             $data = [
                 "reference" => $ligne["reference"],
                 "quantite" =>$ligne["quantite"],
@@ -215,9 +241,9 @@ class DemandeController extends AbstractController
         return $this->render('demande/show.html.twig', [
             'demande' => $demande,
             'lignesArticles' => $lignes,
-            'utilisateurs' => $utilisateursRepository->findAll(),
-            'statuts' => $statutsRepository->findAll(),
-            'references' => $referencesArticlesRepository->findAll()
+            'utilisateurs' => $this->utilisateursRepository->findAll(),
+            'statuts' => $this->statutsRepository->findAll(),
+            'references' => $this->referencesArticlesRepository->findAll()
         ]);
     }
 
@@ -238,7 +264,7 @@ class DemandeController extends AbstractController
     /**
      * @Route("/api", name="demande_api", methods={"POST"}) 
      */
-    public function demandeApi(Request $request, DemandeRepository $demandeRepository, StatutsRepository $statutsRepository) : Response
+    public function demandeApi(Request $request, DemandeRepository $demandeRepository) : Response
     {   
         if($request->isXmlHttpRequest()) //Si la requête est de type Xml
         {
@@ -246,13 +272,14 @@ class DemandeController extends AbstractController
             $rows = [];
             foreach ($demandes as $demande) 
             {
+                $url = $this->generateUrl("demande_show", [ "id" => $demande->getId()]);
                 $row =
                 [ 
                     "Date"=> ($demande->getDate() ? $demande->getDate() : 'null')->format('d-m-Y'),
                     "Demandeur"=> ($demande->getUtilisateur()->getUsername() ? $demande->getUtilisateur()->getUsername() : 'null'),
                     "Numero"=> ($demande->getNumero() ? $demande->getNumero() : 'null'),
                     "Statut"=> ($demande->getStatut()->getNom() ? $demande->getStatut()->getNom() : 'null'),
-                    'Actions'=> "<a href='/WiiStock/public/index.php/demande/show/".$demande->getId()." ' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>", 
+                    'Actions'=> "<a href='". $url ." ' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>", 
                 ];
                 
                 array_push($rows, $row);
@@ -266,7 +293,7 @@ class DemandeController extends AbstractController
     /**
      * @Route("/api/{id}", name="LigneArticle_api", methods={"POST"}) 
      */
-    public function LigneArticleApi(Request $request, Demande $demande, ReferencesArticlesRepository $referencesArticlesRepository, StatutsRepository $statutsRepository) : Response
+    public function LigneArticleApi(Request $request, Demande $demande) : Response
     {
         if($request->isXmlHttpRequest()) //Si la requête est de type Xml
         {
@@ -275,7 +302,7 @@ class DemandeController extends AbstractController
         
             foreach ($LigneArticles as $LigneArticle) 
             {
-                $refArticle = $referencesArticlesRepository->findOneById($LigneArticle["reference"]);
+                $refArticle = $this->referencesArticlesRepository->findOneById($LigneArticle["reference"]);
                 $row = [ 
                     "References CEA" => ($LigneArticle["reference"] ? $LigneArticle["reference"] : 'null'),
                     "Libelle" => ($refArticle->getLibelle() ? $refArticle->getLibelle() : 'null'),
@@ -284,9 +311,8 @@ class DemandeController extends AbstractController
                 ];
                 array_push($rows, $row);
             }
-        
+    
             $data['data'] = $rows;
-            dump($data);
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
