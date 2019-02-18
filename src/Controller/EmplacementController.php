@@ -83,12 +83,14 @@ class EmplacementController extends AbstractController
             $emplacements = $emplacementRepository->findAll();
             $rows = [];
             foreach ($emplacements as $emplacement) {
+                $urlEdite = $this->generateUrl('emplacement_edit', ['id' => $emplacement->getId()] );
+                $urlShow = $this->generateUrl('emplacement_show', ['id' => $emplacement->getId()] );
                 $row = [
                     'id' => ($emplacement->getId() ? $emplacement->getId() : "null"),
                     'Nom' => ($emplacement->getNom() ? $emplacement->getNom() : "null"),
                     'Description' => ($emplacement->getDescription() ? $emplacement->getDescription() : "null"),
-                    'actions' => "<a href='/WiiStock/public/index.php/emplacement/" . $emplacement->getId() . "/edit' class='btn btn-xs btn-default command-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
-                    <a href='/WiiStock/public/index.php/emplacement/" . $emplacement->getId() . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-eye fa-2x'></i></a>",
+                    'actions' => "<a href='" . $urlEdite . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
+                    <a href='" . $urlShow . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-eye fa-2x'></i></a>",
 
                 ];
                 array_push($rows, $row);

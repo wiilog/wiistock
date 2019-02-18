@@ -78,6 +78,8 @@ class ReceptionsController extends AbstractController
             $receptions = $receptionsRepository->findAll();
             $rows = [];
             foreach ($receptions as $reception) {
+                $urlEdite = $this->generateUrl('receptions_edit', ['id' => $reception->getId()] );
+                $urlShow = $this->generateUrl('reception_ajout_article', ['id' => $reception->getId(), 'k'=>'0'] );
                 $row =
                     [
                     'id' => ($reception->getId()),
@@ -86,8 +88,8 @@ class ReceptionsController extends AbstractController
                     "Date attendu" => ($reception->getDateAttendu() ? $reception->getDateAttendu()->format('d-m-Y') : 'null'),
                     "Fournisseur" => ($reception->getFournisseur() ? $reception->getFournisseur()->getNom() : 'null'),
                     "Référence" => ($reception->getNumeroReception() ? $reception->getNumeroReception() : 'null'),
-                    'Actions' => "<a href='/WiiStock/public/index.php/receptions/article/" . $reception->getId() . "/0' class='btn btn-xs btn-default command-edit'><i class='fas fa-plus fa-2x'></i> Articles</a>
-                <a href='/WiiStock/public/index.php/receptions/" . $reception->getId() . "/edit' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>",
+                    'Actions' => "<a href='" . $urlEdite . "' class='btn btn-xs btn-default command-edit '><i class='fas fa-pencil-alt fa-2x'></i></a>
+                    <a href='" . $urlShow . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-plus fa-2x'></i> Articles</a>",
                 ];
                 array_push($rows, $row);
             }
@@ -101,7 +103,8 @@ class ReceptionsController extends AbstractController
      * @Route("/json", name="reception_json", methods={"GET", "POST"}) 
      */
     public function receptionJson(Request $request, ReceptionsRepository $receptionsRepository, ArticlesRepository $articlesRepository, StatutsRepository $statutsRepository, EmplacementRepository $emplacementRepository, ReferencesArticlesRepository $referencesArticlesRepository) : Response
-    {// recuperation du fichier JSON via la requete
+    {
+        // recuperation du fichier JSON via la requete
         if (!$request->isXmlHttpRequest()) {
             // decodage en tavleau php
             $myJSON = json_decode($request->getContent(), true);

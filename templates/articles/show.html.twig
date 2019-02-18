@@ -33,11 +33,11 @@
             </tr>
             <tr>
                 <th  class="backtablejv">Position</th>
-                <td>{{ article.position.nom }}</td>
+                <td>{{article.position ? article.position.nom : "null" }}</td>
             </tr>
             <tr>
                 <th>Destination</th>
-                <td  class="backtablejv">{{ article.direction ? article.direction.nom : " " }}</td>
+                <td  class="backtablejv">{{ article.direction ? article.direction.nom : "null " }}</td>
             </tr>
         </tbody>
     </table>

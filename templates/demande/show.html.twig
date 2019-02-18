@@ -15,10 +15,10 @@
 
 <div class="zone-actions row">
     <div class="col-3">
-        <p>Demandeur : {{ demande.utilisateur }}</p>
+        <p>Demandeur : {{ demande.utilisateur ? demande.utilisateur : 'null' }}</p>
         <p>Disponibilite des articles : Oui/Non</p>
-        <p>Date attendu : {{ demande.DateAttendu | date("d/m/Y") }}</p>
-        <p>Destination : {{ demande.destination.nom }}</p>
+        <p>Date attendu : {{ demande.DateAttendu ? demande.DateAttendu | date("d/m/Y") : "null" }}</p>
+        <p>Destination : {{ demande.destination.nom ? demande.destination.nom : "null" }}</p>
     </div>
     
     <div class="col-3">

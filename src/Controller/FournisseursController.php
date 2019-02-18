@@ -54,12 +54,14 @@ class FournisseursController extends Controller
         {
             $refs = $fournisseursRepository->findAll();
             $rows = [];
-            foreach ($refs as $ref) {
+            foreach ($refs as $fournisseur) {
+                $urlEdite = $this->generateUrl('fournisseurs_edit', ['id' => $fournisseur->getId()] );
+                $urlShow = $this->generateUrl('fournisseurs_show', ['id' => $fournisseur->getId()] );
                 $row = [
-                    "Nom" => $ref->getNom(),
-                    "Code de réference" => $ref->getCodeReference(),
-                    'actions' => "<a href='/WiiStock/public/index.php/stock/fournisseurs/" . $ref->getId() . "/edit' class='btn btn-xs btn-default command-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
-                    <a href='/WiiStock/public/index.php/stock/fournisseurs/" . $ref->getId() . "' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>",
+                    "Nom" => $fournisseur->getNom(),
+                    "Code de réference" => $fournisseur->getCodeReference(),
+                    'Actions' => "<a href='" . $urlEdite  . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
+                    <a href='" . $urlShow . "' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>",
                 ];
                 array_push($rows, $row);
             }

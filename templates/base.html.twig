@@ -40,26 +40,23 @@
 <!-- Select2 -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
-
-</head>
-
-<body {% block classbody %}
     
-{% endblock classbody %}>
-
-    {% block body %}
-    
-    {% endblock %}
-
-
-
     <script src="{{ asset('js/script-menu.js') }}"></script>
     <script src="{{ asset('js/script-wiilog.js') }}"></script>
 
+</head>
+
+<body {% block classbody %}{% endblock %}>
+
+    {% block body %}{% endblock %}
 
 
+
+    
+    
+    
     {% block javascript %}
-
+    
     {% endblock %}
 </body>
 

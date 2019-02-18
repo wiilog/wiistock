@@ -29,37 +29,32 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 class LivraisonController extends AbstractController
 {
 
-    private function initialize()
-    {
-        $em = $this->getDoctrine()->getEntityManager();
-        $demandeRepository = $em->getRepository(Demande::class);
-    }
-
     /**
      *  @Route("creation/{id}", name="createLivraison", methods={"GET","POST"} )
      */
     public function creationLivraison($id, DemandeRepository $demandeRepository, StatutsRepository $statutsRepository, EmplacementRepository $emplacementRepository, Request $request) : Response
     {
         $demande = $demandeRepository->find($id);
-        $emplacement = $emplacementRepository->findById($demande->getDestination()->getId());
-        $statut = $statutsRepository->findById(22);
-
-        $livraison = new Livraison();
-        $date = new \DateTime('now');
-        $livraison->setNumero('L-' . $date->format('YmdHis'));
-        $livraison->setStatut($statut[0]);
-        $livraison->setDestination($emplacement[0]);
-        $livraison->setUtilisateur($this->getUser());
-        $demande->setLivraison($livraison);
-
-        $entityManager = $this->getDoctrine()->getManager();
-        $entityManager->persist($livraison);
-        $entityManager->flush();
-
+        if ($demande->getLivraison() === null) {
+            $emplacement = $emplacementRepository->findById($demande->getDestination()->getId());
+            $statut = $statutsRepository->findById(22);
+            $livraison = new Livraison();
+            $date = new \DateTime('now');
+            $livraison->setDate($date);
+            $livraison->setNumero('L-' . $date->format('YmdHis'));
+            $livraison->setStatut($statut[0]);
+            $livraison->setDestination($emplacement[0]);
+            $livraison->setUtilisateur($this->getUser());
+            $demande->setLivraison($livraison);
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->persist($livraison);
+            $entityManager->flush();
+        }
         return $this->redirectToRoute('livraison_show', [
-            'id' => $livraison->getId(),
+            'id' => $demande->getLivraison()->getId(),
         ]);
     }
+
 
 
 
@@ -68,7 +63,6 @@ class LivraisonController extends AbstractController
      */
     public function index(LivraisonRepository $livraisonRepository, StatutsRepository $statutsRepository, PaginatorInterface $paginator, DemandeRepository $demandeRepository, Request $request) : Response
     {
-
         return $this->render('livraison/index.html.twig');
     }
 
@@ -79,16 +73,18 @@ class LivraisonController extends AbstractController
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
         {
-            $livraisons = $livraisonRepository->findAll();
+            $livraison = $livraisonRepository->findAll();
+            
             $rows = [];
-            foreach ($livraisons as $livraison) {
+            foreach ($livraison as $livraison) {
+                $url = $this->generateUrl('livraison_show', ['id' => $livraison->getId()] );
                 $row = [
                     'id' => ($livraison->getId() ? $livraison->getId() : "null"),
                     'Numéro' => ($livraison->getNumero() ? $livraison->getNumero() : "null"),
                     'Date' => ($livraison->getDate() ? $livraison->getDate()->format('Y-m-d') : 'null'),
                     'Statut' => ($livraison->getStatut() ? $livraison->getStatut()->getNom() : "null"),
                     'Opérateur' => ($livraison->getUtilisateur() ? $livraison->getUtilisateur()->getUsername() : "null"),
-                    'actions' => "<a href='/WiiStock/public/index.php/livraison/" . $livraison->getId() . "' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>",
+                    'actions' => "<a href='". $url ." ' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>",
                 ];
                 array_push($rows, $row);
             }
@@ -99,7 +95,7 @@ class LivraisonController extends AbstractController
     }
 
     /**
-     * @Route("/new", name="livraison_new", methods={"GET","POST"})
+     * @Route("/new", name="livraison_new", methods={"GET","POST"}) A SUPPRIMER
      */
     public function new(Request $request) : Response
     {
@@ -122,7 +118,7 @@ class LivraisonController extends AbstractController
     }
 
     /**
-     * @Route("/{id}", name="livraison_show", methods={"GET"})
+     * @Route("/{id}", name="livraison_show", methods={"GET"}) UTILE 
      */
     public function show(Livraison $livraison) : Response
     {

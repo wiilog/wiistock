@@ -134,12 +134,13 @@ class PreparationController extends AbstractController
             $preparations = $preparationRepository->findAll();
             $rows = [];
             foreach ($preparations as $preparation) {
+                $urlShow = $this->generateUrl('preparation_show', ['id' => $preparation->getId()] );
                 $row = [
                     'id' => ($preparation->getId() ? $preparation->getId() : "null"),
                     'Numéro' => ($preparation->getNumero() ? $preparation->getNumero() : "null"),
                     'Date' => ($preparation->getDate() ? $preparation->getDate()->format('Y-m-d') : 'null'),
                     'Statut' => ($preparation->getStatut() ? $preparation->getStatut()->getNom() : "null"),
-                    'actions' => "<a href='/WiiStock/public/index.php/preparation/" . $preparation->getId() . "' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>",
+                    'actions' => "<a href='" . $urlShow . "' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>",
                 ];
                 array_push($rows, $row);
             }
