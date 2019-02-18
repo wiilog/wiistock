@@ -32,8 +32,9 @@ class UtilisateursController extends Controller
     /**
      * @Route("/", name="utilisateurs_index", methods="GET|POST")
      */
-    public function index(UtilisateursRepository $utilisateursRepository, /* EntityManagerInterface $em, */ Request $request, PaginatorInterface $paginator/* UserPasswordEncoderInterface $passwordEncoder */) : Response
+    public function index(UtilisateursRepository $utilisateursRepository, Request $request) : Response
     {
+       
         // envoie des données en ajax pour la table
         /* if ($request->isXmlHttpRequest()) {
 
@@ -172,7 +173,7 @@ class UtilisateursController extends Controller
             $utilisateurId = array_keys($_POST); /* Chaque clé représente l'id d'un utilisateur */
             /* dump($utilisateurId); */ /* On regarde les clés = Id */
 
-            for($i = 0; $i < count($utilisateurId); $i++) /* Pour chaque utilisateur on regarde si le rôle a changé */
+            for($i = 1; $i < count($utilisateurId); $i++) /* Pour chaque utilisateur on regarde si le rôle a changé */
             {
                 $utilisateur = $utilisateursRepository->find($utilisateurId[$i]);
                 $roles = $utilisateur->getRoles(); /* On regarde le rôle de l'utilisateur */
@@ -188,11 +189,8 @@ class UtilisateursController extends Controller
             }
         }
 
-        $pagination = $paginator->paginate(
-            $utilisateursRepository->findAll(), /* On récupère la requête et on la pagine */
-            $request->query->getInt('page', 1),
-            2
-        );
+        $pagination = 
+            $utilisateursRepository->findAll();
         
 
         return $this->render('utilisateurs/index.html.twig', [

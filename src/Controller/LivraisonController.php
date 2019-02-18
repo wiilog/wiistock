@@ -32,35 +32,36 @@ class LivraisonController extends AbstractController
     /**
      *  @Route("creation/{id}", name="createLivraison", methods={"GET","POST"} )
      */
-    public function creationLivraison($id, DemandeRepository $demandeRepository, StatutsRepository $statutsRepository, EmplacementRepository $emplacementRepository, Request $request): Response
+    public function creationLivraison($id, DemandeRepository $demandeRepository, StatutsRepository $statutsRepository, EmplacementRepository $emplacementRepository, Request $request) : Response
     {
         $demande = $demandeRepository->find($id);
-        $emplacement = $emplacementRepository->findById($demande->getDestination()->getId());
-        $statut = $statutsRepository->findById(22);
-
-        $livraison = new Livraison();
-        $date =  new \DateTime('now');
-        $livraison->setNumero('L-'. $date->format('YmdHis'));
-        $livraison->setStatut($statut[0]);
-        $livraison->setDestination($emplacement[0]);
-        $livraison->setUtilisateur($this->getUser());
-        $demande->setLivraison($livraison);
-        
-        $entityManager = $this->getDoctrine()->getManager();
+        if ($demande->getLivraison() === null) {
+            $emplacement = $emplacementRepository->findById($demande->getDestination()->getId());
+            $statut = $statutsRepository->findById(22);
+            $livraison = new Livraison();
+            $date = new \DateTime('now');
+            $livraison->setDate($date);
+            $livraison->setNumero('L-' . $date->format('YmdHis'));
+            $livraison->setStatut($statut[0]);
+            $livraison->setDestination($emplacement[0]);
+            $livraison->setUtilisateur($this->getUser());
+            $demande->setLivraison($livraison);
+            $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($livraison);
             $entityManager->flush();
-
+        }
         return $this->redirectToRoute('livraison_show', [
-            'id'=> $livraison->getId(),
+            'id' => $demande->getLivraison()->getId(),
         ]);
     }
+
 
 
 
     /**
      * @Route("/index", name="livraison_index", methods={"GET", "POST"})
      */
-    public function index(LivraisonRepository $livraisonRepository, StatutsRepository $statutsRepository, PaginatorInterface $paginator, DemandeRepository $demandeRepository, Request $request): Response
+    public function index(LivraisonRepository $livraisonRepository, StatutsRepository $statutsRepository, PaginatorInterface $paginator, DemandeRepository $demandeRepository, Request $request) : Response
     {
         return $this->render('livraison/index.html.twig');
     }
@@ -68,36 +69,41 @@ class LivraisonController extends AbstractController
     /**
      * @Route("/api", name="livraison_api", methods={"GET", "POST"})
      */
-    public function livraisonApi(LivraisonRepository $livraisonRepository, StatutsRepository $statutsRepository, PaginatorInterface $paginator, DemandeRepository $demandeRepository, Request $request): Response
+    public function livraisonApi(LivraisonRepository $livraisonRepository, StatutsRepository $statutsRepository, PaginatorInterface $paginator, DemandeRepository $demandeRepository, Request $request) : Response
     {
-        $livraisons = $livraisonRepository->findAll();
-        $rows = [];
-        foreach ($livraisons as $livraison) {
-            $row =[ 
-                'id'=> ($livraison->getId() ? $livraison->getId() : "null" ),
-                'Numéro'=>( $livraison->getNumero() ?  $livraison->getNumero():"null"),
-                'Date'=> ($livraison->getDate() ? $livraison->getDate()->format('Y-m-d') : 'null'),
-                'Statut'=> ($livraison->getStatut() ? $livraison->getStatut()->getNom() : "null"),
-                'Opérateur'=> ($livraison->getUtilisateur() ? $livraison->getUtilisateur()->getUsername() : "null"),
-                'actions'=> "<a href='/WiiStock/public/index.php/livraison/".$livraison->getId()."' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>", 
-            ];
-            array_push($rows, $row);
+        if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
+        {
+            $livraison = $livraisonRepository->findAll();
+            
+            $rows = [];
+            foreach ($livraison as $livraison) {
+                $url = $this->generateUrl('livraison_show', ['id' => $livraison->getId()] );
+                $row = [
+                    'id' => ($livraison->getId() ? $livraison->getId() : "null"),
+                    'Numéro' => ($livraison->getNumero() ? $livraison->getNumero() : "null"),
+                    'Date' => ($livraison->getDate() ? $livraison->getDate()->format('Y-m-d') : 'null'),
+                    'Statut' => ($livraison->getStatut() ? $livraison->getStatut()->getNom() : "null"),
+                    'Opérateur' => ($livraison->getUtilisateur() ? $livraison->getUtilisateur()->getUsername() : "null"),
+                    'actions' => "<a href='". $url ." ' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>",
+                ];
+                array_push($rows, $row);
+            }
+            $data['data'] = $rows;
+            return new JsonResponse($data);
         }
-        $data['data'] =  $rows;
-        return new JsonResponse($data);
+        throw new NotFoundHttpException("404");
     }
-    
+
     /**
-     * @Route("/new", name="livraison_new", methods={"GET","POST"})
+     * @Route("/new", name="livraison_new", methods={"GET","POST"}) A SUPPRIMER
      */
-    public function new(Request $request): Response
+    public function new(Request $request) : Response
     {
         $livraison = new Livraison();
         $form = $this->createForm(LivraisonType::class, $livraison);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) 
-        {
+        if ($form->isSubmitted() && $form->isValid()) {
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($livraison);
             $entityManager->flush();
@@ -112,9 +118,9 @@ class LivraisonController extends AbstractController
     }
 
     /**
-     * @Route("/{id}", name="livraison_show", methods={"GET"})
+     * @Route("/{id}", name="livraison_show", methods={"GET"}) UTILE 
      */
-    public function show(Livraison $livraison): Response
+    public function show(Livraison $livraison) : Response
     {
         return $this->render('livraison/show.html.twig', [
             'livraison' => $livraison,
@@ -124,7 +130,7 @@ class LivraisonController extends AbstractController
     /**
      * @Route("/{id}/edit", name="livraison_edit", methods={"GET","POST"})
      */
-    public function edit(Request $request, Livraison $livraison): Response
+    public function edit(Request $request, Livraison $livraison) : Response
     {
         $form = $this->createForm(LivraisonType::class, $livraison);
         $form->handleRequest($request);
@@ -146,10 +152,9 @@ class LivraisonController extends AbstractController
     /**
      * @Route("/{id}", name="livraison_delete", methods={"DELETE"})
      */
-    public function delete(Request $request, Livraison $livraison): Response
+    public function delete(Request $request, Livraison $livraison) : Response
     {
-        if ($this->isCsrfTokenValid('delete'.$livraison->getId(), $request->request->get('_token'))) 
-        {
+        if ($this->isCsrfTokenValid('delete' . $livraison->getId(), $request->request->get('_token'))) {
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($livraison);
             $entityManager->flush();

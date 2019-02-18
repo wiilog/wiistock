@@ -74,9 +74,9 @@ class ReceptionsController extends AbstractController
      */
     public function createReception(Request $request, FournisseursRepository $fournisseursRepository) : Response
     {
-        if(!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) //Si la requête est de type Xml et que data est attribuée
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) //Si la requête est de type Xml et que data est attribuée
         {
-            if(count($data) != 5)// On regarde si le nombre de données reçu est conforme et on envoi dans la base
+            if (count($data) != 5)// On regarde si le nombre de données reçu est conforme et on envoi dans la base
             {
                 $fournisseur = $fournisseursRepository->findById(intval($data[3]['fournisseur']));
                 $utilisateur = $this->utilisateursRepository->findById(intval($data[4]['utilisateur']));
@@ -107,27 +107,33 @@ class ReceptionsController extends AbstractController
      */
     public function receptionApi(Request $request) : Response
     {
-        $receptions = $this->receptionsRepository->findAll();
-        $rows = [];
-        foreach ($receptions as $reception) {
-            $row =
-            [ 
-                'id'=> ($reception->getId()),
-                "Statut"=>($reception->getStatut() ? $reception->getStatut()->getNom() : 'null'),
-                "Date commande"=> ($reception->getDate() ? $reception->getDate() : 'null')->format('d-m-Y'),
-                "Date attendu"=> ($reception->getDateAttendu() ? $reception->getDateAttendu()->format('d-m-Y') : 'null'),
-                "Fournisseur"=> ($reception->getFournisseur() ? $reception->getFournisseur()->getNom() : 'null'),
-                "Référence"=> ($reception->getNumeroReception() ? $reception->getNumeroReception() : 'null'),
-                'Actions'=> "<a href='/WiiStock/public/index.php/receptions/article/".$reception->getId() ."/0' class='btn btn-xs btn-default command-edit'><i class='fas fa-plus fa-2x'></i> Articles</a>
-                <a href='/WiiStock/public/index.php/receptions/".$reception->getId() ."/edit' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>", 
-            ];
-            array_push($rows, $row);
+        if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
+        {
+            $receptions = $receptionsRepository->findAll();
+            $rows = [];
+            foreach ($receptions as $reception) {
+                $urlEdite = $this->generateUrl('receptions_edit', ['id' => $reception->getId()] );
+                $urlShow = $this->generateUrl('reception_ajout_article', ['id' => $reception->getId(), 'k'=>'0'] );
+                $row =
+                    [
+                    'id' => ($reception->getId()),
+                    "Statut" => ($reception->getStatut() ? $reception->getStatut()->getNom() : 'null'),
+                    "Date commande" => ($reception->getDate() ? $reception->getDate() : 'null')->format('d-m-Y'),
+                    "Date attendu" => ($reception->getDateAttendu() ? $reception->getDateAttendu()->format('d-m-Y') : 'null'),
+                    "Fournisseur" => ($reception->getFournisseur() ? $reception->getFournisseur()->getNom() : 'null'),
+                    "Référence" => ($reception->getNumeroReception() ? $reception->getNumeroReception() : 'null'),
+                    'Actions' => "<a href='" . $urlEdite . "' class='btn btn-xs btn-default command-edit '><i class='fas fa-pencil-alt fa-2x'></i></a>
+                    <a href='" . $urlShow . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-plus fa-2x'></i> Articles</a>",
+                ];
+                array_push($rows, $row);
+            }
+            $data['data'] = $rows;
+            return new JsonResponse($data);
         }
-        $data['data'] =  $rows;
-        return new JsonResponse($data);
+        throw new NotFoundHttpException("404");
     }
 
-/**
+    /**
      * @Route("/json", name="reception_json", methods={"GET", "POST"}) 
      */
     public function receptionJson(Request $request, ArticlesRepository $articlesRepository) : Response
@@ -162,21 +168,21 @@ class ReceptionsController extends AbstractController
             $em->persist($article);
             $em->flush();
             // contruction de la reponse =>recuperation de l'article cree + traitement des donnees
-            $reponseJSON =[ 
-                'id'=> $article->getId(),
-                'nom'=> $article->getNom(),
-                'statut'=> $article->getStatut()->getNom(),
-                'quantite'=>$article->getQuantite(),
-                'quantiteARecevoir'=>$article->getQuantiteARecevoir(),
-                'etat'=>($article->getEtat() ? 'conforme': 'non-conforme'),
+            $reponseJSON = [
+                'id' => $article->getId(),
+                'nom' => $article->getNom(),
+                'statut' => $article->getStatut()->getNom(),
+                'quantite' => $article->getQuantite(),
+                'quantiteARecevoir' => $article->getQuantiteARecevoir(),
+                'etat' => ($article->getEtat() ? 'conforme' : 'non-conforme'),
             ];
             // encodage de la reponse en JSON + envoie 
             $reponseJSON = json_encode($reponseJSON);
             return new JsonResponse($reponseJSON);
         }
         throw new NotFoundHttpException('404 not found');
-        
-        
+
+
     }
 
     /**
@@ -208,7 +214,7 @@ class ReceptionsController extends AbstractController
             $em->persist($reception);
             $em->flush();
 
-            return $this->redirectToRoute('receptions_index', array('history'=> 0));
+            return $this->redirectToRoute('receptions_index', array('history' => 0));
         }
 
         return $this->render('receptions/new.html.twig', [
@@ -221,7 +227,7 @@ class ReceptionsController extends AbstractController
     /**
      * @Route("/show/{id}", name="receptions_show", methods="GET")
      */
-    public function show(Receptions $reception): Response
+    public function show(Receptions $reception) : Response
     {
         return $this->render('receptions/show.html.twig', ['reception' => $reception]);
     }
@@ -229,15 +235,14 @@ class ReceptionsController extends AbstractController
     /**
      * @Route("/{id}/edit", name="receptions_edit", methods={"GET", "POST"})
      */
-    public function edit(Request $request, Receptions $reception): Response
+    public function edit(Request $request, Receptions $reception) : Response
     {
         $form = $this->createForm(ReceptionsType::class, $reception);
         $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) 
-        {
+        if ($form->isSubmitted() && $form->isValid()) {
             $this->getDoctrine()->getManager()->flush();
-            return $this->redirectToRoute('receptions_index', ['history'=>'0']);
+            return $this->redirectToRoute('receptions_index', ['history' => '0']);
         }
 
         return $this->render('receptions/edit.html.twig', [
@@ -250,9 +255,9 @@ class ReceptionsController extends AbstractController
     /**
      * @Route("/{id}", name="receptions_delete", methods="DELETE")
      */
-    public function delete(Request $request, Receptions $reception): Response
+    public function delete(Request $request, Receptions $reception) : Response
     {
-        if ($this->isCsrfTokenValid('delete'.$reception->getId(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $reception->getId(), $request->request->get('_token'))) {
             $em = $this->getDoctrine()->getManager();
             $em->remove($reception);
             $em->flush();
@@ -267,9 +272,8 @@ class ReceptionsController extends AbstractController
     {
         //fin de reception/mise en stock des articles
         // k sert à vérifier et identifier la fin de la reception, en suite on modifie les "setStatut" des variables 
-        if ($k)
-        {
-            $articles =  $articlesRepository->findByReception($id);
+        if ($k) {
+            $articles = $articlesRepository->findByReception($id);
             // modification du statut
             foreach ($articles as $article) 
             {
@@ -298,7 +302,7 @@ class ReceptionsController extends AbstractController
             }
 
             $this->getDoctrine()->getManager()->flush();
-            return $this->redirectToRoute('receptions_index', array('history'=> 0));
+            return $this->redirectToRoute('receptions_index', array('history' => 0));
 
         }
 
@@ -306,10 +310,10 @@ class ReceptionsController extends AbstractController
             'reception' => $reception,
             'refArticle'=> $this->referencesArticlesRepository->findAll(),
             'emplacements' => $emplacementRepository->findAll(),
-            'id'=> $id,    
+            'id' => $id,
         ));
     }
 
-    
+
 }
 

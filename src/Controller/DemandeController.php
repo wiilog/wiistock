@@ -272,14 +272,14 @@ class DemandeController extends AbstractController
             $rows = [];
             foreach ($demandes as $demande) 
             {
-                $url = $this->generateUrl("demande_show", [ "id" => $demande->getId()]);
+                $urlShow = $this->generateUrl('demande_show', ['id' => $demande->getId()] );
                 $row =
                 [ 
                     "Date"=> ($demande->getDate() ? $demande->getDate() : 'null')->format('d-m-Y'),
                     "Demandeur"=> ($demande->getUtilisateur()->getUsername() ? $demande->getUtilisateur()->getUsername() : 'null'),
                     "Numero"=> ($demande->getNumero() ? $demande->getNumero() : 'null'),
                     "Statut"=> ($demande->getStatut()->getNom() ? $demande->getStatut()->getNom() : 'null'),
-                    'Actions'=> "<a href='". $url ." ' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>", 
+                    'Actions'=> "<a href='".$urlShow." ' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>", 
                 ];
                 
                 array_push($rows, $row);

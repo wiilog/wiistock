@@ -12,7 +12,6 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Entity\ChampsPersonnalises;
-use Knp\Component\Pager\PaginatorInterface;
 
 use App\Service\FileUploader;
 
@@ -26,24 +25,28 @@ class ReferencesArticlesController extends Controller
      */
     public function refArticleApi(Request $request, ReferencesArticlesRepository $referencesArticlesRepository) : Response
     {
+        if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
+        {
             $refs = $referencesArticlesRepository->findAll();
             $rows = [];
-            foreach ($refs as $ref) {
+            foreach ($refs as $refArticle) {
+                $urlEdite = $this->generateUrl('references_articles_edit', ['id' => $refArticle->getId()] );
+                $urlShow = $this->generateUrl('references_articles_show', ['id' => $refArticle->getId()] );
+               
                 $row = [
-                    "id" => $ref->getId(),
-                    "Libelle" => $ref->getLibelle(),
-                    "Référence" => $ref->getReference(),
-                    "Quantité" => $ref->getQuantity(),
-                    'actions'=> "<a href='/WiiStock/WiiStock/public/index.php/stock/references_articles/".$ref->getId() ."/edit' class='btn btn-xs btn-default command-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
-                    <a href='/WiiStock/WiiStock/public/index.php/stock/references_articles/".$ref->getId() ."' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>", 
-            
-
+                    "id" => $refArticle->getId(),
+                    "Libelle" => $refArticle->getLibelle(),
+                    "Référence" => $refArticle->getReference(),
+                    "Quantité" => $refArticle->getQuantiteStock(),
+                    'actions' => "<a href='" . $urlEdite . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
+                    <a href='" . $urlShow . "' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>",
                 ];
                 array_push($rows, $row);
             }
-
-            $data['data'] =  $rows;
+            $data['data'] = $rows;
             return new JsonResponse($data);
+        }
+        throw new NotFoundHttpException("404");
     }
 
     /**

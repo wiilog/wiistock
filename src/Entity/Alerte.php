@@ -126,4 +126,9 @@ class Alerte
         return $this;
     }
 
+    public function __toString()
+    {
+        return $this->AlerteNom;
+    }
+
 }
