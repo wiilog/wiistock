@@ -100,6 +100,7 @@ class DemandeController extends AbstractController
         return $this->show($demande);
     }
 
+
     /**
      * @Route("/ajoutArticle/{id}", name="ajoutArticle", methods="GET|POST")
      */
@@ -133,6 +134,7 @@ class DemandeController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
+
     /**
      * @Route("/modifDemande/{id}", name="modifDemande", methods="GET|POST")
      */
@@ -157,6 +159,7 @@ class DemandeController extends AbstractController
         }
         throw new NotFoundHttpException("404");
     }
+
 
     /**
      * @Route("/creationDemande", name="creation_demande", methods="GET|POST")
@@ -247,6 +250,7 @@ class DemandeController extends AbstractController
         ]);
     }
 
+
     /**
      * @Route("/{id}", name="demande_delete", methods={"DELETE"})
      */
@@ -260,6 +264,7 @@ class DemandeController extends AbstractController
 
         return $this->redirectToRoute('demande_index');
     }
+
 
     /**
      * @Route("/api", name="demande_api", methods={"POST"}) 
@@ -290,6 +295,8 @@ class DemandeController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
+
+    
     /**
      * @Route("/api/{id}", name="LigneArticle_api", methods={"POST"}) 
      */
@@ -311,10 +318,12 @@ class DemandeController extends AbstractController
                 ];
                 array_push($rows, $row);
             }
-    
+
             $data['data'] = $rows;
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
     }
+
+
 }

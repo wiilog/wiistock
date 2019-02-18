@@ -42,11 +42,32 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
  */
 class PreparationController extends AbstractController
 {
+    /**
+     * @var StatutsRepository
+     */
+    private $statutsRepository;
+
+    /**
+     * @var ReferencesArticlesRepository
+     */
+    private $referencesArticlesRepository;
+
+    /**
+     * @var DemandeRepository
+     */
+    private $demandeRepository;
+
+    public function __construct(StatutsRepository $statutsRepository, DemandeRepository $demandeRepository, ReferencesArticlesRepository $referencesArticlesRepository)
+    {
+        $this->statutsRepository = $statutsRepository;
+        $this->referencesArticlesRepository = $referencesArticlesRepository;
+        $this->demandeRepository = $demandeRepository;
+    }
 
     /**
      * @Route("/creationpreparation", name="createPreparation", methods="POST")
      */
-    public function createPreparation(Request $request, DemandeRepository $demandeRepository, StatutsRepository $statutsRepository, PreparationRepository $preparationRepository, ReferencesArticlesRepository $referencesArticlesRepository, EmplacementRepository $emplacementRepository) : Response
+    public function createPreparation(Request $request) : Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) //Si la requête est de type Xml et que data est attribuée
         {
@@ -57,21 +78,23 @@ class PreparationController extends AbstractController
             $date = new \DateTime('now');
             $preparation->setNumero('P-' . $date->format('YmdHis'));
             $preparation->setDate($date);
-            $statut = $statutsRepository->findById(11); /* Statut : nouvelle préparation */
+            $statut = $this->statutsRepository->findById(11); /* Statut : nouvelle préparation */
             $preparation->setStatut($statut[0]);
             //Plus de detail voir creation demande meme principe
 
-            foreach ($data as $key) {
-                $demande = $demandeRepository->findById($key);
+            foreach ($data as $key)
+            {
+                $demande = $this->demandeRepository->findById($key);
                 $demande = $demande[0];
                 dump($demande); // On avance dans le tableau
                 $demande->setPreparation($preparation);
-                $statut = $statutsRepository->findById(15); /* Statut : Demande de préparation */
+                $statut = $this->statutsRepository->findById(15); /* Statut : Demande de préparation */
                 $demande->setStatut($statut[0]);
                 $articles = $demande->getArticles();
 
-                foreach ($articles as $article) {
-                    $statut = $statutsRepository->findById(13); /* Statut : Demande de sortie */
+                foreach ($articles as $article)
+                {
+                    $statut = $this->statutsRepository->findById(13); /* Statut : Demande de sortie */
                     $article->setStatut($statut[0]);
                     $article->setDirection($demande->getDestination());
                 }
@@ -101,14 +124,17 @@ class PreparationController extends AbstractController
     /**
      * @Route("/{id}/edit", name="preparation_edit", methods="GET|POST")
      */
-    public function edit(Request $request, StatutsRepository $statutsRepository, Preparation $preparation) : Response
+    public function edit(Request $request, Preparation $preparation) : Response
     {
         $form = $this->createForm(PreparationType::class, $preparation);
         $form->handleRequest($request);
-        if ($form->isSubmitted() && $form->isValid()) {
+
+        if ($form->isSubmitted() && $form->isValid())
+        {
             $this->getDoctrine()->getManager()->flush();
             return $this->redirectToRoute('preparation_edit', ['id' => $preparation->getId()]);
         }
+
         return $this->render('preparation/edit.html.twig', [
             'preparation' => $preparation,
             'form' => $form->createView(),
@@ -118,16 +144,15 @@ class PreparationController extends AbstractController
     /**
      * @Route("/", name="preparation_index", methods="GET|POST")
      */
-    public function index(PreparationRepository $preparationRepository, StatutsRepository $statutsRepository, DemandeRepository $demandeRepository, ReferencesArticlesRepository $referencesArticlesRepository, EmplacementRepository $emplacementRepository, Request $request) : Response
+    public function index(Request $request) : Response
     {
-
         return $this->render('preparation/index.html.twig');
     }
 
     /**
      * @Route("/api", name="preparation_api", methods="GET|POST")
      */
-    public function preparationApi(PreparationRepository $preparationRepository, StatutsRepository $statutsRepository, DemandeRepository $demandeRepository, ReferencesArticlesRepository $referencesArticlesRepository, EmplacementRepository $emplacementRepository, Request $request) : Response
+    public function preparationApi(Request $request, PreparationRepository $preparationRepository) : Response
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
         {
@@ -158,12 +183,13 @@ class PreparationController extends AbstractController
         $preparation = new Preparation();
         $form = $this->createForm(PreparationType::class, $preparation);
         $form->handleRequest($request);
-        if ($form->isSubmitted() && $form->isValid()) {
+
+        if ($form->isSubmitted() && $form->isValid()) 
+        {
             $preparation->setDate(new \DateTime('now'));
             $em = $this->getDoctrine()->getManager();
             $em->persist($preparation);
             $em->flush();
-
             return $this->redirectToRoute('preparation_index', array('history' => 'false'));
         }
 
@@ -177,23 +203,26 @@ class PreparationController extends AbstractController
     /**
      * @Route("/{id}", name="preparation_show", methods="GET|POST")
      */
-    public function show(Preparation $preparation, StatutsRepository $statutsRepository, PreparationRepository $preparationRepository, DemandeRepository $demandeRepository, ArticlesRepository $articlesRepository) : Response
+    public function show(Preparation $preparation, ArticlesRepository $articlesRepository) : Response
     {
         // modelise l'action de prendre l'article dan sle stock pour constituer la preparation  
-        if (array_key_exists('fin', $_POST)) {
+        if (array_key_exists('fin', $_POST))
+        {
             $article = $articlesRepository->findById($_POST['fin']);
-            $statut = $statutsRepository->findById(16); /*  Le statut passe en préparation */
+            $statut = $this->statutsRepository->findById(16); /*  Le statut passe en préparation */
             $article[0]->setStatut($statut[0]);
             $this->getDoctrine()->getManager()->flush();
             
             // Meme principe que pour collecte_show =>comptage des articles selon un statut et une preparation si nul alors preparation fini 
-            $demande = $demandeRepository->findById(array_keys($_POST['fin']));
+            $demande = $this->demandeRepository->findById(array_keys($_POST['fin']));
             $finDemande = $articlesRepository->findCountByStatutAndDemande($demande);
             $fin = $finDemande[0];
-            if ($fin[1] === '0') {
-                $statut = $statutsRepository->findById(8);
+
+            if ($fin[1] === '0') 
+            {
+                $statut = $this->statutsRepository->findById(8);
                 $demande[0]->setStatut($statut[0]);
-                $statut = $statutsRepository->findById(24);
+                $statut = $this->statutsRepository->findById(24);
                 $preparation->setStatut($statut[0]);
             }
             $this->getDoctrine()->getManager()->flush();
@@ -206,9 +235,10 @@ class PreparationController extends AbstractController
     /**
      * @Route("/{id}", name="preparation_delete", methods="DELETE")
      */
-    public function delete(Request $request, StatutsRepository $statutsRepository, Preparation $preparation) : Response
+    public function delete(Request $request, Preparation $preparation) : Response
     {
-        if ($this->isCsrfTokenValid('delete' . $preparation->getId(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $preparation->getId(), $request->request->get('_token')))
+        {
             $em = $this->getDoctrine()->getManager();
             $em->remove($preparation);
             $em->flush();

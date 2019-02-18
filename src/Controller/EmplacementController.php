@@ -24,8 +24,10 @@ class EmplacementController extends AbstractController
      */
     public function createEmplacement(Request $request) : Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (count($data) >= 2) {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true))
+        {
+            if (count($data) >= 2)
+            {
                 $emplacement = new Emplacement();
                 $em = $this->getDoctrine()->getManager();
 

@@ -11,7 +11,7 @@
         <p>Opérateur: {{ preparation.utilisateur ? preparation.utilisateur.username : "null" }}</p>
     </div>
     <div class="col-4">
-        <p><a href={{path('createLivraison', {'id': preparation.demandes.0.id})}}>Finri la livraison</a></p>
+        <p><a href="{{path('createLivraison', {'id': preparation.id}) }}">Finir la livraison</a></p>
     </div>
 </div>
 
