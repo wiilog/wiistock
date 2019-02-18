@@ -34,8 +34,8 @@ class ReferencesArticlesController extends Controller
                     "Libelle" => $ref->getLibelle(),
                     "Référence" => $ref->getReference(),
                     "Quantité" => $ref->getQuantity(),
-                    'actions'=> "<a href='/WiiStock/WiiStock/public/index.php/stock/references_articles/".$ref->getId() ."/edit' class='btn btn-xs btn-default command-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
-                    <a href='/WiiStock/WiiStock/public/index.php/stock/references_articles/".$ref->getId() ."' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>", 
+                    'actions'=> "<a href='/WiiStock/public/index.php/stock/references_articles/".$ref->getId() ."/edit' class='btn btn-xs btn-default command-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
+                    <a href='/WiiStock/public/index.php/stock/references_articles/".$ref->getId() ."' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>", 
             
 
                 ];

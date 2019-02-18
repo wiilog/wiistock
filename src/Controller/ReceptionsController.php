@@ -86,8 +86,8 @@ class ReceptionsController extends AbstractController
                     "Date attendu"=> ($reception->getDateAttendu() ? $reception->getDateAttendu()->format('d-m-Y') : 'null'),
                     "Fournisseur"=> ($reception->getFournisseur() ? $reception->getFournisseur()->getNom() : 'null'),
                     "Référence"=> ($reception->getNumeroReception() ? $reception->getNumeroReception() : 'null'),
-                    'Actions'=> "<a href='/WiiStock/WiiStock/public/index.php/receptions/article/".$reception->getId() ."/0' class='btn btn-xs btn-default command-edit'><i class='fas fa-plus fa-2x'></i> Articles</a>
-                    <a href='/WiiStock/WiiStock/public/index.php/receptions/".$reception->getId() ."/edit' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>", 
+                    'Actions'=> "<a href='/WiiStock/public/index.php/receptions/article/".$reception->getId() ."/0' class='btn btn-xs btn-default command-edit'><i class='fas fa-plus fa-2x'></i> Articles</a>
+                    <a href='/WiiStock/public/index.php/receptions/".$reception->getId() ."/edit' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>", 
                 ];
                 array_push($rows, $row);
             }

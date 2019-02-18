@@ -46,8 +46,8 @@ class ArticlesController extends AbstractController
                     'position'=> ($article->getPosition() ? $article->getPosition()->getNom() : "null"),
                     'destination'=> ($article->getDirection() ? $article->getDirection()->getNom() : "null"),
                     'Quantite'=>($article->getQuantite() ? $article->getQuantite() : "null"),
-                    'actions'=> "<a href='/WiiStock/WiiStock/public/index.php/articles/edite/".$article->getId() ."' class='btn btn-xs btn-default command-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
-                    <a href='/WiiStock/WiiStock/public/index.php/articles/show/".$article->getId() ."' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>", 
+                    'actions'=> "<a href='/WiiStock/public/index.php/articles/edite/".$article->getId() ."' class='btn btn-xs btn-default command-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
+                    <a href='/WiiStock/public/index.php/articles/show/".$article->getId() ."' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>", 
                 ];
                 array_push($rows, $row);
             }
