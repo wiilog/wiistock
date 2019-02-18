@@ -109,7 +109,7 @@ class ReceptionsController extends AbstractController
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
         {
-            $receptions = $receptionsRepository->findAll();
+            $receptions = $this->receptionsRepository->findAll();
             $rows = [];
             foreach ($receptions as $reception) {
                 $urlEdite = $this->generateUrl('receptions_edit', ['id' => $reception->getId()] );
@@ -309,7 +309,7 @@ class ReceptionsController extends AbstractController
         return $this->render("receptions/ajoutArticle.html.twig", array(
             'reception' => $reception,
             'refArticle'=> $this->referencesArticlesRepository->findAll(),
-            'emplacements' => $emplacementRepository->findAll(),
+            'emplacements' => $this->emplacementRepository->findAll(),
             'id' => $id,
         ));
     }
