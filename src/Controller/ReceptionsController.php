@@ -309,7 +309,7 @@ class ReceptionsController extends AbstractController
         return $this->render("receptions/ajoutArticle.html.twig", array(
             'reception' => $reception,
             'refArticle'=> $this->referencesArticlesRepository->findAll(),
-            'emplacements' => $emplacementRepository->findAll(),
+            'emplacements' => $this->emplacementRepository->findAll(),
             'id' => $id,
         ));
     }

@@ -5,19 +5,15 @@ class='accueil-back'
 {% endblock %}
 
 {% block page_content %}
-    <div class="row accueil ">
-        <div class="square">
-            <div class="text-center square-content" >
-                <h2 style="color:white">Demandes</h2>
-            </div>
-        </div>
-        <div class="square">
+<div class="row ">
+        <div class="square align-self-end col">
             <div class="text-center square-content">
                 <h2 style="color:white">Alertes de seuil</h2>
                 <a href={{path('alerte_index')}} class="fa fa-warning">
                     <div class="marker">{{nbAlerte.1}}</div>
                 </a>
-            </div>
+ 
         </div>
     </div>
+</div>
 {% endblock %}
