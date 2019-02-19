@@ -66,29 +66,31 @@ class ArticlesController extends AbstractController
      */
     public function getArticlesByCollecte(CollecteRepository $collecteRepository, Request $request): Response
     {
-        $collecteId = $request->get('collecteId');
-        $collecte = $collecteRepository->find($collecteId);
-        $articles = $collecte->getArticles();
-        $rows = [];
-        foreach ($articles as $article) {
-            $urlEdit = $this->generateUrl('articles_edit', ['id' => $article->getId()]);
-            $urlShow = $this->generateUrl('articles_show', ['id' => $article->getId()]);
+        if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
+        {
+            $collecteId = $request->get('collecteId');
+            $collecte = $collecteRepository->find($collecteId);
+            $articles = $collecte->getArticles();
+            $rows = [];
+            foreach ($articles as $article) {
+                $urlEdit = $this->generateUrl('articles_edit', ['id' => $article->getId()]);
 
-            $rows[] = [
-                'Nom'=>( $article->getNom() ?  $article->getNom():"null"),
-                'Statut'=> ($article->getStatut()->getNom() ? $article->getStatut()->getNom() : "null"),
-                'Conformité'=>($article->getEtat() ? 'conforme': 'anomalie'),
-                'Reférences Articles'=> ($article->getRefArticle() ? $article->getRefArticle()->getLibelle() : "null"),
-                'Position'=> ($article->getPosition() ? $article->getPosition()->getNom() : "null"),
-                'Destination'=> ($article->getDirection() ? $article->getDirection()->getNom() : "null"),
-                'Quantité'=>($article->getQuantite() ? $article->getQuantite() : "null"),
-                'Actions'=> "<a href='" . $urlEdit . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
-                    <a href='" . $urlShow . "' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>",
-            ];
+                $rows[] = [
+                    'Nom'=>( $article->getNom() ?  $article->getNom():"null"),
+                    'Statut'=> ($article->getStatut()->getNom() ? $article->getStatut()->getNom() : "null"),
+                    'Conformité'=>($article->getEtat() ? 'conforme': 'anomalie'),
+                    'Reférences Articles'=> ($article->getRefArticle() ? $article->getRefArticle()->getLibelle() : "null"),
+                    'Position'=> ($article->getPosition() ? $article->getPosition()->getNom() : "null"),
+                    'Destination'=> ($article->getDirection() ? $article->getDirection()->getNom() : "null"),
+                    'Quantité à collecter'=>($article->getQuantiteCollectee() ? $article->getQuantiteCollectee() : "null"),
+                    'Actions'=> "<a href='" . $urlEdit . "' class='btn btn-xs btn-default article-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
+                        <a href='' class='btn btn-xs btn-default article-delete'><i class='fas fa-trash fa-2x'></i></a>",
+                ];
+            }
+            $data['data'] = $rows;
+            return new JsonResponse($data);
         }
-        $data['data'] = $rows;
-
-        return new JsonResponse($data);
+        throw new NotFoundHttpException("404");
     }
 
     /**

@@ -3,30 +3,34 @@
 {% block title %}Demande de collecte{% endblock %}
 
 {% block page_content %}
-    <h2>Demande de collecte n° {{ collecte.numero }}</h2>
+    <h1>Demande de collecte n° {{ collecte.numero }}</h1>
 
-    <div class="container ml-0">
-        <div class="row">
+    <div class="container ml-0 mt-5">
+        <div class="row pb-2">
             <div class="col-2">Demandeur</div>
             <div class="col-2">{{ collecte.demandeur }}</div>
             <div class="col-2">Date demande</div>
             <div class="col-2">{{ collecte.date.date|date('d/m/Y') }}</div>
         </div>
-        <div class="row">
+        <div class="row pb-2">
             <div class="col-2">Objet</div>
             <div class="col-2">{{ collecte.objet }}</div>
+            <div class="col-4">
+                <a href="{{ path("finish_collecte", {"id" : collecte.id }) }}">Aller vers la collecte</a>
+            </div>
         </div>
-        <div class="row">
+        <div class="row pb-2">
             <div class="col-2">Date terminée</div>
             <div class="col-2"></div>
         </div>
-
     </div>
 
-    <div class='row btn' >
-        <a href="" data-toggle="modal" data-target="#modalAddArticle" class="button btn-left" id="addArticle">
-            <span class="fa fa-plus"></span>Ajouter un article
-        </a>
+    <div class='row' >
+        <div class="col-2 offset-10 text-right">
+            <a href="" data-toggle="modal" data-target="#modalAddArticle" class="button btn-left" id="addRow">
+                <span class="fa fa-plus"></span>Ajouter un article
+            </a>
+        </div>
     </div>
 
     <table id="table-list-articles" class="table table-striped">
@@ -38,7 +42,7 @@
             <th>Reférences Articles</th>
             <th>Position</th>
             <th>Destination</th>
-            <th>Quantité</th>
+            <th>Quantité à collecter</th>
             <th>Actions</th>
         </tr>
         </thead>
@@ -84,16 +88,17 @@
 
 {% block javascript %}
 <script src="{{asset('js/collecte.js')}}"></script>
+
 <script>
 
-$('#addArticle').on('click', function() {
+$('#addRow').on('click', function() {
     $.getJSON('{{ path('modal_add_article') }}', function(data) {
         let modal = $('#modalAddArticle');
         modal.find('.modal-body').html(data.html);
         $('.select2').select2(); //TODO CG
 
         modal.find('.save').on('click', function() {
-            addArticle($(this));
+            addRow($(this));
         });
 
         modal.find('#code').on('change', function() {
@@ -106,6 +111,7 @@ $('#table-list-articles').DataTable({
     "language": {
         "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json",
     },
+    "pageLength": 5,
     "ajax":{
         "url":"{{path('articles_by_collecte')}}",
         "data" : { collecteId: {{ collecte.id }} },
@@ -118,10 +124,9 @@ $('#table-list-articles').DataTable({
         { "data": 'Reférences Articles' },
         { "data": 'Position' },
         { "data": 'Destination' },
-        { "data": 'Quantité' },
+        { "data": 'Quantité à collecter' },
         { "data": 'Actions'}
     ],
-
 });
 </script>
 {% endblock %}

@@ -27,7 +27,6 @@
             </tbody>
         </table>
     </div>
-    {{ knp_pagination_render(collectes) }}
 
     {% include 'collecte/modalCollecte.html.twig' %}
 
@@ -50,6 +49,7 @@ $('#table-list-collects').DataTable({
      "language": {
        "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
      },
+     "pageLength": 5,
      "ajax":{
         "url":"{{path('collectes_json')}}",
         "type": "POST"
