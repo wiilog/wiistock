@@ -86,8 +86,8 @@ class LivraisonController extends AbstractController
      */
     public function livraisonApi(LivraisonRepository $livraisonRepository, StatutsRepository $statutsRepository, PaginatorInterface $paginator, DemandeRepository $demandeRepository, Request $request) : Response
     {
-    //     if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
-    //     {
+        if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
+        {
             $livraison = $livraisonRepository->findAll();
             
             $rows = [];
@@ -96,17 +96,17 @@ class LivraisonController extends AbstractController
                 $row = [
                     'id' => ($livraison->getId() ? $livraison->getId() : "null"),
                     'Numéro' => ($livraison->getNumero() ? $livraison->getNumero() : "null"),
-                    // 'Date' => ($livraison->getDate() ? $livraison->getDate()->format('Y-m-d') : 'null'),
-                    // 'Statut' => ($livraison->getStatut() ? $livraison->getStatut()->getNom() : "null"),
-                    // 'Opérateur' => ($livraison->getUtilisateur() ? $livraison->getUtilisateur()->getUsername() : "null"),
-                    // 'Actions' => "<a href='". $url ."' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>",
+                    'Date' => ($livraison->getDate() ? $livraison->getDate()->format('Y-m-d') : 'null'),
+                    'Statut' => ($livraison->getStatut() ? $livraison->getStatut()->getNom() : "null"),
+                    'Opérateur' => ($livraison->getUtilisateur() ? $livraison->getUtilisateur()->getUsername() : "null"),
+                    'Actions' => "<a href='". $url ."' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>",
                 ];
                 array_push($rows, $row);
             }
             $data['data'] = $rows;
             return new JsonResponse($data);
-        // }
-        // throw new NotFoundHttpException("404");
+        }
+        throw new NotFoundHttpException("404");
     }
 
     /**
