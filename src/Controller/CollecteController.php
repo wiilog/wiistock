@@ -115,19 +115,42 @@ class CollecteController extends AbstractController
     /**
      * @Route("/ajouter-article", name="collecte_add_article")
      */
-    public function addArticle(Request $request, CollecteRepository $collecteRepository)
+    public function addArticle(Request $request, CollecteRepository $collecteRepository, ArticlesRepository $articlesRepository): Response
     {
-        $code = $request->request->get('code');
-        $quantity = $request->request->get('quantity');
-        $collecteId = $request->request->get('collecteId');
+        $articleId = $request->request->getInt('articleId');
+        $quantity = $request->request->getInt('quantity');
+        $collecteId = $request->request->getInt('collecteId');
 
+        $article = $articlesRepository->find($articleId);
         $collecte = $collecteRepository->find($collecteId);
-        $article = new Articles();
-//        $article->set
+
+        $article
+            ->setQuantiteCollectee($quantity)
+            ->addCollecte($collecte);
+
+        $em = $this->getDoctrine()->getManager();
+        $em->persist($article);
+        $em->flush();
+
+        $urlEdit = $this->generateUrl('articles_edit', ['id' => $article->getId()]);
+
+        $data = [
+            'Nom'=>( $article->getNom() ?  $article->getNom():"null"),
+            'Statut'=> ($article->getStatut()->getNom() ? $article->getStatut()->getNom() : "null"),
+            'Conformité'=>($article->getEtat() ? 'conforme': 'anomalie'),
+            'Reférences Articles'=> ($article->getRefArticle() ? $article->getRefArticle()->getLibelle() : "null"),
+            'Position'=> ($article->getPosition() ? $article->getPosition()->getNom() : "null"),
+            'Destination'=> ($article->getDirection() ? $article->getDirection()->getNom() : "null"),
+            'Quantité à collecter'=>($article->getQuantiteCollectee() ? $article->getQuantiteCollectee() : "null"),
+            'Actions'=> "<a href='" . $urlEdit . "' class='btn btn-xs btn-default article-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
+                        <a href='' class='btn btn-xs btn-default article-delete'><i class='fas fa-trash fa-2x'></i></a>"
+        ];
+
+        return new JsonResponse($data);
     }
 
     /**
-     * @Route("/json", name="collectes_json", methods={"GET", "POST"})
+     * @Route("/api", name="collectes_json", methods={"GET", "POST"})
      */
     public function getCollectes(CollecteRepository $collecteRepository, Request $request): Response
     {
@@ -146,6 +169,15 @@ class CollecteController extends AbstractController
         $data['data'] = $rows;
 
         return new JsonResponse($data);
+    }
+
+    /**
+     * @Route("{id}/finish", name="finish_collecte")
+     */
+    public function finishCollecte(Collecte $collecte)
+    {
+        //TODO CG
+        // passer articles en statut en stock et collecte en terminée
     }
 
 //    /**

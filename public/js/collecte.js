@@ -31,26 +31,28 @@ function saveCollecte(button) {
     }
 }
 
-function addArticle(button){
+function addRow(button){
     let modal = button.closest('.modal');
-    let code = modal.find('#code');
-    let quantity = modal.find('#quantity');
+    let articleId = modal.find('#code').val();
+    let quantity = modal.find('#quantity').val();
     let collecteId = modal.data('collecte-id');
 
+    //TODO validation des données
+
     let params = {
-        code: code,
+        articleId: articleId,
         quantity: quantity,
         collecteId: collecteId
     }
 
-    //TODO validation des données
-
-    $.post("/collecte/ajouter-article", params, function() {
-        modal.modal('hide');
+    $.post("/collecte/ajouter-article", params, function(data) {
+        $('#table-list-articles').DataTable().row.add(data).draw();
     });
 }
 
 function displayQuantity(input) {
     let quantity = input.find(':selected').data('quantity');
-    input.closest('form').find('#quantity').val(quantity);
+    let inputQuantity = input.closest('form').find('#quantity');
+    inputQuantity.val(quantity);
+    inputQuantity.attr('max', quantity);
 }
