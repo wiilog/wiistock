@@ -86,10 +86,10 @@ class LivraisonController extends AbstractController
      */
     public function livraisonApi(LivraisonRepository $livraisonRepository, StatutsRepository $statutsRepository,  DemandeRepository $demandeRepository, Request $request) : Response
     {
-        if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
-        {
+        // if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
+        // {
             $livraison = $livraisonRepository->findAll();
-            
+           var_dump($livraison);
             $rows = [];
             foreach ($livraison as $livraison) {
                 $url = $this->generateUrl('livraison_show', ['id' => $livraison->getId()] );
@@ -105,8 +105,8 @@ class LivraisonController extends AbstractController
             }
             $data['data'] = $rows;
             return new JsonResponse($data);
-        }
-        throw new NotFoundHttpException("404");
+        // }
+        // throw new NotFoundHttpException("404");
     }
 
     /**
