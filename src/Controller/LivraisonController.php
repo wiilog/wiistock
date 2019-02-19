@@ -35,7 +35,7 @@ class LivraisonController extends AbstractController
     public function creationLivraison($id, DemandeRepository $demandeRepository, StatutsRepository $statutsRepository, EmplacementRepository $emplacementRepository, Request $request) : Response
     {
         $demande = $demandeRepository->find($id);
-        if ($demande->getLivraison() === null) {
+        if ($demande->getLivraison() == null) {
             $emplacement = $emplacementRepository->findById($demande->getDestination()->getId());
             $statut = $statutsRepository->findById(22);
             $livraison = new Livraison();
@@ -55,9 +55,6 @@ class LivraisonController extends AbstractController
         ]);
     }
 
-
-
-
     /**
      * @Route("/index", name="livraison_index", methods={"GET", "POST"})
      */
@@ -66,6 +63,24 @@ class LivraisonController extends AbstractController
         return $this->render('livraison/index.html.twig');
     }
 
+      /**
+     * @Route("/finLivraison/{id}", name="livraison_fin", methods={"GET", "POST"})
+     */
+    public function finLivraison($id, LivraisonRepository $livraisonRepository, StatutsRepository $statutsRepository, PaginatorInterface $paginator, DemandeRepository $demandeRepository, Request $request) : Response
+    {
+        $livraison = $livraisonRepository->find($id);
+        $livraison->setStatut($statutsRepository->find(26));
+        $demande = $livraison->getDemande();
+        dump($demande);
+        $demande[0]->setStatut($statutsRepository->find(9));
+        $articles = $demande[0]->getArticles();
+        foreach ($articles as $article ) {
+            $article->setStatut($statutsRepository->find(4));
+        }
+        $this->getDoctrine()->getManager()->flush();
+        return $this->render('livraison/index.html.twig');
+    }
+    
     /**
      * @Route("/api", name="livraison_api", methods={"GET", "POST"})
      */

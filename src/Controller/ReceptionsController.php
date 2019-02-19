@@ -143,7 +143,7 @@ class ReceptionsController extends AbstractController
             $myJSON = json_decode($request->getContent(), true);
             // traitement des données => récuperation des objets via leur id 
             $refArticle= $this->referencesArticlesRepository->findById($myJSON['refArticle']);
-            $reception= $receptionsRepository->findById($myJSON['reception']);
+            $reception= $this->receptionsRepository->findById($myJSON['reception']);
             // creation d'un nouvelle objet article + set des donnees
             $article = new Articles();
             $article->setNom($myJSON['nom']);
