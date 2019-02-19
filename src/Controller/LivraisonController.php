@@ -86,8 +86,8 @@ class LivraisonController extends AbstractController
      */
     public function livraisonApi(LivraisonRepository $livraisonRepository, Request $request) : Response
     {
-        // if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
-        // {
+        if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
+        {
             $livraison = $livraisonRepository->findAll();
            
             $rows = [];
@@ -105,8 +105,8 @@ class LivraisonController extends AbstractController
             }
             $data['data'] = $rows;
             return new JsonResponse($data);
-        // }
-        // throw new NotFoundHttpException("404");
+        }
+        throw new NotFoundHttpException("404");
     }
 
     /**
