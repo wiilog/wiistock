@@ -28,7 +28,11 @@
         "language": {
             "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
         },
-        ajax: "{{path('articles_api')}}",
+        ajax:{ 
+            "url": "{{path('articles_api')}}",
+            "type": "POST"
+        }, 
+        
         columns: [
             { "data": 'Nom' },
             { "data": 'Statut' },
