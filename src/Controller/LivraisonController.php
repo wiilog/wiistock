@@ -98,7 +98,7 @@ class LivraisonController extends AbstractController
                     'Numero' => ($livraison->getNumero() ? $livraison->getNumero() : "null"),
                     'Date' => ($livraison->getDate() ? $livraison->getDate()->format('Y-m-d') : 'null'),
                     'Statut' => ($livraison->getStatut() ? $livraison->getStatut()->getNom() : "null"),
-                    'Opérateur' => ($livraison->getUtilisateur() ? $livraison->getUtilisateur()->getUsername() : "null"),
+                    'Operateur' => ($livraison->getUtilisateur() ? $livraison->getUtilisateur()->getUsername() : "null"),
                     'Actions' => "<a href='". $url ."' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>",
                 ];
                 array_push($rows, $row);
