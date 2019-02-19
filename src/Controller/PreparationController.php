@@ -158,7 +158,8 @@ class PreparationController extends AbstractController
         {
             $preparations = $preparationRepository->findAll();
             $rows = [];
-            foreach ($preparations as $preparation) {
+            foreach ($preparations as $preparation) 
+            {
                 $urlShow = $this->generateUrl('preparation_show', ['id' => $preparation->getId()] );
                 $row = [
                     'id' => ($preparation->getId() ? $preparation->getId() : "null"),
@@ -174,6 +175,36 @@ class PreparationController extends AbstractController
         }
         throw new NotFoundHttpException("404");
     }
+
+
+    /**
+     * @Route("/api/{id}", name="LignePreparation_api", methods={"POST"}) 
+     */
+    public function LignePreparationApi(Request $request, Demande $demande) : Response
+    {
+        if($request->isXmlHttpRequest()) //Si la requête est de type Xml
+        {
+            $LignePreparations = $demande->getLigneArticle();
+            $rows = [];
+        
+            foreach ($LignePreparations as $LignePreparation) 
+            {
+                $refPreparation = $this->referencesArticlesRepository->findOneById($LignePreparation["reference"]);
+                $row = [ 
+                    "References CEA" => ($LignePreparation["reference"] ? $LignePreparation["reference"] : 'null'),
+                    "Libelle" => ($refPreparation->getLibelle() ? $refPreparation->getLibelle() : 'null'),
+                    "Quantite" => ($LignePreparation["quantite"] ? $LignePreparation["quantite"] : 'null'),
+                    "Actions" => "actions", 
+                ];
+                array_push($rows, $row);
+            }
+
+            $data['data'] = $rows;
+            return new JsonResponse($data);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
 
     /**
      * @Route("/new", name="preparation_new", methods="GET|POST")

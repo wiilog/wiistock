@@ -68,6 +68,7 @@ class DemandeController extends AbstractController
         $this->referencesArticlesRepository = $referencesArticlesRepository;
     }
 
+    
     /**
      * @Route("/preparation/{id}", name="preparationFromDemande")
      */
@@ -95,7 +96,11 @@ class DemandeController extends AbstractController
             $em->persist($demande);
             $em->persist($preparation);
             $em->flush();
-            return $this->render('preparation/show.html.twig', ['preparation' => $demande->getPreparation()]);
+            return $this->render('preparation/show.html.twig', ['preparation' => $demande->getPreparation(), 'demande' => $demande]);
+        }
+        else if($demande->getPreparation() != null)
+        {
+            return $this->render('preparation/show.html.twig', ['preparation' => $demande->getPreparation(), 'demande' => $demande]);
         }
         return $this->show($demande);
     }

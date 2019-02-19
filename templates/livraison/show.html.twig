@@ -17,7 +17,7 @@
             {{ livraison.demande ? livraison.demande.0.date|date('Y-m-d H:i:s') : 'null' }} </p>
         <p>Date attendu:
             {{ livraison.demande.0.dateAttendu ? livraison.demande.0.dateAttendu|date('Y-m-d H:i:s') : 'null' }} </p>
-        <p><a href={{path('createLivraison', {'id': livraison.demande.0.id})}}>Aller vers la livraison</a></p>
+        <p><a href={{path('livraison_fin', {'id': livraison.id})}}>finir la livraison</a></p>
     </div>
 </div>
 

@@ -11,7 +11,7 @@
         <p>Opérateur: {{ preparation.utilisateur ? preparation.utilisateur.username : "null" }}</p>
     </div>
     <div class="col-4">
-        <p><a href="{{path('createLivraison', {'id': preparation.id}) }}">Commencer la livraison</a></p>
+        <p><a href="{{path('createLivraison', {'id': preparation.demandes.0.id}) }}">Commencer la livraison</a></p>
     </div>
 </div>
 
@@ -19,44 +19,14 @@
 
     <thead>
         <tr>
-            <th>Nom</th>
-            <th>Statut</th>
-            <th>Reférences Articles</th>
-            <th>position</th>
-            <th>direction</th>
+            <th>Libelle</th>
+            <th>References CEA</th>
+            <th>Quantite</th>
             <th>Action</th>
         </tr>
     </thead>
     <tbody>
-        {% for demande in preparation.demandes %}
-        {% for article in demande.articles |reverse %}
-        <tr>
-            <td>{{ article.nom }}</td>
-            <td>{{ article.statut.nom }}</td>
-            <td>{{ article.refArticle.reference }}</td>
-            <td>{{ article.position }}</td>
-            <td>{{ article.direction }}</td>
-            <td>
-                <form action="{{ path('preparation_show', {'id': preparation.id}) }}" method="post">
-                    <a href={{path("articles_edit", {"id": article.id})}} class='btn btn-xs btn-default command-edit'><i
-                            class='fas fa-pencil-alt fa-2x'></i></a>
-                    <a href={{path("articles_show", {"id": article.id})}}
-                        class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>
-                    {% if article.statut.id == 13 and demande.statut.id == 30 %}
-                    <button type="submit" name="fin[{{demande.id}}]" value={{article.id}}
-                        class="btn btn-xs btn-default command-edit backgreen"><i
-                            class="fas fa-check fa-2x"></i></button>
-                    {% endif %}
-                </form>
-            </td>
-        </tr>
-        {% else %}
-        <tr>
-            <td colspan="10">aucun résultat</td>
-        </tr>
-        {% endfor %}
-
-        {% endfor %}
+     
     </tbody>
 </table>
 
@@ -67,13 +37,31 @@
 
 {% block javascript %}
 <script>
-    $(document).ready(function () {
-        $('#table_id').DataTable({
-            "language": {
-                "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
-            },
-        });
-    });
+
+var table = $('#table_id').DataTable({
+    "language": {
+        "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
+    },
+    "processing": true,
+    "ajax": {
+        "url": "{{ path('LignePreparation_api', {'id' : demande.id}) }}",
+        "type": "POST"
+    },
+    columns: [{
+            "data": 'Libelle'
+        },
+        {
+            "data": 'References CEA'
+        },
+        {
+            "data": 'Quantite'
+        },
+        {
+            "data": 'Actions'
+        },
+    ],
+});
+
 </script>
 
 {% endblock %}
