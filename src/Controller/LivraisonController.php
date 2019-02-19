@@ -84,12 +84,12 @@ class LivraisonController extends AbstractController
     /**
      * @Route("/api", name="livraison_api", methods={"GET", "POST"})
      */
-    public function livraisonApi(LivraisonRepository $livraisonRepository, StatutsRepository $statutsRepository,  DemandeRepository $demandeRepository, Request $request) : Response
+    public function livraisonApi(LivraisonRepository $livraisonRepository, Request $request) : Response
     {
         // if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
         // {
             $livraison = $livraisonRepository->findAll();
-           var_dump($livraison);
+           
             $rows = [];
             foreach ($livraison as $livraison) {
                 $url = $this->generateUrl('livraison_show', ['id' => $livraison->getId()] );
