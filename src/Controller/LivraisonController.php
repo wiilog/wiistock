@@ -84,7 +84,7 @@ class LivraisonController extends AbstractController
     /**
      * @Route("/api", name="livraison_api", methods={"GET", "POST"})
      */
-    public function livraisonApi(LivraisonRepository $livraisonRepository, StatutsRepository $statutsRepository, PaginatorInterface $paginator, DemandeRepository $demandeRepository, Request $request) : Response
+    public function livraisonApi(LivraisonRepository $livraisonRepository, StatutsRepository $statutsRepository,  DemandeRepository $demandeRepository, Request $request) : Response
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
         {
