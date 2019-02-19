@@ -27,7 +27,10 @@
             "language": {
                 "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
             },
-            ajax: "{{path('livraison_api')}}",
+            ajax: {
+                'url':"{{path('livraison_api')}}",
+                "type": "POST"
+            },
             columns: [
                 { "data": 'Numéro' },
                 { "data": 'Statut' },
