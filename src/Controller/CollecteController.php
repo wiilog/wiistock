@@ -163,7 +163,7 @@ class CollecteController extends AbstractController
                 'Demandeur'=> ($collecte->getDemandeur() ? $collecte->getDemandeur()->getUserName() : null ),
                 'Objet'=> ($collecte->getObjet() ? $collecte->getObjet() : null ),
                 'Statut'=> ($collecte->getStatut()->getNom() ? ucfirst($collecte->getStatut()->getNom()) : null),
-                'actions' => "<a href='" . $url . "' class='btn btn-xs btn-default command-edit backIconListjv'><i class='fas fa-eye fa-2x'></i></a>"
+                'actions' => "<a href='" . $url . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-eye fa-2x'></i></a>"
             ];
         }
         $data['data'] = $rows;
