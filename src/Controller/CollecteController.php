@@ -52,13 +52,13 @@ class CollecteController extends AbstractController
     }
 
     /**
-     * @Route("/{history}/index", name="collecte_index", methods={"GET", "POST"})
+     * @Route("/", name="collecte_index", methods={"GET", "POST"})
      */
-    public function index(CollecteRepository $collecteRepository, UtilisateursRepository $utilisateursRepository, PaginatorInterface $paginator, Request $request, $history): Response
+    public function index(CollecteRepository $collecteRepository, UtilisateursRepository $utilisateursRepository, PaginatorInterface $paginator, Request $request): Response
     {
 
         $statut = 'fin';
-        $collecteQuery = ($history === 'true') ? $collecteRepository->findAll() : $collecteRepository->findByNoStatut($statut);
+        $collecteQuery = $collecteRepository->findAll();
 
         $pagination = $paginator->paginate(
             $collecteQuery, /* On récupère la requête et on la pagine */
@@ -74,116 +74,146 @@ class CollecteController extends AbstractController
             // $this->getDoctrine()->getManager()->flush();
         }
 
-        if ($history === 'true') 
-        {
-            return $this->render('collecte/index.html.twig', [
-                'collectes' => $pagination,
-                'utilisateurs' => $utilisateursRepository->findAll(),
-                'articles'=> $this->articlesRepository->findByStatut(4),
-                'emplacements'=>$this->emplacementRepository->findAll(),
-                'history' => 'false',
-            ]);
-        } 
-        else 
-        {
-            return $this->render('collecte/index.html.twig', [
-                'collectes' => $pagination, 
-                'utilisateurs' => $utilisateursRepository->findAll(),
-                'articles'=> $this->articlesRepository->findByStatut(4),
-                'emplacements'=>$this->emplacementRepository->findAll(),
-                
-            ]);
-        }
-    }
-
-    /**
-     * @Route("/create", name="collecte_create", methods={"GET", "POST"})
-     */
-    public function creation(): Response
-    {
-        // creation d'une demande de collecte 
-        if (array_key_exists('collecte', $_POST)) 
-        {
-            // construction de la new collecte plus d'info voir demande_creation
-            $articlesId = array_keys($_POST['collecte']);
-            $destinationId = $_POST['destination'];
-            $collecte = new collecte();
-            $date = new \DateTime('now');
-            $collecte->setdate($date);
-            $collecte->setNumero("C-". $date->format('YmdHis'));
-            $collecte->setDemandeur($this->getUser());
-            $statut = $this->statutsRepository->findById(19); /* Statut 19 = Demande de collecte */
-            $collecte->setStatut($statut[0]);
-
-            foreach ($articlesId as $key) 
-            {
-                $article = $this->articlesRepository->findById($key);
-                $destination = $this->emplacementRepository->findEptById($destinationId[$key]);
-                $article[0]->setDirection($destination[0]);
-                $statut = $this->statutsRepository->findById(4);
-                $article[0]->setStatut($statut[0]);
-                $collecte->addArticle($article[0]);
-            }
-
-            $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->persist($collecte);
-            $entityManager->flush();
-
-            return $this->redirectToRoute('collecte_index', array('history'=>'false'));
-        }
-
-        // systéme de filtre par emplacement => recherche les articles selon l'emplacement choisi et l'statut
-        // verifie l'existence de la clef dans $_POST et si elle n'est pas vide 
-        if(array_key_exists('emplacement', $_POST) && $_POST['emplacement'])
-        {
-            $empl = $this->emplacementRepository->findEptById($_POST['emplacement']);
-            // recuperation de l'emplacement utilisé pour recuperer les articles en lien avec SQL => requête dédié
-            return $this->render('collecte/create.html.twig', array(
-                'articles'=>$this->articlesRepository->findBystatutAndEmpl($empl),
-                'emplacements'=>$this->emplacementRepository->findAll(),
-                'empl'=>$empl,
-            ));
-        }
-        return $this->render('collecte/create.html.twig', array(
-            'articles'=> $this->articlesRepository->findByStatut(4),
+        return $this->render('collecte/index.html.twig', [
+            'collectes' => $pagination,
+            'utilisateurs' => $utilisateursRepository->findAll(),
+            'articles'=> $this->articlesRepository->findByStatut(4), //TODO CG pas valeur id en dur
             'emplacements'=>$this->emplacementRepository->findAll(),
-        ));
-    }
 
-    /**
-     * @Route("/new", name="collecte_new", methods={"GET","POST"})
-     */
-    public function new(Request $request): Response
-    {
-        $collecte = new Collecte();
-        $form = $this->createForm(CollecteType::class, $collecte);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) 
-        {
-            $date =  new \DateTime('now');
-            $collecte->setdate($date);
-            $collecte->setNumero("D-" . $date->format('YmdHis'));
-            $collecte->setDemandeur($this->getUser());
-            $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->persist($collecte);
-            $entityManager->flush();
-
-            return $this->redirectToRoute('collecte_index');
-        }
-
-        return $this->render('collecte/new.html.twig', [
-            'collecte' => $collecte,
-            'form' => $form->createView(),
         ]);
     }
+
+    /**
+     * @Route("/creer", name="collecte_create", methods={"GET", "POST"})
+     */
+    public function creation(ArticlesRepository $articlesRepository, StatutsRepository $statutsRepository, EmplacementRepository $emplacementRepository, UtilisateursRepository $utilisateursRepository, Request $request): Response
+    {
+        $demandeurId = $request->request->getInt('demandeur');
+        $objet = $request->request->get('objet');
+        $pointCollecteId = $request->request->getInt('pointCollecte');
+
+        $date = new \DateTime('now');
+        $status = $statutsRepository->findOneByNom('demande de collecte');
+        $numero = "C-". $date->format('YmdHis');
+
+        $collecte = new Collecte;
+        $collecte
+            ->setDemandeur($utilisateursRepository->find($demandeurId))
+            ->setNumero($numero)
+            ->setDate($date)
+            ->setStatut($status)
+            ->setPointCollecte($emplacementRepository->find($pointCollecteId))
+            ->setObjet($objet);
+
+        $em = $this->getDoctrine()->getManager();
+        $em->persist($collecte);
+        $em->flush();
+
+        return new JsonResponse(true);
+    }
+
+    /**
+     * @Route("/ajouter-article", name="collecte_add_article")
+     */
+    public function addArticle(Request $request, CollecteRepository $collecteRepository, ArticlesRepository $articlesRepository): Response
+    {
+        $articleId = $request->request->getInt('articleId');
+        $quantity = $request->request->getInt('quantity');
+        $collecteId = $request->request->getInt('collecteId');
+
+        $article = $articlesRepository->find($articleId);
+        $collecte = $collecteRepository->find($collecteId);
+
+        $article
+            ->setQuantiteCollectee($quantity)
+            ->addCollecte($collecte);
+
+        $em = $this->getDoctrine()->getManager();
+        $em->persist($article);
+        $em->flush();
+
+        $urlEdit = $this->generateUrl('articles_edit', ['id' => $article->getId()]);
+
+        $data = [
+            'Nom'=>( $article->getNom() ?  $article->getNom():"null"),
+            'Statut'=> ($article->getStatut()->getNom() ? $article->getStatut()->getNom() : "null"),
+            'Conformité'=>($article->getEtat() ? 'conforme': 'anomalie'),
+            'Reférences Articles'=> ($article->getRefArticle() ? $article->getRefArticle()->getLibelle() : "null"),
+            'Position'=> ($article->getPosition() ? $article->getPosition()->getNom() : "null"),
+            'Destination'=> ($article->getDirection() ? $article->getDirection()->getNom() : "null"),
+            'Quantité à collecter'=>($article->getQuantiteCollectee() ? $article->getQuantiteCollectee() : "null"),
+            'Actions'=> "<a href='" . $urlEdit . "' class='btn btn-xs btn-default article-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
+                        <a href='' class='btn btn-xs btn-default article-delete'><i class='fas fa-trash fa-2x'></i></a>"
+        ];
+
+        return new JsonResponse($data);
+    }
+
+    /**
+     * @Route("/api", name="collectes_json", methods={"GET", "POST"})
+     */
+    public function getCollectes(CollecteRepository $collecteRepository, Request $request): Response
+    {
+        $collectes = $collecteRepository->findAll();
+        $rows = [];
+        foreach ($collectes as $collecte) {
+            $url = $this->generateUrl('collecte_show', ['id' => $collecte->getId()]);
+            $rows[] = [
+                'Date'=> ($collecte->getDate() ? $collecte->getDate()->format('d/m/Y') : null),
+                'Demandeur'=> ($collecte->getDemandeur() ? $collecte->getDemandeur()->getUserName() : null ),
+                'Objet'=> ($collecte->getObjet() ? $collecte->getObjet() : null ),
+                'Statut'=> ($collecte->getStatut()->getNom() ? ucfirst($collecte->getStatut()->getNom()) : null),
+                'actions' => "<a href='" . $url . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-eye fa-2x'></i></a>"
+            ];
+        }
+        $data['data'] = $rows;
+
+        return new JsonResponse($data);
+    }
+
+    /**
+     * @Route("{id}/finish", name="finish_collecte")
+     */
+    public function finishCollecte(Collecte $collecte)
+    {
+        //TODO CG
+        // passer articles en statut en stock et collecte en terminée
+    }
+
+//    /**
+//     * @Route("/new", name="collecte_new", methods={"GET","POST"})
+//     */
+//    public function new(Request $request): Response
+//    {
+//        $collecte = new Collecte();
+//        $form = $this->createForm(CollecteType::class, $collecte);
+//        $form->handleRequest($request);
+//
+//        if ($form->isSubmitted() && $form->isValid())
+//        {
+//            $date =  new \DateTime('now');
+//            $collecte->setdate($date);
+//            $collecte->setNumero("D-" . $date->format('YmdHis'));
+//            $collecte->setDemandeur($this->getUser());
+//            $entityManager = $this->getDoctrine()->getManager();
+//            $entityManager->persist($collecte);
+//            $entityManager->flush();
+//
+//            return $this->redirectToRoute('collecte_index');
+//        }
+//
+//        return $this->render('collecte/new.html.twig', [
+//            'collecte' => $collecte,
+//            'form' => $form->createView(),
+//        ]);
+//    }
 
     /**
      * @Route("/{id}", name="collecte_show", methods={"GET", "POST"})
      */
     public function show(Collecte $collecte): Response
     {   
-        $session = $_SERVER['HTTP_REFERER'];
+//        $session = $_SERVER['HTTP_REFERER'];
     //modifie le statut, la position et la direction des articles correspondant à ceux recupere par les operateurs 
         if(array_key_exists('prise', $_POST))
         {
@@ -218,7 +248,7 @@ class CollecteController extends AbstractController
 
         return $this->render('collecte/show.html.twig', [
             'collecte' => $collecte,
-            'session' => $session
+//            'session' => $session
         ]);
     }
 
@@ -245,7 +275,7 @@ class CollecteController extends AbstractController
     }
 
     /**
-     * @Route("/{id}", name="collecte_delete", methods={"DELETE"})
+     * @Route("/{id}/delete", name="collecte_delete")
      */
     public function delete(Request $request, Collecte $collecte): Response
     {

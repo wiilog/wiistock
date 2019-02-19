@@ -178,6 +178,18 @@ class ArticlesRepository extends ServiceEntityRepository
         return $query->execute(); 
     }
 
+    public function findAllSortedByName()
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT a.nom, a.id, a.quantite
+          FROM App\Entity\Articles a
+          ORDER BY a.nom
+          "
+        );
+        return $query->execute();
+    }
+
 //    /**
 //     * @return Articles[] Returns an array of Articles objects
 //     */

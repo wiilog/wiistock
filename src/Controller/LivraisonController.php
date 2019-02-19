@@ -84,7 +84,7 @@ class LivraisonController extends AbstractController
     /**
      * @Route("/api", name="livraison_api", methods={"GET", "POST"})
      */
-    public function livraisonApi(LivraisonRepository $livraisonRepository, StatutsRepository $statutsRepository, DemandeRepository $demandeRepository, Request $request) : Response
+    public function livraisonApi(LivraisonRepository $livraisonRepository, Request $request) : Response
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
         {
@@ -99,7 +99,7 @@ class LivraisonController extends AbstractController
                     'Date' => ($livraison->getDate() ? $livraison->getDate()->format('Y-m-d') : 'null'),
                     'Statut' => ($livraison->getStatut() ? $livraison->getStatut()->getNom() : "null"),
                     'Opérateur' => ($livraison->getUtilisateur() ? $livraison->getUtilisateur()->getUsername() : "null"),
-                    'actions' => "<a href='". $url ."' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>",
+                    'Actions' => "<a href='". $url ."' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>",
                 ];
                 array_push($rows, $row);
             }
@@ -133,7 +133,7 @@ class LivraisonController extends AbstractController
     }
 
     /**
-     * @Route("/{id}", name="livraison_show", methods={"GET"}) UTILE 
+     * @Route("/{id}", name="livraison_show", methods={"GET","POST"}) UTILE 
      */
     public function show(Livraison $livraison) : Response
     {

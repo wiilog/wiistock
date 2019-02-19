@@ -82,6 +82,11 @@ class Articles
      */
     private $quantiteARecevoir;
 
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $quantiteCollectee;
+
     
     public function __construct()
     {
@@ -276,4 +281,15 @@ class Articles
         return $this;
     }
 
+    public function getQuantiteCollectee(): ?int
+    {
+        return $this->quantiteCollectee;
+    }
+
+    public function setQuantiteCollectee(?int $quantiteCollectee): self
+    {
+        $this->quantiteCollectee = $quantiteCollectee;
+
+        return $this;
+    }
 }

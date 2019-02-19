@@ -6,6 +6,7 @@ use App\Entity\Articles;
 use App\Form\ArticlesType;
 use App\Repository\ArticlesRepository;
 use App\Repository\StatutsRepository;
+use App\Repository\CollecteRepository;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -62,6 +63,38 @@ class ArticlesController extends AbstractController
     }
 
     /**
+     * @Route(name="articles_by_collecte", methods={"GET", "POST"})
+     */
+    public function getArticlesByCollecte(CollecteRepository $collecteRepository, Request $request): Response
+    {
+        if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
+        {
+            $collecteId = $request->get('collecteId');
+            $collecte = $collecteRepository->find($collecteId);
+            $articles = $collecte->getArticles();
+            $rows = [];
+            foreach ($articles as $article) {
+                $urlEdit = $this->generateUrl('articles_edit', ['id' => $article->getId()]);
+
+                $rows[] = [
+                    'Nom'=>( $article->getNom() ?  $article->getNom():"null"),
+                    'Statut'=> ($article->getStatut()->getNom() ? $article->getStatut()->getNom() : "null"),
+                    'Conformité'=>($article->getEtat() ? 'conforme': 'anomalie'),
+                    'Reférences Articles'=> ($article->getRefArticle() ? $article->getRefArticle()->getLibelle() : "null"),
+                    'Position'=> ($article->getPosition() ? $article->getPosition()->getNom() : "null"),
+                    'Destination'=> ($article->getDirection() ? $article->getDirection()->getNom() : "null"),
+                    'Quantité à collecter'=>($article->getQuantiteCollectee() ? $article->getQuantiteCollectee() : "null"),
+                    'Actions'=> "<a href='" . $urlEdit . "' class='btn btn-xs btn-default article-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
+                        <a href='' class='btn btn-xs btn-default article-delete'><i class='fas fa-trash fa-2x'></i></a>",
+                ];
+            }
+            $data['data'] = $rows;
+            return new JsonResponse($data);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
      * @Route("/new", name="articles_new", methods="GET|POST")  INUTILE
      */
     public function new(Request $request, StatutsRepository $statutsRepository) : Response
@@ -96,6 +129,20 @@ class ArticlesController extends AbstractController
             'article' => $article,
             'session' => $session
         ]);
+    }
+
+    /**
+     * @Route("/ajoute-article", name="modal_add_article")
+     */
+    public function displayModalAddArticle(ArticlesRepository $articlesRepository)
+    {
+        $articles = $articlesRepository->findAllSortedByName();
+
+        $html = $this->renderView('collecte/modalAddArticleContent.html.twig', [
+            'articles' => $articles
+        ]);
+
+        return new JsonResponse(['html' => $html]);
     }
 
     /**

@@ -35,10 +35,10 @@ class ReferencesArticlesController extends Controller
                
                 $row = [
                     "id" => $refArticle->getId(),
-                    "Libelle" => $refArticle->getLibelle(),
+                    "Libélle" => $refArticle->getLibelle(),
                     "Référence" => $refArticle->getReference(),
                     "Quantité" => $refArticle->getQuantiteStock(),
-                    'actions' => "<a href='" . $urlEdite . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
+                    'Actions' => "<a href='" . $urlEdite . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
                     <a href='" . $urlShow . "' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>",
                 ];
                 array_push($rows, $row);
