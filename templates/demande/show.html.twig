@@ -4,9 +4,11 @@
 
 {% block page_content %}
 
-<div class="barre-filtre col-12">
-    <div class="row justify-content-between">
-        <h1>Demande de livraison</h1>
+<div class="barre-filtre row justify-content-between">
+    <div class="col-6">
+        <h1 class="">Demande de livraison</h1>
+    </div>
+    <div class="col-6">
         <a href="" data-toggle="modal" data-target="#modifModalCenter" class="button btn-left">
             Modifier la demande
         </a>
@@ -24,7 +26,7 @@
     <div class="col-3">
         <p>Date demande : {{ demande.date | date("d/m/Y") }}</p>
         <p>Reference : {{ demande.numero }}</p>
-        <a href="{{ path("preparationFromDemande", {"id" : demande.id }) }}">Aller vers la preparation</a>
+        <a href='{{ path("preparationFromDemande", {"id" : demande.id }) }}'>Aller vers la preparation</a>
     </div>
 
     <div class="col-2">

@@ -240,7 +240,7 @@ class DemandeController extends AbstractController
             $refArticle = $this->referencesArticlesRepository->findById($ligne["reference"]);
             $data = [
                 "reference" => $ligne["reference"],
-                "quantite" =>$ligne["quantite"],
+                "quantite" => $ligne["quantite"],
                 "libelle" => $refArticle[0]->getLibelle(), 
             ];
             array_push($lignes, $data);
@@ -287,7 +287,7 @@ class DemandeController extends AbstractController
                 [ 
                     "Date"=> ($demande->getDate() ? $demande->getDate() : 'null')->format('d-m-Y'),
                     "Demandeur"=> ($demande->getUtilisateur()->getUsername() ? $demande->getUtilisateur()->getUsername() : 'null'),
-                    "Numero"=> ($demande->getNumero() ? $demande->getNumero() : 'null'),
+                    "Numéro"=> ($demande->getNumero() ? $demande->getNumero() : 'null'),
                     "Statut"=> ($demande->getStatut()->getNom() ? $demande->getStatut()->getNom() : 'null'),
                     'Actions'=> "<a href='".$urlShow." ' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>", 
                 ];

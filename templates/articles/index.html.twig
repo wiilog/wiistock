@@ -11,16 +11,16 @@
             <th>Nom</th>
             <th id="Statut">Statut</th>
             <th id="Conformité">Conformité</th>
-            <th id="Reférences Articles">Reférences Articles</th>
-            <th id="position">position</th>
-            <th id="destination">destination</th>
-            <th id="Quantite" data-sortable="false">Quantite</th>
-            <th>actions</th>
+            <th id="Reférence article">Reférence article</th>
+            <th id="position">Position</th>
+            <th id="destination">Destination</th>
+            <th id="Quantite" data-sortable="false">Quantité</th>
+            <th>Actions</th>
         </tr>
     </thead>
-
 </table>
-{% endblock  %}
+{% endblock %}
+
 {% block javascript %}
 
 <script>
@@ -33,18 +33,18 @@
             "type": "POST"
         }, 
         
-        columns: [
+        columns:
+        [
             { "data": 'Nom' },
             { "data": 'Statut' },
             { "data": 'Conformité' },
-            { "data": 'Reférences Articles' },
-            { "data": 'position' },
-            { "data": 'destination' },
-            { "data": 'Quantite' },
-            { "data": 'actions'}
-
+            { "data": 'Reférence article' },
+            { "data": 'Position' },
+            { "data": 'Destination' },
+            { "data": 'Quantité' },
+            { "data": 'Actions' }
         ],
     });
-
 </script>
+
 {% endblock %}

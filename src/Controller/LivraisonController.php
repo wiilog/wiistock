@@ -89,9 +89,9 @@ class LivraisonController extends AbstractController
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
         {
             $livraison = $livraisonRepository->findAll();
-           
             $rows = [];
-            foreach ($livraison as $livraison) {
+            foreach ($livraison as $livraison) 
+            {
                 $url = $this->generateUrl('livraison_show', ['id' => $livraison->getId()] );
                 $row = [
                     'id' => ($livraison->getId() ? $livraison->getId() : "null"),
