@@ -154,7 +154,7 @@
                 var nouvelleCellule = nouvelleLigne.insertCell(5);
                 var nouveauTexte = document.createTextNode(tabAlfa.etat)
                 nouvelleCellule.appendChild(nouveauTexte)
-                var url = 'http://localhost/WiiStock/WiiStock/public/index.php/articles/edite/' + tabAlfa.id
+                var url = '/articles/edite/' + tabAlfa.id
                 var nouvelleCellule = nouvelleLigne.insertCell(6);
                 var a = document.createElement("a")
                 a.className = 'btn btn-xs btn-default command-edit'

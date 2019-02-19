@@ -127,19 +127,20 @@ class CollecteController extends AbstractController
     }
 
     /**
-     * @Route("/test", name="collectes_json", methods={"GET", "POST"})
+     * @Route("/json", name="collectes_json", methods={"GET", "POST"})
      */
     public function getCollectes(CollecteRepository $collecteRepository, Request $request): Response
     {
         $collectes = $collecteRepository->findAll();
         $rows = [];
         foreach ($collectes as $collecte) {
+            $url = $this->generateUrl('collecte_show', ['id' => $collecte->getId()]);
             $rows[] = [
                 'Date'=> ($collecte->getDate() ? $collecte->getDate()->format('d/m/Y') : null),
                 'Demandeur'=> ($collecte->getDemandeur() ? $collecte->getDemandeur()->getUserName() : null ),
                 'Objet'=> ($collecte->getObjet() ? $collecte->getObjet() : null ),
                 'Statut'=> ($collecte->getStatut()->getNom() ? ucfirst($collecte->getStatut()->getNom()) : null),
-                'actions' => "<a href='/collecte/". $collecte->getId() ."' class='btn btn-xs btn-default command-edit backIconListjv'><i class='fas fa-eye fa-2x'></i></a>"
+                'actions' => "<a href='" . $url . "' class='btn btn-xs btn-default command-edit backIconListjv'><i class='fas fa-eye fa-2x'></i></a>"
             ];
         }
         $data['data'] = $rows;

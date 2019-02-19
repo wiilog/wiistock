@@ -71,6 +71,9 @@ class ArticlesController extends AbstractController
         $articles = $collecte->getArticles();
         $rows = [];
         foreach ($articles as $article) {
+            $urlEdit = $this->generateUrl('articles_edit', ['id' => $article->getId()]);
+            $urlShow = $this->generateUrl('articles_show', ['id' => $article->getId()]);
+
             $rows[] = [
                 'Nom'=>( $article->getNom() ?  $article->getNom():"null"),
                 'Statut'=> ($article->getStatut()->getNom() ? $article->getStatut()->getNom() : "null"),
@@ -79,8 +82,8 @@ class ArticlesController extends AbstractController
                 'Position'=> ($article->getPosition() ? $article->getPosition()->getNom() : "null"),
                 'Destination'=> ($article->getDirection() ? $article->getDirection()->getNom() : "null"),
                 'Quantité'=>($article->getQuantite() ? $article->getQuantite() : "null"),
-                'Actions'=> "<a href='/WiiStock/WiiStock/public/index.php/articles/edite/".$article->getId() ."' class='btn btn-xs btn-default command-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
-                    <a href='/WiiStock/WiiStock/public/index.php/articles/show/".$article->getId() ."' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>",
+                'Actions'=> "<a href='" . $urlEdit . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
+                    <a href='" . $urlShow . "' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>",
             ];
         }
         $data['data'] = $rows;
