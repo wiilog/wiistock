@@ -32,7 +32,7 @@ class ArticlesController extends AbstractController
     /**
      * @Route("/api", name="articles_api", methods="GET|POST")
      */
-    public function articleFiltreJson(ArticlesRepository $articlesRepository, Request $request) : Response
+    public function articleApi(ArticlesRepository $articlesRepository, Request $request) : Response
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
         {
@@ -147,6 +147,7 @@ class ArticlesController extends AbstractController
      */
     public function edit(Request $request, Articles $article, StatutsRepository $statutsRepository) : Response
     {
+        dump($_POST);
         $form = $this->createForm(ArticlesType::class, $article);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
@@ -155,12 +156,13 @@ class ArticlesController extends AbstractController
                 $article->setStatut($statut[0]);
             }
             $this->getDoctrine()->getManager()->flush();
-            return $this->redirectToRoute('articles_index', ['statut' => 'all', 'id' => 0, ]);
+            return $this->redirect($_POST['url']);
         }
         return $this->render('articles/edit.html.twig', [
             'article' => $article,
             'form' => $form->createView(),
             'id' => $article->getReception()->getId(),
+
         ]);
     }
 

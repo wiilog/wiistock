@@ -1,5 +1,6 @@
 <?php
 namespace App\Form;
+
 use App\Entity\Articles;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -22,7 +23,7 @@ class ArticlesType extends AbstractType
             ->add('etat', ChoiceType::class, array(
                 'choices' => [
                     'conforme' => true,
-                    'non conforme' => false, 
+                    'non conforme' => false,
                 ]
             ))
             ->add('commentaire')
@@ -32,17 +33,21 @@ class ArticlesType extends AbstractType
                 'attr' => array(
                     'placeholder' => 'quantité',
                     'min' => 1, 'max' => 10000
-            )))
+                )
+            ))
             ->add('quantiteARecevoir', IntegerType::class, array(
                 'attr' => array(
                     'placeholder' => 'quantité à recevoir',
                     'min' => 1, 'max' => 10000
-            )))
-            ->add('refArticle', EntityType::class,[
-                'class'=> ReferencesArticles::class,
-                'choice_label'=> 'libelle'
-                ])           
-        ;
+                )
+            ))
+            ->add('refArticle', EntityType::class, [
+                'class' => ReferencesArticles::class,
+                'choice_label' => 'libelle',
+                'placeholder' => 'Référence article',
+                'label'=> 'Référence article'
+                
+            ]);
     }
     public function configureOptions(OptionsResolver $resolver)
     {

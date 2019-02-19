@@ -197,14 +197,13 @@ class ReceptionsController extends AbstractController
     }
 
     /**
-     * @Route("/new/creation", name="receptions_new", methods={"GET", "POST"})
+     * @Route("/new/creation", name="receptions_new", methods={"GET", "POST"}) INUTILE
      */
     public function new(Request $request): Response
     {
         $reception = new Receptions();
         $form = $this->createForm(ReceptionsType::class, $reception);
         $form->handleRequest($request);
-
         if ($form->isSubmitted() && $form->isValid()) 
         {
             $statut = $this->statutsRepository->findById(1);
@@ -289,6 +288,7 @@ class ReceptionsController extends AbstractController
 
             $statut = $this->statutsRepository->findById(7);
             $reception->setStatut($statut[0]);
+            $reception->setDateReception(new \DateTime('now'));
 
             //calcul de la quantite des stocks par artciles de reference
             $refArticles = $this->referencesArticlesRepository->findAll();
