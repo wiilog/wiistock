@@ -117,7 +117,7 @@ class DemandeController extends AbstractController
                     "quantite" => $data[1]["quantite"],
                 ];
 
-                $referenceArticle = $refArticlesRepository->findOneBy(["id" => $data[0]["reference"]]);
+                $referenceArticle = $this->referencesArticlesRepository->findOneBy(["id" => $data[0]["reference"]]);
 
                 $quantiteReservee = intval($data[1]["quantite"]);
                 $quantiteArticleReservee = $referenceArticle->getQuantiteReservee();
