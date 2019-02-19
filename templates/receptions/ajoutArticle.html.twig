@@ -9,11 +9,11 @@
     <div class='col-4'>
         <p><strong>Statut:</strong> {{ reception.statut.nom }}</p>
         <p><strong>Numéro de référence:</strong> {{ reception.numeroReception }}</p>
-        <p><strong>commentaire:</strong> {{ reception.commentaire }}</p>
+        <p><strong>Commentaire:</strong> {{ reception.commentaire }}</p>
     </div>
     <div class="col-4">
         <p><strong>Date commande:</strong> {{ reception.date ? reception.date| date('d-m-Y') : 'null' }}</p>
-        <p><strong>Date attendu:</strong> {{ reception.dateAttendu ? reception.dateAttendu | date('d-m-Y') : 'null' }}</p>
+        <p><strong>Date attendue:</strong> {{ reception.dateAttendu ? reception.dateAttendu | date('d-m-Y') : 'null' }}</p>
         <p><strong>Fournisseur:</strong> {{ reception.fournisseur.nom }}</p>
     </div>
     <div class="col-4">
@@ -29,9 +29,9 @@
             <th>Nom</th>
             <th>Statut</th>
             <th>Quantité à recevoir</th>
-            <th>Quantité reçu</th>
-            <th>état</th>
-            <th>actions</th>
+            <th>Quantité reçue</th>
+            <th>État</th>
+            <th>Actions</th>
         </tr>
     </thead>
     <tbody>
@@ -50,7 +50,7 @@
         </tr>
         {% else %}
         <tr id='noResult'>
-            <td colspan="7">no records found</td>
+            <td colspan="7">Aucun article enregistrer</td>
         </tr>
         {% endfor %}
     </tbody>
@@ -76,7 +76,7 @@
         <div class="form-group col-6">
             <div class="input-group">
                 <div class="input-group-prepend">
-                    <label for="" class="input-group-text">Quantité reçu</label>
+                    <label for="" class="input-group-text">Quantité reçue</label>
                 </div>
                 <input type="number" class="form-control" name="" id="quantite" min=0>
             </div>
@@ -115,7 +115,7 @@
 
         <input type="button" value="créer" class=" col-2 btn button btn-right" onclick="recupData()">
         <a class="btn offset-5 col-2 button btn-right"
-            href={{ path('reception_ajout_article', {'id': id, 'k': true}) }}>fin
+            href={{ path('reception_ajout_article', {'id': id, 'k': true}) }}>Fin
             reception</a>
     </form>
 </div>

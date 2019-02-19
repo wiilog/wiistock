@@ -40,16 +40,17 @@ class ArticlesController extends AbstractController
             foreach ($articles as $article) {
                 $urlEdite = $this->generateUrl('articles_edit', ['id' => $article->getId()] );
                 $urlShow = $this->generateUrl('articles_show', ['id' => $article->getId()] );
-                $row = [
+                $row = 
+                [
                     'id' => ($article->getId() ? $article->getId() : "null"),
                     'Nom' => ($article->getNom() ? $article->getNom() : "null"),
                     'Statut' => ($article->getStatut()->getNom() ? $article->getStatut()->getNom() : "null"),
                     'Conformité' => ($article->getEtat() ? 'conforme' : 'anomalie'),
-                    'Reférences Articles' => ($article->getRefArticle() ? $article->getRefArticle()->getLibelle() : "null"),
-                    'position' => ($article->getPosition() ? $article->getPosition()->getNom() : "null"),
-                    'destination' => ($article->getDirection() ? $article->getDirection()->getNom() : "null"),
-                    'Quantite' => ($article->getQuantite() ? $article->getQuantite() : "null"),
-                    'actions' => "<a href='" . $urlEdite . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
+                    'Reférence article' => ($article->getRefArticle() ? $article->getRefArticle()->getLibelle() : "null"),
+                    'Position' => ($article->getPosition() ? $article->getPosition()->getNom() : "null"),
+                    'Destination' => ($article->getDirection() ? $article->getDirection()->getNom() : "null"),
+                    'Quantité' => ($article->getQuantite() ? $article->getQuantite() : "null"),
+                    'Actions' => "<a href='" . $urlEdite . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
                     <a href='" . $urlShow . "' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>",
                 ];
                 array_push($rows, $row);
@@ -104,14 +105,20 @@ class ArticlesController extends AbstractController
     {
         $form = $this->createForm(ArticlesType::class, $article);
         $form->handleRequest($request);
-        if ($form->isSubmitted() && $form->isValid()) {
+        if ($form->isSubmitted() && $form->isValid()) 
+        {
             if ($article->getEtat() === false) {
-                $statut = $statutsRepository->findById(5);
-                $article->setStatut($statut[0]);
+                $statut = $statutsRepository->findOneById(5);
+                $article->setStatut($statut);
+            }
+            else if($article->getEtat() === true) {
+                $statut = $statutsRepository->findOneById(3);
+                $article->setStatut($statut);
             }
             $this->getDoctrine()->getManager()->flush();
-            return $this->redirectToRoute('articles_index', ['statut' => 'all', 'id' => 0, ]);
+            return $this->redirectToRoute('articles_index', ['statut' => 'all', 'id' => 0]);
         }
+
         return $this->render('articles/edit.html.twig', [
             'article' => $article,
             'form' => $form->createView(),

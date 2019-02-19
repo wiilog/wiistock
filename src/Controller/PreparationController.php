@@ -162,11 +162,10 @@ class PreparationController extends AbstractController
             {
                 $urlShow = $this->generateUrl('preparation_show', ['id' => $preparation->getId()] );
                 $row = [
-                    'id' => ($preparation->getId() ? $preparation->getId() : "null"),
                     'Numéro' => ($preparation->getNumero() ? $preparation->getNumero() : "null"),
                     'Date' => ($preparation->getDate() ? $preparation->getDate()->format('Y-m-d') : 'null'),
                     'Statut' => ($preparation->getStatut() ? $preparation->getStatut()->getNom() : "null"),
-                    'actions' => "<a href='" . $urlShow . "' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>",
+                    'Actions' => "<a href='" . $urlShow . "' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>",
                 ];
                 array_push($rows, $row);
             }

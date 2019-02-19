@@ -84,14 +84,14 @@ class LivraisonController extends AbstractController
     /**
      * @Route("/api", name="livraison_api", methods={"GET", "POST"})
      */
-    public function livraisonApi(LivraisonRepository $livraisonRepository, StatutsRepository $statutsRepository, PaginatorInterface $paginator, DemandeRepository $demandeRepository, Request $request) : Response
+    public function livraisonApi(LivraisonRepository $livraisonRepository, StatutsRepository $statutsRepository, DemandeRepository $demandeRepository, Request $request) : Response
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
         {
             $livraison = $livraisonRepository->findAll();
-            
             $rows = [];
-            foreach ($livraison as $livraison) {
+            foreach ($livraison as $livraison) 
+            {
                 $url = $this->generateUrl('livraison_show', ['id' => $livraison->getId()] );
                 $row = [
                     'id' => ($livraison->getId() ? $livraison->getId() : "null"),
@@ -99,7 +99,7 @@ class LivraisonController extends AbstractController
                     'Date' => ($livraison->getDate() ? $livraison->getDate()->format('Y-m-d') : 'null'),
                     'Statut' => ($livraison->getStatut() ? $livraison->getStatut()->getNom() : "null"),
                     'Opérateur' => ($livraison->getUtilisateur() ? $livraison->getUtilisateur()->getUsername() : "null"),
-                    'actions' => "<a href='". $url ." ' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>",
+                    'actions' => "<a href='". $url ."' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>",
                 ];
                 array_push($rows, $row);
             }

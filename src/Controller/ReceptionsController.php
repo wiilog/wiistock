@@ -69,6 +69,7 @@ class ReceptionsController extends AbstractController
         $this->referencesArticlesRepository = $referencesArticlesRepository;
     }
 
+
     /**
      * @Route("/creationReception", name="createReception", methods="POST")
      */
@@ -102,6 +103,42 @@ class ReceptionsController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
+
+    /**
+     * @Route("/modifierReception", name="modifierReception", methods="POST")
+     */
+    public function modifierReception(Request $request, FournisseursRepository $fournisseursRepository) : Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) //Si la requête est de type Xml et que data est attribuée
+        {
+            if (count($data) != 5)// On regarde si le nombre de données reçu est conforme et on envoi dans la base
+            {
+                dump("Hello");
+                $fournisseur = $fournisseursRepository->findById(intval($data[3]['fournisseur']));
+                $utilisateur = $this->utilisateursRepository->findById(intval($data[4]['utilisateur']));
+
+                $reception = new Receptions();
+                $statut = $this->statutsRepository->findById(1);
+                $reception->setStatut($statut[0]);
+                $reception->setNumeroReception($data[0]['NumeroReception']);
+                $reception->setDate(new \DateTime($data[1]['date-commande']));
+                $reception->setDateAttendu(new \DateTime($data[2]['date-attendu']));
+                $reception->setFournisseur($fournisseur[0]);
+                $reception->setUtilisateur($utilisateur[0]);
+                $reception->setCommentaire($data[5]['commentaire']);
+                $em = $this->getDoctrine()->getManager();
+                $em->persist($reception);
+                $em->flush();
+
+                $data = json_encode($data);
+                return new JsonResponse($data);
+            }
+        }
+
+        throw new NotFoundHttpException("404");
+    }
+
+
     /**
      * @Route("/api", name="reception_api", methods={"GET", "POST"}) 
      */
@@ -119,7 +156,7 @@ class ReceptionsController extends AbstractController
                     'id' => ($reception->getId()),
                     "Statut" => ($reception->getStatut() ? $reception->getStatut()->getNom() : 'null'),
                     "Date commande" => ($reception->getDate() ? $reception->getDate() : 'null')->format('d-m-Y'),
-                    "Date attendu" => ($reception->getDateAttendu() ? $reception->getDateAttendu()->format('d-m-Y') : 'null'),
+                    "Date attendue" => ($reception->getDateAttendu() ? $reception->getDateAttendu()->format('d-m-Y') : 'null'),
                     "Fournisseur" => ($reception->getFournisseur() ? $reception->getFournisseur()->getNom() : 'null'),
                     "Référence" => ($reception->getNumeroReception() ? $reception->getNumeroReception() : 'null'),
                     'Actions' => "<a href='" . $urlEdite . "' class='btn btn-xs btn-default command-edit '><i class='fas fa-pencil-alt fa-2x'></i></a>
@@ -142,26 +179,28 @@ class ReceptionsController extends AbstractController
             // decodage en tavleau php
             $myJSON = json_decode($request->getContent(), true);
             // traitement des données => récuperation des objets via leur id 
-            $refArticle= $this->referencesArticlesRepository->findById($myJSON['refArticle']);
-            $reception= $this->receptionsRepository->findById($myJSON['reception']);
+            $refArticle= $this->referencesArticlesRepository->findOneById($myJSON['refArticle']);
+            $reception= $this->receptionsRepository->findOneById($myJSON['reception']);
             // creation d'un nouvelle objet article + set des donnees
             $article = new Articles();
             $article->setNom($myJSON['nom']);
-            $article->setRefArticle($refArticle[0]);
+            $article->setRefArticle($refArticle);
             $article->setQuantite(intval($myJSON['quantite']));
             $article->setQuantiteARecevoir(intval($myJSON['quantiteARecevoir']));
             $article->setEtat($myJSON['etat']);
             $article->setCommentaire($myJSON['commentaire']);
-            $article->setReception($reception[0]);
+            $article->setReception($reception);
             if ($article->getEtat())
             {
-                $statut = $this->statutsRepository->findById(1);
-                $article->setStatut($statut[0]);
+                $statut = $this->statutsRepository->findOneById(1);
+                $article->setStatut($statut);
+
             }
             else 
             {
-                $statut = $this->statutsRepository->findById(5);
-                $article->setStatut($statut[0]);
+                $statut = $this->statutsRepository->findOneById(5);
+                $article->setStatut($statut);
+                $reception->setStatut($statut);
             }
             // flush du nouvelle objet article dans la base
             $em = $this->getDoctrine()->getManager();
@@ -185,6 +224,7 @@ class ReceptionsController extends AbstractController
 
     }
 
+
     /**
      * @Route("/", name="receptions_index", methods={"GET", "POST"})
      */
@@ -195,6 +235,7 @@ class ReceptionsController extends AbstractController
             'utilisateurs' => $this->utilisateursRepository->findAll(),
         ]);
     }
+
 
     /**
      * @Route("/new/creation", name="receptions_new", methods={"GET", "POST"})
@@ -221,8 +262,8 @@ class ReceptionsController extends AbstractController
             'reception' => $reception,
             'form' => $form->createView(),
         ]);
-
     }
+
 
     /**
      * @Route("/show/{id}", name="receptions_show", methods="GET")
@@ -232,38 +273,62 @@ class ReceptionsController extends AbstractController
         return $this->render('receptions/show.html.twig', ['reception' => $reception]);
     }
 
+
     /**
      * @Route("/{id}/edit", name="receptions_edit", methods={"GET", "POST"})
      */
-    public function edit(Request $request, Receptions $reception) : Response
+    public function edit(Request $request, Receptions $reception, FournisseursRepository $fournisseursRepository) : Response
     {
-        $form = $this->createForm(ReceptionsType::class, $reception);
-        $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $this->getDoctrine()->getManager()->flush();
-            return $this->redirectToRoute('receptions_index', ['history' => '0']);
+        if(isset($_POST["numeroReception"], $_POST["fournisseur"], $_POST["utilisateur"], $_POST["date-attendue"]))
+        {
+            $fournisseur = $fournisseursRepository->findOneById($_POST["fournisseur"]);
+            $utilisateur = $this->utilisateursRepository->findOneById($_POST["utilisateur"]);
+
+            $reception->setNumeroReception($_POST["numeroReception"]);
+            $reception->setDate(new \DateTime($_POST["date-commande"]));
+            $reception->setDateAttendu(new \DateTime($_POST["date-attendue"]));
+            $reception->setFournisseur($fournisseur);
+            $reception->setUtilisateur($utilisateur);
+            $reception->setCommentaire($_POST["commentaire"]);
+            $em = $this->getDoctrine()->getManager();
+            $em->persist($reception);
+            $em->flush();
         }
 
         return $this->render('receptions/edit.html.twig', [
-            'reception' => $reception,
-            'form' => $form->createView(),
-        ]);
-
+            "reception" => $reception,
+            "emplacements" => $this->emplacementRepository->findAll(),
+            "utilisateurs" => $this->utilisateursRepository->findAll(),
+            "fournisseurs" => $fournisseursRepository->findAll(),
+        ]); 
     }
+
 
     /**
      * @Route("/{id}", name="receptions_delete", methods="DELETE")
      */
     public function delete(Request $request, Receptions $reception) : Response
     {
-        if ($this->isCsrfTokenValid('delete' . $reception->getId(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $reception->getId(), $request->request->get('_token'))) 
+        {
             $em = $this->getDoctrine()->getManager();
+
+            if(count($reception->getArticles()) > 0)
+            {   
+                $articles = $reception->getArticles();
+                foreach($articles as $article)
+                {
+                    $em->remove($article);
+                }
+            }
+
             $em->remove($reception);
             $em->flush();
         }
         return $this->redirectToRoute('receptions_index');
     }
+
 
     /**
      * @Route("/article/{id}/{k}", name="reception_ajout_article", methods={"GET", "POST"})
@@ -277,13 +342,13 @@ class ReceptionsController extends AbstractController
             // modification du statut
             foreach ($articles as $article) 
             {
-                $statut = $this->statutsRepository->findById(1);
+                $statut = $this->statutsRepository->findOneById(1);
                 //vérifie si l'article est bien encore en reception
 
-                if ($article->getStatut() === $statut[0]  && $article->getEtat() === true)
+                if ($article->getStatut() === $statut  && $article->getEtat() === true)
                 {
                     $statut = $this->statutsRepository->findById(3);
-                    $article->setStatut($statut[0]);
+                    $article->setStatut($statut);
                 }
             }
 

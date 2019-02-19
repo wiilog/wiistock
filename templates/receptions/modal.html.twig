@@ -12,18 +12,18 @@ aria-hidden="true">
             <div class="modal-body modal-input container-fluid">
 
                     <div class="form-group">
-                        <label for="NumeroReception">Numero Reception</label>
+                        <label for="NumeroReception">Numéro Réception</label>
                         <input type="text" class="form-control data" name="NumeroReception" placeholder="N°Reception">
                     </div>
         
                     <div class="form-group">
                         <label for="date-commande">Date commande</label>
-                        <input type="date" class="form-control data" name="date-commande" value="" required="true">
+                        <input type="date" class="form-control data" name="date-commande" value="" required="true" min="{{ 'now' | date('Y-m-d') }}" max="{{ '+25year' | date('Y-m-d') }}">
                     </div>
 
                     <div class="form-group">
-                        <label for="date-attendu">Date attendu</label>
-                        <input type="date" class="form-control data" name="date-attendu" value="" required="true">
+                        <label for="date-attendu">Date attendue</label>
+                        <input type="date" class="form-control data" name="date-attendu" value="" required="true" min="{{ 'now' | date('Y-m-d') }}" max="{{ '+25year' | date('Y-m-d') }}">
                     </div>
 
                     <div class="form-group">
