@@ -1,75 +1,67 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Collecte{% endblock %}
+{% block title %}Collectes{% endblock %}
 
 {% block page_content %}
-    <h1>Collecte</h1>
 
-    {% if history is defined %}
-        <div class="row btn pull-left">
-            <a href={{path('collecte_index', {'history': 'false'})}} class="button btn-left"><span class="fas fa-history"></span> collecte en cours</a>
-        </div>
-    {% else %}
-        <div class="row btn pull-left">
-            <a href={{path('collecte_index', {'history': 'true'})}} class="button btn-left"><span class="fas fa-history"></span> Historique</a>
-        </div>
-    {% endif %}
-    <div class='row btn pull-right' >
+    <h1>Collectes</h1>
+
+    <div class='row btn' >
         <a href="" data-toggle="modal" data-target="#dataModalCenter" class="button btn-left">
             <span class="fa fa-plus"></span>Nouvelle collecte
         </a>
     </div>
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Statut</th>
-                <th>Numero</th>
-                <th>Date</th>
-                <th>actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for collecte in collectes %}
-            <tr>
-                <td>{{ collecte.id }}</td>
-                <td>{{ collecte.statut.nom }}</td>
-                <td>{{ collecte.numero }}</td>
-                <td>{{ collecte.date ? collecte.date | date('Y-m-d H:i:s') : '' }}</td>
-                <td>
-                    <!-- , {'history': 'false'}) -->
-                    <form action="{{ path('collecte_index', {'history': 'false'}) }}" method="post">
-                        {% if collecte.statut.id == 18 %} <!--en cours de collecte -->
-                            <a href="{{ path('collecte_show', {'id': collecte.id}) }}"class="btn btn-xs btn-default command-edit backIconListjv"><i class="fas fa-list fa-2x"></i></a>
-                        {% else %}
-                            <a href="{{ path('collecte_show', {'id': collecte.id}) }}"class="btn btn-xs btn-default command-edit"><i class="fas fa-eye fa-2x"></i></a>                        
-                        {% endif %}
-                        {% if collecte.statut.id == 19 %} <!--demande de collecte-->
-                            <a href="{{ path('collecte_edit', {'id': collecte.id}) }}"class="btn btn-xs btn-default command-edit"><i class="fas fa-pencil-alt fa-2x"></i></a>
-                        {% endif %}
-                        {% if collecte.statut.id == 19 %} <!--demande de collecte-->
-                            <button type="submit" name="fin" value={{collecte.id}} class="btn btn-xs btn-default command-edit backgreen"><i class="fas fa-check fa-2x"></i></button> 
-                        {% endif %}
-                    </form>
-                </td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="4">Aucun résultat</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
- {{ knp_pagination_render(collectes) }}
 
-{% include 'collecte/modalCollecte.html.twig' %}
+    <div>
+        <table id="table-list-collects" class="table table-striped">
+            <thead>
+            <tr>
+                <th>Date</th>
+                <th>Demandeur</th>
+                <th>Libellé</th>
+                <th>Statut</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+    {{ knp_pagination_render(collectes) }}
+
+    {% include 'collecte/modalCollecte.html.twig' %}
 
 {% endblock %}
 
 {% block javascript %}
+<script src="{{asset('js/collecte.js')}}"></script>
+
 <script>
-    var dataModal = document.getElementById("dataModalCenter");
-    var ButtonSubmit = document.getElementById("submitButton");
-    InitialiserModal(dataModal, ButtonSubmit, "{{ path('collecte_create') }}");
+
+$(document).ready(function() {
+    $('.select2').select2();
+});
+
+$('#dataModalCenter').find('.save').on('click', function() {
+    saveCollecte($(this));
+});
+
+$('#table-list-collects').DataTable({
+     "language": {
+       "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
+     },
+     "ajax":{
+        "url":"{{path('collectes_json')}}",
+        "type": "POST"
+    },
+    columns: [
+        { "data": 'Date' },
+        { "data": 'Demandeur' },
+        { "data": 'Objet' },
+        { "data": 'Statut' },
+        { "data": 'actions'}
+    ],
+});
+
 </script>
 {% endblock %}

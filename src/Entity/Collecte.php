@@ -29,6 +29,16 @@ class Collecte
     private $date;
 
     /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $objet;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="collectes")
+     */
+    private $pointCollecte;
+
+    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateurs", inversedBy="collectes")
      */
     private $demandeur;
@@ -123,6 +133,30 @@ class Collecte
     public function setStatut(?Statuts $Statut): self
     {
         $this->Statut = $Statut;
+
+        return $this;
+    }
+
+    public function getObjet(): ?string
+    {
+        return $this->objet;
+    }
+
+    public function setObjet(?string $objet): self
+    {
+        $this->objet = $objet;
+
+        return $this;
+    }
+
+    public function getPointCollecte(): ?Emplacement
+    {
+        return $this->pointCollecte;
+    }
+
+    public function setPointCollecte(?Emplacement $pointCollecte): self
+    {
+        $this->pointCollecte = $pointCollecte;
 
         return $this;
     }

@@ -1,0 +1,16 @@
+<form class="form-group">
+    <label for="code">Code article</label>
+    <select class="form-control select2" id="code" name="code">
+        <option value="">Choisir un code article...</option>
+        {%  for article in articles %}
+            <option value="{{ article.id }}" data-quantity="{{ article.quantite }}">{{ article. nom }}</option>
+        {% endfor %}
+    </select>
+
+    <div class="form-row">
+        <div class="col-4">
+            <label for="quantity">Quantité</label>
+            <input class="form-control" type="number" min=0 id="quantity" name="quantity" value="">
+        </div>
+    </div>
+</form>

@@ -70,4 +70,35 @@ class Quais
         return $this;
     }
 
+    /**
+     * @return Collection|Articles[]
+     */
+    public function getArticles(): Collection
+    {
+        return $this->articles;
+    }
+
+    public function addArticle(Articles $article): self
+    {
+        if (!$this->articles->contains($article)) {
+            $this->articles[] = $article;
+            $article->setQuai($this);
+        }
+
+        return $this;
+    }
+
+    public function removeArticle(Articles $article): self
+    {
+        if ($this->articles->contains($article)) {
+            $this->articles->removeElement($article);
+            // set the owning side to null (unless already changed)
+            if ($article->getQuai() === $this) {
+                $article->setQuai(null);
+            }
+        }
+
+        return $this;
+    }
+
 }

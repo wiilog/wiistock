@@ -1,72 +1,127 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Collecte{% endblock %}
+{% block title %}Demande de collecte{% endblock %}
 
 {% block page_content %}
-    <h1>Collecte n°{{ collecte.numero }}</h1>
-    <table class="table">
+    <h2>Demande de collecte n° {{ collecte.numero }}</h2>
+
+    <div class="container ml-0">
+        <div class="row">
+            <div class="col-2">Demandeur</div>
+            <div class="col-2">{{ collecte.demandeur }}</div>
+            <div class="col-2">Date demande</div>
+            <div class="col-2">{{ collecte.date.date|date('d/m/Y') }}</div>
+        </div>
+        <div class="row">
+            <div class="col-2">Objet</div>
+            <div class="col-2">{{ collecte.objet }}</div>
+        </div>
+        <div class="row">
+            <div class="col-2">Date terminée</div>
+            <div class="col-2"></div>
+        </div>
+
+    </div>
+
+    <div class='row btn' >
+        <a href="" data-toggle="modal" data-target="#modalAddArticle" class="button btn-left" id="addArticle">
+            <span class="fa fa-plus"></span>Ajouter un article
+        </a>
+    </div>
+
+    <table id="table-list-articles" class="table table-striped">
+        <thead>
+        <tr>
+            <th>Nom</th>
+            <th>Statut</th>
+            <th>Conformité</th>
+            <th>Reférences Articles</th>
+            <th>Position</th>
+            <th>Destination</th>
+            <th>Quantité</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
         <tbody>
-            <tr>
-                <th>Id</th>
-                <td>{{ collecte.id }}</td>
-            </tr>
-            <tr>
-                <th>Statut</th>
-                <td>{{ collecte.statut.nom }}</td>
-            </tr>
-            <tr>
-                <th>Date</th>
-                <td>{{ collecte.date ? collecte.date | date('Y-m-d H:i:s') : '' }}</td>
-            </tr>
+        {#{% for article in collecte.articles |reverse %}#}
+        {#<form action="{{ path('collecte_show', {'id': collecte.id}) }}"  method="post">#}
+        {#<tr>#}
+        {#<td>{{ article.nom }}</td>#}
+        {#<td>{{ article.statut.nom }}</td>#}
+        {#<td>{{ article.etat ? 'oui' : article.commentaire }}</td>#}
+        {#<td>{{ article.refArticle.reference }}</td>#}
+        {#<td>{{ article.position }}</td>#}
+        {#<td>{{ article.direction }}</td>#}
+        {#{% if collecte.statut.id == 18 and article.statut.id == 4 %}#}
+        {#<td><input type="number" name="quantite" id="" min=0 value="{{ article.quantite }}" class="mb-3 form-control"></td>#}
+        {#<td>#}
+        {#<button type="submit" name="prise" value={{ article.id }} class="btn btn-xs btn-default command-edit backgreen"><i class="fas fa-check fa-2x"></i></button> #}
+        {#</td>#}
+        {#{% elseif article.statut.id == 20 %}#}
+        {#<td>{{ article.quantite }}</td>#}
+        {#<td><button type="submit" name="depose" value={{ article.id }} class="btn btn-xs btn-default command-edit backgreen"><i class="far fa-arrow-alt-circle-down fa-2x"></i></button></td>#}
+        {#{% else %}#}
+        {#<td>{{ article.quantite }}</td> #}
+        {#<td><a href="{{ path('articles_show', {'id': article.id}) }}" class="btn btn-xs btn-default command-edit"><i class="fas fa-eye fa-2x"></i></a></td>   #}
+        {#{% endif %}#}
+        {#</form>#}
+        {#</tr>#}
+        {#{% else %}#}
+        {#<tr>#}
+        {#<td colspan="10">aucun résultat</td>#}
+        {#</tr>#}
+        {#{% endfor %}#}
         </tbody>
     </table>
+    {% set path = path('collecte_index') %}
+    {% set referer = app.request.headers.get('referer')|default(path) %}
+    <a href={{ referer }} class='button pull-left btn-left'> Retour</a>
+    {{ include('collecte/_delete_form.html.twig') }}
+    <!-- <a href="{{ path('collecte_edit', {'id': collecte.id}) }}" class='button pull-right btn-left'>Modifier</a> -->
+    {{ include('collecte/modalAddArticle.html.twig') }}
 
-    <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Nom</th>
-                    <th>Statut</th>
-                    <th>Conformité</th>
-                    <th>Reférences Articles</th>
-                    <th>position</th>
-                    <th>destination</th>
-                    <th>Quantite</th>
-                    <th>actions</th>
-                </tr>
-            </thead>
-            <tbody>
-            {% for article in collecte.articles |reverse %}
-            <form action="{{ path('collecte_show', {'id': collecte.id}) }}"  method="post">
-                <tr>
-                    <td>{{ article.nom }}</td>
-                    <td>{{ article.statut.nom }}</td>
-                    <td>{{ article.etat ? 'oui' : article.commentaire }}</td>
-                    <td>{{ article.refArticle.reference }}</td>
-                    <td>{{ article.position }}</td>
-                    <td>{{ article.direction }}</td>
-                        {% if collecte.statut.id == 18 and article.statut.id == 4 %}
-                            <td><input type="number" name="quantite" id="" min=0 value="{{ article.quantite }}" class="mb-3 form-control"></td>
-                            <td>
-                                <button type="submit" name="prise" value={{ article.id }} class="btn btn-xs btn-default command-edit backgreen"><i class="fas fa-check fa-2x"></i></button> 
-                            </td>
-                        {% elseif article.statut.id == 20 %}
-                            <td>{{ article.quantite }}</td>
-                            <td><button type="submit" name="depose" value={{ article.id }} class="btn btn-xs btn-default command-edit backgreen"><i class="far fa-arrow-alt-circle-down fa-2x"></i></button></td>
-                        {% else %}
-                        <td>{{ article.quantite }}</td> 
-                        <td><a href="{{ path('articles_show', {'id': article.id}) }}" class="btn btn-xs btn-default command-edit"><i class="fas fa-eye fa-2x"></i></a></td>   
-                        {% endif %}
-                    </form>
-                </tr>
-            {% else %}
-                <tr>
-                    <td colspan="10">aucun résultat</td>
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-        <a href={{session}} class='button pull-left btn-left'> Retour</a>
-        {{ include('collecte/_delete_form.html.twig') }}
-        <!-- <a href="{{ path('collecte_edit', {'id': collecte.id}) }}" class='button pull-right btn-left'>Modifier</a> -->
-    
+{% endblock %}
+
+{% block javascript %}
+<script src="{{asset('js/collecte.js')}}"></script>
+<script>
+
+$('#addArticle').on('click', function() {
+    $.getJSON('{{ path('modal_add_article') }}', function(data) {
+        let modal = $('#modalAddArticle');
+        modal.find('.modal-body').html(data.html);
+        $('.select2').select2(); //TODO CG
+
+        modal.find('.save').on('click', function() {
+            addArticle($(this));
+        });
+
+        modal.find('#code').on('change', function() {
+           displayQuantity($(this));
+        });
+    });
+});
+
+$('#table-list-articles').DataTable({
+    "language": {
+        "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json",
+    },
+    "ajax":{
+        "url":"{{path('articles_by_collecte')}}",
+        "data" : { collecteId: {{ collecte.id }} },
+        "type": "POST"
+    },
+    columns: [
+        { "data": 'Nom' },
+        { "data": 'Statut' },
+        { "data": 'Conformité' },
+        { "data": 'Reférences Articles' },
+        { "data": 'Position' },
+        { "data": 'Destination' },
+        { "data": 'Quantité' },
+        { "data": 'Actions'}
+    ],
+
+});
+</script>
 {% endblock %}

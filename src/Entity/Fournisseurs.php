@@ -102,4 +102,27 @@ class Fournisseurs
     {
         return $this->nom;
     }
+
+    public function addReception(Receptions $reception): self
+    {
+        if (!$this->receptions->contains($reception)) {
+            $this->receptions[] = $reception;
+            $reception->setFournisseur($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReception(Receptions $reception): self
+    {
+        if ($this->receptions->contains($reception)) {
+            $this->receptions->removeElement($reception);
+            // set the owning side to null (unless already changed)
+            if ($reception->getFournisseur() === $this) {
+                $reception->setFournisseur(null);
+            }
+        }
+
+        return $this;
+    }
 }
