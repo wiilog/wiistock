@@ -8,7 +8,7 @@
             <ul id="sidemenu" class="sidemenu">
                 <li>
                     <a href={{path("utilisateurs_edit", {"id": app.user.id})}}>
-                        <i class="fas fa-user"></i>
+                        <img src={{asset('img/logogt.png')}} class='logoGt' >
                         <div class="username">{{ app.user.username }}</div>
                     </a>
                 </li>
@@ -147,7 +147,7 @@
         </nav>
     {% endblock %}
     <div class="wrapper"  class="accueil-back">
-        <div class="container-fluid ">
+        <div class="container-fluid">
             {% block page_content %}
             
             {% endblock %}

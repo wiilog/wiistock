@@ -129,7 +129,7 @@ class CollecteController extends AbstractController
             'Position'=> ($article->getPosition() ? $article->getPosition()->getNom() : "null"),
             'Destination'=> ($article->getDirection() ? $article->getDirection()->getNom() : "null"),
             'Quantité à collecter'=>($article->getQuantiteCollectee() ? $article->getQuantiteCollectee() : "null"),
-            'Actions'=> "<div class='btn btn-xs btn-default article-edit' onclick='editRow($(this))'><i class='fas fa-pencil-alt fa-2x'></i></a>
+            'Actions'=> "<div class='btn btn-xs btn-default article-edit' onclick='editRow($(this))'><i class='fas fa-pencil-alt fa-2x'></i></div>
                         <div class='btn btn-xs btn-default article-delete' onclick='deleteRow($(this))'><i class='fas fa-trash fa-2x'></i></div>"
         ];
 //TODO CG centraliser avec la même dans ArticlesController

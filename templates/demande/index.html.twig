@@ -7,17 +7,7 @@
 <div class="row">
     <div class="barre-filtre col-12">
         <h1>Demande de livraison</h1>
-        {% if history is defined %}
-            <div class="row btn pull-left">
-                <a href={{path('demande_index', {'history': 'false'})}} class="button btn-left"><span class="fas fa-history"></span> Mes demandes</a>
-            </div>
-        {% else %}
-            <div class="row btn pull-left">
-                <a href= {{ path('demande_index', {'history': 'true'})}} class="button btn-left"><span class="fas fa-history"></span> Historique</a>
-            </div>
-        {% endif %}
-
-        <div class='row btn pull-right' >
+        <div class='row btn pull-right'>
             <a href="" data-toggle="modal" data-target="#dataModalCenter" class="button btn-left">
                 <span class="fa fa-plus"></span> Nouvelle demande
             </a>
@@ -33,7 +23,7 @@
                 <tr>
                     <th>Date</th>
                     <th>Demandeur</th>
-                    <th>Numero</th>
+                    <th>Numéro</th>
                     <th>Statut</th>
                     <th>Actions</th>
                 </tr>
@@ -63,7 +53,7 @@ var table = $('#table_demande').DataTable({
         columns: [
             { "data": 'Date' },
             { "data": 'Demandeur' },
-            { "data": 'Numero' },
+            { "data": 'Numéro' },
             { "data": 'Statut' },
             { "data": 'Actions' },
         ],

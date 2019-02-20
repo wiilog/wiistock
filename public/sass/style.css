@@ -149,11 +149,15 @@ a:hover {
 }
 
 .accueil-back {
-  background-image: url(../img/GTXBackAccueil2red.png);
   width: 100%;
   height: 100%;
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
+}
+
+.logoGt {
+  width: 50%;
+  height: 40%;
 }
 /*# sourceMappingURL=style.css.map */

@@ -199,11 +199,12 @@ input:-webkit-autofill {
 } */
 
 .table thead {
-	background-color: #ffbc02;
+	background-color: #130078;
+	color: white;
 }
 
 .table-hover thead>tr>th:hover {
-	background-color: #f0b000;
+	background-color: #130078;
 }
 
 .table .text, .table .glyphicon {
@@ -215,7 +216,8 @@ input:-webkit-autofill {
 }
 
 .table tr:hover td {
-	background-color: #e8c35a;
+	background-color: #14007894;
+	color: white;
 }
 
 .table>tbody>tr>td, .table>tbody>tr>th, .table>tfoot>tr>td, .table>tfoot>tr>th, .table>thead>tr>td, .table>thead>tr>th {
@@ -298,15 +300,15 @@ table .fa:hover {
 }
 
 .pagination .last a, .pagination .next a, .pagination .prev a, .pagination .first a {
-	background-color: #ffbc02;
+	background-color: #130078;
 	color: #fcfcfcfc;
-	border-color: #ffbc02;
+	border-color: #130078;
 }
 
 .pagination .last a:hover, .pagination .next a:hover, .pagination .prev a:hover, .pagination .first a:hover {
 	background-color: #fcfcfcfc;
-	color: #ffbc02;
-	border-color: #ffbc02;
+	color: #130078;
+	border-color: #130078;
 }
 
 .pagination .active a {
@@ -332,13 +334,13 @@ table .fa:hover {
 }
 
 .pagination .disabled a {
-	background-color: #e8c35a;
-	border-color: #e8c35a;
+	background-color: #130078;
+	border-color: #130078;
 }
 
 .pagination .disabled a:hover {
-	background-color: #e8c35a;
-	border-color: #e8c35a;
+	background-color: #130078;
+	border-color: #130078;
 	color: #fcfcfcfc
 }
 
@@ -1890,7 +1892,7 @@ input:checked+.slider:before {
 ================= */
 
 .modal-header {
-	background-color: #f0b000;
+	background-color: #130078;
 	color: white !important;
 	text-align: center;
 	font-size: 30px;
@@ -2522,7 +2524,7 @@ input, [type=file]+label {
 	max-width: 400px;
 	padding: 10px 0 0 0;
 	border-radius: 3%;
-	background-color: #ffbc02;
+	
 }
 
 .login-wrapper .login-form {

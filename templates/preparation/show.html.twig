@@ -11,7 +11,7 @@
         <p>Opérateur: {{ preparation.utilisateur ? preparation.utilisateur.username : "null" }}</p>
     </div>
     <div class="col-4">
-        <p><a href="{{path('createLivraison', {'id': preparation.demandes.0.id}) }}">Commencer la livraison</a></p>
+        <p><a href="{{path('createLivraison', {'id': preparation.id}) }}">Commencer la livraison</a></p>
     </div>
 </div>
 
@@ -19,10 +19,10 @@
 
     <thead>
         <tr>
-            <th>Libelle</th>
-            <th>References CEA</th>
-            <th>Quantite</th>
-            <th>Action</th>
+            <th>Libellé</th>
+            <th>Références CEA</th>
+            <th>Quantité</th>
+            <th>Actions</th>
         </tr>
     </thead>
     <tbody>
@@ -44,11 +44,11 @@ var table = $('#table_id').DataTable({
     },
     "processing": true,
     "ajax": {
-        "url": "{{ path('LignePreparation_api', {'id' : demande.id}) }}",
+        "url": "{{ path('LignePreparation_api', {'id' : preparation.id }) }}",
         "type": "POST"
     },
     columns: [{
-            "data": 'Libelle'
+            "data": 'Libellé'
         },
         {
             "data": 'References CEA'
