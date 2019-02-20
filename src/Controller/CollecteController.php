@@ -122,15 +122,15 @@ class CollecteController extends AbstractController
         $em->flush();
 
         $data = [
-            'Nom'=>( $article->getNom() ?  $article->getNom():"null"),
-            'Statut'=> ($article->getStatut()->getNom() ? $article->getStatut()->getNom() : "null"),
+            'Nom'=>( $article->getNom() ?  $article->getNom():""),
+            'Statut'=> ($article->getStatut()->getNom() ? $article->getStatut()->getNom() : ""),
             'Conformité'=>($article->getEtat() ? 'conforme': 'anomalie'),
-            'Reférences Articles'=> ($article->getRefArticle() ? $article->getRefArticle()->getLibelle() : "null"),
-            'Position'=> ($article->getPosition() ? $article->getPosition()->getNom() : "null"),
-            'Destination'=> ($article->getDirection() ? $article->getDirection()->getNom() : "null"),
-            'Quantité à collecter'=>($article->getQuantiteCollectee() ? $article->getQuantiteCollectee() : "null"),
-            'Actions'=> "<div class='btn btn-xs btn-default article-edit' onclick='editRow($(this))'><i class='fas fa-pencil-alt fa-2x'></i></div>
-                        <div class='btn btn-xs btn-default article-delete' onclick='deleteRow($(this))'><i class='fas fa-trash fa-2x'></i></div>"
+            'Reférences Articles'=> ($article->getRefArticle() ? $article->getRefArticle()->getLibelle() : ""),
+            'Position'=> ($article->getPosition() ? $article->getPosition()->getNom() : ""),
+            'Destination'=> ($article->getDirection() ? $article->getDirection()->getNom() : ""),
+            'Quantité à collecter'=>($article->getQuantiteCollectee() ? $article->getQuantiteCollectee() : ""),
+            'Actions'=> "<a href='" . $urlEdit . "' class='btn btn-xs btn-default article-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
+                        <a href='' class='btn btn-xs btn-default article-delete'><i class='fas fa-trash fa-2x'></i></a>"
         ];
 //TODO CG centraliser avec la même dans ArticlesController
         return new JsonResponse($data);
@@ -146,7 +146,7 @@ class CollecteController extends AbstractController
         foreach ($collectes as $collecte) {
             $url = $this->generateUrl('collecte_show', ['id' => $collecte->getId()]);
             $rows[] = [
-                'Date'=> ($collecte->getDate() ? $collecte->getDate()->format('d/m/Y') : null),
+                'Date'=> ($collecte->getDate() ? $collecte->getDate()->format('d-m-Y') : null),
                 'Demandeur'=> ($collecte->getDemandeur() ? $collecte->getDemandeur()->getUserName() : null ),
                 'Libellé'=> ($collecte->getObjet() ? $collecte->getObjet() : null ),
                 'Statut'=> ($collecte->getStatut()->getNom() ? ucfirst($collecte->getStatut()->getNom()) : null),

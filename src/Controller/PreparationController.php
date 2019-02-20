@@ -88,7 +88,7 @@ class PreparationController extends AbstractController
                 $demande = $demande[0];
                 dump($demande); // On avance dans le tableau
                 $demande->setPreparation($preparation);
-                $statut = $this->statutsRepository->findById(15); /* Statut : Demande de préparation */
+                $statut = $this->statutsRepository->findById(14); /* Statut : Demande de préparation */
                 $demande->setStatut($statut[0]);
                 $articles = $demande->getArticles();
 
@@ -162,9 +162,9 @@ class PreparationController extends AbstractController
             {
                 $urlShow = $this->generateUrl('preparation_show', ['id' => $preparation->getId()] );
                 $row = [
-                    'Numéro' => ($preparation->getNumero() ? $preparation->getNumero() : "null"),
-                    'Date' => ($preparation->getDate() ? $preparation->getDate()->format('Y-m-d') : 'null'),
-                    'Statut' => ($preparation->getStatut() ? $preparation->getStatut()->getNom() : "null"),
+                    'Numéro' => ($preparation->getNumero() ? $preparation->getNumero() : ""),
+                    'Date' => ($preparation->getDate() ? $preparation->getDate()->format('Y-m-d') : ''),
+                    'Statut' => ($preparation->getStatut() ? $preparation->getStatut()->getNom() : ""),
                     'Actions' => "<a href='" . $urlShow . "' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>",
                 ];
                 array_push($rows, $row);

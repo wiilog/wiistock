@@ -63,8 +63,9 @@ function deleteCollecte(button) {
 
     if (status !== 'demande de collecte') { //TODO CG passer par constante ?
         let alerts = $('#alerts');
-        alerts.addClass('alert alert-danger')
+        alerts.addClass('alert alert-danger');
         alerts.html('La collecte ne peut pas être supprimée (statut ' + status + ').');
+//TODO CG optimiser (msg d'erreur + tôt)
     } else {
         let collecteId = modal.data('collecte-id');
         $.post("/collecte/" + collecteId + "/delete", function() {
@@ -73,12 +74,33 @@ function deleteCollecte(button) {
     }
 }
 
-function deleteRow(icon) {
-    let row = icon.closest('tr');
+function deleteRow(button) {
+    let row = button.closest('tr');
     $('#table-list-articles').DataTable().row(row).remove().draw();
 }
 
-function editRow(icon) {
-    let row = icon.closest('tr');
-    // TODO CG
+function editRow(button) {
+    let quantity = button.data('quantity');
+    let name = button.data('name');
+    let id = button.data('id');
+    let modal = $('#modalModifyArticle');
+    modal.find('.quantity').val(quantity);
+    modal.find('.quantity').attr('max', quantity); //TODO CG il faudrait récupérer la valeur de la quantité de l'article
+    modal.find('.article').html(name);
+    modal.data('id', id); //TODO CG trouver + propre
+}
+
+function modifyArticle(button) {
+    let modal = button.closest('.modal');
+    let quantity = modal.find('.quantity').val();
+    let articleId = modal.data('id');
+
+    let params = {
+        articleId: articleId,
+        quantity: quantity
+    };
+
+    $.post("/articles/edit-quantity", params, function() {
+        //TODO CG edit row datatable
+    });
 }

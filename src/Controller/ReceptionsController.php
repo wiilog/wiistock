@@ -95,8 +95,11 @@ class ReceptionsController extends AbstractController
                 $em->persist($reception);
                 $em->flush();
 
-                $url = $this->generateUrl('reception_ajout_article', ['id' => $reception->getId(), 'k' => "0"]);
-                return $this->redirectToRoute($url);
+                $data = [
+                    "redirect" => $this->generateUrl('reception_ajout_article', ['id' => $reception->getId(), 'k' => "0"])
+                ];
+                
+                return new JsonResponse($data);
             }
         }
 
@@ -153,11 +156,11 @@ class ReceptionsController extends AbstractController
                 $row =
                     [
                     'id' => ($reception->getId()),
-                    "Statut" => ($reception->getStatut() ? $reception->getStatut()->getNom() : 'null'),
-                    "Date commande" => ($reception->getDate() ? $reception->getDate() : 'null')->format('d/m/Y'),
-                    "Date attendue" => ($reception->getDateAttendu() ? $reception->getDateAttendu()->format('d/m/Y') : 'null'),
-                    "Fournisseur" => ($reception->getFournisseur() ? $reception->getFournisseur()->getNom() : 'null'),
-                    "Référence" => ($reception->getNumeroReception() ? $reception->getNumeroReception() : 'null'),
+                    "Statut" => ($reception->getStatut() ? $reception->getStatut()->getNom() : ''),
+                    "Date commande" => ($reception->getDate() ? $reception->getDate() : '')->format('d/m/Y'),
+                    "Date attendue" => ($reception->getDateAttendu() ? $reception->getDateAttendu()->format('d/m/Y') : ''),
+                    "Fournisseur" => ($reception->getFournisseur() ? $reception->getFournisseur()->getNom() : ''),
+                    "Référence" => ($reception->getNumeroReception() ? $reception->getNumeroReception() : ''),
                     'Actions' => "<a href='" . $urlEdite . "' class='btn btn-xs btn-default command-edit '><i class='fas fa-pencil-alt fa-2x'></i></a>
                     <a href='" . $urlShow . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-plus fa-2x'></i> Articles</a>",
                 ];
