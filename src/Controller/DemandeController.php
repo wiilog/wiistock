@@ -186,7 +186,7 @@ class DemandeController extends AbstractController
 
 
     /**
-     * @Route("/index", name="demande_index", methods={"GET"})
+     * @Route("/", name="demande_index", methods={"GET"})
      */
     public function index(Request $request) : Response
     {
@@ -199,7 +199,7 @@ class DemandeController extends AbstractController
 
 
     /**
-     * @Route("/show/{id}", name="demande_show", methods={"GET"})
+     * @Route("/voir/{id}", name="demande_show", methods={"GET"})
      */
     public function show(Demande $demande) : Response
     {
@@ -220,7 +220,7 @@ class DemandeController extends AbstractController
             'demande' => $demande,
             'lignesArticles' => $lignes,
             'utilisateurs' => $this->utilisateursRepository->findAll(),
-            'statuts' => $this->statutsRepository->findAll(),
+            'statuts' => $this->statutsRepository->findByCategorie('Demandes'),
             'references' => $this->referencesArticlesRepository->findAll()
         ]);
     }
@@ -281,7 +281,7 @@ class DemandeController extends AbstractController
     }
 
     /**
-     * @Route("/api/{id}", name="LigneArticle_api", methods={"POST"}) 
+     * @Route("/api-ligne/{id}", name="LigneArticle_api", methods={"POST"})
      */
     public function LigneArticleApi(Request $request, Demande $demande) : Response
     {

@@ -125,7 +125,7 @@ class CollecteController extends AbstractController
             'Nom'=>( $article->getNom() ?  $article->getNom():""),
             'Statut'=> ($article->getStatut()->getNom() ? $article->getStatut()->getNom() : ""),
             'Conformité'=>($article->getEtat() ? 'conforme': 'anomalie'),
-            'Reférences Articles'=> ($article->getRefArticle() ? $article->getRefArticle()->getLibelle() : ""),
+            'Références Articles'=> ($article->getRefArticle() ? $article->getRefArticle()->getLibelle() : ""),
             'Emplacement'=> ($article->getPosition() ? $article->getPosition()->getNom() : "0"),
             'Destination'=> ($article->getDirection() ? $article->getDirection()->getNom() : ""),
             'Quantité à collecter'=>($article->getQuantiteCollectee() ? $article->getQuantiteCollectee() : ""),

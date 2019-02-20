@@ -123,7 +123,7 @@ class FournisseursController extends Controller
         if ($form->isSubmitted() && $form->isValid()) {
             $this->getDoctrine()->getManager()->flush();
 
-            return $this->redirectToRoute('fournisseurs_edit', ['id' => $fournisseur->getId()]);
+            return $this->redirectToRoute('fournisseurs_index');
         }
 
         return $this->render('fournisseurs/edit.html.twig', [
