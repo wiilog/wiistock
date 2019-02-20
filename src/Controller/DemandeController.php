@@ -291,11 +291,13 @@ class DemandeController extends AbstractController
 
             foreach ($LigneArticles as $LigneArticle) {
                 $refArticle = $this->referencesArticlesRepository->findOneById($LigneArticle["reference"]);
-                $row = [ 
-                    "Références CEA" => ($LigneArticle["reference"] ? $LigneArticle["reference"] : ''),
-                    "Libellé" => ($refArticle->getLibelle() ? $refArticle->getLibelle() : ''),
-                    "Quantité" => ($LigneArticle["quantite"] ? $LigneArticle["quantite"] : ''),
-                    "Actions" => "actions", 
+                $urlShow = $this->generateUrl('references_articles_show', ['id' => $refArticle->getId()] );
+                $row = [
+                    "References CEA" => ($LigneArticle["reference"] ? $LigneArticle["reference"] : ''),
+                    "Libelle" => ($refArticle->getLibelle() ? $refArticle->getLibelle() : ''),
+                    "Quantite" => ($LigneArticle["quantite"] ? $LigneArticle["quantite"] : ''),
+                    'Actions' => "<a href='" . $urlShow . " ' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>",
+
                 ];
                 array_push($rows, $row);
             }

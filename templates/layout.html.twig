@@ -2,118 +2,121 @@
 
 {% block body %}
 
-    {% block menu %}
-        <nav>
-            <div id="sidemenu-bg" class="sidemenu-bg hide"></div>
-            <ul id="sidemenu" class="sidemenu">
+{% block menu %}
+<nav>
+    <div id="sidemenu-bg" class="sidemenu-bg hide"></div>
+    <ul id="sidemenu" class="sidemenu">
+        <li>
+            <a href={{path("utilisateurs_edit", {"id": app.user.id})}}>
+                    <div style='font-size:0.8em;'> V0.0.2</div>
+                <img src={{asset('img/logogt.png')}} class='logoGt'>
+                <div class="username">{{ app.user.username }}</div>
+            </a>
+        </li>
+        <li>
+            <a href="{{ path('check_last_login') }}">
+                <i class="fas fa-home"></i>
+                <h4 class="username">Accueil</h4>
+            </a>
+        </li>
+        <!-- DEMANDE   -->
+        <li class="has-submenu">
+            <a href="#">
+                <i class="fas fa-shopping-cart"></i>
+                <h4 class="username">Demande</h4>
+            </a>
+            <ul class="sidemenu-sub">
+                <li><a href={{path("collecte_index")}}>• Collecte</a></li>
+                <li><a href={{ path('demande_index') }}>• Livraison</a></li>
+            </ul>
+        </li>
+        <!-- ORDRE -->
+        <li class="has-submenu">
+            <a href="#">
+                <i class="fas fa-network-wired"></i>
+                <h4 class="username">Ordre</h4>
+            </a>
+            <ul class="sidemenu-sub">
+                <li><a href={{path("receptions_index")}}>• Réception</a></li>
+                <li><a href={{ path('preparation_index') }}>• Préparation</a></li>
+                <li><a href={{ path("livraison_index") }}>• Livraison</a></li>
+            </ul>
+        </li>
+        <!-- STOCK -->
+        <li class="has-submenu">
+            <a href="#">
+                <i class="fas fa-box"></i>
+                <h4 class="username">Stock</h4>
+            </a>
+            <ul class="sidemenu-sub">
+                <li><a href={{ path('articles_index') }}>• Article</a></li>
+                <!-- <li><a href="#">• Mouvement</a></li> -->
+                <li><a href={{path('emplacement_index')}}>• Emplacement</a></li>
+                <!-- <li><a href="#">• Inventaire</a></li>        -->
+            </ul>
+        </li>
+        <!-- REFERENCE -->
+        <li class="has-submenu">
+            <a href="#">
+                <i class="fas fa-sync-alt"></i>
+                <h4 class="username">Référentiel</h4>
+            </a>
+            <ul class="sidemenu-sub">
                 <li>
-                    <a href={{path("utilisateurs_edit", {"id": app.user.id})}}>
-                        <img src={{asset('img/logogt.png')}} class='logoGt' >
-                        <div class="username">{{ app.user.username }}</div>
-                    </a>
+                    <a href="{{ path('fournisseurs_index') }}">• Fournisseur</a>
                 </li>
                 <li>
-                    <a href="{{ path('check_last_login') }}">
-                        <i class="fas fa-home"></i>
-                        <h4 class="username">Accueil</h4>
-                    </a>
+                    <a href="{{ path('references_articles_index') }}">• Article référence</a>
                 </li>
-<!-- DEMANDE   -->
-                <li class="has-submenu">
-                    <a href="#">
-                        <i class="fas fa-shopping-cart"></i>
-                        <h4 class="username">Demande</h4>
-                    </a>
-                    <ul class="sidemenu-sub">
-                        <li ><a href={{path("collecte_index")}}>• Collecte</a></li>
-                        <li ><a href={{ path('demande_index') }}>• Livraison</a></li>
-                    </ul>
-                </li>
-<!-- ORDRE -->
-                <li class="has-submenu">
-                    <a href="#">
-                        <i class="fas fa-network-wired"></i>
-                        <h4 class="username">Ordre</h4>
-                    </a>
-                    <ul class="sidemenu-sub">
-                        <li><a href={{path("receptions_index")}}>• Réception</a></li>
-                        <li><a href={{ path('preparation_index') }}>• Préparation</a></li>
-                        <li><a href={{ path("livraison_index") }}>• Livraison</a></li>
-                    </ul>
-               </li>                
-<!-- STOCK -->
-                <li class="has-submenu">
-                    <a href="#">
-                        <i class="fas fa-box"></i>
-                        <h4 class="username">Stock</h4>
-                    </a>
-                    <ul class="sidemenu-sub">
-                        <li><a href={{ path('articles_index') }}>• Article</a></li>
-                        <!-- <li><a href="#">• Mouvement</a></li> -->
-                        <li><a href={{path('emplacement_index')}}>• Emplacement</a></li>
-                        <!-- <li><a href="#">• Inventaire</a></li>        -->
-                    </ul>
-                </li>
-<!-- REFERENCE -->
-                <li class="has-submenu">
-                        <a href="#">
-                            <i class="fas fa-sync-alt"></i>
-                            <h4 class="username">Référentiel</h4>
-                        </a>
-                    <ul class="sidemenu-sub">
-                        <li>
-                            <a href="{{ path('fournisseurs_index') }}">• Fournisseur</a>
-                        </li>
-                        <li>
-                            <a href="{{ path('references_articles_index') }}">• Article référence</a>
-                        </li>
-                        <li>
-                            <!-- <a href="#">• Article type</a> -->
-                        </li>
-                        <li>
-                            <!-- <a href="#">• Article Fournisseur</a> -->
-                        </li>
-                    </ul>
-                </li>
-
-                {% if is_granted('ROLE_ADMIN') %}
-                    <li class="has-submenu">
-                        <a href="#">
-                            <i class="fas fa-gear"></i>
-                            <h4 class="username">Paramétrage</h4>
-                        </a>
-                        <ul class="sidemenu-sub">
-                            <li>
-                                <a href="{{ path('utilisateurs_index') }}">• Utilisateurs</a>
-                            </li>
-                            <li>
-                                <!-- <a href="#">• Rôle</a> -->
-                            </li>
-                            <li>
-                                <!-- <a href="{{ path('champs_personnalises_index') }}">• Champs personnalisé</a> -->
-                            </li>
-                            <li>
-                                <a href="{{ path('alerte_index') }}">• Alertes</a>
-                            </li>
-                        </ul>
-                    </li>
-                {% endif %}
                 <li>
-                    <a href="{{ path('logout') }}">
-                        <i class="	fas fa-power-off"></i>
-                        <h4 class="username">Déconnexion</h4>
-                    </a>
+                    <!-- <a href="#">• Article type</a> -->
+                </li>
+                <li>
+                    <!-- <a href="#">• Article Fournisseur</a> -->
                 </li>
             </ul>
-            <!-- PARAMETRAGE PARC -->
-                            <!-- {% if is_granted('ROLE_PARC_ADMIN') %}
+        </li>
+
+        {% if is_granted('ROLE_ADMIN') %}
+        <li class="has-submenu">
+            <a href="#">
+                <i class="fas fa-gear"></i>
+                <h4 class="username">Paramétrage</h4>
+            </a>
+            <ul class="sidemenu-sub">
+                <li>
+                    <a href="{{ path('utilisateurs_index') }}">• Utilisateurs</a>
+                </li>
+                <li>
+                    <!-- <a href="#">• Rôle</a> -->
+                </li>
+                <li>
+                    <!-- <a href="{{ path('champs_personnalises_index') }}">• Champs personnalisé</a> -->
+                </li>
+                <li>
+                    <a href="{{ path('alerte_index') }}">• Alertes</a>
+                </li>
+            </ul>
+        </li>
+        {% endif %}
+        <li>
+            <a href="{{ path('logout') }}">
+                <i class="	fas fa-power-off"></i>
+                <h4 class="username">Déconnexion</h4>
+
+            </a>
+        </li>
+      
+    </ul>
+    <!-- PARAMETRAGE PARC -->
+    <!-- {% if is_granted('ROLE_PARC_ADMIN') %}
                                 <li>
                                     <a href="{{ path('parc_parametrage') }}">• Paramétrage des données</a>
                                 </li>
                             {% endif %} -->
 
-                <!-- PARC -->
-                <!-- {% if is_granted('ROLE_PARC') %}
+    <!-- PARC -->
+    <!-- {% if is_granted('ROLE_PARC') %}
                     <li class="has-submenu">
                         <a>
                             <i class="fa fa-automobile"></i>
@@ -132,7 +135,7 @@
                     </li>
                 {% endif %}  -->
 
-                <!-- {% if is_granted('ROLE_STOCK') %}
+    <!-- {% if is_granted('ROLE_STOCK') %}
                     <li class="has-submenu">
                         <a href="#">
                             <i class="fa fa-bell"></i>
@@ -144,14 +147,15 @@
                             <i class="fa fa-book"></i>
                         </a>
                 <!-- {% endif %} -->
-        </nav>
-    {% endblock %}
-    <div class="wrapper"  class="accueil-back">
-        <div class="container-fluid">
-            {% block page_content %}
-            
-            {% endblock %}
-        </div>
+
+</nav>
+{% endblock %}
+<div class="wrapper" class="accueil-back">
+    <div class="container-fluid">
+        {% block page_content %}
+
+        {% endblock %}
     </div>
+</div>
 
 {% endblock %}
