@@ -4,7 +4,7 @@
 
 {% block page_content %}
 
-<form action="" class='row backgrey filter-wrapper'>
+<!-- <form action="" class='row backgrey filter-wrapper'>
     <div class="input-group daterange">
         <div class="input-group-addon"> De </div>
         <input type="date" id='dateDebut' class='form-control' placeholder="Date de début">
@@ -24,7 +24,7 @@
     </select>
 
     <button id='filter' class='button'><i class="fas fa-filter"></i> Filtrer</button>
-</form>
+</form> -->
 <div class="row">
     <div class="barre-filtre col-12">
         <h1>Demande de livraison</h1>
@@ -62,7 +62,7 @@
 
 {% block javascript %}
 <script>
-    var data = {'utilisateur': $('#utilisateur').val()};
+    //var data = {'utilisateur': $('#utilisateur').val()};
 
     
     var table = $('#table_demande').DataTable({
@@ -72,10 +72,10 @@
         ajax: {
             "url": "{{path('demande_api')}}",
             "type": "POST",
-            "data": function (d) {
-                console.log($('#utilisateur').val());
-                d.utilisteur = data['utilisateur'];
-            }
+            //"data": function (d) {
+            //    console.log($('#utilisateur').val());
+            //    d.utilisteur = data['utilisateur'];
+            //}
         },
         columns: [
         { "data": 'Date' },
@@ -86,7 +86,7 @@
         ],
     });
     
-    $('#filtre').on('click', $.post( "{{path('demande_api')}}" , {'utilisateur': $('#utilisateur').val()},table.ajax.reload()));
+    //$('#filtre').on('click', $.post( "{{path('demande_api')}}" , {'utilisateur': $('#utilisateur').val()},table.ajax.reload()));
 
     var dataModal = document.getElementById("dataModalCenter");
     var ButtonSubmit = document.getElementById("submitButton");

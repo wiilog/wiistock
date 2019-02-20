@@ -113,7 +113,6 @@ class ReceptionsController extends AbstractController
         {
             if (count($data) != 5)// On regarde si le nombre de données reçu est conforme et on envoi dans la base
             {
-                dump("Hello");
                 $fournisseur = $fournisseursRepository->findById(intval($data[3]['fournisseur']));
                 $utilisateur = $this->utilisateursRepository->findById(intval($data[4]['utilisateur']));
 
@@ -363,14 +362,10 @@ class ReceptionsController extends AbstractController
                 $quantityRef = $articlesRepository->findCountByRefArticle($refArticle);
                 $quantity = $quantityRef[0];
                 $refArticle->setQuantiteDisponible($quantity[1]);
-                dump($quantity);
             }
-
             $this->getDoctrine()->getManager()->flush();
             return $this->redirectToRoute('receptions_index', array('history' => 0));
-
         }
-
         return $this->render("receptions/ajoutArticle.html.twig", array(
             'reception' => $reception,
             'refArticle'=> $this->referencesArticlesRepository->findAll(),
