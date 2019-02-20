@@ -83,8 +83,8 @@ class ArticlesController extends AbstractController
                     'Emplacement'=> ($article->getPosition() ? $article->getPosition()->getNom() : ""),
                     'Destination'=> ($article->getDirection() ? $article->getDirection()->getNom() : ""),
                     'Quantité à collecter'=>($article->getQuantiteCollectee() ? $article->getQuantiteCollectee() : ""),
-                    'Actions'=> "<a href='" . $this->generateUrl('articles_edit', ['id' => $article->getId()] ) . "' class='btn btn-xs btn-default article-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
-                        <a href='' class='btn btn-xs btn-default article-delete'><i class='fas fa-trash fa-2x'></i></a>",
+                    'Actions'=> "<div class='btn btn-xs btn-default article-edit' onclick='editRow($(this))' data-toggle='modal' data-target='#modalModifyArticle' data-quantity='" . $article->getQuantiteCollectee(). "' data-name='" . $article->getNom() . "' data-id='" . $article->getId() . "'><i class='fas fa-pencil-alt fa-2x'></i></div>
+                        <div class='btn btn-xs btn-default article-delete' onclick='deleteRow($(this))'><i class='fas fa-trash fa-2x'></i></div>"
                 ];
             }
             $data['data'] = $rows;
@@ -94,7 +94,7 @@ class ArticlesController extends AbstractController
     }
 
     /**
-     * @Route("/new", name="articles_new", methods="GET|POST")  INUTILE
+     * @Route("/nouveau", name="articles_new", methods="GET|POST")  INUTILE
      */
     public function new(Request $request, StatutsRepository $statutsRepository) : Response
     {
@@ -118,7 +118,7 @@ class ArticlesController extends AbstractController
     }
 
     /**
-     * @Route("/show/{id}", name="articles_show", methods="GET")
+     * @Route("/{id}", name="articles_show", methods="GET")
      */
     public function show(Articles $article) : Response
     {
@@ -131,7 +131,7 @@ class ArticlesController extends AbstractController
     }
 
     /**
-     * @Route("/ajoute-article", name="modal_add_article")
+     * @Route("/ajouter", name="modal_add_article")
      */
     public function displayModalAddArticle(ArticlesRepository $articlesRepository)
     {
@@ -145,13 +145,13 @@ class ArticlesController extends AbstractController
     }
 
     /**
-     * @Route("/edite/{id}", name="articles_edit", methods="GET|POST")
+     * @Route("/modifier/{id}", name="articles_edit", methods="GET|POST")
      */
     public function edit(Request $request, Articles $article, StatutsRepository $statutsRepository, ReceptionsRepository $receptionsRepository) : Response
     {
         $form = $this->createForm(ArticlesType::class, $article);
         $form->handleRequest($request);
-        if ($form->isSubmitted() && $form->isValid()) 
+        if ($form->isSubmitted() && $form->isValid())
         {
 
             if ($article->getEtat() === false) {
@@ -170,7 +170,7 @@ class ArticlesController extends AbstractController
             $reception = $article->getReception()->getId();
             $reception = $receptionsRepository->findOneById($reception);
             $articles = $reception->getArticles();
-            
+
             foreach($articles as $article) {
                 if($article->getStatut()->getId() == 5) {
                     $statut = $statutsRepository->findOneById(5);
@@ -182,7 +182,7 @@ class ArticlesController extends AbstractController
                     $reception->setStatut($statut);
                 }
             }
-            
+
             $this->getDoctrine()->getManager()->flush();
 
             return $this->redirect($_POST['url']);
@@ -195,7 +195,6 @@ class ArticlesController extends AbstractController
 
         ]);
     }
-
 
     /**
      * @Route("/{id}", name="articles_delete", methods="DELETE")
@@ -211,7 +210,7 @@ class ArticlesController extends AbstractController
     }
 
     /**
-     * @Route("/edit-quantity", name="edit_quantity")
+     * @Route("/modifier-quantite", name="edit_quantity")
      */
     public function editQuantity(Request $request, ArticlesRepository $articlesRepository)
     {

@@ -129,8 +129,8 @@ class CollecteController extends AbstractController
             // 'Position'=> ($article->getPosition() ? $article->getPosition()->getNom() : "0"),
             'Destination'=> ($article->getDirection() ? $article->getDirection()->getNom() : ""),
             'Quantité à collecter'=>($article->getQuantiteCollectee() ? $article->getQuantiteCollectee() : ""),
-            'Actions'=> "<a href='" . $urlEdit . "' class='btn btn-xs btn-default article-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
-                        <a href='' class='btn btn-xs btn-default article-delete'><i class='fas fa-trash fa-2x'></i></a>"
+            'Actions'=> "<div class='btn btn-xs btn-default article-edit' onclick='editRow($(this))' data-toggle='modal' data-target='#modalModifyArticle' data-quantity='" . $article->getQuantiteCollectee(). "' data-name='" . $article->getNom() . "' data-id='" . $article->getId() . "'><i class='fas fa-pencil-alt fa-2x'></i></div>
+                        <div class='btn btn-xs btn-default article-delete' onclick='deleteRow($(this))'><i class='fas fa-trash fa-2x'></i></div>"
         ];
 //TODO CG centraliser avec la même dans ArticlesController
         return new JsonResponse($data);
@@ -190,7 +190,7 @@ class CollecteController extends AbstractController
     }
 
     /**
-     * @Route("/{id}/edit", name="collecte_edit", methods={"GET","POST"})
+     * @Route("/{id}/modifier", name="collecte_edit", methods={"GET","POST"})
      */
     public function edit(Request $request, Collecte $collecte): Response
     {
