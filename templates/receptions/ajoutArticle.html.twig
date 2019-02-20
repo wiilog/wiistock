@@ -9,20 +9,21 @@
     <div class='col-4'>
         <p><strong>Statut:</strong> {{ reception.statut.nom }}</p>
         <p><strong>Numéro de référence:</strong> {{ reception.numeroReception }}</p>
-        <p><strong>Commentaire:</strong> {{ reception.commentaire }}</p>
-    </div>
-    <div class="col-4">
-        <p><strong>Date commande:</strong> {{ reception.date ? reception.date| date('d-m-Y') : 'null' }}</p>
-        <p><strong>Date attendue:</strong> {{ reception.dateAttendu ? reception.dateAttendu | date('d-m-Y') : 'null' }}</p>
         <p><strong>Fournisseur:</strong> {{ reception.fournisseur.nom }}</p>
     </div>
     <div class="col-4">
+        <p><strong>Date commande:</strong> {{ reception.date ? reception.date| date('d/m/Y') : ' ' }}</p>
+        <p><strong>Date attendue:</strong> {{ reception.dateAttendu ? reception.dateAttendu | date('d/m/Y') : ' ' }}</p>
+        <p><strong>Date réception:</strong> {{ reception.dateReception ? reception.dateReception | date('d/m/Y') : ' ' }}</p>
+    </div>
+    <div class="col-4">
+        <p><strong>Commentaire:</strong> {{ reception.commentaire }}</p>
         {{ include('receptions/_delete_form.html.twig') }}
         <a href="{{ path('receptions_edit', {'id': reception.id}) }}" class='button pull-right btn-left'>Modifier</a>
     </div>
 </div>
 <table id="result" class="table  table-striped">
-    
+
     <thead>
         <tr>
             <th>Id</th>
@@ -65,7 +66,7 @@
                 <input class="form-control" type="text" name="nom" id="nom">
             </div>
         </div>
-        <div class="form-group col-6">
+        <div class="form-group col-4">
             <div class="input-group">
                 <div class="input-group-prepend">
                     <label for="" class="input-group-text">Quantité à recevoir</label>
@@ -73,7 +74,7 @@
                 <input type="number" class="form-control" name="" id="quantiteARecevoir" min=0>
             </div>
         </div>
-        <div class="form-group col-6">
+        <div class="form-group col-4">
             <div class="input-group">
                 <div class="input-group-prepend">
                     <label for="" class="input-group-text">Quantité reçue</label>
@@ -113,10 +114,10 @@
             <textarea class="form-control" id='commentaire'></textarea>
         </div>
 
-        <input type="button" value="créer" class=" col-2 btn button btn-right" onclick="recupData()">
+        <input type="button" value="Créer" class=" col-2 btn button btn-right" onclick="recupData()">
         <a class="btn offset-5 col-2 button btn-right"
             href={{ path('reception_ajout_article', {'id': id, 'k': true}) }}>Fin
-            reception</a>
+            réception</a>
     </form>
 </div>
 <script>

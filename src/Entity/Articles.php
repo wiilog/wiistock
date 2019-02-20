@@ -15,6 +15,17 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  */
 class Articles
 {
+    const STATUS_RECEPTION_EN_COURS = 'en cours de reception';
+    const STATUS_DEMANDE_STOCK = 'demande de mise en stock';
+    const STATUS_EN_STOCK = 'en stock';
+    const STATUS_DESTOCK = 'destokage';
+    const STATUS_ANOMALIE = 'anomalie';
+    const STATUS_DEMANDE_SORTIE = 'demande de sortie';
+    const STATUS_COLLECTE = 'collecté';
+    const STATUS_LIVRAISON = 'en livraison';
+    const STATUS_RECUPERE = 'récupéré';
+
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
@@ -41,11 +52,6 @@ class Articles
      * @ORM\ManyToOne(targetEntity="App\Entity\Receptions", inversedBy="articles")
      */
     private $reception;
-
-    /**
-     * @ORM\Column(type="boolean", nullable=true)
-     */
-    private $etat;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="articles")

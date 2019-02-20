@@ -33,7 +33,7 @@ class ArticlesController extends AbstractController
     /**
      * @Route("/api", name="articles_api", methods="GET|POST")
      */
-    public function articleFiltreJson(ArticlesRepository $articlesRepository, Request $request) : Response
+    public function articleApi(ArticlesRepository $articlesRepository, Request $request) : Response
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
         {
@@ -85,8 +85,8 @@ class ArticlesController extends AbstractController
                     'Position'=> ($article->getPosition() ? $article->getPosition()->getNom() : "null"),
                     'Destination'=> ($article->getDirection() ? $article->getDirection()->getNom() : "null"),
                     'Quantité à collecter'=>($article->getQuantiteCollectee() ? $article->getQuantiteCollectee() : "null"),
-                    'Actions'=> "<a href='" . $urlEdit . "' class='btn btn-xs btn-default article-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
-                        <a href='' class='btn btn-xs btn-default article-delete'><i class='fas fa-trash fa-2x'></i></a>",
+                    'Actions'=> "<div class='btn btn-xs btn-default article-edit' onclick='editRow($(this))'><i class='fas fa-pencil-alt fa-2x'></i></div>
+                        <div class='btn btn-xs btn-default article-delete' onclick='deleteRow($(this))'><i class='fas fa-trash fa-2x'></i></div>",
                 ];
             }
             $data['data'] = $rows;
@@ -151,6 +151,7 @@ class ArticlesController extends AbstractController
      */
     public function edit(Request $request, Articles $article, StatutsRepository $statutsRepository, ReceptionsRepository $receptionsRepository) : Response
     {
+        dump($_POST);
         $form = $this->createForm(ArticlesType::class, $article);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) 
@@ -187,13 +188,14 @@ class ArticlesController extends AbstractController
             
             $this->getDoctrine()->getManager()->flush();
 
-            return $this->redirectToRoute('articles_index', ['statut' => 'all', 'id' => 0]);
+            return $this->redirect($_POST['url']);
         }
 
         return $this->render('articles/edit.html.twig', [
             'article' => $article,
             'form' => $form->createView(),
             'id' => $article->getReception()->getId(),
+
         ]);
     }
 

@@ -92,7 +92,7 @@ $(document).ready(function () {
  * @param {string} path le chemin pris pour envoyé les données.
  * 
  */
-function InitialiserModal(modal, submit, path) {
+function InitialiserModal(modal, submit, path, redirect = null) {
     submit.addEventListener("click", function () 
     {
         xhttp = new XMLHttpRequest();
@@ -103,6 +103,11 @@ function InitialiserModal(modal, submit, path) {
                 table.ajax.reload(function( json ) 
                 {
                     $('#myInput').val( json.lastInput );
+                    
+                    if(redirect !== null)
+                    {
+                        window.location.href(redirect);
+                    }
                 });
             }
         };
