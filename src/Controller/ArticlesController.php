@@ -7,6 +7,7 @@ use App\Form\ArticlesType;
 use App\Repository\ArticlesRepository;
 use App\Repository\StatutsRepository;
 use App\Repository\CollecteRepository;
+use App\Repository\ReceptionsRepository;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -40,7 +41,7 @@ class ArticlesController extends AbstractController
             $rows = [];
             foreach ($articles as $article) {
                 $urlEdite = $this->generateUrl('articles_edit', ['id' => $article->getId()] );
-                $urlShow = $this->generateUrl('articles_show', ['id' => $article->getId()] );
+                $urlShow = $this->generateUrl('articles_show', ['id' => $article->getId()]);
                 $row = 
                 [
                     'id' => ($article->getId() ? $article->getId() : "null"),
@@ -148,21 +149,44 @@ class ArticlesController extends AbstractController
     /**
      * @Route("/edite/{id}", name="articles_edit", methods="GET|POST")
      */
-    public function edit(Request $request, Articles $article, StatutsRepository $statutsRepository) : Response
+    public function edit(Request $request, Articles $article, StatutsRepository $statutsRepository, ReceptionsRepository $receptionsRepository) : Response
     {
         $form = $this->createForm(ArticlesType::class, $article);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) 
         {
+
             if ($article->getEtat() === false) {
                 $statut = $statutsRepository->findOneById(5);
                 $article->setStatut($statut);
+
             }
             else if($article->getEtat() === true) {
+
                 $statut = $statutsRepository->findOneById(3);
                 $article->setStatut($statut);
             }
+
             $this->getDoctrine()->getManager()->flush();
+
+            $reception = $article->getReception()->getId();
+            $reception = $receptionsRepository->findOneById($reception);
+            $articles = $reception->getArticles();
+            
+            foreach($articles as $article) {
+                if($article->getStatut()->getId() == 5) {
+                    $statut = $statutsRepository->findOneById(5);
+                    $reception->setStatut($statut);
+                    break;
+                }
+                else {
+                    $statut = $statutsRepository->findOneById(6);
+                    $reception->setStatut($statut);
+                }
+            }
+            
+            $this->getDoctrine()->getManager()->flush();
+
             return $this->redirectToRoute('articles_index', ['statut' => 'all', 'id' => 0]);
         }
 
@@ -172,6 +196,7 @@ class ArticlesController extends AbstractController
             'id' => $article->getReception()->getId(),
         ]);
     }
+
 
     /**
      * @Route("/{id}", name="articles_delete", methods="DELETE")

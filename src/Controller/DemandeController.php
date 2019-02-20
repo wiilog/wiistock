@@ -198,32 +198,11 @@ class DemandeController extends AbstractController
      */
     public function index(DemandeRepository $demandeRepository, PaginatorInterface $paginator, Request $request, ArticlesRepository $articlesRepository, $history): Response
     {
-        
-        $demandeQuery = ($history === 'true') ? $demandeRepository->findAll() : $demandeRepository->findAllByUserAndStatut($this->getUser());
-
-        $pagination = $paginator->paginate(
-            $demandeQuery, /* On récupère la requête et on la pagine */
-            $request->query->getInt('page', 1),
-            10
-        );
-
-        if ($history === 'true') 
-        {
-            return $this->render('demande/index.html.twig', [
-                'demandes' => $pagination,
-                'history' => 'false',
-                'utilisateurs' => $this->utilisateursRepository->findAll(),
-                'emplacements' => $this->emplacementRepository->findEptBy(),
-            ]);
-        }
-        else
-        {
-            return $this->render('demande/index.html.twig', [
-                'demandes' => $pagination,
-                'utilisateurs' => $this->utilisateursRepository->findAll(),
-                'emplacements' => $this->emplacementRepository->findEptBy(),
-            ]);
-        }
+        return $this->render('demande/index.html.twig', [
+            'demandes' => $demandeRepository->findAll(),
+            'utilisateurs' => $this->utilisateursRepository->findAll(),
+            'emplacements' => $this->emplacementRepository->findEptBy(),
+        ]);
     }
 
 
@@ -239,9 +218,9 @@ class DemandeController extends AbstractController
         {
             $refArticle = $this->referencesArticlesRepository->findById($ligne["reference"]);
             $data = [
-                "reference" => $ligne["reference"],
-                "quantite" => $ligne["quantite"],
-                "libelle" => $refArticle[0]->getLibelle(), 
+                "Références CEA" => $ligne["reference"],
+                "Quantité" => $ligne["quantite"],
+                "Libellé" => $refArticle[0]->getLibelle(), 
             ];
             array_push($lignes, $data);
         }
@@ -278,7 +257,7 @@ class DemandeController extends AbstractController
     {   
         if($request->isXmlHttpRequest()) //Si la requête est de type Xml
         {
-            $demandes = $demandeRepository->findAll();
+            $demandes = $demandeRepository->findAllByUserAndStatut($this->getUser());
             $rows = [];
             foreach ($demandes as $demande) 
             {
@@ -289,7 +268,7 @@ class DemandeController extends AbstractController
                     "Demandeur"=> ($demande->getUtilisateur()->getUsername() ? $demande->getUtilisateur()->getUsername() : 'null'),
                     "Numéro"=> ($demande->getNumero() ? $demande->getNumero() : 'null'),
                     "Statut"=> ($demande->getStatut()->getNom() ? $demande->getStatut()->getNom() : 'null'),
-                    'Actions'=> "<a href='".$urlShow." ' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>", 
+                    'Actions'=> "<a href='".$urlShow."' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>", 
                 ];
                 
                 array_push($rows, $row);
@@ -316,9 +295,9 @@ class DemandeController extends AbstractController
             {
                 $refArticle = $this->referencesArticlesRepository->findOneById($LigneArticle["reference"]);
                 $row = [ 
-                    "References CEA" => ($LigneArticle["reference"] ? $LigneArticle["reference"] : 'null'),
-                    "Libelle" => ($refArticle->getLibelle() ? $refArticle->getLibelle() : 'null'),
-                    "Quantite" => ($LigneArticle["quantite"] ? $LigneArticle["quantite"] : 'null'),
+                    "Références CEA" => ($LigneArticle["reference"] ? $LigneArticle["reference"] : 'null'),
+                    "Libellé" => ($refArticle->getLibelle() ? $refArticle->getLibelle() : 'null'),
+                    "Quantité" => ($LigneArticle["quantite"] ? $LigneArticle["quantite"] : 'null'),
                     "Actions" => "actions", 
                 ];
                 array_push($rows, $row);
