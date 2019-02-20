@@ -100,7 +100,7 @@ function modifyArticle(button) {
         quantity: quantity
     };
 
-    $.post("/articles/edit-quantity", params, function() {
+    $.post("/articles/modifier-quantite", params, function() {
         //TODO CG edit row datatable
     });
 }
