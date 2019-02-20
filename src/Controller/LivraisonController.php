@@ -94,11 +94,11 @@ class LivraisonController extends AbstractController
             {
                 $url = $this->generateUrl('livraison_show', ['id' => $livraison->getId()] );
                 $row = [
-                    'id' => ($livraison->getId() ? $livraison->getId() : ""),
-                    'Numéro' => ($livraison->getNumero() ? $livraison->getNumero() : ""),
+                    'id' => ($livraison->getId() ? $livraison->getId() : ''),
+                    'Numéro' => ($livraison->getNumero() ? $livraison->getNumero() : ''),
                     'Date' => ($livraison->getDate() ? $livraison->getDate()->format('Y-m-d') : ''),
-                    'Statut' => ($livraison->getStatut() ? $livraison->getStatut()->getNom() : ""),
-                    'Opérateur' => ($livraison->getUtilisateur() ? $livraison->getUtilisateur()->getUsername() : ""),
+                    'Statut' => ($livraison->getStatut() ? $livraison->getStatut()->getNom() : ''),
+                    'Opérateur' => ($livraison->getUtilisateur() ? $livraison->getUtilisateur()->getUsername() : ''),
                     'Actions' => "<a href='". $url ."' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>",
                 ];
                 array_push($rows, $row);
@@ -108,6 +108,8 @@ class LivraisonController extends AbstractController
         }
         throw new NotFoundHttpException("404");
     }
+
+
 
     /**
      * @Route("/new", name="livraison_new", methods={"GET","POST"}) A SUPPRIMER

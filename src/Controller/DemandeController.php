@@ -248,6 +248,8 @@ class DemandeController extends AbstractController
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
         {
+            dump("hello");
+            dump($_REQUEST);
             if ($request->request->get('utilisateur')) {
                 $utilistaeur = $request->request->get('utilisateur');
                 $statut = $request->request->get('statut');
@@ -264,7 +266,7 @@ class DemandeController extends AbstractController
                 $urlShow = $this->generateUrl('demande_show', ['id' => $demande->getId()]);
                 $row =
                     [
-                    "Date" => ($demande->getDate() ? $demande->getDate() : '')->format('d-m-Y'),
+                    "Date" => ($demande->getDate() ? $demande->getDate() : '')->format('d/m/Y'),
                     "Demandeur" => ($demande->getUtilisateur()->getUsername() ? $demande->getUtilisateur()->getUsername() : ''),
                     "Numéro" => ($demande->getNumero() ? $demande->getNumero() : ''),
                     "Statut" => ($demande->getStatut()->getNom() ? $demande->getStatut()->getNom() : ''),

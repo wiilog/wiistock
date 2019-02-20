@@ -238,34 +238,6 @@ class ReceptionsController extends AbstractController
         ]);
     }
 
-
-    /**
-     * @Route("/new/creation", name="receptions_new", methods={"GET", "POST"}) INUTILE
-     */
-    public function new(Request $request): Response
-    {
-        $reception = new Receptions();
-        $form = $this->createForm(ReceptionsType::class, $reception);
-        $form->handleRequest($request);
-        if ($form->isSubmitted() && $form->isValid()) 
-        {
-            $statut = $this->statutsRepository->findById(1);
-            $reception->setStatut($statut[0]);
-            $reception->setDate(new \DateTime('now'));
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($reception);
-            $em->flush();
-
-            return $this->redirectToRoute('receptions_index', array('history' => 0));
-        }
-
-        return $this->render('receptions/new.html.twig', [
-            'reception' => $reception,
-            'form' => $form->createView(),
-        ]);
-    }
-
-
     /**
      * @Route("/show/{id}", name="receptions_show", methods="GET")
      */
@@ -357,8 +329,8 @@ class ReceptionsController extends AbstractController
                 }
             }
 
-            $statut = $this->statutsRepository->findById(7);
-            $reception->setStatut($statut[0]);
+            $statut = $this->statutsRepository->findOneById(7);
+            $reception->setStatut($statut);
             $reception->setDateReception(new \DateTime('now'));
 
             //calcul de la quantite des stocks par artciles de reference

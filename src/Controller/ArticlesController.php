@@ -44,14 +44,14 @@ class ArticlesController extends AbstractController
                 $urlShow = $this->generateUrl('articles_show', ['id' => $article->getId()]);
                 $row = 
                 [
-                    'id' => ($article->getId() ? $article->getId() : "null"),
-                    'Nom' => ($article->getNom() ? $article->getNom() : "null"),
-                    'Statut' => ($article->getStatut()->getNom() ? $article->getStatut()->getNom() : "null"),
+                    'id' => ($article->getId() ? $article->getId() : "Non défini"),
+                    'Nom' => ($article->getNom() ? $article->getNom() : "Non défini"),
+                    'Statut' => ($article->getStatut()->getNom() ? $article->getStatut()->getNom() : "Non défini"),
                     'Conformité' => ($article->getEtat() ? 'conforme' : 'anomalie'),
-                    'Reférence article' => ($article->getRefArticle() ? $article->getRefArticle()->getLibelle() : "null"),
-                    'Position' => ($article->getPosition() ? $article->getPosition()->getNom() : "null"),
-                    'Destination' => ($article->getDirection() ? $article->getDirection()->getNom() : "null"),
-                    'Quantité' => ($article->getQuantite() ? $article->getQuantite() : "null"),
+                    'Reférence article' => ($article->getRefArticle() ? $article->getRefArticle()->getLibelle() : "Non défini"),
+                    'Emplacement' => ($article->getPosition() ? $article->getPosition()->getNom() : "Non défini"),
+                    'Destination' => ($article->getDirection() ? $article->getDirection()->getNom() : "Non défini"),
+                    'Quantité' => ($article->getQuantite() ? $article->getQuantite() : "Non défini"),
                     'Actions' => "<a href='" . $urlEdite . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
                     <a href='" . $urlShow . "' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>",
                 ];
@@ -80,7 +80,7 @@ class ArticlesController extends AbstractController
                     'Statut'=> ($article->getStatut()->getNom() ? $article->getStatut()->getNom() : ""),
                     'Conformité'=>($article->getEtat() ? 'conforme': 'anomalie'),
                     'Reférences Articles'=> ($article->getRefArticle() ? $article->getRefArticle()->getLibelle() : ""),
-                    'Position'=> ($article->getPosition() ? $article->getPosition()->getNom() : ""),
+                    'Emplacement'=> ($article->getPosition() ? $article->getPosition()->getNom() : ""),
                     'Destination'=> ($article->getDirection() ? $article->getDirection()->getNom() : ""),
                     'Quantité à collecter'=>($article->getQuantiteCollectee() ? $article->getQuantiteCollectee() : ""),
                     'Actions'=> "<a href='" . $this->generateUrl('articles_edit', ['id' => $article->getId()] ) . "' class='btn btn-xs btn-default article-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
