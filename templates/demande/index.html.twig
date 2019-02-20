@@ -62,31 +62,28 @@
 
 {% block javascript %}
 <script>
-    var data = {'utilisateur': $('#utilisateur').val()};
+    var data = { 'utilisateur': $('#utilisateur').val() };
 
-var table = $('#table_demande').DataTable({
-        order: [[ 0, "desc" ]],
+    var table = $('#table_demande').DataTable({
+        order: [[0, "desc"]],
         language: {
             "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
         },
-        ajax:{ 
-            "url":"{{path('demande_api') }}",
+        ajax: {
+            "url": "{{path('demande_api') }}",
             "type": "POST",
-            "data": function (d) {
-                console.log($('#utilisateur').val());
-                d.utilisteur = data['utilisateur'];
-            }
+            
         },
         columns: [
-        { "data": 'Date' },
-        { "data": 'Demandeur' },
-        { "data": 'Numéro' },
-        { "data": 'Statut' },
-        { "data": 'Actions' },
+            { "data": 'Date' },
+            { "data": 'Demandeur' },
+            { "data": 'Numéro' },
+            { "data": 'Statut' },
+            { "data": 'Actions' },
         ],
     });
-    
-    //$('#filtre').on('click', $.post( "{{path('demande_api')}}" , {'utilisateur': $('#utilisateur').val()},table.ajax.reload()));
+
+    $('#filtre').on('click', $.post( "{{path('demande_api')}}" , {'utilisateur': $('#utilisateur').val()}));
 
     var dataModal = document.getElementById("dataModalCenter");
     var ButtonSubmit = document.getElementById("submitButton");

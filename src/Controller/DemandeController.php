@@ -248,6 +248,8 @@ class DemandeController extends AbstractController
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
         {
+            dump("hello");
+            dump($_REQUEST);
             if ($request->request->get('utilisateur')) {
                 $utilistaeur = $request->request->get('utilisateur');
                 $statut = $request->request->get('statut');

@@ -44,17 +44,17 @@ var table = $('#table_id').DataTable({
     },
     "processing": true,
     "ajax": {
-        "url": "{{ path('LignePreparation_api', {'id' : preparation.id }) }}",
+        "url": "{{ path('LignePreparation_api', {'id' : preparation.demandes.0.id }) }}",
         "type": "POST"
     },
     columns: [{
             "data": 'Libellé'
         },
         {
-            "data": 'References CEA'
+            "data": 'Références CEA'
         },
         {
-            "data": 'Quantite'
+            "data": 'Quantité'
         },
         {
             "data": 'Actions'
