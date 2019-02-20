@@ -79,23 +79,26 @@ class ReceptionsController extends AbstractController
         {
             if (count($data) != 5)// On regarde si le nombre de données reçu est conforme et on envoi dans la base
             {
-                $fournisseur = $fournisseursRepository->findById(intval($data[3]['fournisseur']));
-                $utilisateur = $this->utilisateursRepository->findById(intval($data[4]['utilisateur']));
+                $em = $this->getDoctrine()->getManager();
+                $fournisseur = $fournisseursRepository->findOneById(intval($data[3]['fournisseur']));
+                $utilisateur = $this->utilisateursRepository->findOneById(intval($data[4]['utilisateur']));
 
                 $reception = new Receptions();
-                $statut = $this->statutsRepository->findById(1);
-                $reception->setStatut($statut[0]);
+                $statut = $this->statutsRepository->findOneById(1);
+                $reception->setStatut($statut);
                 $reception->setNumeroReception($data[0]['NumeroReception']);
                 $reception->setDate(new \DateTime($data[1]['date-commande']));
                 $reception->setDateAttendu(new \DateTime($data[2]['date-attendu']));
-                $reception->setFournisseur($fournisseur[0]);
-                $reception->setUtilisateur($utilisateur[0]);
+                $reception->setFournisseur($fournisseur);
+                $reception->setUtilisateur($utilisateur);
                 $reception->setCommentaire($data[5]['commentaire']);
-                $em = $this->getDoctrine()->getManager();
                 $em->persist($reception);
                 $em->flush();
 
-                $data = json_encode($data);
+                $data = [
+                    "redirect" => $this->generateUrl('reception_ajout_article', ['id' => $reception->getId(), 'k' => "0"])
+                ];
+                
                 return new JsonResponse($data);
             }
         }
@@ -148,14 +151,14 @@ class ReceptionsController extends AbstractController
             $receptions = $this->receptionsRepository->findAll();
             $rows = [];
             foreach ($receptions as $reception) {
-                $urlEdite = $this->generateUrl('receptions_edit', ['id' => $reception->getId()] );
+                $urlEdite = $this->generateUrl('receptions_edit', ['id' => $reception->getId()]);
                 $urlShow = $this->generateUrl('reception_ajout_article', ['id' => $reception->getId(), 'k'=>'0'] );
                 $row =
                     [
                     'id' => ($reception->getId()),
                     "Statut" => ($reception->getStatut() ? $reception->getStatut()->getNom() : ''),
-                    "Date commande" => ($reception->getDate() ? $reception->getDate() : '')->format('d-m-Y'),
-                    "Date attendue" => ($reception->getDateAttendu() ? $reception->getDateAttendu()->format('d-m-Y') : ''),
+                    "Date commande" => ($reception->getDate() ? $reception->getDate() : '')->format('d/m/Y'),
+                    "Date attendue" => ($reception->getDateAttendu() ? $reception->getDateAttendu()->format('d/m/Y') : ''),
                     "Fournisseur" => ($reception->getFournisseur() ? $reception->getFournisseur()->getNom() : ''),
                     "Référence" => ($reception->getNumeroReception() ? $reception->getNumeroReception() : ''),
                     'Actions' => "<a href='" . $urlEdite . "' class='btn btn-xs btn-default command-edit '><i class='fas fa-pencil-alt fa-2x'></i></a>
@@ -292,6 +295,10 @@ class ReceptionsController extends AbstractController
             $em = $this->getDoctrine()->getManager();
             $em->persist($reception);
             $em->flush();
+
+            return $this->render('receptions/show.html.twig', [
+                "reception" => $reception,
+            ]); 
         }
 
         return $this->render('receptions/edit.html.twig', [

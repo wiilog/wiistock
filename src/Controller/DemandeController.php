@@ -209,9 +209,9 @@ class DemandeController extends AbstractController
         foreach ($ligneArticle as $ligne) {
             $refArticle = $this->referencesArticlesRepository->findById($ligne["reference"]);
             $data = [
-                "reference" => $ligne["reference"],
-                "quantite" => $ligne["quantite"],
-                "libelle" => $refArticle[0]->getLibelle(),
+                "Références CEA" => $ligne["reference"],
+                "Quantité" => $ligne["quantite"],
+                "Libellé" => $refArticle[0]->getLibelle(), 
             ];
             array_push($lignes, $data);
         }
@@ -248,7 +248,6 @@ class DemandeController extends AbstractController
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
         {
-            dump($_POST);
             if ($request->request->get('utilisateur')) {
                 $utilistaeur = $request->request->get('utilisateur');
                 $statut = $request->request->get('statut');

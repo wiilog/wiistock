@@ -100,9 +100,15 @@ function InitialiserModal(modal, submit, path) {
         {
             if (this.readyState == 4 && this.status == 200)
             {
+                data = JSON.parse(this.responseText);
                 table.ajax.reload(function( json ) 
                 {
                     $('#myInput').val( json.lastInput );
+                    
+                    if(data.redirect)
+                    {
+                        window.location.href = data.redirect;
+                    }
                 });
             }
         };

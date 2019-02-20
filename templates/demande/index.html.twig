@@ -64,13 +64,13 @@
 <script>
     //var data = {'utilisateur': $('#utilisateur').val()};
 
-    
-    var table = $('#table_demande').DataTable({
+var table = $('#table_demande').DataTable({
+        order: [[ 0, "desc" ]],
         language: {
             "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
         },
-        ajax: {
-            "url": "{{path('demande_api')}}",
+        ajax:{ 
+            "url":"{{path('demande_api') }}",
             "type": "POST",
             //"data": function (d) {
             //    console.log($('#utilisateur').val());

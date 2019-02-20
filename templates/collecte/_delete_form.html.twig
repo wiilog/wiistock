@@ -1,5 +1,5 @@
-{#<form method="post" action="{{ path('collecte_delete', {'id': collecte.id}) }}" onsubmit="return confirm('Are you sure you want to delete this item?');">#}
-    {#<input type="hidden" name="_method" value="DELETE">#}
-    {#<input type="hidden" name="_token" value="{{ csrf_token('delete' ~ collecte.id) }}">#}
-    {#<button class="btn button-danger button pull-right btn-left">Supprimer</button>#}
-{#</form>#}
+<form method="post" action="{{ path('collecte_delete', {'id': collecte.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer la collecte ?');">
+    <input type="hidden" name="_method" value="DELETE">
+    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ collecte.id) }}">
+    <button class="btn button-danger button pull-right btn-left">Supprimer</button>
+</form>

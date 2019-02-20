@@ -54,11 +54,6 @@ class Articles
     private $reception;
 
     /**
-     * @ORM\Column(type="boolean", nullable=true)
-     */
-    private $etat;
-
-    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="articles")
      */
     private $direction;
