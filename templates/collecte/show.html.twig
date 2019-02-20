@@ -3,9 +3,19 @@
 {% block title %}Demande de collecte{% endblock %}
 
 {% block page_content %}
-    <h1>Demande de collecte n° {{ collecte.numero }}</h1>
+    <div id="alerts" data-auto-dismiss role="alert"></div>
 
-    <div class="container ml-0 mt-5">
+    <div class="row">
+        <div class="col-6 pl-4">
+            <h1>Demande de collecte n° {{ collecte.numero }}</h1>
+        </div>
+        <div class="col-6 p-3">
+            <button type="button" class="button button-danger pull-right btn-left" data-toggle="modal" data-target="#modalDeleteCollecte">Supprimer</button>
+        </div>
+
+    </div>
+
+    <div class="container ml-0 mt-3">
         <div class="row pb-2">
             <div class="col-2">Demandeur</div>
             <div class="col-2">{{ collecte.demandeur }}</div>
@@ -15,13 +25,15 @@
         <div class="row pb-2">
             <div class="col-2">Objet</div>
             <div class="col-2">{{ collecte.objet }}</div>
-            <div class="col-4">
-                <a href="{{ path("finish_collecte", {"id" : collecte.id }) }}">Aller vers la collecte</a>
-            </div>
+            <div class="col-2">Statut</div>
+            <div class="col-3">{{ collecte.statut.nom | capitalize }}</div>
         </div>
         <div class="row pb-2">
             <div class="col-2">Date terminée</div>
             <div class="col-2"></div>
+            {#<div class="col-4">#}
+            {#<a href="{{ path("finish_collecte", {"id" : collecte.id }) }}">Aller vers la collecte</a>#}
+            {#</div>#}
         </div>
     </div>
 
@@ -77,12 +89,10 @@
         {#{% endfor %}#}
         </tbody>
     </table>
-    {% set path = path('collecte_index') %}
-    {% set referer = app.request.headers.get('referer')|default(path) %}
-    <a href={{ referer }} class='button pull-left btn-left'> Retour</a>
-    {{ include('collecte/_delete_form.html.twig') }}
-    <!-- <a href="{{ path('collecte_edit', {'id': collecte.id}) }}" class='button pull-right btn-left'>Modifier</a> -->
+    <a href="{{ path('collecte_index') }}" class='button pull-left btn-left'> Retour</a>
     {{ include('collecte/modalAddArticle.html.twig') }}
+    {{ include('collecte/modalDeleteCollecte.html.twig') }}
+    {{ include('collecte/modalModifyArticle.html.twig') }}
 
 {% endblock %}
 
@@ -105,6 +115,14 @@ $('#addRow').on('click', function() {
            displayQuantity($(this));
         });
     });
+});
+
+$('#modalDeleteCollecte').find('.save').on('click', function() {
+    deleteCollecte($(this));
+});
+
+$('#modalModifyArticle').find('.save').on('click', function() {
+    modifyArticle($(this));
 });
 
 $('#table-list-articles').DataTable({
