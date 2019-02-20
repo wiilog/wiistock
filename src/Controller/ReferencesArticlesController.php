@@ -37,7 +37,6 @@ class ReferencesArticlesController extends Controller
                     "id" => $refArticle->getId(),
                     "Libellé" => $refArticle->getLibelle(),
                     "Référence" => $refArticle->getReference(),
-                    "Quantité" => $refArticle->getQuantiteStock(),
                     'Actions' => "<a href='" . $urlEdite . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
                     <a href='" . $urlShow . "' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>",
                 ];
@@ -56,7 +55,6 @@ class ReferencesArticlesController extends Controller
     {
         $referencesArticle = new ReferencesArticles();
         $form = $this->createForm(ReferencesArticlesType::class, $referencesArticle);
-
         $array = $this->createCustomFieldJson($this->getDoctrine()->getManager()->getRepository(ReferencesArticles::class));
 
         $form->handleRequest($request);

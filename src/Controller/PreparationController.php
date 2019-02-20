@@ -195,7 +195,7 @@ class PreparationController extends AbstractController
                     "Références CEA" => ($LignePreparation["reference"] ? $LignePreparation["reference"] : ' '),
                     "Libellé" => ($refPreparation->getLibelle() ? $refPreparation->getLibelle() : ' '),
                     "Quantité" => ($LignePreparation["quantite"] ? $LignePreparation["quantite"] : ' '),
-                    "Actions" => "<a href='" . $urlShow . "' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>", 
+                   
                 ];
                 array_push($rows, $row);
             }

@@ -291,7 +291,6 @@ class ReceptionsController extends AbstractController
         if ($this->isCsrfTokenValid('delete' . $reception->getId(), $request->request->get('_token'))) 
         {
             $em = $this->getDoctrine()->getManager();
-
             if(count($reception->getArticles()) > 0)
             {   
                 $articles = $reception->getArticles();

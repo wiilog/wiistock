@@ -20,14 +20,14 @@
     <div class="col-3">
         <p>Demandeur : {{ demande.utilisateur ? demande.utilisateur : '' }}</p>
         <p>Disponibilite des articles : Oui/Non</p>
-        <p>Date attendu : {{ demande.DateAttendu ? demande.DateAttendu | date("d/m/Y") : "" }}</p>
+        <p>Date attendue : {{ demande.DateAttendu ? demande.DateAttendu | date("d/m/Y") : "" }}</p>
         <p>Destination : {{ demande.destination ? demande.destination.nom : "" }}</p>
     </div>
 
     <div class="col-3">
         <p>Date demande : {{ demande.date | date("d/m/Y") }}</p>
-        <p>Reference : {{ demande.numero }}</p>
-        <a href='{{ path("preparationFromDemande", {"id" : demande.id }) }}'>Aller vers la preparation</a>
+        <p>Référence : {{ demande.numero }}</p>
+        <a href='{{ path("preparationFromDemande", {"id" : demande.id }) }}'>Aller vers la préparation</a>
     </div>
 
     <div class="col-2">
@@ -52,7 +52,6 @@
             <th>Références CEA</th>
             <th>Libellé</th>
             <th>Quantité</th>
-            <th>Actions</th>
         </tr>
     </thead>
     <tbody>
@@ -78,18 +77,10 @@
             "url": "{{ path('LigneArticle_api', {'id' : demande.id}) }}",
             "type": "POST"
         },
-        columns: [{
-            "data": 'Références CEA'
-        },
-        {
-            "data": 'Libellé'
-        },
-        {
-            "data": 'Quantité'
-        },
-        {
-            "data": 'Actions'
-        },
+        columns:[
+                {"data": 'Références CEA'},
+                {"data": 'Libellé'},
+                {"data": 'Quantité'},
         ],
     });
 
@@ -100,5 +91,8 @@
     var dataModal2 = document.getElementById("ajoutLigneModalCenter");
     var ButtonSubmit2 = document.getElementById("ajoutsubmitButton");
     InitialiserModal(dataModal2, ButtonSubmit2, "{{ path('ajoutArticle', { 'id' : demande.id }) }}");
+
+    $('#supprimer').on('clivk', $.post())
+
 </script>
 {% endblock %}

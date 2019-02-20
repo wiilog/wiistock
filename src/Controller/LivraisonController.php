@@ -71,7 +71,6 @@ class LivraisonController extends AbstractController
         $livraison = $livraisonRepository->find($id);
         $livraison->setStatut($statutsRepository->find(26));
         $demande = $livraison->getDemande();
-        dump($demande);
         $demande[0]->setStatut($statutsRepository->find(9));
         $articles = $demande[0]->getArticles();
         foreach ($articles as $article ) {
@@ -96,7 +95,7 @@ class LivraisonController extends AbstractController
                 $row = [
                     'id' => ($livraison->getId() ? $livraison->getId() : ''),
                     'Numéro' => ($livraison->getNumero() ? $livraison->getNumero() : ''),
-                    'Date' => ($livraison->getDate() ? $livraison->getDate()->format('Y-m-d') : ''),
+                    'Date' => ($livraison->getDate() ? $livraison->getDate()->format('d-m-Y') : ''),
                     'Statut' => ($livraison->getStatut() ? $livraison->getStatut()->getNom() : ''),
                     'Opérateur' => ($livraison->getUtilisateur() ? $livraison->getUtilisateur()->getUsername() : ''),
                     'Actions' => "<a href='". $url ."' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>",

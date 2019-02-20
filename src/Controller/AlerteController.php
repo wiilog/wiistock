@@ -58,7 +58,7 @@ class AlerteController extends AbstractController
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
         {
-            $alertes = $alerteRepository->findAlerteByUser($this->getUser());
+            $alertes = $alerteRepository->findAll();
             $alertesUser = []; /* Un tableau d'alertes qui sera envoyer au mailer */
             $rows = [];
             foreach ($alertes as $alerte) {

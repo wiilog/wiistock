@@ -78,7 +78,6 @@ class ArticlesController extends AbstractController
                 $rows[] = [
                     'Nom'=>( $article->getNom() ?  $article->getNom():""),
                     'Statut'=> ($article->getStatut()->getNom() ? $article->getStatut()->getNom() : ""),
-                    'Conformité'=>($article->getEtat() ? 'conforme': 'anomalie'),
                     'Références Articles'=> ($article->getRefArticle() ? $article->getRefArticle()->getLibelle() : ""),
                     'Emplacement'=> ($article->getPosition() ? $article->getPosition()->getNom() : ""),
                     'Destination'=> ($article->getDirection() ? $article->getDirection()->getNom() : ""),

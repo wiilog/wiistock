@@ -136,6 +136,27 @@ class DemandeController extends AbstractController
 
 
     /**
+     * @Route("/supprimeArticle/{id}", name="supprimeArticle", methods="GET|POST")
+     */
+    public function supprimeRefArticle(Demande $demande, FournisseursRepository $fournisseursRepository, Request $request) : Response
+    {
+        dump($demande->getLigneArticle());
+        $json = [
+            "reference" => $data[0]["reference"],
+            "quantite" => $data[1]["quantite"],
+        ];
+
+        $demande->addLigneArticle($json);
+        $em->persist($referenceArticle);
+        $em->persist($demande);
+        $em->flush();
+
+        return $this->redirectToRoute();
+
+    }
+
+
+    /**
      * @Route("/modifDemande/{id}", name="modifDemande", methods="GET|POST")
      */
     public function modifDemande(Demande $demande, Request $request) : Response
@@ -211,11 +232,10 @@ class DemandeController extends AbstractController
             $data = [
                 "Références CEA" => $ligne["reference"],
                 "Quantité" => $ligne["quantite"],
-                "Libellé" => $refArticle[0]->getLibelle(), 
+                "Libellé" => $refArticle[0]->getLibelle(),
             ];
             array_push($lignes, $data);
         }
-
         return $this->render('demande/show.html.twig', [
             'demande' => $demande,
             'lignesArticles' => $lignes,
@@ -255,7 +275,7 @@ class DemandeController extends AbstractController
                 $dateDebut = $request->request->get('dateDebut');
                 $dateFin = $request->request->get('dateFin');
 
-                $demandes = $demandeRepository->findAll(); 
+                $demandes = $demandeRepository->findAll();
 
             } else {
                 $demandes = $demandeRepository->findAllByUserAndStatut($this->getUser());
@@ -292,17 +312,17 @@ class DemandeController extends AbstractController
 
             foreach ($LigneArticles as $LigneArticle) {
                 $refArticle = $this->referencesArticlesRepository->findOneById($LigneArticle["reference"]);
-                $urlShow = $this->generateUrl('references_articles_show', ['id' => $refArticle->getId()] );
+                $urlShow = $this->generateUrl('supprimeArticle', ['id' => $demande->getId()]);
                 $row = [
                     "Références CEA" => ($LigneArticle["reference"] ? $LigneArticle["reference"] : ''),
                     "Libellé" => ($refArticle->getLibelle() ? $refArticle->getLibelle() : ''),
                     "Quantité" => ($LigneArticle["quantite"] ? $LigneArticle["quantite"] : ''),
-                    'Actions' => "<a href='" . $urlShow . " ' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>",
-
+                    
                 ];
                 array_push($rows, $row);
             }
-
+            
+            //'Actions' => "<a href='" . $urlShow . " ' class='btn btn-xs btn-default command-edit '><i class='fas fa-trash fa-2x'></i></a>",
             $data['data'] = $rows;
             return new JsonResponse($data);
         }
