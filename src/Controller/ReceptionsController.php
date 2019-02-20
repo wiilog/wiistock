@@ -268,8 +268,9 @@ class ReceptionsController extends AbstractController
             $em->persist($reception);
             $em->flush();
 
-            return $this->render('receptions/show.html.twig', [
-                "reception" => $reception,
+            return $this->redirectToRoute('reception_ajout_article', [
+                "id" => $reception->getId(),
+                "k" => 0
             ]); 
         }
 
