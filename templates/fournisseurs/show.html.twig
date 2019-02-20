@@ -4,6 +4,13 @@
 
 {% block page_content %}
     <h1>Fournisseurs</h1>
+
+    {% if message is defined %}
+        <div>
+            {{message}}
+        </div>
+    {% endif %}
+
 <div class="container">
     <table class="table">
         <tbody>

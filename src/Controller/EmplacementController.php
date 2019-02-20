@@ -88,9 +88,9 @@ class EmplacementController extends AbstractController
                 $urlEdite = $this->generateUrl('emplacement_edit', ['id' => $emplacement->getId()] );
                 $urlShow = $this->generateUrl('emplacement_show', ['id' => $emplacement->getId()] );
                 $row = [
-                    'id' => ($emplacement->getId() ? $emplacement->getId() : "null"),
-                    'Nom' => ($emplacement->getNom() ? $emplacement->getNom() : "null"),
-                    'Description' => ($emplacement->getDescription() ? $emplacement->getDescription() : "null"),
+                    'id' => ($emplacement->getId() ? $emplacement->getId() : ""),
+                    'Nom' => ($emplacement->getNom() ? $emplacement->getNom() : ""),
+                    'Description' => ($emplacement->getDescription() ? $emplacement->getDescription() : ""),
                     'actions' => "<a href='" . $urlEdite . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
                     <a href='" . $urlShow . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-eye fa-2x'></i></a>",
 

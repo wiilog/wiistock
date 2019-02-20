@@ -77,13 +77,13 @@ class ArticlesController extends AbstractController
                 $urlEdit = $this->generateUrl('articles_edit', ['id' => $article->getId()]);
 
                 $rows[] = [
-                    'Nom'=>( $article->getNom() ?  $article->getNom():"null"),
-                    'Statut'=> ($article->getStatut()->getNom() ? $article->getStatut()->getNom() : "null"),
+                    'Nom'=>( $article->getNom() ?  $article->getNom():""),
+                    'Statut'=> ($article->getStatut()->getNom() ? $article->getStatut()->getNom() : ""),
                     'Conformité'=>($article->getEtat() ? 'conforme': 'anomalie'),
-                    'Reférences Articles'=> ($article->getRefArticle() ? $article->getRefArticle()->getLibelle() : "null"),
-                    'Position'=> ($article->getPosition() ? $article->getPosition()->getNom() : "null"),
-                    'Destination'=> ($article->getDirection() ? $article->getDirection()->getNom() : "null"),
-                    'Quantité à collecter'=>($article->getQuantiteCollectee() ? $article->getQuantiteCollectee() : "null"),
+                    'Reférences Articles'=> ($article->getRefArticle() ? $article->getRefArticle()->getLibelle() : ""),
+                    'Position'=> ($article->getPosition() ? $article->getPosition()->getNom() : ""),
+                    'Destination'=> ($article->getDirection() ? $article->getDirection()->getNom() : ""),
+                    'Quantité à collecter'=>($article->getQuantiteCollectee() ? $article->getQuantiteCollectee() : ""),
                     'Actions'=> "<a href='" . $urlEdit . "' class='btn btn-xs btn-default article-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
                         <a href='' class='btn btn-xs btn-default article-delete'><i class='fas fa-trash fa-2x'></i></a>",
                 ];

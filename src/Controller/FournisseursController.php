@@ -55,12 +55,12 @@ class FournisseursController extends Controller
             $refs = $fournisseursRepository->findAll();
             $rows = [];
             foreach ($refs as $fournisseur) {
-                $urlEdite = $this->generateUrl('fournisseurs_edit', ['id' => $fournisseur->getId()] );
-                $urlShow = $this->generateUrl('fournisseurs_show', ['id' => $fournisseur->getId()] );
+                $urlEdite = $this->generateUrl('fournisseurs_edit', ['id' => $fournisseur->getId()]);
+                $urlShow = $this->generateUrl('fournisseurs_show', ['id' => $fournisseur->getId()]);
                 $row = [
                     "Nom" => $fournisseur->getNom(),
                     "Code de réference" => $fournisseur->getCodeReference(),
-                    'Actions' => "<a href='" . $urlEdite  . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
+                    'Actions' => "<a href='" . $urlEdite . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
                     <a href='" . $urlShow . "' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>",
                 ];
                 array_push($rows, $row);
@@ -92,8 +92,7 @@ class FournisseursController extends Controller
     {
         $em = $this->getDoctrine()->getEntityManager();
 
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true))
-        {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $fournisseur = new Fournisseurs();
             $fournisseur->setNom($data[0]["Nom"]);
             $fournisseur->setCodeReference($data[1]["Code"]);
@@ -138,12 +137,21 @@ class FournisseursController extends Controller
      */
     public function delete(Request $request, Fournisseurs $fournisseur) : Response
     {
-        if ($this->isCsrfTokenValid('delete' . $fournisseur->getId(), $request->request->get('_token'))) {
-            $em = $this->getDoctrine()->getManager();
-            $em->remove($fournisseur);
-            $em->flush();
+        $receptions = $fournisseur->getreceptions();
+        dump(count($receptions));
+        if (count($receptions) === 0) {
+            if ($this->isCsrfTokenValid('delete' . $fournisseur->getId(), $request->request->get('_token'))) {
+                $em = $this->getDoctrine()->getManager();
+                $em->remove($fournisseur);
+                $em->flush();
+                return $this->redirectToRoute('fournisseurs_index');
+            }
+        } else {
+            return $this->redirect($_SERVER['HTTP_REFERER']);
         }
-
-        return $this->redirectToRoute('fournisseurs_index');
     }
 }
+
+// , array(
+//     'message' => 'impossible de supprimer un fournisseur utilisé'
+// )
