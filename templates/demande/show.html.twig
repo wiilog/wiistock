@@ -8,10 +8,11 @@
     <div class="col-6">
         <h1 class="">Demande de livraison</h1>
     </div>
-    <div class="col-6">
-        <a href="" data-toggle="modal" data-target="#modifModalCenter" class="button btn-left">
+    <div class="col-2">
+        <a href="" data-toggle="modal" data-target="#modifModalCenter" class="button">
             Modifier la demande
         </a>
+        {{ include('demande/_delete_form.html.twig') }}
     </div>
 </div>
 
@@ -26,19 +27,20 @@
     <div class="col-3">
         <p>Date demande : {{ demande.date | date("d/m/Y") }}</p>
         <p>Reference : {{ demande.numero }}</p>
-        <a href='{{ path("preparationFromDemande", {"id" : demande.id }) }}'>Aller vers la preparation</a>
+        <!-- <a href='{{ path("preparationFromDemande", {"id" : demande.id }) }}'>Aller vers la preparation</a> -->
     </div>
 
     <div class="col-2">
 
     </div>
 
-    <div class="col-4"></div> 
+    <div class="col-4"></div>
 
     <div class="col-12">
         <div class="row justify-content-between">
             <div></div>
-            <a href="" data-toggle="modal" data-target="#ajoutLigneModalCenter" class="button btn-left ml-auto">Ajouter une
+            <a href="" data-toggle="modal" data-target="#ajoutLigneModalCenter" class="button btn-left ml-auto">Ajouter
+                une
                 ligne</a>
         </div>
     </div>
@@ -77,17 +79,17 @@
             "type": "POST"
         },
         columns: [{
-                "data": 'Références CEA'
-            },
-            {
-                "data": 'Libellé'
-            },
-            {
-                "data": 'Quantité'
-            },
-            {
-                "data": 'Actions'
-            },
+            "data": 'Références CEA'
+        },
+        {
+            "data": 'Libellé'
+        },
+        {
+            "data": 'Quantité'
+        },
+        {
+            "data": 'Actions'
+        },
         ],
     });
 
