@@ -15,7 +15,9 @@ class AlerteType extends AbstractType
         $builder
             ->add('AlerteNom')
             ->add('AlerteSeuil')
-            ->add('AlerteRefArticle')
+            ->add('AlerteRefArticle', [
+                "label" => "Référence article"
+            ])
         ;
     }
 

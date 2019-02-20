@@ -94,6 +94,11 @@ class Articles
      */
     private $quantiteCollectee;
 
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $etat;
+
     
     public function __construct()
     {
@@ -156,18 +161,6 @@ class Articles
     public function setReception(?Receptions $reception): self
     {
         $this->reception = $reception;
-
-        return $this;
-    }
-
-    public function getEtat(): ?bool
-    {
-        return $this->etat;
-    }
-
-    public function setEtat(?bool $etat): self
-    {
-        $this->etat = $etat;
 
         return $this;
     }
@@ -296,6 +289,18 @@ class Articles
     public function setQuantiteCollectee(?int $quantiteCollectee): self
     {
         $this->quantiteCollectee = $quantiteCollectee;
+
+        return $this;
+    }
+
+    public function getEtat(): ?bool
+    {
+        return $this->etat;
+    }
+
+    public function setEtat(bool $etat): self
+    {
+        $this->etat = $etat;
 
         return $this;
     }
