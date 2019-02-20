@@ -206,7 +206,7 @@ class ArticlesController extends AbstractController
             $em->remove($article);
             $em->flush();
         }
-        return $this->redirectToRoute('articles_index', ['statut' => 'all', 'id' => 0, ]);
+        return $this->redirectToRoute('articles_index');
     }
 
     /**

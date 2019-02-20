@@ -125,7 +125,7 @@ class ReferencesArticlesController extends Controller
         if ($form->isSubmitted() && $form->isValid()) {
             $this->getDoctrine()->getManager()->flush();
 
-            return $this->redirectToRoute('references_articles_edit', ['id' => $referencesArticle->getId()]);
+            return $this->redirectToRoute('references_articles_index');
         }
 
         return $this->render('references_articles/edit.html.twig', [

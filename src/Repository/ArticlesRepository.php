@@ -30,6 +30,18 @@ class ArticlesRepository extends ServiceEntityRepository
         ;
         return $query->execute(); 
     }
+
+    public function findByEmplacement($empl)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            'SELECT a
+            FROM App\Entity\Articles a
+            WHERE a.emplacement = :empl'
+        )->setParameter('empl', $empl);
+        ;
+        return $query->execute(); 
+    }
     
     public function findByStatut($statut)
     {

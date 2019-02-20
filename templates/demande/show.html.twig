@@ -27,7 +27,7 @@
     <div class="col-3">
         <p>Date demande : {{ demande.date | date("d/m/Y") }}</p>
         <p>Reference : {{ demande.numero }}</p>
-        <!-- <a href='{{ path("preparationFromDemande", {"id" : demande.id }) }}'>Aller vers la preparation</a> -->
+        <a href='{{ path("preparationFromDemande", {"id" : demande.id }) }}'>Aller vers la preparation</a>
     </div>
 
     <div class="col-2">

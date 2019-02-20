@@ -13,6 +13,9 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
+use App\Repository\ArticlesRepository;
+
+
 /**
  * @Route("/emplacement")
  */
@@ -24,10 +27,8 @@ class EmplacementController extends AbstractController
      */
     public function createEmplacement(Request $request) : Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true))
-        {
-            if (count($data) >= 2)
-            {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (count($data) >= 2) {
                 $emplacement = new Emplacement();
                 $em = $this->getDoctrine()->getManager();
 
@@ -85,8 +86,8 @@ class EmplacementController extends AbstractController
             $emplacements = $emplacementRepository->findAll();
             $rows = [];
             foreach ($emplacements as $emplacement) {
-                $urlEdite = $this->generateUrl('emplacement_edit', ['id' => $emplacement->getId()] );
-                $urlShow = $this->generateUrl('emplacement_show', ['id' => $emplacement->getId()] );
+                $urlEdite = $this->generateUrl('emplacement_edit', ['id' => $emplacement->getId()]);
+                $urlShow = $this->generateUrl('emplacement_show', ['id' => $emplacement->getId()]);
                 $row = [
                     'id' => ($emplacement->getId() ? $emplacement->getId() : ""),
                     'Nom' => ($emplacement->getNom() ? $emplacement->getNom() : ""),
@@ -134,14 +135,19 @@ class EmplacementController extends AbstractController
     /**
      * @Route("/{id}", name="emplacement_delete", methods="DELETE")
      */
-    public function delete(Request $request, Emplacement $emplacement) : Response
+    public function delete(Request $request, Emplacement $emplacement, ArticlesRepository $articleRepository)  : Response
     {
-        if ($this->isCsrfTokenValid('delete' . $emplacement->getId(), $request->request->get('_token'))) {
-            $em = $this->getDoctrine()->getManager();
-            $em->remove($emplacement);
-            $em->flush();
+        dump($emplacement->getId());
+        $emplacements = $articleRepository->findAll();
+        if (count($emplacements) === 0) {
+            if ($this->isCsrfTokenValid('delete' . $emplacement->getId(), $request->request->get('_token'))) {
+                $em = $this->getDoctrine()->getManager();
+                $em->remove($emplacement);
+                $em->flush();
+            }
+            return $this->redirectToRoute('emplacement_index');
+        } else {
+            return $this->redirect($_SERVER['HTTP_REFERER']);
         }
-
-        return $this->redirectToRoute('emplacement_index');
     }
 }
