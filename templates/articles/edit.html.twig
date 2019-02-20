@@ -7,7 +7,7 @@
 
     {{ include('articles/_form.html.twig', {'button_label': 'Modifier'}) }}
     
-    <a href={{path('reception_ajout_article', {'id': id , 'k': 0})}} class="btn pull-left button btn-right">Liste reception</a>
+    <a href={{path('reception_ajout_article', {'id': id , 'k': 0})}} class="btn pull-left button btn-right">Liste réception</a>
     <a href={{path('articles_index') }} class="btn pull-left button btn-right">Liste article</a>
 
     {{ include('articles/_delete_form.html.twig') }}

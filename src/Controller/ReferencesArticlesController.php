@@ -35,7 +35,7 @@ class ReferencesArticlesController extends Controller
                
                 $row = [
                     "id" => $refArticle->getId(),
-                    "Libélle" => $refArticle->getLibelle(),
+                    "Libellé" => $refArticle->getLibelle(),
                     "Référence" => $refArticle->getReference(),
                     "Quantité" => $refArticle->getQuantiteStock(),
                     'Actions' => "<a href='" . $urlEdite . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>

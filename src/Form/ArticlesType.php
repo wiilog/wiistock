@@ -24,7 +24,8 @@ class ArticlesType extends AbstractType
                 'choices' => [
                     'conforme' => true,
                     'non conforme' => false,
-                ]
+                ],
+                'label' => 'État'
             ))
             ->add('commentaire')
             ->add('position')
@@ -33,13 +34,15 @@ class ArticlesType extends AbstractType
                 'attr' => array(
                     'placeholder' => 'quantité',
                     'min' => 1, 'max' => 10000
-                )
+                ),
+                'label' => 'Quantité'
             ))
             ->add('quantiteARecevoir', IntegerType::class, array(
                 'attr' => array(
                     'placeholder' => 'quantité à recevoir',
                     'min' => 1, 'max' => 10000
-                )
+                ),
+                'label' => 'Quantité à recevoir'
             ))
             ->add('refArticle', EntityType::class, [
                 'class' => ReferencesArticles::class,
