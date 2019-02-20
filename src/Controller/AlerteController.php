@@ -95,7 +95,7 @@ class AlerteController extends AbstractController
 
 
     /**
-     * @Route("/new", name="alerte_new", methods={"GET","POST"})
+     * @Route("/creer", name="alerte_new", methods={"GET","POST"})
      */
     public function new(Request $request) : Response
     {

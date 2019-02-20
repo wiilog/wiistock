@@ -135,7 +135,7 @@ class LivraisonController extends AbstractController
     }
 
     /**
-     * @Route("/{id}", name="livraison_show", methods={"GET","POST"}) UTILE 
+     * @Route("/voir/{id}", name="livraison_show", methods={"GET","POST"}) UTILE
      */
     public function show(Livraison $livraison) : Response
     {
