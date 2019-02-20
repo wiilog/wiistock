@@ -183,7 +183,7 @@ class ReceptionsController extends AbstractController
             // traitement des données => récuperation des objets via leur id 
             $refArticle= $this->referencesArticlesRepository->findOneById($myJSON['refArticle']);
             $reception= $this->receptionsRepository->findOneById($myJSON['reception']);
-            // creation d'un nouvelle objet article + set des donnees
+            // creation d'un nouvel objet article + set des donnees
             $article = new Articles();
             $article->setNom($myJSON['nom']);
             $article->setRefArticle($refArticle);
@@ -204,7 +204,7 @@ class ReceptionsController extends AbstractController
                 $article->setStatut($statut);
                 $reception->setStatut($statut);
             }
-            // flush du nouvelle objet article dans la base
+            // flush du nouvel objet article dans la base
             $em = $this->getDoctrine()->getManager();
             $em->persist($article);
             $em->flush();
@@ -237,34 +237,6 @@ class ReceptionsController extends AbstractController
             'utilisateurs' => $this->utilisateursRepository->findAll(),
         ]);
     }
-
-
-    /**
-     * @Route("/new/creation", name="receptions_new", methods={"GET", "POST"}) INUTILE
-     */
-    public function new(Request $request): Response
-    {
-        $reception = new Receptions();
-        $form = $this->createForm(ReceptionsType::class, $reception);
-        $form->handleRequest($request);
-        if ($form->isSubmitted() && $form->isValid()) 
-        {
-            $statut = $this->statutsRepository->findById(1);
-            $reception->setStatut($statut[0]);
-            $reception->setDate(new \DateTime('now'));
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($reception);
-            $em->flush();
-
-            return $this->redirectToRoute('receptions_index', array('history' => 0));
-        }
-
-        return $this->render('receptions/new.html.twig', [
-            'reception' => $reception,
-            'form' => $form->createView(),
-        ]);
-    }
-
 
     /**
      * @Route("/show/{id}", name="receptions_show", methods="GET")
@@ -358,8 +330,8 @@ class ReceptionsController extends AbstractController
                 }
             }
 
-            $statut = $this->statutsRepository->findById(7);
-            $reception->setStatut($statut[0]);
+            $statut = $this->statutsRepository->findOneById(7);
+            $reception->setStatut($statut);
             $reception->setDateReception(new \DateTime('now'));
 
             //calcul de la quantite des stocks par artciles de reference

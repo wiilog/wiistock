@@ -109,7 +109,7 @@ class PreparationController extends AbstractController
                 "preparation" => [
                     "id" => $preparation->getId(),
                     "numero" => $preparation->getNumero(),
-                    "date" => $preparation->getDate()->format("Y-m-d H:i:s"),
+                    "date" => $preparation->getDate()->format("d/m/Y H:i:s"),
                     "Statut" => $preparation->getStatut()->getNom()
                 ],
                 "message" => "Votre préparation à été enregistrer"
@@ -163,7 +163,7 @@ class PreparationController extends AbstractController
                 $urlShow = $this->generateUrl('preparation_show', ['id' => $preparation->getId()] );
                 $row = [
                     'Numéro' => ($preparation->getNumero() ? $preparation->getNumero() : ""),
-                    'Date' => ($preparation->getDate() ? $preparation->getDate()->format('Y-m-d') : ''),
+                    'Date' => ($preparation->getDate() ? $preparation->getDate()->format('d/m/Y') : ''),
                     'Statut' => ($preparation->getStatut() ? $preparation->getStatut()->getNom() : ""),
                     'Actions' => "<a href='" . $urlShow . "' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>",
                 ];
@@ -237,7 +237,7 @@ class PreparationController extends AbstractController
     public function show(Preparation $preparation, ArticlesRepository $articlesRepository) : Response
     {
         // modelise l'action de prendre l'article dan sle stock pour constituer la preparation  
-        if (array_key_exists('fin', $_POST))
+        if (array_key_exists('fin', $_POST)) 
         {
             $article = $articlesRepository->findById($_POST['fin']);
             $statut = $this->statutsRepository->findById(16); /*  Le statut passe en préparation */

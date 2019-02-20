@@ -146,7 +146,7 @@ class CollecteController extends AbstractController
         foreach ($collectes as $collecte) {
             $url = $this->generateUrl('collecte_show', ['id' => $collecte->getId()]);
             $rows[] = [
-                'Date'=> ($collecte->getDate() ? $collecte->getDate()->format('d-m-Y') : null),
+                'Date'=> ($collecte->getDate() ? $collecte->getDate()->format('d/m/Y') : null),
                 'Demandeur'=> ($collecte->getDemandeur() ? $collecte->getDemandeur()->getUserName() : null ),
                 'Libellé'=> ($collecte->getObjet() ? $collecte->getObjet() : null ),
                 'Statut'=> ($collecte->getStatut()->getNom() ? ucfirst($collecte->getStatut()->getNom()) : null),

@@ -1,5 +1,5 @@
 {% extends "layout.html.twig" %}
-{% block title %}Ajout d'articles{% endblock %}
+{% block title %}Ajout d'article{% endblock %}
 {% block page_content %}
 
 <h1>RECEPTION</h1>
@@ -82,11 +82,11 @@
         <div class="form-group col-6">
             <div class="input-group">
                 <div class="input-group-prepend">
-                    <label class="input-group-text" for="inputGroupSelect01">Etat</label>
+                    <label class="input-group-text" for="inputGroupSelect01">Statut</label>
                 </div>
-                <select class="custom-select" id="etat">
-                    <option value='1'>conforme</option>
-                    <option value='0'>non-conforme</option>
+                <select class="custom-select" id="statut">
+                    <option value='1'>En cours de réception</option>
+                    <option value='0'>Anomalie</option>
                 </select>
             </div>
         </div>
@@ -165,7 +165,7 @@
         }
         // préparation des données envoie insertion dans le tableau
         let nom = document.getElementById('nom').value
-        let etat = document.getElementById('etat').value
+        let etat = document.getElementById('statut').value
         let refArticle = document.getElementById('refArticle').value
         let commentaire = document.getElementById('commentaire').value
         let quantite = document.getElementById('quantite').value
