@@ -1,5 +1,5 @@
 {% extends "layout.html.twig" %}
-{% block title %}Ajout d'articles{% endblock %}
+{% block title %}Ajout d'article{% endblock %}
 {% block page_content %}
 
 <h1>RECEPTION</h1>
@@ -49,10 +49,7 @@
                         class="fas fa-pencil-alt fa-2x"></i></a>
             </td>
         </tr>
-        {% else %}
-        <tr id='noResult'>
-            <td colspan="7">Aucun article enregistrer</td>
-        </tr>
+        
         {% endfor %}
     </tbody>
 </table>
