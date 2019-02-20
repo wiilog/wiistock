@@ -53,6 +53,7 @@ class Articles
      */
     private $reception;
 
+
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="articles")
      */

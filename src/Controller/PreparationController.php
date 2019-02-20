@@ -182,7 +182,8 @@ class PreparationController extends AbstractController
     public function LignePreparationApi(Request $request, Demande $demande) : Response
     {
         if($request->isXmlHttpRequest()) //Si la requête est de type Xml
-        {
+        {   
+            
             $LignePreparations = $demande->getLigneArticle();
             $rows = [];
         
@@ -190,9 +191,9 @@ class PreparationController extends AbstractController
             {
                 $refPreparation = $this->referencesArticlesRepository->findOneById($LignePreparation["reference"]);
                 $row = [ 
-                    "Références CEA" => ($LignePreparation["reference"] ? $LignePreparation["reference"] : ''),
-                    "Libellé" => ($refPreparation->getLibelle() ? $refPreparation->getLibelle() : ''),
-                    "Quantité" => ($LignePreparation["quantite"] ? $LignePreparation["quantite"] : ''),
+                    "Références CEA" => ($LignePreparation["reference"] ? $LignePreparation["reference"] : ' '),
+                    "Libellé" => ($refPreparation->getLibelle() ? $refPreparation->getLibelle() : ' '),
+                    "Quantité" => ($LignePreparation["quantite"] ? $LignePreparation["quantite"] : ' '),
                     "Actions" => "actions", 
                 ];
                 array_push($rows, $row);
