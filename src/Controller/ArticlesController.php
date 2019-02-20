@@ -64,7 +64,7 @@ class ArticlesController extends AbstractController
     }
 
     /**
-     * @Route(name="articles_by_collecte", methods={"GET", "POST"})
+     * @Route("/par-collecte", name="articles_by_collecte", methods={"GET", "POST"})
      */
     public function getArticlesByCollecte(CollecteRepository $collecteRepository, Request $request): Response
     {
@@ -118,7 +118,7 @@ class ArticlesController extends AbstractController
     }
 
     /**
-     * @Route("/{id}", name="articles_show", methods="GET")
+     * @Route("/voir/{id}", name="articles_show", methods="GET")
      */
     public function show(Articles $article) : Response
     {
