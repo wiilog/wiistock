@@ -74,8 +74,6 @@ class ArticlesController extends AbstractController
             $articles = $collecte->getArticles();
             $rows = [];
             foreach ($articles as $article) {
-                $urlEdit = $this->generateUrl('articles_edit', ['id' => $article->getId()]);
-
                 $rows[] = [
                     'Nom'=>( $article->getNom() ?  $article->getNom():"null"),
                     'Statut'=> ($article->getStatut()->getNom() ? $article->getStatut()->getNom() : "null"),
@@ -84,7 +82,7 @@ class ArticlesController extends AbstractController
                     'Position'=> ($article->getPosition() ? $article->getPosition()->getNom() : "null"),
                     'Destination'=> ($article->getDirection() ? $article->getDirection()->getNom() : "null"),
                     'Quantité à collecter'=>($article->getQuantiteCollectee() ? $article->getQuantiteCollectee() : "null"),
-                    'Actions'=> "<div class='btn btn-xs btn-default article-edit' onclick='editRow($(this))'><i class='fas fa-pencil-alt fa-2x'></i></div>
+                    'Actions'=> "<div class='btn btn-xs btn-default article-edit' onclick='editRow($(this))'  data-toggle='modal' data-target='#modalModifyArticle' data-quantity='" . $article->getQuantiteCollectee(). "' data-name='" . $article->getNom() . "' data-id=" . $article->getId() . "><i class='fas fa-pencil-alt fa-2x'></i></div>
                         <div class='btn btn-xs btn-default article-delete' onclick='deleteRow($(this))'><i class='fas fa-trash fa-2x'></i></div>",
                 ];
             }
@@ -150,7 +148,6 @@ class ArticlesController extends AbstractController
      */
     public function edit(Request $request, Articles $article, StatutsRepository $statutsRepository) : Response
     {
-        dump($_POST);
         $form = $this->createForm(ArticlesType::class, $article);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) 
@@ -186,5 +183,23 @@ class ArticlesController extends AbstractController
             $em->flush();
         }
         return $this->redirectToRoute('articles_index', ['statut' => 'all', 'id' => 0, ]);
+    }
+
+    /**
+     * @Route("/edit-quantity", name="edit_quantity")
+     */
+    public function editQuantity(Request $request, ArticlesRepository $articlesRepository)
+    {
+        $articleId = $request->request->get('articleId');
+        $quantity = $request->request->get('quantity');
+
+        $article = $articlesRepository->find($articleId);
+        $article->setQuantiteCollectee($quantity);
+
+        $em = $this->getDoctrine()->getManager();
+        $em->persist($article);
+        $em->flush();
+
+        return new JsonResponse(true);
     }
 }

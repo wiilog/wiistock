@@ -3,7 +3,7 @@
 {% block title %}Demande de collecte{% endblock %}
 
 {% block page_content %}
-    <div id="alerts" role="alert"></div>
+    <div id="alerts" data-auto-dismiss role="alert"></div>
 
     <div class="row">
         <div class="col-6 pl-4">
@@ -92,6 +92,7 @@
     <a href="{{ path('collecte_index') }}" class='button pull-left btn-left'> Retour</a>
     {{ include('collecte/modalAddArticle.html.twig') }}
     {{ include('collecte/modalDeleteCollecte.html.twig') }}
+    {{ include('collecte/modalModifyArticle.html.twig') }}
 
 {% endblock %}
 
@@ -118,6 +119,10 @@ $('#addRow').on('click', function() {
 
 $('#modalDeleteCollecte').find('.save').on('click', function() {
     deleteCollecte($(this));
+});
+
+$('#modalModifyArticle').find('.save').on('click', function() {
+    modifyArticle($(this));
 });
 
 $('#table-list-articles').DataTable({
