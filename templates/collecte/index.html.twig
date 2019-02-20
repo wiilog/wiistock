@@ -57,10 +57,11 @@ $('#table-list-collects').DataTable({
     columns: [
         { "data": 'Date' },
         { "data": 'Demandeur' },
-        { "data": 'Objet' },
+        { "data": 'Libellé' },
         { "data": 'Statut' },
         { "data": 'actions'}
     ],
+    "order": [[ 0, 'desc']] //TODO CG index
 });
 
 </script>

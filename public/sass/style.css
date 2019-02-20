@@ -127,12 +127,25 @@ input:-webkit-autofill {
   font-weight: 700;
 }
 
+a {
+  color: unset;
+}
+
+a:hover {
+  color: white;
+}
+
+.alert {
+  position: unset;
+}
+
 .modal-body label {
   color: #b2b2b2;
 }
 
-.modal-dialog {
-  max-width: 60%;
+.error-msg {
+  color: #e30c15;
+  font-size: .9rem;
 }
 
 .accueil-back {

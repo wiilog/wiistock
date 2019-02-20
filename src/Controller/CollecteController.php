@@ -57,27 +57,7 @@ class CollecteController extends AbstractController
     public function index(CollecteRepository $collecteRepository, UtilisateursRepository $utilisateursRepository, PaginatorInterface $paginator, Request $request): Response
     {
 
-        $statut = 'fin';
-        $collecteQuery = $collecteRepository->findAll();
-
-        $pagination = $paginator->paginate(
-            $collecteQuery, /* On récupère la requête et on la pagine */
-            $request->query->getInt('page', 1),
-            10
-        );
-        
-        if (array_key_exists('fin', $_POST))
-        {
-            $collecte = $collecteRepository->findById($_POST['fin']);
-            $statut = $this->statutsRepository->findById(18); /* 18 = Récupéré */
-            $collecte[0]->setStatut($statut[0]);
-            // $this->getDoctrine()->getManager()->flush();
-        }
-
         return $this->render('collecte/index.html.twig', [
-            'collectes' => $pagination,
-            'utilisateurs' => $utilisateursRepository->findAll(),
-            'articles'=> $this->articlesRepository->findByStatut(4), //TODO CG pas valeur id en dur
             'emplacements'=>$this->emplacementRepository->findAll(),
 
         ]);
@@ -93,7 +73,7 @@ class CollecteController extends AbstractController
         $pointCollecteId = $request->request->getInt('pointCollecte');
 
         $date = new \DateTime('now');
-        $status = $statutsRepository->findOneByNom('demande de collecte');
+        $status = $statutsRepository->findOneByNom(Collecte::STATUS_DEMANDE);
         $numero = "C-". $date->format('YmdHis');
 
         $collecte = new Collecte;
@@ -109,7 +89,16 @@ class CollecteController extends AbstractController
         $em->persist($collecte);
         $em->flush();
 
-        return new JsonResponse(true);
+        $url = $this->generateUrl('collecte_show', ['id' => $collecte->getId()]);
+        $data = [
+            'Date'=> ($collecte->getDate() ? $collecte->getDate()->format('d/m/Y') : null),
+            'Demandeur'=> ($collecte->getDemandeur() ? $collecte->getDemandeur()->getUserName() : null ),
+            'Libellé'=> ($collecte->getObjet() ? $collecte->getObjet() : null ),
+            'Statut'=> ($collecte->getStatut()->getNom() ? ucfirst($collecte->getStatut()->getNom()) : null),
+            'actions' => "<a href='" . $url . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-eye fa-2x'></i></a>"
+        ];
+
+        return new JsonResponse($data);
     }
 
     /**
@@ -132,8 +121,6 @@ class CollecteController extends AbstractController
         $em->persist($article);
         $em->flush();
 
-        $urlEdit = $this->generateUrl('articles_edit', ['id' => $article->getId()]);
-
         $data = [
             'Nom'=>( $article->getNom() ?  $article->getNom():"null"),
             'Statut'=> ($article->getStatut()->getNom() ? $article->getStatut()->getNom() : "null"),
@@ -142,17 +129,17 @@ class CollecteController extends AbstractController
             'Position'=> ($article->getPosition() ? $article->getPosition()->getNom() : "null"),
             'Destination'=> ($article->getDirection() ? $article->getDirection()->getNom() : "null"),
             'Quantité à collecter'=>($article->getQuantiteCollectee() ? $article->getQuantiteCollectee() : "null"),
-            'Actions'=> "<a href='" . $urlEdit . "' class='btn btn-xs btn-default article-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
-                        <a href='' class='btn btn-xs btn-default article-delete'><i class='fas fa-trash fa-2x'></i></a>"
+            'Actions'=> "<div class='btn btn-xs btn-default article-edit' onclick='editRow($(this))'><i class='fas fa-pencil-alt fa-2x'></i></a>
+                        <div class='btn btn-xs btn-default article-delete' onclick='deleteRow($(this))'><i class='fas fa-trash fa-2x'></i></div>"
         ];
-
+//TODO CG centraliser avec la même dans ArticlesController
         return new JsonResponse($data);
     }
 
     /**
      * @Route("/api", name="collectes_json", methods={"GET", "POST"})
      */
-    public function getCollectes(CollecteRepository $collecteRepository, Request $request): Response
+    public function getCollectes(CollecteRepository $collecteRepository): Response
     {
         $collectes = $collecteRepository->findAll();
         $rows = [];
@@ -161,7 +148,7 @@ class CollecteController extends AbstractController
             $rows[] = [
                 'Date'=> ($collecte->getDate() ? $collecte->getDate()->format('d/m/Y') : null),
                 'Demandeur'=> ($collecte->getDemandeur() ? $collecte->getDemandeur()->getUserName() : null ),
-                'Objet'=> ($collecte->getObjet() ? $collecte->getObjet() : null ),
+                'Libellé'=> ($collecte->getObjet() ? $collecte->getObjet() : null ),
                 'Statut'=> ($collecte->getStatut()->getNom() ? ucfirst($collecte->getStatut()->getNom()) : null),
                 'actions' => "<a href='" . $url . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-eye fa-2x'></i></a>"
             ];
@@ -170,85 +157,35 @@ class CollecteController extends AbstractController
 
         return new JsonResponse($data);
     }
-
-    /**
-     * @Route("{id}/finish", name="finish_collecte")
-     */
-    public function finishCollecte(Collecte $collecte)
-    {
-        //TODO CG
-        // passer articles en statut en stock et collecte en terminée
-    }
-
+//
 //    /**
-//     * @Route("/new", name="collecte_new", methods={"GET","POST"})
+//     * @Route("{id}/finish", name="finish_collecte")
 //     */
-//    public function new(Request $request): Response
+//    public function finishCollecte(Collecte $collecte, StatutsRepository $statutsRepository)
 //    {
-//        $collecte = new Collecte();
-//        $form = $this->createForm(CollecteType::class, $collecte);
-//        $form->handleRequest($request);
+//        $em = $this->getDoctrine()->getManager();
 //
-//        if ($form->isSubmitted() && $form->isValid())
-//        {
-//            $date =  new \DateTime('now');
-//            $collecte->setdate($date);
-//            $collecte->setNumero("D-" . $date->format('YmdHis'));
-//            $collecte->setDemandeur($this->getUser());
-//            $entityManager = $this->getDoctrine()->getManager();
-//            $entityManager->persist($collecte);
-//            $entityManager->flush();
+//        // changement statut collecte
+//        $statusFinCollecte = $statutsRepository->findOneBy(['nom' => Collecte::STATUS_FIN]);
+//        $collecte->setStatut($statusFinCollecte);
 //
-//            return $this->redirectToRoute('collecte_index');
+//        // changement statut articles
+//        $statusEnStock = $statutsRepository->findOneBy(['nom' => Articles::STATUS_EN_STOCK]);
+//        $articles = $collecte->getArticles();
+//        foreach ($articles as $article) {
+//            $article->setStatut($statusEnStock);
+//            $em->persist($article);
 //        }
-//
-//        return $this->render('collecte/new.html.twig', [
-//            'collecte' => $collecte,
-//            'form' => $form->createView(),
-//        ]);
+//        $em->flush();
 //    }
 
     /**
      * @Route("/{id}", name="collecte_show", methods={"GET", "POST"})
      */
     public function show(Collecte $collecte): Response
-    {   
-//        $session = $_SERVER['HTTP_REFERER'];
-    //modifie le statut, la position et la direction des articles correspondant à ceux recupere par les operateurs 
-        if(array_key_exists('prise', $_POST))
-        {
-            $article = $this->articlesRepository->findById($_POST['prise']);
-            $statut = $this->statutsRepository->findById(20); /* Collecté */
-            $article[0]->setQuantite($_POST['quantite']);
-            $article[0]->setStatut($statut[0]);
-            $this->getDoctrine()->getManager()->flush();
-        }
-        //si $fin === 0 alors il ne reste plus d'articles à récupérer donjc collecte fini
-        if (array_key_exists('depose', $_POST)) {
-            $article = $this->articlesRepository->findById($_POST['depose']);
-            if( $article[0]->getDirection() !== null)
-            {   //vérifie si la direction n'est pas nul, pour ne pas perdre l'emplacement si il y a des erreurs au niveau des receptions
-                $article[0]->setPosition( $article[0]->getDirection());
-            }
-            $article[0]->setDirection(null);
-            $statut = $this->statutsRepository->findById(3); /* en stock */
-            $article[0]->setStatut($statut[0]);
-            $this->getDoctrine()->getManager()->flush();
-        }
-         //verifie si une collecte est terminer 
-        //Comptage des articles selon le statut 'collecte' et la collecte lié
-        $fin = $this->articlesRepository->findCountByStatutAndCollecte($collecte);
-        $fin = $fin[0];
-        if($fin[1] === '0')
-        {
-            $statut = $this->statutsRepository->findById(17);
-            $collecte->setStatut($statut[0]);
-            $this->getDoctrine()->getManager()->flush();
-        }
-
+    {
         return $this->render('collecte/show.html.twig', [
             'collecte' => $collecte,
-//            'session' => $session
         ]);
     }
 
@@ -277,15 +214,15 @@ class CollecteController extends AbstractController
     /**
      * @Route("/{id}/delete", name="collecte_delete")
      */
-    public function delete(Request $request, Collecte $collecte): Response
+    public function delete(Collecte $collecte):Response
     {
-        if ($this->isCsrfTokenValid('delete'.$collecte->getId(), $request->request->get('_token'))) 
+        if ($collecte->getStatut()->getNom() == Collecte::STATUS_DEMANDE)
         {
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($collecte);
             $entityManager->flush();
         }
 
-        return $this->redirectToRoute('collecte_index');
+        return new JsonResponse(true); //TODO CG
     }
 }

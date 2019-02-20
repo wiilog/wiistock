@@ -83,8 +83,8 @@ class ArticlesController extends AbstractController
                     'Position'=> ($article->getPosition() ? $article->getPosition()->getNom() : "null"),
                     'Destination'=> ($article->getDirection() ? $article->getDirection()->getNom() : "null"),
                     'Quantité à collecter'=>($article->getQuantiteCollectee() ? $article->getQuantiteCollectee() : "null"),
-                    'Actions'=> "<a href='" . $urlEdit . "' class='btn btn-xs btn-default article-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
-                        <a href='' class='btn btn-xs btn-default article-delete'><i class='fas fa-trash fa-2x'></i></a>",
+                    'Actions'=> "<div class='btn btn-xs btn-default article-edit' onclick='editRow($(this))><i class='fas fa-pencil-alt fa-2x'></i></a>
+                        <div class='btn btn-xs btn-default article-delete' onclick='deleteRow($(this))'><i class='fas fa-trash fa-2x'></i></div>",
                 ];
             }
             $data['data'] = $rows;

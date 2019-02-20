@@ -25,8 +25,8 @@ function saveCollecte(button) {
             pointCollecte: pointCollecte
         };
 
-        $.post("/collecte/creer", params, function() {
-            modal.modal('hide');
+        $.post("/collecte/creer", params, function(data) {
+            $('#table-list-collects').DataTable().row.add(data).draw();
         }, 'json');
     }
 }
@@ -55,4 +55,30 @@ function displayQuantity(input) {
     let inputQuantity = input.closest('form').find('#quantity');
     inputQuantity.val(quantity);
     inputQuantity.attr('max', quantity);
+}
+
+function deleteCollecte(button) {
+    let modal = button.closest('.modal');
+    let status = modal.data('status');
+
+    if (status !== 'demande de collecte') { //TODO CG passer par constante ?
+        let alerts = $('#alerts');
+        alerts.addClass('alert alert-danger')
+        alerts.html('La collecte ne peut pas être supprimée (statut ' + status + ').');
+    } else {
+        let collecteId = modal.data('collecte-id');
+        $.post("/collecte/" + collecteId + "/delete", function() {
+            window.location.replace('/collecte');
+        });
+    }
+}
+
+function deleteRow(icon) {
+    let row = icon.closest('tr');
+    $('#table-list-articles').DataTable().row(row).remove().draw();
+}
+
+function editRow(icon) {
+    let row = icon.closest('tr');
+    // TODO CG
 }

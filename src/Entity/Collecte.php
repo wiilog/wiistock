@@ -11,6 +11,10 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Collecte
 {
+    const STATUS_FIN = 'fin';
+    const STATUS_EN_COURS = 'en cours de collecte';
+    const STATUS_DEMANDE = 'demande de collecte';
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
