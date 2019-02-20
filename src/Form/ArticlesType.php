@@ -33,9 +33,9 @@ class ArticlesType extends AbstractType
             ->add('quantite', IntegerType::class, array(
                 'attr' => array(
                     'placeholder' => 'quantité',
-                    'min' => 1, 'max' => 10000
+                    'min' => 0, 'max' => 10000, 
                 ),
-                'label' => 'Quantité'
+                'label' => 'Quantité reçu'
             ))
             ->add('quantiteARecevoir', IntegerType::class, array(
                 'attr' => array(
