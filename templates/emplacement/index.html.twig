@@ -1,9 +1,9 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Emplacement{% endblock %}
+{% block title %}Stock / Emplacements{% endblock %}
 
 {% block page_content %}
-<h1>Emplacement</h1>
+<h1>Emplacements</h1>
 
 <div class='row btn '>
     <a href="{{ path('emplacement_new') }}" class="button btn-left">
@@ -39,7 +39,7 @@
         columns: [
             { "data": 'Nom' },
             { "data": 'Description' },
-            { "data":' Actions ' }
+            { "data": 'Actions' }
         ],
         buttons: [
             'copy', 'excel', 'pdf'
