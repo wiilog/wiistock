@@ -258,8 +258,8 @@ class ReceptionsController extends AbstractController
             $fournisseur = $fournisseursRepository->findOneById($_POST["fournisseur"]);
             $utilisateur = $this->utilisateursRepository->findOneById($_POST["utilisateur"]);
 
-            $reception->setNumeroReception($_POST["numeroReception"]);
-            $reception->setDate(new \DateTime($_POST["date-commande"]));
+            $reception->setNumeroReception($_POST["numeroReception"])
+            ->setDate(new \DateTime($_POST["date-commande"]));
             $reception->setDateAttendu(new \DateTime($_POST["date-attendue"]));
             $reception->setFournisseur($fournisseur);
             $reception->setUtilisateur($utilisateur);
