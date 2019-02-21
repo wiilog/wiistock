@@ -48,6 +48,11 @@ class CollecteController extends AbstractController
      * @var ArticlesRepository
      */
     private $articlesRepository;
+    
+    /**
+     * @var UtilisateursRepository
+     */
+    private $utilisateurRepository;
 
     public function __construct(StatutsRepository $statutsRepository, ArticlesRepository $articlesRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository)
     {
@@ -60,7 +65,7 @@ class CollecteController extends AbstractController
     /**
      * @Route("/", name="collecte_index", methods={"GET", "POST"})
      */
-    public function index(CollecteRepository $collecteRepository, UtilisateursRepository $utilisateursRepository, PaginatorInterface $paginator, Request $request): Response
+    public function index(Request $request): Response
     {
 
         return $this->render('collecte/index.html.twig', [
@@ -72,7 +77,7 @@ class CollecteController extends AbstractController
     /**
      * @Route("/creer", name="collecte_create", methods={"GET", "POST"})
      */
-    public function creation(EmplacementRepository $emplacementRepository, UtilisateursRepository $utilisateursRepository, Request $request): Response
+    public function creation(Request $request): Response
     {
         $demandeurId = $request->request->getInt('demandeur');
         $objet = $request->request->get('objet');
@@ -84,11 +89,11 @@ class CollecteController extends AbstractController
 
         $collecte = new Collecte;
         $collecte
-            ->setDemandeur($utilisateursRepository->find($demandeurId))
+            ->setDemandeur($this->utilisateursRepository->find($demandeurId))
             ->setNumero($numero)
             ->setDate($date)
             ->setStatut($status)
-            ->setPointCollecte($emplacementRepository->find($pointCollecteId))
+            ->setPointCollecte($this->emplacementRepository->find($pointCollecteId))
             ->setObjet($objet);
 
         $em = $this->getDoctrine()->getManager();
@@ -110,14 +115,14 @@ class CollecteController extends AbstractController
     /**
      * @Route("/ajouter-article", name="collecte_add_article")
      */
-    public function addArticle(Request $request, CollecteRepository $collecteRepository, ArticlesRepository $articlesRepository): Response
+    public function addArticle(Request $request): Response
     {
         $articleId = $request->request->getInt('articleId');
         $quantity = $request->request->getInt('quantity');
         $collecteId = $request->request->getInt('collecteId');
 
-        $article = $articlesRepository->find($articleId);
-        $collecte = $collecteRepository->find($collecteId);
+        $article = $this->articlesRepository->find($articleId);
+        $collecte = $this->collecteRepository->find($collecteId);
 
         $article
             ->setQuantiteCollectee($quantity)
@@ -168,9 +173,9 @@ class CollecteController extends AbstractController
     /**
      * @Route("/api", name="collectes_json", methods={"GET", "POST"})
      */
-    public function getCollectes(CollecteRepository $collecteRepository): Response
+    public function getCollectes(): Response
     {
-        $collectes = $collecteRepository->findAll();
+        $collectes = $this->collecteRepository->findAll();
         $rows = [];
         foreach ($collectes as $collecte) {
             $url = $this->generateUrl('collecte_show', ['id' => $collecte->getId()]);

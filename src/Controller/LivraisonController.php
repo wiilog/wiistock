@@ -18,7 +18,7 @@ use App\Repository\StatutsRepository;
 use App\Entity\Emplacement;
 use App\Form\EmplacementType;
 use App\Repository\EmplacementRepository;
-use Knp\Component\Pager\PaginatorInterface;
+
 
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -28,16 +28,45 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
  */
 class LivraisonController extends AbstractController
 {
+      /**
+     * @var EmplacementRepository
+     */
+    private $emplacementRepository;
+    
+    /**
+     * @var DemandeRepository
+     */
+    private $demandeRepository;
+    
+    /**
+     * @var LivraisonRepository
+     */
+     private $livraisonRepository;
+    
+     /**
+     * @var StatutsRepository
+     */
+    private $statutsRepository;
+
+
+    public function __construct(EmplacementRepository $emplacementRepository, DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, StatutsRepository $statutsRepository)
+    {
+        $this->emplacementRepository = $emplacementRepository;
+        $this->demandeRepository = $demandeRepository;
+        $this->livraisonRepository = $livraisonRepository;
+        $this->statutsRepository = $statutsRepository;
+
+    }
 
     /**
      *  @Route("creation/{id}", name="createLivraison", methods={"GET","POST"} )
      */
-    public function creationLivraison($id, DemandeRepository $demandeRepository, StatutsRepository $statutsRepository, EmplacementRepository $emplacementRepository, Request $request) : Response
+    public function creationLivraison($id, Request $request) : Response
     {
-        $demande = $demandeRepository->find($id);
+        $demande = $this->demandeRepository->find($id);
         if ($demande->getLivraison() == null) {
-            $emplacement = $emplacementRepository->findById($demande->getDestination()->getId());
-            $statut = $statutsRepository->findById(22);
+            $emplacement = $this->emplacementRepository->findById($demande->getDestination()->getId());
+            $statut = $this->statutsRepository->findById(22);
             $livraison = new Livraison();
             $date = new \DateTime('now');
             $livraison->setDate($date);
@@ -58,7 +87,7 @@ class LivraisonController extends AbstractController
     /**
      * @Route("/index", name="livraison_index", methods={"GET", "POST"})
      */
-    public function index(LivraisonRepository $livraisonRepository, StatutsRepository $statutsRepository, PaginatorInterface $paginator, DemandeRepository $demandeRepository, Request $request) : Response
+    public function index(Request $request) : Response
     {
         return $this->render('livraison/index.html.twig');
     }
@@ -66,15 +95,15 @@ class LivraisonController extends AbstractController
       /**
      * @Route("/finLivraison/{id}", name="livraison_fin", methods={"GET", "POST"})
      */
-    public function finLivraison($id, LivraisonRepository $livraisonRepository, StatutsRepository $statutsRepository, PaginatorInterface $paginator, DemandeRepository $demandeRepository, Request $request) : Response
+    public function finLivraison($id, Request $request) : Response
     {
-        $livraison = $livraisonRepository->find($id);
-        $livraison->setStatut($statutsRepository->find(26));
+        $livraison = $this->livraisonRepository->find($id);
+        $livraison->setStatut($this->statutsRepository->find(26));
         $demande = $livraison->getDemande();
-        $demande[0]->setStatut($statutsRepository->find(9));
+        $demande[0]->setStatut($this->statutsRepository->find(9));
         $articles = $demande[0]->getArticles();
         foreach ($articles as $article ) {
-            $article->setStatut($statutsRepository->find(4));
+            $article->setStatut($this->statutsRepository->find(4));
         }
         $this->getDoctrine()->getManager()->flush();
         return $this->render('livraison/index.html.twig');
@@ -83,11 +112,11 @@ class LivraisonController extends AbstractController
     /**
      * @Route("/api", name="livraison_api", methods={"GET", "POST"})
      */
-    public function livraisonApi(LivraisonRepository $livraisonRepository, Request $request) : Response
+    public function livraisonApi( Request $request) : Response
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
         {
-            $livraisons = $livraisonRepository->findAll();
+            $livraisons = $this->livraisonRepository->findAll();
             $rows = [];
             foreach ($livraisons as $livraison) 
             {
@@ -108,33 +137,8 @@ class LivraisonController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
-
-
     /**
-     * @Route("/new", name="livraison_new", methods={"GET","POST"}) A SUPPRIMER
-     */
-    public function new(Request $request) : Response
-    {
-        $livraison = new Livraison();
-        $form = $this->createForm(LivraisonType::class, $livraison);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->persist($livraison);
-            $entityManager->flush();
-
-            return $this->redirectToRoute('livraison_index');
-        }
-
-        return $this->render('livraison/new.html.twig', [
-            'livraison' => $livraison,
-            'form' => $form->createView(),
-        ]);
-    }
-
-    /**
-     * @Route("/voir/{id}", name="livraison_show", methods={"GET","POST"}) UTILE
+     * @Route("/voir/{id}", name="livraison_show", methods={"GET","POST"}) 
      */
     public function show(Livraison $livraison) : Response
     {
@@ -144,29 +148,7 @@ class LivraisonController extends AbstractController
     }
 
     /**
-     * @Route("/{id}/edit", name="livraison_edit", methods={"GET","POST"})
-     */
-    public function edit(Request $request, Livraison $livraison) : Response
-    {
-        $form = $this->createForm(LivraisonType::class, $livraison);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $this->getDoctrine()->getManager()->flush();
-
-            return $this->redirectToRoute('livraison_index', [
-                'id' => $livraison->getId(),
-            ]);
-        }
-
-        return $this->render('livraison/edit.html.twig', [
-            'livraison' => $livraison,
-            'form' => $form->createView(),
-        ]);
-    }
-
-    /**
-     * @Route("/{id}", name="livraison_delete", methods={"DELETE"})
+     * @Route("/{id}", name="livraison_delete", methods={"DELETE"}) 
      */
     public function delete(Request $request, Livraison $livraison) : Response
     {

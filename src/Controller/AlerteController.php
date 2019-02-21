@@ -20,7 +20,21 @@ use Symfony\Component\HttpFoundation\JsonResponse;
  */
 class AlerteController extends AbstractController
 {
+    /**
+     * @var AlerteRepository
+     */
+    private $alerteRepository;
+    
+    /**
+     * @var ArticlesRepository
+     */
+    private $articlesRepository;
 
+    public function __construct(AlerteRepository $alerteRepository, ArticlesRepository $articlesRepository)
+    {
+        $this->alerteRepository = $alerteRepository;
+        $this->articlesRepository = $articlesRepository;
+    }
     /**
      * @Route("/", name="alerte_index", methods={"GET"})
      */
@@ -30,9 +44,10 @@ class AlerteController extends AbstractController
         if (!$request->XmlHttpRequest() && $data = json_decode($data->getContent(), true)) {
             $alerte = new Alertes();
             $em = $this->getDoctrine()->getEntityManager();
-            $alerte->setNom($data[0]["nom"]);
-            $alerte->setSeuil($data[1]["seuil"]);
-            $alerte->setRefArticle($data[2]["refArticle"]);
+            $alerte
+                ->setNom($data[0]["nom"])
+                ->setRefArticle($data[2]["refArticle"])
+                ->setSeuil($data[1]["seuil"]);
             $em->persist($alerte);
             $em->flush();
             $data = json_encode($data);
@@ -46,7 +61,7 @@ class AlerteController extends AbstractController
     /**
      * @Route("/", name="alerte_index", methods={"GET"})
      */
-    public function index(AlerteRepository $alerteRepository, \Swift_Mailer $mailer, Request $request) : Response
+    public function index( \Swift_Mailer $mailer, Request $request) : Response
     {
         return $this->render('alerte/index.html.twig');
     }
@@ -54,11 +69,11 @@ class AlerteController extends AbstractController
     /**
      * @Route("/api", name="alerte_api", methods={"GET"})
      */
-    public function alerteApi(AlerteRepository $alerteRepository, \Swift_Mailer $mailer, Request $request) : Response
+    public function alerteApi(\Swift_Mailer $mailer, Request $request) : Response
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
         {
-            $alertes = $alerteRepository->findAll();
+            $alertes = $this->alerteRepository->findAll();
             $alertesUser = []; /* Un tableau d'alertes qui sera envoyer au mailer */
             $rows = [];
             foreach ($alertes as $alerte) {
@@ -91,8 +106,6 @@ class AlerteController extends AbstractController
         throw new NotFoundHttpException("404");
      
     }
-
-
 
     /**
      * @Route("/creer", name="alerte_new", methods={"GET","POST"})
@@ -175,7 +188,6 @@ class AlerteController extends AbstractController
 
 
     /* Mailer */
-
     public function mailer($alertes, \Swift_Mailer $mailer)
     {
         $message = (new \Swift_Message('Alerte Email'))

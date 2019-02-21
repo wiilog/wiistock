@@ -14,18 +14,29 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Knp\Component\Pager\PaginatorInterface;
 
 /**
- * @Route("/stock/fournisseurs")
+ * @Route("/fournisseurs")
  */
 class FournisseursController extends Controller
 {
+
+    /**
+     * @var FournisseursRepository
+     */
+    private $fournisseursRepository;
+   
+    public function __construct(FournisseursRepository $fournisseursRepository)
+    {
+        $this->fournisseursRepository = $fournisseursRepository;
+    }
+
     /**
      * @Route("/get", name="fournisseurs_get", methods="GET")
      */
-    public function getReferencesArticles(Request $request, FournisseursRepository $fournisseursRepository) : Response
+    public function getReferencesArticles(Request $request) : Response
     {
         if ($request->isXmlHttpRequest()) {
             $q = $request->query->get('q');
-            $refs = $fournisseursRepository->findBySearch($q);
+            $refs = $this->fournisseursRepository->findBySearch($q);
             $rows = array();
             foreach ($refs as $ref) {
                 $row = [
@@ -48,11 +59,11 @@ class FournisseursController extends Controller
     /**
      * @Route("/api", name="fournisseur_api", methods="GET")
      */
-    public function fournisseursApi(Request $request, FournisseursRepository $fournisseursRepository) : Response
+    public function fournisseursApi(Request $request) : Response
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
         {
-            $refs = $fournisseursRepository->findAll();
+            $refs = $this->fournisseursRepository->findAll();
             $rows = [];
             foreach ($refs as $fournisseur) {
                 $urlEdite = $this->generateUrl('fournisseurs_edit', ['id' => $fournisseur->getId()]);
@@ -74,15 +85,9 @@ class FournisseursController extends Controller
     /**
      * @Route("/", name="fournisseurs_index", methods="GET")
      */
-    public function index(FournisseursRepository $fournisseursRepository, Request $request, PaginatorInterface $paginator) : Response
+    public function index(Request $request) : Response
     {
-
-        $pagination = $paginator->paginate(
-            $fournisseursRepository->findAll(),
-            $request->query->getInt('page', 1),
-            2
-        );
-        return $this->render('fournisseurs/index.html.twig', ['fournisseurs' => $pagination]);
+        return $this->render('fournisseurs/index.html.twig', ['fournisseurs' => $this->fournisseursRepository->findAll()]);
     }
 
     /**

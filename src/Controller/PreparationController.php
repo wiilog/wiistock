@@ -122,26 +122,6 @@ class PreparationController extends AbstractController
     }
 
     /**
-     * @Route("/{id}/edit", name="preparation_edit", methods="GET|POST")
-     */
-    public function edit(Request $request, Preparation $preparation) : Response
-    {
-        $form = $this->createForm(PreparationType::class, $preparation);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid())
-        {
-            $this->getDoctrine()->getManager()->flush();
-            return $this->redirectToRoute('preparation_edit', ['id' => $preparation->getId()]);
-        }
-
-        return $this->render('preparation/edit.html.twig', [
-            'preparation' => $preparation,
-            'form' => $form->createView(),
-        ]);
-    }
-
-    /**
      * @Route("/", name="preparation_index", methods="GET|POST")
      */
     public function index(Request $request) : Response

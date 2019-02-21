@@ -20,14 +20,26 @@ use App\Service\FileUploader;
  */
 class ReferencesArticlesController extends Controller
 {
+
+     /**
+     * @var ReferencesArticlesRepository
+     */
+    private $referencesArticlesRepository;
+
+    public function __construct(ReferencesArticlesRepository $referencesArticlesRepository)
+    {
+        $this->referencesArticlesRepository = $referencesArticlesRepository;
+    }
+
+
     /**
      * @Route("/refArticleAPI", name="ref_article_api", methods="GET")
      */
-    public function refArticleApi(Request $request, ReferencesArticlesRepository $referencesArticlesRepository) : Response
+    public function refArticleApi(Request $request) : Response
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
         {
-            $refs = $referencesArticlesRepository->findAll();
+            $refs = $this->referencesArticlesRepository->findAll();
             $rows = [];
             foreach ($refs as $refArticle) {
                 $urlEdite = $this->generateUrl('references_articles_edit', ['id' => $refArticle->getId()] );
@@ -76,7 +88,7 @@ class ReferencesArticlesController extends Controller
     /**
      * @Route("/", name="references_articles_index", methods="GET")
      */
-    public function index(ReferencesArticlesRepository $referencesArticlesRepository, Request $request) : Response
+    public function index(Request $request) : Response
     {
         return $this->render('references_articles/index.html.twig');
     }
@@ -154,7 +166,6 @@ class ReferencesArticlesController extends Controller
         if ($request->isXmlHttpRequest()) {
             $data = $request->request->all();
             $em = $this->getDoctrine()->getManager();
-            dump($data['data']);
 
             $ref = $request->request->get('ref');
             $id = -1;
@@ -162,8 +173,9 @@ class ReferencesArticlesController extends Controller
                 $id = $em->getRepository(ReferencesArticles::class)->findOneBy(['id' => $ref])->getId();
             } else {
                 $referencesArticle = new ReferencesArticles();
-                $referencesArticle->setLibelle($data['data'][0]['value']);
-                $referencesArticle->setReference($data['data'][1]['value']);
+                $referencesArticle
+                    ->setLibelle($data['data'][0]['value'])
+                    ->setReference($data['data'][1]['value']);
 
                 $i = 2;
                 $array = array();
@@ -177,7 +189,6 @@ class ReferencesArticlesController extends Controller
                     $i++;
                 }
                 $referencesArticle->setCustom($array);
-                dump($referencesArticle);
                 $em->persist($referencesArticle);
                 $em->flush();
                 $id = $referencesArticle->getId();
@@ -190,11 +201,11 @@ class ReferencesArticlesController extends Controller
     /**
      * @Route("/remove", name="references_articles_remove", methods="POST")
      */
-    public function remove(Request $request, ReferencesArticlesRepository $referencesArticlesRepository) : Response
+    public function remove(Request $request) : Response
     {
         if ($request->isXmlHttpRequest()) {
             $em = $this->getDoctrine()->getManager();
-            $referencesArticle = $referencesArticlesRepository->findOneBy(['id' => $request->request->get('id')]);
+            $referencesArticle = $this->referencesArticlesRepository->findOneBy(['id' => $request->request->get('id')]);
             $em->remove($champsPersonnalise);
             $em->flush();
             return $this->redirectToRoute('referentiel_articles');

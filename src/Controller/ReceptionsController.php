@@ -59,39 +59,46 @@ class ReceptionsController extends AbstractController
      * @var ReceptionsRepository
      */
     private $receptionsRepository;
+    
+    /**
+     * @var FournisseursRepository
+     */
+    private $fournisseursRepository;
 
-    public function __construct(StatutsRepository $statutsRepository, ReferencesArticlesRepository $referencesArticlesRepository, ReceptionsRepository $receptionsRepository, UtilisateursRepository $utilisateursRepository, EmplacementRepository $emplacementRepository)
+    public function __construct(FournisseursRepository $fournisseursRepository,StatutsRepository $statutsRepository, ReferencesArticlesRepository $referencesArticlesRepository, ReceptionsRepository $receptionsRepository, UtilisateursRepository $utilisateursRepository, EmplacementRepository $emplacementRepository)
     {
         $this->statutsRepository = $statutsRepository;
         $this->emplacementRepository = $emplacementRepository;
         $this->receptionsRepository = $receptionsRepository;
         $this->utilisateursRepository = $utilisateursRepository;
         $this->referencesArticlesRepository = $referencesArticlesRepository;
+        $this->fournisseursRepository = $fournisseursRepository;
     }
 
 
     /**
      * @Route("/creationReception", name="createReception", methods="POST")
      */
-    public function createReception(Request $request, FournisseursRepository $fournisseursRepository) : Response
+    public function createReception(Request $request) : Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) //Si la requête est de type Xml et que data est attribuée
         {
             if (count($data) != 5)// On regarde si le nombre de données reçu est conforme et on envoi dans la base
             {
                 $em = $this->getDoctrine()->getManager();
-                $fournisseur = $fournisseursRepository->findOneById(intval($data[3]['fournisseur']));
+                $fournisseur = $this->fournisseursRepository->findOneById(intval($data[3]['fournisseur']));
                 $utilisateur = $this->utilisateursRepository->findOneById(intval($data[4]['utilisateur']));
 
                 $reception = new Receptions();
                 $statut = $this->statutsRepository->findOneById(1);
-                $reception->setStatut($statut);
-                $reception->setNumeroReception($data[0]['NumeroReception']);
-                $reception->setDate(new \DateTime($data[1]['date-commande']));
-                $reception->setDateAttendu(new \DateTime($data[2]['date-attendu']));
-                $reception->setFournisseur($fournisseur);
-                $reception->setUtilisateur($utilisateur);
-                $reception->setCommentaire($data[5]['commentaire']);
+                $reception
+                    ->setStatut($statut)
+                    ->setNumeroReception($data[0]['NumeroReception'])
+                    ->setDate(new \DateTime($data[1]['date-commande']))
+                    ->setDateAttendu(new \DateTime($data[2]['date-attendu']))
+                    ->setFournisseur($fournisseur)
+                    ->setUtilisateur($utilisateur)
+                    ->setCommentaire($data[5]['commentaire']);
                 $em->persist($reception);
                 $em->flush();
 
@@ -121,13 +128,14 @@ class ReceptionsController extends AbstractController
 
                 $reception = new Receptions();
                 $statut = $this->statutsRepository->findById(1);
-                $reception->setStatut($statut[0]);
-                $reception->setNumeroReception($data[0]['NumeroReception']);
-                $reception->setDate(new \DateTime($data[1]['date-commande']));
-                $reception->setDateAttendu(new \DateTime($data[2]['date-attendu']));
-                $reception->setFournisseur($fournisseur[0]);
-                $reception->setUtilisateur($utilisateur[0]);
-                $reception->setCommentaire($data[5]['commentaire']);
+                $reception
+                    ->setStatut($statut[0])
+                    ->setNumeroReception($data[0]['NumeroReception'])
+                    ->setDate(new \DateTime($data[1]['date-commande']))
+                    ->setDateAttendu(new \DateTime($data[2]['date-attendu']))
+                    ->setFournisseur($fournisseur[0])
+                    ->setUtilisateur($utilisateur[0])
+                    ->setCommentaire($data[5]['commentaire']);
                 $em = $this->getDoctrine()->getManager();
                 $em->persist($reception);
                 $em->flush();
@@ -175,7 +183,7 @@ class ReceptionsController extends AbstractController
     /**
      * @Route("/json", name="reception_json", methods={"GET", "POST"}) 
      */
-    public function receptionJson(Request $request, ArticlesRepository $articlesRepository) : Response
+    public function receptionJson(Request $request) : Response
     {// recuperation du fichier JSON via la requete
         if (!$request->isXmlHttpRequest()) {
             // decodage en tavleau php
@@ -185,13 +193,14 @@ class ReceptionsController extends AbstractController
             $reception= $this->receptionsRepository->findOneById($myJSON['reception']);
             // creation d'un nouvel objet article + set des donnees
             $article = new Articles();
-            $article->setNom($myJSON['nom']);
-            $article->setRefArticle($refArticle);
-            $article->setQuantite(intval($myJSON['quantite']));
-            $article->setQuantiteARecevoir(intval($myJSON['quantiteARecevoir']));
-            $article->setEtat($myJSON['etat']);
-            $article->setCommentaire($myJSON['commentaire']);
-            $article->setReception($reception);
+            $article
+                ->setNom($myJSON['nom'])
+                ->setRefArticle($refArticle)
+                ->setQuantite(intval($myJSON['quantite']))
+                ->setQuantiteARecevoir(intval($myJSON['quantiteARecevoir']))
+                ->setEtat($myJSON['etat'])
+                ->setCommentaire($myJSON['commentaire'])
+                ->setReception($reception);
             if ($article->getEtat())
             {
                 $statut = $this->statutsRepository->findOneById(1);
@@ -230,10 +239,10 @@ class ReceptionsController extends AbstractController
     /**
      * @Route("/", name="receptions_index", methods={"GET", "POST"})
      */
-    public function index(FournisseursRepository $fournisseursRepository, Request $request): Response
+    public function index(Request $request): Response
     {
         return $this->render('receptions/index.html.twig', [
-            'fournisseurs' => $fournisseursRepository->findAll(),
+            'fournisseurs' => $this->fournisseursRepository->findAll(),
             'utilisateurs' => $this->utilisateursRepository->findAll(),
         ]);
     }
@@ -250,20 +259,20 @@ class ReceptionsController extends AbstractController
     /**
      * @Route("/{id}/edit", name="receptions_edit", methods={"GET", "POST"})
      */
-    public function edit(Request $request, Receptions $reception, FournisseursRepository $fournisseursRepository) : Response
+    public function edit(Request $request, Receptions $reception) : Response
     {
 
         if(isset($_POST["numeroReception"], $_POST["fournisseur"], $_POST["utilisateur"], $_POST["date-attendue"]))
         {
-            $fournisseur = $fournisseursRepository->findOneById($_POST["fournisseur"]);
+            $fournisseur = $this->fournisseursRepository->findOneById($_POST["fournisseur"]);
             $utilisateur = $this->utilisateursRepository->findOneById($_POST["utilisateur"]);
-
-            $reception->setNumeroReception($_POST["numeroReception"])
-            ->setDate(new \DateTime($_POST["date-commande"]));
-            $reception->setDateAttendu(new \DateTime($_POST["date-attendue"]));
-            $reception->setFournisseur($fournisseur);
-            $reception->setUtilisateur($utilisateur);
-            $reception->setCommentaire($_POST["commentaire"]);
+            $reception
+                ->setNumeroReception($_POST["numeroReception"])
+                ->setDate(new \DateTime($_POST["date-commande"]))
+                ->setFournisseur($fournisseur)
+                ->setUtilisateur($utilisateur)
+                ->setCommentaire($_POST["commentaire"])
+                ->setDateAttendu(new \DateTime($_POST["date-attendue"]));
             $em = $this->getDoctrine()->getManager();
             $em->persist($reception);
             $em->flush();
@@ -278,7 +287,7 @@ class ReceptionsController extends AbstractController
             "reception" => $reception,
             "emplacements" => $this->emplacementRepository->findAll(),
             "utilisateurs" => $this->utilisateursRepository->findAll(),
-            "fournisseurs" => $fournisseursRepository->findAll(),
+            "fournisseurs" => $this->fournisseursRepository->findAll(),
         ]); 
     }
 
@@ -310,12 +319,12 @@ class ReceptionsController extends AbstractController
     /**
      * @Route("/article/{id}/{k}", name="reception_ajout_article", methods={"GET", "POST"})
      */
-    public function ajoutArticle(Request $request, Receptions $reception, ArticlesRepository $articlesRepository, $id, $k): Response
+    public function ajoutArticle(Request $request, Receptions $reception, $id, $k): Response
     {
         //fin de reception/mise en stock des articles
         // k sert à vérifier et identifier la fin de la reception, en suite on modifie les "setStatut" des variables 
         if ($k) {
-            $articles = $articlesRepository->findByReception($id);
+            $articles = $this->articlesRepository->findByReception($id);
             // modification du statut
             foreach ($articles as $article) 
             {
@@ -338,7 +347,7 @@ class ReceptionsController extends AbstractController
             foreach ($refArticles as $refArticle)
             {
                 // requete Count en SQL dédié
-                $quantityRef = $articlesRepository->findCountByRefArticle($refArticle);
+                $quantityRef = $this->articlesRepository->findCountByRefArticle($refArticle);
                 $quantity = $quantityRef[0];
                 $refArticle->setQuantiteDisponible($quantity[1]);
             }

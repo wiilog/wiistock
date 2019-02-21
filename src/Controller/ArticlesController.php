@@ -8,7 +8,7 @@ use App\Repository\ArticlesRepository;
 use App\Repository\StatutsRepository;
 use App\Repository\CollecteRepository;
 use App\Repository\ReceptionsRepository;
-use Knp\Component\Pager\PaginatorInterface;
+use App\Repository\EmplacementRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -22,10 +22,50 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
  */
 class ArticlesController extends AbstractController
 {
+
+     /**
+     * @var StatutsRepository
+     */
+    private $statutsRepository;
+
+    /**
+     * @var EmplacementRepository
+     */
+    private $emplacementRepository;
+
+    /**
+     * @var CollecteRepository
+     */
+    private $collecteRepository;
+
+    /**
+     * @var ArticlesRepository
+     */
+    private $articlesRepository;
+    
+    /**
+     * @var UtilisateursRepository
+     */
+    private $utilisateurRepository;
+    
+    /**
+     * @var ReceptionsRepository
+     */
+    private $receptionsRepository;
+
+    public function __construct(ReceptionsRepository $receptionsRepository, StatutsRepository $statutsRepository, ArticlesRepository $articlesRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository)
+    {
+        $this->statutsRepository = $statutsRepository;
+        $this->emplacementRepository = $emplacementRepository;
+        $this->articlesRepository = $articlesRepository;
+        $this->collecteRepository = $collecteRepository;
+        $this->receptionRepository = $receptionsRepository;
+    }
+
     /**
      * @Route("/", name="articles_index", methods={"GET", "POST"})
      */
-    public function index(ArticlesRepository $articlesRepository, StatutsRepository $statutsRepository, PaginatorInterface $paginator, Request $request) : Response
+    public function index(Request $request) : Response
     {
         return $this->render('articles/index.html.twig');
     }
@@ -33,11 +73,11 @@ class ArticlesController extends AbstractController
     /**
      * @Route("/api", name="articles_api", methods="GET|POST")
      */
-    public function articleApi(ArticlesRepository $articlesRepository, Request $request) : Response
+    public function articleApi(Request $request) : Response
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
         {
-            $articles = $articlesRepository->findAll();
+            $articles = $this->articlesRepository->findAll();
             $rows = [];
             foreach ($articles as $article) {
                 $urlEdite = $this->generateUrl('articles_edit', ['id' => $article->getId()] );
@@ -47,7 +87,6 @@ class ArticlesController extends AbstractController
                     'id' => ($article->getId() ? $article->getId() : "Non défini"),
                     'Nom' => ($article->getNom() ? $article->getNom() : "Non défini"),
                     'Statut' => ($article->getStatut()->getNom() ? $article->getStatut()->getNom() : "Non défini"),
-                    'Conformité' => ($article->getEtat() ? 'conforme' : 'anomalie'),
                     'Reférence article' => ($article->getRefArticle() ? $article->getRefArticle()->getLibelle() : "Non défini"),
                     'Emplacement' => ($article->getPosition() ? $article->getPosition()->getNom() : "Non défini"),
                     'Destination' => ($article->getDirection() ? $article->getDirection()->getNom() : "Non défini"),
@@ -69,12 +108,12 @@ class ArticlesController extends AbstractController
     /**
      * @Route("/par-collecte", name="articles_by_collecte", methods={"GET", "POST"})
      */
-    public function getArticlesByCollecte(CollecteRepository $collecteRepository, Request $request): Response
+    public function getArticlesByCollecte(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
         {
             $collecteId = $request->get('collecteId');
-            $collecte = $collecteRepository->find($collecteId);
+            $collecte = $this->collecteRepository->find($collecteId);
             $articles = $collecte->getArticles();
             $rows = [];
             foreach ($articles as $article) {
@@ -98,7 +137,7 @@ class ArticlesController extends AbstractController
     /**
      * @Route("/nouveau", name="articles_new", methods="GET|POST")  INUTILE
      */
-    public function new(Request $request, StatutsRepository $statutsRepository) : Response
+    public function new(Request $request) : Response
     {
         $article = new Articles();
         $form = $this->createForm(ArticlesType::class, $article);
@@ -135,9 +174,9 @@ class ArticlesController extends AbstractController
     /**
      * @Route("/ajouter", name="modal_add_article")
      */
-    public function displayModalAddArticle(ArticlesRepository $articlesRepository)
+    public function displayModalAddArticle()
     {
-        $articles = $articlesRepository->findAllSortedByName();
+        $articles = $this->articlesRepository->findAllSortedByName();
 
         $html = $this->renderView('collecte/modalAddArticleContent.html.twig', [
             'articles' => $articles
@@ -149,38 +188,23 @@ class ArticlesController extends AbstractController
     /**
      * @Route("/modifier/{id}", name="articles_edit", methods="GET|POST")
      */
-    public function edit(Request $request, Articles $article, StatutsRepository $statutsRepository, ReceptionsRepository $receptionsRepository) : Response
+    public function edit(Request $request, Articles $article) : Response
     {
         $form = $this->createForm(ArticlesType::class, $article);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid())
         {
-
-            if ($article->getEtat() === false) {
-                $statut = $statutsRepository->findOneById(5);
-                $article->setStatut($statut);
-
-            }
-            else if($article->getEtat() === true) {
-
-                $statut = $statutsRepository->findOneById(3);
-                $article->setStatut($statut);
-            }
-
-            $this->getDoctrine()->getManager()->flush();
-
             $reception = $article->getReception()->getId();
-            $reception = $receptionsRepository->findOneById($reception);
+            $reception = $this->receptionsRepository->findOneById($reception);
             $articles = $reception->getArticles();
-
             foreach($articles as $article) {
                 if($article->getStatut()->getId() == 5) {
-                    $statut = $statutsRepository->findOneById(5);
+                    $statut = $this->statutsRepository->findOneById(5);
                     $reception->setStatut($statut);
                     break;
                 }
                 else {
-                    $statut = $statutsRepository->findOneById(6);
+                    $statut = $this->statutsRepository->findOneById(6);
                     $reception->setStatut($statut);
                 }
             }
@@ -214,12 +238,12 @@ class ArticlesController extends AbstractController
     /**
      * @Route("/modifier-quantite", name="edit_quantity")
      */
-    public function editQuantity(Request $request, ArticlesRepository $articlesRepository)
+    public function editQuantity(Request $request)
     {
         $articleId = $request->request->get('articleId');
         $quantity = $request->request->get('quantity');
 
-        $article = $articlesRepository->find($articleId);
+        $article = $this->articlesRepository->find($articleId);
         $article->setQuantiteCollectee($quantity);
 
         $em = $this->getDoctrine()->getManager();

@@ -21,6 +21,22 @@ use App\Repository\ArticlesRepository;
  */
 class EmplacementController extends AbstractController
 {
+   
+    /**
+     * @var EmplacementRepository
+     */
+    private $emplacementRepository;
+   
+    /**
+     * @var ArticlesRepository
+     */
+    private $articlesRepository;
+
+    public function __construct(ArticlesRepository $articlesRepository, EmplacementRepository $emplacementRepository)
+    {
+        $this->emplacementRepository = $emplacementRepository;
+        $this->articlesRepository = $articlesRepository;
+    }
 
     /**
      * @Route("/nouvelEmplacement", name="createEmplacement")
@@ -32,23 +48,21 @@ class EmplacementController extends AbstractController
                 $emplacement = new Emplacement();
                 $em = $this->getDoctrine()->getManager();
 
-                $emplacement->setNom($data[0]['nom']);
-
+                $emplacement->setNom($data[0]['nom'])
+                            ->setDescription()($data[0]['description']);
                 $em->persist($emplacement);
                 $em->flush();
-
                 $data = json_encode($data);
                 return new JsonResponse($data);
             }
         }
-
         throw new NotFoundHttpException("404");
     }
 
     /**
      * @Route("/", name="emplacement_index", methods="GET")
      */
-    public function index(EmplacementRepository $emplacementRepository) : Response
+    public function index() : Response
     {
         return $this->render('emplacement/index.html.twig');
     }
@@ -79,11 +93,11 @@ class EmplacementController extends AbstractController
     /**
      * @Route("/api", name="emplacement_api", methods="GET|POST")
      */
-    public function fournisseurApi(Request $request, EmplacementRepository $emplacementRepository) : Response
+    public function fournisseurApi(Request $request) : Response
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
         {
-            $emplacements = $emplacementRepository->findAll();
+            $emplacements = $this->emplacementRepository->findAll();
             $rows = [];
             foreach ($emplacements as $emplacement) {
                 $urlEdite = $this->generateUrl('emplacement_edit', ['id' => $emplacement->getId()]);
@@ -135,10 +149,9 @@ class EmplacementController extends AbstractController
     /**
      * @Route("/{id}", name="emplacement_delete", methods="DELETE")
      */
-    public function delete(Request $request, Emplacement $emplacement, ArticlesRepository $articleRepository)  : Response
+    public function delete(Request $request, Emplacement $emplacement)  : Response
     {
-        dump($emplacement->getId());
-        $emplacements = $articleRepository->findAll();
+        $emplacements = $this->articlesRepository->findAll();
         if (count($emplacements) === 0) {
             if ($this->isCsrfTokenValid('delete' . $emplacement->getId(), $request->request->get('_token'))) {
                 $em = $this->getDoctrine()->getManager();
