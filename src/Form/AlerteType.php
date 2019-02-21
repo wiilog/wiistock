@@ -7,6 +7,10 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+
+use App\Entity\ReferencesArticles;
+
 
 class AlerteType extends AbstractType
 {
@@ -15,8 +19,11 @@ class AlerteType extends AbstractType
         $builder
             ->add('AlerteNom')
             ->add('AlerteSeuil')
-            ->add('AlerteRefArticle', [
-                "label" => "Référence article"
+            ->add('AlerteRefArticle',EntityType::class, [
+                'class' => ReferencesArticles::class,
+                'choice_label' => 'libelle',
+                'placeholder' => 'Référence article',
+                'label'=> 'Référence article'
             ])
         ;
     }
