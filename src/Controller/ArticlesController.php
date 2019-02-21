@@ -63,6 +63,9 @@ class ArticlesController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
+
+
+    
     /**
      * @Route("/par-collecte", name="articles_by_collecte", methods={"GET", "POST"})
      */
