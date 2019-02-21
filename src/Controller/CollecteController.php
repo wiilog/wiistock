@@ -40,15 +40,21 @@ class CollecteController extends AbstractController
     private $emplacementRepository;
 
     /**
+     * @var CollecteRepository
+     */
+    private $collecteRepository;
+
+    /**
      * @var ArticlesRepository
      */
     private $articlesRepository;
 
-    public function __construct(StatutsRepository $statutsRepository, ArticlesRepository $articlesRepository, EmplacementRepository $emplacementRepository)
+    public function __construct(StatutsRepository $statutsRepository, ArticlesRepository $articlesRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository)
     {
         $this->statutsRepository = $statutsRepository;
         $this->emplacementRepository = $emplacementRepository;
         $this->articlesRepository = $articlesRepository;
+        $this->collecteRepository = $collecteRepository;
     }
 
     /**
@@ -66,14 +72,14 @@ class CollecteController extends AbstractController
     /**
      * @Route("/creer", name="collecte_create", methods={"GET", "POST"})
      */
-    public function creation(ArticlesRepository $articlesRepository, StatutsRepository $statutsRepository, EmplacementRepository $emplacementRepository, UtilisateursRepository $utilisateursRepository, Request $request): Response
+    public function creation(EmplacementRepository $emplacementRepository, UtilisateursRepository $utilisateursRepository, Request $request): Response
     {
         $demandeurId = $request->request->getInt('demandeur');
         $objet = $request->request->get('objet');
         $pointCollecteId = $request->request->getInt('pointCollecte');
 
         $date = new \DateTime('now');
-        $status = $statutsRepository->findOneByNom(Collecte::STATUS_DEMANDE);
+        $status = $this->statutsRepository->findOneByNom(Collecte::STATUS_DEMANDE);
         $numero = "C-". $date->format('YmdHis');
 
         $collecte = new Collecte;
@@ -130,10 +136,33 @@ class CollecteController extends AbstractController
             'Destination'=> ($article->getDirection() ? $article->getDirection()->getNom() : ""),
             'Quantité à collecter'=>($article->getQuantiteCollectee() ? $article->getQuantiteCollectee() : ""),
             'Actions'=> "<div class='btn btn-xs btn-default article-edit' onclick='editRow($(this))' data-toggle='modal' data-target='#modalModifyArticle' data-quantity='" . $article->getQuantiteCollectee(). "' data-name='" . $article->getNom() . "' data-id='" . $article->getId() . "'><i class='fas fa-pencil-alt fa-2x'></i></div>
-                        <div class='btn btn-xs btn-default article-delete' onclick='deleteRow($(this))'><i class='fas fa-trash fa-2x'></i></div>"
+                        <div class='btn btn-xs btn-default article-delete' onclick='deleteRow($(this))' data-id='" . $article->getId() . "'><i class='fas fa-trash fa-2x'></i></div>"
         ];
 //TODO CG centraliser avec la même dans ArticlesController
         return new JsonResponse($data);
+    }
+
+    /**
+     * @Route("/retirer-article", name="collecte_remove_article")
+     */
+    public function removeArticle(Request $request)
+    {
+        $articleId = $request->request->getInt('articleId');
+        $collecteId = $request->request->getInt('collecteId');
+
+        $article = $this->articlesRepository->find($articleId);
+        $collecte = $this->collecteRepository->find($collecteId);
+
+        if (!empty($article)) {
+            $article->removeCollecte($collecte);
+            $em = $this->getDoctrine()->getManager();
+            $em->persist($article);
+            $em->flush();
+            return new JsonResponse(true);
+        } else {
+            return new JsonResponse(false);
+        }
+
     }
 
     /**

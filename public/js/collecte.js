@@ -75,8 +75,21 @@ function deleteCollecte(button) {
 }
 
 function deleteRow(button) {
+    let articleId = button.data('id');
     let row = button.closest('tr');
-    $('#table-list-articles').DataTable().row(row).remove().draw();
+    let collecteId = button.closest('table').data('collecte-id');
+
+    let params = {
+        articleId: articleId,
+        collecteId: collecteId
+    };
+
+    $.post("/collecte/retirer-article", params, function(data) {
+        if (data === true) {
+            $('#table-list-articles').DataTable().row(row).remove().draw();
+        } // TODO else message erreur
+
+    });
 }
 
 function editRow(button) {
