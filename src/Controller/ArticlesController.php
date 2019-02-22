@@ -144,8 +144,8 @@ class ArticlesController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $statut = $statutsRepository->findById(1);
-            $article->setStatut($statut[0]);
+            $statut = $this->statutsRepository->findOneByCategorieAndStatut(Articles::CATEGORIE, Articles::STATUT_RECEPTION_EN_COURS);
+            $article->setStatut($statut);
             $em = $this->getDoctrine()->getManager();
             $em->persist($article);
             $em->flush();
@@ -195,16 +195,16 @@ class ArticlesController extends AbstractController
         if ($form->isSubmitted() && $form->isValid())
         {
             $reception = $article->getReception()->getId();
-            $reception = $this->receptionsRepository->findOneById($reception);
+            $reception = $this->receptionsRepository->find($reception); //a modifier
             $articles = $reception->getArticles();
             foreach($articles as $article) {
                 if($article->getStatut()->getId() == 5) {
-                    $statut = $this->statutsRepository->findOneById(5);
+                    $statut = $this->statutsRepository->find(5); //a modifier
                     $reception->setStatut($statut);
                     break;
                 }
                 else {
-                    $statut = $this->statutsRepository->findOneById(6);
+                    $statut = $this->statutsRepository->find(6); //a modifier
                     $reception->setStatut($statut);
                 }
             }

@@ -19,7 +19,6 @@ class DemandeRepository extends ServiceEntityRepository
         parent::__construct($registry, Demande::class);
     }
 
-
     public function findDmdByStatut($Statut)
     {
         $entityManager = $this->getEntityManager();
@@ -28,18 +27,6 @@ class DemandeRepository extends ServiceEntityRepository
             FROM App\Entity\Demande d
             WHERE d.Statut = :Statut "
         )->setParameter('Statut', $Statut);
-        ;
-        return $query->execute(); 
-    }
-
-    public function findById($id)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT d
-            FROM App\Entity\Demande d
-            WHERE d.id = :id "
-        )->setParameter('id', $id);
         ;
         return $query->execute(); 
     }

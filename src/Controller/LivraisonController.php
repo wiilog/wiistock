@@ -58,31 +58,32 @@ class LivraisonController extends AbstractController
 
     }
 
-    /**
-     *  @Route("creation/{id}", name="createLivraison", methods={"GET","POST"} )
-     */
-    public function creationLivraison($id, Request $request) : Response
-    {
-        $demande = $this->demandeRepository->find($id);
-        if ($demande->getLivraison() == null) {
-            $emplacement = $this->emplacementRepository->findById($demande->getDestination()->getId());
-            $statut = $this->statutsRepository->findById(22);
-            $livraison = new Livraison();
-            $date = new \DateTime('now');
-            $livraison->setDate($date);
-            $livraison->setNumero('L-' . $date->format('YmdHis'));
-            $livraison->setStatut($statut[0]);
-            $livraison->setDestination($emplacement[0]);
-            $livraison->setUtilisateur($this->getUser());
-            $demande->setLivraison($livraison);
-            $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->persist($livraison);
-            $entityManager->flush();
-        }
-        return $this->redirectToRoute('livraison_show', [
-            'id' => $demande->getLivraison()->getId(),
-        ]);
-    }
+//    /**
+//     *  @Route("creation/{id}", name="createLivraison", methods={"GET","POST"} )
+//     */
+//    public function creationLivraison($id, Request $request) : Response
+//    {
+//        $demande = $this->demandeRepository->find($id);
+//        if ($demande->getLivraison() == null) {
+//            $emplacement = $this->emplacementRepository->findById($demande->getDestination()->getId());
+//            $statut = $this->statutsRepository->findOneByCategorieAndStatut(Livraison::CATEGORIE, Livraison::STATUT_EN_COURS);
+//
+//            $livraison = new Livraison();
+//            $date = new \DateTime('now');
+//            $livraison->setDate($date);
+//            $livraison->setNumero('L-' . $date->format('YmdHis'));
+//            $livraison->setStatut($statut);
+//            $livraison->setDestination($emplacement[0]);
+//            $livraison->setUtilisateur($this->getUser());
+//            $demande->setLivraison($livraison);
+//            $entityManager = $this->getDoctrine()->getManager();
+//            $entityManager->persist($livraison);
+//            $entityManager->flush();
+//        }
+//        return $this->redirectToRoute('livraison_show', [
+//            'id' => $demande->getLivraison()->getId(),
+//        ]);
+//    }
 
     /**
      * @Route("/index", name="livraison_index", methods={"GET", "POST"})

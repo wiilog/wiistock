@@ -24,7 +24,7 @@ class Statuts
     private $nom;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
+     * @ORM\ManyToOne(targetEntity="App\Entity\CategorieStatut", inversedBy="statuts")
      */
     private $categorie;
 
@@ -86,12 +86,12 @@ class Statuts
         return $this;
     }
 
-    public function getCategorie(): ?string
+    public function getCategorie(): ?CategorieStatut
     {
         return $this->categorie;
     }
 
-    public function setCategorie(?string $categorie): self
+    public function setCategorie(?CategorieStatut $categorie): self
     {
         $this->categorie = $categorie;
 
@@ -288,4 +288,5 @@ class Statuts
     {
         return $this->nom;
     }
+
 }

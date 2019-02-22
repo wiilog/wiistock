@@ -15,7 +15,7 @@
                     <label for="reference">Référence</label>
                     <select type="text" class="data form-control select2" name="reference" id="reference" value="" required="true">
                     {% for reference in references %}
-                        <option value="{{ reference.id }}">{{ reference.reference }}</option>
+                        <option value="{{ reference.id }}">{{ reference.libelle }}</option>
                     {% endfor %}
                     </select>
                 </div>

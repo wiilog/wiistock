@@ -19,19 +19,7 @@ class AlerteRepository extends ServiceEntityRepository
         parent::__construct($registry, Alerte::class);
     }
 
-    /* Récupération des alertes utilisateurs avec DQL */
-
-    public function findAlerteByUser($user)
-    {
-        $entityManager = $this->getEntityManager();
-        return $query = $entityManager->createQuery(
-            "SELECT a
-            FROM App\Entity\Alerte a
-            WHERE a.AlerteUtilisateur = :user "
-        )->setParameter('user', $user)->execute();
-        ;
-    }
-
+    // Utilisé dans l'accueil
     public function findCountAlerte()
     {
         $entityManager = $this->getEntityManager();
