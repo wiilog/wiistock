@@ -23,7 +23,7 @@ class Receptions
     private $id;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Fournisseurs", inversedBy="receptions")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Fournisseur", inversedBy="receptions")
      */
     private $fournisseur;
 
@@ -48,7 +48,7 @@ class Receptions
     private $utilisateur;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Articles", mappedBy="reception")
+     * @ORM\OneToMany(targetEntity="App\Entity\Article", mappedBy="reception")
      */
     private $articles;
 
@@ -78,12 +78,12 @@ class Receptions
         return $this->id;
     }
 
-    public function getFournisseur(): ?Fournisseurs
+    public function getFournisseur(): ?Fournisseur
     {
         return $this->fournisseur;
     }
 
-    public function setFournisseur(?Fournisseurs $fournisseur): self
+    public function setFournisseur(?Fournisseur $fournisseur): self
     {
         $this->fournisseur = $fournisseur;
 
@@ -145,14 +145,14 @@ class Receptions
     }
 
     /**
-     * @return Collection|Articles[]
+     * @return Collection|Article[]
      */
     public function getArticles(): Collection
     {
         return $this->articles;
     }
 
-    public function addArticle(Articles $article): self
+    public function addArticle(Article $article): self
     {
         if (!$this->articles->contains($article)) {
             $this->articles[] = $article;
@@ -162,7 +162,7 @@ class Receptions
         return $this;
     }
 
-    public function removeArticle(Articles $article): self
+    public function removeArticle(Article $article): self
     {
         if ($this->articles->contains($article)) {
             $this->articles->removeElement($article);

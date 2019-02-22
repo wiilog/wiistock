@@ -39,7 +39,7 @@ class ReferencesArticles
     private $custom;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Articles", mappedBy="refArticle")
+     * @ORM\OneToMany(targetEntity="App\Entity\Article", mappedBy="refArticle")
      */
     private $articles;
 
@@ -131,14 +131,14 @@ class ReferencesArticles
     }
 
     /**
-     * @return Collection|Articles[]
+     * @return Collection|Article[]
      */
     public function getArticles(): Collection
     {
         return $this->articles;
     }
 
-    public function addArticle(Articles $article): self
+    public function addArticle(Article $article): self
     {
         if (!$this->articles->contains($article)) {
             $this->articles[] = $article;
@@ -148,7 +148,7 @@ class ReferencesArticles
         return $this;
     }
 
-    public function removeArticle(Articles $article): self
+    public function removeArticle(Article $article): self
     {
         if ($this->articles->contains($article)) {
             $this->articles->removeElement($article);

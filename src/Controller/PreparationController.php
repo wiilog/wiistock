@@ -2,7 +2,7 @@
 
 namespace App\Controller;
 
-use App\Entity\Articles;
+use App\Entity\Article;
 use App\Entity\Preparation;
 use App\Form\PreparationType;
 use App\Repository\PreparationRepository;
@@ -18,7 +18,7 @@ use App\Entity\ReferencesArticles;
 use App\Form\ReferencesArticlesType;
 use App\Repository\ReferencesArticlesRepository;
 
-use App\Repository\ArticlesRepository;
+use App\Repository\ArticleRepository;
 
 use App\Entity\Emplacement;
 use App\Form\EmplacementType;
@@ -96,7 +96,7 @@ class PreparationController extends AbstractController
                 $articles = $demande->getArticles();
                 foreach ($articles as $article)
                 {
-                    $statut = $this->statutsRepository->findOneByCategorieAndStatut(Articles::CATEGORIE, Articles::STATUT_DEMANDE_SORTIE);
+                    $statut = $this->statutsRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_DEMANDE_SORTIE);
                     $article
                         ->setStatut($statut)
                         ->setDirection($demande->getDestination());
@@ -172,7 +172,7 @@ class PreparationController extends AbstractController
             foreach ($LignePreparations as $LignePreparation) 
             {
                 $refPreparation = $this->referencesArticlesRepository->findOneById($LignePreparation["reference"]);
-                $urlShow = $this->generateUrl('articles_show', ['id' => $refPreparation->getId()]);
+                $urlShow = $this->generateUrl('article_show', ['id' => $refPreparation->getId()]);
                 $row = [ 
                     "Références CEA" => ($LignePreparation["reference"] ? $LignePreparation["reference"] : ' '),
                     "Libellé" => ($refPreparation->getLibelle() ? $refPreparation->getLibelle() : ' '),
@@ -192,7 +192,7 @@ class PreparationController extends AbstractController
     /**
      * @Route("/new", name="preparation_new", methods="GET|POST")
      */
-    public function new(Request $request, ArticlesRepository $articlesRepository) : Response
+    public function new(Request $request, ArticleRepository $articlesRepository) : Response
     {
         $preparation = new Preparation();
         $form = $this->createForm(PreparationType::class, $preparation);
@@ -217,7 +217,7 @@ class PreparationController extends AbstractController
     /**
      * @Route("/{id}", name="preparation_show", methods="GET|POST")
      */
-    public function show(Preparation $preparation, ArticlesRepository $articlesRepository) : Response
+    public function show(Preparation $preparation, ArticleRepository $articlesRepository) : Response
     {
         // modelise l'action de prendre l'article dan sle stock pour constituer la preparation  
         if (array_key_exists('fin', $_POST)) 
@@ -227,7 +227,7 @@ class PreparationController extends AbstractController
             $article->setStatut($statut);
             $this->getDoctrine()->getManager()->flush();
             
-            // Meme principe que pour collecte_show =>comptage des articles selon un statut et une preparation si nul alors preparation fini 
+            // Meme principe que pour collecte_show =>comptage des article selon un statut et une preparation si nul alors preparation fini
             $demande = $this->demandeRepository->find(array_keys($_POST['fin']));
             $finDemande = $articlesRepository->findCountByStatutAndDemande($demande);
             $fin = $finDemande[0];

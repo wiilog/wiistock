@@ -13,7 +13,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-use App\Repository\ArticlesRepository;
+use App\Repository\ArticleRepository;
 
 
 /**
@@ -28,11 +28,11 @@ class EmplacementController extends AbstractController
     private $emplacementRepository;
    
     /**
-     * @var ArticlesRepository
+     * @var ArticleRepository
      */
     private $articlesRepository;
 
-    public function __construct(ArticlesRepository $articlesRepository, EmplacementRepository $emplacementRepository)
+    public function __construct(ArticleRepository $articlesRepository, EmplacementRepository $emplacementRepository)
     {
         $this->emplacementRepository = $emplacementRepository;
         $this->articlesRepository = $articlesRepository;

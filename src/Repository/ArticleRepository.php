@@ -2,21 +2,21 @@
 
 namespace App\Repository;
 
-use App\Entity\Articles;
+use App\Entity\Article;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
- * @method Articles|null find($id, $lockMode = null, $lockVersion = null)
- * @method Articles|null findOneBy(array $criteria, array $orderBy = null)
- * @method Articles[]    findAll()
- * @method Articles[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method Article|null find($id, $lockMode = null, $lockVersion = null)
+ * @method Article|null findOneBy(array $criteria, array $orderBy = null)
+ * @method Article[]    findAll()
+ * @method Article[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class ArticlesRepository extends ServiceEntityRepository
+class ArticleRepository extends ServiceEntityRepository
 {
     public function __construct(RegistryInterface $registry)
     {
-        parent::__construct($registry, Articles::class);
+        parent::__construct($registry, Article::class);
     }
 
     public function findByReception($id)
@@ -24,7 +24,7 @@ class ArticlesRepository extends ServiceEntityRepository
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             'SELECT a
-            FROM App\Entity\Articles a
+            FROM App\Entity\Article a
             WHERE a.reception = :id'
         )->setParameter('id', $id);
         ;
@@ -36,7 +36,7 @@ class ArticlesRepository extends ServiceEntityRepository
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             'SELECT a
-            FROM App\Entity\Articles a
+            FROM App\Entity\Article a
             WHERE a.emplacement = :empl'
         )->setParameter('empl', $empl);
         ;
@@ -48,7 +48,7 @@ class ArticlesRepository extends ServiceEntityRepository
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT a
-            FROM App\Entity\Articles a
+            FROM App\Entity\Article a
             WHERE a.Statut = :Statut "
         )->setParameter('Statut', $statut);
         ;
@@ -61,7 +61,7 @@ class ArticlesRepository extends ServiceEntityRepository
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT a
-            FROM App\Entity\Articles a
+            FROM App\Entity\Article a
             WHERE a.refArticle = :ref AND a.etat = TRUE AND a.Statut = 3 
             "
         )->setParameter('ref', $refArticle);
@@ -74,7 +74,7 @@ class ArticlesRepository extends ServiceEntityRepository
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT a
-            FROM App\Entity\Articles a
+            FROM App\Entity\Article a
             WHERE a.refArticle = :ref AND a.etat = TRUE "
         )->setParameter('ref', $refArticle);
         ;
@@ -86,7 +86,7 @@ class ArticlesRepository extends ServiceEntityRepository
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             'SELECT a
-            FROM App\Entity\Articles a
+            FROM App\Entity\Article a
             WHERE a.etat = :etat'
         )->setParameter('etat', $etat);
         ;
@@ -98,7 +98,7 @@ class ArticlesRepository extends ServiceEntityRepository
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT a
-            FROM App\Entity\Articles a
+            FROM App\Entity\Article a
             WHERE a.Statut = 4 AND a.position = :empl"
         )->setParameter('empl', $emplacement);
         ;
@@ -110,7 +110,7 @@ class ArticlesRepository extends ServiceEntityRepository
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT COUNT (a)
-            FROM App\Entity\Articles a
+            FROM App\Entity\Article a
             JOIN a.collectes c
             WHERE a.Statut <> 3 AND c = :collecte"
         )->setParameter('collecte', $collecte);
@@ -123,7 +123,7 @@ class ArticlesRepository extends ServiceEntityRepository
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT COUNT(a)
-            FROM App\Entity\Articles a
+            FROM App\Entity\Article a
             JOIN a.demandes d
             WHERE a.Statut = 13 AND d = :demande"
         )->setParameter('demande', $demande);
@@ -136,7 +136,7 @@ class ArticlesRepository extends ServiceEntityRepository
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT COUNT(a)
-            FROM App\Entity\Articles a
+            FROM App\Entity\Article a
             WHERE a.refArticle = :refArticle AND a.etat = TRUE AND (a.Statut = 3)"
         )->setParameter('refArticle', $refArticle);
         ;
@@ -147,7 +147,7 @@ class ArticlesRepository extends ServiceEntityRepository
     {
         $entityManager = $this->getEntityManager();
         return $query = $entityManager->createQuery(
-            "SELECT COUNT (a) FROM App\Entity\Articles a WHERE a.Statut = :statut")
+            "SELECT COUNT (a) FROM App\Entity\Article a WHERE a.Statut = :statut")
             ->setParameter('statut', $statut)
             ->execute()
             ;
@@ -158,7 +158,7 @@ class ArticlesRepository extends ServiceEntityRepository
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT MAX(a.id)
-            FROM App\Entity\Articles a
+            FROM App\Entity\Article a
            "
         )
         ;
@@ -170,7 +170,7 @@ class ArticlesRepository extends ServiceEntityRepository
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT a.nom, a.id, a.quantite
-          FROM App\Entity\Articles a
+          FROM App\Entity\Article a
           ORDER BY a.nom
           "
         );

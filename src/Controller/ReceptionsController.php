@@ -10,14 +10,14 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-use App\Entity\Articles;
-use App\Form\ArticlesType;
-use App\Repository\ArticlesRepository;
+use App\Entity\Article;
+use App\Form\ArticleType;
+use App\Repository\ArticleRepository;
 
 use App\Entity\Emplacement;
 use App\Form\EmplacementType;
 use App\Repository\EmplacementRepository;
-use App\Repository\FournisseursRepository;
+use App\Repository\FournisseurRepository;
 use App\Repository\UtilisateursRepository;
 
 use App\Entity\ReferencesArticles;
@@ -61,18 +61,18 @@ class ReceptionsController extends AbstractController
     private $receptionsRepository;
     
     /**
-     * @var FournisseursRepository
+     * @var FournisseurRepository
      */
-    private $fournisseursRepository;
+    private $fournisseurRepository;
 
-    public function __construct(FournisseursRepository $fournisseursRepository,StatutsRepository $statutsRepository, ReferencesArticlesRepository $referencesArticlesRepository, ReceptionsRepository $receptionsRepository, UtilisateursRepository $utilisateursRepository, EmplacementRepository $emplacementRepository)
+    public function __construct(FournisseurRepository $fournisseurRepository, StatutsRepository $statutsRepository, ReferencesArticlesRepository $referencesArticlesRepository, ReceptionsRepository $receptionsRepository, UtilisateursRepository $utilisateursRepository, EmplacementRepository $emplacementRepository)
     {
         $this->statutsRepository = $statutsRepository;
         $this->emplacementRepository = $emplacementRepository;
         $this->receptionsRepository = $receptionsRepository;
         $this->utilisateursRepository = $utilisateursRepository;
         $this->referencesArticlesRepository = $referencesArticlesRepository;
-        $this->fournisseursRepository = $fournisseursRepository;
+        $this->fournisseurRepository = $fournisseurRepository;
     }
 
 
@@ -86,7 +86,7 @@ class ReceptionsController extends AbstractController
             if (count($data) != 5)// On regarde si le nombre de données reçu est conforme et on envoi dans la base
             {
                 $em = $this->getDoctrine()->getManager();
-                $fournisseur = $this->fournisseursRepository->find(intval($data[3]['fournisseur']));
+                $fournisseur = $this->fournisseurRepository->find(intval($data[3]['fournisseur']));
                 $utilisateur = $this->utilisateursRepository->find(intval($data[4]['utilisateur']));
 
                 $reception = new Receptions();
@@ -117,17 +117,17 @@ class ReceptionsController extends AbstractController
     /**
      * @Route("/modifierReception", name="modifierReception", methods="POST")
      */
-    public function modifierReception(Request $request, FournisseursRepository $fournisseursRepository) : Response // SERT QUAND
+    public function modifierReception(Request $request, FournisseurRepository $fournisseurRepository) : Response // SERT QUAND
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) //Si la requête est de type Xml et que data est attribuée
         {
             if (count($data) != 5)// On regarde si le nombre de données reçu est conforme et on envoi dans la base
             {
-                $fournisseur = $fournisseursRepository->find(intval($data[3]['fournisseur']));
+                $fournisseur = $fournisseurRepository->find(intval($data[3]['fournisseur']));
                 $utilisateur = $this->utilisateursRepository->find(intval($data[4]['utilisateur']));
 
                 $reception = new Receptions();
-                $statut = $this->statutsRepository->findOneByCategorieAndStatut(Articles::CATEGORIE, Articles::STATUT_RECEPTION_EN_COURS);
+                $statut = $this->statutsRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_RECEPTION_EN_COURS);
                 $reception
                     ->setStatut($statut)
                     ->setNumeroReception($data[0]['NumeroReception'])
@@ -169,7 +169,7 @@ class ReceptionsController extends AbstractController
                     "Date attendue" => ($reception->getDateAttendu() ? $reception->getDateAttendu()->format('d/m/Y') : ''),
                     "Fournisseur" => ($reception->getFournisseur() ? $reception->getFournisseur()->getNom() : ''),
                     "Référence" => ($reception->getNumeroReception() ? $reception->getNumeroReception() : ''),
-                    'Actions' => "<a href='" . $urlEdite . "' class='btn btn-xs btn-default command-edit '><i class='fas fa-pencil-alt fa-2x'></i></a>
+                    'Actions' => "<a href='" . $urlEdite . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
                     <a href='" . $urlShow . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-plus fa-2x'></i> Articles</a>",
                 ];
                 array_push($rows, $row);
@@ -192,7 +192,7 @@ class ReceptionsController extends AbstractController
             $refArticle= $this->referencesArticlesRepository->find($myJSON['refArticle']);
             $reception= $this->receptionsRepository->find($myJSON['reception']);
             // creation d'un nouvel objet article + set des donnees
-            $article = new Articles();
+            $article = new Article();
             $article
                 ->setNom($myJSON['nom'])
                 ->setRefArticle($refArticle)
@@ -239,7 +239,7 @@ class ReceptionsController extends AbstractController
     public function index(Request $request): Response
     {
         return $this->render('receptions/index.html.twig', [
-            'fournisseurs' => $this->fournisseursRepository->findAll(), //a précisé avant modif
+            'fournisseur' => $this->fournisseurRepository->findAll(), //a précisé avant modif
             'utilisateurs' => $this->utilisateursRepository->findUserGetIdUser(),
         ]);
     }
@@ -252,7 +252,7 @@ class ReceptionsController extends AbstractController
 
         if(isset($_POST["numeroReception"], $_POST["fournisseur"], $_POST["utilisateur"], $_POST["date-attendue"]))
         {
-            $fournisseur = $this->fournisseursRepository->find($_POST["fournisseur"]);
+            $fournisseur = $this->fournisseurRepository->find($_POST["fournisseur"]);
             $utilisateur = $this->utilisateursRepository->find($_POST["utilisateur"]);
             $reception
                 ->setNumeroReception($_POST["numeroReception"])
@@ -274,7 +274,7 @@ class ReceptionsController extends AbstractController
         return $this->render('receptions/edit.html.twig', [
             "reception" => $reception,
             "utilisateurs" => $this->utilisateursRepository->findUserGetIdUser(),
-            "fournisseurs" => $this->fournisseursRepository->findAll(), //a précisé avant modif
+            "fournisseur" => $this->fournisseurRepository->findAll(), //a précisé avant modif
         ]); 
     }
 
@@ -308,19 +308,19 @@ class ReceptionsController extends AbstractController
      */
     public function ajoutArticle(Request $request, Receptions $reception, $id, $finishReception): Response
     {
-        //fin de reception/mise en stock des articles
+        //fin de reception/mise en stock des article
         // k sert à vérifier et identifier la fin de la reception, en suite on modifie les "setStatut" des variables 
         if ($finishReception) {
             $articles = $this->articlesRepository->findByReception($id);
             // modification du statut
             foreach ($articles as $article) 
             {
-                $statut = $this->statutsRepository->findOneByCategorieAndStatut(Articles::CATEGORIE, Articles::STATUT_RECEPTION_EN_COURS);
+                $statut = $this->statutsRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_RECEPTION_EN_COURS);
                 //vérifie si l'article est bien encore en reception
 
                 if ($article->getStatut() === $statut  && $article->getEtat() === true)
                 {
-                    $statut = $this->statutsRepository->findOneByCategorieAndStatut(Articles::CATEGORIE, Articles::STATUT_EN_STOCK);
+                    $statut = $this->statutsRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_EN_STOCK);
                     $article->setStatut($statut);
                 }
             }

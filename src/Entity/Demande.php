@@ -44,7 +44,7 @@ class Demande
     private $date;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Articles", inversedBy="demandes")
+     * @ORM\ManyToMany(targetEntity="App\Entity\Article", inversedBy="demandes")
      */
     private $articles;
 
@@ -137,14 +137,14 @@ class Demande
     }
 
     /**
-     * @return Collection|Articles[]
+     * @return Collection|Article[]
      */
     public function getArticles(): Collection
     {
         return $this->articles;
     }
 
-    public function addArticle(Articles $article): self
+    public function addArticle(Article $article): self
     {
         if (!$this->articles->contains($article)) {
             $this->articles[] = $article;
@@ -153,7 +153,7 @@ class Demande
         return $this;
     }
 
-    public function removeArticle(Articles $article): self
+    public function removeArticle(Article $article): self
     {
         if ($this->articles->contains($article)) {
             $this->articles->removeElement($article);

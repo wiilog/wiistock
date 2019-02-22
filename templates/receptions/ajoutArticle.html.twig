@@ -45,7 +45,7 @@
             <td>{{ article.quantite }}</td>
             <!-- <td>{{ article.etat ? 'conforme': 'non-conforme' }}</td> -->
             <td>
-                <a href="{{ path('articles_edit', {'id': article.id}) }}" class="btn btn-xs btn-default command-edit"><i
+                <a href="{{ path('article_edit', {'id': article.id}) }}" class="btn btn-xs btn-default command-edit"><i
                         class="fas fa-pencil-alt fa-2x"></i></a>
             </td>
         </tr>
@@ -149,10 +149,7 @@
                 var nouvelleCellule = nouvelleLigne.insertCell(4);
                 var nouveauTexte = document.createTextNode(tabAlfa.quantite)
                 nouvelleCellule.appendChild(nouveauTexte)
-                //var nouvelleCellule = nouvelleLigne.insertCell(5);
-                //var nouveauTexte = document.createTextNode(tabAlfa.etat)
-                //nouvelleCellule.appendChild(nouveauTexte)
-                var url = '/articles/edite/' + tabAlfa.id
+                var url = '/article/modifier/' + tabAlfa.id
                 var nouvelleCellule = nouvelleLigne.insertCell(6);
                 var a = document.createElement("a")
                 a.className = 'btn btn-xs btn-default command-edit'

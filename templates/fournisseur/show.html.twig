@@ -1,9 +1,9 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Fournisseurs{% endblock %}
+{% block title %}Fournisseur{% endblock %}
 
 {% block page_content %}
-    <h1>Fournisseurs</h1>
+    <h1>Fournisseur</h1>
 
     {% if message is defined %}
         <div>
@@ -24,8 +24,8 @@
             </tr>
         </tbody>
     </table>
-    <a href="{{ path('fournisseurs_index') }}" class='button pull-left btn-left'>retour</a>
-    {{ include('fournisseurs/_delete_form.html.twig') }}
-    <a href="{{ path('fournisseurs_edit', {'id': fournisseur.id}) }}"class='button pull-right btn-left'>Modifier</a>
+    <a href="{{ path('fournisseur_index') }}" class='button pull-left btn-left'>retour</a>
+    {{ include('fournisseur/_delete_form.html.twig') }}
+    <a href="{{ path('fournisseur_edit', {'id': fournisseur.id}) }}"class='button pull-right btn-left'>Modifier</a>
 </div>
 {% endblock %}

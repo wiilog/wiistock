@@ -2,9 +2,9 @@
 
 namespace App\Controller;
 
-use App\Entity\Articles;
-use App\Form\ArticlesType;
-use App\Repository\ArticlesRepository;
+use App\Entity\Article;
+use App\Form\ArticleType;
+use App\Repository\ArticleRepository;
 use App\Repository\StatutsRepository;
 use App\Repository\CollecteRepository;
 use App\Repository\ReceptionsRepository;
@@ -18,9 +18,9 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
- * @Route("/articles")
+ * @Route("/article")
  */
-class ArticlesController extends AbstractController
+class ArticleController extends AbstractController
 {
 
      /**
@@ -39,49 +39,49 @@ class ArticlesController extends AbstractController
     private $collecteRepository;
 
     /**
-     * @var ArticlesRepository
+     * @var ArticleRepository
      */
-    private $articlesRepository;
+    private $articleRepository;
     
     /**
-     * @var UtilisateursRepository
+     * @var ReceptionsRepository
      */
-    private $utilisateurRepository;
+    private $receptionRepository;
     
     /**
      * @var ReceptionsRepository
      */
     private $receptionsRepository;
 
-    public function __construct(ReceptionsRepository $receptionsRepository, StatutsRepository $statutsRepository, ArticlesRepository $articlesRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository)
+    public function __construct(ReceptionsRepository $receptionsRepository, StatutsRepository $statutsRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository)
     {
         $this->statutsRepository = $statutsRepository;
         $this->emplacementRepository = $emplacementRepository;
-        $this->articlesRepository = $articlesRepository;
+        $this->articleRepository = $articleRepository;
         $this->collecteRepository = $collecteRepository;
         $this->receptionRepository = $receptionsRepository;
     }
 
     /**
-     * @Route("/", name="articles_index", methods={"GET", "POST"})
+     * @Route("/", name="article_index", methods={"GET", "POST"})
      */
     public function index(Request $request) : Response
     {
-        return $this->render('articles/index.html.twig');
+        return $this->render('article/index.html.twig');
     }
 
     /**
-     * @Route("/api", name="articles_api", methods="GET|POST")
+     * @Route("/api", name="article_api", methods="GET|POST")
      */
     public function articleApi(Request $request) : Response
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
         {
-            $articles = $this->articlesRepository->findAll();
+            $articles = $this->articleRepository->findAll();
             $rows = [];
             foreach ($articles as $article) {
-                $urlEdite = $this->generateUrl('articles_edit', ['id' => $article->getId()] );
-                $urlShow = $this->generateUrl('articles_show', ['id' => $article->getId()]);
+                $urlEdite = $this->generateUrl('article_edit', ['id' => $article->getId()] );
+                $urlShow = $this->generateUrl('article_show', ['id' => $article->getId()]);
                 $row = 
                 [
                     'id' => ($article->getId() ? $article->getId() : "Non défini"),
@@ -135,37 +135,37 @@ class ArticlesController extends AbstractController
     }
 
     /**
-     * @Route("/nouveau", name="articles_new", methods="GET|POST")  INUTILE
+     * @Route("/nouveau", name="article_new", methods="GET|POST")  INUTILE
      */
     public function new(Request $request) : Response
     {
-        $article = new Articles();
-        $form = $this->createForm(ArticlesType::class, $article);
+        $article = new Article();
+        $form = $this->createForm(ArticleType::class, $article);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $statut = $this->statutsRepository->findOneByCategorieAndStatut(Articles::CATEGORIE, Articles::STATUT_RECEPTION_EN_COURS);
+            $statut = $this->statutsRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_RECEPTION_EN_COURS);
             $article->setStatut($statut);
             $em = $this->getDoctrine()->getManager();
             $em->persist($article);
             $em->flush();
-            return $this->redirectToRoute('articles_index');
+            return $this->redirectToRoute('article_index');
         }
 
-        return $this->render('articles/new.html.twig', [
+        return $this->render('article/new.html.twig', [
             'article' => $article,
             'form' => $form->createView(),
         ]);
     }
 
     /**
-     * @Route("/voir/{id}", name="articles_show", methods="GET")
+     * @Route("/voir/{id}", name="article_show", methods="GET")
      */
-    public function show(Articles $article) : Response
+    public function show(Article $article) : Response
     {
         $session = $_SERVER['HTTP_REFERER'];
 
-        return $this->render('articles/show.html.twig', [
+        return $this->render('article/show.html.twig', [
             'article' => $article,
             'session' => $session
         ]);
@@ -176,21 +176,21 @@ class ArticlesController extends AbstractController
      */
     public function displayModalAddArticle()
     {
-        $articles = $this->articlesRepository->findAllSortedByName();
+        $articles = $this->articleRepository->findAllSortedByName();
 
         $html = $this->renderView('collecte/modalAddArticleContent.html.twig', [
-            'articles' => $articles
+            'article' => $articles
         ]);
 
         return new JsonResponse(['html' => $html]);
     }
 
     /**
-     * @Route("/modifier/{id}", name="articles_edit", methods="GET|POST")
+     * @Route("/modifier/{id}", name="article_edit", methods="GET|POST")
      */
-    public function edit(Request $request, Articles $article) : Response
+    public function edit(Request $request, Article $article) : Response
     {
-        $form = $this->createForm(ArticlesType::class, $article);
+        $form = $this->createForm(ArticleType::class, $article);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid())
         {
@@ -214,7 +214,7 @@ class ArticlesController extends AbstractController
             return $this->redirect($_POST['url']);
         }
 
-        return $this->render('articles/edit.html.twig', [
+        return $this->render('article/edit.html.twig', [
             'article' => $article,
             'form' => $form->createView(),
             'id' => $article->getReception()->getId(),
@@ -225,14 +225,14 @@ class ArticlesController extends AbstractController
     /**
      * @Route("/{id}", name="articles_delete", methods="DELETE")
      */
-    public function delete(Request $request, Articles $article) : Response
+    public function delete(Request $request, Article $article) : Response
     {
         if ($this->isCsrfTokenValid('delete' . $article->getId(), $request->request->get('_token'))) {
             $em = $this->getDoctrine()->getManager();
             $em->remove($article);
             $em->flush();
         }
-        return $this->redirectToRoute('articles_index');
+        return $this->redirectToRoute('article_index');
     }
 
     /**
@@ -243,7 +243,7 @@ class ArticlesController extends AbstractController
         $articleId = $request->request->get('articleId');
         $quantity = $request->request->get('quantity');
 
-        $article = $this->articlesRepository->find($articleId);
+        $article = $this->articleRepository->find($articleId);
         $article->setQuantiteCollectee($quantity);
 
         $em = $this->getDoctrine()->getManager();

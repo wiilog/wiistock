@@ -48,13 +48,14 @@ class Collecte
     private $demandeur;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Articles", inversedBy="collectes")
+     * @ORM\ManyToMany(targetEntity="App\Entity\Article", inversedBy="collectes")
      */
     private $articles;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Statuts", inversedBy="collectes")
      */
+
     private $Statut;
 
     public function __construct()
@@ -104,14 +105,14 @@ class Collecte
     }
 
     /**
-     * @return Collection|Articles[]
+     * @return Collection|Article[]
      */
     public function getArticles(): Collection
     {
         return $this->articles;
     }
 
-    public function addArticle(Articles $article): self
+    public function addArticle(Article $article): self
     {
         if (!$this->articles->contains($article)) {
             $this->articles[] = $article;
@@ -120,7 +121,7 @@ class Collecte
         return $this;
     }
 
-    public function removeArticle(Articles $article): self
+    public function removeArticle(Article $article): self
     {
         if ($this->articles->contains($article)) {
             $this->articles->removeElement($article);

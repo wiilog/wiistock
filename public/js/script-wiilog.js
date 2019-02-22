@@ -7,13 +7,13 @@ $(document).ready(function () {
 // //Fonction de traitement des donnees post ajax pour un tableau
 // function traitementDataArticle(reponse, id_table) {
 //     $(id_table).children().remove();
-//     let articles = JSON.parse(JSON.parse(reponse));
+//     let article = JSON.parse(JSON.parse(reponse));
 //     var refTable = document.getElementById(id_table)
-//     if (articles !== "patate") {
-//         console.log(articles)
+//     if (article !== "patate") {
+//         console.log(article)
 //
 //         var rowCount = refTable.rows.length;
-//         articles.forEach(function (article) {
+//         article.forEach(function (article) {
 //             var nouvelleLigne = refTable.insertRow();
 //
 //             var nouvelleCellule = nouvelleLigne.insertCell(0);

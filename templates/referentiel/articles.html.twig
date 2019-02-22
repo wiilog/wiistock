@@ -112,7 +112,7 @@
         }).on("loaded.rs.jquery.bootgrid", function () {
             /* Executes after data is loaded and rendered */
             grid.find(".command-edit").on("click", function (e) {
-                let url ="{{ path('articles_edit', {'id': 'edit_id'}) }}";
+                let url ="{{ path('article_edit', {'id': 'edit_id'}) }}";
                 let id = $(this).attr("data-row-id");
                 url = url.replace("edit_id", id);
                 window.location.href = url;

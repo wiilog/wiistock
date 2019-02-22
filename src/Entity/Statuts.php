@@ -29,7 +29,7 @@ class Statuts
     private $categorie;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Articles", mappedBy="Statut")
+     * @ORM\OneToMany(targetEntity="App\Entity\Article", mappedBy="Statut")
      */
     private $articles;
 
@@ -99,14 +99,14 @@ class Statuts
     }
 
     /**
-     * @return Collection|Articles[]
+     * @return Collection|Article[]
      */
     public function getArticles(): Collection
     {
         return $this->articles;
     }
 
-    public function addArticle(Articles $article): self
+    public function addArticle(Article $article): self
     {
         if (!$this->articles->contains($article)) {
             $this->articles[] = $article;
@@ -116,7 +116,7 @@ class Statuts
         return $this;
     }
 
-    public function removeArticle(Articles $article): self
+    public function removeArticle(Article $article): self
     {
         if ($this->articles->contains($article)) {
             $this->articles->removeElement($article);

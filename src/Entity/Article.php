@@ -13,7 +13,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  * @ORM\Entity(repositoryClass="App\Repository\ArticlesRepository")
  * @UniqueEntity("nom")
  */
-class Articles
+class Article
 {
     const CATEGORIE = 'article';
     const STATUT_RECEPTION_EN_COURS = 'en cours de reception';
@@ -44,18 +44,18 @@ class Articles
     private $quantite;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\ReferencesArticles", inversedBy="articles")
+     * @ORM\ManyToOne(targetEntity="App\Entity\ReferencesArticles", inversedBy="article")
      */
     private $refArticle;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Receptions", inversedBy="articles")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Receptions", inversedBy="article")
      */
     private $reception;
 
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="articles")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="article")
      */
     private $direction;
 
@@ -70,17 +70,17 @@ class Articles
     private $commentaire;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Demande", mappedBy="articles")
+     * @ORM\ManyToMany(targetEntity="App\Entity\Demande", mappedBy="article")
      */
     private $demandes;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Collecte", mappedBy="articles")
+     * @ORM\ManyToMany(targetEntity="App\Entity\Collecte", mappedBy="article")
      */
     private $collectes;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Statuts", inversedBy="articles")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Statuts", inversedBy="article")
      */
     private $Statut;
 

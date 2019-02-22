@@ -24,12 +24,12 @@ class Emplacement
     private $nom;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Articles", mappedBy="direction")
+     * @ORM\OneToMany(targetEntity="App\Entity\Article", mappedBy="direction")
      */
     private $articles;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Articles", mappedBy="position")
+     * @ORM\OneToMany(targetEntity="App\Entity\Article", mappedBy="position")
      */
     private $position;
 
@@ -80,14 +80,14 @@ class Emplacement
     }
 
     /**
-     * @return Collection|Articles[]
+     * @return Collection|Article[]
      */
     public function getArticles(): Collection
     {
         return $this->articles;
     }
 
-    public function addArticle(Articles $article): self
+    public function addArticle(Article $article): self
     {
         if (!$this->articles->contains($article)) {
             $this->articles[] = $article;
@@ -97,7 +97,7 @@ class Emplacement
         return $this;
     }
 
-    public function removeArticle(Articles $article): self
+    public function removeArticle(Article $article): self
     {
         if ($this->articles->contains($article)) {
             $this->articles->removeElement($article);
@@ -116,14 +116,14 @@ class Emplacement
     }
 
     /**
-     * @return Collection|Articles[]
+     * @return Collection|Article[]
      */
     public function getPosition(): Collection
     {
         return $this->position;
     }
 
-    public function addPosition(Articles $position): self
+    public function addPosition(Article $position): self
     {
         if (!$this->position->contains($position)) {
             $this->position[] = $position;
@@ -133,7 +133,7 @@ class Emplacement
         return $this;
     }
 
-    public function removePosition(Articles $position): self
+    public function removePosition(Article $position): self
     {
         if ($this->position->contains($position)) {
             $this->position->removeElement($position);

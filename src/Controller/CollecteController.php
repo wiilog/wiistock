@@ -9,18 +9,13 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-
-use App\Entity\Articles;
-use App\Form\ArticlesType;
-use App\Repository\ArticlesRepository;
-
+use App\Entity\Article;
+use App\Form\ArticleType;
+use App\Repository\ArticleRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\StatutsRepository;
-
 use App\Repository\UtilisateursRepository;
-
 use Knp\Component\Pager\PaginatorInterface;
-
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -45,7 +40,7 @@ class CollecteController extends AbstractController
     private $collecteRepository;
 
     /**
-     * @var ArticlesRepository
+     * @var ArticleRepository
      */
     private $articlesRepository;
     
@@ -54,7 +49,7 @@ class CollecteController extends AbstractController
      */
     private $utilisateursRepository;
 
-    public function __construct(StatutsRepository $statutsRepository, ArticlesRepository $articlesRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UtilisateursRepository $utilisateursRepository)
+    public function __construct(StatutsRepository $statutsRepository, ArticleRepository $articlesRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UtilisateursRepository $utilisateursRepository)
     {
         $this->statutsRepository = $statutsRepository;
         $this->emplacementRepository = $emplacementRepository;
@@ -204,10 +199,10 @@ class CollecteController extends AbstractController
 //        $statusFinCollecte = $statutsRepository->findOneBy(['nom' => Collecte::STATUS_FIN]);
 //        $collecte->setStatut($statusFinCollecte);
 //
-//        // changement statut articles
+//        // changement statut article
 //        $statusEnStock = $statutsRepository->findOneBy(['nom' => Articles::STATUS_EN_STOCK]);
-//        $articles = $collecte->getArticles();
-//        foreach ($articles as $article) {
+//        $article = $collecte->getArticles();
+//        foreach ($article as $article) {
 //            $article->setStatut($statusEnStock);
 //            $em->persist($article);
 //        }

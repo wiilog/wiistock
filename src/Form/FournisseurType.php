@@ -2,14 +2,14 @@
 
 namespace App\Form;
 
-use App\Entity\Fournisseurs;
+use App\Entity\Fournisseur;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\TelType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 
-class FournisseursType extends AbstractType
+class FournisseurType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
@@ -26,7 +26,7 @@ class FournisseursType extends AbstractType
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults([
-            'data_class' => Fournisseurs::class,
+            'data_class' => Fournisseur::class,
         ]);
     }
 }

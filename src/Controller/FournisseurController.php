@@ -2,10 +2,10 @@
 
 namespace App\Controller;
 
-use App\Entity\Fournisseurs;
-use App\Form\FournisseursType;
-use App\Repository\FournisseursRepository;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use App\Entity\Fournisseur;
+use App\Form\FournisseurType;
+use App\Repository\FournisseurRepository;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -14,29 +14,29 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Knp\Component\Pager\PaginatorInterface;
 
 /**
- * @Route("/fournisseurs")
+ * @Route("/fournisseur")
  */
-class FournisseursController extends Controller
+class FournisseurController extends AbstractController
 {
 
     /**
-     * @var FournisseursRepository
+     * @var FournisseurRepository
      */
-    private $fournisseursRepository;
+    private $fournisseurRepository;
    
-    public function __construct(FournisseursRepository $fournisseursRepository)
+    public function __construct(FournisseurRepository $fournisseurRepository)
     {
-        $this->fournisseursRepository = $fournisseursRepository;
+        $this->fournisseurRepository = $fournisseurRepository;
     }
 
     /**
-     * @Route("/get", name="fournisseurs_get", methods="GET")
+     * @Route("/get", name="fournisseur_get", methods="GET")
      */
     public function getReferencesArticles(Request $request) : Response
     {
         if ($request->isXmlHttpRequest()) {
             $q = $request->query->get('q');
-            $refs = $this->fournisseursRepository->findBySearch($q);
+            $refs = $this->fournisseurRepository->findBySearch($q);
             $rows = array();
             foreach ($refs as $ref) {
                 $row = [
@@ -59,15 +59,15 @@ class FournisseursController extends Controller
     /**
      * @Route("/api", name="fournisseur_api", methods="GET")
      */
-    public function fournisseursApi(Request $request) : Response
+    public function fournisseurApi(Request $request) : Response
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
         {
-            $refs = $this->fournisseursRepository->findAll();
+            $refs = $this->fournisseurRepository->findAll();
             $rows = [];
             foreach ($refs as $fournisseur) {
-                $urlEdite = $this->generateUrl('fournisseurs_edit', ['id' => $fournisseur->getId()]);
-                $urlShow = $this->generateUrl('fournisseurs_show', ['id' => $fournisseur->getId()]);
+                $urlEdite = $this->generateUrl('fournisseur_edit', ['id' => $fournisseur->getId()]);
+                $urlShow = $this->generateUrl('fournisseur_show', ['id' => $fournisseur->getId()]);
                 $row = [
                     "Nom" => $fournisseur->getNom(),
                     "Code de réference" => $fournisseur->getCodeReference(),
@@ -83,11 +83,11 @@ class FournisseursController extends Controller
     }
 
     /**
-     * @Route("/", name="fournisseurs_index", methods="GET")
+     * @Route("/", name="fournisseur_index", methods="GET")
      */
     public function index(Request $request) : Response
     {
-        return $this->render('fournisseurs/index.html.twig', ['fournisseurs' => $this->fournisseursRepository->findAll()]);
+        return $this->render('fournisseur/index.html.twig', ['fournisseur' => $this->fournisseurRepository->findAll()]);
     }
 
     /**
@@ -98,7 +98,7 @@ class FournisseursController extends Controller
         $em = $this->getDoctrine()->getEntityManager();
 
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $fournisseur = new Fournisseurs();
+            $fournisseur = new Fournisseur();
             $fournisseur->setNom($data[0]["Nom"]);
             $fournisseur->setCodeReference($data[1]["Code"]);
             $em->persist($fournisseur);
@@ -110,37 +110,37 @@ class FournisseursController extends Controller
     }
 
     /**
-     * @Route("/{id}", name="fournisseurs_show", methods="GET")
+     * @Route("/{id}", name="fournisseur_show", methods="GET")
      */
-    public function show(Fournisseurs $fournisseur) : Response
+    public function show(Fournisseur $fournisseur) : Response
     {
-        return $this->render('fournisseurs/show.html.twig', ['fournisseur' => $fournisseur]);
+        return $this->render('fournisseur/show.html.twig', ['fournisseur' => $fournisseur]);
     }
 
     /**
-     * @Route("/{id}/edit", name="fournisseurs_edit", methods="GET|POST")
+     * @Route("/{id}/edit", name="fournisseur_edit", methods="GET|POST")
      */
-    public function edit(Request $request, Fournisseurs $fournisseur) : Response
+    public function edit(Request $request, Fournisseur $fournisseur) : Response
     {
-        $form = $this->createForm(FournisseursType::class, $fournisseur);
+        $form = $this->createForm(FournisseurType::class, $fournisseur);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $this->getDoctrine()->getManager()->flush();
 
-            return $this->redirectToRoute('fournisseurs_index');
+            return $this->redirectToRoute('fournisseur_index');
         }
 
-        return $this->render('fournisseurs/edit.html.twig', [
+        return $this->render('fournisseur/edit.html.twig', [
             'fournisseur' => $fournisseur,
             'form' => $form->createView(),
         ]);
     }
 
     /**
-     * @Route("/{id}", name="fournisseurs_delete", methods="DELETE")
+     * @Route("/{id}", name="fournisseur_delete", methods="DELETE")
      */
-    public function delete(Request $request, Fournisseurs $fournisseur) : Response
+    public function delete(Request $request, Fournisseur $fournisseur) : Response
     {
         $receptions = $fournisseur->getreceptions();
         dump(count($receptions));
@@ -149,7 +149,7 @@ class FournisseursController extends Controller
                 $em = $this->getDoctrine()->getManager();
                 $em->remove($fournisseur);
                 $em->flush();
-                return $this->redirectToRoute('fournisseurs_index');
+                return $this->redirectToRoute('fournisseur_index');
             }
         } else {
             return $this->redirect($_SERVER['HTTP_REFERER']);

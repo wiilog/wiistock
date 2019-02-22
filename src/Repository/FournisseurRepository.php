@@ -2,21 +2,21 @@
 
 namespace App\Repository;
 
-use App\Entity\Fournisseurs;
+use App\Entity\Fournisseur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
- * @method Fournisseurs|null find($id, $lockMode = null, $lockVersion = null)
- * @method Fournisseurs|null findOneBy(array $criteria, array $orderBy = null)
- * @method Fournisseurs[]    findAll()
- * @method Fournisseurs[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method Fournisseur|null find($id, $lockMode = null, $lockVersion = null)
+ * @method Fournisseur|null findOneBy(array $criteria, array $orderBy = null)
+ * @method Fournisseur[]    findAll()
+ * @method Fournisseur[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class FournisseursRepository extends ServiceEntityRepository
+class FournisseurRepository extends ServiceEntityRepository
 {
     public function __construct(RegistryInterface $registry)
     {
-        parent::__construct($registry, Fournisseurs::class);
+        parent::__construct($registry, Fournisseur::class);
     }
 
     public function findBySearch($value)
@@ -30,7 +30,7 @@ class FournisseursRepository extends ServiceEntityRepository
         ;
     }
 //    /**
-//     * @return Fournisseurs[] Returns an array of Fournisseurs objects
+//     * @return Fournisseur[] Returns an array of Fournisseur objects
 //     */
     /*
     public function findByExampleField($value)
@@ -47,7 +47,7 @@ class FournisseursRepository extends ServiceEntityRepository
     */
 
     /*
-    public function findOneBySomeField($value): ?Fournisseurs
+    public function findOneBySomeField($value): ?Fournisseur
     {
         return $this->createQueryBuilder('f')
             ->andWhere('f.exampleField = :val')
