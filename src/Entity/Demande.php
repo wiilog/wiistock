@@ -64,13 +64,14 @@ class Demande
     private $DateAttendu;
 
     /**
-     * @ORM\Column(type="json_array", nullable=true)
+     * @ORM\OneToMany(targetEntity="App\Entity\LigneArticle", mappedBy="demande")
      */
-    private $LigneArticle;
+    private $ligneArticle;
 
     public function __construct()
     {
         $this->articles = new ArrayCollection();
+        $this->ligneArticle = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -205,22 +206,36 @@ class Demande
         return $this;
     }
 
-    public function getLigneArticle()
+    /**
+     * @return Collection|LigneArticle[]
+     */
+    public function getLigneArticle(): Collection
     {
-        return $this->LigneArticle;
+        return $this->ligneArticle;
     }
 
-    public function addLigneArticle($LigneArticle): self
+    public function addLigneArticle(LigneArticle $ligneArticle): self
     {
-        $this->LigneArticle[] = $LigneArticle;
+        if (!$this->ligneArticle->contains($ligneArticle)) {
+            $this->ligneArticle[] = $ligneArticle;
+            $ligneArticle->setDemande($this);
+        }
 
         return $this;
     }
 
-    public function setLigneArticle($LigneArticle): self
+    public function removeLigneArticle(LigneArticle $ligneArticle): self
     {
-        $this->LigneArticle = $LigneArticle;
+        if ($this->ligneArticle->contains($ligneArticle)) {
+            $this->ligneArticle->removeElement($ligneArticle);
+            // set the owning side to null (unless already changed)
+            if ($ligneArticle->getDemande() === $this) {
+                $ligneArticle->setDemande(null);
+            }
+        }
 
         return $this;
     }
+
+
 }

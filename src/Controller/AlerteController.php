@@ -35,6 +35,8 @@ class AlerteController extends AbstractController
         $this->alerteRepository = $alerteRepository;
         $this->articlesRepository = $articlesRepository;
     }
+
+    
     /**
      * @Route("/", name="alerte_index", methods={"GET"})
      */
@@ -58,13 +60,16 @@ class AlerteController extends AbstractController
     }
 
 
+
     /**
-     * @Route("/", name="alerte_index", methods={"GET"})
+     * @Route("/Alerte", name="alerte_index", methods={"GET"})
      */
     public function index( \Swift_Mailer $mailer, Request $request) : Response
     {
         return $this->render('alerte/index.html.twig');
     }
+
+
 
     /**
      * @Route("/api", name="alerte_api", methods={"GET"})
@@ -92,7 +97,7 @@ class AlerteController extends AbstractController
                     "Code" => $alerte->getAlerteNumero(),
                     "Seuil" => ($condition ? "<p><i class='fas fa-check-circle fa-2x green'></i>" . $alerte->getAlerteRefArticle()->getQuantiteStock() . "/" . $alerte->getAlerteSeuil() . "</p>" :
                         "<p><i class='fas fa-exclamation-circle fa-2x red'></i>" . $alerte->getAlerteRefArticle()->getQuantiteStock() . "/" . $alerte->getAlerteSeuil() . " </p>"),
-                    'actions' => "<a href='" . $urlEdite . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
+                    'Actions' => "<a href='" . $urlEdite . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
                 <a href='" . $urlShow . "' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>",
                 ];
                 array_push($rows, $row);
@@ -140,6 +145,8 @@ class AlerteController extends AbstractController
         ]);
     }
 
+
+
     /**
      * @Route("/{id}", name="alerte_show", methods={"GET"})
      */
@@ -149,6 +156,8 @@ class AlerteController extends AbstractController
             'alerte' => $alerte,
         ]);
     }
+
+
 
     /**
      * @Route("/{id}/edit", name="alerte_edit", methods={"GET","POST"})
@@ -172,6 +181,8 @@ class AlerteController extends AbstractController
         ]);
     }
 
+
+
     /**
      * @Route("/{id}", name="alerte_delete", methods={"DELETE"})
      */
@@ -187,6 +198,7 @@ class AlerteController extends AbstractController
     }
 
 
+    
     /* Mailer */
     public function mailer($alertes, \Swift_Mailer $mailer)
     {

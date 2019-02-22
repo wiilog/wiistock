@@ -63,11 +63,17 @@ class ReferencesArticles
      */
     private $quantiteStock;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\LigneArticle", mappedBy="reference")
+     */
+    private $ligneArticles;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
         $this->demandes = new ArrayCollection();
         $this->RefArticleAlerte = new ArrayCollection();
+        $this->ligneArticles = new ArrayCollection();
     }
 
     public function getId()
@@ -224,6 +230,37 @@ class ReferencesArticles
     public function setQuantiteStock(?int $quantiteStock): self
     {
         $this->quantiteStock = $quantiteStock;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|LigneArticle[]
+     */
+    public function getLigneArticles(): Collection
+    {
+        return $this->ligneArticles;
+    }
+
+    public function addLigneArticle(LigneArticle $ligneArticle): self
+    {
+        if (!$this->ligneArticles->contains($ligneArticle)) {
+            $this->ligneArticles[] = $ligneArticle;
+            $ligneArticle->setReference($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLigneArticle(LigneArticle $ligneArticle): self
+    {
+        if ($this->ligneArticles->contains($ligneArticle)) {
+            $this->ligneArticles->removeElement($ligneArticle);
+            // set the owning side to null (unless already changed)
+            if ($ligneArticle->getReference() === $this) {
+                $ligneArticle->setReference(null);
+            }
+        }
 
         return $this;
     }

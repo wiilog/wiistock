@@ -1,7 +1,6 @@
 $(document).ready(function () {
     $('.select2').select2();
-});0
-
+});
 
 
 // //Fonction de traitement des donnees post ajax pour un tableau
@@ -89,7 +88,7 @@ $(document).ready(function () {
  * 
  * @param {Document} modal la fenêtre modale selectionnée : document.getElementById("modal").
  * @param {Document} submit le bouton qui va envoyé les données au controller via Ajax.
- * @param {string} path le chemin pris pour envoyé les données.
+ * @param {string} path le chemin pris pour envoyer les données.
  * 
  */
 function InitialiserModal(modal, submit, path) {

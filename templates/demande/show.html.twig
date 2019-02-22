@@ -19,7 +19,7 @@
 <div class="zone-actions row">
     <div class="col-3">
         <p>Demandeur : {{ demande.utilisateur ? demande.utilisateur : '' }}</p>
-        <p>Disponibilite des articles : Oui/Non</p>
+        <p>Disponibilité des articles : Oui/Non</p>
         <p>Date attendue : {{ demande.DateAttendu ? demande.DateAttendu | date("d/m/Y") : "" }}</p>
         <p>Destination : {{ demande.destination ? demande.destination.nom : "" }}</p>
     </div>
@@ -46,12 +46,13 @@
     </div>
 </div>
 
-<table id="table_lignes" class="table table-striped table-bordered" style="width:100%">
+<table id="table-lignes" class="table table-striped table-bordered" style="width:100%">
     <thead>
         <tr>
             <th>Références CEA</th>
             <th>Libellé</th>
             <th>Quantité</th>
+            <th>Actions</th>
         </tr>
     </thead>
     <tbody>
@@ -62,13 +63,15 @@
 
 
 {% include 'demande/modifModal.html.twig' %}
+{% include 'demande/modifLigne.html.twig' %}
 {% include 'demande/ajoutLigneModal.html.twig' %}
 
 {% endblock %}
 
 {% block javascript %}
+<script src="{{asset('js/demande-livraison.js')}}"></script>
 <script>
-    var table = $('#table_lignes').DataTable({
+    var table = $('#table-lignes').DataTable({
         "language": {
             "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
         },
@@ -81,6 +84,7 @@
                 {"data": 'Références CEA'},
                 {"data": 'Libellé'},
                 {"data": 'Quantité'},
+                {"data": 'Actions'}
         ],
     });
 
@@ -90,7 +94,7 @@
 
     var dataModal2 = document.getElementById("ajoutLigneModalCenter");
     var ButtonSubmit2 = document.getElementById("ajoutsubmitButton");
-    InitialiserModal(dataModal2, ButtonSubmit2, "{{ path('ajoutArticle', { 'id' : demande.id }) }}");
+    InitialiserModal(dataModal2, ButtonSubmit2, "{{ path('ajoutLigneArticle', { 'id' : demande.id }) }}");
 
     $('#supprimer').on('clivk', $.post())
 
