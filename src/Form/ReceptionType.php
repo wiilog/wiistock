@@ -1,10 +1,12 @@
 <?php
 namespace App\Form;
-use App\Entity\Receptions;
+
+use App\Entity\Reception;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-class ReceptionsType extends AbstractType
+
+class ReceptionType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
@@ -21,7 +23,7 @@ class ReceptionsType extends AbstractType
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults([
-            'data_class' => Receptions::class,
+            'data_class' => Reception::class,
         ]);
     }
 }

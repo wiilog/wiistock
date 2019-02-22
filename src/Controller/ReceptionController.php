@@ -2,9 +2,9 @@
 
 namespace App\Controller;
 
-use App\Entity\Receptions;
-use App\Form\ReceptionsType;
-use App\Repository\ReceptionsRepository;
+use App\Entity\Reception;
+use App\Form\ReceptionType;
+use App\Repository\ReceptionRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -31,9 +31,9 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
- * @Route("/receptions")
+ * @Route("/reception")
  */
-class ReceptionsController extends AbstractController
+class ReceptionController extends AbstractController
 {
     /**
      * @var StatutsRepository
@@ -56,20 +56,20 @@ class ReceptionsController extends AbstractController
     private $referencesArticlesRepository;
 
     /**
-     * @var ReceptionsRepository
+     * @var ReceptionRepository
      */
-    private $receptionsRepository;
+    private $receptionRepository;
     
     /**
      * @var FournisseurRepository
      */
     private $fournisseurRepository;
 
-    public function __construct(FournisseurRepository $fournisseurRepository, StatutsRepository $statutsRepository, ReferencesArticlesRepository $referencesArticlesRepository, ReceptionsRepository $receptionsRepository, UtilisateursRepository $utilisateursRepository, EmplacementRepository $emplacementRepository)
+    public function __construct(FournisseurRepository $fournisseurRepository, StatutsRepository $statutsRepository, ReferencesArticlesRepository $referencesArticlesRepository, ReceptionRepository $receptionRepository, UtilisateursRepository $utilisateursRepository, EmplacementRepository $emplacementRepository)
     {
         $this->statutsRepository = $statutsRepository;
         $this->emplacementRepository = $emplacementRepository;
-        $this->receptionsRepository = $receptionsRepository;
+        $this->receptionRepository = $receptionRepository;
         $this->utilisateursRepository = $utilisateursRepository;
         $this->referencesArticlesRepository = $referencesArticlesRepository;
         $this->fournisseurRepository = $fournisseurRepository;
@@ -89,7 +89,7 @@ class ReceptionsController extends AbstractController
                 $fournisseur = $this->fournisseurRepository->find(intval($data[3]['fournisseur']));
                 $utilisateur = $this->utilisateursRepository->find(intval($data[4]['utilisateur']));
 
-                $reception = new Receptions();
+                $reception = new Reception();
                 $statut = $this->statutsRepository->find(1); //a modifier
                 $reception
                     ->setStatut($statut)
@@ -126,7 +126,7 @@ class ReceptionsController extends AbstractController
                 $fournisseur = $fournisseurRepository->find(intval($data[3]['fournisseur']));
                 $utilisateur = $this->utilisateursRepository->find(intval($data[4]['utilisateur']));
 
-                $reception = new Receptions();
+                $reception = new Reception();
                 $statut = $this->statutsRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_RECEPTION_EN_COURS);
                 $reception
                     ->setStatut($statut)
@@ -156,10 +156,10 @@ class ReceptionsController extends AbstractController
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
         {
-            $receptions = $this->receptionsRepository->findAll();
+            $receptions = $this->receptionRepository->findAll();
             $rows = [];
             foreach ($receptions as $reception) {
-                $urlEdite = $this->generateUrl('receptions_edit', ['id' => $reception->getId()]);
+                $urlEdite = $this->generateUrl('reception_edit', ['id' => $reception->getId()]);
                 $urlShow = $this->generateUrl('reception_ajout_article', ['id' => $reception->getId(), 'k'=>'0'] );
                 $row =
                     [
@@ -190,7 +190,7 @@ class ReceptionsController extends AbstractController
             $myJSON = json_decode($request->getContent(), true);
             // traitement des données => récuperation des objets via leur id 
             $refArticle= $this->referencesArticlesRepository->find($myJSON['refArticle']);
-            $reception= $this->receptionsRepository->find($myJSON['reception']);
+            $reception= $this->receptionRepository->find($myJSON['reception']);
             // creation d'un nouvel objet article + set des donnees
             $article = new Article();
             $article
@@ -234,20 +234,20 @@ class ReceptionsController extends AbstractController
 
 
     /**
-     * @Route("/", name="receptions_index", methods={"GET", "POST"})
+     * @Route("/", name="reception_index", methods={"GET", "POST"})
      */
     public function index(Request $request): Response
     {
-        return $this->render('receptions/index.html.twig', [
+        return $this->render('reception/index.html.twig', [
             'fournisseur' => $this->fournisseurRepository->findAll(), //a précisé avant modif
             'utilisateurs' => $this->utilisateursRepository->findUserGetIdUser(),
         ]);
     }
 
     /**
-     * @Route("/{id}/edit", name="receptions_edit", methods={"GET", "POST"})
+     * @Route("/{id}/edit", name="reception_edit", methods={"GET", "POST"})
      */
-    public function edit(Request $request, Receptions $reception) : Response
+    public function edit(Request $request, Reception $reception) : Response
     {
 
         if(isset($_POST["numeroReception"], $_POST["fournisseur"], $_POST["utilisateur"], $_POST["date-attendue"]))
@@ -271,7 +271,7 @@ class ReceptionsController extends AbstractController
             ]); 
         }
 
-        return $this->render('receptions/edit.html.twig', [
+        return $this->render('reception/edit.html.twig', [
             "reception" => $reception,
             "utilisateurs" => $this->utilisateursRepository->findUserGetIdUser(),
             "fournisseur" => $this->fournisseurRepository->findAll(), //a précisé avant modif
@@ -280,9 +280,9 @@ class ReceptionsController extends AbstractController
 
 
     /**
-     * @Route("/{id}", name="receptions_delete", methods="DELETE")
+     * @Route("/{id}", name="reception_delete", methods="DELETE")
      */
-    public function delete(Request $request, Receptions $reception) : Response
+    public function delete(Request $request, Reception $reception) : Response
     {
         if ($this->isCsrfTokenValid('delete' . $reception->getId(), $request->request->get('_token'))) 
         {
@@ -299,14 +299,14 @@ class ReceptionsController extends AbstractController
             $em->remove($reception);
             $em->flush();
         }
-        return $this->redirectToRoute('receptions_index');
+        return $this->redirectToRoute('reception_index');
     }
 
 
     /**
      * @Route("/article/{id}/{finishReception}", name="reception_ajout_article", methods={"GET", "POST"})
      */
-    public function ajoutArticle(Request $request, Receptions $reception, $id, $finishReception): Response
+    public function ajoutArticle(Request $request, Reception $reception, $id, $finishReception): Response
     {
         //fin de reception/mise en stock des article
         // k sert à vérifier et identifier la fin de la reception, en suite on modifie les "setStatut" des variables 
@@ -325,7 +325,7 @@ class ReceptionsController extends AbstractController
                 }
             }
 
-            $statut = $this->statutsRepository->findOneByCategorieAndStatut(Receptions::CATEGORIE, Receptions::TERMINE);
+            $statut = $this->statutsRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::TERMINE);
             $reception->setStatut($statut);
             $reception->setDateReception(new \DateTime('now'));
 
@@ -339,9 +339,9 @@ class ReceptionsController extends AbstractController
                 $refArticle->setQuantiteDisponible($quantity[1]);
             }
             $this->getDoctrine()->getManager()->flush();
-            return $this->redirectToRoute('receptions_index', ['history' => 0]);
+            return $this->redirectToRoute('reception_index', ['history' => 0]);
         }
-        return $this->render("receptions/ajoutArticle.html.twig", [
+        return $this->render("reception/ajoutArticle.html.twig", [
             'reception' => $reception,
             'refArticle'=> $this->referencesArticlesRepository->findAll(),
             'id' => $id,

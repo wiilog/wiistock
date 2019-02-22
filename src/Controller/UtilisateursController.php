@@ -273,7 +273,7 @@ class UtilisateursController extends Controller
 
         return $this->render('utilisateurs/show.html.twig', [
             'utilisateur' => $utilisateur, 
-            'receptions' => $receptions,
+            'reception' => $receptions,
             'demandes' => $demandes,
             'alertes' => $alertes
         ]);

@@ -143,7 +143,6 @@ class FournisseurController extends AbstractController
     public function delete(Request $request, Fournisseur $fournisseur) : Response
     {
         $receptions = $fournisseur->getreceptions();
-        dump(count($receptions));
         if (count($receptions) === 0) {
             if ($this->isCsrfTokenValid('delete' . $fournisseur->getId(), $request->request->get('_token'))) {
                 $em = $this->getDoctrine()->getManager();

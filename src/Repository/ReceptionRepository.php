@@ -2,21 +2,21 @@
 
 namespace App\Repository;
 
-use App\Entity\Receptions;
+use App\Entity\Reception;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
- * @method Receptions|null find($id, $lockMode = null, $lockVersion = null)
- * @method Receptions|null findOneBy(array $criteria, array $orderBy = null)
- * @method Receptions[]    findAll()
- * @method Receptions[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method Reception|null find($id, $lockMode = null, $lockVersion = null)
+ * @method Reception|null findOneBy(array $criteria, array $orderBy = null)
+ * @method Reception[]    findAll()
+ * @method Reception[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class ReceptionsRepository extends ServiceEntityRepository
+class ReceptionRepository extends ServiceEntityRepository
 {
     public function __construct(RegistryInterface $registry)
     {
-        parent::__construct($registry, Receptions::class);
+        parent::__construct($registry, Reception::class);
     }
 
     public function findByDateOrStatut($date)
@@ -28,7 +28,7 @@ class ReceptionsRepository extends ServiceEntityRepository
         //récupération des champs selon la date du jour ou selon un statut spécifique  
         $query = $entityManager->createQuery(
             "SELECT r
-            FROM App\Entity\Receptions r
+            FROM App\Entity\Reception r
             WHERE r.Statut = 6 OR r.date LIKE :date "
         )->setParameter('date', $dateF);
         ;
@@ -36,7 +36,7 @@ class ReceptionsRepository extends ServiceEntityRepository
     }
 
 //    /**
-//     * @return Receptions[] Returns an array of Receptions objects
+//     * @return Reception[] Returns an array of Receptions objects
 //     */
     /*
     public function findByExampleField($value)
@@ -53,7 +53,7 @@ class ReceptionsRepository extends ServiceEntityRepository
     */
 
     /*
-    public function findOneBySomeField($value): ?Receptions
+    public function findOneBySomeField($value): ?Reception
     {
         return $this->createQueryBuilder('r')
             ->andWhere('r.exampleField = :val')

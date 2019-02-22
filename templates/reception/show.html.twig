@@ -60,8 +60,8 @@
             </tbody>
     </table>
 
-    <a href="{{ path('receptions_index', {'history':0}) }}" class='button pull-left btn-left'>Retour</a>
-    {{ include('receptions/_delete_form.html.twig') }}
-    <a href="{{ path('receptions_edit', {'id': reception.id}) }}" class='button pull-right btn-left'>Modifier</a>
+    <a href="{{ path('reception_index', {'history':0}) }}" class='button pull-left btn-left'>Retour</a>
+    {{ include('reception/_delete_form.html.twig') }}
+    <a href="{{ path('reception_edit', {'id': reception.id}) }}" class='button pull-right btn-left'>Modifier</a>
 
 {% endblock %}

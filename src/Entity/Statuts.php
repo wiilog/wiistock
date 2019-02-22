@@ -34,7 +34,7 @@ class Statuts
     private $articles;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Receptions", mappedBy="Statut")
+     * @ORM\OneToMany(targetEntity="App\Entity\Reception", mappedBy="Statut")
      */
     private $receptions;
 
@@ -130,14 +130,14 @@ class Statuts
     }
 
     /**
-     * @return Collection|Receptions[]
+     * @return Collection|Reception[]
      */
     public function getReceptions(): Collection
     {
         return $this->receptions;
     }
 
-    public function addReception(Receptions $reception): self
+    public function addReception(Reception $reception): self
     {
         if (!$this->receptions->contains($reception)) {
             $this->receptions[] = $reception;
@@ -147,7 +147,7 @@ class Statuts
         return $this;
     }
 
-    public function removeReception(Receptions $reception): self
+    public function removeReception(Reception $reception): self
     {
         if ($this->receptions->contains($reception)) {
             $this->receptions->removeElement($reception);

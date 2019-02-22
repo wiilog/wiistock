@@ -7,7 +7,7 @@ use App\Form\ArticleType;
 use App\Repository\ArticleRepository;
 use App\Repository\StatutsRepository;
 use App\Repository\CollecteRepository;
-use App\Repository\ReceptionsRepository;
+use App\Repository\ReceptionRepository;
 use App\Repository\EmplacementRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -44,22 +44,17 @@ class ArticleController extends AbstractController
     private $articleRepository;
     
     /**
-     * @var ReceptionsRepository
+     * @var ReceptionRepository
      */
     private $receptionRepository;
-    
-    /**
-     * @var ReceptionsRepository
-     */
-    private $receptionsRepository;
 
-    public function __construct(ReceptionsRepository $receptionsRepository, StatutsRepository $statutsRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository)
+    public function __construct(ReceptionRepository $receptionRepository, StatutsRepository $statutsRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository)
     {
         $this->statutsRepository = $statutsRepository;
         $this->emplacementRepository = $emplacementRepository;
         $this->articleRepository = $articleRepository;
         $this->collecteRepository = $collecteRepository;
-        $this->receptionRepository = $receptionsRepository;
+        $this->receptionRepository = $receptionRepository;
     }
 
     /**
@@ -195,7 +190,7 @@ class ArticleController extends AbstractController
         if ($form->isSubmitted() && $form->isValid())
         {
             $reception = $article->getReception()->getId();
-            $reception = $this->receptionsRepository->find($reception); //a modifier
+            $reception = $this->receptionRepository->find($reception); //a modifier
             $articles = $reception->getArticles();
             foreach($articles as $article) {
                 if($article->getStatut()->getId() == 5) {

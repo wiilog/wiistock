@@ -49,7 +49,7 @@ class Article
     private $refArticle;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Receptions", inversedBy="article")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Reception", inversedBy="article")
      */
     private $reception;
 
@@ -153,12 +153,12 @@ class Article
         return $this;
     }
 
-    public function getReception(): ?Receptions
+    public function getReception(): ?Reception
     {
         return $this->reception;
     }
 
-    public function setReception(?Receptions $reception): self
+    public function setReception(?Reception $reception): self
     {
         $this->reception = $reception;
 

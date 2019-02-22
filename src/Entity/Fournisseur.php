@@ -29,7 +29,7 @@ class Fournisseur
     private $nom;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Receptions", mappedBy="fournisseur")
+     * @ORM\OneToMany(targetEntity="App\Entity\Reception", mappedBy="fournisseur")
      */
     private $receptions;
 
@@ -75,7 +75,7 @@ class Fournisseur
         return $this->receptions;
     }
 
-    public function addReceptions(Receptions $reception) : self
+    public function addReceptions(Reception $reception) : self
     {
         if (!$this->receptions->contains($reception)) {
             $this->receptions[] = $reception;
@@ -85,7 +85,7 @@ class Fournisseur
         return $this;
     }
 
-    public function removeReceptions(Receptions $reception) : self
+    public function removeReceptions(Reception $reception) : self
     {
         if ($this->receptions->contains($reception)) {
             $this->receptions->removeElement($reception);
@@ -103,7 +103,7 @@ class Fournisseur
         return $this->nom;
     }
 
-    public function addReception(Receptions $reception): self
+    public function addReception(Reception $reception): self
     {
         if (!$this->receptions->contains($reception)) {
             $this->receptions[] = $reception;
@@ -113,7 +113,7 @@ class Fournisseur
         return $this;
     }
 
-    public function removeReception(Receptions $reception): self
+    public function removeReception(Reception $reception): self
     {
         if ($this->receptions->contains($reception)) {
             $this->receptions->removeElement($reception);

@@ -51,7 +51,7 @@ class Utilisateurs implements UserInterface, EquatableInterface
      */
     private $lastLogin;
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Receptions", mappedBy="utilisateur")
+     * @ORM\OneToMany(targetEntity="App\Entity\Reception", mappedBy="utilisateur")
      */
     private $receptions;
     /**
@@ -165,13 +165,13 @@ class Utilisateurs implements UserInterface, EquatableInterface
         return $this;
     }
     /**
-     * @return Collection|Receptions[]
+     * @return Collection|Reception[]
      */
     public function getReceptions() : Collection
     {
         return $this->receptions;
     }
-    public function addReception(Receptions $reception) : self
+    public function addReception(Reception $reception) : self
     {
         if (!$this->receptions->contains($reception)) {
             $this->receptions[] = $reception;
@@ -179,7 +179,7 @@ class Utilisateurs implements UserInterface, EquatableInterface
         }
         return $this;
     }
-    public function removeReception(Receptions $reception) : self
+    public function removeReception(Reception $reception) : self
     {
         if ($this->receptions->contains($reception)) {
             $this->receptions->removeElement($reception);

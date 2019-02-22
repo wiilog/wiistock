@@ -7,13 +7,13 @@
 
 <form method="POST">
     <div class="form-group">
-        <label for="receptions_numeroReception">Numéro réception</label>
-        <input type="text" id="receptions_numeroReception" name="numeroReception" maxlength="255" class="form-control" value="{{ reception.numeroReception }}">
+        <label for="reception_numeroReception">Numéro réception</label>
+        <input type="text" id="reception_numeroReception" name="numeroReception" maxlength="255" class="form-control" value="{{ reception.numeroReception }}">
     </div>
 
     <div class="form-group">
-        <label class="" for="receptions_fournisseur">Fournisseur</label>
-        <select id="receptions_fournisseur" name="fournisseur" class="form-control" value="{{ reception.numeroReception }}">
+        <label class="" for="reception_fournisseur">Fournisseur</label>
+        <select id="reception_fournisseur" name="fournisseur" class="form-control" value="{{ reception.numeroReception }}">
             <option value="{{ reception.fournisseur.id }}">{{ reception.fournisseur.nom }}</option>
             {% for fournisseur in fournisseurs %}
                 <option value="{{ fournisseur.id }}">{{ fournisseur.nom }}</option>
@@ -22,8 +22,8 @@
     </div>
 
     <div class="form-group">
-        <label class="" for="receptions_utilisateur">Utilisateur</label>
-        <select id="receptions_utilisateur" name="utilisateur" class="form-control">
+        <label class="" for="reception_utilisateur">Utilisateur</label>
+        <select id="reception_utilisateur" name="utilisateur" class="form-control">
             <option value="{{ reception.utilisateur.id }}">{{ reception.utilisateur.username }}</option>
             {% for utilisateur in utilisateurs %}
                 <option value="{{ utilisateur.id }}">{{ utilisateur.username }}</option>
@@ -42,13 +42,13 @@
     </div>
 
     <div class="form-group">
-        <label for="receptions_commentaire">Commentaire</label>
-        <input type="text" id="receptions_commentaire" name="commentaire" maxlength="255" class="form-control" value="{{ reception.commentaire }}">
+        <label for="reception_commentaire">Commentaire</label>
+        <input type="text" id="reception_commentaire" name="commentaire" maxlength="255" class="form-control" value="{{ reception.commentaire }}">
     </div>
 
-    <button type="submit" href="{{ path('receptions_edit', {'id': reception.id}) }}" class="btn pull-left button btn-left">Modifier</a>
+    <button type="submit" href="{{ path('reception_edit', {'id': reception.id}) }}" class="btn pull-left button btn-left">Modifier</a>
 </form>
-    {{ include('receptions/_delete_form.html.twig') }}
+    {{ include('reception/_delete_form.html.twig') }}
     
    
 {% endblock %}

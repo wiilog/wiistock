@@ -7,9 +7,9 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity(repositoryClass="App\Repository\ReceptionsRepository")
+ * @ORM\Entity(repositoryClass="App\Repository\ReceptionRepository")
  */
-class Receptions
+class Reception
 {
     const CATEGORIE = 'reception';
     const STATUT_EN_COURS = 'en cours de réception';
@@ -23,7 +23,7 @@ class Receptions
     private $id;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Fournisseur", inversedBy="receptions")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Fournisseur", inversedBy="reception")
      */
     private $fournisseur;
 
@@ -43,7 +43,7 @@ class Receptions
     private $numeroReception;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateurs", inversedBy="receptions")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateurs", inversedBy="reception")
      */
     private $utilisateur;
 
@@ -53,7 +53,7 @@ class Receptions
     private $articles;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Statuts", inversedBy="receptions")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Statuts", inversedBy="reception")
      */
     private $Statut;
 
