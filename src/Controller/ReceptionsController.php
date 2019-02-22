@@ -127,9 +127,9 @@ class ReceptionsController extends AbstractController
                 $utilisateur = $this->utilisateursRepository->find(intval($data[4]['utilisateur']));
 
                 $reception = new Receptions();
-                $statut = $this->statutsRepository->find(1);
+                $statut = $this->statutsRepository->findOneByCategorieAndStatut(Articles::CATEGORIE, Articles::STATUT_RECEPTION_EN_COURS);
                 $reception
-                    ->setStatut($statut[0])
+                    ->setStatut($statut)
                     ->setNumeroReception($data[0]['NumeroReception'])
                     ->setDate(new \DateTime($data[1]['date-commande']))
                     ->setDateAttendu(new \DateTime($data[2]['date-attendu']))
@@ -228,7 +228,7 @@ class ReceptionsController extends AbstractController
                 'quantiteARecevoir' => $article->getQuantiteARecevoir(),
 
             ];
-            // encodage de la reponse en JSON + envoie 
+            // encodage de la reponse en JSON + envoie
             return new JsonResponse($reponseJSON);
         }
         throw new NotFoundHttpException('404 not found');
@@ -306,28 +306,28 @@ class ReceptionsController extends AbstractController
 
 
     /**
-     * @Route("/article/{id}/{k}", name="reception_ajout_article", methods={"GET", "POST"})
+     * @Route("/article/{id}/{finishReception}", name="reception_ajout_article", methods={"GET", "POST"})
      */
-    public function ajoutArticle(Request $request, Receptions $reception, $id, $k): Response
+    public function ajoutArticle(Request $request, Receptions $reception, $id, $finishReception): Response
     {
         //fin de reception/mise en stock des articles
         // k sert à vérifier et identifier la fin de la reception, en suite on modifie les "setStatut" des variables 
-        if ($k) {
+        if ($finishReception) {
             $articles = $this->articlesRepository->findByReception($id);
             // modification du statut
             foreach ($articles as $article) 
             {
-                $statut = $this->statutsRepository->findOneById(1);
+                $statut = $this->statutsRepository->findOneByCategorieAndStatut(Articles::CATEGORIE, Articles::STATUT_RECEPTION_EN_COURS);
                 //vérifie si l'article est bien encore en reception
 
                 if ($article->getStatut() === $statut  && $article->getEtat() === true)
                 {
-                    $statut = $this->statutsRepository->find(3);
+                    $statut = $this->statutsRepository->findOneByCategorieAndStatut(Articles::CATEGORIE, Articles::STATUT_EN_STOCK);
                     $article->setStatut($statut);
                 }
             }
 
-            $statut = $this->statutsRepository->findOneById(7);
+            $statut = $this->statutsRepository->findOneByCategorieAndStatut(Receptions::CATEGORIE, Receptions::TERMINE);
             $reception->setStatut($statut);
             $reception->setDateReception(new \DateTime('now'));
 

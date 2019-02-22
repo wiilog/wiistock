@@ -19,9 +19,38 @@ class StatutsRepository extends ServiceEntityRepository
         parent::__construct($registry, Statuts::class);
     }
 
-    public function findByCategorie($categorie)
+    public function findByCategorieName($categorieName)
     {
         $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT s
+            FROM App\Entity\Statuts s
+            JOIN s.categorie c
+            WHERE c.nom = :categorieName");
+
+        $query->setParameter("categorieName", $categorieName);
+
+        return $query->execute();
+    }
+
+    public function findOneByCategorieAndStatut($categorieName, $statutName)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+          "SELECT s
+          FROM App\Entity\Statuts s
+          JOIN s.categorie c
+          WHERE c.nom = :categorieName AND s.nom = :statutName
+          "
+        );
+
+        $query->setParameters([
+            'categorieName' => $categorieName,
+            'statutName' => $statutName
+        ]);
+
+        $result = $query->execute();
+        return ($result) ? $result[0] : null;
         return $query = $em->createQuery(
             "SELECT s 
              FROM App\Entity\Statuts s 
@@ -31,32 +60,4 @@ class StatutsRepository extends ServiceEntityRepository
             ->execute();
     }
 
-    // /**
-    //  * @return Statuts[] Returns an array of Statuts objects
-    //  */
-    /*
-    public function findByExampleField($value)
-    {
-        return $this->createQueryBuilder('s')
-            ->andWhere('s.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('s.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
-
-    /*
-    public function findOneBySomeField($value): ?Statuts
-    {
-        return $this->createQueryBuilder('s')
-            ->andWhere('s.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
-    }
-    */
 }

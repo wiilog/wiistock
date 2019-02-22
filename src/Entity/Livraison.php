@@ -8,6 +8,11 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Livraison
 {
+    const CATEGORIE = 'livraison';
+    const STATUT_EN_COURS = 'en cours de livraison';
+    const STATUT_DEMANDE = 'demande de livraison';
+    const STATUT_TERMINE = 'livraison terminée';
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()

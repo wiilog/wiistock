@@ -135,6 +135,30 @@ class ArticlesController extends AbstractController
     }
 
     /**
+     * @Route("/nouveau", name="articles_new", methods="GET|POST")  INUTILE
+     */
+    public function new(Request $request) : Response
+    {
+        $article = new Articles();
+        $form = $this->createForm(ArticlesType::class, $article);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $statut = $this->statutsRepository->findOneByCategorieAndStatut(Articles::CATEGORIE, Articles::STATUT_RECEPTION_EN_COURS);
+            $article->setStatut($statut);
+            $em = $this->getDoctrine()->getManager();
+            $em->persist($article);
+            $em->flush();
+            return $this->redirectToRoute('articles_index');
+        }
+
+        return $this->render('articles/new.html.twig', [
+            'article' => $article,
+            'form' => $form->createView(),
+        ]);
+    }
+
+    /**
      * @Route("/voir/{id}", name="articles_show", methods="GET")
      */
     public function show(Articles $article) : Response

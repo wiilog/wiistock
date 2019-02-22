@@ -83,13 +83,13 @@ class DemandeController extends AbstractController
             $preparation->setDate($date);
             $preparation->setUtilisateur($this->getUser());
 
-            $statut = $this->statutsRepository->findById(11); /* Statut : nouvelle préparation */
-            $preparation->setStatut($statut[0]);
+            $statut = $this->statutsRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_NOUVELLE);
+            $preparation->setStatut($statut);
 
             $demande->setPreparation($preparation);
 
-            $statut = $this->statutsRepository->findById(14); /* Statut : Demande de préparation */
-            $demande->setStatut($statut[0]);
+            $statut = $this->statutsRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
+            $demande->setStatut($statut);
 
             $em = $this->getDoctrine()->getManager();
             $em->persist($demande);
@@ -111,14 +111,13 @@ class DemandeController extends AbstractController
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (count($data) >= 2) {
                 $em = $this->getDoctrine()->getEntityManager();
-                
+
                 $json = [
                     "reference" => $data[0]["reference"],
                     "quantite" => $data[1]["quantite"],
                 ];
-                
+
                 $referenceArticle = $this->referencesArticlesRepository->find([$data[0]["reference"]]);
-                dump("hello");
 
                 $quantiteReservee = intval($data[1]["quantite"]);
                 $quantiteArticleReservee = $referenceArticle->getQuantiteReservee();
@@ -164,11 +163,12 @@ class DemandeController extends AbstractController
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (count($data) >= 3) {
                 $em = $this->getDoctrine()->getEntityManager();
-                $utilisateur = $this->utilisateursRepository->findById(intval($data[0]["demandeur"]));
-                $statut = $this->statutsRepository->findById($data[2]["statut"]);
-                $demande->setUtilisateur($utilisateur[0]);
-                $demande->setDateAttendu(new \Datetime($data[1]["date-attendu"]));
-                $demande->setStatut($statut[0]);
+                $utilisateur = $this->utilisateursRepository->find(intval($data[0]["demandeur"]));
+                $statut = $this->statutsRepository->find($data[2]["statut"]);
+                $demande
+                    ->setUtilisateur($utilisateur)
+                    ->setDateAttendu(new \Datetime($data[1]["date-attendu"]))
+                    ->setStatut($statut);
                 $em->persist($demande);
                 $em->flush();
 
@@ -183,26 +183,26 @@ class DemandeController extends AbstractController
     /**
      * @Route("/creationDemande", name="creation_demande", methods="GET|POST")
      */
-    public function creationDemande(LivraisonRepository $livraisonRepository, Request $request, ArticlesRepository $articlesRepository) : Response
+    public function creationDemande(Request $request, ArticlesRepository $articlesRepository) : Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $em = $this->getDoctrine()->getManager();
             $userId = $data[0];
             $utilisateur = $this->utilisateursRepository->find($userId["demandeur"]);
             $date = new \DateTime('now');
-            $statut = $this->statutsRepository->find(14);
+            $statut = $this->statutsRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
             $destination = $this->emplacementRepository->find($data[1]["destination"]);
-            
+
             $demande = new Demande();
             $demande
                 ->setStatut($statut)
                 ->setUtilisateur($utilisateur)
                 ->setdate($date)
                 ->setDestination($destination)
-                ->setNumero("D-" . $date->format('YmdHis')); 
+                ->setNumero("D-" . $date->format('YmdHis'));
             $em->persist($demande);
             $em->flush();
-            
+
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
@@ -216,14 +216,14 @@ class DemandeController extends AbstractController
     {
         return $this->render('demande/index.html.twig', [
             'utilisateurs' => $this->utilisateursRepository->findUserGetIdUser(),
-            'statuts' => $this->statutsRepository->findByCategorie('Demandes'),
+            'statuts' => $this->statutsRepository->findByCategorieName('Demandes'),
             'emplacements' => $this->emplacementRepository->findLocGetIdName()
         ]);
     }
 
 
     /**
-     * @Route("/voir/{id}", name="demande_show", methods={"GET"})
+     * @Route("/voir/{id}", name="demande_show", methods={"GET", "POST"})
      */
     public function show(Demande $demande) : Response
     {
@@ -243,7 +243,7 @@ class DemandeController extends AbstractController
             'demande' => $demande,
             'lignesArticles' => $lignes,
             'utilisateurs' => $this->utilisateursRepository->findUserGetIdUser(),
-            'statuts' => $this->statutsRepository->findByCategorie('Demandes'),
+            'statuts' => $this->statutsRepository->findByCategorieName(Demande::CATEGORIE),
             'references' => $this->referencesArticlesRepository->findRefArticleGetIdLibelle()
         ]);
     }
