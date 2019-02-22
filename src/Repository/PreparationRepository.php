@@ -43,18 +43,6 @@ class PreparationRepository extends ServiceEntityRepository
         return $query->execute(); 
     }
 
-    public function findById($id)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT p
-            FROM App\Entity\Preparation p
-            WHERE p.id = :id "
-        )->setParameter('id', $id);
-        ;
-        return $query->execute(); 
-    }
-
     public function findAllByUser($id)
     {
         $entityManager = $this->getEntityManager();

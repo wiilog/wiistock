@@ -117,7 +117,7 @@ class DemandeController extends AbstractController
                     "quantite" => $data[1]["quantite"],
                 ];
 
-                $referenceArticle = $this->referencesArticlesRepository->findOneBy(["id" => $data[0]["reference"]]);
+                $referenceArticle = $this->referencesArticlesRepository->find([$data[0]["reference"]]);
 
                 $quantiteReservee = intval($data[1]["quantite"]);
                 $quantiteArticleReservee = $referenceArticle->getQuantiteReservee();
@@ -138,9 +138,8 @@ class DemandeController extends AbstractController
     /**
      * @Route("/supprimeArticle/{id}", name="supprimeArticle", methods="GET|POST")
      */
-    public function supprimeRefArticle(Demande $demande, FournisseursRepository $fournisseursRepository, Request $request) : Response
+    public function supprimeRefArticle(Demande $demande, Request $request) : Response
     {
-        dump($demande->getLigneArticle());
         $json = [
             "reference" => $data[0]["reference"],
             "quantite" => $data[1]["quantite"],
@@ -188,20 +187,22 @@ class DemandeController extends AbstractController
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $em = $this->getDoctrine()->getManager();
-            $demandeur = $data[0];
-            $demande = new Demande();
-            $statut = $this->statutsRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
-
-            $demande->setStatut($statut);
-            $utilisateur = $this->utilisateursRepository->findOneById($demandeur["demandeur"]);
-            $demande->setUtilisateur($utilisateur);
+            $userId = $data[0];
+            $utilisateur = $this->utilisateursRepository->find($userId["demandeur"]);
             $date = new \DateTime('now');
-            $demande->setdate($date);
-            $destination = $this->emplacementRepository->findOneById($data[1]["destination"]);
-            $demande->setDestination($destination);
-            $demande->setNumero("D-" . $date->format('YmdHis')); // On recupere un array sous la forme ['id de l'article de réference' => 'quantite de l'article de réference voulu', ....]
+            $statut = $this->statutsRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
+            $destination = $this->emplacementRepository->find($data[1]["destination"]);
+
+            $demande = new Demande();
+            $demande
+                ->setStatut($statut)
+                ->setUtilisateur($utilisateur)
+                ->setdate($date)
+                ->setDestination($destination)
+                ->setNumero("D-" . $date->format('YmdHis'));
             $em->persist($demande);
             $em->flush();
+
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
@@ -214,9 +215,9 @@ class DemandeController extends AbstractController
     public function index(Request $request) : Response
     {
         return $this->render('demande/index.html.twig', [
-            'utilisateurs' => $this->utilisateursRepository->findAll(),
+            'utilisateurs' => $this->utilisateursRepository->findUserGetIdUser(),
             'statuts' => $this->statutsRepository->findByCategorieName('Demandes'),
-            'emplacements' => $this->emplacementRepository->findAll()
+            'emplacements' => $this->emplacementRepository->findLocGetIdName()
         ]);
     }
 
@@ -241,9 +242,9 @@ class DemandeController extends AbstractController
         return $this->render('demande/show.html.twig', [
             'demande' => $demande,
             'lignesArticles' => $lignes,
-            'utilisateurs' => $this->utilisateursRepository->findAll(),
+            'utilisateurs' => $this->utilisateursRepository->findUserGetIdUser(),
             'statuts' => $this->statutsRepository->findByCategorieName(Demande::CATEGORIE),
-            'references' => $this->referencesArticlesRepository->findAll()
+            'references' => $this->referencesArticlesRepository->findRefArticleGetIdLibelle()
         ]);
     }
 
@@ -268,16 +269,15 @@ class DemandeController extends AbstractController
      */
     public function demandeApi(Request $request, DemandeRepository $demandeRepository) : Response
     {
-        if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
+        if ($request->isXmlHttpRequest())
         {
-
             if ($request->request->get('utilisateur')) {
                 $utilistaeur = $request->request->get('utilisateur');
                 $statut = $request->request->get('statut');
                 $dateDebut = $request->request->get('dateDebut');
                 $dateFin = $request->request->get('dateFin');
 
-                $demandes = $demandeRepository->findAll();
+                $demandes = $demandeRepository->findAll(); // a modifier pour filtre
 
             } else {
                 $demandes = $demandeRepository->findAllByUserAndStatut($this->getUser());
@@ -287,7 +287,7 @@ class DemandeController extends AbstractController
                 $urlShow = $this->generateUrl('demande_show', ['id' => $demande->getId()]);
                 $row =
                     [
-                    "Date" => ($demande->getDate() ? $demande->getDate() : '')->format('d/m/Y'),
+                    "Date" => ($demande->getDate() ? $demande->getDate() : '')->format('d-m-Y'),
                     "Demandeur" => ($demande->getUtilisateur()->getUsername() ? $demande->getUtilisateur()->getUsername() : ''),
                     "Numéro" => ($demande->getNumero() ? $demande->getNumero() : ''),
                     "Statut" => ($demande->getStatut()->getNom() ? $demande->getStatut()->getNom() : ''),
@@ -313,7 +313,7 @@ class DemandeController extends AbstractController
             $rows = [];
 
             foreach ($LigneArticles as $LigneArticle) {
-                $refArticle = $this->referencesArticlesRepository->findOneById($LigneArticle["reference"]);
+                $refArticle = $this->referencesArticlesRepository->find($LigneArticle["reference"]);
                 $urlShow = $this->generateUrl('supprimeArticle', ['id' => $demande->getId()]);
                 $row = [
                     "Références CEA" => ($LigneArticle["reference"] ? $LigneArticle["reference"] : ''),

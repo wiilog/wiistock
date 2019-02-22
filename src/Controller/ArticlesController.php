@@ -195,16 +195,16 @@ class ArticlesController extends AbstractController
         if ($form->isSubmitted() && $form->isValid())
         {
             $reception = $article->getReception()->getId();
-            $reception = $this->receptionsRepository->findOneById($reception);
+            $reception = $this->receptionsRepository->find($reception); //a modifier
             $articles = $reception->getArticles();
             foreach($articles as $article) {
                 if($article->getStatut()->getId() == 5) {
-                    $statut = $this->statutsRepository->findOneById(5);
+                    $statut = $this->statutsRepository->find(5); //a modifier
                     $reception->setStatut($statut);
                     break;
                 }
                 else {
-                    $statut = $this->statutsRepository->findOneById(6);
+                    $statut = $this->statutsRepository->find(6); //a modifier
                     $reception->setStatut($statut);
                 }
             }

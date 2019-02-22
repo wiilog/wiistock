@@ -19,18 +19,6 @@ class CollecteRepository extends ServiceEntityRepository
         parent::__construct($registry, Collecte::class);
     }
 
-    public function findById($id)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            'SELECT c
-            FROM App\Entity\Collecte c
-            WHERE c.id = :id'
-        )->setParameter('id', $id);
-        ;
-        return $query->execute(); 
-    }
-
     public function findByNoStatut($statut)
     {
         $entityManager = $this->getEntityManager();
