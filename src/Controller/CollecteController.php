@@ -52,14 +52,15 @@ class CollecteController extends AbstractController
     /**
      * @var UtilisateursRepository
      */
-    private $utilisateurRepository;
+    private $utilisateursRepository;
 
-    public function __construct(StatutsRepository $statutsRepository, ArticlesRepository $articlesRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository)
+    public function __construct(StatutsRepository $statutsRepository, ArticlesRepository $articlesRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UtilisateursRepository $utilisateursRepository)
     {
         $this->statutsRepository = $statutsRepository;
         $this->emplacementRepository = $emplacementRepository;
         $this->articlesRepository = $articlesRepository;
         $this->collecteRepository = $collecteRepository;
+        $this->utilisateursRepository = $utilisateursRepository;
     }
 
     /**

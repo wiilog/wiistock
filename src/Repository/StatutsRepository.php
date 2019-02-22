@@ -27,12 +27,38 @@ class StatutsRepository extends ServiceEntityRepository
             ->execute();
     }
 
-    public function findByCategorie($categorie)
+    public function findByCategorieName($categorieName)
     {
         $em = $this->getEntityManager();
-        return $query = $em->createQuery("SELECT s FROM App\Entity\Statuts s WHERE s.categorie = :categorie")
-            ->setParameter("categorie", $categorie)
-            ->execute();
+        $query = $em->createQuery(
+            "SELECT s
+            FROM App\Entity\Statuts s
+            JOIN s.categorie c
+            WHERE c.nom = :categorieName");
+
+        $query->setParameter("categorieName", $categorieName);
+
+        return $query->execute();
+    }
+
+    public function findOneByCategorieAndStatut($categorieName, $statutName)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+          "SELECT s
+          FROM App\Entity\Statuts s
+          JOIN s.categorie c
+          WHERE c.nom = :categorieName AND s.nom = :statutName
+          "
+        );
+
+        $query->setParameters([
+            'categorieName' => $categorieName,
+            'statutName' => $statutName
+        ]);
+
+        $result = $query->execute();
+        return ($result) ? $result[0] : null;
     }
 
     // /**

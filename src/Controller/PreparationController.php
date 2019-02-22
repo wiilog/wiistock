@@ -2,10 +2,12 @@
 
 namespace App\Controller;
 
+use App\Entity\Articles;
 use App\Entity\Preparation;
 use App\Form\PreparationType;
 use App\Repository\PreparationRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\Tests\Compiler\D;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -78,27 +80,27 @@ class PreparationController extends AbstractController
             $date = new \DateTime('now');
             $preparation->setNumero('P-' . $date->format('YmdHis'));
             $preparation->setDate($date);
-            $statut = $this->statutsRepository->findById(11); /* Statut : nouvelle préparation */
-            $preparation->setStatut($statut[0]);
+            $statut = $this->statutsRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_NOUVELLE);
+            $preparation->setStatut($statut);
             //Plus de detail voir creation demande meme principe
 
             foreach ($data as $key)
             {
-                $demande = $this->demandeRepository->findById($key);
-                $demande = $demande[0];
-                dump($demande); // On avance dans le tableau
-                $demande->setPreparation($preparation);
-                $statut = $this->statutsRepository->findById(14); /* Statut : Demande de préparation */
-                $demande->setStatut($statut[0]);
-                $articles = $demande->getArticles();
+                $demande = $this->demandeRepository->find($key);
+                // On avance dans le tableau
+                $statut = $this->statutsRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
+                $demande
+                    ->setPreparation($preparation)
+                    ->setStatut($statut);
 
+                $articles = $demande->getArticles();
                 foreach ($articles as $article)
                 {
-                    $statut = $this->statutsRepository->findById(13); /* Statut : Demande de sortie */
-                    $article->setStatut($statut[0]);
-                    $article->setDirection($demande->getDestination());
+                    $statut = $this->statutsRepository->findOneByCategorieAndStatut(Articles::CATEGORIE, Articles::STATUT_DEMANDE_SORTIE);
+                    $article
+                        ->setStatut($statut)
+                        ->setDirection($demande->getDestination());
                 }
-                $this->getDoctrine()->getManager();
             }
 
             $em = $this->getDoctrine()->getManager();
@@ -220,22 +222,22 @@ class PreparationController extends AbstractController
         // modelise l'action de prendre l'article dan sle stock pour constituer la preparation  
         if (array_key_exists('fin', $_POST)) 
         {
-            $article = $articlesRepository->findById($_POST['fin']);
-            $statut = $this->statutsRepository->findById(16); /*  Le statut passe en préparation */
-            $article[0]->setStatut($statut[0]);
+            $article = $articlesRepository->find($_POST['fin']);
+            $statut = $this->statutsRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_EN_COURS);
+            $article->setStatut($statut);
             $this->getDoctrine()->getManager()->flush();
             
             // Meme principe que pour collecte_show =>comptage des articles selon un statut et une preparation si nul alors preparation fini 
-            $demande = $this->demandeRepository->findById(array_keys($_POST['fin']));
+            $demande = $this->demandeRepository->find(array_keys($_POST['fin']));
             $finDemande = $articlesRepository->findCountByStatutAndDemande($demande);
             $fin = $finDemande[0];
 
             if ($fin[1] === '0') 
             {
-                $statut = $this->statutsRepository->findById(8);
-                $demande[0]->setStatut($statut[0]);
-                $statut = $this->statutsRepository->findById(24);
-                $preparation->setStatut($statut[0]);
+                $statut = $this->statutsRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_EN_COURS);
+                $demande->setStatut($statut);
+                $statut = $this->statutsRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_EN_COURS);
+                $preparation->setStatut($statut);
             }
             $this->getDoctrine()->getManager()->flush();
         }

@@ -11,6 +11,11 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Demande
 {
+    const CATEGORIE = 'demande';
+    const STATUT_EN_COURS = 'en cours';
+    const STATUT_A_TRAITER = 'à traiter';
+    const STATUT_TERMINEE = 'terminée';
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()

@@ -11,6 +11,10 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Preparation
 {
+    const CATEGORIE = 'preparation';
+    const STATUT_NOUVELLE = 'nouvelle préparation';
+    const STATUT_EN_COURS = 'en cours de préparation';
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()

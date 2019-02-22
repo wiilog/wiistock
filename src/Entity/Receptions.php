@@ -11,6 +11,10 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Receptions
 {
+    const CATEGORIE = 'reception';
+    const STATUT_EN_COURS = 'en cours de réception';
+    const TERMINE = 'terminée';
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
