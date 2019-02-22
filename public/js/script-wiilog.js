@@ -92,7 +92,7 @@ $(document).ready(function () {
  * 
  */
 function InitialiserModal(modal, submit, path) {
-    submit.addEventListener("click", function () 
+    submit.click(function () 
     {
         xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function () 
@@ -109,17 +109,18 @@ function InitialiserModal(modal, submit, path) {
                         window.location.href = data.redirect;
                     }
                 });
-            }
+            }      
         };
 
-        let inputs = modal.querySelectorAll(".data"); // On récupère toutes les données qui nous intéresse avec le querySelectorAll
+        let inputs = modal.find(".data"); // On récupère toutes les données qui nous intéresse avec le querySelectorAll
         let Data = []; // Tableau de données
 
-        inputs.forEach(input => { 
+        inputs.each(function() {
             Data.push({
-                [input.name]: input.value
-            });
+                [$(this).attr("name")]: $(this).val()
+            }); 
         });
+        console.log(Data);
 
         Json = JSON.stringify(Data); // On transforme les données en JSON
         xhttp.open("POST", path, true);

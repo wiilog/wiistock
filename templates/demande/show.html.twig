@@ -69,7 +69,7 @@
 {% endblock %}
 
 {% block javascript %}
-<script src="{{asset('js/demande-livraison.js')}}"></script>
+
 <script>
     var table = $('#table-lignes').DataTable({
         "language": {
@@ -88,15 +88,19 @@
         ],
     });
 
-    var dataModal1 = document.getElementById("modifModalCenter");
-    var ButtonSubmit1 = document.getElementById("modifsubmitButton");
+
+
+    var dataModal1 = $("#modifModalCenter");
+    var ButtonSubmit1 = $("#modifsubmitButton");
     InitialiserModal(dataModal1, ButtonSubmit1, "{{ path('modifDemande', { 'id' : demande.id}) }}");
 
-    var dataModal2 = document.getElementById("ajoutLigneModalCenter");
-    var ButtonSubmit2 = document.getElementById("ajoutsubmitButton");
+    var dataModal2 = $("#ajoutLigneModalCenter");
+    var ButtonSubmit2 = $("#ajoutsubmitButton");
     InitialiserModal(dataModal2, ButtonSubmit2, "{{ path('ajoutLigneArticle', { 'id' : demande.id }) }}");
+
 
     $('#supprimer').on('clivk', $.post())
 
 </script>
+<script src="{{ asset('js/demande-livraison.js') }}"></script>
 {% endblock %}

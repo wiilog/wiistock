@@ -141,9 +141,27 @@ class DemandeController extends AbstractController
 
 
     /**
-     * @Route("/demande-livraison/voir/supprimeLigneArticle/{id}", name="deleteLigneArticle", methods="GET|POST")
+     * @Route("/demande-livraison/voir/modifierLigneArticle/{id}", options={"expose"=true}, name="modifyLigneArticle", methods={"GET", "POST"})
      */
-    public function deleteLigneArticle(LigneArticle $ligneArticle) : Response
+    public function modifyLigneArticle(LigneArticle $ligneArticle, Request $request) : Response
+    {
+        if ($data = json_decode($request->getContent(), true)) 
+        {
+            $ligneArticle->setQuantite($data[0]["quantity"]);
+            $data['redirect'] = $this->generateUrl('demande_show', [ 'id' => $ligneArticle->getDemande()->getId()]);
+            $this->getDoctrine()->getEntityManager()->flush();
+
+            return new JsonResponse($data);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+
+
+    /**
+     * @Route("/demande-livraison/voir/supprimeLigneArticle/{id}", name="deleteLigneArticle", methods={"GET", "POST"})
+     */
+    public function deleteLigneArticle(LigneArticle $ligneArticle, Request $request) : Response
     {
         $em = $this->getDoctrine()->getEntityManager();
         $em->remove($ligneArticle);
@@ -220,7 +238,7 @@ class DemandeController extends AbstractController
 
 
     /**
-     * @Route("/voir/{id}", name="demande_show", methods={"GET"})
+     * @Route("/voir/{id}", name="demande_show", methods={"GET", "POST"})
      */
     public function show(Demande $demande) : Response
     {
@@ -308,8 +326,8 @@ class DemandeController extends AbstractController
                     "Références CEA" => ($LigneArticle->getReference()->getReference() ? $LigneArticle->getReference()->getReference() : ''),
                     "Libellé" => ($LigneArticle->getReference()->getLibelle() ? $LigneArticle->getReference()->getLibelle() : ''),
                     "Quantité" => ($LigneArticle->getQuantite() ? $LigneArticle->getQuantite() : ''),
-                    "Actions" => "<div onclick='editRow($(this))' data-toggle='modal' data-target='#modalModifyLigneArticle' data-name='". $LigneArticle->getReference()->getLibelle()."' data-quantity='" . $LigneArticle->getQuantite(). "' data-id='" . $LigneArticle->getId() . "' class='btn btn-xs btn-default command-edit '><i class='fas fa-pencil-alt fa-2x'></i></div>"
-                    . "<a href='$urlDelete' class='btn btn-xs btn-default command-edit '><i class='fas fa-trash fa-2x'></i></a>"
+                    "Actions" => "<div onclick='editRow($(this))' data-toggle='modal' data-target='#modalModifyLigneArticle' data-name='". $LigneArticle->getReference()->getLibelle()."' data-quantity='" . $LigneArticle->getQuantite(). "' data-id='" . $LigneArticle->getId() . "' class='btn btn-xs btn-default demand-edit '><i class='fas fa-pencil-alt fa-2x'></i></div>"
+                    . "<a href='$urlDelete' class='btn btn-xs btn-default delete '><i class='fas fa-trash fa-2x'></i></a>"
                 ];
                 array_push($rows, $row);
             }
