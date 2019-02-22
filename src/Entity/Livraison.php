@@ -32,7 +32,7 @@ class Livraison
      */
     private $demande;
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Statuts", inversedBy="livraisons")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="livraisons")
      */
     private $Statut;
 
@@ -42,7 +42,7 @@ class Livraison
     private $date;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateurs", inversedBy="livraisons")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="livraisons")
      */
     private $utilisateur;
     public function __construct()
@@ -97,11 +97,11 @@ class Livraison
         }
         return $this;
     }
-    public function getStatut(): ?Statuts
+    public function getStatut(): ?Statut
     {
         return $this->Statut;
     }
-    public function setStatut(?Statuts $Statut): self
+    public function setStatut(?Statut $Statut): self
     {
         $this->Statut = $Statut;
         return $this;
@@ -116,12 +116,12 @@ class Livraison
         return $this;
     }
 
-    public function getUtilisateur(): ?Utilisateurs
+    public function getUtilisateur(): ?Utilisateur
     {
         return $this->utilisateur;
     }
 
-    public function setUtilisateur(?Utilisateurs $utilisateur): self
+    public function setUtilisateur(?Utilisateur $utilisateur): self
     {
         $this->utilisateur = $utilisateur;
 

@@ -14,7 +14,7 @@ use App\Entity\ReferencesArticles;
 use App\Form\ReferencesArticlesType;
 use App\Repository\ReferencesArticlesRepository;
 use App\Repository\FournisseurRepository;
-use App\Repository\StatutsRepository;
+use App\Repository\StatutRepository;
 
 use App\Repository\ArticleRepository;
 
@@ -22,7 +22,7 @@ use App\Entity\Emplacement;
 use App\Entity\Preparation;
 use App\Form\EmplacementType;
 use App\Repository\EmplacementRepository;
-use App\Repository\UtilisateursRepository;
+use App\Repository\UtilisateurRepository;
 
 use App\Entity\Livraison;
 use App\Form\LivraisonType;
@@ -40,9 +40,9 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 class DemandeController extends AbstractController
 {
     /**
-     * @var StatutsRepository
+     * @var StatutRepository
      */
-    private $statutsRepository;
+    private $statutRepository;
 
     /**
      * @var EmplacementRepository
@@ -50,20 +50,20 @@ class DemandeController extends AbstractController
     private $emplacementRepository;
 
     /**
-     * @var UtilisateursRepository
+     * @var UtilisateurRepository
      */
-    private $utilisateursRepository;
+    private $utilisateurRepository;
 
     /**
      * @var ReferencesArticlesRepository
      */
     private $referencesArticlesRepository;
 
-    public function __construct(StatutsRepository $statutsRepository, ReferencesArticlesRepository $referencesArticlesRepository, UtilisateursRepository $utilisateursRepository, EmplacementRepository $emplacementRepository)
+    public function __construct(StatutRepository $statutRepository, ReferencesArticlesRepository $referencesArticlesRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository)
     {
-        $this->statutsRepository = $statutsRepository;
+        $this->statutRepository = $statutRepository;
         $this->emplacementRepository = $emplacementRepository;
-        $this->utilisateursRepository = $utilisateursRepository;
+        $this->utilisateurRepository = $utilisateurRepository;
         $this->referencesArticlesRepository = $referencesArticlesRepository;
     }
 
@@ -82,12 +82,12 @@ class DemandeController extends AbstractController
             $preparation->setDate($date);
             $preparation->setUtilisateur($this->getUser());
 
-            $statut = $this->statutsRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_NOUVELLE);
+            $statut = $this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_NOUVELLE);
             $preparation->setStatut($statut);
 
             $demande->setPreparation($preparation);
 
-            $statut = $this->statutsRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
+            $statut = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
             $demande->setStatut($statut);
 
             $em = $this->getDoctrine()->getManager();
@@ -121,8 +121,8 @@ class DemandeController extends AbstractController
         return $this->render('demande/show.html.twig', [
             'demande' => $demande,
             'lignesArticles' => $lignes,
-            'utilisateurs' => $this->utilisateursRepository->findUserGetIdUser(),
-            'statuts' => $this->statutsRepository->findByCategorieName(Demande::CATEGORIE),
+            'utilisateur' => $this->utilisateurRepository->findUserGetIdUser(),
+            'statuts' => $this->statutRepository->findByCategorieName(Demande::CATEGORIE),
             'references' => $this->referencesArticlesRepository->findRefArticleGetIdLibelle()
         ]);
     }
@@ -185,8 +185,8 @@ class DemandeController extends AbstractController
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (count($data) >= 3) {
                 $em = $this->getDoctrine()->getEntityManager();
-                $utilisateur = $this->utilisateursRepository->find(intval($data[0]["demandeur"]));
-                $statut = $this->statutsRepository->find($data[2]["statut"]);
+                $utilisateur = $this->utilisateurRepository->find(intval($data[0]["demandeur"]));
+                $statut = $this->statutRepository->find($data[2]["statut"]);
                 $demande
                     ->setUtilisateur($utilisateur)
                     ->setDateAttendu(new \Datetime($data[1]["date-attendu"]))
@@ -209,9 +209,9 @@ class DemandeController extends AbstractController
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $em = $this->getDoctrine()->getManager();
             $userId = $data[0];
-            $utilisateur = $this->utilisateursRepository->find($userId["demandeur"]);
+            $utilisateur = $this->utilisateurRepository->find($userId["demandeur"]);
             $date = new \DateTime('now');
-            $statut = $this->statutsRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
+            $statut = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
             $destination = $this->emplacementRepository->find($data[1]["destination"]);
 
             $demande = new Demande();
@@ -235,8 +235,8 @@ class DemandeController extends AbstractController
     public function index(Request $request): Response
     {
         return $this->render('demande/index.html.twig', [
-            'utilisateurs' => $this->utilisateursRepository->findUserGetIdUser(),
-            'statuts' => $this->statutsRepository->findByCategorieName('Demandes'),
+            'utilisateur' => $this->utilisateurRepository->findUserGetIdUser(),
+            'statuts' => $this->statutRepository->findByCategorieName(Demande::CATEGORIE),
             'emplacements' => $this->emplacementRepository->findLocGetIdName()
         ]);
     }

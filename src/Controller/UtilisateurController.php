@@ -2,9 +2,9 @@
 
 namespace App\Controller;
 
-use App\Entity\Utilisateurs;
-use App\Form\UtilisateursType;
-use App\Repository\UtilisateursRepository;
+use App\Entity\Utilisateur;
+use App\Form\UtilisateurType;
+use App\Repository\UtilisateurRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
@@ -22,24 +22,24 @@ use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Knp\Component\Pager\PaginatorInterface;
 
-// use Proxies\__CG__\App\Entity\Utilisateurs;
+// use Proxies\__CG__\App\Entity\Utilisateur;
 
 /**
- * @Route("/admin/utilisateurs")
+ * @Route("/admin/utilisateur")
  */
-class UtilisateursController extends Controller
+class UtilisateurController extends Controller
 {
     /**
-     * @Route("/", name="utilisateurs_index", methods="GET|POST")
+     * @Route("/", name="utilisateur_index", methods="GET|POST")
      */
-    public function index(UtilisateursRepository $utilisateursRepository, Request $request) : Response
+    public function index(UtilisateurRepository $utilisateurRepository, Request $request) : Response
     {
         if($_POST) 
         {
             $utilisateurId = array_keys($_POST); /* Chaque clé représente l'id d'un utilisateur */
             for($i = 1; $i < count($utilisateurId); $i++) /* Pour chaque utilisateur on regarde si le rôle a changé */
             {
-                $utilisateur = $utilisateursRepository->find($utilisateurId[$i]);
+                $utilisateur = $utilisateurRepository->find($utilisateurId[$i]);
                 $roles = $utilisateur->getRoles(); /* On regarde le rôle de l'utilisateur */
                 if($roles[0] != $_POST[$utilisateurId[$i]]) /* Si le rôle a changé on le modifie dans la bdd */
                 {
@@ -49,17 +49,17 @@ class UtilisateursController extends Controller
                 }
             }
         }
-        return $this->render('utilisateurs/index.html.twig', [
-            'utilisateurs' => $utilisateursRepository->findAll(),
+        return $this->render('utilisateur/index.html.twig', [
+            'utilisateur' => $utilisateurRepository->findAll(),
 
 
         ]);
     }
 
     /**
-     * @Route("/create", name="utilisateurs_index_create", methods="GET|POST")
+     * @Route("/create", name="utilisateur_index_create", methods="GET|POST")
      */
-    public function create(Request $request, EntityManagerInterface $em, UtilisateursRepository $utilisateursRepository/* , UserPasswordEncoderInterface $passwordEncoder */)
+    public function create(Request $request, EntityManagerInterface $em, UtilisateurRepository $utilisateurRepository/* , UserPasswordEncoderInterface $passwordEncoder */)
     {
 
         /* Création nouvel utilisateur si POST */
@@ -72,7 +72,7 @@ class UtilisateursController extends Controller
             dump($_POST['email']);
             echo "1";
             $erreurs = array();
-            $userSearch = $utilisateursRepository->findCountEmail($_POST['email']);
+            $userSearch = $utilisateurRepository->findCountEmail($_POST['email']);
             $userCount = $userSearch[0][1];
             dump($userSearch);
 
@@ -97,7 +97,7 @@ class UtilisateursController extends Controller
 
             if(count($erreurs) === 0) { /* Si la création d'utilisateur est valide on crée l'utilisateur */
 
-                $utilisateur = new Utilisateurs(); 
+                $utilisateur = new Utilisateur();
                 
                 foreach($_POST as $information) { 
                     strip_tags($information);
@@ -114,12 +114,12 @@ class UtilisateursController extends Controller
                 $em = $this->getDoctrine()->getManager();
                 $em->persist($utilisateur);
                 $em->flush();
-                return $this->redirectToRoute('utilisateurs_index');
+                return $this->redirectToRoute('utilisateur_index');
 
             }
             else /* Sinon on envoi un tableau d'erreurs */
             {
-                return $this->render('utilisateurs/create.html.twig', [
+                return $this->render('utilisateur/create.html.twig', [
                     'erreurs' => $erreurs
                 ]);
             }
@@ -127,13 +127,13 @@ class UtilisateursController extends Controller
         }
         else
         {
-            return $this->render('utilisateurs/create.html.twig');
+            return $this->render('utilisateur/create.html.twig');
         }
     }
 
 
     /**
-     * @Route("/modif", name="utilisateurs_index_modif", methods="GET|POST")
+     * @Route("/modif", name="utilisateur_index_modif", methods="GET|POST")
      */
     public function modif(Request $request, EntityManagerInterface $em, UserPasswordEncoderInterface $passwordEncoder)
     {
@@ -141,7 +141,7 @@ class UtilisateursController extends Controller
         if ($request->isXmlHttpRequest()) {
 
             $id = $request->request->get('id');
-            $user = $em->getRepository(Utilisateurs::class)->find($id);
+            $user = $em->getRepository(Utilisateur::class)->find($id);
 
             $encoders = array(new JsonEncoder());
             $normalizers = array(new ObjectNormalizer());
@@ -155,7 +155,7 @@ class UtilisateursController extends Controller
 
 
     /**
-     * @Route("/modif_bis", name="utilisateurs_index_modif_bis", methods="GET|POST")
+     * @Route("/modif_bis", name="utilisateur_index_modif_bis", methods="GET|POST")
      */
     public function modif_bis(Request $request, EntityManagerInterface $em, UserPasswordEncoderInterface $passwordEncoder)
     {
@@ -167,7 +167,7 @@ class UtilisateursController extends Controller
 
             $id = $user_modif[2]["value"];
 
-            $user = $em->getRepository(Utilisateurs::class)->find($id);
+            $user = $em->getRepository(Utilisateur::class)->find($id);
 
             $user->setUsername($user_modif[0]["value"]);
             $user->setEmail($user_modif[1]["value"]);
@@ -195,7 +195,7 @@ class UtilisateursController extends Controller
 
 
     /**
-     * @Route("/ajax/username", name="utilisateurs_username_error", methods="GET|POST")
+     * @Route("/ajax/username", name="utilisateur_username_error", methods="GET|POST")
      */
     public function utlisateurs_username_error(Request $request) : Response
     {
@@ -203,7 +203,7 @@ class UtilisateursController extends Controller
             $em = $this->getDoctrine()->getManager();
             $username = $request->request->get('username');
 
-            $utilisateurs = $em->getRepository(Utilisateurs::class)->findAll();
+            $utilisateurs = $em->getRepository(Utilisateur::class)->findAll();
             foreach ($utilisateurs as $utilisateur) {
                 if (!strcmp($username, $utilisateur->getUsername())
                     && $utilisateur->getUsername() != null) {
@@ -216,7 +216,7 @@ class UtilisateursController extends Controller
     }
 
     /**
-     * @Route("/ajax/email", name="utilisateurs_email_error", methods="GET|POST")
+     * @Route("/ajax/email", name="utilisateur_email_error", methods="GET|POST")
      */
     public function utlisateurs_email_error(Request $request) : Response
     {
@@ -224,7 +224,7 @@ class UtilisateursController extends Controller
             $em = $this->getDoctrine()->getManager();
             $email = $request->request->get('email');
 
-            $utilisateurs = $em->getRepository(Utilisateurs::class)->findAll();
+            $utilisateurs = $em->getRepository(Utilisateur::class)->findAll();
             foreach ($utilisateurs as $utilisateur) {
                 if (!strcmp($email, $utilisateur->getEmail())
                     && $utilisateur->getEmail() != null) {
@@ -238,12 +238,12 @@ class UtilisateursController extends Controller
  
 
     /**
-     * @Route("/new", name="utilisateurs_new", methods="GET|POST")
+     * @Route("/new", name="utilisateur_new", methods="GET|POST")
      */
     public function new(Request $request, UserPasswordEncoderInterface $passwordEncoder) : Response
     {
-        $utilisateur = new Utilisateurs();
-        $form = $this->createForm(UtilisateursType::class, $utilisateur);
+        $utilisateur = new Utilisateur();
+        $form = $this->createForm(UtilisateurType::class, $utilisateur);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -253,25 +253,25 @@ class UtilisateursController extends Controller
             $em->persist($utilisateur);
             $em->flush();
 
-            return $this->redirectToRoute('utilisateurs_index');
+            return $this->redirectToRoute('utilisateur_index');
         }
 
-        return $this->render('utilisateurs/new.html.twig', [
+        return $this->render('utilisateur/new.html.twig', [
             'utilisateur' => $utilisateur,
             'form' => $form->createView(),
         ]);
     }
 
     /**
-     * @Route("/{id}", name="utilisateurs_show", methods="GET")
+     * @Route("/{id}", name="utilisateur_show", methods="GET")
      */
-    public function show(Utilisateurs $utilisateur) : Response
+    public function show(Utilisateur $utilisateur) : Response
     {
         $receptions = $utilisateur->getReceptions();
         $demandes = $utilisateur->getDemandes();
         $alertes = $utilisateur->getUtilisateurAlertes();
 
-        return $this->render('utilisateurs/show.html.twig', [
+        return $this->render('utilisateur/show.html.twig', [
             'utilisateur' => $utilisateur, 
             'reception' => $receptions,
             'demandes' => $demandes,
@@ -280,11 +280,11 @@ class UtilisateursController extends Controller
     }
 
     /**
-     * @Route("/{id}/edit", name="utilisateurs_edit", methods="GET|POST")
+     * @Route("/{id}/edit", name="utilisateur_edit", methods="GET|POST")
      */
-    public function edit(Request $request, Utilisateurs $utilisateur, UserPasswordEncoderInterface $passwordEncoder) : Response
+    public function edit(Request $request, Utilisateur $utilisateur, UserPasswordEncoderInterface $passwordEncoder) : Response
     {
-        $form = $this->createForm(UtilisateursType::class, $utilisateur);
+        $form = $this->createForm(UtilisateurType::class, $utilisateur);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -292,19 +292,19 @@ class UtilisateursController extends Controller
             $utilisateur->setPassword($password);
             $this->getDoctrine()->getManager()->flush();
 
-            return $this->redirectToRoute('utilisateurs_edit', ['id' => $utilisateur->getId()]);
+            return $this->redirectToRoute('utilisateur_edit', ['id' => $utilisateur->getId()]);
         }
 
-        return $this->render('utilisateurs/edit.html.twig', [
+        return $this->render('utilisateur/edit.html.twig', [
             'utilisateur' => $utilisateur,
             'form' => $form->createView(),
         ]);
     }
 
     /**
-     * @Route("/{id}", name="utilisateurs_delete", methods="DELETE")
+     * @Route("/{id}", name="utilisateur_delete", methods="DELETE")
      */
-    public function delete(Request $request, Utilisateurs $utilisateur) : Response
+    public function delete(Request $request, Utilisateur $utilisateur) : Response
     {
         if ($this->isCsrfTokenValid('delete' . $utilisateur->getId(), $request->request->get('_token'))) {
             $em = $this->getDoctrine()->getManager();
@@ -312,13 +312,13 @@ class UtilisateursController extends Controller
             $em->flush();
         }
 
-        return $this->redirectToRoute('utilisateurs_index');
+        return $this->redirectToRoute('utilisateur_index');
     }
 
     /**
-     * @Route("/{id}/remove", name="utilisateurs_remove", methods="DELETE")
+     * @Route("/{id}/remove", name="utilisateur_remove", methods="DELETE")
      */
-    public function remove(Request $request, Utilisateurs $utilisateur) : Response
+    public function remove(Request $request, Utilisateur $utilisateur) : Response
     {
         $em = $this->getDoctrine()->getManager();
         $em->remove($utilisateur);
@@ -327,6 +327,6 @@ class UtilisateursController extends Controller
         $session->getFlashBag()->add('success', 'Félicitations ! L\'utilisateur a été supprimé avec succès !');
 
 
-        return $this->redirectToRoute('utilisateurs_index');
+        return $this->redirectToRoute('utilisateur_index');
     }
 }

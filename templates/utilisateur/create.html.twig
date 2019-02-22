@@ -5,7 +5,7 @@
 {% block page_content %}
     <h1>Ajout d'un utilisateur</h1>
 
-    {# {{ include('utilisateurs/_form.html.twig') }} #}
+    {# {{ include('utilisateur/_form.html.twig') }} #}
 
     <form class="needs-validation" method="POST">
         <div class="mb-3">
@@ -34,8 +34,8 @@
         </div>
 
         <hr class="mb-4">
-        <button href="{{ path('utilisateurs_index_create') }}" type="submit" class="button btn-left">Créer</button>
-        <a href="{{ path('utilisateurs_index') }}" class="button btn-left">Voir la liste</a>
+        <button href="{{ path('utilisateur_index_create') }}" type="submit" class="button btn-left">Créer</button>
+        <a href="{{ path('utilisateur_index') }}" class="button btn-left">Voir la liste</a>
       </form>
 
 

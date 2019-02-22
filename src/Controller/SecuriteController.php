@@ -4,8 +4,8 @@ namespace App\Controller;
 
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
-use App\Form\UtilisateursType;
-use App\Entity\Utilisateurs;
+use App\Form\UtilisateurType;
+use App\Entity\Utilisateur;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
@@ -54,9 +54,9 @@ class SecuriteController extends Controller
     public function register(Request $request, UserPasswordEncoderInterface $passwordEncoder, EntityManagerInterface $em)
     {
         $session = $request->getSession();
-        $user = new Utilisateurs();
+        $user = new Utilisateur();
 
-        $form = $this->createForm(UtilisateursType::class, $user);
+        $form = $this->createForm(UtilisateurType::class, $user);
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {

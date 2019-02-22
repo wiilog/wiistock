@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Utilisateurs{% endblock %}
+{% block title %}Utilisateur{% endblock %}
 
 {% block page_content %}
     <div class="jumbotron">
@@ -66,8 +66,8 @@
 
     <div class="row">
         <div class="col-12 mx-auto">
-            <a href="{{ path('utilisateurs_index') }}" class="button btn-left">Voir la liste</a>
-            <a href="{{ path('utilisateurs_edit', {'id': utilisateur.id}) }}" class="button btn-left">Modifier</a>
+            <a href="{{ path('utilisateur_index') }}" class="button btn-left">Voir la liste</a>
+            <a href="{{ path('utilisateur_edit', {'id': utilisateur.id}) }}" class="button btn-left">Modifier</a>
         </div>
     </div>
 

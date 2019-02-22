@@ -34,7 +34,7 @@ class Alerte
     private $AlerteSeuil;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateurs", inversedBy="UtilisateurAlertes")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="UtilisateurAlertes")
      */
     private $AlerteUtilisateur;
 
@@ -90,12 +90,12 @@ class Alerte
         return $this;
     }
 
-    public function getAlerteUtilisateur(): ?Utilisateurs
+    public function getAlerteUtilisateur(): ?Utilisateur
     {
         return $this->AlerteUtilisateur;
     }
 
-    public function setAlerteUtilisateur(?Utilisateurs $AlerteUtilisateur): self
+    public function setAlerteUtilisateur(?Utilisateur $AlerteUtilisateur): self
     {
         $this->AlerteUtilisateur = $AlerteUtilisateur;
 

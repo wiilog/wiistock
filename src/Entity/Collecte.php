@@ -43,7 +43,7 @@ class Collecte
     private $pointCollecte;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateurs", inversedBy="collectes")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="collectes")
      */
     private $demandeur;
 
@@ -53,7 +53,7 @@ class Collecte
     private $articles;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Statuts", inversedBy="collectes")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="collectes")
      */
 
     private $Statut;
@@ -92,12 +92,12 @@ class Collecte
         return $this;
     }
 
-    public function getDemandeur(): ?Utilisateurs
+    public function getDemandeur(): ?Utilisateur
     {
         return $this->demandeur;
     }
 
-    public function setDemandeur(?Utilisateurs $demandeur): self
+    public function setDemandeur(?Utilisateur $demandeur): self
     {
         $this->demandeur = $demandeur;
 
@@ -130,12 +130,12 @@ class Collecte
         return $this;
     }
 
-    public function getStatut(): ?Statuts
+    public function getStatut(): ?Statut
     {
         return $this->Statut;
     }
 
-    public function setStatut(?Statuts $Statut): self
+    public function setStatut(?Statut $Statut): self
     {
         $this->Statut = $Statut;
 

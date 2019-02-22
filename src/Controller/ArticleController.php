@@ -5,7 +5,7 @@ namespace App\Controller;
 use App\Entity\Article;
 use App\Form\ArticleType;
 use App\Repository\ArticleRepository;
-use App\Repository\StatutsRepository;
+use App\Repository\StatutRepository;
 use App\Repository\CollecteRepository;
 use App\Repository\ReceptionRepository;
 use App\Repository\EmplacementRepository;
@@ -24,9 +24,9 @@ class ArticleController extends AbstractController
 {
 
      /**
-     * @var StatutsRepository
+     * @var StatutRepository
      */
-    private $statutsRepository;
+    private $statutRepository;
 
     /**
      * @var EmplacementRepository
@@ -48,9 +48,9 @@ class ArticleController extends AbstractController
      */
     private $receptionRepository;
 
-    public function __construct(ReceptionRepository $receptionRepository, StatutsRepository $statutsRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository)
+    public function __construct(ReceptionRepository $receptionRepository, StatutRepository $statutRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository)
     {
-        $this->statutsRepository = $statutsRepository;
+        $this->statutRepository = $statutRepository;
         $this->emplacementRepository = $emplacementRepository;
         $this->articleRepository = $articleRepository;
         $this->collecteRepository = $collecteRepository;
@@ -139,7 +139,7 @@ class ArticleController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $statut = $this->statutsRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_RECEPTION_EN_COURS);
+            $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_RECEPTION_EN_COURS);
             $article->setStatut($statut);
             $em = $this->getDoctrine()->getManager();
             $em->persist($article);
@@ -194,12 +194,12 @@ class ArticleController extends AbstractController
             $articles = $reception->getArticles();
             foreach($articles as $article) {
                 if($article->getStatut()->getId() == 5) {
-                    $statut = $this->statutsRepository->find(5); //a modifier
+                    $statut = $this->statutRepository->find(5); //a modifier
                     $reception->setStatut($statut);
                     break;
                 }
                 else {
-                    $statut = $this->statutsRepository->find(6); //a modifier
+                    $statut = $this->statutRepository->find(6); //a modifier
                     $reception->setStatut($statut);
                 }
             }

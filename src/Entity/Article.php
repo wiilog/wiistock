@@ -80,7 +80,7 @@ class Article
     private $collectes;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Statuts", inversedBy="article")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="article")
      */
     private $Statut;
 
@@ -257,12 +257,12 @@ class Article
         return $this;
     }
 
-    public function getStatut(): ?Statuts
+    public function getStatut(): ?Statut
     {
         return $this->Statut;
     }
 
-    public function setStatut(?Statuts $Statut): self
+    public function setStatut(?Statut $Statut): self
     {
         $this->Statut = $Statut;
 

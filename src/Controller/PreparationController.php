@@ -34,7 +34,7 @@ use App\Repository\DemandeRepository;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Knp\Component\Pager\PaginatorInterface;
-use App\Repository\StatutsRepository;
+use App\Repository\StatutRepository;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -45,9 +45,9 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 class PreparationController extends AbstractController
 {
     /**
-     * @var StatutsRepository
+     * @var StatutRepository
      */
-    private $statutsRepository;
+    private $statutRepository;
 
     /**
      * @var ReferencesArticlesRepository
@@ -59,9 +59,9 @@ class PreparationController extends AbstractController
      */
     private $demandeRepository;
 
-    public function __construct(StatutsRepository $statutsRepository, DemandeRepository $demandeRepository, ReferencesArticlesRepository $referencesArticlesRepository)
+    public function __construct(StatutRepository $statutRepository, DemandeRepository $demandeRepository, ReferencesArticlesRepository $referencesArticlesRepository)
     {
-        $this->statutsRepository = $statutsRepository;
+        $this->statutRepository = $statutRepository;
         $this->referencesArticlesRepository = $referencesArticlesRepository;
         $this->demandeRepository = $demandeRepository;
     }
@@ -80,7 +80,7 @@ class PreparationController extends AbstractController
             $date = new \DateTime('now');
             $preparation->setNumero('P-' . $date->format('YmdHis'));
             $preparation->setDate($date);
-            $statut = $this->statutsRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_NOUVELLE);
+            $statut = $this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_NOUVELLE);
             $preparation->setStatut($statut);
             //Plus de detail voir creation demande meme principe
 
@@ -88,7 +88,7 @@ class PreparationController extends AbstractController
             {
                 $demande = $this->demandeRepository->find($key);
                 // On avance dans le tableau
-                $statut = $this->statutsRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
+                $statut = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
                 $demande
                     ->setPreparation($preparation)
                     ->setStatut($statut);
@@ -96,7 +96,7 @@ class PreparationController extends AbstractController
                 $articles = $demande->getArticles();
                 foreach ($articles as $article)
                 {
-                    $statut = $this->statutsRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_DEMANDE_SORTIE);
+                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_DEMANDE_SORTIE);
                     $article
                         ->setStatut($statut)
                         ->setDirection($demande->getDestination());
@@ -223,7 +223,7 @@ class PreparationController extends AbstractController
         if (array_key_exists('fin', $_POST)) 
         {
             $article = $articlesRepository->find($_POST['fin']);
-            $statut = $this->statutsRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_EN_COURS);
+            $statut = $this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_EN_COURS);
             $article->setStatut($statut);
             $this->getDoctrine()->getManager()->flush();
             
@@ -234,9 +234,9 @@ class PreparationController extends AbstractController
 
             if ($fin[1] === '0') 
             {
-                $statut = $this->statutsRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_EN_COURS);
+                $statut = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_EN_COURS);
                 $demande->setStatut($statut);
-                $statut = $this->statutsRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_EN_COURS);
+                $statut = $this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_EN_COURS);
                 $preparation->setStatut($statut);
             }
             $this->getDoctrine()->getManager()->flush();

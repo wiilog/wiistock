@@ -34,7 +34,7 @@ class Demande
     private $destination;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateurs", inversedBy="demandes")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="demandes")
      */
     private $utilisateur;
 
@@ -59,7 +59,7 @@ class Demande
     private $livraison;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Statuts", inversedBy="demandes")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="demandes")
      */
     private $Statut;
 
@@ -107,12 +107,12 @@ class Demande
         return $this;
     }
 
-    public function getUtilisateur(): ?Utilisateurs
+    public function getUtilisateur(): ?Utilisateur
     {
         return $this->utilisateur;
     }
 
-    public function setUtilisateur(?Utilisateurs $utilisateur): self
+    public function setUtilisateur(?Utilisateur $utilisateur): self
     {
         $this->utilisateur = $utilisateur;
 
@@ -186,12 +186,12 @@ class Demande
         return $this;
     }
 
-    public function getStatut(): ?Statuts
+    public function getStatut(): ?Statut
     {
         return $this->Statut;
     }
 
-    public function setStatut(?Statuts $Statut): self
+    public function setStatut(?Statut $Statut): self
     {
         $this->Statut = $Statut;
 

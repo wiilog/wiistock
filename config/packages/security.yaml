@@ -3,7 +3,7 @@ security:
     access_denied_url:    ~ # Example: /foo/error403
 
     encoders:
-        App\Entity\Utilisateurs: bcrypt
+        App\Entity\Utilisateur: bcrypt
         Symfony\Component\Security\Core\User\User:
             algorithm: bcrypt
             cost: 12
@@ -24,7 +24,7 @@ security:
             id: App\Security\ApiKeyUserProvider
         our_db_provider:
             entity:
-                class: App\Entity\Utilisateurs
+                class: App\Entity\Utilisateur
                 property: email
         in_memory: { memory: ~ }
 

@@ -8,11 +8,11 @@ use Symfony\Component\Security\Core\User\EquatableInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 /**
- * @ORM\Entity(repositoryClass="App\Repository\UtilisateursRepository")
+ * @ORM\Entity(repositoryClass="App\Repository\UtilisateurRepository")
  * @UniqueEntity(fields="email", message="Cette adresse email est déjà utilisée.")
  * @UniqueEntity(fields="username", message="Ce nom d'utilisateur est déjà utilisé.")
  */
-class Utilisateurs implements UserInterface, EquatableInterface
+class Utilisateur implements UserInterface, EquatableInterface
 {
     /**
      * @ORM\Id()
@@ -144,7 +144,7 @@ class Utilisateurs implements UserInterface, EquatableInterface
     }
     public function isEqualTo(UserInterface $user)
     {
-        if (!$user instanceof Utilisateurs) {
+        if (!$user instanceof Utilisateur) {
             return false;
         }
         if ($this->password !== $user->getPassword()) {

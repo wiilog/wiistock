@@ -2,13 +2,13 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\Statuts;
+use App\Entity\Statut;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Common\Persistence\ObjectManager;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
-class StatutsFixtures extends Fixture implements DependentFixtureInterface
+class StatutFixtures extends Fixture implements DependentFixtureInterface
 {
     private $encoder;
 
@@ -33,7 +33,7 @@ class StatutsFixtures extends Fixture implements DependentFixtureInterface
         ];
 
         foreach ($statutsNames as $statutName) {
-            $statut = new Statuts();
+            $statut = new Statut();
             $statut
                 ->setNom($statutName)
                 ->setCategorie($this->getReference('statut-article'));
@@ -49,7 +49,7 @@ class StatutsFixtures extends Fixture implements DependentFixtureInterface
         ];
 
         foreach ($statutsNames as $statutName) {
-            $statut = new Statuts();
+            $statut = new Statut();
             $statut
                 ->setNom($statutName)
                 ->setCategorie($this->getReference('statut-collecte'));
@@ -65,7 +65,7 @@ class StatutsFixtures extends Fixture implements DependentFixtureInterface
         ];
 
         foreach ($statutsNames as $statutName) {
-            $statut = new Statuts();
+            $statut = new Statut();
             $statut
                 ->setNom($statutName)
                 ->setCategorie($this->getReference('statut-demande'));
@@ -81,7 +81,7 @@ class StatutsFixtures extends Fixture implements DependentFixtureInterface
         ];
 
         foreach ($statutsNames as $statutName) {
-            $statut = new Statuts();
+            $statut = new Statut();
             $statut
                 ->setNom($statutName)
                 ->setCategorie($this->getReference('statut-livraison'));
@@ -96,7 +96,7 @@ class StatutsFixtures extends Fixture implements DependentFixtureInterface
         ];
 
         foreach ($statutsNames as $statutName) {
-            $statut = new Statuts();
+            $statut = new Statut();
             $statut
                 ->setNom($statutName)
                 ->setCategorie($this->getReference('statut-preparation'));
@@ -113,7 +113,7 @@ class StatutsFixtures extends Fixture implements DependentFixtureInterface
         ];
 
         foreach ($statutsNames as $statutName) {
-            $statut = new Statuts();
+            $statut = new Statut();
             $statut
                 ->setNom($statutName)
                 ->setCategorie($this->getReference('statut-reception'));

@@ -18,14 +18,14 @@ use App\Entity\Emplacement;
 use App\Form\EmplacementType;
 use App\Repository\EmplacementRepository;
 use App\Repository\FournisseurRepository;
-use App\Repository\UtilisateursRepository;
+use App\Repository\UtilisateurRepository;
 
 use App\Entity\ReferencesArticles;
 use App\Form\ReferencesArticlesType;
 use App\Repository\ReferencesArticlesRepository;
 
 use Knp\Component\Pager\PaginatorInterface;
-use App\Repository\StatutsRepository;
+use App\Repository\StatutRepository;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -36,9 +36,9 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 class ReceptionController extends AbstractController
 {
     /**
-     * @var StatutsRepository
+     * @var StatutRepository
      */
-    private $statutsRepository;
+    private $statutRepository;
 
     /**
      * @var EmplacementRepository
@@ -46,9 +46,9 @@ class ReceptionController extends AbstractController
     private $emplacementRepository;
 
     /**
-     * @var UtilisateursRepository
+     * @var UtilisateurRepository
      */
-    private $utilisateursRepository;
+    private $utilisateurRepository;
 
     /**
      * @var ReferencesArticlesRepository
@@ -65,12 +65,12 @@ class ReceptionController extends AbstractController
      */
     private $fournisseurRepository;
 
-    public function __construct(FournisseurRepository $fournisseurRepository, StatutsRepository $statutsRepository, ReferencesArticlesRepository $referencesArticlesRepository, ReceptionRepository $receptionRepository, UtilisateursRepository $utilisateursRepository, EmplacementRepository $emplacementRepository)
+    public function __construct(FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferencesArticlesRepository $referencesArticlesRepository, ReceptionRepository $receptionRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository)
     {
-        $this->statutsRepository = $statutsRepository;
+        $this->statutRepository = $statutRepository;
         $this->emplacementRepository = $emplacementRepository;
         $this->receptionRepository = $receptionRepository;
-        $this->utilisateursRepository = $utilisateursRepository;
+        $this->utilisateurRepository = $utilisateurRepository;
         $this->referencesArticlesRepository = $referencesArticlesRepository;
         $this->fournisseurRepository = $fournisseurRepository;
     }
@@ -87,10 +87,10 @@ class ReceptionController extends AbstractController
             {
                 $em = $this->getDoctrine()->getManager();
                 $fournisseur = $this->fournisseurRepository->find(intval($data[3]['fournisseur']));
-                $utilisateur = $this->utilisateursRepository->find(intval($data[4]['utilisateur']));
+                $utilisateur = $this->utilisateurRepository->find(intval($data[4]['utilisateur']));
 
                 $reception = new Reception();
-                $statut = $this->statutsRepository->find(1); //a modifier
+                $statut = $this->statutRepository->find(1); //a modifier
                 $reception
                     ->setStatut($statut)
                     ->setNumeroReception($data[0]['NumeroReception'])
@@ -124,10 +124,10 @@ class ReceptionController extends AbstractController
             if (count($data) != 5)// On regarde si le nombre de données reçu est conforme et on envoi dans la base
             {
                 $fournisseur = $fournisseurRepository->find(intval($data[3]['fournisseur']));
-                $utilisateur = $this->utilisateursRepository->find(intval($data[4]['utilisateur']));
+                $utilisateur = $this->utilisateurRepository->find(intval($data[4]['utilisateur']));
 
                 $reception = new Reception();
-                $statut = $this->statutsRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_RECEPTION_EN_COURS);
+                $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_RECEPTION_EN_COURS);
                 $reception
                     ->setStatut($statut)
                     ->setNumeroReception($data[0]['NumeroReception'])
@@ -203,13 +203,13 @@ class ReceptionController extends AbstractController
                 ->setReception($reception);
             if ($article->getEtat())
             {
-                $statut = $this->statutsRepository->find(1);
+                $statut = $this->statutRepository->find(1);
                 $article->setStatut($statut);
 
             }
             else 
             {
-                $statut = $this->statutsRepository->find(5);
+                $statut = $this->statutRepository->find(5);
                 $article->setStatut($statut);
                 $reception->setStatut($statut);
             }
@@ -240,7 +240,7 @@ class ReceptionController extends AbstractController
     {
         return $this->render('reception/index.html.twig', [
             'fournisseur' => $this->fournisseurRepository->findAll(), //a précisé avant modif
-            'utilisateurs' => $this->utilisateursRepository->findUserGetIdUser(),
+            'utilisateur' => $this->utilisateurRepository->findUserGetIdUser(),
         ]);
     }
 
@@ -253,7 +253,7 @@ class ReceptionController extends AbstractController
         if(isset($_POST["numeroReception"], $_POST["fournisseur"], $_POST["utilisateur"], $_POST["date-attendue"]))
         {
             $fournisseur = $this->fournisseurRepository->find($_POST["fournisseur"]);
-            $utilisateur = $this->utilisateursRepository->find($_POST["utilisateur"]);
+            $utilisateur = $this->utilisateurRepository->find($_POST["utilisateur"]);
             $reception
                 ->setNumeroReception($_POST["numeroReception"])
                 ->setDate(new \DateTime($_POST["date-commande"]))
@@ -273,7 +273,7 @@ class ReceptionController extends AbstractController
 
         return $this->render('reception/edit.html.twig', [
             "reception" => $reception,
-            "utilisateurs" => $this->utilisateursRepository->findUserGetIdUser(),
+            "utilisateur" => $this->utilisateurRepository->findUserGetIdUser(),
             "fournisseur" => $this->fournisseurRepository->findAll(), //a précisé avant modif
         ]); 
     }
@@ -315,17 +315,17 @@ class ReceptionController extends AbstractController
             // modification du statut
             foreach ($articles as $article) 
             {
-                $statut = $this->statutsRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_RECEPTION_EN_COURS);
+                $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_RECEPTION_EN_COURS);
                 //vérifie si l'article est bien encore en reception
 
                 if ($article->getStatut() === $statut  && $article->getEtat() === true)
                 {
-                    $statut = $this->statutsRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_EN_STOCK);
+                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_EN_STOCK);
                     $article->setStatut($statut);
                 }
             }
 
-            $statut = $this->statutsRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::TERMINE);
+            $statut = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::TERMINE);
             $reception->setStatut($statut);
             $reception->setDateReception(new \DateTime('now'));
 

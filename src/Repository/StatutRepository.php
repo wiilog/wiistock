@@ -2,21 +2,21 @@
 
 namespace App\Repository;
 
-use App\Entity\Statuts;
+use App\Entity\Statut;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
- * @method Statuts|null find($id, $lockMode = null, $lockVersion = null)
- * @method Statuts|null findOneBy(array $criteria, array $orderBy = null)
- * @method Statuts[]    findAll()
- * @method Statuts[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method Statut|null find($id, $lockMode = null, $lockVersion = null)
+ * @method Statut|null findOneBy(array $criteria, array $orderBy = null)
+ * @method Statut[]    findAll()
+ * @method Statut[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class StatutsRepository extends ServiceEntityRepository
+class StatutRepository extends ServiceEntityRepository
 {
     public function __construct(RegistryInterface $registry)
     {
-        parent::__construct($registry, Statuts::class);
+        parent::__construct($registry, Statut::class);
     }
 
     public function findByCategorieName($categorieName)
@@ -24,7 +24,7 @@ class StatutsRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
         $query = $em->createQuery(
             "SELECT s
-            FROM App\Entity\Statuts s
+            FROM App\Entity\Statut s
             JOIN s.categorie c
             WHERE c.nom = :categorieName");
 
@@ -38,7 +38,7 @@ class StatutsRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
         $query = $em->createQuery(
           "SELECT s
-          FROM App\Entity\Statuts s
+          FROM App\Entity\Statut s
           JOIN s.categorie c
           WHERE c.nom = :categorieName AND s.nom = :statutName
           "
@@ -53,7 +53,7 @@ class StatutsRepository extends ServiceEntityRepository
         return ($result) ? $result[0] : null;
         return $query = $em->createQuery(
             "SELECT s 
-             FROM App\Entity\Statuts s 
+             FROM App\Entity\Statut s 
              WHERE s.categorie = :categorie"
             )
             ->setParameter("categorie", $categorie)

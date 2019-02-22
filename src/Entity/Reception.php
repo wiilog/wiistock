@@ -43,7 +43,7 @@ class Reception
     private $numeroReception;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateurs", inversedBy="reception")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="reception")
      */
     private $utilisateur;
 
@@ -53,7 +53,7 @@ class Reception
     private $articles;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Statuts", inversedBy="reception")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="reception")
      */
     private $Statut;
 
@@ -132,12 +132,12 @@ class Reception
         return $this;
     }
 
-    public function getUtilisateur(): ?Utilisateurs
+    public function getUtilisateur(): ?Utilisateur
     {
         return $this->utilisateur;
     }
 
-    public function setUtilisateur(?Utilisateurs $utilisateur): self
+    public function setUtilisateur(?Utilisateur $utilisateur): self
     {
         $this->utilisateur = $utilisateur;
 
@@ -175,12 +175,12 @@ class Reception
         return $this;
     }
 
-    public function getStatut(): ?Statuts
+    public function getStatut(): ?Statut
     {
         return $this->Statut;
     }
 
-    public function setStatut(?Statuts $Statut): self
+    public function setStatut(?Statut $Statut): self
     {
         $this->Statut = $Statut;
 

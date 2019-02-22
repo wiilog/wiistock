@@ -13,7 +13,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use App\Entity\Demande;
 use App\Form\DemandeType;
 use App\Repository\DemandeRepository;
-use App\Repository\StatutsRepository;
+use App\Repository\StatutRepository;
 
 use App\Entity\Emplacement;
 use App\Form\EmplacementType;
@@ -44,17 +44,17 @@ class LivraisonController extends AbstractController
      private $livraisonRepository;
     
      /**
-     * @var StatutsRepository
+     * @var StatutRepository
      */
-    private $statutsRepository;
+    private $statutRepository;
 
 
-    public function __construct(EmplacementRepository $emplacementRepository, DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, StatutsRepository $statutsRepository)
+    public function __construct(EmplacementRepository $emplacementRepository, DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, StatutRepository $statutRepository)
     {
         $this->emplacementRepository = $emplacementRepository;
         $this->demandeRepository = $demandeRepository;
         $this->livraisonRepository = $livraisonRepository;
-        $this->statutsRepository = $statutsRepository;
+        $this->statutRepository = $statutRepository;
 
     }
 
@@ -66,7 +66,7 @@ class LivraisonController extends AbstractController
 //        $demande = $this->demandeRepository->find($id);
 //        if ($demande->getLivraison() == null) {
 //            $emplacement = $this->emplacementRepository->findById($demande->getDestination()->getId());
-//            $statut = $this->statutsRepository->findOneByCategorieAndStatut(Livraison::CATEGORIE, Livraison::STATUT_EN_COURS);
+//            $statut = $this->statutRepository->findOneByCategorieAndStatut(Livraison::CATEGORIE, Livraison::STATUT_EN_COURS);
 //
 //            $livraison = new Livraison();
 //            $date = new \DateTime('now');
@@ -99,12 +99,12 @@ class LivraisonController extends AbstractController
     public function finLivraison($id, Request $request) : Response
     {
         $livraison = $this->livraisonRepository->find($id);
-        $livraison->setStatut($this->statutsRepository->find(26));
+        $livraison->setStatut($this->statutRepository->find(26));
         $demande = $livraison->getDemande();
-        $demande[0]->setStatut($this->statutsRepository->find(9));
+        $demande[0]->setStatut($this->statutRepository->find(9));
         $articles = $demande[0]->getArticles();
         foreach ($articles as $article ) {
-            $article->setStatut($this->statutsRepository->find(4));
+            $article->setStatut($this->statutRepository->find(4));
         }
         $this->getDoctrine()->getManager()->flush();
         return $this->render('livraison/index.html.twig');

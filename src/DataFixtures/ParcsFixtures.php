@@ -10,7 +10,7 @@ use App\Entity\Filiales;
 use App\Entity\SousCategoriesVehicules;
 use App\Entity\CategoriesVehicules;
 use App\Entity\Marques;
-use App\Entity\Utilisateurs;
+use App\Entity\Utilisateur;
 
 class ParcsFixtures extends Fixture
 {
