@@ -19,21 +19,6 @@ class ReferencesArticlesRepository extends ServiceEntityRepository
         parent::__construct($registry, ReferencesArticles::class);
     }
 
-    public function findByLibelleOrRef($value)
-    {
-        return $this->createQueryBuilder('r')
-            ->andWhere('r.libelle like :val OR r.reference like :val')
-            ->setParameter('val', '%' . $value . '%')
-            ->orderBy('r.libelle', 'ASC')
-            ->getQuery()
-            ->getResult();
-    }
-
-    public function findOne()
-    {
-        return $this->createQueryBuilder('r')->setMaxResults(1)->getQuery()->getOneOrNullResult();
-    }
-
     // récupération de ID REfERENCE QUANTITE pour la preparation des commandes 
     public function findRefArtByQte()
     {
@@ -59,14 +44,14 @@ class ReferencesArticlesRepository extends ServiceEntityRepository
         return $query->execute(); 
     }
 
-    public function findById($id)
+    public function findRefArticleGetIdLibelle()
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-            "SELECT r 
+            "SELECT r.id, r.libelle 
             FROM App\Entity\ReferencesArticles r
-            WHERE r.id = :id "
-             )->setParameter('id', $id);
+            "
+             );
         ;
         return $query->execute(); 
     }

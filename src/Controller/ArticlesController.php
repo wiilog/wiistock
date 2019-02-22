@@ -135,30 +135,6 @@ class ArticlesController extends AbstractController
     }
 
     /**
-     * @Route("/nouveau", name="articles_new", methods="GET|POST")  INUTILE
-     */
-    public function new(Request $request) : Response
-    {
-        $article = new Articles();
-        $form = $this->createForm(ArticlesType::class, $article);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $statut = $statutsRepository->findById(1);
-            $article->setStatut($statut[0]);
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($article);
-            $em->flush();
-            return $this->redirectToRoute('articles_index');
-        }
-
-        return $this->render('articles/new.html.twig', [
-            'article' => $article,
-            'form' => $form->createView(),
-        ]);
-    }
-
-    /**
      * @Route("/voir/{id}", name="articles_show", methods="GET")
      */
     public function show(Articles $article) : Response
@@ -195,16 +171,16 @@ class ArticlesController extends AbstractController
         if ($form->isSubmitted() && $form->isValid())
         {
             $reception = $article->getReception()->getId();
-            $reception = $this->receptionsRepository->findOneById($reception);
+            $reception = $this->receptionsRepository->find($reception); //a modifier
             $articles = $reception->getArticles();
             foreach($articles as $article) {
                 if($article->getStatut()->getId() == 5) {
-                    $statut = $this->statutsRepository->findOneById(5);
+                    $statut = $this->statutsRepository->find(5); //a modifier
                     $reception->setStatut($statut);
                     break;
                 }
                 else {
-                    $statut = $this->statutsRepository->findOneById(6);
+                    $statut = $this->statutsRepository->find(6); //a modifier
                     $reception->setStatut($statut);
                 }
             }

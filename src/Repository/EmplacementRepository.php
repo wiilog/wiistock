@@ -30,15 +30,16 @@ class EmplacementRepository extends ServiceEntityRepository
         ;
         return $query->execute(); 
     }
-
-    public function findEptById($empl)
+    
+    //a utilisé dans les formulaire
+    public function findLocGetIdName()
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-            'SELECT e
+            "SELECT e.id, e.nom
             FROM App\Entity\Emplacement e
-            WHERE e.id = :id'
-             )->setParameter('id', $empl);
+            "
+             );
         ;
         return $query->execute(); 
     }

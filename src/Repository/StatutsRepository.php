@@ -19,18 +19,14 @@ class StatutsRepository extends ServiceEntityRepository
         parent::__construct($registry, Statuts::class);
     }
 
-    public function findById($id)
-    {
-        $em = $this->getEntityManager();
-        return $query = $em->createQuery("SELECT s FROM App\Entity\Statuts s WHERE s.id = :id")
-            ->setParameter("id", $id)
-            ->execute();
-    }
-
     public function findByCategorie($categorie)
     {
         $em = $this->getEntityManager();
-        return $query = $em->createQuery("SELECT s FROM App\Entity\Statuts s WHERE s.categorie = :categorie")
+        return $query = $em->createQuery(
+            "SELECT s 
+             FROM App\Entity\Statuts s 
+             WHERE s.categorie = :categorie"
+            )
             ->setParameter("categorie", $categorie)
             ->execute();
     }

@@ -20,12 +20,12 @@
     <div class="col-3">
         <p>Demandeur : {{ demande.utilisateur ? demande.utilisateur : '' }}</p>
         <p>Disponibilite des articles : Oui/Non</p>
-        <p>Date attendue : {{ demande.DateAttendu ? demande.DateAttendu | date("d/m/Y") : "" }}</p>
+        <p>Date attendue : {{ demande.DateAttendu ? demande.DateAttendu | date("d-m-Y") : "" }}</p>
         <p>Destination : {{ demande.destination ? demande.destination.nom : "" }}</p>
     </div>
 
     <div class="col-3">
-        <p>Date demande : {{ demande.date | date("d/m/Y") }}</p>
+        <p>Date demande : {{ demande.date | date("d-m-Y") }}</p>
         <p>Référence : {{ demande.numero }}</p>
         <a href='{{ path("preparationFromDemande", {"id" : demande.id }) }}'>Aller vers la préparation</a>
     </div>
