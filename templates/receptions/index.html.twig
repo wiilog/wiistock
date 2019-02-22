@@ -32,6 +32,7 @@
 </div>
 
 {% include "receptions/modal.html.twig" %}
+{% include "receptions/modalModifReception.html.twig" %}
 
 {% endblock %}
 
@@ -56,8 +57,11 @@
         ],
     });
 
+   
+
     var dataModal = document.getElementById("dataModalCenter");
     var ButtonSubmit = document.getElementById("submitButton");
     InitialiserModal(dataModal, ButtonSubmit, "{{ path('createReception') }}");
+
 </script>
 {% endblock %}

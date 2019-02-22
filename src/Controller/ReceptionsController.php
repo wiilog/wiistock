@@ -159,17 +159,19 @@ class ReceptionsController extends AbstractController
             $receptions = $this->receptionsRepository->findAll();
             $rows = [];
             foreach ($receptions as $reception) {
-                $urlEdite = $this->generateUrl('receptions_edit', ['id' => $reception->getId()]);
                 $urlShow = $this->generateUrl('reception_ajout_article', ['id' => $reception->getId(), 'k'=>'0'] );
                 $row =
                     [
-                    'id' => ($reception->getId()),
-                    "Statut" => ($reception->getStatut() ? $reception->getStatut()->getNom() : ''),
-                    "Date commande" => ($reception->getDate() ? $reception->getDate() : '')->format('d/m/Y'),
-                    "Date attendue" => ($reception->getDateAttendu() ? $reception->getDateAttendu()->format('d/m/Y') : ''),
-                    "Fournisseur" => ($reception->getFournisseur() ? $reception->getFournisseur()->getNom() : ''),
-                    "Référence" => ($reception->getNumeroReception() ? $reception->getNumeroReception() : ''),
-                    'Actions' => "<a href='" . $urlEdite . "' class='btn btn-xs btn-default command-edit '><i class='fas fa-pencil-alt fa-2x'></i></a>
+                        'id' => ($reception->getId()),
+                        "Statut" => ($reception->getStatut() ? $reception->getStatut()->getNom() : ''),
+                        "Date commande" => ($reception->getDate() ? $reception->getDate() : '')->format('d/m/Y'),
+                        "Date attendue" => ($reception->getDateAttendu() ? $reception->getDateAttendu()->format('d/m/Y') : ''),
+                        "Fournisseur" => ($reception->getFournisseur() ? $reception->getFournisseur()->getNom() : ''),
+                        "Référence" => ($reception->getNumeroReception() ? $reception->getNumeroReception() : ''),
+                    'Actions' => "<button  onclick='modifyReception($(this))' data-toggle='modal'
+                                                                                data-target='#modalModifyReception' 
+                                                                                data-id=".$reception->getId()." 
+                            class='btn btn-xs btn-default command-edit '><i class='fas fa-pencil-alt fa-2x'></i></button>
                     <a href='" . $urlShow . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-plus fa-2x'></i> Articles</a>",
                 ];
                 array_push($rows, $row);
