@@ -44,6 +44,10 @@
     <script src="{{ asset('js/script-menu.js') }}"></script>
     <script src="{{ asset('js/script-wiilog.js') }}"></script>
 
+<!-- Javascript routing Exemple : var url = Routing.generate('modifyLigneArticle', id , true) -->
+    <script src="{{ asset('bundles/fosjsrouting/js/router.min.js') }}"></script>
+    <script src="{{ path('fos_js_routing_js', { callback: 'fos.Router.setData' }) }}"></script>
+
 </head>
 
 <body {% block classbody %}{% endblock %}>

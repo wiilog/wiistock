@@ -1,7 +1,6 @@
 $(document).ready(function () {
     $('.select2').select2();
-});0
-
+});
 
 
 // //Fonction de traitement des donnees post ajax pour un tableau
@@ -89,11 +88,11 @@ $(document).ready(function () {
  * 
  * @param {Document} modal la fenêtre modale selectionnée : document.getElementById("modal").
  * @param {Document} submit le bouton qui va envoyé les données au controller via Ajax.
- * @param {string} path le chemin pris pour envoyé les données.
+ * @param {string} path le chemin pris pour envoyer les données.
  * 
  */
 function InitialiserModal(modal, submit, path) {
-    submit.addEventListener("click", function () 
+    submit.click(function () 
     {
         xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function () 
@@ -110,17 +109,18 @@ function InitialiserModal(modal, submit, path) {
                         window.location.href = data.redirect;
                     }
                 });
-            }
+            }      
         };
 
-        let inputs = modal.querySelectorAll(".data"); // On récupère toutes les données qui nous intéresse avec le querySelectorAll
+        let inputs = modal.find(".data"); // On récupère toutes les données qui nous intéresse avec le querySelectorAll
         let Data = []; // Tableau de données
 
-        inputs.forEach(input => { 
+        inputs.each(function() {
             Data.push({
-                [input.name]: input.value
-            });
+                [$(this).attr("name")]: $(this).val()
+            }); 
         });
+        console.log(Data);
 
         Json = JSON.stringify(Data); // On transforme les données en JSON
         xhttp.open("POST", path, true);

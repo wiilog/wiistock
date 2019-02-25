@@ -16,6 +16,15 @@ use App\Repository\ReferenceArticleRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\StatutRepository;
 
+use App\Entity\Articles;
+use App\Entity\ReferencesArticles;
+use App\Entity\LigneArticle;
+use App\Form\ReferencesArticlesType;
+use App\Repository\ReferencesArticlesRepository;
+use App\Repository\FournisseursRepository;
+use App\Repository\StatutsRepository;
+
+use App\Repository\ArticlesRepository;
 use App\Repository\ArticleRepository;
 
 use App\Entity\Emplacement;
@@ -101,81 +110,96 @@ class DemandeController extends AbstractController
         return $this->show($demande);
     }
 
-    /**
-     * @Route("/voir/{id}", name="demande_show", methods={"GET", "POST"})
-     */
-    public function show(Demande $demande): Response
-    {
-        $ligneArticle = $demande->getLigneArticle();
-        $lignes = [];
+//    /**
+//     * @Route("/voir/{id}", name="demande_show", methods={"GET", "POST"})
+//     */
+//    public function show(Demande $demande): Response
+//    {
+//        $ligneArticle = $demande->getLigneArticle();
+//        $lignes = [];
+//
+//        foreach ($ligneArticle as $ligne) {
+//            $refArticle = $this->referenceArticleRepository->find($ligne["reference"]);
+//            $data = [
+//                "Références CEA" => $ligne["reference"],
+//                "Quantité" => $ligne["quantite"],
+//                "Libellé" => $refArticle->getLibelle(),
+//            ];
+//            array_push($lignes, $data);
+//        }
+//        return $this->render('demande/show.html.twig', [
+//            'demande' => $demande,
+//            'lignesArticles' => $lignes,
+//            'utilisateur' => $this->utilisateurRepository->findUserGetIdUser(),
+//            'statuts' => $this->statutRepository->findByCategorieName(Demande::CATEGORIE),
+//            'references' => $this->referenceArticleRepository->findRefArticleGetIdLibelle()
+//        ]);
+//    }
 
-        foreach ($ligneArticle as $ligne) {
-            $refArticle = $this->referenceArticleRepository->find($ligne["reference"]);
-            $data = [
-                "Références CEA" => $ligne["reference"],
-                "Quantité" => $ligne["quantite"],
-                "Libellé" => $refArticle->getLibelle(),
-            ];
-            array_push($lignes, $data);
-        }
-        return $this->render('demande/show.html.twig', [
-            'demande' => $demande,
-            'lignesArticles' => $lignes,
-            'utilisateur' => $this->utilisateurRepository->findUserGetIdUser(),
-            'statuts' => $this->statutRepository->findByCategorieName(Demande::CATEGORIE),
-            'references' => $this->referenceArticleRepository->findRefArticleGetIdLibelle()
-        ]);
-    }
 
     /**
-     * @Route("/ajoutArticle/{id}", name="ajoutArticle", methods="GET|POST")
+     * @Route("demande-livraison/voir/ajoutLigneArticle/{id}", name="ajoutLigneArticle", methods="GET|POST")
      */
-    public function ajoutRefArticle(Demande $demande, Request $request): Response
+    public function ajoutLigneArticle(Demande $demande, FournisseurRepository $fournisseurRepository, Request $request) : Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+
             if (count($data) >= 2) {
+
                 $em = $this->getDoctrine()->getEntityManager();
+                $referenceArticle = $this->referenceArticleRepository->find($data[0]["reference"]);
 
-                $json = [
-                    "reference" => $data[0]["reference"],
-                    "quantite" => $data[1]["quantite"],
-                ];
-
-                $referenceArticle = $this->referenceArticleRepository->find([$data[0]["reference"]]);
+                $LigneArticle = new LigneArticle();
+                $LigneArticle->setQuantite($data[1]["quantite"])
+                             ->setReference($referenceArticle);
 
                 $quantiteReservee = intval($data[1]["quantite"]);
                 $quantiteArticleReservee = $referenceArticle->getQuantiteReservee();
                 $referenceArticle->setQuantiteReservee($quantiteReservee + $quantiteArticleReservee);
 
-                $demande->addLigneArticle($json);
+                $demande->addLigneArticle($LigneArticle);
                 $em->persist($referenceArticle);
+                $em->persist($LigneArticle);
                 $em->persist($demande);
                 $em->flush();
 
-                return new JsonResponse($json);
+                return new JsonResponse($data);
             }
         }
         throw new NotFoundHttpException("404");
     }
 
+
+
     /**
-     * @Route("/supprimeArticle/{id}", name="supprimeArticle", methods="GET|POST")
+     * @Route("/demande-livraison/voir/modifierLigneArticle/{id}", options={"expose"=true}, name="modifyLigneArticle", methods={"GET", "POST"})
      */
-    public function supprimeRefArticle(Demande $demande, Request $request): Response
+    public function modifyLigneArticle(LigneArticle $ligneArticle, Request $request) : Response
     {
-        $json = [
-            "reference" => $data[0]["reference"],
-            "quantite" => $data[1]["quantite"],
-        ];
+        if ($data = json_decode($request->getContent(), true))
+        {
+            $ligneArticle->setQuantite($data[0]["quantity"]);
+            $data['redirect'] = $this->generateUrl('demande_show', [ 'id' => $ligneArticle->getDemande()->getId()]);
+            $this->getDoctrine()->getEntityManager()->flush();
 
-        $demande->addLigneArticle($json);
-        $em->persist($referenceArticle);
-        $em->persist($demande);
-        $em->flush();
-
-        return $this->redirectToRoute();
-
+            return new JsonResponse($data);
+        }
+        throw new NotFoundHttpException("404");
     }
+
+
+
+    /**
+     * @Route("/demande-livraison/voir/supprimeLigneArticle/{id}", name="deleteLigneArticle", methods={"GET", "POST"})
+     */
+    public function deleteLigneArticle(LigneArticle $ligneArticle, Request $request) : Response
+    {
+        $em = $this->getDoctrine()->getEntityManager();
+        $em->remove($ligneArticle);
+        $em->flush();
+        return $this->redirectToRoute('demande_show', [ 'id' => $ligneArticle->getDemande()->getId()]);
+    }
+
 
     /**
      * @Route("/modifDemande/{id}", name="modifDemande", methods="GET|POST")
@@ -241,6 +265,23 @@ class DemandeController extends AbstractController
         ]);
     }
 
+
+
+    /**
+     * @Route("/voir/{id}", name="demande_show", methods={"GET", "POST"})
+     */
+    public function show(Demande $demande) : Response
+    {
+        return $this->render('demande/show.html.twig', [
+            'demande' => $demande,
+            'utilisateurs' => $this->utilisateurRepository->findUserGetIdUser(),
+            'statuts' => $this->statutRepository->findByCategorieName(Demande::CATEGORIE),
+            'references' => $this->referenceArticleRepository->findRefArticleGetIdLibelle()
+        ]);
+    }
+
+
+
     /**
      * @Route("/{id}", name="demande_delete", methods={"DELETE"})
      */
@@ -282,8 +323,8 @@ class DemandeController extends AbstractController
                         "Demandeur" => ($demande->getUtilisateur()->getUsername() ? $demande->getUtilisateur()->getUsername() : ''),
                         "Numéro" => ($demande->getNumero() ? $demande->getNumero() : ''),
                         "Statut" => ($demande->getStatut()->getNom() ? $demande->getStatut()->getNom() : ''),
-                        'Actions' => "<a href='" . $urlShow . " ' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>",
-                    ];
+                        'Actions' => "<a href='" . $urlShow . " ' class='btn btn-xs btn-default command-edit'><i class='fas fa-eye fa-2x'></i></a>",
+                ];
 
                 array_push($rows, $row);
             }
@@ -293,29 +334,30 @@ class DemandeController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
+
+
     /**
      * @Route("/api-ligne/{id}", name="LigneArticle_api", methods={"POST"})
      */
-    public function LigneArticleApi(Request $request, Demande $demande): Response
+    public function LigneArticleApi(Request $request, Demande $demande) : Response
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
         {
-            $LigneArticles = $demande->getLigneArticle();
+            $ligneArticles = $demande->getLigneArticle();
             $rows = [];
 
-            foreach ($LigneArticles as $LigneArticle) {
-                $refArticle = $this->referenceArticleRepository->find($LigneArticle["reference"]);
-                $urlShow = $this->generateUrl('supprimeArticle', ['id' => $demande->getId()]);
+            foreach ($ligneArticles as $ligneArticle) {
+                $urlDelete = $this->generateUrl('deleteLigneArticle', ['id' => $ligneArticle->getId()]);
                 $row = [
-                    "Références CEA" => ($LigneArticle["reference"] ? $LigneArticle["reference"] : ''),
-                    "Libellé" => ($refArticle->getLibelle() ? $refArticle->getLibelle() : ''),
-                    "Quantité" => ($LigneArticle["quantite"] ? $LigneArticle["quantite"] : ''),
-
+                    "Références CEA" => ($ligneArticle->getReference()->getReference() ? $ligneArticle->getReference()->getReference() : ''),
+                    "Libellé" => ($ligneArticle->getReference()->getLibelle() ? $ligneArticle->getReference()->getLibelle() : ''),
+                    "Quantité" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ''),
+                    "Actions" => "<div onclick='editRow($(this))' data-toggle='modal' data-target='#modalModifyLigneArticle' data-name='". $ligneArticle->getReference()->getLibelle()."' data-quantity='" . $ligneArticle->getQuantite(). "' data-id='" . $ligneArticle->getId() . "' class='btn btn-xs btn-default demand-edit '><i class='fas fa-pencil-alt fa-2x'></i></div>"
+                    . "<a href='$urlDelete' class='btn btn-xs btn-default delete '><i class='fas fa-trash fa-2x'></i></a>"
                 ];
                 array_push($rows, $row);
             }
 
-            //'Actions' => "<a href='" . $urlShow . " ' class='btn btn-xs btn-default command-edit '><i class='fas fa-trash fa-2x'></i></a>",
             $data['data'] = $rows;
             return new JsonResponse($data);
         }
