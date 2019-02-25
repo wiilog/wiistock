@@ -216,7 +216,7 @@ class DemandeController extends AbstractController
     public function index(Request $request): Response
     {
         return $this->render('demande/index.html.twig', [
-            'utilisateur' => $this->utilisateurRepository->findUserGetIdUser(),
+            'utilisateurs' => $this->utilisateurRepository->findUserGetIdUser(),
             'statuts' => $this->statutRepository->findByCategorieName(Demande::CATEGORIE),
             'emplacements' => $this->emplacementRepository->findLocGetIdName()
         ]);

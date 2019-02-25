@@ -174,7 +174,7 @@ class ArticleController extends AbstractController
         $articles = $this->articleRepository->findAllSortedByName();
 
         $html = $this->renderView('collecte/modalAddArticleContent.html.twig', [
-            'article' => $articles
+            'articles' => $articles
         ]);
 
         return new JsonResponse(['html' => $html]);

@@ -239,8 +239,8 @@ class ReceptionController extends AbstractController
     public function index(Request $request): Response
     {
         return $this->render('reception/index.html.twig', [
-            'fournisseur' => $this->fournisseurRepository->findAll(), //a précisé avant modif
-            'utilisateur' => $this->utilisateurRepository->findUserGetIdUser(),
+            'fournisseurs' => $this->fournisseurRepository->findAll(), //a précisé avant modif
+            'utilisateurs' => $this->utilisateurRepository->findUserGetIdUser(),
         ]);
     }
 
