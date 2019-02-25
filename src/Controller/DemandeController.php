@@ -3,45 +3,29 @@
 namespace App\Controller;
 
 use App\Entity\Demande;
-use App\Form\DemandeType;
-use App\Repository\DemandeRepository;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
-use App\Entity\Article;
-use App\Entity\ReferenceArticle;
-use App\Form\ReferenceArticleType;
-use App\Repository\ReferenceArticleRepository;
-use App\Repository\FournisseurRepository;
-use App\Repository\StatutRepository;
-
 use App\Entity\Articles;
 use App\Entity\ReferencesArticles;
 use App\Entity\LigneArticle;
-use App\Form\ReferencesArticlesType;
-use App\Repository\ReferencesArticlesRepository;
-use App\Repository\FournisseursRepository;
-use App\Repository\StatutsRepository;
-
-use App\Repository\ArticlesRepository;
-use App\Repository\ArticleRepository;
-
-use App\Entity\Emplacement;
 use App\Entity\Preparation;
-use App\Form\EmplacementType;
+
+use App\Form\LivraisonType;
+
+use App\Repository\DemandeRepository;
+use App\Repository\ReferenceArticleRepository;
+use App\Repository\FournisseurRepository;
+use App\Repository\StatutRepository;
+use App\Repository\ArticleRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\UtilisateurRepository;
-
-use App\Entity\Livraison;
-use App\Form\LivraisonType;
-use App\Repository\LivraisonRepository;
 
 use Knp\Component\Pager\PaginatorInterface;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
 
 /**
  * @Route("/demande")
@@ -109,33 +93,6 @@ class DemandeController extends AbstractController
         }
         return $this->show($demande);
     }
-
-//    /**
-//     * @Route("/voir/{id}", name="demande_show", methods={"GET", "POST"})
-//     */
-//    public function show(Demande $demande): Response
-//    {
-//        $ligneArticle = $demande->getLigneArticle();
-//        $lignes = [];
-//
-//        foreach ($ligneArticle as $ligne) {
-//            $refArticle = $this->referenceArticleRepository->find($ligne["reference"]);
-//            $data = [
-//                "Références CEA" => $ligne["reference"],
-//                "Quantité" => $ligne["quantite"],
-//                "Libellé" => $refArticle->getLibelle(),
-//            ];
-//            array_push($lignes, $data);
-//        }
-//        return $this->render('demande/show.html.twig', [
-//            'demande' => $demande,
-//            'lignesArticles' => $lignes,
-//            'utilisateur' => $this->utilisateurRepository->findUserGetIdUser(),
-//            'statuts' => $this->statutRepository->findByCategorieName(Demande::CATEGORIE),
-//            'references' => $this->referenceArticleRepository->findRefArticleGetIdLibelle()
-//        ]);
-//    }
-
 
     /**
      * @Route("demande-livraison/voir/ajoutLigneArticle/{id}", name="ajoutLigneArticle", methods="GET|POST")
