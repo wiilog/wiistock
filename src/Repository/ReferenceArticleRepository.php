@@ -2,21 +2,21 @@
 
 namespace App\Repository;
 
-use App\Entity\ReferencesArticles;
+use App\Entity\ReferenceArticle;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
- * @method ReferencesArticles|null find($id, $lockMode = null, $lockVersion = null)
- * @method ReferencesArticles|null findOneBy(array $criteria, array $orderBy = null)
- * @method ReferencesArticles[]    findAll()
- * @method ReferencesArticles[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method ReferenceArticle|null find($id, $lockMode = null, $lockVersion = null)
+ * @method ReferenceArticle|null findOneBy(array $criteria, array $orderBy = null)
+ * @method ReferenceArticle[]    findAll()
+ * @method ReferenceArticle[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class ReferencesArticlesRepository extends ServiceEntityRepository
+class ReferenceArticleRepository extends ServiceEntityRepository
 {
     public function __construct(RegistryInterface $registry)
     {
-        parent::__construct($registry, ReferencesArticles::class);
+        parent::__construct($registry, ReferenceArticle::class);
     }
 
     // récupération de ID REfERENCE QUANTITE pour la preparation des commandes 
@@ -25,7 +25,7 @@ class ReferencesArticlesRepository extends ServiceEntityRepository
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT r.id, r.quantiteDisponible, r.reference, r.libelle 
-            FROM App\Entity\ReferencesArticles r
+            FROM App\Entity\ReferenceArticle r
             WHERE r.quantiteDisponible <> 0 "
         )
         ;
@@ -37,7 +37,7 @@ class ReferencesArticlesRepository extends ServiceEntityRepository
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT r.id, r.quantity 
-            FROM App\Entity\ReferencesArticles r
+            FROM App\Entity\ReferenceArticle r
            "
         )
         ;
@@ -49,7 +49,7 @@ class ReferencesArticlesRepository extends ServiceEntityRepository
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT r.id, r.libelle 
-            FROM App\Entity\ReferencesArticles r
+            FROM App\Entity\ReferenceArticle r
             "
              );
         ;
@@ -57,7 +57,7 @@ class ReferencesArticlesRepository extends ServiceEntityRepository
     }
 
 //    /**
-//     * @return ReferencesArticles[] Returns an array of ReferencesArticles objects
+//     * @return ReferenceArticle[] Returns an array of ReferencesArticles objects
 //     */
     /*
     public function findByExampleField($value)
@@ -74,7 +74,7 @@ class ReferencesArticlesRepository extends ServiceEntityRepository
      */
 
     /*
-    public function findOneBySomeField($value): ?ReferencesArticles
+    public function findOneBySomeField($value): ?ReferenceArticle
     {
         return $this->createQueryBuilder('r')
             ->andWhere('r.exampleField = :val')

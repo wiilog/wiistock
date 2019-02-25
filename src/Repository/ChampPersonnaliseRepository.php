@@ -2,21 +2,21 @@
 
 namespace App\Repository;
 
-use App\Entity\ChampsPersonnalises;
+use App\Entity\ChampPersonnalise;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
- * @method ChampsPersonnalises|null find($id, $lockMode = null, $lockVersion = null)
- * @method ChampsPersonnalises|null findOneBy(array $criteria, array $orderBy = null)
- * @method ChampsPersonnalises[]    findAll()
- * @method ChampsPersonnalises[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method ChampPersonnalise|null find($id, $lockMode = null, $lockVersion = null)
+ * @method ChampPersonnalise|null findOneBy(array $criteria, array $orderBy = null)
+ * @method ChampPersonnalise[]    findAll()
+ * @method ChampPersonnalise[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class ChampsPersonnalisesRepository extends ServiceEntityRepository
+class ChampPersonnaliseRepository extends ServiceEntityRepository
 {
     public function __construct(RegistryInterface $registry)
     {
-        parent::__construct($registry, ChampsPersonnalises::class);
+        parent::__construct($registry, ChampPersonnalise::class);
     }
 
     public function findByName($name, $entity)

@@ -2,13 +2,13 @@
 
 namespace App\Form;
 
-use App\Entity\ReferencesArticles;
+use App\Entity\ReferenceArticle;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 
-class ReferencesArticlesType extends AbstractType
+class ReferenceArticleType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
@@ -25,7 +25,7 @@ class ReferencesArticlesType extends AbstractType
     public function configureOptions(OptionsResolver $resolver)
     {
         $resolver->setDefaults([
-            'data_class' => ReferencesArticles::class,
+            'data_class' => ReferenceArticle::class,
         ]);
     }
 }

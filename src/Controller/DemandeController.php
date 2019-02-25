@@ -10,9 +10,9 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Entity\Article;
-use App\Entity\ReferencesArticles;
-use App\Form\ReferencesArticlesType;
-use App\Repository\ReferencesArticlesRepository;
+use App\Entity\ReferenceArticle;
+use App\Form\ReferenceArticleType;
+use App\Repository\ReferenceArticleRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\StatutRepository;
 
@@ -55,16 +55,16 @@ class DemandeController extends AbstractController
     private $utilisateurRepository;
 
     /**
-     * @var ReferencesArticlesRepository
+     * @var ReferenceArticleRepository
      */
-    private $referencesArticlesRepository;
+    private $referenceArticleRepository;
 
-    public function __construct(StatutRepository $statutRepository, ReferencesArticlesRepository $referencesArticlesRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository)
+    public function __construct(StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository)
     {
         $this->statutRepository = $statutRepository;
         $this->emplacementRepository = $emplacementRepository;
         $this->utilisateurRepository = $utilisateurRepository;
-        $this->referencesArticlesRepository = $referencesArticlesRepository;
+        $this->referenceArticleRepository = $referenceArticleRepository;
     }
 
 
@@ -110,7 +110,7 @@ class DemandeController extends AbstractController
         $lignes = [];
 
         foreach ($ligneArticle as $ligne) {
-            $refArticle = $this->referencesArticlesRepository->find($ligne["reference"]);
+            $refArticle = $this->referenceArticleRepository->find($ligne["reference"]);
             $data = [
                 "Références CEA" => $ligne["reference"],
                 "Quantité" => $ligne["quantite"],
@@ -123,7 +123,7 @@ class DemandeController extends AbstractController
             'lignesArticles' => $lignes,
             'utilisateur' => $this->utilisateurRepository->findUserGetIdUser(),
             'statuts' => $this->statutRepository->findByCategorieName(Demande::CATEGORIE),
-            'references' => $this->referencesArticlesRepository->findRefArticleGetIdLibelle()
+            'references' => $this->referenceArticleRepository->findRefArticleGetIdLibelle()
         ]);
     }
 
@@ -141,7 +141,7 @@ class DemandeController extends AbstractController
                     "quantite" => $data[1]["quantite"],
                 ];
 
-                $referenceArticle = $this->referencesArticlesRepository->find([$data[0]["reference"]]);
+                $referenceArticle = $this->referenceArticleRepository->find([$data[0]["reference"]]);
 
                 $quantiteReservee = intval($data[1]["quantite"]);
                 $quantiteArticleReservee = $referenceArticle->getQuantiteReservee();
@@ -304,7 +304,7 @@ class DemandeController extends AbstractController
             $rows = [];
 
             foreach ($LigneArticles as $LigneArticle) {
-                $refArticle = $this->referencesArticlesRepository->find($LigneArticle["reference"]);
+                $refArticle = $this->referenceArticleRepository->find($LigneArticle["reference"]);
                 $urlShow = $this->generateUrl('supprimeArticle', ['id' => $demande->getId()]);
                 $row = [
                     "Références CEA" => ($LigneArticle["reference"] ? $LigneArticle["reference"] : ''),

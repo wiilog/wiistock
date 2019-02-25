@@ -39,7 +39,7 @@ class Alerte
     private $AlerteUtilisateur;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\ReferencesArticles", inversedBy="RefArticleAlerte")
+     * @ORM\ManyToOne(targetEntity="App\Entity\ReferenceArticle", inversedBy="RefArticleAlerte")
      */
     private $AlerteRefArticle;
 
@@ -102,12 +102,12 @@ class Alerte
         return $this;
     }
 
-    public function getAlerteRefArticle(): ?ReferencesArticles
+    public function getAlerteRefArticle(): ?ReferenceArticle
     {
         return $this->AlerteRefArticle;
     }
 
-    public function setAlerteRefArticle(?ReferencesArticles $AlerteRefArticle): self
+    public function setAlerteRefArticle(?ReferenceArticle $AlerteRefArticle): self
     {
         $this->AlerteRefArticle = $AlerteRefArticle;
 

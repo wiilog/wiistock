@@ -20,9 +20,9 @@ use App\Repository\EmplacementRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\UtilisateurRepository;
 
-use App\Entity\ReferencesArticles;
-use App\Form\ReferencesArticlesType;
-use App\Repository\ReferencesArticlesRepository;
+use App\Entity\ReferenceArticle;
+use App\Form\ReferenceArticleType;
+use App\Repository\ReferenceArticleRepository;
 
 use Knp\Component\Pager\PaginatorInterface;
 use App\Repository\StatutRepository;
@@ -51,9 +51,9 @@ class ReceptionController extends AbstractController
     private $utilisateurRepository;
 
     /**
-     * @var ReferencesArticlesRepository
+     * @var ReferenceArticleRepository
      */
-    private $referencesArticlesRepository;
+    private $referenceArticleRepository;
 
     /**
      * @var ReceptionRepository
@@ -65,13 +65,13 @@ class ReceptionController extends AbstractController
      */
     private $fournisseurRepository;
 
-    public function __construct(FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferencesArticlesRepository $referencesArticlesRepository, ReceptionRepository $receptionRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository)
+    public function __construct(FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository)
     {
         $this->statutRepository = $statutRepository;
         $this->emplacementRepository = $emplacementRepository;
         $this->receptionRepository = $receptionRepository;
         $this->utilisateurRepository = $utilisateurRepository;
-        $this->referencesArticlesRepository = $referencesArticlesRepository;
+        $this->referenceArticleRepository = $referenceArticleRepository;
         $this->fournisseurRepository = $fournisseurRepository;
     }
 
@@ -189,7 +189,7 @@ class ReceptionController extends AbstractController
             // decodage en tableau php
             $myJSON = json_decode($request->getContent(), true);
             // traitement des données => récuperation des objets via leur id 
-            $refArticle= $this->referencesArticlesRepository->find($myJSON['refArticle']);
+            $refArticle= $this->referenceArticleRepository->find($myJSON['refArticle']);
             $reception= $this->receptionRepository->find($myJSON['reception']);
             // creation d'un nouvel objet article + set des donnees
             $article = new Article();
@@ -330,7 +330,7 @@ class ReceptionController extends AbstractController
             $reception->setDateReception(new \DateTime('now'));
 
             //calcul de la quantite des stocks par artciles de reference
-            $refArticles = $this->referencesArticlesRepository->findAll();
+            $refArticles = $this->referenceArticleRepository->findAll();
             foreach ($refArticles as $refArticle)
             {
                 // requete Count en SQL dédié
@@ -343,7 +343,7 @@ class ReceptionController extends AbstractController
         }
         return $this->render("reception/ajoutArticle.html.twig", [
             'reception' => $reception,
-            'refArticle'=> $this->referencesArticlesRepository->findAll(),
+            'refArticle'=> $this->referenceArticleRepository->findAll(),
             'id' => $id,
         ]);
     }

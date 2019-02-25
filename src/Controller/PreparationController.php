@@ -14,9 +14,9 @@ use Symfony\Component\Routing\Annotation\Route;
 
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 
-use App\Entity\ReferencesArticles;
-use App\Form\ReferencesArticlesType;
-use App\Repository\ReferencesArticlesRepository;
+use App\Entity\ReferenceArticle;
+use App\Form\ReferenceArticleType;
+use App\Repository\ReferenceArticleRepository;
 
 use App\Repository\ArticleRepository;
 
@@ -50,19 +50,19 @@ class PreparationController extends AbstractController
     private $statutRepository;
 
     /**
-     * @var ReferencesArticlesRepository
+     * @var ReferenceArticleRepository
      */
-    private $referencesArticlesRepository;
+    private $referenceArticleRepository;
 
     /**
      * @var DemandeRepository
      */
     private $demandeRepository;
 
-    public function __construct(StatutRepository $statutRepository, DemandeRepository $demandeRepository, ReferencesArticlesRepository $referencesArticlesRepository)
+    public function __construct(StatutRepository $statutRepository, DemandeRepository $demandeRepository, ReferenceArticleRepository $referenceArticleRepository)
     {
         $this->statutRepository = $statutRepository;
-        $this->referencesArticlesRepository = $referencesArticlesRepository;
+        $this->referenceArticleRepository = $referenceArticleRepository;
         $this->demandeRepository = $demandeRepository;
     }
 
@@ -171,7 +171,7 @@ class PreparationController extends AbstractController
         
             foreach ($LignePreparations as $LignePreparation) 
             {
-                $refPreparation = $this->referencesArticlesRepository->findOneById($LignePreparation["reference"]);
+                $refPreparation = $this->referenceArticleRepository->findOneById($LignePreparation["reference"]);
                 $urlShow = $this->generateUrl('article_show', ['id' => $refPreparation->getId()]);
                 $row = [ 
                     "Références CEA" => ($LignePreparation["reference"] ? $LignePreparation["reference"] : ' '),

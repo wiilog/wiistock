@@ -11,7 +11,7 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 
-use App\Entity\ReferencesArticles;
+use App\Entity\ReferenceArticle;
 
 class ArticleType extends AbstractType
 
@@ -45,7 +45,7 @@ class ArticleType extends AbstractType
                 'label' => 'Quantité à recevoir'
             ))
             ->add('refArticle', EntityType::class, [
-                'class' => ReferencesArticles::class,
+                'class' => ReferenceArticle::class,
                 'choice_label' => 'libelle',
                 'placeholder' => 'Référence article',
                 'label'=> 'Référence article'

@@ -3,7 +3,7 @@
 namespace App\Service;
 
 use Doctrine\ORM\EntityManagerInterface;
-use App\Entity\ChampsPersonnalises;
+use App\Entity\ChampPersonnalise;
 
 class CustomField
 {

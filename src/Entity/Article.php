@@ -44,7 +44,7 @@ class Article
     private $quantite;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\ReferencesArticles", inversedBy="article")
+     * @ORM\ManyToOne(targetEntity="App\Entity\ReferenceArticle", inversedBy="article")
      */
     private $refArticle;
 
@@ -141,12 +141,12 @@ class Article
         return $this->nom;
     }
 
-    public function getRefArticle(): ?ReferencesArticles
+    public function getRefArticle(): ?ReferenceArticle
     {
         return $this->refArticle;
     }
 
-    public function setRefArticle(?ReferencesArticles $refArticle): self
+    public function setRefArticle(?ReferenceArticle $refArticle): self
     {
         $this->refArticle = $refArticle;
 

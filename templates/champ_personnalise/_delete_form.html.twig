@@ -1,0 +1,5 @@
+<form method="post" action="{{ path('champ_personnalise_delete', {'id': champ_personnalise.id}) }}">
+    <input type="hidden" name="_method" value="DELETE">
+    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ champ_personnalise.id) }}">
+    <button class="btn btn-success btn-block">Supprimer</button>
+</form>

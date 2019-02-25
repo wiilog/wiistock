@@ -32,7 +32,7 @@ class FournisseurController extends AbstractController
     /**
      * @Route("/get", name="fournisseur_get", methods="GET")
      */
-    public function getReferencesArticles(Request $request) : Response
+    public function getReferenceArticles(Request $request) : Response
     {
         if ($request->isXmlHttpRequest()) {
             $q = $request->query->get('q');

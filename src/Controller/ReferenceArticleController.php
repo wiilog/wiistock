@@ -2,33 +2,33 @@
 
 namespace App\Controller;
 
-use App\Entity\ReferencesArticles;
-use App\Form\ReferencesArticlesType;
-use App\Repository\ReferencesArticlesRepository;
+use App\Entity\ReferenceArticle;
+use App\Form\ReferenceArticleType;
+use App\Repository\ReferenceArticleRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use App\Entity\ChampsPersonnalises;
+use App\Entity\ChampPersonnalise;
 
 use App\Service\FileUploader;
 
 /**
- * @Route("/stock/references_articles")
+ * @Route("/stock/reference_article")
  */
-class ReferencesArticlesController extends Controller
+class ReferenceArticleController extends Controller
 {
 
      /**
-     * @var ReferencesArticlesRepository
+     * @var ReferenceArticleRepository
      */
-    private $referencesArticlesRepository;
+    private $referenceArticleRepository;
 
-    public function __construct(ReferencesArticlesRepository $referencesArticlesRepository)
+    public function __construct(ReferenceArticleRepository $referenceArticleRepository)
     {
-        $this->referencesArticlesRepository = $referencesArticlesRepository;
+        $this->referenceArticleRepository = $referenceArticleRepository;
     }
 
 
@@ -39,11 +39,11 @@ class ReferencesArticlesController extends Controller
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
         {
-            $refs = $this->referencesArticlesRepository->findAll();
+            $refs = $this->referenceArticleRepository->findAll();
             $rows = [];
             foreach ($refs as $refArticle) {
-                $urlEdite = $this->generateUrl('references_articles_edit', ['id' => $refArticle->getId()] );
-                $urlShow = $this->generateUrl('references_articles_show', ['id' => $refArticle->getId()] );
+                $urlEdite = $this->generateUrl('reference_article_edit', ['id' => $refArticle->getId()] );
+                $urlShow = $this->generateUrl('reference_article_show', ['id' => $refArticle->getId()] );
                
                 $row = [
                     "id" => $refArticle->getId(),
@@ -61,105 +61,105 @@ class ReferencesArticlesController extends Controller
     }
 
     /**
-     * @Route("/create", name="references_articles_create", methods="GET|POST")
+     * @Route("/create", name="reference_article_create", methods="GET|POST")
      */
     public function create(Request $request) : Response
     {
-        $referencesArticle = new ReferencesArticles();
-        $form = $this->createForm(ReferencesArticlesType::class, $referencesArticle);
-        $array = $this->createCustomFieldJson($this->getDoctrine()->getManager()->getRepository(ReferencesArticles::class));
+        $referenceArticle = new ReferenceArticle();
+        $form = $this->createForm(ReferenceArticleType::class, $referenceArticle);
+        $array = $this->createCustomFieldJson($this->getDoctrine()->getManager()->getRepository(ReferenceArticle::class));
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             $em = $this->getDoctrine()->getManager();
-            $em->persist($referencesArticle);
+            $em->persist($referenceArticle);
             $em->flush();
 
-            return $this->redirectToRoute('references_articles_index');
+            return $this->redirectToRoute('reference_article_index');
         }
 
-        return $this->render('references_articles/create.html.twig', [
-            'references_article' => $referencesArticle,
+        return $this->render('reference_article/create.html.twig', [
+            'reference_article' => $referenceArticle,
             'form' => $form->createView(),
             'custom_json' => $array,
         ]);
     }
 
     /**
-     * @Route("/", name="references_articles_index", methods="GET")
+     * @Route("/", name="reference_article_index", methods="GET")
      */
     public function index(Request $request) : Response
     {
-        return $this->render('references_articles/index.html.twig');
+        return $this->render('reference_article/index.html.twig');
     }
 
     /**
-     * @Route("/new", name="references_articles_new", methods="GET|POST")
+     * @Route("/new", name="reference_article_new", methods="GET|POST")
      */
     public function new(Request $request) : Response
     {
-        $referencesArticle = new ReferencesArticles();
-        $form = $this->createForm(ReferencesArticlesType::class, $referencesArticle);
+        $referenceArticle = new ReferenceArticle();
+        $form = $this->createForm(ReferenceArticleType::class, $referenceArticle);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $em = $this->getDoctrine()->getManager();
-            $em->persist($referencesArticle);
+            $em->persist($referenceArticle);
             $em->flush();
 
-            return $this->redirectToRoute('references_articles_index');
+            return $this->redirectToRoute('reference_article_index');
         }
 
-        return $this->render('references_articles/new.html.twig', [
-            'references_article' => $referencesArticle,
+        return $this->render('reference_article/new.html.twig', [
+            'reference_article' => $referenceArticle,
             'form' => $form->createView(),
         ]);
     }
 
     /**
-     * @Route("/{id}", name="references_articles_show", methods="GET")
+     * @Route("/{id}", name="reference_article_show", methods="GET")
      */
-    public function show(ReferencesArticles $referencesArticle) : Response
+    public function show(ReferenceArticle $referenceArticle) : Response
     {
-        return $this->render('references_articles/show.html.twig', ['references_article' => $referencesArticle]);
+        return $this->render('reference_article/show.html.twig', ['reference_article' => $referenceArticle]);
     }
 
     /**
-     * @Route("/{id}/edit", name="references_articles_edit", methods="GET|POST")
+     * @Route("/{id}/edit", name="reference_article_edit", methods="GET|POST")
      */
-    public function edit(Request $request, ReferencesArticles $referencesArticle) : Response
+    public function edit(Request $request, ReferenceArticle $referenceArticle) : Response
     {
-        $form = $this->createForm(ReferencesArticlesType::class, $referencesArticle);
+        $form = $this->createForm(ReferenceArticleType::class, $referenceArticle);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $this->getDoctrine()->getManager()->flush();
 
-            return $this->redirectToRoute('references_articles_index');
+            return $this->redirectToRoute('reference_article_index');
         }
 
-        return $this->render('references_articles/edit.html.twig', [
-            'references_article' => $referencesArticle,
+        return $this->render('reference_article/edit.html.twig', [
+            'reference_article' => $referenceArticle,
             'form' => $form->createView(),
         ]);
     }
 
     /**
-     * @Route("/{id}", name="references_articles_delete", methods="DELETE")
+     * @Route("/{id}", name="reference_article_delete", methods="DELETE")
      */
-    public function delete(Request $request, ReferencesArticles $referencesArticle) : Response
+    public function delete(Request $request, ReferenceArticle $referenceArticle) : Response
     {
-        if ($this->isCsrfTokenValid('delete' . $referencesArticle->getId(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $referenceArticle->getId(), $request->request->get('_token'))) {
             $em = $this->getDoctrine()->getManager();
-            $em->remove($referencesArticle);
+            $em->remove($referenceArticle);
             $em->flush();
         }
 
-        return $this->redirectToRoute('references_articles_index');
+        return $this->redirectToRoute('reference_article_index');
     }
 
     /**
-     * @Route("/add", name="references_articles_add", methods="GET|POST")
+     * @Route("/add", name="reference_article_add", methods="GET|POST")
      */
     public function add(Request $request) : Response
     {
@@ -170,10 +170,10 @@ class ReferencesArticlesController extends Controller
             $ref = $request->request->get('ref');
             $id = -1;
             if ($ref != "") {
-                $id = $em->getRepository(ReferencesArticles::class)->findOneBy(['id' => $ref])->getId();
+                $id = $em->getRepository(ReferenceArticle::class)->findOneBy(['id' => $ref])->getId();
             } else {
-                $referencesArticle = new ReferencesArticles();
-                $referencesArticle
+                $referenceArticle = new ReferenceArticle();
+                $referenceArticle
                     ->setLibelle($data['data'][0]['value'])
                     ->setReference($data['data'][1]['value']);
 
@@ -181,17 +181,17 @@ class ReferencesArticlesController extends Controller
                 $array = array();
                 while ($i < count($data['data']) - 1) {
                     $name = explode('[', substr($data['data'][$i]['name'], 0, -1))[1];
-                    $id_field = $em->getRepository(ChampsPersonnalises::class)->findByName($name, "references_articles")->getId();
+                    $id_field = $em->getRepository(ChampPersonnalise::class)->findByName($name, "reference_article")->getId();
                     $item = array(
                         $id_field => $data['data'][$i]['value'],
                     );
                     array_push($array, $item);
                     $i++;
                 }
-                $referencesArticle->setCustom($array);
-                $em->persist($referencesArticle);
+                $referenceArticle->setCustom($array);
+                $em->persist($referenceArticle);
                 $em->flush();
-                $id = $referencesArticle->getId();
+                $id = $referenceArticle->getId();
             }
             return new JsonResponse($id);
         }
@@ -199,14 +199,14 @@ class ReferencesArticlesController extends Controller
     }
 
     /**
-     * @Route("/remove", name="references_articles_remove", methods="POST")
+     * @Route("/remove", name="reference_article_remove", methods="POST")
      */
     public function remove(Request $request) : Response
     {
         if ($request->isXmlHttpRequest()) {
             $em = $this->getDoctrine()->getManager();
-            $referencesArticle = $this->referencesArticlesRepository->findOneBy(['id' => $request->request->get('id')]);
-            $em->remove($champsPersonnalise);
+            $referenceArticle = $this->referenceArticleRepository->findOneBy(['id' => $request->request->get('id')]);
+            $em->remove($referenceArticle);
             $em->flush();
             return $this->redirectToRoute('referentiel_articles');
         }
@@ -214,7 +214,7 @@ class ReferencesArticlesController extends Controller
     }
 
     /**
-     * @Route("/modifiy", name="references_articles_modifiy", methods="GET|POST")
+     * @Route("/modifiy", name="reference_article_modifiy", methods="GET|POST")
      */
     public function modifiy(Request $request) : Response
     {

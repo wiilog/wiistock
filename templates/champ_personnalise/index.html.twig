@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Champs Personnalises{% endblock %}
+{% block title %}Champ Personnalise{% endblock %}
 
 {% form_theme form _self %}
 
@@ -21,7 +21,7 @@
 {% block page_content %}
 
     <div class="row page-title">
-        CHAMPS PERSONNALISES
+        CHAMP PERSONNALISE
     </div>
 
     <div class="row btn-grp">
@@ -44,12 +44,12 @@
         </thead>
 
         <tbody>
-            {% for champs_personnalise in champs_personnalises %}
+            {% for champ_personnalise in champs_personnalises %}
                 <tr>
-                    <td>{{ champs_personnalise.id }}</td>
-                    <td>{{ champs_personnalise.nom }}</td>
-                    <td>{{ champs_personnalise.type }}</td>
-                    <td>{{ champs_personnalise.entiteCible }}</td>
+                    <td>{{ champ_personnalise.id }}</td>
+                    <td>{{ champ_personnalise.nom }}</td>
+                    <td>{{ champ_personnalise.type }}</td>
+                    <td>{{ champ_personnalise.entiteCible }}</td>
                     <td></td>
                 </tr>
             {% endfor %}
@@ -164,16 +164,16 @@
 
         $('#add-champ').on('click', function (e) {
             $.ajax({
-                url: "{{ path('champs_personnalises_add') }}",
+                url: "{{ path('champ_personnalise_add') }}",
                 type: "POST",
                 dataType: "json",
                 data: {
-                    "nom": $('#champs_personnalises_nom').val(),
-                    "type": $('#champs_personnalises_type').val(),
-                    "cible": $('#champs_personnalises_entite_cible').val(),
-                    "unicite": $('#champs_personnalises_unicite').val(),
-                    "nullable": $('#champs_personnalises_nullable').val(),
-                    "defaut": $('#champs_personnalises_valeur_defaut').val()
+                    "nom": $('#champ_personnalise_nom').val(),
+                    "type": $('#champ_personnalise_type').val(),
+                    "cible": $('#champ_personnalise_entite_cible').val(),
+                    "unicite": $('#champ_personnalise_unicite').val(),
+                    "nullable": $('#champ_personnalise_nullable').val(),
+                    "defaut": $('#champ_personnalise_valeur_defaut').val()
                 },
                 success: function (resp) {
                     location.reload();
@@ -184,7 +184,7 @@
         $('#del-champ').on('click', function (e) {
             e.preventDefault();
             $.ajax({
-                url: "{{ path('champs_personnalises_remove') }}",
+                url: "{{ path('champ_personnalise_remove') }}",
                 type: "POST",
                 dataType: "json",
                 data: {

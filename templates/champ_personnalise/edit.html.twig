@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit ChampPersonnalise{% endblock %}
+
+{% block body %}
+    <h1>Edit ChampPersonnalise</h1>
+
+    {{ include('champ_personnalise/_form.html.twig', {'button_label': 'Update'}) }}
+
+    <a href="{{ path('champ_personnalise_index') }}">back to list</a>
+
+    {{ include('champ_personnalise/_delete_form.html.twig') }}
+{% endblock %}
