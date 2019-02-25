@@ -46,7 +46,7 @@ function addRow(button){
     }
 
     $.post("/collecte/ajouter-article", params, function(data) {
-        $('#table-list-article').DataTable().row.add(data).draw();
+        $('#table-list-articles').DataTable().row.add(data).draw();
     });
 }
 

@@ -306,7 +306,7 @@ class DemandeController extends AbstractController
             foreach ($ligneArticles as $ligneArticle) {
                 $urlDelete = $this->generateUrl('deleteLigneArticle', ['id' => $ligneArticle->getId()]);
                 $row = [
-                    "Références CEA" => ($ligneArticle->getReference()->getReference() ? $ligneArticle->getReference()->getReference() : ''),
+                    "Référence CEA" => ($ligneArticle->getReference()->getReference() ? $ligneArticle->getReference()->getReference() : ''),
                     "Libellé" => ($ligneArticle->getReference()->getLibelle() ? $ligneArticle->getReference()->getLibelle() : ''),
                     "Quantité" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ''),
                     "Actions" => "<div onclick='editRow($(this))' data-toggle='modal' data-target='#modalModifyLigneArticle' data-name='". $ligneArticle->getReference()->getLibelle()."' data-quantity='" . $ligneArticle->getQuantite(). "' data-id='" . $ligneArticle->getId() . "' class='btn btn-xs btn-default demand-edit '><i class='fas fa-pencil-alt fa-2x'></i></div>"

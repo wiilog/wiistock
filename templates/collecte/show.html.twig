@@ -50,7 +50,7 @@
         <tr>
             <th>Nom</th>
             <th>Statut</th>
-            <th>Références Articles</th>
+            <th>Référence Article</th>
             <th>Emplacement</th>
             <th>Destination</th>
             <th>Quantité à collecter</th>
@@ -124,7 +124,7 @@ $('#modalModifyArticle').find('.save').on('click', function() {
     modifyArticle($(this));
 });
 
-$('#table-list-article').DataTable({
+$('#table-list-articles').DataTable({
     "language": {
         "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json",
     },
@@ -137,7 +137,7 @@ $('#table-list-article').DataTable({
     columns: [
         { "data": 'Nom' },
         { "data": 'Statut' },
-        { "data": 'Références Articles' },
+        { "data": 'Référence Article' },
         { "data": 'Emplacement' },
         { "data": 'Destination' },
         { "data": 'Quantité à collecter' },

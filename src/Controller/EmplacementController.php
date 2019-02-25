@@ -68,7 +68,7 @@ class EmplacementController extends AbstractController
     }
 
     /**
-     * @Route("/new", name="emplacement_new", methods="GET|POST")
+     * @Route("/creer", name="emplacement_new", methods="GET|POST")
      */
     public function new(Request $request) : Response
     {

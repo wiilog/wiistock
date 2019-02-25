@@ -174,7 +174,7 @@ class PreparationController extends AbstractController
                 $refPreparation = $this->referenceArticleRepository->findOneById($LignePreparation["reference"]);
                 $urlShow = $this->generateUrl('article_show', ['id' => $refPreparation->getId()]);
                 $row = [ 
-                    "Références CEA" => ($LignePreparation["reference"] ? $LignePreparation["reference"] : ' '),
+                    "Référence CEA" => ($LignePreparation["reference"] ? $LignePreparation["reference"] : ' '),
                     "Libellé" => ($refPreparation->getLibelle() ? $refPreparation->getLibelle() : ' '),
                     "Quantité" => ($LignePreparation["quantite"] ? $LignePreparation["quantite"] : ' '),
                    

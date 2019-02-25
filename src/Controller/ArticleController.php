@@ -115,7 +115,7 @@ class ArticleController extends AbstractController
                 $rows[] = [
                     'Nom'=>( $article->getNom() ?  $article->getNom():""),
                     'Statut'=> ($article->getStatut()->getNom() ? $article->getStatut()->getNom() : ""),
-                    'Références Articles'=> ($article->getRefArticle() ? $article->getRefArticle()->getLibelle() : ""),
+                    'Référence Article'=> ($article->getRefArticle() ? $article->getRefArticle()->getLibelle() : ""),
                     'Emplacement'=> ($article->getPosition() ? $article->getPosition()->getNom() : ""),
                     'Destination'=> ($article->getDirection() ? $article->getDirection()->getNom() : ""),
                     'Quantité à collecter'=>($article->getQuantiteCollectee() ? $article->getQuantiteCollectee() : ""),
