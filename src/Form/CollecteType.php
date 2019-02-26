@@ -8,7 +8,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 
-use App\Entity\Articles;
+use App\Entity\Article;
 use Doctrine\ORM\EntityRepository;
 
 

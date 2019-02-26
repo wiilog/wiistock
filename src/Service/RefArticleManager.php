@@ -3,7 +3,7 @@
 namespace App\Service;
 
 use Doctrine\ORM\EntityManagerInterface;
-use App\Entity\ReferencesArticles;
+use App\Entity\ReferenceArticle;
 
 class RefArticleManager
 {
@@ -40,7 +40,7 @@ class RefArticleManager
         //     $em->clear();
         // }
 
-        $rawSql = "INSERT INTO `references_articles` (`libelle`, `photo_article`, `reference`, `custom`) VALUES ('Reference ". $index ."', NULL, '". rand(1000000, 10000000) ."', '[{\"name\": \"Custom 1\", \"value\": ". rand(1000000, 10000000) ."}, {\"name\": \"Custom 2\", \"value\": \"canard ". rand(100, 1000) ."\"}]');";
+        $rawSql = "INSERT INTO `reference_article` (`libelle`, `photo_article`, `reference`, `custom`) VALUES ('Reference ". $index ."', NULL, '". rand(1000000, 10000000) ."', '[{\"name\": \"Custom 1\", \"value\": ". rand(1000000, 10000000) ."}, {\"name\": \"Custom 2\", \"value\": \"canard ". rand(100, 1000) ."\"}]');";
         $stmt = $em->getConnection()->prepare($rawSql);
         $stmt->execute([]);
 

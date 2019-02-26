@@ -1,0 +1,74 @@
+{% extends "layout.html.twig" %}
+{% block title %}Ajout d'article{% endblock %}
+{% block page_content %}
+
+<h1>RÉCEPTION</h1>
+
+
+<div class="row">
+    <div class='col-4'>
+        <a href="{{ path('receptions_addArticle')}}">azdf</a>
+        <p><strong>Statut:</strong> {{ reception.statut.nom }}</p>
+        <p><strong>Numéro de référence:</strong> {{ reception.numeroReception }}</p>
+        <p><strong>Fournisseur:</strong> {{ reception.fournisseur.nom }}</p>
+    </div>
+    <div class="col-4">
+        <p><strong>Date commande:</strong> {{ reception.date ? reception.date| date('d/m/Y') : ' ' }}</p>
+        <p><strong>Date attendue:</strong> {{ reception.dateAttendu ? reception.dateAttendu | date('d/m/Y') : ' ' }}</p>
+        <p><strong>Date réception:</strong>
+            {{ reception.dateReception ? reception.dateReception | date('d/m/Y') : ' ' }}</p>
+    </div>
+    <div class="col-4">
+        <div class='btn'>
+            {{ include('receptions/_delete_form.html.twig') }}
+            <a href="{{ path('receptions_edit', {'id': reception.id}) }}"
+                class='button pull-right btn-left'>Modifier</a>
+            <a href="" data-toggle="modal" data-target="#addArticleModal" class="button btn-left">
+                <span class="fa fa-plus"></span>ajouter un article
+            </a>
+        </div>
+    </div>
+    <p><strong>Commentaire:</strong> {{ reception.commentaire }}</p>
+</div>
+<table id="tableArticle_id" class="table table-striped table-bordered" style="width:100%">
+    <thead>
+        <tr>
+            <th>Libellé</th>
+            <th>Référence</th>
+            <th>Quantité à recevoir</th>
+            <th>Quantité reçue</th>
+            <th>État</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for article in reception.articles %}
+        <tr>
+            <td>{{ article.nom }}</td>
+            <td>{{ article.reference }}</td>
+            <td>{{ article.quantiteARecevoir }}</td>
+            <td>{{ article.quantite }}</td>
+            <td>{{ article.etat ? 'conforme': 'non-conforme' }}</td>
+            <td>
+                <a href="{{ path('article_edit', {'id': article.id}) }}" class="btn btn-xs btn-default command-edit"><i
+                        class="fas fa-pencil-alt fa-2x"></i></a>
+            </td>
+        </tr>
+
+        {% endfor %}
+    </tbody>
+</table>
+<div class="container-fluid">
+    <a class="btn offset-5 col-2 button btn-right" href={{ path('reception_ajout_article', {'id': id, 'finishReception': true}) }}>Fin
+        réception</a>
+</div>
+
+{% include "reception/addArticleModal.html.twig" %}
+
+{% endblock %}
+{% block javascript %}
+
+
+
+<script src="{{asset('js/reception.js')}}"></script>
+{% endblock javascript %}

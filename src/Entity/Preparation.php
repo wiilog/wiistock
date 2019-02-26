@@ -38,12 +38,12 @@ class Preparation
     private $demandes;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Statuts", inversedBy="preparations")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="preparations")
      */
     private $Statut;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateurs", inversedBy="preparations")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="preparations")
      */
     private $Utilisateur;
 
@@ -112,24 +112,24 @@ class Preparation
         return $this;
     }
 
-    public function getStatut(): ?Statuts
+    public function getStatut(): ?Statut
     {
         return $this->Statut;
     }
 
-    public function setStatut(?Statuts $Statut): self
+    public function setStatut(?Statut $Statut): self
     {
         $this->Statut = $Statut;
 
         return $this;
     }
 
-    public function getUtilisateur(): ?Utilisateurs
+    public function getUtilisateur(): ?Utilisateur
     {
         return $this->Utilisateur;
     }
 
-    public function setUtilisateur(?Utilisateurs $Utilisateur): self
+    public function setUtilisateur(?Utilisateur $Utilisateur): self
     {
         $this->Utilisateur = $Utilisateur;
 

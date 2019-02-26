@@ -50,7 +50,7 @@
         <tr>
             <th>Nom</th>
             <th>Statut</th>
-            <th>Références Articles</th>
+            <th>Référence Article</th>
             <th>Emplacement</th>
             <th>Destination</th>
             <th>Quantité à collecter</th>
@@ -58,7 +58,7 @@
         </tr>
         </thead>
         <tbody>
-        {#{% for article in collecte.articles |reverse %}#}
+        {#{% for article in collecte.article |reverse %}#}
         {#<form action="{{ path('collecte_show', {'id': collecte.id}) }}"  method="post">#}
         {#<tr>#}
         {#<td>{{ article.nom }}</td>#}
@@ -137,7 +137,7 @@ $('#table-list-articles').DataTable({
     columns: [
         { "data": 'Nom' },
         { "data": 'Statut' },
-        { "data": 'Références Articles' },
+        { "data": 'Référence Article' },
         { "data": 'Emplacement' },
         { "data": 'Destination' },
         { "data": 'Quantité à collecter' },

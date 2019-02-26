@@ -1,0 +1,46 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}ChampPersonnalise{% endblock %}
+
+{% block body %}
+    <h1>ChampPersonnalise</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ champ_personnalise.id }}</td>
+            </tr>
+            <tr>
+                <th>Nom</th>
+                <td>{{ champ_personnalise.nom }}</td>
+            </tr>
+            <tr>
+                <th>Type</th>
+                <td>{{ champ_personnalise.type }}</td>
+            </tr>
+            <tr>
+                <th>Unicite</th>
+                <td>{{ champ_personnalise.unicite ? 'Yes' : 'No' }}</td>
+            </tr>
+            <tr>
+                <th>Valeur_defaut</th>
+                <td>{{ champ_personnalise.valeurDefaut }}</td>
+            </tr>
+            <tr>
+                <th>Nullable</th>
+                <td>{{ champ_personnalise.nullable ? 'Yes' : 'No' }}</td>
+            </tr>
+            <tr>
+                <th>Entite_cible</th>
+                <td>{{ champ_personnalise.entiteCible }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('champ_personnalise_index') }}">back to list</a>
+
+    <a href="{{ path('champ_personnalise_edit', {'id': champ_personnalise.id}) }}">edit</a>
+
+    {{ include('champ_personnalise/_delete_form.html.twig') }}
+{% endblock %}

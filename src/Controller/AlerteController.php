@@ -5,7 +5,7 @@ namespace App\Controller;
 use App\Entity\Alerte;
 use App\Form\AlerteType;
 use App\Repository\AlerteRepository;
-use App\Repository\ArticlesRepository;
+use App\Repository\ArticleRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -26,11 +26,11 @@ class AlerteController extends AbstractController
     private $alerteRepository;
     
     /**
-     * @var ArticlesRepository
+     * @var ArticleRepository
      */
     private $articlesRepository;
 
-    public function __construct(AlerteRepository $alerteRepository, ArticlesRepository $articlesRepository)
+    public function __construct(AlerteRepository $alerteRepository, ArticleRepository $articlesRepository)
     {
         $this->alerteRepository = $alerteRepository;
         $this->articlesRepository = $articlesRepository;
