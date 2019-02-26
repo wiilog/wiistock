@@ -94,8 +94,10 @@ class DemandeController extends AbstractController
         return $this->show($demande);
     }
 
+
+    
     /**
-     * @Route("demande-livraison/voir/ajoutLigneArticle/{id}", name="ajoutLigneArticle", methods="GET|POST")
+     * @Route("demande-livraison/voir/ajoutLigneArticle/{id}", options={"expose"=true}, name="ajoutLigneArticle", methods="GET|POST")
      */
     public function ajoutLigneArticle(Demande $demande, FournisseurRepository $fournisseurRepository, Request $request) : Response
     {
@@ -117,7 +119,6 @@ class DemandeController extends AbstractController
                 $demande->addLigneArticle($LigneArticle);
                 $em->persist($referenceArticle);
                 $em->persist($LigneArticle);
-                $em->persist($demande);
                 $em->flush();
 
                 return new JsonResponse($data);
@@ -146,7 +147,7 @@ class DemandeController extends AbstractController
 
 
     /**
-     * @Route("/demande-livraison/voir/supprimeLigneArticle/{id}", name="deleteLigneArticle", methods={"GET", "POST"})
+     * @Route("/demande-livraison/voir/supprimeLigneArticle/{id}", options={"expose"=true}, name="deleteLigneArticle", methods={"GET", "POST"})
      */
     public function deleteLigneArticle(LigneArticle $ligneArticle, Request $request) : Response
     {
@@ -158,7 +159,7 @@ class DemandeController extends AbstractController
 
 
     /**
-     * @Route("/modifDemande/{id}", name="modifDemande", methods="GET|POST")
+     * @Route("/modifDemande/{id}", name="modifDemande", options={"expose"=true}, methods="GET|POST")
      */
     public function modifDemande(Demande $demande, Request $request): Response
     {
@@ -182,7 +183,7 @@ class DemandeController extends AbstractController
     }
 
     /**
-     * @Route("/creationDemande", name="creation_demande", methods="GET|POST")
+     * @Route("/creationDemande", name="creation_demande", options={"expose"=true}, methods="GET|POST")
      */
     public function creationDemande(Request $request, ArticleRepository $articlesRepository): Response
     {
@@ -208,6 +209,8 @@ class DemandeController extends AbstractController
         }
         throw new NotFoundHttpException("404");
     }
+
+
 
     /**
      * @Route("/", name="demande_index", methods={"GET"})
@@ -253,24 +256,25 @@ class DemandeController extends AbstractController
     }
 
 
+
     /**
-     * @Route("/api", name="demande_api", methods={"POST"})
+     * @Route("/api", options={"expose"=true}, name="demande_api", methods={"POST"})
      */
     public function demandeApi(Request $request, DemandeRepository $demandeRepository): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if ($request->request->get('utilisateur')) {
-                $utilistaeur = $request->request->get('utilisateur');
+            /* if ($request->request->get('utilisateur')) {
+                $utilisateur = $request->request->get('utilisateur');
                 $statut = $request->request->get('statut');
                 $dateDebut = $request->request->get('dateDebut');
                 $dateFin = $request->request->get('dateFin');
-
                 $demandes = $demandeRepository->findAll(); // a modifier pour filtre
 
             } else {
                 $demandes = $demandeRepository->findAllByUserAndStatut($this->getUser());
-            }
+            } */
             $rows = [];
+            $demandes = $demandeRepository->findAll();
             foreach ($demandes as $demande) {
                 $url['show'] = $this->generateUrl('demande_show', ['id' => $demande->getId()]);
                 $rows[] =
@@ -283,6 +287,7 @@ class DemandeController extends AbstractController
                 ];
             }
             $data['data'] = $rows;
+            dump($data);
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
@@ -291,7 +296,7 @@ class DemandeController extends AbstractController
 
 
     /**
-     * @Route("/api-ligne/{id}", name="LigneArticle_api", methods={"POST"})
+     * @Route("/api-ligne/{id}", name="LigneArticle_api", options={"expose"=true}, methods={"POST"})
      */
     public function LigneArticleApi(Request $request, Demande $demande) : Response
     {

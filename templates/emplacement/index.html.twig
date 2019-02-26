@@ -31,11 +31,12 @@
 {% block javascript %}
 
 <script>
+    var path = Routing.generate("emplacement_api", true);
     var table = $('#table_id').DataTable({
         "language": {
             "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
         },
-        ajax: "{{path('emplacement_api')}}",
+        ajax: path,
         columns: [
             { "data": 'Nom' },
             { "data": 'Description' },

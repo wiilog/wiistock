@@ -37,13 +37,14 @@
 
 {% block javascript %}
 <script>
+    var path = Routing.generate('reception_api', true);
     var table = $('#table_id').DataTable({
         order: [[ 1, "desc" ]],
         language: {
             "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
         },
         ajax:{ 
-            "url":"{{path('reception_api')}}",
+            "url": path,
             "type": "POST"
         },
         columns: [
@@ -56,8 +57,9 @@
         ],
     });
 
-    var dataModal = document.getElementById("dataModalCenter");
-    var ButtonSubmit = document.getElementById("submitButton");
-    InitialiserModal(dataModal, ButtonSubmit, "{{ path('createReception') }}");
+    var modalPath = Routing.generate('createReception', true);
+    var dataModal = $("#dataModalCenter");
+    var ButtonSubmit = $("#submitButton");
+    InitialiserModal(dataModal, ButtonSubmit, modalPath);
 </script>
 {% endblock %}

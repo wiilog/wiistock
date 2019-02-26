@@ -132,7 +132,7 @@ class PreparationController extends AbstractController
     }
 
     /**
-     * @Route("/api", name="preparation_api", methods="GET|POST")
+     * @Route("/api", name="preparation_api", options={expose=true}, methods="GET|POST")
      */
     public function preparationApi(Request $request, PreparationRepository $preparationRepository) : Response
     {

@@ -6,7 +6,7 @@ $(document).ready(function () {
 /**
  * Initialise une fenêtre modale
  * 
- * @param {Document} modal la fenêtre modale selectionnée : document.getElementById("modal").
+ * @param {Document} modal la fenêtre modale selectionnée : $("#modal").
  * @param {Document} submit le bouton qui va envoyé les données au controller via Ajax.
  * @param {string} path le chemin pris pour envoyer les données.
  * 

@@ -23,15 +23,15 @@
 {% block javascript %}
 
 <script>
+    var path = Routing.generate('article_api', true);
     var table = $('#table_id').DataTable({
         "language": {
             "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
         },
         ajax:{ 
-            "url": "{{path('article_api')}}",
+            "url": path,
             "type": "POST"
-        }, 
-        
+        },
         columns:
         [
             { "data": 'Nom' },

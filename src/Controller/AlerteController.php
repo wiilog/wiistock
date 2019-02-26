@@ -26,16 +26,10 @@ class AlerteController extends AbstractController
      * @var AlerteRepository
      */
     private $alerteRepository;
-    
-    /**
-     * @var ArticleRepository
-     */
-    private $articlesRepository;
 
-    public function __construct(AlerteRepository $alerteRepository, ArticleRepository $articlesRepository)
+    public function __construct(AlerteRepository $alerteRepository)
     {
         $this->alerteRepository = $alerteRepository;
-        $this->articlesRepository = $articlesRepository;
     }
 
     
@@ -49,9 +43,9 @@ class AlerteController extends AbstractController
             $alerte = new Alertes();
             $em = $this->getDoctrine()->getEntityManager();
             $alerte
-                ->setNom($data[0]["nom"])
-                ->setRefArticle($data[2]["refArticle"])
-                ->setSeuil($data[1]["seuil"]);
+                ->setNom($data["nom"])
+                ->setRefArticle($data["refArticle"])
+                ->setSeuil($data["seuil"]);
             $em->persist($alerte);
             $em->flush();
             $data = json_encode($data);
@@ -66,7 +60,7 @@ class AlerteController extends AbstractController
     /**
      * @Route("/Alerte", name="alerte_index", methods={"GET"})
      */
-    public function index(\Swift_Mailer $mailer, Request $request) : Response
+    public function index(Request $request) : Response
     {
         return $this->render('alerte/index.html.twig');
     }
@@ -74,7 +68,7 @@ class AlerteController extends AbstractController
 
 
     /**
-     * @Route("/api", name="alerte_api", methods={"GET"})
+     * @Route("/api", name="alerte_api", options={"expose"=true}, methods={"GET"})
      */
     public function alerteApi(\Swift_Mailer $mailer, Request $request) : Response
     {
@@ -121,6 +115,8 @@ class AlerteController extends AbstractController
         throw new NotFoundHttpException("404");
      
     }
+
+
 
     /**
      * @Route("/creer", name="alerte_new", methods={"GET","POST"})

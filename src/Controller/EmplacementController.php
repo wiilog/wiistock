@@ -39,7 +39,7 @@ class EmplacementController extends AbstractController
     }
 
     /**
-     * @Route("/nouvelEmplacement", name="createEmplacement")
+     * @Route("/nouvelEmplacement", name="createEmplacement", options={"expose"=true})
      */
     public function createEmplacement(Request $request) : Response
     {
@@ -91,7 +91,7 @@ class EmplacementController extends AbstractController
     }
 
     /**
-     * @Route("/api", name="emplacement_api", methods="GET|POST")
+     * @Route("/api", name="emplacement_api", options={"expose"=true}, methods="GET|POST")
      */
     public function fournisseurApi(Request $request) : Response
     {
