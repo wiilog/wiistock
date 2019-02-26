@@ -15,6 +15,8 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
+
+
 /**
  * @Route("/alerte")
  */
@@ -64,7 +66,7 @@ class AlerteController extends AbstractController
     /**
      * @Route("/Alerte", name="alerte_index", methods={"GET"})
      */
-    public function index( \Swift_Mailer $mailer, Request $request) : Response
+    public function index(\Swift_Mailer $mailer, Request $request) : Response
     {
         return $this->render('alerte/index.html.twig');
     }
@@ -79,15 +81,23 @@ class AlerteController extends AbstractController
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
         {
             $alertes = $this->alerteRepository->findAll();
-            $alertesUser = []; /* Un tableau d'alertes qui sera envoyer au mailer */
+
+            /* Un tableau d'alertes qui sera envoyer au mailer */
+            $alertesUser = []; 
             $rows = [];
+
             foreach ($alertes as $alerte) {
+                
                 $condition = $alerte->getAlerteRefArticle()->getQuantiteStock() > $alerte->getAlerteSeuil();
-                $seuil = ($condition) ? false : true; /* Si le seuil est inférieur à la quantité, seuil atteint = false sinon true */
+
+                /* Si le seuil est inférieur à la quantité, seuil atteint = false sinon true */
+                $seuil = ($condition) ? false : true; 
                 $alerte->setSeuilAtteint($seuil);
+
                 if ($seuil) {
                     array_push($alertesUser, $alerte); /* Si seuil atteint est "true" alors on insère l'alerte dans le tableau */
                 }
+
                 $this->getDoctrine()->getManager()->flush();
                 $urlEdite = $this->generateUrl('alerte_edit', ['id' => $alerte->getId()] );
                 $urlShow = $this->generateUrl('alerte_show', ['id' => $alerte->getId()] );
@@ -96,15 +106,18 @@ class AlerteController extends AbstractController
                     "Nom" => $alerte->getAlerteNom(),
                     "Code" => $alerte->getAlerteNumero(),
                     "Seuil" => ($condition ? "<p><i class='fas fa-check-circle fa-2x green'></i>" . $alerte->getAlerteRefArticle()->getQuantiteStock() . "/" . $alerte->getAlerteSeuil() . "</p>" :
-                        "<p><i class='fas fa-exclamation-circle fa-2x red'></i>" . $alerte->getAlerteRefArticle()->getQuantiteStock() . "/" . $alerte->getAlerteSeuil() . " </p>"),
+                                "<p><i class='fas fa-exclamation-circle fa-2x red'></i>" . $alerte->getAlerteRefArticle()->getQuantiteStock() . "/" . $alerte->getAlerteSeuil() . " </p>"),
                     'Actions' => "<a href='" . $urlEdite . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
-                <a href='" . $urlShow . "' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>",
+                                 <a href='" . $urlShow . "' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>",
                 ];
+
                 array_push($rows, $row);
             }
+
             if (count($alertesUser) > 0) {
                 $this->mailer($alertesUser, $mailer); /* On envoie le tableau d'alertes au mailer */
             }
+
             $data['data'] = $rows;
             return new JsonResponse($data);
         }

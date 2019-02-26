@@ -61,6 +61,7 @@ class DemandeController extends AbstractController
      */
     private $referencesArticlesRepository;
 
+    /* Mise en place d'un constructeur pour les données qui reviennent dans toutes(ou presque) les fonctions du controller */
     public function __construct(StatutsRepository $statutsRepository, ReferencesArticlesRepository $referencesArticlesRepository, UtilisateursRepository $utilisateursRepository, EmplacementRepository $emplacementRepository)
     {
         $this->statutsRepository = $statutsRepository;
@@ -111,7 +112,7 @@ class DemandeController extends AbstractController
      */
     public function ajoutLigneArticle(Demande $demande, FournisseursRepository $fournisseursRepository, Request $request) : Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if(!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
             if (count($data) >= 2) {
 
@@ -139,7 +140,6 @@ class DemandeController extends AbstractController
     }
 
 
-
     /**
      * @Route("/demande-livraison/voir/modifierLigneArticle/{id}", options={"expose"=true}, name="modifyLigneArticle", methods={"GET", "POST"})
      */
@@ -147,8 +147,8 @@ class DemandeController extends AbstractController
     {
         if ($data = json_decode($request->getContent(), true)) 
         {
-            $ligneArticle->setQuantite($data[0]["quantity"]);
-            $data['redirect'] = $this->generateUrl('demande_show', [ 'id' => $ligneArticle->getDemande()->getId()]);
+            $ligneArticle->setQuantite($data[0]["quantity"]); 
+            $data['redirect'] = $this->generateUrl('demande_show', [ 'id' => $ligneArticle->getDemande()->getId()]); 
             $this->getDoctrine()->getEntityManager()->flush();
 
             return new JsonResponse($data);

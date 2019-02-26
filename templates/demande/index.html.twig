@@ -84,8 +84,8 @@
 
     //$('#filtre').on('click', $.post( "{{path('demande_api')}}" , {'utilisateur': $('#utilisateur').val()}));
 
-    var dataModal = document.getElementById("dataModalCenter");
-    var ButtonSubmit = document.getElementById("submitButton");
+    var dataModal = $("#dataModalCenter");
+    var ButtonSubmit = $("#submitButton");
     InitialiserModal(dataModal, ButtonSubmit, "{{ path('creation_demande') }}");
 
 
