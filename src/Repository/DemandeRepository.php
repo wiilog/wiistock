@@ -19,17 +19,17 @@ class DemandeRepository extends ServiceEntityRepository
         parent::__construct($registry, Demande::class);
     }
 
-    public function findDmdByStatut($Statut)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT d
-            FROM App\Entity\Demande d
-            WHERE d.Statut = :Statut "
-        )->setParameter('Statut', $Statut);
-
-        return $query->execute(); 
-    }
+//    public function findDmdByStatut($Statut)
+//    {
+//        $entityManager = $this->getEntityManager();
+//        $query = $entityManager->createQuery(
+//            "SELECT d
+//            FROM App\Entity\Demande d
+//            WHERE d.Statut = :Statut "
+//        )->setParameter('Statut', $Statut);
+//
+//        return $query->execute();
+//    }
 
     public function findByUserAndNotStatus($user, $status)
     {
@@ -44,69 +44,69 @@ class DemandeRepository extends ServiceEntityRepository
         return $query->execute(); 
     }
 
-    public function findByPrepa($preparation)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT d
-            FROM App\Entity\Demande d
-            WHERE d.preparation = :prepa "
-        )->setParameter('prepa', $preparation);
-        ;
-        return $query->execute(); 
-    }
+//    public function findByPrepa($preparation)
+//    {
+//        $entityManager = $this->getEntityManager();
+//        $query = $entityManager->createQuery(
+//            "SELECT d
+//            FROM App\Entity\Demande d
+//            WHERE d.preparation = :prepa "
+//        )->setParameter('prepa', $preparation);
+//        ;
+//        return $query->execute();
+//    }
     
-    public function findEmplacementByStatut($Statut)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT DISTINCT t.id, t.nom
-            FROM App\Entity\Demande d
-            JOIN d.destination t
-            WHERE d.Statut = :Statut "
-        )->setParameter('Statut', $Statut);
-        ;
-        return $query->execute(); 
-    }
+//    public function findEmplacementByStatut($Statut)
+//    {
+//        $entityManager = $this->getEntityManager();
+//        $query = $entityManager->createQuery(
+//            "SELECT DISTINCT t.id, t.nom
+//            FROM App\Entity\Demande d
+//            JOIN d.destination t
+//            WHERE d.Statut = :Statut "
+//        )->setParameter('Statut', $Statut);
+//        ;
+//        return $query->execute();
+//    }
 
-    public function findByDestiAndStatut($destination, $Statut)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT d
-            FROM App\Entity\Demande d
-            WHERE d.destination = :destination AND d.Statut = :Statut"
-        )->setParameter('destination', $destination)
-         ->setParameter('Statut', $Statut);
-        ;
-        return $query->execute(); 
-    }
+//    public function findByDestiAndStatut($destination, $Statut)
+//    {
+//        $entityManager = $this->getEntityManager();
+//        $query = $entityManager->createQuery(
+//            "SELECT d
+//            FROM App\Entity\Demande d
+//            WHERE d.destination = :destination AND d.Statut = :Statut"
+//        )->setParameter('destination', $destination)
+//         ->setParameter('Statut', $Statut);
+//        ;
+//        return $query->execute();
+//    }
 
-    public function findByLivrais($livraison)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT d
-            FROM App\Entity\Demande d
-            WHERE d.livraison = :livraison"
-        )->setParameter('livraison', $livraison);
-        ;
-        return $query->execute(); 
-    }
+//    public function findByLivrais($livraison)
+//    {
+//        $entityManager = $this->getEntityManager();
+//        $query = $entityManager->createQuery(
+//            "SELECT d
+//            FROM App\Entity\Demande d
+//            WHERE d.livraison = :livraison"
+//        )->setParameter('livraison', $livraison);
+//        ;
+//        return $query->execute();
+//    }
 
-    public function findCountByStatutAndPrepa($statut, $preparation)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT COUNT (d)
-            FROM App\Entity\Demande d
-            JOIN d.preparation p
-            WHERE d.Statut <> :statut AND p = :preparation"
-        )->setParameter('preparation', $preparation)
-        ->setParameter('statut', $statut);
-        ;
-        return $query->execute(); 
-    }
+//    public function findCountByStatutAndPrepa($statut, $preparation)
+//    {
+//        $entityManager = $this->getEntityManager();
+//        $query = $entityManager->createQuery(
+//            "SELECT COUNT (d)
+//            FROM App\Entity\Demande d
+//            JOIN d.preparation p
+//            WHERE d.Statut <> :statut AND p = :preparation"
+//        )->setParameter('preparation', $preparation)
+//        ->setParameter('statut', $statut);
+//        ;
+//        return $query->execute();
+//    }
     
     // /**
     //  * @return Demande[] Returns an array of Demande objects

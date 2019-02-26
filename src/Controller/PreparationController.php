@@ -215,28 +215,6 @@ class PreparationController extends AbstractController
      */
     public function show(Preparation $preparation, ArticleRepository $articleRepository) : Response
     {
-        // modelise l'action de prendre l'article dan sle stock pour constituer la preparation  
-        if (array_key_exists('fin', $_POST)) 
-        {
-            $article = $articleRepository->find($_POST['fin']);
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_EN_COURS);
-            $article->setStatut($statut);
-            $this->getDoctrine()->getManager()->flush();
-            
-            // Meme principe que pour collecte_show =>comptage des article selon un statut et une preparation si nul alors preparation fini
-            $demande = $this->demandeRepository->find(array_keys($_POST['fin']));
-            $finDemande = $articleRepository->findCountByStatutAndDemande($demande);
-            $fin = $finDemande[0];
-
-            if ($fin[1] === '0') 
-            {
-                $statut = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_EN_COURS);
-                $demande->setStatut($statut);
-                $statut = $this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_EN_COURS);
-                $preparation->setStatut($statut);
-            }
-            $this->getDoctrine()->getManager()->flush();
-        }
         return $this->render('preparation/show.html.twig', ['preparation' => $preparation]);
     }
 

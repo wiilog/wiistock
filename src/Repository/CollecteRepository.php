@@ -19,17 +19,17 @@ class CollecteRepository extends ServiceEntityRepository
         parent::__construct($registry, Collecte::class);
     }
 
-    public function findByNoStatut($statut)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT c
-            FROM App\Entity\Collecte c
-            WHERE c.Statut <> :Statut"
-        )->setParameter('Statut', $statut);
-        ;
-        return $query->execute();
-    }
+//    public function findByNoStatut($statut)
+//    {
+//        $entityManager = $this->getEntityManager();
+//        $query = $entityManager->createQuery(
+//            "SELECT c
+//            FROM App\Entity\Collecte c
+//            WHERE c.Statut <> :Statut"
+//        )->setParameter('Statut', $statut);
+//        ;
+//        return $query->execute();
+//    }
 
     // /**
     //  * @return Collecte[] Returns an array of Collecte objects

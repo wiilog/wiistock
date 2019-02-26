@@ -28,8 +28,8 @@ class AlerteRepository extends ServiceEntityRepository
             FROM App\Entity\Alerte a
             WHERE a.SeuilAtteint = TRUE "
         );
-        ;
-        return $query->execute(); 
+
+        return $query->getSingleScalarResult();
     }
 
 }

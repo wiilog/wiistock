@@ -19,32 +19,32 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         parent::__construct($registry, ReferenceArticle::class);
     }
 
-    // récupération de ID REfERENCE QUANTITE pour la preparation des commandes 
-    public function findRefArtByQte()
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT r.id, r.quantiteDisponible, r.reference, r.libelle 
-            FROM App\Entity\ReferenceArticle r
-            WHERE r.quantiteDisponible <> 0 "
-        )
-        ;
-        return $query->execute(); 
-    }
+//    // récupération de ID REfERENCE QUANTITE pour la preparation des commandes
+//    public function findRefArtByQte()
+//    {
+//        $entityManager = $this->getEntityManager();
+//        $query = $entityManager->createQuery(
+//            "SELECT r.id, r.quantiteDisponible, r.reference, r.libelle
+//            FROM App\Entity\ReferenceArticle r
+//            WHERE r.quantiteDisponible <> 0 "
+//        )
+//        ;
+//        return $query->execute();
+//    }
 
-    public function findQteBy()
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT r.id, r.quantity 
-            FROM App\Entity\ReferenceArticle r
-           "
-        )
-        ;
-        return $query->execute(); 
-    }
+//    public function findQteBy()
+//    {
+//        $entityManager = $this->getEntityManager();
+//        $query = $entityManager->createQuery(
+//            "SELECT r.id, r.quantity
+//            FROM App\Entity\ReferenceArticle r
+//           "
+//        )
+//        ;
+//        return $query->execute();
+//    }
 
-    public function findRefArticleGetIdLibelle()
+    public function getIdAndLibelle()
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(

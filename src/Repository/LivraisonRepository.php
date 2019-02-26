@@ -19,29 +19,29 @@ class LivraisonRepository extends ServiceEntityRepository
         parent::__construct($registry, Livraison::class);
     }
 
-    public function findByEptAndAttente($destination)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT l
-            FROM App\Entity\Livraison l
-            WHERE l.destination = :destination AND l.Statut ='en attente'"
-        )->setParameter('destination', $destination);
-        ;
-        return $query->execute(); 
-    }
+//    public function findByEptAndAttente($destination)
+//    {
+//        $entityManager = $this->getEntityManager();
+//        $query = $entityManager->createQuery(
+//            "SELECT l
+//            FROM App\Entity\Livraison l
+//            WHERE l.destination = :destination AND l.Statut ='en attente'"
+//        )->setParameter('destination', $destination);
+//        ;
+//        return $query->execute();
+//    }
 
-    public function findByNoStatut($statut)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT l
-            FROM App\Entity\Livraison l
-            WHERE l.Statut <> :Statut"
-        )->setParameter('Statut', $statut);
-        ;
-        return $query->execute(); 
-    }
+//    public function findByNoStatut($statut)
+//    {
+//        $entityManager = $this->getEntityManager();
+//        $query = $entityManager->createQuery(
+//            "SELECT l
+//            FROM App\Entity\Livraison l
+//            WHERE l.Statut <> :Statut"
+//        )->setParameter('Statut', $statut);
+//        ;
+//        return $query->execute();
+//    }
     // /**
     //  * @return Livraison[] Returns an array of Livraison objects
     //  */

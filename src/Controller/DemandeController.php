@@ -214,9 +214,9 @@ class DemandeController extends AbstractController
     public function index(Request $request): Response
     {
         return $this->render('demande/index.html.twig', [
-            'utilisateurs' => $this->utilisateurRepository->findUserGetIdUser(),
+            'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
             'statuts' => $this->statutRepository->findByCategorieName(Demande::CATEGORIE),
-            'emplacements' => $this->emplacementRepository->findLocGetIdName()
+            'emplacements' => $this->emplacementRepository->getIdAndNom()
         ]);
     }
 
@@ -229,9 +229,9 @@ class DemandeController extends AbstractController
     {
         return $this->render('demande/show.html.twig', [
             'demande' => $demande,
-            'utilisateurs' => $this->utilisateurRepository->findUserGetIdUser(),
+            'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
             'statuts' => $this->statutRepository->findByCategorieName(Demande::CATEGORIE),
-            'references' => $this->referenceArticleRepository->findRefArticleGetIdLibelle()
+            'references' => $this->referenceArticleRepository->getIdAndLibelle()
         ]);
     }
 
