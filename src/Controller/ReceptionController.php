@@ -59,13 +59,18 @@ class ReceptionController extends AbstractController
      * @var ReceptionRepository
      */
     private $receptionRepository;
-    
+
+    /**
+     * @var ArticleRepository
+     */
+    private $articleRepository;
+
     /**
      * @var FournisseurRepository
      */
     private $fournisseurRepository;
 
-    public function __construct(FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository)
+    public function __construct(FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, ArticleRepository $articleRepository)
     {
         $this->statutRepository = $statutRepository;
         $this->emplacementRepository = $emplacementRepository;
@@ -73,6 +78,7 @@ class ReceptionController extends AbstractController
         $this->utilisateurRepository = $utilisateurRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->fournisseurRepository = $fournisseurRepository;
+        $this->articleRepository = $articleRepository;
     }
 
 
@@ -309,7 +315,7 @@ class ReceptionController extends AbstractController
         //fin de reception/mise en stock des article
         // k sert à vérifier et identifier la fin de la reception, en suite on modifie les "setStatut" des variables 
         if ($finishReception) {
-            $articles = $this->articlesRepository->findByReception($id);
+            $articles = $this->articleRepository->findByReception($id);
             // modification du statut
             foreach ($articles as $article) 
             {
@@ -332,7 +338,7 @@ class ReceptionController extends AbstractController
             foreach ($refArticles as $refArticle)
             {
                 // requete Count en SQL dédié
-                $quantityRef = $this->articlesRepository->findCountByRefArticle($refArticle);
+                $quantityRef = $this->articleRepository->findCountByRefArticle($refArticle);
                 $quantity = $quantityRef[0];
                 $refArticle->setQuantiteDisponible($quantity[1]);
             }

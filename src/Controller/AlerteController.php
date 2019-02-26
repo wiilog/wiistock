@@ -28,12 +28,12 @@ class AlerteController extends AbstractController
     /**
      * @var ArticleRepository
      */
-    private $articlesRepository;
+    private $articleRepository;
 
-    public function __construct(AlerteRepository $alerteRepository, ArticleRepository $articlesRepository)
+    public function __construct(AlerteRepository $alerteRepository, ArticleRepository $articleRepository)
     {
         $this->alerteRepository = $alerteRepository;
-        $this->articlesRepository = $articlesRepository;
+        $this->articleRepository = $articleRepository;
     }
 
     

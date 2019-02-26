@@ -3,8 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Demande;
-use App\Entity\Articles;
-use App\Entity\ReferencesArticles;
+use App\Entity\Livraison;
 use App\Entity\LigneArticle;
 use App\Entity\Preparation;
 
@@ -14,7 +13,6 @@ use App\Repository\DemandeRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\StatutRepository;
-use App\Repository\ArticleRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\UtilisateurRepository;
 
@@ -185,7 +183,7 @@ class DemandeController extends AbstractController
     /**
      * @Route("/creationDemande", name="creation_demande", methods="GET|POST")
      */
-    public function creationDemande(Request $request, ArticleRepository $articlesRepository): Response
+    public function creationDemande(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $em = $this->getDoctrine()->getManager();
@@ -260,17 +258,17 @@ class DemandeController extends AbstractController
     public function demandeApi(Request $request, DemandeRepository $demandeRepository): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if ($request->request->get('utilisateur')) {
-                $utilistaeur = $request->request->get('utilisateur');
-                $statut = $request->request->get('statut');
-                $dateDebut = $request->request->get('dateDebut');
-                $dateFin = $request->request->get('dateFin');
+//            if ($request->request->get('utilisateur')) {
+//                $utilistaeur = $request->request->get('utilisateur');
+//                $statut = $request->request->get('statut');
+//                $dateDebut = $request->request->get('dateDebut');
+//                $dateFin = $request->request->get('dateFin');
+//
+//                $demandes = $demandeRepository->findAll(); // a modifier pour filtre
 
-                $demandes = $demandeRepository->findAll(); // a modifier pour filtre
-
-            } else {
-                $demandes = $demandeRepository->findAllByUserAndStatut($this->getUser());
-            }
+//            } else {
+                $demandes = $demandeRepository->findByUserAndNotStatus($this->getUser(), Livraison::STATUT_TERMINE);
+//            }
             $rows = [];
             foreach ($demandes as $demande) {
                 $url['show'] = $this->generateUrl('demande_show', ['id' => $demande->getId()]);

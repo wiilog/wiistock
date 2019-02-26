@@ -27,20 +27,20 @@ class DemandeRepository extends ServiceEntityRepository
             FROM App\Entity\Demande d
             WHERE d.Statut = :Statut "
         )->setParameter('Statut', $Statut);
-        ;
+
         return $query->execute(); 
     }
 
-    //demande index
-    public function findAllByUserAndStatut($user)
+    public function findByUserAndNotStatus($user, $status)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT d
             FROM App\Entity\Demande d
-            WHERE d.Statut <> 9 AND d.utilisateur = :user"
-        )->setParameter('user', $user);
-        ;
+            JOIN d.Statut s
+            WHERE s.nom <> :status AND d.utilisateur = :user"
+        )->setParameters(['user' => $user, 'status' => $status]);
+
         return $query->execute(); 
     }
 

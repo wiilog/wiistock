@@ -188,7 +188,7 @@ class PreparationController extends AbstractController
     /**
      * @Route("/new", name="preparation_new", methods="GET|POST")
      */
-    public function new(Request $request, ArticleRepository $articlesRepository) : Response
+    public function new(Request $request) : Response
     {
         $preparation = new Preparation();
         $form = $this->createForm(PreparationType::class, $preparation);
@@ -213,19 +213,19 @@ class PreparationController extends AbstractController
     /**
      * @Route("/{id}", name="preparation_show", methods="GET|POST")
      */
-    public function show(Preparation $preparation, ArticleRepository $articlesRepository) : Response
+    public function show(Preparation $preparation, ArticleRepository $articleRepository) : Response
     {
         // modelise l'action de prendre l'article dan sle stock pour constituer la preparation  
         if (array_key_exists('fin', $_POST)) 
         {
-            $article = $articlesRepository->find($_POST['fin']);
+            $article = $articleRepository->find($_POST['fin']);
             $statut = $this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_EN_COURS);
             $article->setStatut($statut);
             $this->getDoctrine()->getManager()->flush();
             
             // Meme principe que pour collecte_show =>comptage des article selon un statut et une preparation si nul alors preparation fini
             $demande = $this->demandeRepository->find(array_keys($_POST['fin']));
-            $finDemande = $articlesRepository->findCountByStatutAndDemande($demande);
+            $finDemande = $articleRepository->findCountByStatutAndDemande($demande);
             $fin = $finDemande[0];
 
             if ($fin[1] === '0') 
