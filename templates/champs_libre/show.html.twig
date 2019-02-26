@@ -1,0 +1,26 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}ChampsLibre{% endblock %}
+
+{% block body %}
+    <h1>ChampsLibre</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ champs_libre.id }}</td>
+            </tr>
+            <tr>
+                <th>Label</th>
+                <td>{{ champs_libre.label }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('champs_libre_index') }}">back to list</a>
+
+    <a href="{{ path('champs_libre_edit', {'id': champs_libre.id}) }}">edit</a>
+
+    {{ include('champs_libre/_delete_form.html.twig') }}
+{% endblock %}

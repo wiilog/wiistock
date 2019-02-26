@@ -1,0 +1,11 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}New ChampsLibre{% endblock %}
+
+{% block body %}
+    <h1>Create new ChampsLibre</h1>
+
+    {{ include('champs_libre/_form.html.twig') }}
+
+    <a href="{{ path('champs_libre_index') }}">back to list</a>
+{% endblock %}
