@@ -37,31 +37,30 @@
 {% endblock %}
 
 {% block javascript %}
+<script src="{{asset('js/reception.js')}}"></script>
 <script>
-    var table = $('#table_id').DataTable({
-        order: [[ 1, "desc" ]],
-        language: {
-            "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
-        },
-        ajax:{ 
-            "url":"{{path('reception_api')}}",
-            "type": "POST"
-        },
-        columns: [
-            { "data": 'Statut' },
-            { "data": 'Date commande' },
-            { "data": 'Date attendue' },
-            { "data": 'Fournisseur' },
-            { "data": 'Référence' },
-            { "data": 'Actions' }
-        ],
-    });
-
+   
+        var table = $('#table_id').DataTable({
+            order: [[ 1, "desc" ]],
+            language: {
+                "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
+            },
+            ajax:{ 
+                "url":"{{path('reception_api')}}",
+                "type": "POST"
+            },
+            columns: [
+                { "data": 'Statut' },
+                { "data": 'Date commande' },
+                { "data": 'Date attendue' },
+                { "data": 'Fournisseur' },
+                { "data": 'Référence' },
+                { "data": 'Actions' }
+            ],
+        });
    
 
-    var dataModal = document.getElementById("dataModalCenter");
-    var ButtonSubmit = document.getElementById("submitButton");
-    InitialiserModal(dataModal, ButtonSubmit, "{{ path('createReception') }}");
+  
 
 </script>
 {% endblock %}

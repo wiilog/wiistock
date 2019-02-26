@@ -23,7 +23,6 @@ use App\Repository\UtilisateurRepository;
 use App\Entity\ReferenceArticle;
 use App\Form\ReferenceArticleType;
 use App\Repository\ReferenceArticleRepository;
-
 use App\Repository\StatutRepository;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -76,7 +75,7 @@ class ReceptionController extends AbstractController
 
 
     /**
-     * @Route("/creationReception", name="createReception", methods="POST")
+     * @Route("/creationReception", name="createReception",options={"expose"=true}, methods="POST")
      */
     public function createReception(Request $request) : Response
     {
@@ -85,8 +84,8 @@ class ReceptionController extends AbstractController
             if (count($data) != 5)// On regarde si le nombre de données reçu est conforme et on envoi dans la base
             {
                 $em = $this->getDoctrine()->getManager();
-                $fournisseur = $this->fournisseursRepository->find(intval($data['fournisseur']));
-                $utilisateur = $this->utilisateursRepository->find(intval($data['utilisateur']));
+                $fournisseur = $this->fournisseurRepository->find(intval($data['fournisseur']));
+                $utilisateur = $this->utilisateurRepository->find(intval($data['utilisateur']));
 
                 $reception = new Reception();
                 $statut = $this->statutRepository->find(1); //a modifier
@@ -122,8 +121,8 @@ class ReceptionController extends AbstractController
         {
             if (count($data) != 5)// On regarde si le nombre de données reçu est conforme et on envoi dans la base
             {
-                $fournisseur = $fournisseursRepository->find(intval($data['fournisseur']));
-                $utilisateur = $this->utilisateursRepository->find(intval($data['utilisateur']));
+                $fournisseur = $fournisseurRepository->find(intval($data['fournisseur']));
+                $utilisateur = $this->utilisateurRepository->find(intval($data['utilisateur']));
 
                 $reception = new Reception();
                 $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_RECEPTION_EN_COURS);
@@ -303,16 +302,16 @@ class ReceptionController extends AbstractController
     }
 
     /**
-     * @Route("/addArticle", name="receptions_addArticle", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/addArticle", name="reception_addArticle", options={"expose"=true}, methods={"GET", "POST"})
      */
     public function addArticle(Request $request) : Response
     {
         if (!$request->isXmlHttpRequest() &&  $contentData =json_decode($request->getContent(),true) ) //Si la requête est de type Xml
         {
-            $refArticle = $this->referencesArticlesRepository->find($contentData['refArticle']);
-            $reception = $this->receptionsRepository->find($contentData['reception']);
+            $refArticle = $this->referenceArticleRepository->find($contentData['refArticle']);
+            $reception = $this->receptionRepository->find($contentData['reception']);
             
-            $article = new Articles();
+            $article = new Article();
             $article
                 ->setRefArticle($refArticle)
                 ->setNom($contentData['libelle'])
@@ -329,26 +328,28 @@ class ReceptionController extends AbstractController
                 'Libellé'=>( $article->getNom() ?  $article->getNom():""),
                 'référence'=> ($article->getReference()? $artivle->getReference(): ""),
                 'Références Articles'=> ($article->getRefArticle() ? $article->getRefArticle()->getLibelle() : ""),
-                'Quantité à collecter'=>($article->getQuantite() ? $article->getQuantite() : ""),
+                'Quantité à recevoir'=>($article->getQuantiteARecevoir() ? $article->getQuantiteARecevoir() : ""),
+                'Quantité à reçue'=>($article->getQuantite() ? $article->getQuantite() : ""),
                 'Actions'=> "<div class='btn btn-xs btn-default article-edit' onclick='editRow($(this))' data-toggle='modal' data-target='#modalModifyArticle' data-quantity='" . $article->getQuantiteCollectee(). "' data-name='" . $article->getNom() . "' data-id='" . $article->getId() . "'><i class='fas fa-pencil-alt fa-2x'></i></div>
                     <div class='btn btn-xs btn-default article-delete' onclick='deleteRow($(this))' data-id='" . $article->getId() . "'><i class='fas fa-trash fa-2x'></i></div>"
             ];
-            dump(json_encode($rows));
-            $data = [$rows];
-            return new JsonResponse($data);
+            dump($rows);
+            return new JsonResponse($rows);
         }
         throw new NotFoundHttpException("404");
-    
-        dump("poue bamako");
-
     }
 
+
+    /**
+     * @Route("/article/{id}/{finishReception}", name="reception_ajout_article", methods={"GET", "POST"})
+     */
     public function ajoutArticle(Request $request, Reception $reception, $id, $finishReception): Response
     {
+       
         //fin de reception/mise en stock des article
         // k sert à vérifier et identifier la fin de la reception, en suite on modifie les "setStatut" des variables 
         if ($finishReception) {
-            $articles = $this->articlesRepository->findByReception($id);
+            $articles = $this->articleRepository->findByReception($id);
             // modification du statut
             foreach ($articles as $article) 
             {
@@ -371,7 +372,7 @@ class ReceptionController extends AbstractController
             foreach ($refArticles as $refArticle)
             {
                 // requete Count en SQL dédié
-                $quantityRef = $this->articlesRepository->findCountByRefArticle($refArticle);
+                $quantityRef = $this->articleRepository->findCountByRefArticle($refArticle);
                 $quantity = $quantityRef[0];
                 $refArticle->setQuantiteDisponible($quantity[1]);
             }
@@ -381,10 +382,12 @@ class ReceptionController extends AbstractController
         return $this->render("reception/ajoutArticle.html.twig", [
             'reception' => $reception,
             'refArticle'=> $this->referenceArticleRepository->findAll(),
-            'fournisseurs' => $this->fournisseursRepository->findAll(),
             'id' => $id,
+            'fournisseurs' => $this->fournisseurRepository->findAll(),
         ]);
     }
+
+
 }
 
 

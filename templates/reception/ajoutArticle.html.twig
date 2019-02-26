@@ -7,7 +7,7 @@
 
 <div class="row">
     <div class='col-4'>
-        <a href="{{ path('receptions_addArticle')}}">azdf</a>
+        <a href="{{ path('reception_addArticle')}}">azdf</a>
         <p><strong>Statut:</strong> {{ reception.statut.nom }}</p>
         <p><strong>Numéro de référence:</strong> {{ reception.numeroReception }}</p>
         <p><strong>Fournisseur:</strong> {{ reception.fournisseur.nom }}</p>
@@ -20,9 +20,8 @@
     </div>
     <div class="col-4">
         <div class='btn'>
-            {{ include('receptions/_delete_form.html.twig') }}
-            <a href="{{ path('receptions_edit', {'id': reception.id}) }}"
-                class='button pull-right btn-left'>Modifier</a>
+            {{ include('reception/_delete_form.html.twig') }}
+            <a href="{{ path('reception_edit', {'id': reception.id}) }}" class='button pull-right btn-left'>Modifier</a>
             <a href="" data-toggle="modal" data-target="#addArticleModal" class="button btn-left">
                 <span class="fa fa-plus"></span>ajouter un article
             </a>
@@ -35,20 +34,21 @@
         <tr>
             <th>Libellé</th>
             <th>Référence</th>
+            <th>Références Articles</th>
             <th>Quantité à recevoir</th>
             <th>Quantité reçue</th>
-            <th>État</th>
             <th>Actions</th>
         </tr>
     </thead>
     <tbody>
+        <!-- {{ dump(reception.articles) }} -->
         {% for article in reception.articles %}
         <tr>
             <td>{{ article.nom }}</td>
             <td>{{ article.reference }}</td>
+            <td>{{ article.refArticle.libelle }}</td>
             <td>{{ article.quantiteARecevoir }}</td>
             <td>{{ article.quantite }}</td>
-            <td>{{ article.etat ? 'conforme': 'non-conforme' }}</td>
             <td>
                 <a href="{{ path('article_edit', {'id': article.id}) }}" class="btn btn-xs btn-default command-edit"><i
                         class="fas fa-pencil-alt fa-2x"></i></a>
@@ -59,7 +59,8 @@
     </tbody>
 </table>
 <div class="container-fluid">
-    <a class="btn offset-5 col-2 button btn-right" href={{ path('reception_ajout_article', {'id': id, 'finishReception': true}) }}>Fin
+    <a class="btn offset-5 col-2 button btn-right"
+        href={{ path('reception_ajout_article', {'id': id, 'finishReception': true}) }}>Fin
         réception</a>
 </div>
 
@@ -67,8 +68,5 @@
 
 {% endblock %}
 {% block javascript %}
-
-
-
-<script src="{{asset('js/reception.js')}}"></script>
+    <script src="{{asset('js/reception.js')}}"></script>
 {% endblock javascript %}

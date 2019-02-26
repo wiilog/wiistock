@@ -3,8 +3,6 @@ $(document).ready(function () {
 });
 
 
-<<<<<<< HEAD
-=======
 // //Fonction de traitement des donnees post ajax pour un tableau
 // function traitementDataArticle(reponse, id_table) {
 //     $(id_table).children().remove();
@@ -85,7 +83,6 @@ $(document).ready(function () {
 // }
 
 
->>>>>>> dev
 /**
  * Initialise une fenêtre modale
  * 
@@ -95,20 +92,18 @@ $(document).ready(function () {
  * 
  */
 function InitialiserModal(modal, submit, path) {
-    submit.click(function () 
+    submit.click( function () 
     {
-        console.log(submit);
         xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function () 
         {
             if (this.readyState == 4 && this.status == 200)
             {
-                data = JSON.parse(this.responseText);
-                console.log(data);
                 table.ajax.reload(function( json ) 
                 {
+                    data = JSON.parse(this.responseText);
+                    console.log('hello');   
                     $('#myInput').val( json.lastInput );
-                    
                     if(data.redirect)
                     {
                         window.location.href = data.redirect;
@@ -126,8 +121,6 @@ function InitialiserModal(modal, submit, path) {
         
         Json = [];
         Json.push( JSON.stringify(Data)); // On transforme les données en JSON
-        console.log( JSON.stringify(Data));
-        console.log(Data);
         xhttp.open("POST", path, true);
         xhttp.send(Json);
     });

@@ -104,13 +104,13 @@ class DemandeController extends AbstractController
             if (count($data) >= 2) {
 
                 $em = $this->getDoctrine()->getEntityManager();
-                $referenceArticle = $this->referenceArticleRepository->find($data[0]["reference"]);
+                $referenceArticle = $this->referenceArticleRepository->find($data["reference"]);
 
                 $LigneArticle = new LigneArticle();
-                $LigneArticle->setQuantite($data[1]["quantite"])
+                $LigneArticle->setQuantite($data["quantite"])
                              ->setReference($referenceArticle);
 
-                $quantiteReservee = intval($data[1]["quantite"]);
+                $quantiteReservee = intval($data["quantite"]);
                 $quantiteArticleReservee = $referenceArticle->getQuantiteReservee();
                 $referenceArticle->setQuantiteReservee($quantiteReservee + $quantiteArticleReservee);
 
@@ -166,11 +166,11 @@ class DemandeController extends AbstractController
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (count($data) >= 3) {
                 $em = $this->getDoctrine()->getEntityManager();
-                $utilisateur = $this->utilisateurRepository->find(intval($data[0]["demandeur"]));
-                $statut = $this->statutRepository->find($data[2]["statut"]);
+                $utilisateur = $this->utilisateurRepository->find(intval($data["demandeur"]));
+                $statut = $this->statutRepository->find($data["statut"]);
                 $demande
                     ->setUtilisateur($utilisateur)
-                    ->setDateAttendu(new \Datetime($data[1]["date-attendu"]))
+                    ->setDateAttendu(new \Datetime($data["date-attendu"]))
                     ->setStatut($statut);
                 $em->persist($demande);
                 $em->flush();
@@ -189,11 +189,10 @@ class DemandeController extends AbstractController
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $em = $this->getDoctrine()->getManager();
-            $userId = $data[0];
-            $utilisateur = $this->utilisateurRepository->find($userId["demandeur"]);
+            $utilisateur = $this->utilisateurRepository->find($data["demandeur"]);
             $date = new \DateTime('now');
             $statut = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
-            $destination = $this->emplacementRepository->find($data[1]["destination"]);
+            $destination = $this->emplacementRepository->find($data["destination"]);
 
             $demande = new Demande();
             $demande
