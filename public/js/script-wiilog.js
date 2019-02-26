@@ -14,12 +14,14 @@ $(document).ready(function () {
 function InitialiserModal(modal, submit, path) {
     submit.click(function () 
     {
+        console.log(submit);
         xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function () 
         {
             if (this.readyState == 4 && this.status == 200)
             {
                 data = JSON.parse(this.responseText);
+                console.log(data);
                 table.ajax.reload(function( json ) 
                 {
                     $('#myInput').val( json.lastInput );
@@ -31,18 +33,18 @@ function InitialiserModal(modal, submit, path) {
                 });
             }      
         };
-
+        
         let inputs = modal.find(".data"); // On récupère toutes les données qui nous intéresse avec le querySelectorAll
-        let Data = []; // Tableau de données
+        let Data = {} ; // Tableau de données
 
         inputs.each(function() {
-            Data.push({
-                [$(this).attr("name")]: $(this).val()
-            }); 
+           Data[$(this).attr("name")] = $(this).val();
         });
+        
+        Json = [];
+        Json.push( JSON.stringify(Data)); // On transforme les données en JSON
+        console.log( JSON.stringify(Data));
         console.log(Data);
-
-        Json = JSON.stringify(Data); // On transforme les données en JSON
         xhttp.open("POST", path, true);
         xhttp.send(Json);
     });

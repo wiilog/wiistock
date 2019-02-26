@@ -1,6 +1,6 @@
 <form method="" class="modal fade" id="addArticleModal" role="dialog" aria-labelledby="dataModalCenterTitle"
     aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="exampleModalLongTitle">Ajouter une ligne</h5>
@@ -8,47 +8,12 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body modal-input container-fluid">
-                <div class="form-group col-12">
+            <div class="modal-body modal-input container-fluid row">
+                <div class="form-group col-6">
                     <div class="input-group">
-                        <div class="input-group-prepend">
-                            <label class="input-group-text" for="inputGroupSelect01">Nom</label>
-                        </div>
-                        <input class="form-control" type="text" name="nom" id="nom">
-                    </div>
-                </div>
-                <div class="form-group col-12">
-                    <div class="input-group">
-                        <div class="input-group-prepend">
-                            <label for="" class="input-group-text">Quantité à recevoir</label>
-                        </div>
-                        <input type="number" class="form-control" name="" id="quantiteARecevoir" min=0>
-                    </div>
-                </div>
-                <div class="form-group col-12">
-                    <div class="input-group">
-                        <div class="input-group-prepend">
-                            <label for="" class="input-group-text">Quantité reçue</label>
-                        </div>
-                        <input type="number" class="form-control" name="" id="quantite" min=0>
-                    </div>
-                </div>
-                <div class="form-group col-12">
-                    <div class="input-group">
-                        <div class="input-group-prepend">
-                            <label class="input-group-text" for="inputGroupSelect01">Statut</label>
-                        </div>
-                        <select class="custom-select" id="statut">
-                            <option value='1'>En cours de réception</option>
-                            <option value='0'>Anomalie</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-group col-12">
-                    <div class="input-group">
-                        <div class="input-group-prepend col">
-                            <label class="input-group-text" for="inputGroupSelect01">Article de référence</label>
-                            <select class='form-control select2' id="refArticle" type="text">
+                        <div class="input-group-prepend col-12 ">
+                            <label class="input-group-text data" for="inputGroupSelect01">Référence CEA</label>
+                            <select class='form-control select2 data' id="refArticle" name='refArticle' type="text">
                                 {% for article in refArticle %}
                                 <option value="{{ article.id }}">
                                     {{ article.libelle }}
@@ -58,18 +23,53 @@
                         </div>
                     </div>
                 </div>
-                <div class="input-group my-2 mb-4">
+                <div class="form-group col-6">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <label class="input-group-text" for="inputGroupSelect01">Libellé</label>
+                        </div>
+                        <input class="form-control data" type="text" name="libelle" id="libelle">
+                    </div>
+                </div>
+                <div class="form-group col-6">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <label for="" class="input-group-text">Quantité à recevoir</label>
+                        </div>
+                        <input type="number" class="form-control data" name="quantiteARecevoir" id="quantiteARecevoir"
+                            min=0>
+                    </div>
+                </div>
+                <div class="form-group col-6">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <label for="" class="input-group-text">Quantité reçue</label>
+                        </div>
+                        <input type="number" class="form-control data" name="quantite" id="quantite" min=0>
+                    </div>
+                </div>
+                <div class="form-group col-6">
+                    <div class="input-group">
+                        <div class="custom-control custom-switch">
+                            <input type="checkbox" class="custom-control-input data" name='etat' id="etat" checked>
+                            <label class="custom-control-label" for="customSwitch1">Aucune anomalie</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="input-group col-12 my-2 mb-4">
                     <div class="input-group-prepend">
                         <span class="input-group-text">Commentaire</span>
                     </div>
-                    <textarea class="form-control" id='commentaire'></textarea>
+                    <textarea class="form-control data" name="commentaire" id='commentaire'></textarea>
                 </div>
             </div>
 
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
-                <button id="submitModif" type="button" data-dismiss="modal"
-                    class="btn btn-primary btn-success" id='addArticle'>Enregistrer</button>
+                <button id="addArticleSubmit" type="button" data-dismiss="modal"
+                    class="btn btn-primary btn-success data" name="reception"
+                    value="{{reception.id}}">Enregistrer</button>
             </div>
 
 </form>
