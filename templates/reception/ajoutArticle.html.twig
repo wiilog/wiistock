@@ -7,6 +7,7 @@
 
 <div class="row">
     <div class='col-4'>
+        <a href="{{ path('reception_addArticle')}}">azdf</a>
         <p><strong>Statut:</strong> {{ reception.statut.nom }}</p>
         <p><strong>Numéro de référence:</strong> {{ reception.numeroReception }}</p>
         <p><strong>Fournisseur:</strong> {{ reception.fournisseur.nom }}</p>
@@ -14,36 +15,40 @@
     <div class="col-4">
         <p><strong>Date commande:</strong> {{ reception.date ? reception.date| date('d/m/Y') : ' ' }}</p>
         <p><strong>Date attendue:</strong> {{ reception.dateAttendu ? reception.dateAttendu | date('d/m/Y') : ' ' }}</p>
-        <p><strong>Date réception:</strong> {{ reception.dateReception ? reception.dateReception | date('d/m/Y') : ' ' }}</p>
+        <p><strong>Date réception:</strong>
+            {{ reception.dateReception ? reception.dateReception | date('d/m/Y') : ' ' }}</p>
     </div>
     <div class="col-4">
-        <p><strong>Commentaire:</strong> {{ reception.commentaire }}</p>
-        {{ include('reception/_delete_form.html.twig') }}
-        <a href="{{ path('reception_edit', {'id': reception.id}) }}" class='button pull-right btn-left'>Modifier</a>
+        <div class='btn'>
+            {{ include('reception/_delete_form.html.twig') }}
+            <a href="{{ path('reception_edit', {'id': reception.id}) }}" class='button pull-right btn-left'>Modifier</a>
+            <a href="" data-toggle="modal" data-target="#addArticleModal" class="button btn-left">
+                <span class="fa fa-plus"></span>ajouter un article
+            </a>
+        </div>
     </div>
+    <p><strong>Commentaire:</strong> {{ reception.commentaire }}</p>
 </div>
-<table id="result" class="table  table-striped">
-
+<table id="tableArticle_id" class="table table-striped table-bordered" style="width:100%">
     <thead>
         <tr>
-            <th>Id</th>
-            <th>Nom</th>
-            <th>Statut</th>
+            <th>Libellé</th>
+            <th>Référence</th>
+            <th>Références Articles</th>
             <th>Quantité à recevoir</th>
             <th>Quantité reçue</th>
-            <!-- <th>État</th> -->
             <th>Actions</th>
         </tr>
     </thead>
     <tbody>
+        <!-- {{ dump(reception.articles) }} -->
         {% for article in reception.articles %}
         <tr>
-            <td>{{ article.id }}</td>
             <td>{{ article.nom }}</td>
-            <!-- <td> article.statut.nom </td> -->
+            <td>{{ article.reference }}</td>
+            <td>{{ article.refArticle.libelle }}</td>
             <td>{{ article.quantiteARecevoir }}</td>
             <td>{{ article.quantite }}</td>
-            <!-- <td>{{ article.etat ? 'conforme': 'non-conforme' }}</td> -->
             <td>
                 <a href="{{ path('article_edit', {'id': article.id}) }}" class="btn btn-xs btn-default command-edit"><i
                         class="fas fa-pencil-alt fa-2x"></i></a>
@@ -54,136 +59,14 @@
     </tbody>
 </table>
 <div class="container-fluid">
-    <form class='row' autocomplete="off">
-        <div class="form-group col-12">
-            <div class="input-group">
-                <div class="input-group-prepend">
-                    <label class="input-group-text" for="inputGroupSelect01">Nom</label>
-                </div>
-                <input class="form-control" type="text" name="nom" id="nom">
-            </div>
-        </div>
-        <div class="form-group col-4">
-            <div class="input-group">
-                <div class="input-group-prepend">
-                    <label for="" class="input-group-text">Quantité à recevoir</label>
-                </div>
-                <input type="number" class="form-control" name="" id="quantiteARecevoir" min=0>
-            </div>
-        </div>
-        <div class="form-group col-4">
-            <div class="input-group">
-                <div class="input-group-prepend">
-                    <label for="" class="input-group-text">Quantité reçue</label>
-                </div>
-                <input type="number" class="form-control" name="" id="quantite" min=0>
-            </div>
-        </div>
-        <div class="form-group col-6">
-            <div class="input-group">
-                <div class="input-group-prepend">
-                    <label class="input-group-text" for="inputGroupSelect01">Statut</label>
-                </div>
-                <select class="custom-select" id="statut">
-                    <option value='1'>En cours de réception</option>
-                    <option value='0'>Anomalie</option>
-                </select>
-            </div>
-        </div>
-        <div class="form-group col-6">
-            <div class="input-group">
-                <div class="input-group-prepend col-12">
-                    <label class="input-group-text" for="inputGroupSelect01">Article de référence</label>
-                    <select class='form-control select2' id="refArticle" type="text">
-                        {% for article in refArticle %}
-                        <option value="{{ article.id }}">
-                            {{ article.libelle }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-            </div>
-        </div>
-        <div class="input-group my-2 mb-4">
-            <div class="input-group-prepend">
-                <span class="input-group-text">Commentaire</span>
-            </div>
-            <textarea class="form-control" id='commentaire'></textarea>
-        </div>
-
-        <input type="button" value="Créer" class=" col-2 btn button btn-right" onclick="recupData()">
-        <a class="btn offset-5 col-2 button btn-right"
-            href={{ path('reception_ajout_article', {'id': id, 'k': true}) }}>Fin
-            réception</a>
-    </form>
+    <a class="btn offset-5 col-2 button btn-right"
+        href={{ path('reception_ajout_article', {'id': id, 'finishReception': true}) }}>Fin
+        réception</a>
 </div>
-<script>
-    //AJAX envoie de données pour la création d'un article + ajout dans un tableau
-    function recupData() {
-        //déclaration de la requete AJAX
-        var xmlhttp = new XMLHttpRequest()
-        //action pour la réponse
-        xmlhttp.onreadystatechange = function () {
-            if (this.readyState == 4 && this.status == 200) {
 
-
-                //conversion de la reponse JSON en tableau js
-                let tabAlfa = JSON.parse(JSON.parse(this.responseText))
-                var refTable = document.getElementById('result');
-                console.log(tabAlfa);
-                var rowCount = refTable.rows.length;
-                // Insère d'une ligne  dans la table avec un indice dynamique + création de la ligne 
-                var nouvelleLigne = refTable.insertRow(rowCount);
-                var nouvelleCellule = nouvelleLigne.insertCell();
-                var nouveauTexte = document.createTextNode(tabAlfa.id)
-                nouvelleCellule.appendChild(nouveauTexte)
-                var nouvelleCellule = nouvelleLigne.insertCell(1);
-                var nouveauTexte = document.createTextNode(tabAlfa.nom)
-                nouvelleCellule.appendChild(nouveauTexte)
-                var nouvelleCellule = nouvelleLigne.insertCell(2);
-                var nouveauTexte = document.createTextNode(tabAlfa.statut)
-                nouvelleCellule.appendChild(nouveauTexte)
-                var nouvelleCellule = nouvelleLigne.insertCell(3);
-                var nouveauTexte = document.createTextNode(tabAlfa.quantiteARecevoir)
-                nouvelleCellule.appendChild(nouveauTexte)
-                var nouvelleCellule = nouvelleLigne.insertCell(4);
-                var nouveauTexte = document.createTextNode(tabAlfa.quantite)
-                nouvelleCellule.appendChild(nouveauTexte)
-                var url = '/article/modifier/' + tabAlfa.id
-                var nouvelleCellule = nouvelleLigne.insertCell(6);
-                var a = document.createElement("a")
-                a.className = 'btn btn-xs btn-default command-edit'
-                a.setAttribute('href', url)
-                var i = document.createElement("i")
-                i.className = 'fas fa-pencil-alt fa-2x'
-                nouvelleCellule.appendChild(a).appendChild(i)
-                document.getElementById('noResult').deleteRow(0)
-            }
-        }
-        // préparation des données envoie insertion dans le tableau
-        let nom = document.getElementById('nom').value
-        let etat = document.getElementById('statut').value
-        let refArticle = document.getElementById('refArticle').value
-        let commentaire = document.getElementById('commentaire').value
-        let quantite = document.getElementById('quantite').value
-        let quantiteARecevoir = document.getElementById('quantiteARecevoir').value
-        let reception = "{{ reception.id }}"
-        //création du tableau de données 
-        let data = []
-        data = {
-            'nom': nom,
-            'etat': etat,
-            'refArticle': refArticle,
-            'commentaire': commentaire,
-            'reception': reception,
-            'quantite': quantite,
-            'quantiteARecevoir': quantiteARecevoir
-        }
-        //création du JSON depuis le tableau de données + envoie en POST par la requéte
-        var myJSON = JSON.stringify(data)
-        xmlhttp.open("POST", "{{path('reception_json')}}", true)
-        xmlhttp.send(myJSON)
-    }
-</script>
+{% include "reception/addArticleModal.html.twig" %}
 
 {% endblock %}
+{% block javascript %}
+    <script src="{{asset('js/reception.js')}}"></script>
+{% endblock javascript %}

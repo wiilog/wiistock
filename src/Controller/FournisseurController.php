@@ -98,8 +98,8 @@ class FournisseurController extends AbstractController
 
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $fournisseur = new Fournisseur();
-            $fournisseur->setNom($data[0]["Nom"]);
-            $fournisseur->setCodeReference($data[1]["Code"]);
+            $fournisseur->setNom($data["Nom"]);
+            $fournisseur->setCodeReference($data["Code"]);
             $em->persist($fournisseur);
             $em->flush();
             return new JsonResponse($data);

@@ -11,7 +11,13 @@ var table = $('#tableType_id').DataTable({
         "type": "POST"
     },
     columns: [
-        { "data": 'Nom' },
+        { "data": 'Label' },
         { "data": 'Actions' },
     ],
 });
+
+
+var dataModal = $("#modalNewType");
+var ButtonSubmit = $("#submitTypeNew");
+var urlTypeNew = Routing.generate('type_new', true)
+InitialiserModal(dataModal,ButtonSubmit,urlTypeNew);

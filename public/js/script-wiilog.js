@@ -92,18 +92,19 @@ $(document).ready(function () {
  * 
  */
 function InitialiserModal(modal, submit, path) {
-    submit.click(function () 
+    submit.click( function () 
     {
+        console.log(modal)
         xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function () 
         {
             if (this.readyState == 4 && this.status == 200)
             {
-                data = JSON.parse(this.responseText);
                 table.ajax.reload(function( json ) 
                 {
+                    data = JSON.parse(this.responseText);
+                    console.log('hello');   
                     $('#myInput').val( json.lastInput );
-                    
                     if(data.redirect)
                     {
                         window.location.href = data.redirect;
@@ -111,18 +112,16 @@ function InitialiserModal(modal, submit, path) {
                 });
             }      
         };
-
+        
         let inputs = modal.find(".data"); // On récupère toutes les données qui nous intéresse avec le querySelectorAll
-        let Data = []; // Tableau de données
+        let Data = {} ; // Tableau de données
 
         inputs.each(function() {
-            Data.push({
-                [$(this).attr("name")]: $(this).val()
-            }); 
+           Data[$(this).attr("name")] = $(this).val();
         });
-        console.log(Data);
-
-        Json = JSON.stringify(Data); // On transforme les données en JSON
+        
+        Json = [];
+        Json.push( JSON.stringify(Data)); // On transforme les données en JSON
         xhttp.open("POST", path, true);
         xhttp.send(Json);
     });

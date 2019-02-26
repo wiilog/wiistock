@@ -3,7 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\ChampsLibre;
-use App\Entity\type;
+use App\Entity\Type;
 
 use App\Form\ChampsLibreType;
 
@@ -60,12 +60,13 @@ class ChampsLibreController extends AbstractController
             $rows = [];
             foreach ($types as $type) {
                 // $url['edit'] = $this->generateUrl('article_edit', ['id' => $article->getId()] );
-                $url['show'] = $this->generateUrl('champs_libre_new', ['id' => $type->getId()]);
+                $url = $this->generateUrl('champs_libre_new', ['id' => $type->getId()]);
                 $rows[] =
                 [
-                    'id' => ($article->getId() ? $article->getId() : "Non défini"),
-                    'Label' => ($article->getNom() ? $article->getNom() : "Non défini"),
-                    'Actions' => $this->renderView('article/datatableArticleRow.html.twig', ['url' => $url]),
+                    'id' => ($type->getId() ? $type->getId() : "Non défini"),
+                    'Label' => ($type->getLabel() ? $type->getLabel() : "Non défini"),
+                    'Actions' => "<a href='" . $url . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-plus fa-2x'></i> Articles</a>",
+                    
                 ];
             }
             $data['data'] = $rows;
@@ -73,6 +74,28 @@ class ChampsLibreController extends AbstractController
         }
         throw new NotFoundHttpException("404");
     }
+
+     /**
+     * @Route("/typeNew", name="type_new", options={"expose"=true}, methods={"POST"})
+     */
+    public function typeNew(Request $request): Response
+    {
+        dump($request->getContent());
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $type = new Type();
+            $type
+                ->setlabel($data["label"]);
+            
+            $em = $this->getDoctrine()->getManager();
+            $em->persist($type);
+            $em->flush();
+            dump($data);
+            return new JsonResponse($data);
+        }
+
+        throw new NotFoundHttpException("404");
+    }
+
 
     /**
      * @Route("/new/{id}", name="champs_libre_new", methods={"GET","POST"})
