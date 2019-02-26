@@ -12,4 +12,3 @@ function editRow(button) {
 
     InitialiserModal(modal, submit, path);
 }
-

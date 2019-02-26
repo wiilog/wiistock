@@ -142,14 +142,13 @@ class PreparationController extends AbstractController
             $rows = [];
             foreach ($preparations as $preparation) 
             {
-                $urlShow = $this->generateUrl('preparation_show', ['id' => $preparation->getId()] );
-                $row = [
+                $url['show'] = $this->generateUrl('preparation_show', ['id' => $preparation->getId()] );
+                $rows[] = [
                     'Numéro' => ($preparation->getNumero() ? $preparation->getNumero() : ""),
                     'Date' => ($preparation->getDate() ? $preparation->getDate()->format('d/m/Y') : ''),
                     'Statut' => ($preparation->getStatut() ? $preparation->getStatut()->getNom() : ""),
-                    'Actions' => "<a href='" . $urlShow . "' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>",
+                    'Actions' => $this->renderView('preparation/datatablePreparationRow.html.twig', ['url' => $url]),
                 ];
-                array_push($rows, $row);
             }
             $data['data'] = $rows;
             return new JsonResponse($data);
@@ -172,14 +171,11 @@ class PreparationController extends AbstractController
             foreach ($LignePreparations as $LignePreparation) 
             {
                 $refPreparation = $this->referenceArticleRepository->findOneById($LignePreparation["reference"]);
-                $urlShow = $this->generateUrl('article_show', ['id' => $refPreparation->getId()]);
-                $row = [ 
-                    "Références CEA" => ($LignePreparation["reference"] ? $LignePreparation["reference"] : ' '),
+                $rows[] = [
+                    "Référence CEA" => ($LignePreparation["reference"] ? $LignePreparation["reference"] : ' '),
                     "Libellé" => ($refPreparation->getLibelle() ? $refPreparation->getLibelle() : ' '),
                     "Quantité" => ($LignePreparation["quantite"] ? $LignePreparation["quantite"] : ' '),
-                   
                 ];
-                array_push($rows, $row);
             }
 
             $data['data'] = $rows;

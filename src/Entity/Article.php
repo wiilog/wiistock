@@ -44,18 +44,17 @@ class Article
     private $quantite;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\ReferenceArticle", inversedBy="article")
+     * @ORM\ManyToOne(targetEntity="App\Entity\ReferenceArticle", inversedBy="articles")
      */
     private $refArticle;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Reception", inversedBy="article")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Reception", inversedBy="articles")
      */
     private $reception;
 
-
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="article")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="articles")
      */
     private $direction;
 
@@ -70,17 +69,17 @@ class Article
     private $commentaire;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Demande", mappedBy="article")
+     * @ORM\ManyToMany(targetEntity="App\Entity\Demande", mappedBy="articles")
      */
     private $demandes;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Collecte", mappedBy="article")
+     * @ORM\ManyToMany(targetEntity="App\Entity\Collecte", mappedBy="articles")
      */
     private $collectes;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="article")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="articles")
      */
     private $Statut;
 

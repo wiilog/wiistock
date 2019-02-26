@@ -99,19 +99,16 @@ class AlerteController extends AbstractController
                 }
 
                 $this->getDoctrine()->getManager()->flush();
-                $urlEdite = $this->generateUrl('alerte_edit', ['id' => $alerte->getId()] );
-                $urlShow = $this->generateUrl('alerte_show', ['id' => $alerte->getId()] );
-                $row = [
+                $url['edit'] = $this->generateUrl('alerte_edit', ['id' => $alerte->getId()] );
+                $url['show'] = $this->generateUrl('alerte_show', ['id' => $alerte->getId()] );
+                $rows[] = [
                     "id" => $alerte->getId(),
                     "Nom" => $alerte->getAlerteNom(),
                     "Code" => $alerte->getAlerteNumero(),
                     "Seuil" => ($condition ? "<p><i class='fas fa-check-circle fa-2x green'></i>" . $alerte->getAlerteRefArticle()->getQuantiteStock() . "/" . $alerte->getAlerteSeuil() . "</p>" :
-                                "<p><i class='fas fa-exclamation-circle fa-2x red'></i>" . $alerte->getAlerteRefArticle()->getQuantiteStock() . "/" . $alerte->getAlerteSeuil() . " </p>"),
-                    'Actions' => "<a href='" . $urlEdite . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
-                                 <a href='" . $urlShow . "' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>",
+                        "<p><i class='fas fa-exclamation-circle fa-2x red'></i>" . $alerte->getAlerteRefArticle()->getQuantiteStock() . "/" . $alerte->getAlerteSeuil() . " </p>"),
+                    'Actions' => $this->renderView('alerte/datatableAlerteRow.html.twig', ['url' => $url]),
                 ];
-
-                array_push($rows, $row);
             }
 
             if (count($alertesUser) > 0) {

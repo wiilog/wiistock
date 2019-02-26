@@ -42,17 +42,15 @@ class ReferenceArticleController extends Controller
             $refs = $this->referenceArticleRepository->findAll();
             $rows = [];
             foreach ($refs as $refArticle) {
-                $urlEdite = $this->generateUrl('reference_article_edit', ['id' => $refArticle->getId()] );
-                $urlShow = $this->generateUrl('reference_article_show', ['id' => $refArticle->getId()] );
+                $url['edit'] = $this->generateUrl('reference_article_edit', ['id' => $refArticle->getId()] );
+                $url['show'] = $this->generateUrl('reference_article_show', ['id' => $refArticle->getId()] );
                
-                $row = [
+                $rows[] = [
                     "id" => $refArticle->getId(),
                     "Libellé" => $refArticle->getLibelle(),
                     "Référence" => $refArticle->getReference(),
-                    'Actions' => "<a href='" . $urlEdite . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
-                    <a href='" . $urlShow . "' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>",
+                    'Actions' => $this->renderView('reference_article/datatableReferenceArticleRow.html.twig', ['url' => $url]),
                 ];
-                array_push($rows, $row);
             }
             $data['data'] = $rows;
             return new JsonResponse($data);

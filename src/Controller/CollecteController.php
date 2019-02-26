@@ -65,10 +65,8 @@ class CollecteController extends AbstractController
      */
     public function index(Request $request): Response
     {
-
         return $this->render('collecte/index.html.twig', [
             'emplacements'=>$this->emplacementRepository->findAll(),
-
         ]);
     }
 
@@ -104,7 +102,7 @@ class CollecteController extends AbstractController
             'Demandeur'=> ($collecte->getDemandeur() ? $collecte->getDemandeur()->getUserName() : null ),
             'Libellé'=> ($collecte->getObjet() ? $collecte->getObjet() : null ),
             'Statut'=> ($collecte->getStatut()->getNom() ? ucfirst($collecte->getStatut()->getNom()) : null),
-            'actions' => "<a href='" . $url . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-eye fa-2x'></i></a>"
+            'Actions' => $this->renderView('collecte/datatableCollecteRow.html.twig', ['url' => $url])
         ];
 
         return new JsonResponse($data);
@@ -134,14 +132,13 @@ class CollecteController extends AbstractController
             'Nom'=>( $article->getNom() ?  $article->getNom():""),
             'Statut'=> ($article->getStatut()->getNom() ? $article->getStatut()->getNom() : ""),
             'Conformité'=>($article->getEtat() ? 'conforme': 'anomalie'),
-            'Références Articles'=> ($article->getRefArticle() ? $article->getRefArticle()->getLibelle() : ""),
+            'Référence Article'=> ($article->getRefArticle() ? $article->getRefArticle()->getLibelle() : ""),
             'Emplacement'=> ($article->getPosition() ? $article->getPosition()->getNom() : "0"),
             'Destination'=> ($article->getDirection() ? $article->getDirection()->getNom() : ""),
             'Quantité à collecter'=>($article->getQuantiteCollectee() ? $article->getQuantiteCollectee() : ""),
-            'Actions'=> "<div class='btn btn-xs btn-default article-edit' onclick='editRow($(this))' data-toggle='modal' data-target='#modalModifyArticle' data-quantity='" . $article->getQuantiteCollectee(). "' data-name='" . $article->getNom() . "' data-id='" . $article->getId() . "'><i class='fas fa-pencil-alt fa-2x'></i></div>
-                        <div class='btn btn-xs btn-default article-delete' onclick='deleteRow($(this))' data-id='" . $article->getId() . "'><i class='fas fa-trash fa-2x'></i></div>"
+            'Actions' => $this->renderView('collecte/datatableArticleRow.html.twig', ['article' => $article])
         ];
-//TODO CG centraliser avec la même dans ArticlesController
+
         return new JsonResponse($data);
     }
 
@@ -176,13 +173,13 @@ class CollecteController extends AbstractController
         $collectes = $this->collecteRepository->findAll();
         $rows = [];
         foreach ($collectes as $collecte) {
-            $url = $this->generateUrl('collecte_show', ['id' => $collecte->getId()]);
+            $url['show'] = $this->generateUrl('collecte_show', ['id' => $collecte->getId()]);
             $rows[] = [
                 'Date'=> ($collecte->getDate() ? $collecte->getDate()->format('d/m/Y') : null),
                 'Demandeur'=> ($collecte->getDemandeur() ? $collecte->getDemandeur()->getUserName() : null ),
                 'Libellé'=> ($collecte->getObjet() ? $collecte->getObjet() : null ),
                 'Statut'=> ($collecte->getStatut()->getNom() ? ucfirst($collecte->getStatut()->getNom()) : null),
-                'actions' => "<a href='" . $url . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-eye fa-2x'></i></a>"
+                'Actions' => $this->renderView('collecte/datatableCollecteRow.html.twig', ['url' => $url])
             ];
         }
         $data['data'] = $rows;

@@ -68,7 +68,7 @@ class EmplacementController extends AbstractController
     }
 
     /**
-     * @Route("/new", name="emplacement_new", methods="GET|POST")
+     * @Route("/creer", name="emplacement_new", methods="GET|POST")
      */
     public function new(Request $request) : Response
     {
@@ -100,17 +100,15 @@ class EmplacementController extends AbstractController
             $emplacements = $this->emplacementRepository->findAll();
             $rows = [];
             foreach ($emplacements as $emplacement) {
-                $urlEdite = $this->generateUrl('emplacement_edit', ['id' => $emplacement->getId()]);
-                $urlShow = $this->generateUrl('emplacement_show', ['id' => $emplacement->getId()]);
-                $row = [
+                $emplacementId = $emplacement->getId();
+                $url['edit'] = $this->generateUrl('emplacement_edit', ['id' => $emplacementId]);
+                $url['show'] = $this->generateUrl('emplacement_show', ['id' => $emplacementId]);
+                $rows[] = [
                     'id' => ($emplacement->getId() ? $emplacement->getId() : ""),
                     'Nom' => ($emplacement->getNom() ? $emplacement->getNom() : ""),
                     'Description' => ($emplacement->getDescription() ? $emplacement->getDescription() : ""),
-                    'Actions' => "<a href='" . $urlEdite . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
-                    <a href='" . $urlShow . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-eye fa-2x'></i></a>",
-
+                    'Actions' => $this->renderView('emplacement/datatableEmplacementRow.html.twig', ['url' => $url])
                 ];
-                array_push($rows, $row);
             }
             $data['data'] = $rows;
             return new JsonResponse($data);

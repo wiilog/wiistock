@@ -46,7 +46,7 @@ function addRow(button){
     }
 
     $.post("/collecte/ajouter-article", params, function(data) {
-        $('#table-list-article').DataTable().row.add(data).draw();
+        $('#table-list-articles').DataTable().row.add(data).draw();
     });
 }
 
@@ -83,10 +83,9 @@ function deleteRow(button) {
         articleId: articleId,
         collecteId: collecteId
     };
-
     $.post("/collecte/retirer-article", params, function(data) {
         if (data === true) {
-            $('#table-list-article').DataTable().row(row).remove().draw();
+            $('#table-list-articles').DataTable().row(row).remove().draw();
         } // TODO else message erreur
 
     });

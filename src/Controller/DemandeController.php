@@ -272,17 +272,15 @@ class DemandeController extends AbstractController
             }
             $rows = [];
             foreach ($demandes as $demande) {
-                $urlShow = $this->generateUrl('demande_show', ['id' => $demande->getId()]);
-                $row =
+                $url['show'] = $this->generateUrl('demande_show', ['id' => $demande->getId()]);
+                $rows[] =
                     [
                         "Date" => ($demande->getDate() ? $demande->getDate() : '')->format('d-m-Y'),
                         "Demandeur" => ($demande->getUtilisateur()->getUsername() ? $demande->getUtilisateur()->getUsername() : ''),
                         "Numéro" => ($demande->getNumero() ? $demande->getNumero() : ''),
                         "Statut" => ($demande->getStatut()->getNom() ? $demande->getStatut()->getNom() : ''),
-                        'Actions' => "<a href='" . $urlShow . " ' class='btn btn-xs btn-default command-edit'><i class='fas fa-eye fa-2x'></i></a>",
+                        'Actions' => $this->renderView('demande/datatabledemandeRow.html.twig', ['url' => $url]),
                 ];
-
-                array_push($rows, $row);
             }
             $data['data'] = $rows;
             return new JsonResponse($data);
@@ -303,15 +301,13 @@ class DemandeController extends AbstractController
             $rows = [];
 
             foreach ($ligneArticles as $ligneArticle) {
-                $urlDelete = $this->generateUrl('deleteLigneArticle', ['id' => $ligneArticle->getId()]);
-                $row = [
-                    "Références CEA" => ($ligneArticle->getReference()->getReference() ? $ligneArticle->getReference()->getReference() : ''),
+                $url['delete'] = $this->generateUrl('deleteLigneArticle', ['id' => $ligneArticle->getId()]);
+                $rows[] = [
+                    "Référence CEA" => ($ligneArticle->getReference()->getReference() ? $ligneArticle->getReference()->getReference() : ''),
                     "Libellé" => ($ligneArticle->getReference()->getLibelle() ? $ligneArticle->getReference()->getLibelle() : ''),
                     "Quantité" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ''),
-                    "Actions" => "<div onclick='editRow($(this))' data-toggle='modal' data-target='#modalModifyLigneArticle' data-name='". $ligneArticle->getReference()->getLibelle()."' data-quantity='" . $ligneArticle->getQuantite(). "' data-id='" . $ligneArticle->getId() . "' class='btn btn-xs btn-default demand-edit '><i class='fas fa-pencil-alt fa-2x'></i></div>"
-                    . "<a href='$urlDelete' class='btn btn-xs btn-default delete '><i class='fas fa-trash fa-2x'></i></a>"
+                    "Actions" => $this->renderView('demande/datatableLigneArticleRow.html.twig', ['url' => $url, 'ligneArticle' => $ligneArticle])
                 ];
-                array_push($rows, $row);
             }
 
             $data['data'] = $rows;

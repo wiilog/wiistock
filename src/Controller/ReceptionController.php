@@ -159,9 +159,9 @@ class ReceptionController extends AbstractController
             $receptions = $this->receptionRepository->findAll();
             $rows = [];
             foreach ($receptions as $reception) {
-                $urlEdite = $this->generateUrl('reception_edit', ['id' => $reception->getId()]);
-                $urlShow = $this->generateUrl('reception_ajout_article', ['id' => $reception->getId(), 'k'=>'0'] );
-                $row =
+                $url['edit'] = $this->generateUrl('reception_edit', ['id' => $reception->getId()]);
+                $url['show'] = $this->generateUrl('reception_ajout_article', ['id' => $reception->getId(), 'k'=>'0'] );
+                $rows[] =
                     [
                     'id' => ($reception->getId()),
                     "Statut" => ($reception->getStatut() ? $reception->getStatut()->getNom() : ''),
@@ -169,10 +169,8 @@ class ReceptionController extends AbstractController
                     "Date attendue" => ($reception->getDateAttendu() ? $reception->getDateAttendu()->format('d/m/Y') : ''),
                     "Fournisseur" => ($reception->getFournisseur() ? $reception->getFournisseur()->getNom() : ''),
                     "Référence" => ($reception->getNumeroReception() ? $reception->getNumeroReception() : ''),
-                    'Actions' => "<a href='" . $urlEdite . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
-                    <a href='" . $urlShow . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-plus fa-2x'></i> Articles</a>",
+                    'Actions' => $this->renderView('reception/datatableReceptionRow.html.twig', ['url' => $url]),
                 ];
-                array_push($rows, $row);
             }
             $data['data'] = $rows;
             return new JsonResponse($data);
@@ -273,8 +271,8 @@ class ReceptionController extends AbstractController
 
         return $this->render('reception/edit.html.twig', [
             "reception" => $reception,
-            "utilisateur" => $this->utilisateurRepository->findUserGetIdUser(),
-            "fournisseur" => $this->fournisseurRepository->findAll(), //a précisé avant modif
+            "utilisateurs" => $this->utilisateurRepository->findUserGetIdUser(),
+            "fournisseurs" => $this->fournisseurRepository->findAll(), //a précisé avant modif
         ]); 
     }
 
@@ -306,7 +304,7 @@ class ReceptionController extends AbstractController
     /**
      * @Route("/article/{id}/{finishReception}", name="reception_ajout_article", methods={"GET", "POST"})
      */
-    public function ajoutArticle(Request $request, Reception $reception, $id, $finishReception): Response
+    public function ajoutArticle(Request $request, Reception $reception, $id, $finishReception = 0): Response
     {
         //fin de reception/mise en stock des article
         // k sert à vérifier et identifier la fin de la reception, en suite on modifie les "setStatut" des variables 

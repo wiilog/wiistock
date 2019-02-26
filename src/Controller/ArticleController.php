@@ -75,9 +75,9 @@ class ArticleController extends AbstractController
             $articles = $this->articleRepository->findAll();
             $rows = [];
             foreach ($articles as $article) {
-                $urlEdite = $this->generateUrl('article_edit', ['id' => $article->getId()] );
-                $urlShow = $this->generateUrl('article_show', ['id' => $article->getId()]);
-                $row = 
+                $url['edit'] = $this->generateUrl('article_edit', ['id' => $article->getId()] );
+                $url['show'] = $this->generateUrl('article_show', ['id' => $article->getId()]);
+                $rows[] =
                 [
                     'id' => ($article->getId() ? $article->getId() : "Non défini"),
                     'Nom' => ($article->getNom() ? $article->getNom() : "Non défini"),
@@ -86,10 +86,8 @@ class ArticleController extends AbstractController
                     'Emplacement' => ($article->getPosition() ? $article->getPosition()->getNom() : "Non défini"),
                     'Destination' => ($article->getDirection() ? $article->getDirection()->getNom() : "Non défini"),
                     'Quantité' => ($article->getQuantite() ? $article->getQuantite() : "Non défini"),
-                    'Actions' => "<a href='" . $urlEdite . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
-                    <a href='" . $urlShow . "' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>",
+                    'Actions' => $this->renderView('article/datatableArticleRow.html.twig', ['url' => $url]),
                 ];
-                array_push($rows, $row);
             }
             $data['data'] = $rows;
             return new JsonResponse($data);
@@ -115,12 +113,11 @@ class ArticleController extends AbstractController
                 $rows[] = [
                     'Nom'=>( $article->getNom() ?  $article->getNom():""),
                     'Statut'=> ($article->getStatut()->getNom() ? $article->getStatut()->getNom() : ""),
-                    'Références Articles'=> ($article->getRefArticle() ? $article->getRefArticle()->getLibelle() : ""),
+                    'Référence Article'=> ($article->getRefArticle() ? $article->getRefArticle()->getLibelle() : ""),
                     'Emplacement'=> ($article->getPosition() ? $article->getPosition()->getNom() : ""),
                     'Destination'=> ($article->getDirection() ? $article->getDirection()->getNom() : ""),
                     'Quantité à collecter'=>($article->getQuantiteCollectee() ? $article->getQuantiteCollectee() : ""),
-                    'Actions'=> "<div class='btn btn-xs btn-default article-edit' onclick='editRow($(this))' data-toggle='modal' data-target='#modalModifyArticle' data-quantity='" . $article->getQuantiteCollectee(). "' data-name='" . $article->getNom() . "' data-id='" . $article->getId() . "'><i class='fas fa-pencil-alt fa-2x'></i></div>
-                        <div class='btn btn-xs btn-default article-delete' onclick='deleteRow($(this))' data-id='" . $article->getId() . "'><i class='fas fa-trash fa-2x'></i></div>"
+                    'Actions' => $this->renderView('collecte/datatableArticleRow.html.twig', ['article' => $article])
                 ];
             }
             $data['data'] = $rows;

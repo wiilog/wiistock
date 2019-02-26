@@ -23,7 +23,7 @@ class Reception
     private $id;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Fournisseur", inversedBy="reception")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Fournisseur", inversedBy="receptions")
      */
     private $fournisseur;
 
@@ -43,7 +43,7 @@ class Reception
     private $numeroReception;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="reception")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="receptions")
      */
     private $utilisateur;
 
@@ -53,7 +53,7 @@ class Reception
     private $articles;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="reception")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="receptions")
      */
     private $Statut;
 

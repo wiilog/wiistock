@@ -34,7 +34,7 @@ class UtilisateurRepository extends ServiceEntityRepository
     
     public function findUserGetIdUser(){
         $entityManager = $this->getEntityManager();
-        $query =$entityManager->createQuery(
+        $query = $entityManager->createQuery(
             "SELECT u.id, u.username
             FROM App\Entity\Utilisateur u
             "
