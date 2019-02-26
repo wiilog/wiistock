@@ -9,18 +9,13 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-
-use App\Entity\Articles;
-use App\Form\ArticlesType;
-use App\Repository\ArticlesRepository;
-
+use App\Entity\Article;
+use App\Form\ArticleType;
+use App\Repository\ArticleRepository;
 use App\Repository\EmplacementRepository;
-use App\Repository\StatutsRepository;
-
-use App\Repository\UtilisateursRepository;
-
+use App\Repository\StatutRepository;
+use App\Repository\UtilisateurRepository;
 use Knp\Component\Pager\PaginatorInterface;
-
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -30,9 +25,9 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 class CollecteController extends AbstractController
 {
     /**
-     * @var StatutsRepository
+     * @var StatutRepository
      */
-    private $statutsRepository;
+    private $statutRepository;
 
     /**
      * @var EmplacementRepository
@@ -45,22 +40,22 @@ class CollecteController extends AbstractController
     private $collecteRepository;
 
     /**
-     * @var ArticlesRepository
+     * @var ArticleRepository
      */
     private $articlesRepository;
     
     /**
-     * @var UtilisateursRepository
+     * @var UtilisateurRepository
      */
-    private $utilisateursRepository;
+    private $utilisateurRepository;
 
-    public function __construct(StatutsRepository $statutsRepository, ArticlesRepository $articlesRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UtilisateursRepository $utilisateursRepository)
+    public function __construct(StatutRepository $statutRepository, ArticleRepository $articlesRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UtilisateurRepository $utilisateurRepository)
     {
-        $this->statutsRepository = $statutsRepository;
+        $this->statutRepository = $statutRepository;
         $this->emplacementRepository = $emplacementRepository;
         $this->articlesRepository = $articlesRepository;
         $this->collecteRepository = $collecteRepository;
-        $this->utilisateursRepository = $utilisateursRepository;
+        $this->utilisateurRepository = $utilisateurRepository;
     }
 
 
@@ -87,12 +82,12 @@ class CollecteController extends AbstractController
         $pointCollecteId = $request->request->getInt('pointCollecte');
 
         $date = new \DateTime('now');
-        $status = $this->statutsRepository->findOneByNom(Collecte::STATUS_DEMANDE);
+        $status = $this->statutRepository->findOneByNom(Collecte::STATUS_DEMANDE);
         $numero = "C-". $date->format('YmdHis');
 
         $collecte = new Collecte;
         $collecte
-            ->setDemandeur($this->utilisateursRepository->find($demandeurId))
+            ->setDemandeur($this->utilisateurRepository->find($demandeurId))
             ->setNumero($numero)
             ->setDate($date)
             ->setStatut($status)
@@ -198,18 +193,18 @@ class CollecteController extends AbstractController
 //    /**
 //     * @Route("{id}/finish", name="finish_collecte")
 //     */
-//    public function finishCollecte(Collecte $collecte, StatutsRepository $statutsRepository)
+//    public function finishCollecte(Collecte $collecte, StatutRepository $statutRepository)
 //    {
 //        $em = $this->getDoctrine()->getManager();
 //
 //        // changement statut collecte
-//        $statusFinCollecte = $statutsRepository->findOneBy(['nom' => Collecte::STATUS_FIN]);
+//        $statusFinCollecte = $statutRepository->findOneBy(['nom' => Collecte::STATUS_FIN]);
 //        $collecte->setStatut($statusFinCollecte);
 //
-//        // changement statut articles
-//        $statusEnStock = $statutsRepository->findOneBy(['nom' => Articles::STATUS_EN_STOCK]);
-//        $articles = $collecte->getArticles();
-//        foreach ($articles as $article) {
+//        // changement statut article
+//        $statusEnStock = $statutRepository->findOneBy(['nom' => Articles::STATUS_EN_STOCK]);
+//        $article = $collecte->getArticles();
+//        foreach ($article as $article) {
 //            $article->setStatut($statusEnStock);
 //            $em->persist($article);
 //        }

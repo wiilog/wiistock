@@ -1,0 +1,45 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Référentiel / Fournisseurs{% endblock %}
+{# TODO CG#}
+
+{% block page_content %}
+<h1>Fournisseurs</h1>
+
+<div class='row btn'>
+    <a href="" data-toggle="modal" data-target="#dataModalCenter" class="button btn-left">
+        <span class="fa fa-plus"></span>Nouveau Fournisseur
+    </a>
+</div>
+
+<table  id="table_id" class="table table-striped table-bordered" style="width:100%">
+    <thead>
+        <tr>
+            <th>Nom</th>
+            <th>Code de réference</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+
+</table>
+
+{% include 'fournisseur/modal.html.twig' %}
+
+
+{% endblock %}
+
+{% block javascript %}
+<script>
+    var table = $('#table_id').DataTable({
+        "language": {
+            "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
+        },
+        ajax: "{{path('fournisseur_api')}}",
+        columns: [
+            { "data": 'Nom' },
+            { "data": 'Code de réference' },
+            { "data": 'Actions' },
+        ],
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,57 @@
+<!-- Modal -->
+<form method="" class="modal fade" id="dataModalCenter" role="dialog" aria-labelledby="dataModalCenterTitle"
+aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Créer une réception</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body modal-input container-fluid">
+                    <div class="form-group">
+                        <label for="NumeroReception">Numéro Réception</label>
+                        <input type="text" class="form-control data" name="NumeroReception" placeholder="N°Reception">
+                    </div>
+        
+                    <div class="form-group">
+                        <label for="date-commande">Date commande</label>
+                        <input type="date" class="form-control data" name="date-commande" value="" required="true" min="{{ 'now' | date('Y-m-d') }}" max="{{ '+25year' | date('Y-m-d') }}">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="date-attendu">Date attendue</label>
+                        <input type="date" class="form-control data" name="date-attendu" value="" required="true" min="{{ 'now' | date('Y-m-d') }}" max="{{ '+25year' | date('Y-m-d') }}">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="fournisseurs">Fournisseur</label>
+                        <select class="form-control select2 data" name="fournisseur">
+                            {% for fournisseur in fournisseurs %}
+                                <option value="{{ fournisseur.id }}">{{ fournisseur.nom }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+        
+                    <div class="form-group">
+                    <label for="utilisateur">Utilisateur</label>
+                        <select class="form-control select2 data" name="utilisateur">
+                            {% for utilisateur in utilisateurs %}
+                                <option value="{{ utilisateur.id }}">{{ utilisateur.username }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+        
+                    <div class="form-group">
+                        <label for="NumeroReception">Commentaire</label>
+                        <input type="text" class="form-control data" name="commentaire" placeholder="Commentaire">
+                    </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                <button id="submitButton" type="button" data-dismiss="modal" class="btn btn-primary btn-success">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+</form>

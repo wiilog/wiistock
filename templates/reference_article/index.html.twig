@@ -1,0 +1,40 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Référentiel / Articles de référence{% endblock %}
+
+{% block page_content %}
+    <h1>Articles de référence</h1>
+
+    <div class='row btn ' >
+        <a href={{ path('reference_article_new') }} class="button btn-left">
+            <span class="fa fa-plus"></span>Nouvel article de référence
+        </a >
+    </div>
+
+    <table  id="table_id" class="table table-striped table-bordered" style="width:100%">
+        <thead>
+            <tr>
+                <th>Libellé</th>
+                <th>Référence</th>
+                <th>Actions</th>
+            </tr>
+        </thead>   
+    </table>
+{% endblock %}
+{% block javascript %}
+
+<script>
+    var table = $('#table_id').DataTable({
+        "language": {
+            "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
+        },
+        ajax: "{{path('ref_article_api')}}",
+        columns: [
+            { "data": 'Libellé' },
+            { "data": 'Référence' },
+            { "data": 'Actions' },
+        ],
+    });
+
+</script>
+{% endblock %}

@@ -24,7 +24,7 @@ class CategorieStatut
     private $nom;
 
     /**
-     * @ORM\OneToMany(targetEntity="Statuts", mappedBy="categorie")
+     * @ORM\OneToMany(targetEntity="Statut", mappedBy="categorie")
      */
     private $statuts;
 

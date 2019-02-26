@@ -3,8 +3,6 @@ $(document).ready(function () {
 });
 
 
-
-
 /**
  * Initialise une fenêtre modale
  * 

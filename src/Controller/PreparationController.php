@@ -2,7 +2,7 @@
 
 namespace App\Controller;
 
-use App\Entity\Articles;
+use App\Entity\Article;
 use App\Entity\Preparation;
 use App\Form\PreparationType;
 use App\Repository\PreparationRepository;
@@ -14,11 +14,11 @@ use Symfony\Component\Routing\Annotation\Route;
 
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 
-use App\Entity\ReferencesArticles;
-use App\Form\ReferencesArticlesType;
-use App\Repository\ReferencesArticlesRepository;
+use App\Entity\ReferenceArticle;
+use App\Form\ReferenceArticleType;
+use App\Repository\ReferenceArticleRepository;
 
-use App\Repository\ArticlesRepository;
+use App\Repository\ArticleRepository;
 
 use App\Entity\Emplacement;
 use App\Form\EmplacementType;
@@ -34,7 +34,7 @@ use App\Repository\DemandeRepository;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Knp\Component\Pager\PaginatorInterface;
-use App\Repository\StatutsRepository;
+use App\Repository\StatutRepository;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -45,24 +45,24 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 class PreparationController extends AbstractController
 {
     /**
-     * @var StatutsRepository
+     * @var StatutRepository
      */
-    private $statutsRepository;
+    private $statutRepository;
 
     /**
-     * @var ReferencesArticlesRepository
+     * @var ReferenceArticleRepository
      */
-    private $referencesArticlesRepository;
+    private $referenceArticleRepository;
 
     /**
      * @var DemandeRepository
      */
     private $demandeRepository;
 
-    public function __construct(StatutsRepository $statutsRepository, DemandeRepository $demandeRepository, ReferencesArticlesRepository $referencesArticlesRepository)
+    public function __construct(StatutRepository $statutRepository, DemandeRepository $demandeRepository, ReferenceArticleRepository $referenceArticleRepository)
     {
-        $this->statutsRepository = $statutsRepository;
-        $this->referencesArticlesRepository = $referencesArticlesRepository;
+        $this->statutRepository = $statutRepository;
+        $this->referenceArticleRepository = $referenceArticleRepository;
         $this->demandeRepository = $demandeRepository;
     }
 
@@ -80,7 +80,7 @@ class PreparationController extends AbstractController
             $date = new \DateTime('now');
             $preparation->setNumero('P-' . $date->format('YmdHis'));
             $preparation->setDate($date);
-            $statut = $this->statutsRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_NOUVELLE);
+            $statut = $this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_NOUVELLE);
             $preparation->setStatut($statut);
             //Plus de detail voir creation demande meme principe
 
@@ -88,7 +88,7 @@ class PreparationController extends AbstractController
             {
                 $demande = $this->demandeRepository->find($key);
                 // On avance dans le tableau
-                $statut = $this->statutsRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
+                $statut = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
                 $demande
                     ->setPreparation($preparation)
                     ->setStatut($statut);
@@ -96,7 +96,7 @@ class PreparationController extends AbstractController
                 $articles = $demande->getArticles();
                 foreach ($articles as $article)
                 {
-                    $statut = $this->statutsRepository->findOneByCategorieAndStatut(Articles::CATEGORIE, Articles::STATUT_DEMANDE_SORTIE);
+                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_DEMANDE_SORTIE);
                     $article
                         ->setStatut($statut)
                         ->setDirection($demande->getDestination());
@@ -171,8 +171,8 @@ class PreparationController extends AbstractController
         
             foreach ($LignePreparations as $LignePreparation) 
             {
-                $refPreparation = $this->referencesArticlesRepository->findOneById($LignePreparation["reference"]);
-                $urlShow = $this->generateUrl('articles_show', ['id' => $refPreparation->getId()]);
+                $refPreparation = $this->referenceArticleRepository->findOneById($LignePreparation["reference"]);
+                $urlShow = $this->generateUrl('article_show', ['id' => $refPreparation->getId()]);
                 $row = [ 
                     "Références CEA" => ($LignePreparation["reference"] ? $LignePreparation["reference"] : ' '),
                     "Libellé" => ($refPreparation->getLibelle() ? $refPreparation->getLibelle() : ' '),
@@ -192,7 +192,7 @@ class PreparationController extends AbstractController
     /**
      * @Route("/new", name="preparation_new", methods="GET|POST")
      */
-    public function new(Request $request, ArticlesRepository $articlesRepository) : Response
+    public function new(Request $request, ArticleRepository $articlesRepository) : Response
     {
         $preparation = new Preparation();
         $form = $this->createForm(PreparationType::class, $preparation);
@@ -217,26 +217,26 @@ class PreparationController extends AbstractController
     /**
      * @Route("/{id}", name="preparation_show", methods="GET|POST")
      */
-    public function show(Preparation $preparation, ArticlesRepository $articlesRepository) : Response
+    public function show(Preparation $preparation, ArticleRepository $articlesRepository) : Response
     {
         // modelise l'action de prendre l'article dan sle stock pour constituer la preparation  
         if (array_key_exists('fin', $_POST)) 
         {
             $article = $articlesRepository->find($_POST['fin']);
-            $statut = $this->statutsRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_EN_COURS);
+            $statut = $this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_EN_COURS);
             $article->setStatut($statut);
             $this->getDoctrine()->getManager()->flush();
             
-            // Meme principe que pour collecte_show =>comptage des articles selon un statut et une preparation si nul alors preparation fini 
+            // Meme principe que pour collecte_show =>comptage des article selon un statut et une preparation si nul alors preparation fini
             $demande = $this->demandeRepository->find(array_keys($_POST['fin']));
             $finDemande = $articlesRepository->findCountByStatutAndDemande($demande);
             $fin = $finDemande[0];
 
             if ($fin[1] === '0') 
             {
-                $statut = $this->statutsRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_EN_COURS);
+                $statut = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_EN_COURS);
                 $demande->setStatut($statut);
-                $statut = $this->statutsRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_EN_COURS);
+                $statut = $this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_EN_COURS);
                 $preparation->setStatut($statut);
             }
             $this->getDoctrine()->getManager()->flush();

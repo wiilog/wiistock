@@ -1,0 +1,59 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Modification{% endblock %}
+
+{% block page_content %}
+<h1>Modification réception</h1>
+
+<form method="POST">
+    <div class="form-group">
+        <label for="reception_numeroReception">Numéro réception</label>
+        <input type="text" id="reception_numeroReception" name="numeroReception" maxlength="255" class="form-control" value="{{ reception.numeroReception }}">
+    </div>
+
+    <div class="form-group">
+        <label class="" for="reception_fournisseur">Fournisseur</label>
+        <select id="reception_fournisseur" name="fournisseur" class="form-control" value="{{ reception.numeroReception }}">
+            <option value="{{ reception.fournisseur.id }}">{{ reception.fournisseur.nom }}</option>
+            {% for fournisseur in fournisseurs %}
+                <option value="{{ fournisseur.id }}">{{ fournisseur.nom }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label class="" for="reception_utilisateur">Utilisateur</label>
+        <select id="reception_utilisateur" name="utilisateur" class="form-control">
+            <option value="{{ reception.utilisateur.id }}">{{ reception.utilisateur.username }}</option>
+            {% for utilisateur in utilisateurs %}
+                <option value="{{ utilisateur.id }}">{{ utilisateur.username }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label class="" for="date-commande">Date de commande</label>
+        <input type="date" name="date-commande" id="date-commande" class="form-control" value="{{ reception.date | date('Y-m-d') }}" min="{{ '-25year' | date('Y-m-d') }}" max="{{ '+25year' | date('Y-m-d') }}">
+    </div>
+
+    <div class="form-group">
+        <label class="" for="date-attendue">Date attendue</label>
+        <input type="date" name="date-attendue" id="date-attendue" class="form-control" value="{{ reception.dateAttendu | date('Y-m-d') }}" min="{{ 'now' | date('Y-m-d') }}" max="{{ '+25year' | date('Y-m-d') }}">
+    </div>
+
+    <div class="form-group">
+        <label for="reception_commentaire">Commentaire</label>
+        <input type="text" id="reception_commentaire" name="commentaire" maxlength="255" class="form-control" value="{{ reception.commentaire }}">
+    </div>
+
+    <button type="submit" href="{{ path('reception_edit', {'id': reception.id}) }}" class="btn pull-left button btn-left">Modifier</a>
+</form>
+    {{ include('reception/_delete_form.html.twig') }}
+    
+   
+{% endblock %}
+{% block javascript %}
+    <script>
+        $('.datepicker').datepicker();
+    </script>
+{% endblock  %}     

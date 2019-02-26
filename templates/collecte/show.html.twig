@@ -58,7 +58,7 @@
         </tr>
         </thead>
         <tbody>
-        {#{% for article in collecte.articles |reverse %}#}
+        {#{% for article in collecte.article |reverse %}#}
         {#<form action="{{ path('collecte_show', {'id': collecte.id}) }}"  method="post">#}
         {#<tr>#}
         {#<td>{{ article.nom }}</td>#}
@@ -124,7 +124,7 @@ $('#modalModifyArticle').find('.save').on('click', function() {
     modifyArticle($(this));
 });
 
-$('#table-list-articles').DataTable({
+$('#table-list-article').DataTable({
     "language": {
         "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json",
     },

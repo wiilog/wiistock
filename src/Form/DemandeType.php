@@ -16,7 +16,7 @@ class DemandeType extends AbstractType
             ->add('statut')
             ->add('destination')
             ->add('utilisateur')
-            ->add('articles')
+            ->add('article')
         ;
     }
 

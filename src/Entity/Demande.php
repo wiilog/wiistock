@@ -34,7 +34,7 @@ class Demande
     private $destination;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateurs", inversedBy="demandes")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="demandes")
      */
     private $utilisateur;
 
@@ -44,7 +44,7 @@ class Demande
     private $date;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Articles", inversedBy="demandes")
+     * @ORM\ManyToMany(targetEntity="App\Entity\Article", inversedBy="demandes")
      */
     private $articles;
 
@@ -59,7 +59,7 @@ class Demande
     private $livraison;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Statuts", inversedBy="demandes")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="demandes")
      */
     private $Statut;
 
@@ -108,12 +108,12 @@ class Demande
         return $this;
     }
 
-    public function getUtilisateur(): ?Utilisateurs
+    public function getUtilisateur(): ?Utilisateur
     {
         return $this->utilisateur;
     }
 
-    public function setUtilisateur(?Utilisateurs $utilisateur): self
+    public function setUtilisateur(?Utilisateur $utilisateur): self
     {
         $this->utilisateur = $utilisateur;
 
@@ -138,14 +138,14 @@ class Demande
     }
 
     /**
-     * @return Collection|Articles[]
+     * @return Collection|Article[]
      */
     public function getArticles(): Collection
     {
         return $this->articles;
     }
 
-    public function addArticle(Articles $article): self
+    public function addArticle(Article $article): self
     {
         if (!$this->articles->contains($article)) {
             $this->articles[] = $article;
@@ -154,7 +154,7 @@ class Demande
         return $this;
     }
 
-    public function removeArticle(Articles $article): self
+    public function removeArticle(Article $article): self
     {
         if ($this->articles->contains($article)) {
             $this->articles->removeElement($article);
@@ -187,12 +187,12 @@ class Demande
         return $this;
     }
 
-    public function getStatut(): ?Statuts
+    public function getStatut(): ?Statut
     {
         return $this->Statut;
     }
 
-    public function setStatut(?Statuts $Statut): self
+    public function setStatut(?Statut $Statut): self
     {
         $this->Statut = $Statut;
 

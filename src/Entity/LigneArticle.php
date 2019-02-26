@@ -24,7 +24,7 @@ class LigneArticle
     private $quantite;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\ReferencesArticles", inversedBy="ligneArticles")
+     * @ORM\ManyToOne(targetEntity="App\Entity\ReferenceArticle", inversedBy="ligneArticles")
      */
     private $reference;
 

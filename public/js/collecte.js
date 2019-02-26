@@ -46,7 +46,7 @@ function addRow(button){
     }
 
     $.post("/collecte/ajouter-article", params, function(data) {
-        $('#table-list-articles').DataTable().row.add(data).draw();
+        $('#table-list-article').DataTable().row.add(data).draw();
     });
 }
 
@@ -86,7 +86,7 @@ function deleteRow(button) {
 
     $.post("/collecte/retirer-article", params, function(data) {
         if (data === true) {
-            $('#table-list-articles').DataTable().row(row).remove().draw();
+            $('#table-list-article').DataTable().row(row).remove().draw();
         } // TODO else message erreur
 
     });
@@ -113,7 +113,7 @@ function modifyArticle(button) {
         quantity: quantity
     };
 
-    $.post("/articles/modifier-quantite", params, function() {
+    $.post("/article/modifier-quantite", params, function() {
         //TODO CG edit row datatable
     });
 }

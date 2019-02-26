@@ -1,0 +1,62 @@
+<?php
+
+namespace App\Repository;
+
+use App\Entity\ChampPersonnalise;
+use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Symfony\Bridge\Doctrine\RegistryInterface;
+
+/**
+ * @method ChampPersonnalise|null find($id, $lockMode = null, $lockVersion = null)
+ * @method ChampPersonnalise|null findOneBy(array $criteria, array $orderBy = null)
+ * @method ChampPersonnalise[]    findAll()
+ * @method ChampPersonnalise[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ */
+class ChampPersonnaliseRepository extends ServiceEntityRepository
+{
+    public function __construct(RegistryInterface $registry)
+    {
+        parent::__construct($registry, ChampPersonnalise::class);
+    }
+
+    public function findByName($name, $entity)
+    {
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.nom = :val')
+            ->setParameter('val', $name)
+            ->andWhere('c.entite_cible = :ent')
+            ->setParameter('ent', $entity)
+            ->getQuery()
+            ->getOneOrNullResult()
+        ;
+    }
+
+//    /**
+//     * @return ChampsPersonnalises[] Returns an array of ChampsPersonnalises objects
+//     */
+    /*
+    public function findByExampleField($value)
+    {
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.exampleField = :val')
+            ->setParameter('val', $value)
+            ->orderBy('c.id', 'ASC')
+            ->setMaxResults(10)
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+     */
+
+    /*
+    public function findOneBySomeField($value): ?ChampsPersonnalises
+    {
+        return $this->createQueryBuilder('c')
+            ->andWhere('c.exampleField = :val')
+            ->setParameter('val', $value)
+            ->getQuery()
+            ->getOneOrNullResult()
+        ;
+    }
+     */
+}

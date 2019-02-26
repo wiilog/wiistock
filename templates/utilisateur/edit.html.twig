@@ -1,0 +1,10 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Edit Utilisateurs{% endblock %}
+
+{% block page_content %}
+    <h1>Modification information utilisateur</h1>
+    {{ include('utilisateur/_form.html.twig', {'button_label': 'Modifier'}) }}
+    <!-- <a href="{{ path('utilisateur_index') }}" class="button btn-left">Voir la liste</a> -->
+
+    {% endblock %}

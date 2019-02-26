@@ -2,7 +2,7 @@
 
 namespace App\Security;
 
-use App\Entity\Utilisateurs;
+use App\Entity\Utilisateur;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
 use Symfony\Component\Security\Core\User\User;

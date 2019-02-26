@@ -8,7 +8,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
-use App\Entity\Articles;
+use App\Entity\Article;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 
 class PreparationType extends AbstractType
@@ -19,7 +19,7 @@ class PreparationType extends AbstractType
             ->add('statut')
             // ->add('destination')
             // ->add('utilisateur')
-            // ->add('articles',  EntityType::class, array(
+            // ->add('article',  EntityType::class, array(
             //     'class' => Articles::class,
             //     'choice_label' =>  'nom',
             //     'multiple' => true,

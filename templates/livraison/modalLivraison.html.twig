@@ -28,7 +28,7 @@
                                 {% set i = 0 %}
                                 {% for demande in demandes %}
                                 {% if destination.nom == demande.destination.nom %}
-                                {% for article in demande.articles %}
+                                {% for article in demande.article %}
                                 <tr {% if i % 2==1 %} class="backtablejv" {% endif %}>
                                     {% set i = i + 1 %}
                                     <td>{{ article.nom }}</td>
