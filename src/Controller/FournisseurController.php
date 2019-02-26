@@ -66,15 +66,14 @@ class FournisseurController extends AbstractController
             $refs = $this->fournisseurRepository->findAll();
             $rows = [];
             foreach ($refs as $fournisseur) {
-                $urlEdite = $this->generateUrl('fournisseur_edit', ['id' => $fournisseur->getId()]);
-                $urlShow = $this->generateUrl('fournisseur_show', ['id' => $fournisseur->getId()]);
-                $row = [
+                $fournisseurId = $fournisseur->getId();
+                $url['edit'] = $this->generateUrl('fournisseur_edit', ['id' => $fournisseurId]);
+                $url['show'] = $this->generateUrl('fournisseur_show', ['id' => $fournisseurId]);
+                $rows[] = [
                     "Nom" => $fournisseur->getNom(),
                     "Code de réference" => $fournisseur->getCodeReference(),
-                    'Actions' => "<a href='" . $urlEdite . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
-                    <a href='" . $urlShow . "' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>",
+                    'Actions' => $this->renderView('fournisseur/datatableFournisseurRow.html.twig', ['url' => $url]),
                 ];
-                array_push($rows, $row);
             }
             $data['data'] = $rows;
             return new JsonResponse($data);

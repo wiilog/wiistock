@@ -121,17 +121,17 @@ class LivraisonController extends AbstractController
             $rows = [];
             foreach ($livraisons as $livraison) 
             {
-                $url = $this->generateUrl('livraison_show', ['id' => $livraison->getId()] );
-                $row = [
+                $url['show'] = $this->generateUrl('livraison_show', ['id' => $livraison->getId()] );
+                $rows[] = [
                     'id' => ($livraison->getId() ? $livraison->getId() : ''),
                     'Numéro' => ($livraison->getNumero() ? $livraison->getNumero() : ''),
                     'Date' => ($livraison->getDate() ? $livraison->getDate()->format('d-m-Y') : ''),
                     'Statut' => ($livraison->getStatut() ? $livraison->getStatut()->getNom() : ''),
                     'Opérateur' => ($livraison->getUtilisateur() ? $livraison->getUtilisateur()->getUsername() : ''),
-                    'Actions' => "<a href='". $url ."' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>",
+                    'Actions' => $this->renderView('livraison/datatableLivraisonRow.html.twig', ['url' => $url])
                 ];
-                array_push($rows, $row);
             }
+
             $data['data'] = $rows;
             return new JsonResponse($data);
         }
