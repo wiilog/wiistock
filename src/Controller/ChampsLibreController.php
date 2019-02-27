@@ -65,7 +65,10 @@ class ChampsLibreController extends AbstractController
                 [
                     'id' => ($type->getId() ? $type->getId() : "Non défini"),
                     'Label' => ($type->getLabel() ? $type->getLabel() : "Non défini"),
-                    'Actions' => "<a href='" . $url . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-plus fa-2x'></i> Champ libre</a>",
+                    'Actions' =>  $this->renderView('champs_libre/datatableTypeRow.html.twig', [
+                            'urlChampsLibre' => $url,
+                            'id'=> $type->getId()    
+                        ]),
                 ];
             }
             $data['data'] = $rows;
@@ -81,7 +84,7 @@ class ChampsLibreController extends AbstractController
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
         {
             $id = $request->getContent();
-            $champsLibres = $this->champsLibreRepository->findAll();
+            $champsLibres = $this->champsLibreRepository->setByType($this->typeRepository->find($id)); //TODO Fatal ERROR 
             $rows = [];
             foreach ($champsLibres as $champsLibre) {
                 // $url['edit'] = $this->generateUrl('article_edit', ['id' => $article->getId()] );
@@ -91,7 +94,7 @@ class ChampsLibreController extends AbstractController
                     'Label' => ($champsLibre->getLabel() ? $champsLibre->getLabel() : "Non défini"),
                     'Typage' => ($champsLibre->getTypage() ? $champsLibre->getTypage() : "Non défini"),
                     'Valeur par défaut' => ($champsLibre->getDefaultValue() ? $champsLibre->getDefaultValue() : "Non défini"),
-                    'Actions' => "<a href='' class='btn btn-xs btn-default command-edit'><i class='fas fa-plus fa-2x'></i> Champ libre</a>",
+                    'Actions' =>  $this->renderView('champs_libre/datatableChampsLibreRow.html.twig', ['id' => $champsLibre->getId()]),
                 ];
             }
             $data['data'] = $rows;
@@ -112,7 +115,6 @@ class ChampsLibreController extends AbstractController
             $em = $this->getDoctrine()->getManager();
             $em->persist($type);
             $em->flush();
-            dump($data);
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
@@ -145,6 +147,7 @@ class ChampsLibreController extends AbstractController
                 ->setDefaultValue($data['Valeur par défaut']);
             $em = $this->getDoctrine()->getManager();
             $em->persist($champsLibre);
+            // dump($champsLibre);
             $em->flush();
             return new JsonResponse($data);
         }
@@ -157,34 +160,28 @@ class ChampsLibreController extends AbstractController
      */
     public function edit(Request $request, ChampsLibre $champsLibre): Response
     {
-        $form = $this->createForm(ChampsLibreType::class, $champsLibre);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $this->getDoctrine()->getManager()->flush();
-
-            return $this->redirectToRoute('champs_libre_index', [
-                'id' => $champsLibre->getId(),
-            ]);
-        }
-
-        return $this->render('champs_libre/edit.html.twig', [
-            'champs_libre' => $champsLibre,
-            'form' => $form->createView(),
-        ]);
+       //todo
     }
 
     /**
-     * @Route("/{id}", name="champs_libre_delete", methods={"DELETE"})
+     * @Route("/deleteChampsLibre", name="champs_libre_delete",options={"expose"=true}, methods={"GET","POST"})
      */
-    public function delete(Request $request, ChampsLibre $champsLibre): Response
+    public function delete(Request $request): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$champsLibre->getId(), $request->request->get('_token'))) {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            dump($data);            
+            $champsLibre = $this->champsLibreRepository->find();
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($champsLibre);
-            $entityManager->flush();
+            // $entityManager->flush();
+            return new JsonResponse($data);
         }
+        throw new NotFoundHttpException("404");
+        // if ($this->isCsrfTokenValid('delete'.$champsLibre->getId(), $request->request->get('_token'))) {
+        //     $entityManager = $this->getDoctrine()->getManager();
+        //     $entityManager->remove($champsLibre);
+        //     $entityManager->flush();
+        // }
 
-        return $this->redirectToRoute('champs_libre_index');
     }
 }

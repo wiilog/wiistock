@@ -19,6 +19,19 @@ class ChampsLibreRepository extends ServiceEntityRepository
         parent::__construct($registry, ChampsLibre::class);
     }
 
+    public function setByType($type)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT c
+            FROM App\Entity\ChampsLibre c 
+            JOIN c.type t 
+            WHERE t.id = :id"
+        )->setParameter('id', $type);
+        ;
+        return $query->execute(); 
+    }
+
     // /**
     //  * @return ChampsLibre[] Returns an array of ChampsLibre objects
     //  */

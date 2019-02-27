@@ -34,13 +34,21 @@ let tableChampsLibre = $('#tableChampslibre_id').DataTable({
     ],
 });
 
+//Modal Type
+let dataModalTypeNew = $("#modalNewType");
+let ButtonSubmitTypeNew = $("#submitTypeNew");
+let urlTypeNew = Routing.generate('type_new', true);
+InitialiserModal(dataModalTypeNew, ButtonSubmitTypeNew, urlTypeNew,tableType);
 
-var dataModal = $("#modalNewType");
-var ButtonSubmit = $("#submitTypeNew");
-var urlTypeNew = Routing.generate('type_new', true);
-InitialiserModal(dataModal,ButtonSubmit,urlTypeNew,tableType);
+//Modal Champs Libre
+let dataModalChampsLibreNew = $("#modalNewChampsLibre");
+let ButtonSubmitChampsLibreNew = $("#submitChampsLibreNew");
+let urlChampsLibreNew = Routing.generate('champs_libre_new', true);
+InitialiserModal(dataModalChampsLibreNew, ButtonSubmitChampsLibreNew, urlChampsLibreNew, tableChampsLibre);
 
-var dataModal = $("#modalNewChampsLibre");
-var ButtonSubmit = $("#submitChampsLibreNew");
-var urlTypeNew = Routing.generate('champs_libre_new', true);
-InitialiserModal(dataModal,ButtonSubmit,urlTypeNew,tableChampsLibre);
+let dataModalChampsLibreDelete = $("#modalDeleteChampsLibre");
+let ButtonSubmitChampsLibreDelete = $("#submitChampsLibreDelete");
+let urlChampsLibreDelete = Routing.generate('champs_libre_delete',{'id': id}, true);
+console.log(urlChampsLibreDelete);
+DeleteModal(dataModalChampsLibreDelete, ButtonSubmitChampsLibreDelete, urlChampsLibreDelete, tableChampsLibre);
+
