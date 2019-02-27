@@ -60,13 +60,12 @@ class ChampsLibreController extends AbstractController
             $rows = [];
             foreach ($types as $type) {
                 // $url['edit'] = $this->generateUrl('article_edit', ['id' => $article->getId()] );
-                $url = $this->generateUrl('champs_libre_new', ['id' => $type->getId()]);
+                $url = $this->generateUrl('champs_libre_show', ['id' => $type->getId()]);
                 $rows[] =
                 [
                     'id' => ($type->getId() ? $type->getId() : "Non défini"),
                     'Label' => ($type->getLabel() ? $type->getLabel() : "Non défini"),
-                    'Actions' => "<a href='" . $url . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-plus fa-2x'></i> Articles</a>",
-                    
+                    'Actions' => "<a href='" . $url . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-plus fa-2x'></i> Champ libre</a>",
                 ];
             }
             $data['data'] = $rows;
@@ -80,23 +79,29 @@ class ChampsLibreController extends AbstractController
      */
     public function typeNew(Request $request): Response
     {
-        dump($request->getContent());
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $type = new Type();
             $type
                 ->setlabel($data["label"]);
-            
             $em = $this->getDoctrine()->getManager();
             $em->persist($type);
             $em->flush();
             dump($data);
             return new JsonResponse($data);
         }
-
         throw new NotFoundHttpException("404");
     }
 
-
+    /**
+     * @Route("/voir/{id}", name="champs_libre_show", methods={"GET","POST"})
+     */
+    public function show(Request $request, $id): Response
+    {
+        return $this->render('champs_libre/show.html.twig', [
+            'type' => $this->typeRepository->find($id),
+        ]);
+    }
+    
     /**
      * @Route("/new/{id}", name="champs_libre_new", methods={"GET","POST"})
      */
@@ -104,19 +109,10 @@ class ChampsLibreController extends AbstractController
     {
         return $this->render('champs_libre/new.html.twig', [
             'type' => $this->typeRepository->find($id),
-            'form' => $form->createView(),
+
         ]);
     }
 
-    /**
-     * @Route("/{id}", name="champs_libre_show", methods={"GET"})
-     */
-    public function show(ChampsLibre $champsLibre): Response
-    {
-        return $this->render('champs_libre/show.html.twig', [
-            'champs_libre' => $champsLibre,
-        ]);
-    }
 
     /**
      * @Route("/{id}/edit", name="champs_libre_edit", methods={"GET","POST"})
