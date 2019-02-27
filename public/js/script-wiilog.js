@@ -89,9 +89,10 @@ $(document).ready(function () {
  * @param {Document} modal la fenêtre modale selectionnée : document.getElementById("modal").
  * @param {Document} submit le bouton qui va envoyé les données au controller via Ajax.
  * @param {string} path le chemin pris pour envoyer les données.
+ * @param {document} table le DataTable gérant les données
  * 
  */
-function InitialiserModal(modal, submit, path) {
+function InitialiserModal(modal, submit, path, table) {
     submit.click(function () 
     {
         xhttp = new XMLHttpRequest();
