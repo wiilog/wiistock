@@ -22,8 +22,8 @@ class FournisseurRepository extends ServiceEntityRepository
     public function findBySearch($value)
     {
         return $this->createQueryBuilder('r')
-            ->andWhere('r.nom like :val OR r.code_reference like :val')
-            ->setParameter('val', '%' . $value . '%')
+            ->andWhere('r.nom like :value OR r.code_reference like :value')
+            ->setParameter('value', '%' . $value . '%')
             ->orderBy('r.nom', 'ASC')
             ->getQuery()
             ->getResult()

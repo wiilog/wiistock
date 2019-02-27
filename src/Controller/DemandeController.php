@@ -3,8 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Demande;
-use App\Entity\Articles;
-use App\Entity\ReferencesArticles;
+use App\Entity\Livraison;
 use App\Entity\LigneArticle;
 use App\Entity\Preparation;
 
@@ -14,7 +13,6 @@ use App\Repository\DemandeRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\StatutRepository;
-use App\Repository\ArticleRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\UtilisateurRepository;
 
@@ -190,7 +188,7 @@ class DemandeController extends AbstractController
     /**
      * @Route("/creationDemande", name="creation_demande", options={"expose"=true}, methods="GET|POST")
      */
-    public function creationDemande(Request $request, ArticleRepository $articlesRepository): Response
+    public function creationDemande(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $em = $this->getDoctrine()->getManager();
@@ -223,9 +221,9 @@ class DemandeController extends AbstractController
     public function index(Request $request): Response
     {
         return $this->render('demande/index.html.twig', [
-            'utilisateurs' => $this->utilisateurRepository->findUserGetIdUser(),
+            'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
             'statuts' => $this->statutRepository->findByCategorieName(Demande::CATEGORIE),
-            'emplacements' => $this->emplacementRepository->findLocGetIdName()
+            'emplacements' => $this->emplacementRepository->getIdAndNom()
         ]);
     }
 
@@ -238,9 +236,9 @@ class DemandeController extends AbstractController
     {
         return $this->render('demande/show.html.twig', [
             'demande' => $demande,
-            'utilisateurs' => $this->utilisateurRepository->findUserGetIdUser(),
+            'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
             'statuts' => $this->statutRepository->findByCategorieName(Demande::CATEGORIE),
-            'references' => $this->referenceArticleRepository->findRefArticleGetIdLibelle()
+            'references' => $this->referenceArticleRepository->getIdAndLibelle()
         ]);
     }
 
@@ -268,18 +266,18 @@ class DemandeController extends AbstractController
     public function demandeApi(Request $request, DemandeRepository $demandeRepository): Response
     {
         if ($request->isXmlHttpRequest()) {
-            /* if ($request->request->get('utilisateur')) {
-                $utilisateur = $request->request->get('utilisateur');
-                $statut = $request->request->get('statut');
-                $dateDebut = $request->request->get('dateDebut');
-                $dateFin = $request->request->get('dateFin');
-                $demandes = $demandeRepository->findAll(); // a modifier pour filtre
+//            if ($request->request->get('utilisateur')) {
+//                $utilistaeur = $request->request->get('utilisateur');
+//                $statut = $request->request->get('statut');
+//                $dateDebut = $request->request->get('dateDebut');
+//                $dateFin = $request->request->get('dateFin');
+//
+//                $demandes = $demandeRepository->findAll(); // a modifier pour filtre
 
-            } else {
-                $demandes = $demandeRepository->findAllByUserAndStatut($this->getUser());
-            } */
+//            } else {
+                $demandes = $demandeRepository->findByUserAndNotStatus($this->getUser(), Livraison::STATUT_TERMINE);
+//            }
             $rows = [];
-            $demandes = $demandeRepository->findAll();
             foreach ($demandes as $demande) {
                 $url['show'] = $this->generateUrl('demande_show', ['id' => $demande->getId()]);
                 $rows[] =

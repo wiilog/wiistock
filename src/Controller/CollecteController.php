@@ -42,18 +42,18 @@ class CollecteController extends AbstractController
     /**
      * @var ArticleRepository
      */
-    private $articlesRepository;
+    private $articleRepository;
     
     /**
      * @var UtilisateurRepository
      */
     private $utilisateurRepository;
 
-    public function __construct(StatutRepository $statutRepository, ArticleRepository $articlesRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UtilisateurRepository $utilisateurRepository)
+    public function __construct(StatutRepository $statutRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UtilisateurRepository $utilisateurRepository)
     {
         $this->statutRepository = $statutRepository;
         $this->emplacementRepository = $emplacementRepository;
-        $this->articlesRepository = $articlesRepository;
+        $this->articleRepository = $articleRepository;
         $this->collecteRepository = $collecteRepository;
         $this->utilisateurRepository = $utilisateurRepository;
     }
@@ -66,7 +66,8 @@ class CollecteController extends AbstractController
     public function index(Request $request): Response
     {
         return $this->render('collecte/index.html.twig', [
-            'emplacements'=>$this->emplacementRepository->findAll(),
+            'emplacements'=>$this->emplacementRepository->findByNom('dedans'),
+//            'emplacements'=>$this->emplacementRepository->findBy(['nom' => 'dedans'])
         ]);
     }
 
@@ -117,7 +118,7 @@ class CollecteController extends AbstractController
         $quantity = $request->request->getInt('quantity');
         $collecteId = $request->request->getInt('collecteId');
 
-        $article = $this->articlesRepository->find($articleId);
+        $article = $this->articleRepository->find($articleId);
         $collecte = $this->collecteRepository->find($collecteId);
 
         $article
@@ -150,7 +151,7 @@ class CollecteController extends AbstractController
         $articleId = $request->request->getInt('articleId');
         $collecteId = $request->request->getInt('collecteId');
 
-        $article = $this->articlesRepository->find($articleId);
+        $article = $this->articleRepository->find($articleId);
         $collecte = $this->collecteRepository->find($collecteId);
 
         if (!empty($article)) {

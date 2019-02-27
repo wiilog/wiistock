@@ -59,13 +59,18 @@ class ReceptionController extends AbstractController
      * @var ReceptionRepository
      */
     private $receptionRepository;
-    
+
+    /**
+     * @var ArticleRepository
+     */
+    private $articleRepository;
+
     /**
      * @var FournisseurRepository
      */
     private $fournisseurRepository;
 
-    public function __construct(FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository)
+    public function __construct(FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, ArticleRepository $articleRepository)
     {
         $this->statutRepository = $statutRepository;
         $this->emplacementRepository = $emplacementRepository;
@@ -73,6 +78,7 @@ class ReceptionController extends AbstractController
         $this->utilisateurRepository = $utilisateurRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->fournisseurRepository = $fournisseurRepository;
+        $this->articleRepository = $articleRepository;
     }
 
 
@@ -238,7 +244,7 @@ class ReceptionController extends AbstractController
     {
         return $this->render('reception/index.html.twig', [
             'fournisseurs' => $this->fournisseurRepository->findAll(), //a précisé avant modif
-            'utilisateurs' => $this->utilisateurRepository->findUserGetIdUser(),
+            'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
         ]);
     }
 
@@ -271,7 +277,7 @@ class ReceptionController extends AbstractController
 
         return $this->render('reception/edit.html.twig', [
             "reception" => $reception,
-            "utilisateurs" => $this->utilisateurRepository->findUserGetIdUser(),
+            "utilisateurs" => $this->utilisateurRepository->getIdAndUsername(),
             "fournisseurs" => $this->fournisseurRepository->findAll(), //a précisé avant modif
         ]); 
     }
@@ -309,7 +315,7 @@ class ReceptionController extends AbstractController
         //fin de reception/mise en stock des article
         // k sert à vérifier et identifier la fin de la reception, en suite on modifie les "setStatut" des variables 
         if ($finishReception) {
-            $articles = $this->articlesRepository->findByReception($id);
+            $articles = $this->articleRepository->findByReception($id);
             // modification du statut
             foreach ($articles as $article) 
             {
@@ -327,17 +333,15 @@ class ReceptionController extends AbstractController
             $reception->setStatut($statut);
             $reception->setDateReception(new \DateTime('now'));
 
-            //calcul de la quantite des stocks par artciles de reference
+            //calcul de la quantite des stocks par articles de reference
             $refArticles = $this->referenceArticleRepository->findAll();
             foreach ($refArticles as $refArticle)
             {
-                // requete Count en SQL dédié
-                $quantityRef = $this->articlesRepository->findCountByRefArticle($refArticle);
-                $quantity = $quantityRef[0];
-                $refArticle->setQuantiteDisponible($quantity[1]);
+                $quantity = $this->articleRepository->countByRefArticleAndStatut($refArticle, Article::STATUT_EN_STOCK);
+                $refArticle->setQuantiteDisponible($quantity);
             }
             $this->getDoctrine()->getManager()->flush();
-            return $this->redirectToRoute('reception_index', ['history' => 0]);
+            return $this->redirectToRoute('reception_index');
         }
         return $this->render("reception/ajoutArticle.html.twig", [
             'reception' => $reception,

@@ -49,15 +49,7 @@ class StatutRepository extends ServiceEntityRepository
             'statutName' => $statutName
         ]);
 
-        $result = $query->execute();
-        return ($result) ? $result[0] : null;
-        return $query = $em->createQuery(
-            "SELECT s 
-             FROM App\Entity\Statut s 
-             WHERE s.categorie = :categorie"
-            )
-            ->setParameter("categorie", $categorie)
-            ->execute();
+        return $query->getSingleScalarResult();
     }
 
 }

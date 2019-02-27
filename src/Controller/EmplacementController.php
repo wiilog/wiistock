@@ -30,12 +30,12 @@ class EmplacementController extends AbstractController
     /**
      * @var ArticleRepository
      */
-    private $articlesRepository;
+    private $articleRepository;
 
-    public function __construct(ArticleRepository $articlesRepository, EmplacementRepository $emplacementRepository)
+    public function __construct(ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
     {
         $this->emplacementRepository = $emplacementRepository;
-        $this->articlesRepository = $articlesRepository;
+        $this->articleRepository = $articleRepository;
     }
 
     /**
@@ -149,7 +149,7 @@ class EmplacementController extends AbstractController
      */
     public function delete(Request $request, Emplacement $emplacement)  : Response
     {
-        $emplacements = $this->articlesRepository->findAll();
+        $emplacements = $this->articleRepository->findAll();
         if (count($emplacements) === 0) {
             if ($this->isCsrfTokenValid('delete' . $emplacement->getId(), $request->request->get('_token'))) {
                 $em = $this->getDoctrine()->getManager();

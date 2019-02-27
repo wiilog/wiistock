@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\ReferenceArticle;
 use App\Form\ReferenceArticleType;
+use App\Repository\ChampPersonnaliseRepository;
 use App\Repository\ReferenceArticleRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
@@ -26,9 +27,16 @@ class ReferenceArticleController extends Controller
      */
     private $referenceArticleRepository;
 
-    public function __construct(ReferenceArticleRepository $referenceArticleRepository)
+    /**
+     * @var ChampPersonnaliseRepository
+     */
+    private $champPersonnaliseRepository;
+
+
+    public function __construct(ReferenceArticleRepository $referenceArticleRepository, ChampPersonnaliseRepository $champPersonnaliseRepository)
     {
         $this->referenceArticleRepository = $referenceArticleRepository;
+        $this->champPersonnaliseRepository = $champPersonnaliseRepository;
     }
 
 
@@ -179,7 +187,7 @@ class ReferenceArticleController extends Controller
                 $array = array();
                 while ($i < count($data['data']) - 1) {
                     $name = explode('[', substr($data['data'][$i]['name'], 0, -1))[1];
-                    $id_field = $em->getRepository(ChampPersonnalise::class)->findByName($name, "reference_article")->getId();
+                    $id_field = $this->champPersonnaliseRepository->findByName($name, "reference_article")->getId();
                     $item = array(
                         $id_field => $data['data'][$i]['value'],
                     );
