@@ -39,7 +39,7 @@
 
     <div class='row' >
         <div class="col-2 offset-10 text-right">
-            <a href="" data-toggle="modal" data-target="#modalAddArticle" class="button btn-left" id="addRow">
+            <a href="" data-toggle="modal" data-target="#modalAddArticle" class="btn btn-primary" id="addRow">
                 <span class="fa fa-plus mr-2"></span>Ajouter un article
             </a>
         </div>
@@ -88,7 +88,7 @@
         {#{% endfor %}#}
         </tbody>
     </table>
-    <a href="{{ path('collecte_index') }}" class='btn btn-primary float-left'> Retour</a>
+    <a href="{{ path('collecte_index') }}" class='btn float-left'>Retour</a>
     {{ include('collecte/modalAddArticle.html.twig') }}
     {{ include('collecte/modalDeleteCollecte.html.twig') }}
     {{ include('collecte/modalModifyArticle.html.twig') }}

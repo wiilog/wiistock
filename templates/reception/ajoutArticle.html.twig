@@ -43,9 +43,9 @@
             <td>{{ article.statut.nom }}</td>
             <td>{{ article.quantiteARecevoir }}</td>
             <td>{{ article.quantite }}</td>
-            <!-- <td>{{ article.etat ? 'conforme': 'non-conforme' }}</td> -->
+            <!-- <td>{# article.etat ? 'conforme': 'non-conforme' #}</td> -->
             <td>
-                <a href="{{ path('article_edit', {'id': article.id}) }}" class="btn btn-xs btn-default command-edit"><i
+                <a href="{{ path('article_edit', {'id': article.id}) }}"><i
                         class="fas fa-pencil-alt fa-2x"></i></a>
             </td>
         </tr>
@@ -152,7 +152,7 @@
                 var url = '/article/modifier/' + tabAlfa.id
                 var nouvelleCellule = nouvelleLigne.insertCell(6);
                 var a = document.createElement("a")
-                a.className = 'btn btn-xs btn-default command-edit'
+                // a.className = 'btn btn-xs btn-default command-edit'
                 a.setAttribute('href', url)
                 var i = document.createElement("i")
                 i.className = 'fas fa-pencil-alt fa-2x'
