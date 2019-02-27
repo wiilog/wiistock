@@ -60,6 +60,7 @@ class DemandeController extends AbstractController
         $this->referenceArticleRepository = $referenceArticleRepository;
     }
 
+    
 
     /**
      * @Route("/preparation/{id}", name="preparationFromDemande")
@@ -128,6 +129,7 @@ class DemandeController extends AbstractController
     }
 
 
+
     /**
      * @Route("/demande-livraison/voir/modifierLigneArticle/{id}", options={"expose"=true}, name="modifyLigneArticle", methods={"GET", "POST"})
      */
@@ -158,6 +160,7 @@ class DemandeController extends AbstractController
     }
 
 
+
     /**
      * @Route("/modifDemande/{id}", name="modifDemande", options={"expose"=true}, methods="GET|POST")
      */
@@ -181,6 +184,8 @@ class DemandeController extends AbstractController
         }
         throw new NotFoundHttpException("404");
     }
+
+
 
     /**
      * @Route("/creationDemande", name="creation_demande", options={"expose"=true}, methods="GET|POST")
@@ -287,7 +292,6 @@ class DemandeController extends AbstractController
                 ];
             }
             $data['data'] = $rows;
-            dump($data);
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
