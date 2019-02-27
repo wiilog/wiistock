@@ -66,7 +66,7 @@ class CollecteController extends AbstractController
     public function index(Request $request): Response
     {
         return $this->render('collecte/index.html.twig', [
-            'emplacements'=>$this->emplacementRepository->findByNom('dedans'),
+            'emplacements'=>$this->emplacementRepository->findAll(),
 //            'emplacements'=>$this->emplacementRepository->findBy(['nom' => 'dedans'])
         ]);
     }

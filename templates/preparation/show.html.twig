@@ -15,6 +15,7 @@
     </div>
 </div>
 
+<span id="demande-id" data-id="{{ preparation.demandes.0.id }}"></span>
 <table id="table_id" class="table table-striped table-bordered" style="width:100%">
 
     <thead>
@@ -37,13 +38,16 @@
 {% block javascript %}
 <script>
 
+var id = $('#demande-id').data('id');
+console.log(id);
+var pathShow = Routing.generate('LignePreparation_api', {id: id}, true);
 var table = $('#table_id').DataTable({
     "language": {
         "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
     },
     "processing": true,
     "ajax": {
-        "url": "{{ path('LignePreparation_api', {'id' : preparation.demandes.0.id }) }}",
+        "url": pathShow,
         "type": "POST"
     },
     columns: [{
