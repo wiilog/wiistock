@@ -37,14 +37,13 @@ class FournisseurController extends AbstractController
         if ($request->isXmlHttpRequest()) {
             $q = $request->query->get('q');
             $refs = $this->fournisseurRepository->findBySearch($q);
-            $rows = array();
+            $rows = [];
             foreach ($refs as $ref) {
-                $row = [
+                $rows[] = [
                     "id" => $ref->getId(),
                     "nom" => $ref->getNom(),
                     "code_reference" => $ref->getCodeReference(),
                 ];
-                array_push($rows, $row);
             }
 
             $data = array(

@@ -19,7 +19,7 @@ class UtilisateurRepository extends ServiceEntityRepository
         parent::__construct($registry, Utilisateur::class);
     }
 
-    public function findCountEmail($email)
+    public function countByEmail($email)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
@@ -28,11 +28,10 @@ class UtilisateurRepository extends ServiceEntityRepository
             WHERE u.email = :email"
         )->setParameter('email', $email);
         ;
-        return $query->execute(); 
+        return $query->getSingleScalarResult();
     }
 
-    
-    public function findUserGetIdUser(){
+    public function getIdAndUsername(){
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT u.id, u.username

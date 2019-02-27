@@ -10,7 +10,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 
 /**
- * @ORM\Entity(repositoryClass="App\Repository\ArticlesRepository")
+ * @ORM\Entity(repositoryClass="App\Repository\ArticleRepository")
  * @UniqueEntity("nom")
  */
 class Article

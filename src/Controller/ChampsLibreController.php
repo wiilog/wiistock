@@ -73,6 +73,30 @@ class ChampsLibreController extends AbstractController
         }
         throw new NotFoundHttpException("404");
     }
+    /**
+     * @Route("/champsLibreApi/{id}", name="champsLibreApi", options={"expose"=true}, methods={"POST"})
+     */
+    public function champsLibreApi(Request $request, $id): Response
+    {
+        if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
+        {
+            $types = $this->typeRepository->findAll();
+            $rows = [];
+            foreach ($types as $type) {
+                // $url['edit'] = $this->generateUrl('article_edit', ['id' => $article->getId()] );
+                $url = $this->generateUrl('champs_libre_show', ['id' => $type->getId()]);
+                $rows[] =
+                [
+                    'id' => ($type->getId() ? $type->getId() : "Non défini"),
+                    'Label' => ($type->getLabel() ? $type->getLabel() : "Non défini"),
+                    'Actions' => "<a href='" . $url . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-plus fa-2x'></i> Champ libre</a>",
+                ];
+            }
+            $data['data'] = $rows;
+            return new JsonResponse($data);
+        }
+        throw new NotFoundHttpException("404");
+    }
 
      /**
      * @Route("/typeNew", name="type_new", options={"expose"=true}, methods={"POST"})
@@ -101,7 +125,7 @@ class ChampsLibreController extends AbstractController
             'type' => $this->typeRepository->find($id),
         ]);
     }
-    
+
     /**
      * @Route("/new/{id}", name="champs_libre_new", methods={"GET","POST"})
      */

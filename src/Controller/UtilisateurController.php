@@ -69,13 +69,9 @@ class UtilisateurController extends Controller
         && array_key_exists('password2', $_POST)
         ) {
             /* On vérifie les erreurs */
-            dump($_POST['email']);
             echo "1";
             $erreurs = array();
-            $userSearch = $utilisateurRepository->findCountEmail($_POST['email']);
-            $userCount = $userSearch[0][1];
-            dump($userSearch);
-
+            $userCount = $utilisateurRepository->countByEmail($_POST['email']);
 
             /* On vérifie si l'email est valide ou si l'utilisateur existe déja */
             if(!filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) {
@@ -90,10 +86,9 @@ class UtilisateurController extends Controller
             if($_POST['password'] < 4) {
                 array_push($erreurs, "Votre mot de passe est trop court");
                 if($_POST['password'] != $_POST['password2']) {
-                    array_push($erreurs, "Veuillez rentrer le même mot de passe");
+                    array_push($erreurs, "Veuillez entrer le même mot de passe");
                 }
             }
-
 
             if(count($erreurs) === 0) { /* Si la création d'utilisateur est valide on crée l'utilisateur */
 

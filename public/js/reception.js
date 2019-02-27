@@ -9,7 +9,7 @@ var dataModal = $("#dataModalCenter");
 var ButtonSubmit = $("#submitButton");
 var urlReceptionIndex = Routing.generate('createReception', true)
 
-InitialiserModal(dataModal, ButtonSubmit, urlReceptionIndex);
+InitialiserModal(dataModal, ButtonSubmit, urlReceptionIndex, table);
 
 var table = $('#tableArticle_id').DataTable({
     language: {

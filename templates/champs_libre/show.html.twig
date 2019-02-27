@@ -5,6 +5,12 @@
 {% block page_content %}
     <h1>Création de nouveau champ libre pourle type {{type.label}} </h1>
 
+    <div class=' btn'>
+        <a href="" data-toggle="modal" data-target="#modalNewChampsLibre" class="button btn-left">
+            <span class="fa fa-plus"></span> Nouveau Champs Libre
+        </a>
+    </div>
+    
 
 
     <table id="tableChampslibre_id" class="table table-striped table-bordered" style="width:100%">
@@ -19,4 +25,12 @@
     </table>
 
     <a href="{{ path('champs_libre_index') }}" class="button btn-left">Retour</a>
-{% endblock %}
+    {% include "champs_libre/modalNewChampsLibre.html.twig" %}
+
+    {% endblock %}
+    {% block javascript %}
+    <script>
+        let id = {{type.id}}
+    </script>
+    <script src={{asset('js/champsLibre.js')}}></script>
+    {% endblock javascript %}

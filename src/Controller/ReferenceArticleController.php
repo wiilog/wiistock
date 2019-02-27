@@ -179,7 +179,7 @@ class ReferenceArticleController extends Controller
                 $array = array();
                 while ($i < count($data['data']) - 1) {
                     $name = explode('[', substr($data['data'][$i]['name'], 0, -1))[1];
-                    $id_field = $em->getRepository(ChampPersonnalise::class)->findByName($name, "reference_article")->getId();
+                    $id_field = $this->champPersonnaliseRepository->findByName($name, "reference_article")->getId();
                     $item = array(
                         $id_field => $data['data'][$i]['value'],
                     );

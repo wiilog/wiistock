@@ -10,5 +10,5 @@ function editRow(button) {
     modal.find('.ligne-article').html(name);
     modal.data('id', id); //TODO CG trouver + propre
 
-    InitialiserModal(modal, submit, path);
+    InitialiserModal(modal, submit, path, table);
 }

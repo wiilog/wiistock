@@ -1,8 +1,8 @@
 console.log('hello');
+let id
 
-var urlApiType = Routing.generate('typeApi', true);
-
-var table = $('#tableType_id').DataTable({
+const urlApiType = Routing.generate('typeApi', true);
+let table = $('#tableType_id').DataTable({
     "language": {
         "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
     },
@@ -16,12 +16,14 @@ var table = $('#tableType_id').DataTable({
     ],
 });
 
-var table = $('#tableChampslibre_id').DataTable({
+
+const urlApiChampsLibre = Routing.generate('champsLibreApi', {'id': id},true)
+let tableChampsLibre = $('#tableChampslibre_id').DataTable({
     "language": {
         "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
     },
     ajax: {
-        "url": urlApiType,
+        "url": urlApiChampsLibre,
         "type": "POST"
     },
     columns: [
@@ -33,5 +35,5 @@ var table = $('#tableChampslibre_id').DataTable({
 
 var dataModal = $("#modalNewType");
 var ButtonSubmit = $("#submitTypeNew");
-var urlTypeNew = Routing.generate('type_new', true)
-InitialiserModal(dataModal,ButtonSubmit,urlTypeNew);
+var urlTypeNew = Routing.generate('type_new', true);
+InitialiserModal(dataModal,ButtonSubmit,urlTypeNew,table);
