@@ -9,16 +9,34 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
+
             <div class="modal-body modal-input container-fluid">
                 <div class="form-group">
                     <label for="date-attendu">Label</label>
                     <input type="text" class="form-control data" name="label" value="" required="true">
                 </div>
             </div>
+            <div class="modal-body modal-input container-fluid">
+                <div class="form-group">
+                    <label for="typage">Typage</label>
+                    <select class="form-control select2 data" name="typage" id='typage'>
+                        <option value="booleen">Booléen</option>
+                        <option value="number">Nombre</option>
+                        <option value="text">Text</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-body modal-input container-fluid">
+                <div class="form-group">
+                    <label for="date-attendu">Valeur par défaut</label>
+                    <input type="text" class="form-control data" name="Valeur par défaut" value="" required="true">
+                </div>
+            </div>
+
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
-                <button id="submitChampsLibreNew" type="button" data-dismiss="modal"
-                    class="btn btn-primary btn-success">Enregistrer</button>
+                <button id="submitChampsLibreNew" name='type' value='{{type.id}}' type="button" data-dismiss="modal"
+                    class="btn btn-primary btn-success data">Enregistrer</button>
             </div>
         </div>
     </div>

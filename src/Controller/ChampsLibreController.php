@@ -80,16 +80,18 @@ class ChampsLibreController extends AbstractController
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
         {
-            $types = $this->typeRepository->findAll();
+            $id = $request->getContent();
+            $champsLibres = $this->champsLibreRepository->findAll();
             $rows = [];
-            foreach ($types as $type) {
+            foreach ($champsLibres as $champsLibre) {
                 // $url['edit'] = $this->generateUrl('article_edit', ['id' => $article->getId()] );
-                $url = $this->generateUrl('champs_libre_show', ['id' => $type->getId()]);
                 $rows[] =
                 [
-                    'id' => ($type->getId() ? $type->getId() : "Non défini"),
-                    'Label' => ($type->getLabel() ? $type->getLabel() : "Non défini"),
-                    'Actions' => "<a href='" . $url . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-plus fa-2x'></i> Champ libre</a>",
+                    'id' => ($champsLibre->getId() ? $champsLibre->getId() : "Non défini"),
+                    'Label' => ($champsLibre->getLabel() ? $champsLibre->getLabel() : "Non défini"),
+                    'Typage' => ($champsLibre->getTypage() ? $champsLibre->getTypage() : "Non défini"),
+                    'Valeur par défaut' => ($champsLibre->getDefaultValue() ? $champsLibre->getDefaultValue() : "Non défini"),
+                    'Actions' => "<a href='' class='btn btn-xs btn-default command-edit'><i class='fas fa-plus fa-2x'></i> Champ libre</a>",
                 ];
             }
             $data['data'] = $rows;
@@ -123,18 +125,30 @@ class ChampsLibreController extends AbstractController
     {
         return $this->render('champs_libre/show.html.twig', [
             'type' => $this->typeRepository->find($id),
+
         ]);
     }
 
     /**
-     * @Route("/new/{id}", name="champs_libre_new", methods={"GET","POST"})
+     * @Route("/new", name="champs_libre_new", options={"expose"=true}, methods={"GET","POST"})
      */
-    public function new(Request $request, $id): Response
+    public function new(Request $request): Response
     {
-        return $this->render('champs_libre/new.html.twig', [
-            'type' => $this->typeRepository->find($id),
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $type = $this->typeRepository->find($data['type']);
 
-        ]);
+            $champsLibre = new ChampsLibre();
+            $champsLibre
+                ->setlabel($data["label"])
+                ->setType($type)
+                ->settypage($data['typage'])
+                ->setDefaultValue($data['Valeur par défaut']);
+            $em = $this->getDoctrine()->getManager();
+            $em->persist($champsLibre);
+            $em->flush();
+            return new JsonResponse($data);
+        }
+        throw new NotFoundHttpException("404");
     }
 
 

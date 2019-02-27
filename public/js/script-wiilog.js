@@ -103,6 +103,7 @@ function InitialiserModal(modal, submit, path, table) {
             {
                 table.ajax.reload(function( json ) 
                 {
+                    console.log('yolo');
                     data = JSON.parse(this.responseText);
                     $('#myInput').val( json.lastInput );
                     if(data.redirect)
@@ -112,17 +113,25 @@ function InitialiserModal(modal, submit, path, table) {
                 });
             }      
         };
-        
         let inputs = modal.find(".data"); // On récupère toutes les données qui nous intéresse avec le querySelectorAll
         let Data = {} ; // Tableau de données
-
         inputs.each(function() {
            Data[$(this).attr("name")] = $(this).val();
         });
-        
         Json = [];
         Json.push( JSON.stringify(Data)); // On transforme les données en JSON
         xhttp.open("POST", path, true);
         xhttp.send(Json);
     });
+}
+
+/**
+ * Initialise une fenêtre modale
+ * 
+ * @param {Document} modal la fenêtre modale selectionnée : document.getElementById("modal").
+ * @param {Document} submit le bouton qui va envoyé les données au controller via Ajax.
+ * 
+ */
+function DeleteLigne(modal, submit, path, table) {
+
 }
