@@ -124,13 +124,14 @@ $('#modalModifyArticle').find('.save').on('click', function() {
     modifyArticle($(this));
 });
 
+var path = Routing.generate('articles_by_collecte');
 $('#table-list-articles').DataTable({
     "language": {
         "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json",
     },
     "pageLength": 5,
     "ajax":{
-        "url":"{{path('articles_by_collecte')}}",
+        "url": path,
         "data" : { collecteId: {{ collecte.id }} },
         "type": "POST"
     },

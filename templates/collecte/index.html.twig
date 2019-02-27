@@ -45,13 +45,14 @@ $('#dataModalCenter').find('.save').on('click', function() {
     saveCollecte($(this));
 });
 
+var path = Routing.generate('collectes_json', true);
 $('#table-list-collects').DataTable({
      "language": {
        "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
      },
      "pageLength": 5,
      "ajax":{
-        "url":"{{path('collectes_json')}}",
+        "url": path,
         "type": "POST"
     },
     columns: [

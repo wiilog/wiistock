@@ -58,6 +58,8 @@ class CollecteController extends AbstractController
         $this->utilisateurRepository = $utilisateurRepository;
     }
 
+
+
     /**
      * @Route("/", name="collecte_index", methods={"GET", "POST"})
      */
@@ -165,7 +167,7 @@ class CollecteController extends AbstractController
     }
 
     /**
-     * @Route("/api", name="collectes_json", methods={"GET", "POST"})
+     * @Route("/api", name="collectes_json", options={"expose"=true}, methods={"GET", "POST"})
      */
     public function getCollectes(): Response
     {

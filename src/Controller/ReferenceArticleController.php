@@ -41,7 +41,7 @@ class ReferenceArticleController extends Controller
 
 
     /**
-     * @Route("/refArticleAPI", name="ref_article_api", methods="GET")
+     * @Route("/refArticleAPI", name="ref_article_api", options={"expose"=true}, methods="GET")
      */
     public function refArticleApi(Request $request) : Response
     {

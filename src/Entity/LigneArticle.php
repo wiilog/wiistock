@@ -51,12 +51,12 @@ class LigneArticle
         return $this;
     }
 
-    public function getReference(): ?ReferencesArticles
+    public function getReference(): ?ReferenceArticle
     {
         return $this->reference;
     }
 
-    public function setReference(?ReferencesArticles $reference): self
+    public function setReference(?ReferenceArticle $reference): self
     {
         $this->reference = $reference;
 

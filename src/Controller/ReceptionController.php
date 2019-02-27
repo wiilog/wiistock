@@ -83,7 +83,7 @@ class ReceptionController extends AbstractController
 
 
     /**
-     * @Route("/creationReception", name="createReception", methods="POST")
+     * @Route("/creationReception", name="createReception", options={"expose"=true}, methods="POST")
      */
     public function createReception(Request $request) : Response
     {
@@ -156,7 +156,7 @@ class ReceptionController extends AbstractController
 
 
     /**
-     * @Route("/api", name="reception_api", methods={"GET", "POST"}) 
+     * @Route("/api", name="reception_api", options={"expose"=true}, methods={"GET", "POST"}) 
      */
     public function receptionApi(Request $request) : Response
     {
