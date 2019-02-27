@@ -20,19 +20,5 @@
 {% endblock %}
 
 {% block javascript %}
-<script>
-    var table = $('#table_id').DataTable({
-        "language": {
-            "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
-        },
-        ajax: "{{path('preparation_api')}}",
-        columns: [
-            { "data": 'Numéro' },
-            { "data": 'Date' },
-            { "data": 'Statut' },
-            { "data": 'Actions' },
-        ],
-    });
-
-</script>
+<script src="{{ asset('js/preparation.js') }}"></script>
 {% endblock %}

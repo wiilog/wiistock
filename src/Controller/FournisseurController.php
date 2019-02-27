@@ -56,7 +56,7 @@ class FournisseurController extends AbstractController
     }
 
     /**
-     * @Route("/api", name="fournisseur_api", methods="GET")
+     * @Route("/api", name="fournisseur_api", options={"expose"=true}, methods="GET")
      */
     public function fournisseurApi(Request $request) : Response
     {
@@ -89,7 +89,7 @@ class FournisseurController extends AbstractController
     }
 
     /**
-     * @Route("/creation/fournisseur", name="creation_fournisseur", methods="GET|POST")
+     * @Route("/creation/fournisseur", name="creation_fournisseur", options={"expose"=true}, methods="GET|POST")
      */
     public function creationFournisseur(Request $request) : Response
     {

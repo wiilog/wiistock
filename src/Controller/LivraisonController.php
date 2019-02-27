@@ -55,7 +55,6 @@ class LivraisonController extends AbstractController
         $this->demandeRepository = $demandeRepository;
         $this->livraisonRepository = $livraisonRepository;
         $this->statutRepository = $statutRepository;
-
     }
 
 //    /**
@@ -111,7 +110,7 @@ class LivraisonController extends AbstractController
     }
     
     /**
-     * @Route("/api", name="livraison_api", methods={"GET", "POST"})
+     * @Route("/api", name="livraison_api", options={"expose"=true}, methods={"GET", "POST"})
      */
     public function livraisonApi( Request $request) : Response
     {

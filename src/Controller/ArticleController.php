@@ -66,7 +66,7 @@ class ArticleController extends AbstractController
     }
 
     /**
-     * @Route("/api", name="article_api", methods="GET|POST")
+     * @Route("/api", name="article_api", options={"expose"=true}, methods="GET|POST")
      */
     public function articleApi(Request $request) : Response
     {
@@ -99,7 +99,7 @@ class ArticleController extends AbstractController
 
     
     /**
-     * @Route("/par-collecte", name="articles_by_collecte", methods={"GET", "POST"})
+     * @Route("/par-collecte", name="articles_by_collecte", options={"expose"=true}, methods={"GET", "POST"})
      */
     public function getArticlesByCollecte(Request $request): Response
     {

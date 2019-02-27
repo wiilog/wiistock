@@ -15,6 +15,8 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
+
+
 /**
  * @Route("/alerte")
  */
@@ -24,16 +26,10 @@ class AlerteController extends AbstractController
      * @var AlerteRepository
      */
     private $alerteRepository;
-    
-    /**
-     * @var ArticleRepository
-     */
-    private $articleRepository;
 
-    public function __construct(AlerteRepository $alerteRepository, ArticleRepository $articleRepository)
+    public function __construct(AlerteRepository $alerteRepository)
     {
         $this->alerteRepository = $alerteRepository;
-        $this->articleRepository = $articleRepository;
     }
 
     
@@ -47,9 +43,9 @@ class AlerteController extends AbstractController
             $alerte = new Alertes();
             $em = $this->getDoctrine()->getEntityManager();
             $alerte
-                ->setNom($data[0]["nom"])
-                ->setRefArticle($data[2]["refArticle"])
-                ->setSeuil($data[1]["seuil"]);
+                ->setNom($data["nom"])
+                ->setRefArticle($data["refArticle"])
+                ->setSeuil($data["seuil"]);
             $em->persist($alerte);
             $em->flush();
             $data = json_encode($data);
@@ -64,7 +60,7 @@ class AlerteController extends AbstractController
     /**
      * @Route("/Alerte", name="alerte_index", methods={"GET"})
      */
-    public function index( \Swift_Mailer $mailer, Request $request) : Response
+    public function index(Request $request) : Response
     {
         return $this->render('alerte/index.html.twig');
     }
@@ -72,22 +68,30 @@ class AlerteController extends AbstractController
 
 
     /**
-     * @Route("/api", name="alerte_api", methods={"GET"})
+     * @Route("/api", name="alerte_api", options={"expose"=true}, methods={"GET"})
      */
     public function alerteApi(\Swift_Mailer $mailer, Request $request) : Response
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
         {
             $alertes = $this->alerteRepository->findAll();
-            $alertesUser = []; /* Un tableau d'alertes qui sera envoyer au mailer */
+
+            /* Un tableau d'alertes qui sera envoyer au mailer */
+            $alertesUser = []; 
             $rows = [];
+
             foreach ($alertes as $alerte) {
+                
                 $condition = $alerte->getAlerteRefArticle()->getQuantiteStock() > $alerte->getAlerteSeuil();
-                $seuil = ($condition) ? false : true; /* Si le seuil est inférieur à la quantité, seuil atteint = false sinon true */
+
+                /* Si le seuil est inférieur à la quantité, seuil atteint = false sinon true */
+                $seuil = ($condition) ? false : true; 
                 $alerte->setSeuilAtteint($seuil);
+
                 if ($seuil) {
                     array_push($alertesUser, $alerte); /* Si seuil atteint est "true" alors on insère l'alerte dans le tableau */
                 }
+
                 $this->getDoctrine()->getManager()->flush();
                 $url['edit'] = $this->generateUrl('alerte_edit', ['id' => $alerte->getId()] );
                 $url['show'] = $this->generateUrl('alerte_show', ['id' => $alerte->getId()] );
@@ -100,15 +104,19 @@ class AlerteController extends AbstractController
                     'Actions' => $this->renderView('alerte/datatableAlerteRow.html.twig', ['url' => $url]),
                 ];
             }
+
             if (count($alertesUser) > 0) {
                 $this->mailer($alertesUser, $mailer); /* On envoie le tableau d'alertes au mailer */
             }
+
             $data['data'] = $rows;
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
      
     }
+
+
 
     /**
      * @Route("/creer", name="alerte_new", methods={"GET","POST"})

@@ -20,7 +20,7 @@
             </tr>
             <tr>
                 <th>Date</th>
-                <td class="backtablejv">{{ reception.date ? reception.date|date('Y-m-d H:i:s') : '' }}</td>
+                <td class="backtablejv">{{ reception.date ? reception.date|date('Y/m/d H:i:s') : '' }}</td>
             </tr>
           
             <tr>
@@ -40,7 +40,7 @@
                 <th>Statut</th>
                 <th>Référence Article</th>
                 <th>Emplacement</th>
-                <th>direction</th>
+                <th>Direction</th>
             </tr>
         </thead>
         <tbody>
@@ -54,7 +54,7 @@
                 </tr>
             {% else %}
                 <tr>
-                    <td colspan="10">aucun résultat</td>
+                    <td colspan="10">Aucun résultat</td>
                 </tr>
             {% endfor %}
             </tbody>
