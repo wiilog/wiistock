@@ -1,3 +1,4 @@
+{# TODO template utilisé ? #}
 {% extends 'layout.html.twig' %}
 
 {% block title %}Nouvel utilisateur{% endblock %}
@@ -34,8 +35,8 @@
         </div>
 
         <hr class="mb-4">
-        <button href="{{ path('utilisateur_index_create') }}" type="submit" class="button btn-left">Créer</button>
-        <a href="{{ path('utilisateur_index') }}" class="button btn-left">Voir la liste</a>
+        <button href="{{ path('utilisateur_index_create') }}" type="submit" class="btn btn-primary float-left">Créer</button>
+        <a href="{{ path('utilisateur_index') }}" class="btn float-left">Voir la liste</a>
       </form>
 
 

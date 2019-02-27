@@ -1,199 +1,199 @@
-{% extends 'layout.html.twig' %}
+{#{% extends 'layout.html.twig' %}#}
 
-{% block title %}Champ Personnalise{% endblock %}
+{#{% block title %}Champ Personnalise{% endblock %}#}
 
-{% form_theme form _self %}
+{#{% form_theme form _self %}#}
 
-{% block checkbox_widget %}
-    <div class="checkbox">
-        <input class="inp-cbx" type="checkbox" {{ block('widget_attributes') }} {% if value is defined %} value="{{ value }}" {% endif %} {% if checked %} checked="checked" {% endif %} style="display: none;"/>
-        <label class="cbx" for="{{ id }}">
-            <span>
-                <svg width="12px" height="10px" viewbox="0 0 12 10">
-                    <polyline points="1.5 6 4.5 9 10.5 1"></polyline>
-                </svg>
-            </span>
-            <span>{{ name }}</span>
-        </label>
-    </div>
-{% endblock checkbox_widget %}
+{#{% block checkbox_widget %}#}
+    {#<div class="checkbox">#}
+        {#<input class="inp-cbx" type="checkbox" {{ block('widget_attributes') }} {% if value is defined %} value="{{ value }}" {% endif %} {% if checked %} checked="checked" {% endif %} style="display: none;"/>#}
+        {#<label class="cbx" for="{{ id }}">#}
+            {#<span>#}
+                {#<svg width="12px" height="10px" viewbox="0 0 12 10">#}
+                    {#<polyline points="1.5 6 4.5 9 10.5 1"></polyline>#}
+                {#</svg>#}
+            {#</span>#}
+            {#<span>{{ name }}</span>#}
+        {#</label>#}
+    {#</div>#}
+{#{% endblock checkbox_widget %}#}
 
-{% block page_content %}
+{#{% block page_content %}#}
 
-    <div class="row page-title">
-        CHAMP PERSONNALISE
-    </div>
+    {#<div class="row page-title">#}
+        {#CHAMP PERSONNALISE#}
+    {#</div>#}
 
-    <div class="row btn-grp">
-        <div class="col-md-12">
-            <a href="#" class="button btn-left" data-toggle="modal" data-target="#ajoutModal">
-                <span class="fa fa-plus"></span>Créer un champ personnalisé
-            </a>
-        </div>
-    </div>
+    {#<div class="row">#}
+        {#<div class="col-md-12">#}
+            {#<a href="#" class="button btn-left" data-toggle="modal" data-target="#ajoutModal">#}
+                {#<span class="fa fa-plus mr-2"></span>Créer un champ personnalisé#}
+            {#</a>#}
+        {#</div>#}
+    {#</div>#}
 
-    <table id="grid-data" class="table table-condensed table-hover table-striped">
-        <thead>
-            <tr>
-                <th data-column-id="id" data-visible="false" data-sortable="false">Id</th>
-                <th data-column-id="nom">Nom</th>
-                <th data-column-id="type">Type</th>
-                <th data-column-id="cible">Entité cible</th>
-                <th data-column-id="commands" data-formatter="commands" data-sortable="false">Actions</th>
-            </tr>
-        </thead>
+    {#<table id="grid-data" class="table table-condensed table-hover table-striped">#}
+        {#<thead>#}
+            {#<tr>#}
+                {#<th data-column-id="id" data-visible="false" data-sortable="false">Id</th>#}
+                {#<th data-column-id="nom">Nom</th>#}
+                {#<th data-column-id="type">Type</th>#}
+                {#<th data-column-id="cible">Entité cible</th>#}
+                {#<th data-column-id="commands" data-formatter="commands" data-sortable="false">Actions</th>#}
+            {#</tr>#}
+        {#</thead>#}
 
-        <tbody>
-            {% for champ_personnalise in champs_personnalises %}
-                <tr>
-                    <td>{{ champ_personnalise.id }}</td>
-                    <td>{{ champ_personnalise.nom }}</td>
-                    <td>{{ champ_personnalise.type }}</td>
-                    <td>{{ champ_personnalise.entiteCible }}</td>
-                    <td></td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+        {#<tbody>#}
+            {#{% for champ_personnalise in champs_personnalises %}#}
+                {#<tr>#}
+                    {#<td>{{ champ_personnalise.id }}</td>#}
+                    {#<td>{{ champ_personnalise.nom }}</td>#}
+                    {#<td>{{ champ_personnalise.type }}</td>#}
+                    {#<td>{{ champ_personnalise.entiteCible }}</td>#}
+                    {#<td></td>#}
+                {#</tr>#}
+            {#{% endfor %}#}
+        {#</tbody>#}
+    {#</table>#}
 
-    <!-- Modal-->
-    <div id="ajoutModal" class="modal fade" role="dialog">
-        <div class="modal-dialog">
+    {#<!-- Modal-->#}
+    {#<div id="ajoutModal" class="modal fade" role="dialog">#}
+        {#<div class="modal-dialog">#}
 
-            <!-- Modal content-->
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal">&times;</button>
-                    <h4 class="modal-title">
-                        <span class="glyphicon glyphicon-list-alt"></span>
-                        Nouveau champ personnalisé</h4>
-                </div>
-                <div class="modal-body">
-                    <p>Sélectionnez vos caractéristiques :</p>
-                    <form>
-                        {{ form_start(form) }}
-                        {{ form_errors(form) }}
+            {#<!-- Modal content-->#}
+            {#<div class="modal-content">#}
+                {#<div class="modal-header">#}
+                    {#<button type="button" class="close" data-dismiss="modal">&times;</button>#}
+                    {#<h4 class="modal-title">#}
+                        {#<span class="glyphicon glyphicon-list-alt"></span>#}
+                        {#Nouveau champ personnalisé</h4>#}
+                {#</div>#}
+                {#<div class="modal-body">#}
+                    {#<p>Sélectionnez vos caractéristiques :</p>#}
+                    {#<form>#}
+                        {#{{ form_start(form) }}#}
+                        {#{{ form_errors(form) }}#}
 
-                        {{ form_row(form.nom, {'required': false}) }}
-                        {{ form_row(form.type, {'required': false}) }}
-                        {{ form_row(form.entite_cible, {'required': false}) }}
-                        {{ form_row(form.unicite, {'required': false}) }}
-                        {{ form_row(form.nullable, {'required': false}) }}
-                        {{ form_row(form.valeur_defaut, {'required': false}) }}
+                        {#{{ form_row(form.nom, {'required': false}) }}#}
+                        {#{{ form_row(form.type, {'required': false}) }}#}
+                        {#{{ form_row(form.entite_cible, {'required': false}) }}#}
+                        {#{{ form_row(form.unicite, {'required': false}) }}#}
+                        {#{{ form_row(form.nullable, {'required': false}) }}#}
+                        {#{{ form_row(form.valeur_defaut, {'required': false}) }}#}
 
-                        {{ form_row(form._token) }}
-                        {{ form_end(form, {'render_rest' : false}) }}
+                        {#{{ form_row(form._token) }}#}
+                        {#{{ form_end(form, {'render_rest' : false}) }}#}
 
-                        <div class="form-group">
-                            <div class="form-group">
-                                <textarea class="form-control" rows="6" placeholder="Commentaires sur le champ personnalisé"></textarea>
-                            </div>
-                            <button type="submit" id="add-champ" class="btn btn-success btn-block">
-                                <span class="glyphicon glyphicon-check"></span>
-                                Valider
-                            </button>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-danger btn-default pull-left" data-dismiss="modal">
-                        <span class="glyphicon glyphicon-remove"></span>
-                        Annuler</button>
-                </div>
-            </div>
+                        {#<div class="form-group">#}
+                            {#<div class="form-group">#}
+                                {#<textarea class="form-control" rows="6" placeholder="Commentaires sur le champ personnalisé"></textarea>#}
+                            {#</div>#}
+                            {#<button type="submit" id="add-champ" class="btn btn-success btn-block">#}
+                                {#<span class="glyphicon glyphicon-check"></span>#}
+                                {#Valider#}
+                            {#</button>#}
+                        {#</div>#}
+                    {#</form>#}
+                {#</div>#}
+                {#<div class="modal-footer">#}
+                    {#<button type="submit" class="btn btn-danger btn-default pull-left" data-dismiss="modal">#}
+                        {#<span class="glyphicon glyphicon-remove"></span>#}
+                        {#Annuler</button>#}
+                {#</div>#}
+            {#</div>#}
 
-        </div>
-    </div>
+        {#</div>#}
+    {#</div>#}
 
-    <!-- Modal Confirmation-->
-    <div id="supprModal" class="modal fade" role="dialog">
-        <div class="modal-dialog">
+    {#<!-- Modal Confirmation-->#}
+    {#<div id="supprModal" class="modal fade" role="dialog">#}
+        {#<div class="modal-dialog">#}
 
-            <!-- Modal content-->
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal">&times;</button>
-                    <h4 class="modal-title">
-                        <span class="glyphicon glyphicon-warning"></span>
-                        Suppression</h4>
-                </div>
-                <div class="modal-body">
-                    <p>Êtes-vous sûr de vouloir supprimer cet élément ?</p>
+            {#<!-- Modal content-->#}
+            {#<div class="modal-content">#}
+                {#<div class="modal-header">#}
+                    {#<button type="button" class="close" data-dismiss="modal">&times;</button>#}
+                    {#<h4 class="modal-title">#}
+                        {#<span class="glyphicon glyphicon-warning"></span>#}
+                        {#Suppression</h4>#}
+                {#</div>#}
+                {#<div class="modal-body">#}
+                    {#<p>Êtes-vous sûr de vouloir supprimer cet élément ?</p>#}
 
-                    <form>
-                        <button id="del-champ" type="submit" class="btn btn-success btn-block">Oui</button>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-danger btn-default pull-left" data-dismiss="modal">
-                        <span class="glyphicon glyphicon-remove"></span>
-                        Annuler</button>
-                </div>
+                    {#<form>#}
+                        {#<button id="del-champ" type="submit" class="btn btn-success btn-block">Oui</button>#}
+                    {#</form>#}
+                {#</div>#}
+                {#<div class="modal-footer">#}
+                    {#<button type="submit" class="btn btn-danger btn-default pull-left" data-dismiss="modal">#}
+                        {#<span class="glyphicon glyphicon-remove"></span>#}
+                        {#Annuler</button>#}
+                {#</div>#}
 
-            </div>
-        </div>
-    </div>
+            {#</div>#}
+        {#</div>#}
+    {#</div>#}
 
-    <div class="row">
-        <div class="col-md-12">
-            <a href="#" class="button btn-left">
-                <span class="fa fa-angle-double-left"></span>Retour</a>
-        </div>
-    </div>
+    {#<div class="row">#}
+        {#<div class="col-md-12">#}
+            {#<a href="#" class="button btn-left">#}
+                {#<span class="fa fa-angle-double-left"></span>Retour</a>#}
+        {#</div>#}
+    {#</div>#}
 
-{% endblock %}
+{#{% endblock %}#}
 
-{% block javascripts %}
-    <script type="text/javascript">
-        var del_id = 0;
+{#{% block javascripts %}#}
+    {#<script type="text/javascript">#}
+        {#var del_id = 0;#}
 
-        var grid = $("#grid-data").bootgrid({
-            ajax: false,
-            formatters: {
-                "commands": function (column, row) {
-                    return "<button type=\"button\" class=\"btn btn-xs btn-default command-edit\" data-row-id=\"" + row.id + "\"><span class=\"fa fa-pencil\"></span></button> " + "<button type=\"button\" class=\"btn btn-xs btn-default command-delete\" data-row-id=\"" + row.id + "\"><span class=\"fa fa-trash-o\"></span></button>";
-                }
-            }
-        }).on("loaded.rs.jquery.bootgrid", function () {
-            /* Executes after data is loaded and rendered */
-            grid.find(".command-delete").on("click", function (e) {
-                del_id = $(this).data("row-id");
-                $("#supprModal").modal();
-            })
-        });
+        {#var grid = $("#grid-data").bootgrid({#}
+            {#ajax: false,#}
+            {#formatters: {#}
+                {#"commands": function (column, row) {#}
+                    {#return "<button type=\"button\" class=\"btn btn-xs btn-default command-edit\" data-row-id=\"" + row.id + "\"><span class=\"fa fa-pencil\"></span></button> " + "<button type=\"button\" class=\"btn btn-xs btn-default command-delete\" data-row-id=\"" + row.id + "\"><span class=\"fa fa-trash-o\"></span></button>";#}
+                {#}#}
+            {#}#}
+        {#}).on("loaded.rs.jquery.bootgrid", function () {#}
+            {#/* Executes after data is loaded and rendered */#}
+            {#grid.find(".command-delete").on("click", function (e) {#}
+                {#del_id = $(this).data("row-id");#}
+                {#$("#supprModal").modal();#}
+            {#})#}
+        {#});#}
 
-        $('#add-champ').on('click', function (e) {
-            $.ajax({
-                url: "{{ path('champ_personnalise_add') }}",
-                type: "POST",
-                dataType: "json",
-                data: {
-                    "nom": $('#champ_personnalise_nom').val(),
-                    "type": $('#champ_personnalise_type').val(),
-                    "cible": $('#champ_personnalise_entite_cible').val(),
-                    "unicite": $('#champ_personnalise_unicite').val(),
-                    "nullable": $('#champ_personnalise_nullable').val(),
-                    "defaut": $('#champ_personnalise_valeur_defaut').val()
-                },
-                success: function (resp) {
-                    location.reload();
-                }
-            });
-        })
+        {#$('#add-champ').on('click', function (e) {#}
+            {#$.ajax({#}
+                {#url: "{{ path('champ_personnalise_add') }}",#}
+                {#type: "POST",#}
+                {#dataType: "json",#}
+                {#data: {#}
+                    {#"nom": $('#champ_personnalise_nom').val(),#}
+                    {#"type": $('#champ_personnalise_type').val(),#}
+                    {#"cible": $('#champ_personnalise_entite_cible').val(),#}
+                    {#"unicite": $('#champ_personnalise_unicite').val(),#}
+                    {#"nullable": $('#champ_personnalise_nullable').val(),#}
+                    {#"defaut": $('#champ_personnalise_valeur_defaut').val()#}
+                {#},#}
+                {#success: function (resp) {#}
+                    {#location.reload();#}
+                {#}#}
+            {#});#}
+        {#})#}
 
-        $('#del-champ').on('click', function (e) {
-            e.preventDefault();
-            $.ajax({
-                url: "{{ path('champ_personnalise_remove') }}",
-                type: "POST",
-                dataType: "json",
-                data: {
-                    "id": del_id,
-                },
-                success: function (resp) {
-                    // location.reload();
-                }
-            })
-        });
-    </script>
-{% endblock %}
+        {#$('#del-champ').on('click', function (e) {#}
+            {#e.preventDefault();#}
+            {#$.ajax({#}
+                {#url: "{{ path('champ_personnalise_remove') }}",#}
+                {#type: "POST",#}
+                {#dataType: "json",#}
+                {#data: {#}
+                    {#"id": del_id,#}
+                {#},#}
+                {#success: function (resp) {#}
+                    {#// location.reload();#}
+                {#}#}
+            {#})#}
+        {#});#}
+    {#</script>#}
+{#{% endblock %}#}

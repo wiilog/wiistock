@@ -116,7 +116,7 @@ class FournisseurController extends AbstractController
     }
 
     /**
-     * @Route("/{id}/edit", name="fournisseur_edit", methods="GET|POST")
+     * @Route("/modifier/{id}", name="fournisseur_edit", methods="GET|POST")
      */
     public function edit(Request $request, Fournisseur $fournisseur) : Response
     {

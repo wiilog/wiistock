@@ -30,8 +30,8 @@ body
   font-weight: 400
   -webkit-font-smoothing: antialiased
   font-size: 1em
-  color: #383838
-  background-color: #f8f8f8
+  color: $bodyColor
+  background-color: $backgroundBodyColor
   overflow-x: hidden
 
 p
@@ -40,7 +40,6 @@ p
 h1, h2
   color: #000
   margin: 20px 0
-
 
 h1
   font-size: 1.5em
@@ -70,7 +69,6 @@ input:-webkit-autofill
 
 .wrapper
   margin-left: 130px
-  /* padding: 0px 15px; */
   margin-bottom: 30px
 
 
@@ -90,3 +88,24 @@ a
 .alert
   position: unset
   text-align: center
+
+
+//// COLORS ////
+
+.backDarkRed
+  background-color: $redDark !important
+
+.backgreen
+  background-color: $green !important
+
+.backblue
+  background-color: $blueGT !important
+
+.backgrey
+  background-color: $grey !important
+
+.red
+  color: $red
+
+.green
+  color: $green

@@ -7,20 +7,20 @@
     <div id="sidemenu-bg" class="sidemenu-bg hide"></div>
     <ul id="sidemenu" class="sidemenu">
         <li>
-            <a href={{path("utilisateur_edit", {"id": app.user.id})}}>
-                    <div style='font-size:0.8em;'> V0.0.5</div>
-                <img src={{asset('img/logogt.png')}} class='logoGt'>
-                <div class="username">{{ app.user.username }}</div>
-            </a>
+            <div class="menu-header">
+                <img src="{{asset('img/logogt.png')}}" class='logoGt'>
+                <div class="version"> V0.0.5</div>
+                <div class="username mt-2">{{ app.user.username }}</div>
+            </div>
         </li>
-        <li>
+        <li class="menu-item">
             <a href="{{ path('check_last_login') }}">
                 <i class="fas fa-home"></i>
                 <h4 class="username">Accueil</h4>
             </a>
         </li>
         <!-- DEMANDE   -->
-        <li class="has-submenu">
+        <li class="menu-item has-submenu">
             <a href="#">
                 <i class="fas fa-shopping-cart"></i>
                 <h4 class="username">Demande</h4>
@@ -31,7 +31,7 @@
             </ul>
         </li>
         <!-- ORDRE -->
-        <li class="has-submenu">
+        <li class="menu-item has-submenu">
             <a href="#">
                 <i class="fas fa-network-wired"></i>
                 <h4 class="username">Ordre</h4>
@@ -43,7 +43,7 @@
             </ul>
         </li>
         <!-- STOCK -->
-        <li class="has-submenu">
+        <li class="menu-item has-submenu">
             <a href="#">
                 <i class="fas fa-box"></i>
                 <h4 class="username">Stock</h4>
@@ -56,7 +56,7 @@
             </ul>
         </li>
         <!-- REFERENCE -->
-        <li class="has-submenu">
+        <li class="menu-item has-submenu">
             <a href="#">
                 <i class="fas fa-sync-alt"></i>
                 <h4 class="username">Référentiel</h4>
@@ -78,7 +78,7 @@
         </li>
 
         {% if is_granted('ROLE_ADMIN') %}
-        <li class="has-submenu">
+        <li class="menu-item has-submenu">
             <a href="#">
                 <i class="fas fa-gear"></i>
                 <h4 class="username">Paramétrage</h4>

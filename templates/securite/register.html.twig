@@ -19,8 +19,8 @@
                     {{ form_row(form.plainPassword.first) }}
                     {{ form_row(form.plainPassword.second) }}
 
-                    <button class="button btn-left pull-left" type="submit">Enregistrer</button>
-                    <a class="button btn-right pull-right" href="{{ url('login') }}">{{ 'Se connecter' }}</a>
+                    <button class="btn btn-primary float-left" type="submit">Enregistrer</button>
+                    <a class="btn float-right" href="{{ url('login') }}">{{ 'Se connecter' }}</a>
                     {{ form_row(form._token) }}
                     {{ form_end(form, {'render_rest' : false}) }}
                 </div>

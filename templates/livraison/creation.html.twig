@@ -36,7 +36,7 @@
     {% endfor %}
         <form class="row" action={{path("livraison_creation")}} method="post">
             {% if demandes|length > 0  %}
-                    <input name="valid" class="button btn-left" type="submit" value="Valider">
+                    <input name="valid" class="btn btn-left" type="submit" value="Valider">
                 {% else %}
                 <div class="col-12">
                     <p>aucune préparation terminé</p>

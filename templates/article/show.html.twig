@@ -1,9 +1,9 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Articles{% endblock %}
+{% block title %}Article{% endblock %}
 
 {% block page_content %}
-    <h1>Articles</h1>
+    <h1>Article</h1>
 
     <table class="table container">
         <tbody>
@@ -42,8 +42,8 @@
         </tbody>
     </table>
 
-    <a href={{session}} class='button pull-left btn-left'> Retour</a>
-    <a href="{{ path('article_edit', {'id': article.id}) }}" class='button pull-right btn-left'>Modifier</a>
+    <a href="{{session}}" class='btn'> Retour</a>
+    <a href="{{ path('article_edit', {'id': article.id}) }}" class='btn btn-primary float-right'>Modifier</a>
 
     {{ include('article/_delete_form.html.twig') }}
 {% endblock %}

@@ -5,13 +5,13 @@
 {% block page_content %}
     <h1>Articles de référence</h1>
 
-    <div class='row btn ' >
-        <a href={{ path('reference_article_new') }} class="button btn-left">
-            <span class="fa fa-plus"></span>Nouvel article de référence
+    <div class='row' >
+        <a href="{{ path('reference_article_new') }}" class="btn btn-primary">
+            <span class="fa fa-plus mr-2"></span>Nouvel article de référence
         </a >
     </div>
 
-    <table  id="table_id" class="table table-striped table-bordered" style="width:100%">
+    <table  id="table_id" class="table table-striped table-bordered w-100">
         <thead>
             <tr>
                 <th>Libellé</th>

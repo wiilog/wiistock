@@ -38,7 +38,7 @@ class AlerteController extends AbstractController
 
     
     /**
-     * @Route("/", name="alerte_index", methods={"GET"})
+     * @Route("/create", name="alerte_index", methods={"GET"})
      */
     public function createAlerte(Request $request) : Response
     {
@@ -62,7 +62,7 @@ class AlerteController extends AbstractController
 
 
     /**
-     * @Route("/Alerte", name="alerte_index", methods={"GET"})
+     * @Route("/", name="alerte_index", methods={"GET"})
      */
     public function index( \Swift_Mailer $mailer, Request $request) : Response
     {
