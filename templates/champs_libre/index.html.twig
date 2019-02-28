@@ -4,12 +4,13 @@
 
 {% block page_content %}
 
-<h1>Champs Libre</h1>
+<h1>Champs libre</h1>
 <div class=' btn'>
     <a href="" data-toggle="modal" data-target="#modalNewType" class="button btn-left">
         <span class="fa fa-plus"></span> Nouveau type
     </a>
 </div>
+
 
 <table id="tableType_id" class="table table-striped table-bordered" style="width:100%">
     <thead>
@@ -23,6 +24,7 @@
 </table>
 
 {% include "champs_libre/modalNewType.html.twig" %}
+{% include "champs_libre/modalDeleteType.html.twig" %}
 
 {% endblock %}
 {% block javascript %}

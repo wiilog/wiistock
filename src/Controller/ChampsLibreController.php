@@ -67,7 +67,7 @@ class ChampsLibreController extends AbstractController
                     'Label' => ($type->getLabel() ? $type->getLabel() : "Non défini"),
                     'Actions' =>  $this->renderView('champs_libre/datatableTypeRow.html.twig', [
                             'urlChampsLibre' => $url,
-                            'id'=> $type->getId()    
+                            'idType'=> $type->getId()    
                         ]),
                 ];
             }
@@ -83,8 +83,7 @@ class ChampsLibreController extends AbstractController
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
         {
-            $id = $request->getContent();
-            $champsLibres = $this->champsLibreRepository->setByType($this->typeRepository->find($id)); //TODO Fatal ERROR 
+            $champsLibres = $this->champsLibreRepository->setByType($this->typeRepository->find($id)); 
             $rows = [];
             foreach ($champsLibres as $champsLibre) {
                 // $url['edit'] = $this->generateUrl('article_edit', ['id' => $article->getId()] );
@@ -94,7 +93,7 @@ class ChampsLibreController extends AbstractController
                     'Label' => ($champsLibre->getLabel() ? $champsLibre->getLabel() : "Non défini"),
                     'Typage' => ($champsLibre->getTypage() ? $champsLibre->getTypage() : "Non défini"),
                     'Valeur par défaut' => ($champsLibre->getDefaultValue() ? $champsLibre->getDefaultValue() : "Non défini"),
-                    'Actions' =>  $this->renderView('champs_libre/datatableChampsLibreRow.html.twig', ['id' => $champsLibre->getId()]),
+                    'Actions' =>  $this->renderView('champs_libre/datatableChampsLibreRow.html.twig', ['idChampsLibre' => $champsLibre->getId()]),
                 ];
             }
             $data['data'] = $rows;
@@ -147,7 +146,6 @@ class ChampsLibreController extends AbstractController
                 ->setDefaultValue($data['Valeur par défaut']);
             $em = $this->getDoctrine()->getManager();
             $em->persist($champsLibre);
-            // dump($champsLibre);
             $em->flush();
             return new JsonResponse($data);
         }
@@ -166,22 +164,31 @@ class ChampsLibreController extends AbstractController
     /**
      * @Route("/deleteChampsLibre", name="champs_libre_delete",options={"expose"=true}, methods={"GET","POST"})
      */
-    public function delete(Request $request): Response
+    public function deleteChampsLibre(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            dump($data);            
-            $champsLibre = $this->champsLibreRepository->find();
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {          
+            $champsLibre = $this->champsLibreRepository->find($data['champsLibre']);
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($champsLibre);
-            // $entityManager->flush();
-            return new JsonResponse($data);
+            $entityManager->flush();
+            return new JsonResponse();
         }
         throw new NotFoundHttpException("404");
-        // if ($this->isCsrfTokenValid('delete'.$champsLibre->getId(), $request->request->get('_token'))) {
-        //     $entityManager = $this->getDoctrine()->getManager();
-        //     $entityManager->remove($champsLibre);
-        //     $entityManager->flush();
-        // }
+    }
 
+/**
+     * @Route("/deleteType", name="type_delete",options={"expose"=true}, methods={"GET","POST"})
+     */
+    public function deleteType(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {          
+            $type = $this->typeRepository->find($data['type']);
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->remove($type);
+            $entityManager->flush();
+            return new JsonResponse();
+        }
+        throw new NotFoundHttpException("404");
     }
 }
+

@@ -1,8 +1,9 @@
 <div class='btn btn-xs btn-default champs-libre-edit' onclick='editRow($(this))' data-toggle='modal' data-target=''>
     <i class='fas fa-pencil-alt fa-2x'></i>
 </div>
-<div class='btn btn-xs btn-default champs-libre-delete' onclick='deleteRow($(this))' data-id='{{ id }}'
-    data-target='#modalDeleteChampsLibre'>
+<div class='btn btn-xs btn-default type-delete' onclick="deleteRow($(this), $('#modalDeleteType'), $('#submitDeleteType'))" data-id='{{ idType }}'
+    data-target='#modalDeleteType'  data-toggle='modal'>
     <i class='fas fa-trash fa-2x'></i>
 </div>
-"<a href={{urlChampsLibre}} class='btn btn-xs btn-default command-edit'><i class='fas fa-plus fa-2x'></i> Champ libre</a>
+
+<a href={{urlChampsLibre}} class='btn btn-xs btn-default command-edit'><i class='fas fa-plus fa-2x'></i> Champ libre</a>
