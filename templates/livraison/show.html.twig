@@ -52,7 +52,7 @@
                         class="fas fa-pencil-alt fa-2x"></i></a>
                 {% if article.statut.nom == 'en stock' %}
                 <a href="{{path('article_index', {'statut': 'mis en stock',  'id': article.id})}}"
-                    class="btn btn-xs btn-default command-edit green"><i class="fas fa-check fa-2x"></i></a>
+                    class="btn btn-xs btn-default green"><i class="fas fa-check fa-2x"></i></a>
                 {% endif %}
             </td>
         </tr>
