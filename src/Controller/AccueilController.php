@@ -11,13 +11,13 @@ use Symfony\Component\Routing\Annotation\Route;
 use App\Repository\AlerteRepository;
 
 /**
- * @Route("/stock")
+ * @Route("/accueil")
  */
 
 class AccueilController extends AbstractController
 {
     /**
-     * @Route("/accueil", name="accueil", methods={"GET"})
+     * @Route("/", name="accueil", methods={"GET"})
      */
     public function index(AlerteRepository $arlerteRepository, Request $request): Response
     {  

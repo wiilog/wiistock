@@ -16,14 +16,13 @@ var tableRefArticle = $('#tableRefArticle_id').DataTable({
     ],
 });
 
-// let dataModalRefArticleNew = $("#modalNewRefArticle");
-// console.log(dataModalRefArticleNew)
-// let ButtonSubmitRefArticleNew = $("#submitNewRefArticle");
-// let urlRefArticleNew = Routing.generate('reference_article_new', true);
-// InitialiserModal(dataModaRefArticleNew, ButtonSubmitRefArticleNew, urlRefArticleNew,tableRefArticle);
+let ModalRefArticleNew = $("#modalNewRefArticle");
+let ButtonSubmitRefArticleNew = $("#submitNewRefArticle");
+let urlRefArticleNew = Routing.generate('reference_article_new', true);
+InitialiserModal(ModalRefArticleNew, ButtonSubmitRefArticleNew, urlRefArticleNew, tableRefArticle);
 
-// let dataModalTypeDelete = $("#modalDeleteType");
-// let ButtonSubmitTypeDelete = $("#submitDeleteType");
-// let urlTypeDelete = Routing.generate('type_delete', true);
-// InitialiserModal(dataModalTypeDelete, ButtonSubmitTypeDelete, urlTypeDelete, tableType);
+let ModalDeleteRefArticle = $("#modalDeleteRefArticle");
+let SubmitDeleteRefArticle = $("#submitDeleteRefArticle");
+let urlDeleteRefArticle = Routing.generate('reference_article_delete', true);
+InitialiserModal(ModalDeleteRefArticle, SubmitDeleteRefArticle, urlDeleteRefArticle, tableRefArticle);
 

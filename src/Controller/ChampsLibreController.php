@@ -43,10 +43,8 @@ class ChampsLibreController extends AbstractController
      * @Route("/", name="champs_libre_index", methods={"GET"})
      */
     public function index(): Response
-    {
-        return $this->render('champs_libre/index.html.twig', [
-            'types' => $this->typeRepository->findAll(),
-        ]);
+    {   
+        return $this->render('champs_libre/index.html.twig');
     }
 
     /**
@@ -177,7 +175,7 @@ class ChampsLibreController extends AbstractController
     }
 
 /**
-     * @Route("/deleteType", name="type_delete",options={"expose"=true}, methods={"GET","POST"})
+     * @Route("/supprimerType", name="type_delete",options={"expose"=true}, methods={"GET","POST"})
      */
     public function deleteType(Request $request): Response
     {

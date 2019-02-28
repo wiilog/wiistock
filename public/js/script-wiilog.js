@@ -14,6 +14,7 @@ $(document).ready(function () {
 function InitialiserModal(modal, submit, path, table) {
     submit.click( function () 
     {
+        console.log('yolo');
         xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function () 
         {
