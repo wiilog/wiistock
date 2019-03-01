@@ -66,7 +66,7 @@ class ArticleController extends AbstractController
     }
 
     /**
-     * @Route("/api", name="article_api", methods="GET|POST")
+     * @Route("/api", name="article_api", options={"expose"=true}, methods="GET|POST")
      */
     public function articleApi(Request $request) : Response
     {
@@ -87,7 +87,7 @@ class ArticleController extends AbstractController
                     'Emplacement' => ($article->getPosition() ? $article->getPosition()->getNom() : "Non défini"),
                     'Destination' => ($article->getDirection() ? $article->getDirection()->getNom() : "Non défini"),
                     'Quantité' => ($article->getQuantite() ? $article->getQuantite() : "Non défini"),
-                    'Actions' => $this->renderView('article/datatableArticleRow.html.twig', ['url' => $url]),
+                    'Actions' => $this->renderView('article/datatableArticleRow.html.twig', ['url' => $url, 'article' => $article]),
                 ];
             }
             $data['data'] = $rows;
@@ -100,7 +100,7 @@ class ArticleController extends AbstractController
 
     
     /**
-     * @Route("/par-collecte", name="articles_by_collecte", methods={"GET", "POST"})
+     * @Route("/par-collecte", name="articles_by_collecte", options={"expose"=true}, methods={"GET", "POST"})
      */
     public function getArticlesByCollecte(Request $request): Response
     {
@@ -216,7 +216,7 @@ class ArticleController extends AbstractController
     }
 
     /**
-     * @Route("/{id}", name="articles_delete", methods="DELETE")
+     * @Route("/{id}", name="article_delete", methods="DELETE")
      */
     public function delete(Request $request, Article $article) : Response
     {

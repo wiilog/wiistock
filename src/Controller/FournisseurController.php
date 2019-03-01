@@ -29,6 +29,8 @@ class FournisseurController extends AbstractController
         $this->fournisseurRepository = $fournisseurRepository;
     }
 
+
+    
     /**
      * @Route("/get", name="fournisseur_get", methods="GET")
      */
@@ -55,8 +57,10 @@ class FournisseurController extends AbstractController
         throw new NotFoundHttpException('404 not found');
     }
 
+
+
     /**
-     * @Route("/api", name="fournisseur_api", methods="GET")
+     * @Route("/api", name="fournisseur_api", options={"expose"=true}, methods="GET")
      */
     public function fournisseurApi(Request $request) : Response
     {
@@ -80,6 +84,8 @@ class FournisseurController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
+
+
     /**
      * @Route("/", name="fournisseur_index", methods="GET")
      */
@@ -88,8 +94,10 @@ class FournisseurController extends AbstractController
         return $this->render('fournisseur/index.html.twig', ['fournisseur' => $this->fournisseurRepository->findAll()]);
     }
 
+
+
     /**
-     * @Route("/creation/fournisseur", name="creation_fournisseur", methods="GET|POST")
+     * @Route("/creation/fournisseur", name="creation_fournisseur", options={"expose"=true}, methods="GET|POST")
      */
     public function creationFournisseur(Request $request) : Response
     {
@@ -107,6 +115,8 @@ class FournisseurController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
+
+
     /**
      * @Route("/{id}", name="fournisseur_show", methods="GET")
      */
@@ -115,8 +125,10 @@ class FournisseurController extends AbstractController
         return $this->render('fournisseur/show.html.twig', ['fournisseur' => $fournisseur]);
     }
 
+
+
     /**
-     * @Route("/{id}/edit", name="fournisseur_edit", methods="GET|POST")
+     * @Route("/modifier/{id}", name="fournisseur_edit", methods="GET|POST")
      */
     public function edit(Request $request, Fournisseur $fournisseur) : Response
     {
@@ -134,6 +146,8 @@ class FournisseurController extends AbstractController
             'form' => $form->createView(),
         ]);
     }
+
+
 
     /**
      * @Route("/{id}", name="fournisseur_delete", methods="DELETE")

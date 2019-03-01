@@ -7,66 +7,66 @@
     <div id="sidemenu-bg" class="sidemenu-bg hide"></div>
     <ul id="sidemenu" class="sidemenu">
         <li>
-            <a href={{path("utilisateur_edit", {"id": app.user.id})}}>
-                    <div style='font-size:0.8em;'> V0.0.5</div>
-                <img src={{asset('img/logogt.png')}} class='logoGt'>
-                <div class="username">{{ app.user.username }}</div>
-            </a>
+            <div class="menu-header">
+                <img src="{{asset('img/logogt.png')}}" class='logoGt'>
+                <div class="version"> V0.0.5</div>
+                <h4 class="mt-2">{{ app.user.username }}</h4>
+            </div>
         </li>
-        <li>
+        <li class="menu-item">
             <a href="{{ path('check_last_login') }}">
                 <i class="fas fa-home"></i>
-                <h4 class="username">Accueil</h4>
+                <h4>Accueil</h4>
             </a>
         </li>
         <!-- DEMANDE   -->
-        <li class="has-submenu">
+        <li class="menu-item has-submenu">
             <a href="#">
                 <i class="fas fa-shopping-cart"></i>
-                <h4 class="username">Demande</h4>
+                <h4>Demande</h4>
             </a>
             <ul class="sidemenu-sub">
-                <li><a href={{path("collecte_index")}}>• Collecte</a></li>
-                <li><a href={{ path('demande_index') }}>• Livraison</a></li>
+                <li><a href="{{path("collecte_index")}}" class="sub-item">• Collecte</a></li>
+                <li><a href="{{ path('demande_index') }}" class="sub-item">• Livraison</a></li>
             </ul>
         </li>
         <!-- ORDRE -->
-        <li class="has-submenu">
+        <li class="menu-item has-submenu">
             <a href="#">
                 <i class="fas fa-network-wired"></i>
-                <h4 class="username">Ordre</h4>
+                <h4>Ordre</h4>
             </a>
             <ul class="sidemenu-sub">
-                <li><a href={{path("reception_index")}}>• Réception</a></li>
-                <li><a href={{ path('preparation_index') }}>• Préparation</a></li>
-                <li><a href={{ path("livraison_index") }}>• Livraison</a></li>
+                <li><a href="{{path("reception_index")}}" class="sub-item">• Réception</a></li>
+                <li><a href="{{ path('preparation_index') }}" class="sub-item">• Préparation</a></li>
+                <li><a href="{{ path("livraison_index") }}" class="sub-item">• Livraison</a></li>
             </ul>
         </li>
         <!-- STOCK -->
-        <li class="has-submenu">
+        <li class="menu-item has-submenu">
             <a href="#">
                 <i class="fas fa-box"></i>
-                <h4 class="username">Stock</h4>
+                <h4>Stock</h4>
             </a>
             <ul class="sidemenu-sub">
-                <li><a href={{ path('article_index') }}>• Article</a></li>
+                <li><a href="{{ path('article_index') }}" class="sub-item">• Article</a></li>
                 <!-- <li><a href="#">• Mouvement</a></li> -->
-                <li><a href={{path('emplacement_index')}}>• Emplacement</a></li>
+                <li><a href="{{path('emplacement_index')}}" class="sub-item">• Emplacement</a></li>
                 <!-- <li><a href="#">• Inventaire</a></li>        -->
             </ul>
         </li>
         <!-- REFERENCE -->
-        <li class="has-submenu">
+        <li class="menu-item has-submenu">
             <a href="#">
                 <i class="fas fa-sync-alt"></i>
-                <h4 class="username">Référentiel</h4>
+                <h4>Référentiel</h4>
             </a>
             <ul class="sidemenu-sub">
                 <li>
-                    <a href="{{ path('fournisseur_index') }}">• Fournisseur</a>
+                    <a href="{{ path('fournisseur_index') }}" class="sub-item">• Fournisseur</a>
                 </li>
                 <li>
-                    <a href="{{ path('reference_article_index') }}">• Article référence</a>
+                    <a href="{{ path('reference_article_index') }}" class="sub-item">• Article référence</a>
                 </li>
                 <li>
                     <!-- <a href="#">• Article type</a> -->
@@ -78,14 +78,14 @@
         </li>
 
         {% if is_granted('ROLE_ADMIN') %}
-        <li class="has-submenu">
+        <li class="menu-item has-submenu">
             <a href="#">
                 <i class="fas fa-gear"></i>
-                <h4 class="username">Paramétrage</h4>
+                <h4>Paramétrage</h4>
             </a>
             <ul class="sidemenu-sub">
                 <li>
-                    <a href="{{ path('utilisateur_index') }}">• Utilisateurs</a>
+                    <a href="{{ path('utilisateur_index') }}" class="sub-item">• Utilisateurs</a>
                 </li>
                 <li>
                     <!-- <a href="#">• Rôle</a> -->
@@ -94,15 +94,15 @@
                     <a href="{{ path('champs_libre_index') }}">• Champs libre</a>
                 </li>
                 <li>
-                    <a href="{{ path('alerte_index') }}">• Alertes</a>
+                    <a href="{{ path('alerte_index') }}" class="sub-item">• Alertes</a>
                 </li>
             </ul>
         </li>
         {% endif %}
-        <li>
+        <li class="menu-item">
             <a href="{{ path('logout') }}">
-                <i class="	fas fa-power-off"></i>
-                <h4 class="username">Déconnexion</h4>
+                <i class="fas fa-power-off"></i>
+                <h4>Déconnexion</h4>
 
             </a>
         </li>

@@ -4,7 +4,7 @@
         <select class="form-control select2" id="code" name="code">
             <option value="">Choisir un code article...</option>
             {%  for article in articles %}
-                <option value="{{ article.id }}" data-quantity="{{ article.quantite }}">{{ article. nom }}</option>
+                <option value="{{ article.id }}" data-quantity="{{ article.quantite }}">{{ article.nom }}</option>
             {% endfor %}
         </select>
     </div>

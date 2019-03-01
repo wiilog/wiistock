@@ -58,13 +58,15 @@ class CollecteController extends AbstractController
         $this->utilisateurRepository = $utilisateurRepository;
     }
 
+
+
     /**
      * @Route("/", name="collecte_index", methods={"GET", "POST"})
      */
     public function index(Request $request): Response
     {
         return $this->render('collecte/index.html.twig', [
-            'emplacements'=>$this->emplacementRepository->findByNom('dedans'),
+            'emplacements'=>$this->emplacementRepository->findAll(),
 //            'emplacements'=>$this->emplacementRepository->findBy(['nom' => 'dedans'])
         ]);
     }
@@ -165,7 +167,7 @@ class CollecteController extends AbstractController
     }
 
     /**
-     * @Route("/api", name="collectes_json", methods={"GET", "POST"})
+     * @Route("/api", name="collectes_json", options={"expose"=true}, methods={"GET", "POST"})
      */
     public function getCollectes(): Response
     {

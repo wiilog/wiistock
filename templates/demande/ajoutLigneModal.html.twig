@@ -1,5 +1,5 @@
 <!-- Modal -->
-<form method="" class="modal fade" id="ajoutLigneModalCenter" role="dialog" aria-labelledby="dataModalCenterTitle"
+<form method="" class="modal fade" id="ajoutLigneModalCenter" data-id="{{ demande.id }}" role="dialog" aria-labelledby="dataModalCenterTitle"
     aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -26,8 +26,8 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
-                <button id="ajoutsubmitButton" type="button" data-dismiss="modal" class="btn btn-primary btn-success">Enregistrer</button>
+                <button type="button" class="btn" data-dismiss="modal">Annuler</button>
+                <button id="ajoutsubmitButton" type="button" data-dismiss="modal" class="btn btn-success">Enregistrer</button>
             </div>
         </div>
     </div>

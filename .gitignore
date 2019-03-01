@@ -15,3 +15,6 @@
 /.web-server-pid
 ###< symfony/web-server-bundle ###
 /.vs-code/
+
+/public/sass/style.css
+/public/sass/style.css.map

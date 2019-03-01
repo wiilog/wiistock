@@ -32,4 +32,8 @@ $('#myTab button').on('click', function (e) {
   })
 
 
-  
+// let modal = $('#modalModify');
+// let submit = modal.find('#modifySubmit');
+// modifyModal(modal, submit, table);
+
+

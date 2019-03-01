@@ -39,17 +39,17 @@ class EmplacementController extends AbstractController
     }
 
     /**
-     * @Route("/nouvelEmplacement", name="createEmplacement")
+     * @Route("/nouvelEmplacement", name="createEmplacement", options={"expose"=true})
      */
-    public function createEmplacement(Request $request) : Response
+    public function createEmplacement(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (count($data) >= 2) {
                 $emplacement = new Emplacement();
                 $em = $this->getDoctrine()->getManager();
 
-                $emplacement->setNom($data[0]['nom'])
-                            ->setDescription()($data[0]['description']);
+                $emplacement->setNom($data['nom'])
+                            ->setDescription($data['description']);
                 $em->persist($emplacement);
                 $em->flush();
                 $data = json_encode($data);
@@ -59,6 +59,8 @@ class EmplacementController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
+
+
     /**
      * @Route("/", name="emplacement_index", methods="GET")
      */
@@ -67,31 +69,10 @@ class EmplacementController extends AbstractController
         return $this->render('emplacement/index.html.twig');
     }
 
-    /**
-     * @Route("/creer", name="emplacement_new", methods="GET|POST")
-     */
-    public function new(Request $request) : Response
-    {
-        $emplacement = new Emplacement();
-        $form = $this->createForm(EmplacementType::class, $emplacement);
-        $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($emplacement);
-            $em->flush();
-
-            return $this->redirectToRoute('emplacement_index');
-        }
-
-        return $this->render('emplacement/new.html.twig', [
-            'emplacement' => $emplacement,
-            'form' => $form->createView(),
-        ]);
-    }
 
     /**
-     * @Route("/api", name="emplacement_api", methods="GET|POST")
+     * @Route("/api", name="emplacement_api", options={"expose"=true}, methods="GET|POST")
      */
     public function fournisseurApi(Request $request) : Response
     {
@@ -116,6 +97,8 @@ class EmplacementController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
+
+
     /**
      * @Route("/{id}", name="emplacement_show", methods="GET")
      */
@@ -123,6 +106,8 @@ class EmplacementController extends AbstractController
     {
         return $this->render('emplacement/show.html.twig', ['emplacement' => $emplacement]);
     }
+
+
 
     /**
      * @Route("/{id}/edit", name="emplacement_edit", methods="GET|POST")
@@ -144,6 +129,8 @@ class EmplacementController extends AbstractController
         ]);
     }
 
+
+
     /**
      * @Route("/{id}", name="emplacement_delete", methods="DELETE")
      */
@@ -157,7 +144,8 @@ class EmplacementController extends AbstractController
                 $em->flush();
             }
             return $this->redirectToRoute('emplacement_index');
-        } else {
+        } 
+        else {
             return $this->redirect($_SERVER['HTTP_REFERER']);
         }
     }

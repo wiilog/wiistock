@@ -30,9 +30,9 @@
         </tbody>
     </table>
 
-    <a class="button" href="{{ path('alerte_index') }}">Voir la liste</a>
+    <a class="btn" href="{{ path('alerte_index') }}">Voir la liste</a>
 
-    <a class="button" href="{{ path('alerte_edit', {'id': alerte.id}) }}">Modifier</a>
+    <a class="btn" href="{{ path('alerte_edit', {'id': alerte.id}) }}">Modifier</a>
 
     {{ include('alerte/_delete_form.html.twig') }}
 {% endblock %}

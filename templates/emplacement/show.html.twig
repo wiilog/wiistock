@@ -21,9 +21,8 @@
             </tr>
         </tbody>
     </table>
-    <a href="{{ path('emplacement_index') }}" class='button pull-left btn-left'>retour</a>
+    <a href="{{ path('emplacement_index') }}" class='btn float-left'>Retour</a>
+    <a href="{{ path('emplacement_edit', {'id': emplacement.id}) }}" class='btn btn-primary float-right'>Modifier</a>
     {{ include('emplacement/_delete_form.html.twig') }}
-    <a href="{{ path('emplacement_edit', {'id': emplacement.id}) }}" class='button pull-right btn-left'>Modifier</a>
-    
-   
+
 {% endblock %}

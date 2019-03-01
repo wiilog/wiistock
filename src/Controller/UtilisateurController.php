@@ -50,7 +50,7 @@ class UtilisateurController extends Controller
             }
         }
         return $this->render('utilisateur/index.html.twig', [
-            'utilisateur' => $utilisateurRepository->findAll(),
+            'utilisateurs' => $utilisateurRepository->findAll(),
 
 
         ]);
@@ -268,7 +268,7 @@ class UtilisateurController extends Controller
 
         return $this->render('utilisateur/show.html.twig', [
             'utilisateur' => $utilisateur, 
-            'reception' => $receptions,
+            'receptions' => $receptions,
             'demandes' => $demandes,
             'alertes' => $alertes
         ]);
@@ -307,6 +307,7 @@ class UtilisateurController extends Controller
             $em->flush();
         }
 
+        
         return $this->redirectToRoute('utilisateur_index');
     }
 

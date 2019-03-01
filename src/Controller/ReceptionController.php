@@ -81,11 +81,11 @@ class ReceptionController extends AbstractController
 
 
     /**
-     * @Route("/creationReception", name="createReception",options={"expose"=true}, methods="POST")
+     * @Route("/creationReception", name="createReception", options={"expose"=true}, methods="POST")
      */
     public function createReception(Request $request) : Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) //Si la requête est de type Xml et que data est attribuée
+        if ($data = json_decode($request->getContent(), true)) //Si data est attribuée
         {
             if (count($data) != 5)// On regarde si le nombre de données reçu est conforme et on envoi dans la base
             {
@@ -94,7 +94,7 @@ class ReceptionController extends AbstractController
                 $utilisateur = $this->utilisateurRepository->find(intval($data['utilisateur']));
 
                 $reception = new Reception();
-                $statut = $this->statutRepository->find(1); //a modifier
+                $statut = $this->statutRepository->find(1); // L'id correspondant au statut En cours de réception
                 $reception
                     ->setStatut($statut)
                     ->setNumeroReception($data['NumeroReception'])
@@ -104,6 +104,8 @@ class ReceptionController extends AbstractController
                     ->setUtilisateur($utilisateur)
                     ->setCommentaire($data['commentaire']);
                 $em->persist($reception);
+
+                // On enregistre l'entité crée sur la bdd
                 $em->flush();
 
                 $data = [
@@ -153,7 +155,7 @@ class ReceptionController extends AbstractController
 
 
     /**
-     * @Route("/api", name="reception_api", methods={"GET", "POST"}) 
+     * @Route("/api", name="reception_api", options={"expose"=true}, methods={"GET", "POST"}) 
      */
     public function receptionApi(Request $request) : Response
     {
@@ -165,17 +167,13 @@ class ReceptionController extends AbstractController
                 $urlShow = $this->generateUrl('reception_ajout_article', ['id' => $reception->getId(), 'finishReception'=>'0'] );
                 $row =
                     [
-                        'id' => ($reception->getId()),
-                        "Statut" => ($reception->getStatut() ? $reception->getStatut()->getNom() : ''),
-                        "Date commande" => ($reception->getDate() ? $reception->getDate() : '')->format('d/m/Y'),
-                        "Date attendue" => ($reception->getDateAttendu() ? $reception->getDateAttendu()->format('d/m/Y') : ''),
-                        "Fournisseur" => ($reception->getFournisseur() ? $reception->getFournisseur()->getNom() : ''),
-                        "Référence" => ($reception->getNumeroReception() ? $reception->getNumeroReception() : ''),
-                        'Actions' => "<button  onclick='modifyReception($(this))' data-toggle='modal'
-                                                                                data-target='#modalModifyReception' 
-                                                                                data-id=".$reception->getId()." 
-                            class='btn btn-xs btn-default command-edit '><i class='fas fa-pencil-alt fa-2x'></i></button>
-                    <a href='" . $urlShow . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-plus fa-2x'></i> Articles</a>",
+                    'id' => ($reception->getId()),
+                    "Statut" => ($reception->getStatut() ? $reception->getStatut()->getNom() : ''),
+                    "Date commande" => ($reception->getDate() ? $reception->getDate() : '')->format('d/m/Y'),
+                    "Date attendue" => ($reception->getDateAttendu() ? $reception->getDateAttendu()->format('d/m/Y') : ''),
+                    "Fournisseur" => ($reception->getFournisseur() ? $reception->getFournisseur()->getNom() : ''),
+                    "Référence" => ($reception->getNumeroReception() ? $reception->getNumeroReception() : ''),
+                    'Actions' => $this->renderView('reception/datatableReceptionRow.html.twig', ['url' => $url, 'reception' => $reception]),
                 ];
             }
             $data['data'] = $rows;

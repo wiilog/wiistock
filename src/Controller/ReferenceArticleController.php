@@ -55,6 +55,7 @@ class ReferenceArticleController extends Controller
     }
 
 
+
     /**
      * @Route("/refArticleAPI", name="ref_article_api", options={"expose"=true}, methods="GET|POST")
      */
@@ -65,8 +66,8 @@ class ReferenceArticleController extends Controller
             $refs = $this->referenceArticleRepository->findAll();
             $rows = [];
             foreach ($refs as $refArticle) {
-                $url['edit'] = $this->generateUrl('reference_article_edit', ['id' => $refArticle->getId()] );
-                $url['show'] = $this->generateUrl('reference_article_show', ['id' => $refArticle->getId()] );
+                $url['edit'] = $this->generateUrl('reference_article_edit', ['id' => $refArticle->getId()]);
+                $url['show'] = $this->generateUrl('reference_article_show', ['id' => $refArticle->getId()]);
                
                 $rows[] = [
                     "id" => $refArticle->getId(),
@@ -83,6 +84,8 @@ class ReferenceArticleController extends Controller
         }
         throw new NotFoundHttpException("404");
     }
+
+
 
     /**
      * @Route("/nouveau", name="reference_article_new", options={"expose"=true}, methods="GET|POST")
@@ -117,6 +120,8 @@ class ReferenceArticleController extends Controller
         throw new NotFoundHttpException("404");
     }
 
+
+
     /**
      * @Route("/", name="reference_article_index", methods="GET")
      */
@@ -139,6 +144,8 @@ class ReferenceArticleController extends Controller
          throw new NotFoundHttpException("404");
     }
 
+
+
     /**
      * @Route("/{id}/edit", name="reference_article_edit", methods="GET|POST")
      */
@@ -158,6 +165,8 @@ class ReferenceArticleController extends Controller
             'form' => $form->createView(),
         ]);
     }
+
+
 
     /**
      * @Route("/supprimerRefArticle", name="reference_article_delete", options={"expose"=true}, methods="GET|POST")
