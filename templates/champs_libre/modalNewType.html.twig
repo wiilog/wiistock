@@ -14,6 +14,14 @@
                     <label for="date-attendu">Label</label>
                     <input type="text" class="form-control data" name="label" value="" required="true">
                 </div>
+                <div class="form-group">
+                    <label for='category'>Catégorie</label>
+                    <select class="form-control select2 data" name='category' id='category'>
+                        {% for category in category %}
+                        <option value="{{ category.id }}">{{ category.label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>

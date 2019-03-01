@@ -9,6 +9,7 @@ use App\Form\ChampsLibreType;
 
 use App\Repository\ChampsLibreRepository;
 use App\Repository\TypeRepository;
+use App\Repository\CategoryTypeRepository;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -32,11 +33,17 @@ class ChampsLibreController extends AbstractController
      * @var TypeRepository
      */
     private $typeRepository;
+    
+    /**
+     * @var CategoryTypeRepository
+     */
+    private $categoryTypeRepository;
 
-    public function __construct(ChampsLibreRepository $champsLibreRepository, TypeRepository $typeRepository)
+    public function __construct(CategoryTypeRepository $categoryTypeRepository, ChampsLibreRepository $champsLibreRepository, TypeRepository $typeRepository)
     {
         $this->champsLibreRepository = $champsLibreRepository;
         $this->typeRepository = $typeRepository;
+        $this->categoryTypeRepository = $categoryTypeRepository;
     }
 
     /**
@@ -44,7 +51,9 @@ class ChampsLibreController extends AbstractController
      */
     public function index(): Response
     {   
-        return $this->render('champs_libre/index.html.twig');
+        return $this->render('champs_libre/index.html.twig',[
+            'category'=> $this->categoryTypeRepository->findAll(),
+        ]);
     }
 
     /**
@@ -63,6 +72,7 @@ class ChampsLibreController extends AbstractController
                 [
                     'id' => ($type->getId() ? $type->getId() : "Non défini"),
                     'Label' => ($type->getLabel() ? $type->getLabel() : "Non défini"),
+                    'Catégorie'=>($type->getCategory() ? $type->getCategory()->getLabel() : 'Non défini'),
                     'Actions' =>  $this->renderView('champs_libre/datatableTypeRow.html.twig', [
                             'urlChampsLibre' => $url,
                             'idType'=> $type->getId()    
@@ -81,7 +91,7 @@ class ChampsLibreController extends AbstractController
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
         {
-            $champsLibres = $this->champsLibreRepository->setByType($this->typeRepository->find($id)); 
+            $champsLibres = $this->champsLibreRepository->getByType($this->typeRepository->find($id)); 
             $rows = [];
             foreach ($champsLibres as $champsLibre) {
                 // $url['edit'] = $this->generateUrl('article_edit', ['id' => $article->getId()] );
@@ -108,7 +118,8 @@ class ChampsLibreController extends AbstractController
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $type = new Type();
             $type
-                ->setlabel($data["label"]);
+                ->setlabel($data["label"])
+                ->setCategory($this->categoryTypeRepository->find($data['category']));
             $em = $this->getDoctrine()->getManager();
             $em->persist($type);
             $em->flush();

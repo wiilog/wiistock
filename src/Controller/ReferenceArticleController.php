@@ -3,10 +3,12 @@
 namespace App\Controller;
 
 use App\Entity\ReferenceArticle;
+use App\Entity\ValeurChampsLibre;
 use App\Form\ReferenceArticleType;
 
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\ChampsLibreRepository;
+use App\Repository\ValeurChampsLibreRepository;
 use App\Repository\TypeRepository;
 
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
@@ -15,7 +17,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use App\Entity\ChampPersonnalise;
 
 use App\Service\FileUploader;
 
@@ -25,7 +26,7 @@ use App\Service\FileUploader;
 class ReferenceArticleController extends Controller
 {
 
-     /**
+    /**
      * @var ReferenceArticleRepository
      */
     private $referenceArticleRepository;
@@ -39,11 +40,17 @@ class ReferenceArticleController extends Controller
      * @var ChampslibreRepository
      */
     private $champsLibreRepository;
+    
+    /**
+     * @var ValeurChampslibreRepository
+     */
+    private $valeurChampsLibreRepository;
 
-    public function __construct(ReferenceArticleRepository $referenceArticleRepository, Typerepository  $typeRepository, ChampsLibreRepository $champsLibreRepository)
+    public function __construct(ValeurChampslibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, Typerepository  $typeRepository, ChampsLibreRepository $champsLibreRepository)
     {
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->champsLibreRepository = $champsLibreRepository;
+        $this->valeurChampsLibreRepository = $valeurChampsLibreRepository;
         $this->typeRepository = $typeRepository;
     }
 
@@ -83,14 +90,28 @@ class ReferenceArticleController extends Controller
     public function new(Request $request) : Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-           dump($data);
+           $em = $this->getDoctrine()->getManager();
             $refArticle = new ReferenceArticle();
             $refArticle
                 ->setLibelle($data['libelle'])
-                ->setReference($data['reference']);
-            $em = $this->getDoctrine()->getManager();
+                ->setReference($data['reference'])
+                ->setType($this->typeRepository->find($data['type']));
             $em->persist($refArticle);
             $em->flush();
+            $champsLibreKey = array_keys($data);
+            
+            foreach($champsLibreKey as $champs) {
+                if(gettype($champs) === 'integer'){
+                    dump(gettype($champs), 'hello' );
+                    $valeurChampLibre = new ValeurChampsLibre();
+                    $valeurChampLibre
+                    ->setValeur($data[$champs])
+                    ->addArticleReference($refArticle)
+                    ->addChampsLibre($this->champsLibreRepository->find($champs));
+                    $em->persist($valeurChampLibre);  
+                    $em->flush();
+                }
+            }
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
@@ -102,8 +123,7 @@ class ReferenceArticleController extends Controller
     public function index(Request $request) : Response
     {
         return $this->render('reference_article/index.html.twig', [
-            'types'=> $this->typeRepository->findAll(),
-            'champsLibres'=> $this->champsLibreRepository->findAll()
+            'types'=> $this->typeRepository->setByCategory('référence article'),
         ]);
     }
 
@@ -112,7 +132,11 @@ class ReferenceArticleController extends Controller
      */
     public function show(ReferenceArticle $referenceArticle) : Response
     {
-        return $this->render('reference_article/show.html.twig', ['reference_article' => $referenceArticle]);
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            
+             return new JsonResponse($data);
+         }
+         throw new NotFoundHttpException("404");
     }
 
     /**

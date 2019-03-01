@@ -1,9 +1,10 @@
 <a href='{{ url.edit }}' class='btn btn-xs btn-default command-edit'>
     <i class='fas fa-pencil-alt fa-2x'></i>
 </a>
-<a href='{{ url.show }}' class='btn btn-xs btn-default command-edit '>
+<div class='btn btn-xs btn-default type-show' data-id='{{ idRefArticle }}' data-target='#modalShowRefArticle'
+    data-toggle='modal' onclick="showRow()">
     <i class='fas fa-eye fa-2x'></i>
-</a>
+</div>
 <div class='btn btn-xs btn-default type-delete'
     onclick="deleteRow($(this), $('#modalDeleteRefArticle'), $('#submitDeleteRefArticle'))" data-id='{{ idRefArticle }}'
     data-target='#modalDeleteRefArticle' data-toggle='modal'>

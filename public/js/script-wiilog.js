@@ -14,7 +14,6 @@ $(document).ready(function () {
 function InitialiserModal(modal, submit, path, table) {
     submit.click( function () 
     {
-        console.log('yolo');
         xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function () 
         {
@@ -33,7 +32,7 @@ function InitialiserModal(modal, submit, path, table) {
                 });
             }      
         };
-        let inputs = modal.find(".data"); // On récupère toutes les données qui nous intéresse avec le querySelectorAll
+        let inputs = modal.find(".data"); // On récupère toutes les données qui nous intéresse
         let Data = {} ; // Tableau de données
         inputs.each(function() {
            Data[$(this).attr("name")] = $(this).val();
@@ -49,4 +48,18 @@ function InitialiserModal(modal, submit, path, table) {
 function deleteRow(button,modal, submit){
     let id = button.data('id');
     modal.find(submit).attr('value', id);
+}
+
+function showRow() {
+    
+    xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () 
+    {
+        if (this.readyState == 4 && this.status == 200)
+        {
+            console.log('hello')
+        }
+    }
+    xhttp.open("POST", path, true);
+    xhttp.send(Json);
 }

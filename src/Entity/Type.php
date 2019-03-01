@@ -33,6 +33,11 @@ class Type
      */
     private $referenceArticles;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\CategoryType", inversedBy="types")
+     */
+    private $category;
+
     public function __construct()
     {
         $this->champsLibres = new ArrayCollection();
@@ -114,6 +119,18 @@ class Type
                 $referenceArticle->setType(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getCategory(): ?CategoryType
+    {
+        return $this->category;
+    }
+
+    public function setCategory(?CategoryType $category): self
+    {
+        $this->category = $category;
 
         return $this;
     }

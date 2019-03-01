@@ -19,7 +19,7 @@ class ChampsLibreRepository extends ServiceEntityRepository
         parent::__construct($registry, ChampsLibre::class);
     }
 
-    public function setByType($type)
+    public function getByType($type)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(

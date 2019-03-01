@@ -11,6 +11,7 @@ let tableType = $('#tableType_id').DataTable({
     },
     columns: [
         { "data": 'Label' },
+        { "data": 'Catégorie' },
         { "data": 'Actions' },
     ],
 });
