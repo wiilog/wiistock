@@ -215,7 +215,7 @@ class ArticleController extends AbstractController
     }
 
     /**
-     * @Route("/{id}", name="articles_delete", methods="DELETE")
+     * @Route("/{id}", name="article_delete", methods="DELETE")
      */
     public function delete(Request $request, Article $article) : Response
     {

@@ -219,30 +219,19 @@ class ReferenceArticleController extends Controller
         throw new NotFoundHttpException('404 not found');
     }
 
+//    /**
+//     * @Route("/remove", name="reference_article_remove", methods="POST")
+//     */
+//    public function remove(Request $request) : Response
+//    {
+//        if ($request->isXmlHttpRequest()) {
+//            $em = $this->getDoctrine()->getManager();
+//            $referenceArticle = $this->referenceArticleRepository->findOneBy(['id' => $request->request->get('id')]);
+//            $em->remove($referenceArticle);
+//            $em->flush();
+//            return $this->redirectToRoute('referentiel_articles');
+//        }
+//        throw new NotFoundHttpException('404 not found');
+//    }
 
-
-    /**
-     * @Route("/remove", name="reference_article_remove", methods="POST")
-     */
-    public function remove(Request $request) : Response
-    {
-        if ($request->isXmlHttpRequest()) {
-            $em = $this->getDoctrine()->getManager();
-            $referenceArticle = $this->referenceArticleRepository->findOneBy(['id' => $request->request->get('id')]);
-            $em->remove($referenceArticle);
-            $em->flush();
-            return $this->redirectToRoute('referentiel_articles');
-        }
-        throw new NotFoundHttpException('404 not found');
-    }
-
-
-    
-    /**
-     * @Route("/modifiy", name="reference_article_modifiy", methods="GET|POST")
-     */
-    public function modifiy(Request $request) : Response
-    {
-
-    }
 }

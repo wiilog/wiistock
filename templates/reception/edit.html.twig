@@ -46,7 +46,7 @@
         <input type="text" id="reception_commentaire" name="commentaire" maxlength="255" class="form-control" value="{{ reception.commentaire }}">
     </div>
 
-    <button type="submit" href="{{ path('reception_edit', {'id': reception.id}) }}" class="btn pull-left button btn-left">Modifier</a>
+    <a type="submit" href="{{ path('reception_edit', {'id': reception.id}) }}" class="btn btn-primary float-left">Modifier</a>
 </form>
     {{ include('reception/_delete_form.html.twig') }}
     

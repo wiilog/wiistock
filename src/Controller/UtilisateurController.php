@@ -50,7 +50,7 @@ class UtilisateurController extends Controller
             }
         }
         return $this->render('utilisateur/index.html.twig', [
-            'utilisateur' => $utilisateurRepository->findAll(),
+            'utilisateurs' => $utilisateurRepository->findAll(),
 
 
         ]);

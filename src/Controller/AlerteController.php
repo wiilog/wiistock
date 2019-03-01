@@ -40,7 +40,7 @@ class AlerteController extends AbstractController
 
     
     /**
-     * @Route("/nouvelle-alerte", name="createAlerte", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/create", name="createAlerte", options={"expose"=true}, methods={"GET", "POST"})
      */
     public function createAlerte(Request $request) : Response
     {
@@ -65,7 +65,7 @@ class AlerteController extends AbstractController
 
 
     /**
-     * @Route("/Alerte", name="alerte_index", methods={"GET"})
+     * @Route("/", name="alerte_index", methods={"GET"})
      */
     public function index(Request $request) : Response
     {
