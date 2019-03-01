@@ -86,7 +86,7 @@ class ArticleController extends AbstractController
                     'Emplacement' => ($article->getPosition() ? $article->getPosition()->getNom() : "Non défini"),
                     'Destination' => ($article->getDirection() ? $article->getDirection()->getNom() : "Non défini"),
                     'Quantité' => ($article->getQuantite() ? $article->getQuantite() : "Non défini"),
-                    'Actions' => $this->renderView('article/datatableArticleRow.html.twig', ['url' => $url]),
+                    'Actions' => $this->renderView('article/datatableArticleRow.html.twig', ['url' => $url, 'article' => $article]),
                 ];
             }
             $data['data'] = $rows;

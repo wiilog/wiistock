@@ -1,7 +1,7 @@
-<a href='{{ url.edit }}' class='btn btn-xs btn-default command-edit'>
+<a href='' data-toggle='modal' data-target='#modalModify' onclick='editRow($(this))' data-statut="{{ reception.statut.nom }}" data-date="{{ reception.date | date('d/m/Y') }}" data-fournisseur="{{ reception.fournisseur.nom }}" data-dateAttendu="{{ reception.dateAttendu | date('d/m/Y') }}" class='btn btn-xs btn-default command-edit'>
     <i class='fas fa-pencil-alt fa-2x'></i>
 </a>
-<a href='{{ url.show }}' class='btn btn-xs btn-default command-edit'>
+<a href='{{ url.show }}' data-toggle='modal' data-target='#modalModify' class='btn btn-xs btn-default command-edit'>
     <i class='fas fa-plus fa-2x'></i>
     Articles
 </a>

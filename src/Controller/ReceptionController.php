@@ -87,25 +87,27 @@ class ReceptionController extends AbstractController
      */
     public function createReception(Request $request) : Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) //Si la requête est de type Xml et que data est attribuée
+        if ($data = json_decode($request->getContent(), true)) //Si data est attribuée
         {
             if (count($data) != 5)// On regarde si le nombre de données reçu est conforme et on envoi dans la base
             {
                 $em = $this->getDoctrine()->getManager();
-                $fournisseur = $this->fournisseurRepository->find(intval($data[3]['fournisseur']));
-                $utilisateur = $this->utilisateurRepository->find(intval($data[4]['utilisateur']));
+                $fournisseur = $this->fournisseurRepository->find(intval($data['fournisseur']));
+                $utilisateur = $this->utilisateurRepository->find(intval($data['utilisateur']));
 
                 $reception = new Reception();
-                $statut = $this->statutRepository->find(1); //a modifier
+                $statut = $this->statutRepository->find(1); // L'id correspondant au statut En cours de réception
                 $reception
                     ->setStatut($statut)
-                    ->setNumeroReception($data[0]['NumeroReception'])
-                    ->setDate(new \DateTime($data[1]['date-commande']))
-                    ->setDateAttendu(new \DateTime($data[2]['date-attendu']))
+                    ->setNumeroReception($data['NumeroReception'])
+                    ->setDate(new \DateTime($data['date-commande']))
+                    ->setDateAttendu(new \DateTime($data['date-attendu']))
                     ->setFournisseur($fournisseur)
                     ->setUtilisateur($utilisateur)
-                    ->setCommentaire($data[5]['commentaire']);
+                    ->setCommentaire($data['commentaire']);
                 $em->persist($reception);
+
+                // On enregistre l'entité crée sur la bdd
                 $em->flush();
 
                 $data = [
@@ -129,19 +131,19 @@ class ReceptionController extends AbstractController
         {
             if (count($data) != 5)// On regarde si le nombre de données reçu est conforme et on envoi dans la base
             {
-                $fournisseur = $fournisseurRepository->find(intval($data[3]['fournisseur']));
-                $utilisateur = $this->utilisateurRepository->find(intval($data[4]['utilisateur']));
+                $fournisseur = $fournisseurRepository->find(intval($data['fournisseur']));
+                $utilisateur = $this->utilisateurRepository->find(intval($data['utilisateur']));
 
                 $reception = new Reception();
                 $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_RECEPTION_EN_COURS);
                 $reception
                     ->setStatut($statut)
-                    ->setNumeroReception($data[0]['NumeroReception'])
-                    ->setDate(new \DateTime($data[1]['date-commande']))
-                    ->setDateAttendu(new \DateTime($data[2]['date-attendu']))
+                    ->setNumeroReception($data['NumeroReception'])
+                    ->setDate(new \DateTime($data['date-commande']))
+                    ->setDateAttendu(new \DateTime($data['date-attendu']))
                     ->setFournisseur($fournisseur)
                     ->setUtilisateur($utilisateur)
-                    ->setCommentaire($data[5]['commentaire']);
+                    ->setCommentaire($data['commentaire']);
                 $em = $this->getDoctrine()->getManager();
                 $em->persist($reception);
                 $em->flush();
@@ -175,7 +177,7 @@ class ReceptionController extends AbstractController
                     "Date attendue" => ($reception->getDateAttendu() ? $reception->getDateAttendu()->format('d/m/Y') : ''),
                     "Fournisseur" => ($reception->getFournisseur() ? $reception->getFournisseur()->getNom() : ''),
                     "Référence" => ($reception->getNumeroReception() ? $reception->getNumeroReception() : ''),
-                    'Actions' => $this->renderView('reception/datatableReceptionRow.html.twig', ['url' => $url]),
+                    'Actions' => $this->renderView('reception/datatableReceptionRow.html.twig', ['url' => $url, 'reception' => $reception]),
                 ];
             }
             $data['data'] = $rows;

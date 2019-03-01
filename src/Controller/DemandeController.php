@@ -136,7 +136,7 @@ class DemandeController extends AbstractController
         if ($data = json_decode($request->getContent(), true))
         {
             $ligneArticle->setQuantite($data["quantity"]); 
-            $data['redirect'] = $this->generateUrl('demande_show', [ 'id' => $ligneArticle->getDemande()->getId()]); 
+            //$data['redirect'] = $this->generateUrl('demande_show', [ 'id' => $ligneArticle->getDemande()->getId()]); 
             $this->getDoctrine()->getEntityManager()->flush();
 
             return new JsonResponse($data);

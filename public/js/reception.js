@@ -18,7 +18,12 @@ var table = $('#table_id').DataTable({
     ],
 });
 
+let pathName = 'modifyReception';
+let modal = $('#modalModify');
+let submit = modal.find('#modifySubmit');
+modifyModal(modal, submit, table, pathName);
+
 var modalPath = Routing.generate('createReception', true);
 var dataModal = $("#dataModalCenter");
 var ButtonSubmit = $("#submitButton");
-InitialiserModal(dataModal, ButtonSubmit, modalPath);
+InitialiserModal(dataModal, ButtonSubmit, modalPath, table);

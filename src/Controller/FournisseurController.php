@@ -29,6 +29,8 @@ class FournisseurController extends AbstractController
         $this->fournisseurRepository = $fournisseurRepository;
     }
 
+
+    
     /**
      * @Route("/get", name="fournisseur_get", methods="GET")
      */
@@ -55,6 +57,8 @@ class FournisseurController extends AbstractController
         throw new NotFoundHttpException('404 not found');
     }
 
+
+
     /**
      * @Route("/api", name="fournisseur_api", options={"expose"=true}, methods="GET")
      */
@@ -80,6 +84,8 @@ class FournisseurController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
+
+
     /**
      * @Route("/", name="fournisseur_index", methods="GET")
      */
@@ -87,6 +93,8 @@ class FournisseurController extends AbstractController
     {
         return $this->render('fournisseur/index.html.twig', ['fournisseur' => $this->fournisseurRepository->findAll()]);
     }
+
+
 
     /**
      * @Route("/creation/fournisseur", name="creation_fournisseur", options={"expose"=true}, methods="GET|POST")
@@ -97,8 +105,8 @@ class FournisseurController extends AbstractController
 
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $fournisseur = new Fournisseur();
-            $fournisseur->setNom($data[0]["Nom"]);
-            $fournisseur->setCodeReference($data[1]["Code"]);
+            $fournisseur->setNom($data["Nom"]);
+            $fournisseur->setCodeReference($data["Code"]);
             $em->persist($fournisseur);
             $em->flush();
             return new JsonResponse($data);
@@ -107,6 +115,8 @@ class FournisseurController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
+
+
     /**
      * @Route("/{id}", name="fournisseur_show", methods="GET")
      */
@@ -114,6 +124,8 @@ class FournisseurController extends AbstractController
     {
         return $this->render('fournisseur/show.html.twig', ['fournisseur' => $fournisseur]);
     }
+
+
 
     /**
      * @Route("/{id}/edit", name="fournisseur_edit", methods="GET|POST")
@@ -134,6 +146,8 @@ class FournisseurController extends AbstractController
             'form' => $form->createView(),
         ]);
     }
+
+
 
     /**
      * @Route("/{id}", name="fournisseur_delete", methods="DELETE")

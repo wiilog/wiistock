@@ -6,7 +6,7 @@
 <h1>Emplacements</h1>
 
 <div class='row btn '>
-    <a href="{{ path('emplacement_new') }}" class="button btn-left">
+    <a href="" data-toggle="modal" data-target="#dataModalCenter" class="button btn-left">
         <span class="fa fa-plus"></span>Nouvel emplacement
     </a>
 </div>
@@ -29,23 +29,5 @@
 {% endblock %}
 
 {% block javascript %}
-
-<script>
-    var path = Routing.generate("emplacement_api", true);
-    var table = $('#table_id').DataTable({
-        "language": {
-            "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
-        },
-        ajax: path,
-        columns: [
-            { "data": 'Nom' },
-            { "data": 'Description' },
-            { "data": 'Actions' }
-        ],
-        buttons: [
-            'copy', 'excel', 'pdf'
-        ]
-    });
-</script>
-
+<script src="{{ asset('js/emplacement.js') }}"></script>
 {% endblock %}

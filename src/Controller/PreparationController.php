@@ -170,11 +170,11 @@ class PreparationController extends AbstractController
         
             foreach ($LignePreparations as $LignePreparation) 
             {
-                $refPreparation = $this->referenceArticleRepository->findOneById($LignePreparation["reference"]);
+                $refPreparation = $this->referenceArticleRepository->findOneById($LignePreparation->getReference());
                 $rows[] = [
-                    "Référence CEA" => ($LignePreparation["reference"] ? $LignePreparation["reference"] : ' '),
+                    "Référence CEA" => ($LignePreparation->getReference()->getReference() ? $LignePreparation->getReference()->getReference() : ' '),
                     "Libellé" => ($refPreparation->getLibelle() ? $refPreparation->getLibelle() : ' '),
-                    "Quantité" => ($LignePreparation["quantite"] ? $LignePreparation["quantite"] : ' '),
+                    "Quantité" => ($LignePreparation->getQuantite() ? $LignePreparation->getQuantite() : ' '),
                 ];
             }
 

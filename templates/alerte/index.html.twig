@@ -5,7 +5,7 @@
 {% block page_content %}
     <h1>Mes alertes</h1>
     <table id="table_id" class="table table-striped table-bordered" style="width:100%">
-    <a class="button" href="{{ path('alerte_new') }}">Nouvelle alerte</a>
+    <a href="" data-toggle="modal" data-target="#dataModalCenter" class="button btn-left">Nouvelle alerte</a>
         <thead>
             <tr>
                 <th>Nom</th>
@@ -15,27 +15,14 @@
             </tr>
         </thead>
         <tbody>
-       
         </tbody>
     </table>
    
+{% include 'alerte/modalAlerte.html.twig' %}
+{% include 'alerte/modalModify.html.twig' %}
+
 {% endblock %}
+
 {% block javascript %}
-
-<script>
-    var path = Routing.generate('alerte_api', true);
-    var table = $('#table_id').DataTable({
-        "language": {
-            "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
-        },
-        ajax: path,
-        columns: [
-            { "data": 'Nom' },
-            { "data": 'Code' },
-            { "data": 'Seuil' },
-            { "data": 'Actions'},
-        ],
-    });
-</script>
-
+<script src="{{ asset('js/alerte.js') }}"></script>
 {% endblock %}

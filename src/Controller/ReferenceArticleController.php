@@ -40,6 +40,32 @@ class ReferenceArticleController extends Controller
     }
 
 
+
+    /**
+     * @Route("/creation-reference-article", name="createRefArticle", options={"expose"=true}, methods={"POST", "GET"})
+     */
+    public function createRefArticle(Request $request) 
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (count($data) >= 2) {
+
+                $em =$this->getDoctrine()->getEntityManager();
+
+                $referenceArticle = new ReferenceArticle();
+                $referenceArticle->setLibelle($data['libelle'])
+                        ->setReference($data['reference']);
+
+                $em->persist($referenceArticle);
+                $em->flush();
+
+                return new JsonResponse($data);
+            }
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+
+
     /**
      * @Route("/refArticleAPI", name="ref_article_api", options={"expose"=true}, methods="GET")
      */
@@ -50,8 +76,8 @@ class ReferenceArticleController extends Controller
             $refs = $this->referenceArticleRepository->findAll();
             $rows = [];
             foreach ($refs as $refArticle) {
-                $url['edit'] = $this->generateUrl('reference_article_edit', ['id' => $refArticle->getId()] );
-                $url['show'] = $this->generateUrl('reference_article_show', ['id' => $refArticle->getId()] );
+                $url['edit'] = $this->generateUrl('reference_article_edit', ['id' => $refArticle->getId()]);
+                $url['show'] = $this->generateUrl('reference_article_show', ['id' => $refArticle->getId()]);
                
                 $rows[] = [
                     "id" => $refArticle->getId(),
@@ -65,6 +91,8 @@ class ReferenceArticleController extends Controller
         }
         throw new NotFoundHttpException("404");
     }
+
+
 
     /**
      * @Route("/create", name="reference_article_create", methods="GET|POST")
@@ -91,6 +119,8 @@ class ReferenceArticleController extends Controller
         ]);
     }
 
+
+
     /**
      * @Route("/", name="reference_article_index", methods="GET")
      */
@@ -99,28 +129,7 @@ class ReferenceArticleController extends Controller
         return $this->render('reference_article/index.html.twig');
     }
 
-    /**
-     * @Route("/new", name="reference_article_new", methods="GET|POST")
-     */
-    public function new(Request $request) : Response
-    {
-        $referenceArticle = new ReferenceArticle();
-        $form = $this->createForm(ReferenceArticleType::class, $referenceArticle);
-        $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($referenceArticle);
-            $em->flush();
-
-            return $this->redirectToRoute('reference_article_index');
-        }
-
-        return $this->render('reference_article/new.html.twig', [
-            'reference_article' => $referenceArticle,
-            'form' => $form->createView(),
-        ]);
-    }
 
     /**
      * @Route("/{id}", name="reference_article_show", methods="GET")
@@ -129,6 +138,8 @@ class ReferenceArticleController extends Controller
     {
         return $this->render('reference_article/show.html.twig', ['reference_article' => $referenceArticle]);
     }
+
+
 
     /**
      * @Route("/{id}/edit", name="reference_article_edit", methods="GET|POST")
@@ -150,6 +161,8 @@ class ReferenceArticleController extends Controller
         ]);
     }
 
+
+
     /**
      * @Route("/{id}", name="reference_article_delete", methods="DELETE")
      */
@@ -163,6 +176,8 @@ class ReferenceArticleController extends Controller
 
         return $this->redirectToRoute('reference_article_index');
     }
+
+
 
     /**
      * @Route("/add", name="reference_article_add", methods="GET|POST")
@@ -204,6 +219,8 @@ class ReferenceArticleController extends Controller
         throw new NotFoundHttpException('404 not found');
     }
 
+
+
     /**
      * @Route("/remove", name="reference_article_remove", methods="POST")
      */
@@ -219,6 +236,8 @@ class ReferenceArticleController extends Controller
         throw new NotFoundHttpException('404 not found');
     }
 
+
+    
     /**
      * @Route("/modifiy", name="reference_article_modifiy", methods="GET|POST")
      */

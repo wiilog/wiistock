@@ -6,11 +6,11 @@ use App\Entity\Alerte;
 use App\Form\AlerteType;
 use App\Repository\AlerteRepository;
 use App\Repository\ArticleRepository;
+use App\Repository\ReferenceArticleRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-
 
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -27,31 +27,38 @@ class AlerteController extends AbstractController
      */
     private $alerteRepository;
 
-    public function __construct(AlerteRepository $alerteRepository)
+    /**
+     * @var ReferenceArticleRepository
+     */
+    private $referenceArticleRepository;
+
+    public function __construct(AlerteRepository $alerteRepository, ReferenceArticleRepository $referenceArticleRepository)
     {
         $this->alerteRepository = $alerteRepository;
+        $this->referenceArticleRepository = $referenceArticleRepository;
     }
 
     
     /**
-     * @Route("/", name="alerte_index", methods={"GET"})
+     * @Route("/nouvelle-alerte", name="createAlerte", options={"expose"=true}, methods={"GET", "POST"})
      */
     public function createAlerte(Request $request) : Response
     {
-
-        if (!$request->XmlHttpRequest() && $data = json_decode($data->getContent(), true)) {
-            $alerte = new Alertes();
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $alerte = new Alerte();
             $em = $this->getDoctrine()->getEntityManager();
+            $refArticle = $this->referenceArticleRepository->find($data["reference"]);
+            $date = new \DateTime('now');
             $alerte
-                ->setNom($data["nom"])
-                ->setRefArticle($data["refArticle"])
-                ->setSeuil($data["seuil"]);
+                ->setAlerteNumero('P-' . $date->format('YmdHis'))
+                ->setAlerteNom($data["nom"])
+                ->setAlerteRefArticle($refArticle)
+                ->setAlerteSeuil($data["seuil"]);
             $em->persist($alerte);
             $em->flush();
             $data = json_encode($data);
             return new JsonResponse($data);
         }
-
         throw new XmlHttpException("404 not found");
     }
 
@@ -62,7 +69,7 @@ class AlerteController extends AbstractController
      */
     public function index(Request $request) : Response
     {
-        return $this->render('alerte/index.html.twig');
+        return $this->render('alerte/index.html.twig', ["references" => $this->referenceArticleRepository->findAll()]);
     }
 
 
@@ -101,7 +108,7 @@ class AlerteController extends AbstractController
                     "Code" => $alerte->getAlerteNumero(),
                     "Seuil" => ($condition ? "<p><i class='fas fa-check-circle fa-2x green'></i>" . $alerte->getAlerteRefArticle()->getQuantiteStock() . "/" . $alerte->getAlerteSeuil() . "</p>" :
                         "<p><i class='fas fa-exclamation-circle fa-2x red'></i>" . $alerte->getAlerteRefArticle()->getQuantiteStock() . "/" . $alerte->getAlerteSeuil() . " </p>"),
-                    'Actions' => $this->renderView('alerte/datatableAlerteRow.html.twig', ['url' => $url]),
+                    'Actions' => $this->renderView('alerte/datatableAlerteRow.html.twig', ['url' => $url, 'alerte' => $alerte]),
                 ];
             }
 
@@ -115,42 +122,6 @@ class AlerteController extends AbstractController
         throw new NotFoundHttpException("404");
      
     }
-
-
-
-    /**
-     * @Route("/creer", name="alerte_new", methods={"GET","POST"})
-     */
-    public function new(Request $request) : Response
-    {
-        $alerte = new Alerte();
-
-        $form = $this->createForm(AlerteType::class, $alerte);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-
-            //Le numéro d'alerte est générer avec la date, l'heure, la minute et la seconde actuelle.
-            $date = new \DateTime("now");
-            $alerte->setAlerteNumero("A-" . $date->format('YmdHis'));
-
-            //On détermine l'utilisateur
-            $alerte->setAlerteUtilisateur($this->getUser());
-
-            //Connexion bdd et envoi
-            $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->persist($alerte);
-            $entityManager->flush();
-
-            return $this->redirectToRoute('alerte_index');
-        }
-
-        return $this->render('alerte/new.html.twig', [
-            'alerte' => $alerte,
-            'form' => $form->createView(),
-        ]);
-    }
-
 
 
     /**
