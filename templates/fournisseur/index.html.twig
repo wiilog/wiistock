@@ -11,7 +11,7 @@
     </a>
 </div>
 
-<table id="table_id" class="table table-striped table-bordered w-100">
+<table id="tableFournisseur_id" class="table table-striped table-bordered w-100">
     <thead>
         <tr>
             <th>Nom</th>
@@ -22,24 +22,14 @@
 
 </table>
 
-{% include 'fournisseur/modal.html.twig' %}
+{% include 'fournisseur/modalNewFournisseur.html.twig' %}
+{% include 'fournisseur/modalDeleteFournisseur.html.twig' %}
 
 
 {% endblock %}
 
 {% block javascript %}
-<script>
-    var path = Routing.generate('fournisseur_api'); 
-    var table = $('#table_id').DataTable({
-        "language": {
-            "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
-        },
-        ajax: path,
-        columns: [
-            { "data": 'Nom' },
-            { "data": 'Code de réference' },
-            { "data": 'Actions' },
-        ],
-    });
+<script src="{{ asset('js/fournisseur.js') }}">
+    
 </script>
 {% endblock %}

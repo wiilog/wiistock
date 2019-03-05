@@ -176,7 +176,6 @@ class ReceptionController extends AbstractController
                     'Actions' => $this->renderView('reception/datatableReceptionRow.html.twig', ['url' => $url, 'reception' => $reception]),
                 ];
             }
-            dump($rows);
             $data['data'] = $rows;
             return new JsonResponse($data);
         }
