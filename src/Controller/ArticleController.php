@@ -82,7 +82,7 @@ class ArticleController extends AbstractController
                 [
                     'id' => ($article->getId() ? $article->getId() : "Non défini"),
                     'Nom' => ($article->getNom() ? $article->getNom() : "Non défini"),
-                    'Statut' => ($article->getStatut()->getNom() ? $article->getStatut()->getNom() : "Non défini"),
+                    'Statut' => ($article->getStatut() ? $article->getStatut()->getNom() : "Non défini"),
                     'Reférence article' => ($article->getRefArticle() ? $article->getRefArticle()->getLibelle() : "Non défini"),
                     'Emplacement' => ($article->getPosition() ? $article->getPosition()->getNom() : "Non défini"),
                     'Destination' => ($article->getDirection() ? $article->getDirection()->getNom() : "Non défini"),

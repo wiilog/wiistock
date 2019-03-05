@@ -34,7 +34,7 @@ var table = $('#table-lignes').DataTable({
 });
 
 
-let modal = $('#modalModify');
+let modal = $('#modifyModal');
 let submit = modal.find('#modifySubmit');
 let pathName = 'modifyLigneArticle';
 modifyModal(modal, submit, table, pathName);
