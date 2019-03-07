@@ -26,14 +26,13 @@ let SubmitDeleteRefArticle = $("#submitDeleteRefArticle");
 let urlDeleteRefArticle = Routing.generate('reference_article_delete', true);
 InitialiserModal(ModalDeleteRefArticle, SubmitDeleteRefArticle, urlDeleteRefArticle, tableRefArticle);
 
+let modalModifyRefArticle = $('#modalEditRefArticle');
+let submitModifyRefArticle = $('#submitEditRefArticle');
+let urlModifyRefArticle = Routing.generate('reference_article_edit', true);
+InitialiserModal(modalModifyRefArticle, submitModifyRefArticle, urlModifyRefArticle,  tableRefArticle);
+
+
 $('#myTab button').on('click', function (e) {
     $(this).siblings().removeClass('data');
     $(this).addClass('data');
   })
-
-
-// let modal = $('#modalModify');
-// let submit = modal.find('#modifySubmit');
-// modifyModal(modal, submit, table);
-
-

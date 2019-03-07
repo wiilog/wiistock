@@ -24,14 +24,14 @@ class ValeurChampsLibre
     private $valeur;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\CHampsLibre", inversedBy="valeurChampsLibres")
-     */
-    private $champsLibre;
-
-    /**
      * @ORM\ManyToMany(targetEntity="App\Entity\ReferenceArticle", inversedBy="valeurChampsLibres")
      */
     private $articleReference;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\ChampsLibre", inversedBy="valeurChampsLibres")
+     */
+    private $champLibre;
 
     public function __construct()
     {
@@ -52,32 +52,6 @@ class ValeurChampsLibre
     public function setValeur(?string $valeur): self
     {
         $this->valeur = $valeur;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|CHampsLibre[]
-     */
-    public function getChampsLibre(): Collection
-    {
-        return $this->champsLibre;
-    }
-
-    public function addChampsLibre(CHampsLibre $champsLibre): self
-    {
-        if (!$this->champsLibre->contains($champsLibre)) {
-            $this->champsLibre[] = $champsLibre;
-        }
-
-        return $this;
-    }
-
-    public function removeChampsLibre(CHampsLibre $champsLibre): self
-    {
-        if ($this->champsLibre->contains($champsLibre)) {
-            $this->champsLibre->removeElement($champsLibre);
-        }
 
         return $this;
     }
@@ -104,6 +78,18 @@ class ValeurChampsLibre
         if ($this->articleReference->contains($articleReference)) {
             $this->articleReference->removeElement($articleReference);
         }
+
+        return $this;
+    }
+
+    public function getChampLibre(): ?ChampsLibre
+    {
+        return $this->champLibre;
+    }
+
+    public function setChampLibre(?ChampsLibre $champLibre): self
+    {
+        $this->champLibre = $champLibre;
 
         return $this;
     }

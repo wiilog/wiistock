@@ -29,11 +29,6 @@ class ChampsLibre
     private $type;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\ValeurChampsLibre", mappedBy="champsLibre")
-     */
-    private $valeurChampsLibres;
-
-    /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $typage;
@@ -42,6 +37,11 @@ class ChampsLibre
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $defaultValue;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\ValeurChampsLibre", mappedBy="champLibre")
+     */
+    private $valeurChampsLibres;
 
     public function __construct()
     {
@@ -82,34 +82,6 @@ class ChampsLibre
         return $this;
     }
 
-    /**
-     * @return Collection|ValeurChampsLibre[]
-     */
-    public function getValeurChampsLibres(): Collection
-    {
-        return $this->valeurChampsLibres;
-    }
-
-    public function addValeurChampsLibre(ValeurChampsLibre $valeurChampsLibre): self
-    {
-        if (!$this->valeurChampsLibres->contains($valeurChampsLibre)) {
-            $this->valeurChampsLibres[] = $valeurChampsLibre;
-            $valeurChampsLibre->addChampsLibre($this);
-        }
-
-        return $this;
-    }
-
-    public function removeValeurChampsLibre(ValeurChampsLibre $valeurChampsLibre): self
-    {
-        if ($this->valeurChampsLibres->contains($valeurChampsLibre)) {
-            $this->valeurChampsLibres->removeElement($valeurChampsLibre);
-            $valeurChampsLibre->removeChampsLibre($this);
-        }
-
-        return $this;
-    }
-
     public function getTypage(): ?string
     {
         return $this->typage;
@@ -130,6 +102,37 @@ class ChampsLibre
     public function setDefaultValue(?string $defaultValue): self
     {
         $this->defaultValue = $defaultValue;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|ValeurChampsLibre[]
+     */
+    public function getValeurChampsLibres(): Collection
+    {
+        return $this->valeurChampsLibres;
+    }
+
+    public function addValeurChampsLibre(ValeurChampsLibre $valeurChampsLibre): self
+    {
+        if (!$this->valeurChampsLibres->contains($valeurChampsLibre)) {
+            $this->valeurChampsLibres[] = $valeurChampsLibre;
+            $valeurChampsLibre->setChampLibre($this);
+        }
+
+        return $this;
+    }
+
+    public function removeValeurChampsLibre(ValeurChampsLibre $valeurChampsLibre): self
+    {
+        if ($this->valeurChampsLibres->contains($valeurChampsLibre)) {
+            $this->valeurChampsLibres->removeElement($valeurChampsLibre);
+            // set the owning side to null (unless already changed)
+            if ($valeurChampsLibre->getChampLibre() === $this) {
+                $valeurChampsLibre->setChampLibre(null);
+            }
+        }
 
         return $this;
     }
