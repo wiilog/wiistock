@@ -52,7 +52,7 @@ let tableArticle = $('#tableArticle_id').DataTable({
 let modal = $("#addArticleModal"); 
 let submit = $("#addArticleSubmit");
 let url = Routing.generate('reception_addArticle', true);
-InitialiserModal(modal, submit, url,tableArticle);
+InitialiserModal(modal, submit, url, tableArticle);
 
 let modalDeleteArticle = $("#modalDeleteArticle"); 
 let submitDeleteArticle = $("#submitDeleteArticle");
