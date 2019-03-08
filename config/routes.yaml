@@ -5,3 +5,15 @@
 #test:
 ##  type: rest
 ##  resource: App\Controller\TestController
+
+api_login_check:
+  path: /api/login_check
+#app:
+#  resource: "@App/Controller/"
+#  type: rest
+#  prefix: /api
+
+#login:
+#  path: /login
+#  controller: App\Controller\SecuriteController::login
+#  methods: {POST, GET}
