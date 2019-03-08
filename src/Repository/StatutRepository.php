@@ -32,6 +32,19 @@ class StatutRepository extends ServiceEntityRepository
 
         return $query->execute();
     }
+   
+    public function findByName($name)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT s
+            FROM App\Entity\Statuts s
+            WHERE s.nom = :name"
+            );
+        $query->setParameter("name", $name);
+
+        return $query->execute();
+    }
 
     public function findOneByCategorieAndStatut($categorieName, $statutName)
     {

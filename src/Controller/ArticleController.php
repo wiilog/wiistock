@@ -23,7 +23,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 class ArticleController extends AbstractController
 {
 
-     /**
+    /**
      * @var StatutRepository
      */
     private $statutRepository;
@@ -72,6 +72,7 @@ class ArticleController extends AbstractController
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
         {
+            
             $articles = $this->articleRepository->findAll();
             $rows = [];
             foreach ($articles as $article) {
@@ -81,7 +82,7 @@ class ArticleController extends AbstractController
                 [
                     'id' => ($article->getId() ? $article->getId() : "Non défini"),
                     'Nom' => ($article->getNom() ? $article->getNom() : "Non défini"),
-                    'Statut' => ($article->getStatut()->getNom() ? $article->getStatut()->getNom() : "Non défini"),
+                    'Statut' => ($article->getStatut() ? $article->getStatut()->getNom() : "Non défini"),
                     'Reférence article' => ($article->getRefArticle() ? $article->getRefArticle()->getLibelle() : "Non défini"),
                     'Emplacement' => ($article->getPosition() ? $article->getPosition()->getNom() : "Non défini"),
                     'Destination' => ($article->getDirection() ? $article->getDirection()->getNom() : "Non défini"),

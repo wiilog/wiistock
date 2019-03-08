@@ -56,6 +56,19 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->execute(); 
     }
 
+    public function getArticleByReception($id)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT a
+            FROM App\Entity\Article a
+            JOIN a.reception r
+            WHERE r.id = :id "
+        )->setParameter('id', $id);
+        ;
+        return $query->execute(); 
+    }
+
 //    // Creation des preparations
 //    public function findByRefAndConfAndStock($refArticle)
 //    {

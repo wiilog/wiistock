@@ -75,7 +75,10 @@ class FournisseurController extends AbstractController
                 $rows[] = [
                     "Nom" => $fournisseur->getNom(),
                     "Code de réference" => $fournisseur->getCodeReference(),
-                    'Actions' => $this->renderView('fournisseur/datatableFournisseurRow.html.twig', ['url' => $url]),
+                    'Actions' => $this->renderView('fournisseur/datatableFournisseurRow.html.twig', [
+                        'url' => $url, 
+                        'fournisseurId'=>$fournisseurId
+                        ]),
                 ];
             }
             $data['data'] = $rows;
@@ -150,21 +153,18 @@ class FournisseurController extends AbstractController
 
 
     /**
-     * @Route("/{id}", name="fournisseur_delete", methods="DELETE")
+     * @Route("/supprimerFournisseur", name="fournisseur_delete",  options={"expose"=true}, methods={"GET", "POST"}) 
      */
-    public function delete(Request $request, Fournisseur $fournisseur) : Response
+    public function deleteFournisseur(Request $request) : Response
     {
-        $receptions = $fournisseur->getreceptions();
-        if (count($receptions) === 0) {
-            if ($this->isCsrfTokenValid('delete' . $fournisseur->getId(), $request->request->get('_token'))) {
-                $em = $this->getDoctrine()->getManager();
-                $em->remove($fournisseur);
-                $em->flush();
-                return $this->redirectToRoute('fournisseur_index');
-            }
-        } else {
-            return $this->redirect($_SERVER['HTTP_REFERER']);
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {       
+            $fournisseur= $this->fournisseurRepository->find($data['fournisseur']);
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->remove($fournisseur);
+            $entityManager->flush();
+            return new JsonResponse();
         }
+        throw new NotFoundHttpException("404");
     }
 }
 

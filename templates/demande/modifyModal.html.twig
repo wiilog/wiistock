@@ -1,5 +1,5 @@
 <!-- Modal -->
-<form method="" class="modal fade" id="modifModalCenter" data-id="{{ demande.id }}" role="dialog" aria-labelledby="dataModalCenterTitle"
+<form method="" class="modal fade" id="modifyModal"{# data-id="{{ demande.id }}"#} role="dialog" aria-labelledby="dataModalCenterTitle"
     aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -11,7 +11,7 @@
             </div>
             <div class="modal-body modal-input container-fluid">
 
-                <div class="mb-3">
+                {#<div class="mb-3">
                     <label for="demandeur">Demandeur</label>
                     <select class="select2 form-control data" name="demandeur" required="true">
                         <option value="{{ demande.utilisateur.id }}">{{ demande.utilisateur }}</option>
@@ -19,11 +19,11 @@
                             <option value="{{ demandeur.id }}">{{ demandeur.username }}</option>
                         {% endfor %}
                     </select>
-                </div>
+                </div>#}
 
                 <div class="mb-3">
                     <label for="date-attendu">Date attendue</label>
-                    <input type="date" class="form-control data" name="date-attendu" value="{{ demande.DateAttendu | date("d/m/Y") }}" required="true">
+                    <input type="date" class="form-control data" name="date-attendu" {#value="{{ demande.DateAttendu | date("d/m/Y") }}"#} required="true">
                 </div>
 
                 <div class="mb-3">
