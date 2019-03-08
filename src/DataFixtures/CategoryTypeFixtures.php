@@ -5,9 +5,10 @@ namespace App\DataFixtures;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\Persistence\ObjectManager;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
-use App\Entity\CategoryType;
 
-class CategorieTypeFixtures extends Fixture
+// use App\Entity\CategoryType;
+
+class CategoryTypeFixtures extends Fixture
 {
     private $encoder;
 
@@ -15,22 +16,21 @@ class CategorieTypeFixtures extends Fixture
     {
         $this->encoder = $encoder;
     }
-
+    
     public function load(ObjectManager $manager)
     {
         $categoriesNames = [
             'référence article',
-            'fournisseur',
-            'emplacement',
+            // 'fournisseur',
+            // 'emplacement',
+            // 'collecte',
+            // 'demande',
         ];
-
         foreach ($categoriesNames as $categorieName) {
             $categorie = new CategoryType();
             $categorie->setLabel($categorieName);
             $manager->persist($categorie);
-            $this->addReference('statut-' . $categorieName, $categorie);
         }
-
         $manager->flush();
     }
 

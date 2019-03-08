@@ -126,7 +126,7 @@ class ReferenceArticleController extends Controller
     public function index(Request $request): Response
     {
         return $this->render('reference_article/index.html.twig', [
-            'types' => $this->typeRepository->setByCategory('référence article'),
+            'types' => $this->typeRepository->getByCategoryLabel('référence article'),
         ]);
     }
 

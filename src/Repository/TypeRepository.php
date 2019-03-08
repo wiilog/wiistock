@@ -19,7 +19,7 @@ class TypeRepository extends ServiceEntityRepository
         parent::__construct($registry, Type::class);
     }
 
-    public function setByCategory($category)
+    public function getByCategoryLabel($category)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
