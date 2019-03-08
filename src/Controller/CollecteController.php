@@ -61,7 +61,7 @@ class CollecteController extends AbstractController
 
 
     /**
-     * @Route("/", name="collecte_index", methods={"GET", "POST"})
+     * @Route("/index", name="collecte_index", methods={"GET", "POST"})
      */
     public function index(Request $request): Response
     {

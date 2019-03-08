@@ -34,10 +34,10 @@ var table = $('#table-lignes').DataTable({
 });
 
 
-let modal = $('#modifyModal');
-let submit = modal.find('#modifySubmit');
-let pathName = 'modifyLigneArticle';
-modifyModal(modal, submit, table, pathName);
+// let modal = $('#modifyModal');
+// let submit = modal.find('#modifySubmit');
+// let pathName = 'modifyLigneArticle';
+// modifyModal(modal, submit, table, pathName);
 
 
 var dataModal1 = $("#modifModalCenter");
