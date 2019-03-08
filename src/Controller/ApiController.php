@@ -8,7 +8,6 @@
 
 namespace App\Controller;
 
-use App\Entity\Article;
 use App\Repository\UtilisateurRepository;
 use FOS\RestBundle\Controller\FOSRestController;
 use FOS\RestBundle\Routing\ClassResourceInterface;
@@ -17,10 +16,17 @@ use FOS\RestBundle\Controller\Annotations\View;
 use FOS\RestBundle\Controller\Annotations\Get;
 use FOS\RestBundle\Controller\Annotations\Post;
 use FOS\RestBundle\View\View as RestView;
+use Symfony\Component\DependencyInjection\Container;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Security\Core\Encoder\BCryptPasswordEncoder;
+use Symfony\Component\Security\Core\Encoder\MessageDigestPasswordEncoder;
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoder;
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Serializer\SerializerInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 /**
  * Class ApiController
@@ -34,24 +40,32 @@ class ApiController extends FOSRestController implements ClassResourceInterface
      * @Rest\Get("/api/test")
      * @Rest\View()
      */
-    public function getUsers(UtilisateurRepository $utilisateurRepository, SerializerInterface $serializer, Request $request)
+    public function connection()
+    {
+        if($this->checkLoginPassword()) {
+            //TODO renvoyer en plus la clé (si true)
+            return $this->getData();
+        } else {
+            return false;
+        }
+
+    }
+
+    private function checkLoginPassword(UtilisateurRepository $utilisateurRepository, Request $request, UserPasswordEncoderInterface $passwordEncoder)
     {
         $login = $request->request->get('login');
         $password = $request->request->get('password');
 
-        $user = $utilisateurRepository->findBy(['username' => $login]);
-        $json = $serializer->serialize($user, 'json');
+        $user = $utilisateurRepository->findOneBy(['username' => $login]);
 
-        return new JsonResponse('hello');
+        $match = $passwordEncoder->isPasswordValid($user, $password);
+
+        return new JsonResponse($match);
     }
 
-//    /**
-//     * @Rest\Post("/article")
-//     * @Rest\View
-//     * @ParamConverter("article", converter="fos_rest.request_body")
-//     */
-//    public function createArticle(Article $article)
-//    {
-//        dump($article);die;
-//    }
+    private function getData()
+    {
+     //TODO
+    }
+
 }
