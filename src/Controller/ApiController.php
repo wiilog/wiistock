@@ -8,19 +8,25 @@
 
 namespace App\Controller;
 
-use App\Entity\Article;
+// use App\Entity\Article;
+
 use App\Repository\UtilisateurRepository;
 use FOS\RestBundle\Controller\FOSRestController;
 use FOS\RestBundle\Routing\ClassResourceInterface;
 use FOS\RestBundle\Controller\Annotations as Rest;
-use FOS\RestBundle\Controller\Annotations\View;
-use FOS\RestBundle\Controller\Annotations\Get;
-use FOS\RestBundle\Controller\Annotations\Post;
-use FOS\RestBundle\View\View as RestView;
+// use FOS\RestBundle\Controller\Annotations\View;
+// use FOS\RestBundle\Controller\Annotations\Get;
+// use FOS\RestBundle\Controller\Annotations\Post;
+// use FOS\RestBundle\View\View as RestView;
+
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\SerializerInterface;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
+
+use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
+
+// use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 
 /**
  * Class ApiController
@@ -29,29 +35,38 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 class ApiController extends FOSRestController implements ClassResourceInterface
 {
     /**
-//     * @Get("/api/test", name= "test-api")
-//     * @Rest\Post("/api/test", name= "test-api")
-     * @Rest\Get("/api/test")
-     * @Rest\View()
+     * @Rest\Post("/api/test", name= "test-api")
      */
-    public function getUsers(UtilisateurRepository $utilisateurRepository, SerializerInterface $serializer, Request $request)
-    {
-        $login = $request->request->get('login');
-        $password = $request->request->get('password');
+    public function getUsers(
+        UtilisateurRepository $utilisateurRepository,
+        SerializerInterface $serializer,
+        Request $request,
+        AuthenticationUtils $authenticationUtils
+    ) {
+        $data = json_decode($request->getContent(), true);
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) //Si la requête est de type Xml
+            {
+                $login = $data['login'];
+                $password = $data['password'];
+                dump($login, $password);
+                $user = $utilisateurRepository->findBy(['username' => $login]);
+                $error = $authenticationUtils->getLastAuthenticationError();
+                // last username entered by the user
+                $lastUsername = $authenticationUtils->getLastUsername();
+                dump($user, $lastUsername);
+                // $json = $serializer->serialize($user, 'json');
 
-        $user = $utilisateurRepository->findBy(['username' => $login]);
-        $json = $serializer->serialize($user, 'json');
-
-        return new JsonResponse('hello');
+                return new JsonResponse('helloWorl254');
+            }
+        throw new NotFoundHttpException("404");
     }
-
-//    /**
-//     * @Rest\Post("/article")
-//     * @Rest\View
-//     * @ParamConverter("article", converter="fos_rest.request_body")
-//     */
-//    public function createArticle(Article $article)
-//    {
-//        dump($article);die;
-//    }
+    //    /**
+    //     * @Rest\Post("/article")
+    //     * @Rest\View
+    //     * @ParamConverter("article", converter="fos_rest.request_body")
+    //     */
+    //    public function createArticle(Article $article)
+    //    {
+    //        dump($article);die;
+    //    }
 }
