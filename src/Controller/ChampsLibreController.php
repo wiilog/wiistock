@@ -162,13 +162,13 @@ class ChampsLibreController extends AbstractController
     }
 
 
-    /**
-     * @Route("/{id}/edit", name="champs_libre_edit", methods={"GET","POST"})
-     */
-    public function edit(Request $request, ChampsLibre $champsLibre): Response
-    {
-       //todo
-    }
+    // /**
+    //  * @Route("/{id}/edit", name="champs_libre_edit", methods={"GET","POST"})
+    //  */
+    // public function edit(Request $request, ChampsLibre $champsLibre): Response
+    // {
+    //    //todo
+    // }
 
     /**
      * @Route("/deleteChampsLibre", name="champs_libre_delete",options={"expose"=true}, methods={"GET","POST"})
