@@ -1,0 +1,12 @@
+
+<div data-toggle='modal' data-target='#modalModify' onclick='editRow($(this))'
+    data-statut= data-date= data-fournisseur= data-dateAttendu= class='btn btn-xs btn-default command-edit'>
+    <i class='fas fa-pencil-alt fa-2x'></i>
+</div>
+<div class='btn btn-xs btn-default article-delete'
+    onclick="deleteRow($(this), $('#modalDeleteArticle'), $('#submitDeleteArticle'))" data-id='{{ articleId }}'
+    data-target='#modalDeleteArticle' data-toggle='modal'>
+    <i class='fas fa-trash fa-2x'></i>
+</div>
+
+

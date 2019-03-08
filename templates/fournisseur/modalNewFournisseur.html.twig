@@ -1,5 +1,5 @@
 <!-- Modal -->
-<form method="" class="modal fade" id="dataModalCenter" role="dialog" aria-labelledby="dataModalCenterTitle"
+<form method="" class="modal fade" id="modalNewFournisseur" role="dialog" aria-labelledby="dataModalCenterTitle"
     aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -22,17 +22,8 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>
-                <button id="submitButton" type="button" data-dismiss="modal" class="btn btn-success">Enregistrer</button>
+                <button id="submitNewFournisseur" type="button" data-dismiss="modal" class="btn btn-success">Enregistrer</button>
             </div>
         </div>
     </div>
 </form>
-
-{% block javascript %}
-<script>
-    var path = Routing.generate('creation_fournisseur', true);
-    var dataModal = $("#dataModalCenter");
-    var ButtonSubmit = $("#submitButton");
-    InitialiserModal(dataModal, ButtonSubmit, path);
-</script>
-{% endblock %}

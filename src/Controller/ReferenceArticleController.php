@@ -3,90 +3,116 @@
 namespace App\Controller;
 
 use App\Entity\ReferenceArticle;
+use App\Entity\ValeurChampsLibre;
 use App\Form\ReferenceArticleType;
-use App\Repository\ChampPersonnaliseRepository;
+
 use App\Repository\ReferenceArticleRepository;
+use App\Repository\ChampsLibreRepository;
+use App\Repository\ValeurChampsLibreRepository;
+use App\Repository\TypeRepository;
+
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use App\Entity\ChampPersonnalise;
 
 use App\Service\FileUploader;
 
 /**
- * @Route("/stock/reference_article")
+ * @Route("/reference_article")
  */
 class ReferenceArticleController extends Controller
 {
 
-     /**
+    /**
      * @var ReferenceArticleRepository
      */
     private $referenceArticleRepository;
 
     /**
-     * @var ChampPersonnaliseRepository
+     * @var TypeRepository
      */
-    private $champPersonnaliseRepository;
+    private $typeRepository;
 
+    /**
+     * @var ChampslibreRepository
+     */
+    private $champsLibreRepository;
 
-    public function __construct(ReferenceArticleRepository $referenceArticleRepository, ChampPersonnaliseRepository $champPersonnaliseRepository)
+    /**
+     * @var ValeurChampslibreRepository
+     */
+    private $valeurChampsLibreRepository;
+
+    public function __construct(ValeurChampslibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, Typerepository  $typeRepository, ChampsLibreRepository $champsLibreRepository)
     {
         $this->referenceArticleRepository = $referenceArticleRepository;
-        $this->champPersonnaliseRepository = $champPersonnaliseRepository;
+        $this->champsLibreRepository = $champsLibreRepository;
+        $this->valeurChampsLibreRepository = $valeurChampsLibreRepository;
+        $this->typeRepository = $typeRepository;
     }
 
 
 
     /**
-     * @Route("/creation-reference-article", name="createRefArticle", options={"expose"=true}, methods={"POST", "GET"})
+     * @Route("/refArticleAPI", name="ref_article_api", options={"expose"=true}, methods="GET|POST")
      */
-    public function createRefArticle(Request $request) 
+    public function refArticleApi(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (count($data) >= 2) {
+        if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
+            {
+                $refs = $this->referenceArticleRepository->findAll();
+                $rows = [];
+                foreach ($refs as $refArticle) {
+                    $url['edit'] = $this->generateUrl('reference_article_edit', ['id' => $refArticle->getId()]);
+                    $url['show'] = $this->generateUrl('reference_article_show', ['id' => $refArticle->getId()]);
 
-                $em =$this->getDoctrine()->getEntityManager();
-
-                $referenceArticle = new ReferenceArticle();
-                $referenceArticle->setLibelle($data['libelle'])
-                        ->setReference($data['reference']);
-
-                $em->persist($referenceArticle);
-                $em->flush();
-
+                    $rows[] = [
+                        "id" => $refArticle->getId(),
+                        "Libellé" => $refArticle->getLibelle(),
+                        "Référence" => $refArticle->getReference(),
+                        'Actions' => $this->renderView('reference_article/datatableReferenceArticleRow.html.twig', [
+                            'url' => $url,
+                            'idRefArticle' => $refArticle->getId()
+                        ]),
+                    ];
+                }
+                $data['data'] = $rows;
                 return new JsonResponse($data);
             }
-        }
         throw new NotFoundHttpException("404");
     }
 
 
-
     /**
-     * @Route("/refArticleAPI", name="ref_article_api", options={"expose"=true}, methods="GET")
+     * @Route("/nouveau", name="reference_article_new", options={"expose"=true}, methods="GET|POST")
      */
-    public function refArticleApi(Request $request) : Response
+    public function new(Request $request): Response
     {
-        if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
-        {
-            $refs = $this->referenceArticleRepository->findAll();
-            $rows = [];
-            foreach ($refs as $refArticle) {
-                $url['edit'] = $this->generateUrl('reference_article_edit', ['id' => $refArticle->getId()]);
-                $url['show'] = $this->generateUrl('reference_article_show', ['id' => $refArticle->getId()]);
-               
-                $rows[] = [
-                    "id" => $refArticle->getId(),
-                    "Libellé" => $refArticle->getLibelle(),
-                    "Référence" => $refArticle->getReference(),
-                    'Actions' => $this->renderView('reference_article/datatableReferenceArticleRow.html.twig', ['url' => $url]),
-                ];
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $em = $this->getDoctrine()->getManager();
+            $refArticle = new ReferenceArticle();
+            $refArticle
+                ->setLibelle($data['libelle'])
+                ->setReference($data['reference'])
+                ->setType($this->typeRepository->find($data['type']));
+            $em->persist($refArticle);
+            $em->flush();
+            $champsLibreKey = array_keys($data);
+
+            foreach ($champsLibreKey as $champs) {
+                if (gettype($champs) === 'integer') {
+                    $valeurChampLibre = new ValeurChampsLibre();
+                    $valeurChampLibre
+                        ->setValeur($data[$champs])
+                        ->addArticleReference($refArticle)
+                        ->setChampLibre($this->champsLibreRepository->find($champs));
+                    $em->persist($valeurChampLibre);
+                    $em->flush();
+                }
             }
-            $data['data'] = $rows;
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
@@ -95,143 +121,94 @@ class ReferenceArticleController extends Controller
 
 
     /**
-     * @Route("/create", name="reference_article_create", methods="GET|POST")
+     * @Route("/", name="reference_article_index",  methods="GET")
      */
-    public function create(Request $request) : Response
+    public function index(Request $request): Response
     {
-        $referenceArticle = new ReferenceArticle();
-        $form = $this->createForm(ReferenceArticleType::class, $referenceArticle);
-        $array = $this->createCustomFieldJson($this->getDoctrine()->getManager()->getRepository(ReferenceArticle::class));
-
-        $form->handleRequest($request);
-        if ($form->isSubmitted() && $form->isValid()) {
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($referenceArticle);
-            $em->flush();
-
-            return $this->redirectToRoute('reference_article_index');
-        }
-
-        return $this->render('reference_article/create.html.twig', [
-            'reference_article' => $referenceArticle,
-            'form' => $form->createView(),
-            'custom_json' => $array,
+        return $this->render('reference_article/index.html.twig', [
+            'types' => $this->typeRepository->setByCategory('référence article'),
         ]);
     }
 
-
-
     /**
-     * @Route("/", name="reference_article_index", methods="GET")
+     * @Route("/show", name="reference_article_show", options={"expose"=true},  methods="GET|POST")
      */
-    public function index(Request $request) : Response
+    public function show(Request $request): Response //a optimiser 
     {
-        return $this->render('reference_article/index.html.twig');
-    }
-
-
-
-    /**
-     * @Route("/{id}", name="reference_article_show", methods="GET")
-     */
-    public function show(ReferenceArticle $referenceArticle) : Response
-    {
-        return $this->render('reference_article/show.html.twig', ['reference_article' => $referenceArticle]);
-    }
-
-
-
-    /**
-     * @Route("/{id}/edit", name="reference_article_edit", methods="GET|POST")
-     */
-    public function edit(Request $request, ReferenceArticle $referenceArticle) : Response
-    {
-        $form = $this->createForm(ReferenceArticleType::class, $referenceArticle);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $this->getDoctrine()->getManager()->flush();
-
-            return $this->redirectToRoute('reference_article_index');
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $articleRef = $this->referenceArticleRepository->find($data);
+            $typeArticleRef = $articleRef->getType();
+            $champsLibres = $this->champsLibreRepository->getByType($typeArticleRef);
+            $json = $this->renderView('reference_article/modalShowRefArticleContent.html.twig', [
+                'articleRef' => $articleRef,
+                'champsLibres'=> $champsLibres
+                ]);
+            return new JsonResponse($json);
         }
+        throw new NotFoundHttpException("404");
+    }
 
-        return $this->render('reference_article/edit.html.twig', [
-            'reference_article' => $referenceArticle,
-            'form' => $form->createView(),
-        ]);
+    /**
+     * @Route("/editApi", name="reference_article_edit_api", options={"expose"=true},  methods="GET|POST")
+     */
+    public function editApi(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+
+            $articleRef = $this->referenceArticleRepository->find($data);
+            $json = $this->renderView('reference_article/modalEditRefArticleContent.html.twig', [
+                'articleRef' => $articleRef,
+                'types' => $this->typeRepository->setByCategory('référence article'),
+            ]);
+            return new JsonResponse($json);
+        }
+        throw new NotFoundHttpException("404");
     }
 
 
 
     /**
-     * @Route("/{id}", name="reference_article_delete", methods="DELETE")
+     * @Route("/edit", name="reference_article_edit",  options={"expose"=true}, methods="GET|POST")
      */
-    public function delete(Request $request, ReferenceArticle $referenceArticle) : Response
+    public function edit(Request $request): Response
     {
-        if ($this->isCsrfTokenValid('delete' . $referenceArticle->getId(), $request->request->get('_token'))) {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $em = $this->getDoctrine()->getManager();
-            $em->remove($referenceArticle);
+            $refArticle = $this->referenceArticleRepository->find($data['id']);
+            $refArticle
+                ->setLibelle($data['libelle'])
+                ->setReference($data['reference'])
+                ->setType($this->typeRepository->find($data['type']));
             $em->flush();
-        }
-
-        return $this->redirectToRoute('reference_article_index');
-    }
-
-
-
-    /**
-     * @Route("/add", name="reference_article_add", methods="GET|POST")
-     */
-    public function add(Request $request) : Response
-    {
-        if ($request->isXmlHttpRequest()) {
-            $data = $request->request->all();
-            $em = $this->getDoctrine()->getManager();
-
-            $ref = $request->request->get('ref');
-            $id = -1;
-            if ($ref != "") {
-                $id = $em->getRepository(ReferenceArticle::class)->findOneBy(['id' => $ref])->getId();
-            } else {
-                $referenceArticle = new ReferenceArticle();
-                $referenceArticle
-                    ->setLibelle($data['data'][0]['value'])
-                    ->setReference($data['data'][1]['value']);
-
-                $i = 2;
-                $array = array();
-                while ($i < count($data['data']) - 1) {
-                    $name = explode('[', substr($data['data'][$i]['name'], 0, -1))[1];
-                    $id_field = $this->champPersonnaliseRepository->findByName($name, "reference_article")->getId();
-                    $item = array(
-                        $id_field => $data['data'][$i]['value'],
-                    );
-                    array_push($array, $item);
-                    $i++;
+            $champsLibreKey = array_keys($data);
+            foreach ($champsLibreKey as $champs) {
+                if (gettype($champs) === 'integer') {
+                    $valeurChampLibre = $this->valeurChampsLibreRepository->find($champs);
+                    $valeurChampLibre
+                        ->setValeur($data[$champs]);
+                    $entityManager = $this->getDoctrine()->getManager();
+                    $entityManager->flush();
                 }
-                $referenceArticle->setCustom($array);
-                $em->persist($referenceArticle);
-                $em->flush();
-                $id = $referenceArticle->getId();
             }
-            return new JsonResponse($id);
+            return new JsonResponse();
         }
-        throw new NotFoundHttpException('404 not found');
+        throw new NotFoundHttpException("404");
     }
 
-//    /**
-//     * @Route("/remove", name="reference_article_remove", methods="POST")
-//     */
-//    public function remove(Request $request) : Response
-//    {
-//        if ($request->isXmlHttpRequest()) {
-//            $em = $this->getDoctrine()->getManager();
-//            $referenceArticle = $this->referenceArticleRepository->findOneBy(['id' => $request->request->get('id')]);
-//            $em->remove($referenceArticle);
-//            $em->flush();
-//            return $this->redirectToRoute('referentiel_articles');
-//        }
-//        throw new NotFoundHttpException('404 not found');
-//    }
 
+
+    /**
+     * @Route("/supprimerRefArticle", name="reference_article_delete", options={"expose"=true}, methods="GET|POST")
+     */
+    public function delete(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $refArticle = $this->referenceArticleRepository->find($data['refArticle']);
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->remove($refArticle);
+            $entityManager->flush();
+            return new JsonResponse();
+        }
+        throw new NotFoundHttpException("404");
+    }
 }

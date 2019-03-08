@@ -68,12 +68,23 @@ class ReferenceArticle
      */
     private $ligneArticles;
 
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\ValeurChampsLibre", mappedBy="articleReference")
+     */
+    private $valeurChampsLibres;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="referenceArticles")
+     */
+    private $type;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
         $this->demandes = new ArrayCollection();
         $this->RefArticleAlerte = new ArrayCollection();
         $this->ligneArticles = new ArrayCollection();
+        $this->valeurChampsLibres = new ArrayCollection();
     }
 
     public function getId()
@@ -261,6 +272,46 @@ class ReferenceArticle
                 $ligneArticle->setReference(null);
             }
         }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|ValeurChampsLibre[]
+     */
+    public function getValeurChampsLibres(): Collection
+    {
+        return $this->valeurChampsLibres;
+    }
+
+    public function addValeurChampsLibre(ValeurChampsLibre $valeurChampsLibre): self
+    {
+        if (!$this->valeurChampsLibres->contains($valeurChampsLibre)) {
+            $this->valeurChampsLibres[] = $valeurChampsLibre;
+            $valeurChampsLibre->addArticleReference($this);
+        }
+
+        return $this;
+    }
+
+    public function removeValeurChampsLibre(ValeurChampsLibre $valeurChampsLibre): self
+    {
+        if ($this->valeurChampsLibres->contains($valeurChampsLibre)) {
+            $this->valeurChampsLibres->removeElement($valeurChampsLibre);
+            $valeurChampsLibre->removeArticleReference($this);
+        }
+
+        return $this;
+    }
+
+    public function getType(): ?Type
+    {
+        return $this->type;
+    }
+
+    public function setType(?Type $type): self
+    {
+        $this->type = $type;
 
         return $this;
     }
