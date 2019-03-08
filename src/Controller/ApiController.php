@@ -42,7 +42,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         $user = $utilisateurRepository->findBy(['username' => $login]);
         $json = $serializer->serialize($user, 'json');
 
-        return new JsonResponse($json);
+        return new JsonResponse('hello');
     }
 
 //    /**

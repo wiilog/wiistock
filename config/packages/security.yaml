@@ -105,6 +105,7 @@ security:
         # - { path: ^/, role: IS_AUTHENTICATED_REMEMBERED, requires_channel: https}
 #        - { path: ^/api/login, role: IS_AUTHENTICATED_ANONYMOUSLY }
 #        - { path: ^/api, role: IS_AUTHENTICATED_ANONYMOUSLY }
+        - { path: ^/api, role: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/login, role: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/register, role: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/check_last_login, role: IS_AUTHENTICATED_ANONYMOUSLY }
