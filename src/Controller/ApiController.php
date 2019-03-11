@@ -58,6 +58,11 @@ class ApiController extends FOSRestController implements ClassResourceInterface
      */
     private $emplacementRepository;
 
+    /**
+     * @var array
+     */
+    private $successData;
+
 
     public function __construct(UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
     {
@@ -65,6 +70,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         $this->articleRepository = $articleRepository;
         $this->utilisateurRepository = $utilisateurRepository;
         $this->passwordEncoder = $passwordEncoder;
+        $this->successData = ['success' => false, 'data' => ''];
     }
 
     /**
@@ -75,32 +81,29 @@ class ApiController extends FOSRestController implements ClassResourceInterface
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if ($this->checkLoginPassword($data)) {
-
-                //TODO renvoyer en plus la clé (si true)
-                // return $this->getData();
-
-                $json = [
-                    'apiKey' => $this->apiKeyGenerator(),
-                    'data' => $this->getData()
+                $this->successData['success'] = true;
+                $this->successData['data'] = [
+                    'data' => $this->getData(),
+                    'apiKey' => $this->apiKeyGenerator()
                 ];
-                dump($json);
-
-                return new JsonResponse($json);
-            } else {
-                return false;
             }
+
+            return new JsonResponse($this->successData);
         }
     }
-
-
 
     private function checkLoginPassword($data)
     {
         $login = $data['login'];
         $password = $data['password'];
+
         $user = $this->utilisateurRepository->findOneBy(['username' => $login]);
-        $match = $this->passwordEncoder->isPasswordValid($user, $password);
-        return $match;
+
+        if ($user) {
+            return $this->passwordEncoder->isPasswordValid($user, $password);
+        } else {
+            return false;
+        }
     }
 
 
