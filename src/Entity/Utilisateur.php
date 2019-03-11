@@ -80,6 +80,11 @@ class Utilisateur implements UserInterface, EquatableInterface
      * @ORM\OneToMany(targetEntity="App\Entity\Mouvement", mappedBy="user")
      */
     private $mouvements;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $apiKey;
     
     public function __construct()
     {
@@ -363,6 +368,18 @@ class Utilisateur implements UserInterface, EquatableInterface
                 $mouvement->setUser(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getApiKey(): ?string
+    {
+        return $this->apiKey;
+    }
+
+    public function setApiKey(?string $apiKey): self
+    {
+        $this->apiKey = $apiKey;
 
         return $this;
     }

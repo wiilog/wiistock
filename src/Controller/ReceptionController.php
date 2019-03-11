@@ -89,23 +89,22 @@ class ReceptionController extends AbstractController
         {
             if (count($data) != 5)// On regarde si le nombre de données reçu est conforme et on envoi dans la base
             {
-                $em = $this->getDoctrine()->getManager();
                 $fournisseur = $this->fournisseurRepository->find(intval($data['fournisseur']));
                 $utilisateur = $this->utilisateurRepository->find(intval($data['utilisateur']));
-
+                
                 $reception = new Reception();
                 $statut = $this->statutRepository->find(1); // L'id correspondant au statut En cours de réception
                 $reception
-                    ->setStatut($statut)
-                    ->setNumeroReception($data['NumeroReception'])
-                    ->setDate(new \DateTime($data['date-commande']))
-                    ->setDateAttendu(new \DateTime($data['date-attendu']))
-                    ->setFournisseur($fournisseur)
-                    ->setUtilisateur($utilisateur)
-                    ->setCommentaire($data['commentaire']);
+                ->setStatut($statut)
+                ->setNumeroReception($data['NumeroReception'])
+                ->setDate(new \DateTime($data['date-commande']))
+                ->setDateAttendu(new \DateTime($data['date-attendu']))
+                ->setFournisseur($fournisseur)
+                ->setUtilisateur($utilisateur)
+                ->setCommentaire($data['commentaire']);
+                
+                $em = $this->getDoctrine()->getManager();
                 $em->persist($reception);
-
-                // On enregistre l'entité crée sur la bdd
                 $em->flush();
 
                 $data = [
@@ -140,7 +139,6 @@ class ReceptionController extends AbstractController
                     ->setUtilisateur($utilisateur)
                     ->setCommentaire($data['commentaire']);
                 $em = $this->getDoctrine()->getManager();
-                $em->persist($reception);
                 $em->flush();
 
                 $data = json_encode($data);

@@ -75,12 +75,16 @@ class ApiController extends FOSRestController implements ClassResourceInterface
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if ($this->checkLoginPassword($data)) {
+                $apiKey = $this->apiKeyGenerator();
+                
+                $user = $this->utilisateurRepository->findOneBy(['username' => $data['login']]);
+                $user->setApiKey($apiKey);
+                $em = $this->getDoctrine()->getManager();
+                $em->flush();
 
-                //TODO renvoyer en plus la clé (si true)
-                // return $this->getData();
 
                 $json = [
-                    'apiKey' => $this->apiKeyGenerator(),
+                    'apiKey' =>  $apiKey,
                     'data' => $this->getData()
                 ];
                 dump($json);
@@ -103,7 +107,6 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         return $match;
     }
 
-
     private function getData()
     {
         $data = [
@@ -115,6 +118,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 
     public function apiKeyGenerator()
     {
-       return 'apiKey';
+        $key = md5(microtime().rand());
+        return $key;
     }
 }
