@@ -30,7 +30,7 @@
                         <option disabled selected>Choisir un point de collecte...</option>
                         {% for emplacement in emplacements %}
                             <option value="{{ emplacement.Id }}">
-                                {{ emplacement.nom }}
+                                {{ emplacement.label }}
                             </option>
                         {% endfor %}
                     </select>

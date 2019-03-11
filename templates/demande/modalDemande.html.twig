@@ -23,7 +23,7 @@
                     <label for="destination">Destination</label>
                     <select name="destination" id="destination" class="form-control data select2">
                         {% for emplacement in emplacements %}
-                            <option value="{{ emplacement.id }}">{{ emplacement.nom }}</option>
+                            <option value="{{ emplacement.id }}">{{ emplacement.label }}</option>
                         {% endfor %}
                     </select>
                 </div>
