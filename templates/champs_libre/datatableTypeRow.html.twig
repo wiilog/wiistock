@@ -1,8 +1,10 @@
-<div class='btn btn-xs btn-default champs-libre-edit' onclick='editRow($(this))' data-toggle='modal' data-target=''>
+<div data-id='{{ idType }}' data-toggle='modal' data-target='#modalEditType' class='btn btn-xs btn-default champs-libre-edit'
+    onclick="editRow($(this),  Routing.generate('type_edit_api', true), $('#modalEditType'), $('#submitEditType'))">
     <i class='fas fa-pencil-alt fa-2x'></i>
 </div>
-<div class='btn btn-xs btn-default type-delete' onclick="deleteRow($(this), $('#modalDeleteType'), $('#submitDeleteType'))" data-id='{{ idType }}'
-    data-target='#modalDeleteType'  data-toggle='modal'>
+<div class='btn btn-xs btn-default type-delete'
+    onclick="deleteRow($(this), $('#modalDeleteType'), $('#submitDeleteType'))" data-id='{{ idType }}'
+    data-target='#modalDeleteType' data-toggle='modal'>
     <i class='fas fa-trash fa-2x'></i>
 </div>
 

@@ -19,6 +19,19 @@ class CategoryTypeRepository extends ServiceEntityRepository
         parent::__construct($registry, CategoryType::class);
     }
 
+    public function getNoOne($category)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT c
+            FROM App\Entity\CategoryType c
+            WHERE c.id <> :category"
+             )->setParameter('category', $category);
+        ;
+        return $query->execute(); 
+    }
+
+
     // /**
     //  * @return CategoryType[] Returns an array of CategoryType objects
     //  */

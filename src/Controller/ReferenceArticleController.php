@@ -46,7 +46,7 @@ class ReferenceArticleController extends Controller
      */
     private $valeurChampsLibreRepository;
 
-    public function __construct(ValeurChampslibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, Typerepository  $typeRepository, ChampsLibreRepository $champsLibreRepository)
+    public function __construct(ValeurChampslibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository)
     {
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->champsLibreRepository = $champsLibreRepository;
@@ -137,11 +137,15 @@ class ReferenceArticleController extends Controller
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $articleRef = $this->referenceArticleRepository->find($data);
-            $typeArticleRef = $articleRef->getType();
-            $champsLibres = $this->champsLibreRepository->getByType($typeArticleRef);
+            $idType = $articleRef->getType()->getId();
+
+            $valeurChampLibre = $this->valeurChampsLibreRepository->getByArticleType($data, $idType);
+            dump($valeurChampLibre);
+
+            // $champsLibres = $this->champsLibreRepository->getByType($typeArticleRef);
             $json = $this->renderView('reference_article/modalShowRefArticleContent.html.twig', [
                 'articleRef' => $articleRef,
-                'champsLibres'=> $champsLibres
+                'valeurChampLibre'=> $valeurChampLibre
                 ]);
             return new JsonResponse($json);
         }
@@ -158,7 +162,7 @@ class ReferenceArticleController extends Controller
             $articleRef = $this->referenceArticleRepository->find($data);
             $json = $this->renderView('reference_article/modalEditRefArticleContent.html.twig', [
                 'articleRef' => $articleRef,
-                'types' => $this->typeRepository->setByCategory('référence article'),
+                'types' => $this->typeRepository-> getByCategoryLabel('référence article'),
             ]);
             return new JsonResponse($json);
         }

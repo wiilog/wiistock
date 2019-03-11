@@ -5,7 +5,7 @@
 {% block page_content %}
 
 
-<h1>Champs libre</h1>
+<h1>Champs libres</h1>
 
 <div class=' btn'>
     <a href="" data-toggle="modal" data-target="#modalNewType" class="button btn-left">
@@ -27,6 +27,7 @@
 
 {% include "champs_libre/modalNewType.html.twig" %}
 {% include "champs_libre/modalDeleteType.html.twig" %}
+{% include "champs_libre/modalEditType.html.twig" %}
 
 {% endblock %}
 {% block javascript %}
@@ -34,5 +35,6 @@
     let id 
 </script>
 
-<script src={{asset('js/champsLibre.js')}}></script>
+<script src="{{asset('js/champsLibre.js')}}"></script>
+
 {% endblock javascript %}

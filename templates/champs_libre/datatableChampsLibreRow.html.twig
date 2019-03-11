@@ -1,4 +1,5 @@
-<div class='btn btn-xs btn-default champs-libre-edit' onclick='editRow($(this))' data-toggle='modal' data-target=''>
+<div data-id='{{ idChampsLibre }}' data-toggle='modal' data-target='#modalEditChampLibre' class='btn btn-xs btn-default champs-libre-edit'
+    onclick="editRow($(this),  Routing.generate('champLibre_edit_api', true), $('#modalEditChampLibre'), $('#submitEditChampsLibre'))">
     <i class='fas fa-pencil-alt fa-2x'></i>
 </div>
 <div class='btn btn-xs btn-default champs-libre-delete'

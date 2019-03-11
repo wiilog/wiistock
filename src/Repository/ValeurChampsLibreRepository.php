@@ -19,6 +19,26 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
         parent::__construct($registry, ValeurChampsLibre::class);
     }
 
+    public function getByArticleType($idArticle,$idType)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT v.valeur, c.label
+            FROM App\Entity\ValeurChampsLibre v
+            JOIN v.articleReference a
+            JOIN v.champLibre c
+            JOIN c.type t
+            WHERE a.id = :idArticle AND t.id = :idType"
+            );
+        $query->setParameters([
+            "idArticle"=> $idArticle,
+            "idType"=> $idType
+        ]);
+
+        return $query->execute();
+    }
+
+
     // /**
     //  * @return ValeurChampsLibre[] Returns an array of ValeurChampsLibre objects
     //  */

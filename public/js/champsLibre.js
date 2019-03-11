@@ -21,11 +21,15 @@ let ButtonSubmitTypeNew = $("#submitTypeNew");
 let urlTypeNew = Routing.generate('type_new', true);
 InitialiserModal(dataModalTypeNew, ButtonSubmitTypeNew, urlTypeNew,tableType);
 
-
 let dataModalTypeDelete = $("#modalDeleteType");
 let ButtonSubmitTypeDelete = $("#submitDeleteType");
 let urlTypeDelete = Routing.generate('type_delete', true);
 InitialiserModal(dataModalTypeDelete, ButtonSubmitTypeDelete, urlTypeDelete, tableType);
+
+let dataModalEditType = $("#modalEditType");
+let ButtonSubmitEditType = $("#submitEditType");
+let urlEditType = Routing.generate('type_edit', true);
+InitialiserModal(dataModalEditType, ButtonSubmitEditType, urlEditType, tableType);
 
 
 //CHAMPS LIBRE
@@ -56,3 +60,8 @@ let dataModalChampsLibreDelete = $("#modalDeleteChampsLibre");
 let ButtonSubmitChampsLibreDelete = $("#submitChampsLibreDelete");
 let urlChampsLibreDelete = Routing.generate('champs_libre_delete', true);
 InitialiserModal(dataModalChampsLibreDelete, ButtonSubmitChampsLibreDelete, urlChampsLibreDelete, tableChampsLibre);
+
+let dataModalEditChampsLibre = $("#modalEditChampLibre");
+let ButtonSubmitEditChampsLibre = $("#submitEditChampsLibre");
+let urlEditChampsLibre = Routing.generate('champsLibre_edit', true);
+InitialiserModal(dataModalEditChampsLibre, ButtonSubmitEditChampsLibre, urlEditChampsLibre, tableChampsLibre);

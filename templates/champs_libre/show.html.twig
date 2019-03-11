@@ -3,7 +3,7 @@
 {% block title %}Création de nouveau champ libre{% endblock %}
 
 {% block page_content %}
-    <h1>Création de nouveau champ libre pourle type {{type.label}} </h1>
+    <h1>Création de nouveau champ libre pour le type {{type.label}} </h1>
 
     <div class=' btn'>
         <a href="" data-toggle="modal" data-target="#modalNewChampsLibre" class="button btn-left">
@@ -25,8 +25,11 @@
     </table>
 
     <a href="{{ path('champs_libre_index') }}" class="button btn-left">Retour</a>
+
+
     {% include "champs_libre/modalNewChampsLibre.html.twig" %}
     {% include "champs_libre/modalDeleteChampsLibre.html.twig" %}
+    {% include "champs_libre/modalEditChampLibre.html.twig" %}
 
     {% endblock %}
     {% block javascript %}
