@@ -30,6 +30,11 @@ let SubmitDelete = $("#submitDeleteReception");
 let urlDeleteReception = Routing.generate('reception_delete', true)
 InitialiserModal(ModalDelete, SubmitDelete, urlDeleteReception, table);
 
+let modalModifyReception = $('#modalEditReception');
+let submitModifyReception = $('#submitEditReception');
+let urlModifyReception = Routing.generate('reception_edit', true);
+InitialiserModal(modalModifyReception, submitModifyReception, urlModifyReception,  table);
+
 
 //AJOUTE_ARTICLE
 let pathAddArticle = Routing.generate('reception_article_api', {'id': id}, true);

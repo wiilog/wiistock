@@ -1,9 +1,10 @@
-<div data-toggle='modal' data-target='#modalModify' onclick='editRow($(this))' data-statut="{{ reception.statut.nom }}"
-    data-date="{{ reception.date | date('d/m/Y') }}" data-fournisseur="{{ reception.fournisseur.nom }}"
-    data-dateAttendu="{{ reception.dateAttendu | date('d/m/Y') }}" class='btn btn-xs btn-default command-edit'>
+<div data-id='{{ reception.id }}' data-toggle='modal' data-target='#modalEditReception'
+    class='btn btn-xs btn-default command-edit'
+    onclick="editRow($(this), Routing.generate('reception_edit_api', true), $('#modalEditReception'), $('#submitEditReception'))">
     <i class='fas fa-pencil-alt fa-2x'></i>
 </div>
-<div class='btn btn-xs btn-default reception-delete' onclick="deleteRow($(this), $('#modalDeleteReception'), $('#submitDeleteReception'))" data-id='{{ reception.id }}'
+<div class='btn btn-xs btn-default reception-delete'
+    onclick="deleteRow($(this), $('#modalDeleteReception'), $('#submitDeleteReception'))" data-id='{{ reception.id }}'
     data-target='#modalDeleteReception' data-toggle='modal'>
     <i class='fas fa-trash fa-2x'></i>
 </div>

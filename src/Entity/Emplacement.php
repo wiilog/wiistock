@@ -21,7 +21,7 @@ class Emplacement
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $nom;
+    private $label;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Article", mappedBy="direction")
@@ -53,6 +53,11 @@ class Emplacement
      */
     private $description;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Mouvement", mappedBy="emplacement")
+     */
+    private $mouvements;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
@@ -60,6 +65,7 @@ class Emplacement
         $this->livraisons = new ArrayCollection();
         $this->demandes = new ArrayCollection();
         $this->collectes = new ArrayCollection();
+        $this->mouvements = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -67,14 +73,14 @@ class Emplacement
         return $this->id;
     }
 
-    public function getNom(): ?string
+    public function getLabel(): ?string
     {
-        return $this->nom;
+        return $this->label;
     }
 
-    public function setNom(?string $nom): self
+    public function setLabel(?string $label): self
     {
-        $this->nom = $nom;
+        $this->label = $label;
 
         return $this;
     }
@@ -112,7 +118,7 @@ class Emplacement
 
     public function __toString()
     {
-        return $this->nom;
+        return $this->label;
     }
 
     /**
@@ -245,6 +251,37 @@ class Emplacement
             // set the owning side to null (unless already changed)
             if ($collecte->getPointCollecte() === $this) {
                 $collecte->setPointCollecte(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Mouvement[]
+     */
+    public function getMouvements(): Collection
+    {
+        return $this->mouvements;
+    }
+
+    public function addMouvement(Mouvement $mouvement): self
+    {
+        if (!$this->mouvements->contains($mouvement)) {
+            $this->mouvements[] = $mouvement;
+            $mouvement->setEmplacement($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMouvement(Mouvement $mouvement): self
+    {
+        if ($this->mouvements->contains($mouvement)) {
+            $this->mouvements->removeElement($mouvement);
+            // set the owning side to null (unless already changed)
+            if ($mouvement->getEmplacement() === $this) {
+                $mouvement->setEmplacement(null);
             }
         }
 

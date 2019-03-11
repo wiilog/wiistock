@@ -29,6 +29,20 @@ class FournisseurRepository extends ServiceEntityRepository
             ->getResult()
         ;
     }
+    public function getNoOne($fournisseur)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT f
+            FROM App\Entity\Fournisseur f
+            WHERE f.id <> :fournisseur"
+             )->setParameter('fournisseur', $fournisseur);
+        ;
+        return $query->execute(); 
+    }
+
+
+
 //    /**
 //     * @return Fournisseur[] Returns an array of Fournisseur objects
 //     */

@@ -1,0 +1,43 @@
+<div class="form-group">
+    <label for="NumeroReception">Numéro Réception</label>
+    <input type="text" class="form-control data" name="NumeroReception" id='reference'
+        value="{{reception.numeroReception}}" placeholder="N°Reception">
+</div>
+
+<div class="form-group">
+    <label for="date-commande">Date commande</label>
+    <input type="date" class="form-control data" name="date-commande" id="dateCommande"
+        value="{{reception.date | date('Y-m-d')}}" required="true" min="{{ 'now' | date('Y-m-d') }}"
+        max="{{ '+25year' | date('Y-m-d') }}">
+</div>
+
+<div class="form-group">
+    <label for="date-attendu">Date attendue</label>
+    <input type="date" class="form-control data" name="date-attendu" id='dateAttendu'
+        value="{{reception.dateAttendu | date('Y-m-d')}}" required="true" min="{{ 'now' | date('Y-m-d') }}"
+        max="{{ '+25year' | date('Y-m-d') }}">
+</div>
+<div class="form-group">
+    <label for="fournisseurs">Fournisseurs</label>
+    <select class="form-control select2 data" name="fournisseur" id='fournisseur'>
+        <option value="{{reception.fournisseur.id}}">{{ reception.fournisseur.nom }}</option>
+        {% for fournisseur in fournisseurs %}
+        <option value="{{ fournisseur.id }}">{{ fournisseur.nom }}</option>
+        {% endfor %}
+    </select>
+</div>
+<div class="form-group">
+    <label for="utilisateur">Utilisateur</label>
+    <select class="form-control select2 data" name="utilisateur">
+        <option value="{{reception.utilisateur.id}}">{{ reception.utilisateur.username }}</option>
+        {% for utilisateur in utilisateurs %}
+        <option value="{{ utilisateur.id }}">{{ utilisateur.username }}</option>
+        {% endfor %}
+    </select>
+</div>
+
+<div class="form-group">
+    <label for="NumeroReception">Commentaire</label>
+    <input type="text" class="form-control data" name="commentaire" value="{{reception.commentaire}}"
+        placeholder="Commentaire">
+</div>

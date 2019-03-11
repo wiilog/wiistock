@@ -130,12 +130,10 @@ class CollecteController extends AbstractController
         $em->flush();
 
         $data = [
-            'Nom'=>( $article->getNom() ?  $article->getNom():""),
+            'Référenceom'=>( $article->getReference() ?  $article->getReference()():""),
             'Statut'=> ($article->getStatut()->getNom() ? $article->getStatut()->getNom() : ""),
             'Conformité'=>($article->getEtat() ? 'conforme': 'anomalie'),
             'Référence Article'=> ($article->getRefArticle() ? $article->getRefArticle()->getLibelle() : ""),
-            'Emplacement'=> ($article->getPosition() ? $article->getPosition()->getNom() : "0"),
-            'Destination'=> ($article->getDirection() ? $article->getDirection()->getNom() : ""),
             'Quantité à collecter'=>($article->getQuantiteCollectee() ? $article->getQuantiteCollectee() : ""),
             'Actions' => $this->renderView('collecte/datatableArticleRow.html.twig', ['article' => $article])
         ];

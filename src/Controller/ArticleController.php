@@ -81,11 +81,9 @@ class ArticleController extends AbstractController
                 $rows[] =
                 [
                     'id' => ($article->getId() ? $article->getId() : "Non défini"),
-                    'Nom' => ($article->getNom() ? $article->getNom() : "Non défini"),
+                    'Référence' => ($article->getReference() ? $article->getReference() : "Non défini"),
                     'Statut' => ($article->getStatut() ? $article->getStatut()->getNom() : "Non défini"),
                     'Reférence article' => ($article->getRefArticle() ? $article->getRefArticle()->getLibelle() : "Non défini"),
-                    'Emplacement' => ($article->getPosition() ? $article->getPosition()->getNom() : "Non défini"),
-                    'Destination' => ($article->getDirection() ? $article->getDirection()->getNom() : "Non défini"),
                     'Quantité' => ($article->getQuantite() ? $article->getQuantite() : "Non défini"),
                     'Actions' => $this->renderView('article/datatableArticleRow.html.twig', ['url' => $url, 'article' => $article]),
                 ];
@@ -112,11 +110,9 @@ class ArticleController extends AbstractController
             $rows = [];
             foreach ($articles as $article) {
                 $rows[] = [
-                    'Nom'=>( $article->getNom() ?  $article->getNom():""),
+                    'référence'=>( $article->Reference() ?  $article->getReference():""),
                     'Statut'=> ($article->getStatut()->getNom() ? $article->getStatut()->getNom() : ""),
                     'Référence Article'=> ($article->getRefArticle() ? $article->getRefArticle()->getLibelle() : ""),
-                    'Emplacement'=> ($article->getPosition() ? $article->getPosition()->getNom() : ""),
-                    'Destination'=> ($article->getDirection() ? $article->getDirection()->getNom() : ""),
                     'Quantité à collecter'=>($article->getQuantiteCollectee() ? $article->getQuantiteCollectee() : ""),
                     'Actions' => $this->renderView('collecte/datatableArticleRow.html.twig', ['article' => $article])
                 ];

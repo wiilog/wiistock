@@ -105,7 +105,7 @@ class Reception
   
     public function __toString()
     {
-        return $this->id;
+        return $this->commentaire;
     }
 
     public function getDate(): ?\DateTimeInterface

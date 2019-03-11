@@ -75,6 +75,11 @@ class Utilisateur implements UserInterface, EquatableInterface
      * @ORM\OneToMany(targetEntity="App\Entity\Livraison", mappedBy="utilisateur")
      */
     private $livraisons;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Mouvement", mappedBy="user")
+     */
+    private $mouvements;
     
     public function __construct()
     {
@@ -84,6 +89,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->collectes = new ArrayCollection();
         $this->preparations = new ArrayCollection();
         $this->livraisons = new ArrayCollection();
+        $this->mouvements = new ArrayCollection();
     }
     public function getId()
     {
@@ -324,6 +330,37 @@ class Utilisateur implements UserInterface, EquatableInterface
             // set the owning side to null (unless already changed)
             if ($livraison->getUtilisateur() === $this) {
                 $livraison->setUtilisateur(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Mouvement[]
+     */
+    public function getMouvements(): Collection
+    {
+        return $this->mouvements;
+    }
+
+    public function addMouvement(Mouvement $mouvement): self
+    {
+        if (!$this->mouvements->contains($mouvement)) {
+            $this->mouvements[] = $mouvement;
+            $mouvement->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMouvement(Mouvement $mouvement): self
+    {
+        if ($this->mouvements->contains($mouvement)) {
+            $this->mouvements->removeElement($mouvement);
+            // set the owning side to null (unless already changed)
+            if ($mouvement->getUser() === $this) {
+                $mouvement->setUser(null);
             }
         }
 

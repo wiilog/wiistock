@@ -41,6 +41,18 @@ class UtilisateurRepository extends ServiceEntityRepository
         return $query->execute(); 
     }
 
+    public function getNoOne($id)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT u
+            FROM App\Entity\Utilisateur u
+            WHERE u.id <> :id"
+        )->setParameter('id', $id);
+        ;
+        return $query->execute(); 
+    }
+
 
 //   /**
 //     * @return Utilisateur[] Returns an array of Utilisateurs objects

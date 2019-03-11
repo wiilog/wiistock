@@ -11,7 +11,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\ArticleRepository")
- * @UniqueEntity("nom")
+ * @UniqueEntity("reference")
  */
 class Article
 {
@@ -36,7 +36,7 @@ class Article
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $nom;
+    private $reference;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
@@ -52,16 +52,6 @@ class Article
      * @ORM\ManyToOne(targetEntity="App\Entity\Reception", inversedBy="articles")
      */
     private $reception;
-
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="articles")
-     */
-    private $direction;
-
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="position")
-     */
-    private $position;
 
     /**
      * @ORM\Column(type="text", nullable=true)
@@ -96,12 +86,17 @@ class Article
     /**
      * @ORM\Column(type="boolean")
      */
-    private $etat;
+    private $conform;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $reference;
+    private $label;
+
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\Mouvement", mappedBy="article")
+     */
+    private $mouvements;
 
     
     public function __construct()
@@ -109,6 +104,7 @@ class Article
         $this->preparations = new ArrayCollection();
         $this->demandes = new ArrayCollection();
         $this->collectes = new ArrayCollection();
+        $this->mouvements = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -116,14 +112,14 @@ class Article
         return $this->id;
     }
 
-    public function getNom(): ?string
+    public function getReference(): ?string
     {
-        return $this->nom;
+        return $this->reference;
     }
 
-    public function setNom(?string $nom): self
+    public function setReference(?string $reference): self
     {
-        $this->nom = $nom;
+        $this->reference = $reference;
 
         return $this;
     }
@@ -142,7 +138,7 @@ class Article
 
     public function __toString()
     {
-        return $this->nom;
+        return $this->label;
     }
 
     public function getRefArticle(): ?ReferenceArticle
@@ -165,30 +161,6 @@ class Article
     public function setReception(?Reception $reception): self
     {
         $this->reception = $reception;
-
-        return $this;
-    }
-
-    public function getDirection(): ?Emplacement
-    {
-        return $this->direction;
-    }
-
-    public function setDirection(?Emplacement $direction): self
-    {
-        $this->direction = $direction;
-
-        return $this;
-    }
-
-    public function getPosition(): ?Emplacement
-    {
-        return $this->position;
-    }
-
-    public function setPosition(?Emplacement $position): self
-    {
-        $this->position = $position;
 
         return $this;
     }
@@ -297,26 +269,54 @@ class Article
         return $this;
     }
 
-    public function getEtat(): ?bool
+    public function getConform(): ?bool
     {
-        return $this->etat;
+        return $this->conform;
     }
 
-    public function setEtat(bool $etat): self
+    public function setConform(bool $conform): self
     {
-        $this->etat = $etat;
+        $this->conform = $conform;
 
         return $this;
     }
 
-    public function getReference(): ?string
+    public function getLabel(): ?string
     {
-        return $this->reference;
+        return $this->label;
     }
 
-    public function setReference(?string $reference): self
+    public function setLabel(?string $label): self
     {
-        $this->reference = $reference;
+        $this->label = $label;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Mouvement[]
+     */
+    public function getMouvements(): Collection
+    {
+        return $this->mouvements;
+    }
+
+    public function addMouvement(Mouvement $mouvement): self
+    {
+        if (!$this->mouvements->contains($mouvement)) {
+            $this->mouvements[] = $mouvement;
+            $mouvement->addArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMouvement(Mouvement $mouvement): self
+    {
+        if ($this->mouvements->contains($mouvement)) {
+            $this->mouvements->removeElement($mouvement);
+            $mouvement->removeArticle($this);
+        }
 
         return $this;
     }

@@ -121,21 +121,18 @@ class ReceptionController extends AbstractController
 
 
     /**
-     * @Route("/modifierReception", name="modifierReception", methods="POST")
+     * @Route("/modifierReception", name="reception_edit", options={"expose"=true}, methods="POST")
      */
-    public function modifierReception(Request $request) : Response // SERT QUAND
+    public function modifierReception(Request $request) : Response 
     {
+        dump(json_decode($request->getContent(), true));
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) //Si la requête est de type Xml et que data est attribuée
         {
-            if (count($data) != 5)// On regarde si le nombre de données reçu est conforme et on envoi dans la base
-            {
                 $fournisseur = $this->fournisseurRepository->find(intval($data['fournisseur']));
                 $utilisateur = $this->utilisateurRepository->find(intval($data['utilisateur']));
 
-                $reception = new Reception();
-                $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_RECEPTION_EN_COURS);
+                $reception = $this->receptionRepository->find($data['reception']);
                 $reception
-                    ->setStatut($statut)
                     ->setNumeroReception($data['NumeroReception'])
                     ->setDate(new \DateTime($data['date-commande']))
                     ->setDateAttendu(new \DateTime($data['date-attendu']))
@@ -149,10 +146,26 @@ class ReceptionController extends AbstractController
                 $data = json_encode($data);
                 return new JsonResponse($data);
             }
-        }
         throw new NotFoundHttpException("404");
     }
 
+    /**
+     * @Route("/editApi", name="reception_edit_api", options={"expose"=true},  methods="GET|POST")
+     */
+    public function editApi(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+
+            $reception = $this->receptionRepository->find($data);
+            $json = $this->renderView('reception/modalModifyReceptionContent.html.twig', [
+                'reception' => $reception,
+                'fournisseurs'=> $this->fournisseurRepository->getNoOne($reception->getFournisseur()->getId()),
+                'utilisateurs'=> $this->utilisateurRepository->getNoOne($reception->getUtilisateur()->getId()),
+            ]);
+            return new JsonResponse($json);
+        }
+        throw new NotFoundHttpException("404");
+    }
 
     /**
      * @Route("/api", name="reception_api", options={"expose"=true}, methods={"GET", "POST"}) 
@@ -192,124 +205,32 @@ class ReceptionController extends AbstractController
             $articles = $this->articleRepository->getArticleByReception($id);
             $rows = [];
             foreach ($articles as $article) {
-                //$url = $this->generateUrl('reception_ajout_article', ['id' => $article->getId(), 'finishReception'=>'0'] );
                 $rows[] =
                 [
                     "Référence" => ($article->getReference() ? $article->getReference() : ''),
-                    "Libellé" => ($article->getNom() ? $article->getNom() : ''),
+                    "Libellé" => ($article->getLabel() ? $article->getlabel() : ''),
                     "Référence CEA" => ($article->getRefArticle() ? $article->getRefArticle()->getReference() : ''),
                     'Actions' => $this->renderView('reception/datatableArticleRow.html.twig', [
-                                /*'url' => $url,*/ 
                                 'articleId' => $article->getId(),
                             ]),
                 ];
             }
-            dump($rows);
             $data['data'] = $rows;
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
     }
 
-
-    /**
-     * @Route("/json", name="reception_json", methods={"GET", "POST"}) //A voir SUPPRIMER
-     */
-    public function receptionJson(Request $request) : Response
-    {// recuperation du fichier JSON via la requete
-        if (!$request->isXmlHttpRequest()) {
-            // decodage en tableau php
-            $myJSON = json_decode($request->getContent(), true);
-            // traitement des données => récuperation des objets via leur id 
-            $refArticle= $this->referenceArticleRepository->find($myJSON['refArticle']);
-            $reception= $this->receptionRepository->find($myJSON['reception']);
-            // creation d'un nouvel objet article + set des donnees
-            $article = new Article();
-            $article
-                ->setNom($myJSON['nom'])
-                ->setRefArticle($refArticle)
-                ->setQuantite(intval($myJSON['quantite']))
-                ->setQuantiteARecevoir(intval($myJSON['quantiteARecevoir']))
-                ->setEtat($myJSON['etat'])
-                ->setCommentaire($myJSON['commentaire'])
-                ->setReception($reception);
-            if ($article->getEtat())
-            {
-                $statut = $this->statutRepository->find(1);
-                $article->setStatut($statut);
-
-            }
-            else 
-            {
-                $statut = $this->statutRepository->find(5);
-                $article->setStatut($statut);
-                $reception->setStatut($statut);
-            }
-            // flush du nouvel objet article dans la base
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($article);
-            $em->flush();
-            // contruction de la reponse =>recuperation de l'article cree + traitement des donnees
-            $reponseJSON = [
-                'id' => $article->getId(),
-                'nom' => $article->getNom(),
-                'statut' => $article->getStatut()->getNom(),
-                'quantite' => $article->getQuantite(),
-                'quantiteARecevoir' => $article->getQuantiteARecevoir(),
-
-            ];
-            // encodage de la reponse en JSON + envoie
-            return new JsonResponse($reponseJSON);
-        }
-        throw new NotFoundHttpException('404 not found');
-    }
-
-
     /**
      * @Route("/", name="reception_index", methods={"GET", "POST"})
      */
-    public function index(Request $request): Response
+    public function index(): Response
     {
         return $this->render('reception/index.html.twig', [
             'fournisseurs' => $this->fournisseurRepository->findAll(), //a précisé avant modif
             'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
         ]);
     }
-
-    /**
-     * @Route("/{id}/edit", name="reception_edit", methods={"GET", "POST"}) // A SUPPRIMER
-     */
-    public function edit(Request $request, Reception $reception) : Response
-    {
-
-        if(isset($_POST["numeroReception"], $_POST["fournisseur"], $_POST["utilisateur"], $_POST["date-attendue"]))
-        {
-            $fournisseur = $this->fournisseurRepository->find($_POST["fournisseur"]);
-            $utilisateur = $this->utilisateurRepository->find($_POST["utilisateur"]);
-            $reception
-                ->setNumeroReception($_POST["numeroReception"])
-                ->setDate(new \DateTime($_POST["date-commande"]))
-                ->setFournisseur($fournisseur)
-                ->setUtilisateur($utilisateur)
-                ->setCommentaire($_POST["commentaire"])
-                ->setDateAttendu(new \DateTime($_POST["date-attendue"]));
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($reception);
-            $em->flush();
-
-            return $this->redirectToRoute('reception_ajout_article', [
-                "id" => $reception->getId(),
-                "finishReception" => 0
-            ]); 
-        }
-
-        return $this->render('reception/edit.html.twig', [
-            "reception" => $reception,
-            "utilisateurs" => $this->utilisateurRepository->getIdAndUsername(),
-            "fournisseurs" => $this->fournisseurRepository->findAll(), //a précisé avant modif
-        ]); 
-    }
-
 
     /**
      * @Route("/supprimerReception", name="reception_delete",  options={"expose"=true}, methods={"GET", "POST"}) 
@@ -348,7 +269,6 @@ class ReceptionController extends AbstractController
     {
         if (!$request->isXmlHttpRequest() &&  $contentData =json_decode($request->getContent(),true) ) //Si la requête est de type Xml
         {
-            dump($contentData);
             $refArticle = $this->referenceArticleRepository->find($contentData['refArticle']);
             $reception = $this->receptionRepository->find($contentData['reception']);
             $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_DEMANDE_STOCK);
@@ -359,10 +279,10 @@ class ReceptionController extends AbstractController
             for ($i=0; $i <$quantitie ; $i++) { 
                 $article = new Article();
                 $article
-                    ->setNom($contentData['libelle'])
+                    ->setlabel($contentData['libelle'])
                     ->setReference($ref .'-'. strval($i))
                     ->setStatut($statut)
-                    ->setEtat($contentData['etat'] === 'on'? true : false)
+                    ->setConform($contentData['etat'] === 'on'? true : false)
                     ->setCommentaire($contentData['commentaire'])
                     ->setRefArticle($refArticle)
                     ->setReception($reception);
@@ -371,8 +291,6 @@ class ReceptionController extends AbstractController
                 $em->persist($article);
                 $em->flush();
             }
-           
-           dump($article);
             return new JsonResponse();
         }
         throw new NotFoundHttpException("404");
