@@ -36,14 +36,13 @@ class EmplacementRepository extends ServiceEntityRepository
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-            "SELECT e.id, e.nom
+            "SELECT e.id, e.label
             FROM App\Entity\Emplacement e
             "
              );
         ;
         return $query->execute(); 
     }
-
 
 //    /**
 //     * @return Emplacement[] Returns an array of Emplacement objects

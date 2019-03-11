@@ -68,6 +68,16 @@ class ArticleRepository extends ServiceEntityRepository
         ;
         return $query->execute(); 
     }
+    public function getArticleByRefId()
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT a.id, a.reference 
+            FROM App\Entity\Article a
+            "
+        );
+        return $query->execute(); 
+    }
 
 //    // Creation des preparations
 //    public function findByRefAndConfAndStock($refArticle)

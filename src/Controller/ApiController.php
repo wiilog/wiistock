@@ -8,6 +8,9 @@
 namespace App\Controller;
 
 use App\Repository\UtilisateurRepository;
+use App\Repository\ArticleRepository;
+use App\Repository\EmplacementRepository;
+
 use FOS\RestBundle\Controller\FOSRestController;
 use FOS\RestBundle\Routing\ClassResourceInterface;
 use FOS\RestBundle\Controller\Annotations as Rest;
@@ -45,9 +48,21 @@ class ApiController extends FOSRestController implements ClassResourceInterface
      */
     private $passwordEncoder;
 
-    public function __construct(UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder)
-    {
+    /**
+     * @var ArticleRepository
+     */
+    private $articleRepository;
 
+    /**
+     * @var EmplacementRepository
+     */
+    private $emplacementRepository;
+
+
+    public function __construct(UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
+    {
+        $this->emplacementRepository = $emplacementRepository;
+        $this->articleRepository = $articleRepository;
         $this->utilisateurRepository = $utilisateurRepository;
         $this->passwordEncoder = $passwordEncoder;
     }
@@ -64,7 +79,13 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                 //TODO renvoyer en plus la clé (si true)
                 // return $this->getData();
 
-                return new JsonResponse($this->getData());
+                $json = [
+                    'apiKey' => $this->apiKeyGenerator(),
+                    'data' => $this->getData()
+                ];
+                dump($json);
+
+                return new JsonResponse($json);
             } else {
                 return false;
             }
@@ -85,11 +106,15 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 
     private function getData()
     {
-        //TODO
+        $data = [
+            'emplacements' => $this->emplacementRepository->getIdAndNom(),
+            'articles' => $this->articleRepository->getArticleByRefId()
+        ];
+        return $data;
     }
 
     public function apiKeyGenerator()
     {
-        # code...
+       return 'apiKey';
     }
 }
