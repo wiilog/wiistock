@@ -326,9 +326,8 @@ class ReceptionController extends AbstractController
             $refArticles = $this->referenceArticleRepository->findAll();
             foreach ($refArticles as $refArticle)
             {
-                // requete Count en SQL dédié
                 $quantityRef = $this->articleRepository->findCountByRefArticle($refArticle);
-                $refArticle->setQuantiteDisponible($quantity[1]);
+                // $refArticle->setQuantiteDisponible($quantity[1]);
                 $quantity = $this->articleRepository->countByRefArticleAndStatut($refArticle, Article::STATUT_EN_STOCK);
                 $refArticle->setQuantiteDisponible($quantity);
             }
