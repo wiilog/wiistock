@@ -34,38 +34,54 @@ use Symfony\Component\Security\Core\User\UserInterface;
  */
 class ApiController extends FOSRestController implements ClassResourceInterface
 {
+    private $utilisateurRepository;
+    private $passwordEncoder;
+    private $successData;
+
+
+    public function __construct(UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder)
+    {
+        $this->utilisateurRepository = $utilisateurRepository;
+        $this->passwordEncoder = $passwordEncoder;
+        $this->successData = ['success' => false, 'data' => ''];
+    }
+
     /**
 //     * @Get("/api/test", name= "test-api")
 //     * @Rest\Post("/api/test", name= "test-api")
-     * @Rest\Get("/api/test")
-     * @Rest\View()
+     * @Rest\Post("/api/test")
      */
-    public function connection()
+    public function connection(Request $request)
     {
-        if($this->checkLoginPassword()) {
-            //TODO renvoyer en plus la clé (si true)
-            return $this->getData();
+        $login = $request->request->get('login');
+        $password = $request->request->get('password');
+
+        if($this->checkLoginPassword($login, $password)) {
+            //TODO renvoyer en plus la clé
+            $this->successData['success'] = true;
+            $this->successData['data'] = $this->getData();
+        }
+
+        return new JsonResponse($this->successData);
+
+    }
+
+    private function checkLoginPassword($login, $password)
+    {
+        $user = $this->utilisateurRepository->findOneBy(['username' => $login]);
+
+        if ($user) {
+            return $this->passwordEncoder->isPasswordValid($user, $password);
         } else {
             return false;
         }
 
     }
 
-    private function checkLoginPassword(UtilisateurRepository $utilisateurRepository, Request $request, UserPasswordEncoderInterface $passwordEncoder)
-    {
-        $login = $request->request->get('login');
-        $password = $request->request->get('password');
-
-        $user = $utilisateurRepository->findOneBy(['username' => $login]);
-
-        $match = $passwordEncoder->isPasswordValid($user, $password);
-
-        return new JsonResponse($match);
-    }
-
     private function getData()
     {
      //TODO
+        return true;
     }
 
 }
