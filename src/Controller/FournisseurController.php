@@ -57,15 +57,12 @@ class FournisseurController extends AbstractController
         throw new NotFoundHttpException('404 not found');
     }
 
-
-
     /**
-     * @Route("/api", name="fournisseur_api", options={"expose"=true}, methods="GET")
+     * @Route("/api", name="fournisseur_api", options={"expose"=true}, methods="POST")
      */
     public function fournisseurApi(Request $request) : Response
     {
-        if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
-        {
+        if ($request->isXmlHttpRequest()) { //Si la requête est de type Xml
             $refs = $this->fournisseurRepository->findAll();
             $rows = [];
             foreach ($refs as $fournisseur) {
@@ -74,9 +71,9 @@ class FournisseurController extends AbstractController
                 $url['show'] = $this->generateUrl('fournisseur_show', ['id' => $fournisseurId]);
                 $rows[] = [
                     "Nom" => $fournisseur->getNom(),
-                    "Code de réference" => $fournisseur->getCodeReference(),
+                    "Code de référence" => $fournisseur->getCodeReference(),
                     'Actions' => $this->renderView('fournisseur/datatableFournisseurRow.html.twig', [
-                        'url' => $url, 
+                        'url' => $url,
                         'fournisseurId'=>$fournisseurId
                         ]),
                 ];
@@ -87,8 +84,6 @@ class FournisseurController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
-
-
     /**
      * @Route("/", name="fournisseur_index", methods="GET")
      */
@@ -96,8 +91,6 @@ class FournisseurController extends AbstractController
     {
         return $this->render('fournisseur/index.html.twig', ['fournisseur' => $this->fournisseurRepository->findAll()]);
     }
-
-
 
     /**
      * @Route("/creation/fournisseur", name="creation_fournisseur", options={"expose"=true}, methods="GET|POST")
@@ -118,46 +111,61 @@ class FournisseurController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
-
-
     /**
-     * @Route("/{id}", name="fournisseur_show", methods="GET")
+     * @Route("/show", name="fournisseur_show", options={"expose"=true},  methods="GET|POST")
      */
-    public function show(Fournisseur $fournisseur) : Response
+    public function show(Request $request) : Response
     {
-        return $this->render('fournisseur/show.html.twig', ['fournisseur' => $fournisseur]);
-    }
-
-
-
-    /**
-     * @Route("/modifier/{id}", name="fournisseur_edit", methods="GET|POST")
-     */
-    public function edit(Request $request, Fournisseur $fournisseur) : Response
-    {
-        $form = $this->createForm(FournisseurType::class, $fournisseur);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $this->getDoctrine()->getManager()->flush();
-
-            return $this->redirectToRoute('fournisseur_index');
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $fournisseur = $this->fournisseurRepository->find($data);
+            dump($data);
+      
+            $json =$this->renderView('fournisseur/modalShowFournisseurContent.html.twig', [
+                'fournisseur' => $fournisseur,
+                ]);
+            return new JsonResponse($json);
         }
-
-        return $this->render('fournisseur/edit.html.twig', [
-            'fournisseur' => $fournisseur,
-            'form' => $form->createView(),
-        ]);
+        throw new NotFoundHttpException("404");
     }
 
-
+    /**
+     * @Route("/editApi", name="fournisseur_edit_api", options={"expose"=true},  methods="GET|POST")
+     */
+    public function editApi(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $fournisseur = $this->fournisseurRepository->find($data);
+            $json = $this->renderView('fournisseur/modalEditFournisseurContent.html.twig', [
+                'fournisseur' => $fournisseur,
+            ]);
+            return new JsonResponse($json);
+        }
+        throw new NotFoundHttpException("404");
+    }
 
     /**
-     * @Route("/supprimerFournisseur", name="fournisseur_delete",  options={"expose"=true}, methods={"GET", "POST"}) 
+     * @Route("/edit", name="fournisseur_edit",  options={"expose"=true}, methods="GET|POST")
+     */
+    public function edit(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $fournisseur = $this->fournisseurRepository->find($data['id']);         
+            $fournisseur
+                ->setNom($data['nom'])
+                ->setCodeReference($data['CodeReference']);
+            $em = $this->getDoctrine()->getManager();
+            $em->flush();
+            return new JsonResponse();
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/supprimerFournisseur", name="fournisseur_delete",  options={"expose"=true}, methods={"GET", "POST"})
      */
     public function deleteFournisseur(Request $request) : Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {       
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $fournisseur= $this->fournisseurRepository->find($data['fournisseur']);
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($fournisseur);

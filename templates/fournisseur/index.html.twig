@@ -15,21 +15,25 @@
     <thead>
         <tr>
             <th>Nom</th>
-            <th>Code de réference</th>
+            <th>Code de référence</th>
             <th>Actions</th>
         </tr>
     </thead>
 
 </table>
 
-{% include 'fournisseur/modalNewFournisseur.html.twig' %}
-{% include 'fournisseur/modalDeleteFournisseur.html.twig' %}
-
+<div>
+    {% include "fournisseur/modalDeleteFournisseur.html.twig" %}
+</div>
+    {% include "fournisseur/modalShowFournisseur.html.twig" %}
+<div>
+   {% include "fournisseur/modalEditFournisseur.html.twig" %}
+</div>
+<div>
+    {% include "fournisseur/modalNewFournisseur.html.twig" %}
+</div>
 
 {% endblock %}
-
 {% block javascript %}
-<script src="{{ asset('js/fournisseur.js') }}">
-    
-</script>
-{% endblock %}
+
+<script src="{{asset('js/fournisseur.js')}}" </script> {% endblock %}
