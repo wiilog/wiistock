@@ -133,7 +133,7 @@ class ReferenceArticleController extends Controller
     /**
      * @Route("/show", name="reference_article_show", options={"expose"=true},  methods="GET|POST")
      */
-    public function show(Request $request): Response //a optimiser 
+    public function show(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $articleRef = $this->referenceArticleRepository->find($data);
