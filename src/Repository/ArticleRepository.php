@@ -72,7 +72,7 @@ class ArticleRepository extends ServiceEntityRepository
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-            "SELECT a.id, a.reference 
+            "SELECT a.id, a.reference, a.quantite
             FROM App\Entity\Article a
             "
         );
