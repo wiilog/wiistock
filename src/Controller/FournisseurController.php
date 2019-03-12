@@ -29,34 +29,6 @@ class FournisseurController extends AbstractController
         $this->fournisseurRepository = $fournisseurRepository;
     }
 
-
-    
-    /**
-     * @Route("/get", name="fournisseur_get", methods="GET")
-     */
-    public function getReferenceArticles(Request $request) : Response
-    {
-        if ($request->isXmlHttpRequest()) {
-            $q = $request->query->get('q');
-            $refs = $this->fournisseurRepository->findBySearch($q);
-            $rows = [];
-            foreach ($refs as $ref) {
-                $rows[] = [
-                    "id" => $ref->getId(),
-                    "nom" => $ref->getNom(),
-                    "code_reference" => $ref->getCodeReference(),
-                ];
-            }
-
-            $data = array(
-                "total_count" => count($rows),
-                "items" => $rows,
-            );
-            return new JsonResponse($data);
-        }
-        throw new NotFoundHttpException('404 not found');
-    }
-
     /**
      * @Route("/api", name="fournisseur_api", options={"expose"=true}, methods="POST")
      */
