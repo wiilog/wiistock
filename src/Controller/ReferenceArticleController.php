@@ -138,11 +138,7 @@ class ReferenceArticleController extends Controller
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $articleRef = $this->referenceArticleRepository->find($data);
             $idType = $articleRef->getType()->getId();
-
             $valeurChampLibre = $this->valeurChampsLibreRepository->getByArticleType($data, $idType);
-            dump($valeurChampLibre);
-
-            // $champsLibres = $this->champsLibreRepository->getByType($typeArticleRef);
             $json = $this->renderView('reference_article/modalShowRefArticleContent.html.twig', [
                 'articleRef' => $articleRef,
                 'valeurChampLibre'=> $valeurChampLibre

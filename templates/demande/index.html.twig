@@ -4,63 +4,45 @@
 
 {% block page_content %}
 
-<!-- <form action="" class='row backgrey filter-wrapper'>
-    <div class="input-group daterange">
-        <div class="input-group-addon"> De </div>
-        <input type="date" id='dateDebut' class='form-control' placeholder="Date de début">
-        <div class="input-group-addon"> à </div>
-        <input type="date" id='dateFin' class='form-control' placeholder="Date de fin">
+
+<h1>Demandes de livraison</h1>
+<div class='row btn'>
+    <div href="" data-toggle="modal" data-target="#modalNewDemande" class="button btn-left">
+        <span class="fa fa-plus mr-2"></span>Nouvelle demande
     </div>
-    <select type="text" id='statut' class="form-control basic-multiple-etat select2" multiple="multiple">
-        {% for statut in statuts %}
-        <option value={{statut.nom}}>{{statut.nom}}</option>
-        {% endfor %}
-    </select>
-    <select type="text" id='utilisateur' class="form-control basic-multiple-etat select2" multiple="multiple">
-        {% for utilisateur in utilisateurs %}
-        <option value={{utilisateur.username}}>{{utilisateur.username}}</option>
-        {% endfor %}
-
-    </select>
-
-    <button id='filter' class='button'><i class="fas fa-filter"></i> Filtrer</button>
-</form> -->
-<div class="row">
-    <div class="barre-filtre col-12">
-        <h1>Demandes de livraison</h1>
-        <div class='row float-right'>
-            <a href="" data-toggle="modal" data-target="#dataModalCenter" class="btn btn-primary">
-                <span class="fa fa-plus mr-2"></span>Nouvelle demande
-            </a>
-        </div>
-    </div>
-
-    <div class="zone-actions col-12">
-    </div>
-
-    <div class="zone-affichage col-12">
-        <table id="table_demande" class="table table-striped table-bordered w-100">
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Demandeur</th>
-                    <th>Numéro</th>
-                    <th>Statut</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        </table>
-    </div>
-
-    <div class="actions-secondaires col-12"></div>
 </div>
-{% include "demande/modalDemande.html.twig" %}
-{% include "demande/modifyModal.html.twig" %}
+
+<div class="zone-actions col-12">
+</div>
+
+<div class="zone-affichage col-12">
+    <table id="table_demande" class="table table-striped table-bordered w-100">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Date attendu</th>
+                <th>Demandeur</th>
+                <th>Numéro</th>
+                <th>Statut</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</div>
+
+<div class="actions-secondaires col-12"></div>
+
+{% include "demande/modalDeleteDemande.html.twig" %}
+{% include "demande/modalNewDemande.html.twig" %}
+{% include "demande/modalEditDemande.html.twig" %}
 
 {% endblock %}
 
 {% block javascript %}
+<script>
+    const id = 0
+</script>
 <script src="{{ asset('js/demande-livraison.js')}}"></script>
 {% endblock %}

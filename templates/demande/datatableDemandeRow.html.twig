@@ -1,3 +1,14 @@
-<a href='{{ url.show }}'>
-    <i class='fas fa-eye fa-2x'></i>
-</a>
+<div data-id='{{ idDemande }}' class='btn btn-xs btn-default type-delete' data-target='#modalEditDemande'
+    data-toggle='modal'
+    onclick="editRow($(this), Routing.generate('demande_edit_api', true), $('#modalEditDemande'), $('#submitEditDemande'))">
+    <i class='fas fa-pencil-alt fa-2x'></i>
+</div>
+<div class='btn btn-xs btn-default type-delete'
+    onclick="deleteRow($(this), $('#modalDeleteDemande'), $('#submitDeleteDemande'))" data-id='{{ idDemande }}'
+    data-target='#modalDeleteDemande' data-toggle='modal'>
+    <i class='fas fa-trash fa-2x'></i>
+</div>
+<a href='{{ url }}' class='btn btn-xs btn-default command-edit'>
+        <i class='fas fa-plus fa-2x'></i>
+        Articles
+    </a>

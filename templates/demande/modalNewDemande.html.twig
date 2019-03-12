@@ -1,5 +1,4 @@
-<!-- Modal -->
-<form method="" class="modal fade" id="dataModalCenter" role="dialog" aria-labelledby="dataModalCenterTitle"
+<form method="" class="modal fade" id="modalNewDemande" role="dialog" aria-labelledby="dataModalCenterTitle"
     aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -10,27 +9,32 @@
                 </button>
             </div>
             <div class="modal-body modal-input container-fluid">
-                <div class="form-group">
+                <div class="form-group col">
                     <label for="demandeur">Utilisateur</label>
-                    <select name="demandeur" id="demandeur" class="form-control data select2">
+                    <select name="demandeur" class="form-control col data select2">
                         {% for utilisateur in utilisateurs %}
-                            <option value="{{ utilisateur.id }}">{{ utilisateur.username }}</option>
+                        <option value="{{ utilisateur.id }}">{{ utilisateur.username }}</option>
                         {% endfor %}
                     </select>
                 </div>
 
-                <div class="form-group">
+                <div class="form-group col">
                     <label for="destination">Destination</label>
-                    <select name="destination" id="destination" class="form-control data select2">
+                    <select name="destination" class="form-control col data select2">
                         {% for emplacement in emplacements %}
-                            <option value="{{ emplacement.id }}">{{ emplacement.label }}</option>
+                        <option value="{{ emplacement.id }}">{{ emplacement.label }}</option>
                         {% endfor %}
                     </select>
+                </div>
+                <div class="form-group col">
+                        <label for="dateAttendu">Date attendu</label>
+                    <input type="date" class="form-control data" name="dateAttendu" value="" required="true" min="{{ 'now' | date('Y-m-d') }}" max="{{ '+25year' | date('Y-m-d') }}">
                 </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>
-                <button id="submitButton" type="button" data-dismiss="modal" class="btn btn-primary btn-success">Enregistrer</button>
+                <button id="submitNewDemande" type="button" data-dismiss="modal"
+                    class="btn btn-primary btn-success">Enregistrer</button>
             </div>
         </div>
     </div>
