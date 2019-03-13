@@ -29,7 +29,7 @@ class Emplacement
     private $livraisons;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Demande", mappedBy="destination")
+     * @ORM\OneToMany(targetEntity="App\Entity\Demande", mappedBy="destination")%%
      */
     private $demandes;
 

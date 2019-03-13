@@ -1,26 +1,35 @@
-var path = Routing.generate("emplacement_api", true);
-var table = $('#table_id').DataTable({
+var pathEmplacement = Routing.generate("emplacement_api", true);
+var tableEmplacement = $('#tableEmplacement_id').DataTable({
     "language": {
         "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
     },
-    ajax: path,
+    ajax:{
+        "url": pathEmplacement,
+        "type": "POST"
+    },
     columns: [
         { "data": 'Nom' },
         { "data": 'Description' },
         { "data": 'Actions' }
     ],
     buttons: [
-        'copy', 'excel', 'pdf'
-    ]
+       'copy', 'excel', 'pdf'
+     ]
 });
 
-let modal = $('#modalModify');
-let submit = modal.find('#modifySubmit');
-modifyModal(modal, submit, table);
+let modalNewEmplacement = $("#modalNewEmplacement"); 
+let submitNewEmplacement = $("#submitNewEmplacement");
+let urlNewEmplacement = Routing.generate('creation_emplacement', true);
+InitialiserModal(modalNewEmplacement, submitNewEmplacement, urlNewEmplacement, tableEmplacement);
 
-var path = Routing.generate('createEmplacement', true);
-let dataModal = $("#dataModalCenter");
-var ButtonSubmit = $("#submitButton");
+let ModalDeleteEmplacement = $("#modalDeleteEmplacement");
+let SubmitDeleteEmplacement = $("#submitDeleteEmplacement");
+let urlDeleteEmplacement = Routing.generate('emplacement_delete', true)
+InitialiserModal(ModalDeleteEmplacement, SubmitDeleteEmplacement, urlDeleteEmplacement, tableEmplacement);
+
+let modalModifyEmplacement = $('#modalEditEmplacement');
+let submitModifyEmplacement = $('#submitEditEmplacement');
+let urlModifyEmplacement = Routing.generate('emplacement_edit', true);
+InitialiserModal(modalModifyEmplacement, submitModifyEmplacement, urlModifyEmplacement, tableEmplacement);
 
 
-InitialiserModal(dataModal, ButtonSubmit, path, table);

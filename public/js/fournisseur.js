@@ -32,7 +32,3 @@ let urlModifyFournisseur = Routing.generate('fournisseur_edit', true);
 InitialiserModal(modalModifyFournisseur, submitModifyFournisseur, urlModifyFournisseur,  tableFournisseur);
 
 
-$('#myTab button').on('click', function (e) {
-    $(this).siblings().removeClass('data');
-    $(this).addClass('data');
-  })
