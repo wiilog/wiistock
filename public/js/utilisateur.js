@@ -1,0 +1,22 @@
+let urlUtilisateur = Routing.generate('user_api', true);
+let tableUser = $('#tableUser_id').DataTable({
+    "language": {
+        "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
+    },
+    ajax: {
+        "url": urlUtilisateur,
+        "type": "POST"
+    },
+    columns: [
+        { "data": "Nom d'utilisateur" },
+        { "data": "Email" },
+        { "data": "Dernière connexion" },
+        { "data": "Rôle" },
+        { "data": 'Actions' },
+    ],
+});
+
+let modalNewUser = $("#modalNewUser");
+let submitNewUser = $("#submitNewUser");
+let pathNewUser = Routing.generate('user_new', true);
+InitialiserModal(modalNewUser, submitNewUser, pathNewUser, tableUser);

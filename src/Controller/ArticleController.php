@@ -72,7 +72,6 @@ class ArticleController extends AbstractController
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
         {
-            
             $articles = $this->articleRepository->findAll();
             $rows = [];
             foreach ($articles as $article) {

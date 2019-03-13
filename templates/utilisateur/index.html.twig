@@ -4,61 +4,31 @@
 
 {% block page_content %}
 
-<div class="affichagePrincipale">
+<div>
     <form method="POST" name="role">
         <div class="row">
-            <div class=" col-12 mx-auto">
-                <div>
-                    <button type="submit" class="btn btn-primary float-left">
+            <div class="col-12">
+                    <button type="submit" class="button btn">
                         Actualiser les rôles<i class="fas fa-check ml-2"></i>
                     </button>
+
+                <div data-toggle="modal" data-target="#modalNewUser" class="button btn">
+                    <span class="fa fa-plus"></span>Nouvel utilisateur
                 </div>
-                <div>
-                    <a href="{{ path('register') }}" class="btn btn-primary btn-left">
-                        Nouvel utilisateur<i class="fas fa-plus ml-2"></i>
-                    </a>
-                </div>
-                <table id="table_id" class="table table-striped table-bordered w-100">
+            </div>
+            <div class="col-12">
+                <table id="tableUser_id" class="table table-striped table-bordered" style="width:100%">
                     <thead>
                         <tr>
                             <th>Nom d'utilisateur</th>
                             <th>Email</th>
-                            <th>Rôle</th>
                             <th>Dernière connexion</th>
+                            <th>Rôle</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-
-                        {% for utilisateur in utilisateurs | reverse %}
-                        <tr>
-                            <td>{{ utilisateur.username }}</td>
-                            <td>{{ utilisateur.email }}</td>
-                            <td>
-                                <select name="{{utilisateur.id}}">
-                                    {% if utilisateur.roles == null %}
-                                    <option value="Aucun rôle" selected>Aucun rôle</option>
-                                    {% else %}
-                                    <option value="{{ utilisateur.roles[0] }}" selected>{{ utilisateur.roles[0] }}
-                                    </option>
-                                    {% endif %}
-                                    <option value="ROLE_PARC_ADMIN">ROLE_PARC_ADMIN</option>
-                                    <option value="ROLE_SUPER_ADMIN">ROLE_SUPER_ADMIN</option>
-                                    <option value="ROLE_ROLE_USER">ROLE_USER</option>
-                                </select>
-                            </td>
-                            <td>{{ utilisateur.lastLogin | date("d/m/Y H:i:s") }}</td>
-                            <td>
-                                <a href="{{ path('utilisateur_show', {'id': utilisateur.id}) }}">
-                                    <i class="fas fa-eye fa-2x"></i>
-                                </a>
-                            </td>
-                        </tr>
-                        {% else %}
-                        <tr>
-                            <td colspan="7">Aucun résultat</td>
-                        </tr>
-                        {% endfor %}
+                        
                     </tbody>
                 </table>
             </div>
@@ -70,17 +40,11 @@
 
 </div>
 
+{% include "utilisateur/modalNewUser.html.twig" %}
 
 {% endblock %}
 
 {% block javascript %}
-<script type="text/javascript">
-    var table = $('#table_id').DataTable({
-        "language": {
-            "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
-        },
-
-    });
-</script>
+<script src="{{asset('js/utilisateur.js')}}"></script>
 
 {% endblock %}
