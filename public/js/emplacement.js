@@ -33,7 +33,3 @@ let urlModifyEmplacement = Routing.generate('emplacement_edit', true);
 InitialiserModal(modalModifyEmplacement, submitModifyEmplacement, urlModifyEmplacement, tableEmplacement);
 
 
-$('#myTab button').on('click', function (e) {
-    $(this).siblings().removeClass('data');
-    $(this).addClass('data');
-  })

@@ -3,16 +3,13 @@
 namespace App\Controller;
 
 use App\Entity\Emplacement;
-use App\Form\EmplacementType;
 use App\Repository\EmplacementRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-
 use App\Repository\ArticleRepository;
 
 /**
@@ -131,7 +128,6 @@ class EmplacementController extends AbstractController
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $emplacement = $this->emplacementRepository->find($data['id']);
-            dump($data);
             $emplacement
                 ->setLabel($data["Label"])
                 ->setDescription($data["Description"]);
