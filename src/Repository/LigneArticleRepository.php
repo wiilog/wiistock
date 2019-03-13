@@ -19,6 +19,45 @@ class LigneArticleRepository extends ServiceEntityRepository
         parent::__construct($registry, LigneArticle::class);
     }
 
+    public function getQuantity($id)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT l.quantite 
+            FROM App\Entity\LigneArticle l
+            WHERE l.id = :id
+            "
+        )->setParameter('id', $id);
+        ;
+        return $query->getSingleResult();
+    }
+
+    public function getByRefArticle($referenceArticle)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT l 
+            FROM App\Entity\LigneArticle l
+            WHERE l.reference = :referenceArticle
+            "
+        )->setParameter('referenceArticle', $referenceArticle);
+        ;
+        return $query->getSingleResult();
+    }
+
+    public function countByRefArticle($referenceArticle)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT COUNT(l)
+            FROM App\Entity\LigneArticle l
+            WHERE l.reference = :referenceArticle
+            "
+        )->setParameter('referenceArticle', $referenceArticle);
+        ;
+        return $query->getSingleScalarResult();
+    }
+
     // /**
     //  * @return LigneArticle[] Returns an array of LigneArticle objects
     //  */

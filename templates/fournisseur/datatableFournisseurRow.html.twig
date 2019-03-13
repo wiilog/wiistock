@@ -1,16 +1,16 @@
 <div data-id='{{ fournisseurId }}' data-target='#modalEditFournisseur' data-toggle='modal' class='btn btn-xs btn-default command-edit'
     onclick="editRow($(this), Routing.generate('fournisseur_edit_api', true), $('#modalEditFournisseur'), $('#submitEditFournisseur'))">
-    <i class='fas fa-pencil-alt fa-2x'></i>
+    <i class='fas fa-pencil-alt '></i>
 </div>
 <div class='btn btn-xs btn-default type-show'
     onclick="showRow($('#modalShowFournisseur'), $(this), Routing.generate('fournisseur_show', true) )"
     data-id='{{ fournisseurId }}' data-target='#modalShowFournisseur' data-toggle='modal'>
-    <i class='fas fa-eye fa-2x'></i>
+    <i class='fas fa-eye '></i>
 </div>
 <div class='btn btn-xs btn-default fournisseur-delete'
     onclick="deleteRow($(this), $('#modalDeleteFournisseur'), $('#submitDeleteFournisseur'))" data-id='{{ fournisseurId }}'
     data-target='#modalDeleteFournisseur' data-toggle='modal'>
-    <i class='fas fa-trash fa-2x'></i>
+    <i class='fas fa-trash '></i>
 </div>
 
 

@@ -95,13 +95,13 @@ class ReceptionController extends AbstractController
                 $reception = new Reception();
                 $statut = $this->statutRepository->find(1); // L'id correspondant au statut En cours de réception
                 $reception
-                ->setStatut($statut)
-                ->setNumeroReception($data['NumeroReception'])
-                ->setDate(new \DateTime($data['date-commande']))
-                ->setDateAttendu(new \DateTime($data['date-attendu']))
-                ->setFournisseur($fournisseur)
-                ->setUtilisateur($utilisateur)
-                ->setCommentaire($data['commentaire']);
+                    ->setStatut($statut)
+                    ->setNumeroReception($data['NumeroReception'])
+                    ->setDate(new \DateTime($data['date-commande']))
+                    ->setDateAttendu(new \DateTime($data['date-attendu']))
+                    ->setFournisseur($fournisseur)
+                    ->setUtilisateur($utilisateur)
+                    ->setCommentaire($data['commentaire']);
                 
                 $em = $this->getDoctrine()->getManager();
                 $em->persist($reception);
