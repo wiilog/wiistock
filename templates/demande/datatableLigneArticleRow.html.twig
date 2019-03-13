@@ -1,10 +1,14 @@
+{% if ligneArticle.demande.statut.nom == 'à traiter' %}
+    
 <div data-id='{{ idArticle }}' class='btn btn-xs btn-default type-delete' data-target='#modalEditArticle'
-    data-toggle='modal'
-    onclick="editRow($(this), Routing.generate('article_edit_api', true), $('#modalEditDemande'), $('#submitEditArticle'))">
-    <i class='fas fa-pencil-alt fa-2x'></i>
+data-toggle='modal'
+onclick="editRow($(this), Routing.generate('article_edit_api', true), $('#modalEditArticle'), $('#submitEditArticle'))">
+<i class='fas fa-pencil-alt'></i>
 </div>
 <div class='btn btn-xs btn-default type-delete'
-    onclick="deleteRow($(this), $('#modalDeleteArticle'), $('#submitDeleteArticle'))" data-id='{{ idArticle }}'
-    data-target='#modalDeleteArticle' data-toggle='modal'>
-    <i class='fas fa-trash fa-2x'></i>
+onclick="deleteRow($(this), $('#modalDeleteArticle'), $('#submitDeleteArticle'))" data-id='{{ idArticle }}'
+data-target='#modalDeleteArticle' data-toggle='modal'>
+<i class='fas fa-trash '></i>
 </div>
+
+{% endif %}

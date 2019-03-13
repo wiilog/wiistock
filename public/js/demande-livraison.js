@@ -22,10 +22,15 @@ let submitNewArticle = $("#submitNewArticle");
 let pathNewArticle = Routing.generate('ajoutLigneArticle', true);
 InitialiserModal(modalNewArticle, submitNewArticle, pathNewArticle, tableArticle);
 
-// let dataModal1 = $("#modifModalCenter");
-// let ButtonSubmit1 = $("#modifsubmitButton");
-// let path1 = Routing.generate('modifDemande', { id: id1 }, true);
-// InitialiserModal(dataModal1, ButtonSubmit1, path1, table);
+let modalDeleteArticle = $("#modalDeleteArticle");
+let submitDeleteArticle = $("#submitDeleteArticle");
+let pathDeleteArticle = Routing.generate('ligne_article_delete', true);
+InitialiserModal(modalDeleteArticle, submitDeleteArticle, pathDeleteArticle, tableArticle);
+
+let modalEditArticle = $("#modalEditArticle");
+let submitEditArticle = $("#submitEditArticle");
+let pathEditArticle = Routing.generate('article_edit', true);
+InitialiserModal(modalEditArticle, submitEditArticle, pathEditArticle, tableArticle);
 
 
 
