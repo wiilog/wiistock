@@ -68,18 +68,46 @@ class UtilisateurController extends Controller
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $ut[] = $data['role'];
-            $utilisateur = new Utilisateur();
-            $password = $passwordEncoder->encodePassword($utilisateur, $data['password']);
-            $utilisateur
-                ->setUsername($data['username'])
-                ->setEmail($data['email'])
-                ->setRoles($ut)
-                ->setPassword($password);
+            $userExiste = $this->utilisateurRepository->countByEmail($data['email']);
+            $password = $data['password'];
+            $passwordOk = false;
+            $class = 'errorMessageContent';
 
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($utilisateur);
-            $em->flush();
-            return new JsonResponse($data);
+            if ($password === $data['password2']) {
+                if (strlen($password) < 8) {
+                    $data = "Mot de passe trop court(8 caratères minimun)!";
+                } elseif (preg_match('#^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*\W).{6,}$#', $password)) {
+                    $data = 'mot de passe non conforme (une majuscule, un chiffre, un caractère spéciale)';
+                } else {
+                    $passwordOk = true;
+                }
+            } else {
+                $data = "mot de passe incorrecte";
+            }
+            if ($userExiste === '0' && $passwordOk === true) {
+                $utilisateur = new Utilisateur();
+                $password = $passwordEncoder->encodePassword($utilisateur, $data['password']);
+                $utilisateur
+                    ->setUsername($data['username'])
+                    ->setEmail($data['email'])
+                    ->setRoles($ut)
+                    ->setPassword($password);
+                $em = $this->getDoctrine()->getManager();
+                $em->persist($utilisateur);
+                $em->flush();
+                $data = 'nouvelle utilisateur créé';
+                $class = 'messageContent';
+            } else {
+                $data = "erreur dans le formulaire, l'adresse email est déjà utilisé";
+            }
+            $json =  $this->renderView(
+                "utilisateur/errorMessage.html.twig",
+                [
+                    'data' => $data,
+                    'class' => $class
+                ]
+            );
+            return new JsonResponse($json);
         }
         throw new NotFoundHttpException("404");
     }
@@ -93,7 +121,8 @@ class UtilisateurController extends Controller
             $utilisateurs = $this->utilisateurRepository->findAll();
             $rows = [];
             foreach ($utilisateurs as $utilisateur) {
-                $url = $this->generateUrl('utilisateur_show', ['id' => $utilisateur->getId()]);
+                $idUser =  $utilisateur->getId();
+                $url = $this->generateUrl('utilisateur_show', ['id' => $idUser]);
                 $rows[] =
                     [
                         'id' => ($utilisateur->getId() ? $utilisateur->getId() : "Non défini"),
@@ -101,7 +130,13 @@ class UtilisateurController extends Controller
                         "Email" => ($utilisateur->getEmail() ? $utilisateur->getEmail() : ""),
                         "Dernière connexion" => ($utilisateur->getLastLogin() ? $utilisateur->getLastLogin()->format('d/m/Y') : ""),
                         'Rôle' => $this->renderView("utilisateur/role.html.twig", ['utilisateur' => $utilisateur]),
-                        'Actions' => $this->renderView("utilisateur/datatableUtilisateurRow.html.twig", ['url' => $url]),
+                        'Actions' => $this->renderView(
+                            "utilisateur/datatableUtilisateurRow.html.twig",
+                            [
+                                'url' => $url,
+                                'idUser' => $idUser
+                            ]
+                        ),
                     ];
             }
             $data['data'] = $rows;
@@ -109,6 +144,25 @@ class UtilisateurController extends Controller
         }
         throw new NotFoundHttpException("404");
     }
+
+     /**
+     * @Route("/delete", name="user_delete", options={"expose"=true}, methods="GET|POST")
+     */
+    public function delete(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $user = $this->utilisateurRepository->find($data['user']);
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->remove($user);
+            $entityManager->flush();
+            return new JsonResponse();
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+
+
+
 
 
 
@@ -350,20 +404,7 @@ class UtilisateurController extends Controller
         ]);
     }
 
-    /**
-     * @Route("/{id}", name="utilisateur_delete", methods="DELETE")
-     */
-    public function delete(Request $request, Utilisateur $utilisateur): Response
-    {
-        if ($this->isCsrfTokenValid('delete' . $utilisateur->getId(), $request->request->get('_token'))) {
-            $em = $this->getDoctrine()->getManager();
-            $em->remove($utilisateur);
-            $em->flush();
-        }
-
-
-        return $this->redirectToRoute('utilisateur_index');
-    }
+   
 
     /**
      * @Route("/{id}/remove", name="utilisateur_remove", methods="DELETE")

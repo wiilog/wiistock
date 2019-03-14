@@ -7,6 +7,9 @@
 <div>
     <form method="POST" name="role">
         <div class="row">
+            <div class="col-12 mb-2 errorMessage">
+
+            </div>
             <div class="col-12">
                     <button type="submit" class="button btn">
                         Actualiser les rôles<i class="fas fa-check ml-2"></i>
@@ -40,6 +43,7 @@
 
 </div>
 
+{% include "utilisateur/modalDeleteUser.html.twig" %}
 {% include "utilisateur/modalNewUser.html.twig" %}
 
 {% endblock %}
