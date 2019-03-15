@@ -68,7 +68,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
     }
 
     /**
-     * @Rest\Post("/api/test", name= "test-api")
+     * @Rest\Post("/api/connection", name= "test-api")
      * @Rest\View()
      */
     public function connection(Request $request)
@@ -76,7 +76,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if ($this->checkLoginPassword($data)) {
                 $apiKey = $this->apiKeyGenerator();
-                
+
                 $user = $this->utilisateurRepository->findOneBy(['username' => $data['login']]);
                 $user->setApiKey($apiKey);
                 $em = $this->getDoctrine()->getManager();
@@ -96,6 +96,21 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         }
     }
 
+    /**
+     * @Rest\Post("/api/mouvement", name= "test-api")
+     * @Rest\View()
+     */
+    public function mouvement(Request $request)
+    {
+        if (
+            !$request->isXmlHttpRequest()
+            && $data = json_decode($request->getContent(), true)
+            && ($this->utilisateurRepository->countApiKey($data['apiKey'])) === '1'
+        ) {
+
+            return new JsonResponse($json);
+        }
+    }
 
 
     private function checkLoginPassword($data)
@@ -118,7 +133,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 
     public function apiKeyGenerator()
     {
-        $key = md5(microtime().rand());
+        $key = md5(microtime() . rand());
         return $key;
     }
 }
