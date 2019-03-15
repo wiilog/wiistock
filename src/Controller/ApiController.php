@@ -58,6 +58,11 @@ class ApiController extends FOSRestController implements ClassResourceInterface
      */
     private $emplacementRepository;
 
+    /**
+     * @var array
+     */
+    private $successData;
+
 
     public function __construct(UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
     {
@@ -65,6 +70,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         $this->articleRepository = $articleRepository;
         $this->utilisateurRepository = $utilisateurRepository;
         $this->passwordEncoder = $passwordEncoder;
+        $this->successData = ['success' => false, 'data' => ''];
     }
 
     /**
@@ -74,6 +80,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
     public function connection(Request $request)
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            dump('hello');
             if ($this->checkLoginPassword($data)) {
                 $apiKey = $this->apiKeyGenerator();
 
@@ -81,18 +88,13 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                 $user->setApiKey($apiKey);
                 $em = $this->getDoctrine()->getManager();
                 $em->flush();
-
-
-                $json = [
-                    'apiKey' =>  $apiKey,
-                    'data' => $this->getData()
+                $this->successData['success'] = true;
+                $this->successData['data'] = [
+                    'data' => $this->getData(),
+                    'apiKey' => $this->apiKeyGenerator()
                 ];
-                dump($json);
-
-                return new JsonResponse($json);
-            } else {
-                return false;
             }
+            return new JsonResponse($this->successData);
         }
     }
 
@@ -107,8 +109,20 @@ class ApiController extends FOSRestController implements ClassResourceInterface
             && $data = json_decode($request->getContent(), true)
             && ($this->utilisateurRepository->countApiKey($data['apiKey'])) === '1'
         ) {
+            $mouvementsR= $data['mouvement']; 
+            foreach ($mouvementsR as $mouvementR) {
+                $mouvement = new Mouvement;
+                $mouvement
+                    ->setDate($mouvementR['date'])
+                    ->setType($mouvementR['Type'])
+                    ->setEmplacement($this->emplacemnt->$mouvementR[''])
+                    ->setUser($mouvementR['']);
+            }
+          
+            return new JsonResponse($this->successData);
+        }else {
 
-            return new JsonResponse($json);
+            return new JsonResponse($this->successData);
         }
     }
 
@@ -117,9 +131,14 @@ class ApiController extends FOSRestController implements ClassResourceInterface
     {
         $login = $data['login'];
         $password = $data['password'];
+
         $user = $this->utilisateurRepository->findOneBy(['username' => $login]);
-        $match = $this->passwordEncoder->isPasswordValid($user, $password);
-        return $match;
+
+        if ($user) {
+            return $this->passwordEncoder->isPasswordValid($user, $password);
+        } else {
+            return false;
+        }
     }
 
     private function getData()
