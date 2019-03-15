@@ -7,6 +7,8 @@
  */
 namespace App\Controller;
 
+use App\Entity\Mouvement;
+
 use App\Repository\UtilisateurRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\EmplacementRepository;
@@ -58,11 +60,6 @@ class ApiController extends FOSRestController implements ClassResourceInterface
      */
     private $emplacementRepository;
 
-    /**
-     * @var array
-     */
-    private $successData;
-
 
     public function __construct(UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
     {
@@ -70,75 +67,71 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         $this->articleRepository = $articleRepository;
         $this->utilisateurRepository = $utilisateurRepository;
         $this->passwordEncoder = $passwordEncoder;
-        $this->successData = ['success' => false, 'data' => ''];
+        $this->successData = ['success' => false, 'apiKey' => '', 'data' => ''];
     }
 
     /**
-     * @Rest\Post("/api/connection", name= "test-api")
+     * @Rest\Post("/api/connexion", name= "test-api")
      * @Rest\View()
      */
     public function connection(Request $request)
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            dump('hello');
             if ($this->checkLoginPassword($data)) {
+
                 $apiKey = $this->apiKeyGenerator();
 
                 $user = $this->utilisateurRepository->findOneBy(['username' => $data['login']]);
-                $user->setApiKey($apiKey);
+                $user->setApiKey('366d041c57996ffcc2324ef3f939717d');//TODOO
                 $em = $this->getDoctrine()->getManager();
                 $em->flush();
                 $this->successData['success'] = true;
-                $this->successData['data'] = [
-                    'data' => $this->getData(),
-                    'apiKey' => $this->apiKeyGenerator()
-                ];
+                $this->successData['apiKey'] = '366d041c57996ffcc2324ef3f939717d'; //TODOO
+                $this->successData['data'] = $this->getData();
             }
             return new JsonResponse($this->successData);
         }
     }
 
+
     /**
-     * @Rest\Post("/api/mouvement", name= "test-api")
+     * @Rest\Post("/api/setmouvement", name= "api-set-mouvement")
      * @Rest\View()
      */
-    public function mouvement(Request $request)
+    public function setMouvement(Request $request)
     {
-        if (
-            !$request->isXmlHttpRequest()
-            && $data = json_decode($request->getContent(), true)
-            && ($this->utilisateurRepository->countApiKey($data['apiKey'])) === '1'
-        ) {
-            $mouvementsR= $data['mouvement']; 
+        $data = json_decode($request->getContent(), true);
+
+        if (!$request->isXmlHttpRequest() && ($this->utilisateurRepository->countApiKey($data['apiKey'])) === '1') {
+            $mouvementsR = $data['mouvement'];
             foreach ($mouvementsR as $mouvementR) {
+                dump($mouvementR);
                 $mouvement = new Mouvement;
+                dump($mouvement);
                 $mouvement
-                    ->setDate($mouvementR['date'])
-                    ->setType($mouvementR['Type'])
+                ->setType($mouvementR['type'])
+                    ->setDate(DateTime::createFromFormat('j-M-Y', $mouvementR['date']))
                     ->setEmplacement($this->emplacemnt->$mouvementR[''])
                     ->setUser($mouvementR['']);
             }
-          
-            return new JsonResponse($this->successData);
-        }else {
 
+            return new JsonResponse($this->successData);
+        } else {
             return new JsonResponse($this->successData);
         }
     }
+
+
+
 
 
     private function checkLoginPassword($data)
     {
         $login = $data['login'];
         $password = $data['password'];
-
         $user = $this->utilisateurRepository->findOneBy(['username' => $login]);
-
-        if ($user) {
-            return $this->passwordEncoder->isPasswordValid($user, $password);
-        } else {
-            return false;
-        }
+        $match = $this->passwordEncoder->isPasswordValid($user, $password);
+        return $match;
     }
 
     private function getData()
