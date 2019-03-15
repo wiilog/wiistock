@@ -14,31 +14,27 @@ $(document).ready(function () {
  * 
  */
 function InitialiserModal(modal, submit, path, table) {
-    submit.click( function () 
-    {
-        console.log('hello here');
+    submit.click(function () {
         xhttp = new XMLHttpRequest();
-        xhttp.onreadystatechange = function () 
-        {
-            if (this.readyState == 4 && this.status == 200)
-            {
-                table.ajax.reload(function( json ) 
-                {
-                    if(this.responseText !== undefined){
-                        data = JSON.parse(this.responseText);
-                        $('#myInput').val( json.lastInput );
-                        if(data.redirect)
-                        {
+        xhttp.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                $('.errorMessage').html(JSON.parse(this.responseText))
+                data = JSON.parse(this.responseText);
+                table.ajax.reload(function (json) {
+                    if (this.responseText !== undefined) {
+                        $('#myInput').val(json.lastInput);
+                        if (data.redirect) {
                             window.location.href = data.redirect;
                         }
                     }
                 });
-            }      
+            }
         };
         let inputs = modal.find(".data"); // On récupère toutes les données qui nous intéresse
-        let Data = {} ; // Tableau de données
-        inputs.each(function() {
-           Data[$(this).attr("name")] = $(this).val();
+        console.log(inputs);
+        let Data = {}; // Tableau de données
+        inputs.each(function () {
+            Data[$(this).attr("name")] = $(this).val();
         });
         Json = {};
         Json = JSON.stringify(Data); // On transforme les données en JSON
@@ -49,7 +45,7 @@ function InitialiserModal(modal, submit, path, table) {
 
 
 //DELETE
-function deleteRow(button, modal, submit){
+function deleteRow(button, modal, submit) {
     let id = button.data('id');
     modal.find(submit).attr('value', id);
 }
@@ -64,17 +60,15 @@ function deleteRow(button, modal, submit){
  * @param {string} path le chemin pris pour envoyer les données.
  * 
  */
-function showRow(modal,button,path) {
+function showRow(modal, button, path) {
     xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function () 
-    {
-        if (this.readyState == 4 && this.status == 200)
-        {
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
             dataReponse = JSON.parse(this.responseText);
             modal.find('.modal-body').html(dataReponse);
         }
     }
-    let json = button.data('id'); 
+    let json = button.data('id');
     xhttp.open("POST", path, true);
     xhttp.send(json);
 }
@@ -91,17 +85,15 @@ function showRow(modal,button,path) {
  * @param {Document} submit le bouton de validation du form pour le edit
  *  
  */
-function editRow(button, path, modal,submit) {
+function editRow(button, path, modal, submit) {
     xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function () 
-    {
-        if (this.readyState == 4 && this.status == 200)
-        {
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
             dataReponse = JSON.parse(this.responseText);
             modal.find('.modal-body').html(dataReponse);
         }
     }
-    let json = button.data('id'); 
+    let json = button.data('id');
     modal.find(submit).attr('value', json);
     xhttp.open("POST", path, true);
     xhttp.send(json);

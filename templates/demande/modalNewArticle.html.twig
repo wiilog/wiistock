@@ -1,6 +1,5 @@
-<!-- Modal -->
-<form method="" class="modal fade" id="ajoutLigneModalCenter" data-id="{{ demande.id }}" role="dialog" aria-labelledby="dataModalCenterTitle"
-    aria-hidden="true">
+<form method="" class="modal fade" id="modalNewArticle" data-id="{{ demande.id }}" role="dialog"
+    aria-labelledby="dataModalCenterTitle" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -13,21 +12,24 @@
 
                 <div class="mb-3">
                     <label for="reference">Référence</label>
-                    <select type="text" class="data form-control select2" name="reference" id="reference" value="" required="true">
-                    {% for reference in references %}
+                    <select type="text" class="data form-control select2" name="reference" id="reference" value=""
+                        required="true">
+                        {% for reference in references %}
                         <option value="{{ reference.id }}">{{ reference.libelle }}</option>
-                    {% endfor %}
+                        {% endfor %}
                     </select>
                 </div>
 
                 <div class="mb-3">
                     <label for="quantite">Quantité</label>
-                    <input type="number" class="data form-control" name="quantite" id="quantite" value="" placeholder="Quantité" min="1" required="true">
+                    <input type="number" class="data form-control" name="quantite" id="quantite" value=""
+                        placeholder="Quantité" min="1" required="true">
                 </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>
-                <button id="ajoutsubmitButton" type="button" data-dismiss="modal" class="btn btn-success">Enregistrer</button>
+                <button id="submitNewArticle" name="demande" value="{{demande.id}}" type="button" data-dismiss="modal"
+                    class="btn data btn-success">Enregistrer</button>
             </div>
         </div>
     </div>

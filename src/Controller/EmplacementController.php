@@ -3,18 +3,14 @@
 namespace App\Controller;
 
 use App\Entity\Emplacement;
-use App\Form\EmplacementType;
 use App\Repository\EmplacementRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-
 use App\Repository\ArticleRepository;
-
 
 /**
  * @Route("/emplacement")
@@ -30,54 +26,20 @@ class EmplacementController extends AbstractController
     /**
      * @var ArticleRepository
      */
-    private $articleRepository;
+    // private $articleRepository;
 
     public function __construct(ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
     {
         $this->emplacementRepository = $emplacementRepository;
-        $this->articleRepository = $articleRepository;
+        // $this->articleRepository = $articleRepository;
     }
-
-    /**
-     * @Route("/nouvelEmplacement", name="createEmplacement", options={"expose"=true})
-     */
-    public function createEmplacement(Request $request): Response
-    {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (count($data) >= 2) {
-                $emplacement = new Emplacement();
-                $em = $this->getDoctrine()->getManager();
-
-                $emplacement->setNom($data['nom'])
-                            ->setDescription($data['description']);
-                $em->persist($emplacement);
-                $em->flush();
-                $data = json_encode($data);
-                return new JsonResponse($data);
-            }
-        }
-        throw new NotFoundHttpException("404");
-    }
-
-
-
-    /**
-     * @Route("/", name="emplacement_index", methods="GET")
-     */
-    public function index() : Response
-    {
-        return $this->render('emplacement/index.html.twig');
-    }
-
-
 
     /**
      * @Route("/api", name="emplacement_api", options={"expose"=true}, methods="GET|POST")
      */
-    public function fournisseurApi(Request $request) : Response
+    public function emplacementApi(Request $request) : Response
     {
-        if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
-        {
+        if ($request->isXmlHttpRequest()) { //Si la requête est de type Xml
             $emplacements = $this->emplacementRepository->findAll();
             $rows = [];
             foreach ($emplacements as $emplacement) {
@@ -85,10 +47,13 @@ class EmplacementController extends AbstractController
                 $url['edit'] = $this->generateUrl('emplacement_edit', ['id' => $emplacementId]);
                 $url['show'] = $this->generateUrl('emplacement_show', ['id' => $emplacementId]);
                 $rows[] = [
-                    'id' => ($emplacement->getId() ? $emplacement->getId() : ""),
-                    'Nom' => ($emplacement->getNom() ? $emplacement->getNom() : ""),
-                    'Description' => ($emplacement->getDescription() ? $emplacement->getDescription() : ""),
-                    'Actions' => $this->renderView('emplacement/datatableEmplacementRow.html.twig', ['url' => $url])
+                    'id' => $emplacement->getId(),
+                    'Nom' => $emplacement->getLabel(),
+                    'Description' => $emplacement->getDescription(),
+                    'Actions' => $this->renderView('emplacement/datatableEmplacementRow.html.twig', [
+                        'url' => $url,
+                        'emplacementId'=>$emplacementId
+                        ]),
                 ];
             }
             $data['data'] = $rows;
@@ -97,56 +62,94 @@ class EmplacementController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
-
-
     /**
-     * @Route("/{id}", name="emplacement_show", methods="GET")
+     * @Route("/", name="emplacement_index", methods="GET")
      */
-    public function show(Emplacement $emplacement) : Response
+    public function index(Request $request) : Response
     {
-        return $this->render('emplacement/show.html.twig', ['emplacement' => $emplacement]);
+        return $this->render('emplacement/index.html.twig', ['emplacement' => $this->emplacementRepository->findAll()]);
     }
 
-
-
     /**
-     * @Route("/{id}/edit", name="emplacement_edit", methods="GET|POST")
+     * @Route("/creation/emplacement", name="creation_emplacement", options={"expose"=true}, methods="GET|POST")
      */
-    public function edit(Request $request, Emplacement $emplacement) : Response
+    public function creationEmplacement(Request $request): Response
     {
-        $form = $this->createForm(EmplacementType::class, $emplacement);
-        $form->handleRequest($request);
+        $em = $this->getDoctrine()->getEntityManager();
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $this->getDoctrine()->getManager()->flush();
-
-            return $this->redirectToRoute('emplacement_edit', ['id' => $emplacement->getId()]);
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $emplacement = new Emplacement();
+            $emplacement->setLabel($data["Label"]);
+            $emplacement->setDescription($data["Description"]);
+            $em->persist($emplacement);
+            $em->flush();
+            return new JsonResponse($data);
         }
 
-        return $this->render('emplacement/edit.html.twig', [
-            'emplacement' => $emplacement,
-            'form' => $form->createView(),
-        ]);
+        throw new NotFoundHttpException("404");
     }
 
-
+     /**
+     * @Route("/show", name="emplacement_show", options={"expose"=true},  methods="GET|POST")
+     */
+    public function show(Request $request) : Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $emplacement = $this->emplacementRepository->find($data);
+                
+            $json =$this->renderView('emplacement/modalShowEmplacementContent.html.twig', [
+                'emplacement' => $emplacement,
+                ]);
+            return new JsonResponse($json);
+        }
+        throw new NotFoundHttpException("404");
+    }
+    
+    /**
+     * @Route("/editApi", name="emplacement_edit_api", options={"expose"=true}, methods="GET|POST")
+     */
+    public function editApi(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $emplacement = $this->emplacementRepository->find($data);
+            $json = $this->renderView('emplacement/modalEditEmplacementContent.html.twig', [
+                'emplacement' => $emplacement,
+            ]);
+        
+            return new JsonResponse($json);
+        }
+        throw new NotFoundHttpException("404");
+    }
 
     /**
-     * @Route("/{id}", name="emplacement_delete", methods="DELETE")
+     * @Route("/edit", name="emplacement_edit", options={"expose"=true}, methods="GET|POST")
      */
-    public function delete(Request $request, Emplacement $emplacement)  : Response
+    public function edit(Request $request) : Response
     {
-        $emplacements = $this->articleRepository->findAll();
-        if (count($emplacements) === 0) {
-            if ($this->isCsrfTokenValid('delete' . $emplacement->getId(), $request->request->get('_token'))) {
-                $em = $this->getDoctrine()->getManager();
-                $em->remove($emplacement);
-                $em->flush();
-            }
-            return $this->redirectToRoute('emplacement_index');
-        } 
-        else {
-            return $this->redirect($_SERVER['HTTP_REFERER']);
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $emplacement = $this->emplacementRepository->find($data['id']);
+            $emplacement
+                ->setLabel($data["Label"])
+                ->setDescription($data["Description"]);
+            $em = $this->getDoctrine()->getManager();
+            $em->flush();
+            return new JsonResponse();
         }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/supprimerEmplacement", name="emplacement_delete", options={"expose"=true}, methods={"GET", "POST"})
+     */
+    public function deleteEmplacement(Request $request)  : Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $emplacement= $this->emplacementRepository->find($data['emplacement']);
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->remove($emplacement);
+            $entityManager->flush();
+            return new JsonResponse();
+        }
+        throw new NotFoundHttpException("404");
     }
 }

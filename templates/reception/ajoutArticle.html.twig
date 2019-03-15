@@ -17,17 +17,16 @@
         <p><strong>Date réception:</strong>
             {{ reception.dateReception ? reception.dateReception | date('d/m/Y') : ' ' }}</p>
     </div>
-    <div class="col-4">
+    <div class="col-4 ">
         <div class='btn'>
             <a href="" data-toggle="modal" data-target="#addArticleModal" class="button btn-left">
                 <span class="fa fa-plus"></span>ajouter un article
             </a>
         </div>
-        <div class='btn btn-xs btn-default reception-delete'
-            onclick="deleteRow($(this), $('#modalDeleteReception'), $('#submitDeleteReception'))"
-            data-id='{{ reception.id }}' data-target='#modalDeleteReception' data-toggle='modal'>
-            <i class='fas fa-trash fa-2x'></i>
-        </div>
+        {# <div class='btn btn-xs btn-default' onclick=' printerAll()' data-toggle='modal'
+            onclick='generatorBarCode($(this))'>
+            <i class="fas fa-print"></i> Imprimer les étiquettes
+        </div> #}
     </div>
     <p><strong>Commentaire:</strong> {{ reception.commentaire }}</p>
 </div>
@@ -46,9 +45,14 @@
 </table>
 <div class="container-fluid">
     <a class="btn offset-5 col-2 button btn-right"
-        href={{ path('reception_ajout_article', {'id': id, 'finishReception': true}) }}>Fin
+        href="{{ path('reception_ajout_article', {'id': id, 'finishReception': true}) }}">Fin
         réception</a>
 </div>
+
+<div class="d-none">
+    <img id="barcode" />
+</div>
+
 
 {% include "reception/modalDeleteReception.html.twig" %}
 {% include "reception/modalDeleteArticle.html.twig" %}

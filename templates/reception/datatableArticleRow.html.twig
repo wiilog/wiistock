@@ -1,7 +1,8 @@
 <div class='btn btn-xs btn-default article-delete'
-    onclick="deleteRow($(this), $('#modalDeleteArticle'), $('#submitDeleteArticle'))" data-id='{{ articleId }}'
+    onclick="deleteRow($(this), $('#modalDeleteArticle'), $('#submitDeleteArticle'))" data-id='{{ article.id }}'
     data-target='#modalDeleteArticle' data-toggle='modal'>
-    <i class='fas fa-trash fa-2x'></i>
+    <i class='fas fa-trash'></i>
 </div>
-
-
+<div class='btn btn-xs btn-default' data-ref="{{article.ref}}" onclick='printBarcode($(this))'>
+    <i class="fas fa-print"></i>
+</div>

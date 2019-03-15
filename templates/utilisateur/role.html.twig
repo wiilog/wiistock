@@ -1,0 +1,11 @@
+<select name="{{utilisateur.id}}">
+    {% if utilisateur.roles == null %}
+    <option value="Aucun rôle" selected>Aucun rôle</option>
+    {% else %}
+    <option value="{{ utilisateur.roles[0] }}" selected>{{ utilisateur.roles[0] }}
+    </option>
+    {% endif %}
+    <option value="ROLE_PARC_ADMIN">ROLE_PARC_ADMIN</option>
+    <option value="ROLE_SUPER_ADMIN">ROLE_SUPER_ADMIN</option>
+    <option value="ROLE_ROLE_USER">ROLE_USER</option>
+</select>

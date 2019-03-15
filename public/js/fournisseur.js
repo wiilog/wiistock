@@ -1,12 +1,17 @@
+
+
 let pathFournisseur = Routing.generate('fournisseur_api');
 let tableFournisseur = $('#tableFournisseur_id').DataTable({
     "language": {
         "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
     },
-    ajax: pathFournisseur,
-    columns: [
+    ajax:{
+        "url": pathFournisseur,
+        "type": "POST"
+    }, 
+        columns: [
         { "data": 'Nom' },
-        { "data": 'Code de réference' },
+        { "data": 'Code de référence' },
         { "data": 'Actions' },
     ],
 });
@@ -20,3 +25,10 @@ let ModalDeleteFournisseur = $("#modalDeleteFournisseur");
 let SubmitDeleteFournisseur = $("#submitDeleteFournisseur");
 let urlDeleteFournisseur = Routing.generate('fournisseur_delete', true)
 InitialiserModal(ModalDeleteFournisseur, SubmitDeleteFournisseur, urlDeleteFournisseur, tableFournisseur);
+
+let modalModifyFournisseur = $('#modalEditFournisseur');
+let submitModifyFournisseur = $('#submitEditFournisseur');
+let urlModifyFournisseur = Routing.generate('fournisseur_edit', true);
+InitialiserModal(modalModifyFournisseur, submitModifyFournisseur, urlModifyFournisseur,  tableFournisseur);
+
+

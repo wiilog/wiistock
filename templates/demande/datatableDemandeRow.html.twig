@@ -1,3 +1,22 @@
-<a href='{{ url.show }}'>
-    <i class='fas fa-eye fa-2x'></i>
+{% if modifiable == 'true' %}
+<div data-id='{{ idDemande }}' class='btn btn-xs btn-default type-delete' data-target='#modalEditDemande'
+    data-toggle='modal'
+    onclick="editRow($(this), Routing.generate('demande_edit_api', true), $('#modalEditDemande'), $('#submitEditDemande'))">
+    <i class='fas fa-pencil-alt '></i>
+</div>
+<div class='btn btn-xs btn-default type-delete'
+    onclick="deleteRow($(this), $('#modalDeleteDemande'), $('#submitDeleteDemande'))" data-id='{{ idDemande }}'
+    data-target='#modalDeleteDemande' data-toggle='modal'>
+    <i class='fas fa-trash '></i>
+</div>
+<a href='{{ url }}' class='btn btn-xs btn-default command-edit'>
+    <i class='fas fa-plus '></i>
+    Articles
 </a>
+{% else %}
+<div class='btn btn-xs btn-default type-show'
+    onclick="showRow($('#modalShowDemande'), $(this), Routing.generate('demande_show', true) )"
+    data-id='{{ idDemande }}' data-target='#modalShowDemande' data-toggle='modal'>
+    <i class='fas fa-eye '></i>
+</div>
+{% endif %}

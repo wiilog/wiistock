@@ -6,12 +6,12 @@
 <h1>Emplacements</h1>
 
 <div class='row btn '>
-    <a href="" data-toggle="modal" data-target="#dataModalCenter" class="button btn-left">
+    <a href="" data-toggle="modal" data-target="#modalNewEmplacement" class="button btn-left">
         <span class="fa fa-plus"></span>Nouvel emplacement
     </a>
 </div>
 
-<table id="table_id" class="table table-striped table-bordered w-100">
+<table id="tableEmplacement_id" class="table table-striped table-bordered w-100">
     <thead>
         <tr>
             <th>Nom</th>
@@ -19,12 +19,16 @@
             <th>Actions</th>
         </tr>
     </thead>
-    <tbody>
-       
-    </tbody>
+   
+    
 </table>
+{% include "emplacement/modalDeleteEmplacement.html.twig" %}
 
-    {% include "emplacement/modalEmplacement.html.twig" %}
+{% include "emplacement/modalShowEmplacement.html.twig" %}
+
+{% include "emplacement/modalEditEmplacement.html.twig" %}
+
+{% include "emplacement/modalNewEmplacement.html.twig" %}
 
 {% endblock %}
 
