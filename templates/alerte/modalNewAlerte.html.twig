@@ -1,0 +1,49 @@
+<form method="" class="modal fade" id="modalNewAlerte" role="dialog" aria-labelledby="dataModalCenterTitle"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Nouvelle alerte</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body modal-input container-fluid">
+                <div class="form-group">
+                    <label for="AlerteNom">Nom</label>
+                    <input type="text" id="AlerteNom" class="form-control data" name="AlerteNom" placeholder="Nom">
+                </div>
+
+                <div class="form-group">
+                    <label for="AlerteNom">Seuil</label>
+                    <input type="number" min="0" id="AlerteSeuil" class="form-control data" name="AlerteSeuil"
+                        placeholder=" ">
+                </div>
+
+                <div class="form-group">
+                    <label for="AlerteArticleReference">Article Référence</label>
+                    <select name="AlerteArticleReference" class="AlerteNom form-control select2 data">
+                        {% for reference in references %}
+                        <option value="{{ reference.id }}">{{ reference.libelle }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="utilisateur">Utilisateur</label>
+                    <select class="form-control select2 data" name="utilisateur">
+                        {% for utilisateur in utilisateurs %}
+                        <option value="{{ utilisateur.id }}">{{ utilisateur.username }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn" data-dismiss="modal">Annuler</button>
+                <button id="submitNewAlerte" type="button" data-dismiss="modal"
+                    class="btn btn-success">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+</form>

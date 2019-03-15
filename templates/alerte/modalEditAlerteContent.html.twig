@@ -1,0 +1,52 @@
+<div class="form-group col-6">
+    <div class="input-group">
+        <div class="input-group-prepend">
+            <label class="input-group-text" for="inputGroupSelect01">Nom</label>
+        </div>
+        <input class="form-control data" type="text" value='{{alerte.alertenom}}' name="Nom" id="Nom">
+    </div>
+</div>
+<div class="form-group col-6">
+    <div class="input-group">
+        <div class="input-group-prepend">
+            <label class="input-group-text" for="inputGroupSelect01">Code</label>
+        </div>
+        <input class="form-control data" type="text" value='{{alerte.alerteNumero}}' name="Numero" id="Numero">
+    </div>
+</div>
+<div class="form-group col-6">
+    <div class="input-group">
+        <div class="input-group-prepend">
+            <label class="input-group-text" for="inputGroupSelect01">Article Référence</label>
+        </div>
+        <select name="AlerteArticleReference" class="AlerteNom form-control select2 data">
+            {% for reference in references %}
+            <option value="{{ reference.id }}">{{ reference.libelle }}</option>
+            {% endfor %}
+        </select>
+    </div>
+</div>
+<div class="form-group col-6">
+    <div class="input-group">
+        <div class="input-group-prepend">
+            <label class="input-group-text" for="inputGroupSelect01">Seuil</label>
+        </div>
+        <input class="form-control data" type="number" min="0" value='{{alerte.alerteseuil}}' name="Seuil" id="Seuil">
+    </div>
+</div>
+
+
+<div class="form-group col-6">
+    <div class="input-group">
+        <div class="input-group-prepend">
+            <label class="input-group-text" for="utilisateur">Utilisateur</label>
+        </div>
+        <select name="utilisateur" class="AlerteNom form-control select2 data">
+            <option value=""> </option>
+            {% for utilisateur in utilisateurs %}
+            <option value="{{ utilisateur.id }}">{{ utilisateur.username }}</option>
+            {% endfor %}
+        </select>
+    </div>
+</div>
+
