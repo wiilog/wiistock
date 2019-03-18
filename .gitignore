@@ -16,7 +16,12 @@
 ###< symfony/web-server-bundle ###
 /.vs-code/
 
+<<<<<<< HEAD
+# /public/sass/style.css
+# /public/sass/style.css.map
+=======
 /public/sass/style.css.map
+>>>>>>> 127806c3025353a53d1bdf3ef110b36a46b027e9
 ###> lexik/jwt-authentication-bundle ###
 /config/jwt/*.pem
 ###< lexik/jwt-authentication-bundle ###

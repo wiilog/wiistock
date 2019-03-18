@@ -2,4 +2,3 @@ sensio_framework_extra:
     router:
         annotations: false
     view: { annotations: true }
-#    request: { converters: true }
