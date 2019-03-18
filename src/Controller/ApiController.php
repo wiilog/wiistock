@@ -7,6 +7,8 @@
  */
 namespace App\Controller;
 
+use App\Entity\Mouvement;
+
 use App\Repository\UtilisateurRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\EmplacementRepository;
@@ -70,13 +72,12 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         $this->articleRepository = $articleRepository;
         $this->utilisateurRepository = $utilisateurRepository;
         $this->passwordEncoder = $passwordEncoder;
-        $this->successData = ['success' => false, 'data' => ''];
+        $this->successData = ['success' => false, 'apiKey' => '', 'data' => ''];
     }
 
     /**
-     * @Rest\Post("/api/connection", name= "api-connect")
-     * @Rest\Get("/api/connection")
-//     * @Rest\View()
+     * @Rest\Post("/api/connect", name= "api-connect")
+     * @Rest\View()
      */
     public function connection(Request $request)
     {
@@ -85,13 +86,14 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                 $apiKey = $this->apiKeyGenerator();
 
                 $user = $this->utilisateurRepository->findOneBy(['username' => $data['login']]);
-                $user->setApiKey($apiKey);
+                $user->setApiKey('366d041c57996ffcc2324ef3f939717d');//TODOO
                 $em = $this->getDoctrine()->getManager();
                 $em->flush();
                 $this->successData['success'] = true;
                 $this->successData['data'] = [
                     'data' => $this->getData(),
-                    'apiKey' => $this->apiKeyGenerator()
+//                    'apiKey' => $this->apiKeyGenerator()
+                    'apiKey' => '366d041c57996ffcc2324ef3f939717d'
                 ];
             }
             return new JsonResponse($this->successData);
@@ -99,29 +101,26 @@ class ApiController extends FOSRestController implements ClassResourceInterface
     }
 
     /**
-     * @Rest\Post("/api/mouvement", name= "api-mouvement")
+     * @Rest\Post("/api/setmouvement", name= "api-set-mouvement")
      * @Rest\View()
      */
-    public function mouvement(Request $request)
+    public function setMouvement(Request $request)
     {
-        if (
-            !$request->isXmlHttpRequest()
-            && $data = json_decode($request->getContent(), true)
-            && ($this->utilisateurRepository->countApiKey($data['apiKey'])) === '1'
-        ) {
-            $mouvementsR= $data['mouvement']; 
+        $data = json_decode($request->getContent(), true);
+
+        if (!$request->isXmlHttpRequest() && ($this->utilisateurRepository->countApiKey($data['apiKey'])) === '1') {
+            $mouvementsR = $data['mouvement'];
             foreach ($mouvementsR as $mouvementR) {
                 $mouvement = new Mouvement;
                 $mouvement
-                    ->setDate($mouvementR['date'])
-                    ->setType($mouvementR['Type'])
+                ->setType($mouvementR['type'])
+                    ->setDate(DateTime::createFromFormat('j-M-Y', $mouvementR['date']))
                     ->setEmplacement($this->emplacemnt->$mouvementR[''])
                     ->setUser($mouvementR['']);
             }
-          
-            return new JsonResponse($this->successData);
-        }else {
 
+            return new JsonResponse($this->successData);
+        } else {
             return new JsonResponse($this->successData);
         }
     }
@@ -131,14 +130,14 @@ class ApiController extends FOSRestController implements ClassResourceInterface
     {
         $login = $data['login'];
         $password = $data['password'];
-
         $user = $this->utilisateurRepository->findOneBy(['username' => $login]);
 
         if ($user) {
-            return $this->passwordEncoder->isPasswordValid($user, $password);
+            $match = $this->passwordEncoder->isPasswordValid($user, $password);
         } else {
-            return false;
+            $match = false;
         }
+        return $match;
     }
 
     private function getData()
