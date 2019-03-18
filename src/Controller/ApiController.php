@@ -18,6 +18,7 @@ use FOS\RestBundle\Routing\ClassResourceInterface;
 use FOS\RestBundle\Controller\Annotations as Rest;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 use FOS\RestBundle\Controller\Annotations\View;
@@ -60,6 +61,11 @@ class ApiController extends FOSRestController implements ClassResourceInterface
      */
     private $emplacementRepository;
 
+    /**
+     * @var array
+     */
+    private $successData;
+
 
     public function __construct(UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
     {
@@ -71,28 +77,35 @@ class ApiController extends FOSRestController implements ClassResourceInterface
     }
 
     /**
-     * @Rest\Post("/api/connexion", name= "test-api")
+     * @Rest\Post("/api/connect", name= "api-connect")
      * @Rest\View()
      */
     public function connection(Request $request)
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if ($this->checkLoginPassword($data)) {
+        $response = new Response();
+        $response->setContent(json_encode(['success' => 'ok!']));
 
-                $apiKey = $this->apiKeyGenerator();
-
-                $user = $this->utilisateurRepository->findOneBy(['username' => $data['login']]);
-                $user->setApiKey('366d041c57996ffcc2324ef3f939717d');//TODOO
-                $em = $this->getDoctrine()->getManager();
-                $em->flush();
-                $this->successData['success'] = true;
-                $this->successData['apiKey'] = '366d041c57996ffcc2324ef3f939717d'; //TODOO
-                $this->successData['data'] = $this->getData();
-            }
-            return new JsonResponse($this->successData);
-        }
+        $response->headers->set('Content-Type', 'application/json');
+        $response->headers->set('Access-Control-Allow-Origin', '*');
+        return $response;
+//        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+//            if ($this->checkLoginPassword($data)) {
+//                $apiKey = $this->apiKeyGenerator();
+//
+//                $user = $this->utilisateurRepository->findOneBy(['username' => $data['login']]);
+//                $user->setApiKey('366d041c57996ffcc2324ef3f939717d');//TODOO
+//                $em = $this->getDoctrine()->getManager();
+//                $em->flush();
+//                $this->successData['success'] = true;
+//                $this->successData['data'] = [
+//                    'data' => $this->getData(),
+////                    'apiKey' => $this->apiKeyGenerator()
+//                    'apiKey' => '366d041c57996ffcc2324ef3f939717d'
+//                ];
+//            }
+//            return new JsonResponse($this->successData);
+//        }
     }
-
 
     /**
      * @Rest\Post("/api/setmouvement", name= "api-set-mouvement")
@@ -120,15 +133,17 @@ class ApiController extends FOSRestController implements ClassResourceInterface
     }
 
 
-
-
-
     private function checkLoginPassword($data)
     {
         $login = $data['login'];
         $password = $data['password'];
         $user = $this->utilisateurRepository->findOneBy(['username' => $login]);
-        $match = $this->passwordEncoder->isPasswordValid($user, $password);
+
+        if ($user) {
+            $match = $this->passwordEncoder->isPasswordValid($user, $password);
+        } else {
+            $match = false;
+        }
         return $match;
     }
 

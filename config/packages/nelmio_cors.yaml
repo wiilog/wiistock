@@ -6,10 +6,8 @@ nelmio_cors:
         allow_headers: ['Content-Type', 'Authorization']
         max_age: 3600
     paths:
-        '^/': ~
-#        '^/api/':
-#            allow_origin: ['http://localhost:8100']
-#            allow_headers: ['origin', 'content-type', 'authorization']
-#            allow_methods: ['POST', 'PUT', 'GET', 'DELETE']
-#            max_age: 3600
-###            TODO CG
+#        '^/': ~
+        '^/api/':
+            allow_origin: ['*']
+            allow_headers: ['*']
+            allow_methods: ['POST', 'PUT', 'GET', 'DELETE']
