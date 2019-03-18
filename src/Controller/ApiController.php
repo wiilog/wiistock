@@ -83,30 +83,32 @@ class ApiController extends FOSRestController implements ClassResourceInterface
      */
     public function connection(Request $request)
     {
-        $response = new Response();
-        $response->setContent(json_encode(['success' => 'ok!']));
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $response = new Response();
 
-        $response->headers->set('Content-Type', 'application/json');
-        $response->headers->set('Access-Control-Allow-Origin', '*');
-        $response->headers->set('Access-Control-Allow-Methods', 'POST, GET');
-        return $response;
-//        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-//            if ($this->checkLoginPassword($data)) {
+            $response->headers->set('Content-Type', 'application/json');
+            $response->headers->set('Access-Control-Allow-Origin', '*');
+            $response->headers->set('Access-Control-Allow-Methods', 'POST, GET');
+
+            if ($this->checkLoginPassword($data)) {
 //                $apiKey = $this->apiKeyGenerator();
-//
-//                $user = $this->utilisateurRepository->findOneBy(['username' => $data['login']]);
-//                $user->setApiKey('366d041c57996ffcc2324ef3f939717d');//TODOO
-//                $em = $this->getDoctrine()->getManager();
-//                $em->flush();
-//                $this->successData['success'] = true;
-//                $this->successData['data'] = [
-//                    'data' => $this->getData(),
-////                    'apiKey' => $this->apiKeyGenerator()
-//                    'apiKey' => '366d041c57996ffcc2324ef3f939717d'
-//                ];
-//            }
-//            return new JsonResponse($this->successData);
-//        }
+                $apiKey ='366d041c57996ffcc2324ef3f939717d';
+
+                $user = $this->utilisateurRepository->findOneBy(['username' => $data['login']]);
+                $user->setApiKey($apiKey);//TODOO
+                $em = $this->getDoctrine()->getManager();
+                $em->flush();
+
+                $this->successData['success'] = true;
+                $this->successData['data'] = [
+                    'data' => $this->getData(),
+                    'apiKey' => $apiKey
+                ];
+            }
+
+            $response->setContent($this->successData);
+            return $response;
+        }
     }
 
     /**
