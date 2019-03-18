@@ -44,11 +44,6 @@ class Demande
     private $date;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Article", inversedBy="demandes")
-     */
-    private $articles;
-
-    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Preparation", inversedBy="demandes")
      */
     private $preparation;
@@ -75,7 +70,6 @@ class Demande
 
     public function __construct()
     {
-        $this->articles = new ArrayCollection();
         $this->ligneArticle = new ArrayCollection();
     }
 
@@ -133,32 +127,6 @@ class Demande
     public function setDate(?\DateTimeInterface $date): self
     {
         $this->date = $date;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|Article[]
-     */
-    public function getArticles(): Collection
-    {
-        return $this->articles;
-    }
-
-    public function addArticle(Article $article): self
-    {
-        if (!$this->articles->contains($article)) {
-            $this->articles[] = $article;
-        }
-
-        return $this;
-    }
-
-    public function removeArticle(Article $article): self
-    {
-        if ($this->articles->contains($article)) {
-            $this->articles->removeElement($article);
-        }
 
         return $this;
     }

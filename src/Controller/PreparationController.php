@@ -67,7 +67,7 @@ class PreparationController extends AbstractController
     }
 
     /**
-     * @Route("/creationpreparation", name="createPreparation", methods="POST")
+     * @Route("/creationpreparation", name="createPreparation", methods="POST") //INUTILE CEA
      */
     public function createPreparation(Request $request) : Response
     {
@@ -184,41 +184,15 @@ class PreparationController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
-
-    /**
-     * @Route("/new", name="preparation_new", methods="GET|POST")
-     */
-    public function new(Request $request) : Response
-    {
-        $preparation = new Preparation();
-        $form = $this->createForm(PreparationType::class, $preparation);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) 
-        {
-            $preparation->setDate(new \DateTime('now'));
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($preparation);
-            $em->flush();
-            return $this->redirectToRoute('preparation_index', array('history' => 'false'));
-        }
-
-        return $this->render('preparation/new.html.twig', [
-            'preparation' => $preparation,
-            'form' => $form->createView(),
-        ]);
-    }
-
-
     /**
      * @Route("/{id}", name="preparation_show", methods="GET|POST")
      */
     public function show(Preparation $preparation, ArticleRepository $articleRepository) : Response
     {
-        return $this->render('preparation/show.html.twig', ['preparation' => $preparation]);
+        return $this->render('preparation/show.html.twig', [
+            'preparation' => $preparation,
+            ]);
     }
-
-
 
     /**
      * @Route("/{id}", name="preparation_delete", methods="DELETE")

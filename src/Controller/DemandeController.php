@@ -72,18 +72,19 @@ class DemandeController extends AbstractController
 
 
     /**
-     * @Route("/preparation/{id}", name="preparationFromDemande") //TODOO
+     * @Route("/finDemande/{id}", name="fin_demande") //TODOO
      */
     public function creationPreparationDepuisDemande(Demande $demande): Response
     {
-        if ($demande->getPreparation() == null && count($demande->getLigneArticle()) > 0) {
+        if ($demande->getPreparation() === null && count($demande->getLigneArticle()) > 0) {
             // Creation d'une nouvelle preparation basée sur une selection de demandes
             $preparation = new Preparation();
 
             $date = new \DateTime('now');
-            $preparation->setNumero('P-' . $date->format('YmdHis'));
-            $preparation->setDate($date);
-            $preparation->setUtilisateur($this->getUser());
+            $preparation
+                ->setNumero('P-' . $date->format('YmdHis'))
+                ->setDate($date)
+                ->setUtilisateur($this->getUser());
 
             $statut = $this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_NOUVELLE);
             $preparation->setStatut($statut);
@@ -98,10 +99,10 @@ class DemandeController extends AbstractController
             $em->persist($preparation);
             $em->flush();
             return $this->render('preparation/show.html.twig', ['preparation' => $demande->getPreparation(), 'demande' => $demande]);
-        } else if ($demande->getPreparation() != null) {
+        } else if ($demande->getPreparation() !== null) {
             return $this->render('preparation/show.html.twig', ['preparation' => $demande->getPreparation(), 'demande' => $demande]);
         }
-        return $this->show($demande);
+        // return $this->show($demande);
     }
 
 
@@ -116,7 +117,6 @@ class DemandeController extends AbstractController
             {
                 $ligneArticles = $demande->getLigneArticle();
                 $rows = [];
-
                 foreach ($ligneArticles as $ligneArticle) {
                     $idArticle = $ligneArticle->getId();
                     $url['delete'] = $this->generateUrl('ligne_article_delete', ['id' => $ligneArticle->getId()]);
@@ -152,8 +152,7 @@ class DemandeController extends AbstractController
 
             $referenceArticle = $this->referenceArticleRepository->find($data["reference"]);
             $demande = $this->demandeRepository->find($data['demande']);
-
-            if ($this->ligneArticleRepository->countByRefArticle($referenceArticle) === 0) {
+            if ($this->ligneArticleRepository->countByRefArticle($referenceArticle) < 1) {
                 $ligneArticle = new LigneArticle();
                 $ligneArticle
                     ->setQuantite($data["quantite"])
@@ -362,10 +361,11 @@ class DemandeController extends AbstractController
                         "Demandeur" => ($demande->getUtilisateur()->getUsername() ? $demande->getUtilisateur()->getUsername() : ''),
                         "Numéro" => ($demande->getNumero() ? $demande->getNumero() : ''),
                         "Statut" => ($demande->getStatut()->getNom() ? $demande->getStatut()->getNom() : ''),
-                        'Actions' => $this->renderView('demande/datatabledemandeRow.html.twig',
+                        'Actions' => $this->renderView(
+                            'demande/datatabledemandeRow.html.twig',
                             [
                                 'idDemande' => $idDemande,
-                                'modifiable'=> ($demande->getStatut()->getNom() === (Demande::STATUT_A_TRAITER)? true : false ),
+                                'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_A_TRAITER) ? true : false),
                                 'url' => $url
                             ]
                         ),
@@ -377,7 +377,7 @@ class DemandeController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
-     /**
+    /**
      * @Route("/detail", options={"expose"=true}, name="demande_show", methods={"GET", "POST"})
      */
     public function show(Request $request): Response
