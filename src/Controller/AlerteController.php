@@ -141,7 +141,7 @@ class AlerteController extends AbstractController
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $em = $this->getDoctrine()->getEntityManager();
            
-            $utilisateur = $this->utilisateurRepository->find($data["utilisateur"]);
+            $demandeurId = $request->request->getInt('demandeur');
             $refArticle = $this->referenceArticleRepository->find($data["AlerteArticleReference"]);
             
             $alerte = new Alerte();
@@ -150,7 +150,7 @@ class AlerteController extends AbstractController
                 ->setAlerteNumero('P-' . $date->format('YmdHis'))
                 ->setAlerteNom($data['AlerteNom'])
                 ->setAlerteSeuil($data['AlerteSeuil'])
-                ->setAlerteUtilisateur($utilisateur)
+                ->AlerteUtilisateur($this->utilisateurRepository->find($demandeurId))
                 ->setAlerteRefArticle($refArticle);
            
             $em->persist($alerte);
@@ -213,39 +213,6 @@ class AlerteController extends AbstractController
         }
         throw new NotFoundHttpException("404");
     }
-
-
-
-
-
-
-
-
-
-
-    // /**
-    //  * @Route("/{id}/edit", name="alerte_edit", methods={"GET","POST"})
-    //  */
-    // public function edit(Request $request, Alerte $alerte) : Response
-    // {
-    //     $form = $this->createForm(AlerteType::class, $alerte);
-    //     $form->handleRequest($request);
-
-    //     if ($form->isSubmitted() && $form->isValid()) {
-    //         $this->getDoctrine()->getManager()->flush();
-
-    //         return $this->redirectToRoute('alerte_index', [
-    //             'id' => $alerte->getId(),
-    //         ]);
-    //     }
-
-    //     return $this->render('alerte/edit.html.twig', [
-    //         'alerte' => $alerte,
-    //         'form' => $form->createView(),
-    //     ]);
-    // }
-
-
 
     /**
      * @Route("/supprimerAlerte", name="alerte_delete", options={"expose"=true}, methods={"GET", "POST"})

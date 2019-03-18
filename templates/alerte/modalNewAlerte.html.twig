@@ -32,9 +32,7 @@
                 <div class="form-group">
                     <label for="utilisateur">Utilisateur</label>
                     <select class="form-control select2 data" name="utilisateur">
-                        {% for utilisateur in utilisateurs %}
-                        <option value="{{ utilisateur.id }}">{{ utilisateur.username }}</option>
-                        {% endfor %}
+                        <option value = "{{app.user.id}}">{{ app.user.username }}</option>
                     </select>
                 </div>
 
