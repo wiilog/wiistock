@@ -1,6 +1,15 @@
-<a href="{{ url.edit }}" data-toggle='modal' class='btn btn-xs btn-default command-edit'>
-    <i class='fas fa-pencil-alt '></i>
-</a>
-<a href="{{ url.show }}" data-toggle='modal' class='btn btn-xs btn-default command-edit '>
+<div data-id='{{ alerteId }}' data-target='#modalEditAlerte' data-toggle='modal' class='btn btn-xs btn-default command-edit'
+    onclick="editRow($(this), Routing.generate('alerte_edit_api', true), $('#modalEditAlerte'), $('#submitEditAlerte'))">
+    <i class='fas fa-pencil-alt'></i>
+</div>
+{# <div class='btn btn-xs btn-default type-show'
+    onclick="showRow($('#modalShowAlerte'), $(this), Routing.generate('alerte_show', true) )"
+    data-id='{{ alerteId }}' data-target='#modalShowAlerte' data-toggle='modal'>
     <i class='fas fa-eye'></i>
-</a>
+</div> #}
+<div class='btn btn-xs btn-default alerte-delete'
+    onclick="deleteRow($(this), $('#modalDeleteAlerte'), $('#submitDeleteAlerte'))" data-id='{{ alerteId }}'
+    data-target='#modalDeleteAlerte' data-toggle='modal'>
+    <i class='fas fa-trash'></i>
+</div>
+
