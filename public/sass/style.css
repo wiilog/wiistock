@@ -163,8 +163,6 @@ a:hover {
   color: #00b31e;
 }
 
-<<<<<<< HEAD
-=======
 /* Login
  *=================
  */
@@ -217,7 +215,6 @@ a:hover {
   border-radius: 5px;
 }
 
->>>>>>> 127806c3025353a53d1bdf3ef110b36a46b027e9
 .modal-body label {
   color: #b2b2b2;
 }
@@ -242,14 +239,11 @@ a:hover {
   margin: 0;
 }
 
-<<<<<<< HEAD
-=======
 .alerte {
   background-color: rgba(255, 255, 255, 0.5);
   border-radius: 10px;
 }
 
->>>>>>> 127806c3025353a53d1bdf3ef110b36a46b027e9
 .btn {
   text-decoration: none;
   background-color: #c6c6c6;
