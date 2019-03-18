@@ -140,14 +140,17 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         }
     }
 
-
+    /**
+     * @param array $data
+     * @return bool
+     */
     private function checkLoginPassword($data)
     {
         $login = $data['login'];
         $password = $data['password'];
         $user = $this->utilisateurRepository->findOneBy(['username' => $login]);
 
-        if ($user) {
+        if ($user !== null) {
             $match = $this->passwordEncoder->isPasswordValid($user, $password);
         } else {
             $match = false;
