@@ -108,7 +108,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                 }
             }
 
-            $response->setContent($this->successData);
+            $response->setContent(json_encode($this->successData));
             return $response;
         }
     }
