@@ -59,14 +59,43 @@ class CollecteController extends AbstractController
     }
 
 
+    /**
+     * @Route("/apiCollecte", name="collecte_api", options={"expose"=true}, methods={"GET", "POST"}) 
+     */
+    public function collecteApi(Request $request) : Response
+    {
+        if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
+        {
+            $collectes = $this->collecteRepository->findAll();
+            dump($collectes);
+            $rows = [];
+            foreach ($collectes as $collecte) {
+                $url = $this->generateUrl('collecte_ajout_article', ['id' => $collecte->getId(), 'finishCollecte'=>'0'] );
+                $rows[] =
+                [
+                    'id' => $collecte->getId(),
+                    'Date' =>$collecte->getDate(),
+                    "Demandeur" => $collecte->getDemandeur(),
+                    "Libellé" => $collecte->getObjet(),
+                    "Statut" => $collecte->getStatut(),
+                    'Actions' => $this->renderView('reception/datatableCollecteRow.html.twig', ['url' => $url, 'collecte' => $collecte]),
+                ];
+            }
+            $data['data'] = $rows;
+            return new JsonResponse($data);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
 
     /**
-     * @Route("/index", name="collecte_index", methods={"GET", "POST"})
+     * @Route("/", name="collecte_index", methods={"GET", "POST"})
      */
     public function index(Request $request): Response
     {
+        
         return $this->render('collecte/index.html.twig', [
-            'emplacements'=>$this->emplacementRepository->findAll(),
+              'emplacements'=>$this->emplacementRepository->findAll()
 //            'emplacements'=>$this->emplacementRepository->findBy(['nom' => 'dedans'])
         ]);
     }
@@ -240,17 +269,17 @@ class CollecteController extends AbstractController
     }
 
     /**
-     * @Route("/{id}/delete", name="collecte_delete")
+     * @Route("/supprimerCollecte", name="collecte_delete",  options={"expose"=true}, methods={"GET", "POST"}))
      */
-    public function delete(Collecte $collecte):Response
+    public function delete(Request $request) : Response
     {
-        if ($collecte->getStatut()->getNom() == Collecte::STATUS_DEMANDE)
-        {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {       
+            $collecte = $this->collecteRepository->find($data['collecte']);
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($collecte);
             $entityManager->flush();
+            return new JsonResponse();
         }
-
-        return new JsonResponse(true); //TODO CG
+        throw new NotFoundHttpException("404");
     }
 }
