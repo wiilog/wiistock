@@ -95,12 +95,12 @@ class DemandeController extends AbstractController
             $demande->setStatut($statut);
 
             $em = $this->getDoctrine()->getManager();
-            $em->persist($demande);
             $em->persist($preparation);
             $em->flush();
-            return $this->render('preparation/show.html.twig', ['preparation' => $demande->getPreparation(), 'demande' => $demande]);
+
+            return $this->redirectToRoute('preparation_show', ['id' => $preparation->getId()]);
         } else if ($demande->getPreparation() !== null) {
-            return $this->render('preparation/show.html.twig', ['preparation' => $demande->getPreparation(), 'demande' => $demande]);
+            return $this->redirectToRoute('preparation_show', ['id' => $demande->getPreparation()->getId()]);
         }
         // return $this->show($demande);
     }
@@ -152,7 +152,7 @@ class DemandeController extends AbstractController
 
             $referenceArticle = $this->referenceArticleRepository->find($data["reference"]);
             $demande = $this->demandeRepository->find($data['demande']);
-            if ($this->ligneArticleRepository->countByRefArticle($referenceArticle) < 1) {
+            if ($this->ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
                 $ligneArticle = new LigneArticle();
                 $ligneArticle
                     ->setQuantite($data["quantite"])

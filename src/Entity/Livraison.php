@@ -45,6 +45,11 @@ class Livraison
      * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="livraisons")
      */
     private $utilisateur;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Preparation", inversedBy="livraisons")
+     */
+    private $preparation;
     public function __construct()
     {
         $this->demande = new ArrayCollection();
@@ -124,6 +129,18 @@ class Livraison
     public function setUtilisateur(?Utilisateur $utilisateur): self
     {
         $this->utilisateur = $utilisateur;
+
+        return $this;
+    }
+
+    public function getPreparation(): ?Preparation
+    {
+        return $this->preparation;
+    }
+
+    public function setPreparation(?Preparation $preparation): self
+    {
+        $this->preparation = $preparation;
 
         return $this;
     }

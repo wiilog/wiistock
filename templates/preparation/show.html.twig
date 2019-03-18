@@ -11,57 +11,45 @@
         <p>Opérateur: {{ preparation.utilisateur ? preparation.utilisateur.username : " " }}</p>
     </div>
     <div class="col-4">
-        <!-- <p><a href="{#path('createLivraison', {'id': preparation.id}) }#}">Commencer la livraison</a></p> -->
+        <a href="" data-toggle="modal" data-target="#modalNewArticle" class="btn btn-primary ml-auto">
+            Ajouter un article</a>
+        <a href="{{path('createLivraison', {'id': preparation.id}) }}" class="btn btn-primary ml-auto">Commencer la
+            livraison</a></p>
     </div>
 </div>
-
-<span id="demande-id" data-id="{{ preparation.demandes.0.id }}"></span>
-<table id="table_id" class="table table-striped table-bordered w-100">
+<div class="row">
+    {% for refArticle in preparation.demandes.0.ligneArticle %}
+    <div class="col-2">
+        <p>{{refArticle.reference.libelle}}: {{refArticle.quantite}}</p>
+    </div>
+    {% endfor %}
+</div>
+<!-- <span id="demande-id" data-id="{{ preparation.demandes.0.id }}"></span> -->
+<table id="tableArticle_id" class="table table-striped table-bordered w-100">
 
     <thead>
         <tr>
-            <th>Libellé</th>
-            <th>Référence CEA</th>
+            <th>Référence</th>
             <th>Quantité</th>
+            <th>Action</th>
         </tr>
     </thead>
     <tbody>
-     
+
     </tbody>
 </table>
 
 <a href="{{ path('preparation_index') }}" class="btn">Retour</a>
-<!-- {# include('preparation/_delete_form.html.twig') #} -->
+
+{% include 'preparation/modalDeleteArticle.html.twig' %}
+{% include 'preparation/modalNewArticle.html.twig' %}
 
 {% endblock %}
 
 {% block javascript %}
 <script>
-
-var id = $('#demande-id').data('id');
-console.log(id);
-var pathShow = Routing.generate('LignePreparation_api', {id: id}, true);
-var table = $('#table_id').DataTable({
-    "language": {
-        "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
-    },
-    "processing": true,
-    "ajax": {
-        "url": pathShow,
-        "type": "POST"
-    },
-    columns: [{
-            "data": 'Libellé'
-        },
-        {
-            "data": 'Référence CEA'
-        },
-        {
-            "data": 'Quantité'
-        },
-       
-    ],
-});
+    let id = {{ preparation.id }};
 </script>
+<script src="{{asset('js/preparation.js')}}"></script>
 
 {% endblock %}

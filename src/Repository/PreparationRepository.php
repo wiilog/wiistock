@@ -43,17 +43,18 @@ class PreparationRepository extends ServiceEntityRepository
 //        return $query->execute();
 //    }
 
-//    public function findAllByUser($id)
-//    {
-//        $entityManager = $this->getEntityManager();
-//        $query = $entityManager->createQuery(
-//            "SELECT p
-//            FROM App\Entity\Preparation p
-//            WHERE p.utilisateur = :id "
-//        )->setParameter('id', $id);
-//        ;
-//        return $query->execute();
-//    }
+   public function getByDemande($id)
+   {
+       $entityManager = $this->getEntityManager();
+       $query = $entityManager->createQuery(
+           "SELECT p
+           FROM App\Entity\Preparation p
+           JOIN p.demande d
+           WHERE d.id = :id "
+       )->setParameter('id', $id);
+       ;
+       return $query->execute();
+   }
     
 //    public function findByPrepa($preparation)
 //    {

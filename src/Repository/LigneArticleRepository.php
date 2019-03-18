@@ -45,15 +45,18 @@ class LigneArticleRepository extends ServiceEntityRepository
         return $query->getSingleResult();
     }
 
-    public function countByRefArticle($referenceArticle)
+    public function countByRefArticleDemande($referenceArticle, $demande)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT COUNT(l)
             FROM App\Entity\LigneArticle l
-            WHERE l.reference = :referenceArticle
+            WHERE l.reference = :referenceArticle AND l.demande = :demande
             "
-        )->setParameter('referenceArticle', $referenceArticle);
+        )->setParameters([
+            'referenceArticle'=> $referenceArticle,
+            'demande'=> $demande
+            ]);
         ;
         return $query->getSingleScalarResult();
     }
