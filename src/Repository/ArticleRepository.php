@@ -68,6 +68,7 @@ class ArticleRepository extends ServiceEntityRepository
         ;
         return $query->execute(); 
     }
+
     public function getArticleByRefId()
     {
         $entityManager = $this->getEntityManager();
@@ -77,6 +78,18 @@ class ArticleRepository extends ServiceEntityRepository
             "
         );
         return $query->execute(); 
+    }
+    public function getRefByRecep($id)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT a.reference
+            FROM App\Entity\Article a
+            JOIN a.reception r
+            WHERE r.id =:id
+            "
+        )->setParameter('id', $id);
+        return $query->getResult(); 
     }
 
 //    // Creation des preparations

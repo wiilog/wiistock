@@ -7,6 +7,8 @@
  */
 namespace App\Controller;
 
+use App\Entity\Mouvement;
+
 use App\Repository\UtilisateurRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\EmplacementRepository;
@@ -65,36 +67,59 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         $this->articleRepository = $articleRepository;
         $this->utilisateurRepository = $utilisateurRepository;
         $this->passwordEncoder = $passwordEncoder;
+        $this->successData = ['success' => false, 'apiKey' => '', 'data' => ''];
     }
 
     /**
-     * @Rest\Post("/api/test", name= "test-api")
+     * @Rest\Post("/api/connexion", name= "test-api")
      * @Rest\View()
      */
     public function connection(Request $request)
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if ($this->checkLoginPassword($data)) {
+
                 $apiKey = $this->apiKeyGenerator();
-                
+
                 $user = $this->utilisateurRepository->findOneBy(['username' => $data['login']]);
-                $user->setApiKey($apiKey);
+                $user->setApiKey('366d041c57996ffcc2324ef3f939717d');//TODOO
                 $em = $this->getDoctrine()->getManager();
                 $em->flush();
-
-
-                $json = [
-                    'apiKey' =>  $apiKey,
-                    'data' => $this->getData()
-                ];
-                dump($json);
-
-                return new JsonResponse($json);
-            } else {
-                return false;
+                $this->successData['success'] = true;
+                $this->successData['apiKey'] = '366d041c57996ffcc2324ef3f939717d'; //TODOO
+                $this->successData['data'] = $this->getData();
             }
+            return new JsonResponse($this->successData);
         }
     }
+
+
+    /**
+     * @Rest\Post("/api/setmouvement", name= "api-set-mouvement")
+     * @Rest\View()
+     */
+    public function setMouvement(Request $request)
+    {
+        $data = json_decode($request->getContent(), true);
+
+        if (!$request->isXmlHttpRequest() && ($this->utilisateurRepository->countApiKey($data['apiKey'])) === '1') {
+            $mouvementsR = $data['mouvement'];
+            foreach ($mouvementsR as $mouvementR) {
+                $mouvement = new Mouvement;
+                $mouvement
+                ->setType($mouvementR['type'])
+                    ->setDate(DateTime::createFromFormat('j-M-Y', $mouvementR['date']))
+                    ->setEmplacement($this->emplacemnt->$mouvementR[''])
+                    ->setUser($mouvementR['']);
+            }
+
+            return new JsonResponse($this->successData);
+        } else {
+            return new JsonResponse($this->successData);
+        }
+    }
+
+
 
 
 
@@ -118,7 +143,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 
     public function apiKeyGenerator()
     {
-        $key = md5(microtime().rand());
+        $key = md5(microtime() . rand());
         return $key;
     }
 }

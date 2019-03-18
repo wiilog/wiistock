@@ -15,13 +15,13 @@ $(document).ready(function () {
  */
 function InitialiserModal(modal, submit, path, table) {
     submit.click(function () {
-        console.log('hello here');
         xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function () {
             if (this.readyState == 4 && this.status == 200) {
+                $('.errorMessage').html(JSON.parse(this.responseText))
+                data = JSON.parse(this.responseText);
                 table.ajax.reload(function (json) {
                     if (this.responseText !== undefined) {
-                        data = JSON.parse(this.responseText);
                         $('#myInput').val(json.lastInput);
                         if (data.redirect) {
                             window.location.href = data.redirect;

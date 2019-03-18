@@ -30,6 +30,18 @@ class UtilisateurRepository extends ServiceEntityRepository
         ;
         return $query->getSingleScalarResult();
     }
+    
+    public function countApiKey($apiKey)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT COUNT(u)
+            FROM App\Entity\Utilisateur u
+            WHERE u.apiKey = :apiKey"
+        )->setParameter('apiKey', $apiKey);
+        ;
+        return $query->getSingleScalarResult();
+    }
 
     public function getIdAndUsername(){
         $entityManager = $this->getEntityManager();
@@ -52,6 +64,8 @@ class UtilisateurRepository extends ServiceEntityRepository
         ;
         return $query->execute(); 
     }
+
+
 
 
 //   /**

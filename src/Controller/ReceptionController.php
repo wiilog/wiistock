@@ -166,7 +166,7 @@ class ReceptionController extends AbstractController
     }
 
     /**
-     * @Route("/api", name="reception_api", options={"expose"=true}, methods={"GET", "POST"}) 
+     * @Route("/apiReception", name="reception_api", options={"expose"=true}, methods={"GET", "POST"}) 
      */
     public function receptionApi(Request $request) : Response
     {
@@ -203,13 +203,17 @@ class ReceptionController extends AbstractController
             $articles = $this->articleRepository->getArticleByReception($id);
             $rows = [];
             foreach ($articles as $article) {
+                $articleData =[
+                    'ref'=> $article->getReference(),
+                    'id'=> $article->getId()
+                ];
                 $rows[] =
                 [
                     "Référence" => ($article->getReference() ? $article->getReference() : ''),
                     "Libellé" => ($article->getLabel() ? $article->getlabel() : ''),
                     "Référence CEA" => ($article->getRefArticle() ? $article->getRefArticle()->getReference() : ''),
                     'Actions' => $this->renderView('reception/datatableArticleRow.html.twig', [
-                                'articleId' => $article->getId(),
+                                'article' => $articleData,
                             ]),
                 ];
             }
@@ -218,6 +222,25 @@ class ReceptionController extends AbstractController
         }
         throw new NotFoundHttpException("404");
     }
+
+     /**
+     * @Route("/articlePrinter/{id}", name="article_printer_all", options={"expose"=true}, methods={"GET", "POST"}) 
+     */
+    public function printerAllApi(Request $request, $id) : Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) //Si la requête est de type Xml
+        {
+            $references = $this->articleRepository-> getRefByRecep($id);
+            $rows = [];
+            foreach ($references as  $reference) {
+                $rows[] = $reference['reference'];
+            }
+            return new JsonResponse($rows);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    
 
     /**
      * @Route("/", name="reception_index", methods={"GET", "POST"})
