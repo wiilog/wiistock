@@ -105,9 +105,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         if (!$request->isXmlHttpRequest() && ($this->utilisateurRepository->countApiKey($data['apiKey'])) === '1') {
             $mouvementsR = $data['mouvement'];
             foreach ($mouvementsR as $mouvementR) {
-                dump($mouvementR);
                 $mouvement = new Mouvement;
-                dump($mouvement);
                 $mouvement
                 ->setType($mouvementR['type'])
                     ->setDate(DateTime::createFromFormat('j-M-Y', $mouvementR['date']))
