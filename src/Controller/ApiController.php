@@ -74,13 +74,13 @@ class ApiController extends FOSRestController implements ClassResourceInterface
     }
 
     /**
-     * @Rest\Post("/api/connection", name= "test-api")
-     * @Rest\View()
+     * @Rest\Post("/api/connection", name= "api-connect")
+     * @Rest\Get("/api/connection")
+//     * @Rest\View()
      */
     public function connection(Request $request)
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            dump('hello');
             if ($this->checkLoginPassword($data)) {
                 $apiKey = $this->apiKeyGenerator();
 
@@ -99,7 +99,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
     }
 
     /**
-     * @Rest\Post("/api/mouvement", name= "test-api")
+     * @Rest\Post("/api/mouvement", name= "api-mouvement")
      * @Rest\View()
      */
     public function mouvement(Request $request)
