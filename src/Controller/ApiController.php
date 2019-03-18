@@ -90,15 +90,13 @@ class ApiController extends FOSRestController implements ClassResourceInterface
             $response->headers->set('Access-Control-Allow-Origin', '*');
             $response->headers->set('Access-Control-Allow-Methods', 'POST, GET');
 
-            $this->successData['data'] = $data;
-
             if ($this->checkLoginPassword($data)) {
-//                $apiKey = $this->apiKeyGenerator();
+//                $apiKey = $this->apiKeyGenerator(); //TODO
                 $apiKey ='366d041c57996ffcc2324ef3f939717d';
 
                 $user = $this->utilisateurRepository->findOneBy(['username' => $data['login']]);
-                if ($user) {
-                    $user->setApiKey($apiKey); //TODO
+                if ($user !== null) {
+                    $user->setApiKey($apiKey);
                     $em = $this->getDoctrine()->getManager();
                     $em->flush();
 
