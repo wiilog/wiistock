@@ -1,0 +1,31 @@
+<div> Référence : {{article.reference}}</div>
+<div> Référence Article : {{article.refarticle.libelle}}</div>
+<div> Label : {{article.label}}</div>
+<div> Quantité : {{article.quantite}}</div>
+<div> Commentaires: {{article.commentaire}}</div>
+<div> Statut : {{article.statut.nom}}</div>
+<div class="mouvList">
+    <table>
+        <thead>
+            <tr>
+                Liste des mouvements:
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="mouvList">
+                <td class="mouvListG">Type</td>
+                <td class="mouvListG">Date</td>
+                <td class="mouvListG">Emplacement</td>
+                <td class="mouvListG">Utilisateur</td>
+            </tr>
+            {% for mouvements in article.mouvements %}
+            <tr class="mouvListExt">
+                <td class="mouvList">{{mouvements.type}}</td>
+                <td class="mouvList">{{mouvements.date|date("m/d/Y")}}</td>
+                <td class="mouvList">{{mouvements.emplacement}}</td>
+                <td class="mouvList">{{mouvements.user}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <table>
+</div>
