@@ -1,22 +1,33 @@
-var path = Routing.generate('alerte_api', true);
-var table = $('#table_id').DataTable({
+var pathAlerte = Routing.generate('alerte_api', true);
+var tableAlerte = $('#tableAlerte_id').DataTable({
     "language": {
         "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
     },
-    ajax: path,
+    ajax: {
+        "url":pathAlerte,
+        "type": "POST"
+},
     columns: [
         { "data": 'Nom' },
         { "data": 'Code' },
+        { "data": 'Article Référence' },
         { "data": 'Seuil' },
+        { "data": 'Utilisateur' },
         { "data": 'Actions'},
     ],
 });
 
-let modal = $('#modalModify');
-let submit = modal.find('#modifySubmit');
-modifyModal(modal, submit, table);
+let modalNewAlerte = $("#modalNewAlerte"); 
+let submitNewAlerte = $("#submitNewAlerte");
+let urlNewAlerte = Routing.generate('creation_alerte', true);
+InitialiserModal(modalNewAlerte, submitNewAlerte, urlNewAlerte, tableAlerte);
 
-var modalPath = Routing.generate('createAlerte', true);
-var dataModal = $("#dataModalCenter");
-var ButtonSubmit = $("#submitButton");
-InitialiserModal(dataModal, ButtonSubmit, modalPath, table);
+let ModalDeleteAlerte = $("#modalDeleteAlerte");
+let SubmitDeleteAlerte = $("#submitDeleteAlerte");
+let urlDeleteAlerte = Routing.generate('alerte_delete', true)
+InitialiserModal(ModalDeleteAlerte, SubmitDeleteAlerte, urlDeleteAlerte, tableAlerte);
+
+let modalModifyAlerte = $('#modalEditAlerte');
+let submitModifyAlerte = $('#submitEditAlerte');
+let urlModifyAlerte = Routing.generate('alerte_edit', true);
+InitialiserModal(modalModifyAlerte, submitModifyAlerte, urlModifyAlerte, tableAlerte);

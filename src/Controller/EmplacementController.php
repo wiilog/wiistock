@@ -26,12 +26,12 @@ class EmplacementController extends AbstractController
     /**
      * @var ArticleRepository
      */
-    // private $articleRepository;
+    private $articleRepository;
 
     public function __construct(ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
     {
         $this->emplacementRepository = $emplacementRepository;
-        // $this->articleRepository = $articleRepository;
+        $this->articleRepository = $articleRepository;
     }
 
     /**
