@@ -90,7 +90,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
             $response->headers->set('Access-Control-Allow-Origin', '*');
             $response->headers->set('Access-Control-Allow-Methods', 'POST, GET');
 
-            $this->successData['data'] = $this->checkLoginPassword($data);
+            $this->successData['data'] = $data;
 
             if ($this->checkLoginPassword($data)) {
 //                $apiKey = $this->apiKeyGenerator();
