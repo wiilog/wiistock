@@ -6,7 +6,7 @@ use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\Persistence\ObjectManager;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
-// use App\Entity\CategoryType;
+use App\Entity\CategoryType;
 
 class CategoryTypeFixtures extends Fixture
 {
