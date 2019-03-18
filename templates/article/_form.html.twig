@@ -1,4 +1,0 @@
-{{ form_start(form) }}
-    {{ form_widget(form) }}
-    <button name="url" value="{{ app.request.server.get("HTTP_REFERER") }}" class="btn float-right">{{ button_label|default('Créer') }}</button>
-{{ form_end(form) }}

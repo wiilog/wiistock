@@ -5,17 +5,24 @@
 {% block page_content %}
 
 <h1>Articles</h1>
-<table id="table_id" class="table table-striped table-bordered w-100">
+<table id="tableArticle_id" class="table table-striped table-bordered w-100">
     <thead>
         <tr>
             <th>Référence</th>
-            <th id="Statut">Statut</th>
-            <th id="Reférence article">Référence article</th>
-            <th id="Quantite" data-sortable="false">Quantité</th>
+            <!-- <th id="Statut">Statut</th>
+            <th id="Référence article">Référence article</th>
+            <th id="Quantite" data-sortable="false">Quantité</th> -->
+            <th>Statut</th>
+            <th>Référence article</th>
+            <th>Quantité</th>
             <th>Actions</th>
         </tr>
     </thead>
 </table>
+
+{% include "article/modalShowArticle.html.twig" %}
+
+
 {% endblock %}
 
 {% block javascript %}
