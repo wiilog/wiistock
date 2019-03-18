@@ -95,15 +95,17 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                 $apiKey ='366d041c57996ffcc2324ef3f939717d';
 
                 $user = $this->utilisateurRepository->findOneBy(['username' => $data['login']]);
-                $user->setApiKey($apiKey);//TODOO
-                $em = $this->getDoctrine()->getManager();
-                $em->flush();
+                if ($user) {
+                    $user->setApiKey($apiKey); //TODO
+                    $em = $this->getDoctrine()->getManager();
+                    $em->flush();
 
-                $this->successData['success'] = true;
-                $this->successData['data'] = [
-                    'data' => $this->getData(),
-                    'apiKey' => $apiKey
-                ];
+                    $this->successData['success'] = true;
+                    $this->successData['data'] = [
+                        'data' => $this->getData(),
+                        'apiKey' => $apiKey
+                    ];
+                }
             }
 
             $response->setContent($this->successData);
