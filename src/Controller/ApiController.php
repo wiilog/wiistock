@@ -91,7 +91,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
             $response->headers->set('Access-Control-Allow-Methods', 'POST, GET');
 
             $user = $this->utilisateurRepository->findOneBy(['username' => $data['login']]);
-            $this->successData = $user; //TODO
+            $this->successData['data'] = $user; //TODO
 
             if ($user !== null) {
                 if ($this->passwordEncoder->isPasswordValid($user, $data['password'])) {
