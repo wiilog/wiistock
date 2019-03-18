@@ -78,6 +78,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 
     /**
      * @Rest\Post("/api/connect", name= "api-connect")
+     * @Rest\Get("/api/connect")
      * @Rest\View()
      */
     public function connection(Request $request)
@@ -87,6 +88,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 
         $response->headers->set('Content-Type', 'application/json');
         $response->headers->set('Access-Control-Allow-Origin', '*');
+        $response->headers->set('Access-Control-Allow-Methods', 'POST, GET');
         return $response;
 //        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 //            if ($this->checkLoginPassword($data)) {
