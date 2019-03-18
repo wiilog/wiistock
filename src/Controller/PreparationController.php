@@ -2,21 +2,23 @@
 
 namespace App\Controller;
 
+use App\Entity\Article;
 use App\Entity\Preparation;
 use App\Form\PreparationType;
 use App\Repository\PreparationRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\Tests\Compiler\D;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 
-use App\Entity\ReferencesArticles;
-use App\Form\ReferencesArticlesType;
-use App\Repository\ReferencesArticlesRepository;
+use App\Entity\ReferenceArticle;
+use App\Form\ReferenceArticleType;
+use App\Repository\ReferenceArticleRepository;
 
-use App\Repository\ArticlesRepository;
+use App\Repository\ArticleRepository;
 
 use App\Entity\Emplacement;
 use App\Form\EmplacementType;
@@ -32,7 +34,7 @@ use App\Repository\DemandeRepository;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Knp\Component\Pager\PaginatorInterface;
-use App\Repository\StatutsRepository;
+use App\Repository\StatutRepository;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -43,24 +45,24 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 class PreparationController extends AbstractController
 {
     /**
-     * @var StatutsRepository
+     * @var StatutRepository
      */
-    private $statutsRepository;
+    private $statutRepository;
 
     /**
-     * @var ReferencesArticlesRepository
+     * @var ReferenceArticleRepository
      */
-    private $referencesArticlesRepository;
+    private $referenceArticleRepository;
 
     /**
      * @var DemandeRepository
      */
     private $demandeRepository;
 
-    public function __construct(StatutsRepository $statutsRepository, DemandeRepository $demandeRepository, ReferencesArticlesRepository $referencesArticlesRepository)
+    public function __construct(StatutRepository $statutRepository, DemandeRepository $demandeRepository, ReferenceArticleRepository $referenceArticleRepository)
     {
-        $this->statutsRepository = $statutsRepository;
-        $this->referencesArticlesRepository = $referencesArticlesRepository;
+        $this->statutRepository = $statutRepository;
+        $this->referenceArticleRepository = $referenceArticleRepository;
         $this->demandeRepository = $demandeRepository;
     }
 
@@ -78,27 +80,27 @@ class PreparationController extends AbstractController
             $date = new \DateTime('now');
             $preparation->setNumero('P-' . $date->format('YmdHis'));
             $preparation->setDate($date);
-            $statut = $this->statutsRepository->findById(11); /* Statut : nouvelle préparation */
-            $preparation->setStatut($statut[0]);
+            $statut = $this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_NOUVELLE);
+            $preparation->setStatut($statut);
             //Plus de detail voir creation demande meme principe
 
             foreach ($data as $key)
             {
-                $demande = $this->demandeRepository->findById($key);
-                $demande = $demande[0];
-                dump($demande); // On avance dans le tableau
-                $demande->setPreparation($preparation);
-                $statut = $this->statutsRepository->findById(14); /* Statut : Demande de préparation */
-                $demande->setStatut($statut[0]);
-                $articles = $demande->getArticles();
+                $demande = $this->demandeRepository->find($key);
+                // On avance dans le tableau
+                $statut = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
+                $demande
+                    ->setPreparation($preparation)
+                    ->setStatut($statut);
 
+                $articles = $demande->getArticles();
                 foreach ($articles as $article)
                 {
-                    $statut = $this->statutsRepository->findById(13); /* Statut : Demande de sortie */
-                    $article->setStatut($statut[0]);
-                    $article->setDirection($demande->getDestination());
+                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_DEMANDE_SORTIE);
+                    $article
+                        ->setStatut($statut)
+                        ->setDirection($demande->getDestination());
                 }
-                $this->getDoctrine()->getManager();
             }
 
             $em = $this->getDoctrine()->getManager();
@@ -122,26 +124,6 @@ class PreparationController extends AbstractController
     }
 
     /**
-     * @Route("/{id}/edit", name="preparation_edit", methods="GET|POST")
-     */
-    public function edit(Request $request, Preparation $preparation) : Response
-    {
-        $form = $this->createForm(PreparationType::class, $preparation);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid())
-        {
-            $this->getDoctrine()->getManager()->flush();
-            return $this->redirectToRoute('preparation_edit', ['id' => $preparation->getId()]);
-        }
-
-        return $this->render('preparation/edit.html.twig', [
-            'preparation' => $preparation,
-            'form' => $form->createView(),
-        ]);
-    }
-
-    /**
      * @Route("/", name="preparation_index", methods="GET|POST")
      */
     public function index(Request $request) : Response
@@ -150,7 +132,7 @@ class PreparationController extends AbstractController
     }
 
     /**
-     * @Route("/api", name="preparation_api", methods="GET|POST")
+     * @Route("/api", name="preparation_api", options={"expose"=true}, methods="GET|POST")
      */
     public function preparationApi(Request $request, PreparationRepository $preparationRepository) : Response
     {
@@ -160,14 +142,13 @@ class PreparationController extends AbstractController
             $rows = [];
             foreach ($preparations as $preparation) 
             {
-                $urlShow = $this->generateUrl('preparation_show', ['id' => $preparation->getId()] );
-                $row = [
+                $url['show'] = $this->generateUrl('preparation_show', ['id' => $preparation->getId()] );
+                $rows[] = [
                     'Numéro' => ($preparation->getNumero() ? $preparation->getNumero() : ""),
                     'Date' => ($preparation->getDate() ? $preparation->getDate()->format('d/m/Y') : ''),
                     'Statut' => ($preparation->getStatut() ? $preparation->getStatut()->getNom() : ""),
-                    'Actions' => "<a href='" . $urlShow . "' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>",
+                    'Actions' => $this->renderView('preparation/datatablePreparationRow.html.twig', ['url' => $url]),
                 ];
-                array_push($rows, $row);
             }
             $data['data'] = $rows;
             return new JsonResponse($data);
@@ -177,7 +158,7 @@ class PreparationController extends AbstractController
 
 
     /**
-     * @Route("/api/{id}", name="LignePreparation_api", methods={"POST"}) 
+     * @Route("/api/{id}", name="LignePreparation_api", options={"expose"=true}, methods={"POST"}) 
      */
     public function LignePreparationApi(Request $request, Demande $demande) : Response
     {
@@ -189,15 +170,12 @@ class PreparationController extends AbstractController
         
             foreach ($LignePreparations as $LignePreparation) 
             {
-                $refPreparation = $this->referencesArticlesRepository->findOneById($LignePreparation["reference"]);
-                $urlShow = $this->generateUrl('articles_show', ['id' => $refPreparation->getId()]);
-                $row = [ 
-                    "Références CEA" => ($LignePreparation["reference"] ? $LignePreparation["reference"] : ' '),
+                $refPreparation = $this->referenceArticleRepository->findOneById($LignePreparation->getReference());
+                $rows[] = [
+                    "Référence CEA" => ($LignePreparation->getReference()->getReference() ? $LignePreparation->getReference()->getReference() : ' '),
                     "Libellé" => ($refPreparation->getLibelle() ? $refPreparation->getLibelle() : ' '),
-                    "Quantité" => ($LignePreparation["quantite"] ? $LignePreparation["quantite"] : ' '),
-                   
+                    "Quantité" => ($LignePreparation->getQuantite() ? $LignePreparation->getQuantite() : ' '),
                 ];
-                array_push($rows, $row);
             }
 
             $data['data'] = $rows;
@@ -210,7 +188,7 @@ class PreparationController extends AbstractController
     /**
      * @Route("/new", name="preparation_new", methods="GET|POST")
      */
-    public function new(Request $request, ArticlesRepository $articlesRepository) : Response
+    public function new(Request $request) : Response
     {
         $preparation = new Preparation();
         $form = $this->createForm(PreparationType::class, $preparation);
@@ -235,30 +213,8 @@ class PreparationController extends AbstractController
     /**
      * @Route("/{id}", name="preparation_show", methods="GET|POST")
      */
-    public function show(Preparation $preparation, ArticlesRepository $articlesRepository) : Response
+    public function show(Preparation $preparation, ArticleRepository $articleRepository) : Response
     {
-        // modelise l'action de prendre l'article dan sle stock pour constituer la preparation  
-        if (array_key_exists('fin', $_POST)) 
-        {
-            $article = $articlesRepository->findById($_POST['fin']);
-            $statut = $this->statutsRepository->findById(16); /*  Le statut passe en préparation */
-            $article[0]->setStatut($statut[0]);
-            $this->getDoctrine()->getManager()->flush();
-            
-            // Meme principe que pour collecte_show =>comptage des articles selon un statut et une preparation si nul alors preparation fini 
-            $demande = $this->demandeRepository->findById(array_keys($_POST['fin']));
-            $finDemande = $articlesRepository->findCountByStatutAndDemande($demande);
-            $fin = $finDemande[0];
-
-            if ($fin[1] === '0') 
-            {
-                $statut = $this->statutsRepository->findById(8);
-                $demande[0]->setStatut($statut[0]);
-                $statut = $this->statutsRepository->findById(24);
-                $preparation->setStatut($statut[0]);
-            }
-            $this->getDoctrine()->getManager()->flush();
-        }
         return $this->render('preparation/show.html.twig', ['preparation' => $preparation]);
     }
 

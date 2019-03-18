@@ -1,0 +1,77 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Utilisateur{% endblock %}
+
+{% block page_content %}
+    <div class="jumbotron">
+             
+        <div class="row">
+            <div class="col-11 mx-auto">
+                <h3 class="display-4">{{ utilisateur.username }}</h3>
+                <table class="table">
+                    <tbody>
+                        <tr>
+                            <th>Identifiant</th>
+                            <td>{{ utilisateur.id }}</td>
+                        </tr>
+                        <tr>
+                            <th>Nom d'utilisateur</th>
+                            <td>{{ utilisateur.username }}</td>
+                        </tr>
+                        <tr>
+                            <th>Email</th>
+                            <td>{{ utilisateur.email }}</td>
+                        </tr>
+                        <tr>
+                            <th>Mot de passe </th>
+                            <td>{{ utilisateur.password }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Example row of columns -->
+    <div class="row">
+        <div class="col-md-4">
+            <h2>Réceptions</h2>
+            {% for reception in receptions %}
+            <ul>
+                <li>N°réception : {{ reception.numeroreception }} </li>
+            </ul>
+            {% endfor %}
+        </div>
+        <div class="col-md-4">
+            <h2>Demandes</h2>
+            {% for demande in demandes %}
+            <ul>
+                <li>Code : {{ demande.numero }}</li>
+            </ul>
+            {% endfor %}
+        </div>
+        <div class="col-md-4">
+            <h2>Alertes</h2>
+            {% for alerte in alertes %}
+            <ul>
+                <li>Nom : {{ alerte.AlerteNom }}</li>
+            </ul>
+            {% endfor %}
+        </div>
+
+        <hr>
+
+      </div>
+
+    <div class="row">
+        <div class="col-12 mx-auto">
+            <a href="{{ path('utilisateur_index') }}" class="btn float-left">Voir la liste</a>
+            <a href="{{ path('utilisateur_edit', {'id': utilisateur.id}) }}" class="btn btn-primary float-left">Modifier</a>
+        </div>
+    </div>
+
+
+    
+
+    
+{% endblock %}

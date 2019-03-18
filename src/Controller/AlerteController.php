@@ -5,86 +5,117 @@ namespace App\Controller;
 use App\Entity\Alerte;
 use App\Form\AlerteType;
 use App\Repository\AlerteRepository;
-use App\Repository\ArticlesRepository;
+use App\Repository\ArticleRepository;
+use App\Repository\ReferenceArticleRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
+
+
 
 /**
  * @Route("/alerte")
  */
 class AlerteController extends AbstractController
 {
+    /**
+     * @var AlerteRepository
+     */
+    private $alerteRepository;
 
     /**
-     * @Route("/", name="alerte_index", methods={"GET"})
+     * @var ReferenceArticleRepository
+     */
+    private $referenceArticleRepository;
+
+    public function __construct(AlerteRepository $alerteRepository, ReferenceArticleRepository $referenceArticleRepository)
+    {
+        $this->alerteRepository = $alerteRepository;
+        $this->referenceArticleRepository = $referenceArticleRepository;
+    }
+
+    
+    /**
+     * @Route("/create", name="createAlerte", options={"expose"=true}, methods={"GET", "POST"})
      */
     public function createAlerte(Request $request) : Response
     {
-
-        if (!$request->XmlHttpRequest() && $data = json_decode($data->getContent(), true)) {
-            $alerte = new Alertes();
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $alerte = new Alerte();
             $em = $this->getDoctrine()->getEntityManager();
-            $alerte->setNom($data[0]["nom"]);
-            $alerte->setSeuil($data[1]["seuil"]);
-            $alerte->setRefArticle($data[2]["refArticle"]);
+            $refArticle = $this->referenceArticleRepository->find($data["reference"]);
+            $date = new \DateTime('now');
+            $alerte
+                ->setAlerteNumero('P-' . $date->format('YmdHis'))
+                ->setAlerteNom($data["nom"])
+                ->setAlerteRefArticle($refArticle)
+                ->setAlerteSeuil($data["seuil"]);
             $em->persist($alerte);
             $em->flush();
             $data = json_encode($data);
             return new JsonResponse($data);
         }
-
         throw new XmlHttpException("404 not found");
     }
+
 
 
     /**
      * @Route("/", name="alerte_index", methods={"GET"})
      */
-    public function index(AlerteRepository $alerteRepository, \Swift_Mailer $mailer, Request $request) : Response
+    public function index(Request $request) : Response
     {
-        return $this->render('alerte/index.html.twig');
+        return $this->render('alerte/index.html.twig', ["references" => $this->referenceArticleRepository->findAll()]);
     }
 
+
+
     /**
-     * @Route("/api", name="alerte_api", methods={"GET"})
+     * @Route("/api", name="alerte_api", options={"expose"=true}, methods={"GET"})
      */
-    public function alerteApi(AlerteRepository $alerteRepository, \Swift_Mailer $mailer, Request $request) : Response
+    public function alerteApi(\Swift_Mailer $mailer, Request $request) : Response
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
         {
-            $alertes = $alerteRepository->findAll();
-            $alertesUser = []; /* Un tableau d'alertes qui sera envoyer au mailer */
+            $alertes = $this->alerteRepository->findAll();
+
+            /* Un tableau d'alertes qui sera envoyer au mailer */
+            $alertesUser = []; 
             $rows = [];
+
             foreach ($alertes as $alerte) {
+                
                 $condition = $alerte->getAlerteRefArticle()->getQuantiteStock() > $alerte->getAlerteSeuil();
-                $seuil = ($condition) ? false : true; /* Si le seuil est inférieur à la quantité, seuil atteint = false sinon true */
+
+                /* Si le seuil est inférieur à la quantité, seuil atteint = false sinon true */
+                $seuil = ($condition) ? false : true; 
                 $alerte->setSeuilAtteint($seuil);
+
                 if ($seuil) {
                     array_push($alertesUser, $alerte); /* Si seuil atteint est "true" alors on insère l'alerte dans le tableau */
                 }
+
                 $this->getDoctrine()->getManager()->flush();
-                $urlEdite = $this->generateUrl('alerte_edit', ['id' => $alerte->getId()] );
-                $urlShow = $this->generateUrl('alerte_show', ['id' => $alerte->getId()] );
-                $row = [
+                $url['edit'] = $this->generateUrl('alerte_edit', ['id' => $alerte->getId()] );
+                $url['show'] = $this->generateUrl('alerte_show', ['id' => $alerte->getId()] );
+                $rows[] = [
                     "id" => $alerte->getId(),
                     "Nom" => $alerte->getAlerteNom(),
                     "Code" => $alerte->getAlerteNumero(),
                     "Seuil" => ($condition ? "<p><i class='fas fa-check-circle fa-2x green'></i>" . $alerte->getAlerteRefArticle()->getQuantiteStock() . "/" . $alerte->getAlerteSeuil() . "</p>" :
                         "<p><i class='fas fa-exclamation-circle fa-2x red'></i>" . $alerte->getAlerteRefArticle()->getQuantiteStock() . "/" . $alerte->getAlerteSeuil() . " </p>"),
-                    'actions' => "<a href='" . $urlEdite . "' class='btn btn-xs btn-default command-edit'><i class='fas fa-pencil-alt fa-2x'></i></a>
-                <a href='" . $urlShow . "' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>",
+                    'Actions' => $this->renderView('alerte/datatableAlerteRow.html.twig', ['url' => $url, 'alerte' => $alerte]),
                 ];
-                array_push($rows, $row);
             }
+
             if (count($alertesUser) > 0) {
                 $this->mailer($alertesUser, $mailer); /* On envoie le tableau d'alertes au mailer */
             }
+
             $data['data'] = $rows;
             return new JsonResponse($data);
         }
@@ -92,40 +123,6 @@ class AlerteController extends AbstractController
      
     }
 
-
-
-    /**
-     * @Route("/creer", name="alerte_new", methods={"GET","POST"})
-     */
-    public function new(Request $request) : Response
-    {
-        $alerte = new Alerte();
-
-        $form = $this->createForm(AlerteType::class, $alerte);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-
-            //Le numéro d'alerte est générer avec la date, l'heure, la minute et la seconde actuelle.
-            $date = new \DateTime("now");
-            $alerte->setAlerteNumero("A-" . $date->format('YmdHis'));
-
-            //On détermine l'utilisateur
-            $alerte->setAlerteUtilisateur($this->getUser());
-
-            //Connexion bdd et envoi
-            $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->persist($alerte);
-            $entityManager->flush();
-
-            return $this->redirectToRoute('alerte_index');
-        }
-
-        return $this->render('alerte/new.html.twig', [
-            'alerte' => $alerte,
-            'form' => $form->createView(),
-        ]);
-    }
 
     /**
      * @Route("/{id}", name="alerte_show", methods={"GET"})
@@ -136,6 +133,8 @@ class AlerteController extends AbstractController
             'alerte' => $alerte,
         ]);
     }
+
+
 
     /**
      * @Route("/{id}/edit", name="alerte_edit", methods={"GET","POST"})
@@ -159,6 +158,8 @@ class AlerteController extends AbstractController
         ]);
     }
 
+
+
     /**
      * @Route("/{id}", name="alerte_delete", methods={"DELETE"})
      */
@@ -174,8 +175,8 @@ class AlerteController extends AbstractController
     }
 
 
+    
     /* Mailer */
-
     public function mailer($alertes, \Swift_Mailer $mailer)
     {
         $message = (new \Swift_Message('Alerte Email'))

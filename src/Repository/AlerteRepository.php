@@ -19,20 +19,8 @@ class AlerteRepository extends ServiceEntityRepository
         parent::__construct($registry, Alerte::class);
     }
 
-    /* Récupération des alertes utilisateurs avec DQL */
-
-    public function findAlerteByUser($user)
-    {
-        $entityManager = $this->getEntityManager();
-        return $query = $entityManager->createQuery(
-            "SELECT a
-            FROM App\Entity\Alerte a
-            WHERE a.AlerteUtilisateur = :user "
-        )->setParameter('user', $user)->execute();
-        ;
-    }
-
-    public function findCountAlerte()
+    // Utilisé dans l'accueil
+    public function countAlertes()
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
@@ -40,36 +28,8 @@ class AlerteRepository extends ServiceEntityRepository
             FROM App\Entity\Alerte a
             WHERE a.SeuilAtteint = TRUE "
         );
-        ;
-        return $query->execute(); 
-    }
-    
-    // /**
-    //  * @return Alerte[] Returns an array of Alerte objects
-    //  */
-    /*
-    public function findByExampleField($value)
-    {
-        return $this->createQueryBuilder('a')
-            ->andWhere('a.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('a.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
 
-    /*
-    public function findOneBySomeField($value): ?Alerte
-    {
-        return $this->createQueryBuilder('a')
-            ->andWhere('a.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
+        return $query->getSingleScalarResult();
     }
-    */
+
 }

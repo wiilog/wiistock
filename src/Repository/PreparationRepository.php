@@ -19,64 +19,52 @@ class PreparationRepository extends ServiceEntityRepository
         parent::__construct($registry, Preparation::class);
     }
 
-    public function findPrepaByStatut($Statut)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT p
-            FROM App\Entity\Preparation p
-            WHERE p.Statut = :Statut "
-        )->setParameter('Statut', $Statut);
-        ;
-        return $query->execute(); 
-    }
+//    public function findPrepaByStatut($Statut)
+//    {
+//        $entityManager = $this->getEntityManager();
+//        $query = $entityManager->createQuery(
+//            "SELECT p
+//            FROM App\Entity\Preparation p
+//            WHERE p.Statut = :Statut "
+//        )->setParameter('Statut', $Statut);
+//        ;
+//        return $query->execute();
+//    }
+//
+//    public function findByNoStatut($Statut)
+//    {
+//        $entityManager = $this->getEntityManager();
+//        $query = $entityManager->createQuery(
+//            "SELECT p
+//            FROM App\Entity\Preparation p
+//            WHERE p.Statut <> :Statut "
+//        )->setParameter('Statut', $Statut);
+//        ;
+//        return $query->execute();
+//    }
 
-    public function findByNoStatut($Statut)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT p
-            FROM App\Entity\Preparation p
-            WHERE p.Statut <> :Statut "
-        )->setParameter('Statut', $Statut);
-        ;
-        return $query->execute(); 
-    }
-
-    public function findById($id)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT p
-            FROM App\Entity\Preparation p
-            WHERE p.id = :id "
-        )->setParameter('id', $id);
-        ;
-        return $query->execute(); 
-    }
-
-    public function findAllByUser($id)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT p
-            FROM App\Entity\Preparation p
-            WHERE p.utilisateur = :id "
-        )->setParameter('id', $id);
-        ;
-        return $query->execute(); 
-    }
+//    public function findAllByUser($id)
+//    {
+//        $entityManager = $this->getEntityManager();
+//        $query = $entityManager->createQuery(
+//            "SELECT p
+//            FROM App\Entity\Preparation p
+//            WHERE p.utilisateur = :id "
+//        )->setParameter('id', $id);
+//        ;
+//        return $query->execute();
+//    }
     
-    public function findByPrepa($preparation)
-    {
-        $entityManager = $this->getEntityManager();
-
-        return $query = $entityManager->createQuery(
-            "SELECT p FROM App\Entity\Preparation p WHERE p.id = :preparation")
-            ->setParameter("preparation", $preparation->getId())
-            ->execute()
-            ;
-    }
+//    public function findByPrepa($preparation)
+//    {
+//        $entityManager = $this->getEntityManager();
+//
+//        return $query = $entityManager->createQuery(
+//            "SELECT p FROM App\Entity\Preparation p WHERE p.id = :preparation")
+//            ->setParameter("preparation", $preparation->getId())
+//            ->execute()
+//            ;
+//    }
 
 //    /**
 //     * @return Preparation[] Returns an array of Preparation objects

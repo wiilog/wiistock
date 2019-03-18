@@ -1,0 +1,41 @@
+<form method="" class="modal fade" id="modalNewDemande" role="dialog" aria-labelledby="dataModalCenterTitle"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Créer une demande</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body modal-input container-fluid">
+                <div class="form-group col">
+                    <label for="demandeur">Utilisateur</label>
+                    <select name="demandeur" class="form-control col data select2">
+                        {% for utilisateur in utilisateurs %}
+                        <option value="{{ utilisateur.id }}">{{ utilisateur.username }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group col">
+                    <label for="destination">Destination</label>
+                    <select name="destination" class="form-control col data select2">
+                        {% for emplacement in emplacements %}
+                        <option value="{{ emplacement.id }}">{{ emplacement.label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group col">
+                        <label for="dateAttendu">Date attendu</label>
+                    <input type="date" class="form-control data" name="dateAttendu" value="" required="true" min="{{ 'now' | date('Y-m-d') }}" max="{{ '+25year' | date('Y-m-d') }}">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn" data-dismiss="modal">Annuler</button>
+                <button id="submitNewDemande" type="button" data-dismiss="modal"
+                    class="btn btn-primary btn-success">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+</form>

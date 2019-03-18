@@ -24,11 +24,11 @@ class CreateRefArticleCommand extends Command
     {
         $this
         // the short description shown while running "php bin/console list"
-            ->setDescription('Creates a bunch of ReferencesArticles.')
+            ->setDescription('Creates a bunch of ReferenceArticle.')
 
         // the full command description shown when running the command with
         // the "--help" option
-            ->setHelp('This command allows you to create a bunch of ReferencesArticles...');
+            ->setHelp('This command allows you to create a bunch of ReferenceArticle...');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)

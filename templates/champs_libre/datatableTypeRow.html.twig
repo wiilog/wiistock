@@ -1,0 +1,11 @@
+<div data-id='{{ idType }}' data-toggle='modal' data-target='#modalEditType' class='btn btn-xs btn-default champs-libre-edit'
+    onclick="editRow($(this),  Routing.generate('type_edit_api', true), $('#modalEditType'), $('#submitEditType'))">
+    <i class='fas fa-pencil-alt '></i>
+</div>
+<div class='btn btn-xs btn-default type-delete'
+    onclick="deleteRow($(this), $('#modalDeleteType'), $('#submitDeleteType'))" data-id='{{ idType }}'
+    data-target='#modalDeleteType' data-toggle='modal'>
+    <i class='fas fa-trash '></i>
+</div>
+
+<a href={{urlChampsLibre}} class='btn btn-xs btn-default command-edit'><i class='fas fa-plus '></i> Champ libre</a>

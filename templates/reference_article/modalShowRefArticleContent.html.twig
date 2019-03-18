@@ -1,0 +1,10 @@
+<div> Libellé: {{articleRef.libelle}}</div>
+<div> Référence: {{articleRef.reference}}</div>
+<div>Type: {{articleRef.type.label}}</div>
+<div>
+    <ul>
+        {% for valeurChamp in valeurChampLibre %}
+        <li>{{valeurChamp.label}}: {{valeurChamp.valeur}}</li>
+        {% endfor %}
+    </ul>
+</div>

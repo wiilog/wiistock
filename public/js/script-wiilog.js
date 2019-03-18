@@ -1,129 +1,102 @@
 $(document).ready(function () {
     $('.select2').select2();
-});0
+});
 
 
-
-// //Fonction de traitement des donnees post ajax pour un tableau
-// function traitementDataArticle(reponse, id_table) {
-//     $(id_table).children().remove();
-//     let articles = JSON.parse(JSON.parse(reponse));
-//     var refTable = document.getElementById(id_table)
-//     if (articles !== "patate") {
-//         console.log(articles)
-//
-//         var rowCount = refTable.rows.length;
-//         articles.forEach(function (article) {
-//             var nouvelleLigne = refTable.insertRow();
-//
-//             var nouvelleCellule = nouvelleLigne.insertCell(0);
-//             var nouveauTexte = document.createTextNode(article.nom);
-//             nouvelleCellule.appendChild(nouveauTexte);
-//
-//             var nouvelleCellule = nouvelleLigne.insertCell(1);
-//             var nouveauTexte = document.createTextNode(article.statut);
-//             nouvelleCellule.appendChild(nouveauTexte);
-//
-//             var nouvelleCellule = nouvelleLigne.insertCell(2);
-//             var nouveauTexte = document.createTextNode(article.etat);
-//             nouvelleCellule.appendChild(nouveauTexte);
-//
-//             var nouvelleCellule = nouvelleLigne.insertCell(3);
-//             var nouveauTexte = document.createTextNode(article.refArticle);
-//             nouvelleCellule.appendChild(nouveauTexte);
-//
-//             var nouvelleCellule = nouvelleLigne.insertCell(4);
-//             var nouveauTexte = document.createTextNode(article.position);
-//             nouvelleCellule.appendChild(nouveauTexte);
-//
-//             var nouvelleCellule = nouvelleLigne.insertCell(5);
-//             var nouveauTexte = document.createTextNode(article.direction);
-//             nouvelleCellule.appendChild(nouveauTexte);
-//
-//             var nouvelleCellule = nouvelleLigne.insertCell(6);
-//             var nouveauTexte = document.createTextNode(article.quantite);
-//             nouvelleCellule.appendChild(nouveauTexte);
-//
-//             var urlShow = 'http://localhost/WiiStock/WiiStock/public/index.php/articles/show/' + article.id;
-//             var urlEdit = 'http://localhost/WiiStock/WiiStock/public/index.php/articles/edite/' + article.id;
-//             var nouvelleCellule = nouvelleLigne.insertCell(7);
-//             var a = document.createElement("a");
-//             a.className = 'btn btn-xs btn-default command-edit';
-//             a.setAttribute('href', urlShow);
-//             var i = document.createElement("i");
-//             i.className = 'fas fa-eye fa-2x';
-//             nouvelleCellule.appendChild(a).appendChild(i);
-//             var a = document.createElement("a");
-//             a.className = 'btn btn-xs btn-default command-edit';
-//             a.setAttribute('href', urlEdit);
-//             var i = document.createElement("i");
-//             i.className = 'fas fa-pencil-alt fa-2x';
-//             nouvelleCellule.appendChild(a).appendChild(i);
-//         });
-//     }else {
-//         var nouvelleLigne = refTable.insertRow();
-//         var nouvelleCellule = nouvelleLigne.insertCell(0);
-//         var nouveauTexte = document.createTextNode("aucun résultat");
-//         nouvelleCellule.appendChild(nouveauTexte);
-//     }
-// }
-
-// //Fonction de recherche par input => str = valeur de l'input + url = url du traitement en php
-// function showHint(str, url) {
-//     if (str.length > 0) {
-//         var xmlhttp = new XMLHttpRequest()
-//         xmlhttp.onreadystatechange = function () {
-//             if (this.readyState == 4 && this.status == 200) {
-//                 traitementDataArticle(this.responseText)
-//             }
-//         }
-//         var myJSON = JSON.stringify(str)
-//         xmlhttp.open("POST", url, true)
-//         xmlhttp.send(myJSON)
-//     }
-// }
-
-
+//NEW
 /**
  * Initialise une fenêtre modale
  * 
  * @param {Document} modal la fenêtre modale selectionnée : document.getElementById("modal").
  * @param {Document} submit le bouton qui va envoyé les données au controller via Ajax.
- * @param {string} path le chemin pris pour envoyé les données.
+ * @param {string} path le chemin pris pour envoyer les données.
+ * @param {document} table le DataTable gérant les données
  * 
  */
-function InitialiserModal(modal, submit, path) {
-    submit.addEventListener("click", function () 
-    {
+function InitialiserModal(modal, submit, path, table) {
+    submit.click(function () {
         xhttp = new XMLHttpRequest();
-        xhttp.onreadystatechange = function () 
-        {
-            if (this.readyState == 4 && this.status == 200)
-            {
+        xhttp.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                $('.errorMessage').html(JSON.parse(this.responseText))
                 data = JSON.parse(this.responseText);
-                table.ajax.reload(function( json ) 
-                {
-                    $('#myInput').val( json.lastInput );
-                    
-                    if(data.redirect)
-                    {
-                        window.location.href = data.redirect;
+                table.ajax.reload(function (json) {
+                    if (this.responseText !== undefined) {
+                        $('#myInput').val(json.lastInput);
+                        if (data.redirect) {
+                            window.location.href = data.redirect;
+                        }
                     }
                 });
             }
         };
-
-        let inputs = modal.querySelectorAll(".data"); // On récupère toutes les données qui nous intéresse avec le querySelectorAll
-        let Data = []; // Tableau de données
-
-        inputs.forEach(input => { 
-            Data.push({
-                [input.name]: input.value
-            });
+        let inputs = modal.find(".data"); // On récupère toutes les données qui nous intéresse
+        console.log(inputs);
+        let Data = {}; // Tableau de données
+        inputs.each(function () {
+            Data[$(this).attr("name")] = $(this).val();
         });
-
+        Json = {};
         Json = JSON.stringify(Data); // On transforme les données en JSON
         xhttp.open("POST", path, true);
         xhttp.send(Json);
     });
 }
+
+
+//DELETE
+function deleteRow(button, modal, submit) {
+    let id = button.data('id');
+    modal.find(submit).attr('value', id);
+}
+
+
+//SHOW
+/**
+ * Initialise une fenêtre modale
+ * 
+ * @param {Document} modal la fenêtre modale selectionnée : document.getElementById("modal").
+ * @param {Document} button le bouton qui va envoyé les données au controller via Ajax.
+ * @param {string} path le chemin pris pour envoyer les données.
+ * 
+ */
+function showRow(modal, button, path) {
+    xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            dataReponse = JSON.parse(this.responseText);
+            modal.find('.modal-body').html(dataReponse);
+        }
+    }
+    let json = button.data('id');
+    xhttp.open("POST", path, true);
+    xhttp.send(json);
+}
+
+
+//MODIFY
+/**
+ * La fonction modifie les valeurs d'une modale modifier avec les valeurs data-attibute.
+ * Ces valeurs peuvent être trouvées dans datatableLigneArticleRow.html.twig
+ * 
+ * @param {Document} button
+ * @param {string} path le chemin pris pour envoyer les données.
+ * @param {Document} modal la modalde modification
+ * @param {Document} submit le bouton de validation du form pour le edit
+ *  
+ */
+function editRow(button, path, modal, submit) {
+    xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            dataReponse = JSON.parse(this.responseText);
+            modal.find('.modal-body').html(dataReponse);
+        }
+    }
+    let json = button.data('id');
+    modal.find(submit).attr('value', json);
+    xhttp.open("POST", path, true);
+    xhttp.send(json);
+}
+
+

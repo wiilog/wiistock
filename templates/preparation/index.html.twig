@@ -4,7 +4,7 @@
 
 {% block page_content %}
 <h1>Ordres de préparation</h1>
-<table id="table_id" class="table table-striped table-bordered" style="width:100%">
+<table id="table_id" class="table table-striped table-bordered w-100">
     <thead>
         <tr>
             <th>Numéro</th>
@@ -20,19 +20,5 @@
 {% endblock %}
 
 {% block javascript %}
-<script>
-    var table = $('#table_id').DataTable({
-        "language": {
-            "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
-        },
-        ajax: "{{path('preparation_api')}}",
-        columns: [
-            { "data": 'Numéro' },
-            { "data": 'Date' },
-            { "data": 'Statut' },
-            { "data": 'Actions' },
-        ],
-    });
-
-</script>
+<script src="{{ asset('js/preparation.js') }}"></script>
 {% endblock %}

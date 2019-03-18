@@ -17,7 +17,7 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css"
         integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
 <!-- CSS-Wiilog -->
-    <link rel="stylesheet" type="text/css" href="{{ asset('css/style.css') }}">
+    {#<link rel="stylesheet" type="text/css" href="{{ asset('css/style.css') }}">#}
     <link rel="stylesheet" href="{{asset('sass/style.css')}}">
 
 <!-- Bootstrap -->
@@ -30,6 +30,12 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js"
         integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k"
         crossorigin="anonymous"></script>
+        
+<!--Barecode.js  -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/jsbarcode/3.6.0/JsBarcode.all.min.js"></script>  
+
+   <script src="https://printjs-4de6.kxcdn.com/print.min.js"></script>
+  <link rel="stylesheet" href="https://printjs-4de6.kxcdn.com/print.min.css">
 
 <!-- DataTable -->
     <link rel="stylesheet" type="text/css"
@@ -43,6 +49,10 @@
     
     <script src="{{ asset('js/script-menu.js') }}"></script>
     <script src="{{ asset('js/script-wiilog.js') }}"></script>
+
+<!-- Javascript routing Exemple : var url = Routing.generate('modifyLigneArticle', id , true) -->
+    <script src="{{ asset('bundles/fosjsrouting/js/router.min.js') }}"></script>
+    <script src="{{ path('fos_js_routing_js', { callback: 'fos.Router.setData' }) }}"></script>
 
 </head>
 

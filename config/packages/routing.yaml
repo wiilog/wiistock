@@ -1,3 +1,7 @@
 framework:
     router:
         strict_requirements: ~
+#app:
+#    resource: "@App/Controller/"
+#    type: rest
+#    prefix: /api

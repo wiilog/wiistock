@@ -9,7 +9,7 @@
                 <option value={{emplacement.id}}> {{emplacement.nom}}</option>
             {% endfor %}
         </select>
-        <input type="submit" value="Valider" class="button btn-left">    
+        <input type="submit" value="Valider" class="btn btn-primary float-left">
     </form>
 <h1>Demande de collecte
     {% if empl is defined %}
@@ -24,8 +24,8 @@
                 <th>selection</th>
                 <th>destination</th>
                 <th>Nom</th>
-                <th>Références Articles</th>
-                <th>position</th>
+                <th>Référence Article</th>
+                <th>Emplacement</th>
             </tr>
         </thead>
         <tbody>
@@ -50,10 +50,10 @@
         </tbody>
     </table>
     <div class="col-12">
-        <input class="button btn-left" type="submit" value="Valider">
+        <input class="btn btn-primary float-left" type="submit" value="Valider">
     </div>
 </form>
 </div>
-<a href="{{ path('collecte_index') }}"class="btn pull-left button btn-left">retour à la liste</a>
+<a href="{{ path('collecte_index') }}"class="btn float-right">Retour à la liste</a>
 
 {% endblock %}

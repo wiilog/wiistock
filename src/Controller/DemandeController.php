@@ -3,37 +3,26 @@
 namespace App\Controller;
 
 use App\Entity\Demande;
-use App\Form\DemandeType;
+use App\Entity\Livraison;
+use App\Entity\LigneArticle;
+use App\Entity\Preparation;
+
+use App\Form\LivraisonType;
+
 use App\Repository\DemandeRepository;
+use App\Repository\ReferenceArticleRepository;
+use App\Repository\FournisseurRepository;
+use App\Repository\LigneArticleRepository;
+use App\Repository\StatutRepository;
+use App\Repository\EmplacementRepository;
+use App\Repository\UtilisateurRepository;
+
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-
-use App\Entity\Articles;
-use App\Entity\ReferencesArticles;
-use App\Form\ReferencesArticlesType;
-use App\Repository\ReferencesArticlesRepository;
-use App\Repository\FournisseursRepository;
-use App\Repository\StatutsRepository;
-
-use App\Repository\ArticlesRepository;
-
-use App\Entity\Emplacement;
-use App\Entity\Preparation;
-use App\Form\EmplacementType;
-use App\Repository\EmplacementRepository;
-use App\Repository\UtilisateursRepository;
-
-use App\Entity\Livraison;
-use App\Form\LivraisonType;
-use App\Repository\LivraisonRepository;
-
-use Knp\Component\Pager\PaginatorInterface;
-
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-
 
 /**
  * @Route("/demande")
@@ -41,9 +30,14 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 class DemandeController extends AbstractController
 {
     /**
-     * @var StatutsRepository
+     * @var StatutRepository
      */
-    private $statutsRepository;
+    private $statutRepository;
+
+    /**
+     * @var LignreArticleRepository
+     */
+    private $ligneArticleRepository;
 
     /**
      * @var EmplacementRepository
@@ -51,28 +45,36 @@ class DemandeController extends AbstractController
     private $emplacementRepository;
 
     /**
-     * @var UtilisateursRepository
+     * @var UtilisateurRepository
      */
-    private $utilisateursRepository;
+    private $utilisateurRepository;
 
     /**
-     * @var ReferencesArticlesRepository
+     * @var DemandeRepository
      */
-    private $referencesArticlesRepository;
+    private $demandeRepository;
 
-    public function __construct(StatutsRepository $statutsRepository, ReferencesArticlesRepository $referencesArticlesRepository, UtilisateursRepository $utilisateursRepository, EmplacementRepository $emplacementRepository)
+    /**
+     * @var ReferenceArticleRepository
+     */
+    private $referenceArticleRepository;
+
+    public function __construct(LigneArticleRepository $ligneArticleRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository)
     {
-        $this->statutsRepository = $statutsRepository;
+        $this->statutRepository = $statutRepository;
         $this->emplacementRepository = $emplacementRepository;
-        $this->utilisateursRepository = $utilisateursRepository;
-        $this->referencesArticlesRepository = $referencesArticlesRepository;
+        $this->demandeRepository = $demandeRepository;
+        $this->utilisateurRepository = $utilisateurRepository;
+        $this->referenceArticleRepository = $referenceArticleRepository;
+        $this->ligneArticleRepository = $ligneArticleRepository;
     }
 
 
+
     /**
-     * @Route("/preparation/{id}", name="preparationFromDemande")
+     * @Route("/preparation/{id}", name="preparationFromDemande") //TODOO
      */
-    public function creationPreparationDepuisDemande(Demande $demande) : Response
+    public function creationPreparationDepuisDemande(Demande $demande): Response
     {
         if ($demande->getPreparation() == null && count($demande->getLigneArticle()) > 0) {
             // Creation d'une nouvelle preparation basée sur une selection de demandes
@@ -83,13 +85,13 @@ class DemandeController extends AbstractController
             $preparation->setDate($date);
             $preparation->setUtilisateur($this->getUser());
 
-            $statut = $this->statutsRepository->findById(11); /* Statut : nouvelle préparation */
-            $preparation->setStatut($statut[0]);
+            $statut = $this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_NOUVELLE);
+            $preparation->setStatut($statut);
 
             $demande->setPreparation($preparation);
 
-            $statut = $this->statutsRepository->findById(14); /* Statut : Demande de préparation */
-            $demande->setStatut($statut[0]);
+            $statut = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
+            $demande->setStatut($statut);
 
             $em = $this->getDoctrine()->getManager();
             $em->persist($demande);
@@ -103,196 +105,271 @@ class DemandeController extends AbstractController
     }
 
 
-    /**
-     * @Route("/ajoutArticle/{id}", name="ajoutArticle", methods="GET|POST")
-     */
-    public function ajoutRefArticle(Demande $demande, FournisseursRepository $fournisseursRepository, Request $request) : Response
-    {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (count($data) >= 2) {
-                $em = $this->getDoctrine()->getEntityManager();
-
-                $json = [
-                    "reference" => $data[0]["reference"],
-                    "quantite" => $data[1]["quantite"],
-                ];
-
-                $referenceArticle = $this->referencesArticlesRepository->findOneBy(["id" => $data[0]["reference"]]);
-
-                $quantiteReservee = intval($data[1]["quantite"]);
-                $quantiteArticleReservee = $referenceArticle->getQuantiteReservee();
-                $referenceArticle->setQuantiteReservee($quantiteReservee + $quantiteArticleReservee);
-
-                $demande->addLigneArticle($json);
-                $em->persist($referenceArticle);
-                $em->persist($demande);
-                $em->flush();
-
-                return new JsonResponse($json);
-            }
-        }
-        throw new NotFoundHttpException("404");
-    }
-
+    //LIGNE ARTICLE
 
     /**
-     * @Route("/supprimeArticle/{id}", name="supprimeArticle", methods="GET|POST")
+     * @Route("/apiLigne/{id}", name="LigneArticle_api", options={"expose"=true},  methods="GET|POST")
      */
-    public function supprimeRefArticle(Demande $demande, FournisseursRepository $fournisseursRepository, Request $request) : Response
+    public function LigneArticleApi(Request $request, Demande $demande): Response
     {
-        dump($demande->getLigneArticle());
-        $json = [
-            "reference" => $data[0]["reference"],
-            "quantite" => $data[1]["quantite"],
-        ];
+        if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
+            {
+                $ligneArticles = $demande->getLigneArticle();
+                $rows = [];
 
-        $demande->addLigneArticle($json);
-        $em->persist($referenceArticle);
-        $em->persist($demande);
-        $em->flush();
+                foreach ($ligneArticles as $ligneArticle) {
+                    $idArticle = $ligneArticle->getId();
+                    $url['delete'] = $this->generateUrl('ligne_article_delete', ['id' => $ligneArticle->getId()]);
+                    $rows[] = [
+                        "Référence CEA" => ($ligneArticle->getReference()->getReference() ? $ligneArticle->getReference()->getReference() : ''),
+                        "Libellé" => ($ligneArticle->getReference()->getLibelle() ? $ligneArticle->getReference()->getLibelle() : ''),
+                        "Quantité" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ''),
+                        "Actions" => $this->renderView(
+                            'demande/datatableLigneArticleRow.html.twig',
+                            [
+                                'url' => $url,
+                                'ligneArticle' => $ligneArticle,
+                                'idArticle' => $idArticle
+                            ]
+                        )
+                    ];
+                }
 
-        return $this->redirectToRoute();
-
-    }
-
-
-    /**
-     * @Route("/modifDemande/{id}", name="modifDemande", methods="GET|POST")
-     */
-    public function modifDemande(Demande $demande, Request $request) : Response
-    {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (count($data) >= 3) {
-                $em = $this->getDoctrine()->getEntityManager();
-                $utilisateur = $this->utilisateursRepository->findById(intval($data[0]["demandeur"]));
-                $statut = $this->statutsRepository->findById($data[2]["statut"]);
-                $demande->setUtilisateur($utilisateur[0]);
-                $demande->setDateAttendu(new \Datetime($data[1]["date-attendu"]));
-                $demande->setStatut($statut[0]);
-                $em->persist($demande);
-                $em->flush();
-
-                $data = json_encode($data);
+                $data['data'] = $rows;
                 return new JsonResponse($data);
             }
-        }
         throw new NotFoundHttpException("404");
     }
 
 
+
     /**
-     * @Route("/creationDemande", name="creation_demande", methods="GET|POST")
+     * @Route("/ajoutLigneArticle", name="ajoutLigneArticle", options={"expose"=true},  methods="GET|POST")
      */
-    public function creationDemande(LivraisonRepository $livraisonRepository, Request $request, ArticlesRepository $articlesRepository) : Response
+    public function ajoutLigneArticle(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $em = $this->getDoctrine()->getManager();
-            $demandeur = $data[0];
-            $demande = new Demande();
-            $statut = $this->statutsRepository->findById(14);
-            $demande->setStatut($statut[0]);
-            $utilisateur = $this->utilisateursRepository->findOneById($demandeur["demandeur"]);
-            $demande->setUtilisateur($utilisateur);
-            $date = new \DateTime('now');
-            $demande->setdate($date);
-            $destination = $this->emplacementRepository->findOneById($data[1]["destination"]);
-            $demande->setDestination($destination);
-            $demande->setNumero("D-" . $date->format('YmdHis')); // On recupere un array sous la forme ['id de l'article de réference' => 'quantite de l'article de réference voulu', ....]
-            $em->persist($demande);
+
+            $referenceArticle = $this->referenceArticleRepository->find($data["reference"]);
+            $demande = $this->demandeRepository->find($data['demande']);
+
+            if ($this->ligneArticleRepository->countByRefArticle($referenceArticle) === 0) {
+                $ligneArticle = new LigneArticle();
+                $ligneArticle
+                    ->setQuantite($data["quantite"])
+                    ->setReference($referenceArticle);
+            } else {
+                $ligneArticle = $this->ligneArticleRepository->getByRefArticle($referenceArticle);
+                $ligneArticle
+                    ->setQuantite($ligneArticle->getQuantite() + $data["quantite"]);
+            }
+
+            $quantiteReservee = intval($data["quantite"]);
+            $quantiteArticleReservee = $referenceArticle->getQuantiteReservee();
+
+            $referenceArticle
+                ->setQuantiteReservee($quantiteReservee + $quantiteArticleReservee);
+
+            $demande
+                ->addLigneArticle($ligneArticle);
+
+            $em = $this->getDoctrine()->getEntityManager();
+            $em->persist($ligneArticle);
             $em->flush();
+
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
     }
+
+    /**
+     * @Route("/apiEditArticle", options={"expose"=true}, name="article_edit_api", methods={"POST"})
+     */
+    public function articleApiEdit(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+
+            $ligneArticle = $this->ligneArticleRepository->getQuantity($data);
+            dump($ligneArticle);
+            $json = $this->renderView('demande/modalEditArticleContent.html.twig', [
+                'ligneArticle' => $ligneArticle,
+            ]);
+            return new JsonResponse($json);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/modifierLigneArticle", options={"expose"=true}, name="article_edit", methods={"GET", "POST"})
+     */
+    public function modifyLigneArticle(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $ligneArticle = $this->ligneArticleRepository->find($data['ligneArticle']);
+            $ligneArticle->setQuantite($data["quantite"]);
+            $this->getDoctrine()->getEntityManager()->flush();
+
+            return new JsonResponse();
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+
+
+    /**
+     * @Route("/supprimeLigneArticle", options={"expose"=true}, name="ligne_article_delete", methods={"GET", "POST"})
+     */
+    public function deleteLigneArticle(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $ligneAricle = $this->ligneArticleRepository->find($data['ligneArticle']);
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->remove($ligneAricle);
+            $entityManager->flush();
+            return new JsonResponse();
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/voir/{id}", name="demande_show_article", methods={"GET", "POST"})
+     */
+    public function showArticle(Demande $demande): Response
+    {
+        return $this->render('demande/show.html.twig', [
+            'demande' => $demande,
+            'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
+            'statuts' => $this->statutRepository->findByCategorieName(Demande::CATEGORIE),
+            'references' => $this->referenceArticleRepository->getIdAndLibelle()
+        ]);
+    }
+
+    //DEMANDE-LIVRAISON
+
+    /**
+     * @Route("/apiDemandeEdit", options={"expose"=true}, name="demande_edit_api", methods={"POST"})
+     */
+    public function demandeApiEdit(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+
+            $demande = $this->demandeRepository->find($data);
+            $emplacement = $this->emplacementRepository->getNoOne($demande->getDestination()->getId());
+            $utilisateur = $this->utilisateurRepository->getNoOne($demande->getUtilisateur()->getId());
+            $json = $this->renderView('demande/modalEditDemandeContent.html.twig', [
+                'demande' => $demande,
+                'utilisateurs' => $utilisateur,
+                'emplacements' => $emplacement
+            ]);
+            return new JsonResponse($json);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/modifDemande", name="demande_edit", options={"expose"=true}, methods="GET|POST")
+     */
+    public function demandeEdit(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $utilisateur = $this->utilisateurRepository->find(intval($data["demandeur"]));
+            $emplacement = $this->emplacementRepository->find($data['destination']);
+            $demande = $this->demandeRepository->find($data['demande']);
+            $demande
+                ->setUtilisateur($utilisateur)
+                ->setDateAttendu(new \DateTime($data['dateAttendu']))
+                ->setDestination($emplacement);
+            $em = $this->getDoctrine()->getEntityManager();
+            $em->flush();
+            return new JsonResponse();
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/new", name="demande_new", options={"expose"=true}, methods="GET|POST")
+     */
+    public function creationDemande(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $em = $this->getDoctrine()->getManager();
+            $utilisateur = $this->utilisateurRepository->find($data["demandeur"]);
+            $date = new \DateTime('now');
+            $statut = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
+            $destination = $this->emplacementRepository->find($data["destination"]);
+            $demande = new Demande();
+            $demande
+                ->setStatut($statut)
+                ->setUtilisateur($utilisateur)
+                ->setdate($date)
+                ->setDateAttendu(new \DateTime($data['dateAttendu']))
+                ->setDestination($destination)
+                ->setNumero("D-" . $date->format('YmdHis'));
+            $em->persist($demande);
+            $em->flush();
+
+            return new JsonResponse($data);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
 
 
     /**
      * @Route("/", name="demande_index", methods={"GET"})
      */
-    public function index(Request $request) : Response
+    public function index(Request $request): Response
     {
         return $this->render('demande/index.html.twig', [
-            'utilisateurs' => $this->utilisateursRepository->findAll(),
-            'statuts' => $this->statutsRepository->findByCategorie('Demandes'),
-            'emplacements' => $this->emplacementRepository->findAll()
+            'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
+            'statuts' => $this->statutRepository->findByCategorieName(Demande::CATEGORIE),
+            'emplacements' => $this->emplacementRepository->getIdAndNom()
         ]);
     }
 
-
     /**
-     * @Route("/voir/{id}", name="demande_show", methods={"GET"})
+     * @Route("/delete", name="demande_delete", options={"expose"=true}, methods="GET|POST")
      */
-    public function show(Demande $demande) : Response
+    public function delete(Request $request): Response
     {
-        $ligneArticle = $demande->getLigneArticle();
-        $lignes = [];
-
-        foreach ($ligneArticle as $ligne) {
-            $refArticle = $this->referencesArticlesRepository->findById($ligne["reference"]);
-            $data = [
-                "Références CEA" => $ligne["reference"],
-                "Quantité" => $ligne["quantite"],
-                "Libellé" => $refArticle[0]->getLibelle(),
-            ];
-            array_push($lignes, $data);
-        }
-        return $this->render('demande/show.html.twig', [
-            'demande' => $demande,
-            'lignesArticles' => $lignes,
-            'utilisateurs' => $this->utilisateursRepository->findAll(),
-            'statuts' => $this->statutsRepository->findByCategorie('Demandes'),
-            'references' => $this->referencesArticlesRepository->findAll()
-        ]);
-    }
-
-
-    /**
-     * @Route("/{id}", name="demande_delete", methods={"DELETE"})
-     */
-    public function delete(Request $request, Demande $demande) : Response
-    {
-        if ($this->isCsrfTokenValid('delete' . $demande->getId(), $request->request->get('_token'))) {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $demande = $this->demandeRepository->find($data['demande']);
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($demande);
             $entityManager->flush();
+            return new JsonResponse();
         }
-
-        return $this->redirectToRoute('demande_index');
+        throw new NotFoundHttpException("404");
     }
 
-
     /**
-     * @Route("/api", name="demande_api", methods={"POST"}) 
+     * @Route("/api", options={"expose"=true}, name="demande_api", methods={"POST"})
      */
-    public function demandeApi(Request $request, DemandeRepository $demandeRepository) : Response
+    public function demandeApi(Request $request, DemandeRepository $demandeRepository): Response
     {
-        if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
-        {
+        if ($request->isXmlHttpRequest()) {
 
-            if ($request->request->get('utilisateur')) {
-                $utilistaeur = $request->request->get('utilisateur');
-                $statut = $request->request->get('statut');
-                $dateDebut = $request->request->get('dateDebut');
-                $dateFin = $request->request->get('dateFin');
-
-                $demandes = $demandeRepository->findAll();
-
-            } else {
-                $demandes = $demandeRepository->findAllByUserAndStatut($this->getUser());
-            }
+            // $demandes = $demandeRepository->findByUserAndNotStatus($this->getUser(), Livraison::STATUT_TERMINE);
+            $demandes = $this->demandeRepository->findAll();
             $rows = [];
             foreach ($demandes as $demande) {
-                $urlShow = $this->generateUrl('demande_show', ['id' => $demande->getId()]);
-                $row =
+                $idDemande = $demande->getId();
+                $url = $this->generateUrl('demande_show_article', ['id' => $idDemande]);
+                $rows[] =
                     [
-                    "Date" => ($demande->getDate() ? $demande->getDate() : '')->format('d/m/Y'),
-                    "Demandeur" => ($demande->getUtilisateur()->getUsername() ? $demande->getUtilisateur()->getUsername() : ''),
-                    "Numéro" => ($demande->getNumero() ? $demande->getNumero() : ''),
-                    "Statut" => ($demande->getStatut()->getNom() ? $demande->getStatut()->getNom() : ''),
-                    'Actions' => "<a href='" . $urlShow . " ' class='btn btn-xs btn-default command-edit '><i class='fas fa-eye fa-2x'></i></a>",
-                ];
-
-                array_push($rows, $row);
+                        "Date" => ($demande->getDate() ? $demande->getDate()->format('d-m-Y') : ''),
+                        "Date attendu" => ($demande->getDateAttendu() ? $demande->getDateAttendu()->format('d-m-Y') : ''),
+                        "Demandeur" => ($demande->getUtilisateur()->getUsername() ? $demande->getUtilisateur()->getUsername() : ''),
+                        "Numéro" => ($demande->getNumero() ? $demande->getNumero() : ''),
+                        "Statut" => ($demande->getStatut()->getNom() ? $demande->getStatut()->getNom() : ''),
+                        'Actions' => $this->renderView('demande/datatabledemandeRow.html.twig',
+                            [
+                                'idDemande' => $idDemande,
+                                'modifiable'=> ($demande->getStatut()->getNom() === (Demande::STATUT_A_TRAITER)? true : false ),
+                                'url' => $url
+                            ]
+                        ),
+                    ];
             }
             $data['data'] = $rows;
             return new JsonResponse($data);
@@ -300,34 +377,18 @@ class DemandeController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
-    /**
-     * @Route("/api-ligne/{id}", name="LigneArticle_api", methods={"POST"})
+     /**
+     * @Route("/detail", options={"expose"=true}, name="demande_show", methods={"GET", "POST"})
      */
-    public function LigneArticleApi(Request $request, Demande $demande) : Response
+    public function show(Request $request): Response
     {
-        if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
-        {
-            $LigneArticles = $demande->getLigneArticle();
-            $rows = [];
-
-            foreach ($LigneArticles as $LigneArticle) {
-                $refArticle = $this->referencesArticlesRepository->findOneById($LigneArticle["reference"]);
-                $urlShow = $this->generateUrl('supprimeArticle', ['id' => $demande->getId()]);
-                $row = [
-                    "Références CEA" => ($LigneArticle["reference"] ? $LigneArticle["reference"] : ''),
-                    "Libellé" => ($refArticle->getLibelle() ? $refArticle->getLibelle() : ''),
-                    "Quantité" => ($LigneArticle["quantite"] ? $LigneArticle["quantite"] : ''),
-                    
-                ];
-                array_push($rows, $row);
-            }
-            
-            //'Actions' => "<a href='" . $urlShow . " ' class='btn btn-xs btn-default command-edit '><i class='fas fa-trash fa-2x'></i></a>",
-            $data['data'] = $rows;
-            return new JsonResponse($data);
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $demande = $this->demandeRepository->find($data);
+            $json = $this->renderView('demande/modalShowDemandeContent.html.twig', [
+                'demande' => $demande,
+            ]);
+            return new JsonResponse($json);
         }
         throw new NotFoundHttpException("404");
     }
-
-
 }

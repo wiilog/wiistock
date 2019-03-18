@@ -15,3 +15,8 @@
 /.web-server-pid
 ###< symfony/web-server-bundle ###
 /.vs-code/
+
+/public/sass/style.css.map
+###> lexik/jwt-authentication-bundle ###
+/config/jwt/*.pem
+###< lexik/jwt-authentication-bundle ###

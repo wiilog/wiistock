@@ -1,0 +1,25 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Stock / Articles{% endblock %}
+
+{% block page_content %}
+
+<h1>Articles</h1>
+<table id="table_id" class="table table-striped table-bordered w-100">
+    <thead>
+        <tr>
+            <th>Référence</th>
+            <th id="Statut">Statut</th>
+            <th id="Reférence article">Référence article</th>
+            <th id="Quantite" data-sortable="false">Quantité</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+</table>
+{% endblock %}
+
+{% block javascript %}
+
+<script src="{{ asset('js/article.js') }}"></script>
+
+{% endblock %}

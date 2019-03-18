@@ -30,7 +30,7 @@
                         <option disabled selected>Choisir un point de collecte...</option>
                         {% for emplacement in emplacements %}
                             <option value="{{ emplacement.Id }}">
-                                {{ emplacement.nom }}
+                                {{ emplacement.label }}
                             </option>
                         {% endfor %}
                     </select>
@@ -39,7 +39,7 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                <button class="btn" data-dismiss="modal">Annuler</button>
                 <button class="btn btn-primary btn-success save">Enregistrer</button>
             </div>
         </div>

@@ -21,17 +21,7 @@ class Emplacement
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $nom;
-
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Articles", mappedBy="direction")
-     */
-    private $articles;
-
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Articles", mappedBy="position")
-     */
-    private $position;
+    private $label;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Livraison", mappedBy="destination")
@@ -39,7 +29,7 @@ class Emplacement
     private $livraisons;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Demande", mappedBy="destination")
+     * @ORM\OneToMany(targetEntity="App\Entity\Demande", mappedBy="destination")%%
      */
     private $demandes;
 
@@ -53,6 +43,11 @@ class Emplacement
      */
     private $description;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Mouvement", mappedBy="emplacement")
+     */
+    private $mouvements;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
@@ -60,93 +55,32 @@ class Emplacement
         $this->livraisons = new ArrayCollection();
         $this->demandes = new ArrayCollection();
         $this->collectes = new ArrayCollection();
+        $this->mouvements = new ArrayCollection();
     }
 
-    public function getId(): ?int
+    public function getId(): ? int
     {
         return $this->id;
     }
 
-    public function getNom(): ?string
+    public function getLabel(): ? string
     {
-        return $this->nom;
+        return $this->label;
     }
 
-    public function setNom(?string $nom): self
+    public function setLabel(? string $label): self
     {
-        $this->nom = $nom;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|Articles[]
-     */
-    public function getArticles(): Collection
-    {
-        return $this->articles;
-    }
-
-    public function addArticle(Articles $article): self
-    {
-        if (!$this->articles->contains($article)) {
-            $this->articles[] = $article;
-            $article->setDirection($this);
-        }
-
-        return $this;
-    }
-
-    public function removeArticle(Articles $article): self
-    {
-        if ($this->articles->contains($article)) {
-            $this->articles->removeElement($article);
-            // set the owning side to null (unless already changed)
-            if ($article->getDirection() === $this) {
-                $article->setDirection(null);
-            }
-        }
+        $this->label = $label;
 
         return $this;
     }
 
     public function __toString()
     {
-        return $this->nom;
+        return $this->label;
     }
 
     /**
-     * @return Collection|Articles[]
-     */
-    public function getPosition(): Collection
-    {
-        return $this->position;
-    }
-
-    public function addPosition(Articles $position): self
-    {
-        if (!$this->position->contains($position)) {
-            $this->position[] = $position;
-            $position->setPosition($this);
-        }
-
-        return $this;
-    }
-
-    public function removePosition(Articles $position): self
-    {
-        if ($this->position->contains($position)) {
-            $this->position->removeElement($position);
-            // set the owning side to null (unless already changed)
-            if ($position->getPosition() === $this) {
-                $position->setPosition(null);
-            }
-        }
-
-        return $this;
-    }
-
-        /**
      * @return Collection|Livraison[]
      */
     public function getLivraisons(): Collection
@@ -208,12 +142,12 @@ class Emplacement
         return $this;
     }
 
-    public function getDescription(): ?string
+    public function getDescription(): ? string
     {
         return $this->description;
     }
 
-    public function setDescription(?string $description): self
+    public function setDescription(? string $description): self
     {
         $this->description = $description;
 
@@ -245,6 +179,37 @@ class Emplacement
             // set the owning side to null (unless already changed)
             if ($collecte->getPointCollecte() === $this) {
                 $collecte->setPointCollecte(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Mouvement[]
+     */
+    public function getMouvements(): Collection
+    {
+        return $this->mouvements;
+    }
+
+    public function addMouvement(Mouvement $mouvement): self
+    {
+        if (!$this->mouvements->contains($mouvement)) {
+            $this->mouvements[] = $mouvement;
+            $mouvement->setEmplacement($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMouvement(Mouvement $mouvement): self
+    {
+        if ($this->mouvements->contains($mouvement)) {
+            $this->mouvements->removeElement($mouvement);
+            // set the owning side to null (unless already changed)
+            if ($mouvement->getEmplacement() === $this) {
+                $mouvement->setEmplacement(null);
             }
         }
 

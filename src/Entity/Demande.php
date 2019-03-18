@@ -11,6 +11,11 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Demande
 {
+    const CATEGORIE = 'demande';
+    const STATUT_EN_COURS = 'en cours';
+    const STATUT_A_TRAITER = 'à traiter';
+    const STATUT_TERMINEE = 'terminée';
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
@@ -29,7 +34,7 @@ class Demande
     private $destination;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateurs", inversedBy="demandes")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="demandes")
      */
     private $utilisateur;
 
@@ -39,7 +44,7 @@ class Demande
     private $date;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Articles", inversedBy="demandes")
+     * @ORM\ManyToMany(targetEntity="App\Entity\Article", inversedBy="demandes")
      */
     private $articles;
 
@@ -54,7 +59,7 @@ class Demande
     private $livraison;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Statuts", inversedBy="demandes")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="demandes")
      */
     private $Statut;
 
@@ -64,13 +69,14 @@ class Demande
     private $DateAttendu;
 
     /**
-     * @ORM\Column(type="json_array", nullable=true)
+     * @ORM\OneToMany(targetEntity="App\Entity\LigneArticle", mappedBy="demande")
      */
-    private $LigneArticle;
+    private $ligneArticle;
 
     public function __construct()
     {
         $this->articles = new ArrayCollection();
+        $this->ligneArticle = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -102,12 +108,12 @@ class Demande
         return $this;
     }
 
-    public function getUtilisateur(): ?Utilisateurs
+    public function getUtilisateur(): ?Utilisateur
     {
         return $this->utilisateur;
     }
 
-    public function setUtilisateur(?Utilisateurs $utilisateur): self
+    public function setUtilisateur(?Utilisateur $utilisateur): self
     {
         $this->utilisateur = $utilisateur;
 
@@ -132,14 +138,14 @@ class Demande
     }
 
     /**
-     * @return Collection|Articles[]
+     * @return Collection|Article[]
      */
     public function getArticles(): Collection
     {
         return $this->articles;
     }
 
-    public function addArticle(Articles $article): self
+    public function addArticle(Article $article): self
     {
         if (!$this->articles->contains($article)) {
             $this->articles[] = $article;
@@ -148,7 +154,7 @@ class Demande
         return $this;
     }
 
-    public function removeArticle(Articles $article): self
+    public function removeArticle(Article $article): self
     {
         if ($this->articles->contains($article)) {
             $this->articles->removeElement($article);
@@ -181,12 +187,12 @@ class Demande
         return $this;
     }
 
-    public function getStatut(): ?Statuts
+    public function getStatut(): ?Statut
     {
         return $this->Statut;
     }
 
-    public function setStatut(?Statuts $Statut): self
+    public function setStatut(?Statut $Statut): self
     {
         $this->Statut = $Statut;
 
@@ -205,22 +211,36 @@ class Demande
         return $this;
     }
 
-    public function getLigneArticle()
+    /**
+     * @return Collection|LigneArticle[]
+     */
+    public function getLigneArticle(): Collection
     {
-        return $this->LigneArticle;
+        return $this->ligneArticle;
     }
 
-    public function addLigneArticle($LigneArticle): self
+    public function addLigneArticle(LigneArticle $ligneArticle): self
     {
-        $this->LigneArticle[] = $LigneArticle;
+        if (!$this->ligneArticle->contains($ligneArticle)) {
+            $this->ligneArticle[] = $ligneArticle;
+            $ligneArticle->setDemande($this);
+        }
 
         return $this;
     }
 
-    public function setLigneArticle($LigneArticle): self
+    public function removeLigneArticle(LigneArticle $ligneArticle): self
     {
-        $this->LigneArticle = $LigneArticle;
+        if ($this->ligneArticle->contains($ligneArticle)) {
+            $this->ligneArticle->removeElement($ligneArticle);
+            // set the owning side to null (unless already changed)
+            if ($ligneArticle->getDemande() === $this) {
+                $ligneArticle->setDemande(null);
+            }
+        }
 
         return $this;
     }
+
+
 }

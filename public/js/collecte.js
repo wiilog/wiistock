@@ -83,7 +83,6 @@ function deleteRow(button) {
         articleId: articleId,
         collecteId: collecteId
     };
-
     $.post("/collecte/retirer-article", params, function(data) {
         if (data === true) {
             $('#table-list-articles').DataTable().row(row).remove().draw();
@@ -113,7 +112,7 @@ function modifyArticle(button) {
         quantity: quantity
     };
 
-    $.post("/articles/modifier-quantite", params, function() {
+    $.post("/article/modifier-quantite", params, function() {
         //TODO CG edit row datatable
     });
 }

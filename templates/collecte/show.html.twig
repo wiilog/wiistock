@@ -10,7 +10,7 @@
             <h1>Demande de collecte n° {{ collecte.numero }}</h1>
         </div>
         <div class="col-6 p-3">
-            <button type="button" class="button button-danger pull-right btn-left" data-toggle="modal" data-target="#modalDeleteCollecte">Supprimer</button>
+            <button type="button" class="btn btn-danger pull-right" data-toggle="modal" data-target="#modalDeleteCollecte">Supprimer</button>
         </div>
 
     </div>
@@ -39,8 +39,8 @@
 
     <div class='row' >
         <div class="col-2 offset-10 text-right">
-            <a href="" data-toggle="modal" data-target="#modalAddArticle" class="button btn-left" id="addRow">
-                <span class="fa fa-plus"></span>Ajouter un article
+            <a href="" data-toggle="modal" data-target="#modalAddArticle" class="btn btn-primary" id="addRow">
+                <span class="fa fa-plus mr-2"></span>Ajouter un article
             </a>
         </div>
     </div>
@@ -50,7 +50,7 @@
         <tr>
             <th>Nom</th>
             <th>Statut</th>
-            <th>Références Articles</th>
+            <th>Référence Article</th>
             <th>Emplacement</th>
             <th>Destination</th>
             <th>Quantité à collecter</th>
@@ -58,7 +58,7 @@
         </tr>
         </thead>
         <tbody>
-        {#{% for article in collecte.articles |reverse %}#}
+        {#{% for article in collecte.article |reverse %}#}
         {#<form action="{{ path('collecte_show', {'id': collecte.id}) }}"  method="post">#}
         {#<tr>#}
         {#<td>{{ article.nom }}</td>#}
@@ -88,7 +88,7 @@
         {#{% endfor %}#}
         </tbody>
     </table>
-    <a href="{{ path('collecte_index') }}" class='button pull-left btn-left'> Retour</a>
+    <a href="{{ path('collecte_index') }}" class='btn float-left'>Retour</a>
     {{ include('collecte/modalAddArticle.html.twig') }}
     {{ include('collecte/modalDeleteCollecte.html.twig') }}
     {{ include('collecte/modalModifyArticle.html.twig') }}
@@ -124,20 +124,21 @@ $('#modalModifyArticle').find('.save').on('click', function() {
     modifyArticle($(this));
 });
 
+var path = Routing.generate('articles_by_collecte');
 $('#table-list-articles').DataTable({
     "language": {
         "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json",
     },
     "pageLength": 5,
     "ajax":{
-        "url":"{{path('articles_by_collecte')}}",
+        "url": path,
         "data" : { collecteId: {{ collecte.id }} },
         "type": "POST"
     },
     columns: [
         { "data": 'Nom' },
         { "data": 'Statut' },
-        { "data": 'Références Articles' },
+        { "data": 'Référence Article' },
         { "data": 'Emplacement' },
         { "data": 'Destination' },
         { "data": 'Quantité à collecter' },

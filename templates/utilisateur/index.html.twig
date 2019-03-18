@@ -1,0 +1,54 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Paramétrage utilisateurs{% endblock %}
+
+{% block page_content %}
+
+<div>
+    <form method="POST" name="role">
+        <div class="row">
+            <div class="col-12 mb-2 errorMessage">
+
+            </div>
+            <div class="col-12">
+                    <button type="submit" class="button btn">
+                        Actualiser les rôles<i class="fas fa-check ml-2"></i>
+                    </button>
+
+                <div data-toggle="modal" data-target="#modalNewUser" class="button btn">
+                    <span class="fa fa-plus"></span>Nouvel utilisateur
+                </div>
+            </div>
+            <div class="col-12">
+                <table id="tableUser_id" class="table table-striped table-bordered" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>Nom d'utilisateur</th>
+                            <th>Email</th>
+                            <th>Dernière connexion</th>
+                            <th>Rôle</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="actionsSecondaires">
+
+</div>
+
+{% include "utilisateur/modalDeleteUser.html.twig" %}
+{% include "utilisateur/modalNewUser.html.twig" %}
+
+{% endblock %}
+
+{% block javascript %}
+<script src="{{asset('js/utilisateur.js')}}"></script>
+
+{% endblock %}

@@ -1,0 +1,71 @@
+<form method="" class="modal fade" id="modalNewRefArticle" role="dialog" aria-labelledby="dataModalCenterTitle"
+    aria-hidden="true">
+    <div class="modal-dialog  modal-xl modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Créer un article de référence</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body modal-input container-fluid row">
+
+                <div class="form-group col-6">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <label class="input-group-text" for="inputGroupSelect01">Libellé</label>
+                        </div>
+                        <input class="form-control data" type="text" name="libelle" id="libelle">
+                    </div>
+                </div>
+                <div class="form-group col-6">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <label class="input-group-text" for="inputGroupSelect01">Référence</label>
+                        </div>
+                        <input class="form-control data" type="text" name="reference" id="reference">
+                    </div>
+                </div>
+                <div class="form-group col-12">
+                    <div class="nav nav-tabs myTab" id="myTab" role="tablist">
+                        {% for type in types %}
+                        <button class="nav-link" name='type' value='{{type.id}}' id='{{type.label}}-tab'
+                            data-toggle="tab" href="#{{type.label}}" role="tab" aria-controls={{type.label}}
+                            aria-selected="true">{{type.label}}</button>
+                        {% endfor %}
+                    </div>
+                    <div class="tab-content" id="myTabContent">
+                        {% for type in types %}
+                        <div class="tab-pane fade show" id="{{type.label}}" role="tabpanel"
+                            aria-labelledby="{{type.label}}-tab">
+                            <div class="row">
+                                {% for champ in type.champsLibres %}
+                                <div class="form-group col-6">
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <label class="input-group-text"
+                                                for="inputGroupSelect01">{{champ.label}}</label>
+                                        </div>
+                                        {% if champ.typage == 'booleen' %}
+                                        <input type="checkbox" class="form-control data" name="{{champ.id}}">
+                                        {% elseif champ.typage == 'number' %}
+                                        <input type="number" class="form-control data" value="{{champ.defaultValue}}" name="{{champ.id}}">
+                                        {% else %}
+                                        <input class="form-control data" type="text"  value="{{champ.defaultValue}}" name='{{ champ.id }}'>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+                    <button id="submitNewRefArticle" data-dismiss="modal"
+                        class="btn btn-primary btn-success ">Enregistrer</button>
+                </div>
+            </div>
+        </div>
+</form>
