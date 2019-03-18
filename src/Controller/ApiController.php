@@ -90,12 +90,14 @@ class ApiController extends FOSRestController implements ClassResourceInterface
             $response->headers->set('Access-Control-Allow-Origin', '*');
             $response->headers->set('Access-Control-Allow-Methods', 'POST, GET');
 
-            if ($this->checkLoginPassword($data)) {
-//                $apiKey = $this->apiKeyGenerator(); //TODO
-                $apiKey ='366d041c57996ffcc2324ef3f939717d';
+            $user = $this->utilisateurRepository->findOneBy(['username' => $data['login']]);
+            $this->successData = $user; //TODO
 
-                $user = $this->utilisateurRepository->findOneBy(['username' => $data['login']]);
-                if ($user !== null) {
+            if ($user !== null) {
+                if ($this->passwordEncoder->isPasswordValid($user, $data['password'])) {
+//                $apiKey = $this->apiKeyGenerator(); //TODO
+                    $apiKey ='366d041c57996ffcc2324ef3f939717d';
+
                     $user->setApiKey($apiKey);
                     $em = $this->getDoctrine()->getManager();
                     $em->flush();
@@ -136,24 +138,6 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         } else {
             return new JsonResponse($this->successData);
         }
-    }
-
-    /**
-     * @param array $data
-     * @return bool
-     */
-    private function checkLoginPassword($data)
-    {
-        $login = $data['login'];
-        $password = $data['password'];
-        $user = $this->utilisateurRepository->findOneBy(['username' => $login]);
-
-        if ($user !== null) {
-            $match = $this->passwordEncoder->isPasswordValid($user, $password);
-        } else {
-            $match = false;
-        }
-        return $match;
     }
 
     private function getData()
