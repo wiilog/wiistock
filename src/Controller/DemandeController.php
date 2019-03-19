@@ -276,7 +276,7 @@ class DemandeController extends AbstractController
             $demande = $this->demandeRepository->find($data['demande']);
             $demande
                 ->setUtilisateur($utilisateur)
-                ->setDateAttendu(new \DateTime($data['dateAttendu']))
+                // ->setDateAttendu(new \DateTime($data['dateAttendu']))
                 ->setDestination($emplacement);
             $em = $this->getDoctrine()->getEntityManager();
             $em->flush();
