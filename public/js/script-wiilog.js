@@ -26,8 +26,7 @@ function InitialiserModal(modal, submit, path, table) {
                         $('#myInput').val(json.lastInput);
                         if (data.redirect) {
                             window.location.href = data.redirect;
-                        }
-                    }
+                        }                    }
                 });
             }
         };
