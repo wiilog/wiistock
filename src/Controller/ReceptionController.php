@@ -110,7 +110,7 @@ class ReceptionController extends AbstractController
                 $data = [
                     "redirect" => $this->generateUrl('reception_ajout_article', ['id' => $reception->getId(), 'finishReception' => "0"])
                 ];
-                
+                dump($data);
                 return new JsonResponse($data);
             }
         }

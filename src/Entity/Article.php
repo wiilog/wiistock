@@ -59,11 +59,6 @@ class Article
     private $commentaire;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Demande", mappedBy="articles")
-     */
-    private $demandes;
-
-    /**
      * @ORM\ManyToMany(targetEntity="App\Entity\Collecte", mappedBy="articles")
      */
     private $collectes;
@@ -98,11 +93,15 @@ class Article
      */
     private $mouvements;
 
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\Preparation", mappedBy="article")
+     */
+    private $preparations;
+
     
     public function __construct()
     {
         $this->preparations = new ArrayCollection();
-        $this->demandes = new ArrayCollection();
         $this->collectes = new ArrayCollection();
         $this->mouvements = new ArrayCollection();
     }
@@ -173,34 +172,6 @@ class Article
     public function setCommentaire(?string $commentaire): self
     {
         $this->commentaire = $commentaire;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|Demande[]
-     */
-    public function getDemandes(): Collection
-    {
-        return $this->demandes;
-    }
-
-    public function addDemande(Demande $demande): self
-    {
-        if (!$this->demandes->contains($demande)) {
-            $this->demandes[] = $demande;
-            $demande->addArticle($this);
-        }
-
-        return $this;
-    }
-
-    public function removeDemande(Demande $demande): self
-    {
-        if ($this->demandes->contains($demande)) {
-            $this->demandes->removeElement($demande);
-            $demande->removeArticle($this);
-        }
 
         return $this;
     }
@@ -316,6 +287,34 @@ class Article
         if ($this->mouvements->contains($mouvement)) {
             $this->mouvements->removeElement($mouvement);
             $mouvement->removeArticle($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Preparation[]
+     */
+    public function getPreparations(): Collection
+    {
+        return $this->preparations;
+    }
+
+    public function addPreparation(Preparation $preparation): self
+    {
+        if (!$this->preparations->contains($preparation)) {
+            $this->preparations[] = $preparation;
+            $preparation->addArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removePreparation(Preparation $preparation): self
+    {
+        if ($this->preparations->contains($preparation)) {
+            $this->preparations->removeElement($preparation);
+            $preparation->removeArticle($this);
         }
 
         return $this;

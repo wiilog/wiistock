@@ -91,6 +91,18 @@ class ArticleRepository extends ServiceEntityRepository
         )->setParameter('id', $id);
         return $query->getResult(); 
     }
+    public function getByPreparation($id)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT a
+            FROM App\Entity\Article a
+            JOIN a.preparations p
+            WHERE p.id =:id
+            "
+        )->setParameter('id', $id);
+        return $query->getResult(); 
+    }
 
 //    // Creation des preparations
 //    public function findByRefAndConfAndStock($refArticle)
