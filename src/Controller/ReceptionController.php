@@ -87,32 +87,36 @@ class ReceptionController extends AbstractController
     {
         if ($data = json_decode($request->getContent(), true)) //Si data est attribuée
             {
-                if (count($data) != 5) // On regarde si le nombre de données reçu est conforme et on envoi dans la base
-                    {
-                        $fournisseur = $this->fournisseurRepository->find(intval($data['fournisseur']));
-                        $utilisateur = $this->utilisateurRepository->find(intval($data['utilisateur']));
+                $fournisseur = $this->fournisseurRepository->find(intval($data['fournisseur']));
+                $reception = new Reception();
 
-                        $reception = new Reception();
-                        $statut = $this->statutRepository->find(1); // L'id correspondant au statut En cours de réception
-                        $reception
-                            ->setStatut($statut)
-                            ->setNumeroReception($data['NumeroReception'])
-                            ->setDate(new \DateTime($data['date-commande']))
-                            ->setDateAttendu(new \DateTime($data['date-attendu']))
-                            ->setFournisseur($fournisseur)
-                            ->setUtilisateur($utilisateur)
-                            ->setCommentaire($data['commentaire']);
+                if ($data['anomalie'] == true) { //TODO CG debug ici
+                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_ANOMALIE);
+                } else {
+                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_EN_ATTENTE);
+                }
 
-                        $em = $this->getDoctrine()->getManager();
-                        $em->persist($reception);
-                        $em->flush();
+                $date = new \DateTime('now');
+                $numeroReception = 'R' . $date->format('ymd-His'); //TODO CG ajouter numéro
 
-                        $data = [
-                            "redirect" => $this->generateUrl('reception_ajout_article', ['id' => $reception->getId(), 'finishReception' => "0"])
-                        ];
-                        dump($data);
-                        return new JsonResponse($data);
-                    }
+                $reception
+                    ->setStatut($statut)
+                    ->setNumeroReception($numeroReception)
+                    ->setDate(new \DateTime($data['date-commande']))
+                    ->setDateAttendu(new \DateTime($data['date-attendu']))
+                    ->setFournisseur($fournisseur)
+                    ->setReference($data['reference'])
+                    ->setUtilisateur($this->getUser())
+                    ->setCommentaire($data['commentaire']);
+
+                $em = $this->getDoctrine()->getManager();
+                $em->persist($reception);
+                $em->flush();
+
+                $data = [
+                    "redirect" => $this->generateUrl('reception_ajout_article', ['id' => $reception->getId(), 'finishReception' => "0"])
+                ];
+                return new JsonResponse($data);
             }
 
         throw new NotFoundHttpException("404");
@@ -404,7 +408,7 @@ class ReceptionController extends AbstractController
     public function finReception(Reception $reception): Response
     {
 
-        $statut = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::TERMINE);
+        $statut = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_RECEPTION_TOTALE);
         $reception->setStatut($statut);
         $reception->setDateReception(new \DateTime('now'));
         $this->getDoctrine()->getManager()->flush();

@@ -19,7 +19,7 @@ var table = $('#tableReception_id').DataTable({
     ],
 });
 
-let modalReceptionNew = $("#dataModalCenter");
+let modalReceptionNew = $("#modalNewReception");
 let SubmitNewReception = $("#submitButton");
 let urlReceptionIndex = Routing.generate('createReception', true)
 InitialiserModal(modalReceptionNew, SubmitNewReception, urlReceptionIndex, table);

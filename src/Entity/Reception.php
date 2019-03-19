@@ -12,8 +12,10 @@ use Doctrine\ORM\Mapping as ORM;
 class Reception
 {
     const CATEGORIE = 'reception';
-    const STATUT_EN_COURS = 'en cours de réception';
-    const TERMINE = 'terminée';
+    const STATUT_EN_ATTENTE = 'en attente de réception';
+    const STATUT_RECEPTION_PARTIELLE = 'réception partielle';
+    const STATUT_RECEPTION_TOTALE = 'réception totale';
+    const STATUT_ANOMALIE = 'anomalie';
 
     /**
      * @ORM\Id()
@@ -66,6 +68,11 @@ class Reception
      * @ORM\Column(type="datetime", nullable=true)
      */
     private $dateReception;
+
+    /**
+     * @ORM\Column(type="string", nullable=true)
+     */
+    private $reference;
     
 
     public function __construct()
@@ -207,6 +214,18 @@ class Reception
     public function setDateReception(?\DateTimeInterface $dateReception): self
     {
         $this->dateReception = $dateReception;
+
+        return $this;
+    }
+
+    public function getReference(): ?string
+    {
+        return $this->reference;
+    }
+
+    public function setReference(?string $reference): self
+    {
+        $this->reference = $reference;
 
         return $this;
     }
