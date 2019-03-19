@@ -87,32 +87,27 @@ class ReceptionController extends AbstractController
     {
         if ($data = json_decode($request->getContent(), true)) //Si data est attribuée
             {
-                if (count($data) != 5) // On regarde si le nombre de données reçu est conforme et on envoi dans la base
-                    {
-                        $fournisseur = $this->fournisseurRepository->find(intval($data['fournisseur']));
-                        $utilisateur = $this->utilisateurRepository->find(intval($data['utilisateur']));
+                $fournisseur = $this->fournisseurRepository->find(intval($data['fournisseur']));
 
-                        $reception = new Reception();
-                        $statut = $this->statutRepository->find(1); // L'id correspondant au statut En cours de réception
-                        $reception
-                            ->setStatut($statut)
-                            ->setNumeroReception($data['NumeroReception'])
-                            ->setDate(new \DateTime($data['date-commande']))
-                            ->setDateAttendu(new \DateTime($data['date-attendu']))
-                            ->setFournisseur($fournisseur)
-                            ->setUtilisateur($utilisateur)
-                            ->setCommentaire($data['commentaire']);
+                $reception = new Reception();
+                $statut = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_EN_COURS);
+                $reception
+                    ->setStatut($statut)
+                    ->setNumeroReception($data['NumeroReception'])
+                    ->setDate(new \DateTime($data['date-commande']))
+                    ->setDateAttendu(new \DateTime($data['date-attendu']))
+                    ->setFournisseur($fournisseur)
+                    ->setUtilisateur($this->getUser())
+                    ->setCommentaire($data['commentaire']);
 
-                        $em = $this->getDoctrine()->getManager();
-                        $em->persist($reception);
-                        $em->flush();
+                $em = $this->getDoctrine()->getManager();
+                $em->persist($reception);
+                $em->flush();
 
-                        $data = [
-                            "redirect" => $this->generateUrl('reception_ajout_article', ['id' => $reception->getId(), 'finishReception' => "0"])
-                        ];
-                        dump($data);
-                        return new JsonResponse($data);
-                    }
+                $data = [
+                    "redirect" => $this->generateUrl('reception_ajout_article', ['id' => $reception->getId(), 'finishReception' => "0"])
+                ];
+                return new JsonResponse($data);
             }
 
         throw new NotFoundHttpException("404");

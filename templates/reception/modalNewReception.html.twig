@@ -1,6 +1,6 @@
 <!-- Modal -->
-<form method="" class="modal fade" id="dataModalCenter" role="dialog" aria-labelledby="dataModalCenterTitle"
-aria-hidden="true">
+<form method="" class="modal fade" id="modalNewReception" role="dialog" aria-labelledby="dataModalCenterTitle"
+      aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -10,10 +10,10 @@ aria-hidden="true">
                 </button>
             </div>
             <div class="modal-body modal-input container-fluid">
-                    <div class="form-group">
-                        <label for="NumeroReception">Numéro Réception</label>
-                        <input type="text" class="form-control data" name="NumeroReception" placeholder="N°Reception">
-                    </div>
+                    {#<div class="form-group">#}
+                        {#<label for="NumeroReception">Numéro Réception</label>#}
+                        {#<input type="text" class="form-control data" name="NumeroReception" placeholder="N°Reception">#}
+                    {#</div>#}
         
                     <div class="form-group">
                         <label for="date-commande">Date commande</label>
@@ -33,16 +33,7 @@ aria-hidden="true">
                             {% endfor %}
                         </select>
                     </div>
-        
-                    <div class="form-group">
-                    <label for="utilisateur">Utilisateur</label>
-                        <select class="form-control select2 data" name="utilisateur">
-                            {% for utilisateur in utilisateurs %}
-                                <option value="{{ utilisateur.id }}">{{ utilisateur.username }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-        
+
                     <div class="form-group">
                         <label for="NumeroReception">Commentaire</label>
                         <input type="text" class="form-control data" name="commentaire" placeholder="Commentaire">

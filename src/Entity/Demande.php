@@ -56,7 +56,7 @@ class Demande
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="demandes")
      */
-    private $Statut;
+    private $statut;
 
 //    /**
 //     * @ORM\Column(type="datetime", nullable=true)
@@ -114,11 +114,6 @@ class Demande
         return $this;
     }
 
-    public function __toString()
-    {
-        return $this->statut;
-    }
-
     public function getDate(): ?\DateTimeInterface
     {
         return $this->date;
@@ -157,12 +152,12 @@ class Demande
 
     public function getStatut(): ?Statut
     {
-        return $this->Statut;
+        return $this->statut;
     }
 
-    public function setStatut(?Statut $Statut): self
+    public function setStatut(?Statut $statut): self
     {
-        $this->Statut = $Statut;
+        $this->statut = $statut;
 
         return $this;
     }

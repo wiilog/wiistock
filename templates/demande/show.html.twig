@@ -12,7 +12,7 @@
     <div class="col-3">
         <p>Demandeur : {{ demande.utilisateur ? demande.utilisateur : '' }}</p>
         <p>Disponibilité des articles : Oui/Non</p>
-        <p>Date attendue : {{ demande.DateAttendu ? demande.DateAttendu | date("d/m/Y") : "" }}</p>
+        {#<p>Date attendue : {{ demande.DateAttendu ? demande.DateAttendu | date("d/m/Y") : "" }}</p>#}
         <p>Destination : {{ demande.destination ? demande.destination.label : "" }}</p>
     </div>
 
