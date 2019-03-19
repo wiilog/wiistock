@@ -94,8 +94,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 
             if ($user !== null) {
                 if ($this->passwordEncoder->isPasswordValid($user, $data['password'])) {
-//                $apiKey = $this->apiKeyGenerator(); //TODO
-                    $apiKey ='366d041c57996ffcc2324ef3f939717d';
+                    $apiKey = $this->apiKeyGenerator();
 
                     $user->setApiKey($apiKey);
                     $em = $this->getDoctrine()->getManager();
