@@ -76,7 +76,7 @@ class UtilisateurController extends Controller
             if ($password === $data['password2']) {
                 if (strlen($password) < 8) {
                     $Data = "Mot de passe trop court(8 caratères minimun)!";
-                } elseif (preg_match('#^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*\W).{6,}$#', $password)) {
+                } elseif (preg_match('#^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*\@W).{6,}$#', $password)) {
                     $Data = 'mot de passe non conforme (une majuscule, un chiffre, un caractère spéciale)';
                 } else {
                     $passwordOk = true;
@@ -98,7 +98,7 @@ class UtilisateurController extends Controller
                 $em->flush();
                 $Data = 'nouvelle utilisateur créé';
                 $class = 'messageContent';
-            } else {
+            } else if($userExiste !== '0') {
                 $Data = "erreur dans le formulaire, l'adresse email est déjà utilisé";
             }
             $json =  $this->renderView(
