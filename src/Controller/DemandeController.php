@@ -362,7 +362,7 @@ class DemandeController extends AbstractController
                         "Numéro" => ($demande->getNumero() ? $demande->getNumero() : ''),
                         "Statut" => ($demande->getStatut()->getNom() ? $demande->getStatut()->getNom() : ''),
                         'Actions' => $this->renderView(
-                            'demande/datatabledemandeRow.html.twig',
+                            'demande/datatableDemandeRow.html.twig',
                             [
                                 'idDemande' => $idDemande,
                                 'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_A_TRAITER) ? true : false),
