@@ -23,6 +23,11 @@
                 <span class="fa fa-plus"></span>ajouter un article
             </a>
         </div>
+        <div class="container-fluid">
+            <a class="btn button"
+                href="{{ path('reception_fin', {'id': id}) }}">Fin
+                réception</a>
+        </div>
         {# <div class='btn btn-xs btn-default' onclick=' printerAll()' data-toggle='modal'
             onclick='generatorBarCode($(this))'>
             <i class="fas fa-print"></i> Imprimer les étiquettes
@@ -43,11 +48,7 @@
 
     </tbody>
 </table>
-<div class="container-fluid">
-    <a class="btn offset-5 col-2 button btn-right"
-        href="{{ path('reception_ajout_article', {'id': id, 'finishReception': true}) }}">Fin
-        réception</a>
-</div>
+
 
 <div class="d-none">
     <img id="barcode" />
@@ -55,6 +56,7 @@
 
 
 {% include "reception/modalDeleteReception.html.twig" %}
+{% include "reception/modalModifyArticle.html.twig" %}
 {% include "reception/modalDeleteArticle.html.twig" %}
 {% include "reception/addArticleModal.html.twig" %}
 

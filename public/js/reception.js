@@ -65,6 +65,11 @@ let submitDeleteArticle = $("#submitDeleteArticle");
 let urlDeleteArticle = Routing.generate('reception_article_delete', true);
 InitialiserModal(modalDeleteArticle, submitDeleteArticle, urlDeleteArticle, tableArticle);
 
+let modalEditArticle = $("#modalEditArticle");
+let submitEditArticle = $("#submitEditArticle");
+let urlEditArticle = Routing.generate('reception_article_edit', true);
+InitialiserModal(modalEditArticle, submitEditArticle, urlEditArticle, tableArticle);
+
 //GENERATOR BARCODE
 
 let printBarcode = function (button) {
