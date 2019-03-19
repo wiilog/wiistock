@@ -68,23 +68,24 @@ class UtilisateurController extends Controller
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $ut[] = $data['role'];
-            $userExiste = $this->utilisateurRepository->countByEmail($data['email']);
             $password = $data['password'];
             $passwordOk = false;
             $class = 'errorMessageContent';
-
+            $Data =''; 
+            
             if ($password === $data['password2']) {
                 if (strlen($password) < 8) {
-                    $data = "Mot de passe trop court(8 caratères minimun)!";
+                    $Data = "Mot de passe trop court(8 caratères minimun)!";
                 } elseif (preg_match('#^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*\W).{6,}$#', $password)) {
-                    $data = 'mot de passe non conforme (une majuscule, un chiffre, un caractère spéciale)';
+                    $Data = 'mot de passe non conforme (une majuscule, un chiffre, un caractère spéciale)';
                 } else {
                     $passwordOk = true;
                 }
             } else {
-                $data = "mot de passe incorrecte";
+                $Data = "mot de passe incorrecte";
             }
-            if ($userExiste === '0' && $passwordOk === true) {
+            $userExiste = $this->utilisateurRepository->countByEmail($data['email']);
+            if ($userExiste === "0" && $passwordOk === true) {
                 $utilisateur = new Utilisateur();
                 $password = $passwordEncoder->encodePassword($utilisateur, $data['password']);
                 $utilisateur
@@ -95,15 +96,15 @@ class UtilisateurController extends Controller
                 $em = $this->getDoctrine()->getManager();
                 $em->persist($utilisateur);
                 $em->flush();
-                $data = 'nouvelle utilisateur créé';
+                $Data = 'nouvelle utilisateur créé';
                 $class = 'messageContent';
             } else {
-                $data = "erreur dans le formulaire, l'adresse email est déjà utilisé";
+                $Data = "erreur dans le formulaire, l'adresse email est déjà utilisé";
             }
             $json =  $this->renderView(
                 "utilisateur/errorMessage.html.twig",
                 [
-                    'data' => $data,
+                    'data' => $Data,
                     'class' => $class
                 ]
             );
