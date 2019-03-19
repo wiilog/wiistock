@@ -301,7 +301,7 @@ class DemandeController extends AbstractController
                 ->setStatut($statut)
                 ->setUtilisateur($utilisateur)
                 ->setdate($date)
-                ->setDateAttendu(new \DateTime($data['dateAttendu']))
+//                ->setDateAttendu(new \DateTime($data['dateAttendu']))
                 ->setDestination($destination)
                 ->setNumero("D-" . $date->format('YmdHis'));
             $em->persist($demande);
@@ -357,7 +357,7 @@ class DemandeController extends AbstractController
                 $rows[] =
                     [
                         "Date" => ($demande->getDate() ? $demande->getDate()->format('d-m-Y') : ''),
-                        "Date attendue" => ($demande->getDateAttendu() ? $demande->getDateAttendu()->format('d-m-Y') : ''),
+//                        "Date attendue" => ($demande->getDateAttendu() ? $demande->getDateAttendu()->format('d-m-Y') : ''),
                         "Demandeur" => ($demande->getUtilisateur()->getUsername() ? $demande->getUtilisateur()->getUsername() : ''),
                         "Numéro" => ($demande->getNumero() ? $demande->getNumero() : ''),
                         "Statut" => ($demande->getStatut()->getNom() ? $demande->getStatut()->getNom() : ''),

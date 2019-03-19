@@ -58,10 +58,10 @@ class Demande
      */
     private $Statut;
 
-    /**
-     * @ORM\Column(type="datetime", nullable=true)
-     */
-    private $DateAttendu;
+//    /**
+//     * @ORM\Column(type="datetime", nullable=true)
+//     */
+//    private $DateAttendu;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\LigneArticle", mappedBy="demande")
@@ -167,17 +167,17 @@ class Demande
         return $this;
     }
 
-    public function getDateAttendu(): ?\DateTimeInterface
-    {
-        return $this->DateAttendu;
-    }
-
-    public function setDateAttendu(?\DateTimeInterface $DateAttendu): self
-    {
-        $this->DateAttendu = $DateAttendu;
-
-        return $this;
-    }
+//    public function getDateAttendu(): ?\DateTimeInterface
+//    {
+//        return $this->DateAttendu;
+//    }
+//
+//    public function setDateAttendu(?\DateTimeInterface $DateAttendu): self
+//    {
+//        $this->DateAttendu = $DateAttendu;
+//
+//        return $this;
+//    }
 
     /**
      * @return Collection|LigneArticle[]

@@ -224,6 +224,10 @@ a:hover {
   font-size: .9rem;
 }
 
+.form-group .select2-container {
+  width: 100% !important;
+}
+
 .accueil-back {
   width: 100%;
   height: 100%;
