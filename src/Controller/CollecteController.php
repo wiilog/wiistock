@@ -67,21 +67,26 @@ class CollecteController extends AbstractController
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
         {
             $collectes = $this->collecteRepository->findAll();
-            dump($collectes);
+            
             $rows = [];
             foreach ($collectes as $collecte) {
-                $url = $this->generateUrl('collecte_ajout_article', ['id' => $collecte->getId(), 'finishCollecte'=>'0'] );
+                // $url = $this->generateUrl('collecte_ajout_article', ['id' => $collecte->getId(), 'finishCollecte'=>'0'] );
                 $rows[] =
                 [
                     'id' => $collecte->getId(),
-                    'Date' =>$collecte->getDate(),
-                    "Demandeur" => $collecte->getDemandeur(),
+                    'Date' =>$collecte->getDate()->format('d/m/Y'),
+                    "demandeur" => $collecte->getDemandeur()->getUsername(),
                     "Libellé" => $collecte->getObjet(),
-                    "Statut" => $collecte->getStatut(),
-                    'Actions' => $this->renderView('reception/datatableCollecteRow.html.twig', ['url' => $url, 'collecte' => $collecte]),
+                    "Statut" => $collecte->getStatut()->getNom(),
+                    'Actions' => $this->renderView('collecte/datatableCollecteRow.html.twig', [
+                        // 'url' => $url, 
+                        'collecte' => $collecte]),
+                        
                 ];
+                
             }
             $data['data'] = $rows;
+            dump($data);
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
@@ -93,50 +98,62 @@ class CollecteController extends AbstractController
      */
     public function index(Request $request): Response
     {
-        
-        return $this->render('collecte/index.html.twig', [
-              'emplacements'=>$this->emplacementRepository->findAll()
+             return $this->render('collecte/index.html.twig', [
+            
+              'emplacements'=>$this->emplacementRepository->findAll(),
+              'collecte'=>$this->collecteRepository->findAll(),
 //            'emplacements'=>$this->emplacementRepository->findBy(['nom' => 'dedans'])
         ]);
     }
 
     /**
-     * @Route("/creer", name="collecte_create", methods={"GET", "POST"})
+     * @Route("/creer", name="collecte_create", options={"expose"=true}, methods="GET|POST")
      */
     public function creation(Request $request): Response
     {
-        $demandeurId = $request->request->getInt('demandeur');
-        $objet = $request->request->get('objet');
-        $pointCollecteId = $request->request->getInt('pointCollecte');
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $em = $this->getDoctrine()->getEntityManager();
+            dump($data);
+            dump($request);
+            $demandeurId = $request->request->getInt('demandeur');
+            dump($demandeurId);
+        
+            $objet = $request->request->get('Objet');
+            $pointCollecteId = $request->request->getInt('PCollecte');
 
-        $date = new \DateTime('now');
-        $status = $this->statutRepository->findOneByNom(Collecte::STATUS_DEMANDE);
-        $numero = "C-". $date->format('YmdHis');
+            $date = new \DateTime('now');
+            $status = $this->statutRepository->findOneByNom(Collecte::STATUS_DEMANDE);
+            $numero = "C-". $date->format('YmdHis');
 
-        $collecte = new Collecte;
-        $collecte
-            ->setDemandeur($this->utilisateurRepository->find($demandeurId))
-            ->setNumero($numero)
-            ->setDate($date)
-            ->setStatut($status)
-            ->setPointCollecte($this->emplacementRepository->find($pointCollecteId))
-            ->setObjet($objet);
+            $collecte = new Collecte;
+            $collecte
+                ->setDemandeur($this->utilisateurRepository->find($demandeurId))
+                ->setNumero($numero)
+                ->setDate($date)
+                ->setStatut($status)
+                ->setPointCollecte($this->emplacementRepository->find($pointCollecteId))
+                ->setObjet($objet);
 
-        $em = $this->getDoctrine()->getManager();
-        $em->persist($collecte);
-        $em->flush();
+           
+            $em->persist($collecte);
+            $em->flush();
 
-        $url = $this->generateUrl('collecte_show', ['id' => $collecte->getId()]);
-        $data = [
-            'Date'=> ($collecte->getDate() ? $collecte->getDate()->format('d/m/Y') : null),
-            'Demandeur'=> ($collecte->getDemandeur() ? $collecte->getDemandeur()->getUserName() : null ),
-            'Libellé'=> ($collecte->getObjet() ? $collecte->getObjet() : null ),
-            'Statut'=> ($collecte->getStatut()->getNom() ? ucfirst($collecte->getStatut()->getNom()) : null),
-            'Actions' => $this->renderView('collecte/datatableCollecteRow.html.twig', ['url' => $url])
-        ];
-
-        return new JsonResponse($data);
+        // $url = $this->generateUrl('collecte_show', ['id' => $collecte->getId()]);
+        // $data = [
+        //     'Date'=> ($collecte->getDate() ? $collecte->getDate()->format('d/m/Y') : null),
+        //     'Demandeur'=> ($collecte->getDemandeur() ? $collecte->getDemandeur()->getUserName() : null ),
+        //     'Libellé'=> ($collecte->getObjet() ? $collecte->getObjet() : null ),
+        //     'Statut'=> ($collecte->getStatut()->getNom() ? ucfirst($collecte->getStatut()->getNom()) : null),
+        //     'Actions' => $this->renderView('collecte/datatableCollecteRow.html.twig', [
+        //         // 'url' => $url
+        //         ])
+        // ];
+       
+            return new JsonResponse($data);
+        }
+        throw new XmlHttpException("404 not found");
     }
+    
 
     /**
      * @Route("/ajouter-article", name="collecte_add_article")

@@ -1,5 +1,5 @@
 <!-- Modal -->
-<form method="" class="modal fade" id="dataModalCenter" role="dialog" aria-labelledby="dataModalCenterTitle"
+<form method="" class="modal fade" id="modalNewCollecte" role="dialog" aria-labelledby="dataModalCenterTitle"
     aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -11,8 +11,8 @@
             </div>
             <div class="modal-body modal-input container-fluid">
                 <div class="form-group">
-                    <label for="Demandeur">Demandeur</label>
-                    <select type="text" class="demandeur form-control data" name="Demandeur" disabled>
+                    <label for="demandeur">Demandeur</label>
+                    <select type="text" class="demandeur form-control data" name="demandeur" disabled>
                         <option value = "{{app.user.id}}">{{ app.user.username }}</option>
                     </select>
                 </div>
@@ -39,8 +39,8 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn" data-dismiss="modal">Annuler</button>
-                <button class="btn btn-primary btn-success save">Enregistrer</button>
+                <button type="button" class="btn" data-dismiss="modal">Annuler</button>
+                <button id="submitNewCollecte" type="button" data-dismiss="modal" class="btn btn-success">Enregistrer</button>
             </div>
         </div>
     </div>
