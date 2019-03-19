@@ -1,15 +1,14 @@
-<div data-id='{{ collecte.id }}' data-toggle='modal' data-target='#modalEditCollecte'
+<div data-id='{{ collecteId }}' data-toggle='modal' data-target='#modalEditCollecte'
     class='btn btn-xs btn-default command-edit'
     onclick="editRow($(this), Routing.generate('collecte_edit_api', true), $('#modalEditCollecte'), $('#submitEditCollecte'))">
     <i class='fas fa-pencil-alt'></i>
 </div>
 <div class='btn btn-xs btn-default collecte-delete'
     onclick="deleteRow($(this), $('#modalDeleteCollecte'), $('#submitDeleteCollecte'))" data-id='{{ collecte.id }}'
-    
     data-target='#modalDeleteCollecte' data-toggle='modal'>
     <i class='fas fa-trash'></i>
 </div>
 {#<a href='{{ url }}' class='btn btn-xs btn-default command-edit'>#}
-    <i class='fas fa-plus'></i>
-    Articles
+<i class='fas fa-plus'></i>
+Articles
 </a>

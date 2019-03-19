@@ -27,10 +27,10 @@ let urlDeleteCollecte = Routing.generate('collecte_delete', true)
 console.log(urlDeleteCollecte);
 InitialiserModal(modalDeleteCollecte, submitDeleteCollecte, urlDeleteCollecte, table);
 
-// let modalModifyCollecte = $('#modalEditCollecte');
-// let submitModifyCollecte = $('#submitEditCollecte');
-// let urlModifyCollecte = Routing.generate('collecte_edit', true);
-// InitialiserModal(modalModifyCollecte, submitModifyCollecte, urlModifyCollecte, table);
+let modalModifyCollecte = $('#modalEditCollecte');
+let submitModifyCollecte = $('#submitEditCollecte');
+let urlModifyCollecte = Routing.generate('collecte_edit', true);
+InitialiserModal(modalModifyCollecte, submitModifyCollecte, urlModifyCollecte, table);
 
 
 //AJOUTE_ARTICLE

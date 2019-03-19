@@ -71,16 +71,19 @@ class CollecteController extends AbstractController
             
             $rows = [];
             foreach ($collectes as $collecte) {
+                $url['edit'] = $this->generateUrl('collecte_edit', ['id' => $collecte->getId()] );
                 // $url = $this->generateUrl('collecte_ajout_article', ['id' => $collecte->getId(), 
                 // 'finishCollecte'=>'0'] );
                 $rows[] = [
+                    'id' => ($collecte->getId() ? $collecte->getId() : "Non défini"),
                     'Date'=> ($collecte->getDate() ? $collecte->getDate()->format('d/m/Y') : null),
                     'Demandeur'=> ($collecte->getDemandeur() ? $collecte->getDemandeur()->getUserName() : null ),
                     'Objet'=> ($collecte->getObjet() ? $collecte->getObjet() : null ),
                     'Statut'=> ($collecte->getStatut()->getNom() ? ucfirst($collecte->getStatut()->getNom()) : null),
                     'Actions' => $this->renderView('collecte/datatableCollecteRow.html.twig', [
-                        //'url' => $url,
-                        'collecte' => $collecte
+                        'url' => $url,
+                        'collecte' => $collecte,
+                        'collecteId'=>$collecte->getId()
                         ])
                         
                 ];
@@ -102,6 +105,7 @@ class CollecteController extends AbstractController
             
               'emplacements'=>$this->emplacementRepository->findAll(),
               'collecte'=>$this->collecteRepository->findAll(),
+              'statuts'=>$this->statutRepository->findAll(),
 //            'emplacements'=>$this->emplacementRepository->findBy(['nom' => 'dedans'])
         ]);
     }
@@ -148,60 +152,60 @@ class CollecteController extends AbstractController
     }
     
 
-    /**
-     * @Route("/ajouter-article", name="collecte_add_article")
-     */
-    public function addArticle(Request $request): Response
-    {
-        $articleId = $request->request->getInt('articleId');
-        $quantity = $request->request->getInt('quantity');
-        $collecteId = $request->request->getInt('collecteId');
+    // /**
+    //  * @Route("/ajouter-article", name="collecte_add_article")
+    //  */
+    // public function addArticle(Request $request): Response
+    // {
+    //     $articleId = $request->request->getInt('articleId');
+    //     $quantity = $request->request->getInt('quantity');
+    //     $collecteId = $request->request->getInt('collecteId');
 
-        $article = $this->articleRepository->find($articleId);
-        $collecte = $this->collecteRepository->find($collecteId);
+    //     $article = $this->articleRepository->find($articleId);
+    //     $collecte = $this->collecteRepository->find($collecteId);
 
-        $article
-            ->setQuantiteCollectee($quantity)
-            ->addCollecte($collecte);
+    //     $article
+    //         ->setQuantiteCollectee($quantity)
+    //         ->addCollecte($collecte);
 
-        $em = $this->getDoctrine()->getManager();
-        $em->persist($article);
-        $em->flush();
+    //     $em = $this->getDoctrine()->getManager();
+    //     $em->persist($article);
+    //     $em->flush();
 
-        $data = [
-            'Référenceom'=>( $article->getReference() ?  $article->getReference()():""),
-            'Statut'=> ($article->getStatut()->getNom() ? $article->getStatut()->getNom() : ""),
-            'Conformité'=>($article->getEtat() ? 'conforme': 'anomalie'),
-            'Référence Article'=> ($article->getRefArticle() ? $article->getRefArticle()->getLibelle() : ""),
-            'Quantité à collecter'=>($article->getQuantiteCollectee() ? $article->getQuantiteCollectee() : ""),
-            'Actions' => $this->renderView('collecte/datatableArticleRow.html.twig', ['article' => $article])
-        ];
+    //     $data = [
+    //         'Référenceom'=>( $article->getReference() ?  $article->getReference()():""),
+    //         'Statut'=> ($article->getStatut()->getNom() ? $article->getStatut()->getNom() : ""),
+    //         'Conformité'=>($article->getEtat() ? 'conforme': 'anomalie'),
+    //         'Référence Article'=> ($article->getRefArticle() ? $article->getRefArticle()->getLibelle() : ""),
+    //         'Quantité à collecter'=>($article->getQuantiteCollectee() ? $article->getQuantiteCollectee() : ""),
+    //         'Actions' => $this->renderView('collecte/datatableArticleRow.html.twig', ['article' => $article])
+    //     ];
 
-        return new JsonResponse($data);
-    }
+    //     return new JsonResponse($data);
+    // }
 
-    /**
-     * @Route("/retirer-article", name="collecte_remove_article")
-     */
-    public function removeArticle(Request $request)
-    {
-        $articleId = $request->request->getInt('articleId');
-        $collecteId = $request->request->getInt('collecteId');
+    // /**
+    //  * @Route("/retirer-article", name="collecte_remove_article")
+    //  */
+    // public function removeArticle(Request $request)
+    // {
+    //     $articleId = $request->request->getInt('articleId');
+    //     $collecteId = $request->request->getInt('collecteId');
 
-        $article = $this->articleRepository->find($articleId);
-        $collecte = $this->collecteRepository->find($collecteId);
+    //     $article = $this->articleRepository->find($articleId);
+    //     $collecte = $this->collecteRepository->find($collecteId);
 
-        if (!empty($article)) {
-            $article->removeCollecte($collecte);
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($article);
-            $em->flush();
-            return new JsonResponse(true);
-        } else {
-            return new JsonResponse(false);
-        }
+    //     if (!empty($article)) {
+    //         $article->removeCollecte($collecte);
+    //         $em = $this->getDoctrine()->getManager();
+    //         $em->persist($article);
+    //         $em->flush();
+    //         return new JsonResponse(true);
+    //     } else {
+    //         return new JsonResponse(false);
+    //     }
 
-    }
+    // }
 
     // /**
     //  * @Route("/api", name="collectes_json", options={"expose"=true}, methods={"GET", "POST"})
@@ -277,6 +281,50 @@ class CollecteController extends AbstractController
     //         'form' => $form->createView(),
     //     ]);
     // }
+
+/**
+     * @Route("/editApi", name="collecte_edit_api", options={"expose"=true}, methods="GET|POST")
+     */
+    public function editApi(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            dump($data);
+            $collecte = $this->collecteRepository->find($data);
+           
+            $json = $this->renderView('collecte/modalEditCollecteContent.html.twig', [
+                'collecte' => $collecte,
+                "statuts" => $this->statutRepository->findAll(),
+                "emplacements" => $this->emplacementRepository->findAll(),
+                // 'utilisateurs'=>$this->utilisateurRepository->findAll(),
+            ]);
+        
+            return new JsonResponse($json);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/edit", name="collecte_edit", options={"expose"=true}, methods="GET|POST")
+     */
+    public function edit(Request $request) : Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            dump($data);
+            $collecte = $this->collecteRepository->find($data['collecte']);
+            $collecte
+                ->setNumero($data["NumeroCollecte"])
+                ->setDate(new \DateTime($data["date-collecte"]))
+                ->setCommentaire($data["commentaire"])
+                ->setObjet($data["objet"])
+                // ->setStatut($data['Statuts'])
+                ->setPointCollecte(($data["Pcollecte"]));
+              
+            $em = $this->getDoctrine()->getManager();
+            $em->flush();
+            return new JsonResponse();
+        }
+        throw new NotFoundHttpException("404");
+    }
 
     /**
      * @Route("/supprimerCollecte", name="collecte_delete", options={"expose"=true}, methods={"GET", "POST"})
