@@ -108,8 +108,10 @@ class StatutFixtures extends Fixture implements DependentFixtureInterface
 
         // catégorie réception
         $statutsNames = [
-            'en cours de réception',
-            'terminée',
+            'en attente de réception',
+            'réception partielle',
+            'réception totale',
+            'anomalie'
         ];
 
         foreach ($statutsNames as $statutName) {

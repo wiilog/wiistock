@@ -56,12 +56,12 @@ class Demande
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="demandes")
      */
-    private $Statut;
+    private $statut;
 
-    /**
-     * @ORM\Column(type="datetime", nullable=true)
-     */
-    private $DateAttendu;
+//    /**
+//     * @ORM\Column(type="datetime", nullable=true)
+//     */
+//    private $DateAttendu;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\LigneArticle", mappedBy="demande")
@@ -114,11 +114,6 @@ class Demande
         return $this;
     }
 
-    public function __toString()
-    {
-        return $this->statut;
-    }
-
     public function getDate(): ?\DateTimeInterface
     {
         return $this->date;
@@ -157,27 +152,27 @@ class Demande
 
     public function getStatut(): ?Statut
     {
-        return $this->Statut;
+        return $this->statut;
     }
 
-    public function setStatut(?Statut $Statut): self
+    public function setStatut(?Statut $statut): self
     {
-        $this->Statut = $Statut;
+        $this->statut = $statut;
 
         return $this;
     }
 
-    public function getDateAttendu(): ?\DateTimeInterface
-    {
-        return $this->DateAttendu;
-    }
-
-    public function setDateAttendu(?\DateTimeInterface $DateAttendu): self
-    {
-        $this->DateAttendu = $DateAttendu;
-
-        return $this;
-    }
+//    public function getDateAttendu(): ?\DateTimeInterface
+//    {
+//        return $this->DateAttendu;
+//    }
+//
+//    public function setDateAttendu(?\DateTimeInterface $DateAttendu): self
+//    {
+//        $this->DateAttendu = $DateAttendu;
+//
+//        return $this;
+//    }
 
     /**
      * @return Collection|LigneArticle[]

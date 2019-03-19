@@ -224,6 +224,10 @@ a:hover {
   font-size: .9rem;
 }
 
+.w-100 .select2-container {
+  width: 100% !important;
+}
+
 .accueil-back {
   width: 100%;
   height: 100%;
@@ -463,5 +467,64 @@ a:hover {
 
 .table .fas:hover {
   color: black;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 25px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.switch input:checked + .slider {
+  background-color: #970000;
+}
+
+.switch input:focus + .slider {
+  -webkit-box-shadow: 0 0 1px #970000;
+          box-shadow: 0 0 1px #970000;
+}
+
+.switch input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  transform: translateX(26px);
+}
+
+.switch .slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #c6c6c6;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.switch .slider:before {
+  position: absolute;
+  content: "";
+  height: 17px;
+  width: 17px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.switch .slider.round {
+  border-radius: 34px;
+}
+
+.switch .slider.round:before {
+  border-radius: 50%;
 }
 /*# sourceMappingURL=style.css.map */

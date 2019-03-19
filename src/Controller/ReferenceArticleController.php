@@ -180,6 +180,7 @@ class ReferenceArticleController extends Controller
             $refArticle
                 ->setLibelle($data['libelle'])
                 ->setReference($data['reference'])
+                ->setQuantiteStock($data['quantite'])
                 ->setType($this->typeRepository->find($data['type']));
             $em->flush();
             $champsLibreKey = array_keys($data);
