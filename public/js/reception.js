@@ -1,5 +1,3 @@
-
-
 //RECEPTION
 var path = Routing.generate('reception_api', true);
 var table = $('#tableReception_id').DataTable({
@@ -51,6 +49,7 @@ let tableArticle = $('#tableArticle_id').DataTable({
         { "data": 'Libellé' },
         { "data": 'Référence' },
         { "data": 'Référence CEA' },
+        { "data": 'Statut' },
         { "data": 'Actions' }
     ],
 });

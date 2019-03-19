@@ -27,6 +27,9 @@ function InitialiserModal(modal, submit, path, table) {
                     if (this.responseText !== undefined) {
                         $('#myInput').val(json.lastInput);
                     }
+                    if (data.anomalie) {
+                        $('#statutReception').text(data.anomalie);
+                    }
                 });
             }
         };

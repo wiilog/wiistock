@@ -124,7 +124,6 @@ class ReceptionController extends AbstractController
      */
     public function modifierReception(Request $request): Response
     {
-        dump(json_decode($request->getContent(), true));
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) //Si la requête est de type Xml et que data est attribuée
             {
                 $fournisseur = $this->fournisseurRepository->find(intval($data['fournisseur']));
@@ -212,6 +211,7 @@ class ReceptionController extends AbstractController
                             "Référence" => ($article->getReference() ? $article->getReference() : ''),
                             "Libellé" => ($article->getLabel() ? $article->getlabel() : ''),
                             "Référence CEA" => ($article->getRefArticle() ? $article->getRefArticle()->getReference() : ''),
+                            "Statut" => ($article->getStatut() ? $article->getStatut()->getNom() : ""),
                             'Actions' => $this->renderView('reception/datatableArticleRow.html.twig', [
                                 'article' => $articleData,
                             ]),
@@ -292,7 +292,19 @@ class ReceptionController extends AbstractController
             {
                 $refArticle = $this->referenceArticleRepository->find($contentData['refArticle']);
                 $reception = $this->receptionRepository->find($contentData['reception']);
-                $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_DEMANDE_STOCK);
+                $statutAnomalie = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ANOMALIE);
+                if ($contentData['etat'] === 'on') {
+                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_DEMANDE_STOCK);
+                    $articleAnomalie = $this->articleRepository->countByStatutAndReception($statutAnomalie, $reception);
+                    if ($articleAnomalie < 1) {
+                        $statutRecep = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_EN_COURS);
+                        $reception->setStatut($statutRecep);
+                    }
+                } else {
+                    $statut = $statutAnomalie;
+                    $reception->setStatut($statut);
+                }
+
                 $quantitie = $contentData['quantite'];
                 $refArticle
                     ->setQuantiteStock($refArticle->getQuantiteStock() + $quantitie);
@@ -313,7 +325,8 @@ class ReceptionController extends AbstractController
                     $em->persist($article);
                     $em->flush();
                 }
-                return new JsonResponse();
+                $json = ['anomalie'=> $reception->getStatut()->getNom()];
+                return new JsonResponse($json);
             }
         throw new NotFoundHttpException("404");
     }
@@ -341,15 +354,32 @@ class ReceptionController extends AbstractController
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) //Si la requête est de type Xml
             {
-                dump($data);
                 $article = $this->articleRepository->find($data['article']);
+                $reception = $this->receptionRepository->find($article->getReception()->getId());
+                $statutAnomalie = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ANOMALIE);
+                if ($data['conform'] === 'on') {
+                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_DEMANDE_STOCK);
+                } else {
+                    $statut = $statutAnomalie;
+                    $reception->setStatut($statutAnomalie);
+                }
                 $article
                     ->setCommentaire($data['commentaire'])
                     ->setConform($data['conform'] === 'on' ? true : false)
+                    ->setStatut($statut)
                     ->setLabel($data['label']);
                 $em = $this->getDoctrine()->getManager();
+
+                $articleAnomalie = $this->articleRepository->countByStatutAndReception($statutAnomalie, $reception);
+                if ($articleAnomalie > 1) {
+                    $statutRecep = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_EN_COURS);
+                    $reception->setStatut($statutRecep);
+                }
+
+                $em = $this->getDoctrine()->getManager();
                 $em->flush();
-                return new JsonResponse();
+                $json = ['anomalie'=> $reception->getStatut()->getNom()];
+                return new JsonResponse($json);
             }
         throw new NotFoundHttpException("404");
     }
@@ -359,12 +389,6 @@ class ReceptionController extends AbstractController
      */
     public function ajoutArticle(Reception $reception, $id): Response
     {
-
-        $statut = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_EN_COURS);
-        $reception->setStatut($statut);
-        $reception->setDateReception(new \DateTime('now'));
-        $this->getDoctrine()->getManager()->flush();
-
         return $this->render("reception/ajoutArticle.html.twig", [
             'reception' => $reception,
             'refArticle' => $this->referenceArticleRepository->findAll(),
