@@ -88,15 +88,24 @@ class ReceptionController extends AbstractController
         if ($data = json_decode($request->getContent(), true)) //Si data est attribuée
             {
                 $fournisseur = $this->fournisseurRepository->find(intval($data['fournisseur']));
-
                 $reception = new Reception();
-                $statut = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_EN_COURS);
+
+                if ($data['anomalie'] == true) { //TODO CG debug ici
+                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_ANOMALIE);
+                } else {
+                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_EN_ATTENTE);
+                }
+
+                $date = new \DateTime('now');
+                $numeroReception = 'R' . $date->format('ymd-His'); //TODO CG ajouter numéro
+
                 $reception
                     ->setStatut($statut)
-                    ->setNumeroReception($data['NumeroReception'])
+                    ->setNumeroReception($numeroReception)
                     ->setDate(new \DateTime($data['date-commande']))
                     ->setDateAttendu(new \DateTime($data['date-attendu']))
                     ->setFournisseur($fournisseur)
+                    ->setReference($data['reference'])
                     ->setUtilisateur($this->getUser())
                     ->setCommentaire($data['commentaire']);
 
@@ -336,7 +345,6 @@ class ReceptionController extends AbstractController
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) //Si la requête est de type Xml
             {
-                dump($data);
                 $article = $this->articleRepository->find($data['article']);
                 $article
                     ->setCommentaire($data['commentaire'])
@@ -355,7 +363,7 @@ class ReceptionController extends AbstractController
     public function ajoutArticle(Reception $reception, $id): Response
     {
 
-        $statut = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_EN_COURS);
+        $statut = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_EN_ATTENTE);
         $reception->setStatut($statut);
         $reception->setDateReception(new \DateTime('now'));
         $this->getDoctrine()->getManager()->flush();
@@ -375,7 +383,7 @@ class ReceptionController extends AbstractController
     public function finReception(Reception $reception): Response
     {
 
-        $statut = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::TERMINE);
+        $statut = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_RECEPTION_TOTALE);
         $reception->setStatut($statut);
         $reception->setDateReception(new \DateTime('now'));
         $this->getDoctrine()->getManager()->flush();

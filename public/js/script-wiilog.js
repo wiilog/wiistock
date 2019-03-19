@@ -35,6 +35,13 @@ function InitialiserModal(modal, submit, path, table) {
         inputs.each(function () {
             Data[$(this).attr("name")] = $(this).val();
         });
+
+        let checkboxes = modal.find('.checkbox');
+        checkboxes.each(function () {
+           Data[$(this).attr("name")] = $(this).is(':checked');
+           alert($(this).is(':checked'));
+        });
+
         Json = {};
         Json = JSON.stringify(Data); // On transforme les données en JSON
         xhttp.open("POST", path, true);
