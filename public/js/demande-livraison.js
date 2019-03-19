@@ -47,7 +47,6 @@ let tableDemande = $('#table_demande').DataTable({
     },
     columns: [
         { "data": 'Date' },
-        // { "data": 'Date attendue' },
         { "data": 'Demandeur' },
         { "data": 'Numéro' },
         { "data": 'Statut' },
