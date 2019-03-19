@@ -78,33 +78,39 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 
     /**
      * @Rest\Post("/api/connect", name= "api-connect")
+     * @Rest\Get("/api/connect")
      * @Rest\View()
      */
     public function connection(Request $request)
     {
-        $response = new Response();
-        $response->setContent(json_encode(['success' => 'ok!']));
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $response = new Response();
 
-        $response->headers->set('Content-Type', 'application/json');
-        $response->headers->set('Access-Control-Allow-Origin', '*');
-        return $response;
-//        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-//            if ($this->checkLoginPassword($data)) {
-//                $apiKey = $this->apiKeyGenerator();
-//
-//                $user = $this->utilisateurRepository->findOneBy(['username' => $data['login']]);
-//                $user->setApiKey('366d041c57996ffcc2324ef3f939717d');//TODOO
-//                $em = $this->getDoctrine()->getManager();
-//                $em->flush();
-//                $this->successData['success'] = true;
-//                $this->successData['data'] = [
-//                    'data' => $this->getData(),
-////                    'apiKey' => $this->apiKeyGenerator()
-//                    'apiKey' => '366d041c57996ffcc2324ef3f939717d'
-//                ];
-//            }
-//            return new JsonResponse($this->successData);
-//        }
+            $response->headers->set('Content-Type', 'application/json');
+            $response->headers->set('Access-Control-Allow-Origin', '*');
+            $response->headers->set('Access-Control-Allow-Methods', 'POST, GET');
+
+            $user = $this->utilisateurRepository->findOneBy(['username' => $data['login']]);
+
+            if ($user !== null) {
+                if ($this->passwordEncoder->isPasswordValid($user, $data['password'])) {
+                    $apiKey = $this->apiKeyGenerator();
+
+                    $user->setApiKey($apiKey);
+                    $em = $this->getDoctrine()->getManager();
+                    $em->flush();
+
+                    $this->successData['success'] = true;
+                    $this->successData['data'] = [
+                        'data' => $this->getData(),
+                        'apiKey' => $apiKey
+                    ];
+                }
+            }
+
+            $response->setContent(json_encode($this->successData));
+            return $response;
+        }
     }
 
     /**
@@ -113,6 +119,13 @@ class ApiController extends FOSRestController implements ClassResourceInterface
      */
     public function setMouvement(Request $request)
     {
+        //TODO JV récupérer fichier json construit sur ce modèle :
+        // ['mouvements':
+        //  ['id_article': int, 'date_prise': date, 'id_emplacement_prise': int, 'date_depose': date, 'id_emplacement_depose': int],
+        //  [...],
+        //];
+        // ajouter l'id en autoincrement
+        // ajouter l'user retrouvé grâce au token api
         $data = json_decode($request->getContent(), true);
 
         if (!$request->isXmlHttpRequest() && ($this->utilisateurRepository->countApiKey($data['apiKey'])) === '1') {
@@ -132,21 +145,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         }
     }
 
-
-    private function checkLoginPassword($data)
-    {
-        $login = $data['login'];
-        $password = $data['password'];
-        $user = $this->utilisateurRepository->findOneBy(['username' => $login]);
-
-        if ($user) {
-            $match = $this->passwordEncoder->isPasswordValid($user, $password);
-        } else {
-            $match = false;
-        }
-        return $match;
-    }
-
+    // TODO JV envoyer refarticles au lieu articles (id, label, reference)
     private function getData()
     {
         $data = [
