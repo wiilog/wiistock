@@ -14,6 +14,7 @@ use App\Form\ArticleType;
 use App\Repository\ArticleRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\StatutRepository;
+use App\Entity\Utilisateur;
 use App\Repository\UtilisateurRepository;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -70,23 +71,22 @@ class CollecteController extends AbstractController
             
             $rows = [];
             foreach ($collectes as $collecte) {
-                // $url = $this->generateUrl('collecte_ajout_article', ['id' => $collecte->getId(), 'finishCollecte'=>'0'] );
-                $rows[] =
-                [
-                    'id' => $collecte->getId(),
-                    'Date' =>$collecte->getDate()->format('d/m/Y'),
-                    "demandeur" => $collecte->getDemandeur()->getUsername(),
-                    "Libellé" => $collecte->getObjet(),
-                    "Statut" => $collecte->getStatut()->getNom(),
+                // $url = $this->generateUrl('collecte_ajout_article', ['id' => $collecte->getId(), 
+                // 'finishCollecte'=>'0'] );
+                $rows[] = [
+                    'Date'=> ($collecte->getDate() ? $collecte->getDate()->format('d/m/Y') : null),
+                    'Demandeur'=> ($collecte->getDemandeur() ? $collecte->getDemandeur()->getUserName() : null ),
+                    'Objet'=> ($collecte->getObjet() ? $collecte->getObjet() : null ),
+                    'Statut'=> ($collecte->getStatut()->getNom() ? ucfirst($collecte->getStatut()->getNom()) : null),
                     'Actions' => $this->renderView('collecte/datatableCollecteRow.html.twig', [
-                        // 'url' => $url, 
-                        'collecte' => $collecte]),
+                        //'url' => $url,
+                        'collecte' => $collecte
+                        ])
                         
                 ];
                 
             }
             $data['data'] = $rows;
-            dump($data);
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
@@ -96,7 +96,7 @@ class CollecteController extends AbstractController
     /**
      * @Route("/", name="collecte_index", methods={"GET", "POST"})
      */
-    public function index(Request $request): Response
+    public function index(): Response
     {
              return $this->render('collecte/index.html.twig', [
             
@@ -107,32 +107,25 @@ class CollecteController extends AbstractController
     }
 
     /**
-     * @Route("/creer", name="collecte_create", options={"expose"=true}, methods="GET|POST")
+     * @Route("/creer", name="collecte_create", options={"expose"=true}, methods={"GET", "POST"})
      */
-    public function creation(Request $request): Response
+    public function creationCollecte(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $em = $this->getDoctrine()->getEntityManager();
-            dump($data);
-            dump($request);
-            $demandeurId = $request->request->getInt('demandeur');
-            dump($demandeurId);
-        
-            $objet = $request->request->get('Objet');
-            $pointCollecteId = $request->request->getInt('PCollecte');
-
+            $em = $this->getDoctrine()->getEntityManager();    
             $date = new \DateTime('now');
             $status = $this->statutRepository->findOneByNom(Collecte::STATUS_DEMANDE);
             $numero = "C-". $date->format('YmdHis');
-
+          
             $collecte = new Collecte;
             $collecte
-                ->setDemandeur($this->utilisateurRepository->find($demandeurId))
+                ->setDemandeur($this->utilisateurRepository->find($data['demandeur']))
                 ->setNumero($numero)
                 ->setDate($date)
                 ->setStatut($status)
-                ->setPointCollecte($this->emplacementRepository->find($pointCollecteId))
-                ->setObjet($objet);
+                ->setPointCollecte($this->emplacementRepository->find($data['Pcollecte']))
+                ->setObjet($data['Objet'])
+                ->setCommentaire($data['commentaire']);
 
            
             $em->persist($collecte);
@@ -210,27 +203,27 @@ class CollecteController extends AbstractController
 
     }
 
-    /**
-     * @Route("/api", name="collectes_json", options={"expose"=true}, methods={"GET", "POST"})
-     */
-    public function getCollectes(): Response
-    {
-        $collectes = $this->collecteRepository->findAll();
-        $rows = [];
-        foreach ($collectes as $collecte) {
-            $url['show'] = $this->generateUrl('collecte_show', ['id' => $collecte->getId()]);
-            $rows[] = [
-                'Date'=> ($collecte->getDate() ? $collecte->getDate()->format('d/m/Y') : null),
-                'Demandeur'=> ($collecte->getDemandeur() ? $collecte->getDemandeur()->getUserName() : null ),
-                'Libellé'=> ($collecte->getObjet() ? $collecte->getObjet() : null ),
-                'Statut'=> ($collecte->getStatut()->getNom() ? ucfirst($collecte->getStatut()->getNom()) : null),
-                'Actions' => $this->renderView('collecte/datatableCollecteRow.html.twig', ['url' => $url])
-            ];
-        }
-        $data['data'] = $rows;
+    // /**
+    //  * @Route("/api", name="collectes_json", options={"expose"=true}, methods={"GET", "POST"})
+    //  */
+    // public function getCollectes(): Response
+    // {
+    //     $collectes = $this->collecteRepository->findAll();
+    //     $rows = [];
+    //     foreach ($collectes as $collecte) {
+    //         $url['show'] = $this->generateUrl('collecte_show', ['id' => $collecte->getId()]);
+    //         $rows[] = [
+    //             'Date'=> ($collecte->getDate() ? $collecte->getDate()->format('d/m/Y') : null),
+    //             'Demandeur'=> ($collecte->getDemandeur() ? $collecte->getDemandeur()->getUserName() : null ),
+    //             'Libellé'=> ($collecte->getObjet() ? $collecte->getObjet() : null ),
+    //             'Statut'=> ($collecte->getStatut()->getNom() ? ucfirst($collecte->getStatut()->getNom()) : null),
+    //             'Actions' => $this->renderView('collecte/datatableCollecteRow.html.twig', ['url' => $url])
+    //         ];
+    //     }
+    //     $data['data'] = $rows;
 
-        return new JsonResponse($data);
-    }
+    //     return new JsonResponse($data);
+    // }
 //
 //    /**
 //     * @Route("{id}/finish", name="finish_collecte")
@@ -253,45 +246,46 @@ class CollecteController extends AbstractController
 //        $em->flush();
 //    }
 
-    /**
-     * @Route("/{id}", name="collecte_show", methods={"GET", "POST"})
-     */
-    public function show(Collecte $collecte): Response
-    {
-        return $this->render('collecte/show.html.twig', [
-            'collecte' => $collecte,
-        ]);
-    }
+    // /**
+    //  * @Route("/{id}", name="collecte_show", methods={"GET", "POST"})
+    //  */
+    // public function show(Collecte $collecte): Response
+    // {
+    //     return $this->render('collecte/show.html.twig', [
+    //         'collecte' => $collecte,
+    //     ]);
+    // }
+
+    // /**
+    //  * @Route("/{id}/modifier", name="collecte_edit", methods={"GET","POST"})
+    //  */
+    // public function edit(Request $request, Collecte $collecte): Response
+    // {
+    //     $form = $this->createForm(CollecteType::class, $collecte);
+    //     $form->handleRequest($request);
+
+    //     if ($form->isSubmitted() && $form->isValid()) 
+    //     {
+    //         $this->getDoctrine()->getManager()->flush();
+    //         return $this->redirectToRoute('collecte_index', [
+    //             'id' => $collecte->getId(),
+    //         ]);
+    //     }
+
+    //     return $this->render('collecte/edit.html.twig', [
+    //         'collecte' => $collecte,
+    //         'form' => $form->createView(),
+    //     ]);
+    // }
 
     /**
-     * @Route("/{id}/modifier", name="collecte_edit", methods={"GET","POST"})
+     * @Route("/supprimerCollecte", name="collecte_delete", options={"expose"=true}, methods={"GET", "POST"})
      */
-    public function edit(Request $request, Collecte $collecte): Response
-    {
-        $form = $this->createForm(CollecteType::class, $collecte);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) 
-        {
-            $this->getDoctrine()->getManager()->flush();
-            return $this->redirectToRoute('collecte_index', [
-                'id' => $collecte->getId(),
-            ]);
-        }
-
-        return $this->render('collecte/edit.html.twig', [
-            'collecte' => $collecte,
-            'form' => $form->createView(),
-        ]);
-    }
-
-    /**
-     * @Route("/supprimerCollecte", name="collecte_delete",  options={"expose"=true}, methods={"GET", "POST"}))
-     */
-    public function delete(Request $request) : Response
+    public function deleteCollecte(Request $request) : Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {       
             $collecte = $this->collecteRepository->find($data['collecte']);
+            dump($data);
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($collecte);
             $entityManager->flush();

@@ -9,8 +9,8 @@ var table = $('#tableCollecte_id').DataTable({
     },
     columns: [
         { "data": 'Date' },
-        { "data": 'demandeur' },
-        { "data": 'Libellé' },
+        { "data": 'Demandeur' },
+        { "data": 'Objet' },
         { "data": 'Statut' },
         { "data": 'Actions' }
     ],
@@ -21,10 +21,11 @@ let SubmitNewCollecte = $("#submitNewCollecte");
 let urlNewCollecte = Routing.generate('collecte_create', true)
 InitialiserModal(modalNewCollecte, SubmitNewCollecte, urlNewCollecte, table);
 
-// let ModalDelete = $("#modalDeleteCollecte");
-// let SubmitDelete = $("#submitDeleteCollecte");
-// let urlDeleteCollecte = Routing.generate('collecte_delete', true)
-// InitialiserModal(ModalDelete, SubmitDelete, urlDeleteCollecte, table);
+let modalDeleteCollecte = $("#modalDeleteCollecte");
+let submitDeleteCollecte = $("#submitDeleteCollecte");
+let urlDeleteCollecte = Routing.generate('collecte_delete', true)
+console.log(urlDeleteCollecte);
+InitialiserModal(modalDeleteCollecte, submitDeleteCollecte, urlDeleteCollecte, table);
 
 // let modalModifyCollecte = $('#modalEditCollecte');
 // let submitModifyCollecte = $('#submitEditCollecte');

@@ -36,6 +36,7 @@ function InitialiserModal(modal, submit, path, table) {
         inputs.each(function () {
             Data[$(this).attr("name")] = $(this).val();
         });
+        
         Json = {};
         Json = JSON.stringify(Data); // On transforme les données en JSON
         xhttp.open("POST", path, true);

@@ -3,8 +3,9 @@
     onclick="editRow($(this), Routing.generate('collecte_edit_api', true), $('#modalEditCollecte'), $('#submitEditCollecte'))">
     <i class='fas fa-pencil-alt'></i>
 </div>
-<div class='btn btn-xs btn-default reception-delete'
+<div class='btn btn-xs btn-default collecte-delete'
     onclick="deleteRow($(this), $('#modalDeleteCollecte'), $('#submitDeleteCollecte'))" data-id='{{ collecte.id }}'
+    
     data-target='#modalDeleteCollecte' data-toggle='modal'>
     <i class='fas fa-trash'></i>
 </div>

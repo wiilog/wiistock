@@ -43,9 +43,9 @@ class StatutFixtures extends Fixture implements DependentFixtureInterface
 
         // catégorie collecte
         $statutsNames = [
-            'fin',
-            'en cours de collecte',
-            'demande de collecte'
+            'Collecté',
+            'A traiter',
+            'Brouillon'
         ];
 
         foreach ($statutsNames as $statutName) {
