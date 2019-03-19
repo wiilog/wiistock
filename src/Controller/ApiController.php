@@ -91,7 +91,6 @@ class ApiController extends FOSRestController implements ClassResourceInterface
             $response->headers->set('Access-Control-Allow-Methods', 'POST, GET');
 
             $user = $this->utilisateurRepository->findOneBy(['username' => $data['login']]);
-            $this->successData['data'] = $data; //TODO
 
             if ($user !== null) {
                 if ($this->passwordEncoder->isPasswordValid($user, $data['password'])) {
@@ -121,6 +120,13 @@ class ApiController extends FOSRestController implements ClassResourceInterface
      */
     public function setMouvement(Request $request)
     {
+        //TODO JV récupérer fichier json construit sur ce modèle :
+        // ['mouvements':
+        //  ['id_article': int, 'date_prise': date, 'id_emplacement_prise': int, 'date_depose': date, 'id_emplacement_depose': int],
+        //  [...],
+        //];
+        // ajouter l'id en autoincrement
+        // ajouter l'user retrouvé grâce au token api
         $data = json_decode($request->getContent(), true);
 
         if (!$request->isXmlHttpRequest() && ($this->utilisateurRepository->countApiKey($data['apiKey'])) === '1') {
@@ -140,6 +146,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         }
     }
 
+    // TODO JV envoyer refarticles au lieu articles (id, label, reference)
     private function getData()
     {
         $data = [
