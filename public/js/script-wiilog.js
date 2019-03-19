@@ -27,7 +27,17 @@ function InitialiserModal(modal, submit, path, table) {
                     if (this.responseText !== undefined) {
                         $('#myInput').val(json.lastInput);
                     }
+                    if (data.anomalie) {
+                        $('#statutReception').text(data.anomalie);
+                    }
                 });
+                let inputs = modal.find(".data"); // On récupère toutes les données qui nous intéresse
+                console.log(inputs);
+                inputs.each(function () {
+                    $(this).val("");
+                       
+                });
+
             }
         };
         let inputs = modal.find(".data"); // On récupère toutes les données qui nous intéresse

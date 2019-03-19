@@ -276,7 +276,7 @@ class DemandeController extends AbstractController
             $demande = $this->demandeRepository->find($data['demande']);
             $demande
                 ->setUtilisateur($utilisateur)
-                ->setDateAttendu(new \DateTime($data['dateAttendu']))
+                // ->setDateAttendu(new \DateTime($data['dateAttendu']))
                 ->setDestination($emplacement);
             $em = $this->getDoctrine()->getEntityManager();
             $em->flush();
@@ -357,12 +357,11 @@ class DemandeController extends AbstractController
                 $rows[] =
                     [
                         "Date" => ($demande->getDate() ? $demande->getDate()->format('d-m-Y') : ''),
-//                        "Date attendue" => ($demande->getDateAttendu() ? $demande->getDateAttendu()->format('d-m-Y') : ''),
                         "Demandeur" => ($demande->getUtilisateur()->getUsername() ? $demande->getUtilisateur()->getUsername() : ''),
                         "Numéro" => ($demande->getNumero() ? $demande->getNumero() : ''),
                         "Statut" => ($demande->getStatut()->getNom() ? $demande->getStatut()->getNom() : ''),
                         'Actions' => $this->renderView(
-                            'demande/datatabledemandeRow.html.twig',
+                            'demande/datatableDemandeRow.html.twig',
                             [
                                 'idDemande' => $idDemande,
                                 'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_A_TRAITER) ? true : false),

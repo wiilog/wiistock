@@ -3,7 +3,7 @@
 const urlApiRefArticle = Routing.generate('ref_article_api', true);
 var tableRefArticle = $('#tableRefArticle_id').DataTable({
     "language": {
-        "url": "/js/i18n/dataTableLanguage.json"
+        "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
     },
     ajax: {
         "url": urlApiRefArticle,

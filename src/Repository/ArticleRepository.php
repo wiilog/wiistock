@@ -155,21 +155,19 @@ class ArticleRepository extends ServiceEntityRepository
 //        return $query->execute();
 //    }
 
-// attention si on doit utiliser cette méthode, ne pas metre d'id en dur
-//    public function countByStatutAndCollecte($collecte)
-//    {
-//        $entityManager = $this->getEntityManager();
-//        $query = $entityManager->createQuery(
-//            "SELECT COUNT (a)
-//            FROM App\Entity\Article a
-//            JOIN a.collectes c
-//            WHERE a.Statut <> 3 AND c = :collecte"
-//        )->setParameter('collecte', $collecte);
-//
-//        $result = $query->execute();
-//
-//        return $result ? $result[0] : null;
-//    }
+   public function countByStatutAndReception($statut, $reception)
+   {
+       $entityManager = $this->getEntityManager();
+       $query = $entityManager->createQuery(
+           "SELECT COUNT (a)
+           FROM App\Entity\Article a
+           WHERE a.Statut = :statut AND a.reception = :reception"
+       )->setParameters([
+           'statut' => $statut,
+           'reception'=> $reception
+           ]);
+       return $query->getSingleScalarResult();;
+   }
 
 //    public function countByStatutAndDemande($demande)
 //{

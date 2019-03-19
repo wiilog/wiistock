@@ -2,7 +2,7 @@
 let pathArticle = Routing.generate('LigneArticle_api', { id: id }, true);
 let tableArticle = $('#table-lignes').DataTable({
     "language": {
-        "url": "/js/i18n/dataTableLanguage.json"
+        "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
     },
     "processing": true,
     "ajax": {
@@ -47,7 +47,6 @@ let tableDemande = $('#table_demande').DataTable({
     },
     columns: [
         { "data": 'Date' },
-        // { "data": 'Date attendue' },
         { "data": 'Demandeur' },
         { "data": 'Numéro' },
         { "data": 'Statut' },
