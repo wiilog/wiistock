@@ -73,6 +73,7 @@ class ReferenceArticleController extends Controller
                         "id" => $refArticle->getId(),
                         "Libellé" => $refArticle->getLibelle(),
                         "Référence" => $refArticle->getReference(),
+                        "Quantité" => $refArticle->getQuantiteStock(),
                         'Actions' => $this->renderView('reference_article/datatableReferenceArticleRow.html.twig', [
                             'url' => $url,
                             'idRefArticle' => $refArticle->getId()
@@ -97,6 +98,7 @@ class ReferenceArticleController extends Controller
             $refArticle
                 ->setLibelle($data['libelle'])
                 ->setReference($data['reference'])
+                ->setQuantiteStock($data['qauntite'])
                 ->setType($this->typeRepository->find($data['type']));
             $em->persist($refArticle);
             $em->flush();

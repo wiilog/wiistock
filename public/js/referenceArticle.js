@@ -12,6 +12,7 @@ var tableRefArticle = $('#tableRefArticle_id').DataTable({
     columns: [
         { "data": 'Libellé' },
         { "data": 'Référence' },
+        { "data": 'Quantité' },
         { "data": 'Actions' },
     ],
 });
