@@ -31,6 +31,13 @@ function InitialiserModal(modal, submit, path, table) {
                         $('#statutReception').text(data.anomalie);
                     }
                 });
+                let inputs = modal.find(".data"); // On récupère toutes les données qui nous intéresse
+                console.log(inputs);
+                inputs.each(function () {
+                    $(this).val("");
+                       
+                });
+
             }
         };
         let inputs = modal.find(".data"); // On récupère toutes les données qui nous intéresse
