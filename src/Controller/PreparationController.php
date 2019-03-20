@@ -20,16 +20,7 @@ use App\Repository\ReferenceArticleRepository;
 
 use App\Repository\ArticleRepository;
 
-use App\Entity\Emplacement;
-use App\Form\EmplacementType;
-use App\Repository\EmplacementRepository;
-
-use App\Entity\Livraison;
-use App\Form\LivraisonType;
-use App\Repository\LivraisonRepository;
-
 use App\Entity\Demande;
-use App\Form\DemandeType;
 use App\Repository\DemandeRepository;
 
 use Doctrine\Common\Collections\ArrayCollection;
@@ -38,6 +29,7 @@ use App\Repository\StatutRepository;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use App\Repository\LigneArticleRepository;
 
 /**
  * @Route("/preparation")
@@ -48,6 +40,11 @@ class PreparationController extends AbstractController
      * @var StatutRepository
      */
     private $statutRepository;
+  
+    /**
+     * @var LigneArticleRepository
+     */
+    private $LigneArticleRepository;
 
     /**
      * @var ReferenceArticleRepository
@@ -69,13 +66,14 @@ class PreparationController extends AbstractController
      */
     private $preparationRepository;
 
-    public function __construct(PreparationRepository $preparationRepository, ArticleRepository $articleRepository, StatutRepository $statutRepository, DemandeRepository $demandeRepository, ReferenceArticleRepository $referenceArticleRepository)
+    public function __construct(PreparationRepository $preparationRepository,LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, StatutRepository $statutRepository, DemandeRepository $demandeRepository, ReferenceArticleRepository $referenceArticleRepository)
     {
         $this->statutRepository = $statutRepository;
         $this->preparationRepository = $preparationRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->articleRepository = $articleRepository;
         $this->demandeRepository = $demandeRepository;
+        $this->ligneArticleRepository = $ligneArticleRepository;
     }
 
     /**
@@ -209,14 +207,26 @@ class PreparationController extends AbstractController
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
             {
-                $articles = $this->articleRepository->getByPreparation($id);
-                $rows = [];
+                $demande = $this->demandeRepository->find($id);
+                $ligneArticles = $this->ligneArticleRepository->getByDemande($demande->getId());
 
-                foreach ($articles as $article) {
+                // $articles = $demande->getLigneArticle();
+                // $rows = [];
+                // foreach ($articles as $article) {
+                //         $rows[] = [
+                //             "Référence" => ($article->getReference() ? $article->getReference() : ' '),
+                //             "Quantité" => ($article->getQuantite() ? $article->getQuantite() : ' '),
+                //             "Action" =>  $this->renderView('preparation/datatableArticleRow.html.twig', ['articleId' => $article->getId()]),
+                //         ];
+                //     }
+
+                $rows = [];
+                foreach ($ligneArticles as $article) {
                         $rows[] = [
-                            "Référence" => ($article->getReference() ? $article->getReference() : ' '),
+                            "Référence CEA" => ($article->getReference() ? $article->getReference()->getReference() : ' '),
+                            "Libellé" => ($article->getReference() ? $article->getReference()->getLibelle() : ' '),
                             "Quantité" => ($article->getQuantite() ? $article->getQuantite() : ' '),
-                            "Action" =>  $this->renderView('preparation/datatableArticleRow.html.twig', ['articleId' => $article->getId()]),
+                            "Action" => "",
                         ];
                     }
 

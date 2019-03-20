@@ -28,9 +28,10 @@
 
     <thead>
         <tr>
-            <th>Référence</th>
+            <th>Référence CEA</th>
+            <th>Libellé</th>
             <th>Quantité</th>
-            <th>Action</th>
+            <th>Actions</th>
         </tr>
     </thead>
     <tbody>
@@ -47,7 +48,7 @@
 
 {% block javascript %}
 <script>
-    let id = {{ preparation.id }};
+    let id = {{ preparation.demandes.0.id }};
 </script>
 <script src="{{asset('js/preparation.js')}}"></script>
 

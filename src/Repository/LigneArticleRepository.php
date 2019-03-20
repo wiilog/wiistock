@@ -44,6 +44,19 @@ class LigneArticleRepository extends ServiceEntityRepository
         ;
         return $query->getSingleResult();
     }
+    public function getByDemande($demande)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT l 
+            FROM App\Entity\LigneArticle l
+            JOIN l.demande d
+            WHERE d.id = :demande
+            "
+        )->setParameter('demande', $demande);
+        ;
+        return $query->getResult();
+    }
 
     public function countByRefArticleDemande($referenceArticle, $demande)
     {
