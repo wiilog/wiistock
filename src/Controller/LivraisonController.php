@@ -67,7 +67,7 @@ class LivraisonController extends AbstractController
     {
         $preparation = $this->preparationRepository->find($id);
         if ($preparation->getLivraisons() == null) {
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(Livraison::CATEGORIE, Livraison::STATUT_EN_COURS);
+            $statut = $this->statutRepository->findOneByCategorieAndStatut(Livraison::CATEGORIE, Livraison::STATUT_A_TRAITER);
             $livraison = new Livraison();
             $date = new \DateTime('now');
             $livraison
@@ -104,11 +104,11 @@ class LivraisonController extends AbstractController
      */
     public function finLivraison(Livraison $livraison, Request $request): Response
     {
-        $livraison->setStatut($this->statutRepository->findOneByCategorieAndStatut(Livraison::CATEGORIE, Livraison::STATUT_TERMINE));
+        $livraison->setStatut($this->statutRepository->findOneByCategorieAndStatut(Livraison::CATEGORIE, Livraison::STATUT_LIVRE));
         $preparation = $livraison->getPreparation();
         $articles = $preparation->getArticle();
         foreach ($articles as $article) {
-            $article->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_DESTOCK));
+            $article->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_INACTIF));
         }
         $this->getDoctrine()->getManager()->flush();
         return $this->render('livraison/index.html.twig');

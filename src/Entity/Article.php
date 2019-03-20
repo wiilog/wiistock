@@ -16,15 +16,10 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 class Article
 {
     const CATEGORIE = 'article';
-    const STATUT_RECEPTION_EN_COURS = 'en cours de reception';
-    const STATUT_DEMANDE_STOCK = 'demande de mise en stock';
-    const STATUT_EN_STOCK = 'en stock';
-    const STATUT_DESTOCK = 'destokage';
-    const STATUT_ANOMALIE = 'anomalie';
-    const STATUT_DEMANDE_SORTIE = 'demande de sortie';
-    const STATUT_COLLECTE = 'collecté';
-    const STATUT_LIVRAISON = 'en livraison';
-    const STATUT_RECUPERE = 'récupéré';
+    const STATUT_ACTIF = 'actif';
+    const STATUT_INACTIF = 'inactif';
+    const CONFORM = 1;
+    const NOT_CONFORM = 0;
 
     /**
      * @ORM\Id()

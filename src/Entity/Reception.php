@@ -12,6 +12,7 @@ use Doctrine\ORM\Mapping as ORM;
 class Reception
 {
     const CATEGORIE = 'reception';
+
     const STATUT_EN_ATTENTE = 'en attente de réception';
     const STATUT_RECEPTION_PARTIELLE = 'réception partielle';
     const STATUT_RECEPTION_TOTALE = 'réception totale';

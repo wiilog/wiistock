@@ -106,7 +106,7 @@ class PreparationController extends AbstractController
 
                         $articles = $demande->getArticles();
                         foreach ($articles as $article) {
-                                $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_DEMANDE_SORTIE);
+                                $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
                                 $article
                                     ->setStatut($statut)
                                     ->setDirection($demande->getDestination());

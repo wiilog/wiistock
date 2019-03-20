@@ -296,17 +296,15 @@ class ReceptionController extends AbstractController
             {
                $refArticle = $this->referenceArticleRepository->find($contentData['refArticle']);
                 $reception = $this->receptionRepository->find($contentData['reception']);
-                $statutAnomalie = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ANOMALIE);
                 if ($contentData['etat'] === 'on') {
-                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_DEMANDE_STOCK);
-                    $articleAnomalie = $this->articleRepository->countByStatutAndReception($statutAnomalie, $reception);
+                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
+                    $articleAnomalie = $this->articleRepository->countByStatutAndReception(Article::NOT_CONFORM, $reception);
                     if ($articleAnomalie < 1) {
                         $statutRecep = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_RECEPTION_PARTIELLE);
                         $reception->setStatut($statutRecep);
                     }
                 } else {
-                    $statut = $statutAnomalie;
-                    $reception->setStatut($statut);
+                    $reception->setStatut($this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_ANOMALIE));
                 }
                 
                 $quantitie = $contentData['quantite'];
@@ -362,7 +360,7 @@ class ReceptionController extends AbstractController
                 $reception = $this->receptionRepository->find($article->getReception()->getId());
                 $statutAnomalie = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ANOMALIE);
                 if ($data['conform'] === 'on') {
-                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_DEMANDE_STOCK);
+                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
                 } else {
                     $statut = $statutAnomalie;
                     $reception->setStatut($statutAnomalie);
