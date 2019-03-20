@@ -9,7 +9,7 @@
 <div class="zone-actions row">
     <div class="col-3">
         <p>Demandeur : {{ demande.utilisateur ? demande.utilisateur : '' }}</p>
-        <p>Disponibilité des articles : Oui/Non</p>
+        <p>Statut: {{demande.statut.nom}}</p>
         <p>Destination : {{ demande.destination ? demande.destination.label : "" }}</p>
     </div>
 
