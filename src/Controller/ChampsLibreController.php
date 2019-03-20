@@ -115,10 +115,17 @@ class ChampsLibreController extends AbstractController
     public function typeNew(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+
+            if($data['category'] === null){
+                $category = $this->categoryTypeRepository->findoneBy(['label'=>'référence article']);
+            }else{
+                $category = $this->categoryTypeRepository->find($data['category']);
+            }
+            
             $type = new Type();
             $type
                 ->setlabel($data["label"])
-                ->setCategory($this->categoryTypeRepository->find($data['category']));
+                ->setCategory($category);
             $em = $this->getDoctrine()->getManager();
             $em->persist($type);
             $em->flush();
