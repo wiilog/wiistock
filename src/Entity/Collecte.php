@@ -11,9 +11,9 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Collecte
 {
-    const STATUS_FIN = 'fin';
-    const STATUS_EN_COURS = 'en cours de collecte';
-    const STATUS_DEMANDE = 'demande de collecte';
+    const STATUS_FIN = 'Collecté';
+    const STATUS_EN_COURS = 'A traiter';
+    const STATUS_DEMANDE = 'Brouillon';
 
     /**
      * @ORM\Id()
@@ -57,6 +57,11 @@ class Collecte
      */
 
     private $Statut;
+
+    /**
+     * @ORM\Column(type="text", nullable=true)
+     */
+    private $commentaire;
 
     public function __construct()
     {
@@ -162,6 +167,18 @@ class Collecte
     public function setPointCollecte(?Emplacement $pointCollecte): self
     {
         $this->pointCollecte = $pointCollecte;
+
+        return $this;
+    }
+
+    public function getCommentaire(): ?string
+    {
+        return $this->commentaire;
+    }
+
+    public function setCommentaire(?string $commentaire): self
+    {
+        $this->commentaire = $commentaire;
 
         return $this;
     }
