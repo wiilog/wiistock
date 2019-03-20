@@ -1,7 +1,7 @@
 var path = Routing.generate('preparation_api');
 var table = $('#table_id').DataTable({
     "language": {
-        "url": "/js/i18n/dataTableLanguage.json"
+        "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
     },
     ajax: path,
     columns: [
@@ -15,7 +15,7 @@ var table = $('#table_id').DataTable({
 var pathArticle = Routing.generate('preparation_article_api', {'id': id});
 var tableArticle = $('#tableArticle_id').DataTable({
     "language": {
-        "url": "/js/i18n/dataTableLanguage.json"
+        "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
     },
     ajax: pathArticle,
     columns: [
