@@ -13,8 +13,8 @@
 
                 <div class="form-group w-100">
                     <label for="fournisseurs">Fournisseur</label>
-                    <select class="form-control select2 data" name="fournisseur" required>
-                        <option disabled selected>...</option>
+                    <select class="form-control select2 data needed" name="fournisseur" required>
+                        <option disabled selected> </option>
                         {% for fournisseur in fournisseurs %}
                             <option value="{{ fournisseur.id }}">{{ fournisseur.nom }}</option>
                         {% endfor %}
@@ -48,10 +48,12 @@
                     <label for="NumeroReception">Commentaire</label>
                     <textarea class="form-control data" name="commentaire"></textarea>
                     </div>
+
+                <div class="error-msg"></div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>
-                <button id="submitButton" type="button" data-dismiss="modal" class="btn btn-success">Enregistrer</button>
+                <button id="submitButton" type="button" class="btn btn-success">Enregistrer</button>
             </div>
         </div>
     </div>

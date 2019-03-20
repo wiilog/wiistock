@@ -86,21 +86,21 @@ class DemandeController extends AbstractController
                 ->setDate($date)
                 ->setUtilisateur($this->getUser());
 
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_NOUVELLE);
-            $preparation->setStatut($statut);
+            $statutP = $this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_NOUVELLE);
+            $preparation->setStatut($statutP);
 
             $demande->setPreparation($preparation);
 
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
-            $demande->setStatut($statut);
+            $statutD = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
+            $demande->setStatut($statutD);
 
             $em = $this->getDoctrine()->getManager();
             $em->persist($preparation);
             $em->flush();
 
-            return $this->redirectToRoute('preparation_show', ['id' => $preparation->getId()]);
+            return $this->redirectToRoute('demande_show_article', ['id' => $demande->getId()]);
         } else if ($demande->getPreparation() !== null) {
-            return $this->redirectToRoute('preparation_show', ['id' => $demande->getPreparation()->getId()]);
+            return $this->redirectToRoute('demande_show_article', ['id' => $demande->getId()]);
         }
         // return $this->show($demande);
     }
@@ -152,7 +152,7 @@ class DemandeController extends AbstractController
 
             $referenceArticle = $this->referenceArticleRepository->find($data["reference"]);
             $demande = $this->demandeRepository->find($data['demande']);
-            if ($this->ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
+            if ($this->ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande)  < 1) {
                 $ligneArticle = new LigneArticle();
                 $ligneArticle
                     ->setQuantite($data["quantite"])
@@ -168,7 +168,6 @@ class DemandeController extends AbstractController
 
             $referenceArticle
                 ->setQuantiteReservee($quantiteReservee + $quantiteArticleReservee);
-
             $demande
                 ->addLigneArticle($ligneArticle);
 
@@ -176,7 +175,7 @@ class DemandeController extends AbstractController
             $em->persist($ligneArticle);
             $em->flush();
 
-            return new JsonResponse($data);
+            return new JsonResponse();
         }
         throw new NotFoundHttpException("404");
     }
@@ -189,7 +188,6 @@ class DemandeController extends AbstractController
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
             $ligneArticle = $this->ligneArticleRepository->getQuantity($data);
-            dump($ligneArticle);
             $json = $this->renderView('demande/modalEditArticleContent.html.twig', [
                 'ligneArticle' => $ligneArticle,
             ]);
@@ -301,11 +299,15 @@ class DemandeController extends AbstractController
                 ->setStatut($statut)
                 ->setUtilisateur($utilisateur)
                 ->setdate($date)
-//                ->setDateAttendu(new \DateTime($data['dateAttendu']))
+                //                ->setDateAttendu(new \DateTime($data['dateAttendu']))
                 ->setDestination($destination)
                 ->setNumero("D-" . $date->format('YmdHis'));
             $em->persist($demande);
             $em->flush();
+
+            $data = [
+                "redirect" => $this->generateUrl('demande_show_article', ['id' => $demande->getId()])
+            ];
 
             return new JsonResponse($data);
         }

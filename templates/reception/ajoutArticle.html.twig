@@ -64,7 +64,7 @@
 {% endblock %}
 {% block javascript %}
 <script>
-    const id = {{ reception.id }}
+    let id = {{ reception.id }}
 </script>
 <script src="{{asset('js/reception.js')}}"></script>
 {% endblock javascript %}

@@ -90,7 +90,7 @@ class ReceptionController extends AbstractController
                 $fournisseur = $this->fournisseurRepository->find(intval($data['fournisseur']));
                 $reception = new Reception();
 
-                if ($data['anomalie'] == true) { //TODO CG debug ici
+                if ($data['anomalie'] == true) {
                     $statut = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_ANOMALIE);
                 } else {
                     $statut = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_EN_ATTENTE);
@@ -114,7 +114,7 @@ class ReceptionController extends AbstractController
                 $em->flush();
 
                 $data = [
-                    "redirect" => $this->generateUrl('reception_ajout_article', ['id' => $reception->getId(), 'finishReception' => "0"])
+                    "redirect" => $this->generateUrl('reception_ajout_article', ['id' => $reception->getId()])
                 ];
                 return new JsonResponse($data);
             }
@@ -301,14 +301,14 @@ class ReceptionController extends AbstractController
                     $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_DEMANDE_STOCK);
                     $articleAnomalie = $this->articleRepository->countByStatutAndReception($statutAnomalie, $reception);
                     if ($articleAnomalie < 1) {
-                        $statutRecep = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_EN_COURS);
+                        $statutRecep = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_RECEPTION_PARTIELLE);
                         $reception->setStatut($statutRecep);
                     }
                 } else {
                     $statut = $statutAnomalie;
                     $reception->setStatut($statut);
                 }
-
+                
                 $quantitie = $contentData['quantite'];
                 $refArticle
                     ->setQuantiteStock($refArticle->getQuantiteStock() + $quantitie);
