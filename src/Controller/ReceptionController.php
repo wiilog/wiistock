@@ -90,7 +90,7 @@ class ReceptionController extends AbstractController
                 $fournisseur = $this->fournisseurRepository->find(intval($data['fournisseur']));
                 $reception = new Reception();
 
-                if ($data['anomalie'] == true) { //TODO CG debug ici
+                if ($data['anomalie'] == true) {
                     $statut = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_ANOMALIE);
                 } else {
                     $statut = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_EN_ATTENTE);

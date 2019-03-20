@@ -32,7 +32,6 @@ function InitialiserModal(modal, submit, path, table) {
                     }
                 });
                 let inputs = modal.find(".data"); // On récupère toutes les données qui nous intéresse
-                console.log(inputs);
                 inputs.each(function () {
                     $(this).val("");
                        
@@ -49,7 +48,6 @@ function InitialiserModal(modal, submit, path, table) {
         let checkboxes = modal.find('.checkbox');
         checkboxes.each(function () {
            Data[$(this).attr("name")] = $(this).is(':checked');
-           alert($(this).is(':checked'));
         });
 
         Json = {};
