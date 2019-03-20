@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Article;
 use App\Entity\Demande;
 use App\Entity\Livraison;
+use App\Entity\Preparation;
 use App\Form\LivraisonType;
 use App\Repository\LivraisonRepository;
 use App\Repository\PreparationRepository;
@@ -80,6 +81,8 @@ class LivraisonController extends AbstractController
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($livraison);
             $preparation->addLivraison($livraison);
+            $preparation->setStatut($this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_PREPARE));
+
             $entityManager->flush();
             return $this->redirectToRoute('livraison_show', [
                 'id' => $livraison->getId(),
