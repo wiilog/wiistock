@@ -12,9 +12,11 @@ use Doctrine\ORM\Mapping as ORM;
 class Demande
 {
     const CATEGORIE = 'demande';
-    const STATUT_EN_COURS = 'en cours';
+
+    const BROUILLON = 'brouillon';
+    const STATUT_PREPARE = 'préparé';
     const STATUT_A_TRAITER = 'à traiter';
-    const STATUT_TERMINEE = 'terminée';
+    const STATUT_LIVREE = 'livré';
 
     /**
      * @ORM\Id()

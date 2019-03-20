@@ -155,15 +155,15 @@ class ArticleRepository extends ServiceEntityRepository
 //        return $query->execute();
 //    }
 
-   public function countByStatutAndReception($statut, $reception)
+   public function countByStatutAndReception($conform, $reception)
    {
        $entityManager = $this->getEntityManager();
        $query = $entityManager->createQuery(
            "SELECT COUNT (a)
            FROM App\Entity\Article a
-           WHERE a.Statut = :statut AND a.reception = :reception"
+           WHERE a.conform = :conform AND a.reception = :reception"
        )->setParameters([
-           'statut' => $statut,
+           'conform' => $conform,
            'reception'=> $reception
            ]);
        return $query->getSingleScalarResult();;

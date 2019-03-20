@@ -11,9 +11,9 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Collecte
 {
-    const STATUS_FIN = 'Collecté';
-    const STATUS_EN_COURS = 'A traiter';
-    const STATUS_DEMANDE = 'Brouillon';
+    const STATUS_FIN = 'collecté';
+    const STATUS_EN_COURS = 'à traiter';
+    const STATUS_DEMANDE = 'brouillon';
 
     /**
      * @ORM\Id()

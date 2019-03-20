@@ -9,9 +9,9 @@ use Doctrine\ORM\Mapping as ORM;
 class Livraison
 {
     const CATEGORIE = 'livraison';
-    const STATUT_EN_COURS = 'en cours de livraison';
-    const STATUT_DEMANDE = 'demande de livraison';
-    const STATUT_TERMINE = 'livraison terminée';
+
+    const STATUT_A_TRAITER = 'à traiter';
+    const STATUT_LIVRE = 'livré';
 
     /**
      * @ORM\Id()
