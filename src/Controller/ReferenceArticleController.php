@@ -98,7 +98,7 @@ class ReferenceArticleController extends Controller
             $refArticle
                 ->setLibelle($data['libelle'])
                 ->setReference($data['reference'])
-                ->setQuantiteStock($data['qauntite'])
+                ->setQuantiteStock($data['quantite'])
                 ->setType($this->typeRepository->find($data['type']));
             $em->persist($refArticle);
             $em->flush();
@@ -115,7 +115,7 @@ class ReferenceArticleController extends Controller
                     $em->flush();
                 }
             }
-            return new JsonResponse($data);
+            return new JsonResponse();
         }
         throw new NotFoundHttpException("404");
     }
