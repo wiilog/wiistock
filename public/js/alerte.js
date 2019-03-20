@@ -1,3 +1,5 @@
+$('.select2').select2();
+
 var pathAlerte = Routing.generate('alerte_api', true);
 var tableAlerte = $('#tableAlerte_id').DataTable({
     "language": {

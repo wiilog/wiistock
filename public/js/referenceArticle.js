@@ -1,4 +1,6 @@
-//REFERENCE ARTICLE 
+$('.select2').select2();
+
+//REFERENCE ARTICLE
 
 const urlApiRefArticle = Routing.generate('ref_article_api', true);
 var tableRefArticle = $('#tableRefArticle_id').DataTable({

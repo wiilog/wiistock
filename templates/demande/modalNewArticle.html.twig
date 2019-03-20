@@ -9,20 +9,26 @@
                 </button>
             </div>
             <div class="modal-body modal-input container-fluid">
-                <div class="mb-3">
+                <div class="form-group w-100 mb-3">
                     <label for="reference">Référence</label>
-                    <select type="text" class="data form-control select2" name="reference" id="reference" value=""
-                        required="true">
-                        {% for reference in references %}
-                        <option value="{{ reference.id }}">{{ reference.libelle }}</option>
-                        {% endfor %}
+                    <select class="ajax-autocomplete data form-control" id="reference" onchange="updateQuantity($(this));">
                     </select>
                 </div>
 
-                <div class="mb-3">
+                {#<div class="form-group w-100">#}
+                    {#<label for="code">Code trouvé</label>#}
+                    {#<input type="text" class="form-control" id="code" value="">#}
+                {#</div>#}
+
+                <div class="form-group w-50">
+                    <label for="in-stock">En stock</label>
+                    <input class="form-control" id="in-stock" disabled>
+                </div>
+
+                <div class="form-group w-50">
                     <label for="quantite">Quantité</label>
                     <input type="number" class="data form-control" name="quantite" id="quantite" value=""
-                        placeholder="Quantité" min="1" required="true">
+                        min="1" required="true">
                 </div>
             </div>
             <div class="modal-footer">

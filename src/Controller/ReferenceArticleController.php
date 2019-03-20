@@ -214,4 +214,36 @@ class ReferenceArticleController extends Controller
         }
         throw new NotFoundHttpException("404");
     }
+
+    /**
+     * @Route("/quantite", name="get_quantity_ref_article", options={"expose"=true})
+     */
+    public function getQuantityByRefArticleId(Request $request)
+    {
+        if ($request->isXmlHttpRequest()) {
+            $refArticleId = $request->request->get('refArticleId');
+            $refArticle = $this->referenceArticleRepository->find($refArticleId);
+
+            $quantity = $refArticle ? ($refArticle->getQuantiteDisponible() ? $refArticle->getQuantiteDisponible() : 0) : 0;
+
+            return new JsonResponse($quantity);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/autocomplete", name="get_ref_articles", options={"expose"=true})
+     */
+    public function getRefArticles(Request $request)
+    {
+        if ($request->isXmlHttpRequest()) {
+            $search = $request->query->get('term');
+
+            $refArticles = $this->referenceArticleRepository->getIdAndLibelleBySearch($search);
+
+            return new JsonResponse(['results' => $refArticles]);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
 }

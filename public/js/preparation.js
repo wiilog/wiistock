@@ -1,3 +1,5 @@
+$('.select2').select2();
+
 var path = Routing.generate('preparation_api');
 var table = $('#table_id').DataTable({
     "language": {

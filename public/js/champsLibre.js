@@ -1,3 +1,5 @@
+$('.select2').select2();
+
 //TYPE
 
 const urlApiType = Routing.generate('typeApi', true);

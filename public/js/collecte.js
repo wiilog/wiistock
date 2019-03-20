@@ -1,3 +1,5 @@
+$('.select2').select2();
+
 var pathCollecte = Routing.generate('collecte_api', true);
 var table = $('#tableCollecte_id').DataTable({
        "language": {

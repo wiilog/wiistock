@@ -27,8 +27,20 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             FROM App\Entity\ReferenceArticle r
             "
              );
-        ;
+
         return $query->execute(); 
+    }
+
+    public function getIdAndLibelleBySearch($search)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+          "SELECT r.id, r.libelle as text
+          FROM App\Entity\ReferenceArticle r
+          WHERE r.libelle LIKE :search"
+        )->setParameter('search', '%' . $search . '%');
+
+        return $query->execute();
     }
 
 }

@@ -1,4 +1,4 @@
-
+$('.select2').select2();
 
 let pathFournisseur = Routing.generate('fournisseur_api');
 let tableFournisseur = $('#tableFournisseur_id').DataTable({

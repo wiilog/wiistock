@@ -1,3 +1,5 @@
+$('.select2').select2();
+
 var pathArticle = Routing.generate('article_api', true);
 var tableArticle = $('#tableArticle_id').DataTable({
     "language": {

@@ -1,8 +1,3 @@
-$(document).ready(function () {
-    $('.select2').select2();
-});
-
-
 //NEW
 /**
  * Initialise une fenêtre modale
@@ -14,6 +9,7 @@ $(document).ready(function () {
  * 
  */
 function InitialiserModal(modal, submit, path, table) {
+
     submit.click(function () {
         xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function () {
@@ -135,5 +131,6 @@ function editRow(button, path, modal, submit) {
     xhttp.open("POST", path, true);
     xhttp.send(json);
 }
+
 
 

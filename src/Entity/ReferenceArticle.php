@@ -180,12 +180,12 @@ class ReferenceArticle
 
     public function getQuantiteDisponible(): ?int
     {
-        return $this->QuantiteDisponible;
+        return $this->quantiteDisponible;
     }
 
     public function setQuantiteDisponible(?int $quantiteDisponible): self
     {
-        $this->QuantiteDisponible = $quantiteDisponible;
+        $this->quantiteDisponible = $quantiteDisponible;
 
         return $this;
     }

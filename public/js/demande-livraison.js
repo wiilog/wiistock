@@ -69,3 +69,31 @@ let urlEditDemande = Routing.generate('demande_edit', true);
 let modalEditDemande = $("#modalEditDemande");
 let submitEditDemande = $("#submitEditDemande");
 InitialiserModal(modalEditDemande, submitEditDemande, urlEditDemande, tableDemande);
+
+function updateQuantity(input) {
+    let params = {
+        refArticleId: input.val()
+    };
+
+    $.post(Routing.generate('get_quantity_ref_article'), params, function(data) {
+        console.log(data);
+        input.closest('.modal-body').find('#in-stock').val(data);
+    }, 'json');
+}
+
+$('.ajax-autocomplete').select2({
+    ajax: {
+        url: Routing.generate('get_ref_articles'),
+        dataType: 'json',
+        delay: 250,
+    },
+    language: {
+        inputTooShort: function() {
+            return 'Veuillez entrer au moins 1 caractère.';
+        },
+        searching: function() {
+            return 'Recherche en cours...';
+        }
+    },
+    minimumInputLength: 1,
+});
