@@ -10,9 +10,15 @@ var tableArticle = $('#tableArticle_id').DataTable({
     columns:[
         { "data": 'Référence' },
         { "data": 'Statut' },
+        { "data": 'Libellé' },
         { "data": 'Référence article' },
         { "data": 'Quantité' },
         { "data": 'Actions' }
     ],
 });
+
+let modalEditArticle = $("#modalEditArticle");
+let submitEditArticle = $("#submitEditArticle");
+let urlEditArticle = Routing.generate('reception_article_edit', true);
+InitialiserModal(modalEditArticle, submitEditArticle, urlEditArticle, tableArticle);
 

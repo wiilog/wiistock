@@ -72,18 +72,19 @@ class DemandeController extends AbstractController
 
 
     /**
-     * @Route("/preparation/{id}", name="preparationFromDemande") //TODOO
+     * @Route("/finDemande/{id}", name="fin_demande") //TODOO
      */
     public function creationPreparationDepuisDemande(Demande $demande): Response
     {
-        if ($demande->getPreparation() == null && count($demande->getLigneArticle()) > 0) {
+        if ($demande->getPreparation() === null && count($demande->getLigneArticle()) > 0) {
             // Creation d'une nouvelle preparation basée sur une selection de demandes
             $preparation = new Preparation();
 
             $date = new \DateTime('now');
-            $preparation->setNumero('P-' . $date->format('YmdHis'));
-            $preparation->setDate($date);
-            $preparation->setUtilisateur($this->getUser());
+            $preparation
+                ->setNumero('P-' . $date->format('YmdHis'))
+                ->setDate($date)
+                ->setUtilisateur($this->getUser());
 
             $statut = $this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_NOUVELLE);
             $preparation->setStatut($statut);
@@ -94,14 +95,14 @@ class DemandeController extends AbstractController
             $demande->setStatut($statut);
 
             $em = $this->getDoctrine()->getManager();
-            $em->persist($demande);
             $em->persist($preparation);
             $em->flush();
-            return $this->render('preparation/show.html.twig', ['preparation' => $demande->getPreparation(), 'demande' => $demande]);
-        } else if ($demande->getPreparation() != null) {
-            return $this->render('preparation/show.html.twig', ['preparation' => $demande->getPreparation(), 'demande' => $demande]);
+
+            return $this->redirectToRoute('preparation_show', ['id' => $preparation->getId()]);
+        } else if ($demande->getPreparation() !== null) {
+            return $this->redirectToRoute('preparation_show', ['id' => $demande->getPreparation()->getId()]);
         }
-        return $this->show($demande);
+        // return $this->show($demande);
     }
 
 
@@ -116,7 +117,6 @@ class DemandeController extends AbstractController
             {
                 $ligneArticles = $demande->getLigneArticle();
                 $rows = [];
-
                 foreach ($ligneArticles as $ligneArticle) {
                     $idArticle = $ligneArticle->getId();
                     $url['delete'] = $this->generateUrl('ligne_article_delete', ['id' => $ligneArticle->getId()]);
@@ -152,8 +152,7 @@ class DemandeController extends AbstractController
 
             $referenceArticle = $this->referenceArticleRepository->find($data["reference"]);
             $demande = $this->demandeRepository->find($data['demande']);
-
-            if ($this->ligneArticleRepository->countByRefArticle($referenceArticle) === 0) {
+            if ($this->ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
                 $ligneArticle = new LigneArticle();
                 $ligneArticle
                     ->setQuantite($data["quantite"])
@@ -277,7 +276,7 @@ class DemandeController extends AbstractController
             $demande = $this->demandeRepository->find($data['demande']);
             $demande
                 ->setUtilisateur($utilisateur)
-                ->setDateAttendu(new \DateTime($data['dateAttendu']))
+                // ->setDateAttendu(new \DateTime($data['dateAttendu']))
                 ->setDestination($emplacement);
             $em = $this->getDoctrine()->getEntityManager();
             $em->flush();
@@ -302,7 +301,7 @@ class DemandeController extends AbstractController
                 ->setStatut($statut)
                 ->setUtilisateur($utilisateur)
                 ->setdate($date)
-                ->setDateAttendu(new \DateTime($data['dateAttendu']))
+//                ->setDateAttendu(new \DateTime($data['dateAttendu']))
                 ->setDestination($destination)
                 ->setNumero("D-" . $date->format('YmdHis'));
             $em->persist($demande);
@@ -358,14 +357,14 @@ class DemandeController extends AbstractController
                 $rows[] =
                     [
                         "Date" => ($demande->getDate() ? $demande->getDate()->format('d-m-Y') : ''),
-                        "Date attendu" => ($demande->getDateAttendu() ? $demande->getDateAttendu()->format('d-m-Y') : ''),
                         "Demandeur" => ($demande->getUtilisateur()->getUsername() ? $demande->getUtilisateur()->getUsername() : ''),
                         "Numéro" => ($demande->getNumero() ? $demande->getNumero() : ''),
                         "Statut" => ($demande->getStatut()->getNom() ? $demande->getStatut()->getNom() : ''),
-                        'Actions' => $this->renderView('demande/datatabledemandeRow.html.twig',
+                        'Actions' => $this->renderView(
+                            'demande/datatableDemandeRow.html.twig',
                             [
                                 'idDemande' => $idDemande,
-                                'modifiable'=> ($demande->getStatut()->getNom() === (Demande::STATUT_A_TRAITER)? true : false ),
+                                'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_A_TRAITER) ? true : false),
                                 'url' => $url
                             ]
                         ),
@@ -377,7 +376,7 @@ class DemandeController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
-     /**
+    /**
      * @Route("/detail", options={"expose"=true}, name="demande_show", methods={"GET", "POST"})
      */
     public function show(Request $request): Response

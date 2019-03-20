@@ -9,7 +9,7 @@
                 </button>
             </div>
             <div class="modal-body modal-input container-fluid row">
-                <div class="form-group col-6">
+                <div class="form-group col-12">
                     <div class="input-group">
                         <div class="input-group-prepend col-12 ">
                             <label class="input-group-text data" for="inputGroupSelect01">Référence CEA</label>
@@ -50,10 +50,13 @@
                 </div>
                 <div class="form-group col-6">
                     <div class="input-group">
-                        <div class="form-check">
-                            <input class="form-check-input data" type="checkbox" value="" id="etat" name='etat' checked>
-                            <label class="form-check-label" for="defaultCheck1"> Aucune anomalie</label>
-                          </div>
+                        <div class="input-group-prepend">
+                            <label  class="input-group-text" for="defaultCheck1">conform</label>
+                        </div>
+                        <select class='data form-control' name="etat" id="">
+                            <option value="on">oui</option>
+                            <option value="off">non</option>
+                        </select>
                     </div>
                 </div>
                 <div class="input-group col-12 my-2 mb-4">
@@ -70,5 +73,6 @@
                     class="btn btn-primary btn-success data" name="reception"
                     value="{{reception.id}}">Enregistrer</button>
             </div>
-
+        </div>
+    </div>
 </form>

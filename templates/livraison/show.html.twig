@@ -8,7 +8,7 @@
 
 <div class="row">
     <div class="col-4">
-        <p>Statut: {{ livraison.statut.nom }}</p>
+        <p>Statut: {{ livraison.statut ? livraison.statut.nom : '' }}</p>
         <p>Numéro: {{livraison.numero}}</p>
         <p>Opérateur:  {{livraison.utilisateur ? livraison.utilisateur.username : "" }}</p>
     </div>
@@ -28,24 +28,19 @@
             <th>Statut</th>
             <th>Conformité</th>
             <th>Référence Article</th>
-            <th>Emplacement</th>
-            <th>Destination</th>
             <th>Quantite</th>
-            <th>Actions</th>
+            <!-- <th>Actions</th> -->
         </tr>
     </thead>
     <tbody>
-        {% for row in livraison.demande %}
-        {% for article in row.articles %}
+        {% for article in preparation.article %}
         <tr>
-            <td>{{ article.nom }}</td>
-            <td>{{ article.statut.nom }}</td>
-            <td>{{ article.etat ? 'oui' : article.commentaire }}</td>
+            <td>{{ article.reference }}</td>
+            <td>{{ article.statut ? article.statut.nom: '' }}</td>
+            <td>{{ article.conform ? 'oui' : article.commentaire }}</td>
             <td>{{ article.refArticle.reference }}</td>
-            <td>{{ article.position }}</td>
-            <td>{{ article.direction }}</td>
             <td>{{ article.quantite }}</td>
-            <td>
+            {#<td>
                 <a href="{{ path('article_show', {'id': article.id}) }}"><i
                         class="fas fa-eye fa-2x"></i></a>
                 <a href="{{ path('article_edit', {'id': article.id}) }}"><i
@@ -54,14 +49,14 @@
                 <a href="{{path('article_index', {'statut': 'mis en stock',  'id': article.id})}}"
                     class="btn btn-xs btn-default green"><i class="fas fa-check fa-2x"></i></a>
                 {% endif %}
-            </td>
+            </td>#}
         </tr>
         {% else %}
         <tr>
             <td colspan="10">aucun résultat</td>
         </tr>
         {% endfor %}
-        {% endfor %}
+
     </tbody>
 </table>
 
@@ -73,7 +68,7 @@
     $(document).ready(function () {
         $('#table_id').DataTable({
             "language": {
-                "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
+                "url": "/js/i18n/dataTableLanguage.json"
             },
         });
     })

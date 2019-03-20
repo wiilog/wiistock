@@ -19,7 +19,7 @@ var table = $('#tableReception_id').DataTable({
     ],
 });
 
-let modalReceptionNew = $("#dataModalCenter");
+let modalReceptionNew = $("#modalNewReception");
 let SubmitNewReception = $("#submitButton");
 let urlReceptionIndex = Routing.generate('createReception', true)
 InitialiserModal(modalReceptionNew, SubmitNewReception, urlReceptionIndex, table);
@@ -49,6 +49,7 @@ let tableArticle = $('#tableArticle_id').DataTable({
         { "data": 'Libellé' },
         { "data": 'Référence' },
         { "data": 'Référence CEA' },
+        { "data": 'Statut' },
         { "data": 'Actions' }
     ],
 });
@@ -62,6 +63,11 @@ let modalDeleteArticle = $("#modalDeleteArticle");
 let submitDeleteArticle = $("#submitDeleteArticle");
 let urlDeleteArticle = Routing.generate('reception_article_delete', true);
 InitialiserModal(modalDeleteArticle, submitDeleteArticle, urlDeleteArticle, tableArticle);
+
+let modalEditArticle = $("#modalEditArticle");
+let submitEditArticle = $("#submitEditArticle");
+let urlEditArticle = Routing.generate('reception_article_edit', true);
+InitialiserModal(modalEditArticle, submitEditArticle, urlEditArticle, tableArticle);
 
 //GENERATOR BARCODE
 

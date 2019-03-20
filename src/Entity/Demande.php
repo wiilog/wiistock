@@ -44,11 +44,6 @@ class Demande
     private $date;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Article", inversedBy="demandes")
-     */
-    private $articles;
-
-    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Preparation", inversedBy="demandes")
      */
     private $preparation;
@@ -61,12 +56,12 @@ class Demande
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="demandes")
      */
-    private $Statut;
+    private $statut;
 
-    /**
-     * @ORM\Column(type="datetime", nullable=true)
-     */
-    private $DateAttendu;
+//    /**
+//     * @ORM\Column(type="datetime", nullable=true)
+//     */
+//    private $DateAttendu;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\LigneArticle", mappedBy="demande")
@@ -75,7 +70,6 @@ class Demande
 
     public function __construct()
     {
-        $this->articles = new ArrayCollection();
         $this->ligneArticle = new ArrayCollection();
     }
 
@@ -120,11 +114,6 @@ class Demande
         return $this;
     }
 
-    public function __toString()
-    {
-        return $this->statut;
-    }
-
     public function getDate(): ?\DateTimeInterface
     {
         return $this->date;
@@ -133,32 +122,6 @@ class Demande
     public function setDate(?\DateTimeInterface $date): self
     {
         $this->date = $date;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|Article[]
-     */
-    public function getArticles(): Collection
-    {
-        return $this->articles;
-    }
-
-    public function addArticle(Article $article): self
-    {
-        if (!$this->articles->contains($article)) {
-            $this->articles[] = $article;
-        }
-
-        return $this;
-    }
-
-    public function removeArticle(Article $article): self
-    {
-        if ($this->articles->contains($article)) {
-            $this->articles->removeElement($article);
-        }
 
         return $this;
     }
@@ -189,27 +152,27 @@ class Demande
 
     public function getStatut(): ?Statut
     {
-        return $this->Statut;
+        return $this->statut;
     }
 
-    public function setStatut(?Statut $Statut): self
+    public function setStatut(?Statut $statut): self
     {
-        $this->Statut = $Statut;
+        $this->statut = $statut;
 
         return $this;
     }
 
-    public function getDateAttendu(): ?\DateTimeInterface
-    {
-        return $this->DateAttendu;
-    }
-
-    public function setDateAttendu(?\DateTimeInterface $DateAttendu): self
-    {
-        $this->DateAttendu = $DateAttendu;
-
-        return $this;
-    }
+//    public function getDateAttendu(): ?\DateTimeInterface
+//    {
+//        return $this->DateAttendu;
+//    }
+//
+//    public function setDateAttendu(?\DateTimeInterface $DateAttendu): self
+//    {
+//        $this->DateAttendu = $DateAttendu;
+//
+//        return $this;
+//    }
 
     /**
      * @return Collection|LigneArticle[]

@@ -9,10 +9,8 @@
     <thead>
         <tr>
             <th>Référence</th>
-            <!-- <th id="Statut">Statut</th>
-            <th id="Référence article">Référence article</th>
-            <th id="Quantite" data-sortable="false">Quantité</th> -->
             <th>Statut</th>
+            <th>Libellé</th>
             <th>Référence article</th>
             <th>Quantité</th>
             <th>Actions</th>
@@ -20,6 +18,7 @@
     </thead>
 </table>
 
+{% include "article/modalModifyArticle.html.twig" %}
 {% include "article/modalShowArticle.html.twig" %}
 
 

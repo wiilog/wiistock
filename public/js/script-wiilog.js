@@ -21,22 +21,37 @@ function InitialiserModal(modal, submit, path, table) {
                 $('.errorMessage').html(JSON.parse(this.responseText))
                 data = JSON.parse(this.responseText);
                 table.ajax.reload(function (json) {
+                    if (data.redirect) {
+                        window.location.href = data.redirect;
+                    }
                     if (this.responseText !== undefined) {
                         $('#myInput').val(json.lastInput);
-                        if (data.redirect) {
-                            window.location.href = data.redirect;
-                        }
+                    }
+                    if (data.anomalie) {
+                        $('#statutReception').text(data.anomalie);
                     }
                 });
+                let inputs = modal.find(".data"); // On récupère toutes les données qui nous intéresse
+                console.log(inputs);
+                inputs.each(function () {
+                    $(this).val("");
+                       
+                });
+
             }
         };
         let inputs = modal.find(".data"); // On récupère toutes les données qui nous intéresse
-        console.log(inputs);
         let Data = {}; // Tableau de données
         inputs.each(function () {
             Data[$(this).attr("name")] = $(this).val();
         });
-        
+
+        let checkboxes = modal.find('.checkbox');
+        checkboxes.each(function () {
+           Data[$(this).attr("name")] = $(this).is(':checked');
+           alert($(this).is(':checked'));
+        });
+
         Json = {};
         Json = JSON.stringify(Data); // On transforme les données en JSON
         xhttp.open("POST", path, true);

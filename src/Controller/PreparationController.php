@@ -55,70 +55,80 @@ class PreparationController extends AbstractController
     private $referenceArticleRepository;
 
     /**
+     * @var ArticleRepository
+     */
+    private $articleRepository;
+
+    /**
      * @var DemandeRepository
      */
     private $demandeRepository;
 
-    public function __construct(StatutRepository $statutRepository, DemandeRepository $demandeRepository, ReferenceArticleRepository $referenceArticleRepository)
+    /**
+     * @var PreparationRepository
+     */
+    private $preparationRepository;
+
+    public function __construct(PreparationRepository $preparationRepository, ArticleRepository $articleRepository, StatutRepository $statutRepository, DemandeRepository $demandeRepository, ReferenceArticleRepository $referenceArticleRepository)
     {
         $this->statutRepository = $statutRepository;
+        $this->preparationRepository = $preparationRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
+        $this->articleRepository = $articleRepository;
         $this->demandeRepository = $demandeRepository;
     }
 
     /**
-     * @Route("/creationpreparation", name="createPreparation", methods="POST")
+     * @Route("/creationpreparation", name="createPreparation", methods="POST") //INUTILE CEA
      */
-    public function createPreparation(Request $request) : Response
+    public function createPreparation(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) //Si la requête est de type Xml et que data est attribuée
-        {
-            // creation d'une nouvelle preparation basée sur une selection de demandes
-            $preparation = new Preparation();
-
-            //declaration de la date pour remplir Date et Numero
-            $date = new \DateTime('now');
-            $preparation->setNumero('P-' . $date->format('YmdHis'));
-            $preparation->setDate($date);
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_NOUVELLE);
-            $preparation->setStatut($statut);
-            //Plus de detail voir creation demande meme principe
-
-            foreach ($data as $key)
             {
-                $demande = $this->demandeRepository->find($key);
-                // On avance dans le tableau
-                $statut = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
-                $demande
-                    ->setPreparation($preparation)
-                    ->setStatut($statut);
+                // creation d'une nouvelle preparation basée sur une selection de demandes
+                $preparation = new Preparation();
 
-                $articles = $demande->getArticles();
-                foreach ($articles as $article)
-                {
-                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_DEMANDE_SORTIE);
-                    $article
-                        ->setStatut($statut)
-                        ->setDirection($demande->getDestination());
-                }
+                //declaration de la date pour remplir Date et Numero
+                $date = new \DateTime('now');
+                $preparation->setNumero('P-' . $date->format('YmdHis'));
+                $preparation->setDate($date);
+                $statut = $this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_NOUVELLE);
+                $preparation->setStatut($statut);
+                //Plus de detail voir creation demande meme principe
+
+                foreach ($data as $key) {
+                        $demande = $this->demandeRepository->find($key);
+                        // On avance dans le tableau
+                        $statut = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
+                        $demande
+                            ->setPreparation($preparation)
+                            ->setStatut($statut);
+
+                        $articles = $demande->getArticles();
+                        foreach ($articles as $article) {
+                                $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_DEMANDE_SORTIE);
+                                $article
+                                    ->setStatut($statut)
+                                    ->setDirection($demande->getDestination());
+                            }
+                    }
+
+                $em = $this->getDoctrine()->getManager();
+                $em->persist($preparation);
+                $em->flush();
+
+                $data = [
+                    "preparation" => [
+                        "id" => $preparation->getId(),
+                        "numero" => $preparation->getNumero(),
+                        "date" => $preparation->getDate()->format("d/m/Y H:i:s"),
+                        "Statut" => $preparation->getStatut()->getNom()
+                    ],
+                    "message" => "Votre préparation à été enregistrer"
+                ];
+                $data = json_encode($data);
+                return new JsonResponse($data);
             }
-
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($preparation);
-            $em->flush();
-
-            $data = [
-                "preparation" => [
-                    "id" => $preparation->getId(),
-                    "numero" => $preparation->getNumero(),
-                    "date" => $preparation->getDate()->format("d/m/Y H:i:s"),
-                    "Statut" => $preparation->getStatut()->getNom()
-                ],
-                "message" => "Votre préparation à été enregistrer"
-            ];
-            $data = json_encode($data);
-            return new JsonResponse($data);
-        }
 
         throw new NotFoundHttpException("404");
     }
@@ -126,7 +136,7 @@ class PreparationController extends AbstractController
     /**
      * @Route("/", name="preparation_index", methods="GET|POST")
      */
-    public function index(Request $request) : Response
+    public function index(Request $request): Response
     {
         return $this->render('preparation/index.html.twig');
     }
@@ -134,103 +144,96 @@ class PreparationController extends AbstractController
     /**
      * @Route("/api", name="preparation_api", options={"expose"=true}, methods="GET|POST")
      */
-    public function preparationApi(Request $request, PreparationRepository $preparationRepository) : Response
+    public function preparationApi(Request $request, PreparationRepository $preparationRepository): Response
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
-        {
-            $preparations = $preparationRepository->findAll();
-            $rows = [];
-            foreach ($preparations as $preparation) 
             {
-                $url['show'] = $this->generateUrl('preparation_show', ['id' => $preparation->getId()] );
-                $rows[] = [
-                    'Numéro' => ($preparation->getNumero() ? $preparation->getNumero() : ""),
-                    'Date' => ($preparation->getDate() ? $preparation->getDate()->format('d/m/Y') : ''),
-                    'Statut' => ($preparation->getStatut() ? $preparation->getStatut()->getNom() : ""),
-                    'Actions' => $this->renderView('preparation/datatablePreparationRow.html.twig', ['url' => $url]),
-                ];
+                $preparations = $preparationRepository->findAll();
+                $rows = [];
+                foreach ($preparations as $preparation) {
+                        $url['show'] = $this->generateUrl('preparation_show', ['id' => $preparation->getId()]);
+                        $rows[] = [
+                            'Numéro' => ($preparation->getNumero() ? $preparation->getNumero() : ""),
+                            'Date' => ($preparation->getDate() ? $preparation->getDate()->format('d/m/Y') : ''),
+                            'Statut' => ($preparation->getStatut() ? $preparation->getStatut()->getNom() : ""),
+                            'Actions' => $this->renderView('preparation/datatablePreparationRow.html.twig', ['url' => $url]),
+                        ];
+                    }
+                $data['data'] = $rows;
+                return new JsonResponse($data);
             }
-            $data['data'] = $rows;
-            return new JsonResponse($data);
-        }
         throw new NotFoundHttpException("404");
     }
 
 
     /**
-     * @Route("/api/{id}", name="LignePreparation_api", options={"expose"=true}, methods={"POST"}) 
+     * @Route("/ajoutarticle", name="preparation_ajout_article", options={"expose"=true}, methods="GET|POST")
      */
-    public function LignePreparationApi(Request $request, Demande $demande) : Response
+    public function ajoutArticle(Request $request): Response
     {
-        if($request->isXmlHttpRequest()) //Si la requête est de type Xml
-        {   
-            
-            $LignePreparations = $demande->getLigneArticle();
-            $rows = [];
-        
-            foreach ($LignePreparations as $LignePreparation) 
-            {
-                $refPreparation = $this->referenceArticleRepository->findOneById($LignePreparation->getReference());
-                $rows[] = [
-                    "Référence CEA" => ($LignePreparation->getReference()->getReference() ? $LignePreparation->getReference()->getReference() : ' '),
-                    "Libellé" => ($refPreparation->getLibelle() ? $refPreparation->getLibelle() : ' '),
-                    "Quantité" => ($LignePreparation->getQuantite() ? $LignePreparation->getQuantite() : ' '),
-                ];
-            }
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+                $article = $this->articleRepository->find($data['article']);
+                $preparation = $this->preparationRepository->find($data['preparation']);
+                $preparation->addArticle($article);
+                $em = $this->getDoctrine()->getManager();
+                $em->flush();
 
-            $data['data'] = $rows;
-            return new JsonResponse($data);
-        }
+
+                return new JsonResponse();
+            }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/articleDelete", name="preparation_ajout_article_delete", options={"expose"=true}, methods={"GET", "POST"}) 
+     */
+    public function deleteArticle(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+                $article = $this->articleRepository->find($data['article']);
+                $preparation = $this->preparationRepository->find($data['preparation']);
+                $preparation->removeArticle($article);
+                $em = $this->getDoctrine()->getManager();
+                $em->flush();
+           
+                return new JsonResponse();
+            }
         throw new NotFoundHttpException("404");
     }
 
 
     /**
-     * @Route("/new", name="preparation_new", methods="GET|POST")
+     * @Route("/api_article/{id}", name="preparation_article_api", options={"expose"=true}, methods={"GET", "POST"}) 
      */
-    public function new(Request $request) : Response
+    public function LignePreparationApi(Request $request, $id): Response
     {
-        $preparation = new Preparation();
-        $form = $this->createForm(PreparationType::class, $preparation);
-        $form->handleRequest($request);
+        if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
+            {
+                $articles = $this->articleRepository->getByPreparation($id);
+                $rows = [];
 
-        if ($form->isSubmitted() && $form->isValid()) 
-        {
-            $preparation->setDate(new \DateTime('now'));
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($preparation);
-            $em->flush();
-            return $this->redirectToRoute('preparation_index', array('history' => 'false'));
-        }
+                foreach ($articles as $article) {
+                        $rows[] = [
+                            "Référence" => ($article->getReference() ? $article->getReference() : ' '),
+                            "Quantité" => ($article->getQuantite() ? $article->getQuantite() : ' '),
+                            "Action" =>  $this->renderView('preparation/datatableArticleRow.html.twig', ['articleId' => $article->getId()]),
+                        ];
+                    }
 
-        return $this->render('preparation/new.html.twig', [
-            'preparation' => $preparation,
-            'form' => $form->createView(),
-        ]);
+                $data['data'] = $rows;
+                return new JsonResponse($data);
+            }
+        throw new NotFoundHttpException("404");
     }
-
 
     /**
      * @Route("/{id}", name="preparation_show", methods="GET|POST")
      */
-    public function show(Preparation $preparation, ArticleRepository $articleRepository) : Response
+    public function show(Preparation $preparation): Response
     {
-        return $this->render('preparation/show.html.twig', ['preparation' => $preparation]);
-    }
-
-
-
-    /**
-     * @Route("/{id}", name="preparation_delete", methods="DELETE")
-     */
-    public function delete(Request $request, Preparation $preparation) : Response
-    {
-        if ($this->isCsrfTokenValid('delete' . $preparation->getId(), $request->request->get('_token')))
-        {
-            $em = $this->getDoctrine()->getManager();
-            $em->remove($preparation);
-            $em->flush();
-        }
-        return $this->redirectToRoute('preparation_index', ['history' => 'false']);
+        return $this->render('preparation/show.html.twig', [
+            'preparation' => $preparation,
+            'articles' => $this->articleRepository->getArticleByRefId(),
+        ]);
     }
 }

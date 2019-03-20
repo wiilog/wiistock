@@ -39,7 +39,7 @@ class Statut
     private $receptions;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Demande", mappedBy="Statut")
+     * @ORM\OneToMany(targetEntity="App\Entity\Demande", mappedBy="statut")
      */
     private $demandes;
 

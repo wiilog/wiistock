@@ -47,9 +47,21 @@ class Preparation
      */
     private $Utilisateur;
 
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\Article", inversedBy="preparations")
+     */
+    private $article;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Livraison", mappedBy="preparation")
+     */
+    private $livraisons;
+
     public function __construct()
     {
         $this->demandes = new ArrayCollection();
+        $this->article = new ArrayCollection();
+        $this->livraisons = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -132,6 +144,63 @@ class Preparation
     public function setUtilisateur(?Utilisateur $Utilisateur): self
     {
         $this->Utilisateur = $Utilisateur;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Article[]
+     */
+    public function getArticle(): Collection
+    {
+        return $this->article;
+    }
+
+    public function addArticle(Article $article): self
+    {
+        if (!$this->article->contains($article)) {
+            $this->article[] = $article;
+        }
+
+        return $this;
+    }
+
+    public function removeArticle(Article $article): self
+    {
+        if ($this->article->contains($article)) {
+            $this->article->removeElement($article);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Livraison[]
+     */
+    public function getLivraisons(): Collection
+    {
+        return $this->livraisons;
+    }
+
+    public function addLivraison(Livraison $livraison): self
+    {
+        if (!$this->livraisons->contains($livraison)) {
+            $this->livraisons[] = $livraison;
+            $livraison->setPreparation($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLivraison(Livraison $livraison): self
+    {
+        if ($this->livraisons->contains($livraison)) {
+            $this->livraisons->removeElement($livraison);
+            // set the owning side to null (unless already changed)
+            if ($livraison->getPreparation() === $this) {
+                $livraison->setPreparation(null);
+            }
+        }
 
         return $this;
     }
