@@ -18,7 +18,9 @@
         <p>Référence : {{ demande.numero }}</p>
     </div>
 
-    <div class="col-3"></div>
+    <div class="col-3">
+
+    </div>
 
     <div class="col-3">
         {% if modifiable %}
@@ -36,6 +38,10 @@
                 <a href="" data-toggle="modal" data-target="#modalNewArticle" class="btn btn-primary ml-auto">
                     Ajouter une ligne</a>
             </div>
+        {% else %}
+        <a href="{{path('preparation_show', {'id': demande.preparation.id }) }}">
+            Aller vers la préparation
+        </a>
         {% endif %}
     </div>
 </div>

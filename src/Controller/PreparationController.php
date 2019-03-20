@@ -226,7 +226,7 @@ class PreparationController extends AbstractController
                             "Référence CEA" => ($article->getReference() ? $article->getReference()->getReference() : ' '),
                             "Libellé" => ($article->getReference() ? $article->getReference()->getLibelle() : ' '),
                             "Quantité" => ($article->getQuantite() ? $article->getQuantite() : ' '),
-                            "Action" =>  $this->renderView('preparation/datatableArticleRow.html.twig', ['articleId' => $article->getId()]),
+                            "Action" => "",
                         ];
                     }
 
