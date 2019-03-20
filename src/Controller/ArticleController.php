@@ -20,9 +20,6 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
  */
 class ArticleController extends AbstractController
 {
-
-    
-  
     /**
      * @var StatutRepository
      */

@@ -7,14 +7,27 @@ class='accueil-back'
 
 {% block page_content %}
 <div class="row ">
-        <div class="align-self-end col">
-            <div class="text-center offset-9 col-1  alerte">
-                <h2>Alertes de seuil</h2>
-                <a href="{{path('alerte_index')}}" class="fa fa-warning fa-2x">
-                    <div class="marker">{{nbAlerte}}</div>
-                </a>
- 
+    <div class="col-3">
+        <div class='row btn'>
+            <div href="" data-toggle="modal" data-target="#modalNewDemande" class="button btn-left">
+                <span class="fa fa-plus mr-2"></span>Nouvelle demande
+            </div>
         </div>
     </div>
+    <div class="text-center offset-3 col-1 alerte">
+        <h2>Alertes de seuil</h2>
+        <a href="{{path('alerte_index')}}" class="fa fa-warning fa-2x">
+            <div class="marker">{{nbAlerte}}</div>
+        </a>
+    </div>
 </div>
+
+{% include "demande/modalNewDemande.html.twig" %}
+
+{% endblock %}
+{% block javascript %}
+<script>
+    const id = 0;
+</script>
+<script src="{{ asset('js/demande-livraison.js')}}"></script>
 {% endblock %}
