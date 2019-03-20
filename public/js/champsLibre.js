@@ -3,7 +3,7 @@
 const urlApiType = Routing.generate('typeApi', true);
 let tableType = $('#tableType_id').DataTable({
     "language": {
-        "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
+        "url": "/js/i18n/dataTableLanguage.json"
     },
     ajax: {
         "url": urlApiType,

@@ -228,6 +228,10 @@ a:hover {
   width: 100% !important;
 }
 
+.w-50 .select2-container {
+  width: 50% !important;
+}
+
 .accueil-back {
   width: 100%;
   height: 100%;
