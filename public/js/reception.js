@@ -12,11 +12,10 @@ var table = $('#tableReception_id').DataTable({
         "type": "POST"
     },
     columns: [
-        { "data": 'Statut' },
-        { "data": 'Date commande' },
-        { "data": 'Date attendue' },
+        { "data": 'Date' },
         { "data": 'Fournisseur' },
         { "data": 'Référence' },
+        { "data": 'Statut' },
         { "data": 'Actions' }
     ],
 });

@@ -140,6 +140,7 @@ class ReceptionController extends AbstractController
                     ->setDateAttendu(new \DateTime($data['date-attendu']))
                     ->setFournisseur($fournisseur)
                     ->setUtilisateur($utilisateur)
+                    ->setStatus($data['statut'])
                     ->setCommentaire($data['commentaire']);
                 $em = $this->getDoctrine()->getManager();
                 $em->flush();
@@ -183,8 +184,8 @@ class ReceptionController extends AbstractController
                         [
                             'id' => ($reception->getId()),
                             "Statut" => ($reception->getStatut() ? $reception->getStatut()->getNom() : ''),
-                            "Date commande" => ($reception->getDate() ? $reception->getDate() : '')->format('d/m/Y'),
-                            "Date attendue" => ($reception->getDateAttendu() ? $reception->getDateAttendu()->format('d/m/Y') : ''),
+                            "Date" => ($reception->getDate() ? $reception->getDate() : '')->format('d/m/Y'),
+                            // "Date attendue" => ($reception->getDateAttendu() ? $reception->getDateAttendu()->format('d/m/Y') : ''),
                             "Fournisseur" => ($reception->getFournisseur() ? $reception->getFournisseur()->getNom() : ''),
                             "Référence" => ($reception->getNumeroReception() ? $reception->getNumeroReception() : ''),
                             'Actions' => $this->renderView('reception/datatableReceptionRow.html.twig', ['url' => $url, 'reception' => $reception]),
