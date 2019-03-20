@@ -124,5 +124,9 @@ class StatutFixtures extends Fixture implements DependentFixtureInterface
         return [CategorieStatutFixtures::class];
     }
 
+    public function getGroups():array {
+        return ['status'];
+    }
+
 
 }
