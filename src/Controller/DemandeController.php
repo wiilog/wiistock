@@ -86,13 +86,13 @@ class DemandeController extends AbstractController
                 ->setDate($date)
                 ->setUtilisateur($this->getUser());
 
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_NOUVELLE);
-            $preparation->setStatut($statut);
+            $statutP = $this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_NOUVELLE);
+            $preparation->setStatut($statutP);
 
             $demande->setPreparation($preparation);
 
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
-            $demande->setStatut($statut);
+            $statutD = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
+            $demande->setStatut($statutD);
 
             $em = $this->getDoctrine()->getManager();
             $em->persist($preparation);
