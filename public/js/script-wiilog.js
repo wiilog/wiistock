@@ -14,14 +14,12 @@ function InitialiserModal(modal, submit, path, table) {
         xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function () {
             if (this.readyState == 4 && this.status == 200) {
-                console.log(this.responseText);
                 $('.errorMessage').html(JSON.parse(this.responseText))
                 data = JSON.parse(this.responseText);
                 if (data.redirect) {
                     window.location.href = data.redirect;
                 }
                 table.ajax.reload(function (json) {
-                    
                     if (this.responseText !== undefined) {
                         $('#myInput').val(json.lastInput);
                     }
@@ -61,7 +59,8 @@ function InitialiserModal(modal, submit, path, table) {
             Json = JSON.stringify(Data); // On transforme les données en JSON
             xhttp.open("POST", path, true);
             xhttp.send(Json);
-        } else {
+        }
+         else {
             let msg = '';
             if (missingInputs.length == 1) {
                 msg = 'Veuillez renseigner le champ ' + missingInputs[0] + '.';
