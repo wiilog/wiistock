@@ -301,14 +301,14 @@ class ReceptionController extends AbstractController
                     $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_DEMANDE_STOCK);
                     $articleAnomalie = $this->articleRepository->countByStatutAndReception($statutAnomalie, $reception);
                     if ($articleAnomalie < 1) {
-                        $statutRecep = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_EN_COURS);
+                        $statutRecep = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_RECEPTION_PARTIELLE);
                         $reception->setStatut($statutRecep);
                     }
                 } else {
                     $statut = $statutAnomalie;
                     $reception->setStatut($statut);
                 }
-
+                
                 $quantitie = $contentData['quantite'];
                 $refArticle
                     ->setQuantiteStock($refArticle->getQuantiteStock() + $quantitie);

@@ -1,4 +1,4 @@
-let id;
+// let id;
 
 //RECEPTION
 var path = Routing.generate('reception_api', true);

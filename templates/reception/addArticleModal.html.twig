@@ -13,7 +13,7 @@
                     <div class="input-group">
                         <div class="input-group-prepend col-12 ">
                             <label class="input-group-text data" for="inputGroupSelect01">Référence CEA</label>
-                            <select class='form-control select2 data' id="refArticle" name='refArticle' type="text">
+                            <select class='select2 form-control  data' id="refArticle" name='refArticle' type="text">
                                 {% for article in refArticle %}
                                 <option value="{{ article.id }}">
                                     {{ article.libelle }}
