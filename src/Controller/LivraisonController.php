@@ -110,8 +110,10 @@ class LivraisonController extends AbstractController
     public function finLivraison(Livraison $livraison, Request $request): Response
     {
         $livraison->setStatut($this->statutRepository->findOneByCategorieAndStatut(Livraison::CATEGORIE, Livraison::STATUT_LIVRE));
-        $demande = $livraison->getDemande()->toArray();
-        $demande[0]->setStatut($this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_LIVREE));
+        dump($livraison->getId());
+        $demande = $this->demandeRepository->getByLivraison($livraison->getId());
+        dump($demande);
+        $demande->setStatut($this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_LIVREE));
 
         $preparation = $livraison->getPreparation();
         $articles = $preparation->getArticle();
@@ -139,6 +141,30 @@ class LivraisonController extends AbstractController
                         'Date' => ($livraison->getDate() ? $livraison->getDate()->format('d-m-Y') : ''),
                         'Statut' => ($livraison->getStatut() ? $livraison->getStatut()->getNom() : ''),
                         'Opérateur' => ($livraison->getUtilisateur() ? $livraison->getUtilisateur()->getUsername() : ''),
+                        'Actions' => $this->renderView('livraison/datatableLivraisonRow.html.twig', ['url' => $url])
+                    ];
+                }
+
+                $data['data'] = $rows;
+                return new JsonResponse($data);
+            }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/apiArticle/{id}", name="livraison_article_api", options={"expose"=true}, methods={"GET", "POST"})
+     */
+    public function livraisonArticleApi(Request $request, $id): Response
+    {
+        if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
+            {
+                $livraison = $this->livraisonRepository->find($id);
+               dump($id);
+                $rows = [];
+                foreach ($livraison as $article) {
+                    $url['show'] = $this->generateUrl('livraison_show', ['id' => $livraison->getId()]);
+                    $rows[] = [
+                        
                         'Actions' => $this->renderView('livraison/datatableLivraisonRow.html.twig', ['url' => $url])
                     ];
                 }
