@@ -1,0 +1,767 @@
+<?php
+
+namespace App\DataFixtures;
+
+use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Common\Persistence\ObjectManager;
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;git 
+
+use App\Entity\ReferenceArticle;
+
+class CategoryTypeFixtures extends Fixture
+{
+    private $encoder;
+
+    public function __construct(UserPasswordEncoderInterface $encoder)
+    {
+        $this->encoder = $encoder;
+    }
+
+    public function load(ObjectManager $manager)
+    {
+        $refArticleSlugCibles =
+            [
+                [
+                    'ref' => 'DEP_H57+P31B2A2:P32A2:Q3A2:Q34',
+                    'designation' => ' BACKING PLATE 300MM PVD',
+                    'stock' => 1,
+                    'beneficiaire' => '',
+                    'machine ' => 'VERSALIS',
+                    'fournisseur ' => 'SPTS',
+                    'refFournisseur ' => 'ND',
+                    'stockMini ' => '0',
+                    'dateEntre ' => '19/12/2016'
+                ],
+                [
+                    'ref' => 'DEP_H57',
+                    'designation' => 'BACKING PLATE VIERGE CUIVRE POUR CT200 DIAM290',
+                    'stock' => 4,
+                    'beneficiaire' => 'CATHODE NORDICO PLAN',
+                    'machine ' => 'AC CT200A',
+                    'fournisseur ' => 'ALLIANCE',
+                    'refFournisseur ' => 'REALISEE CHEZ PEYRONNARD',
+                    'stockMini ' => '0',
+                    'dateEntre ' => '19/12/2016'
+                ],
+                [
+                    'ref' => 'SBB01L',
+                    'designation' => 'CI ALSI 1% 99,999% DIAM.13.558x0.300 (FLAT) ',
+                    'stock' => 1,
+                    'beneficiaire' => '',
+                    'machine ' => 'END 5500D',
+                    'fournisseur ' => 'SPTS',
+                    'refFournisseur ' => 'NC',
+                    'stockMini ' => '1',
+                    'dateEntre ' => '06/09/2016'
+                ],
+                [
+                    'ref' => 'SBC45LU',
+                    'designation' => 'cible 300mm TITANIUM 4N5 MONOBLOC',
+                    'stock' => 2,
+                    'beneficiaire' => '',
+                    'machine ' => '',
+                    'fournisseur ' => 'PRAXAIR',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBC29L',
+                    'designation' => 'CIBLE AL 5N5 SUPER FINE GRAIN DIAM 13.558 EP0.300',
+                    'stock' => 1,
+                    'beneficiaire' => 'TRI-711382',
+                    'machine ' => 'END 5500D',
+                    'fournisseur ' => 'SPTS',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBC72L',
+                    'designation' => ' CIBLE AL SFG SUPER FINE GRAIN DIAM 332 MM EP 7 MM',
+                    'stock' => 1,
+                    'beneficiaire' => '',
+                    'machine ' => 'SIGMA1',
+                    'fournisseur ' => 'SPTS',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBC37L',
+                    'designation' => 'CIBLE AL/SI 1% 5N5 (TOP HAT)',
+                    'stock' => 1,
+                    'beneficiaire' => '',
+                    'machine ' => 'END 5500D',
+                    'fournisseur ' => 'PRAXAIR',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBC06L',
+                    'designation' => 'CIBLE ARGENT 99,999% DIAM 13.558X0.300',
+                    'stock' => 1,
+                    'beneficiaire' => '4000312481',
+                    'machine ' => 'END 5500D',
+                    'fournisseur ' => 'PTS',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBC46LU',
+                    'designation' => 'CIBLE CHROME 200 MM',
+                    'stock' => 1,
+                    'beneficiaire' => '',
+                    'machine ' => '',
+                    'fournisseur ' => '',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBC12L',
+                    'designation' => 'CIBLE COFE RECTANGULAIRE 350X140X6MM AVIZA IBD 300',
+                    'stock' => 1,
+                    'beneficiaire' => 'NEUVE',
+                    'machine ' => '',
+                    'fournisseur ' => 'HONEYWELL',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBC63L',
+                    'designation' => 'CIBLE COPPER 200MM 5N5 FGR MONOBLOC ',
+                    'stock' => 1,
+                    'beneficiaire' => '',
+                    'machine ' => '',
+                    'fournisseur ' => 'PTS',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBC10L',
+                    'designation' => ' CIBLE COPPER 300 MM 5N MONOBLOC',
+                    'stock' => 1,
+                    'beneficiaire' => '',
+                    'machine ' => '',
+                    'fournisseur ' => 'PRAXAIR',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBC08L',
+                    'designation' => 'CIBLE COPPER 300 MM 5N MONOBLOC',
+                    'stock' => 1,
+                    'beneficiaire' => '',
+                    'machine ' => 'VERSALIS',
+                    'fournisseur ' => 'PRAXAIR',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBC08L',
+                    'designation' => 'CIBLE COPPER 5N5 TOP HAT 13inD MONOBLOC',
+                    'stock' => 1,
+                    'beneficiaire' => '',
+                    'machine ' => 'VERSALIS',
+                    'fournisseur ' => 'PRAXAIR',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBC07L',
+                    'designation' => 'CIBLE Cr',
+                    'stock' => 1,
+                    'beneficiaire' => '',
+                    'machine ' => 'END 5500D',
+                    'fournisseur ' => 'PRAXAIR',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBC68LU',
+                    'designation' => ' CIBLE CR 200 MM (BHT) 13.558 DIAM X0.310""',
+                    'stock' => 1,
+                    'beneficiaire' => '',
+                    'machine ' => 'END 5500C',
+                    'fournisseur ' => 'PTS',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBC41L',
+                    'designation' => 'CIBLE Cu Te2 (4N) 100MM X 6MM',
+                    'stock' => 1,
+                    'beneficiaire' => '',
+                    'machine ' => 'END 5500C',
+                    'fournisseur ' => 'WILLIAMS',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBC55L',
+                    'designation' => 'CIBLE FE-NI 19% WT%  99.95% DIAM 13.558 X 0.078""',
+                    'stock' => 1,
+                    'beneficiaire' => '',
+                    'machine ' => '',
+                    'fournisseur ' => 'NIKKO',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBC40L',
+                    'designation' => 'CIBLE FE-NI 19% WT%  99.95% DIAM 13.558 X 0.078""',
+                    'stock' => 1,
+                    'beneficiaire' => '4000312279',
+                    'machine ' => 'END 5500D',
+                    'fournisseur ' => 'PTS',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBC40LU',
+                    'designation' => ' CIBLE FLAT TIO2',
+                    'stock' => 1,
+                    'beneficiaire' => '4000312279',
+                    'machine ' => 'END 5500D',
+                    'fournisseur ' => 'PTS',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBC59LU',
+                    'designation' => ' CIBLE GD 99.4%',
+                    'stock' => 1,
+                    'beneficiaire' => '',
+                    'machine ' => 'END 5500D',
+                    'fournisseur ' => 'JX',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBC48L',
+                    'designation' => ' CIBLE Ge',
+                    'stock' => 1,
+                    'beneficiaire' => 'BERNARD.M',
+                    'machine ' => '',
+                    'fournisseur ' => 'PTS',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBC67LU',
+                    'designation' => ' CIBLE GE 99,99% 100 MM ',
+                    'stock' => 1,
+                    'beneficiaire' => '',
+                    'machine ' => 'END 5500C',
+                    'fournisseur ' => 'PTS',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBC23L',
+                    'designation' => ' CIBLE GE69.5%SB11%TE19.5%',
+                    'stock' => 1,
+                    'beneficiaire' => '',
+                    'machine ' => '',
+                    'fournisseur ' => 'PTS',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBC58L',
+                    'designation' => '  CIBLE GZO',
+                    'stock' => 1,
+                    'beneficiaire' => '',
+                    'machine ' => 'END 300B',
+                    'fournisseur ' => 'JX',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBC65L',
+                    'designation' => ' CIBLE HALFIUM TOP HAT PETIT DIAMETRE ENDURA CHD',
+                    'stock' => 1,
+                    'beneficiaire' => '',
+                    'machine ' => 'END 5500D',
+                    'fournisseur ' => 'PTS',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBC61L',
+                    'designation' => ' CIBLE IGZO',
+                    'stock' => 1,
+                    'beneficiaire' => '',
+                    'machine ' => 'END 5500A',
+                    'fournisseur ' => 'JX',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBC66LU',
+                    'designation' => 'CIBLE ITO (4N) 90/10 UHD.IV 254mm x 6 mm ',
+                    'stock' => 1,
+                    'beneficiaire' => '',
+                    'machine ' => 'END 5500D',
+                    'fournisseur ' => 'PTS',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBC47L',
+                    'designation' => ' CIBLE MGO RECTANGULAIRE 350X140X6MM AVIZA IBD 300',
+                    'stock' => 1,
+                    'beneficiaire' => 'TESSAIRE MAGALI ',
+                    'machine ' => 'AC CT200A',
+                    'fournisseur ' => 'JX',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBC62LU',
+                    'designation' => ' CIBLE MO ',
+                    'stock' => 1,
+                    'beneficiaire' => 'USURE 6KWH',
+                    'machine ' => 'END 5500A',
+                    'fournisseur ' => '',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBC64LU',
+                    'designation' => ' CIBLE NI2P 300MM',
+                    'stock' => 1,
+                    'beneficiaire' => '',
+                    'machine ' => 'END 300A',
+                    'fournisseur ' => 'PTS',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBC73L',
+                    'designation' => 'CIBLE OR',
+                    'stock' => 1,
+                    'beneficiaire' => 'MATERION (FR)',
+                    'machine ' => '',
+                    'fournisseur ' => 'WILLIAMS',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBC01L',
+                    'designation' => ' CIBLE OXYDE DE GADOLINIUM (GD203) DIAM 100 MMX6MM',
+                    'stock' => 1,
+                    'beneficiaire' => 'BERNARD Mathieu ',
+                    'machine ' => '',
+                    'fournisseur ' => 'PRAXAIR',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBC38L',
+                    'designation' => '  CIBLE PZT 200 MM',
+                    'stock' => 1,
+                    'beneficiaire' => '',
+                    'machine ' => 'END 5500D',
+                    'fournisseur ' => 'PTS',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBC18L',
+                    'designation' => '  CIBLE PZT 200 MM',
+                    'stock' => 1,
+                    'beneficiaire' => '4000328254 RODRIGUEZ',
+                    'machine ' => 'END 5500D',
+                    'fournisseur ' => 'PTS',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBC18LU',
+                    'designation' => '  CIBLE SB (DIAMETRE 6.16,EPAISSEUR 0.118)',
+                    'stock' => 1,
+                    'beneficiaire' => '',
+                    'machine ' => 'END 300B',
+                    'fournisseur ' => 'JX',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBC59L',
+                    'designation' => 'CIBLE SILICIUM 5N DIAM 13.558 EP 0.125 ANGLE45',
+                    'stock' => 1,
+                    'beneficiaire' => '',
+                    'machine ' => 'END 5500D',
+                    'fournisseur ' => 'PTS',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBC28L',
+                    'designation' => '    CIBLE TA 99,99 % DIAM 100 mm x 6 mm ep.',
+                    'stock' => 1,
+                    'beneficiaire' => '',
+                    'machine ' => '',
+                    'fournisseur ' => 'PTS',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBC44L',
+                    'designation' => '  CIBLE TITANE 4N5 ENDURA G12 BHT',
+                    'stock' => 1,
+                    'beneficiaire' => '',
+                    'machine ' => '',
+                    'fournisseur ' => 'PRAXAIR',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBC02L',
+                    'designation' => ' CIBLE TITANE 4N5 ENDURA G4 41.01',
+                    'stock' => 1,
+                    'beneficiaire' => '',
+                    'machine ' => '',
+                    'fournisseur ' => 'PRAXAIR',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBC05L',
+                    'designation' => '  CIBLE TITANE DIAM 100 MM EP 6 MM ',
+                    'stock' => 1,
+                    'beneficiaire' => '',
+                    'machine ' => '',
+                    'fournisseur ' => 'NEYCO',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBC25L',
+                    'designation' => ' CIBLE ZB/A AL DIAX0.276 5N5',
+                    'stock' => 1,
+                    'beneficiaire' => '',
+                    'machine ' => '',
+                    'fournisseur ' => 'TOSOH',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBC66L',
+                    'designation' => '  CIBLE ZR ENDURA A 200MM CHD TOP HAT PETIT DIAMETRE',
+                    'stock' => 1,
+                    'beneficiaire' => '',
+                    'machine ' => 'END 5500A',
+                    'fournisseur ' => 'JX',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBC60LU',
+                    'designation' => 'CIBLE ZB/A AL DIAX0.276 5N5',
+                    'stock' => 200,
+                    'beneficiaire' => '',
+                    'machine ' => '',
+                    'fournisseur ' => 'c',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBS17XA',
+                    'designation' => 'ITO 90 IN 203/0 SN 02 WT %',
+                    'stock' => 100,
+                    'beneficiaire' => '',
+                    'machine ' => '',
+                    'fournisseur ' => 'PTS',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBS15XA',
+                    'designation' => 'SLUGS GERMANIUM 99,999% 0.1-0.5(unité:gr)',
+                    'stock' => 200,
+                    'beneficiaire' => '',
+                    'machine ' => '',
+                    'fournisseur ' => 'PTS',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBS15XA',
+                    'designation' => '  Slug AL 99.999 0.25 inch',
+                    'stock' => 300,
+                    'beneficiaire' => '',
+                    'machine ' => '',
+                    'fournisseur ' => 'PTS',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBS07XA',
+                    'designation' => ' SLUG CU (COPPER) 99,9%(unité:gr)',
+                    'stock' => 400,
+                    'beneficiaire' => '',
+                    'machine ' => '',
+                    'fournisseur ' => '',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBS09XA',
+                    'designation' => ' SLUG FE2O3 (IRON OXYDE 99,9% 3-12 MM(unité:gr)',
+                    'stock' => 300,
+                    'beneficiaire' => '',
+                    'machine ' => '',
+                    'fournisseur ' => '',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBS03XA',
+                    'designation' => ' SLUG PT 0.250X0.250(unité:gr)',
+                    'stock' => 280,
+                    'beneficiaire' => '',
+                    'machine ' => '',
+                    'fournisseur ' => '',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBS03XA2',
+                    'designation' => 'SLUG PT 0.3X0.6(unité:gr)',
+                    'stock' => 300,
+                    'beneficiaire' => '',
+                    'machine ' => '',
+                    'fournisseur ' => '',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBS08XA',
+                    'designation' => ' SLUG TI (TITANIUM) 99,9% (unité:gr)',
+                    'stock' => 500,
+                    'beneficiaire' => '',
+                    'machine ' => '',
+                    'fournisseur ' => '',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBS08XA',
+                    'designation' => ' SLUG TI (TITANIUM) 99,9% (unité:gr)',
+                    'stock' => 300,
+                    'beneficiaire' => '',
+                    'machine ' => '',
+                    'fournisseur ' => '',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBS08XA',
+                    'designation' => ' SLUG TI (TITANIUM) 99,9% (unité:gr)',
+                    'stock' => 900,
+                    'beneficiaire' => '',
+                    'machine ' => '',
+                    'fournisseur ' => '',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBS01XA3',
+                    'designation' => '  slugs AU ',
+                    'stock' => 460,
+                    'beneficiaire' => '',
+                    'machine ' => '',
+                    'fournisseur ' => '',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBS13XA',
+                    'designation' => ' SLUGS CR 99,9995 % 3MM a 5 MM(unité:gr)',
+                    'stock' => 300,
+                    'beneficiaire' => 'VANDROUX/CHARRIER',
+                    'machine ' => '',
+                    'fournisseur ' => '',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBS12XA',
+                    'designation' => ' SLUGS GERMANIUM 99,999% 0.1-0.5(unité:gr)',
+                    'stock' => 1900,
+                    'beneficiaire' => 'VANDROUX/CHARRIER',
+                    'machine ' => '',
+                    'fournisseur ' => '',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBS05XY',
+                    'designation' => ' SLUGS INDIUM 6mm X 6mm  (unité:gr)',
+                    'stock' => 100,
+                    'beneficiaire' => '',
+                    'machine ' => '',
+                    'fournisseur ' => '',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBS02XA',
+                    'designation' => ' slugs NI 0.25x0.25(unité:gr)',
+                    'stock' => 100,
+                    'beneficiaire' => '',
+                    'machine ' => '',
+                    'fournisseur ' => '',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBS02XA',
+                    'designation' => ' slugs NI 0.25x0.25(unité:gr)',
+                    'stock' => 200,
+                    'beneficiaire' => '',
+                    'machine ' => '',
+                    'fournisseur ' => '',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBS02XA',
+                    'designation' => ' slugs NI 0.25x0.25(unité:gr)',
+                    'stock' => 50,
+                    'beneficiaire' => '',
+                    'machine ' => '',
+                    'fournisseur ' => '',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBS06XA',
+                    'designation' => ' SLUGS PD 0,250x0,250(unité:gr)',
+                    'stock' => 100,
+                    'beneficiaire' => '',
+                    'machine ' => '',
+                    'fournisseur ' => '',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBS06XA',
+                    'designation' => ' SLUGS PD 0,250x0,250(unité:gr)',
+                    'stock' => 200,
+                    'beneficiaire' => '',
+                    'machine ' => '',
+                    'fournisseur ' => '',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBS11XA',
+                    'designation' => '  SLUGS SIO2 3 à 12 mm X(unité:gr)',
+                    'stock' => 300,
+                    'beneficiaire' => '',
+                    'machine ' => '',
+                    'fournisseur ' => '',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'SBS14XA',
+                    'designation' => 'SLUGS ZNS 99,99 % DIAM 3 A 12 MM (unité:gr)',
+                    'stock' => 300,
+                    'beneficiaire' => 'VANDROUX/CHARRIER',
+                    'machine ' => '',
+                    'fournisseur ' => '',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ],
+                [
+                    'ref' => 'CIBLEPLATINUM',
+                    'designation' => ' BACKING PLATE VIERGE CUIVRE POUR CT200 DIAM291',
+                    'stock' => 1,
+                    'beneficiaire' => '',
+                    'fournisseur ' => '',
+                    'refFournisseur ' => '',
+                    'stockMini ' => '',
+                    'dateEntre ' => ''
+                ]
+            ];
+
+
+
+
+
+        foreach ($refArticleSlugCibles as $refArticleSlugCible) {
+            $refArticle = new ReferenceArticle();
+            $refArticle
+                ->setType($this->typeRepository->find(1))
+                ->setReference($refArticleSlugCible['ref'])
+                ->setQuantiteStock($refArticleSlugCible[' stock'])
+                ->setLibelle($refArticleSlugCible['designation']);
+            $manager->persist($refArticle);
+        }
+        $manager->flush();
+
+}
+}
