@@ -98,9 +98,9 @@ class DemandeController extends AbstractController
             $em->persist($preparation);
             $em->flush();
 
-            return $this->redirectToRoute('preparation_show', ['id' => $preparation->getId()]);
+            return $this->redirectToRoute('demande_show_article', ['id' => $demande->getId()]);
         } else if ($demande->getPreparation() !== null) {
-            return $this->redirectToRoute('preparation_show', ['id' => $demande->getPreparation()->getId()]);
+            return $this->redirectToRoute('demande_show_article', ['id' => $demande->getId()]);
         }
         // return $this->show($demande);
     }
