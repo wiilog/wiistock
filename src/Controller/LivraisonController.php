@@ -61,7 +61,7 @@ class LivraisonController extends AbstractController
     }
 
     /**
-    *  @Route("/creation/{id}", name="createLivrais on", methods={"GET","POST"} )
+    *  @Route("/creation/{id}", name="createLivraison", methods={"GET","POST"} )
     */
     public function creationLivraison($id): Response
     {
