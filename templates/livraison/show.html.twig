@@ -15,8 +15,6 @@
     <div class="col-4">
         <p>Date de commande:
             {{ livraison.demande ? livraison.demande.0.date|date('d-m-Y ') : '' }} </p>
-        <p>Date attendue:
-            {{ livraison.demande.0.dateAttendu ? livraison.demande.0.dateAttendu|date('d-m-Y ') : '' }} </p>
         <p><a href={{path('livraison_fin', {'id': livraison.id})}}>Finir la livraison</a></p>
     </div>
 </div>

@@ -175,9 +175,6 @@ class Preparation
         return $this;
     }
 
-    /**
-     * @return Collection|Livraison[]
-     */
     public function getLivraisons(): Collection
     {
         return $this->livraisons;
