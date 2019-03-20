@@ -13,8 +13,8 @@
                     <div class="input-group">
                         <div class="input-group-prepend ">
                             <label class="input-group-text data" for="inputGroupSelect01">Référence CEA</label>
-                            <select class='form-control select2 data' id="refArticle" name='refArticle' type="text">
-                                <option disabled selected>Choix de la référence </option>
+                            <select id="refArticle" onchange="getId($(this))" class='form-control select1 data'  name='refArticle' type="text">
+                                <option disabled selected> </option>
                                 {% for article in refArticle %}
                                 <option value="{{ article.id }}">
                                     {{ article.libelle }}
@@ -32,15 +32,16 @@
                         <input class="form-control data" type="text" name="libelle" id="libelle">
                     </div>
                 </div>
-                {#<div class="form-group col-6">
+                <div class="form-group col-6">
                     <div class="input-group">
                         <div class="input-group-prepend">
                             <label for="" class="input-group-text">Quantité en stock</label>
                         </div>
-                        <input type="text" class="form-control data" name="stock" id='stock'
-        value="{{}}" placeholder="stock">
+                        {#<input id="stock" type="text" class="form-control data" name="stock" >#}
+                        <div class="input-group-prepend"></div>
+                        <p id="stock">  </p>
                     </div>
-                </div> #}
+                </div> 
                 <div class="form-group col-6">
                     <div class="input-group">
                         <div class="input-group-prepend">

@@ -411,4 +411,16 @@ class ReceptionController extends AbstractController
 
         return $this->redirectToRoute('reception_index');
     }
+
+     /**
+     * @Route("/article/stock/{id}", name="get_article_stock", options={"expose"=true}, methods={"GET", "POST"})
+     */
+    public function getArticleStock(Request $request, $id)
+    {
+        
+
+       
+
+    }
+
 }

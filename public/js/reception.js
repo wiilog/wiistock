@@ -107,3 +107,15 @@ let printerAll = function () {
     xhttp.open("POST", pathPrinterAll, true);
     xhttp.send(json);
 }
+
+    // function showStock(str) {
+    // //   let x = document.getElementById("refArticle").value;
+    // //   document.getElementById('stock').innerHTML = "You selected: " + x;
+    // console.log(str);
+    
+    // $.post(Routing.generate('get_article_stock', { 'id': id }, true), { "getId " }, function (data) {
+    //     data = JSON.parse(this.responseText);
+    //     console.log(data)
+    // }, "json");
+
+    
