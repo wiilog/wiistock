@@ -21,7 +21,8 @@ var tableArticle = $('#tableArticle_id').DataTable({
     },
     ajax: pathArticle,
     columns: [
-        { "data": 'Référence' },
+        { "data": 'Référence CEA' },
+        { "data": 'Libellé' },
         { "data": 'Quantité' },
         { "data": 'Action' },
     ],
