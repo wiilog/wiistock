@@ -21,20 +21,22 @@
     <div class="col-3"></div>
 
     <div class="col-3">
-        <div class="row justify-content-between">
-            <a href="" data-id='{{ demande.id }}' data-target='#modalEditDemande' data-toggle='modal'
-                onclick="editRow($(this), Routing.generate('demande_edit_api', true), $('#modalEditDemande'), $('#submitEditDemande'))"
-                class="btn btn-primary ml-auto">
-                Modifier livraison</a>
-        </div>
-        <div class="row justify-content-between">
-            <a href="{{path('fin_demande', {'id': demande.id})}}" class="btn btn-primary ml-auto">
-                Finaliser livraison</a>
-        </div>
-        <div class="row justify-content-between">
-            <a href="" data-toggle="modal" data-target="#modalNewArticle" class="btn btn-primary ml-auto">
-                Ajouter une ligne</a>
-        </div>
+        {% if modifiable %}
+            <div class="row justify-content-between">
+                <a href="" data-id='{{ demande.id }}' data-target='#modalEditDemande' data-toggle='modal'
+                    onclick="editRow($(this), Routing.generate('demande_edit_api', true), $('#modalEditDemande'), $('#submitEditDemande'))"
+                    class="btn btn-primary ml-auto">
+                    Modifier livraison</a>
+            </div>
+            <div class="row justify-content-between">
+                <a href="{{path('fin_demande', {'id': demande.id})}}" class="btn btn-primary ml-auto">
+                    Finaliser livraison</a>
+            </div>
+            <div class="row justify-content-between">
+                <a href="" data-toggle="modal" data-target="#modalNewArticle" class="btn btn-primary ml-auto">
+                    Ajouter une ligne</a>
+            </div>
+        {% endif %}
     </div>
 </div>
 <span id="demande-id" data-id="{{ demande.id }}"></span>

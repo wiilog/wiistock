@@ -86,7 +86,7 @@ class DemandeController extends AbstractController
                 ->setDate($date)
                 ->setUtilisateur($this->getUser());
 
-            $statutP = $this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_NOUVELLE);
+            $statutP = $this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
             $preparation->setStatut($statutP);
 
             $demande->setPreparation($preparation);
@@ -127,9 +127,8 @@ class DemandeController extends AbstractController
                         "Actions" => $this->renderView(
                             'demande/datatableLigneArticleRow.html.twig',
                             [
-                                'url' => $url,
-                                'ligneArticle' => $ligneArticle,
-                                'idArticle' => $idArticle
+                                'idArticle' => $idArticle,
+                                'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
                             ]
                         )
                     ];
@@ -237,7 +236,8 @@ class DemandeController extends AbstractController
             'demande' => $demande,
             'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
             'statuts' => $this->statutRepository->findByCategorieName(Demande::CATEGORIE),
-            'references' => $this->referenceArticleRepository->getIdAndLibelle()
+            'references' => $this->referenceArticleRepository->getIdAndLibelle(),
+            'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
         ]);
     }
 
@@ -292,7 +292,7 @@ class DemandeController extends AbstractController
             $em = $this->getDoctrine()->getManager();
             $utilisateur = $this->utilisateurRepository->find($data["demandeur"]);
             $date = new \DateTime('now');
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
+            $statut = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
             $destination = $this->emplacementRepository->find($data["destination"]);
             $demande = new Demande();
             $demande
@@ -366,7 +366,7 @@ class DemandeController extends AbstractController
                             'demande/datatableDemandeRow.html.twig',
                             [
                                 'idDemande' => $idDemande,
-                                'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_A_TRAITER) ? true : false),
+                                'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
                                 'url' => $url
                             ]
                         ),
@@ -385,7 +385,7 @@ class DemandeController extends AbstractController
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $demande = $this->demandeRepository->find($data);
-            $json = $this->renderView('demande/modalShowDemandeContent.html.twig', [
+            $json = $this->renderView('demande/modalEditDemand.html.twig', [
                 'demande' => $demande,
             ]);
             return new JsonResponse($json);

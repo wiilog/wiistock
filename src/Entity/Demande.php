@@ -13,7 +13,7 @@ class Demande
 {
     const CATEGORIE = 'demande';
 
-    const BROUILLON = 'brouillon';
+    const STATUT_BROUILLON = 'brouillon';
     const STATUT_PREPARE = 'préparé';
     const STATUT_A_TRAITER = 'à traiter';
     const STATUT_LIVREE = 'livré';

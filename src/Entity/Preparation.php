@@ -13,8 +13,8 @@ class Preparation
 {
     const CATEGORIE = 'preparation';
 
-    const STATUT_NOUVELLE = 'à traiter';
-    const STATUT_EN_COURS = 'préparé';
+    const STATUT_A_TRAITER = 'à traiter';
+    const STATUT_PREPARE = 'préparé';
 
     /**
      * @ORM\Id()

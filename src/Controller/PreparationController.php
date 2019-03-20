@@ -92,7 +92,7 @@ class PreparationController extends AbstractController
                 $date = new \DateTime('now');
                 $preparation->setNumero('P-' . $date->format('YmdHis'));
                 $preparation->setDate($date);
-                $statut = $this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_NOUVELLE);
+                $statut = $this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
                 $preparation->setStatut($statut);
                 //Plus de detail voir creation demande meme principe
 
