@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Article;
+use App\Entity\Demande;
 use App\Entity\Livraison;
 use App\Form\LivraisonType;
 use App\Repository\LivraisonRepository;
@@ -106,6 +107,9 @@ class LivraisonController extends AbstractController
     public function finLivraison(Livraison $livraison, Request $request): Response
     {
         $livraison->setStatut($this->statutRepository->findOneByCategorieAndStatut(Livraison::CATEGORIE, Livraison::STATUT_LIVRE));
+        $demande = $livraison->getDemande()->toArray();
+        $demande[0]->setStatut($this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_LIVREE));
+
         $preparation = $livraison->getPreparation();
         $articles = $preparation->getArticle();
         foreach ($articles as $article) {
