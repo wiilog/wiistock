@@ -203,6 +203,7 @@ class AlerteController extends AbstractController
     public function edit(Request $request) : Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            dump($data);
             $alerte = $this->alerteRepository->find($data['id']);
             $alerte
                 ->setAlerteNom($data["Nom"])
