@@ -32,9 +32,7 @@ function InitialiserModal(modal, submit, path, table) {
                 let inputs = modal.find('.modal-body').find(".data"); // On récupère toutes les données qui nous intéresse
                 inputs.each(function () {
                     $(this).val("");
-
                 });
-
             }
         };
         let inputs = modal.find(".data"); // On récupère toutes les données qui nous intéresse

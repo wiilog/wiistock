@@ -80,8 +80,11 @@ function updateQuantity(input) {
     };
 
     $.post(Routing.generate('get_quantity_ref_article'), params, function(data) {
-        console.log(data);
-        input.closest('.modal-body').find('#in-stock').val(data);
+        let modalBody = input.closest('.modal-body');
+        modalBody.find('#in-stock').val(data);
+        modalBody.find('#quantite').attr('max', data);
+
+
     }, 'json');
 }
 
@@ -97,6 +100,9 @@ $('.ajax-autocomplete').select2({
         },
         searching: function() {
             return 'Recherche en cours...';
+        },
+        noResults: function() {
+            return 'Aucun résultat.';
         }
     },
     minimumInputLength: 1,
