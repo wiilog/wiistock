@@ -1,6 +1,6 @@
-$( document ).ready(function () {
-    $('#modalNewArticle').modal('show')
-})
+// $( document ).ready(function () {
+//     $('#modalNewArticle').modal('show')
+// })
 
 //ARTICLE DEMANDE
 let pathArticle = Routing.generate('LigneArticle_api', { id: id }, true);
