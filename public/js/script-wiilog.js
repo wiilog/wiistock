@@ -21,10 +21,11 @@ function InitialiserModal(modal, submit, path, table) {
                 console.log(this.responseText);
                 $('.errorMessage').html(JSON.parse(this.responseText))
                 data = JSON.parse(this.responseText);
+                if (data.redirect) {
+                    window.location.href = data.redirect;
+                }
                 table.ajax.reload(function (json) {
-                    if (data.redirect) {
-                        window.location.href = data.redirect;
-                    }
+                    
                     if (this.responseText !== undefined) {
                         $('#myInput').val(json.lastInput);
                     }
@@ -32,7 +33,7 @@ function InitialiserModal(modal, submit, path, table) {
                         $('#statutReception').text(data.anomalie);
                     }
                 });
-                let inputs = modal.find(".data"); // On récupère toutes les données qui nous intéresse
+                let inputs = modal.find('.modal-body').find(".data"); // On récupère toutes les données qui nous intéresse
                 inputs.each(function () {
                     $(this).val("");
                        
