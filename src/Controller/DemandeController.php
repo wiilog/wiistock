@@ -149,7 +149,6 @@ class DemandeController extends AbstractController
     public function ajoutLigneArticle(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-
             $referenceArticle = $this->referenceArticleRepository->find($data["reference"]);
             $demande = $this->demandeRepository->find($data['demande']);
             if ($this->ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande)  < 1) {
@@ -202,8 +201,12 @@ class DemandeController extends AbstractController
     public function modifyLigneArticle(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            dump($data);
+            $reference = $this->referenceArticleRepository->find($data['reference']);
             $ligneArticle = $this->ligneArticleRepository->find($data['ligneArticle']);
-            $ligneArticle->setQuantite($data["quantite"]);
+            $ligneArticle
+                ->setReference($reference)
+                ->setQuantite($data["quantite"]);
             $this->getDoctrine()->getEntityManager()->flush();
 
             return new JsonResponse();

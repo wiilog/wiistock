@@ -101,3 +101,24 @@ $('.ajax-autocomplete').select2({
     },
     minimumInputLength: 1,
 });
+
+
+let ajaxAuto =function () {
+    
+ $('.ajax-autocomplete').select2({
+        ajax: {
+            url: Routing.generate('get_ref_articles'),
+            dataType: 'json',
+            delay: 250,
+        },
+        language: {
+            inputTooShort: function() {
+                return 'Veuillez entrer au moins 1 caractère.';
+            },
+            searching: function() {
+                return 'Recherche en cours...';
+            }
+        },
+        minimumInputLength: 1,
+    });
+}

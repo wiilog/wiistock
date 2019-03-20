@@ -23,7 +23,7 @@ class LigneArticleRepository extends ServiceEntityRepository
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-            "SELECT l.quantite 
+            "SELECT l
             FROM App\Entity\LigneArticle l
             WHERE l.id = :id
             "
