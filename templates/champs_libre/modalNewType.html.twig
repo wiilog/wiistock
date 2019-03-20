@@ -13,7 +13,7 @@
                     <label for="date-attendu">Label</label>
                     <input type="text" class="form-control data" name="label" value="" required="true">
                 </div>
-                <div class="form-group">
+                <div class="form-group w-100 mb-3">
                     <label for='category'>Catégorie</label>
                     <select class="form-control select2 data" name='category' id='category'>
                         {% for category in category %}
@@ -24,8 +24,8 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
-                <button id="submitTypeNew" type="button" data-dismiss="modal"
-                    class="btn btn-primary btn-success">Enregistrer</button>
+                <div id="submitTypeNew" type="button" data-dismiss="modal"
+                    class="btn btn-primary btn-success">Enregistrer</div>
             </div>
         </div>
     </div>
