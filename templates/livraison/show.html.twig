@@ -10,7 +10,8 @@
     <div class="col-4">
         <p>Statut: {{ livraison.statut ? livraison.statut.nom : '' }}</p>
         <p>Numéro: {{livraison.numero}}</p>
-        <p>Opérateur:  {{livraison.utilisateur ? livraison.utilisateur.username : "" }}</p>
+        <p>Opérateur: </p>
+        {# TODO mettre le nom de l'utilisateur lié à la préparation liée à la livraison #}
     </div>
     <div class="col-4">
         <p>Date de commande:
@@ -26,7 +27,7 @@
             <th>Statut</th>
             <th>Conformité</th>
             <th>Référence Article</th>
-            <th>Quantite</th>
+            <th>Quantité</th>
             <!-- <th>Actions</th> -->
         </tr>
     </thead>
