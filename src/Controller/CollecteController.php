@@ -102,11 +102,9 @@ class CollecteController extends AbstractController
     public function index(): Response
     {
              return $this->render('collecte/index.html.twig', [
-            
               'emplacements'=>$this->emplacementRepository->findAll(),
               'collecte'=>$this->collecteRepository->findAll(),
               'statuts'=>$this->statutRepository->findAll(),
-//            'emplacements'=>$this->emplacementRepository->findBy(['nom' => 'dedans'])
         ]);
     }
 

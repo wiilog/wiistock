@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Article;
+use App\Entity\Demande;
 use App\Entity\Livraison;
 use App\Form\LivraisonType;
 use App\Repository\LivraisonRepository;
@@ -61,33 +62,34 @@ class LivraisonController extends AbstractController
     }
 
     /**
-    *  @Route("creation/{id}", name="createLivraison", methods={"GET","POST"} )
+    *  @Route("/creation/{id}", name="createLivraison", methods={"GET","POST"} )
     */
     public function creationLivraison($id): Response
     {
         $preparation = $this->preparationRepository->find($id);
-        if ($preparation->getLivraisons() == null) {
+
+        if (count($preparation->getLivraisons()) == 0) {
             $statut = $this->statutRepository->findOneByCategorieAndStatut(Livraison::CATEGORIE, Livraison::STATUT_A_TRAITER);
             $livraison = new Livraison();
             $date = new \DateTime('now');
             $livraison
-            ->setDate($date)
-            ->setNumero('L-' . $date->format('YmdHis'))
-            ->setStatut($statut)
-            ->setUtilisateur($this->getUser());
+                ->setDate($date)
+                ->setNumero('L-' . $date->format('YmdHis'))
+                ->setStatut($statut)
+                ->setUtilisateur($this->getUser());
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($livraison);
             $preparation->addLivraison($livraison);
             $entityManager->flush();
             return $this->redirectToRoute('livraison_show', [
                 'id' => $livraison->getId(),
-                ]);
-            }
-            $livraison = $preparation->getLivraisons();
-            dump( $livraison[0]);
-            return  $this->redirectToRoute('livraison_show', [
-                'id' => $livraison[0]->getId(),
-                ]);
+            ]);
+        }
+        $livraison = $preparation->getLivraisons()->toArray();
+
+        return $this->redirectToRoute('livraison_show', [
+            'id' => $livraison[0]->getId(),
+        ]);
             
     }
 
@@ -105,6 +107,9 @@ class LivraisonController extends AbstractController
     public function finLivraison(Livraison $livraison, Request $request): Response
     {
         $livraison->setStatut($this->statutRepository->findOneByCategorieAndStatut(Livraison::CATEGORIE, Livraison::STATUT_LIVRE));
+        $demande = $livraison->getDemande()->toArray();
+        $demande[0]->setStatut($this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_LIVREE));
+
         $preparation = $livraison->getPreparation();
         $articles = $preparation->getArticle();
         foreach ($articles as $article) {
