@@ -39,7 +39,7 @@ let pathDemande = Routing.generate('demande_api', true);
 let tableDemande = $('#table_demande').DataTable({
     order: [[0, "desc"]],
     language: {
-        "url": "/js/i18n/dataTableLanguage.json",
+        "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json",
     },
     ajax: {
         "url": pathDemande,

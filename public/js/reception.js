@@ -1,5 +1,3 @@
-// let id;
-
 //RECEPTION
 var path = Routing.generate('reception_api', true);
 var table = $('#tableReception_id').DataTable({

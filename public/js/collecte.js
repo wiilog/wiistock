@@ -37,7 +37,7 @@ InitialiserModal(modalModifyCollecte, submitModifyCollecte, urlModifyCollecte, t
 // let pathAddArticle = Routing.generate('collecte_article_api', { 'id': id }, true);
 // let tableArticle = $('#tableArticle_id').DataTable({
 //     language: {
-//         "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
+//         "url": "/js/i18n/dataTableLanguage.json"
 //     },
 //     ajax: {
 //         "url": pathAddArticle,
