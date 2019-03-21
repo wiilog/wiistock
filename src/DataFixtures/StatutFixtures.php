@@ -21,15 +21,8 @@ class StatutFixtures extends Fixture implements DependentFixtureInterface
     {
         // catégorie article
         $statutsNames = [
-            'en cours de réception',
-            'demande de mise en stock',
-            'en stock',
-            'déstockage',
-            'anomalie',
-            'demande de sortie',
-            'collecté',
-            'en livraison',
-            'récupéré'
+            'actif',
+            'inactif'
         ];
 
         foreach ($statutsNames as $statutName) {
@@ -41,11 +34,11 @@ class StatutFixtures extends Fixture implements DependentFixtureInterface
         }
 
 
-        // catégorie collecte
+        // catégorie demande de collecte
         $statutsNames = [
-            'fin',
-            'en cours de collecte',
-            'demande de collecte'
+            'brouillon',
+            'à traiter',
+            'collecté',
         ];
 
         foreach ($statutsNames as $statutName) {
@@ -57,11 +50,12 @@ class StatutFixtures extends Fixture implements DependentFixtureInterface
         }
 
 
-        // catégorie demande
+        // catégorie demande de livraison
         $statutsNames = [
-            'en cours',
-            'terminée',
-            'à traiter'
+            'brouillon',
+            'à traiter',
+            'préparé',
+            'livré',
         ];
 
         foreach ($statutsNames as $statutName) {
@@ -75,9 +69,8 @@ class StatutFixtures extends Fixture implements DependentFixtureInterface
 
         // catégorie livraison
         $statutsNames = [
-            'en cours de livraison',
-            'demande de livraison',
-            'livraison terminée'
+            'à traiter',
+            'livré'
         ];
 
         foreach ($statutsNames as $statutName) {
@@ -91,8 +84,8 @@ class StatutFixtures extends Fixture implements DependentFixtureInterface
 
         // catégorie préparation
         $statutsNames = [
-            'en cours de préparation',
-            'nouvelle préparation',
+            'à traiter',
+            'préparé',
         ];
 
         foreach ($statutsNames as $statutName) {
@@ -108,8 +101,10 @@ class StatutFixtures extends Fixture implements DependentFixtureInterface
 
         // catégorie réception
         $statutsNames = [
-            'en cours de réception',
-            'terminée',
+            'en attente de réception',
+            'réception partielle',
+            'réception totale',
+            'anomalie'
         ];
 
         foreach ($statutsNames as $statutName) {
@@ -127,6 +122,10 @@ class StatutFixtures extends Fixture implements DependentFixtureInterface
     public function getDependencies()
     {
         return [CategorieStatutFixtures::class];
+    }
+
+    public function getGroups():array {
+        return ['status'];
     }
 
 

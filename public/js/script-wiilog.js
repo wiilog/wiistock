@@ -1,8 +1,3 @@
-$(document).ready(function () {
-    $('.select2').select2();
-});
-
-
 //NEW
 /**
  * Initialise une fenêtre modale
@@ -14,16 +9,17 @@ $(document).ready(function () {
  * 
  */
 function InitialiserModal(modal, submit, path, table) {
+
     submit.click(function () {
         xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function () {
             if (this.readyState == 4 && this.status == 200) {
                 $('.errorMessage').html(JSON.parse(this.responseText))
                 data = JSON.parse(this.responseText);
+                if (data.redirect) {
+                    window.location.href = data.redirect;
+                }
                 table.ajax.reload(function (json) {
-                    if (data.redirect) {
-                        window.location.href = data.redirect;
-                    }
                     if (this.responseText !== undefined) {
                         $('#myInput').val(json.lastInput);
                     }
@@ -31,24 +27,49 @@ function InitialiserModal(modal, submit, path, table) {
                         $('#statutReception').text(data.anomalie);
                     }
                 });
-                let inputs = modal.find(".data"); // On récupère toutes les données qui nous intéresse
-                console.log(inputs);
+                let inputs = modal.find('.modal-body').find(".data"); // On récupère toutes les données qui nous intéresse
                 inputs.each(function () {
                     $(this).val("");
-                       
                 });
-
             }
         };
         let inputs = modal.find(".data"); // On récupère toutes les données qui nous intéresse
         let Data = {}; // Tableau de données
+        let missingInputs = [];
         inputs.each(function () {
-            Data[$(this).attr("name")] = $(this).val();
+            let val = $(this).val();
+            let name = $(this).attr("name");
+            Data[name] = val;
+            // validation données obligatoires
+            if ($(this).hasClass('needed') && (val == undefined || val == '')) {
+                let label = $(this).closest('.form-group').find('label').text();
+                missingInputs.push(label);
+                $(this).addClass('is-invalid');
+            }
         });
-        Json = {};
-        Json = JSON.stringify(Data); // On transforme les données en JSON
-        xhttp.open("POST", path, true);
-        xhttp.send(Json);
+
+        let checkboxes = modal.find('.checkbox');
+        checkboxes.each(function () {
+            Data[$(this).attr("name")] = $(this).is(':checked');
+        });
+
+        if (missingInputs.length == 0) {
+            modal.find('.close').click();
+            Json = {};
+            Json = JSON.stringify(Data); // On transforme les données en JSON
+            xhttp.open("POST", path, true);
+            xhttp.send(Json);
+        }
+         else {
+            let msg = '';
+            if (missingInputs.length == 1) {
+                msg = 'Veuillez renseigner le champ ' + missingInputs[0] + '.';
+            } else {
+                msg = 'Veuillez renseigner les champs : ' + missingInputs.join(', ') + '.';
+            }
+            modal.find('.error-msg').html(msg);
+        }
+
     });
 }
 
@@ -107,5 +128,6 @@ function editRow(button, path, modal, submit) {
     xhttp.open("POST", path, true);
     xhttp.send(json);
 }
+
 
 

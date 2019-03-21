@@ -39,6 +39,12 @@ class ValeurChampsLibre
         $this->articleReference = new ArrayCollection();
     }
 
+
+    public function __toString()
+    {
+        return $this->valeur;
+    }
+
     public function getId(): ?int
     {
         return $this->id;

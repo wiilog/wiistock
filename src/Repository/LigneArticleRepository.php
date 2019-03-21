@@ -23,7 +23,7 @@ class LigneArticleRepository extends ServiceEntityRepository
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-            "SELECT l.quantite 
+            "SELECT l
             FROM App\Entity\LigneArticle l
             WHERE l.id = :id
             "
@@ -43,6 +43,19 @@ class LigneArticleRepository extends ServiceEntityRepository
         )->setParameter('referenceArticle', $referenceArticle);
         ;
         return $query->getSingleResult();
+    }
+    public function getByDemande($demande)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT l 
+            FROM App\Entity\LigneArticle l
+            JOIN l.demande d
+            WHERE d.id = :demande
+            "
+        )->setParameter('demande', $demande);
+        ;
+        return $query->getResult();
     }
 
     public function countByRefArticleDemande($referenceArticle, $demande)

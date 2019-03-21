@@ -12,8 +12,9 @@ use Doctrine\ORM\Mapping as ORM;
 class Preparation
 {
     const CATEGORIE = 'preparation';
-    const STATUT_NOUVELLE = 'nouvelle préparation';
-    const STATUT_EN_COURS = 'en cours de préparation';
+
+    const STATUT_A_TRAITER = 'à traiter';
+    const STATUT_PREPARE = 'préparé';
 
     /**
      * @ORM\Id()
@@ -174,9 +175,6 @@ class Preparation
         return $this;
     }
 
-    /**
-     * @return Collection|Livraison[]
-     */
     public function getLivraisons(): Collection
     {
         return $this->livraisons;

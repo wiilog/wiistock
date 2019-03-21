@@ -2,7 +2,10 @@
 
 namespace App\Controller;
 
+use App\Entity\Article;
+use App\Entity\Demande;
 use App\Entity\Livraison;
+use App\Entity\Preparation;
 use App\Form\LivraisonType;
 use App\Repository\LivraisonRepository;
 use App\Repository\PreparationRepository;
@@ -11,15 +14,10 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-use App\Entity\Demande;
-use App\Form\DemandeType;
+
 use App\Repository\DemandeRepository;
 use App\Repository\StatutRepository;
-
-use App\Entity\Emplacement;
-use App\Form\EmplacementType;
 use App\Repository\EmplacementRepository;
-
 
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -65,33 +63,36 @@ class LivraisonController extends AbstractController
     }
 
     /**
-    *  @Route("creation/{id}", name="createLivraison", methods={"GET","POST"} )
+    *  @Route("/creation/{id}", name="createLivraison", methods={"GET","POST"} )
     */
     public function creationLivraison($id): Response
     {
         $preparation = $this->preparationRepository->find($id);
-        if ($preparation->getLivraisons() == null) {
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(Livraison::CATEGORIE, Livraison::STATUT_EN_COURS);
+
+        if (count($preparation->getLivraisons()) == 0) {
+            $statut = $this->statutRepository->findOneByCategorieAndStatut(Livraison::CATEGORIE, Livraison::STATUT_A_TRAITER);
             $livraison = new Livraison();
             $date = new \DateTime('now');
             $livraison
-            ->setDate($date)
-            ->setNumero('L-' . $date->format('YmdHis'))
-            ->setStatut($statut)
-            ->setUtilisateur($this->getUser());
+                ->setDate($date)
+                ->setNumero('L-' . $date->format('YmdHis'))
+                ->setStatut($statut)
+                ->setUtilisateur($this->getUser());
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($livraison);
             $preparation->addLivraison($livraison);
+            $preparation->setStatut($this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_PREPARE));
+
             $entityManager->flush();
             return $this->redirectToRoute('livraison_show', [
                 'id' => $livraison->getId(),
-                ]);
-            }
-            $livraison = $preparation->getLivraisons();
-            dump( $livraison[0]);
-            return  $this->redirectToRoute('livraison_show', [
-                'id' => $livraison[0]->getId(),
-                ]);
+            ]);
+        }
+        $livraison = $preparation->getLivraisons()->toArray();
+
+        return $this->redirectToRoute('livraison_show', [
+            'id' => $livraison[0]->getId(),
+        ]);
             
     }
 
@@ -106,15 +107,16 @@ class LivraisonController extends AbstractController
     /**
      * @Route("/finLivraison/{id}", name="livraison_fin", methods={"GET", "POST"})
      */
-    public function finLivraison($id, Request $request): Response
+    public function finLivraison(Livraison $livraison, Request $request): Response
     {
-        $livraison = $this->livraisonRepository->find($id);
-        $livraison->setStatut($this->statutRepository->find(18));
+        $livraison->setStatut($this->statutRepository->findOneByCategorieAndStatut(Livraison::CATEGORIE, Livraison::STATUT_LIVRE));
+        $demande = $livraison->getDemande()->toArray();
+        $demande[0]->setStatut($this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_LIVREE));
+
         $preparation = $livraison->getPreparation();
-        $preparation->setStatut($this->statutRepository->find(9));
         $articles = $preparation->getArticle();
         foreach ($articles as $article) {
-            $article->setStatut($this->statutRepository->find(4));
+            $article->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_INACTIF));
         }
         $this->getDoctrine()->getManager()->flush();
         return $this->render('livraison/index.html.twig');
@@ -154,7 +156,8 @@ class LivraisonController extends AbstractController
     {
         return $this->render('livraison/show.html.twig', [
             'livraison' => $livraison,
-            'preparation'=> $this->preparationRepository->find($livraison->getPreparation()->getId())
+            'preparation'=> $this->preparationRepository->find($livraison->getPreparation()->getId()),
+            'finished' => ($livraison->getStatut()->getNom() === Livraison::STATUT_LIVRE)
         ]);
     }
 

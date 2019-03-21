@@ -31,10 +31,11 @@
                         <div class="input-group-prepend">
                             <label class="input-group-text" for="inputGroupSelect01">Quantité</label>
                         </div>
-                        <input class="form-control data" type="number" min="0" name="quantité" id="quantité">
+                        <input class="form-control data" type="number" min="0" name="quantite" id="quantité">
                     </div>
                 </div>
                 <div class="form-group col-12">
+                    <p>Selectionner un type</p>
                     <div class="nav nav-tabs myTab" id="myTab" role="tablist">
                         {% for type in types %}
                         <button class="nav-link" name='type' value='{{type.id}}' id='{{type.label}}-tab'
@@ -71,8 +72,8 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
-                    <button id="submitNewRefArticle" data-dismiss="modal"
-                        class="btn btn-primary btn-success ">Enregistrer</button>
+                    <div id="submitNewRefArticle"
+                        class="btn btn-primary btn-success ">Enregistrer</div>
                 </div>
             </div>
         </div>

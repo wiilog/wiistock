@@ -1,25 +1,26 @@
+$('.select2').select2();
+
 //RECEPTION
 var path = Routing.generate('reception_api', true);
 var table = $('#tableReception_id').DataTable({
     order: [[1, "desc"]],
     language: {
-        "url": "/js/i18n/dataTableLanguage.json"
+        "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
     },
     ajax: {
         "url": path,
         "type": "POST"
     },
     columns: [
-        { "data": 'Statut' },
-        { "data": 'Date commande' },
-        { "data": 'Date attendue' },
+        { "data": 'Date' },
         { "data": 'Fournisseur' },
         { "data": 'Référence' },
+        { "data": 'Statut' },
         { "data": 'Actions' }
     ],
 });
 
-let modalReceptionNew = $("#dataModalCenter");
+let modalReceptionNew = $("#modalNewReception");
 let SubmitNewReception = $("#submitButton");
 let urlReceptionIndex = Routing.generate('createReception', true)
 InitialiserModal(modalReceptionNew, SubmitNewReception, urlReceptionIndex, table);
@@ -39,7 +40,7 @@ InitialiserModal(modalModifyReception, submitModifyReception, urlModifyReception
 let pathAddArticle = Routing.generate('reception_article_api', { 'id': id }, true);
 let tableArticle = $('#tableArticle_id').DataTable({
     language: {
-        "url": "/js/i18n/dataTableLanguage.json"
+        "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
     },
     ajax: {
         "url": pathAddArticle,

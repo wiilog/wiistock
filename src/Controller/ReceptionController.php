@@ -87,32 +87,36 @@ class ReceptionController extends AbstractController
     {
         if ($data = json_decode($request->getContent(), true)) //Si data est attribuée
             {
-                if (count($data) != 5) // On regarde si le nombre de données reçu est conforme et on envoi dans la base
-                    {
-                        $fournisseur = $this->fournisseurRepository->find(intval($data['fournisseur']));
-                        $utilisateur = $this->utilisateurRepository->find(intval($data['utilisateur']));
+                $fournisseur = $this->fournisseurRepository->find(intval($data['fournisseur']));
+                $reception = new Reception();
 
-                        $reception = new Reception();
-                        $statut = $this->statutRepository->find(1); // L'id correspondant au statut En cours de réception
-                        $reception
-                            ->setStatut($statut)
-                            ->setNumeroReception($data['NumeroReception'])
-                            ->setDate(new \DateTime($data['date-commande']))
-                            ->setDateAttendu(new \DateTime($data['date-attendu']))
-                            ->setFournisseur($fournisseur)
-                            ->setUtilisateur($utilisateur)
-                            ->setCommentaire($data['commentaire']);
+                if ($data['anomalie'] == true) {
+                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_ANOMALIE);
+                } else {
+                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_EN_ATTENTE);
+                }
 
-                        $em = $this->getDoctrine()->getManager();
-                        $em->persist($reception);
-                        $em->flush();
+                $date = new \DateTime('now');
+                $numeroReception = 'R' . $date->format('ymd-His'); //TODO CG ajouter numéro
 
-                        $data = [
-                            "redirect" => $this->generateUrl('reception_ajout_article', ['id' => $reception->getId(), 'finishReception' => "0"])
-                        ];
-                        dump($data);
-                        return new JsonResponse($data);
-                    }
+                $reception
+                    ->setStatut($statut)
+                    ->setNumeroReception($numeroReception)
+                    ->setDate(new \DateTime($data['date-commande']))
+                    ->setDateAttendu(new \DateTime($data['date-attendu']))
+                    ->setFournisseur($fournisseur)
+                    ->setReference($data['reference'])
+                    ->setUtilisateur($this->getUser())
+                    ->setCommentaire($data['commentaire']);
+
+                $em = $this->getDoctrine()->getManager();
+                $em->persist($reception);
+                $em->flush();
+
+                $data = [
+                    "redirect" => $this->generateUrl('reception_ajout_article', ['id' => $reception->getId()])
+                ];
+                return new JsonResponse($data);
             }
 
         throw new NotFoundHttpException("404");
@@ -136,6 +140,7 @@ class ReceptionController extends AbstractController
                     ->setDateAttendu(new \DateTime($data['date-attendu']))
                     ->setFournisseur($fournisseur)
                     ->setUtilisateur($utilisateur)
+                    ->setStatus($data['statut'])
                     ->setCommentaire($data['commentaire']);
                 $em = $this->getDoctrine()->getManager();
                 $em->flush();
@@ -179,8 +184,8 @@ class ReceptionController extends AbstractController
                         [
                             'id' => ($reception->getId()),
                             "Statut" => ($reception->getStatut() ? $reception->getStatut()->getNom() : ''),
-                            "Date commande" => ($reception->getDate() ? $reception->getDate() : '')->format('d/m/Y'),
-                            "Date attendue" => ($reception->getDateAttendu() ? $reception->getDateAttendu()->format('d/m/Y') : ''),
+                            "Date" => ($reception->getDate() ? $reception->getDate() : '')->format('d/m/Y'),
+                            // "Date attendue" => ($reception->getDateAttendu() ? $reception->getDateAttendu()->format('d/m/Y') : ''),
                             "Fournisseur" => ($reception->getFournisseur() ? $reception->getFournisseur()->getNom() : ''),
                             "Référence" => ($reception->getNumeroReception() ? $reception->getNumeroReception() : ''),
                             'Actions' => $this->renderView('reception/datatableReceptionRow.html.twig', ['url' => $url, 'reception' => $reception]),
@@ -290,21 +295,19 @@ class ReceptionController extends AbstractController
     {
         if (!$request->isXmlHttpRequest() &&  $contentData = json_decode($request->getContent(), true)) //Si la requête est de type Xml
             {
-                $refArticle = $this->referenceArticleRepository->find($contentData['refArticle']);
+               $refArticle = $this->referenceArticleRepository->find($contentData['refArticle']);
                 $reception = $this->receptionRepository->find($contentData['reception']);
-                $statutAnomalie = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ANOMALIE);
                 if ($contentData['etat'] === 'on') {
-                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_DEMANDE_STOCK);
-                    $articleAnomalie = $this->articleRepository->countByStatutAndReception($statutAnomalie, $reception);
+                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
+                    $articleAnomalie = $this->articleRepository->countByStatutAndReception(Article::NOT_CONFORM, $reception);
                     if ($articleAnomalie < 1) {
-                        $statutRecep = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_EN_COURS);
+                        $statutRecep = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_RECEPTION_PARTIELLE);
                         $reception->setStatut($statutRecep);
                     }
                 } else {
-                    $statut = $statutAnomalie;
-                    $reception->setStatut($statut);
+                    $reception->setStatut($this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_ANOMALIE));
                 }
-
+                
                 $quantitie = $contentData['quantite'];
                 $refArticle
                     ->setQuantiteStock($refArticle->getQuantiteStock() + $quantitie);
@@ -358,7 +361,7 @@ class ReceptionController extends AbstractController
                 $reception = $this->receptionRepository->find($article->getReception()->getId());
                 $statutAnomalie = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ANOMALIE);
                 if ($data['conform'] === 'on') {
-                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_DEMANDE_STOCK);
+                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
                 } else {
                     $statut = $statutAnomalie;
                     $reception->setStatut($statutAnomalie);
@@ -404,7 +407,7 @@ class ReceptionController extends AbstractController
     public function finReception(Reception $reception): Response
     {
 
-        $statut = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::TERMINE);
+        $statut = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_RECEPTION_TOTALE);
         $reception->setStatut($statut);
         $reception->setDateReception(new \DateTime('now'));
         $this->getDoctrine()->getManager()->flush();

@@ -37,4 +37,9 @@ class CategorieStatutFixtures extends Fixture
         $manager->flush();
     }
 
+    public function getGroups():array {
+        return ['status'];
+    }
+
+
 }

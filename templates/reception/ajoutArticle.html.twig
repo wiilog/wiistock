@@ -7,7 +7,7 @@
 
 <div class="row">
     <div class='col-4'>
-        <p><strong>Statut:</strong> {{ reception.statut.nom }}</p>
+        <p><strong>Statut:</strong> {{ reception.statut ? reception.statut.nom : "" }}</p>
         <p><strong>Numéro de référence:</strong> {{ reception.numeroReception }}</p>
         <p><strong>Fournisseur:</strong> {{ reception.fournisseur.nom }}</p>
     </div>
@@ -64,7 +64,7 @@
 {% endblock %}
 {% block javascript %}
 <script>
-    const id = {{ reception.id }}
+    let id = {{ reception.id }}
 </script>
 <script src="{{asset('js/reception.js')}}"></script>
 {% endblock javascript %}

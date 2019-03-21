@@ -29,7 +29,7 @@ class ReferenceArticle
     private $photo_article;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
+     * @ORM\Column(type="string", length=255, unique=true)
      */
     private $reference;
 
@@ -180,12 +180,12 @@ class ReferenceArticle
 
     public function getQuantiteDisponible(): ?int
     {
-        return $this->QuantiteDisponible;
+        return $this->quantiteDisponible;
     }
 
     public function setQuantiteDisponible(?int $quantiteDisponible): self
     {
-        $this->QuantiteDisponible = $quantiteDisponible;
+        $this->quantiteDisponible = $quantiteDisponible;
 
         return $this;
     }

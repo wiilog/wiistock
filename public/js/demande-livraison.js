@@ -1,8 +1,12 @@
+// $( document ).ready(function () {
+//     $('#modalNewArticle').modal('show')
+// })
+
 //ARTICLE DEMANDE
 let pathArticle = Routing.generate('LigneArticle_api', { id: id }, true);
 let tableArticle = $('#table-lignes').DataTable({
     "language": {
-        "url": "/js/i18n/dataTableLanguage.json"
+        "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
     },
     "processing": true,
     "ajax": {
@@ -39,7 +43,7 @@ let pathDemande = Routing.generate('demande_api', true);
 let tableDemande = $('#table_demande').DataTable({
     order: [[0, "desc"]],
     language: {
-        "url": "/js/i18n/dataTableLanguage.json",
+        "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json",
     },
     ajax: {
         "url": pathDemande,
@@ -69,3 +73,58 @@ let urlEditDemande = Routing.generate('demande_edit', true);
 let modalEditDemande = $("#modalEditDemande");
 let submitEditDemande = $("#submitEditDemande");
 InitialiserModal(modalEditDemande, submitEditDemande, urlEditDemande, tableDemande);
+
+function updateQuantity(input) {
+    let params = {
+        refArticleId: input.val()
+    };
+
+    $.post(Routing.generate('get_quantity_ref_article'), params, function(data) {
+        let modalBody = input.closest('.modal-body');
+        modalBody.find('#in-stock').val(data);
+        modalBody.find('#quantite').attr('max', data);
+
+
+    }, 'json');
+}
+
+$('.ajax-autocomplete').select2({
+    ajax: {
+        url: Routing.generate('get_ref_articles'),
+        dataType: 'json',
+        delay: 250,
+    },
+    language: {
+        inputTooShort: function() {
+            return 'Veuillez entrer au moins 1 caractère.';
+        },
+        searching: function() {
+            return 'Recherche en cours...';
+        },
+        noResults: function() {
+            return 'Aucun résultat.';
+        }
+    },
+    minimumInputLength: 1,
+});
+
+
+let ajaxAuto =function () {
+    
+ $('.ajax-autocomplete').select2({
+        ajax: {
+            url: Routing.generate('get_ref_articles'),
+            dataType: 'json',
+            delay: 250,
+        },
+        language: {
+            inputTooShort: function() {
+                return 'Veuillez entrer au moins 1 caractère.';
+            },
+            searching: function() {
+                return 'Recherche en cours...';
+            }
+        },
+        minimumInputLength: 1,
+    });
+}

@@ -1,7 +1,7 @@
-{% if ligneArticle.demande.statut.nom == 'à traiter' %}
-    
+{%  if modifiable %}
+
 <div data-id='{{ idArticle }}' class='btn btn-xs btn-default type-delete' data-target='#modalEditArticle'
-data-toggle='modal'
+data-toggle='modal' 
 onclick="editRow($(this), Routing.generate('article_edit_api', true), $('#modalEditArticle'), $('#submitEditArticle'))">
 <i class='fas fa-pencil-alt'></i>
 </div>

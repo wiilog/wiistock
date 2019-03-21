@@ -1,24 +1,24 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Demandes de collecte{% endblock %}
+{% block title %}Demande de collecte{% endblock %}
 
 {% block page_content %}
 
-    <h1>Demandes de collecte</h1>
+    <h1>Demande de collecte</h1>
 
-    <div>
-        <a href="" data-toggle="modal" data-target="#dataModalCenter" class="btn btn-primary">
+    <div class='row btn'>
+        <a href="" data-toggle="modal" data-target="#modalNewCollecte" class="button btn-left">
             <span class="fa fa-plus mr-2"></span>Nouvelle collecte
         </a>
     </div>
 
     <div>
-        <table id="table-list-collects" class="table table-striped">
+        <table id="tableCollecte_id" class="table table-striped table-bordered w-100">
             <thead>
             <tr>
                 <th>Date</th>
                 <th>Demandeur</th>
-                <th>Libellé</th>
+                <th>Objet</th>
                 <th>Statut</th>
                 <th>Actions</th>
             </tr>
@@ -28,14 +28,16 @@
         </table>
     </div>
 
-    {% include 'collecte/modalCollecte.html.twig' %}
+{% include "collecte/modalNewCollecte.html.twig" %}
+{% include "collecte/modalEditCollecte.html.twig" %}
+{% include "collecte/modalDeleteCollecte.html.twig" %}
 
 {% endblock %}
 
 {% block javascript %}
 <script src="{{ asset('js/collecte.js') }}"></script>
 
-<script>
+<!-- <script>
 
 $(document).ready(function() {
     $('.select2').select2();
@@ -65,5 +67,5 @@ $('#table-list-collects').DataTable({
     "order": [[ 0, 'desc']] //TODO CG index
 });
 
-</script>
+</script> -->
 {% endblock %}
