@@ -57,8 +57,10 @@ function InitialiserModal(modal, submit, path, table) {
             }
             // validation valeur des inputs de type number
             if($(this).attr('type') === 'number') {
-                if ($(this).val() > $(this).attr('max') || $(this).val() < $(this).attr('min')) {
-                    // let label = $(this).closest('.form-group').find('label').text();
+                let val = parseInt($(this).val());
+                let min = parseInt($(this).attr('min'));
+                let max = parseInt($(this).attr('max'));
+                if (val > max || val < min) {
                     wrongInputs.push($(this));
                     $(this).addClass('is-invalid');
                 }
