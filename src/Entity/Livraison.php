@@ -39,7 +39,7 @@ class Livraison
     /**
      * @ORM\Column(type="datetime", nullable=true)
      */
-    private $dateCreation;
+    private $date;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
@@ -116,13 +116,13 @@ class Livraison
         $this->Statut = $Statut;
         return $this;
     }
-    public function getDateCreation(): ?\DateTimeInterface
+    public function getDate(): ?\DateTimeInterface
     {
-        return $this->dateCreation;
+        return $this->date;
     }
-    public function setDateCreation(?\DateTimeInterface $dateCreation): self
+    public function setDate(?\DateTimeInterface $date): self
     {
-        $this->dateCreation = $dateCreation;
+        $this->date = $date;
         return $this;
     }
 

@@ -82,7 +82,7 @@ class LivraisonController extends AbstractController
         $livraison = new Livraison();
         $date = new \DateTime('now');
         $livraison
-            ->setDateCreation($date)
+            ->setDate($date)
             ->setNumero('L-' . $date->format('YmdHis'))
             ->setStatut($statut)
             ->setUtilisateur($this->getUser());
@@ -151,7 +151,7 @@ class LivraisonController extends AbstractController
                     $rows[] = [
                         'id' => ($livraison->getId() ? $livraison->getId() : ''),
                         'Numéro' => ($livraison->getNumero() ? $livraison->getNumero() : ''),
-                        'Date' => ($livraison->getDateCreation() ? $livraison->getDateCreation()->format('d-m-Y') : ''),
+                        'Date' => ($livraison->getDate() ? $livraison->getDate()->format('d-m-Y') : ''),
                         'Statut' => ($livraison->getStatut() ? $livraison->getStatut()->getNom() : ''),
                         'Opérateur' => ($livraison->getUtilisateur() ? $livraison->getUtilisateur()->getUsername() : ''),
                         'Actions' => $this->renderView('livraison/datatableLivraisonRow.html.twig', ['url' => $url])

@@ -31,6 +31,12 @@
                     Modifier</a>
             </div>
             <div class="row justify-content-between">
+                <a href="" data-id='{{ demande.id }}' data-target='#modalEditDemande' data-toggle='modal'
+                   onclick="editRow($(this), Routing.generate('demande_edit_api', true), $('#modalEditDemande'), $('#submitEditDemande'))"
+                   class="btn btn-danger btn-action ml-auto">
+                    Supprimer</a>
+            </div>
+            <div class="row justify-content-between">
                 <a href="{{path('fin_demande', {'id': demande.id})}}" class="btn btn-success btn-action ml-auto">
                     Valider</a>
             </div>
