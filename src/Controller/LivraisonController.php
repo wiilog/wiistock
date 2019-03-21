@@ -82,7 +82,7 @@ class LivraisonController extends AbstractController
         $livraison = new Livraison();
         $date = new \DateTime('now');
         $livraison
-            ->setDate($date)
+            ->setDateCreation($date)
             ->setNumero('L-' . $date->format('YmdHis'))
             ->setStatut($statut)
             ->setUtilisateur($this->getUser());
@@ -117,7 +117,10 @@ class LivraisonController extends AbstractController
     {
         if ($livraison->getStatut()->getnom() ===  Livraison::STATUT_A_TRAITER) {
 
-            $livraison->setStatut($this->statutRepository->findOneByCategorieAndStatut(Livraison::CATEGORIE, Livraison::STATUT_LIVRE));
+            $livraison
+                ->setStatut($this->statutRepository->findOneByCategorieAndStatut(Livraison::CATEGORIE, Livraison::STATUT_LIVRE))
+                ->setDateFin(new \DateTime('now'));
+
             $demande = $this->demandeRepository->getByLivraison($livraison->getId());
             $statutLivre = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_LIVREE);
             $demande->setStatut($statutLivre);
@@ -148,7 +151,7 @@ class LivraisonController extends AbstractController
                     $rows[] = [
                         'id' => ($livraison->getId() ? $livraison->getId() : ''),
                         'Numéro' => ($livraison->getNumero() ? $livraison->getNumero() : ''),
-                        'Date' => ($livraison->getDate() ? $livraison->getDate()->format('d-m-Y') : ''),
+                        'Date' => ($livraison->getDateCreation() ? $livraison->getDateCreation()->format('d-m-Y') : ''),
                         'Statut' => ($livraison->getStatut() ? $livraison->getStatut()->getNom() : ''),
                         'Opérateur' => ($livraison->getUtilisateur() ? $livraison->getUtilisateur()->getUsername() : ''),
                         'Actions' => $this->renderView('livraison/datatableLivraisonRow.html.twig', ['url' => $url])

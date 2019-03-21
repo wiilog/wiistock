@@ -15,7 +15,7 @@
     </div>
     <div class="col-4">
 
-        <p>Date de livraison : {{ livraison.date ? livraison.date|date('d/m/Y') : '' }}
+        <p>Date de livraison : {{ livraison.dateFin ? livraison.dateFin|date('d/m/Y') : '' }}
         </p>
     </div>
     {% if livraison.statut.nom == 'à traiter' %}

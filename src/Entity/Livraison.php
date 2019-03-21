@@ -39,7 +39,12 @@ class Livraison
     /**
      * @ORM\Column(type="datetime", nullable=true)
      */
-    private $date;
+    private $dateCreation;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $dateFin;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="livraisons")
@@ -111,13 +116,13 @@ class Livraison
         $this->Statut = $Statut;
         return $this;
     }
-    public function getDate(): ?\DateTimeInterface
+    public function getDateCreation(): ?\DateTimeInterface
     {
-        return $this->date;
+        return $this->dateCreation;
     }
-    public function setDate(?\DateTimeInterface $date): self
+    public function setDateCreation(?\DateTimeInterface $dateCreation): self
     {
-        $this->date = $date;
+        $this->dateCreation = $dateCreation;
         return $this;
     }
 
@@ -141,6 +146,18 @@ class Livraison
     public function setPreparation(?Preparation $preparation): self
     {
         $this->preparation = $preparation;
+
+        return $this;
+    }
+
+    public function getDateFin(): ?\DateTimeInterface
+    {
+        return $this->dateFin;
+    }
+
+    public function setDateFin(?\DateTimeInterface $dateFin): self
+    {
+        $this->dateFin = $dateFin;
 
         return $this;
     }
