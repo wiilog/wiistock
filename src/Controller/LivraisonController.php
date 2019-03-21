@@ -113,7 +113,7 @@ class LivraisonController extends AbstractController
     /**
      * @Route("/finLivraison/{id}", name="livraison_fin", methods={"GET", "POST"})
      */
-    public function finLivraison(Livraison $livraison, Request $request): Response
+    public function finLivraison(Livraison $livraison): Response
     {
         if ($livraison->getStatut()->getnom() ===  Livraison::STATUT_A_TRAITER) {
 
@@ -129,7 +129,9 @@ class LivraisonController extends AbstractController
             }
         }
         $this->getDoctrine()->getManager()->flush();
-        return $this->render('livraison/index.html.twig');
+        return $this->redirectToRoute('livraison_show', [
+            'id' => $livraison->getId()
+        ]);
     }
 
     /**
