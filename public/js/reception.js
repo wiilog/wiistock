@@ -109,14 +109,12 @@ let printerAll = function () {
     xhttp.send(json);
 }
 
-    // function showStock(str) {
-    // //   let x = document.getElementById("refArticle").value;
-    // //   document.getElementById('stock').innerHTML = "You selected: " + x;
-    // console.log(str);
-    
-    // $.post(Routing.generate('get_article_stock', { 'id': id }, true), { "getId " }, function (data) {
-    //     data = JSON.parse(this.responseText);
-    //     console.log(data)
-    // }, "json");
 
-    
+
+function updateStock(select) {
+    let id = select.val();
+    $.post(Routing.generate('get_article_stock'), { 'id': id }, function (data) {
+        $('#stock').val(data);
+    }, "json");
+}
+
