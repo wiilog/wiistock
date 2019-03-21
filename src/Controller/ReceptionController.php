@@ -122,26 +122,27 @@ class ReceptionController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
-
     /**
      * @Route("/modifierReception", name="reception_edit", options={"expose"=true}, methods="POST")
      */
     public function modifierReception(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) //Si la requête est de type Xml et que data est attribuée
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true))
             {
                 $fournisseur = $this->fournisseurRepository->find(intval($data['fournisseur']));
                 $utilisateur = $this->utilisateurRepository->find(intval($data['utilisateur']));
+                $statut = $this->statutRepository->find(intval($data['statut']));
 
                 $reception = $this->receptionRepository->find($data['reception']);
                 $reception
                     ->setNumeroReception($data['NumeroReception'])
                     ->setDate(new \DateTime($data['date-commande']))
                     ->setDateAttendu(new \DateTime($data['date-attendu']))
+                    ->setStatut($statut)
                     ->setFournisseur($fournisseur)
                     ->setUtilisateur($utilisateur)
-                    ->setStatus($data['statut'])
                     ->setCommentaire($data['commentaire']);
+
                 $em = $this->getDoctrine()->getManager();
                 $em->flush();
 
@@ -163,6 +164,7 @@ class ReceptionController extends AbstractController
                 'reception' => $reception,
                 'fournisseurs' => $this->fournisseurRepository->getNoOne($reception->getFournisseur()->getId()),
                 'utilisateurs' => $this->utilisateurRepository->getNoOne($reception->getUtilisateur()->getId()),
+                'statuts' => $this->statutRepository->findByCategorieName(Reception::CATEGORIE)
             ]);
             return new JsonResponse($json);
         }
@@ -185,7 +187,6 @@ class ReceptionController extends AbstractController
                             'id' => ($reception->getId()),
                             "Statut" => ($reception->getStatut() ? $reception->getStatut()->getNom() : ''),
                             "Date" => ($reception->getDate() ? $reception->getDate() : '')->format('d/m/Y'),
-                            // "Date attendue" => ($reception->getDateAttendu() ? $reception->getDateAttendu()->format('d/m/Y') : ''),
                             "Fournisseur" => ($reception->getFournisseur() ? $reception->getFournisseur()->getNom() : ''),
                             "Référence" => ($reception->getNumeroReception() ? $reception->getNumeroReception() : ''),
                             'Actions' => $this->renderView('reception/datatableReceptionRow.html.twig', ['url' => $url, 'reception' => $reception]),
@@ -244,8 +245,6 @@ class ReceptionController extends AbstractController
             }
         throw new NotFoundHttpException("404");
     }
-
-
 
     /**
      * @Route("/", name="reception_index", methods={"GET", "POST"})
@@ -399,7 +398,6 @@ class ReceptionController extends AbstractController
             'fournisseurs' => $this->fournisseurRepository->findAll(),
         ]);
     }
-
 
     /**
      * @Route("/finreception/{id}", name="reception_fin", methods={"GET", "POST"})
