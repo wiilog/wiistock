@@ -264,7 +264,9 @@ class ReceptionController extends AbstractController
     public function delete(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            dump($data);
             $reception = $this->receptionRepository->find($data['reception']);
+            
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($reception);
             $entityManager->flush();
