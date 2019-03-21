@@ -11,7 +11,7 @@
             <div class="modal-body modal-input container-fluid">
                 <div class="form-group w-100 mb-3">
                     <label for="reference">Référence</label>
-                    <select class="ajax-autocomplete data form-control" id="reference" name="reference" onchange="updateQuantity($(this));">
+                    <select class="ajax-autocomplete data form-control needed" id="reference" name="reference" onchange="updateQuantity($(this));">
                     </select>
                 </div>
 
@@ -27,14 +27,15 @@
 
                 <div class="form-group w-50">
                     <label for="quantite">Quantité</label>
-                    <input type="number" class="data form-control" name="quantite" id="quantite" value=""
+                    <input type="number" class="data form-control needed" name="quantite" id="quantite" value=""
                         min="1" required="true">
                 </div>
+
+                <div class="error-msg"></div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>
-                <button id="submitNewArticle" name="demande" value="{{demande.id}}" type="button" data-dismiss="modal"
-                    class="btn data btn-success">Enregistrer</button>
+                <button id="submitNewArticle" name="demande" value="{{demande.id}}" type="button" class="btn data btn-success">Enregistrer</button>
             </div>
         </div>
     </div>
