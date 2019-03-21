@@ -27,15 +27,15 @@
             <div class="row justify-content-between">
                 <a href="" data-id='{{ demande.id }}' data-target='#modalEditDemande' data-toggle='modal'
                     onclick="editRow($(this), Routing.generate('demande_edit_api', true), $('#modalEditDemande'), $('#submitEditDemande'))"
-                    class="btn btn-primary ml-auto">
+                    class="btn btn-primary btn-action ml-auto">
                     Modifier</a>
             </div>
             <div class="row justify-content-between">
-                <a href="{{path('fin_demande', {'id': demande.id})}}" class="btn btn-success ml-auto">
+                <a href="{{path('fin_demande', {'id': demande.id})}}" class="btn btn-success btn-action ml-auto">
                     Valider</a>
             </div>
             <div class="row justify-content-between">
-                <a href="" data-toggle="modal" data-target="#modalNewArticle" class="btn btn-primary ml-auto">
+                <a href="" data-toggle="modal" data-target="#modalNewArticle" class="btn btn-primary btn-action ml-auto">
                     Ajouter une ligne</a>
             </div>
         {% else %}
@@ -59,7 +59,7 @@
     </tbody>
 </table>
 
-<a href="{{ path('demande_index') }}" class='btn'>Retour</a>
+<a href="{{ path('demande_index') }}" class='btn btn-action'>Retour à la liste</a>
 
 
 {% include 'demande/modalDeleteArticle.html.twig' %}

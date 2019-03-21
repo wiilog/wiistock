@@ -1,6 +1,11 @@
 //NEW
 /**
  * Initialise une fenêtre modale
+ *
+ * pour utiliser la validation des données :
+ *      ajouter une <div class="error-msg"> à la fin du modal-body
+ *      ajouter la classe "needed" aux inputs qui sont obligatoires
+ *      supprimerle data-dismiss=modal du bouton submit de la modale (la gestion de la fermeture doit se faire dans cette fonction)
  * 
  * @param {Document} modal la fenêtre modale selectionnée : document.getElementById("modal").
  * @param {Document} submit le bouton qui va envoyé les données au controller via Ajax.
@@ -33,40 +38,80 @@ function InitialiserModal(modal, submit, path, table) {
                 });
             }
         };
-        let inputs = modal.find(".data"); // On récupère toutes les données qui nous intéresse
-        let Data = {}; // Tableau de données
+
+        // On récupère toutes les données qui nous intéressent
+        // dans les inputs...
+        let inputs = modal.find(".data");
+        let Data = {};
         let missingInputs = [];
+        let wrongInputs = [];
         inputs.each(function () {
             let val = $(this).val();
             let name = $(this).attr("name");
             Data[name] = val;
             // validation données obligatoires
-            if ($(this).hasClass('needed') && (val == undefined || val == '')) {
+            if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
                 let label = $(this).closest('.form-group').find('label').text();
                 missingInputs.push(label);
                 $(this).addClass('is-invalid');
             }
+            // validation valeur des inputs de type number
+            if($(this).attr('type') === 'number') {
+                if ($(this).val() > $(this).attr('max') || $(this).val() < $(this).attr('min')) {
+                    // let label = $(this).closest('.form-group').find('label').text();
+                    wrongInputs.push($(this));
+                    $(this).addClass('is-invalid');
+                }
+            }
         });
 
+        // ... et dans les checkboxes
         let checkboxes = modal.find('.checkbox');
         checkboxes.each(function () {
             Data[$(this).attr("name")] = $(this).is(':checked');
         });
 
-        if (missingInputs.length == 0) {
+        // si tout va bien on envoie la requête ajax...
+        if (missingInputs.length == 0 && wrongInputs.length == 0) {
             modal.find('.close').click();
             Json = {};
-            Json = JSON.stringify(Data); // On transforme les données en JSON
+            Json = JSON.stringify(Data);
             xhttp.open("POST", path, true);
             xhttp.send(Json);
-        }
-         else {
+        } else {
+
+            // ... sinon on construit les messages d'erreur
             let msg = '';
-            if (missingInputs.length == 1) {
-                msg = 'Veuillez renseigner le champ ' + missingInputs[0] + '.';
-            } else {
-                msg = 'Veuillez renseigner les champs : ' + missingInputs.join(', ') + '.';
+
+            // cas où il manque des champs obligatoires
+            if (missingInputs.length > 0) {
+                if (missingInputs.length == 1) {
+                    msg += 'Veuillez renseigner le champ ' + missingInputs[0] + ".<br>";
+                } else {
+                    msg += 'Veuillez renseigner les champs : ' + missingInputs.join(', ') + ".<br>";
+                }
             }
+            // cas où les champs number ne respectent pas les valeurs imposées (min et max)
+            if (wrongInputs.length > 0) {
+                wrongInputs.forEach(function(elem) {
+                    let label = elem.closest('.form-group').find('label').text();
+
+                    msg += 'La valeur du champ ' + label;
+
+                    let min = elem.attr('min');
+                    let max = elem.attr('max');
+
+                    if (typeof(min) !== 'undefined' && typeof(max) !== 'undefined') {
+                        msg += ' doit être comprise entre ' + min + ' et ' + max + ".<br>";
+                    } else if (typeof(min) == 'undefined') {
+                        msg += ' doit être inférieure à ' + max + ".<br>";
+                    } else if (typeof(max) == 'undefined') {
+                        msg += ' doit être supérieure à ' + min + ".<br>";
+                    }
+
+                })
+            }
+
             modal.find('.error-msg').html(msg);
         }
 

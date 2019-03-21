@@ -44,7 +44,7 @@ class PreparationController extends AbstractController
     /**
      * @var LigneArticleRepository
      */
-    private $LigneArticleRepository;
+    private $ligneArticleRepository;
 
     /**
      * @var ReferenceArticleRepository
@@ -66,7 +66,7 @@ class PreparationController extends AbstractController
      */
     private $preparationRepository;
 
-    public function __construct(PreparationRepository $preparationRepository,LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, StatutRepository $statutRepository, DemandeRepository $demandeRepository, ReferenceArticleRepository $referenceArticleRepository)
+    public function __construct(PreparationRepository $preparationRepository, LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, StatutRepository $statutRepository, DemandeRepository $demandeRepository, ReferenceArticleRepository $referenceArticleRepository)
     {
         $this->statutRepository = $statutRepository;
         $this->preparationRepository = $preparationRepository;
@@ -241,8 +241,10 @@ class PreparationController extends AbstractController
      */
     public function show(Preparation $preparation): Response
     {
+        
         return $this->render('preparation/show.html.twig', [
             'preparation' => $preparation,
+            'finished' => ($preparation->getStatut()->getNom() === Preparation::STATUT_A_TRAITER),
             'articles' => $this->articleRepository->getArticleByRefId(),
         ]);
     }

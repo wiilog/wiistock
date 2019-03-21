@@ -19,17 +19,18 @@ class DemandeRepository extends ServiceEntityRepository
         parent::__construct($registry, Demande::class);
     }
 
-//    public function findDmdByStatut($Statut)
-//    {
-//        $entityManager = $this->getEntityManager();
-//        $query = $entityManager->createQuery(
-//            "SELECT d
-//            FROM App\Entity\Demande d
-//            WHERE d.Statut = :Statut "
-//        )->setParameter('Statut', $Statut);
-//
-//        return $query->execute();
-//    }
+   public function getByLivraison($id)
+   {
+       $entityManager = $this->getEntityManager();
+       $query = $entityManager->createQuery(
+           "SELECT d
+           FROM App\Entity\Demande d
+            JOIN d.livraison l
+           WHERE l.id = :id "
+       )->setParameter('id', $id);
+
+       return $query->getSingleResult();
+   }
 
     public function findByUserAndNotStatus($user, $status)
     {
