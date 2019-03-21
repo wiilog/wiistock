@@ -29,7 +29,7 @@ class DemandeRepository extends ServiceEntityRepository
            WHERE l.id = :id "
        )->setParameter('id', $id);
 
-       return $query->execute();
+       return $query->getSingleResult();
    }
 
     public function findByUserAndNotStatus($user, $status)

@@ -6,7 +6,6 @@ use App\Entity\Article;
 use App\Entity\Demande;
 use App\Entity\Livraison;
 use App\Entity\Preparation;
-use App\Form\LivraisonType;
 use App\Repository\LivraisonRepository;
 use App\Repository\PreparationRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -18,6 +17,8 @@ use Symfony\Component\Routing\Annotation\Route;
 use App\Repository\DemandeRepository;
 use App\Repository\StatutRepository;
 use App\Repository\EmplacementRepository;
+use App\Repository\LigneArticleRepository;
+
 
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -52,14 +53,20 @@ class LivraisonController extends AbstractController
      */
     private $statutRepository;
 
+    /**
+     * @var LigneArticleRepository
+     */
+    private $ligneArticleRepository;
 
-    public function __construct(PreparationRepository $preparationRepository, EmplacementRepository $emplacementRepository, DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, StatutRepository $statutRepository)
+
+    public function __construct(PreparationRepository $preparationRepository, LigneArticleRepository $ligneArticleRepository, EmplacementRepository $emplacementRepository, DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, StatutRepository $statutRepository)
     {
         $this->emplacementRepository = $emplacementRepository;
         $this->demandeRepository = $demandeRepository;
         $this->livraisonRepository = $livraisonRepository;
         $this->statutRepository = $statutRepository;
         $this->preparationRepository = $preparationRepository;
+        $this->ligneArticleRepository = $ligneArticleRepository;
     }
 
     /**
@@ -93,7 +100,6 @@ class LivraisonController extends AbstractController
         return $this->redirectToRoute('livraison_show', [
             'id' => $livraison[0]->getId(),
         ]);
-            
     }
 
     /**
@@ -109,16 +115,18 @@ class LivraisonController extends AbstractController
      */
     public function finLivraison(Livraison $livraison, Request $request): Response
     {
-        $livraison->setStatut($this->statutRepository->findOneByCategorieAndStatut(Livraison::CATEGORIE, Livraison::STATUT_LIVRE));
-        dump($livraison->getId());
-        $demande = $this->demandeRepository->getByLivraison($livraison->getId());
-        dump($demande);
-        $demande->setStatut($this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_LIVREE));
+        if ($livraison->getStatut()->getnom() ===  Livraison::STATUT_A_TRAITER) {
 
-        $preparation = $livraison->getPreparation();
-        $articles = $preparation->getArticle();
-        foreach ($articles as $article) {
-            $article->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_INACTIF));
+            $livraison->setStatut($this->statutRepository->findOneByCategorieAndStatut(Livraison::CATEGORIE, Livraison::STATUT_LIVRE));
+            $demande = $this->demandeRepository->getByLivraison($livraison->getId());
+            $statutLivre = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_LIVREE);
+            $demande->setStatut($statutLivre);
+
+            $preparation = $livraison->getPreparation();
+            $articles = $preparation->getArticle();
+            foreach ($articles as $article) {
+                $article->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_INACTIF));
+            }
         }
         $this->getDoctrine()->getManager()->flush();
         return $this->render('livraison/index.html.twig');
@@ -159,13 +167,19 @@ class LivraisonController extends AbstractController
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
             {
                 $livraison = $this->livraisonRepository->find($id);
-               dump($id);
+                $demande = $this->demandeRepository->getByLivraison($livraison->getId());
+                $ligneArticle = $this->ligneArticleRepository->getByDemande($demande->getId());
+                dump($id);
+
+                dump($demande);
+
                 $rows = [];
-                foreach ($livraison as $article) {
-                    $url['show'] = $this->generateUrl('livraison_show', ['id' => $livraison->getId()]);
+                foreach ($ligneArticle as $article) {
                     $rows[] = [
-                        
-                        'Actions' => $this->renderView('livraison/datatableLivraisonRow.html.twig', ['url' => $url])
+                        "Référence CEA" => ($article->getReference() ? $article->getReference()->getReference() : ' '),
+                        "Libellé" => ($article->getReference() ? $article->getReference()->getLibelle() : ' '),
+                        "Quantité" => ($article->getQuantite() ? $article->getQuantite() : ' '),
+                        "Actions" => "",
                     ];
                 }
 
@@ -182,7 +196,7 @@ class LivraisonController extends AbstractController
     {
         return $this->render('livraison/show.html.twig', [
             'livraison' => $livraison,
-            'preparation'=> $this->preparationRepository->find($livraison->getPreparation()->getId())
+            'preparation' => $this->preparationRepository->find($livraison->getPreparation()->getId())
         ]);
     }
 

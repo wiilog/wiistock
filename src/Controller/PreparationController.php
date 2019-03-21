@@ -44,7 +44,7 @@ class PreparationController extends AbstractController
     /**
      * @var LigneArticleRepository
      */
-    private $LigneArticleRepository;
+    private $ligneArticleRepository;
 
     /**
      * @var ReferenceArticleRepository
@@ -66,7 +66,7 @@ class PreparationController extends AbstractController
      */
     private $preparationRepository;
 
-    public function __construct(PreparationRepository $preparationRepository,LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, StatutRepository $statutRepository, DemandeRepository $demandeRepository, ReferenceArticleRepository $referenceArticleRepository)
+    public function __construct(PreparationRepository $preparationRepository, LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, StatutRepository $statutRepository, DemandeRepository $demandeRepository, ReferenceArticleRepository $referenceArticleRepository)
     {
         $this->statutRepository = $statutRepository;
         $this->preparationRepository = $preparationRepository;

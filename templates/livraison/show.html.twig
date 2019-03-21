@@ -18,12 +18,15 @@
         <p>Date de commande : {#{ livraison.demande ? livraison.demande.0.date|date('d-m-Y ') : '' }#}
         </p>
     </div>
+    {% if livraison.statut.nom == 'à traiter' %}
+        
     <div class="col-2 offset-2">
         <p><a class="btn btn-success" href={{path('livraison_fin', {'id': livraison.id})}}>Finir la livraison</a></p>
     </div>
+    {% endif %}
 </div>
 
-<table id="table_id" class="table table-striped table-bordered w-100">
+<table id="tableArticle_id" class="table table-striped table-bordered w-100">
     <thead>
         <tr>
             <th>Référence CEA</th>
@@ -42,13 +45,9 @@
 {% endblock %}
 {% block javascript %}
 <script>
-    $(document).ready(function () {
-        $('#table_id').DataTable({
-            "language": {
-                "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
-            },
-        });
-    })
+    let id = {{livraison.id}};
 </script>
+
+<script src="{{asset('js/livraison.js')}}"></script>
 
 {% endblock %}
