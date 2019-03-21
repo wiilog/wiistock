@@ -108,3 +108,13 @@ let printerAll = function () {
     xhttp.open("POST", pathPrinterAll, true);
     xhttp.send(json);
 }
+
+
+
+function updateStock(select) {
+    let id = select.val();
+    $.post(Routing.generate('get_article_stock'), { 'id': id }, function (data) {
+        $('#stock').val(data);
+    }, "json");
+}
+
