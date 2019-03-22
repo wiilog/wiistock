@@ -45,11 +45,6 @@ function InitialiserModal(modal, submit, path, table) {
         let Data = {};
         let missingInputs = [];
         let wrongInputs = [];
-<<<<<<< HEAD
-        console.log(inputs);
-=======
-
->>>>>>> dev
         inputs.each(function () {
             let val = $(this).val();
             let name = $(this).attr("name");
