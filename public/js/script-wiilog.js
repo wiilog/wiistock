@@ -23,6 +23,9 @@ function InitialiserModal(modal, submit, path, table) {
                 if (data.redirect) {
                     window.location.href = data.redirect;
                 }
+                if(data.entete){
+                    $('.zone-actions').html(data.entete)
+                }
                 table.ajax.reload(function (json) {
                     if (this.responseText !== undefined) {
                         $('#myInput').val(json.lastInput);
@@ -66,7 +69,6 @@ function InitialiserModal(modal, submit, path, table) {
                 }
             }
         });
-        console.log(Data);
 
         // ... et dans les checkboxes
         let checkboxes = modal.find('.checkbox');

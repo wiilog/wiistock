@@ -1,0 +1,41 @@
+<div class="col-3">
+    <p>Demandeur : {{ demande.utilisateur ? demande.utilisateur : '' }}</p>
+    <p>Statut: {{demande.statut.nom}}</p>
+    <p>Destination : {{ demande.destination ? demande.destination.label : "" }}</p>
+</div>
+
+<div class="col-3">
+    <p>Date demande : {{ demande.date | date("d/m/Y") }}</p>
+    <p>Référence : {{ demande.numero }}</p>
+</div>
+
+<div class="col-3">
+
+</div>
+
+<div class="col-3">
+    {% if modifiable %}
+        <div class="row justify-content-between">
+            <a href="" data-id='{{ demande.id }}' data-target='#modalEditDemande' data-toggle='modal'
+                onclick="editRow($(this), Routing.generate('demande_edit_api', true), $('#modalEditDemande'), $('#submitEditDemande'))"
+                class="btn btn-primary btn-action ml-auto">
+                Modifier</a>
+        </div>
+        <div class="row justify-content-between">
+            <a href="" data-id='{{ demande.id }}' data-target='#modalDeleteDemande' data-toggle='modal' class="btn btn-danger btn-action ml-auto">
+                Supprimer</a>
+        </div>
+        <div class="row justify-content-between">
+            <a href="{{path('fin_demande', {'id': demande.id})}}" class="btn btn-success btn-action ml-auto">
+                Valider</a>
+        </div>
+        <div class="row justify-content-between">
+            <a href="" data-toggle="modal" data-target="#modalNewArticle" class="btn btn-action ml-auto">
+                Ajouter une ligne</a>
+        </div>
+    {% elseif demande.preparation is not empty %}
+        <a href="{{path('preparation_show', {'id': demande.preparation.id }) }}">
+            Aller vers la préparation
+        </a>
+    {% endif %}
+</div>

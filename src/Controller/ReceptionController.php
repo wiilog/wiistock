@@ -145,9 +145,12 @@ class ReceptionController extends AbstractController
 
                 $em = $this->getDoctrine()->getManager();
                 $em->flush();
-
-                $data = json_encode($data);
-                return new JsonResponse($data);
+                $json = [
+                    'entete' => $this->renderView('reception/enteteReception.html.twig', [
+                        'reception' => $reception,
+                    ])
+                ];
+                return new JsonResponse($json);
             }
         throw new NotFoundHttpException("404");
     }
