@@ -20,7 +20,6 @@ function InitialiserModal(modal, submit, path, table) {
             if (this.readyState == 4 && this.status == 200) {
                 $('.errorMessage').html(JSON.parse(this.responseText))
                 data = JSON.parse(this.responseText);
-                console.log(data)
                 if (data.redirect) {
                     window.location.href = data.redirect;
                 }
@@ -70,7 +69,6 @@ function InitialiserModal(modal, submit, path, table) {
                 }
             }
         });
-        console.log(Data);
 
         // ... et dans les checkboxes
         let checkboxes = modal.find('.checkbox');
