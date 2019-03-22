@@ -301,10 +301,10 @@ class ReceptionController extends AbstractController
     {
         if (!$request->isXmlHttpRequest() &&  $contentData = json_decode($request->getContent(), true)) //Si la requête est de type Xml
             {
-               $refArticle = $this->referenceArticleRepository->find($contentData['refArticle']);
+                $refArticle = $this->referenceArticleRepository->find($contentData['refArticle']);
                 $reception = $this->receptionRepository->find($contentData['reception']);
-                if ($contentData['etat'] === 'on') {
-                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
+                $anomalie = $contentData['anomalie'] === 'on';
+                if (!$anomalie) {
                     $articleAnomalie = $this->articleRepository->countByStatutAndReception(Article::NOT_CONFORM, $reception);
                     if ($articleAnomalie < 1) {
                         $statutRecep = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_RECEPTION_PARTIELLE);
@@ -314,18 +314,17 @@ class ReceptionController extends AbstractController
                     $reception->setStatut($this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_ANOMALIE));
                 }
                 
-                $quantitie = $contentData['quantite'];
-                $refArticle
-                    ->setQuantiteStock($refArticle->getQuantiteStock() + $quantitie);
+                $quantite = $contentData['quantite'];
+                $refArticle->setQuantiteStock($refArticle->getQuantiteStock() + $quantite);
                 $date = new \DateTime('now');
-                $ref =  $date->format('YmdHis');
-                for ($i = 0; $i < $quantitie; $i++) {
+                $ref = $date->format('YmdHis');
+                for ($i = 0; $i < $quantite; $i++) {
                     $article = new Article();
                     $article
                         ->setlabel($contentData['libelle'])
                         ->setReference($ref . '-' . strval($i))
-                        ->setStatut($statut)
-                        ->setConform($contentData['etat'] === 'on' ? true : false)
+                        ->setConform(!$anomalie)
+                        ->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF))
                         ->setCommentaire($contentData['commentaire'])
                         ->setRefArticle($refArticle)
                         ->setReception($reception);
@@ -334,8 +333,7 @@ class ReceptionController extends AbstractController
                     $em->persist($article);
                     $em->flush();
                 }
-                $json = ['anomalie'=> $reception->getStatut()->getNom()];
-                return new JsonResponse($json);
+                return new JsonResponse();
             }
         throw new NotFoundHttpException("404");
     }

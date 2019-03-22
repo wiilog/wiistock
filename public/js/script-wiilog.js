@@ -41,6 +41,12 @@ function InitialiserModal(modal, submit, path, table) {
                 inputs.each(function () {
                     $(this).val("");
                 });
+                // on remet toutes les checkboxes sur off
+                let checkboxes = modal.find('.checkbox');
+                checkboxes.each(function() {
+                    $(this).prop('checked', false);
+                })
+
             }
         };
 
