@@ -72,7 +72,11 @@ InitialiserModal(modalDeleteDemande, submitDeleteDemande, urlDeleteDemande, tabl
 let urlEditDemande = Routing.generate('demande_edit', true);
 let modalEditDemande = $("#modalEditDemande");
 let submitEditDemande = $("#submitEditDemande");
-InitialiserModal(modalEditDemande, submitEditDemande, urlEditDemande, tableDemande);
+InitialiserModal(modalEditDemande, submitEditDemande, urlEditDemande, tableDemande, updateData);
+
+function updateData() {
+        alert('ok');
+}
 
 function updateQuantity(input) {
     let params = {

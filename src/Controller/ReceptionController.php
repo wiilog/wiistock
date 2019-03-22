@@ -158,7 +158,6 @@ class ReceptionController extends AbstractController
     public function editApi(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-
             $reception = $this->receptionRepository->find($data);
             $json = $this->renderView('reception/modalModifyReceptionContent.html.twig', [
                 'reception' => $reception,
@@ -189,7 +188,8 @@ class ReceptionController extends AbstractController
                             "Date" => ($reception->getDate() ? $reception->getDate() : '')->format('d/m/Y'),
                             "Fournisseur" => ($reception->getFournisseur() ? $reception->getFournisseur()->getNom() : ''),
                             "Référence" => ($reception->getNumeroReception() ? $reception->getNumeroReception() : ''),
-                            'Actions' => $this->renderView('reception/datatableReceptionRow.html.twig', ['url' => $url, 'reception' => $reception]),
+                            'Actions' => $this->renderView('reception/datatableReceptionRow.html.twig',
+                                ['url' => $url, 'reception' => $reception]),
                         ];
                 }
                 $data['data'] = $rows;

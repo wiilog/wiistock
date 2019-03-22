@@ -31,6 +31,11 @@ function InitialiserModal(modal, submit, path, table) {
                         $('#statutReception').text(data.anomalie);
                     }
                 });
+                // pour mettre à jour données sur page
+                if(data.newData) {
+                    console.log(data.newData);
+                }
+
                 let inputs = modal.find('.modal-body').find(".data");
                 // on vide tous les inputs
                 inputs.each(function () {
@@ -66,7 +71,6 @@ function InitialiserModal(modal, submit, path, table) {
                 }
             }
         });
-        console.log(Data);
 
         // ... et dans les checkboxes
         let checkboxes = modal.find('.checkbox');

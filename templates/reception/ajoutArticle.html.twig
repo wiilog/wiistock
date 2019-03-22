@@ -2,41 +2,47 @@
 {% block title %}Ajout d'article{% endblock %}
 {% block page_content %}
 
-<h1>RÉCEPTION</h1>
+    <h1>Réception</h1>
 
 
-<div class="row">
-    <div class='col-4'>
-        <p><strong>Statut:</strong> {{ reception.statut ? reception.statut.nom : "" }}</p>
-        <p><strong>Numéro de référence:</strong> {{ reception.numeroReception }}</p>
-        <p><strong>Fournisseur:</strong> {{ reception.fournisseur.nom }}</p>
-    </div>
-    <div class="col-4">
-        <p><strong>Date commande:</strong> {{ reception.date ? reception.date| date('d/m/Y') : ' ' }}</p>
-        <p><strong>Date attendue:</strong> {{ reception.dateAttendu ? reception.dateAttendu | date('d/m/Y') : ' ' }}</p>
-        <p><strong>Date réception:</strong>
-            {{ reception.dateReception ? reception.dateReception | date('d/m/Y') : ' ' }}</p>
-    </div>
-    <div class="col-4 ">
-        <div class='btn'>
-            <a href="" data-toggle="modal" data-target="#addArticleModal" class="button btn-left">
-                <span class="fa fa-plus"></span>ajouter un article
-            </a>
+    <div class="row">
+        <div class='col-3'>
+            <p><strong>Statut :</strong> {{ reception.statut ? reception.statut.nom : "" }}</p>
+            <p><strong>Numéro de référence :</strong> {{ reception.numeroReception }}</p>
+            <p><strong>Fournisseur :</strong> {{ reception.fournisseur.nom }}</p>
+            <p><strong>Commentaire :</strong> {{ reception.commentaire }}</p>
         </div>
-        <div class="container-fluid">
-            <a class="btn button"
-                href="{{ path('reception_fin', {'id': id}) }}">Fin
-                réception</a>
+        <div class="col-3">
+            <p><strong>Date commande :</strong> {{ reception.date ? reception.date| date('d/m/Y') : ' ' }}</p>
+            <p><strong>Date attendue :</strong> {{ reception.dateAttendu ? reception.dateAttendu | date('d/m/Y') : ' ' }}</p>
+            <p><strong>Date réception :</strong>
+                {{ reception.dateReception ? reception.dateReception | date('d/m/Y') : ' ' }}</p>
         </div>
-        {# <div class='btn btn-xs btn-default' onclick=' printerAll()' data-toggle='modal'
-            onclick='generatorBarCode($(this))'>
-            <i class="fas fa-print"></i> Imprimer les étiquettes
-        </div> #}
+        <div class="col-3 offset-3">
+            <div class="row justify-content-between">
+                <a href="{{path('reception_fin', {'id': id})}}" class="btn btn-success btn-action ml-auto">
+                    Fin réception</a>
+            </div>
+            <div class="row justify-content-between">
+                <a href="" data-id='{{ id }}' data-target='#modalModifyReception' data-toggle='modal'
+                        {#onclick="editRow($(this), Routing.generate('reception_edit_api', true), $('#modalEditReception'), $('#submitEditReception'))"#}
+                   class="btn btn-primary btn-action ml-auto">
+                    Modifier</a>
+            </div>
+            <div class="row justify-content-between">
+                <a href="" data-id='{{ id }}' data-target='#modalDeleteReception' data-toggle='modal' class="btn btn-danger btn-action ml-auto">
+                    Supprimer</a>
+            </div>
+            <div class="row justify-content-between">
+                <a href="" data-toggle="modal" data-target="#addArticleModal" class="btn btn-action ml-auto">
+                    <span class="fa fa-plus mr-2"></span>Ajouter article
+                </a>
+            </div>
+        </div>
     </div>
-    <p><strong>Commentaire:</strong> {{ reception.commentaire }}</p>
-</div>
-<table id="tableArticle_id" class="table table-striped table-bordered" style="width:100%">
-    <thead>
+
+    <table id="tableArticle_id" class="table table-striped table-bordered" style="width:100%">
+        <thead>
         <tr>
             <th>Libellé</th>
             <th>Référence</th>
@@ -44,27 +50,27 @@
             <th>Statut</th>
             <th>Actions</th>
         </tr>
-    </thead>
-    <tbody>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
 
-    </tbody>
-</table>
+    <a href="{{ path('reception_index') }}" class='btn btn-action'>Retour à la liste</a>
+
+    <div class="d-none">
+        <img id="barcode" />
+    </div>
 
 
-<div class="d-none">
-    <img id="barcode" />
-</div>
-
-
-{% include "reception/modalDeleteReception.html.twig" %}
-{% include "reception/modalModifyArticle.html.twig" %}
-{% include "reception/modalDeleteArticle.html.twig" %}
-{% include "reception/addArticleModal.html.twig" %}
+    {% include "reception/modalDeleteReception.html.twig" %}
+    {% include "reception/modalModifyArticle.html.twig" %}
+    {% include "reception/modalDeleteArticle.html.twig" %}
+    {% include "reception/addArticleModal.html.twig" %}
 
 {% endblock %}
 {% block javascript %}
 <script>
-    let id = {{ reception.id }}
+let id = {{ reception.id }}
 </script>
 <script src="{{asset('js/reception.js')}}"></script>
 {% endblock javascript %}

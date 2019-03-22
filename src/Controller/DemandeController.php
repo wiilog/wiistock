@@ -240,30 +240,31 @@ class DemandeController extends AbstractController
             'statuts' => $this->statutRepository->findByCategorieName(Demande::CATEGORIE),
             'references' => $this->referenceArticleRepository->getIdAndLibelle(),
             'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
+            'emplacements' => $this->emplacementRepository->findAll()
         ]);
     }
 
     //DEMANDE-LIVRAISON
 
-    /**
-     * @Route("/apiDemandeEdit", options={"expose"=true}, name="demande_edit_api", methods={"POST"})
-     */
-    public function demandeApiEdit(Request $request): Response
-    {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-
-            $demande = $this->demandeRepository->find($data);
-            $emplacement = $this->emplacementRepository->getNoOne($demande->getDestination()->getId());
-            $utilisateur = $this->utilisateurRepository->getNoOne($demande->getUtilisateur()->getId());
-            $json = $this->renderView('demande/modalEditDemandeContent.html.twig', [
-                'demande' => $demande,
-                'utilisateurs' => $utilisateur,
-                'emplacements' => $emplacement
-            ]);
-            return new JsonResponse($json);
-        }
-        throw new NotFoundHttpException("404");
-    }
+//    /**
+//     * @Route("/apiDemandeEdit", options={"expose"=true}, name="demande_edit_api", methods={"POST"})
+//     */
+//    public function demandeApiEdit(Request $request): Response
+//    {
+//        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+//
+//            $demande = $this->demandeRepository->find($data);
+//            $emplacement = $this->emplacementRepository->getNoOne($demande->getDestination()->getId());
+//            $utilisateur = $this->utilisateurRepository->getNoOne($demande->getUtilisateur()->getId());
+//            $json = $this->renderView('demande/modalEditDemandeContent.html.twig', [
+//                'demande' => $demande,
+//                'utilisateurs' => $utilisateur,
+//                'emplacements' => $emplacement
+//            ]);
+//            return new JsonResponse($json);
+//        }
+//        throw new NotFoundHttpException("404");
+//    }
 
     /**
      * @Route("/modifDemande", name="demande_edit", options={"expose"=true}, methods="GET|POST")
@@ -272,15 +273,21 @@ class DemandeController extends AbstractController
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $utilisateur = $this->utilisateurRepository->find(intval($data["demandeur"]));
-            $emplacement = $this->emplacementRepository->find($data['destination']);
-            $demande = $this->demandeRepository->find($data['demande']);
+            $emplacement = $this->emplacementRepository->find(intval($data['destination']));
+
+            $demande = $this->demandeRepository->find($data['demandeId']);
             $demande
                 ->setUtilisateur($utilisateur)
-                // ->setDateAttendu(new \DateTime($data['dateAttendu']))
                 ->setDestination($emplacement);
             $em = $this->getDoctrine()->getEntityManager();
             $em->flush();
-            return new JsonResponse();
+
+            $newData = [
+                'demandeur' => $utilisateur->getUsername(),
+                'emplacement' => $emplacement->getLabel()
+                ];
+
+            return new JsonResponse(['newData' => json_encode($newData)]);
         }
         throw new NotFoundHttpException("404");
     }
@@ -351,7 +358,7 @@ class DemandeController extends AbstractController
     /**
      * @Route("/api", options={"expose"=true}, name="demande_api", methods={"POST"})
      */
-    public function demandeApi(Request $request, DemandeRepository $demandeRepository): Response
+    public function demandeApi(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
 
