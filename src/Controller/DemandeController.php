@@ -336,11 +336,14 @@ class DemandeController extends AbstractController
     public function delete(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $demande = $this->demandeRepository->find($data['demande']);
+            $demande = $this->demandeRepository->find($data['demandeId']);
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($demande);
             $entityManager->flush();
-            return new JsonResponse();
+            $data = [
+                "redirect" => $this->generateUrl('demande_index')
+            ];
+            return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
     }
@@ -368,7 +371,6 @@ class DemandeController extends AbstractController
                             'demande/datatableDemandeRow.html.twig',
                             [
                                 'idDemande' => $idDemande,
-                                'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
                                 'url' => $url
                             ]
                         ),

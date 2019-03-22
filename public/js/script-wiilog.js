@@ -14,7 +14,6 @@
  * 
  */
 function InitialiserModal(modal, submit, path, table) {
-
     submit.click(function () {
         xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function () {
@@ -32,7 +31,8 @@ function InitialiserModal(modal, submit, path, table) {
                         $('#statutReception').text(data.anomalie);
                     }
                 });
-                let inputs = modal.find('.modal-body').find(".data"); // On récupère toutes les données qui nous intéresse
+                let inputs = modal.find('.modal-body').find(".data");
+                // on vide tous les inputs
                 inputs.each(function () {
                     $(this).val("");
                 });
@@ -45,6 +45,7 @@ function InitialiserModal(modal, submit, path, table) {
         let Data = {};
         let missingInputs = [];
         let wrongInputs = [];
+
         inputs.each(function () {
             let val = $(this).val();
             let name = $(this).attr("name");
