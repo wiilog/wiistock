@@ -270,7 +270,10 @@ class ReceptionController extends AbstractController
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($reception);
             $entityManager->flush();
-            return new JsonResponse();
+            $data = [
+                "redirect" => $this->generateUrl('reception_index')
+            ];
+            return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
     }
