@@ -113,11 +113,14 @@ class LivraisonController extends AbstractController
     /**
      * @Route("/finLivraison/{id}", name="livraison_fin", methods={"GET", "POST"})
      */
-    public function finLivraison(Livraison $livraison, Request $request): Response
+    public function finLivraison(Livraison $livraison): Response
     {
         if ($livraison->getStatut()->getnom() ===  Livraison::STATUT_A_TRAITER) {
 
-            $livraison->setStatut($this->statutRepository->findOneByCategorieAndStatut(Livraison::CATEGORIE, Livraison::STATUT_LIVRE));
+            $livraison
+                ->setStatut($this->statutRepository->findOneByCategorieAndStatut(Livraison::CATEGORIE, Livraison::STATUT_LIVRE))
+                ->setDateFin(new \DateTime('now'));
+
             $demande = $this->demandeRepository->getByLivraison($livraison->getId());
             $statutLivre = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_LIVREE);
             $demande->setStatut($statutLivre);
@@ -129,7 +132,9 @@ class LivraisonController extends AbstractController
             }
         }
         $this->getDoctrine()->getManager()->flush();
-        return $this->render('livraison/index.html.twig');
+        return $this->redirectToRoute('livraison_show', [
+            'id' => $livraison->getId()
+        ]);
     }
 
     /**
@@ -169,9 +174,6 @@ class LivraisonController extends AbstractController
                 $livraison = $this->livraisonRepository->find($id);
                 $demande = $this->demandeRepository->getByLivraison($livraison->getId());
                 $ligneArticle = $this->ligneArticleRepository->getByDemande($demande->getId());
-                dump($id);
-
-                dump($demande);
 
                 $rows = [];
                 foreach ($ligneArticle as $article) {

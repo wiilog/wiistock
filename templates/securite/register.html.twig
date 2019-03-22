@@ -2,17 +2,19 @@
 
 {% block title %}Créer un compte{% endblock %}
 
-{% block body %}
-    <div class="login-wrapper">
-        <div class="row">
-            <div class="col-md-12 login-header">
-                Créer un compte
-            </div>
-        </div>
+{% block classbody %}
+    style='background-image: url({{asset('img/GTXBackAccueil2red.png')}})'
+    class='accueil-back'
+{% endblock  %}
 
+{% block body %}
+    <div class="login-wrapper mt-3">
         <div class="row">
-            <div class="box-login box-shadow">
-                <div class="form-signin login-form">
+            <div class="box-login login-form box-shadow">
+                <div class="login-header">
+                    Créer un compte
+                </div>
+                <div class="form-signin">
                     {{ form_start(form) }}
                     {{ form_row(form.username, {'attr': {'autofocus' : true} }) }}
                     {{ form_row(form.email) }}
@@ -20,7 +22,7 @@
                     {{ form_row(form.plainPassword.second) }}
 
                     <button class="btn btn-primary float-left" type="submit">Enregistrer</button>
-                    <a class="btn float-right" href="{{ url('login') }}">retour page de connexion</a>
+                    <a class="btn float-right" href="{{ url('login') }}">Retour connexion</a>
                     {{ form_row(form._token) }}
                     {{ form_end(form, {'render_rest' : false}) }}
                 </div>

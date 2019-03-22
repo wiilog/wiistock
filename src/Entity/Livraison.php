@@ -42,6 +42,11 @@ class Livraison
     private $date;
 
     /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $dateFin;
+
+    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="livraisons")
      */
     private $utilisateur;
@@ -141,6 +146,18 @@ class Livraison
     public function setPreparation(?Preparation $preparation): self
     {
         $this->preparation = $preparation;
+
+        return $this;
+    }
+
+    public function getDateFin(): ?\DateTimeInterface
+    {
+        return $this->dateFin;
+    }
+
+    public function setDateFin(?\DateTimeInterface $dateFin): self
+    {
+        $this->dateFin = $dateFin;
 
         return $this;
     }

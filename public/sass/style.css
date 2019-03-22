@@ -473,6 +473,10 @@ a:hover {
   width: 100%;
 }
 
+.table .fas {
+  font-size: 1.2rem;
+}
+
 .table .fas:hover {
   color: black;
 }

@@ -19,11 +19,15 @@
 </div>
 <div class="form-group">
     <label for="statut">Statut</label>
-    <input type="text" class="form-control data" name="statut" id='statut'
-        value="{{reception.statut}}">
+    <select class="form-control data" name="statut">
+        {% for statut in statuts %}
+            {% set selected = (statut.id == reception.statut.id ? 'selected' : '') %}
+            <option value="{{ statut.id }}" {{ selected }}>{{ statut.nom }}</option>
+        {% endfor %}
+    </select>
 </div>
 <div class="form-group">
-    <label for="fournisseurs">Fournisseurs</label>
+    <label for="fournisseurs">Fournisseur</label>
     <select class="form-control select2 data" name="fournisseur" id='fournisseur'>
         <option value="{{reception.fournisseur.id}}">{{ reception.fournisseur.nom }}</option>
         {% for fournisseur in fournisseurs %}
