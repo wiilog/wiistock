@@ -145,9 +145,12 @@ class ReceptionController extends AbstractController
 
                 $em = $this->getDoctrine()->getManager();
                 $em->flush();
-
-                $data = json_encode($data);
-                return new JsonResponse($data);
+                $json = [
+                    'entete' => $this->renderView('reception/enteteReception.html.twig', [
+                        'reception' => $reception,
+                    ])
+                ];
+                return new JsonResponse($json);
             }
         throw new NotFoundHttpException("404");
     }
@@ -263,11 +266,16 @@ class ReceptionController extends AbstractController
     public function delete(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            dump($data);
             $reception = $this->receptionRepository->find($data['reception']);
+            
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($reception);
             $entityManager->flush();
-            return new JsonResponse();
+            $data = [
+                "redirect" => $this->generateUrl('reception_index')
+            ];
+            return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
     }

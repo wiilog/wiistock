@@ -29,6 +29,14 @@
                    class="btn btn-primary btn-action ml-auto">
                     Modifier</a>
             </div>
+            {#<a href="" data-id='{{ reception.id }}' data-target='#modalEditReception' data-toggle='modal'#}
+               {#onclick="editRow($(this), Routing.generate('reception_edit_api', true), $('#modalEditReception'), $('#submitEditReception'))"#}
+               {#class="btn btn-primary btn-action ml-auto">#}
+                {#Modifier</a>#}
+            {#<a href="" data-id='{{ reception.id }}' data-target='#modalDeleteReception' data-toggle='modal'#}
+               {#onclick="deleteRow($(this), $('#modalDeleteReception'), $('#submitDeleteReception'))"#}
+               {#data-id='{{ reception.id }}' class="btn btn-danger btn-action ml-auto">#}
+                {#Supprimer</a>#}
             <div class="row justify-content-between">
                 <a href="" data-id='{{ id }}' data-target='#modalDeleteReception' data-toggle='modal' class="btn btn-danger btn-action ml-auto">
                     Supprimer</a>
@@ -62,15 +70,16 @@
     </div>
 
 
-    {% include "reception/modalDeleteReception.html.twig" %}
-    {% include "reception/modalModifyArticle.html.twig" %}
-    {% include "reception/modalDeleteArticle.html.twig" %}
-    {% include "reception/addArticleModal.html.twig" %}
+{% include "reception/modalDeleteReception.html.twig" %}
+{% include "reception/modalModifyReception.html.twig" %}
+{% include "reception/modalModifyArticle.html.twig" %}
+{% include "reception/modalDeleteArticle.html.twig" %}
+{% include "reception/addArticleModal.html.twig" %}
 
 {% endblock %}
 {% block javascript %}
 <script>
-let id = {{ reception.id }}
+    let id = {{ reception.id }}
 </script>
 <script src="{{asset('js/reception.js')}}"></script>
 {% endblock javascript %}

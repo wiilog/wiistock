@@ -274,7 +274,6 @@ class DemandeController extends AbstractController
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $utilisateur = $this->utilisateurRepository->find(intval($data["demandeur"]));
             $emplacement = $this->emplacementRepository->find(intval($data['destination']));
-
             $demande = $this->demandeRepository->find($data['demandeId']);
             $demande
                 ->setUtilisateur($utilisateur)
@@ -282,12 +281,19 @@ class DemandeController extends AbstractController
             $em = $this->getDoctrine()->getEntityManager();
             $em->flush();
 
-            $newData = [
-                'demandeur' => $utilisateur->getUsername(),
-                'emplacement' => $emplacement->getLabel()
-                ];
-
-            return new JsonResponse(['newData' => json_encode($newData)]);
+//            $newData = [
+//                'demandeur' => $utilisateur->getUsername(),
+//                'emplacement' => $emplacement->getLabel()
+//                ];
+//
+//            return new JsonResponse(['newData' => json_encode($newData)]);
+            $json = [
+                'entete' => $this->renderView('demande/enteteDemandeLivraison.html.twig', [
+                    'demande' => $demande,
+                    'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
+                ])
+            ];
+            return new JsonResponse($json);
         }
         throw new NotFoundHttpException("404");
     }

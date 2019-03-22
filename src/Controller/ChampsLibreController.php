@@ -186,7 +186,6 @@ class ChampsLibreController extends AbstractController
      */
     public function editChampsLibre(Request $request): Response
     {
-        dump(json_decode($request->getContent(), true));
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
 
