@@ -30,6 +30,7 @@ class LigneArticle
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Demande", inversedBy="ligneArticle")
+     * @ORM\JoinColumn(name="demande_id", referencedColumnName="id", onDelete="CASCADE")
      */
     private $demande;
 
