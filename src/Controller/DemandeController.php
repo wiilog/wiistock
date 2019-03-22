@@ -280,10 +280,11 @@ class DemandeController extends AbstractController
                 ->setDestination($emplacement);
             $em = $this->getDoctrine()->getEntityManager();
             $em->flush();
-            $json =[ 'entete' => $this->renderView('demande/enteteDemandeLivraison.html.twig', [
-                'demande' => $demande,
-                'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
-            ])
+            $json = [
+                'entete' => $this->renderView('demande/enteteDemandeLivraison.html.twig', [
+                    'demande' => $demande,
+                    'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
+                ])
             ];
             return new JsonResponse($json);
         }

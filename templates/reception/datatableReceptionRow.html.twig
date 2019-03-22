@@ -1,8 +1,3 @@
-<div data-id='{{ reception.id }}' data-toggle='modal' data-target='#modalEditReception'
-    class='btn btn-xs btn-default command-edit'
-    onclick="editRow($(this), Routing.generate('reception_edit_api', true), $('#modalEditReception'), $('#submitEditReception'))">
-    <i class='fas fa-pencil-alt'></i>
-</div>
 <div class='btn btn-xs btn-default reception-delete'
     onclick="deleteRow($(this), $('#modalDeleteReception'), $('#submitDeleteReception'))" data-id='{{ reception.id }}'
     data-target='#modalDeleteReception' data-toggle='modal'>
