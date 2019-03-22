@@ -5,7 +5,7 @@
 {% block page_content %}
 <h1>Articles de référence</h1>
 <div class='row btn'>
-    <div  data-toggle="modal" data-target="#modalNewRefArticle"  class="button btn-left">
+    <div data-toggle="modal" data-target="#modalNewRefArticle" class="button btn-left">
         <span class="fa fa-plus"></span>Nouvel article de référence
     </div>
 </div>
@@ -19,16 +19,10 @@
         </tr>
     </thead>
 </table>
-<div>
 {% include "reference_article/modalDeleteRefArticle.html.twig" %}
-</div>
 {% include "reference_article/modalShowRefArticle.html.twig" %}
-<div>
-    {% include "reference_article/modalEditRefArticle.html.twig" %}
-</div>
-<div>
+{% include "reference_article/modalEditRefArticle.html.twig" %}
 {% include "reference_article/modalNewRefArticle.html.twig" %}
-</div>
 
 {% endblock %}
 {% block javascript %}

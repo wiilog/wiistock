@@ -45,7 +45,6 @@ function InitialiserModal(modal, submit, path, table) {
         let Data = {};
         let missingInputs = [];
         let wrongInputs = [];
-
         inputs.each(function () {
             let val = $(this).val();
             let name = $(this).attr("name");
@@ -67,6 +66,7 @@ function InitialiserModal(modal, submit, path, table) {
                 }
             }
         });
+        console.log(Data);
 
         // ... et dans les checkboxes
         let checkboxes = modal.find('.checkbox');
@@ -128,7 +128,6 @@ function deleteRow(button, modal, submit) {
     modal.find(submit).attr('value', id);
 }
 
-
 //SHOW
 /**
  * Initialise une fenêtre modale
@@ -173,6 +172,7 @@ function editRow(button, path, modal, submit) {
     }
     let json = button.data('id');
     modal.find(submit).attr('value', json);
+    modal.find('#inputId').attr('value', json);
     xhttp.open("POST", path, true);
     xhttp.send(json);
 }

@@ -23,7 +23,7 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
-            "SELECT v.valeur, c.label
+            "SELECT v.id, v.valeur, c.label
             FROM App\Entity\ValeurChampsLibre v
             JOIN v.articleReference a
             JOIN v.champLibre c
@@ -34,6 +34,39 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
             "idArticle"=> $idArticle,
             "idType"=> $idType
         ]);
+
+        return $query->execute();
+    }
+   
+    public function getByRefArticleANDChampsLibre($idArticle,$idChampLibre)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT v
+            FROM App\Entity\ValeurChampsLibre v
+            JOIN v.articleReference a
+            JOIN v.champLibre c
+            WHERE a.id = :idArticle AND c.id = :idChampLibre"
+            );
+        $query->setParameters([
+            "idArticle"=> $idArticle,
+            "idChampLibre"=> $idChampLibre
+        ]);
+
+        return $query->getSingleResult();
+    }
+
+    public function getByRefArticle($idArticle)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT v.valeur, c.label
+            FROM App\Entity\ValeurChampsLibre v
+            JOIN v.articleReference a
+            JOIN v.champLibre c
+            WHERE a.id = :idArticle "
+            );
+        $query->setParameter("idArticle", $idArticle);
 
         return $query->execute();
     }
