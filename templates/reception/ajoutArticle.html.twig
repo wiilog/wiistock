@@ -4,39 +4,21 @@
 
     <h1>Réception</h1>
 
-
     <div class="row">
-        <div class='col-3'>
-            <p><strong>Statut :</strong> {{ reception.statut ? reception.statut.nom : "" }}</p>
-            <p><strong>Numéro de référence :</strong> {{ reception.numeroReception }}</p>
-            <p><strong>Fournisseur :</strong> {{ reception.fournisseur.nom }}</p>
-            <p><strong>Commentaire :</strong> {{ reception.commentaire }}</p>
+        <div class="zone-entete col-6 row">
+            {% include "reception/enteteReception.html.twig" %}
         </div>
-        <div class="col-3">
-            <p><strong>Date commande :</strong> {{ reception.date ? reception.date| date('d/m/Y') : ' ' }}</p>
-            <p><strong>Date attendue :</strong> {{ reception.dateAttendu ? reception.dateAttendu | date('d/m/Y') : ' ' }}</p>
-            <p><strong>Date réception :</strong>
-                {{ reception.dateReception ? reception.dateReception | date('d/m/Y') : ' ' }}</p>
-        </div>
+
         <div class="col-3 offset-3">
             <div class="row justify-content-between">
                 <a href="{{path('reception_fin', {'id': id})}}" class="btn btn-success btn-action ml-auto">
                     Fin réception</a>
             </div>
             <div class="row justify-content-between">
-                <a href="" data-id='{{ id }}' data-target='#modalModifyReception' data-toggle='modal'
-                        {#onclick="editRow($(this), Routing.generate('reception_edit_api', true), $('#modalEditReception'), $('#submitEditReception'))"#}
+                <a href="" data-id='{{ id }}' data-target='#modalEditReception' data-toggle='modal'
                    class="btn btn-primary btn-action ml-auto">
                     Modifier</a>
             </div>
-            {#<a href="" data-id='{{ reception.id }}' data-target='#modalEditReception' data-toggle='modal'#}
-               {#onclick="editRow($(this), Routing.generate('reception_edit_api', true), $('#modalEditReception'), $('#submitEditReception'))"#}
-               {#class="btn btn-primary btn-action ml-auto">#}
-                {#Modifier</a>#}
-            {#<a href="" data-id='{{ reception.id }}' data-target='#modalDeleteReception' data-toggle='modal'#}
-               {#onclick="deleteRow($(this), $('#modalDeleteReception'), $('#submitDeleteReception'))"#}
-               {#data-id='{{ reception.id }}' class="btn btn-danger btn-action ml-auto">#}
-                {#Supprimer</a>#}
             <div class="row justify-content-between">
                 <a href="" data-id='{{ id }}' data-target='#modalDeleteReception' data-toggle='modal' class="btn btn-danger btn-action ml-auto">
                     Supprimer</a>
@@ -70,16 +52,16 @@
     </div>
 
 
-{% include "reception/modalDeleteReception.html.twig" %}
-{% include "reception/modalModifyReception.html.twig" %}
-{% include "reception/modalModifyArticle.html.twig" %}
-{% include "reception/modalDeleteArticle.html.twig" %}
-{% include "reception/addArticleModal.html.twig" %}
+    {% include "reception/modalDeleteReception.html.twig" %}
+    {% include "reception/modalEditReception.html.twig" %}
+    {% include "reception/modalModifyArticle.html.twig" %}
+    {% include "reception/modalDeleteArticle.html.twig" %}
+    {% include "reception/addArticleModal.html.twig" %}
 
 {% endblock %}
 {% block javascript %}
 <script>
-    let id = {{ reception.id }}
+let id = {{ reception.id }}
 </script>
 <script src="{{asset('js/reception.js')}}"></script>
 {% endblock javascript %}

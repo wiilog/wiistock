@@ -1,45 +1,12 @@
-<div class='col-3'>
-        <p><strong>Statut:</strong> {{ reception.statut ? reception.statut.nom : "" }}</p>
-        <p><strong>Numéro de référence:</strong> {{ reception.numeroReception }}</p>
-        <p><strong>Fournisseur:</strong> {{ reception.fournisseur.nom }}</p>
-    </div>
-    <div class="col-3">
-        <p><strong>Date commande:</strong> {{ reception.date ? reception.date| date('d/m/Y') : ' ' }}</p>
-        <p><strong>Date attendue:</strong> {{ reception.dateAttendu ? reception.dateAttendu | date('d/m/Y') : ' ' }}</p>
-        <p><strong>Date réception:</strong>
-            {{ reception.dateReception ? reception.dateReception | date('d/m/Y') : ' ' }}</p>
-    </div>
-    <div class="col-3">
-
-    </div>
-    <div class="col-3 ">
-        <div class="row justify-content-between">
-            <a href="" data-id='{{ reception.id }}' data-target='#modalEditReception' data-toggle='modal'
-                onclick="editRow($(this), Routing.generate('reception_edit_api', true), $('#modalEditReception'), $('#submitEditReception'))"
-                class="btn btn-primary btn-action ml-auto">
-                Modifier</a>
-        </div>
-        <div class="row justify-content-between">
-            <a href="" data-id='{{ reception.id }}' data-target='#modalDeleteReception' data-toggle='modal'
-                onclick="deleteRow($(this), $('#modalDeleteReception'), $('#submitDeleteReception'))"
-                data-id='{{ reception.id }}' class="btn btn-danger btn-action ml-auto">
-                Supprimer</a>
-        </div>
-        <div class="row justify-content-between">
-            <a class="btn btn-success btn-action ml-auto" href="{{ path('reception_fin', {'id': reception.id}) }}">Fin
-                réception</a>
-        </div>
-        <div class="row justify-content-between">
-            <a href="" data-toggle="modal" data-target="#addArticleModal" class="btn btn-action ml-auto">
-                <span class="fa fa-plus"></span>ajouter un article
-            </a>
-        </div>
-
-        {# <div class='btn btn-xs btn-default' onclick=' printerAll()' data-toggle='modal'
-            onclick='generatorBarCode($(this))'>
-            <i class="fas fa-print"></i> Imprimer les étiquettes
-        </div> #}
-    </div>
-    <div class="col-12">
-        <p><strong>Commentaire:</strong> {{ reception.commentaire }}</p>
-    </div>
+<div class='col-6'>
+    <p><strong>Statut :</strong> {{ reception.statut ? reception.statut.nom : "" }}</p>
+    <p><strong>Numéro de référence :</strong> {{ reception.numeroReception }}</p>
+    <p><strong>Fournisseur :</strong> {{ reception.fournisseur.nom }}</p>
+    <p><strong>Commentaire :</strong> {{ reception.commentaire }}</p>
+</div>
+<div class="col-6">
+    <p><strong>Date commande :</strong> {{ reception.date ? reception.date| date('d/m/Y') : ' ' }}</p>
+    <p><strong>Date attendue :</strong> {{ reception.dateAttendu ? reception.dateAttendu | date('d/m/Y') : ' ' }}</p>
+    <p><strong>Date réception :</strong>
+        {{ reception.dateReception ? reception.dateReception | date('d/m/Y') : ' ' }}</p>
+</div>

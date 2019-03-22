@@ -133,7 +133,7 @@ class ReceptionController extends AbstractController
                 $utilisateur = $this->utilisateurRepository->find(intval($data['utilisateur']));
                 $statut = $this->statutRepository->find(intval($data['statut']));
 
-                $reception = $this->receptionRepository->find($data['reception']);
+                $reception = $this->receptionRepository->find($data['receptionId']);
                 $reception
                     ->setNumeroReception($data['NumeroReception'])
                     ->setDate(new \DateTime($data['date-commande']))
@@ -162,7 +162,7 @@ class ReceptionController extends AbstractController
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $reception = $this->receptionRepository->find($data);
-            $json = $this->renderView('reception/modalModifyReceptionContent.html.twig', [
+            $json = $this->renderView('reception/modalEditReceptionContent.html.twig', [
                 'reception' => $reception,
                 'fournisseurs' => $this->fournisseurRepository->getNoOne($reception->getFournisseur()->getId()),
                 'utilisateurs' => $this->utilisateurRepository->getNoOne($reception->getUtilisateur()->getId()),
@@ -266,8 +266,7 @@ class ReceptionController extends AbstractController
     public function delete(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            dump($data);
-            $reception = $this->receptionRepository->find($data['reception']);
+            $reception = $this->receptionRepository->find($data['receptionId']);
             
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($reception);
