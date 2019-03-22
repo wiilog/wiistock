@@ -42,11 +42,11 @@ class ReferenceArticleController extends Controller
     private $champsLibreRepository;
 
     /**
-     * @var ValeurChampslibreRepository
+     * @var ValeurChampsLibreRepository
      */
     private $valeurChampsLibreRepository;
 
-    public function __construct(ValeurChampslibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository)
+    public function __construct(ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository)
     {
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->champsLibreRepository = $champsLibreRepository;
@@ -143,8 +143,8 @@ class ReferenceArticleController extends Controller
             $valeurChampLibre = $this->valeurChampsLibreRepository->getByArticleType($data, $idType);
             $json = $this->renderView('reference_article/modalShowRefArticleContent.html.twig', [
                 'articleRef' => $articleRef,
-                'valeurChampLibre'=> $valeurChampLibre
-                ]);
+                'valeurChampLibre' => $valeurChampLibre
+            ]);
             return new JsonResponse($json);
         }
         throw new NotFoundHttpException("404");
@@ -158,9 +158,11 @@ class ReferenceArticleController extends Controller
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
             $articleRef = $this->referenceArticleRepository->find($data);
+            $valeurChampLibre = $this->valeurChampsLibreRepository->getByArticleType($articleRef->getId(), $articleRef->getType()->getId());
             $json = $this->renderView('reference_article/modalEditRefArticleContent.html.twig', [
                 'articleRef' => $articleRef,
-                'types' => $this->typeRepository-> getByCategoryLabel('référence article'),
+                'valeurChampsLibre' => $valeurChampLibre,
+                'types' => $this->typeRepository->getByCategoryLabel('référence article'),
             ]);
             return new JsonResponse($json);
         }
@@ -175,18 +177,18 @@ class ReferenceArticleController extends Controller
     public function edit(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $em = $this->getDoctrine()->getManager();
-            $refArticle = $this->referenceArticleRepository->find($data['id']);
+            $entityManager = $this->getDoctrine()->getManager();
+            $refArticle = $this->referenceArticleRepository->find($data['idRefArticle']);
             $refArticle
                 ->setLibelle($data['libelle'])
                 ->setReference($data['reference'])
                 ->setQuantiteStock($data['quantite'])
                 ->setType($this->typeRepository->find($data['type']));
-            $em->flush();
+            $entityManager->flush();
             $champsLibreKey = array_keys($data);
             foreach ($champsLibreKey as $champs) {
                 if (gettype($champs) === 'integer') {
-                    $valeurChampLibre = $this->valeurChampsLibreRepository->find($champs);
+                    $valeurChampLibre =  $this->valeurChampsLibreRepository->getByRefArticleANDChampsLibre($data['idRefArticle'], $champs);
                     $valeurChampLibre
                         ->setValeur($data[$champs]);
                     $entityManager = $this->getDoctrine()->getManager();
@@ -245,5 +247,4 @@ class ReferenceArticleController extends Controller
         }
         throw new NotFoundHttpException("404");
     }
-
 }

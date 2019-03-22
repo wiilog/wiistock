@@ -90,8 +90,7 @@ class FournisseurController extends AbstractController
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $fournisseur = $this->fournisseurRepository->find($data);
-            dump($data);
-      
+
             $json =$this->renderView('fournisseur/modalShowFournisseurContent.html.twig', [
                 'fournisseur' => $fournisseur,
                 ]);

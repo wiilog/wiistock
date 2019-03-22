@@ -39,13 +39,13 @@
                     <div class="nav nav-tabs myTab" id="myTab" role="tablist">
                         {% for type in types %}
                         <button class="nav-link" name='type' value='{{type.id}}' id='{{type.label}}-tab'
-                            data-toggle="tab" href="#{{type.label}}" role="tab" aria-controls={{type.label}}
+                            data-toggle="tab" href="#{{type.label}}-new" role="tab" aria-controls={{type.label}}
                             aria-selected="true">{{type.label}}</button>
                         {% endfor %}
                     </div>
                     <div class="tab-content" id="myTabContent">
                         {% for type in types %}
-                        <div class="tab-pane fade show" id="{{type.label}}" role="tabpanel"
+                        <div class="tab-pane fade show" id="{{type.label}}-new" role="tabpanel"
                             aria-labelledby="{{type.label}}-tab">
                             <div class="row">
                                 {% for champ in type.champsLibres %}
@@ -58,9 +58,11 @@
                                         {% if champ.typage == 'booleen' %}
                                         <input type="checkbox" class="form-control data" name="{{champ.id}}">
                                         {% elseif champ.typage == 'number' %}
-                                        <input type="number" class="form-control data" value="{{champ.defaultValue}}" name="{{champ.id}}">
+                                        <input type="number" class="form-control data" value="{{champ.defaultValue}}"
+                                            name="{{champ.id}}">
                                         {% else %}
-                                        <input class="form-control data" type="text"  value="{{champ.defaultValue}}" name='{{ champ.id }}'>
+                                        <input class="form-control data" type="text" value="{{champ.defaultValue}}"
+                                            name='{{ champ.id }}'>
                                         {% endif %}
                                     </div>
                                 </div>
@@ -71,10 +73,10 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
-                    <div id="submitNewRefArticle"
-                        class="btn btn-primary btn-success ">Enregistrer</div>
+                    <button type="button" class="btn" data-dismiss="modal">Annuler</button>
+                    <div id="submitNewRefArticle" class="btn btn-primary btn-success ">Enregistrer</div>
                 </div>
             </div>
         </div>
+    </div>
 </form>

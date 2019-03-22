@@ -39,3 +39,9 @@ $('#myTab button').on('click', function (e) {
     $(this).siblings().removeClass('data');
     $(this).addClass('data');
   })
+
+
+function idType(div) {
+    let id = div.attr('value');
+   $('#idType').attr('value', id);;      
+}

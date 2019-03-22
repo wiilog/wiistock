@@ -31,17 +31,21 @@
                     Modifier</a>
             </div>
             <div class="row justify-content-between">
+                <a href="" data-id='{{ demande.id }}' data-target='#modalDeleteDemande' data-toggle='modal' class="btn btn-danger btn-action ml-auto">
+                    Supprimer</a>
+            </div>
+            <div class="row justify-content-between">
                 <a href="{{path('fin_demande', {'id': demande.id})}}" class="btn btn-success btn-action ml-auto">
                     Valider</a>
             </div>
             <div class="row justify-content-between">
-                <a href="" data-toggle="modal" data-target="#modalNewArticle" class="btn btn-primary btn-action ml-auto">
+                <a href="" data-toggle="modal" data-target="#modalNewArticle" class="btn btn-action ml-auto">
                     Ajouter une ligne</a>
             </div>
-        {% else %}
-        <a href="{{path('preparation_show', {'id': demande.preparation.id }) }}">
-            Aller vers la préparation
-        </a>
+        {% elseif demande.preparation is not empty %}
+            <a href="{{path('preparation_show', {'id': demande.preparation.id }) }}">
+                Aller vers la préparation
+            </a>
         {% endif %}
     </div>
 </div>
@@ -63,6 +67,7 @@
 
 
 {% include 'demande/modalDeleteArticle.html.twig' %}
+{% include 'demande/modalDeleteDemande.html.twig' %}
 {% include 'demande/modalNewArticle.html.twig' %}
 {% include 'demande/modalEditDemande.html.twig' %}
 {% include 'demande/modalEditArticle.html.twig' %}

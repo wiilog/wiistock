@@ -14,7 +14,6 @@
  * 
  */
 function InitialiserModal(modal, submit, path, table) {
-
     submit.click(function () {
         xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function () {
@@ -32,7 +31,8 @@ function InitialiserModal(modal, submit, path, table) {
                         $('#statutReception').text(data.anomalie);
                     }
                 });
-                let inputs = modal.find('.modal-body').find(".data"); // On récupère toutes les données qui nous intéresse
+                let inputs = modal.find('.modal-body').find(".data");
+                // on vide tous les inputs
                 inputs.each(function () {
                     $(this).val("");
                 });
@@ -57,13 +57,16 @@ function InitialiserModal(modal, submit, path, table) {
             }
             // validation valeur des inputs de type number
             if($(this).attr('type') === 'number') {
-                if ($(this).val() > $(this).attr('max') || $(this).val() < $(this).attr('min')) {
-                    // let label = $(this).closest('.form-group').find('label').text();
+                let val = parseInt($(this).val());
+                let min = parseInt($(this).attr('min'));
+                let max = parseInt($(this).attr('max'));
+                if (val > max || val < min) {
                     wrongInputs.push($(this));
                     $(this).addClass('is-invalid');
                 }
             }
         });
+        console.log(Data);
 
         // ... et dans les checkboxes
         let checkboxes = modal.find('.checkbox');
@@ -125,7 +128,6 @@ function deleteRow(button, modal, submit) {
     modal.find(submit).attr('value', id);
 }
 
-
 //SHOW
 /**
  * Initialise une fenêtre modale
@@ -170,6 +172,7 @@ function editRow(button, path, modal, submit) {
     }
     let json = button.data('id');
     modal.find(submit).attr('value', json);
+    modal.find('#inputId').attr('value', json);
     xhttp.open("POST", path, true);
     xhttp.send(json);
 }
