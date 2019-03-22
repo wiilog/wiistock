@@ -23,8 +23,9 @@ function InitialiserModal(modal, submit, path, table) {
                 if (data.redirect) {
                     window.location.href = data.redirect;
                 }
+                // pour mise à jour des données d'en-tête après modification
                 if(data.entete){
-                    $('.zone-actions').html(data.entete)
+                    $('.zone-entete').html(data.entete)
                 }
                 table.ajax.reload(function (json) {
                     if (this.responseText !== undefined) {
@@ -34,10 +35,6 @@ function InitialiserModal(modal, submit, path, table) {
                         $('#statutReception').text(data.anomalie);
                     }
                 });
-                // pour mettre à jour données sur page
-                if(data.newData) {
-                    console.log(data.newData);
-                }
 
                 let inputs = modal.find('.modal-body').find(".data");
                 // on vide tous les inputs

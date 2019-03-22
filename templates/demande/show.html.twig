@@ -6,16 +6,18 @@
 
 <h1 class="">Demande de livraison</h1>
 
-<div class="zone-actions row">
-    <div class="col-3">
-        <p>Demandeur : <span id="demandeur">{{ demande.utilisateur ? demande.utilisateur : '' }}</span></p>
-        <p>Statut : {{demande.statut.nom|capitalize}}</p>
-        <p>Destination : <span id="emplacement">{{ demande.destination ? demande.destination.label : "" }}</span></p>
-    </div>
+<div class="row">
+    <div class="zone-entete col-6 row">
+        <div class="col-6">
+            <p>Demandeur : <span id="demandeur">{{ demande.utilisateur ? demande.utilisateur : '' }}</span></p>
+            <p>Statut : {{demande.statut.nom|capitalize}}</p>
+            <p>Destination : <span id="emplacement">{{ demande.destination ? demande.destination.label : "" }}</span></p>
+        </div>
 
-    <div class="col-3">
-        <p>Date demande : {{ demande.date | date("d/m/Y") }}</p>
-        <p>Référence : {{ demande.numero }}</p>
+        <div class="col-6">
+            <p>Date demande : {{ demande.date | date("d/m/Y") }}</p>
+            <p>Référence : {{ demande.numero }}</p>
+        </div>
     </div>
 
     <div class="col-3 offset-3">

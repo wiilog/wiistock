@@ -378,7 +378,6 @@ class ReceptionController extends AbstractController
                     ->setConform($data['conform'] === 'on' ? true : false)
                     ->setStatut($statut)
                     ->setLabel($data['label']);
-                $em = $this->getDoctrine()->getManager();
 
                 $articleAnomalie = $this->articleRepository->countByStatutAndReception($statutAnomalie, $reception);
                 if ($articleAnomalie > 1) {
@@ -404,6 +403,8 @@ class ReceptionController extends AbstractController
             'refArticle' => $this->referenceArticleRepository->findAll(),
             'id' => $id,
             'fournisseurs' => $this->fournisseurRepository->findAll(),
+            'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
+            'statuts' => $this->statutRepository->findByCategorieName(Reception::CATEGORIE),
         ]);
     }
 
