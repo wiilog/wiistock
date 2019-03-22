@@ -20,8 +20,12 @@ function InitialiserModal(modal, submit, path, table) {
             if (this.readyState == 4 && this.status == 200) {
                 $('.errorMessage').html(JSON.parse(this.responseText))
                 data = JSON.parse(this.responseText);
+                console.log(data)
                 if (data.redirect) {
                     window.location.href = data.redirect;
+                }
+                if(data.entete){
+                    $('.zone-actions').html(data.entete)
                 }
                 table.ajax.reload(function (json) {
                     if (this.responseText !== undefined) {

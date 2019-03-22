@@ -280,7 +280,12 @@ class DemandeController extends AbstractController
                 ->setDestination($emplacement);
             $em = $this->getDoctrine()->getEntityManager();
             $em->flush();
-            return new JsonResponse();
+            $json =[ 'entete' => $this->renderView('demande/enteteDemandeLivraison.html.twig', [
+                'demande' => $demande,
+                'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
+            ])
+            ];
+            return new JsonResponse($json);
         }
         throw new NotFoundHttpException("404");
     }
