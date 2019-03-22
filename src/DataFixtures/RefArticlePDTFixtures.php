@@ -57,8 +57,6 @@ class RefArticlePDTFixtures extends Fixture
                 ->setValeur($data[2]);
             $manager->persist($adresse);
 
-            dump('hello');
-
             $dateEntre = new ValeurChampsLibre();
             $CLDateEntre = $this->champsLibreRepository->findOneBy(['label' => "Date d'entrée"]);
             $dateEntre

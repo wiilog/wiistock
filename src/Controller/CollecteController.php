@@ -286,7 +286,6 @@ class CollecteController extends AbstractController
     public function editApi(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            dump($data);
             $collecte = $this->collecteRepository->find($data);
            
             $json = $this->renderView('collecte/modalEditCollecteContent.html.twig', [
@@ -307,7 +306,6 @@ class CollecteController extends AbstractController
     public function edit(Request $request) : Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            dump($data);
             $collecte = $this->collecteRepository->find($data['collecte']);
             $collecte
                 ->setNumero($data["NumeroCollecte"])
@@ -331,7 +329,6 @@ class CollecteController extends AbstractController
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {       
             $collecte = $this->collecteRepository->find($data['collecte']);
-            dump($data);
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($collecte);
             $entityManager->flush();

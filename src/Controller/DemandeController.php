@@ -200,7 +200,6 @@ class DemandeController extends AbstractController
     public function modifyLigneArticle(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            dump($data);
             $reference = $this->referenceArticleRepository->find($data['reference']);
             $ligneArticle = $this->ligneArticleRepository->find($data['ligneArticle']);
             $ligneArticle

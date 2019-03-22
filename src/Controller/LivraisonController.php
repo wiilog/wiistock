@@ -174,9 +174,6 @@ class LivraisonController extends AbstractController
                 $livraison = $this->livraisonRepository->find($id);
                 $demande = $this->demandeRepository->getByLivraison($livraison->getId());
                 $ligneArticle = $this->ligneArticleRepository->getByDemande($demande->getId());
-                dump($id);
-
-                dump($demande);
 
                 $rows = [];
                 foreach ($ligneArticle as $article) {
