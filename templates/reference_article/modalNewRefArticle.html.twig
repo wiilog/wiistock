@@ -38,9 +38,9 @@
                     <p>Selectionner un type</p>
                     <div class="nav nav-tabs myTab" id="myTab" role="tablist">
                         {% for type in types %}
-                        <button class="nav-link" name='type' value='{{type.id}}' id='{{type.label}}-tab'
+                        <div class="nav-link" name='type' value='{{type.id}}' id='{{type.label}}-tab'
                             data-toggle="tab" href="#{{type.label}}-new" role="tab" aria-controls={{type.label}}
-                            aria-selected="true">{{type.label}}</button>
+                            aria-selected="true">{{type.label}}</div>
                         {% endfor %}
                     </div>
                     <div class="tab-content" id="myTabContent">

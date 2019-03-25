@@ -3,147 +3,39 @@
 {% block title %}Demande de collecte{% endblock %}
 
 {% block page_content %}
-    <div id="alerts" data-auto-dismiss role="alert"></div>
+<h1>Demande de collecte n° {{ collecte.numero }}</h1>
+<div class="zone-entete row">
+    {% include "collecte/enteteCollecte.html.twig" %}
+</div>
 
-    <div class="row">
-        <div class="col-6 pl-4">
-            <h1>Demande de collecte n° {{ collecte.numero }}</h1>
-        </div>
-        <div class="col-6 p-3">
-            <button type="button" class="btn btn-danger pull-right" data-toggle="modal" data-target="#modalDeleteCollecte">Supprimer</button>
-        </div>
-
-    </div>
-
-    <div class="container ml-0 mt-3">
-        <div class="row pb-2">
-            <div class="col-2">Demandeur</div>
-            <div class="col-2">{{ collecte.demandeur }}</div>
-            <div class="col-2">Date demande</div>
-            <div class="col-2">{{ collecte.date.date|date('d/m/Y') }}</div>
-        </div>
-        <div class="row pb-2">
-            <div class="col-2">Objet</div>
-            <div class="col-2">{{ collecte.objet }}</div>
-            <div class="col-2">Statut</div>
-            <div class="col-3">{{ collecte.statut.nom | capitalize }}</div>
-        </div>
-        <div class="row pb-2">
-            <div class="col-2">Date terminée</div>
-            <div class="col-2"></div>
-            {#<div class="col-4">#}
-            {#<a href="{{ path("finish_collecte", {"id" : collecte.id }) }}">Aller vers la collecte</a>#}
-            {#</div>#}
-        </div>
-    </div>
-
-    <div class='row' >
-        <div class="col-2 offset-10 text-right">
-            <a href="" data-toggle="modal" data-target="#modalAddArticle" class="btn btn-primary" id="addRow">
-                <span class="fa fa-plus mr-2"></span>Ajouter un article
-            </a>
-        </div>
-    </div>
-
-    <table id="table-list-articles" class="table table-striped" data-collecte-id="{{ collecte.id }}">
-        <thead>
+<table id="tableArticle_id" class="table table-striped" data-collecte-id="{{ collecte.id }}">
+    <thead>
         <tr>
-            <th>Nom</th>
-            <th>Statut</th>
-            <th>Référence Article</th>
+            <th>Référence CEA</th>
+            <th>Libellé</th>
             <th>Emplacement</th>
-            <th>Destination</th>
-            <th>Quantité à collecter</th>
+            <th>Quantité</th>
             <th>Actions</th>
         </tr>
-        </thead>
-        <tbody>
-        {#{% for article in collecte.article |reverse %}#}
-        {#<form action="{{ path('collecte_show', {'id': collecte.id}) }}"  method="post">#}
-        {#<tr>#}
-        {#<td>{{ article.nom }}</td>#}
-        {#<td>{{ article.statut.nom }}</td>#}
-        {#<td>{{ article.etat ? 'oui' : article.commentaire }}</td>#}
-        {#<td>{{ article.refArticle.reference }}</td>#}
-        {#<td>{{ article.position }}</td>#}
-        {#<td>{{ article.direction }}</td>#}
-        {#{% if collecte.statut.id == 18 and article.statut.id == 4 %}#}
-        {#<td><input type="number" name="quantite" id="" min=0 value="{{ article.quantite }}" class="mb-3 form-control"></td>#}
-        {#<td>#}
-        {#<button type="submit" name="prise" value={{ article.id }} class="btn btn-xs btn-default command-edit backgreen"><i class="fas fa-check fa-2x"></i></button> #}
-        {#</td>#}
-        {#{% elseif article.statut.id == 20 %}#}
-        {#<td>{{ article.quantite }}</td>#}
-        {#<td><button type="submit" name="depose" value={{ article.id }} class="btn btn-xs btn-default command-edit backgreen"><i class="far fa-arrow-alt-circle-down fa-2x"></i></button></td>#}
-        {#{% else %}#}
-        {#<td>{{ article.quantite }}</td> #}
-        {#<td><a href="{{ path('articles_show', {'id': article.id}) }}" class="btn btn-xs btn-default command-edit"><i class="fas fa-eye fa-2x"></i></a></td>   #}
-        {#{% endif %}#}
-        {#</form>#}
-        {#</tr>#}
-        {#{% else %}#}
-        {#<tr>#}
-        {#<td colspan="10">aucun résultat</td>#}
-        {#</tr>#}
-        {#{% endfor %}#}
-        </tbody>
-    </table>
-    <a href="{{ path('collecte_index') }}" class='btn float-left'>Retour</a>
-    {{ include('collecte/modalAddArticle.html.twig') }}
-    {{ include('collecte/modalDeleteCollecte.html.twig') }}
-    {{ include('collecte/modalModifyArticle.html.twig') }}
+    </thead>
+    <tbody>
+
+    </tbody>
+</table>
+
+{% include "collecte/modalNewArticle.html.twig" %}
+{% include "collecte/modalDeleteArticle.html.twig" %}
+{% include "collecte/modalEditArticle.html.twig" %}
+
+{% include "collecte/modalDeleteCollecte.html.twig" %}
+{% include "collecte/modalEditCollecte.html.twig" %}
 
 {% endblock %}
 
 {% block javascript %}
+<script>
+    let id = {{ collecte.id }};
+</script>
 <script src="{{asset('js/collecte.js')}}"></script>
 
-<script>
-
-$('#addRow').on('click', function() {
-    $.getJSON('{{ path('modal_add_article') }}', function(data) {
-        let modal = $('#modalAddArticle');
-        modal.find('.modal-body').html(data.html);
-        $('.select2').select2(); //TODO CG
-
-        modal.find('.save').on('click', function() {
-            addRow($(this));
-        });
-
-        modal.find('#code').on('change', function() {
-           displayQuantity($(this));
-        });
-    });
-});
-
-$('#modalDeleteCollecte').find('.save').on('click', function() {
-    deleteCollecte($(this));
-});
-
-$('#modalModifyArticle').find('.save').on('click', function() {
-    modifyArticle($(this));
-});
-
-var path = Routing.generate('articles_by_collecte');
-$('#table-list-articles').DataTable({
-    "language": {
-        "url": "/js/i18n/dataTableLanguage.json",
-    },
-    "pageLength": 5,
-    "ajax":{
-        "url": path,
-        "data" : { collecteId: {{ collecte.id }} },
-        "type": "POST"
-    },
-    columns: [
-        { "data": 'Nom' },
-        { "data": 'Statut' },
-        { "data": 'Référence Article' },
-        { "data": 'Emplacement' },
-        { "data": 'Destination' },
-        { "data": 'Quantité à collecter' },
-        { "data": 'Actions'}
-    ],
-});
-</script>
 {% endblock %}

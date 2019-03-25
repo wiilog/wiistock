@@ -1,14 +1,16 @@
-<div data-id='{{ idRefArticle }}' data-target='#modalEditRefArticle' data-toggle='modal' class='btn btn-xs btn-default command-edit'
-    onclick="editRow($(this), Routing.generate('reference_article_edit_api', true), $('#modalEditRefArticle'), $('#submitEditRefArticle'))">
-    <i class='fas fa-pencil-alt '></i>
-</div>
-<div class='btn btn-xs btn-default type-show'
-    onclick="showRow($('#modalShowRefArticle'), $(this), Routing.generate('reference_article_show', true) )"
-    data-id='{{ idRefArticle }}' data-target='#modalShowRefArticle' data-toggle='modal'>
-    <i class='fas fa-eye '></i>
-</div>
-<div class='btn btn-xs btn-default type-delete'
-    onclick="deleteRow($(this), $('#modalDeleteRefArticle'), $('#submitDeleteRefArticle'))" data-id='{{ idRefArticle }}'
-    data-target='#modalDeleteRefArticle' data-toggle='modal'>
-    <i class='fas fa-trash '></i>
+<div class="row">
+    <div data-id='{{ idRefArticle }}' data-target='#modalEditRefArticle' data-toggle='modal' class='col-2'
+        onclick="editRow($(this), Routing.generate('reference_article_edit_api', true), $('#modalEditRefArticle'), $('#submitEditRefArticle'))">
+        <i class='fas fa-pencil-alt '></i>
+    </div>
+    <div class='col-2'
+        onclick="showRow($('#modalShowRefArticle'), $(this), Routing.generate('reference_article_show', true) )"
+        data-id='{{ idRefArticle }}' data-target='#modalShowRefArticle' data-toggle='modal'>
+        <i class='fas fa-eye '></i>
+    </div>
+    <div class='col-2'
+        onclick="deleteRow($(this), $('#modalDeleteRefArticle'), $('#submitDeleteRefArticle'))"
+        data-id='{{ idRefArticle }}' data-target='#modalDeleteRefArticle' data-toggle='modal'>
+        <i class='fas fa-trash '></i>
+    </div>
 </div>

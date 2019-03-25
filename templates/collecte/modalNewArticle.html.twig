@@ -1,0 +1,40 @@
+<!-- Modale Ajout d'article -->
+<div method="" class="modal fade" id="modalNewArticle" role="dialog" aria-labelledby="modalAddArticleTitle"
+    aria-hidden="true" data-collecte-id="{{ collecte.id }}">
+    <div class="modal-dialog modal-dialog-centered narrow" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Ajouter un article</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body modal-input container-fluid">
+                <form class="form-group">
+                    <div class="mb-3">
+                        <label for="code">Code article</label>
+                        <select class="form-control data select2" id="code" name="code">
+                            <option value="">Choisir un code article...</option>
+                            {%  for article in articles %}
+                            <option value="{{ article.id }}" data-quantity="{{ article.quantite }}">{{ article.label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="form-row">
+                            <label for="quantity">Quantité</label>
+                            <input class="form-control data" type="number" min=0 id="quantity" name="quantity" value="">
+                        </div>
+                    </div>
+                </form>
+
+            </div>
+            <div class="modal-footer">
+                <div class="btn" data-dismiss="modal">Annuler</div>
+                <button id="submitNewArticle" name="collecte" value="{{collecte.id}}" type="button" class="btn data btn-success">Ajouter</button>
+            </div>
+        </div>
+    </div>
+</div>

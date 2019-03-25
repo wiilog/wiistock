@@ -1,0 +1,37 @@
+<div class="col-3">
+    <p>Demandeur : {{ collecte.demandeur }}</p>
+    <p>Date demande : {{ collecte.date.date|date('d/m/Y') }}</p>
+    <p>Date terminée : </p>
+</div>
+
+<div class="col-3">
+    <p>Objet : {{ collecte.objet }}</p>
+    <p>Statut : {{ collecte.statut.nom | capitalize }}</p>
+</div>
+
+<div class="col-3">
+
+</div>
+
+<div class="col-3">
+    <div class="row justify-content-between">
+        <a href="" data-id='{{collecte.id}}' data-target='#modalEditCollecte' data-toggle='modal'
+            onclick="editRow($(this), Routing.generate('collecte_edit_api', true), $('#modalEditCollecte'), $('#submitEditCollecte'))"
+            class="btn btn-primary btn-action ml-auto">
+            Modifier</a>
+    </div>
+    <div class="row justify-content-between">
+        <a href="" onclick="deleteRow($(this), $('#modalDeleteCollecte'), $('#submitDeleteCollecte'))"
+            data-id='{{collecte.id}}' data-target='#modalDeleteCollecte' data-toggle='modal'
+            class="btn btn-danger btn-action ml-auto">
+            Supprimer</a>
+    </div>
+    <div class="row justify-content-between">
+        <a href="#" class="btn btn-success btn-action ml-auto">
+            Valider</a>
+    </div>
+    <div class="row justify-content-between">
+        <a href="" data-toggle="modal" data-target="#modalNewArticle" class="btn btn-action ml-auto">
+            Ajouter une ligne</a>
+    </div>
+</div>

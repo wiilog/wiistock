@@ -44,7 +44,7 @@ class CollecteController extends AbstractController
      * @var ArticleRepository
      */
     private $articleRepository;
-    
+
     /**
      * @var UtilisateurRepository
      */
@@ -59,53 +59,88 @@ class CollecteController extends AbstractController
         $this->utilisateurRepository = $utilisateurRepository;
     }
 
+    /**
+     * @Route("/index", name="collecte_index", methods={"GET", "POST"})
+     */
+    public function index(): Response
+    {
+        return $this->render('collecte/index.html.twig', [
+            'emplacements' => $this->emplacementRepository->findAll(),
+            'collecte' => $this->collecteRepository->findAll(),
+            'statuts' => $this->statutRepository->findAll(),
+        ]);
+    }
 
     /**
-     * @Route("/apiCollecte", name="collecte_api", options={"expose"=true}, methods={"GET", "POST"}) 
+     * @Route("/show/{id}", name="collecte_show", methods={"GET", "POST"})
      */
-    public function collecteApi(Request $request) : Response
+    public function show(Collecte $collecte): Response
+    {
+        return $this->render('collecte/show.html.twig', [
+            'collecte' => $collecte,
+            'articles' => $this->articleRepository->findAll(),
+        ]);
+    }
+
+    /**
+     * @Route("/api", name="collectes_api", options={"expose"=true}, methods={"GET", "POST"}) 
+     */
+    public function collecteApi(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
-        {
-            $collectes = $this->collecteRepository->findAll();
-            
-            $rows = [];
-            foreach ($collectes as $collecte) {
-                $url['edit'] = $this->generateUrl('collecte_edit', ['id' => $collecte->getId()] );
-                // $url = $this->generateUrl('collecte_ajout_article', ['id' => $collecte->getId(), 
-                // 'finishCollecte'=>'0'] );
-                $rows[] = [
-                    'id' => ($collecte->getId() ? $collecte->getId() : "Non défini"),
-                    'Date'=> ($collecte->getDate() ? $collecte->getDate()->format('d/m/Y') : null),
-                    'Demandeur'=> ($collecte->getDemandeur() ? $collecte->getDemandeur()->getUserName() : null ),
-                    'Objet'=> ($collecte->getObjet() ? $collecte->getObjet() : null ),
-                    'Statut'=> ($collecte->getStatut()->getNom() ? ucfirst($collecte->getStatut()->getNom()) : null),
-                    'Actions' => $this->renderView('collecte/datatableCollecteRow.html.twig', [
-                        'url' => $url,
-                        'collecte' => $collecte,
-                        'collecteId'=>$collecte->getId()
+            {
+                $collectes = $this->collecteRepository->findAll();
+
+                $rows = [];
+                foreach ($collectes as $collecte) {
+                    $url = $this->generateUrl('collecte_show', ['id' => $collecte->getId()]);
+                    $rows[] = [
+                        'id' => ($collecte->getId() ? $collecte->getId() : "Non défini"),
+                        'Date' => ($collecte->getDate() ? $collecte->getDate()->format('d/m/Y') : null),
+                        'Demandeur' => ($collecte->getDemandeur() ? $collecte->getDemandeur()->getUserName() : null),
+                        'Objet' => ($collecte->getObjet() ? $collecte->getObjet() : null),
+                        'Statut' => ($collecte->getStatut()->getNom() ? ucfirst($collecte->getStatut()->getNom()) : null),
+                        'Actions' => $this->renderView('collecte/datatableCollecteRow.html.twig', [
+                            'url' => $url,
                         ])
-                        
-                ];
-                
+
+                    ];
+                }
+                $data['data'] = $rows;
+                return new JsonResponse($data);
             }
-            $data['data'] = $rows;
-            return new JsonResponse($data);
-        }
         throw new NotFoundHttpException("404");
     }
 
 
     /**
-     * @Route("/", name="collecte_index", methods={"GET", "POST"})
+     * @Route("/apiArticle/{id}", name="collecte_article_api", options={"expose"=true}, methods={"GET", "POST"}) 
      */
-    public function index(): Response
+    public function collecteArticleApi(Request $request, $id): Response
     {
-             return $this->render('collecte/index.html.twig', [
-              'emplacements'=>$this->emplacementRepository->findAll(),
-              'collecte'=>$this->collecteRepository->findAll(),
-              'statuts'=>$this->statutRepository->findAll(),
-        ]);
+        if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
+            {
+                $collecte = $this->collecteRepository->find($id);
+                $articles = $this->articleRepository->getByCollecte($collecte->getId());
+
+                $rows = [];
+                foreach ($articles as $article) {
+                    $rows[] = [
+                        'Référence CEA' => $article->getRefArticle()->getReference(),
+                        'Libellé' => $article->getLabel(),
+                        'Emplacement' => '',
+                        'Quantité' => $article->getQuantite(),
+                        'Actions' => $this->renderView('collecte/datatableArticleRow.html.twig', [
+                            'article' => $article,
+                            'collecteId' => $collecte->getid(),
+                        ])
+
+                    ];
+                }
+                $data['data'] = $rows;
+                return new JsonResponse($data);
+            }
+        throw new NotFoundHttpException("404");
     }
 
     /**
@@ -114,11 +149,10 @@ class CollecteController extends AbstractController
     public function creationCollecte(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $em = $this->getDoctrine()->getEntityManager();    
+            $em = $this->getDoctrine()->getEntityManager();
             $date = new \DateTime('now');
             $status = $this->statutRepository->findOneByNom(Collecte::STATUS_DEMANDE);
-            $numero = "C-". $date->format('YmdHis');
-          
+            $numero = "C-" . $date->format('YmdHis');
             $collecte = new Collecte;
             $collecte
                 ->setDemandeur($this->utilisateurRepository->find($data['demandeur']))
@@ -128,173 +162,90 @@ class CollecteController extends AbstractController
                 ->setPointCollecte($this->emplacementRepository->find($data['Pcollecte']))
                 ->setObjet($data['Objet'])
                 ->setCommentaire($data['commentaire']);
-
-           
             $em->persist($collecte);
             $em->flush();
-
-        // $url = $this->generateUrl('collecte_show', ['id' => $collecte->getId()]);
-        // $data = [
-        //     'Date'=> ($collecte->getDate() ? $collecte->getDate()->format('d/m/Y') : null),
-        //     'Demandeur'=> ($collecte->getDemandeur() ? $collecte->getDemandeur()->getUserName() : null ),
-        //     'Libellé'=> ($collecte->getObjet() ? $collecte->getObjet() : null ),
-        //     'Statut'=> ($collecte->getStatut()->getNom() ? ucfirst($collecte->getStatut()->getNom()) : null),
-        //     'Actions' => $this->renderView('collecte/datatableCollecteRow.html.twig', [
-        //         // 'url' => $url
-        //         ])
-        // ];
-       
             return new JsonResponse($data);
         }
         throw new XmlHttpException("404 not found");
     }
-    
 
-    // /**
-    //  * @Route("/ajouter-article", name="collecte_add_article")
-    //  */
-    // public function addArticle(Request $request): Response
-    // {
-    //     $articleId = $request->request->getInt('articleId');
-    //     $quantity = $request->request->getInt('quantity');
-    //     $collecteId = $request->request->getInt('collecteId');
 
-    //     $article = $this->articleRepository->find($articleId);
-    //     $collecte = $this->collecteRepository->find($collecteId);
+    /**
+     * @Route("/ajouter-article", name="collecte_add_article", options={"expose"=true}, methods={"GET", "POST"})
+     */
+    public function addArticle(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
-    //     $article
-    //         ->setQuantiteCollectee($quantity)
-    //         ->addCollecte($collecte);
+            $article = $this->articleRepository->find($data['code']);
+            $collecte = $this->collecteRepository->find($data['collecte']);
 
-    //     $em = $this->getDoctrine()->getManager();
-    //     $em->persist($article);
-    //     $em->flush();
+            $article
+                ->setQuantite($data['quantity'])
+                ->addCollecte($collecte);
 
-    //     $data = [
-    //         'Référenceom'=>( $article->getReference() ?  $article->getReference()():""),
-    //         'Statut'=> ($article->getStatut()->getNom() ? $article->getStatut()->getNom() : ""),
-    //         'Conformité'=>($article->getEtat() ? 'conforme': 'anomalie'),
-    //         'Référence Article'=> ($article->getRefArticle() ? $article->getRefArticle()->getLibelle() : ""),
-    //         'Quantité à collecter'=>($article->getQuantiteCollectee() ? $article->getQuantiteCollectee() : ""),
-    //         'Actions' => $this->renderView('collecte/datatableArticleRow.html.twig', ['article' => $article])
-    //     ];
+            $em = $this->getDoctrine()->getManager();
+            $em->persist($article);
+            $em->flush();
 
-    //     return new JsonResponse($data);
-    // }
+            return new JsonResponse();
+        }
+        throw new XmlHttpException("404 not found");
+    }
 
-    // /**
-    //  * @Route("/retirer-article", name="collecte_remove_article")
-    //  */
-    // public function removeArticle(Request $request)
-    // {
-    //     $articleId = $request->request->getInt('articleId');
-    //     $collecteId = $request->request->getInt('collecteId');
+    /**
+     * @Route("/retirer-article", name="collecte_remove_article", options={"expose"=true}, methods={"GET", "POST"})
+     */
+    public function removeArticle(Request $request)
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
-    //     $article = $this->articleRepository->find($articleId);
-    //     $collecte = $this->collecteRepository->find($collecteId);
+            $article = $this->articleRepository->find($data['article']);
+            $collecte = $this->collecteRepository->find($data['collecte']);
+            $entityManager = $this->getDoctrine()->getManager();
+            $article->removeCollecte($collecte);
+            $entityManager->flush();
+            return new JsonResponse();
+        }
+        throw new NotFoundHttpException("404");
+    }
 
-    //     if (!empty($article)) {
-    //         $article->removeCollecte($collecte);
-    //         $em = $this->getDoctrine()->getManager();
-    //         $em->persist($article);
-    //         $em->flush();
-    //         return new JsonResponse(true);
-    //     } else {
-    //         return new JsonResponse(false);
-    //     }
+    //
+    //    /**
+    //     * @Route("{id}/finish", name="finish_collecte")
+    //     */
+    //    public function finishCollecte(Collecte $collecte, StatutRepository $statutRepository)
+    //    {
+    //        $em = $this->getDoctrine()->getManager();
+    //
+    //        // changement statut collecte
+    //        $statusFinCollecte = $statutRepository->findOneBy(['nom' => Collecte::STATUS_FIN]);
+    //        $collecte->setStatut($statusFinCollecte);
+    //
+    //        // changement statut article
+    //        $statusEnStock = $statutRepository->findOneBy(['nom' => Articles::STATUS_EN_STOCK]);
+    //        $article = $collecte->getArticles();
+    //        foreach ($article as $article) {
+    //            $article->setStatut($statusEnStock);
+    //            $em->persist($article);
+    //        }
+    //        $em->flush();
+    //    }
 
-    // }
-
-    // /**
-    //  * @Route("/api", name="collectes_json", options={"expose"=true}, methods={"GET", "POST"})
-    //  */
-    // public function getCollectes(): Response
-    // {
-    //     $collectes = $this->collecteRepository->findAll();
-    //     $rows = [];
-    //     foreach ($collectes as $collecte) {
-    //         $url['show'] = $this->generateUrl('collecte_show', ['id' => $collecte->getId()]);
-    //         $rows[] = [
-    //             'Date'=> ($collecte->getDate() ? $collecte->getDate()->format('d/m/Y') : null),
-    //             'Demandeur'=> ($collecte->getDemandeur() ? $collecte->getDemandeur()->getUserName() : null ),
-    //             'Libellé'=> ($collecte->getObjet() ? $collecte->getObjet() : null ),
-    //             'Statut'=> ($collecte->getStatut()->getNom() ? ucfirst($collecte->getStatut()->getNom()) : null),
-    //             'Actions' => $this->renderView('collecte/datatableCollecteRow.html.twig', ['url' => $url])
-    //         ];
-    //     }
-    //     $data['data'] = $rows;
-
-    //     return new JsonResponse($data);
-    // }
-//
-//    /**
-//     * @Route("{id}/finish", name="finish_collecte")
-//     */
-//    public function finishCollecte(Collecte $collecte, StatutRepository $statutRepository)
-//    {
-//        $em = $this->getDoctrine()->getManager();
-//
-//        // changement statut collecte
-//        $statusFinCollecte = $statutRepository->findOneBy(['nom' => Collecte::STATUS_FIN]);
-//        $collecte->setStatut($statusFinCollecte);
-//
-//        // changement statut article
-//        $statusEnStock = $statutRepository->findOneBy(['nom' => Articles::STATUS_EN_STOCK]);
-//        $article = $collecte->getArticles();
-//        foreach ($article as $article) {
-//            $article->setStatut($statusEnStock);
-//            $em->persist($article);
-//        }
-//        $em->flush();
-//    }
-
-    // /**
-    //  * @Route("/{id}", name="collecte_show", methods={"GET", "POST"})
-    //  */
-    // public function show(Collecte $collecte): Response
-    // {
-    //     return $this->render('collecte/show.html.twig', [
-    //         'collecte' => $collecte,
-    //     ]);
-    // }
-
-    // /**
-    //  * @Route("/{id}/modifier", name="collecte_edit", methods={"GET","POST"})
-    //  */
-    // public function edit(Request $request, Collecte $collecte): Response
-    // {
-    //     $form = $this->createForm(CollecteType::class, $collecte);
-    //     $form->handleRequest($request);
-
-    //     if ($form->isSubmitted() && $form->isValid()) 
-    //     {
-    //         $this->getDoctrine()->getManager()->flush();
-    //         return $this->redirectToRoute('collecte_index', [
-    //             'id' => $collecte->getId(),
-    //         ]);
-    //     }
-
-    //     return $this->render('collecte/edit.html.twig', [
-    //         'collecte' => $collecte,
-    //         'form' => $form->createView(),
-    //     ]);
-    // }
-
-/**
+    /**
      * @Route("/editApi", name="collecte_edit_api", options={"expose"=true}, methods="GET|POST")
      */
     public function editApi(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $collecte = $this->collecteRepository->find($data);
-           
+
             $json = $this->renderView('collecte/modalEditCollecteContent.html.twig', [
                 'collecte' => $collecte,
                 "statuts" => $this->statutRepository->findAll(),
                 "emplacements" => $this->emplacementRepository->findAll(),
                 // 'utilisateurs'=>$this->utilisateurRepository->findAll(),
             ]);
-        
             return new JsonResponse($json);
         }
         throw new NotFoundHttpException("404");
@@ -303,7 +254,7 @@ class CollecteController extends AbstractController
     /**
      * @Route("/edit", name="collecte_edit", options={"expose"=true}, methods="GET|POST")
      */
-    public function edit(Request $request) : Response
+    public function edit(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $collecte = $this->collecteRepository->find($data['collecte']);
@@ -312,12 +263,17 @@ class CollecteController extends AbstractController
                 ->setDate(new \DateTime($data["date-collecte"]))
                 ->setCommentaire($data["commentaire"])
                 ->setObjet($data["objet"])
-                // ->setStatut($data['Statuts'])
                 ->setPointCollecte(($data["Pcollecte"]));
-              
+
             $em = $this->getDoctrine()->getManager();
             $em->flush();
-            return new JsonResponse();
+            $json = [
+                'entete' => $this->renderView('collecte/enteteCollecte.html.twig', [
+                    'collecte' => $collecte,
+                ])
+            ];
+
+            return new JsonResponse($json);
         }
         throw new NotFoundHttpException("404");
     }
@@ -325,14 +281,17 @@ class CollecteController extends AbstractController
     /**
      * @Route("/supprimerCollecte", name="collecte_delete", options={"expose"=true}, methods={"GET", "POST"})
      */
-    public function deleteCollecte(Request $request) : Response
+    public function deleteCollecte(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {       
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $collecte = $this->collecteRepository->find($data['collecte']);
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($collecte);
             $entityManager->flush();
-            return new JsonResponse();
+            $data = [
+                "redirect" => $this->generateUrl('collecte_index')
+            ];
+            return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
     }

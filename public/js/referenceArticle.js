@@ -43,5 +43,5 @@ $('#myTab button').on('click', function (e) {
 
 function idType(div) {
     let id = div.attr('value');
-   $('#idType').attr('value', id);;      
+   $('#idType').attr('value', id);    
 }
