@@ -117,6 +117,23 @@ class StatutFixtures extends Fixture implements DependentFixtureInterface
 
         $manager->flush();
 
+        // catégorie service
+        $statutsNames = [
+            'à traiter',
+            'traité'
+        ];
+
+        foreach ($statutsNames as $statutName) {
+            $statut = new Statut();
+            $statut
+                ->setNom($statutName)
+                ->setCategorie($this->getReference('statut-service'));
+            $manager->persist($statut);
+        }
+
+        $manager->flush();
+
+
     }
 
     public function getDependencies()
