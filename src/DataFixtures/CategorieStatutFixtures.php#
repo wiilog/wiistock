@@ -24,7 +24,8 @@ class CategorieStatutFixtures extends Fixture
             'demande',
             'livraison',
             'preparation',
-            'reception'
+            'reception', 
+            'service'
         ];
 
         foreach ($categoriesNames as $categorieName) {

@@ -58,6 +58,11 @@ class Statut
      */
     private $collectes;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Service", mappedBy="statut")
+     */
+    private $services;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
@@ -67,6 +72,7 @@ class Statut
         $this->livraisons = new ArrayCollection();
         $this->collectes = new ArrayCollection();
         $this->emplacements = new ArrayCollection();
+        $this->services = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -287,6 +293,37 @@ class Statut
     public function __toString()
     {
         return $this->nom;
+    }
+
+    /**
+     * @return Collection|Service[]
+     */
+    public function getServices(): Collection
+    {
+        return $this->services;
+    }
+
+    public function addService(Service $service): self
+    {
+        if (!$this->services->contains($service)) {
+            $this->services[] = $service;
+            $service->setStatut($this);
+        }
+
+        return $this;
+    }
+
+    public function removeService(Service $service): self
+    {
+        if ($this->services->contains($service)) {
+            $this->services->removeElement($service);
+            // set the owning side to null (unless already changed)
+            if ($service->getStatut() === $this) {
+                $service->setStatut(null);
+            }
+        }
+
+        return $this;
     }
 
 }
