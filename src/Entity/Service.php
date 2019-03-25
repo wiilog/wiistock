@@ -35,7 +35,7 @@ class Service
     private $commentaire;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\utilisateur", inversedBy="services")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="services")
      * @ORM\JoinColumn(nullable=false)
      */
     private $demandeur;
@@ -45,6 +45,12 @@ class Service
      * @ORM\JoinColumn(nullable=false)
      */
     private $statut;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\emplacement", inversedBy="services")
+     * @ORM\JoinColumn(nullable=false)
+     */
+    private $emplacement;
 
     public function getId(): ?int
     {
@@ -107,6 +113,18 @@ class Service
     public function setStatut(?Statut $statut): self
     {
         $this->statut = $statut;
+
+        return $this;
+    }
+
+    public function getEmplacement(): ?emplacement
+    {
+        return $this->emplacement;
+    }
+
+    public function setEmplacement(?emplacement $emplacement): self
+    {
+        $this->emplacement = $emplacement;
 
         return $this;
     }
