@@ -106,14 +106,14 @@ class ServiceController extends AbstractController
             $em = $this->getDoctrine()->getEntityManager();
            
            
-                       
+            $status = $this->statutRepository->findOneByNom(Service::STATUT_A_TRAITER);            
             $service = new Service();
             $date = new \DateTime('now');
             $service
                 ->setDate($date)
                 ->setLibelle($data['Libelle'])
-                ->setEmplacement($data['Localité'])
-                // ->setStatut()
+                ->setEmplacement($this->emplacementRepository->find($data['Localité']))
+                ->setStatut($status)
                 ->setDemandeur($this->utilisateurRepository->find($data['demandeur']))
                 ->setCommentaire($data['commentaire']);
            
