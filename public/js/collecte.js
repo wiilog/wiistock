@@ -26,7 +26,6 @@ InitialiserModal(modalNewCollecte, SubmitNewCollecte, urlNewCollecte, table);
 let modalDeleteCollecte = $("#modalDeleteCollecte");
 let submitDeleteCollecte = $("#submitDeleteCollecte");
 let urlDeleteCollecte = Routing.generate('collecte_delete', true)
-console.log(urlDeleteCollecte);
 InitialiserModal(modalDeleteCollecte, submitDeleteCollecte, urlDeleteCollecte, table);
 
 let modalModifyCollecte = $('#modalEditCollecte');
