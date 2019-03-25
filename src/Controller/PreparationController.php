@@ -208,20 +208,11 @@ class PreparationController extends AbstractController
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
             {
                 $demande = $this->demandeRepository->find($id);
-                $ligneArticles = $this->ligneArticleRepository->getByDemande($demande->getId());
+                if ($demande) {
+                    $ligneArticles = $this->ligneArticleRepository->getByDemande($demande->getId());
 
-                // $articles = $demande->getLigneArticle();
-                // $rows = [];
-                // foreach ($articles as $article) {
-                //         $rows[] = [
-                //             "Référence" => ($article->getReference() ? $article->getReference() : ' '),
-                //             "Quantité" => ($article->getQuantite() ? $article->getQuantite() : ' '),
-                //             "Action" =>  $this->renderView('preparation/datatableArticleRow.html.twig', ['articleId' => $article->getId()]),
-                //         ];
-                //     }
-
-                $rows = [];
-                foreach ($ligneArticles as $article) {
+                    $rows = [];
+                    foreach ($ligneArticles as $article) {
                         $rows[] = [
                             "Référence CEA" => ($article->getReference() ? $article->getReference()->getReference() : ' '),
                             "Libellé" => ($article->getReference() ? $article->getReference()->getLibelle() : ' '),
@@ -230,7 +221,10 @@ class PreparationController extends AbstractController
                         ];
                     }
 
-                $data['data'] = $rows;
+                    $data['data'] = $rows;
+                } else {
+                    $data = false; //TODO gérer affichage erreur
+                }
                 return new JsonResponse($data);
             }
         throw new NotFoundHttpException("404");

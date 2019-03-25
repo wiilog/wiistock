@@ -71,7 +71,7 @@ class Statut
         $this->preparations = new ArrayCollection();
         $this->livraisons = new ArrayCollection();
         $this->collectes = new ArrayCollection();
-        $this->emplacements = new ArrayCollection();
+//        $this->emplacements = new ArrayCollection();
         $this->services = new ArrayCollection();
     }
 
