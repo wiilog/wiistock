@@ -45,6 +45,7 @@ class Article
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Reception", inversedBy="articles")
+     * @ORM\JoinColumn(name="reception_id", referencedColumnName="id", onDelete="CASCADE")
      */
     private $reception;
 

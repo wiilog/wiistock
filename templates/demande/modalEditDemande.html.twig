@@ -9,12 +9,14 @@
                 </button>
             </div>
             <div class="modal-body modal-input container-fluid">
-
+            {% include "demande/modalEditDemandeContent.html.twig" %}
             </div>
             <div class="modal-footer">
+                <input type="hidden" class="data" name="demandeId" value="{{ demande.id }}">
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>
-                <button id="submitEditDemande" name='demande' type="button" data-dismiss="modal"
-                    class="btn btn-primary data btn-success">Enregistrer</button>
+                <button id="submitEditDemande" type="button" data-dismiss="modal" class="btn btn-success">
+                    Enregistrer
+                </button>
             </div>
         </div>
     </div>

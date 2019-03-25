@@ -9,12 +9,12 @@
                 </button>
             </div>
             <div class="modal-body">
-                Voulez-vous réellement supprimer cette reception ?
+                Voulez-vous réellement supprimer cette réception ?
             </div>
             <div class="modal-footer">
+                <input type="hidden" class="data" name="receptionId" value="{{ reception.id }}">
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>
-                <button id="submitDeleteReception" name='reception' value='' type="button" data-dismiss="modal"
-                    class="btn btn-primary btn-success data">Supprimer</button>
+                <button id="submitDeleteReception" type="button" data-dismiss="modal" class="btn btn-danger data">Supprimer</button>
             </div>
         </div>
     </div>

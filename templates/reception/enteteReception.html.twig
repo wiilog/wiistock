@@ -1,0 +1,12 @@
+<div class='col-6'>
+    <p><strong>Statut :</strong> {{ reception.statut ? reception.statut.nom : "" }}</p>
+    <p><strong>Numéro de référence :</strong> {{ reception.numeroReception }}</p>
+    <p><strong>Fournisseur :</strong> {{ reception.fournisseur.nom }}</p>
+    <p><strong>Commentaire :</strong> {{ reception.commentaire }}</p>
+</div>
+<div class="col-6">
+    <p><strong>Date commande :</strong> {{ reception.date ? reception.date| date('d/m/Y') : ' ' }}</p>
+    <p><strong>Date attendue :</strong> {{ reception.dateAttendu ? reception.dateAttendu | date('d/m/Y') : ' ' }}</p>
+    <p><strong>Date réception :</strong>
+        {{ reception.dateReception ? reception.dateReception | date('d/m/Y') : ' ' }}</p>
+</div>

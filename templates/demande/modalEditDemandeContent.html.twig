@@ -1,9 +1,9 @@
 <div class="form-group">
     <label for="demandeur">Utilisateur</label>
     <select name="demandeur" class="form-control data select2">
-        <option value="{{demande.utilisateur.id}}">{{demande.utilisateur.username}}</option>
         {% for utilisateur in utilisateurs %}
-        <option value="{{ utilisateur.id }}">{{ utilisateur.username }}</option>
+            {% set selected = (utilisateur.id == demande.utilisateur.id ? 'selected' : '') %}
+            <option value="{{ utilisateur.id }}" {{ selected }}>{{ utilisateur.username }}</option>
         {% endfor %}
     </select>
 </div>
@@ -11,9 +11,9 @@
 <div class="form-group">
     <label for="destination">Destination</label>
     <select name="destination" class="form-control data select2">
-        <option value="{{demande.destination.id}}">{{demande.destination}}</option>
         {% for emplacement in emplacements %}
-        <option value="{{ emplacement.id }}">{{ emplacement.label }}</option>
+            {% set selected = (emplacement.id == demande.destination.id ? 'selected' : '') %}
+        <option value="{{ emplacement.id }}" {{ selected }}>{{ emplacement.label }}</option>
         {% endfor %}
     </select>
 </div>

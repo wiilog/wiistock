@@ -9,11 +9,14 @@ aria-hidden="true">
                 </button>
             </div>
             <div class="modal-body modal-input container-fluid">
-            
+                {% include "reception/modalEditReceptionContent.html.twig" %}
             </div>
             <div class="modal-footer">
+                <input type="hidden" class="data" name="receptionId" value="{{ reception.id }}">
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>
-                <button id="submitEditReception" type="button" name="reception" data-dismiss="modal" class="btn btn-primary btn-success data">Enregistrer</button>
+                <button id="submitEditReception" type="button" name="reception" data-dismiss="modal" class="btn btn-primary btn-success data">
+                    Enregistrer
+                </button>
             </div>
         </div>
     </div>
