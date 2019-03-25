@@ -27,9 +27,21 @@ class ArticleRepository extends ServiceEntityRepository
             'SELECT a
             FROM App\Entity\Article a
             WHERE a.reception = :id'
+        )->setParameter('id', $id);;
+        return $query->execute();
+    }
+
+    public function getByCollecte($id)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT a
+             FROM App\Entity\Article a
+             JOIN a.collectes c
+             WHERE c.id =:id
+            "
         )->setParameter('id', $id);
-        ;
-        return $query->execute(); 
+        return $query->getResult();
     }
 
     public function findByEmplacement($empl)
@@ -39,11 +51,10 @@ class ArticleRepository extends ServiceEntityRepository
             'SELECT a
             FROM App\Entity\Article a
             WHERE a.emplacement = :empl'
-        )->setParameter('empl', $empl);
-        ;
-        return $query->execute(); 
+        )->setParameter('empl', $empl);;
+        return $query->execute();
     }
-    
+
     public function findByStatut($statut)
     {
         $entityManager = $this->getEntityManager();
@@ -51,9 +62,8 @@ class ArticleRepository extends ServiceEntityRepository
             "SELECT a
             FROM App\Entity\Article a
             WHERE a.Statut = :Statut "
-        )->setParameter('Statut', $statut);
-        ;
-        return $query->execute(); 
+        )->setParameter('Statut', $statut);;
+        return $query->execute();
     }
 
     public function getArticleByReception($id)
@@ -64,9 +74,8 @@ class ArticleRepository extends ServiceEntityRepository
             FROM App\Entity\Article a
             JOIN a.reception r
             WHERE r.id = :id "
-        )->setParameter('id', $id);
-        ;
-        return $query->execute(); 
+        )->setParameter('id', $id);;
+        return $query->execute();
     }
 
     public function getArticleByRefId()
@@ -77,7 +86,7 @@ class ArticleRepository extends ServiceEntityRepository
             FROM App\Entity\Article a
             "
         );
-        return $query->execute(); 
+        return $query->execute();
     }
     public function getRefByRecep($id)
     {
@@ -89,7 +98,7 @@ class ArticleRepository extends ServiceEntityRepository
             WHERE r.id =:id
             "
         )->setParameter('id', $id);
-        return $query->getResult(); 
+        return $query->getResult();
     }
     public function getByPreparation($id)
     {
@@ -101,34 +110,34 @@ class ArticleRepository extends ServiceEntityRepository
             WHERE p.id =:id
             "
         )->setParameter('id', $id);
-        return $query->getResult(); 
+        return $query->getResult();
     }
 
-//    // Creation des preparations
-//    public function findByRefAndConfAndStock($refArticle)
-//    {
-//        $entityManager = $this->getEntityManager();
-//        $query = $entityManager->createQuery(
-//            "SELECT a
-//            FROM App\Entity\Article a
-//            WHERE a.refArticle = :ref AND a.etat = TRUE AND a.Statut = 3
-//            "
-//        )->setParameter('ref', $refArticle);
-//        ;
-//        return $query->execute();
-//    }
+    //    // Creation des preparations
+    //    public function findByRefAndConfAndStock($refArticle)
+    //    {
+    //        $entityManager = $this->getEntityManager();
+    //        $query = $entityManager->createQuery(
+    //            "SELECT a
+    //            FROM App\Entity\Article a
+    //            WHERE a.refArticle = :ref AND a.etat = TRUE AND a.Statut = 3
+    //            "
+    //        )->setParameter('ref', $refArticle);
+    //        ;
+    //        return $query->execute();
+    //    }
 
-//    public function findByRefAndConf($refArticle)
-//    {
-//        $entityManager = $this->getEntityManager();
-//        $query = $entityManager->createQuery(
-//            "SELECT a
-//            FROM App\Entity\Article a
-//            WHERE a.refArticle = :ref AND a.etat = TRUE "
-//        )->setParameter('ref', $refArticle);
-//        ;
-//        return $query->execute();
-//    }
+    //    public function findByRefAndConf($refArticle)
+    //    {
+    //        $entityManager = $this->getEntityManager();
+    //        $query = $entityManager->createQuery(
+    //            "SELECT a
+    //            FROM App\Entity\Article a
+    //            WHERE a.refArticle = :ref AND a.etat = TRUE "
+    //        )->setParameter('ref', $refArticle);
+    //        ;
+    //        return $query->execute();
+    //    }
 
     public function findByEtat($etat)
     {
@@ -137,52 +146,51 @@ class ArticleRepository extends ServiceEntityRepository
             'SELECT a
             FROM App\Entity\Article a
             WHERE a.etat = :etat'
-        )->setParameter('etat', $etat);
-        ;
-        return $query->execute(); 
+        )->setParameter('etat', $etat);;
+        return $query->execute();
     }
-//
-// attention si on doit utiliser cette méthode, ne pas metre d'id en dur
-//    public function findByStatutAndEmpl($emplacement)
-//    {
-//        $entityManager = $this->getEntityManager();
-//        $query = $entityManager->createQuery(
-//            "SELECT a
-//            FROM App\Entity\Article a
-//            WHERE a.Statut = 4 AND a.position = :empl"
-//        )->setParameter('empl', $emplacement);
-//        ;
-//        return $query->execute();
-//    }
+    //
+    // attention si on doit utiliser cette méthode, ne pas metre d'id en dur
+    //    public function findByStatutAndEmpl($emplacement)
+    //    {
+    //        $entityManager = $this->getEntityManager();
+    //        $query = $entityManager->createQuery(
+    //            "SELECT a
+    //            FROM App\Entity\Article a
+    //            WHERE a.Statut = 4 AND a.position = :empl"
+    //        )->setParameter('empl', $emplacement);
+    //        ;
+    //        return $query->execute();
+    //    }
 
-   public function countByStatutAndReception($conform, $reception)
-   {
-       $entityManager = $this->getEntityManager();
-       $query = $entityManager->createQuery(
-           "SELECT COUNT (a)
+    public function countByStatutAndReception($conform, $reception)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT COUNT (a)
            FROM App\Entity\Article a
            WHERE a.conform = :conform AND a.reception = :reception"
-       )->setParameters([
-           'conform' => $conform,
-           'reception'=> $reception
-           ]);
-       return $query->getSingleScalarResult();;
-   }
+        )->setParameters([
+            'conform' => $conform,
+            'reception' => $reception
+        ]);
+        return $query->getSingleScalarResult();;
+    }
 
-//    public function countByStatutAndDemande($demande)
-//{
-//        $entityManager = $this->getEntityManager();
-//        $query = $entityManager->createQuery(
-//            "SELECT COUNT(a)
-//            FROM App\Entity\Article a
-//            JOIN a.demandes d
-//            WHERE a.Statut = 13 AND d = :demande" // demande sortie
-//        )->setParameter('demande', $demande);
-//
-//        $result = $query->execute();
-//
-//        return $result ? $result[0] : null;
-//    }
+    //    public function countByStatutAndDemande($demande)
+    //{
+    //        $entityManager = $this->getEntityManager();
+    //        $query = $entityManager->createQuery(
+    //            "SELECT COUNT(a)
+    //            FROM App\Entity\Article a
+    //            JOIN a.demandes d
+    //            WHERE a.Statut = 13 AND d = :demande" // demande sortie
+    //        )->setParameter('demande', $demande);
+    //
+    //        $result = $query->execute();
+    //
+    //        return $result ? $result[0] : null;
+    //    }
 
     public function countByRefArticleAndStatut($refArticle, $statut)
     {
@@ -197,27 +205,27 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
-//    public function CountByStatut($statut)
-//    {
-//        $entityManager = $this->getEntityManager();
-//        return $query = $entityManager->createQuery(
-//            "SELECT COUNT (a) FROM App\Entity\Article a WHERE a.Statut = :statut")
-//            ->setParameter('statut', $statut)
-//            ->execute()
-//            ;
-//    }
+    //    public function CountByStatut($statut)
+    //    {
+    //        $entityManager = $this->getEntityManager();
+    //        return $query = $entityManager->createQuery(
+    //            "SELECT COUNT (a) FROM App\Entity\Article a WHERE a.Statut = :statut")
+    //            ->setParameter('statut', $statut)
+    //            ->execute()
+    //            ;
+    //    }
 
-//    public function findLast()
-//    {
-//        $entityManager = $this->getEntityManager();
-//        $query = $entityManager->createQuery(
-//            "SELECT MAX(a.id)
-//            FROM App\Entity\Article a
-//           "
-//        )
-//        ;
-//        return $query->execute();
-//    }
+    //    public function findLast()
+    //    {
+    //        $entityManager = $this->getEntityManager();
+    //        $query = $entityManager->createQuery(
+    //            "SELECT MAX(a.id)
+    //            FROM App\Entity\Article a
+    //           "
+    //        )
+    //        ;
+    //        return $query->execute();
+    //    }
 
     public function findAllSortedByName()
     {
@@ -230,5 +238,4 @@ class ArticleRepository extends ServiceEntityRepository
         );
         return $query->execute();
     }
-
 }
