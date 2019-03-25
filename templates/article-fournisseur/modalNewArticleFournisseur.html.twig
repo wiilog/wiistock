@@ -1,0 +1,45 @@
+<form method="" class="modal fade" id="modalNewArticleFournisseur" role="dialog" aria-labelledby="dataModalCenterTitle"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Nouvel article fournisseur</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body modal-input container-fluid">
+                <div class="form-group">
+                    <label for="fournisseur">Fournisseur</label>
+                    <select class="form-control data needed" name="fournisseur" id="fournisseur">
+                            <option selected disabled></option>
+                        {% for fournisseur in fournisseurs %}
+                            <option value="{{ fournisseur.id }}">{{ fournisseur.nom }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="article-reference">Article de référence</label>
+                    <select class="form-control data needed" name="article-reference" id="article-reference">
+                        <option disabled selected></option>
+                        {% for referenceArticle in referencesArticles %}
+                            <option value="{{ referenceArticle.id }}">{{ referenceArticle.libelle }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="reference">Référence</label>
+                    <input type="text" id="reference" class="form-control data" name="reference">
+                </div>
+
+                <div class="error-msg">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn" data-dismiss="modal">Annuler</button>
+                <button id="submitNewArticleFournisseur" type="button" class="btn btn-success">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+</form>

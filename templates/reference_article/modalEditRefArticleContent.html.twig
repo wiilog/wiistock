@@ -46,23 +46,16 @@
                             <label class="input-group-text" for="inputGroupSelect01">{{champ.label}}</label>
                         </div>
                         {% if champ.typage == 'booleen' %}
-                        <input type="checkbox" class="form-control data" name={{champ.id}} 
-                        value={% for row in valeurChampsLibre %} 
-                            {% if row.label == champ.label %} 
-                            {{row.valeur}}
+                        <input type="checkbox" class="form-control data" name={{champ.id}}
+                            value={% for row in valeurChampsLibre %} {% if row.label == champ.label %} {{row.valeur}}
                             {% endif %} {% endfor %}>
                         {% elseif champ.typage == 'number' %}
-                        <input type="number" class="form-control data" name= {{champ.id}} 
-                        value={% for row in valeurChampsLibre %} 
-                            {% if row.label == champ.label %} 
-                            {{row.valeur}}
+                        <input type="number" class="form-control data" name={{champ.id}}
+                            value={% for row in valeurChampsLibre %} {% if row.label == champ.label %} {{row.valeur}}
                             {% endif %} {% endfor %}>
                         {% else %}
-                        <input class="form-control data" type="text" 
-                        name= {{champ.id}} 
-                        value={% for row in valeurChampsLibre %} 
-                            {% if row.label == champ.label %} 
-                            {{row.valeur}}
+                        <input class="form-control data" type="text" name={{champ.id}}
+                            value={% for row in valeurChampsLibre %} {% if row.label == champ.label %} {{row.valeur}}
                             {% endif %} {% endfor %}>
                         {% endif %}
                     </div>
@@ -72,79 +65,4 @@
         </div>
         {% endfor %}
     </div>
-
-    <!-- <div class="form-group col-6">
-    <div class="input-group">
-        <div class="input-group-prepend">
-            <label class="input-group-text" for="inputGroupSelect01">Libellé</label>
-        </div>
-        <input class="form-control data" type="text" value='{{articleRef.libelle}}' name="libelle" id="libelle">
-    </div>
 </div>
-<div class="form-group col-6">
-    <div class="input-group">
-        <div class="input-group-prepend">
-            <label class="input-group-text" for="inputGroupSelect01">Référence</label>
-        </div>
-        <input class="form-control data" type="text" value='{{articleRef.reference}}' name="reference" id="reference">
-    </div>
-</div>
-<div class="form-group col-6">
-    <div class="input-group">
-        <div class="input-group-prepend">
-            <label class="input-group-text" for="inputGroupSelect01">Quantité</label>
-        </div>
-        <input class="form-control data" type="number" min="0" name="quantite" value='{{articleRef.quantiteStock}}' id="quantité">
-    </div>
-</div>
-<div class="form-group col-12">
-    <div class="nav nav-tabs " id="myTab2">
-        {% for type in types %}
-        {% if type.id == articleRef.type.id %}
-        <div class="nav-link data" name='type' value='{{type.id}}'>{{type.label}}</div>
-        {% endif %}
-        {% endfor %}
-    </div>
-    <div class="tab-content" id="myTabContent">
-
-        {% for type in types %}
-        {% if type.id == articleRef.type.id %}
-        <div>
-            <div class="row">
-
-                {% for champ in type.champsLibres %}
-
-                <div class="form-group col-6">
-                    <div class="input-group">
-
-                        <label class="input-group-text" for="inputGroupSelect01">{{champ.label}}</label>
-
-                        {% for valeur in articleRef.valeurChampsLibres %}
-
-                        {% if champ.typage == 'booleen' and valeur.champLibre == champ %}
-
-                        <input type="checkbox" class="form-control data" value="{{valeur.valeur}}" name="{{valeur.id}}">
-
-                        {% elseif champ.typage == 'number' and  valeur.champLibre == champ %}
-
-                        <input type="number" class="form-control data" value="{{valeur.valeur}}" name="{{valeur.id}}">
-
-                        {% elseif valeur.champLibre == champ %}
-
-                        <input class="form-control data" type="text" value="{{ valeur.valeur}}" name='{{ valeur.id }}'>
-
-                        {% endif %}
-                        {% endfor %}
-
-
-                    </div>
-                </div>
-
-                {% endfor %}
-
-            </div>
-        </div>
-        {% endif %}
-        {% endfor %}
-
-    </div> -->

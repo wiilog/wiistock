@@ -1,0 +1,28 @@
+<div class="form-group">
+    <label for="fournisseur">Fournisseur</label>
+    <select class="form-control data needed" name="fournisseur" id="fournisseur">
+        <option selected disabled></option>
+        {% for fournisseur in fournisseurs %}
+            {% set selected = (fournisseur.id == articleFournisseur.fournisseur.id ? 'selected' : '') %}
+            <option value="{{ fournisseur.id }}" {{ selected }}>{{ fournisseur.nom }}</option>
+        {% endfor %}
+    </select>
+</div>
+
+<div class="form-group">
+    <label for="article-reference">Article de référence</label>
+    <select class="form-control data needed" name="article-reference" id="article-reference">
+        <option disabled selected></option>
+        {% for referenceArticle in referencesArticles %}
+            {% set selected = (referenceArticle.id == articleFournisseur.referenceArticle.id ? 'selected' : '') %}
+            <option value="{{ referenceArticle.id }}" {{ selected }}>{{ referenceArticle.libelle }}</option>
+        {% endfor %}
+    </select>
+</div>
+
+<div class="form-group">
+    <label for="reference">Référence</label>
+    <input type="text" id="reference" class="form-control data" name="reference" value="{{ articleFournisseur.reference }}">
+</div>
+
+<div class="error-msg"></div>

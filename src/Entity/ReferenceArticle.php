@@ -78,6 +78,11 @@ class ReferenceArticle
      */
     private $type;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\ArticleFournisseur", mappedBy="referenceArticle")
+     */
+    private $articlesFournisseur;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
@@ -85,6 +90,7 @@ class ReferenceArticle
         $this->RefArticleAlerte = new ArrayCollection();
         $this->ligneArticles = new ArrayCollection();
         $this->valeurChampsLibres = new ArrayCollection();
+        $this->articlesFournisseur = new ArrayCollection();
     }
 
     public function getId()
@@ -312,6 +318,37 @@ class ReferenceArticle
     public function setType(?Type $type): self
     {
         $this->type = $type;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|ArticleFournisseur[]
+     */
+    public function getArticlesFournisseur(): Collection
+    {
+        return $this->articlesFournisseur;
+    }
+
+    public function addArticlesFournisseur(ArticleFournisseur $articlesFournisseur): self
+    {
+        if (!$this->articlesFournisseur->contains($articlesFournisseur)) {
+            $this->articlesFournisseur[] = $articlesFournisseur;
+            $articlesFournisseur->setReferenceArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeArticlesFournisseur(ArticleFournisseur $articlesFournisseur): self
+    {
+        if ($this->articlesFournisseur->contains($articlesFournisseur)) {
+            $this->articlesFournisseur->removeElement($articlesFournisseur);
+            // set the owning side to null (unless already changed)
+            if ($articlesFournisseur->getReferenceArticle() === $this) {
+                $articlesFournisseur->setReferenceArticle(null);
+            }
+        }
 
         return $this;
     }

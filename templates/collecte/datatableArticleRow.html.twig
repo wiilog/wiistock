@@ -1,9 +1,10 @@
-<div class='btn btn-xs btn-default article-edit' onclick='editRow($(this))' data-toggle='modal'
-    data-target='#modalModifyArticle' data-quantity='{{ article.quantiteCollectee }}' data-name='{{ article.nom }}'
-    data-id='{{ article.id }}'>
-    <i class='fas fa-pencil-alt fa-2x'></i>
-</div>
+<div class="row">
+    <!-- <div class='col-2' onclick='editRow($(this))' data-toggle='modal' data-target='#modalModifyArticle'>
+        <i class='fas fa-pencil-alt fa-2x'></i>
+    </div> -->
 
-<div class='article-delete' onclick='deleteRow($(this))' data-id='{{ article.id }}'>
-    <i class='fas fa-trash fa-2x'></i>
+    <div class='col-2' onclick="deleteRow($(this), $('#modalDeleteArticle'), $('#submitDeleteArticle'))" 
+    data-target='#modalDeleteArticle' data-toggle='modal' data-id='{{ article.id }}'>
+        <i class='fas fa-trash fa-2x'></i>
+    </div>
 </div>
