@@ -54,8 +54,6 @@ class ReferenceArticleController extends Controller
         $this->typeRepository = $typeRepository;
     }
 
-
-
     /**
      * @Route("/refArticleAPI", name="ref_article_api", options={"expose"=true}, methods="GET|POST")
      */
@@ -67,7 +65,6 @@ class ReferenceArticleController extends Controller
                 $rows = [];
                 foreach ($refs as $refArticle) {
                     $url['edit'] = $this->generateUrl('reference_article_edit', ['id' => $refArticle->getId()]);
-                    $url['show'] = $this->generateUrl('reference_article_show', ['id' => $refArticle->getId()]);
 
                     $rows[] = [
                         "id" => $refArticle->getId(),
@@ -85,7 +82,6 @@ class ReferenceArticleController extends Controller
             }
         throw new NotFoundHttpException("404");
     }
-
 
     /**
      * @Route("/nouveau", name="reference_article_new", options={"expose"=true}, methods="GET|POST")
@@ -120,8 +116,6 @@ class ReferenceArticleController extends Controller
         throw new NotFoundHttpException("404");
     }
 
-
-
     /**
      * @Route("/", name="reference_article_index",  methods="GET")
      */
@@ -130,24 +124,6 @@ class ReferenceArticleController extends Controller
         return $this->render('reference_article/index.html.twig', [
             'types' => $this->typeRepository->getByCategoryLabel('référence article'),
         ]);
-    }
-
-    /**
-     * @Route("/show", name="reference_article_show", options={"expose"=true},  methods="GET|POST")
-     */
-    public function show(Request $request): Response
-    {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $articleRef = $this->referenceArticleRepository->find($data);
-            $idType = $articleRef->getType()->getId();
-            $valeurChampLibre = $this->valeurChampsLibreRepository->getByArticleType($data, $idType);
-            $json = $this->renderView('reference_article/modalShowRefArticleContent.html.twig', [
-                'articleRef' => $articleRef,
-                'valeurChampLibre' => $valeurChampLibre
-            ]);
-            return new JsonResponse($json);
-        }
-        throw new NotFoundHttpException("404");
     }
 
     /**
@@ -168,8 +144,6 @@ class ReferenceArticleController extends Controller
         }
         throw new NotFoundHttpException("404");
     }
-
-
 
     /**
      * @Route("/edit", name="reference_article_edit",  options={"expose"=true}, methods="GET|POST")
@@ -199,8 +173,6 @@ class ReferenceArticleController extends Controller
         }
         throw new NotFoundHttpException("404");
     }
-
-
 
     /**
      * @Route("/supprimerRefArticle", name="reference_article_delete", options={"expose"=true}, methods="GET|POST")
