@@ -480,6 +480,7 @@ a:hover {
 
 .table .fas {
   font-size: 1.2rem;
+  cursor: pointer;
 }
 
 .table .fas:hover {
