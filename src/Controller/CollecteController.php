@@ -78,6 +78,7 @@ class CollecteController extends AbstractController
     {
         return $this->render('collecte/show.html.twig', [
             'collecte' => $collecte,
+            'articles' => $this->articleRepository->findAll(),
         ]);
     }
 
@@ -125,11 +126,14 @@ class CollecteController extends AbstractController
                 $rows = [];
                 foreach ($articles as $article) {
                     $rows[] = [
-                        'Référence CEA' => $article->getRefArticle()->getReference,
-                        'libellé' => $article->getLabel(),
+                        'Référence CEA' => $article->getRefArticle()->getReference(),
+                        'Libellé' => $article->getLabel(),
                         'Emplacement' => '',
-                        'Quantité' => $article->getQuantite,
-                        'Actions' => $this->renderView('collecte/datatableArticleRow.html.twig', [])
+                        'Quantité' => $article->getQuantite(),
+                        'Actions' => $this->renderView('collecte/datatableArticleRow.html.twig', [
+                            'article' => $article,
+                            'collecteId' => $collecte->getid(),
+                        ])
 
                     ];
                 }
@@ -171,53 +175,39 @@ class CollecteController extends AbstractController
      */
     public function addArticle(Request $request): Response
     {
-        $articleId = $request->request->getInt('articleId');
-        $quantity = $request->request->getInt('quantity');
-        $collecteId = $request->request->getInt('collecteId');
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
-        $article = $this->articleRepository->find($articleId);
-        $collecte = $this->collecteRepository->find($collecteId);
+            $article = $this->articleRepository->find($data['code']);
+            $collecte = $this->collecteRepository->find($data['collecte']);
 
-        $article
-            ->setQuantiteCollectee($quantity)
-            ->addCollecte($collecte);
+            $article
+                ->setQuantite($data['quantity'])
+                ->addCollecte($collecte);
 
-        $em = $this->getDoctrine()->getManager();
-        $em->persist($article);
-        $em->flush();
-
-        $data = [
-            'Référenceom' => ($article->getReference() ?  $article->getReference()() : ""),
-            'Statut' => ($article->getStatut()->getNom() ? $article->getStatut()->getNom() : ""),
-            'Conformité' => ($article->getEtat() ? 'conforme' : 'anomalie'),
-            'Référence Article' => ($article->getRefArticle() ? $article->getRefArticle()->getLibelle() : ""),
-            'Quantité à collecter' => ($article->getQuantiteCollectee() ? $article->getQuantiteCollectee() : ""),
-            'Actions' => $this->renderView('collecte/datatableArticleRow.html.twig', ['article' => $article])
-        ];
-
-        return new JsonResponse($data);
-    }
-
-    /**
-     * @Route("/retirer-article", name="collecte_remove_article")
-     */
-    public function removeArticle(Request $request)
-    {
-        $articleId = $request->request->getInt('articleId');
-        $collecteId = $request->request->getInt('collecteId');
-
-        $article = $this->articleRepository->find($articleId);
-        $collecte = $this->collecteRepository->find($collecteId);
-
-        if (!empty($article)) {
-            $article->removeCollecte($collecte);
             $em = $this->getDoctrine()->getManager();
             $em->persist($article);
             $em->flush();
-            return new JsonResponse(true);
-        } else {
-            return new JsonResponse(false);
+
+            return new JsonResponse();
         }
+        throw new XmlHttpException("404 not found");
+    }
+
+    /**
+     * @Route("/retirer-article", name="collecte_remove_article", options={"expose"=true}, methods={"GET", "POST"})
+     */
+    public function removeArticle(Request $request)
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+
+            $article = $this->articleRepository->find($data['article']);
+            $collecte = $this->collecteRepository->find($data['collecte']);
+            $entityManager = $this->getDoctrine()->getManager();
+            $article->removeCollecte($collecte);
+            $entityManager->flush();
+            return new JsonResponse();
+        }
+        throw new NotFoundHttpException("404");
     }
 
     //
@@ -242,30 +232,6 @@ class CollecteController extends AbstractController
     //        $em->flush();
     //    }
 
-
-
-    // /**
-    //  * @Route("/{id}/modifier", name="collecte_edit", methods={"GET","POST"})
-    //  */
-    // public function edit(Request $request, Collecte $collecte): Response
-    // {
-    //     $form = $this->createForm(CollecteType::class, $collecte);
-    //     $form->handleRequest($request);
-
-    //     if ($form->isSubmitted() && $form->isValid()) 
-    //     {
-    //         $this->getDoctrine()->getManager()->flush();
-    //         return $this->redirectToRoute('collecte_index', [
-    //             'id' => $collecte->getId(),
-    //         ]);
-    //     }
-
-    //     return $this->render('collecte/edit.html.twig', [
-    //         'collecte' => $collecte,
-    //         'form' => $form->createView(),
-    //     ]);
-    // }
-
     /**
      * @Route("/editApi", name="collecte_edit_api", options={"expose"=true}, methods="GET|POST")
      */
@@ -280,7 +246,6 @@ class CollecteController extends AbstractController
                 "emplacements" => $this->emplacementRepository->findAll(),
                 // 'utilisateurs'=>$this->utilisateurRepository->findAll(),
             ]);
-
             return new JsonResponse($json);
         }
         throw new NotFoundHttpException("404");
@@ -302,7 +267,13 @@ class CollecteController extends AbstractController
 
             $em = $this->getDoctrine()->getManager();
             $em->flush();
-            return new JsonResponse();
+            $json = [
+                'entete' => $this->renderView('collecte/enteteCollecte.html.twig', [
+                    'collecte' => $collecte,
+                ])
+            ];
+
+            return new JsonResponse($json);
         }
         throw new NotFoundHttpException("404");
     }
@@ -317,7 +288,10 @@ class CollecteController extends AbstractController
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($collecte);
             $entityManager->flush();
-            return new JsonResponse();
+            $data = [
+                "redirect" => $this->generateUrl('collecte_index')
+            ];
+            return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
     }

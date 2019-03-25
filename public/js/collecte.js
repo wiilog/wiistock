@@ -26,7 +26,6 @@ InitialiserModal(modalNewCollecte, SubmitNewCollecte, urlNewCollecte, table);
 let modalDeleteCollecte = $("#modalDeleteCollecte");
 let submitDeleteCollecte = $("#submitDeleteCollecte");
 let urlDeleteCollecte = Routing.generate('collecte_delete', true)
-console.log(urlDeleteCollecte);
 InitialiserModal(modalDeleteCollecte, submitDeleteCollecte, urlDeleteCollecte, table);
 
 let modalModifyCollecte = $('#modalEditCollecte');
@@ -54,14 +53,14 @@ let tableArticle = $('#tableArticle_id').DataTable({
     ],
 });
 
-let modal = $("#addArticleModal");
-let submit = $("#addArticleSubmit");
+let modal = $("#modalNewArticle");
+let submit = $("#submitNewArticle");
 let url = Routing.generate('collecte_add_article', true);
 InitialiserModal(modal, submit, url, tableArticle);
 
 let modalDeleteArticle = $("#modalDeleteArticle");
 let submitDeleteArticle = $("#submitDeleteArticle");
-let urlDeleteArticle = Routing.generate('reception_article_delete', true);
+let urlDeleteArticle = Routing.generate('collecte_remove_article', true);
 InitialiserModal(modalDeleteArticle, submitDeleteArticle, urlDeleteArticle, tableArticle);
 
 
