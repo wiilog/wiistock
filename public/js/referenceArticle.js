@@ -45,3 +45,35 @@ function idType(div) {
     let id = div.attr('value');
    $('#idType').attr('value', id);    
 }
+
+function  visibleBlockModal(bloc) {
+    console.log(bloc);
+    let blocContent = bloc.siblings().filter('.col-12');
+    let sortUp =  bloc.find('h3').find('.fa-sort-up');
+    let sortDown = bloc.find('h3').find('.fa-sort-down');
+
+    if (sortUp.attr('class').search('d-none') > 0) {
+        sortUp.removeClass('d-none');
+        sortUp.addClass('d-block');
+        sortDown.removeClass('d-block');
+        sortDown.addClass('d-none');
+
+        blocContent.removeClass('d-none')
+        blocContent.addClass('d-block');
+        
+        console.log('vue');
+    }else{
+        sortUp.removeClass('d-block');
+        sortUp.addClass('d-none');
+        sortDown.removeClass('d-none');
+        sortDown.addClass('d-block');
+
+        blocContent.removeClass('d-block')
+        blocContent.addClass('d-none')
+        
+        console.log('cache');
+    }
+
+
+   
+}

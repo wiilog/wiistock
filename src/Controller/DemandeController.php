@@ -102,7 +102,7 @@ class DemandeController extends AbstractController
         } else if ($demande->getPreparation() !== null) {
             return $this->redirectToRoute('demande_show_article', ['id' => $demande->getId()]);
         }
-         return $this->show($demande);
+        throw new NotFoundHttpException("404");
     }
 
 

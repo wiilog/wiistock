@@ -4,12 +4,12 @@ namespace App\Controller;
 
 use App\Entity\ReferenceArticle;
 use App\Entity\ValeurChampsLibre;
-use App\Form\ReferenceArticleType;
 
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\ChampsLibreRepository;
 use App\Repository\ValeurChampsLibreRepository;
 use App\Repository\TypeRepository;
+use App\Repository\StatutRepository;
 
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
@@ -30,6 +30,11 @@ class ReferenceArticleController extends Controller
      * @var ReferenceArticleRepository
      */
     private $referenceArticleRepository;
+   
+    /**
+     * @var StatutRepository
+     */
+    private $statutRepository;
 
     /**
      * @var TypeRepository
@@ -46,12 +51,13 @@ class ReferenceArticleController extends Controller
      */
     private $valeurChampsLibreRepository;
 
-    public function __construct(ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository)
+    public function __construct(StatutRepository $statutRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository)
     {
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->champsLibreRepository = $champsLibreRepository;
         $this->valeurChampsLibreRepository = $valeurChampsLibreRepository;
         $this->typeRepository = $typeRepository;
+        $this->statutRepository = $statutRepository;
     }
 
 
@@ -127,8 +133,21 @@ class ReferenceArticleController extends Controller
      */
     public function index(Request $request): Response
     {
+        $typeQuantite =[
+            [
+                'const'=> 'QUANTITE_AR',
+                'label'=> 'référence',
+            ],
+            [
+                'const'=> 'QUANTITE_A',
+                'label'=> 'article',
+            ]
+        ];
+
         return $this->render('reference_article/index.html.twig', [
             'types' => $this->typeRepository->getByCategoryLabel('référence article'),
+            'typeQuantite'=> $typeQuantite,
+            'statuts'=> $this->statutRepository->findByCategorieName(ReferenceArticle::CATEGORIE),
         ]);
     }
 

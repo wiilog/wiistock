@@ -11,6 +11,14 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class ReferenceArticle
 {
+
+    const CATEGORIE = 'referencearticle';
+    const STATUT_ACTIF = 'actif';
+    const STATUT_INACTIF = 'inactif';
+
+    const QUANTITE_AR = 'reference';
+    const QUANTITE_A = 'article';
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
@@ -24,19 +32,9 @@ class ReferenceArticle
     private $libelle;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
-    private $photo_article;
-
-    /**
      * @ORM\Column(type="string", length=255, unique=true)
      */
     private $reference;
-
-    /**
-     * @ORM\Column(type="json", nullable=true)
-     */
-    private $custom;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Article", mappedBy="refArticle")
@@ -83,6 +81,16 @@ class ReferenceArticle
      */
     private $articlesFournisseur;
 
+    /**
+     * @ORM\Column(type="string", length=16, nullable=true)
+     */
+    private $typeQuantite;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="referenceArticles")
+     */
+    private $Statut;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
@@ -110,18 +118,6 @@ class ReferenceArticle
         return $this;
     }
 
-    public function getPhotoArticle(): ?string
-    {
-        return $this->photo_article;
-    }
-
-    public function setPhotoArticle(?string $photo_article): self
-    {
-        $this->photo_article = $photo_article;
-
-        return $this;
-    }
-
     public function getReference(): ?string
     {
         return $this->reference;
@@ -133,20 +129,6 @@ class ReferenceArticle
 
         return $this;
     }
-
-    public function getCustom(): ?array
-    {
-        return $this->custom;
-    }
-
-    public function setCustom(?array $custom): self
-    {
-        $this->custom = $custom;
-
-        return $this;
-    }
-
-    
 
     public function __toString()
     {
@@ -349,6 +331,30 @@ class ReferenceArticle
                 $articlesFournisseur->setReferenceArticle(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getTypeQuantite(): ?string
+    {
+        return $this->typeQuantite;
+    }
+
+    public function setTypeQuantite(?string $typeQuantite): self
+    {
+        $this->typeQuantite = $typeQuantite;
+
+        return $this;
+    }
+
+    public function getStatut(): ?Statut
+    {
+        return $this->Statut;
+    }
+
+    public function setStatut(?Statut $Statut): self
+    {
+        $this->Statut = $Statut;
 
         return $this;
     }

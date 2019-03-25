@@ -58,6 +58,11 @@ class Statut
      */
     private $collectes;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\ReferenceArticle", mappedBy="Statut")
+     */
+    private $referenceArticles;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
@@ -67,6 +72,7 @@ class Statut
         $this->livraisons = new ArrayCollection();
         $this->collectes = new ArrayCollection();
         $this->emplacements = new ArrayCollection();
+        $this->referenceArticles = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -287,6 +293,37 @@ class Statut
     public function __toString()
     {
         return $this->nom;
+    }
+
+    /**
+     * @return Collection|ReferenceArticle[]
+     */
+    public function getReferenceArticles(): Collection
+    {
+        return $this->referenceArticles;
+    }
+
+    public function addReferenceArticle(ReferenceArticle $referenceArticle): self
+    {
+        if (!$this->referenceArticles->contains($referenceArticle)) {
+            $this->referenceArticles[] = $referenceArticle;
+            $referenceArticle->setStatut($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReferenceArticle(ReferenceArticle $referenceArticle): self
+    {
+        if ($this->referenceArticles->contains($referenceArticle)) {
+            $this->referenceArticles->removeElement($referenceArticle);
+            // set the owning side to null (unless already changed)
+            if ($referenceArticle->getStatut() === $this) {
+                $referenceArticle->setStatut(null);
+            }
+        }
+
+        return $this;
     }
 
 }
