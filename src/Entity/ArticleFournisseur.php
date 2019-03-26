@@ -33,11 +33,6 @@ class ArticleFournisseur
      */
     private $reference;
 
-    /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
-    private $nom;
-
     public function getId(): ?int
     {
         return $this->id;
@@ -79,15 +74,4 @@ class ArticleFournisseur
         return $this;
     }
 
-    public function getNom(): ?string
-    {
-        return $this->nom;
-    }
-
-    public function setNom(?string $nom): self
-    {
-        $this->nom = $nom;
-
-        return $this;
-    }
 }

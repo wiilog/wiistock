@@ -1,0 +1,35 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Demande de service{% endblock %}
+
+{% block page_content %}
+<h1>Demandes de services</h1>
+
+<div class='col-12 mb-5'>
+    <a href="" data-toggle="modal" data-target="#modalNewService" class="btn btn-primary">
+        <span class="fa fa-plus mr-2"></span>Nouvelle demande
+    </a>
+</div>
+
+<table id="tableService_id" class="table table-striped table-bordered w-100">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Demandeur</th>
+            <th>Libellé</th>
+            <th>Statut</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+
+</table>
+
+{% include "service/modalEditService.html.twig" %}
+
+{% include "service/modalNewService.html.twig" %}
+
+{% endblock %}
+
+{% block javascript %}
+<script src="{{ asset('js/service.js') }}"></script>
+{% endblock %}

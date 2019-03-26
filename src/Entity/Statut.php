@@ -63,6 +63,11 @@ class Statut
      */
     private $referenceArticles;
 
+    /** 
+     * @ORM\OneToMany(targetEntity="App\Entity\Service", mappedBy="statut")
+     */
+    private $services;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
@@ -73,31 +78,32 @@ class Statut
         $this->collectes = new ArrayCollection();
         $this->emplacements = new ArrayCollection();
         $this->referenceArticles = new ArrayCollection();
+        $this->services = new ArrayCollection();
     }
 
-    public function getId(): ?int
+    public function getId(): ? int
     {
         return $this->id;
     }
 
-    public function getNom(): ?string
+    public function getNom(): ? string
     {
         return $this->nom;
     }
 
-    public function setNom(?string $nom): self
+    public function setNom(? string $nom): self
     {
         $this->nom = $nom;
 
         return $this;
     }
 
-    public function getCategorie(): ?CategorieStatut
+    public function getCategorie(): ? CategorieStatut
     {
         return $this->categorie;
     }
 
-    public function setCategorie(?CategorieStatut $categorie): self
+    public function setCategorie(? CategorieStatut $categorie): self
     {
         $this->categorie = $categorie;
 
@@ -309,7 +315,6 @@ class Statut
             $this->referenceArticles[] = $referenceArticle;
             $referenceArticle->setStatut($this);
         }
-
         return $this;
     }
 
@@ -322,8 +327,39 @@ class Statut
                 $referenceArticle->setStatut(null);
             }
         }
+        return $this;
+    }
+
+
+    /**
+    * @return Collection|Service[]
+     */
+    public function getServices(): Collection
+    {
+        return $this->services;
+    }
+
+    public function addService(Service $service): self
+    {
+        if (!$this->services->contains($service)) {
+            $this->services[] = $service;
+            $service->setStatut($this);
+        }
 
         return $this;
     }
 
+
+    public function removeService(Service $service): self
+    {
+        if ($this->services->contains($service)) {
+            $this->services->removeElement($service);
+            // set the owning side to null (unless already changed)
+            if ($service->getStatut() === $this) {
+                $service->setStatut(null);
+            }
+        }
+
+        return $this;
+    }
 }

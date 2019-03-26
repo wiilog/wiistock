@@ -85,6 +85,11 @@ class Utilisateur implements UserInterface, EquatableInterface
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $apiKey;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Service", mappedBy="demandeur")
+     */
+    private $services;
     
     public function __construct()
     {
@@ -95,6 +100,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->preparations = new ArrayCollection();
         $this->livraisons = new ArrayCollection();
         $this->mouvements = new ArrayCollection();
+        $this->services = new ArrayCollection();
     }
     public function getId()
     {
@@ -380,6 +386,37 @@ class Utilisateur implements UserInterface, EquatableInterface
     public function setApiKey(?string $apiKey): self
     {
         $this->apiKey = $apiKey;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Service[]
+     */
+    public function getServices(): Collection
+    {
+        return $this->services;
+    }
+
+    public function addService(Service $service): self
+    {
+        if (!$this->services->contains($service)) {
+            $this->services[] = $service;
+            $service->setDemandeur($this);
+        }
+
+        return $this;
+    }
+
+    public function removeService(Service $service): self
+    {
+        if ($this->services->contains($service)) {
+            $this->services->removeElement($service);
+            // set the owning side to null (unless already changed)
+            if ($service->getDemandeur() === $this) {
+                $service->setDemandeur(null);
+            }
+        }
 
         return $this;
     }
