@@ -153,7 +153,11 @@ function showRow(modal, button, path) {
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
             dataReponse = JSON.parse(this.responseText);
-            modal.find('.modal-body').html(dataReponse);
+            if (dataReponse) {
+                modal.find('.modal-body').html(dataReponse);
+            } else {
+                //TODO gérer erreur
+            }
         }
     }
     let json = button.data('id');
