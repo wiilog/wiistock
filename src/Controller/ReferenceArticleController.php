@@ -102,6 +102,7 @@ class ReferenceArticleController extends Controller
                 ->setReference($data['reference'])
                 ->setQuantiteStock($data['quantite'])
                 ->setType($this->typeRepository->find($data['type']));
+            // TODO récupérer statut
             $em->persist($refArticle);
             $em->flush();
             $champsLibreKey = array_keys($data);
@@ -153,12 +154,25 @@ class ReferenceArticleController extends Controller
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
             $articleRef = $this->referenceArticleRepository->find($data);
-            $valeurChampLibre = $this->valeurChampsLibreRepository->getByArticleType($articleRef->getId(), $articleRef->getType()->getId());
-            $json = $this->renderView('reference_article/modalEditRefArticleContent.html.twig', [
-                'articleRef' => $articleRef,
-                'valeurChampsLibre' => $valeurChampLibre,
-                'types' => $this->typeRepository->getByCategoryLabel('référence article'),
-            ]);
+
+            if ($articleRef) {
+                $type = $articleRef->getType();
+                if ($type) {
+                    $valeurChampLibre = $this->valeurChampsLibreRepository->getByArticleType($articleRef->getId(), $type->getId());
+                }
+                $statuts = $this->statutRepository->findByCategorieName(ReferenceArticle::CATEGORIE);
+
+                $json = $this->renderView('reference_article/modalEditRefArticleContent.html.twig', [
+                    'articleRef' => $articleRef,
+                    'statut' => ($articleRef->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF),
+                    'valeurChampsLibre' => isset($valeurChampLibre) ? $valeurChampLibre : null,
+                    'types' => $this->typeRepository->getByCategoryLabel('référence article'),
+                    'statuts' => $statuts
+                ]);
+            } else {
+                $json = false;
+            }
+
             return new JsonResponse($json);
         }
         throw new NotFoundHttpException("404");
@@ -170,25 +184,48 @@ class ReferenceArticleController extends Controller
     public function edit(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+
             $entityManager = $this->getDoctrine()->getManager();
-            $refArticle = $this->referenceArticleRepository->find($data['idRefArticle']);
-            $refArticle
-                ->setLibelle($data['libelle'])
-                ->setReference($data['reference'])
-                ->setQuantiteStock($data['quantite'])
-                ->setType($this->typeRepository->find($data['type']));
-            $entityManager->flush();
-            $champsLibreKey = array_keys($data);
-            foreach ($champsLibreKey as $champs) {
-                if (gettype($champs) === 'integer') {
-                    $valeurChampLibre =  $this->valeurChampsLibreRepository->getByRefArticleANDChampsLibre($data['idRefArticle'], $champs);
-                    $valeurChampLibre
-                        ->setValeur($data[$champs]);
-                    $entityManager = $this->getDoctrine()->getManager();
-                    $entityManager->flush();
+            $refArticle = $this->referenceArticleRepository->find(intval($data['idRefArticle']));
+
+            if($refArticle) {
+                if (isset($data['reference'])) $refArticle->setReference($data['reference']);
+                if (isset($data['libelle'])) $refArticle->setLibelle($data['libelle']);
+                if (isset($data['quantite'])) $refArticle->setQuantiteStock(intval($data['quantite']));
+                if (isset($data['statut'])) {
+                    $statutLabel = ($data['statut'] == 1) ? ReferenceArticle::STATUT_ACTIF : ReferenceArticle::STATUT_INACTIF;
+                    $statut = $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, $statutLabel);
+                    $refArticle->setStatut($statut);
                 }
+                if (isset($data['type'])) {
+                    $type = $this->typeRepository->find(intval($data['type']));
+                    if ($type) $refArticle->setType($type);
+                }
+                if (isset($data['type_quantite'])) $refArticle->setTypeQuantite($data['type_quantite']);
+
+                $entityManager->flush();
+
+                $champsLibreKey = array_keys($data);
+                foreach ($champsLibreKey as $champ) {
+                    if (gettype($champ) === 'integer') {
+                        $valeurChampLibre = $this->valeurChampsLibreRepository->getByRefArticleANDChampsLibre($data['idRefArticle'], $champ);
+                        // si la valeur n'existe pas, on la crée
+                        if(!$valeurChampLibre) {
+                            $valeurChampLibre = new ValeurChampsLibre();
+                            $valeurChampLibre
+                                ->addArticleReference($refArticle)
+                                ->setChampLibre($this->champsLibreRepository->find($champ));
+                            $entityManager->persist($valeurChampLibre);
+                        }
+                        $valeurChampLibre->setValeur($data[$champ]);
+                        $entityManager->flush();
+                    }
+                }
+                $response = true;
+            } else {
+                $response = false;
             }
-            return new JsonResponse();
+            return new JsonResponse($response);
         }
         throw new NotFoundHttpException("404");
     }

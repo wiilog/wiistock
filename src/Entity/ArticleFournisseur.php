@@ -33,6 +33,12 @@ class ArticleFournisseur
      */
     private $reference;
 
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $label;
+
+
     public function getId(): ?int
     {
         return $this->id;
@@ -70,6 +76,18 @@ class ArticleFournisseur
     public function setReference(?string $reference): self
     {
         $this->reference = $reference;
+
+        return $this;
+    }
+
+    public function getLabel(): ?string
+    {
+        return $this->label;
+    }
+
+    public function setLabel(?string $label): self
+    {
+        $this->label = $label;
 
         return $this;
     }

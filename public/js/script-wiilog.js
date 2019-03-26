@@ -192,5 +192,11 @@ function editRow(button, path, modal, submit) {
     xhttp.send(json);
 }
 
+function toggleRadioButton(button) {
+    let sel = button.data('title');
+    let tog = button.data('toggle');
+    $('#'+tog).prop('value', sel);
 
-
+    $('span[data-toggle="'+tog+'"]').not('[data-title="'+sel+'"]').removeClass('active').addClass('not-active');
+    $('span[data-toggle="'+tog+'"][data-title="'+sel+'"]').removeClass('not-active').addClass('active');
+}

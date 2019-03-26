@@ -12,12 +12,12 @@ use Doctrine\ORM\Mapping as ORM;
 class ReferenceArticle
 {
 
-    const CATEGORIE = 'referencearticle';
+    const CATEGORIE = 'referenceArticle';
     const STATUT_ACTIF = 'actif';
     const STATUT_INACTIF = 'inactif';
 
-    const QUANTITE_AR = 'reference';
-    const QUANTITE_A = 'article';
+    const TYPE_QUANTITE_REFERENCE = 'reference';
+    const TYPE_QUANTITE_ARTICLE = 'article';
 
     /**
      * @ORM\Id()

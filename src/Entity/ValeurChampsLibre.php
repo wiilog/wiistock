@@ -35,7 +35,7 @@ class ValeurChampsLibre
 
     public function __construct()
     {
-        $this->champsLibre = new ArrayCollection();
+        $this->champLibre = new ArrayCollection();
         $this->articleReference = new ArrayCollection();
     }
 

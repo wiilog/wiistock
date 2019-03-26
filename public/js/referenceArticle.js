@@ -35,7 +35,7 @@ let urlModifyRefArticle = Routing.generate('reference_article_edit', true);
 InitialiserModal(modalModifyRefArticle, submitModifyRefArticle, urlModifyRefArticle,  tableRefArticle);
 
 
-$('#myTab button').on('click', function (e) {
+$('#myTab div').on('click', function (e) {
     $(this).siblings().removeClass('data');
     $(this).addClass('data');
   })
@@ -47,7 +47,6 @@ function idType(div) {
 }
 
 function  visibleBlockModal(bloc) {
-    console.log(bloc);
     let blocContent = bloc.siblings().filter('.col-12');
     let sortUp =  bloc.find('h3').find('.fa-sort-up');
     let sortDown = bloc.find('h3').find('.fa-sort-down');
@@ -61,7 +60,6 @@ function  visibleBlockModal(bloc) {
         blocContent.removeClass('d-none')
         blocContent.addClass('d-block');
         
-        console.log('vue');
     }else{
         sortUp.removeClass('d-block');
         sortUp.addClass('d-none');
@@ -70,10 +68,19 @@ function  visibleBlockModal(bloc) {
 
         blocContent.removeClass('d-block')
         blocContent.addClass('d-none')
-        
-        console.log('cache');
     }
+}
 
+function updateQuantityDisplay(elem) {
+    let typeQuantite = elem.closest('.radio-btn').find('#type_quantite').val();
+    let modalBody = elem.closest('.modal-body');
 
-   
+    if (typeQuantite == 'reference') {
+        modalBody.find('.article').addClass('d-none');
+        modalBody.find('.reference').removeClass('d-none');
+
+    } else if (typeQuantite == 'article') {
+        modalBody.find('.reference').addClass('d-none');
+        modalBody.find('.article').removeClass('d-none');
+    }
 }

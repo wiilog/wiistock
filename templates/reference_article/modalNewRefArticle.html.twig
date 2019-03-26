@@ -100,7 +100,7 @@
                                                     for="inputGroupSelect01">{{champ.label}}</label>
                                             </div>
                                             {% if champ.typage == 'booleen' %}
-                                            <input type="checkbox" class="form-control data" name="{{champ.id}}">
+                                            <input type="checkbox" class="form-control data checkbox" name="{{champ.id}}">
                                             {% elseif champ.typage == 'number' %}
                                             <input type="number" class="form-control data"
                                                 value="{{champ.defaultValue}}" name="{{champ.id}}">

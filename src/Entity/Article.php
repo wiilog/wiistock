@@ -94,6 +94,11 @@ class Article
      */
     private $preparations;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Fournisseur", inversedBy="articles")
+     */
+    private $fournisseur;
+
     
     public function __construct()
     {
@@ -312,6 +317,18 @@ class Article
             $this->preparations->removeElement($preparation);
             $preparation->removeArticle($this);
         }
+
+        return $this;
+    }
+
+    public function getFournisseur(): ?Fournisseur
+    {
+        return $this->fournisseur;
+    }
+
+    public function setFournisseur(?Fournisseur $fournisseur): self
+    {
+        $this->fournisseur = $fournisseur;
 
         return $this;
     }
