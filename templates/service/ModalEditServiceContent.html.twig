@@ -1,0 +1,39 @@
+<div class="form-group">
+    <label for="Objet">Objet</label>
+    <input type="text" id="libelle" class="form-control data" name="Libelle" value="{{service.libelle}}" placeholder="Objet">
+</div>
+
+<div class="form-group">
+    <label for="demandeur">Demandeur</label>
+    <select type="text" class="demandeur form-control data" name="demandeur" disabled>
+        <option value="{{app.user.id}}">{{ app.user.username }}</option>
+    </select>
+</div>
+
+<div class="form-group">
+    <label for="Localité">Localité</label>
+    <select class="Localité form-control select2 data" name="Localité">
+        <option value="{{service.emplacement.id}}">{{service.emplacement.label}}</option>
+        {% for emplacement in emplacements %}
+        <option value="{{ emplacement.Id }}">
+            {{ emplacement.label }}
+        </option>
+        {% endfor %}
+    </select>
+</div>
+
+<div class="form-group">
+        <label for="statut">Statut</label>
+        <select class="form-control data" name="statut">
+            {% for statut in statuts %}
+                {% set selected = (statut.id == service.statut.id ? 'selected' : '') %}
+                <option value="{{ statut.id }}" {{ selected }}>{{ statut.nom }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+<div class="form-group">
+    <label for="service-commentaire">Commentaire</label>
+    <input type="text" class="form-control data" name="commentaire" id="commentaire" value="{{service.commentaire}}"
+        placeholder="Commentaire">
+</div>
