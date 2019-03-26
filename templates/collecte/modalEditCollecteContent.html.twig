@@ -1,7 +1,7 @@
 <div class="form-group">
     <label for="NumeroCollecte">Numéro de collecte</label>
-    <input type="text" class="form-control data" name="NumeroCollecte" id='collecte'
-        value="{{collecte.numero}}" placeholder="N°Collecte">
+    <input type="text" class="form-control data" name="NumeroCollecte" id='collecte' value="{{collecte.numero}}"
+        placeholder="N°Collecte">
 </div>
 
 <div class="form-group">
@@ -13,15 +13,14 @@
 
 <div class="form-group">
     <label for="objet">Objet de collecte</label>
-    <input type="text" class="form-control data" name="objet" id='objet'
-        value="{{collecte.objet}}" placeholder="objet">
+    <input type="text" class="form-control data" name="objet" id='objet' value="{{collecte.objet}}" placeholder="objet">
 </div>
 
 <div class="form-group">
     <label for="statut">Statut</label>
     <select class="form-control select2 data" name="statut">
         <option value="{{collecte.statut.id}}">{{ collecte.statut.nom }}</option>#}
-       {# {% for statut in statuts %}
+        {# {% for statut in statuts %}
         <option value="{{ statut.id }}">{{ statut.nom }}</option>
         {% endfor %}#}
     </select>
@@ -32,7 +31,7 @@
     <label for="utilisateur">Utilisateur</label>
     <select class="form-control select2 data" name="demandeur">
         <option value="{{collecte.demandeur.id}}">{{ collecte.demandeur.username }}</option>
-        
+
     </select>
 </div>
 
@@ -40,18 +39,15 @@
     <label for="Pcollecte">Point de collecte</label>
     <select class="pointCollecte form-control select2 data" name="Pcollecte">
         <option disabled selected>Choisir un point de collecte...</option>
-                {% for emplacement in emplacements %}
+        {% for emplacement in emplacements %}
         <option value="{{ emplacement.Id }}">{{ emplacement.label }}</option>
         {% endfor %}
     </select>
-  
+
 </div>
-
-
-
 
 <div class="form-group">
     <label for="collecte-commentaire">Commentaire</label>
     <input type="text" class="form-control data" name="commentaire" id='commentaire' value="{{collecte.commentaire}}"
         placeholder="Commentaire">
-       
+</div>
