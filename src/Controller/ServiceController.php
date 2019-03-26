@@ -82,7 +82,6 @@ class ServiceController extends AbstractController
     }
 
 
-
     /**
      * @Route("/", name="service_index", methods={"GET"})
      */
@@ -123,27 +122,7 @@ class ServiceController extends AbstractController
     }
   
     
-    // /**
-    //  * @Route("/{id}/edit", name="service_edit", methods={"GET","POST"})
-    //  */
-    // public function edit(Request $request, Service $service): Response
-    // {
-    //     $form = $this->createForm(ServiceType::class, $service);
-    //     $form->handleRequest($request);
-
-    //     if ($form->isSubmitted() && $form->isValid()) {
-    //         $this->getDoctrine()->getManager()->flush();
-
-    //         return $this->redirectToRoute('service_index', [
-    //             'id' => $service->getId(),
-    //         ]);
-    //     }
-
-    //     return $this->render('service/edit.html.twig', [
-    //         'service' => $service,
-    //         'form' => $form->createView(),
-    //     ]);
-    // }
+   
     /**
         * @Route("/editApi", name="service_edit_api", options={"expose"=true}, methods="GET|POST")
         */
@@ -170,8 +149,7 @@ class ServiceController extends AbstractController
     public function edit(Request $request) : Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            dump($data);
-            
+                        
             $service = $this->serviceRepository->find($data['id']);
             $service
                 ->setLibelle($data['Libelle'])
@@ -186,23 +164,4 @@ class ServiceController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
-
-
-
-
-
-
-    // /**
-    //  * @Route("/{id}", name="service_delete", methods={"DELETE"})
-    //  */
-    // public function delete(Request $request, Service $service): Response
-    // {
-    //     if ($this->isCsrfTokenValid('delete'.$service->getId(), $request->request->get('_token'))) {
-    //         $entityManager = $this->getDoctrine()->getManager();
-    //         $entityManager->remove($service);
-    //         $entityManager->flush();
-    //     }
-
-    //     return $this->redirectToRoute('service_index');
-    // }
 }
