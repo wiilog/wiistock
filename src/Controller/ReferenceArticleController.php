@@ -30,7 +30,7 @@ class ReferenceArticleController extends Controller
      * @var ReferenceArticleRepository
      */
     private $referenceArticleRepository;
-   
+
     /**
      * @var StatutRepository
      */
@@ -70,20 +70,51 @@ class ReferenceArticleController extends Controller
                 $refs = $this->referenceArticleRepository->findAll();
                 $rows = [];
                 foreach ($refs as $refArticle) {
-                    $url['edit'] = $this->generateUrl('reference_article_edit', ['id' => $refArticle->getId()]);
-
-                    $rows[] = [
+                    $valeurArticle = $this->valeurChampsLibreRepository->getByRefArticle($refs->getId());
+                    
+                    $row = [
                         "id" => $refArticle->getId(),
                         "Libellé" => $refArticle->getLibelle(),
                         "Référence" => $refArticle->getReference(),
                         "Quantité" => $refArticle->getQuantiteStock(),
+
                         'Actions' => $this->renderView('reference_article/datatableReferenceArticleRow.html.twig', [
-                            'url' => $url,
                             'idRefArticle' => $refArticle->getId()
                         ]),
                     ];
+                    $row =[];
+
                 }
                 $data['data'] = $rows;
+
+                $champs = $this->champsLibreRepository->getLabel();;
+                $column = [
+                    [
+                        "title" => 'Libellé',
+                        "data"=> 'Libellé'
+                    ],
+                    [
+                        "title" => 'Référence',
+                        "data"=> 'Référence'
+                    ],
+                    [
+                        "title" => 'Quantité',
+                        "data"=> 'Quantité'
+                    ],
+                    [
+                        "title" => 'Actions',
+                        "data"=> 'Actions'
+                    ],
+
+                ];
+                foreach ($champs as $champ) {
+                    $column[] = [
+                        "title" => $champ['label'],
+                        "data"=> $champ['label']
+                    ];
+                }
+
+                $data['column'] = $column;
                 return new JsonResponse($data);
             }
         throw new NotFoundHttpException("404");
@@ -123,25 +154,27 @@ class ReferenceArticleController extends Controller
     }
 
     /**
-     * @Route("/", name="reference_article_index",  methods="GET")
+     * @Route("/", name="reference_article_index",  methods="GET|POST")
      */
     public function index(Request $request): Response
     {
-        $typeQuantite =[
+        $typeQuantite = [
             [
-                'const'=> 'QUANTITE_AR',
-                'label'=> 'référence',
+                'const' => 'QUANTITE_AR',
+                'label' => 'référence',
             ],
             [
-                'const'=> 'QUANTITE_A',
-                'label'=> 'article',
+                'const' => 'QUANTITE_A',
+                'label' => 'article',
             ]
         ];
+        $champs = $this->champsLibreRepository->getLabel();
 
         return $this->render('reference_article/index.html.twig', [
             'types' => $this->typeRepository->getByCategoryLabel('référence article'),
-            'typeQuantite'=> $typeQuantite,
-            'statuts'=> $this->statutRepository->findByCategorieName(ReferenceArticle::CATEGORIE),
+            'typeQuantite' => $typeQuantite,
+            'champs' => $champs,
+            'statuts' => $this->statutRepository->findByCategorieName(ReferenceArticle::CATEGORIE),
         ]);
     }
 

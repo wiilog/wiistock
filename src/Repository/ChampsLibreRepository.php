@@ -32,6 +32,17 @@ class ChampsLibreRepository extends ServiceEntityRepository
         return $query->execute(); 
     }
 
+    public function getLabel()
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT c.label
+            FROM App\Entity\ChampsLibre c 
+            "
+        );
+        return $query->getResult(); 
+    }
+
     // /**
     //  * @return ChampsLibre[] Returns an array of ChampsLibre objects
     //  */

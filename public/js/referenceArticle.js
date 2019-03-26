@@ -2,22 +2,44 @@ $('.select2').select2();
 
 //REFERENCE ARTICLE
 
-const urlApiRefArticle = Routing.generate('ref_article_api', true);
-var tableRefArticle = $('#tableRefArticle_id').DataTable({
-    "language": {
-        "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
-    },
-    ajax: {
-        "url": urlApiRefArticle,
-        "type": "POST"
-    },
-    columns: [
-        { "data": 'Libellé' },
-        { "data": 'Référence' },
-        { "data": 'Quantité' },
-        { "data": 'Actions' },
-    ],
+let tableRefArticle;
+// console.log(urlApiRefArticle);
+let urltest = Routing.generate('ref_article_api', true);
+$(document).ready(function () {
+    let jsonB= 'lol';
+    $.post(urltest, jsonB, function (data) {
+        let dataContent = data.data;
+        let columnContent = data.column;
+        tableRefArticle = $('#tableRefArticle_id').DataTable({
+            "autoWidth": false,
+            "scrollX": true,
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
+            },
+            "data": dataContent,
+            "columns" : columnContent
+        });
+    })
 });
+
+// const urlApiRefArticle = Routing.generate('ref_article_api', true);
+// var tableRefArticle = $('#tableRefArticle_id').DataTable({
+//     "scrollX": true,
+//     "language": {
+//         "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
+//     },
+//     ajax: {
+//         // "url": urlApiRefArticle,
+//         "type": "POST"
+//     },
+//     columns: [
+//         { "data": 'Libellé' },
+//         { "data": 'Référence' },
+//         { "data": 'Quantité' },
+//         { "data": 'Actions' },
+//     ],
+// });
+
 
 let ModalRefArticleNew = $("#modalNewRefArticle");
 let ButtonSubmitRefArticleNew = $("#submitNewRefArticle");
@@ -32,24 +54,23 @@ InitialiserModal(ModalDeleteRefArticle, SubmitDeleteRefArticle, urlDeleteRefArti
 let modalModifyRefArticle = $('#modalEditRefArticle');
 let submitModifyRefArticle = $('#submitEditRefArticle');
 let urlModifyRefArticle = Routing.generate('reference_article_edit', true);
-InitialiserModal(modalModifyRefArticle, submitModifyRefArticle, urlModifyRefArticle,  tableRefArticle);
+InitialiserModal(modalModifyRefArticle, submitModifyRefArticle, urlModifyRefArticle, tableRefArticle);
 
 
-$('#myTab button').on('click', function (e) {
+$('#myTab div').on('click', function (e) {
     $(this).siblings().removeClass('data');
     $(this).addClass('data');
-  })
+})
 
 
 function idType(div) {
     let id = div.attr('value');
-   $('#idType').attr('value', id);    
+    $('#idType').attr('value', id);
 }
 
-function  visibleBlockModal(bloc) {
-    console.log(bloc);
+function visibleBlockModal(bloc) {
     let blocContent = bloc.siblings().filter('.col-12');
-    let sortUp =  bloc.find('h3').find('.fa-sort-up');
+    let sortUp = bloc.find('h3').find('.fa-sort-up');
     let sortDown = bloc.find('h3').find('.fa-sort-down');
 
     if (sortUp.attr('class').search('d-none') > 0) {
@@ -60,9 +81,7 @@ function  visibleBlockModal(bloc) {
 
         blocContent.removeClass('d-none')
         blocContent.addClass('d-block');
-        
-        console.log('vue');
-    }else{
+    } else {
         sortUp.removeClass('d-block');
         sortUp.addClass('d-none');
         sortDown.removeClass('d-none');
@@ -70,10 +89,17 @@ function  visibleBlockModal(bloc) {
 
         blocContent.removeClass('d-block')
         blocContent.addClass('d-none')
-        
-        console.log('cache');
     }
+}
 
+//COLUMN VISIBLE
 
-   
+let tableColumnVisible = $('#tableColumnVisible_id').DataTable({
+    "paging": false,
+    "info": false
+});
+
+function visibleColumn() {
+    let column = tableRefArticle.column($(this).attr('data-column'));
+    column.visible(!column.visible());
 }
