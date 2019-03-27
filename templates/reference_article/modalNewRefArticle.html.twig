@@ -1,5 +1,5 @@
 <form method="" class="modal fade" id="modalNewRefArticle" role="dialog" aria-labelledby="dataModalCenterTitle"
-    aria-hidden="true">
+      aria-hidden="true">
     <div class="modal-dialog  modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -73,40 +73,44 @@
                         <div class="nav nav-tabs myTab" id="myTab" role="tablist">
                             {% for type in types %}
                                 <div class="nav-link pointer" name='type' value='{{type.id}}' id='{{type.label}}-tab'
-                                data-toggle="tab" href="#{{type.label}}-new" role="tab" aria-controls={{type.label}}
-                                aria-selected="true">
-                                {{type.label}}</div>
+                                     data-toggle="tab" href="#{{type.label}}-new" role="tab" aria-controls={{type.label}}
+                                     aria-selected="true">
+                                    {{type.label}}</div>
                             {% endfor %}
                         </div>
                         <div class="tab-content" id="myTabContent">
                             {% for type in types %}
-                            <div class="tab-pane fade show" id="{{type.label}}-new" role="tabpanel" aria-labelledby="{{type.label}}-tab">
-                                <div class="row mt-2">
-                                    {% for champ in type.champsLibres %}
-                                    <div class="form-group col-6">
-                                        <div class="input-group">
-                                            <div class="input-group-prepend">
-                                                <label class="input-group-text" for="input">
-                                                    {{champ.label}}
-                                                </label>
+                                <div class="tab-pane fade show" id="{{type.label}}-new" role="tabpanel" aria-labelledby="{{type.label}}-tab">
+                                    <div class="row mt-2">
+                                        {% for champ in type.champsLibres %}
+                                            <div class="form-group col-6">
+                                                <div class="input-group">
+                                                    <div class="input-group-prepend">
+                                                        <label class="input-group-text" for="input">
+                                                            {{champ.label}}
+                                                        </label>
+                                                    </div>
+                                                    {% if champ.typage == 'booleen' %}
+                                                        {% set checked = (champ.defaultValue == 1) ? 'checked' : '' %}
+                                                        <input type="checkbox" class="form-control data checkbox" {{ checked }} name="{{champ.id}}" id="input">
+                                                    {% elseif champ.typage == 'number' %}
+                                                        <input type="number" class="form-control data" value="{{champ.defaultValue}}" name="{{champ.id}}" id="input">
+                                                    {% else %}
+                                                        <input class="form-control data" type="text" value="{{champ.defaultValue}}" name='{{ champ.id }}' id="input">
+                                                    {% endif %}
+                                                </div>
                                             </div>
-                                            {% if champ.typage == 'booleen' %}
-                                                {% set checked = (champ.defaultValue == 1) ? 'checked' : '' %}
-                                                <input type="checkbox" class="form-control data checkbox" {{ checked }} name="{{champ.id}}" id="input">
-                                            {% elseif champ.typage == 'number' %}
-                                                <input type="number" class="form-control data" value="{{champ.defaultValue}}" name="{{champ.id}}" id="input">
-                                            {% else %}
-                                                <input class="form-control data" type="text" value="{{champ.defaultValue}}" name='{{ champ.id }}' id="input">
-                                            {% endif %}
-                                        </div>
+                                        {% endfor %}
                                     </div>
-                                    {% endfor %}
                                 </div>
-                            </div>
                             {% endfor %}
                         </div>
                     </div>
                 </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn" data-dismiss="modal">Annuler</button>
+                <div id="submitNewRefArticle" class="btn btn-primary btn-success ">Enregistrer</div>
             </div>
         </div>
     </div>
