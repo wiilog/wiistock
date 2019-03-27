@@ -13,7 +13,6 @@ $(document).ready(function () {
         tableRefArticle = $('#tableRefArticle_id').DataTable({
             "autoWidth": false,
             "scrollX": true,
-            colReorder: true,
             "language": {
                 "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
             },
