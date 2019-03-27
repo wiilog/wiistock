@@ -32,11 +32,11 @@ class ChampsLibreRepository extends ServiceEntityRepository
         return $query->execute(); 
     }
 
-    public function getLabelAndId()
+    public function getLabelAndIdAndTypage()
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-            "SELECT c.label, c.id
+            "SELECT c.label, c.id, c.typage
             FROM App\Entity\ChampsLibre c 
             "
         );

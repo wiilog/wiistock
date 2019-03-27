@@ -109,7 +109,7 @@ class ReferenceArticleController extends Controller
                 }
                 $data['data'] = $rows;
 
-                $champs = $this->champsLibreRepository->getLabelAndId();;
+                $champs = $this->champsLibreRepository->getLabelAndIdAndTypage();;
                 $column = [
                     [
                         "title" => 'Libellé',
@@ -196,26 +196,33 @@ class ReferenceArticleController extends Controller
             ]
         ];
 
-        $champL = $this->champsLibreRepository->getLabelAndId();
+        $champL = $this->champsLibreRepository->getLabelAndIdAndTypage();
         $champ[]=[
             'label'=> 'Libellé',
-            'id' => 0
+            'id' => 0,
+            'typage' => 'text'
+
         ];
         $champ[]=[
             'label'=> 'Référence',
-            'id' => 0
+            'id' => 0,
+            'typage' => 'text'
+
         ];
         $champ[]=[
             'label'=> 'Type',
-            'id' => 0
+            'id' => 0,
+            'typage' => 'number'
         ];
         $champ[]=[
             'label'=> 'Quantité',
-            'id' => 0
+            'id' => 0,
+            'typage' => 'number'
         ];
         $champ[]=[
             'label'=> 'Actions',
-            'id' => 0
+            'id' => 0,
+            'typage' => ''
         ];
 
         $champs = array_merge($champ, $champL);

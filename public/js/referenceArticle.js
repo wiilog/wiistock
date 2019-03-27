@@ -121,6 +121,13 @@ function updateQuantityDisplay(elem) {
     }
 }
 
+// affiche le filtre après ajout
+$('#submitNewFilter').on('click', displayFilter);
+
+function displayFilter() {
+//TODO CG
+}
+
 // suppression du filtre au clic dessus
 $('.filter').on('click', removeFilter);
 
@@ -129,4 +136,25 @@ function removeFilter() {
 
     let params = JSON.stringify({'filterId': $(this).find('.filter-id').val()});
     $.post(Routing.generate('filter_delete', true), params);
+}
+
+// modale ajout d'un filtre, affichage du champ "contient" en fonction du champ sélectionné
+function displayFilterValue(elem) {
+    let type = elem.find(':selected').data('type');
+    if (type == 'booleen') type = 'checkbox';
+    $('#value').attr('type', type);
+
+    let label = '';
+    switch (type) {
+        case 'checkbox':
+            label = 'Oui / Non';
+            break;
+        case 'number':
+            label = 'Valeur';
+            break;
+        default:
+            label = 'Contient';
+    }
+
+    elem.closest('.modal-body').find('.valueLabel').text(label);
 }

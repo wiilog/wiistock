@@ -65,8 +65,8 @@ class FilterController extends AbstractController
             }
 
             // champ Value
-            if (isset($data['like'])) {
-                $filter->setValue($data['like']);
+            if (isset($data['value'])) {
+                $filter->setValue($data['value']);
             }
 
             // champ Utilisateur
