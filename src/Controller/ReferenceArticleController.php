@@ -187,10 +187,6 @@ class ReferenceArticleController extends Controller
                 'label' => 'article',
             ]
         ];
-
-
-
-
         $champL = $this->champsLibreRepository->getLabel();
         $champ[]=[
             'label'=> 'Libellé'
@@ -209,8 +205,6 @@ class ReferenceArticleController extends Controller
         ];
 
         $champs = array_merge($champ, $champL);
-
-        dump($champs);
         return $this->render('reference_article/index.html.twig', [
             'champs' => $champs,
             'statuts' => $this->statutRepository->findByCategorieName(ReferenceArticle::CATEGORIE),
@@ -280,6 +274,7 @@ class ReferenceArticleController extends Controller
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
+            dump($data);
             $entityManager = $this->getDoctrine()->getManager();
             $refArticle = $this->referenceArticleRepository->find(intval($data['idRefArticle']));
 

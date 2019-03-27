@@ -53,7 +53,7 @@ let urlModifyRefArticle = Routing.generate('reference_article_edit', true);
 InitialiserModal(modalModifyRefArticle, submitModifyRefArticle, urlModifyRefArticle, tableRefArticle);
 
 
-$('#myTab div').on('click', function (e) {
+$('#myTabNew div').on('click', function (e) {
     $(this).siblings().removeClass('data');
     $(this).addClass('data');
 })
