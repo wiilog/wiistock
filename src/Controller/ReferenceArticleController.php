@@ -147,7 +147,7 @@ class ReferenceArticleController extends Controller
         ];
 
         return $this->render('reference_article/index.html.twig', [
-            'types' => $this->typeRepository->getByCategoryLabel('référence article'),
+            'types' => $this->typeRepository->getByCategoryLabel(ReferenceArticle::CATEGORIE),
             'typeQuantite'=> $typeQuantite,
             'statuts'=> $this->statutRepository->findByCategorieName(ReferenceArticle::CATEGORIE),
         ]);
