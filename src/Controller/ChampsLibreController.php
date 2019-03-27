@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\ChampsLibre;
+use App\Entity\ReferenceArticle;
 use App\Entity\Type;
 
 use App\Form\ChampsLibreType;
@@ -117,7 +118,7 @@ class ChampsLibreController extends AbstractController
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
             if($data['category'] === null){
-                $category = $this->categoryTypeRepository->findoneBy(['label'=>'référence article']);
+                $category = $this->categoryTypeRepository->findoneBy(['label'=> ReferenceArticle::CATEGORIE]);
             }else{
                 $category = $this->categoryTypeRepository->find($data['category']);
             }

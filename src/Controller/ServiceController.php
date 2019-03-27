@@ -19,14 +19,14 @@ use Symfony\Component\HttpFoundation\JsonResponse;
  */
 class ServiceController extends AbstractController
 {
-   /**
-     * @var ServiceRepository
-     */
+    /**
+      * @var ServiceRepository
+      */
     private $serviceRepository;
 
-   /**
-     * @var EmplacementRepository
-     */
+    /**
+      * @var EmplacementRepository
+      */
     private $emplacementRepository;
 
     /**
@@ -49,13 +49,12 @@ class ServiceController extends AbstractController
         $this->utilisateurRepository = $utilisateurRepository;
     }
    
- /**
-     * @Route("/api", name="service_api", options={"expose"=true}, methods="GET|POST")
-     */
+    /**
+        * @Route("/api", name="service_api", options={"expose"=true}, methods="GET|POST")
+        */
     public function serviceApi(Request $request) : Response
     {
-        if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
-        { 
+        if ($request->isXmlHttpRequest()) { //Si la requête est de type Xml
             $services = $this->serviceRepository->findAll();
             // $emplacements = $this->emplacementRepository->findAll();
             $rows = [];
@@ -66,13 +65,12 @@ class ServiceController extends AbstractController
                 $rows[] = [
                     'id' => ($service->getId() ? $service->getId() : "Non défini"),
                     'Date'=> ($service->getDate() ? $service->getDate()->format('d/m/Y') : null),
-                    'Demandeur'=> ($service->getDemandeur() ? $service->getDemandeur()->getUserName() : null ),
-                    'Libellé'=> ($service->getlibelle() ? $service->getLibelle() : null ),
+                    'Demandeur'=> ($service->getDemandeur() ? $service->getDemandeur()->getUserName() : null),
+                    'Libellé'=> ($service->getlibelle() ? $service->getLibelle() : null),
                     'Statut'=> ($service->getStatut()->getNom() ? ucfirst($service->getStatut()->getNom()) : null),
                     'Actions' => $this->renderView('service/datatableServiceRow.html.twig', [
-                        'url' => $url, 
+                        'url' => $url,
                         'service' => $service,
-                        // 'emplacements' => $emplacements,
                         'serviceId'=>$service->getId()
                         ])
                 ];
@@ -82,7 +80,6 @@ class ServiceController extends AbstractController
         }
         throw new NotFoundHttpException("404");
     }
-
 
 
     /**
@@ -102,11 +99,9 @@ class ServiceController extends AbstractController
     public function creationService(Request $request) : Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            dump($data);
             $em = $this->getDoctrine()->getEntityManager();
-           
-           
-            $status = $this->statutRepository->findOneByNom(Service::STATUT_A_TRAITER);            
+                      
+            $status = $this->statutRepository->findOneByCategorieAndStatut(Service::CATEGORIE, Service::STATUT_A_TRAITER);
             $service = new Service();
             $date = new \DateTime('now');
             $service
@@ -126,77 +121,47 @@ class ServiceController extends AbstractController
         throw new XmlHttpException("404 not found");
     }
   
-
-
-
-
-
+    
+   
     /**
-     * @Route("/new", name="service_new", methods={"GET","POST"})
-     */
-    public function new(Request $request): Response
+        * @Route("/editApi", name="service_edit_api", options={"expose"=true}, methods="GET|POST")
+        */
+    public function editApi(Request $request): Response
     {
-        $service = new Service();
-        $form = $this->createForm(ServiceType::class, $service);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->persist($service);
-            $entityManager->flush();
-
-            return $this->redirectToRoute('service_index');
-        }
-
-        return $this->render('service/new.html.twig', [
-            'service' => $service,
-            'form' => $form->createView(),
-        ]);
-    }
-
-    /**
-     * @Route("/{id}", name="service_show", methods={"GET"})
-     */
-    public function show(Service $service): Response
-    {
-        return $this->render('service/show.html.twig', [
-            'service' => $service,
-        ]);
-    }
-
-    /**
-     * @Route("/{id}/edit", name="service_edit", methods={"GET","POST"})
-     */
-    public function edit(Request $request, Service $service): Response
-    {
-        $form = $this->createForm(ServiceType::class, $service);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $this->getDoctrine()->getManager()->flush();
-
-            return $this->redirectToRoute('service_index', [
-                'id' => $service->getId(),
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            dump($data);
+            $service = $this->serviceRepository->find($data);
+            $json = $this->renderView('service/modalEditServiceContent.html.twig', [
+                'service' => $service,
+                'utilisateurs'=>$this->utilisateurRepository->findAll(),
+                'emplacements'=>$this->emplacementRepository->findAll(),
+                'statuts'=>$this->statutRepository->findByCategorieName(Service::CATEGORIE),
             ]);
+        
+            return new JsonResponse($json);
         }
-
-        return $this->render('service/edit.html.twig', [
-            'service' => $service,
-            'form' => $form->createView(),
-        ]);
+        throw new NotFoundHttpException("404");
     }
 
     /**
-     * @Route("/{id}", name="service_delete", methods={"DELETE"})
+     * @Route("/edit", name="service_edit", options={"expose"=true}, methods="GET|POST")
      */
-    public function delete(Request $request, Service $service): Response
+    public function edit(Request $request) : Response
     {
-        if ($this->isCsrfTokenValid('delete'.$service->getId(), $request->request->get('_token'))) {
-            $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->remove($service);
-            $entityManager->flush();
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+                        
+            $service = $this->serviceRepository->find($data['id']);
+            $service
+                ->setLibelle($data['Libelle'])
+                ->setEmplacement($this->emplacementRepository->find($data['Localité']))
+                ->setStatut($this->statutRepository->find($data['statut']))
+                ->setDemandeur($this->utilisateurRepository->find($data['demandeur']))
+                ->setCommentaire($data['commentaire']);
+            $em = $this->getDoctrine()->getManager();
+            $em->flush();
+            return new JsonResponse();
         }
-
-        return $this->redirectToRoute('service_index');
+        throw new NotFoundHttpException("404");
     }
+
 }

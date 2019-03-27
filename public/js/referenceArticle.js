@@ -103,3 +103,17 @@ function visibleColumn(check) {
     console.log(column);
     column.visible(!column.visible());
 }
+
+function updateQuantityDisplay(elem) {
+    let typeQuantite = elem.closest('.radio-btn').find('#type_quantite').val();
+    let modalBody = elem.closest('.modal-body');
+
+    if (typeQuantite == 'reference') {
+        modalBody.find('.article').addClass('d-none');
+        modalBody.find('.reference').removeClass('d-none');
+
+    } else if (typeQuantite == 'article') {
+        modalBody.find('.reference').addClass('d-none');
+        modalBody.find('.article').removeClass('d-none');
+    }
+}

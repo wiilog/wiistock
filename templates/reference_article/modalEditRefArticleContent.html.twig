@@ -1,68 +1,146 @@
-<div class="form-group col-6">
-    <div class="input-group">
-        <div class="input-group-prepend">
-            <label class="input-group-text" for="inputGroupSelect01">Libellé</label>
+<div class="row">
+    <div class="form-group col-6">
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <label class="input-group-text" for="reference">Référence</label>
+            </div>
+            <input class="form-control data" type="text" value="{{articleRef.reference}}" name="reference" id="reference">
         </div>
-        <input class="form-control data" type="text" name="libelle" value="{{articleRef.libelle}}" id="libelle">
+    </div>
+
+    <div class="form-group col-6">
+        <div class="input-group radio-btn">
+            <label for="statut" class="mtb-auto mr-2">Statut</label>
+            <div>
+                <span class="btn {{ statut == 1 ? 'active' : 'not-active'}}" data-toggle="statut" data-title="active" onclick="toggleRadioButton($(this))">Actif</span><span class="btn {{ statut == 0 ? 'active' : 'not-active'}}" data-toggle="statut" data-title="inactive" onclick="toggleRadioButton($(this))">Inactif</span>
+            </div>
+            <input type="hidden" name="statut" id="statut" class="data" value="{{ statut }}">
+        </div>
+    </div>
+
+    <div class="form-group col-6">
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <label class="input-group-text" for="libelle">Nom</label>
+            </div>
+            <input class="form-control data" type="text" name="libelle" value="{{articleRef.libelle}}" id="libelle">
+        </div>
     </div>
 </div>
-<div class="form-group col-6">
-    <div class="input-group">
-        <div class="input-group-prepend">
-            <label class="input-group-text" for="inputGroupSelect01">Référence</label>
+
+<div class="row mt-4 mb-4">
+    <div class="form-group col-6">
+        <div class="input-group radio-btn">
+            <label for="statut" class="mtb-auto mr-2">Gestion quantité</label>
+            <div onclick="updateQuantityDisplay($(this))">
+                <span class="btn {{ (articleRef.typeQuantite == 'reference') ? 'active' : 'not-active'}}" data-toggle="type_quantite" data-title="reference" onclick="toggleRadioButton($(this))">Par référence</span><span class="btn {{ (articleRef.typeQuantite == 'article') ? 'active' : 'not-active'}}" data-toggle="type_quantite" data-title="article" onclick="toggleRadioButton($(this))">Par article</span>
+            </div>
+            <input type="hidden" name="type_quantite" class="data" id="type_quantite" value="{{ articleRef.typeQuantite }}">
         </div>
-        <input class="form-control data" type="text" value="{{articleRef.reference}}" name="reference" id="reference">
+    </div>
+
+    <div class="form-group col-3">
+        {% set dnone = (articleRef.typeQuantite == 'reference') ? '' : 'd-none' %}
+
+        <div class="input-group reference {{ dnone }}">
+            <div class="input-group-prepend">
+                <label class="input-group-text" for="quantité">Quantité</label>
+            </div>
+            <input class="form-control data" value='{{ articleRef.quantiteStock }}' type="number" min="0" name="quantite" id="quantité">
+        </div>
+
+        {% set dnone = (articleRef.typeQuantite == 'article') ? '' : 'd-none' %}
+
+        <div class="input-group article {{ dnone }}">
+            <label class="mtb-auto mr-2">Quantité</label>
+            <input class="form-control rounded" disabled value="{{ totalQuantity }}">
+        </div>
     </div>
 </div>
-<div class="form-group col-6">
-    <div class="input-group">
-        <div class="input-group-prepend">
-            <label class="input-group-text" for="inputGroupSelect01">Quantité</label>
-        </div>
-        <input class="form-control data" value='{{articleRef.quantiteStock}}' type="number" min="0" name="quantite"
-            id="quantité">
+
+<!-- ARTICLES FOURNISSEURS -->
+<div class="row">
+    {% set dnone = (articleRef.typeQuantite == 'article') ? '' : 'd-none' %}
+    <div class='col-12 article {{ dnone }} mb-2' onclick="visibleBlockModal($(this))">
+        <h3 class='d-flex pointer'><i class="fas fa-sort-up d-none mr-2"></i>
+            <i class="fas fa-sort-down d-block mr-2"></i>
+            Quantité par articles fournisseurs </h3>
     </div>
-</div>
-<div class="form-group col-12">
-    <p>Selectionner un type</p>
-    <div class="nav nav-tabs myTab" id="myTab" role="tablist">
-        {% for type in types %}
-        <div class="nav-link" name='type' value='{{type.id}}' id='{{type.label}}-tab' data-toggle="tab"
-            onclick="idType($(this))" href="#{{type.label}}" role="tab" aria-controls={{type.label}}
-            aria-selected="true">{{type.label}}</div>
+    <div class="form-group col-12 d-none">
+        <table class="table table-striped table-bordered w-auto m-auto">
+            <tr>
+                <th>Ref fournisseur</th>
+                <th>Libellé</th>
+                <th>Fournisseur</th>
+                <th>Quantité</th>
+            </tr>
+        {% for articleFournisseur in articlesFournisseur %}
+            <tr>
+                <td>{{ articleFournisseur.fournisseurRef }}</td>
+                <td>{{ articleFournisseur.label }}</td>
+                <td>{{ articleFournisseur.fournisseurName }}</td>
+                <td>{{ articleFournisseur.quantity }}</td>
+            </tr>
         {% endfor %}
+        </table>
     </div>
 
-    <input type="hidden" id="idType" class="data" name="type" value='{{articleRef.type.id}}'>
+    <input type="hidden" id="idType" class="data" name="type" value='{{articleRef.type ? articleRef.type.id : null}}'>
 
-    <div class="tab-content" id="myTabContent">
-        {% for type in types %}
-        <div class="tab-pane fade show" id="{{type.label}}" role="tabpanel" aria-labelledby="{{type.label}}-tab">
-            <div class="row">
-                {% for champ in type.champsLibres %}
-                <div class="form-group col-6">
-                    <div class="input-group">
-                        <div class="input-group-prepend">
-                            <label class="input-group-text" for="inputGroupSelect01">{{champ.label}}</label>
-                        </div>
-                        {% if champ.typage == 'booleen' %}
-                        <input type="checkbox" class="form-control data" name={{champ.id}}
-                            value={% for row in valeurChampsLibre %} {% if row.label == champ.label %} {{row.valeur}}
-                            {% endif %} {% endfor %}>
-                        {% elseif champ.typage == 'number' %}
-                        <input type="number" class="form-control data" name={{champ.id}}
-                            value={% for row in valeurChampsLibre %} {% if row.label == champ.label %} {{row.valeur}}
-                            {% endif %} {% endfor %}>
-                        {% else %}
-                        <input class="form-control data" type="text" name={{champ.id}}
-                            value={% for row in valeurChampsLibre %} {% if row.label == champ.label %} {{row.valeur}}
-                            {% endif %} {% endfor %}>
-                        {% endif %}
+</div>
+
+<!-- CHAMPS LIBRES -->
+<div class="row mt-4">
+    <div class='col-12 mb-2' onclick="visibleBlockModal($(this))">
+        <h3 class='d-flex pointer'>
+            <i class="fas fa-sort-up d-none mr-2"></i>
+            <i class="fas fa-sort-down d-block mr-2"></i>
+            Champs libres
+        </h3>
+    </div>
+    <div class="form-group col-12 d-none">
+        <div class="nav nav-tabs myTab" id="myTab" role="tablist">
+            {% for type in types %}
+                <div class="nav-link pointer" name='type' value='{{type.id}}' id='{{type.label}}-tab'
+                     data-toggle="tab" href="#{{type.label}}-new" role="tab" aria-controls={{type.label}}
+                     aria-selected="true">
+                    {{type.label}}</div>
+            {% endfor %}
+        </div>
+        <div class="tab-content" id="myTabContent">
+            {% for type in types %}
+                <div class="tab-pane fade show" id="{{type.label}}-new" role="tabpanel" aria-labelledby="{{type.label}}-tab">
+                    <div class="row mt-2">
+                        {% for champ in type.champsLibres %}
+
+                            {% set value = '' %}
+                            {% for row in valeurChampsLibre %}
+                                {% if (row.idCL == champ.id) %}{% set value = row.valeur %}{% endif %}
+                            {% endfor %}
+
+                            <div class="form-group col-6">
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <label class="input-group-text" for="input">
+                                            {{champ.label}}
+                                        </label>
+                                    </div>
+                                    {% if champ.typage == 'booleen' %}
+                                        {% set checked = (value == 1) ? 'checked' : '' %}
+                                        <input type="checkbox" class="form-control data checkbox" {{ checked }} value="{{ value }}" name="{{champ.id}}" id="input">
+
+                                    {% elseif champ.typage == 'number' %}
+                                        <input type="number" class="form-control data" value="{{ value }}" name="{{champ.id}}" id="input">
+
+                                    {% else %}
+                                        <input type="text" class="form-control data" value="{{ value }}" name="{{ champ.id }}" id="input">
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
                     </div>
                 </div>
-                {% endfor %}
-            </div>
+            {% endfor %}
         </div>
-        {% endfor %}
     </div>
 </div>
