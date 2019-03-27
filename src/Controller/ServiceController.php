@@ -56,8 +56,7 @@ class ServiceController extends AbstractController
     {
         if ($request->isXmlHttpRequest()) { //Si la requête est de type Xml
             $services = $this->serviceRepository->findAll();
-            // $emplacements = $this->emplacementRepository->findAll();
-            $rows = [];
+             $rows = [];
             
             foreach ($services as $service) {
                 $url['edit'] = $this->generateUrl('service_edit', ['id' => $service->getId()]);
