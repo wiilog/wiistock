@@ -53,14 +53,14 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
             "idChampLibre"=> $idChampLibre
         ]);
 
-        return $query->getSingleResult();
+        return $query->getOneOrNullResult();
     }
 
     public function getByRefArticle($idArticle)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
-            "SELECT v.valeur, c.label
+            "SELECT v.id, v.valeur, c.label
             FROM App\Entity\ValeurChampsLibre v
             JOIN v.articleReference a
             JOIN v.champLibre c

@@ -12,7 +12,9 @@ use Doctrine\ORM\Mapping as ORM;
 class ReferenceArticle
 {
 
-    const CATEGORIE = 'referencearticle';
+    const CATEGORIE_TYPE = 'référence article';
+
+    const CATEGORIE = 'referenceArticle';
     const STATUT_ACTIF = 'actif';
     const STATUT_INACTIF = 'inactif';
 

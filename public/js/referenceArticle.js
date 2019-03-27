@@ -13,6 +13,7 @@ $(document).ready(function () {
         tableRefArticle = $('#tableRefArticle_id').DataTable({
             "autoWidth": false,
             "scrollX": true,
+            colReorder: true,
             "language": {
                 "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
             },
@@ -23,21 +24,17 @@ $(document).ready(function () {
 });
 
 // const urlApiRefArticle = Routing.generate('ref_article_api', true);
-// var tableRefArticle = $('#tableRefArticle_id').DataTable({
+// let tableRefArticle = $('#tableRefArticle_id').DataTable({
 //     "scrollX": true,
 //     "language": {
 //         "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
 //     },
 //     ajax: {
-//         // "url": urlApiRefArticle,
-//         "type": "POST"
+//         "url": urlApiRefArticle,
+//         "type": "POST",
 //     },
-//     columns: [
-//         { "data": 'Libellé' },
-//         { "data": 'Référence' },
-//         { "data": 'Quantité' },
-//         { "data": 'Actions' },
-//     ],
+//     // "data": data.data,
+//     // "columns": data.column,
 // });
 
 
@@ -99,7 +96,10 @@ let tableColumnVisible = $('#tableColumnVisible_id').DataTable({
     "info": false
 });
 
-function visibleColumn() {
-    let column = tableRefArticle.column($(this).attr('data-column'));
+function visibleColumn(check) {
+    let columnNumber = check.data('column')
+    console.log(columnNumber);
+    let column = tableRefArticle.column(columnNumber);
+    console.log(column);
     column.visible(!column.visible());
 }

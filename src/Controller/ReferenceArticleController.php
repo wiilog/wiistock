@@ -70,20 +70,27 @@ class ReferenceArticleController extends Controller
                 $refs = $this->referenceArticleRepository->findAll();
                 $rows = [];
                 foreach ($refs as $refArticle) {
-                    $valeurArticle = $this->valeurChampsLibreRepository->getByRefArticle($refs->getId());
-                    
-                    $row = [
+                    $champsLibres = $this->champsLibreRepository->getLabelByCategory(ReferenceArticle::CATEGORIE_TYPE);
+                    $rowCL = [];
+                    $rowDD = [];
+
+                    foreach ($champsLibres as $champLibre) {
+                        $valeur = $this->valeurChampsLibreRepository->getByRefArticleANDChampsLibre($refArticle->getId(), $champLibre['id']);
+                        $rowCL[$champLibre['label']] = ($valeur ? $valeur->getValeur() : "");
+                    }
+
+                    $rowDD = [
                         "id" => $refArticle->getId(),
                         "Libellé" => $refArticle->getLibelle(),
                         "Référence" => $refArticle->getReference(),
+                        "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
                         "Quantité" => $refArticle->getQuantiteStock(),
-
                         'Actions' => $this->renderView('reference_article/datatableReferenceArticleRow.html.twig', [
                             'idRefArticle' => $refArticle->getId()
                         ]),
                     ];
-                    $row =[];
-
+                    $rows[] = array_merge($rowCL, $rowDD);
+                    // dump($rows);
                 }
                 $data['data'] = $rows;
 
@@ -91,26 +98,30 @@ class ReferenceArticleController extends Controller
                 $column = [
                     [
                         "title" => 'Libellé',
-                        "data"=> 'Libellé'
+                        "data" => 'Libellé'
                     ],
                     [
                         "title" => 'Référence',
-                        "data"=> 'Référence'
+                        "data" => 'Référence'
+                    ],
+                    [
+                        "title" => 'Type',
+                        "data" => 'Type'
                     ],
                     [
                         "title" => 'Quantité',
-                        "data"=> 'Quantité'
+                        "data" => 'Quantité'
                     ],
                     [
                         "title" => 'Actions',
-                        "data"=> 'Actions'
+                        "data" => 'Actions'
                     ],
 
                 ];
                 foreach ($champs as $champ) {
                     $column[] = [
                         "title" => $champ['label'],
-                        "data"=> $champ['label']
+                        "data" => $champ['label']
                     ];
                 }
 
@@ -168,8 +179,30 @@ class ReferenceArticleController extends Controller
                 'label' => 'article',
             ]
         ];
-        $champs = $this->champsLibreRepository->getLabel();
 
+
+
+
+        $champL = $this->champsLibreRepository->getLabel();
+        $champ[]=[
+            'label'=> 'Libellé'
+        ];
+        $champ[]=[
+            'label'=> 'Référence'
+        ];
+        $champ[]=[
+            'label'=> 'Type'
+        ];
+        $champ[]=[
+            'label'=> 'Quantité'
+        ];
+        $champ[]=[
+            'label'=> 'Actions'
+        ];
+
+        $champs = array_merge($champ, $champL);
+
+        dump($champs);
         return $this->render('reference_article/index.html.twig', [
             'types' => $this->typeRepository->getByCategoryLabel('référence article'),
             'typeQuantite' => $typeQuantite,
