@@ -19,11 +19,11 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
         parent::__construct($registry, ValeurChampsLibre::class);
     }
 
-    public function getByArticleType($idArticle,$idType)
+    public function getByRefArticleAndType($idArticle, $idType)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
-            "SELECT v.id, v.valeur, c.label
+            "SELECT v.id, v.valeur, c.label, c.id idCL
             FROM App\Entity\ValeurChampsLibre v
             JOIN v.articleReference a
             JOIN v.champLibre c

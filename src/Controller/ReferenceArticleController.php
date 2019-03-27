@@ -165,8 +165,9 @@ class ReferenceArticleController extends Controller
             if ($articleRef) {
                 $type = $articleRef->getType();
                 if ($type) {
-                    $valeurChampLibre = $this->valeurChampsLibreRepository->getByArticleType($articleRef->getId(), $type->getId());
+                    $valeurChampLibre = $this->valeurChampsLibreRepository->getByRefArticleAndType($articleRef->getId(), $type->getId());
                 }
+
                 $statuts = $this->statutRepository->findByCategorieName(ReferenceArticle::CATEGORIE);
 
                 // construction du tableau des articles fournisseurs
@@ -192,7 +193,7 @@ class ReferenceArticleController extends Controller
                     'articleRef' => $articleRef,
                     'statut' => ($articleRef->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF),
                     'valeurChampsLibre' => isset($valeurChampLibre) ? $valeurChampLibre : null,
-                    'types' => $this->typeRepository->getByCategoryLabel('référence article'),
+                    'types' => $this->typeRepository->getByCategoryLabel(ReferenceArticle::CATEGORIE),
                     'statuts' => $statuts,
                     'articlesFournisseur' => $listArticlesFournisseur,
                     'totalQuantity' => $totalQuantity

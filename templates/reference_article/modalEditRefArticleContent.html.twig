@@ -56,10 +56,11 @@
         </div>
     </div>
 </div>
+
 <!-- ARTICLES FOURNISSEURS -->
 <div class="row">
     {% set dnone = (articleRef.typeQuantite == 'article') ? '' : 'd-none' %}
-    <div class='col-12 article {{ dnone }}' onclick="visibleBlockModal($(this))">
+    <div class='col-12 article {{ dnone }} mb-2' onclick="visibleBlockModal($(this))">
         <h3 class='d-flex pointer'><i class="fas fa-sort-up d-none mr-2"></i>
             <i class="fas fa-sort-down d-block mr-2"></i>
             Quantité par articles fournisseurs </h3>
@@ -85,41 +86,11 @@
 
     <input type="hidden" id="idType" class="data" name="type" value='{{articleRef.type ? articleRef.type.id : null}}'>
 
-    <div class="tab-content" id="myTabContent">
-        {% for type in types %}
-            <div class="tab-pane fade show" id="{{type.label}}" role="tabpanel" aria-labelledby="{{type.label}}-tab">
-                <div class="row">
-                    {% for champ in type.champsLibres %}
-                        <div class="form-group col-6">
-                            <div class="input-group">
-                                <div class="input-group-prepend">
-                                    <label class="input-group-text">{{champ.label}}</label>
-                                </div>
-                                {% if champ.typage == 'booleen' %}
-                                    <input type="checkbox" class="form-control data" name={{champ.id}}
-                                    value={% for row in valeurChampsLibre %} {% if row.label == champ.label %} {{row.valeur}}
-                                    {% endif %} {% endfor %}>
-                                {% elseif champ.typage == 'number' %}
-                                    <input type="number" class="form-control data" name={{champ.id}}
-                                    value={% for row in valeurChampsLibre %} {% if row.label == champ.label %} {{row.valeur}}
-                                    {% endif %} {% endfor %}>
-                                {% else %}
-                                    <input class="form-control data" type="text" name={{champ.id}}
-                                    value={% for row in valeurChampsLibre %} {% if row.label == champ.label %} {{row.valeur}}
-                                    {% endif %} {% endfor %}>
-                                {% endif %}
-                            </div>
-                        </div>
-                    {% endfor %}
-                </div>
-            </div>
-        {% endfor %}
-    </div>
 </div>
 
 <!-- CHAMPS LIBRES -->
 <div class="row mt-4">
-    <div class='col-12' onclick="visibleBlockModal($(this))">
+    <div class='col-12 mb-2' onclick="visibleBlockModal($(this))">
         <h3 class='d-flex pointer'><i class="fas fa-sort-up d-none mr-2"></i>
             <i class="fas fa-sort-down d-block mr-2"></i>
             Champs libres</h3>
@@ -137,24 +108,30 @@
             {% for type in types %}
                 <div class="tab-pane fade show" id="{{type.label}}-new" role="tabpanel"
                      aria-labelledby="{{type.label}}-tab">
-                    <div class="row">
+                    <div class="row mt-2">
                         {% for champ in type.champsLibres %}
-                            {#{{ dump(champ.valeurChampsLibres.id) }}#}
-                            {#{{ dump(articleRef.valeurChampsLibres.id) }}#}
+
+                            {% set value = '' %}
+                            {% for row in valeurChampsLibre %}
+                                {% if (row.idCL == champ.id) %}{% set value = row.valeur %}{% endif %}
+                            {% endfor %}
+
                             <div class="form-group col-6">
                                 <div class="input-group">
                                     <div class="input-group-prepend">
-                                        <label class="input-group-text pointer" for="input">
+                                        <label class="input-group-text" for="input">
                                             {{champ.label}}
                                         </label>
                                     </div>
                                     {% if champ.typage == 'booleen' %}
-                                        <input type="checkbox" class="form-control data checkbox" name="{{champ.id}}" id="input">
+                                        {% set checked = (value == 1) ? 'checked' : '' %}
+                                        <input type="checkbox" class="form-control data checkbox" {{ checked }} value="{{ value }}" name="{{champ.id}}" id="input">
+
                                     {% elseif champ.typage == 'number' %}
-                                        <input type="number" class="form-control data"
-                                               value="{{champ.defaultValue}}" name="{{champ.id}}">
+                                        <input type="number" class="form-control data" value="{{ value }}" name="{{champ.id}}" id="input">
+
                                     {% else %}
-                                        <input class="form-control data" type="text" value="{{champ.defaultValue}}" name='{{ champ.id }}' id="input">
+                                        <input type="text" class="form-control data" value="{{ value }}" name="{{ champ.id }}" id="input">
                                     {% endif %}
                                 </div>
                             </div>
