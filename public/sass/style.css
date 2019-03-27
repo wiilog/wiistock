@@ -131,6 +131,10 @@ input:-webkit-autofill {
   font-weight: 700;
 }
 
+.italic {
+  font-style: italic;
+}
+
 a {
   color: unset;
 }
@@ -320,6 +324,10 @@ a:hover {
 
 .btn-action {
   min-width: 172px;
+}
+
+.border-radius-light {
+  border-radius: 10px;
 }
 
 .sidemenu-bg {
@@ -581,5 +589,18 @@ a:hover {
 .radio-btn .not-active {
   color: #130078;
   background-color: white;
+}
+
+.filter {
+  border-radius: 10px;
+  width: 100%;
+  background-color: white;
+  color: #424242;
+  border-color: #424242;
+}
+
+.filter:hover {
+  color: #cc0000;
+  border-color: #cc0000;
 }
 /*# sourceMappingURL=style.css.map */

@@ -6,6 +6,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\ValeurChampsLibre;
 
 use App\Repository\ArticleFournisseurRepository;
+use App\Repository\FilterRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\ChampsLibreRepository;
 use App\Repository\ValeurChampsLibreRepository;
@@ -57,7 +58,13 @@ class ReferenceArticleController extends Controller
      */
     private $articleFournisseurRepository;
 
-    public function __construct(StatutRepository $statutRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository)
+    /**
+     * @var FilterRepository
+     */
+    private $filterRepository;
+
+
+    public function __construct(StatutRepository $statutRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FilterRepository $filterRepository)
     {
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->champsLibreRepository = $champsLibreRepository;
@@ -65,6 +72,7 @@ class ReferenceArticleController extends Controller
         $this->typeRepository = $typeRepository;
         $this->statutRepository = $statutRepository;
         $this->articleFournisseurRepository = $articleFournisseurRepository;
+        $this->filterRepository = $filterRepository;
     }
 
     /**
@@ -101,7 +109,7 @@ class ReferenceArticleController extends Controller
                 }
                 $data['data'] = $rows;
 
-                $champs = $this->champsLibreRepository->getLabel();;
+                $champs = $this->champsLibreRepository->getLabelAndId();;
                 $column = [
                     [
                         "title" => 'Libellé',
@@ -188,34 +196,36 @@ class ReferenceArticleController extends Controller
             ]
         ];
 
-
-
-
-        $champL = $this->champsLibreRepository->getLabel();
+        $champL = $this->champsLibreRepository->getLabelAndId();
         $champ[]=[
-            'label'=> 'Libellé'
+            'label'=> 'Libellé',
+            'id' => 0
         ];
         $champ[]=[
-            'label'=> 'Référence'
+            'label'=> 'Référence',
+            'id' => 0
         ];
         $champ[]=[
-            'label'=> 'Type'
+            'label'=> 'Type',
+            'id' => 0
         ];
         $champ[]=[
-            'label'=> 'Quantité'
+            'label'=> 'Quantité',
+            'id' => 0
         ];
         $champ[]=[
-            'label'=> 'Actions'
+            'label'=> 'Actions',
+            'id' => 0
         ];
 
         $champs = array_merge($champ, $champL);
 
-        dump($champs);
         return $this->render('reference_article/index.html.twig', [
             'champs' => $champs,
             'statuts' => $this->statutRepository->findByCategorieName(ReferenceArticle::CATEGORIE),
             'types' => $this->typeRepository->getByCategoryLabel(ReferenceArticle::CATEGORIE),
-            'typeQuantite'=> $typeQuantite,
+            'typeQuantite' => $typeQuantite,
+            'filters' => $this->filterRepository->findBy(['utilisateur' => $this->getUser()])
         ]);
     }
 

@@ -53,6 +53,10 @@ let submitModifyRefArticle = $('#submitEditRefArticle');
 let urlModifyRefArticle = Routing.generate('reference_article_edit', true);
 InitialiserModal(modalModifyRefArticle, submitModifyRefArticle, urlModifyRefArticle, tableRefArticle);
 
+let modalNewFilter = $('#modalNewFilter');
+let submitNewFilter = $('#submitNewFilter');
+let urlNewFilter = Routing.generate('filter_new', true);
+InitialiserModal(modalNewFilter, submitNewFilter, urlNewFilter, tableRefArticle);
 
 $('#myTab div').on('click', function (e) {
     $(this).siblings().removeClass('data');
@@ -116,4 +120,14 @@ function updateQuantityDisplay(elem) {
         modalBody.find('.reference').addClass('d-none');
         modalBody.find('.article').removeClass('d-none');
     }
+}
+
+// suppression du filtre au clic dessus
+$('.filter').on('click', removeFilter);
+
+function removeFilter() {
+    $(this).remove();
+
+    let params = JSON.stringify({'filterId': $(this).find('.filter-id').val()});
+    $.post(Routing.generate('filter_delete', true), params);
 }

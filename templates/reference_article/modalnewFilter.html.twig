@@ -1,0 +1,34 @@
+<div class="modal fade" id="modalNewFilter" tabindex="-1" role="dialog" aria-labelledby="modalNewFilterLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalNewFilterLabel">Ajout d'un filtre</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="field">Champ</label>
+                    <select class="form-control data needed" id="field" name="field">
+                        {% for champ in champs %}
+                            {% set value = (champ.id == 0) ? champ.label : champ.id %}
+                            <option value="{{ value }}">{{ champ.label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="like">Contient</label>
+                    <input type="text" class="form-control data needed" id="like" name="like">
+                </div>
+
+                <div class="error-msg"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn">Annuler</button>
+                <button type="button" class="btn btn-success" id="submitNewFilter">Appliquer</button>
+            </div>
+        </div>
+    </div>
+</div>

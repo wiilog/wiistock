@@ -43,9 +43,15 @@ class ChampsLibre
      */
     private $valeurChampsLibres;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Filter", mappedBy="champLibre")
+     */
+    private $filters;
+
     public function __construct()
     {
         $this->valeurChampsLibres = new ArrayCollection();
+        $this->filters = new ArrayCollection();
     }
 
     public function __toString()
@@ -131,6 +137,37 @@ class ChampsLibre
             // set the owning side to null (unless already changed)
             if ($valeurChampsLibre->getChampLibre() === $this) {
                 $valeurChampsLibre->setChampLibre(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Filter[]
+     */
+    public function getFilters(): Collection
+    {
+        return $this->filters;
+    }
+
+    public function addFilter(Filter $filter): self
+    {
+        if (!$this->filters->contains($filter)) {
+            $this->filters[] = $filter;
+            $filter->setChampLibre($this);
+        }
+
+        return $this;
+    }
+
+    public function removeFilter(Filter $filter): self
+    {
+        if ($this->filters->contains($filter)) {
+            $this->filters->removeElement($filter);
+            // set the owning side to null (unless already changed)
+            if ($filter->getChampLibre() === $this) {
+                $filter->setChampLibre(null);
             }
         }
 
