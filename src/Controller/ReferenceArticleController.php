@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\ReferenceArticle;
 use App\Entity\ValeurChampsLibre;
 
+use App\Repository\ArticleFournisseurRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\ChampsLibreRepository;
 use App\Repository\ValeurChampsLibreRepository;
@@ -51,13 +52,19 @@ class ReferenceArticleController extends Controller
      */
     private $valeurChampsLibreRepository;
 
-    public function __construct(StatutRepository $statutRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository)
+    /**
+     * @var ArticleFournisseurRepository
+     */
+    private $articleFournisseurRepository;
+
+    public function __construct(StatutRepository $statutRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository)
     {
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->champsLibreRepository = $champsLibreRepository;
         $this->valeurChampsLibreRepository = $valeurChampsLibreRepository;
         $this->typeRepository = $typeRepository;
         $this->statutRepository = $statutRepository;
+        $this->articleFournisseurRepository = $articleFournisseurRepository;
     }
 
     /**
@@ -162,12 +169,33 @@ class ReferenceArticleController extends Controller
                 }
                 $statuts = $this->statutRepository->findByCategorieName(ReferenceArticle::CATEGORIE);
 
+                // construction du tableau des articles fournisseurs
+                $listArticlesFournisseur = [];
+                $articlesFournisseurs = $articleRef->getArticlesFournisseur();
+                $totalQuantity = 0;
+                foreach($articlesFournisseurs as $articleFournisseur) {
+                    $quantity = 0;
+                    foreach($articleFournisseur->getArticles() as $article) {
+                        $quantity += $article->getQuantite();
+                    }
+                    $totalQuantity += $quantity;
+
+                    $listArticlesFournisseur[] = [
+                        'fournisseurRef' => $articleFournisseur->getFournisseur()->getCodeReference(),
+                        'label' => $articleFournisseur->getLabel(),
+                        'fournisseurName' => $articleFournisseur->getFournisseur()->getNom(),
+                        'quantity' => $quantity
+                    ];
+                }
+
                 $json = $this->renderView('reference_article/modalEditRefArticleContent.html.twig', [
                     'articleRef' => $articleRef,
                     'statut' => ($articleRef->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF),
                     'valeurChampsLibre' => isset($valeurChampLibre) ? $valeurChampLibre : null,
                     'types' => $this->typeRepository->getByCategoryLabel('référence article'),
-                    'statuts' => $statuts
+                    'statuts' => $statuts,
+                    'articlesFournisseur' => $listArticlesFournisseur,
+                    'totalQuantity' => $totalQuantity
                 ]);
             } else {
                 $json = false;

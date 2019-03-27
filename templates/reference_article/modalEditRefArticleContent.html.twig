@@ -51,14 +51,8 @@
         {% set dnone = (articleRef.typeQuantite == 'article') ? '' : 'd-none' %}
 
         <div class="input-group article {{ dnone }}">
-        {% set quantity = 0 %}
-        {% for articleFournisseur in articleRef.articlesFournisseur %}
-            {% set quantity = quantity + articleFournisseur.fournisseur.articles|length %}
-
-        {% endfor %}
-
             <label class="mtb-auto mr-2">Quantité</label>
-            <input class="form-control rounded" disabled value="{{ quantity }}">
+            <input class="form-control rounded" disabled value="{{ totalQuantity }}">
         </div>
     </div>
 </div>
@@ -78,12 +72,12 @@
                 <th>Fournisseur</th>
                 <th>Quantité</th>
             </tr>
-        {% for articleFournisseur in articleRef.articlesFournisseur %}
+        {% for articleFournisseur in articlesFournisseur %}
             <tr>
-                <td>{{ articleFournisseur.fournisseur.codeReference }}</td>
+                <td>{{ articleFournisseur.fournisseurRef }}</td>
                 <td>{{ articleFournisseur.label }}</td>
-                <td>{{ articleFournisseur.fournisseur.nom }}</td>
-                <td>{{ articleFournisseur.fournisseur.articles|length }}</td>
+                <td>{{ articleFournisseur.fournisseurName }}</td>
+                <td>{{ articleFournisseur.quantity }}</td>
             </tr>
         {% endfor %}
         </table>
