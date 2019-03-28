@@ -82,10 +82,10 @@ class ReferenceArticleController extends Controller
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
             {
-//                $userId = $this->getUser()->getId();
-//                $filters = $this->filterRepository->getFieldsAndValuesByUser($userId);
-//
-//                $refs = $this->referenceArticleRepository->findByFilters($filters);
+                //                $userId = $this->getUser()->getId();
+                //                $filters = $this->filterRepository->getFieldsAndValuesByUser($userId);
+                //
+                //                $refs = $this->referenceArticleRepository->findByFilters($filters);
                 //TODO CG en cours
                 $refs = $this->referenceArticleRepository->findAll();
 
@@ -101,13 +101,13 @@ class ReferenceArticleController extends Controller
 
                     $rowCF = [
                         "id" => $refArticle->getId(),
+                        'Actions' => $this->renderView('reference_article/datatableReferenceArticleRow.html.twig', [
+                            'idRefArticle' => $refArticle->getId()
+                        ]),
                         "Libellé" => $refArticle->getLibelle(),
                         "Référence" => $refArticle->getReference(),
                         "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
                         "Quantité" => $refArticle->getQuantiteStock(),
-                        'Actions' => $this->renderView('reference_article/datatableReferenceArticleRow.html.twig', [
-                            'idRefArticle' => $refArticle->getId()
-                        ]),
                     ];
                     $rows[] = array_merge($rowCL, $rowCF);
                 }
@@ -115,6 +115,10 @@ class ReferenceArticleController extends Controller
 
                 $champs = $this->champsLibreRepository->getLabelAndIdAndTypage();;
                 $column = [
+                    [
+                        "title" => 'Actions',
+                        "data" => 'Actions'
+                    ],
                     [
                         "title" => 'Libellé',
                         "data" => 'Libellé'
@@ -130,10 +134,6 @@ class ReferenceArticleController extends Controller
                     [
                         "title" => 'Quantité',
                         "data" => 'Quantité'
-                    ],
-                    [
-                        "title" => 'Actions',
-                        "data" => 'Actions'
                     ],
 
                 ];
@@ -162,9 +162,9 @@ class ReferenceArticleController extends Controller
             $refArticle
                 ->setLibelle($data['libelle'])
                 ->setReference($data['reference'])
-                ->setQuantiteStock($data['quantite']? $data['quantite'] : 0)
+                ->setQuantiteStock($data['quantite'] ? $data['quantite'] : 0)
                 ->setStatut($statut)
-                ->setTypeQuantite($data['type_quantite'] ? ReferenceArticle::TYPE_QUANTITE_REFERENCE: ReferenceArticle::TYPE_QUANTITE_ARTICLE)
+                ->setTypeQuantite($data['type_quantite'] ? ReferenceArticle::TYPE_QUANTITE_REFERENCE : ReferenceArticle::TYPE_QUANTITE_ARTICLE)
                 ->setType($this->typeRepository->find($data['type']));
             // TODO récupérer statut
             $em->persist($refArticle);
@@ -184,24 +184,24 @@ class ReferenceArticleController extends Controller
             }
 
             $champsLibres = $this->champsLibreRepository->getLabelByCategory(ReferenceArticle::CATEGORIE);
-                    $rowCL = [];
-                    $rowDD = [];
-                    foreach ($champsLibres as $champLibre) {
-                        $valeur = $this->valeurChampsLibreRepository->getByRefArticleANDChampsLibre($refArticle->getId(), $champLibre['id']);
-                        $rowCL[$champLibre['label']] = ($valeur ? $valeur->getValeur() : "");
-                    }
-                    $rowDD = [
-                        "id" => $refArticle->getId(),
-                        "Libellé" => $refArticle->getLibelle(),
-                        "Référence" => $refArticle->getReference(),
-                        "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
-                        "Quantité" => $refArticle->getQuantiteStock(),
-                        'Actions' => $this->renderView('reference_article/datatableReferenceArticleRow.html.twig', [
-                            'idRefArticle' => $refArticle->getId()
-                        ]),
-                    ];
-                    $rows = array_merge($rowCL, $rowDD);
-                    $response['new'] = $rows;
+            $rowCL = [];
+            $rowDD = [];
+            foreach ($champsLibres as $champLibre) {
+                $valeur = $this->valeurChampsLibreRepository->getByRefArticleANDChampsLibre($refArticle->getId(), $champLibre['id']);
+                $rowCL[$champLibre['label']] = ($valeur ? $valeur->getValeur() : "");
+            }
+            $rowDD = [
+                "id" => $refArticle->getId(),
+                "Libellé" => $refArticle->getLibelle(),
+                "Référence" => $refArticle->getReference(),
+                "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
+                "Quantité" => $refArticle->getQuantiteStock(),
+                'Actions' => $this->renderView('reference_article/datatableReferenceArticleRow.html.twig', [
+                    'idRefArticle' => $refArticle->getId()
+                ]),
+            ];
+            $rows = array_merge($rowCL, $rowDD);
+            $response['new'] = $rows;
 
             return new JsonResponse($response);
         }
@@ -225,32 +225,32 @@ class ReferenceArticleController extends Controller
         ];
 
         $champL = $this->champsLibreRepository->getLabelAndIdAndTypage();
-        $champ[]=[
-            'label'=> 'Libellé',
+        $champ[] = [
+            'label' => 'Actions',
+            'id' => 0,
+            'typage' => ''
+        ];
+        $champ[] = [
+            'label' => 'Libellé',
             'id' => 0,
             'typage' => 'text'
 
         ];
-        $champ[]=[
-            'label'=> 'Référence',
+        $champ[] = [
+            'label' => 'Référence',
             'id' => 0,
             'typage' => 'text'
 
         ];
-        $champ[]=[
-            'label'=> 'Type',
+        $champ[] = [
+            'label' => 'Type',
             'id' => 0,
             'typage' => 'list'
         ];
-        $champ[]=[
-            'label'=> 'Quantité',
+        $champ[] = [
+            'label' => 'Quantité',
             'id' => 0,
             'typage' => 'number'
-        ];
-        $champ[]=[
-            'label'=> 'Actions',
-            'id' => 0,
-            'typage' => ''
         ];
 
         $champs = array_merge($champ, $champL);
@@ -360,29 +360,27 @@ class ReferenceArticleController extends Controller
                         $entityManager->flush();
                     }
                 }
-                
-                $champsLibres = $this->champsLibreRepository->getLabelByCategory(ReferenceArticle::CATEGORIE);
-                    $rowCL = [];
-                    $rowDD = [];
-                    foreach ($champsLibres as $champLibre) {
-                        $valeur = $this->valeurChampsLibreRepository->getByRefArticleANDChampsLibre($refArticle->getId(), $champLibre['id']);
-                        $rowCL[$champLibre['label']] = ($valeur ? $valeur->getValeur() : "");
-                    }
-                    $rowDD = [
-                        "id" => $refArticle->getId(),
-                        "Libellé" => $refArticle->getLibelle(),
-                        "Référence" => $refArticle->getReference(),
-                        "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
-                        "Quantité" => $refArticle->getQuantiteStock(),
-                        'Actions' => $this->renderView('reference_article/datatableReferenceArticleRow.html.twig', [
-                            'idRefArticle' => $refArticle->getId()
-                        ]),
-                    ];
-                    $rows = array_merge($rowCL, $rowDD);
-                    $response['id'] = $refArticle->getId();
-                    $response['edit'] = $rows;
-                    dump($response);
 
+                $champsLibres = $this->champsLibreRepository->getLabelByCategory(ReferenceArticle::CATEGORIE);
+                $rowCL = [];
+                $rowDD = [];
+                foreach ($champsLibres as $champLibre) {
+                    $valeur = $this->valeurChampsLibreRepository->getByRefArticleANDChampsLibre($refArticle->getId(), $champLibre['id']);
+                    $rowCL[$champLibre['label']] = ($valeur ? $valeur->getValeur() : "");
+                }
+                $rowDD = [
+                    "id" => $refArticle->getId(),
+                    "Libellé" => $refArticle->getLibelle(),
+                    "Référence" => $refArticle->getReference(),
+                    "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
+                    "Quantité" => $refArticle->getQuantiteStock(),
+                    'Actions' => $this->renderView('reference_article/datatableReferenceArticleRow.html.twig', [
+                        'idRefArticle' => $refArticle->getId()
+                    ]),
+                ];
+                $rows = array_merge($rowCL, $rowDD);
+                $response['id'] = $refArticle->getId();
+                $response['edit'] = $rows;
             } else {
                 $response = false;
             }
@@ -404,10 +402,7 @@ class ReferenceArticleController extends Controller
             $entityManager->remove($refArticle);
             $entityManager->flush();
 
-           
             $response['delete'] = $rows;
-            dump($response);
-
             return new JsonResponse($response);
         }
         throw new NotFoundHttpException("404");
