@@ -131,6 +131,10 @@ input:-webkit-autofill {
   font-weight: 700;
 }
 
+.italic {
+  font-style: italic;
+}
+
 a {
   color: unset;
 }
@@ -142,6 +146,15 @@ a:hover {
 .alert {
   position: unset;
   text-align: center;
+}
+
+.pointer {
+  cursor: pointer;
+}
+
+.mtb-auto {
+  margin-top: auto;
+  margin-bottom: auto;
 }
 
 .backDarkRed {
@@ -311,6 +324,10 @@ a:hover {
 
 .btn-action {
   min-width: 172px;
+}
+
+.border-radius-light {
+  border-radius: 10px;
 }
 
 .sidemenu-bg {
@@ -545,5 +562,45 @@ a:hover {
 
 .switch .slider.round:before {
   border-radius: 50%;
+}
+
+.radio-btn .btn {
+  color: white;
+  background-color: #130078;
+  border-radius: 0;
+  margin: 0;
+  border: 1px solid #130078;
+}
+
+.radio-btn .btn:first-child {
+  border-bottom-left-radius: .25rem;
+  border-top-left-radius: .25rem;
+}
+
+.radio-btn .btn:last-child {
+  border-bottom-right-radius: .25rem;
+  border-top-right-radius: .25rem;
+}
+
+.radio-btn .btn:hover {
+  background-color: #130078;
+}
+
+.radio-btn .not-active {
+  color: #130078;
+  background-color: white;
+}
+
+.filter {
+  border-radius: 10px;
+  width: 100%;
+  background-color: white;
+  color: #424242;
+  border-color: #424242;
+}
+
+.filter:hover {
+  color: #cc0000;
+  border-color: #cc0000;
 }
 /*# sourceMappingURL=style.css.map */

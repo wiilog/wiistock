@@ -3,25 +3,42 @@
 {% block title %}Référentiel / Articles de référence{% endblock %}
 
 {% block page_content %}
-<h1>Articles de référence</h1>
-<div class='row'>
-    <div data-toggle="modal" data-target="#modalNewRefArticle" class="btn btn-primary">
-        <span class="fa fa-plus mr-2"></span>Nouvel article de référence
+    <h1>Articles de référence</h1>
+    <div class='d-flex justify-content-end'>
+        <div data-toggle="modal" data-target="#modalColumnVisible" class="btn btn-action ml-auto ">
+            <i class="fas fa-cog mr-2"></i>Modifier colonnes
+        </div>
+        <div data-toggle="modal" data-target="#modalNewRefArticle" class="btn btn-action ml-auto ">
+            <i class="fa fa-plus mr-2"></i>Nouvel article de référence
+        </div>
     </div>
-</div>
-<table id="tableRefArticle_id" class="table table-striped table-bordered" style="width:100%">
-    <thead>
-        <tr>
-            <th>Libellé</th>
-            <th>Référence</th>
-            <th>Quantité</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-</table>
-{% include "reference_article/modalDeleteRefArticle.html.twig" %}
-{% include "reference_article/modalEditRefArticle.html.twig" %}
-{% include "reference_article/modalNewRefArticle.html.twig" %}
+
+    <div class="row">
+        <div class="col-1">
+            <div type="button" class="btn btn-primary border-radius-light" data-toggle="modal" data-target="#modalNewFilter">
+                <i class="fas fa-filter mr-2"></i>ajouter un filtre
+            </div>
+
+            <div id="filters">
+                {% for filter in filters %}
+                    {% include 'reference_article/oneFilter.html.twig' %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="col-11">
+            <table id="tableRefArticle_id" class="table table-striped table-bordered" >
+                <thead>
+                </thead>
+            </table>
+        </div>
+    </div>
+
+    {% include "reference_article/modalDeleteRefArticle.html.twig" %}
+    {% include "reference_article/modalEditRefArticle.html.twig" %}
+    {% include "reference_article/modalNewRefArticle.html.twig" %}
+    {% include "reference_article/modalNewFilter.html.twig" %}
+    {% include "reference_article/modalColumnVisible.html.twig" %}
 
 {% endblock %}
 {% block javascript %}

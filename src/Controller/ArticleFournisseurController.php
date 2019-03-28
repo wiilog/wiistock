@@ -46,7 +46,7 @@ class ArticleFournisseurController extends AbstractController
      */
     public function index()
     {
-        return $this->render('article-fournisseur/index.html.twig', [
+        return $this->render('article_fournisseur/index.html.twig', [
             'fournisseurs' => $this->fournisseurRepository->findAll(),
             'referencesArticles' => $this->referenceArticleRepository->findAll()
         ]);
@@ -68,7 +68,7 @@ class ArticleFournisseurController extends AbstractController
                     'Fournisseur' => $articleFournisseur->getFournisseur()->getNom(),
                     'Référence' => $articleFournisseur->getReference(),
                     'Article de référence' => $articleFournisseur->getReferenceArticle()->getLibelle(),
-                    'Actions' => $this->renderView('article-fournisseur/datatableRowActions.html.twig', [
+                    'Actions' => $this->renderView('article_fournisseur/datatableRowActions.html.twig', [
                         'url' => $url,
                         'id'=>$articleFournisseurId
                     ]),
@@ -113,7 +113,7 @@ class ArticleFournisseurController extends AbstractController
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $articleFournisseur = $this->articleFournisseurRepository->find(intval($data));
 
-            $json = $this->renderView('article-fournisseur/modalEditArticleFournisseurContent.html.twig', [
+            $json = $this->renderView('article_fournisseur/modalEditArticleFournisseurContent.html.twig', [
                 'articleFournisseur' => $articleFournisseur,
                 'fournisseurs' => $this->fournisseurRepository->findAll(),
                 'referencesArticles' => $this->referenceArticleRepository->findAll()
@@ -151,7 +151,7 @@ class ArticleFournisseurController extends AbstractController
     public function delete(Request $request) : Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $articleFournisseur= $this->articleFournisseurRepository->find(intval($data['article-fournisseur']));
+            $articleFournisseur= $this->articleFournisseurRepository->find(intval($data['article_fournisseur']));
 
             $em = $this->getDoctrine()->getManager();
             $em->remove($articleFournisseur);

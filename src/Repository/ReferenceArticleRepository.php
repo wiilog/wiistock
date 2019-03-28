@@ -43,7 +43,8 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function getQuantiteStockById($id){
+    public function getQuantiteStockById($id)
+    {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT r. quantiteStock
@@ -52,6 +53,80 @@ class ReferenceArticleRepository extends ServiceEntityRepository
            "
             );
         return $query->getSingleScalarResult(); 
+    }
+
+    public function findByFilters($filters)
+    {
+        $em = $this->getEntityManager();
+        $qb = $em->createQueryBuilder();
+
+        // fait le lien entre intitulé champs dans datatable/filtres côté front
+        // et le nom des attributs de l'entité ReferenceArticle (+ typage)
+        $linkChampLibreLabelToField = [
+            'Libellé' => ['field' => 'libelle', 'typage' => 'text'],
+            'Référence' => ['field' => 'reference', 'typage' => 'text'],
+            'Type' => ['field' => 'type_id', 'typage' => 'list'],
+            'Quantité' => ['field' => 'quantiteStock', 'typage' => 'number'],
+        ];
+        //TODO trouver + dynamique
+
+        $qb
+            ->select('ra')
+            ->from('App\Entity\ReferenceArticle', 'ra');
+
+        foreach($filters as $filter) {
+            // cas champ fixe
+            if ($label = $filter['champFixe']) {
+                $array = $linkChampLibreLabelToField[$label];
+                $field = $array['field'];
+                $typage = $array['typage'];
+
+                switch ($typage) {
+                    case 'text':
+                        $qb
+                            ->andWhere("ra." . $field . " LIKE :value")
+                            ->setParameter('value', '%' . $filter['value'] . '%');
+                        break;
+                    case 'number':
+                        $qb->andWhere("ra." . $field . " = " . $filter['value']);
+                        break;
+                    case 'list':
+                    // cas particulier du type (pas besoin de généraliser pour l'instant, voir selon besoins)
+                        $qb
+                            ->leftJoin('ra.type', 't')
+                            ->andWhere('t.label = :typeLabel')
+                            ->setParameter('typeLabel', $filter['value']);
+                        break;
+                }
+
+            // cas champ libre
+            } else if ($filter['champLibre']) {
+                $qb->leftJoin('ra.valeurChampsLibres', 'vcl');
+
+                switch($filter['typage']) {
+                    case 'booleen':
+                        $value = $filter['value'] == 1 ? '1' : '0';
+                        $qb
+                            ->andWhere('vcl.champLibre = ' . $filter['champLibre'])
+                            ->andWhere('vcl.valeur = ' . $value);
+                        break;
+                    case 'text':
+                        $qb
+                            ->andWhere('vcl.champLibre = ' . $filter['champLibre'])
+                            ->andWhere("vcl.valeur LIKE :value")
+                            ->setParameter('value', "%" . $filter['value'] . "%");
+                        break;
+                    case 'number':
+                        break;
+                    case 'list':
+                        break;
+                }
+            }
+        }
+
+        $query = $qb->getQuery();
+
+        return $query->getResult();
     }
 
 }

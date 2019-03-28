@@ -32,6 +32,31 @@ class ChampsLibreRepository extends ServiceEntityRepository
         return $query->execute(); 
     }
 
+    public function getLabelAndIdAndTypage()
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT c.label, c.id, c.typage
+            FROM App\Entity\ChampsLibre c 
+            "
+        );
+        return $query->getResult(); 
+    }
+
+    public function getLabelByCategory($category)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT c.label, c.id
+            FROM App\Entity\ChampsLibre c 
+            JOIN c.type t
+            JOIN t.category z
+            WHERE z.label = :category
+            "
+        )->setParameter('category', $category);
+        return $query->getResult(); 
+    }
+
     // /**
     //  * @return ChampsLibre[] Returns an array of ChampsLibre objects
     //  */

@@ -12,12 +12,12 @@ use Doctrine\ORM\Mapping as ORM;
 class ReferenceArticle
 {
 
-    const CATEGORIE = 'referencearticle';
+    const CATEGORIE = 'referenceArticle';
     const STATUT_ACTIF = 'actif';
     const STATUT_INACTIF = 'inactif';
 
-    const QUANTITE_AR = 'reference';
-    const QUANTITE_A = 'article';
+    const TYPE_QUANTITE_REFERENCE = 'reference';
+    const TYPE_QUANTITE_ARTICLE = 'article';
 
     /**
      * @ORM\Id()
@@ -35,11 +35,6 @@ class ReferenceArticle
      * @ORM\Column(type="string", length=255, unique=true)
      */
     private $reference;
-
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Article", mappedBy="refArticle")
-     */
-    private $articles;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
@@ -133,37 +128,6 @@ class ReferenceArticle
     public function __toString()
     {
         return $this->reference;
-    }
-
-    /**
-     * @return Collection|Article[]
-     */
-    public function getArticles(): Collection
-    {
-        return $this->articles;
-    }
-
-    public function addArticle(Article $article): self
-    {
-        if (!$this->articles->contains($article)) {
-            $this->articles[] = $article;
-            $article->setRefArticle($this);
-        }
-
-        return $this;
-    }
-
-    public function removeArticle(Article $article): self
-    {
-        if ($this->articles->contains($article)) {
-            $this->articles->removeElement($article);
-            // set the owning side to null (unless already changed)
-            if ($article->getRefArticle() === $this) {
-                $article->setRefArticle(null);
-            }
-        }
-
-        return $this;
     }
 
     public function getQuantiteDisponible(): ?int

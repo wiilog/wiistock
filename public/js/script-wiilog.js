@@ -13,7 +13,7 @@
  * @param {document} table le DataTable gérant les données
  * 
  */
-function InitialiserModal(modal, submit, path, table) {
+function InitialiserModal(modal, submit, path, table, callback = null) {
     submit.click(function () {
         xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function () {
@@ -27,6 +27,9 @@ function InitialiserModal(modal, submit, path, table) {
                 if(data.entete){
                     $('.zone-entete').html(data.entete)
                 }
+                if(data.refArticle){
+                    
+                }
                 table.ajax.reload(function (json) {
                     if (this.responseText !== undefined) {
                         $('#myInput').val(json.lastInput);
@@ -35,6 +38,8 @@ function InitialiserModal(modal, submit, path, table) {
                         $('#statutReception').text(data.anomalie);
                     }
                 });
+
+                callback(data);
 
                 let inputs = modal.find('.modal-body').find(".data");
                 // on vide tous les inputs
@@ -192,5 +197,11 @@ function editRow(button, path, modal, submit) {
     xhttp.send(json);
 }
 
+function toggleRadioButton(button) {
+    let sel = button.data('title');
+    let tog = button.data('toggle');
+    $('#'+tog).prop('value', sel);
 
-
+    $('span[data-toggle="'+tog+'"]').not('[data-title="'+sel+'"]').removeClass('active').addClass('not-active');
+    $('span[data-toggle="'+tog+'"][data-title="'+sel+'"]').removeClass('not-active').addClass('active');
+}

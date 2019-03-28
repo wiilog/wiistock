@@ -39,11 +39,6 @@ class Article
     private $quantite;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\ReferenceArticle", inversedBy="articles")
-     */
-    private $refArticle;
-
-    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Reception", inversedBy="articles")
      * @ORM\JoinColumn(name="reception_id", referencedColumnName="id", onDelete="CASCADE")
      */
@@ -94,6 +89,11 @@ class Article
      */
     private $preparations;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\ArticleFournisseur", inversedBy="articles")
+     */
+    private $articleFournisseur;
+
     
     public function __construct()
     {
@@ -134,18 +134,6 @@ class Article
     public function __toString()
     {
         return $this->label;
-    }
-
-    public function getRefArticle(): ?ReferenceArticle
-    {
-        return $this->refArticle;
-    }
-
-    public function setRefArticle(?ReferenceArticle $refArticle): self
-    {
-        $this->refArticle = $refArticle;
-
-        return $this;
     }
 
     public function getReception(): ?Reception
@@ -315,4 +303,17 @@ class Article
 
         return $this;
     }
+
+    public function getArticleFournisseur(): ?ArticleFournisseur
+    {
+        return $this->articleFournisseur;
+    }
+
+    public function setArticleFournisseur(?ArticleFournisseur $articleFournisseur): self
+    {
+        $this->articleFournisseur = $articleFournisseur;
+
+        return $this;
+    }
+
 }

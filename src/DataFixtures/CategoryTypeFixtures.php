@@ -21,10 +21,10 @@ class CategoryTypeFixtures extends Fixture
     {
         $categoriesNames = [
             'référence article',
-            // 'fournisseur',
-            // 'emplacement',
-            // 'collecte',
-            // 'demande',
+             'fournisseur',
+             'emplacement',
+             'collecte',
+             'demande',
         ];
         foreach ($categoriesNames as $categorieName) {
             $categorie = new CategoryType();
