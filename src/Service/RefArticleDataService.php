@@ -17,6 +17,7 @@ use App\Repository\ReferenceArticleRepository;
 use App\Repository\StatutRepository;
 use App\Repository\TypeRepository;
 use App\Repository\ValeurChampsLibreRepository;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 class RefArticleDataService
 {
@@ -25,17 +26,7 @@ class RefArticleDataService
      */
     private $referenceArticleRepository;
 
-    /**
-     * @var StatutRepository
-     */
-    private $statutRepository;
-
-    /**
-     * @var TypeRepository
-     */
-    private $typeRepository;
-
-    /**
+    /*
      * @var ChampsLibreRepository
      */
     private $champsLibreRepository;
@@ -44,11 +35,6 @@ class RefArticleDataService
      * @var ValeurChampsLibreRepository
      */
     private $valeurChampsLibreRepository;
-
-    /**
-     * @var ArticleFournisseurRepository
-     */
-    private $articleFournisseurRepository;
 
     /**
      * @var FilterRepository
@@ -60,17 +46,20 @@ class RefArticleDataService
      */
     private $templating;
 
+    /**
+     * @var object|string
+     */
+    private $user;
 
-    public function __construct(StatutRepository $statutRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FilterRepository $filterRepository, \Twig_Environment $templating)
+
+    public function __construct(ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampsLibreRepository $champsLibreRepository, FilterRepository $filterRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
     {
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->champsLibreRepository = $champsLibreRepository;
         $this->valeurChampsLibreRepository = $valeurChampsLibreRepository;
-        $this->typeRepository = $typeRepository;
-        $this->statutRepository = $statutRepository;
-        $this->articleFournisseurRepository = $articleFournisseurRepository;
         $this->filterRepository = $filterRepository;
         $this->templating = $templating;
+        $this->user = $tokenStorage->getToken()->getUser();
     }
 
     /**
@@ -80,8 +69,9 @@ class RefArticleDataService
      * @throws \Twig_Error_Runtime
      * @throws \Twig_Error_Syntax
      */
-    public function getRefArticleData($userId)
+    public function getRefArticleData()
     {
+        $userId = $this->user->getId();
         $filters = $this->filterRepository->getFieldsAndValuesByUser($userId);
         $refs = $this->referenceArticleRepository->findByFilters($filters);
 

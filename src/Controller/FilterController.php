@@ -96,7 +96,7 @@ class FilterController extends AbstractController
                     'value' => $filter->getValue()
                 ];
                 $result = [
-                    'reload' => $this->refArticleDataService->getRefArticleData($user->getId()),
+                    'reload' => $this->refArticleDataService->getRefArticleData(),
                     'filterHtml' => $this->renderView('reference_article/oneFilter.html.twig', ['filter' => $filterArray])
                 ];
             } else {
@@ -122,7 +122,7 @@ class FilterController extends AbstractController
                 $em->flush();
             }
 
-            $data = $this->refArticleDataService->getRefArticleData($this->getUser()->getId());
+            $data = $this->refArticleDataService->getRefArticleData();
 
             return new JsonResponse($data);
         }

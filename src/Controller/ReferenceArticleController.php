@@ -89,8 +89,7 @@ class ReferenceArticleController extends Controller
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
             {
-                $userId = $this->getUser()->getId();
-                $data['data'] = $this->refArticleDataService->getRefArticleData($userId);
+                $data['data'] = $this->refArticleDataService->getRefArticleData();
 
                 $champs = $this->champsLibreRepository->getLabelAndIdAndTypage();;
                 $column = [
