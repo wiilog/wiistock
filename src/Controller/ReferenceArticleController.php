@@ -13,6 +13,7 @@ use App\Repository\ValeurChampsLibreRepository;
 use App\Repository\TypeRepository;
 use App\Repository\StatutRepository;
 
+use App\Service\RefArticleDataService;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -63,8 +64,13 @@ class ReferenceArticleController extends Controller
      */
     private $filterRepository;
 
+    /**
+     * @var RefArticleDataService
+     */
+    private $refArticleDataService;
 
-    public function __construct(StatutRepository $statutRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FilterRepository $filterRepository)
+
+    public function __construct(StatutRepository $statutRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FilterRepository $filterRepository, RefArticleDataService $refArticleDataService)
     {
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->champsLibreRepository = $champsLibreRepository;
@@ -73,6 +79,7 @@ class ReferenceArticleController extends Controller
         $this->statutRepository = $statutRepository;
         $this->articleFournisseurRepository = $articleFournisseurRepository;
         $this->filterRepository = $filterRepository;
+        $this->refArticleDataService = $refArticleDataService;
     }
 
     /**
@@ -82,36 +89,8 @@ class ReferenceArticleController extends Controller
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
             {
-//                $userId = $this->getUser()->getId();
-//                $filters = $this->filterRepository->getFieldsAndValuesByUser($userId);
-//
-//                $refs = $this->referenceArticleRepository->findByFilters($filters);
-                //TODO CG en cours
-                $refs = $this->referenceArticleRepository->findAll();
-
-                $rows = [];
-                foreach ($refs as $refArticle) {
-                    $champsLibres = $this->champsLibreRepository->getLabelByCategory(ReferenceArticle::CATEGORIE);
-                    $rowCL = [];
-
-                    foreach ($champsLibres as $champLibre) {
-                        $valeur = $this->valeurChampsLibreRepository->getByRefArticleANDChampsLibre($refArticle->getId(), $champLibre['id']);
-                        $rowCL[$champLibre['label']] = ($valeur ? $valeur->getValeur() : "");
-                    }
-
-                    $rowCF = [
-                        "id" => $refArticle->getId(),
-                        "Libellé" => $refArticle->getLibelle(),
-                        "Référence" => $refArticle->getReference(),
-                        "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
-                        "Quantité" => $refArticle->getQuantiteStock(),
-                        'Actions' => $this->renderView('reference_article/datatableReferenceArticleRow.html.twig', [
-                            'idRefArticle' => $refArticle->getId()
-                        ]),
-                    ];
-                    $rows[] = array_merge($rowCL, $rowCF);
-                }
-                $data['data'] = $rows;
+                $userId = $this->getUser()->getId();
+                $data['data'] = $this->refArticleDataService->getRefArticleData($userId);
 
                 $champs = $this->champsLibreRepository->getLabelAndIdAndTypage();;
                 $column = [

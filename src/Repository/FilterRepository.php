@@ -36,12 +36,11 @@ class FilterRepository extends ServiceEntityRepository
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
-            "SELECT f.champFixe, cl.id, f.value
+            "SELECT f.champFixe, cl.id champLibre, f.value, cl.typage
             FROM App\Entity\Filter f
-            JOIN App\Entity\ChampsLibre cl
+            LEFT JOIN f.champLibre cl
             WHERE f.utilisateur = :userId
-            "
-        )->setParameter('userId', $userId);
+            ")->setParameter('userId', $userId);
 
         return $query->execute();
     }
