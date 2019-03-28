@@ -10,6 +10,50 @@
         <span class="fa fa-plus mr-2"></span>Nouvelle demande
     </a>
 </div>
+<div class="container-fluid"></div>
+<div class='row'>
+    <div class='col-2'>
+        <div class="form-group">
+            <label for="dateMin">Du</label>
+            <input type="date" class="form-control data" name="dateMin" id="dateMin">
+        </div>
+    </div>
+    <div class='col-2'>
+        <div class="form-group">
+            <label for="dateMax">Au</label>
+            <input type="date" class="form-control data" name="dateMax" id="dateMax">
+        </div>
+    </div>
+    <div class='col-2'>
+        <div class="form-group">
+            <label for="statut">Statut</label>
+            <select class="form-control data" name="statut" id="statut">
+               <option value> </option>
+                {% for statut in statuts %}
+                <option value="{{ statut.nom }}">{{ statut.nom }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    <div class='col-3'>
+        <div class="form-group">
+            <label for="demandeur">Demandeur</label>
+            <select type="text" class="demandeur form-control data" name="demandeur" multiple="multiple" id="demandeur">
+                <option value="{{app.user.username}}">{{app.user.username}}</option>
+                {% for demandeur in demandeurs %}
+                <option value="{{ demandeur.username }}">
+                    {{ demandeur.username }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    <div class='col-3'>
+
+        <input  type='submit' id='submitSearchService' class="btn btn-action"  >Filtrer
+    </div>
+
+</div>
 
 <table id="tableService_id" class="table table-striped table-bordered w-100">
     <thead>
@@ -21,7 +65,7 @@
             <th>Actions</th>
         </tr>
     </thead>
-
+    
 </table>
 
 {% include "service/modalEditService.html.twig" %}
