@@ -144,7 +144,6 @@ class ReferenceArticleController extends Controller
                 ->setStatut($statut)
                 ->setTypeQuantite($data['type_quantite'] ? ReferenceArticle::TYPE_QUANTITE_REFERENCE: ReferenceArticle::TYPE_QUANTITE_ARTICLE)
                 ->setType($this->typeRepository->find($data['type']));
-            // TODO récupérer statut
             $em->persist($refArticle);
             $em->flush();
             $champsLibreKey = array_keys($data);
@@ -163,7 +162,6 @@ class ReferenceArticleController extends Controller
 
             $champsLibres = $this->champsLibreRepository->getLabelByCategory(ReferenceArticle::CATEGORIE);
                     $rowCL = [];
-                    $rowDD = [];
                     foreach ($champsLibres as $champLibre) {
                         $valeur = $this->valeurChampsLibreRepository->getByRefArticleANDChampsLibre($refArticle->getId(), $champLibre['id']);
                         $rowCL[$champLibre['label']] = ($valeur ? $valeur->getValeur() : "");

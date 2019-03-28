@@ -243,14 +243,14 @@ function displayFilterValue(elem) {
     let type = elem.find(':selected').data('type');
     let modalBody = elem.closest('.modal-body');
 
-    // cas particulier de liste déroulante
+    // cas particulier de liste déroulante pour type
     if (type == 'list') {
         $.getJSON(Routing.generate('type_show_select'), function(data) {
             modalBody.find('.input').html(data);
         })
     } else {
         if (type == 'booleen') type = 'checkbox';
-        modalBody.find('#value').attr('type', type);
+        modalBody.find('.input').html('<input type="' + type + '" class="form-control data ' + type + '" id="value" name="value">');
     }
 
 
@@ -258,7 +258,6 @@ function displayFilterValue(elem) {
     switch (type) {
         case 'checkbox':
             label = 'Oui / Non';
-            elem.closest('.modal-body').find('#value').addClass('checkbox');
             break;
         case 'number':
         case 'list':

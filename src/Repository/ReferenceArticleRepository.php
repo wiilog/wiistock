@@ -72,7 +72,8 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
         $qb
             ->select('ra')
-            ->from('App\Entity\ReferenceArticle', 'ra');
+            ->from('App\Entity\ReferenceArticle', 'ra')
+            ->leftJoin('ra.valeurChampsLibres', 'vcl');
 
         foreach($filters as $filter) {
             // cas champ fixe
@@ -101,8 +102,6 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
             // cas champ libre
             } else if ($filter['champLibre']) {
-                $qb->leftJoin('ra.valeurChampsLibres', 'vcl');
-
                 switch($filter['typage']) {
                     case 'booleen':
                         $value = $filter['value'] == 1 ? '1' : '0';
@@ -117,6 +116,9 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                             ->setParameter('value', "%" . $filter['value'] . "%");
                         break;
                     case 'number':
+                        $qb
+                            ->andWhere('vcl.champLibre = ' . $filter['champLibre'])
+                            ->andWhere('vcl.valeur = ' . $filter['value']);
                         break;
                     case 'list':
                         break;
