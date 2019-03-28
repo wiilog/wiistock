@@ -148,61 +148,61 @@ let submitModifyRefArticle = $('#submitEditRefArticle');
 let urlModifyRefArticle = Routing.generate('reference_article_edit', true);
 InitialiserModalRefArticle(modalModifyRefArticle, submitModifyRefArticle, urlModifyRefArticle);
 
-InitialiserModal(modalModifyRefArticle, submitModifyRefArticle, urlModifyRefArticle, tableRefArticle);
+// InitialiserModal(modalModifyRefArticle, submitModifyRefArticle, urlModifyRefArticle, tableRefArticle);
 
 let modalNewFilter = $('#modalNewFilter');
 let submitNewFilter = $('#submitNewFilter');
 let urlNewFilter = Routing.generate('filter_new', true);
-InitialiserModal(modalNewFilter, submitNewFilter, urlNewFilter, tableRefArticle);
+// InitialiserModal(modalNewFilter, submitNewFilter, urlNewFilter, tableRefArticle);
 
 let urltest = Routing.generate('ref_article_api', true);
 
-let tableRefArticle = $('#tableRefArticle_id').DataTable({
-    "autoWidth": false,
-    "scrollX": true,
-    "language": {
-        "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
-    },
-    url: urltest,
-    method: "POST",
-    xhrFields: {
-        withCredentials: true
-    },
-    success: function (data) {
-        // loop data to console to verify it is
-        // arriving to browser
-        let dataContent = data.data;
-        let columnContent = data.column;
-        $.each(data, function(a, b) {
-            console.log(b);
-            return data;
-        });
-    },
-    "data": data.data,
-    "columns": columnContent
-});;
+// let tableRefArticle = $('#tableRefArticle_id').DataTable({
+//     "autoWidth": false,
+//     "scrollX": true,
+//     "language": {
+//         "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
+//     },
+//     url: urltest,
+//     method: "POST",
+//     xhrFields: {
+//         withCredentials: true
+//     },
+//     success: function (data) {
+//         // loop data to console to verify it is
+//         // arriving to browser
+//         let dataContent = data.data;
+//         let columnContent = data.column;
+//         $.each(data, function(a, b) {
+//             console.log(b);
+//             return data;
+//         });
+//     },
+//     "data": data.data,
+//     "columns": columnContent
+// });;
 
 
 
 
 //REFERENCE ARTICLE
 
-// $(document).ready(function () {
-//     let jsonB = 'lol';
-//     $.post(urltest, jsonB, function (data) {
-//         let dataContent = data.data;
-//         let columnContent = data.column;
-//         tableRefArticle = $('#tableRefArticle_id').DataTable({
-//             "autoWidth": false,
-//             "scrollX": true,
-//             "language": {
-//                 "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
-//             },
-//             "data": dataContent,
-//             "columns": columnContent
-//         });
-//     })
-// });
+$(document).ready(function () {
+    let jsonB = 'lol';
+    $.post(urltest, jsonB, function (data) {
+        let dataContent = data.data;
+        let columnContent = data.column;
+        tableRefArticle = $('#tableRefArticle_id').DataTable({
+            "autoWidth": false,
+            "scrollX": true,
+            "language": {
+                "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
+            },
+            "data": dataContent,
+            "columns": columnContent
+        });
+    })
+});
 
 //COLUMN VISIBLE
 let tableColumnVisible = $('#tableColumnVisible_id').DataTable({
