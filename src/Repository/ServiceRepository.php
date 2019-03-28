@@ -19,6 +19,30 @@ class ServiceRepository extends ServiceEntityRepository
         parent::__construct($registry, Service::class);
     }
 
+    public function findByUser($user){
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT u
+            FROM App\Entity\Service u
+            WHERE u.demandeur = $user
+           "
+            );
+        return $query->execute(); 
+    }
+    // public function findByDate($dateMin){
+    //     $entityManager = $this->getEntityManager();
+    //     $query = $entityManager->createQuery(
+    //         "SELECT u
+    //         FROM App\Entity\Service u
+    //         WHERE u.date > $dateMin 
+    //         -- and u.date < $dateMax 
+    //         -- and u.statut = $statut 
+    //         -- and u.demandeur = $demandeur
+    //        "
+    //         );
+    //     return $query->execute(); 
+    // }
+
     // /**
     //  * @return Service[] Returns an array of Service objects
     //  */

@@ -14,9 +14,13 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function(){}
                 }else if(data.edit){
                     tableRefArticle.row($('#edit'+data.id).parents('div').parents('td').parents('tr')).remove().draw( false );
                     tableRefArticle.row.add(data.edit).draw( false );
+                } else if (data.reload) {
+                    tableRefArticle.clear();
+                    tableRefArticle.rows.add(data.reload).draw();
                 }
 
                 callback(data);
+                initRemove();
 
                 let inputs = modal.find('.modal-body').find(".data");
                 // on vide tous les inputs
@@ -133,13 +137,12 @@ let submitNewFilter = $('#submitNewFilter');
 let urlNewFilter = Routing.generate('filter_new', true);
 InitialiserModalRefArticle(modalNewFilter, submitNewFilter, urlNewFilter, displayNewFilter);
 
-let urltest = Routing.generate('ref_article_api', true);
+let url = Routing.generate('ref_article_api', true);
 
 //REFERENCE ARTICLE
 
 $(document).ready(function () {
-    let jsonB = 'lol';
-    $.post(urltest, jsonB, function (data) {
+    $.post(url, function (data) {
         let dataContent = data.data;
         let columnContent = data.column;
         tableRefArticle = $('#tableRefArticle_id').DataTable({
@@ -151,6 +154,7 @@ $(document).ready(function () {
             "data": dataContent,
             "columns": columnContent
         });
+        initRemove();
     })
 });
 
@@ -216,17 +220,22 @@ function visibleBlockModal(bloc) {
 
 // affiche le filtre après ajout
 function displayNewFilter(data) {
-    $('#filters').append(data);
+    $('#filters').append(data.filterHtml);
 }
 
 // suppression du filtre au clic dessus
-$('.filter').on('click', removeFilter);
+function initRemove() {
+    $('.filter').on('click', removeFilter);
+}
 
 function removeFilter() {
     $(this).remove();
 
     let params = JSON.stringify({ 'filterId': $(this).find('.filter-id').val() });
-    $.post(Routing.generate('filter_delete', true), params);
+    $.post(Routing.generate('filter_delete', true), params, function(data) {
+        tableRefArticle.clear();
+        tableRefArticle.rows.add(data).draw();
+    });
 }
 
 // modale ajout d'un filtre, affichage du champ "contient" en fonction du champ sélectionné
