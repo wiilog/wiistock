@@ -19,32 +19,17 @@ class FilterRepository extends ServiceEntityRepository
         parent::__construct($registry, Filter::class);
     }
 
-    // /**
-    //  * @return Filter[] Returns an array of Filter objects
-    //  */
-    /*
-    public function findByExampleField($value)
+    public function countByChampLibreAndUser($clId, $userId)
     {
-        return $this->createQueryBuilder('f')
-            ->andWhere('f.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('f.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT COUNT (f)
+            FROM App\Entity\Filter f
+            JOIN App\Entity\Utilisateur u
+            WHERE f.champLibre = :clId
+            AND f.utilisateur = :userId"
+        )->setParameters(['clId' => $clId, 'userId' => $userId]);
 
-    /*
-    public function findOneBySomeField($value): ?Filter
-    {
-        return $this->createQueryBuilder('f')
-            ->andWhere('f.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
+        return $query->getSingleScalarResult();
     }
-    */
 }

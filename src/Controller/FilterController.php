@@ -48,37 +48,50 @@ class FilterController extends AbstractController
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $em = $this->getDoctrine()->getManager();
 
-            $filter = new Filter();
+            // on vérifie qu'il n'existe pas déjà un filtre sur le même champ
+            $userId = $this->getUser()->getId();
+            $existingFilter = $this->filterRepository->countByChampLibreAndUser($data['field'], $userId);
 
-            // champ Champ Libre
-            if (isset($data['field'])) {
-                $field = $data['field'];
+            if($existingFilter == 0) {
+                $filter = new Filter();
 
-                if (intval($field) != 0) {
-                    $champLibre = $this->champsLibreRepository->find(intval($field));
-                    $filter->setChampLibre($champLibre);
+                // champ Champ Libre
+                if (isset($data['field'])) {
+                    $field = $data['field'];
+
+                    if (intval($field) != 0) {
+                        $champLibre = $this->champsLibreRepository->find(intval($field));
+                        $filter->setChampLibre($champLibre);
+                    } else {
+                        $filter->setChampFixe($data['field']);
+                    }
                 } else {
-                    $filter->setChampFixe($data['field']);
+                    return new JsonResponse(false); //TODO gérer retour erreur (champ obligatoire)
                 }
+
+                // champ Value
+                if (isset($data['value'])) {
+                    $filter->setValue($data['value']);
+                }
+
+                // champ Utilisateur
+                $user = $this->getUser();
+                $filter->setUtilisateur($user);
+
+                $em->persist($filter);
+                $em->flush();
+
+                $filterArray = [
+                    'id' => $filter->getId(),
+                    'champLibre' => $filter->getChampLibre(),
+                    'champFixe' => $filter->getChampFixe(),
+                    'value' => $filter->getValue()
+                ];
+                $result = $this->renderView('reference_article/oneFilter.html.twig', ['filter' => $filterArray]);
             } else {
-                return new JsonResponse(false); //TODO gérer retour erreur (champ obligatoire)
+                $result = false; //TODO gérer retour erreur (filtre déjà existant)
             }
-
-            // champ Value
-            if (isset($data['value'])) {
-                $filter->setValue($data['value']);
-            }
-
-            // champ Utilisateur
-            $user = $this->getUser();
-            $filter->setUtilisateur($user);
-
-            $em->persist($filter);
-            $em->flush();
-
-            $filters = $this->filterRepository->findBy(['utilisateur' => $user]);
-
-            return new JsonResponse($filters);
+            return new JsonResponse($result);
         }
         throw new NotFoundHttpException("404");
     }

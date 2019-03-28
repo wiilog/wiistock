@@ -19,20 +19,11 @@
                 <i class="fas fa-filter mr-2"></i>ajouter un filtre
             </div>
 
-            {% for filter in filters %}
-                <div class="btn filter">
-                    <input hidden value="{{ filter.id }}" class="filter-id">
-                    {% if filter.champFixe is not null %}
-                        <i class="fas fa-times float-right"></i>
-                        <span class="bold">{{ filter.champFixe | capitalize}}</span><br>
-                        <span class="italic">"{{ filter.value }}"</span>
-                    {% else %}
-                        <i class="fas fa-times float-right"></i>
-                        <span class="bold">{{ filter.champLibre.label|capitalize }}</span><br>
-                        <span class="italic">"{{ filter.value }}"</span>
-                    {% endif %}
-                </div>
-            {% endfor %}
+            <div id="filters">
+                {% for filter in filters %}
+                    {% include 'reference_article/oneFilter.html.twig' %}
+                {% endfor %}
+            </div>
         </div>
 
         <div class="col-11">

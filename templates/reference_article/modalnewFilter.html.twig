@@ -16,7 +16,7 @@
                             {#TODO CG ou supprimer coté controller ?#}
                             {% if (champ.label != 'Actions') %}
                                 {% set value = (champ.id == 0) ? champ.label : champ.id %}
-                                <option value="{{ value }}" data-type="{{ champ.typage }}">{{ champ.label }}</option>
+                                <option value="{{ value }}" data-type="{{ champ.typage }}">{{ champ.label|capitalize }}</option>
                             {% endif %}
                         {% endfor %}
                     </select>

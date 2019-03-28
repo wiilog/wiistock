@@ -55,7 +55,7 @@ InitialiserModal(modalModifyRefArticle, submitModifyRefArticle, urlModifyRefArti
 let modalNewFilter = $('#modalNewFilter');
 let submitNewFilter = $('#submitNewFilter');
 let urlNewFilter = Routing.generate('filter_new', true);
-InitialiserModal(modalNewFilter, submitNewFilter, urlNewFilter, tableRefArticle);
+InitialiserModal(modalNewFilter, submitNewFilter, urlNewFilter, tableRefArticle, displayNewFilter);
 
 $('#myTab div').on('click', function (e) {
     $(this).siblings().removeClass('data');
@@ -122,10 +122,8 @@ function updateQuantityDisplay(elem) {
 }
 
 // affiche le filtre après ajout
-$('#submitNewFilter').on('click', displayFilter);
-
-function displayFilter() {
-//TODO CG
+function displayNewFilter(data) {
+    $('#filters').append(data);
 }
 
 // suppression du filtre au clic dessus
@@ -148,6 +146,7 @@ function displayFilterValue(elem) {
     switch (type) {
         case 'checkbox':
             label = 'Oui / Non';
+            elem.closest('.modal-body').find('#value').addClass('checkbox');
             break;
         case 'number':
             label = 'Valeur';

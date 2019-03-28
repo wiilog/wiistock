@@ -13,7 +13,7 @@
  * @param {document} table le DataTable gérant les données
  * 
  */
-function InitialiserModal(modal, submit, path, table) {
+function InitialiserModal(modal, submit, path, table, callback = null) {
     submit.click(function () {
         xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function () {
@@ -35,6 +35,8 @@ function InitialiserModal(modal, submit, path, table) {
                         $('#statutReception').text(data.anomalie);
                     }
                 });
+
+                callback(data);
 
                 let inputs = modal.find('.modal-body').find(".data");
                 // on vide tous les inputs
