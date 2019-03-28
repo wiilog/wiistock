@@ -152,16 +152,20 @@ class ReferenceArticleController extends Controller
     public function new(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            dump($data);
             $em = $this->getDoctrine()->getManager();
+            $statut = ($data['statut'] === 'active' ? $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF) : $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_INACTIF));
             $refArticle = new ReferenceArticle();
             $refArticle
                 ->setLibelle($data['libelle'])
                 ->setReference($data['reference'])
-                ->setQuantiteStock($data['quantite'])
+                ->setQuantiteStock($data['quantite']? $data['quantite'] : 0)
+                ->setStatut($statut)
+                ->setTypeQuantite($data['type_quantite'] ? ReferenceArticle::TYPE_QUANTITE_REFERENCE: ReferenceArticle::TYPE_QUANTITE_ARTICLE)
                 ->setType($this->typeRepository->find($data['type']));
             // TODO récupérer statut
             $em->persist($refArticle);
-            $em->flush();
+            // $em->flush();
             $champsLibreKey = array_keys($data);
 
             foreach ($champsLibreKey as $champs) {
@@ -172,7 +176,7 @@ class ReferenceArticleController extends Controller
                         ->addArticleReference($refArticle)
                         ->setChampLibre($this->champsLibreRepository->find($champs));
                     $em->persist($valeurChampLibre);
-                    $em->flush();
+                    // $em->flush();
                 }
             }
             return new JsonResponse();
@@ -183,7 +187,7 @@ class ReferenceArticleController extends Controller
     /**
      * @Route("/", name="reference_article_index",  methods="GET|POST")
      */
-    public function index(Request $request): Response
+    public function index(): Response
     {
         $typeQuantite = [
             [
@@ -257,9 +261,9 @@ class ReferenceArticleController extends Controller
                 $listArticlesFournisseur = [];
                 $articlesFournisseurs = $articleRef->getArticlesFournisseur();
                 $totalQuantity = 0;
-                foreach($articlesFournisseurs as $articleFournisseur) {
+                foreach ($articlesFournisseurs as $articleFournisseur) {
                     $quantity = 0;
-                    foreach($articleFournisseur->getArticles() as $article) {
+                    foreach ($articleFournisseur->getArticles() as $article) {
                         $quantity += $article->getQuantite();
                     }
                     $totalQuantity += $quantity;
@@ -296,11 +300,10 @@ class ReferenceArticleController extends Controller
     public function edit(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-
             $entityManager = $this->getDoctrine()->getManager();
             $refArticle = $this->referenceArticleRepository->find(intval($data['idRefArticle']));
 
-            if($refArticle) {
+            if ($refArticle) {
                 if (isset($data['reference'])) $refArticle->setReference($data['reference']);
                 if (isset($data['libelle'])) $refArticle->setLibelle($data['libelle']);
                 if (isset($data['quantite'])) $refArticle->setQuantiteStock(intval($data['quantite']));
@@ -322,7 +325,7 @@ class ReferenceArticleController extends Controller
                     if (gettype($champ) === 'integer') {
                         $valeurChampLibre = $this->valeurChampsLibreRepository->getByRefArticleANDChampsLibre($data['idRefArticle'], $champ);
                         // si la valeur n'existe pas, on la crée
-                        if(!$valeurChampLibre) {
+                        if (!$valeurChampLibre) {
                             $valeurChampLibre = new ValeurChampsLibre();
                             $valeurChampLibre
                                 ->addArticleReference($refArticle)

@@ -27,6 +27,9 @@ function InitialiserModal(modal, submit, path, table, callback = null) {
                 if(data.entete){
                     $('.zone-entete').html(data.entete)
                 }
+                if(data.refArticle){
+                    
+                }
                 table.ajax.reload(function (json) {
                     if (this.responseText !== undefined) {
                         $('#myInput').val(json.lastInput);
