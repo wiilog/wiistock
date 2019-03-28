@@ -25,7 +25,7 @@
                             <div>
                                 <span class="btn active" data-toggle="statut" data-title="active" onclick="toggleRadioButton($(this))">Actif</span><span class="btn not-active" data-toggle="statut" data-title="inactive" onclick="toggleRadioButton($(this))">Inactif</span>
                             </div>
-                            <input type="hidden" name="statut" id="statut" class="data">
+                            <input type="hidden" name="statut" id="statut" class="data" value="active">
                         </div>
                     </div>
 
@@ -46,7 +46,7 @@
                             <div onclick="updateQuantityDisplay($(this))">
                                 <span class="btn active" data-toggle="type_quantite" data-title="reference" onclick="toggleRadioButton($(this))">Par référence</span><span class="btn not-active" data-toggle="type_quantite" data-title="article" onclick="toggleRadioButton($(this))">Par article</span>
                             </div>
-                            <input type="hidden" name="type_quantite" class="data" id="type_quantite">
+                            <input type="hidden" name="type_quantite" class="data" value="reference" id="type_quantite">
                         </div>
                     </div>
 
@@ -73,10 +73,12 @@
                         <div class="nav nav-tabs myTab" id="myTabNew" role="tablist">
                             {% for type in types %}
                                 <div class="nav-link pointer" name='type' value='{{type.id}}' id='{{type.label}}-tab'
-                                     data-toggle="tab" href="#{{type.label}}-new" role="tab" aria-controls={{type.label}}
+                                     data-toggle="tab" href="#{{type.label}}-new" role="tab" onclick="idType($(this), '#idTypeNew')" aria-controls={{type.label}}
                                      aria-selected="true">
                                     {{type.label}}</div>
                             {% endfor %}
+                            <input type="hidden" id="idTypeNew" class="data" name="type"
+                            value=''>
                         </div>
                         <div class="tab-content" id="myTabContent">
                             {% for type in types %}
