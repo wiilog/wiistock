@@ -1,18 +1,5 @@
 $('.select2').select2();
 
-/**
- * Initialise une fenêtre modale
- *
- * pour utiliser la validation des données :
- *      ajouter une <div class="error-msg"> à la fin du modal-body
- *      ajouter la classe "needed" aux inputs qui sont obligatoires
- *      supprimerle data-dismiss=modal du bouton submit de la modale (la gestion de la fermeture doit se faire dans cette fonction)
- * 
- * @param {Document} modal la fenêtre modale selectionnée : document.getElementById("modal").
- * @param {Document} submit le bouton qui va envoyé les données au controller via Ajax.
- * @param {string} path le chemin pris pour envoyer les données.
- * 
- */
 function InitialiserModalRefArticle(modal, submit, path) {
     submit.click(function () {
         xhttp = new XMLHttpRequest();
@@ -20,22 +7,14 @@ function InitialiserModalRefArticle(modal, submit, path) {
             if (this.readyState == 4 && this.status == 200) {
                 $('.errorMessage').html(JSON.parse(this.responseText))
                 data = JSON.parse(this.responseText);
-
-                // let jsonB = 'lol';
-                // $.post(urltest, jsonB, function (data) {
-                //     let dataContent = data.data;
-                //     let columnContent = data.column;
-                //     tableRefArticle = $('#tableRefArticle_id').DataTable({
-                //         "autoWidth": false,
-                //         "scrollX": true,
-                //         "language": {
-                //             "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
-                //         },
-                //         "data": dataContent,
-                //         "columns": columnContent
-                //     });
-                // })
-
+                if (data.new) {
+                    tableRefArticle.row.add(data.new).draw( false );
+                }else if(data.delete){
+                    tableRefArticle.row($('#delete'+data.delete).parents('div').parents('td').parents('tr')).remove().draw( false );
+                }else if(data.edit){
+                    tableRefArticle.row($('#edit'+data.id).parents('div').parents('td').parents('tr')).remove().draw( false );
+                    tableRefArticle.row.add(data.edit).draw( false );
+                }
                 let inputs = modal.find('.modal-body').find(".data");
                 // on vide tous les inputs
                 inputs.each(function () {
@@ -46,7 +25,6 @@ function InitialiserModalRefArticle(modal, submit, path) {
                 checkboxes.each(function () {
                     $(this).prop('checked', false);
                 })
-
             }
         };
 
@@ -128,7 +106,6 @@ function InitialiserModalRefArticle(modal, submit, path) {
 
             modal.find('.error-msg').html(msg);
         }
-
     });
 }
 
@@ -148,42 +125,12 @@ let submitModifyRefArticle = $('#submitEditRefArticle');
 let urlModifyRefArticle = Routing.generate('reference_article_edit', true);
 InitialiserModalRefArticle(modalModifyRefArticle, submitModifyRefArticle, urlModifyRefArticle);
 
-// InitialiserModal(modalModifyRefArticle, submitModifyRefArticle, urlModifyRefArticle, tableRefArticle);
+InitialiserModal(modalModifyRefArticle, submitModifyRefArticle, urlModifyRefArticle, tableRefArticle);
 
 let modalNewFilter = $('#modalNewFilter');
 let submitNewFilter = $('#submitNewFilter');
 let urlNewFilter = Routing.generate('filter_new', true);
-// InitialiserModal(modalNewFilter, submitNewFilter, urlNewFilter, tableRefArticle);
-
-let urltest = Routing.generate('ref_article_api', true);
-
-// let tableRefArticle = $('#tableRefArticle_id').DataTable({
-//     "autoWidth": false,
-//     "scrollX": true,
-//     "language": {
-//         "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
-//     },
-//     url: urltest,
-//     method: "POST",
-//     xhrFields: {
-//         withCredentials: true
-//     },
-//     success: function (data) {
-//         // loop data to console to verify it is
-//         // arriving to browser
-//         let dataContent = data.data;
-//         let columnContent = data.column;
-//         $.each(data, function(a, b) {
-//             console.log(b);
-//             return data;
-//         });
-//     },
-//     "data": data.data,
-//     "columns": columnContent
-// });;
-
-
-
+InitialiserModal(modalNewFilter, submitNewFilter, urlNewFilter, tableRefArticle);
 
 //REFERENCE ARTICLE
 
@@ -268,7 +215,7 @@ function visibleBlockModal(bloc) {
 $('#submitNewFilter').on('click', displayFilter);
 
 function displayFilter() {
-//TODO CG
+    //TODO CG
 }
 
 // suppression du filtre au clic dessus
@@ -277,7 +224,7 @@ $('.filter').on('click', removeFilter);
 function removeFilter() {
     $(this).remove();
 
-    let params = JSON.stringify({'filterId': $(this).find('.filter-id').val()});
+    let params = JSON.stringify({ 'filterId': $(this).find('.filter-id').val() });
     $.post(Routing.generate('filter_delete', true), params);
 }
 
