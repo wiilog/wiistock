@@ -90,6 +90,11 @@ class Utilisateur implements UserInterface, EquatableInterface
      * @ORM\OneToMany(targetEntity="App\Entity\Service", mappedBy="demandeur")
      */
     private $services;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Filter", mappedBy="utilisateur", orphanRemoval=true)
+     */
+    private $filters;
     
     public function __construct()
     {
@@ -101,6 +106,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->livraisons = new ArrayCollection();
         $this->mouvements = new ArrayCollection();
         $this->services = new ArrayCollection();
+        $this->filters = new ArrayCollection();
     }
     public function getId()
     {
@@ -415,6 +421,37 @@ class Utilisateur implements UserInterface, EquatableInterface
             // set the owning side to null (unless already changed)
             if ($service->getDemandeur() === $this) {
                 $service->setDemandeur(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Filter[]
+     */
+    public function getFilters(): Collection
+    {
+        return $this->filters;
+    }
+
+    public function addFilter(Filter $filter): self
+    {
+        if (!$this->filters->contains($filter)) {
+            $this->filters[] = $filter;
+            $filter->setUtilisateur($this);
+        }
+
+        return $this;
+    }
+
+    public function removeFilter(Filter $filter): self
+    {
+        if ($this->filters->contains($filter)) {
+            $this->filters->removeElement($filter);
+            // set the owning side to null (unless already changed)
+            if ($filter->getUtilisateur() === $this) {
+                $filter->setUtilisateur(null);
             }
         }
 

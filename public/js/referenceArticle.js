@@ -148,6 +148,13 @@ let submitModifyRefArticle = $('#submitEditRefArticle');
 let urlModifyRefArticle = Routing.generate('reference_article_edit', true);
 InitialiserModalRefArticle(modalModifyRefArticle, submitModifyRefArticle, urlModifyRefArticle);
 
+InitialiserModal(modalModifyRefArticle, submitModifyRefArticle, urlModifyRefArticle, tableRefArticle);
+
+let modalNewFilter = $('#modalNewFilter');
+let submitNewFilter = $('#submitNewFilter');
+let urlNewFilter = Routing.generate('filter_new', true);
+InitialiserModal(modalNewFilter, submitNewFilter, urlNewFilter, tableRefArticle);
+
 let urltest = Routing.generate('ref_article_api', true);
 
 let tableRefArticle = $('#tableRefArticle_id').DataTable({
@@ -257,3 +264,40 @@ function visibleBlockModal(bloc) {
     }
 }
 
+// affiche le filtre après ajout
+$('#submitNewFilter').on('click', displayFilter);
+
+function displayFilter() {
+//TODO CG
+}
+
+// suppression du filtre au clic dessus
+$('.filter').on('click', removeFilter);
+
+function removeFilter() {
+    $(this).remove();
+
+    let params = JSON.stringify({'filterId': $(this).find('.filter-id').val()});
+    $.post(Routing.generate('filter_delete', true), params);
+}
+
+// modale ajout d'un filtre, affichage du champ "contient" en fonction du champ sélectionné
+function displayFilterValue(elem) {
+    let type = elem.find(':selected').data('type');
+    if (type == 'booleen') type = 'checkbox';
+    $('#value').attr('type', type);
+
+    let label = '';
+    switch (type) {
+        case 'checkbox':
+            label = 'Oui / Non';
+            break;
+        case 'number':
+            label = 'Valeur';
+            break;
+        default:
+            label = 'Contient';
+    }
+
+    elem.closest('.modal-body').find('.valueLabel').text(label);
+}
