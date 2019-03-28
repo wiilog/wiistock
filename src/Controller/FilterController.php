@@ -50,7 +50,7 @@ class FilterController extends AbstractController
 
             // on vérifie qu'il n'existe pas déjà un filtre sur le même champ
             $userId = $this->getUser()->getId();
-            $existingFilter = $this->filterRepository->countByChampLibreAndUser($data['field'], $userId);
+            $existingFilter = $this->filterRepository->countByChampAndUser($data['field'], $userId);
 
             if($existingFilter == 0) {
                 $filter = new Filter();

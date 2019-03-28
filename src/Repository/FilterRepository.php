@@ -19,15 +19,15 @@ class FilterRepository extends ServiceEntityRepository
         parent::__construct($registry, Filter::class);
     }
 
-    public function countByChampLibreAndUser($clId, $userId)
+    public function countByChampAndUser($field, $userId)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
             "SELECT COUNT (f)
             FROM App\Entity\Filter f
-            WHERE f.champLibre = :clId
+            WHERE f.champLibre = :clId OR f.champFixe = :clId
             AND f.utilisateur = :userId"
-        )->setParameters(['clId' => $clId, 'userId' => $userId]);
+        )->setParameters(['clId' => $field, 'userId' => $userId]);
 
         return $query->getSingleScalarResult();
     }

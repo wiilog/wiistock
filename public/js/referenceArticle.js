@@ -17,6 +17,7 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function(){}
                 }
 
                 callback(data);
+                initRemove();
 
                 let inputs = modal.find('.modal-body').find(".data");
                 // on vide tous les inputs
@@ -133,13 +134,12 @@ let submitNewFilter = $('#submitNewFilter');
 let urlNewFilter = Routing.generate('filter_new', true);
 InitialiserModalRefArticle(modalNewFilter, submitNewFilter, urlNewFilter, displayNewFilter);
 
-let urltest = Routing.generate('ref_article_api', true);
+let url = Routing.generate('ref_article_api', true);
 
 //REFERENCE ARTICLE
 
 $(document).ready(function () {
-    let jsonB = 'lol';
-    $.post(urltest, jsonB, function (data) {
+    $.post(url, function (data) {
         let dataContent = data.data;
         let columnContent = data.column;
         tableRefArticle = $('#tableRefArticle_id').DataTable({
@@ -151,6 +151,7 @@ $(document).ready(function () {
             "data": dataContent,
             "columns": columnContent
         });
+        initRemove();
     })
 });
 
@@ -220,7 +221,9 @@ function displayNewFilter(data) {
 }
 
 // suppression du filtre au clic dessus
-$('.filter').on('click', removeFilter);
+function initRemove() {
+    $('.filter').on('click', removeFilter);
+}
 
 function removeFilter() {
     $(this).remove();
