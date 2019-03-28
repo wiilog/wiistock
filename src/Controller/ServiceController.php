@@ -50,15 +50,22 @@ class ServiceController extends AbstractController
     }
    
     /**
-        * @Route("/api", name="service_api", options={"expose"=true}, methods="GET|POST")
-        */
+     * @Route("/api", name="service_api", options={"expose"=true}, methods="GET|POST")
+     */
     public function serviceApi(Request $request) : Response
     {
+             
         if ($request->isXmlHttpRequest()) { //Si la requête est de type Xml
-            $services = $this->serviceRepository->findAll();
-             $rows = [];
             
-            foreach ($services as $service) {
+            
+                // $user = $this->getUser()->getId();
+                // $services = $this->serviceRepository->findByUser($user);
+                $services = $this->serviceRepository->findAll();
+        
+            
+
+            $rows = [];
+                foreach ($services as $service) {
                 $url['edit'] = $this->generateUrl('service_edit', ['id' => $service->getId()]);
                
                 $rows[] = [
@@ -82,16 +89,18 @@ class ServiceController extends AbstractController
 
 
     /**
-     * @Route("/", name="service_index", methods={"GET"})
+     * @Route("/", name="service_index", methods={"GET", "POST"})
      */
-    public function index(ServiceRepository $serviceRepository, EmplacementRepository $emplacementRepository): Response
+    public function index(): Response
     {
         return $this->render('service/index.html.twig', [
-            'services' => $serviceRepository->findAll(),
-            'emplacements' => $emplacementRepository->findAll(),
+            'emplacements' => $this->emplacementRepository->findAll(),
+            'demandeurs' => $this->utilisateurRepository->findAll(),
+            'statuts' => $this->statutRepository->findByCategorieName(Service::CATEGORIE),
         ]);
     }
 
+    
     /**
      * @Route("/creation", name="creation_service", options={"expose"=true}, methods={"GET", "POST"})
      */
@@ -119,8 +128,7 @@ class ServiceController extends AbstractController
         }
         throw new XmlHttpException("404 not found");
     }
-  
-    
+     
    
     /**
         * @Route("/editApi", name="service_edit_api", options={"expose"=true}, methods="GET|POST")
@@ -128,7 +136,6 @@ class ServiceController extends AbstractController
     public function editApi(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            dump($data);
             $service = $this->serviceRepository->find($data);
             $json = $this->renderView('service/modalEditServiceContent.html.twig', [
                 'service' => $service,
@@ -148,7 +155,6 @@ class ServiceController extends AbstractController
     public function edit(Request $request) : Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-                        
             $service = $this->serviceRepository->find($data['id']);
             $service
                 ->setLibelle($data['Libelle'])
@@ -162,5 +168,6 @@ class ServiceController extends AbstractController
         }
         throw new NotFoundHttpException("404");
     }
-
 }
+
+

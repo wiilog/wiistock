@@ -18,6 +18,27 @@ var tableService = $('#tableService_id').DataTable({
     ],
 });
 
+
+
+$('#submitSearchService').on('click', function () {
+    let statut = $('#statut').val()
+    let demandeur = $('#demandeur').val()
+    
+   
+    tableService
+        .columns(3)
+        .search(statut)
+        .draw();
+
+    tableService
+        .columns(1)
+        .search(demandeur)
+        .draw();
+        
+});
+
+
+
 let modalNewService = $("#modalNewService");
 let submitNewService = $("#submitNewService");
 let urlNewService = Routing.generate('creation_service', true);
@@ -28,33 +49,45 @@ let submitModifyService = $('#submitEditService');
 let urlModifyService = Routing.generate('service_edit', true);
 InitialiserModal(modalModifyService, submitModifyService, urlModifyService, tableService);
 
-$.fn.dataTable.ext.search.push(
-    function( settings, data, dataIndex ) {
-        console.log('1étape');
-        var min =  $('#dateMin').val();
-        console.log(min);
-        var max =  $('#dateMax').val();
-        console.log(max);
-        var date = data[0]  || 0; // use data for the date column
-        console.log(date);
-        if ( ( isNaN( min ) && isNaN( max ) ) ||
-             ( isNaN( min ) && date <= max ) ||
-             ( min <= date   && isNaN( max ) ) ||
-             ( min <= date   && date <= max ) )
-        {
-            return true;
-        }
-        return false;
-    }
-);
- 
-$(document).ready(function() {
-    var table = $('#tableService_id').DataTable();
-   
-     
-    // Event listener to the two range filtering inputs to redraw on input
-    $('#dateMin, #dateMax').keyup( function() {
-        console.log('2étape');
-        table.draw();
-    } );
-} );
+// let min = ' ';
+// $.fn.dataTable.ext.search.push(
+//     function ( settings, data, dataIndex ) {
+//         min = new Date($('#dateMin').val());
+//         let dateMin = min.toISOString();
+        
+        
+//         // console.log(dateMin);
+        
+//         let max = new Date($('#dateMax').val());
+//         let dateMax = max.toISOString();
+//         // console.log(dateMax);
+        
+//         let dateInit = new Date((data[0] ));
+//         let date = dateInit.toISOString(); 
+        
+//         console.log(dateInit);
+//         console.log(dateInit);
+//         console.log(date);
+//         console.log(data[0] );
+
+//         if ( 
+//             // ( isNaN( dateMin ) && isNaN( dateMax ) ) ||
+             
+//             // ( isNaN( dateMin ) && date <= dateMax ) ||
+//             //  ( dateMin <= date   && isNaN( dateMax ) ) ||
+//              ( dateMin <= date   && date <= dateMax ) )
+//         {
+//             return true;
+//         }
+//         return false;
+//     }
+// );
+
+
+// $('#submitSearchService').on('click', function () {
+//     tableService
+//         .draw();
+// } );
+
+
+
