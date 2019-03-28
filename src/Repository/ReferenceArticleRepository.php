@@ -43,7 +43,8 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function getQuantiteStockById($id){
+    public function getQuantiteStockById($id)
+    {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT r. quantiteStock
@@ -52,6 +53,11 @@ class ReferenceArticleRepository extends ServiceEntityRepository
            "
             );
         return $query->getSingleScalarResult(); 
+    }
+
+    public function findByFilters($filters)
+    {
+
     }
 
 }

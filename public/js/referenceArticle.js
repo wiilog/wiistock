@@ -13,13 +13,15 @@ $('.select2').select2();
  * @param {string} path le chemin pris pour envoyer les données.
  *
  */
-function InitialiserModalRefArticle(modal, submit, path) {
+function InitialiserModalRefArticle(modal, submit, path, callback = null) {
     submit.click(function () {
         xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function () {
             if (this.readyState == 4 && this.status == 200) {
                 $('.errorMessage').html(JSON.parse(this.responseText))
                 data = JSON.parse(this.responseText);
+
+                callback(data);
 
                 // let jsonB = 'lol';
                 // $.post(urltest, jsonB, function (data) {
@@ -153,7 +155,7 @@ InitialiserModalRefArticle(modalModifyRefArticle, submitModifyRefArticle, urlMod
 let modalNewFilter = $('#modalNewFilter');
 let submitNewFilter = $('#submitNewFilter');
 let urlNewFilter = Routing.generate('filter_new', true);
-InitialiserModal(modalNewFilter, submitNewFilter, urlNewFilter, tableRefArticle, displayNewFilter);
+InitialiserModalRefArticle(modalNewFilter, submitNewFilter, urlNewFilter, displayNewFilter);
 
 let urltest = Routing.generate('ref_article_api', true);
 

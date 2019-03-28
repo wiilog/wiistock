@@ -82,19 +82,24 @@ class ReferenceArticleController extends Controller
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
             {
+//                $userId = $this->getUser()->getId();
+//                $filters = $this->filterRepository->getFieldsAndValuesByUser($userId);
+//
+//                $refs = $this->referenceArticleRepository->findByFilters($filters);
+                //TODO CG en cours
                 $refs = $this->referenceArticleRepository->findAll();
+
                 $rows = [];
                 foreach ($refs as $refArticle) {
                     $champsLibres = $this->champsLibreRepository->getLabelByCategory(ReferenceArticle::CATEGORIE);
                     $rowCL = [];
-                    $rowDD = [];
 
                     foreach ($champsLibres as $champLibre) {
                         $valeur = $this->valeurChampsLibreRepository->getByRefArticleANDChampsLibre($refArticle->getId(), $champLibre['id']);
                         $rowCL[$champLibre['label']] = ($valeur ? $valeur->getValeur() : "");
                     }
 
-                    $rowDD = [
+                    $rowCF = [
                         "id" => $refArticle->getId(),
                         "Libellé" => $refArticle->getLibelle(),
                         "Référence" => $refArticle->getReference(),
@@ -104,8 +109,7 @@ class ReferenceArticleController extends Controller
                             'idRefArticle' => $refArticle->getId()
                         ]),
                     ];
-                    $rows[] = array_merge($rowCL, $rowDD);
-                    // dump($rows);
+                    $rows[] = array_merge($rowCL, $rowCF);
                 }
                 $data['data'] = $rows;
 

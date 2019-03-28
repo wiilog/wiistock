@@ -25,11 +25,25 @@ class FilterRepository extends ServiceEntityRepository
         $query = $em->createQuery(
             "SELECT COUNT (f)
             FROM App\Entity\Filter f
-            JOIN App\Entity\Utilisateur u
             WHERE f.champLibre = :clId
             AND f.utilisateur = :userId"
         )->setParameters(['clId' => $clId, 'userId' => $userId]);
 
         return $query->getSingleScalarResult();
     }
+
+    public function getFieldsAndValuesByUser($userId)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT f.champFixe, cl.id, f.value
+            FROM App\Entity\Filter f
+            JOIN App\Entity\ChampsLibre cl
+            WHERE f.utilisateur = :userId
+            "
+        )->setParameter('userId', $userId);
+
+        return $query->execute();
+    }
+
 }
