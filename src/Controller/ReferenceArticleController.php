@@ -212,7 +212,7 @@ class ReferenceArticleController extends Controller
         $champ[]=[
             'label'=> 'Type',
             'id' => 0,
-            'typage' => 'number'
+            'typage' => 'list'
         ];
         $champ[]=[
             'label'=> 'Quantité',

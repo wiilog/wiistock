@@ -139,8 +139,18 @@ function removeFilter() {
 // modale ajout d'un filtre, affichage du champ "contient" en fonction du champ sélectionné
 function displayFilterValue(elem) {
     let type = elem.find(':selected').data('type');
-    if (type == 'booleen') type = 'checkbox';
-    $('#value').attr('type', type);
+    let modalBody = elem.closest('.modal-body');
+
+    // cas particulier de liste déroulante
+    if (type == 'list') {
+        $.getJSON(Routing.generate('type_show_select'), function(data) {
+            modalBody.find('.input').html(data);
+        })
+    } else {
+        if (type == 'booleen') type = 'checkbox';
+        modalBody.find('#value').attr('type', type);
+    }
+
 
     let label = '';
     switch (type) {
@@ -149,6 +159,7 @@ function displayFilterValue(elem) {
             elem.closest('.modal-body').find('#value').addClass('checkbox');
             break;
         case 'number':
+        case 'list':
             label = 'Valeur';
             break;
         default:

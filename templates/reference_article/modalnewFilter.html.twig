@@ -13,7 +13,6 @@
                     <select class="form-control data needed" id="field" name="field" onchange="displayFilterValue($(this))">
                         <option disabled selected> </option>
                         {% for champ in champs %}
-                            {#TODO CG ou supprimer coté controller ?#}
                             {% if (champ.label != 'Actions') %}
                                 {% set value = (champ.id == 0) ? champ.label : champ.id %}
                                 <option value="{{ value }}" data-type="{{ champ.typage }}">{{ champ.label|capitalize }}</option>
@@ -24,7 +23,7 @@
 
                 <div class="form-group">
                     <label for="value" class="valueLabel">Contient</label>
-                    <input type="text" class="form-control data needed" id="value" name="value">
+                    <span class="input"><input type="text" class="form-control data needed" id="value" name="value"></span>
                 </div>
 
                 <div class="error-msg"></div>
