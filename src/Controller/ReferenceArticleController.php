@@ -156,7 +156,6 @@ class ReferenceArticleController extends Controller
     public function new(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            dump($data);
             $em = $this->getDoctrine()->getManager();
             $statut = ($data['statut'] === 'active' ? $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF) : $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_INACTIF));
             $refArticle = new ReferenceArticle();
@@ -169,7 +168,7 @@ class ReferenceArticleController extends Controller
                 ->setType($this->typeRepository->find($data['type']));
             // TODO récupérer statut
             $em->persist($refArticle);
-            // $em->flush();
+            $em->flush();
             $champsLibreKey = array_keys($data);
 
             foreach ($champsLibreKey as $champs) {
@@ -180,10 +179,31 @@ class ReferenceArticleController extends Controller
                         ->addArticleReference($refArticle)
                         ->setChampLibre($this->champsLibreRepository->find($champs));
                     $em->persist($valeurChampLibre);
-                    // $em->flush();
+                    $em->flush();
                 }
             }
-            return new JsonResponse();
+
+            $champsLibres = $this->champsLibreRepository->getLabelByCategory(ReferenceArticle::CATEGORIE);
+                    $rowCL = [];
+                    $rowDD = [];
+                    foreach ($champsLibres as $champLibre) {
+                        $valeur = $this->valeurChampsLibreRepository->getByRefArticleANDChampsLibre($refArticle->getId(), $champLibre['id']);
+                        $rowCL[$champLibre['label']] = ($valeur ? $valeur->getValeur() : "");
+                    }
+                    $rowDD = [
+                        "id" => $refArticle->getId(),
+                        "Libellé" => $refArticle->getLibelle(),
+                        "Référence" => $refArticle->getReference(),
+                        "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
+                        "Quantité" => $refArticle->getQuantiteStock(),
+                        'Actions' => $this->renderView('reference_article/datatableReferenceArticleRow.html.twig', [
+                            'idRefArticle' => $refArticle->getId()
+                        ]),
+                    ];
+                    $rows = array_merge($rowCL, $rowDD);
+                    $response['new'] = $rows;
+
+            return new JsonResponse($response);
         }
         throw new NotFoundHttpException("404");
     }
@@ -340,7 +360,29 @@ class ReferenceArticleController extends Controller
                         $entityManager->flush();
                     }
                 }
-                $response = true;
+                
+                $champsLibres = $this->champsLibreRepository->getLabelByCategory(ReferenceArticle::CATEGORIE);
+                    $rowCL = [];
+                    $rowDD = [];
+                    foreach ($champsLibres as $champLibre) {
+                        $valeur = $this->valeurChampsLibreRepository->getByRefArticleANDChampsLibre($refArticle->getId(), $champLibre['id']);
+                        $rowCL[$champLibre['label']] = ($valeur ? $valeur->getValeur() : "");
+                    }
+                    $rowDD = [
+                        "id" => $refArticle->getId(),
+                        "Libellé" => $refArticle->getLibelle(),
+                        "Référence" => $refArticle->getReference(),
+                        "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
+                        "Quantité" => $refArticle->getQuantiteStock(),
+                        'Actions' => $this->renderView('reference_article/datatableReferenceArticleRow.html.twig', [
+                            'idRefArticle' => $refArticle->getId()
+                        ]),
+                    ];
+                    $rows = array_merge($rowCL, $rowDD);
+                    $response['id'] = $refArticle->getId();
+                    $response['edit'] = $rows;
+                    dump($response);
+
             } else {
                 $response = false;
             }
@@ -356,10 +398,17 @@ class ReferenceArticleController extends Controller
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $refArticle = $this->referenceArticleRepository->find($data['refArticle']);
+            $rows = $refArticle->getId();
+
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($refArticle);
             $entityManager->flush();
-            return new JsonResponse();
+
+           
+            $response['delete'] = $rows;
+            dump($response);
+
+            return new JsonResponse($response);
         }
         throw new NotFoundHttpException("404");
     }
