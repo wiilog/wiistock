@@ -14,6 +14,9 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function(){}
                 }else if(data.edit){
                     tableRefArticle.row($('#edit'+data.id).parents('div').parents('td').parents('tr')).remove().draw( false );
                     tableRefArticle.row.add(data.edit).draw( false );
+                } else if (data.reload) {
+                    tableRefArticle.clear();
+                    tableRefArticle.rows.add(data.reload).draw();
                 }
 
                 callback(data);
@@ -217,7 +220,7 @@ function visibleBlockModal(bloc) {
 
 // affiche le filtre après ajout
 function displayNewFilter(data) {
-    $('#filters').append(data);
+    $('#filters').append(data.filterHtml);
 }
 
 // suppression du filtre au clic dessus
@@ -229,7 +232,10 @@ function removeFilter() {
     $(this).remove();
 
     let params = JSON.stringify({ 'filterId': $(this).find('.filter-id').val() });
-    $.post(Routing.generate('filter_delete', true), params);
+    $.post(Routing.generate('filter_delete', true), params, function(data) {
+        tableRefArticle.clear();
+        tableRefArticle.rows.add(data).draw();
+    });
 }
 
 // modale ajout d'un filtre, affichage du champ "contient" en fonction du champ sélectionné

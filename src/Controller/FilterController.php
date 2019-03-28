@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Filter;
 use App\Repository\ChampsLibreRepository;
 use App\Repository\FilterRepository;
+use App\Service\RefArticleDataService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -30,14 +31,21 @@ class FilterController extends AbstractController
     private $filterRepository;
 
     /**
+     * @var RefArticleDataService
+     */
+    private $refArticleDataService;
+
+    /**
      * FilterController constructor.
      * @param ChampsLibreRepository $champsLibreRepository
      * @param FilterRepository $filterRepository
+     * @param RefArticleDataService $refArticleDataService
      */
-    public function __construct(ChampsLibreRepository $champsLibreRepository, FilterRepository $filterRepository)
+    public function __construct(ChampsLibreRepository $champsLibreRepository, FilterRepository $filterRepository, RefArticleDataService $refArticleDataService)
     {
         $this->champsLibreRepository = $champsLibreRepository;
         $this->filterRepository = $filterRepository;
+        $this->refArticleDataService = $refArticleDataService;
     }
 
     /**
@@ -87,7 +95,10 @@ class FilterController extends AbstractController
                     'champFixe' => $filter->getChampFixe(),
                     'value' => $filter->getValue()
                 ];
-                $result = $this->renderView('reference_article/oneFilter.html.twig', ['filter' => $filterArray]);
+                $result = [
+                    'reload' => $this->refArticleDataService->getRefArticleData($user->getId()),
+                    'filterHtml' => $this->renderView('reference_article/oneFilter.html.twig', ['filter' => $filterArray])
+                ];
             } else {
                 $result = false; //TODO gérer retour erreur (filtre déjà existant)
             }
@@ -111,7 +122,9 @@ class FilterController extends AbstractController
                 $em->flush();
             }
 
-            return new JsonResponse();
+            $data = $this->refArticleDataService->getRefArticleData($this->getUser()->getId());
+
+            return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
     }
