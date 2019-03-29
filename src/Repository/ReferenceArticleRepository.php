@@ -138,11 +138,13 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                 $subQueries[] = $qbSub->getQuery()->getResult();
             }
         }
+
         foreach($subQueries as $subQuery) {
             $ids = [];
             foreach($subQuery as $idArray) {
                 $ids[] = $idArray['id'];
             }
+            if (empty($ids)) $ids = 0;
             $qb->andWhere($qb->expr()->in('ra.id', $ids));
         }
 

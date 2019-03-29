@@ -117,6 +117,7 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
                     let min = elem.attr('min');
                     let max = elem.attr('max');
 
+                    //TODO CG restreindre si min > max
                     if (typeof(min) !== 'undefined' && typeof(max) !== 'undefined') {
                         msg += ' doit être comprise entre ' + min + ' et ' + max + ".<br>";
                     } else if (typeof(min) == 'undefined') {
