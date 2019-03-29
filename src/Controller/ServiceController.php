@@ -112,6 +112,7 @@ class ServiceController extends AbstractController
             $status = $this->statutRepository->findOneByCategorieAndStatut(Service::CATEGORIE, Service::STATUT_A_TRAITER);
             $service = new Service();
             $date = new \DateTime('now');
+            
             $service
                 ->setDate($date)
                 ->setLibelle($data['Libelle'])
