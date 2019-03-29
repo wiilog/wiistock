@@ -123,7 +123,6 @@ class UtilisateurController extends Controller
             $rows = [];
             foreach ($utilisateurs as $utilisateur) {
                 $idUser =  $utilisateur->getId();
-                $url = $this->generateUrl('utilisateur_show', ['id' => $idUser]);
                 $rows[] =
                     [
                         'id' => ($utilisateur->getId() ? $utilisateur->getId() : "Non défini"),
@@ -134,7 +133,6 @@ class UtilisateurController extends Controller
                         'Actions' => $this->renderView(
                             "utilisateur/datatableUtilisateurRow.html.twig",
                             [
-                                'url' => $url,
                                 'idUser' => $idUser
                             ]
                         ),
