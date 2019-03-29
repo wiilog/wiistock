@@ -39,7 +39,7 @@ function InitialiserModal(modal, submit, path, table, callback = null) {
                     }
                 });
 
-                callback(data);
+                if (callback !== null) callback(data);
 
                 let inputs = modal.find('.modal-body').find(".data");
                 // on vide tous les inputs
