@@ -59,6 +59,9 @@ class ReferenceArticleRepository extends ServiceEntityRepository
     {
         $em = $this->getEntityManager();
         $qb = $em->createQueryBuilder();
+        $index = 0;
+
+        $subQueries = [];
 
         // fait le lien entre intitulé champs dans datatable/filtres côté front
         // et le nom des attributs de l'entité ReferenceArticle (+ typage)
@@ -72,9 +75,13 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
         $qb
             ->select('ra')
-            ->from('App\Entity\ReferenceArticle', 'ra');
+            ->distinct()
+            ->from('App\Entity\ReferenceArticle', 'ra')
+            ->leftJoin('ra.valeurChampsLibres', 'vcl');
 
         foreach($filters as $filter) {
+            $index ++;
+
             // cas champ fixe
             if ($label = $filter['champFixe']) {
                 $array = $linkChampLibreLabelToField[$label];
@@ -101,32 +108,73 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
             // cas champ libre
             } else if ($filter['champLibre']) {
-                $qb->leftJoin('ra.valeurChampsLibres', 'vcl');
+                $qbSub = $em->createQueryBuilder();
+                $qbSub
+                    ->select('ra' . $index . '.id')
+                    ->from('App\Entity\ReferenceArticle', 'ra' . $index)
+                    ->leftJoin('ra' . $index . '.valeurChampsLibres', 'vcl' . $index);
 
                 switch($filter['typage']) {
                     case 'booleen':
                         $value = $filter['value'] == 1 ? '1' : '0';
-                        $qb
-                            ->andWhere('vcl.champLibre = ' . $filter['champLibre'])
-                            ->andWhere('vcl.valeur = ' . $value);
+                        $qbSub
+                            ->andWhere('vcl' . $index . '.champLibre = ' . $filter['champLibre'])
+                            ->andWhere('vcl' . $index . '.valeur = ' . $value);
                         break;
                     case 'text':
-                        $qb
-                            ->andWhere('vcl.champLibre = ' . $filter['champLibre'])
-                            ->andWhere("vcl.valeur LIKE :value")
-                            ->setParameter('value', "%" . $filter['value'] . "%");
+                        $qbSub
+                            ->andWhere('vcl' . $index . '.champLibre = ' . $filter['champLibre'])
+                            ->andWhere('vcl' . $index . '.valeur LIKE :value')
+                            ->setParameter('value', '%' . $filter['value'] . '%');
                         break;
                     case 'number':
+                        $qbSub
+                            ->andWhere('vcl' . $index . '.champLibre = ' . $filter['champLibre'])
+                            ->andWhere('vcl' . $index . '.valeur = ' . $filter['value']);
                         break;
                     case 'list':
                         break;
                 }
+                $subQueries[] = $qbSub->getQuery()->getResult();
             }
+        }
+        foreach($subQueries as $subQuery) {
+            $ids = [];
+            foreach($subQuery as $idArray) {
+                $ids[] = $idArray['id'];
+            }
+            $qb->andWhere($qb->expr()->in('ra.id', $ids));
         }
 
         $query = $qb->getQuery();
 
         return $query->getResult();
+    }
+
+    public function countByType($typeId)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT COUNT(ra)
+            FROM App\Entity\ReferenceArticle ra
+            WHERE ra.type = :typeId
+           "
+        )->setParameter('typeId', $typeId);
+
+        return $query->getSingleScalarResult();
+    }
+
+    public function setTypeIdNull($typeId)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            /** @lang DQL */
+            "UPDATE App\Entity\ReferenceArticle ra
+            SET ra.type = null 
+            WHERE ra.type = :typeId"
+        )->setParameter('typeId', $typeId);
+
+        return $query->execute();
     }
 
 }

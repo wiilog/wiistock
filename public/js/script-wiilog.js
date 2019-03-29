@@ -13,12 +13,12 @@
  * @param {document} table le DataTable gérant les données
  * 
  */
-function InitialiserModal(modal, submit, path, table, callback = null) {
+function InitialiserModal(modal, submit, path, table, callback = null, close = true) {
     submit.click(function () {
         xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function () {
             if (this.readyState == 4 && this.status == 200) {
-                $('.errorMessage').html(JSON.parse(this.responseText))
+                $('.errorMessage').html(JSON.parse(this.responseText));
                 data = JSON.parse(this.responseText);
                 if (data.redirect) {
                     window.location.href = data.redirect;
@@ -26,9 +26,6 @@ function InitialiserModal(modal, submit, path, table, callback = null) {
                 // pour mise à jour des données d'en-tête après modification
                 if(data.entete){
                     $('.zone-entete').html(data.entete)
-                }
-                if(data.refArticle){
-                    
                 }
                 table.ajax.reload(function (json) {
                     if (this.responseText !== undefined) {
@@ -39,7 +36,7 @@ function InitialiserModal(modal, submit, path, table, callback = null) {
                     }
                 });
 
-                callback(data);
+                if (callback !== null) callback(data);
 
                 let inputs = modal.find('.modal-body').find(".data");
                 // on vide tous les inputs
@@ -92,7 +89,7 @@ function InitialiserModal(modal, submit, path, table, callback = null) {
 
         // si tout va bien on envoie la requête ajax...
         if (missingInputs.length == 0 && wrongInputs.length == 0) {
-            modal.find('.close').click();
+            if (close == true) modal.find('.close').click();
             Json = {};
             Json = JSON.stringify(Data);
             xhttp.open("POST", path, true);

@@ -19,4 +19,15 @@ class CollecteRepository extends ServiceEntityRepository
         parent::__construct($registry, Collecte::class);
     }
 
+    public function getByStatut($statut)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT c
+            FROM App\Entity\Collecte c
+            WHERE c.Statut = :Statut "
+        )->setParameter('Statut', $statut);;
+        return $query->execute();
+    }
+
 }

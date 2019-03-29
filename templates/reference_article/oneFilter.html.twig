@@ -7,7 +7,7 @@
     {% else %}
         <i class="fas fa-times float-right"></i>
         <span class="bold">{{ filter.champLibre.label|capitalize }}</span><br>
-        {% if (filter.value == 'on') %}{% set value = 'oui' %}{% elseif (filter.value == '') %}{% set value = 'non' %}{% else %}{% set value = filter.value %}{% endif %}
+        {% if (filter.value == 'on' or filter.value == '1') %}{% set value = 'oui' %}{% elseif (filter.value == '') %}{% set value = 'non' %}{% else %}{% set value = filter.value %}{% endif %}
         <span class="italic">"{{ value }}"</span>
     {% endif %}
 </div>

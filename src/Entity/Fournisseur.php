@@ -38,17 +38,10 @@ class Fournisseur
      */
     private $articlesFournisseur;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Article", mappedBy="fournisseur")
-     */
-    private $articles;
-
-
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
         $this->articlesFournisseur = new ArrayCollection();
-        $this->articles = new ArrayCollection();
     }
 
     public function getId() : ? int
@@ -164,37 +157,6 @@ class Fournisseur
             // set the owning side to null (unless already changed)
             if ($articlesFournisseur->getFournisseur() === $this) {
                 $articlesFournisseur->setFournisseur(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|Article[]
-     */
-    public function getArticles(): Collection
-    {
-        return $this->articles;
-    }
-
-    public function addArticle(Article $article): self
-    {
-        if (!$this->articles->contains($article)) {
-            $this->articles[] = $article;
-            $article->setFournisseur($this);
-        }
-
-        return $this;
-    }
-
-    public function removeArticle(Article $article): self
-    {
-        if ($this->articles->contains($article)) {
-            $this->articles->removeElement($article);
-            // set the owning side to null (unless already changed)
-            if ($article->getFournisseur() === $this) {
-                $article->setFournisseur(null);
             }
         }
 

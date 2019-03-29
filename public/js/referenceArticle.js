@@ -148,6 +148,8 @@ $(document).ready(function () {
         tableRefArticle = $('#tableRefArticle_id').DataTable({
             "autoWidth": false,
             "scrollX": true,
+            "pageLength": 50,
+            "lengthMenu": [50, 100, 200, 500 ],
             "language": {
                 "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
             },
@@ -166,9 +168,7 @@ let tableColumnVisible = $('#tableColumnVisible_id').DataTable({
 
 function visibleColumn(check) {
     let columnNumber = check.data('column')
-    console.log(columnNumber);
     let column = tableRefArticle.column(columnNumber);
-    console.log(column);
     column.visible(!column.visible());
 }
 
@@ -218,6 +218,21 @@ function visibleBlockModal(bloc) {
     }
 }
 
+function showDemande(bloc) {
+    if (bloc.data("title") == "livraison") {
+        $('#collecteShow').removeClass('d-block');
+        $('#collecteShow').addClass('d-none');
+        $('#livraisonShow').removeClass('d-none');
+        $('#livraisonShow').addClass('d-block');
+    }else if (bloc.data("title") == "collecte") {
+        $('#collecteShow').removeClass('d-none');
+        $('#collecteShow').addClass('d-block');
+        $('#livraisonShow').removeClass('d-block');
+        $('#livraisonShow').addClass('d-none');
+    }
+}
+
+
 // affiche le filtre après ajout
 function displayNewFilter(data) {
     $('#filters').append(data.filterHtml);
@@ -243,14 +258,14 @@ function displayFilterValue(elem) {
     let type = elem.find(':selected').data('type');
     let modalBody = elem.closest('.modal-body');
 
-    // cas particulier de liste déroulante
+    // cas particulier de liste déroulante pour type
     if (type == 'list') {
         $.getJSON(Routing.generate('type_show_select'), function(data) {
             modalBody.find('.input').html(data);
         })
     } else {
         if (type == 'booleen') type = 'checkbox';
-        modalBody.find('#value').attr('type', type);
+        modalBody.find('.input').html('<input type="' + type + '" class="form-control data ' + type + '" id="value" name="value">');
     }
 
 
@@ -258,7 +273,6 @@ function displayFilterValue(elem) {
     switch (type) {
         case 'checkbox':
             label = 'Oui / Non';
-            elem.closest('.modal-body').find('#value').addClass('checkbox');
             break;
         case 'number':
         case 'list':

@@ -63,7 +63,6 @@ class RefArticleDataService
     }
 
     /**
-     * @param int $userId
      * @return array
      * @throws \Twig_Error_Loader
      * @throws \Twig_Error_Runtime
@@ -92,7 +91,7 @@ class RefArticleDataService
                 "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
                 "Quantité" => $refArticle->getQuantiteStock(),
                 'Actions' => $this->templating->render('reference_article/datatableReferenceArticleRow.html.twig', [
-                    'idRefArticle' => $refArticle->getId()
+                    'idRefArticle' => $refArticle->getId(),
                 ]),
             ];
             $rows[] = array_merge($rowCL, $rowCF);

@@ -9,6 +9,7 @@ use App\Entity\Type;
 use App\Form\ChampsLibreType;
 
 use App\Repository\ChampsLibreRepository;
+use App\Repository\ReferenceArticleRepository;
 use App\Repository\TypeRepository;
 use App\Repository\CategoryTypeRepository;
 
@@ -36,15 +37,21 @@ class ChampsLibreController extends AbstractController
     private $typeRepository;
 
     /**
+     * @var ReferenceArticleRepository
+     */
+    private $refArticleRepository;
+
+    /**
      * @var CategoryTypeRepository
      */
     private $categoryTypeRepository;
 
-    public function __construct(CategoryTypeRepository $categoryTypeRepository, ChampsLibreRepository $champsLibreRepository, TypeRepository $typeRepository)
+    public function __construct(CategoryTypeRepository $categoryTypeRepository, ChampsLibreRepository $champsLibreRepository, TypeRepository $typeRepository, ReferenceArticleRepository $refArticleRepository)
     {
         $this->champsLibreRepository = $champsLibreRepository;
         $this->typeRepository = $typeRepository;
         $this->categoryTypeRepository = $categoryTypeRepository;
+        $this->refArticleRepository = $refArticleRepository;
     }
 
     /**
@@ -224,12 +231,31 @@ class ChampsLibreController extends AbstractController
      */
     public function deleteType(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($data = json_decode($request->getContent(), true)) {
             $type = $this->typeRepository->find($data['type']);
             $entityManager = $this->getDoctrine()->getManager();
+
+            // si on a confirmé la suppression, on supprime les enregistrements liés
+            if (isset($data['force'])) {
+                $this->refArticleRepository->setTypeIdNull($type);
+                $this->champsLibreRepository->deleteByType($type);
+                $entityManager->flush();
+            } else {
+                // sinon on vérifie qu'il n'est pas lié par des contraintes de clé étrangère
+                $articlesExist = $this->refArticleRepository->countByType($type);
+                $champsLibresExist = $this->champsLibreRepository->countByType($type);
+
+                if ((int)$champsLibresExist + (int)$articlesExist > 0) {
+                    $result = $this->renderView('champs_libre/modalDeleteTypeConfirm.html.twig');
+                    return new JsonResponse($result);
+                }
+            }
+
             $entityManager->remove($type);
             $entityManager->flush();
-            return new JsonResponse();
+            $result = true;
+
+            return new JsonResponse($result);
         }
         throw new NotFoundHttpException("404");
     }

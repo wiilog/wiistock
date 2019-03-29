@@ -1,5 +1,6 @@
 <div class="row">
-    <div data-id='{{ idRefArticle }}' id='delete{{idRefArticle}}' data-target='#modalEditRefArticle' data-toggle='modal' class='col-2'
+    <div data-id='{{ idRefArticle }}' id='delete{{idRefArticle}}' data-target='#modalEditRefArticle' data-toggle='modal'
+        class='col-2'
         onclick="editRow($(this), Routing.generate('reference_article_edit_api', true), $('#modalEditRefArticle'), $('#submitEditRefArticle'))">
         <i class='fas fa-pencil-alt '></i>
     </div>
@@ -7,5 +8,9 @@
         onclick="deleteRow($(this), $('#modalDeleteRefArticle'), $('#submitDeleteRefArticle'))"
         data-id='{{ idRefArticle }}' data-target='#modalDeleteRefArticle' data-toggle='modal'>
         <i class='fas fa-trash '></i>
+    </div>
+    <div class="col-2" id='' onclick="deleteRow($(this), $('#modalPlusDemande'), $('#submitPlusDemande'))"
+        data-id='{{ idRefArticle }}' data-target='#modalPlusDemande' data-toggle='modal'>
+        <i class="fa fa-plus mr-2"></i>
     </div>
 </div>

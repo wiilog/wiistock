@@ -26,7 +26,7 @@ InitialiserModal(dataModalTypeNew, ButtonSubmitTypeNew, urlTypeNew,tableType);
 let dataModalTypeDelete = $("#modalDeleteType");
 let ButtonSubmitTypeDelete = $("#submitDeleteType");
 let urlTypeDelete = Routing.generate('type_delete', true);
-InitialiserModal(dataModalTypeDelete, ButtonSubmitTypeDelete, urlTypeDelete, tableType);
+InitialiserModal(dataModalTypeDelete, ButtonSubmitTypeDelete, urlTypeDelete, tableType, askForDeleteConfirmation, false);
 
 let dataModalEditType = $("#modalEditType");
 let ButtonSubmitEditType = $("#submitEditType");
@@ -67,3 +67,24 @@ let dataModalEditChampsLibre = $("#modalEditChampLibre");
 let ButtonSubmitEditChampsLibre = $("#submitEditChampsLibre");
 let urlEditChampsLibre = Routing.generate('champsLibre_edit', true);
 InitialiserModal(dataModalEditChampsLibre, ButtonSubmitEditChampsLibre, urlEditChampsLibre, tableChampsLibre);
+
+function askForDeleteConfirmation(data)
+{
+    let modal = $('#modalDeleteType');
+
+    if (data !== true) {
+        modal.find('.modal-body').html(data);
+        let submit = $('#submitDeleteType');
+
+        let typeId = submit.val();
+        let params = JSON.stringify({force: true, type: typeId});
+
+        submit.on('click', function() {
+            $.post(Routing.generate('type_delete'), params, function() {
+                tableChampsLibre.ajax.reload();
+            }, 'json');
+        });
+    } else {
+        modal.find('.close').click();
+    }
+}
