@@ -92,7 +92,7 @@ class RefArticleDataService
                 "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
                 "Quantité" => $refArticle->getQuantiteStock(),
                 'Actions' => $this->templating->render('reference_article/datatableReferenceArticleRow.html.twig', [
-                    'idRefArticle' => $refArticle->getId()
+                    'idRefArticle' => $refArticle->getId(),
                 ]),
             ];
             $rows[] = array_merge($rowCL, $rowCF);

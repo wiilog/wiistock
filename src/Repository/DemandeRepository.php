@@ -45,6 +45,18 @@ class DemandeRepository extends ServiceEntityRepository
         return $query->execute(); 
     }
 
+    public function getByStatut($statut)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT d
+            FROM App\Entity\Demande d
+            WHERE d.statut = :Statut "
+        )->setParameter('Statut', $statut);;
+        return $query->execute();
+    }
+
+
 //    public function findByPrepa($preparation)
 //    {
 //        $entityManager = $this->getEntityManager();

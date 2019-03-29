@@ -168,9 +168,7 @@ let tableColumnVisible = $('#tableColumnVisible_id').DataTable({
 
 function visibleColumn(check) {
     let columnNumber = check.data('column')
-    console.log(columnNumber);
     let column = tableRefArticle.column(columnNumber);
-    console.log(column);
     column.visible(!column.visible());
 }
 
@@ -219,6 +217,21 @@ function visibleBlockModal(bloc) {
         blocContent.addClass('d-none')
     }
 }
+
+function showDemande(bloc) {
+    if (bloc.data("title") == "livraison") {
+        $('#collecteShow').removeClass('d-block');
+        $('#collecteShow').addClass('d-none');
+        $('#livraisonShow').removeClass('d-none');
+        $('#livraisonShow').addClass('d-block');
+    }else if (bloc.data("title") == "collecte") {
+        $('#collecteShow').removeClass('d-none');
+        $('#collecteShow').addClass('d-block');
+        $('#livraisonShow').removeClass('d-block');
+        $('#livraisonShow').addClass('d-none');
+    }
+}
+
 
 // affiche le filtre après ajout
 function displayNewFilter(data) {

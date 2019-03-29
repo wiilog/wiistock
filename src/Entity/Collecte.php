@@ -11,6 +11,8 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Collecte
 {
+    const CATEGORIE = 'collecte';
+
     const STATUS_FIN = 'collecté';
     const STATUS_EN_COURS = 'à traiter';
     const STATUS_DEMANDE = 'brouillon';

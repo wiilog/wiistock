@@ -12,6 +12,8 @@ use App\Repository\ChampsLibreRepository;
 use App\Repository\ValeurChampsLibreRepository;
 use App\Repository\TypeRepository;
 use App\Repository\StatutRepository;
+use App\Repository\CollecteRepository;
+use App\Repository\DemandeRepository;
 
 use App\Service\RefArticleDataService;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
@@ -22,6 +24,9 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 use App\Service\FileUploader;
+use App\Entity\Collecte;
+use Proxies\__CG__\App\Entity\Livraison;
+use App\Entity\Demande;
 
 /**
  * @Route("/reference_article")
@@ -33,6 +38,16 @@ class ReferenceArticleController extends Controller
      * @var ReferenceArticleRepository
      */
     private $referenceArticleRepository;
+
+    /**
+     * @var CollecteRepository
+     */
+    private $collecteRepository;
+
+    /**
+     * @var DemandeRepository
+     */
+    private $demandeRepository;
 
     /**
      * @var StatutRepository
@@ -70,7 +85,7 @@ class ReferenceArticleController extends Controller
     private $refArticleDataService;
 
 
-    public function __construct(StatutRepository $statutRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FilterRepository $filterRepository, RefArticleDataService $refArticleDataService)
+    public function __construct(DemandeRepository $demandeRepository, CollecteRepository $collecteRepository, StatutRepository $statutRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FilterRepository $filterRepository, RefArticleDataService $refArticleDataService)
     {
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->champsLibreRepository = $champsLibreRepository;
@@ -78,6 +93,8 @@ class ReferenceArticleController extends Controller
         $this->typeRepository = $typeRepository;
         $this->statutRepository = $statutRepository;
         $this->articleFournisseurRepository = $articleFournisseurRepository;
+        $this->collecteRepository = $collecteRepository;
+        $this->demandeRepository = $demandeRepository;
         $this->filterRepository = $filterRepository;
         $this->refArticleDataService = $refArticleDataService;
     }
@@ -161,6 +178,7 @@ class ReferenceArticleController extends Controller
             }
 
             $champsLibres = $this->champsLibreRepository->getLabelByCategory(ReferenceArticle::CATEGORIE);
+
             $rowCL = [];
             $rowDD = [];
             foreach ($champsLibres as $champLibre) {
@@ -174,7 +192,8 @@ class ReferenceArticleController extends Controller
                 "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
                 "Quantité" => $refArticle->getQuantiteStock(),
                 'Actions' => $this->renderView('reference_article/datatableReferenceArticleRow.html.twig', [
-                    'idRefArticle' => $refArticle->getId()
+                    'idRefArticle' => $refArticle->getId(),
+
                 ]),
             ];
             $rows = array_merge($rowCL, $rowDD);
@@ -190,6 +209,13 @@ class ReferenceArticleController extends Controller
      */
     public function index(): Response
     {
+
+        $statutC = $this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, Collecte::STATUS_DEMANDE);
+        $collectes = $this->collecteRepository->getByStatut($statutC);
+
+        $statutD = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
+        $demandes = $this->demandeRepository->getByStatut($statutD);
+
         $typeQuantite = [
             [
                 'const' => 'QUANTITE_AR',
@@ -237,7 +263,9 @@ class ReferenceArticleController extends Controller
             'statuts' => $this->statutRepository->findByCategorieName(ReferenceArticle::CATEGORIE),
             'types' => $this->typeRepository->getByCategoryLabel(ReferenceArticle::CATEGORIE),
             'typeQuantite' => $typeQuantite,
-            'filters' => $this->filterRepository->findBy(['utilisateur' => $this->getUser()])
+            'filters' => $this->filterRepository->findBy(['utilisateur' => $this->getUser()]),
+            'collectes' => $collectes,
+            'demandes' => $demandes
         ]);
     }
 
@@ -339,6 +367,7 @@ class ReferenceArticleController extends Controller
                 }
 
                 $champsLibres = $this->champsLibreRepository->getLabelByCategory(ReferenceArticle::CATEGORIE);
+
                 $rowCL = [];
                 $rowDD = [];
                 foreach ($champsLibres as $champLibre) {
@@ -352,7 +381,7 @@ class ReferenceArticleController extends Controller
                     "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
                     "Quantité" => $refArticle->getQuantiteStock(),
                     'Actions' => $this->renderView('reference_article/datatableReferenceArticleRow.html.twig', [
-                        'idRefArticle' => $refArticle->getId()
+                        'idRefArticle' => $refArticle->getId(),
                     ]),
                 ];
                 $rows = array_merge($rowCL, $rowDD);

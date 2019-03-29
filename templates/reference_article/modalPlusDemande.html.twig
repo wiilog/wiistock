@@ -9,38 +9,58 @@
                 </button>
             </div>
             <div class="modal-body">
-                <div>
-                    <p>Type de demande</p>
-                    <input type="checkbox" name="livraison" id=""><label for="">Livraison</label>
-                    <input type="checkbox" name="collecte" id=""><label for="">Collecte</label>
+                <div class='row'>
+                    <p class='col-5'>Type de demande: </p>
+                    <div class="col-6 input-group radio-btn">
+                        <div>
+                            <span class="btn not-active" data-toggle="demande" data-title="livraison"
+                                onclick="toggleRadioButton($(this)), showDemande($(this))">Livraison</span><span
+                                class="btn not-active" data-toggle="demande" data-title="collecte"
+                                onclick="toggleRadioButton($(this), showDemande($(this)))">Collecte</span>
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <label for="">Mes demandes de brouillon</label>
-                    <select name="livraison" class="data" id="">
-                        <option value="">
-
-                        </option>
-                    </select>
+                <div id='collecteShow' class='d-none form-group col-12'>
+                    <div class="input-group mt-4 mb-4">
+                        <div class="input-group-prepend">
+                            <label class="input-group-text" for="">Mes demandes</label>
+                        </div>
+                        <select name="collecte" class="data" id="">
+                            {% for collecte in collectes %}
+                            <option value="{{collecte.id}}">
+                                {{collecte.numero}}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
                 </div>
-                <div>
-                    <label for="">Mes demandes de brouillon</label>
-                    <select name="collecte" class="data" id="">
-                        <option value="">
+                <div id="livraisonShow" class='d-none form-group col-12'>
+                    <div class="input-group mt-4 mb-4">
+                        <div class="input-group-prepend">
+                            <label class="input-group-text" for="">Mes demandes</label>
+                        </div>
+                        <select name="livraison" class="data" id="">
+                            {% for demande in demandes %}
+                            <option value="{{demande.id}}">
+                                {{demande.numero}}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
 
-                        </option>
-                    </select>
-                </div>
-
-                <div>
-                    <label for="">Quantité</label>
-                    <input type="number" name="quantite" class="data" id="">
+                    <div class="input-group mt-4 mb-4">
+                        <div class="input-group-prepend">
+                            <label class="input-group-text" for="">Quantité</label>
+                        </div>
+                        <input type="number" name="quantite" min='0' class="data" id="">
+                    </div>
                 </div>
 
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>
-                <button id="submitDeleteRefArticle" name='refArticle' value='' type="button" data-dismiss="modal"
-                    class="btn btn-danger data">Supprimer</button>
+                <button id="submitPlusDemande" name='refArticle' value='' type="button" data-dismiss="modal"
+                class="btn btn-primary btn-success data">Ajouter</button>
             </div>
         </div>
     </div>
