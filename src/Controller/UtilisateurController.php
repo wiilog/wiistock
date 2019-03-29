@@ -366,44 +366,44 @@ class UtilisateurController extends Controller
         ]);
     }
 
-    /**
-     * @Route("/{id}", name="utilisateur_show", methods="GET")
-     */
-    public function show(Utilisateur $utilisateur): Response
-    {
-        $receptions = $utilisateur->getReceptions();
-        $demandes = $utilisateur->getDemandes();
-        $alertes = $utilisateur->getUtilisateurAlertes();
+    // /**
+    //  * @Route("/{id}", name="utilisateur_show", methods="GET")
+    //  */
+    // public function show(Utilisateur $utilisateur): Response
+    // {
+    //     $receptions = $utilisateur->getReceptions();
+    //     $demandes = $utilisateur->getDemandes();
+    //     $alertes = $utilisateur->getUtilisateurAlertes();
 
-        return $this->render('utilisateur/show.html.twig', [
-            'utilisateur' => $utilisateur,
-            'receptions' => $receptions,
-            'demandes' => $demandes,
-            'alertes' => $alertes
-        ]);
-    }
+    //     return $this->render('utilisateur/show.html.twig', [
+    //         'utilisateur' => $utilisateur,
+    //         'receptions' => $receptions,
+    //         'demandes' => $demandes,
+    //         'alertes' => $alertes
+    //     ]);
+    // }
 
-    /**
-     * @Route("/{id}/edit", name="utilisateur_edit", methods="GET|POST")
-     */
-    public function edit(Request $request, Utilisateur $utilisateur, UserPasswordEncoderInterface $passwordEncoder): Response
-    {
-        $form = $this->createForm(UtilisateurType::class, $utilisateur);
-        $form->handleRequest($request);
+    // /**
+    //  * @Route("/{id}/edit", name="utilisateur_edit", methods="GET|POST")
+    //  */
+    // public function edit(Request $request, Utilisateur $utilisateur, UserPasswordEncoderInterface $passwordEncoder): Response
+    // {
+    //     $form = $this->createForm(UtilisateurType::class, $utilisateur);
+    //     $form->handleRequest($request);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $password = $passwordEncoder->encodePassword($utilisateur, $utilisateur->getPlainPassword());
-            $utilisateur->setPassword($password);
-            $this->getDoctrine()->getManager()->flush();
+    //     if ($form->isSubmitted() && $form->isValid()) {
+    //         $password = $passwordEncoder->encodePassword($utilisateur, $utilisateur->getPlainPassword());
+    //         $utilisateur->setPassword($password);
+    //         $this->getDoctrine()->getManager()->flush();
 
-            return $this->redirectToRoute('utilisateur_edit', ['id' => $utilisateur->getId()]);
-        }
+    //         return $this->redirectToRoute('utilisateur_edit', ['id' => $utilisateur->getId()]);
+    //     }
 
-        return $this->render('utilisateur/edit.html.twig', [
-            'utilisateur' => $utilisateur,
-            'form' => $form->createView(),
-        ]);
-    }
+    //     return $this->render('utilisateur/edit.html.twig', [
+    //         'utilisateur' => $utilisateur,
+    //         'form' => $form->createView(),
+    //     ]);
+    // }
 
    
 
