@@ -238,7 +238,7 @@ class ChampsLibreController extends AbstractController
             // si on a confirmé la suppression, on supprime les enregistrements liés
             if (isset($data['force'])) {
                 $this->refArticleRepository->setTypeIdNull($type);
-                $this->champsLibreRepository->setTypeIdNull($type);
+                $this->champsLibreRepository->deleteByType($type);
                 $entityManager->flush();
             } else {
                 // sinon on vérifie qu'il n'est pas lié par des contraintes de clé étrangère

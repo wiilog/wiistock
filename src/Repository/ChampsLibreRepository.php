@@ -70,13 +70,12 @@ class ChampsLibreRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
-    public function setTypeIdNull($typeId)
+    public function deleteByType($typeId)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
         /** @lang DQL */
-            "UPDATE App\Entity\ChampsLibre cl
-            SET cl.type = null 
+            "DELETE FROM App\Entity\ChampsLibre cl
             WHERE cl.type = :typeId"
         )->setParameter('typeId', $typeId);
 
