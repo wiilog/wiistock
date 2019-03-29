@@ -1,13 +1,11 @@
 <div class="d-flex">
     <div data-id='{{ idType }}' data-toggle='modal' data-target='#modalEditType' class='champs-libre-edit'
-         onclick="editRow($(this),  Routing.generate('type_edit_api', true), $('#modalEditType'), $('#submitEditType'))">
+        onclick="editRow($(this),  Routing.generate('type_edit_api', true), $('#modalEditType'), $('#submitEditType'))">
         <i class='fas fa-pencil-alt '></i>
     </div>
-    <div class='type-delete'
-         onclick="deleteRow($(this), $('#modalDeleteType'), $('#submitDeleteType'))" data-id='{{ idType }}'
-         data-target='#modalDeleteType' data-toggle='modal'>
+    <div class='type-delete' onclick="deleteRow($(this), $('#modalDeleteType'), $('#submitDeleteType'))"
+        data-id='{{ idType }}' data-target='#modalDeleteType' data-toggle='modal'>
         <i class='fas fa-trash '></i>
     </div>
-
-    <a href={{urlChampsLibre}} class='command-edit'><i class='fas fa-plus '></i> Champ libre</a>
+    <a href={{urlChampsLibre}} class='command-edit'><i class='fas fa-eye'></i></a>
 </div>

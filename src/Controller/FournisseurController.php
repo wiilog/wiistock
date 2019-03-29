@@ -40,7 +40,6 @@ class FournisseurController extends AbstractController
             foreach ($refs as $fournisseur) {
                 $fournisseurId = $fournisseur->getId();
                 $url['edit'] = $this->generateUrl('fournisseur_edit', ['id' => $fournisseurId]);
-                $url['show'] = $this->generateUrl('fournisseur_show', ['id' => $fournisseurId]);
                 $rows[] = [
                     "Nom" => $fournisseur->getNom(),
                     "Code de référence" => $fournisseur->getCodeReference(),
@@ -80,22 +79,6 @@ class FournisseurController extends AbstractController
             return new JsonResponse($data);
         }
 
-        throw new NotFoundHttpException("404");
-    }
-
-    /**
-     * @Route("/show", name="fournisseur_show", options={"expose"=true},  methods="GET|POST")
-     */
-    public function show(Request $request) : Response
-    {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $fournisseur = $this->fournisseurRepository->find($data);
-
-            $json =$this->renderView('fournisseur/modalShowFournisseurContent.html.twig', [
-                'fournisseur' => $fournisseur,
-                ]);
-            return new JsonResponse($json);
-        }
         throw new NotFoundHttpException("404");
     }
 
@@ -146,7 +129,3 @@ class FournisseurController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 }
-
-// , array(
-//     'message' => 'impossible de supprimer un fournisseur utilisé'
-// )

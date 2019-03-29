@@ -134,7 +134,7 @@ class ReferenceArticleController extends Controller
                 ];
                 foreach ($champs as $champ) {
                     $column[] = [
-                        "title" => ucfirst(strtolower($champ['label'])),
+                        "title" => ucfirst(mb_strtolower($champ['label'])),
                         "data" => $champ['label']
                     ];
                 }
