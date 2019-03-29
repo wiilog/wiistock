@@ -63,7 +63,6 @@ class RefArticleDataService
     }
 
     /**
-     * @param int $userId
      * @return array
      * @throws \Twig_Error_Loader
      * @throws \Twig_Error_Runtime

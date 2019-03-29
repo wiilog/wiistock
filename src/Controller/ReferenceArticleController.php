@@ -134,7 +134,7 @@ class ReferenceArticleController extends Controller
                 ];
                 foreach ($champs as $champ) {
                     $column[] = [
-                        "title" => $champ['label'],
+                        "title" => ucfirst($champ['label']),
                         "data" => $champ['label']
                     ];
                 }
@@ -180,7 +180,6 @@ class ReferenceArticleController extends Controller
             $champsLibres = $this->champsLibreRepository->getLabelByCategory(ReferenceArticle::CATEGORIE);
 
             $rowCL = [];
-            $rowDD = [];
             foreach ($champsLibres as $champLibre) {
                 $valeur = $this->valeurChampsLibreRepository->getByRefArticleANDChampsLibre($refArticle->getId(), $champLibre['id']);
                 $rowCL[$champLibre['label']] = ($valeur ? $valeur->getValeur() : "");
@@ -369,7 +368,6 @@ class ReferenceArticleController extends Controller
                 $champsLibres = $this->champsLibreRepository->getLabelByCategory(ReferenceArticle::CATEGORIE);
 
                 $rowCL = [];
-                $rowDD = [];
                 foreach ($champsLibres as $champLibre) {
                     $valeur = $this->valeurChampsLibreRepository->getByRefArticleANDChampsLibre($refArticle->getId(), $champLibre['id']);
                     $rowCL[$champLibre['label']] = ($valeur ? $valeur->getValeur() : "");
