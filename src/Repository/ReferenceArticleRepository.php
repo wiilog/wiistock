@@ -151,4 +151,30 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $query->getResult();
     }
 
+    public function countByType($typeId)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT COUNT(ra)
+            FROM App\Entity\ReferenceArticle ra
+            WHERE ra.type = :typeId
+           "
+        )->setParameter('typeId', $typeId);
+
+        return $query->getSingleScalarResult();
+    }
+
+    public function setTypeIdNull($typeId)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            /** @lang DQL */
+            "UPDATE App\Entity\ReferenceArticle ra
+            SET ra.type = null 
+            WHERE ra.type = :typeId"
+        )->setParameter('typeId', $typeId);
+
+        return $query->execute();
+    }
+
 }

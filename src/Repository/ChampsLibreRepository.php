@@ -57,32 +57,29 @@ class ChampsLibreRepository extends ServiceEntityRepository
         return $query->getResult(); 
     }
 
-    // /**
-    //  * @return ChampsLibre[] Returns an array of ChampsLibre objects
-    //  */
-    /*
-    public function findByExampleField($value)
+    public function countByType($typeId)
     {
-        return $this->createQueryBuilder('c')
-            ->andWhere('c.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('c.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT COUNT(cl)
+            FROM App\Entity\ChampsLibre cl
+            WHERE cl.type = :typeId
+           "
+        )->setParameter('typeId', $typeId);
 
-    /*
-    public function findOneBySomeField($value): ?ChampsLibre
-    {
-        return $this->createQueryBuilder('c')
-            ->andWhere('c.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
+        return $query->getSingleScalarResult();
     }
-    */
+
+    public function setTypeIdNull($typeId)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+        /** @lang DQL */
+            "UPDATE App\Entity\ChampsLibre cl
+            SET cl.type = null 
+            WHERE cl.type = :typeId"
+        )->setParameter('typeId', $typeId);
+
+        return $query->execute();
+    }
 }
