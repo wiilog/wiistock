@@ -127,6 +127,8 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
                         msg += ' doit être inférieure à ' + max + ".<br>";
                     } else if (typeof(max) == 'undefined') {
                         msg += ' doit être supérieure à ' + min + ".<br>";
+                    }else if(min < 1){
+                        msg += ' ne peut pas être rempli'
                     }
 
                 })

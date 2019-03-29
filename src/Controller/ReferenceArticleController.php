@@ -421,7 +421,7 @@ class ReferenceArticleController extends Controller
             $refArticleId = $request->request->get('refArticleId');
             $refArticle = $this->referenceArticleRepository->find($refArticleId);
 
-            $quantity = $refArticle ? ($refArticle->getQuantiteDisponible() ? $refArticle->getQuantiteDisponible() : 0) : 0;
+            $quantity = $refArticle ? ($refArticle->getQuantiteStock() ? $refArticle->getQuantiteStock() : 0) : 0;
 
             return new JsonResponse($quantity);
         }
