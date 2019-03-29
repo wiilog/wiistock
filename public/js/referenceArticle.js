@@ -148,6 +148,8 @@ $(document).ready(function () {
         tableRefArticle = $('#tableRefArticle_id').DataTable({
             "autoWidth": false,
             "scrollX": true,
+            "pageLength": 50,
+            "lengthMenu": [50, 100, 200, 500 ],
             "language": {
                 "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
             },
