@@ -117,7 +117,7 @@ class ReferenceArticleController extends Controller
                 ];
                 foreach ($champs as $champ) {
                     $column[] = [
-                        "title" => $champ['label'],
+                        "title" => ucfirst($champ['label']),
                         "data" => $champ['label']
                     ];
                 }
