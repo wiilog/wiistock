@@ -22,19 +22,14 @@
 
 </table>
 
-<div>
-    {% include "fournisseur/modalDeleteFournisseur.html.twig" %}
-</div>
-    {% include "fournisseur/modalShowFournisseur.html.twig" %}
-<div>
-   {% include "fournisseur/modalEditFournisseur.html.twig" %}
-</div>
-<div>
-    {% include "fournisseur/modalNewFournisseur.html.twig" %}
-</div>
+
+{% include "fournisseur/modalDeleteFournisseur.html.twig" %}
+{% include "fournisseur/modalEditFournisseur.html.twig" %}
+{% include "fournisseur/modalNewFournisseur.html.twig" %}
+
 
 {% endblock %}
 
 {% block javascript %}
-    <script src="{{asset('js/fournisseur.js')}}"> </script>
+<script src="{{asset('js/fournisseur.js')}}"> </script>
 {% endblock %}
