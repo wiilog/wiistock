@@ -16,7 +16,6 @@ use App\Repository\EmplacementRepository;
 use App\Repository\StatutRepository;
 use App\Entity\Utilisateur;
 use App\Repository\UtilisateurRepository;
-use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
@@ -79,6 +78,7 @@ class CollecteController extends AbstractController
         return $this->render('collecte/show.html.twig', [
             'collecte' => $collecte,
             'articles' => $this->articleRepository->findAll(),
+            'modifiable' => ($collecte->getStatut()->getNom() !== Collecte::STATUS_EN_COURS ? true : false)
         ]);
     }
 
@@ -126,13 +126,14 @@ class CollecteController extends AbstractController
                 $rows = [];
                 foreach ($articles as $article) {
                     $rows[] = [
-                        'Référence CEA' =>( $article->getArticleFournisseur()? $article->getArticleFournisseur()->getReferenceArticle() : ""),
+                        'Référence CEA' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : ""),
                         'Libellé' => $article->getLabel(),
                         'Emplacement' => '',
                         'Quantité' => $article->getQuantite(),
                         'Actions' => $this->renderView('collecte/datatableArticleRow.html.twig', [
                             'article' => $article,
                             'collecteId' => $collecte->getid(),
+                            'modifiable' => ($collecte->getStatut()->getNom() !== Collecte::STATUS_EN_COURS ? true : false)
                         ])
 
                     ];
@@ -190,7 +191,7 @@ class CollecteController extends AbstractController
 
             return new JsonResponse();
         }
-        throw new XmlHttpException("404 not found");
+        throw new NotFoundHttpException("404");
     }
 
     /**
@@ -210,27 +211,38 @@ class CollecteController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
-    //
-    //    /**
-    //     * @Route("{id}/finish", name="finish_collecte")
-    //     */
-    //    public function finishCollecte(Collecte $collecte, StatutRepository $statutRepository)
-    //    {
-    //        $em = $this->getDoctrine()->getManager();
-    //
-    //        // changement statut collecte
-    //        $statusFinCollecte = $statutRepository->findOneBy(['nom' => Collecte::STATUS_FIN]);
-    //        $collecte->setStatut($statusFinCollecte);
-    //
-    //        // changement statut article
-    //        $statusEnStock = $statutRepository->findOneBy(['nom' => Articles::STATUS_EN_STOCK]);
-    //        $article = $collecte->getArticles();
-    //        foreach ($article as $article) {
-    //            $article->setStatut($statusEnStock);
-    //            $em->persist($article);
-    //        }
-    //        $em->flush();
-    //    }
+
+    /**
+     * @Route("/finish", name="finish_collecte", options={"expose"=true}, methods={"GET", "POST"}))
+     */
+    public function finishCollecte(Request  $request): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $em = $this->getDoctrine()->getManager();
+            $collecte = $this->collecteRepository->find($data['collecte']);
+
+            // changement statut collecte
+            $statusFinCollecte = $this->statutRepository->findOneBy(['nom' => Collecte::STATUS_EN_COURS]);
+            $collecte->setStatut($statusFinCollecte);
+
+            // changement statut article
+            // $statusEnStock = $this->statutRepository->findOneBy(['nom' => Articles::STATUS_EN_STOCK]);
+            // $article = $collecte->getArticles();
+            // foreach ($article as $article) {
+            //     $article->setStatut($statusEnStock);
+            // }
+               $em->flush();
+            $response =  [
+                'entete' => $this->renderView('collecte/enteteCollecte.html.twig', [
+                    'collecte' => $collecte,
+                    'modifiable' => ($collecte->getStatut()->getNom() !== Collecte::STATUS_EN_COURS ? true : false)
+                ])
+            ];
+            dump($response);
+            return new JsonResponse($response);
+        }
+        throw new NotFoundHttpException("404");
+    }
 
     /**
      * @Route("/editApi", name="collecte_edit_api", options={"expose"=true}, methods="GET|POST")
@@ -270,6 +282,7 @@ class CollecteController extends AbstractController
             $json = [
                 'entete' => $this->renderView('collecte/enteteCollecte.html.twig', [
                     'collecte' => $collecte,
+                    'modifiable' => ($collecte->getStatut()->getNom() !== Collecte::STATUS_EN_COURS ? true : false)
                 ])
             ];
 

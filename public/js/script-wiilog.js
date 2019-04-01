@@ -118,11 +118,17 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
                     let max = elem.attr('max');
 
                     if (typeof(min) !== 'undefined' && typeof(max) !== 'undefined') {
-                        msg += ' doit être comprise entre ' + min + ' et ' + max + ".<br>";
+                        if(min > max) {
+                            msg += " doit être inférieure à " + max + ".<br>";
+                        } else {
+                            msg += ' doit être comprise entre ' + min + ' et ' + max + ".<br>";
+                        }
                     } else if (typeof(min) == 'undefined') {
                         msg += ' doit être inférieure à ' + max + ".<br>";
                     } else if (typeof(max) == 'undefined') {
                         msg += ' doit être supérieure à ' + min + ".<br>";
+                    }else if(min < 1){
+                        msg += ' ne peut pas être rempli'
                     }
 
                 })

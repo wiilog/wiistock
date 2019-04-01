@@ -12,10 +12,16 @@
 <div class="col-3">
 
 </div>
+{% if modifiable %}
 
 <div class="col-3">
     <div class="row justify-content-between">
-        <a href="" data-id='{{collecte.id}}' data-target='#modalEditCollecte' data-toggle='modal'
+        <a href="#" class="btn btn-primary btn-action ml-auto"  data-id='{{collecte.id}}' id='submitFinishCollecte'
+                onclick="finishCollecte($(this))">
+            Valider</a>
+    </div>
+    <div class="row justify-content-between">
+        <a href="#" data-id='{{collecte.id}}' data-target='#modalEditCollecte' data-toggle='modal'
             onclick="editRow($(this), Routing.generate('collecte_edit_api', true), $('#modalEditCollecte'), $('#submitEditCollecte'))"
             class="btn btn-primary btn-action ml-auto">
             Modifier</a>
@@ -27,11 +33,9 @@
             Supprimer</a>
     </div>
     <div class="row justify-content-between">
-        <a href="#" class="btn btn-success btn-action ml-auto">
-            Valider</a>
+        <a href="" data-toggle="modal" data-target="#modalNewArticle" class="btn btn-primary btn-action ml-auto">
+            <span class="fa fa-plus mr-2"></span>Ajouter article</a>
     </div>
-    <div class="row justify-content-between">
-        <a href="" data-toggle="modal" data-target="#modalNewArticle" class="btn btn-action ml-auto">
-            Ajouter une ligne</a>
-    </div>
+
 </div>
+{% endif %}

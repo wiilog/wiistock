@@ -12,7 +12,7 @@
         <div class="col-3 offset-3">
             {% if modifiable %}
                 <div class="row justify-content-between">
-                    <a href="{{path('fin_demande', {'id': demande.id})}}" class="btn btn-success btn-action ml-auto">
+                    <a href="{{path('fin_demande', {'id': demande.id})}}" class="btn btn-primary btn-action ml-auto">
                         Valider</a>
                 </div>
                 <div class="row justify-content-between">
@@ -25,7 +25,7 @@
                         Supprimer</a>
                 </div>
                 <div class="row justify-content-between">
-                    <a href="" data-toggle="modal" data-target="#modalNewArticle" class="btn btn-action ml-auto">
+                    <a href="" data-toggle="modal" data-target="#modalNewArticle" class="btn btn-primary btn-action ml-auto">
                         <span class="fa fa-plus mr-2"></span>Ajouter article</a>
                 </div>
             {% elseif demande.preparation is not empty %}

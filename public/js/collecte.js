@@ -63,6 +63,24 @@ let submitDeleteArticle = $("#submitDeleteArticle");
 let urlDeleteArticle = Routing.generate('collecte_remove_article', true);
 InitialiserModal(modalDeleteArticle, submitDeleteArticle, urlDeleteArticle, tableArticle);
 
+function finishCollecte(submit, tableArticle) {
+    xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            data = JSON.parse(this.responseText);
+            $('#tableArticle_id').DataTable().ajax.reload();
+            $('.zone-entete').html(data.entete)
+        }
+    }
+    path =  Routing.generate('finish_collecte', true)
+    let data = {};
+    data['collecte'] = submit.data('id')
+    json = JSON.stringify(data);
+    xhttp.open("POST", path, true);
+    xhttp.send(json);
+}
+
+
 
 
 // $('#addRow').on('click', function() {

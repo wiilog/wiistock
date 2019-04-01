@@ -173,19 +173,24 @@ class LivraisonController extends AbstractController
             {
                 $livraison = $this->livraisonRepository->find($id);
                 $demande = $this->demandeRepository->getByLivraison($livraison->getId());
-                $ligneArticle = $this->ligneArticleRepository->getByDemande($demande->getId());
+                if ($demande) {
 
-                $rows = [];
-                foreach ($ligneArticle as $article) {
-                    $rows[] = [
-                        "Référence CEA" => ($article->getReference() ? $article->getReference()->getReference() : ' '),
-                        "Libellé" => ($article->getReference() ? $article->getReference()->getLibelle() : ' '),
-                        "Quantité" => ($article->getQuantite() ? $article->getQuantite() : ' '),
-                        "Actions" => "",
-                    ];
+                    $ligneArticle = $this->ligneArticleRepository->getByDemande($demande->getId());
+
+                    $rows = [];
+                    foreach ($ligneArticle as $article) {
+                        $rows[] = [
+                            "Référence CEA" => ($article->getReference() ? $article->getReference()->getReference() : ' '),
+                            "Libellé" => ($article->getReference() ? $article->getReference()->getLibelle() : ' '),
+                            "Quantité" => ($article->getQuantite() ? $article->getQuantite() : ' '),
+                            "Actions" => "",
+                        ];
+                    }
+
+                    $data['data'] = $rows;
+                } else {
+                    $data = false; //TODO gérer retour message erreur
                 }
-
-                $data['data'] = $rows;
                 return new JsonResponse($data);
             }
         throw new NotFoundHttpException("404");

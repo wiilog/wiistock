@@ -141,7 +141,6 @@ class AlerteController extends AbstractController
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $em = $this->getDoctrine()->getEntityManager();
            
-            $demandeurId = $request->request->getInt('demandeur');
             $refArticle = $this->referenceArticleRepository->find($data["AlerteArticleReference"]);
             
             $alerte = new Alerte();
@@ -150,7 +149,7 @@ class AlerteController extends AbstractController
                 ->setAlerteNumero('P-' . $date->format('YmdHis'))
                 ->setAlerteNom($data['AlerteNom'])
                 ->setAlerteSeuil($data['AlerteSeuil'])
-                ->AlerteUtilisateur($this->utilisateurRepository->find($demandeurId))
+                ->setAlerteUtilisateur($this->utilisateurRepository->find($data['utilisateur']))
                 ->setAlerteRefArticle($refArticle);
            
             $em->persist($alerte);
