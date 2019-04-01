@@ -395,7 +395,7 @@ class ReceptionController extends AbstractController
      */
     public function ajoutArticle(Reception $reception, $id): Response
     {
-        return $this->render("reception/ajoutArticle.html.twig", [
+        return $this->render("reception/show.html.twig", [
             'reception' => $reception,
             'refArticle' => $this->referenceArticleRepository->findAll(),
             'id' => $id,

@@ -21,7 +21,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 /**
- * @Route("/champs/libre")
+ * @Route("/champ-libre")
  */
 class ChampsLibreController extends AbstractController
 {

@@ -1,11 +1,11 @@
-<div class="row">
-    <div data-id='{{ idChampsLibre }}' data-toggle='modal' data-target='#modalEditChampLibre' class='col-2 champs-libre-edit'
+<div class="d-flex">
+    <div data-id='{{ idChampsLibre }}' data-toggle='modal' data-target='#modalEditChampLibre' class='champs-libre-edit'
         onclick="editRow($(this),  Routing.generate('champLibre_edit_api', true), $('#modalEditChampLibre'), $('#submitEditChampsLibre'))">
-        <i class='fas fa-pencil-alt '></i>
+        <i class='fas fa-pencil-alt'></i>
     </div>
-    <div class='champs-libre-delete col-2'
+    <div class='champs-libre-delete'
         onclick="deleteRow($(this), $('#modalDeleteChampsLibre'), $('#submitChampsLibreDelete'))"
         data-id={{ idChampsLibre }} data-target='#modalDeleteChampsLibre' data-toggle='modal'>
-        <i class='fas fa-trash '></i>
+        <i class='fas fa-trash'></i>
     </div>
 </div>
