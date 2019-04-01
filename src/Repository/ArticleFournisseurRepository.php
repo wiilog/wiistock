@@ -19,32 +19,15 @@ class ArticleFournisseurRepository extends ServiceEntityRepository
         parent::__construct($registry, ArticleFournisseur::class);
     }
 
-    // /**
-    //  * @return ArticleFournisseur[] Returns an array of ArticleFournisseur objects
-    //  */
-    /*
-    public function findByExampleField($value)
+    public function countByReference($reference)
     {
-        return $this->createQueryBuilder('a')
-            ->andWhere('a.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('a.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT COUNT (ra)
+            FROM App\Entity\ReferenceArticle ra
+            WHERE ra.reference = :reference"
+        )->setParameter('reference', $reference);
 
-    /*
-    public function findOneBySomeField($value): ?ArticleFournisseur
-    {
-        return $this->createQueryBuilder('a')
-            ->andWhere('a.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
+        return $query->getSingleScalarResult();
     }
-    */
 }

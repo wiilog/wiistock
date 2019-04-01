@@ -19,118 +19,117 @@ class StatutFixtures extends Fixture implements DependentFixtureInterface
 
     public function load(ObjectManager $manager)
     {
-        //categorie referenceArticle
+//        categorie referenceArticle
+          $statutsNames = [
+             'actif',
+             'inactif'
+         ];
+
+         foreach ($statutsNames as $statutName) {
+             $statut = new Statut();
+             $statut
+                 ->setNom($statutName)
+                 ->setCategorie($this->getReference('statut-referenceArticle'));
+             $manager->persist($statut);
+         }
+
          // catégorie article
-        //  $statutsNames = [
-        //     'actif',
-        //     'inactif'
-        // ];
+         $statutsNames = [
+             'actif',
+             'inactif'
+         ];
 
-        // foreach ($statutsNames as $statutName) {
-        //     $statut = new Statut();
-        //     $statut
-        //         ->setNom($statutName)
-        //         ->setCategorie($this->getReference('statut-referenceArticle'));
-        //     $manager->persist($statut);
-        // }
-
-        // // catégorie article
-        // $statutsNames = [
-        //     'actif',
-        //     'inactif'
-        // ];
-
-        // foreach ($statutsNames as $statutName) {
-        //     $statut = new Statut();
-        //     $statut
-        //         ->setNom($statutName)
-        //         ->setCategorie($this->getReference('statut-article'));
-        //     $manager->persist($statut);
-        // }
+         foreach ($statutsNames as $statutName) {
+             $statut = new Statut();
+             $statut
+                 ->setNom($statutName)
+                 ->setCategorie($this->getReference('statut-article'));
+             $manager->persist($statut);
+         }
 
 
-        // // catégorie demande de collecte
-        // $statutsNames = [
-        //     'brouillon',
-        //     'à traiter',
-        //     'collecté',
-        // ];
+         // catégorie demande de collecte
+         $statutsNames = [
+             'brouillon',
+             'à traiter',
+             'collecté',
+         ];
 
-        // foreach ($statutsNames as $statutName) {
-        //     $statut = new Statut();
-        //     $statut
-        //         ->setNom($statutName)
-        //         ->setCategorie($this->getReference('statut-collecte'));
-        //     $manager->persist($statut);
-        // }
-
-
-        // // catégorie demande de livraison
-        // $statutsNames = [
-        //     'brouillon',
-        //     'à traiter',
-        //     'préparé',
-        //     'livré',
-        // ];
-
-        // foreach ($statutsNames as $statutName) {
-        //     $statut = new Statut();
-        //     $statut
-        //         ->setNom($statutName)
-        //         ->setCategorie($this->getReference('statut-demande'));
-        //     $manager->persist($statut);
-        // }
+         foreach ($statutsNames as $statutName) {
+             $statut = new Statut();
+             $statut
+                 ->setNom($statutName)
+                 ->setCategorie($this->getReference('statut-collecte'));
+             $manager->persist($statut);
+         }
 
 
-        // // catégorie livraison
-        // $statutsNames = [
-        //     'à traiter',
-        //     'livré'
-        // ];
+         // catégorie demande de livraison
+         $statutsNames = [
+             'brouillon',
+             'à traiter',
+             'préparé',
+             'livré',
+         ];
 
-        // foreach ($statutsNames as $statutName) {
-        //     $statut = new Statut();
-        //     $statut
-        //         ->setNom($statutName)
-        //         ->setCategorie($this->getReference('statut-livraison'));
-        //     $manager->persist($statut);
-        // }
-
-
-        // // catégorie préparation
-        // $statutsNames = [
-        //     'à traiter',
-        //     'préparé',
-        // ];
-
-        // foreach ($statutsNames as $statutName) {
-        //     $statut = new Statut();
-        //     $statut
-        //         ->setNom($statutName)
-        //         ->setCategorie($this->getReference('statut-preparation'));
-        //     $manager->persist($statut);
-        // }
-
-        // $manager->flush();
+         foreach ($statutsNames as $statutName) {
+             $statut = new Statut();
+             $statut
+                 ->setNom($statutName)
+                 ->setCategorie($this->getReference('statut-demande'));
+             $manager->persist($statut);
+         }
 
 
-        // // catégorie réception
-        // $statutsNames = [
-        //     'en attente de réception',
-        //     'réception partielle',
-        //     'réception totale',
-        //     'anomalie'
-        // ];
+         // catégorie livraison
+         $statutsNames = [
+             'à traiter',
+             'livré'
+         ];
 
-        // foreach ($statutsNames as $statutName) {
-        //     $statut = new Statut();
-        //     $statut
-        //         ->setNom($statutName)
-        //         ->setCategorie($this->getReference('statut-reception'));
-        //     $manager->persist($statut);
-        // }
+         foreach ($statutsNames as $statutName) {
+             $statut = new Statut();
+             $statut
+                 ->setNom($statutName)
+                 ->setCategorie($this->getReference('statut-livraison'));
+             $manager->persist($statut);
+         }
 
-        // $manager->flush();
+
+         // catégorie préparation
+         $statutsNames = [
+             'à traiter',
+             'préparé',
+         ];
+
+         foreach ($statutsNames as $statutName) {
+             $statut = new Statut();
+             $statut
+                 ->setNom($statutName)
+                 ->setCategorie($this->getReference('statut-preparation'));
+             $manager->persist($statut);
+         }
+
+         $manager->flush();
+
+
+         // catégorie réception
+         $statutsNames = [
+             'en attente de réception',
+             'réception partielle',
+             'réception totale',
+             'anomalie'
+         ];
+
+         foreach ($statutsNames as $statutName) {
+             $statut = new Statut();
+             $statut
+                 ->setNom($statutName)
+                 ->setCategorie($this->getReference('statut-reception'));
+             $manager->persist($statut);
+         }
+
+         $manager->flush();
 
         // catégorie service
         $statutsNames = [
