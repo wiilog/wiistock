@@ -603,4 +603,8 @@ a:hover {
   color: #cc0000;
   border-color: #cc0000;
 }
+
+.filter span {
+  overflow-wrap: anywhere;
+}
 /*# sourceMappingURL=style.css.map */
