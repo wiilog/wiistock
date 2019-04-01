@@ -22,7 +22,7 @@
                         {% for champ in champs %}
                         <tr>
                             <td>
-                                {{champ.label}}
+                                {{champ.label | capitalize}}
                             </td>
                             <td>
                                 <input class="form-check-input" onclick="visibleColumn($(this))" type="checkbox" id="inlineCheckbox1"
