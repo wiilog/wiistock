@@ -30,6 +30,22 @@
             <input class="form-control data" type="text" name="libelle" value="{{articleRef.libelle}}" id="libelle">
         </div>
     </div>
+    <div class="form-group col-6">
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <label for="type" class="input-group-text">Type</label>
+            </div>
+            <select name="type" onclick="typeChoise($(this), '-edit', $('#typeContentEdit'))"
+                class="form-control data d-block" id="">
+                <option value="{{articleRef.type.id}}">{{articleRef.type.label}}</option>
+                {% for type in types %}
+                {% if type.id != articleRef.type.id %}
+                    <option value="{{type.id}}">{{type.label}}</option>
+                {% endif %}
+                {% endfor %}
+            </select>
+        </div>
+    </div>
 </div>
 
 <div class="row mt-4 mb-4">
@@ -106,55 +122,42 @@
             Champs libres
         </h3>
     </div>
-    <div class="form-group col-12 d-none">
-        <div class="nav nav-tabs myTab" id="myTabEdit" role="tablist">
-            {% for type in types %}
-            <div class="nav-link pointer" name='type' value='{{type.id}}' id='{{type.label}}-tab' data-toggle="tab"
-                href="#{{type.label}}-edit" role="tab" aria-controls={{type.label}} aria-selected="true" onclick="idType($(this), '#idTypeEdit')">
-                {{type.label}}</div>
-            {% endfor %}
-        </div>
-        <input type="hidden" id="idTypeEdit" class="data" name="type"
-            value='{{articleRef.type ? articleRef.type.id : null}}'>
+    <div class="form-group col-12 d-block" id='typeContentEdit'>
+        {% for type in types %}
+        <div {{  type.id != articleRef.type.id ? "class='d-none'" : "class='d-block'"}} id="{{type.id}}-edit">
+            <div class="row mt-2">
+                {% for champ in type.champsLibres %}
 
-        <div class="tab-content" id="myTabContent">
-            {% for type in types %}
-            <div class="tab-pane fade show" id="{{type.label}}-edit" role="tabpanel"
-                aria-labelledby="{{type.label}}-tab">
-                <div class="row mt-2">
-                    {% for champ in type.champsLibres %}
+                {% set value = '' %}
+                {% for row in valeurChampsLibre %}
+                {% if (row.idCL == champ.id) %}{% set value = row.valeur %}{% endif %}
+                {% endfor %}
 
-                    {% set value = '' %}
-                    {% for row in valeurChampsLibre %}
-                    {% if (row.idCL == champ.id) %}{% set value = row.valeur %}{% endif %}
-                    {% endfor %}
-
-                    <div class="form-group col-6">
-                        <div class="input-group">
-                            <div class="input-group-prepend">
-                                <label class="input-group-text" for="input">
-                                    {{champ.label}}
-                                </label>
-                            </div>
-                            {% if champ.typage == 'booleen' %}
-                            {% set checked = (value == 1) ? 'checked' : '' %}
-                            <input type="checkbox" class="form-control data checkbox" {{ checked }} value="{{ value }}"
-                                name="{{champ.id}}" id="input">
-
-                            {% elseif champ.typage == 'number' %}
-                            <input type="number" class="form-control data" value="{{ value }}" name="{{champ.id}}"
-                                id="input">
-
-                            {% else %}
-                            <input type="text" class="form-control data" value="{{ value }}" name="{{ champ.id }}"
-                                id="input">
-                            {% endif %}
+                <div class="form-group col-6">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <label class="input-group-text" for="input">
+                                {{champ.label}}
+                            </label>
                         </div>
+                        {% if champ.typage == 'booleen' %}
+                        {% set checked = (value == 1) ? 'checked' : '' %}
+                        <input type="checkbox" class="form-control data checkbox" {{ checked }} value="{{ value }}"
+                            name="{{champ.id}}" id="input">
+
+                        {% elseif champ.typage == 'number' %}
+                        <input type="number" class="form-control data" value="{{ value }}" name="{{champ.id}}"
+                            id="input">
+
+                        {% else %}
+                        <input type="text" class="form-control data" value="{{ value }}" name="{{ champ.id }}"
+                            id="input">
+                        {% endif %}
                     </div>
-                    {% endfor %}
                 </div>
+                {% endfor %}
             </div>
-            {% endfor %}
         </div>
+        {% endfor %}
     </div>
 </div>

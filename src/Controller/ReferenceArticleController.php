@@ -157,54 +157,60 @@ class ReferenceArticleController extends Controller
     public function new(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $em = $this->getDoctrine()->getManager();
-            $statut = ($data['statut'] === 'active' ? $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF) : $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_INACTIF));
-            $refArticle = new ReferenceArticle();
-            $refArticle
-                ->setLibelle($data['libelle'])
-                ->setReference($data['reference'])
-                ->setQuantiteStock($data['quantite'] ? $data['quantite'] : 0)
-                ->setStatut($statut)
-                ->setTypeQuantite($data['type_quantite'] ? ReferenceArticle::TYPE_QUANTITE_REFERENCE : ReferenceArticle::TYPE_QUANTITE_ARTICLE)
-                ->setType($this->typeRepository->find($data['type']));
-            $em->persist($refArticle);
-            $em->flush();
-            $champsLibreKey = array_keys($data);
+            // on vérifie que la référence n'existe pas déjà
+            $refAlreadyExist = $this->articleFournisseurRepository->countByReference($data['reference']);
 
-            foreach ($champsLibreKey as $champs) {
-                if (gettype($champs) === 'integer') {
-                    $valeurChampLibre = new ValeurChampsLibre();
-                    $valeurChampLibre
-                        ->setValeur($data[$champs])
-                        ->addArticleReference($refArticle)
-                        ->setChampLibre($this->champsLibreRepository->find($champs));
-                    $em->persist($valeurChampLibre);
-                    $em->flush();
+            if ($refAlreadyExist) {
+                return new JsonResponse(false);
+            } else {
+                $em = $this->getDoctrine()->getManager();
+                $statut = ($data['statut'] === 'active' ? $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF) : $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_INACTIF));
+                $refArticle = new ReferenceArticle();
+                $refArticle
+                    ->setLibelle($data['libelle'])
+                    ->setReference($data['reference'])
+                    ->setQuantiteStock($data['quantite'] ? $data['quantite'] : 0)
+                    ->setStatut($statut)
+                    ->setTypeQuantite($data['type_quantite'] ? ReferenceArticle::TYPE_QUANTITE_REFERENCE : ReferenceArticle::TYPE_QUANTITE_ARTICLE)
+                    ->setType($this->typeRepository->find($data['type']));
+                $em->persist($refArticle);
+                $em->flush();
+                $champsLibreKey = array_keys($data);
+
+                foreach ($champsLibreKey as $champs) {
+                    if (gettype($champs) === 'integer') {
+                        $valeurChampLibre = new ValeurChampsLibre();
+                        $valeurChampLibre
+                            ->setValeur($data[$champs])
+                            ->addArticleReference($refArticle)
+                            ->setChampLibre($this->champsLibreRepository->find($champs));
+                        $em->persist($valeurChampLibre);
+                        $em->flush();
+                    }
                 }
+
+                $champsLibres = $this->champsLibreRepository->getLabelByCategory(ReferenceArticle::CATEGORIE);
+
+                $rowCL = [];
+                foreach ($champsLibres as $champLibre) {
+                    $valeur = $this->valeurChampsLibreRepository->getByRefArticleANDChampsLibre($refArticle->getId(), $champLibre['id']);
+                    $rowCL[$champLibre['label']] = ($valeur ? $valeur->getValeur() : "");
+                }
+                $rowDD = [
+                    "id" => $refArticle->getId(),
+                    "Libellé" => $refArticle->getLibelle(),
+                    "Référence" => $refArticle->getReference(),
+                    "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
+                    "Quantité" => $refArticle->getQuantiteStock(),
+                    'Actions' => $this->renderView('reference_article/datatableReferenceArticleRow.html.twig', [
+                        'idRefArticle' => $refArticle->getId(),
+                    ]),
+                ];
+                $rows = array_merge($rowCL, $rowDD);
+                $response['new'] = $rows;
+
+                return new JsonResponse($response);
             }
-
-            $champsLibres = $this->champsLibreRepository->getLabelByCategory(ReferenceArticle::CATEGORIE);
-
-            $rowCL = [];
-            foreach ($champsLibres as $champLibre) {
-                $valeur = $this->valeurChampsLibreRepository->getByRefArticleANDChampsLibre($refArticle->getId(), $champLibre['id']);
-                $rowCL[$champLibre['label']] = ($valeur ? $valeur->getValeur() : "");
-            }
-            $rowDD = [
-                "id" => $refArticle->getId(),
-                "Libellé" => $refArticle->getLibelle(),
-                "Référence" => $refArticle->getReference(),
-                "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
-                "Quantité" => $refArticle->getQuantiteStock(),
-                'Actions' => $this->renderView('reference_article/datatableReferenceArticleRow.html.twig', [
-                    'idRefArticle' => $refArticle->getId(),
-
-                ]),
-            ];
-            $rows = array_merge($rowCL, $rowDD);
-            $response['new'] = $rows;
-
-            return new JsonResponse($response);
         }
         throw new NotFoundHttpException("404");
     }

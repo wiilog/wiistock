@@ -1,6 +1,6 @@
 $('.select2').select2();
 
-function InitialiserModalRefArticle(modal, submit, path, callback = function(){}) {
+function InitialiserModalRefArticle(modal, submit, path, callback = function(){}, close = true) {
     submit.click(function () {
         xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function () {
@@ -72,7 +72,7 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function(){}
 
         // si tout va bien on envoie la requête ajax...
         if (missingInputs.length == 0 && wrongInputs.length == 0) {
-            modal.find('.close').click();
+            if (close == true) modal.find('.close').click();
             Json = {};
             Json = JSON.stringify(Data);
             xhttp.open("POST", path, true);
@@ -120,7 +120,7 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function(){}
 let ModalRefArticleNew = $("#modalNewRefArticle");
 let ButtonSubmitRefArticleNew = $("#submitNewRefArticle");
 let urlRefArticleNew = Routing.generate('reference_article_new', true);
-InitialiserModalRefArticle(ModalRefArticleNew, ButtonSubmitRefArticleNew, urlRefArticleNew);
+InitialiserModalRefArticle(ModalRefArticleNew, ButtonSubmitRefArticleNew, urlRefArticleNew, displayError, false);
 
 let ModalDeleteRefArticle = $("#modalDeleteRefArticle");
 let SubmitDeleteRefArticle = $("#submitDeleteRefArticle");
@@ -290,4 +290,23 @@ function displayFilterValue(elem) {
     }
 
     elem.closest('.modal-body').find('.valueLabel').text(label);
+}
+
+function displayError(data) {
+    let modal = $("#modalNewRefArticle");
+    if (data === false) {
+        let msg = 'Ce nom de référence existe déjà. Vous ne pouvez pas le recréer.';
+        modal.find('.error-msg').html(msg);
+    } else {
+        modal.find('.close').click();
+    }
+}
+
+function typeChoise(bloc, text, content) {
+    let cible = bloc.val()
+    content.children().removeClass('d-block');
+    content.children().addClass('d-none');
+
+    $('#'+cible+text).removeClass('d-none')
+    $('#'+cible+text).addClass('d-block')
 }
