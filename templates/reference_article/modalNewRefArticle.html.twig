@@ -18,7 +18,6 @@
                             <input class="form-control data" type="text" name="reference" id="reference">
                         </div>
                     </div>
-
                     <div class="form-group col-6">
                         <div class="input-group radio-btn">
                             <label for="statut" class="mtb-auto mr-2">Statut</label>
@@ -31,7 +30,6 @@
                             <input type="hidden" name="statut" id="statut" class="data" value="active">
                         </div>
                     </div>
-
                     <div class="form-group col-6">
                         <div class="input-group">
                             <div class="input-group-prepend">
@@ -40,8 +38,19 @@
                             <input class="form-control data" type="text" name="libelle" id="libelle">
                         </div>
                     </div>
+                    <div class="form-group col-6">
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <label for="type" class="input-group-text">Type</label>
+                            </div>
+                            <select name="type" onclick="typeChoise($(this), '-new', $('#typeContentNew'))" class="form-control data d-block" id="">
+                                {% for type in types %}
+                                <option  value="{{type.id}}">{{type.label}}</option>     
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
                 </div>
-
                 <div class="row mt-4 mb-4">
                     <div class="form-group col-6">
                         <div class="input-group radio-btn">
@@ -55,7 +64,6 @@
                             <input type="hidden" name="type_quantite" class="data" value="reference" id="type_quantite">
                         </div>
                     </div>
-
                     <div class="form-group col-6">
                         <div class="input-group reference">
                             <div class="input-group-prepend">
@@ -70,26 +78,15 @@
                 <div class="row mt-4">
                     <div class='col-12 mb-2' onclick="visibleBlockModal($(this))">
                         <h3 class='d-flex pointer'>
-                            <i class="fas fa-sort-up d-none mr-2"></i>
-                            <i class="fas fa-sort-down d-block mr-2"></i>
+                            <i class="fas fa-sort-up d-block mr-2"></i>
+                            <i class="fas fa-sort-down d-none mr-2"></i>
                             Champs libres
                         </h3>
                     </div>
-                    <div class="form-group col-12 d-none">
-                        <div class="nav nav-tabs myTab" id="myTabNew" role="tablist">
+                    <div class="form-group col-12 d-block" id='typeContentNew'>
                             {% for type in types %}
-                            <div class="nav-link pointer" name='type' value='{{type.id}}' id='{{type.label}}-tab'
-                                data-toggle="tab" href="#{{type.label}}-new" role="tab"
-                                onclick="idType($(this), '#idTypeNew')" aria-controls={{type.label}}
-                                aria-selected="true">
-                                {{type.label}}</div>
-                            {% endfor %}
-                            <input type="hidden" id="idTypeNew" class="data" name="type" value=''>
-                        </div>
-                        <div class="tab-content" id="myTabContent">
-                            {% for type in types %}
-                            <div class="tab-pane fade show" id="{{type.label}}-new" role="tabpanel"
-                                aria-labelledby="{{type.label}}-tab">
+                            
+                            <div class="d-none" id="{{type.id}}-new">
                                 <div class="row mt-2">
                                     {% for champ in type.champsLibres %}
                                     <div class="form-group col-6">
@@ -116,7 +113,6 @@
                                 </div>
                             </div>
                             {% endfor %}
-                        </div>
                     </div>
                 </div>
             </div>

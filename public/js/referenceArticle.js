@@ -286,3 +286,13 @@ function displayFilterValue(elem) {
 
     elem.closest('.modal-body').find('.valueLabel').text(label);
 }
+
+
+function typeChoise(bloc, text, content) {
+    let cible = bloc.val()
+    content.children().removeClass('d-block');
+    content.children().addClass('d-none');
+
+    $('#'+cible+text).removeClass('d-none')
+    $('#'+cible+text).addClass('d-block')
+}
