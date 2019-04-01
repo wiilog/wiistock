@@ -301,14 +301,14 @@ a:hover {
 }
 
 .btn-success {
-  background-color: #00b31e;
-  border-color: #00b31e;
+  background-color: #130078;
+  border-color: #130078;
 }
 
 .btn-success:hover {
   background-color: #fcfcfc;
-  color: #00b31e;
-  border-color: #00b31e;
+  color: #130078;
+  border-color: #130078;
 }
 
 .btn-danger {
@@ -602,5 +602,9 @@ a:hover {
 .filter:hover {
   color: #cc0000;
   border-color: #cc0000;
+}
+
+.filter span {
+  overflow-wrap: anywhere;
 }
 /*# sourceMappingURL=style.css.map */
