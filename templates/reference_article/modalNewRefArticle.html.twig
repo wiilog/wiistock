@@ -44,6 +44,7 @@
                                 <label for="type" class="input-group-text">Type</label>
                             </div>
                             <select name="type" onclick="typeChoise($(this), '-new', $('#typeContentNew'))" class="form-control data d-block" id="">
+                                <option value="">Type à choisir...</option>
                                 {% for type in types %}
                                 <option  value="{{type.id}}">{{type.label}}</option>     
                                 {% endfor %}

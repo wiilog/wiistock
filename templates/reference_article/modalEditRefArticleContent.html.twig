@@ -37,8 +37,11 @@
             </div>
             <select name="type" onclick="typeChoise($(this), '-edit', $('#typeContentEdit'))"
                 class="form-control data d-block" id="">
+                <option value="{{articleRef.type.id}}">{{articleRef.type.label}}</option>
                 {% for type in types %}
-                <option value="{{type.id}}">{{type.label}}</option>
+                {% if type.id != articleRef.type.id %}
+                    <option value="{{type.id}}">{{type.label}}</option>
+                {% endif %}
                 {% endfor %}
             </select>
         </div>
@@ -119,9 +122,9 @@
             Champs libres
         </h3>
     </div>
-    <div class="form-group col-12 d-none" id='typeContentEdit'>
+    <div class="form-group col-12 d-block" id='typeContentEdit'>
         {% for type in types %}
-        <div class="d-none" id="{{type.id}}-edit" >
+        <div {{  type.id != articleRef.type.id ? "class='d-none'" : "class='d-block'"}} id="{{type.id}}-edit">
             <div class="row mt-2">
                 {% for champ in type.champsLibres %}
 
