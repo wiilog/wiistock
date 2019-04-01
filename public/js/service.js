@@ -1,4 +1,10 @@
-$('.select2').select2();
+$('.select2').select2({
+    placeholder: {
+        id: 'demandeur', // the value of the option
+        text: 'Demandeur',
+    }
+    
+});
 
 var pathService = Routing.generate('service_api', true);
 var tableService = $('#tableService_id').DataTable({
@@ -16,17 +22,17 @@ var tableService = $('#tableService_id').DataTable({
         { "data": 'Statut' },
         { "data": 'Actions' },
     ],
-    
+
 });
 
 $('#submitSearchService').on('click', function () {
-  
-    let statut = $('#statut').val();   
+
+    let statut = $('#statut').val();
     let demandeur = [];
-    demandeur =  $('#demandeur').val()
+    demandeur = $('#demandeur').val()
     demandeurString = demandeur.toString();
-    demandeurPiped =  demandeurString.split(',').join('|')
-       
+    demandeurPiped = demandeurString.split(',').join('|')
+
     tableService
         .columns(3)
         .search(statut)
@@ -34,7 +40,7 @@ $('#submitSearchService').on('click', function () {
 
     tableService
         .columns(1)
-        .search(demandeurPiped ? '^'+demandeurPiped+'$' : '', true, false  )
+        .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
         .draw();
 
     $.fn.dataTable.ext.search.push(
