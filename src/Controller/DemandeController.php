@@ -150,7 +150,7 @@ class DemandeController extends AbstractController
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $referenceArticle = $this->referenceArticleRepository->find($data["reference"]);
             $demande = $this->demandeRepository->find($data['demande']);
-            if ($this->ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande)  < 1) {
+            if ($this->ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
                 $ligneArticle = new LigneArticle();
                 $ligneArticle
                     ->setQuantite($data["quantite"])
