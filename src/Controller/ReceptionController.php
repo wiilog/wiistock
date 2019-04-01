@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Reception;
 use App\Form\ReceptionType;
+use App\Repository\ArticleFournisseurRepository;
 use App\Repository\ReceptionRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -395,9 +396,11 @@ class ReceptionController extends AbstractController
      */
     public function ajoutArticle(Reception $reception, $id): Response
     {
+        $refArticles = $this->referenceArticleRepository->getIdAndLabelByFournisseur($reception->getFournisseur()->getId());
+
         return $this->render("reception/show.html.twig", [
             'reception' => $reception,
-            'refArticle' => $this->referenceArticleRepository->findAll(),
+            'refArticles' => $refArticles,
             'id' => $id,
             'fournisseurs' => $this->fournisseurRepository->findAll(),
             'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),

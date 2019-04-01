@@ -30,4 +30,5 @@ class ArticleFournisseurRepository extends ServiceEntityRepository
 
         return $query->getSingleScalarResult();
     }
+
 }
