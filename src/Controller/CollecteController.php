@@ -126,7 +126,7 @@ class CollecteController extends AbstractController
                 $rows = [];
                 foreach ($articles as $article) {
                     $rows[] = [
-                        'Référence CEA' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle() : ""),
+                        'Référence CEA' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : ""),
                         'Libellé' => $article->getLabel(),
                         'Emplacement' => '',
                         'Quantité' => $article->getQuantite(),
