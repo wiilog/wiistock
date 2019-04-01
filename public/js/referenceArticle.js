@@ -148,6 +148,8 @@ $(document).ready(function () {
         tableRefArticle = $('#tableRefArticle_id').DataTable({
             "autoWidth": false,
             "scrollX": true,
+            "scrollY": "80vh",
+            "scrollCollapse": true,
             "pageLength": 50,
             "lengthMenu": [50, 100, 200, 500 ],
             "language": {
