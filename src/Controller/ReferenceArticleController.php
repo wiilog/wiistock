@@ -112,30 +112,36 @@ class ReferenceArticleController extends Controller
                 $column = [
                     [
                         "title" => 'Actions',
-                        "data" => 'Actions'
+                        "data" => 'Actions',
+                        "class" => 'fixe'
                     ],
                     [
                         "title" => 'Libellé',
-                        "data" => 'Libellé'
+                        "data" => 'Libellé',
+                        "class" => 'fixe'
                     ],
                     [
                         "title" => 'Référence',
-                        "data" => 'Référence'
+                        "data" => 'Référence',
+                        "class" => 'fixe'
                     ],
                     [
                         "title" => 'Type',
-                        "data" => 'Type'
+                        "data" => 'Type',
+                        "class" => 'fixe'
                     ],
                     [
                         "title" => 'Quantité',
-                        "data" => 'Quantité'
+                        "data" => 'Quantité',
+                        "class" => 'fixe'
                     ],
 
                 ];
                 foreach ($champs as $champ) {
                     $column[] = [
                         "title" => ucfirst(mb_strtolower($champ['label'])),
-                        "data" => $champ['label']
+                        "data" => $champ['label'],
+                        "class" => 'libre'
                     ];
                 }
 
