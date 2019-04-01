@@ -15,7 +15,7 @@
             Ajouter un article</a> -->
         {% if finished %}
             <a href="{{path('createLivraison', {'id': preparation.id}) }}" class="btn btn-primary ml-auto">Valider</a>
-        {% else %}
+        {% elseif preparation.livraisons is not empty %}
         <a href="{{path('livraison_show', {'id': preparation.livraisons.0.id})}}"class="btn btn-primary ml-auto">Aller vers la livraison</a>
         {% endif %}
     </div>
