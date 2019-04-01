@@ -26,7 +26,7 @@
                             </td>
                             <td>
                                 <input class="form-check-input" onclick="visibleColumn($(this))" type="checkbox" id="inlineCheckbox1"
-                                    data-column="{{i}}">
+                                    checked data-column="{{i}}">
                             </td>
                         </tr>
                         {% set i = i + 1 %}
@@ -37,8 +37,7 @@
 
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
-                <button type="button" class="btn btn-primary">Enregistrer</button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal">Fermer</button>
             </div>
         </div>
     </div>
