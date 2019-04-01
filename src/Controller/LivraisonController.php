@@ -18,6 +18,7 @@ use App\Repository\DemandeRepository;
 use App\Repository\StatutRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\LigneArticleRepository;
+use App\Repository\ReferenceArticleRepository;
 
 
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -32,6 +33,11 @@ class LivraisonController extends AbstractController
      * @var EmplacementRepository
      */
     private $emplacementRepository;
+
+     /**
+     * @var ReferenceArticleRepository
+     */
+    private $referenceArticleRepository;
 
     /**
      * @var PreparationRepository
@@ -59,7 +65,7 @@ class LivraisonController extends AbstractController
     private $ligneArticleRepository;
 
 
-    public function __construct(PreparationRepository $preparationRepository, LigneArticleRepository $ligneArticleRepository, EmplacementRepository $emplacementRepository, DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, StatutRepository $statutRepository)
+    public function __construct(ReferenceArticleRepository $referenceArticleRepository, PreparationRepository $preparationRepository, LigneArticleRepository $ligneArticleRepository, EmplacementRepository $emplacementRepository, DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, StatutRepository $statutRepository)
     {
         $this->emplacementRepository = $emplacementRepository;
         $this->demandeRepository = $demandeRepository;
@@ -67,6 +73,7 @@ class LivraisonController extends AbstractController
         $this->statutRepository = $statutRepository;
         $this->preparationRepository = $preparationRepository;
         $this->ligneArticleRepository = $ligneArticleRepository;
+        $this->referenceArticleRepository = $referenceArticleRepository;
     }
 
     /**
@@ -77,7 +84,7 @@ class LivraisonController extends AbstractController
         $preparation = $this->preparationRepository->find($id);
 
         $demande1 = $preparation->getDemandes();
-        $demande= $demande1[0];
+        $demande = $demande1[0];
         $statut = $this->statutRepository->findOneByCategorieAndStatut(Livraison::CATEGORIE, Livraison::STATUT_A_TRAITER);
         $livraison = new Livraison();
         $date = new \DateTime('now');
@@ -92,7 +99,7 @@ class LivraisonController extends AbstractController
         $preparation->setStatut($this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_PREPARE));
 
         $demande
-            ->setStatut( $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_PREPARE))
+            ->setStatut($this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_PREPARE))
             ->setLivraison($livraison);
         $entityManager->flush();
         $livraison = $preparation->getLivraisons()->toArray();
@@ -124,6 +131,14 @@ class LivraisonController extends AbstractController
             $demande = $this->demandeRepository->getByLivraison($livraison->getId());
             $statutLivre = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_LIVREE);
             $demande->setStatut($statutLivre);
+
+            $ligneArticles = $this->ligneArticleRepository->getByDemande($demande);
+
+            foreach ($ligneArticles as $ligneArticle) {
+                $refArticle = $ligneArticle->getReference();
+                $refArticle->setQuantiteStock($refArticle->getQuantiteStock() - $ligneArticle->getQuantite());
+            }
+
 
             $preparation = $livraison->getPreparation();
             $articles = $preparation->getArticle();
