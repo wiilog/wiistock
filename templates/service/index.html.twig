@@ -5,6 +5,7 @@
 {% block page_content %}
 <h1>Demandes de services</h1>
 
+
 <div class='col-12 mb-5'>
     <a href="" data-toggle="modal" data-target="#modalNewService" class="btn btn-primary">
         <span class="fa fa-plus mr-2"></span>Nouvelle demande
@@ -38,7 +39,7 @@
     <div class='col-3'>
         <div class="form-group">
             <label for="demandeur">Demandeur</label>
-            <select type="text" class="demandeur form-control data" name="demandeur" multiple="multiple" id="demandeur">
+            <select type="text" class="demandeur form-control data select2" name="demandeur" multiple="multiple" id="demandeur">
                 <option value="{{app.user.username}}">{{app.user.username}}</option>
                 {% for demandeur in demandeurs %}
                 <option value="{{ demandeur.username }}">
@@ -49,8 +50,9 @@
         </div>
     </div>
     <div class='col-3'>
-
-        <input type='submit' id='submitSearchService' class="btn btn-primary btn-action">
+        <a id='submitSearchService' class="btn btn-action"> 
+            Filtrer
+        </a>
     </div>
 
 </div>
