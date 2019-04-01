@@ -159,6 +159,7 @@ $(document).ready(function () {
             "columns": columnContent
         });
         initRemove();
+        allColumnsUnvisible();
     })
 });
 
@@ -172,6 +173,10 @@ function visibleColumn(check) {
     let columnNumber = check.data('column')
     let column = tableRefArticle.column(columnNumber);
     column.visible(!column.visible());
+}
+
+function allColumnsUnvisible() {
+    tableRefArticle.columns('.libre').visible(false);
 }
 
 function updateQuantityDisplay(elem) {
