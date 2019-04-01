@@ -220,7 +220,7 @@ class ReceptionController extends AbstractController
                         [
                             "Référence" => ($article->getReference() ? $article->getReference() : ''),
                             "Libellé" => ($article->getLabel() ? $article->getlabel() : ''),
-                            "Référence CEA" => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getRefArticle()->getReference() : ''),
+                            "Référence CEA" => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : ''),
                             "Statut" => ($article->getStatut() ? $article->getStatut()->getNom() : ""),
                             'Actions' => $this->renderView('reception/datatableArticleRow.html.twig', [
                                 'article' => $articleData,

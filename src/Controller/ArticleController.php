@@ -82,7 +82,7 @@ class ArticleController extends AbstractController
                     'Référence' => ($article->getReference() ? $article->getReference() : "Non défini"),
                     'Statut' => ($article->getStatut() ? $article->getStatut()->getNom() : "Non défini"),
                     'Libellé' => ($article->getLabel() ? $article->getLabel() : "Non défini"),
-                    'Référence article' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getRefArticle()->getReference() : "Non défini"),
+                    'Référence article' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : "Non défini"),
                     'Quantité' => ($article->getQuantite() ? $article->getQuantite() : "Non défini"),
                     'Actions' => $this->renderView('article/datatableArticleRow.html.twig', [
                         'url' => $url, 
