@@ -268,7 +268,7 @@ class ChampsLibreController extends AbstractController
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $type = $this->typeRepository->find($data);
-            $json = $this->renderView('champs_Libre/modalEditTypeContent.html.twig', [
+            $json = $this->renderView('champs_libre/modalEditTypeContent.html.twig', [
                 'type' => $type,
                 'category' => $this->categoryTypeRepository->getNoOne($type->getCategory()->getId())
             ]);
