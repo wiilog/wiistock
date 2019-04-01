@@ -55,6 +55,7 @@ class Livraison
      * @ORM\ManyToOne(targetEntity="App\Entity\Preparation", inversedBy="livraisons")
      */
     private $preparation;
+    
     public function __construct()
     {
         $this->demande = new ArrayCollection();

@@ -301,3 +301,12 @@ function displayError(data) {
         modal.find('.close').click();
     }
 }
+
+function typeChoise(bloc, text, content) {
+    let cible = bloc.val()
+    content.children().removeClass('d-block');
+    content.children().addClass('d-none');
+
+    $('#'+cible+text).removeClass('d-none')
+    $('#'+cible+text).addClass('d-block')
+}
