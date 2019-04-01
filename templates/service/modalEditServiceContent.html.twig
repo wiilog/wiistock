@@ -1,6 +1,7 @@
 <div class="form-group">
     <label for="Objet">Objet</label>
-    <input type="text" id="libelle" class="form-control data" name="Libelle" value="{{service.libelle}}" placeholder="Objet">
+    <input type="text" id="libelle" class="form-control data" name="Libelle" value="{{service.libelle}}"
+        placeholder="Objet">
 </div>
 
 <div class="form-group">
@@ -12,7 +13,7 @@
 
 <div class="form-group">
     <label for="Localité">Localité</label>
-    <select class="Localité form-control select2 data" name="Localité">
+    <select class="Localité form-control data select2" name="Localité">
         <option value="{{service.emplacement.id}}">{{service.emplacement.label}}</option>
         {% for emplacement in emplacements %}
         <option value="{{ emplacement.Id }}">
@@ -22,17 +23,22 @@
     </select>
 </div>
 
-<div class="form-group">
-        <label for="statut">Statut</label>
-        <select class="form-control data" name="statut">
-            {% for statut in statuts %}
-                {% set selected = (statut.id == service.statut.id ? 'selected' : '') %}
-                <option value="{{ statut.id }}" {{ selected }}>{{ statut.nom }}</option>
-            {% endfor %}
-        </select>
+<div class="form-group col-6">
+    <div class="input-group radio-btn">
+        <label for="statut" class="mtb-auto mr-2">Statut</label>
+        <div>
+            <span class="btn {{ statut == 1 ? 'active' : 'not-active'}}" data-toggle="statut" data-title="active"
+                onclick="toggleRadioButton($(this))">A Traiter</span><span
+                class="btn {{ statut == 0 ? 'active' : 'not-active'}}" data-toggle="statut" data-title="inactive"
+                onclick="toggleRadioButton($(this))">Traiter</span>
+        </div>
+        <input type="hidden" name="statut" id="statut" class="data" value="{{ statut }}">
     </div>
+</div>
+
 
 <div class="form-group">
     <label for="service-commentaire">Commentaire</label>
-    <textarea class="form-control data" name="commentaire" id="commentaire" value="{{service.commentaire}}"placeholder="Commentaire">{{service.commentaire}}</textarea>       
+    <textarea class="form-control data" name="commentaire" id="commentaire" value="{{service.commentaire}}"
+        placeholder="Commentaire">{{service.commentaire}}</textarea>
 </div>

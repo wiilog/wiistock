@@ -16,13 +16,11 @@ var tableService = $('#tableService_id').DataTable({
         { "data": 'Statut' },
         { "data": 'Actions' },
     ],
-    "search": {
-        "regex": true
-    }
+    
 });
 
 $('#submitSearchService').on('click', function () {
-    $("#demandeur").select2();
+  
     let statut = $('#statut').val();   
     let demandeur = [];
     demandeur =  $('#demandeur').val()
@@ -34,10 +32,6 @@ $('#submitSearchService').on('click', function () {
         .search(statut)
         .draw();
 
-    tableService
-        .columns(1)
-        .search(demandeur[0])
-        .draw();
     tableService
         .columns(1)
         .search(demandeurPiped ? '^'+demandeurPiped+'$' : '', true, false  )

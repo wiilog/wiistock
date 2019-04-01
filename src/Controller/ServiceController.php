@@ -137,11 +137,12 @@ class ServiceController extends AbstractController
     public function editApi(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $service = $this->serviceRepository->find($data);
+            $service = $this->serviceRepository->find($data);         
             $json = $this->renderView('service/modalEditServiceContent.html.twig', [
                 'service' => $service,
                 'utilisateurs'=>$this->utilisateurRepository->findAll(),
                 'emplacements'=>$this->emplacementRepository->findAll(),
+                'statut' => ($service->getStatut()->getNom() == Service::STATUT_A_TRAITER),
                 'statuts'=>$this->statutRepository->findByCategorieName(Service::CATEGORIE),
             ]);
         
@@ -157,10 +158,14 @@ class ServiceController extends AbstractController
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $service = $this->serviceRepository->find($data['id']);
+            dump($service);
+            $statutLabel = ($data['statut'] == 1) ? Service::STATUT_TRAITE : Service::STATUT_A_TRAITER;
+            $statut = $this->statutRepository->findOneByCategorieAndStatut(Service::CATEGORIE, $statutLabel);
+            $service->setStatut($statut);
             $service
                 ->setLibelle($data['Libelle'])
                 ->setEmplacement($this->emplacementRepository->find($data['Localité']))
-                ->setStatut($this->statutRepository->find($data['statut']))
+                // ->setStatut($this->statutRepository->find($data['statut']))
                 ->setDemandeur($this->utilisateurRepository->find($data['demandeur']))
                 ->setCommentaire($data['commentaire']);
             $em = $this->getDoctrine()->getManager();
