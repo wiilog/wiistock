@@ -58,7 +58,7 @@ class UtilisateurController extends Controller
     }
 
     /**
-     * @Route("/newUser", name="user_new",  options={"expose"=true}, methods="GET|POST")
+     * @Route("/creer", name="user_new",  options={"expose"=true}, methods="GET|POST")
      */
     public function newUser(Request $request, UserPasswordEncoderInterface $passwordEncoder): Response
     {
@@ -71,14 +71,14 @@ class UtilisateurController extends Controller
             
             if ($password === $data['password2']) {
                 if (strlen($password) < 8) {
-                    $Data = "Mot de passe trop court (8 caratères minimun)!";
+                    $Data = "Mot de passe trop court (8 caratères minimum)!";
                 } elseif (preg_match('#^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*\@W).{6,}$#', $password)) {
                     $Data = 'Mot de passe non conforme (une majuscule, un chiffre, un caractère spécial)';
                 } else {
                     $passwordOk = true;
                 }
             } else {
-                $Data = "mot de passe incorrecte";
+                $Data = "mot de passe incorrect";
             }
             $userExiste = $this->utilisateurRepository->countByEmail($data['email']);
             if ($userExiste === "0" && $passwordOk === true) {
@@ -95,7 +95,7 @@ class UtilisateurController extends Controller
                 $Data = 'nouvelle utilisateur créé';
                 $class = 'messageContent';
             } else if($userExiste !== '0') {
-                $Data = "erreur dans le formulaire, l'adresse email est déjà utilisé";
+                $Data = "erreur dans le formulaire, l'adresse email est déjà utilisée";
             }
             $json =  $this->renderView(
                 "utilisateur/errorMessage.html.twig",
@@ -141,7 +141,7 @@ class UtilisateurController extends Controller
     }
 
      /**
-     * @Route("/delete", name="user_delete", options={"expose"=true}, methods="GET|POST")
+     * @Route("/supprimer", name="user_delete", options={"expose"=true}, methods="GET|POST")
      */
     public function delete(Request $request): Response
     {
