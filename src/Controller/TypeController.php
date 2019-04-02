@@ -3,10 +3,16 @@
 namespace App\Controller;
 
 use App\Entity\ReferenceArticle;
+use App\Entity\Type;
+
+use App\Repository\CategoryTypeRepository;
+use App\Repository\ChampsLibreRepository;
+use App\Repository\ReferenceArticleRepository;
 use App\Repository\TypeRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
@@ -23,12 +29,32 @@ class TypeController extends AbstractController
     private $typeRepository;
 
     /**
+     * @var CategoryTypeRepository
+     */
+    private $categoryTypeRepository;
+
+    /**
+     * @var ReferenceArticleRepository
+     */
+    private $refArticleRepository;
+
+    /**
+     * @var ChampsLibreRepository
+     */
+    private $champLibreRepository;
+
+    /**
      * TypeController constructor.
      * @param TypeRepository $typeRepository
+     * @param CategoryTypeRepository $categoryTypeRepository
+     * @param ChampsLibreRepository $champLibreRepository
      */
-    public function __construct(TypeRepository $typeRepository)
+    public function __construct(TypeRepository $typeRepository, CategoryTypeRepository $categoryTypeRepository, ChampsLibreRepository $champLibreRepository, ReferenceArticleRepository $refArticleRepository)
     {
         $this->typeRepository = $typeRepository;
+        $this->categoryTypeRepository = $categoryTypeRepository;
+        $this->refArticleRepository = $refArticleRepository;
+        $this->champLibreRepository = $champLibreRepository;
     }
 
     /**
@@ -113,12 +139,12 @@ class TypeController extends AbstractController
             // si on a confirmé la suppression, on supprime les enregistrements liés
             if (isset($data['force'])) {
                 $this->refArticleRepository->setTypeIdNull($type);
-                $this->champsLibreRepository->deleteByType($type);
+                $this->champLibreRepository->deleteByType($type);
                 $entityManager->flush();
             } else {
                 // sinon on vérifie qu'il n'est pas lié par des contraintes de clé étrangère
                 $articlesExist = $this->refArticleRepository->countByType($type);
-                $champsLibresExist = $this->champsLibreRepository->countByType($type);
+                $champsLibresExist = $this->champLibreRepository->countByType($type);
 
                 if ((int)$champsLibresExist + (int)$articlesExist > 0) {
                     $result = $this->renderView('champ_libre/modalDeleteTypeConfirm.html.twig');
