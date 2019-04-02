@@ -128,7 +128,7 @@ class CollecteController extends AbstractController
                     $rows[] = [
                         'Référence CEA' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : ""),
                         'Libellé' => $article->getLabel(),
-                        'Emplacement' => '',
+                        'Emplacement' => $collecte->getPointCollecte()->getLabel(),
                         'Quantité' => $article->getQuantite(),
                         'Actions' => $this->renderView('collecte/datatableArticleRow.html.twig', [
                             'article' => $article,
@@ -270,12 +270,14 @@ class CollecteController extends AbstractController
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $collecte = $this->collecteRepository->find($data['collecte']);
+            $pointCollecte = $this->emplacementRepository->find($data['Pcollecte']);
+
             $collecte
                 ->setNumero($data["NumeroCollecte"])
                 ->setDate(new \DateTime($data["date-collecte"]))
                 ->setCommentaire($data["commentaire"])
                 ->setObjet($data["objet"])
-                ->setPointCollecte(($data["Pcollecte"]));
+                ->setPointCollecte($pointCollecte);
 
             $em = $this->getDoctrine()->getManager();
             $em->flush();
