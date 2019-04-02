@@ -98,4 +98,45 @@ class RefArticleDataService
         }
         return $rows;
     }
+
+
+    /**
+     * @return array
+     * @throws \Twig_Error_Loader
+     * @throws \Twig_Error_Runtime
+     * @throws \Twig_Error_Syntax
+     */
+    public function getDataEditForRefArticle($articleRef)
+    {    
+        if ($articleRef) {
+            $type = $articleRef->getType();
+            if ($type) {
+                $valeurChampLibre = $this->valeurChampsLibreRepository->getByRefArticleAndType($articleRef->getId(), $type->getId());
+            }
+            // construction du tableau des articles fournisseurs
+            $listArticlesFournisseur = [];
+            $articlesFournisseurs = $articleRef->getArticlesFournisseur();
+            $totalQuantity = 0;
+            foreach ($articlesFournisseurs as $articleFournisseur) {
+                $quantity = 0;
+                foreach ($articleFournisseur->getArticles() as $article) {
+                    $quantity += $article->getQuantite();
+                }
+                $totalQuantity += $quantity;
+
+                $listArticlesFournisseur[] = [
+                    'fournisseurRef' => $articleFournisseur->getFournisseur()->getCodeReference(),
+                    'label' => $articleFournisseur->getLabel(),
+                    'fournisseurName' => $articleFournisseur->getFournisseur()->getNom(),
+                    'quantity' => $quantity
+                ];
+            }
+        }
+        return $data = [
+            'listArticlesFournisseur' => $listArticlesFournisseur,
+            'totalQuantity' => $totalQuantity,
+            'valeurChampLibre'=> $valeurChampLibre
+        ];
+    }
 }
+

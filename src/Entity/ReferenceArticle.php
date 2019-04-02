@@ -86,6 +86,11 @@ class ReferenceArticle
      */
     private $Statut;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\CollecteReference", mappedBy="referenceArticle")
+     */
+    private $collecteReference;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
@@ -94,6 +99,7 @@ class ReferenceArticle
         $this->ligneArticles = new ArrayCollection();
         $this->valeurChampsLibres = new ArrayCollection();
         $this->articlesFournisseur = new ArrayCollection();
+        $this->collecteReference = new ArrayCollection();
     }
 
     public function getId()
@@ -319,6 +325,37 @@ class ReferenceArticle
     public function setStatut(?Statut $Statut): self
     {
         $this->Statut = $Statut;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|CollecteReference[]
+     */
+    public function getcollecteReference(): Collection
+    {
+        return $this->collecteReference;
+    }
+
+    public function addcollecteReference(CollecteReference $collecteReference): self
+    {
+        if (!$this->collecteReference->contains($collecteReference)) {
+            $this->collecteReference[] = $collecteReference;
+            $collecteReference->setReferenceArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removecollecteReference(CollecteReference $collecteReference): self
+    {
+        if ($this->collecteReference->contains($collecteReference)) {
+            $this->collecteReference->removeElement($collecteReference);
+            // set the owning side to null (unless already changed)
+            if ($collecteReference->getReferenceArticle() === $this) {
+                $collecteReference->setReferenceArticle(null);
+            }
+        }
 
         return $this;
     }

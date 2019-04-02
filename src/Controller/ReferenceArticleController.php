@@ -295,47 +295,23 @@ class ReferenceArticleController extends Controller
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
             $articleRef = $this->referenceArticleRepository->find($data);
+            $statuts = $this->statutRepository->findByCategorieName(ReferenceArticle::CATEGORIE);
 
             if ($articleRef) {
-                $type = $articleRef->getType();
-                if ($type) {
-                    $valeurChampLibre = $this->valeurChampsLibreRepository->getByRefArticleAndType($articleRef->getId(), $type->getId());
-                }
-
-                $statuts = $this->statutRepository->findByCategorieName(ReferenceArticle::CATEGORIE);
-
-                // construction du tableau des articles fournisseurs
-                $listArticlesFournisseur = [];
-                $articlesFournisseurs = $articleRef->getArticlesFournisseur();
-                $totalQuantity = 0;
-                foreach ($articlesFournisseurs as $articleFournisseur) {
-                    $quantity = 0;
-                    foreach ($articleFournisseur->getArticles() as $article) {
-                        $quantity += $article->getQuantite();
-                    }
-                    $totalQuantity += $quantity;
-
-                    $listArticlesFournisseur[] = [
-                        'fournisseurRef' => $articleFournisseur->getFournisseur()->getCodeReference(),
-                        'label' => $articleFournisseur->getLabel(),
-                        'fournisseurName' => $articleFournisseur->getFournisseur()->getNom(),
-                        'quantity' => $quantity
-                    ];
-                }
+                $data = $this->refArticleDataService->getDataEditForRefArticle($articleRef); 
 
                 $json = $this->renderView('reference_article/modalEditRefArticleContent.html.twig', [
                     'articleRef' => $articleRef,
                     'statut' => ($articleRef->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF),
-                    'valeurChampsLibre' => isset($valeurChampLibre) ? $valeurChampLibre : null,
+                    'valeurChampsLibre' => isset($valeurChampLibre) ? $data['valeurChampLibre'] : null,
                     'types' => $this->typeRepository->getByCategoryLabel(ReferenceArticle::CATEGORIE),
                     'statuts' => $statuts,
-                    'articlesFournisseur' => $listArticlesFournisseur,
-                    'totalQuantity' => $totalQuantity
+                    'articlesFournisseur' => $data['listArticlesFournisseur'],
+                    'totalQuantity' => $data['totalQuantity']
                 ]);
             } else {
                 $json = false;
             }
-
             return new JsonResponse($json);
         }
         throw new NotFoundHttpException("404");

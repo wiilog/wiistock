@@ -65,9 +65,15 @@ class Collecte
      */
     private $commentaire;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\CollecteReference", mappedBy="collecte")
+     */
+    private $collecteReferences;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
+        $this->collecteReferences = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -181,6 +187,37 @@ class Collecte
     public function setCommentaire(?string $commentaire): self
     {
         $this->commentaire = $commentaire;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|CollecteReference[]
+     */
+    public function getCollecteReferences(): Collection
+    {
+        return $this->collecteReferences;
+    }
+
+    public function addCollecteReference(CollecteReference $collecteReference): self
+    {
+        if (!$this->collecteReferences->contains($collecteReference)) {
+            $this->collecteReferences[] = $collecteReference;
+            $collecteReference->setCollecte($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCollecteReference(CollecteReference $collecteReference): self
+    {
+        if ($this->collecteReferences->contains($collecteReference)) {
+            $this->collecteReferences->removeElement($collecteReference);
+            // set the owning side to null (unless already changed)
+            if ($collecteReference->getCollecte() === $this) {
+                $collecteReference->setCollecte(null);
+            }
+        }
 
         return $this;
     }

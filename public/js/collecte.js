@@ -125,14 +125,13 @@ function ajaxGetArticle(select) {
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
             data = JSON.parse(this.responseText);
-           
+           $('#newContent').html(data);
         }
     }
     path =  Routing.generate('get_article_by_refArticle', true)
     let data = {};
     data['referenceArticle'] = select.val();
     json = JSON.stringify(data);
-    console.log(json);
     xhttp.open("POST", path, true);
     xhttp.send(json);
 }

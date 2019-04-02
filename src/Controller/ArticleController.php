@@ -9,6 +9,12 @@ use App\Repository\ReceptionRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\ArticleFournisseurRepository;
+use App\Repository\TypeRepository;
+
+use App\Entity\ReferenceArticle;
+
+use App\Service\RefArticleDataService;
+
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -31,6 +37,11 @@ class ArticleController extends AbstractController
      * @var EmplacementRepository
      */
     private $emplacementRepository;
+    
+    /**
+     * @var TypeRepository
+     */
+    private $typeRepository;
 
     /**
      * @var ReferenceArticleRepository
@@ -58,7 +69,12 @@ class ArticleController extends AbstractController
      */
     private $receptionRepository;
 
-    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository,ReferenceArticleRepository $referenceArticleRepository,ReceptionRepository $receptionRepository, StatutRepository $statutRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository)
+      /**
+     * @var RefArticleDataService
+     */
+    private $refArticleDataService;
+
+    public function __construct(TypeRepository $typeRepository ,RefArticleDataService $refArticleDataService, ArticleFournisseurRepository $articleFournisseurRepository,ReferenceArticleRepository $referenceArticleRepository,ReceptionRepository $receptionRepository, StatutRepository $statutRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository)
     {
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->statutRepository = $statutRepository;
@@ -67,7 +83,8 @@ class ArticleController extends AbstractController
         $this->articleFournisseurRepository = $articleFournisseurRepository;
         $this->collecteRepository = $collecteRepository;
         $this->receptionRepository = $receptionRepository;
-        
+        $this->typeRepository = $typeRepository;
+        $this->refArticleDataService = $refArticleDataService;   
     }
 
     /**
@@ -134,12 +151,31 @@ class ArticleController extends AbstractController
     public function get_article_by_refArticle(Request $request) : Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            dump($data['referenceArticle']);
-            $articleFournisseur = $this->articleFournisseurRepository->getByRefArticle($data['referenceArticle']);
-            dump($articleFournisseur);
-            $articles = $this->articleRepository->getIdAndLibelleByRefArticle($articleFournisseur);
-            dump($articles);
-            return new JsonResponse();
+
+            $refArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
+            $articleFournisseur = $this->articleFournisseurRepository->getByRefArticle($refArticle);
+
+            if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+                $data = $this->refArticleDataService->getDataEditForRefArticle($refArticle); 
+                $statuts = $this->statutRepository->findByCategorieName(ReferenceArticle::CATEGORIE);
+                $json = $this->renderView('collecte/newRefArticleByQuantiteRefContent.html.twig', [
+                    'articleRef'=> $refArticle,
+                    'statut' => ($refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF),
+                    'valeurChampsLibre' => isset($valeurChampLibre) ? $data['valeurChampLibre'] : null,
+                    'types' => $this->typeRepository->getByCategoryLabel(ReferenceArticle::CATEGORIE),
+                    'statuts' => $statuts,
+                    'articlesFournisseur' => $data['listArticlesFournisseur'],
+                    'totalQuantity' => $data['totalQuantity']
+                ]);
+
+            }elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+                $articles = $this->articleRepository->getIdAndLibelleByRefArticle($articleFournisseur);
+                $json = $this->renderView('collecte/newRefArticleByQuantiteArticleContent.html.twig', [
+                    "articles" => $articles,
+                    ]);
+            }
+
+            return new JsonResponse($json);
         }
         throw new NotFoundHttpException("404");
 

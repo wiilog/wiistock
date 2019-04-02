@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Collecte;
+use App\Entity\ReferenceArticle;
 use App\Form\CollecteType;
 use App\Repository\CollecteRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -14,10 +15,12 @@ use App\Form\ArticleType;
 use App\Repository\ArticleRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\StatutRepository;
+use App\Repository\ReferenceArticleRepository;
 use App\Entity\Utilisateur;
 use App\Repository\UtilisateurRepository;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Hoa\Compiler\Visitor\Dump;
 
 /**
  * @Route("/collecte")
@@ -35,6 +38,11 @@ class CollecteController extends AbstractController
     private $emplacementRepository;
 
     /**
+     * @var ReferenceArticleRepository
+     */
+    private $referenceArticleRepository;
+
+    /**
      * @var CollecteRepository
      */
     private $collecteRepository;
@@ -49,10 +57,11 @@ class CollecteController extends AbstractController
      */
     private $utilisateurRepository;
 
-    public function __construct(StatutRepository $statutRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UtilisateurRepository $utilisateurRepository)
+    public function __construct(ReferenceArticleRepository $referenceArticleRepository ,StatutRepository $statutRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UtilisateurRepository $utilisateurRepository)
     {
         $this->statutRepository = $statutRepository;
         $this->emplacementRepository = $emplacementRepository;
+        $this->referenceArticleRepository = $referenceArticleRepository;
         $this->articleRepository = $articleRepository;
         $this->collecteRepository = $collecteRepository;
         $this->utilisateurRepository = $utilisateurRepository;
@@ -128,8 +137,8 @@ class CollecteController extends AbstractController
                     $rows[] = [
                         'Référence CEA' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : ""),
                         'Libellé' => $article->getLabel(),
-                        'Emplacement' => '',
-                        'Quantité' => $article->getQuantite(),
+                        'Emplacement' => $collecte->getPointCollecte()->getLabel(),
+                        'Quantité' => '',
                         'Actions' => $this->renderView('collecte/datatableArticleRow.html.twig', [
                             'article' => $article,
                             'collecteId' => $collecte->getid(),
@@ -178,16 +187,25 @@ class CollecteController extends AbstractController
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
-            $article = $this->articleRepository->find($data['code']);
-            $collecte = $this->collecteRepository->find($data['collecte']);
+            $refArticle = $this->referenceArticleRepository->find($data['reference']);
+            dump($data);
+            if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+                dump('quantite_reference');
+            }elseif($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE){
+                dump('quantite_article');
 
-            $article
-                ->setQuantite($data['quantity'])
-                ->addCollecte($collecte);
+            }
 
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($article);
-            $em->flush();
+            // $article = $this->articleRepository->find($data['code']);
+            // $collecte = $this->collecteRepository->find($data['collecte']);
+
+            // $article
+            //     ->setQuantite($data['quantity'])
+            //     ->addCollecte($collecte);
+
+            // $em = $this->getDoctrine()->getManager();
+            // $em->persist($article);
+            // $em->flush();
 
             return new JsonResponse();
         }

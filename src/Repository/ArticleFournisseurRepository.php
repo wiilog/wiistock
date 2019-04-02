@@ -37,8 +37,7 @@ class ArticleFournisseurRepository extends ServiceEntityRepository
         $query = $em->createQuery(
             "SELECT rf
             FROM App\Entity\ArticleFournisseur rf
-            JOIN rf.referenceArticle ra
-            WHERE ra.id = :id"
+            WHERE rf.referenceArticle = :id"
         )->setParameter('id', $id);
 
         return $query->getResult();

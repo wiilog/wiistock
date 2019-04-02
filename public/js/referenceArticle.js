@@ -205,30 +205,6 @@ function idType(div, idInput) {
     $(idInput).attr('value', id);
 }
 
-//Cache/affiche les bloc des modal edit/new
-function visibleBlockModal(bloc) {
-    let blocContent = bloc.siblings().filter('.col-12');
-    let sortUp = bloc.find('h3').find('.fa-sort-up');
-    let sortDown = bloc.find('h3').find('.fa-sort-down');
-
-    if (sortUp.attr('class').search('d-none') > 0) {
-        sortUp.removeClass('d-none');
-        sortUp.addClass('d-block');
-        sortDown.removeClass('d-block');
-        sortDown.addClass('d-none');
-
-        blocContent.removeClass('d-none')
-        blocContent.addClass('d-block');
-    } else {
-        sortUp.removeClass('d-block');
-        sortUp.addClass('d-none');
-        sortDown.removeClass('d-none');
-        sortDown.addClass('d-block');
-
-        blocContent.removeClass('d-block')
-        blocContent.addClass('d-none')
-    }
-}
 
 function showDemande(bloc) {
     if (bloc.data("title") == "livraison") {
@@ -312,11 +288,3 @@ function displayError(data) {
     }
 }
 
-function typeChoise(bloc, text, content) {
-    let cible = bloc.val()
-    content.children().removeClass('d-block');
-    content.children().addClass('d-none');
-
-    $('#'+cible+text).removeClass('d-none')
-    $('#'+cible+text).addClass('d-block')
-}
