@@ -3,44 +3,37 @@
 {% block title %}Demande de service{% endblock %}
 
 {% block page_content %}
-<h1>Demandes de services</h1>
 
 
-<div class='col-12 mb-5'>
-    <a href="" data-toggle="modal" data-target="#modalNewService" class="btn btn-primary">
-        <span class="fa fa-plus mr-2"></span>Nouvelle demande
-    </a>
-</div>
-<div class="container-fluid"></div>
-<div class='row'>
-    <div class='col-2'>
-        <div class="form-group">
-            <label for="dateMin">Du</label>
-            <input type="date" class="form-control data" name="dateMin" id="dateMin">
+<div class="row filterService align-items-center">
+
+    <div class='col-5'>
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <div class="input-group-text">De</div>
+            </div>
+            <input type="date" class="form-control" name="dateMin" id="dateMin" placeholder="Date de début">
+            <div class="input-group-prepend">
+                <div class="input-group-text">Au</div>
+            </div>
+            <input type="date" class="form-control" name="dateMax" id="dateMax" placeholder="Date de fin">
         </div>
     </div>
-    <div class='col-2'>
+
+    <div class='col-2 '>
         <div class="form-group">
-            <label for="dateMax">Au</label>
-            <input type="date" class="form-control data" name="dateMax" id="dateMax">
-        </div>
-    </div>
-    <div class='col-2'>
-        <div class="form-group">
-            <label for="statut">Statut</label>
-            <select class="form-control data" name="statut" id="statut">
-               <option value> </option>
+            <select class="form-control data" name="statut" id="statut" placeholder='statut'>
+                <option value>Statut </option>
                 {% for statut in statuts %}
                 <option value="{{ statut.nom }}">{{ statut.nom }}</option>
                 {% endfor %}
             </select>
         </div>
     </div>
+
     <div class='col-3'>
         <div class="form-group">
-            <label for="demandeur">Demandeur</label>
-            <select type="text" class="demandeur form-control data select2" name="demandeur" multiple="multiple" id="demandeur">
-                <option value="{{app.user.username}}">{{app.user.username}}</option>
+            <select type="text" class="form-control data select2 " name="demandeur" multiple="multiple" id="demandeur">
                 {% for demandeur in demandeurs %}
                 <option value="{{ demandeur.username }}">
                     {{ demandeur.username }}
@@ -49,27 +42,37 @@
             </select>
         </div>
     </div>
-    <div class='col-3'>
-        <a id='submitSearchService' class="btn btn-action"> 
+
+    <div class='col-2'>
+        <div id='submitSearchService' class="btn btn-primary ">
+            <i class="fas fa-filter mr-2"></i>
             Filtrer
+        </div>
+    </div>
+</div>
+<div class="container-fluid">
+    <h1>Demandes de services</h1>
+
+
+    <div class='col-12 mb-5'>
+        <a href="" data-toggle="modal" data-target="#modalNewService" class="btn btn-primary">
+            <span class="fa fa-plus mr-2"></span>Nouvelle demande
         </a>
     </div>
 
+    <table id="tableService_id" class="table table-striped table-bordered w-100">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Demandeur</th>
+                <th>Libellé</th>
+                <th>Statut</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+    </table>
 </div>
-
-<table id="tableService_id" class="table table-striped table-bordered w-100">
-    <thead>
-        <tr>
-            <th>Date</th>
-            <th>Demandeur</th>
-            <th>Libellé</th>
-            <th>Statut</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    
-</table>
-
 {% include "service/modalEditService.html.twig" %}
 
 {% include "service/modalNewService.html.twig" %}

@@ -179,4 +179,18 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
+    public function getIdAndLabelByFournisseur($fournisseurId)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT DISTINCT(ra.id) as id, ra.libelle, IDENTITY(af.fournisseur) as fournisseur
+            FROM App\Entity\ArticleFournisseur af
+            JOIN af.referenceArticle ra
+            WHERE af.fournisseur = :fournisseurId
+            "
+        )->setParameter('fournisseurId', $fournisseurId);
+
+        return $query->execute();
+    }
+
 }
