@@ -39,11 +39,14 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
                 if (callback !== null) callback(data);
 
                 let inputs = modal.find('.modal-body').find(".data");
-                console.log(inputs);
                 // on vide tous les inputs
                 inputs.each(function () {
                     $(this).val("");
-                    // $(this).text(''); // pour les select2 //TODOO provoque des bugs avec le typage des champs libres => efface les options du select  
+                });
+                // on vide tous les select avec classe 'to-clean' (pour select2)
+                let selects = modal.find('.modal-body').find('.to-clean');
+                selects.each(function() {
+                    $(this).text('');
                 });
                 // on remet toutes les checkboxes sur off
                 let checkboxes = modal.find('.checkbox');
