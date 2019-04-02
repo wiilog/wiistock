@@ -30,4 +30,19 @@ class ArticleFournisseurRepository extends ServiceEntityRepository
 
         return $query->getSingleScalarResult();
     }
+
+    public function getByRefArticle($id)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT rf
+            FROM App\Entity\ArticleFournisseur rf
+            JOIN rf.referenceArticle ra
+            WHERE ra.id = :id"
+        )->setParameter('id', $id);
+
+        return $query->getResult();
+    }
+
+
 }

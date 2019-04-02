@@ -7,6 +7,8 @@ use App\Repository\StatutRepository;
 use App\Repository\CollecteRepository;
 use App\Repository\ReceptionRepository;
 use App\Repository\EmplacementRepository;
+use App\Repository\ReferenceArticleRepository;
+use App\Repository\ArticleFournisseurRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -31,6 +33,11 @@ class ArticleController extends AbstractController
     private $emplacementRepository;
 
     /**
+     * @var ReferenceArticleRepository
+     */
+    private $referenceArticleRepository;
+
+    /**
      * @var CollecteRepository
      */
     private $collecteRepository;
@@ -40,17 +47,24 @@ class ArticleController extends AbstractController
      */
     private $articleRepository;
     
+
+    /**
+     * @var ArticleFournisseurRepository
+     */
+    private $articleFournisseurRepository;
+    
     /**
      * @var ReceptionRepository
      */
     private $receptionRepository;
 
-    public function __construct(ReceptionRepository $receptionRepository, StatutRepository $statutRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository)
+    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository,ReferenceArticleRepository $referenceArticleRepository,ReceptionRepository $receptionRepository, StatutRepository $statutRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository)
     {
-       
+        $this->referenceArticleRepository = $referenceArticleRepository;
         $this->statutRepository = $statutRepository;
         $this->emplacementRepository = $emplacementRepository;
         $this->articleRepository = $articleRepository;
+        $this->articleFournisseurRepository = $articleFournisseurRepository;
         $this->collecteRepository = $collecteRepository;
         $this->receptionRepository = $receptionRepository;
         
@@ -114,6 +128,23 @@ class ArticleController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
+    /**
+     * @Route("/get-article", name="get_article_by_refArticle", options={"expose"=true})
+     */
+    public function get_article_by_refArticle(Request $request) : Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            dump($data['referenceArticle']);
+            $articleFournisseur = $this->articleFournisseurRepository->getByRefArticle($data['referenceArticle']);
+            dump($articleFournisseur);
+            $articles = $this->articleRepository->getIdAndLibelleByRefArticle($articleFournisseur);
+            dump($articles);
+            return new JsonResponse();
+        }
+        throw new NotFoundHttpException("404");
+
+        
+    }
 
 
 
@@ -168,18 +199,7 @@ class ArticleController extends AbstractController
     //     ]);
     // }
 
-    // /**
-    //  * @Route("/voir/{id}", name="article_show", methods="GET")
-    //  */
-    // public function show(Article $article) : Response
-    // {
-    //     $session = $_SERVER['HTTP_REFERER'];
-
-    //     return $this->render('article/show.html.twig', [
-    //         'article' => $article,
-    //         'session' => $session
-    //     ]);
-    // }
+   
 
     // /**
     //  * @Route("/ajouter", name="modal_add_article")

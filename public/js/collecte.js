@@ -80,51 +80,59 @@ function finishCollecte(submit, tableArticle) {
     xhttp.send(json);
 }
 
+$('.ajax-autocomplete').select2({
+    ajax: {
+        url: Routing.generate('get_ref_articles'),
+        dataType: 'json',
+        delay: 250,
+    },
+    language: {
+        inputTooShort: function() {
+            return 'Veuillez entrer au moins 1 caractère.';
+        },
+        searching: function() {
+            return 'Recherche en cours...';
+        },
+        noResults: function() {
+            return 'Aucun résultat.';
+        }
+    },
+    minimumInputLength: 1,
+});
 
-
-
-// $('#addRow').on('click', function() {
-//     $.getJSON('{{ path('modal_add_article') }}', function(data) {
-//         let modal = $('#modalAddArticle');
-//         modal.find('.modal-body').html(data.html);
-//         $('.select2').select2(); //TODO CG
-
-//         modal.find('.save').on('click', function() {
-//             addRow($(this));
-//         });
-
-//         modal.find('#code').on('change', function() {
-//            displayQuantity($(this));
-//         });
-//     });
-// });
-
-// $('#modalDeleteCollecte').find('.save').on('click', function() {
-//     deleteCollecte($(this));
-// });
-
-// $('#modalModifyArticle').find('.save').on('click', function() {
-//     modifyArticle($(this));
-// });
-
-// var path = Routing.generate('articles_by_collecte');
-// $('#table-list-articles').DataTable({
-//     "language": {
-//         "url": "/js/i18n/dataTableLanguage.json",
+// $('.ajax-autocomplete-article').select2({
+//     ajax: {
+//         url: Routing.generate('get_article'),
+//         dataType: 'json',
+//         delay: 250,
 //     },
-//     "pageLength": 5,
-//     "ajax":{
-//         "url": path,
-//         "data" : { collecteId: {{ collecte.id }} },
-//         "type": "POST"
+//     language: {
+//         inputTooShort: function() {
+//             return 'Veuillez entrer au moins 1 caractère.';
+//         },
+//         searching: function() {
+//             return 'Recherche en cours...';
+//         },
+//         noResults: function() {
+//             return 'Aucun résultat.';
+//         }
 //     },
-//     columns: [
-//         { "data": 'Nom' },
-//         { "data": 'Statut' },
-//         { "data": 'Référence Article' },
-//         { "data": 'Emplacement' },
-//         { "data": 'Destination' },
-//         { "data": 'Quantité à collecter' },
-//         { "data": 'Actions'}
-//     ],
+//     minimumInputLength: 1,
 // });
+
+function ajaxGetArticle(select) {
+    xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            data = JSON.parse(this.responseText);
+           
+        }
+    }
+    path =  Routing.generate('get_article_by_refArticle', true)
+    let data = {};
+    data['referenceArticle'] = select.val();
+    json = JSON.stringify(data);
+    console.log(json);
+    xhttp.open("POST", path, true);
+    xhttp.send(json);
+}

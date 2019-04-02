@@ -132,6 +132,11 @@ let submitModifyRefArticle = $('#submitEditRefArticle');
 let urlModifyRefArticle = Routing.generate('reference_article_edit', true);
 InitialiserModalRefArticle(modalModifyRefArticle, submitModifyRefArticle, urlModifyRefArticle);
 
+let modalPlusDemande = $('#modalPlusDemande');
+let submitPlusDemande = $('#submitPlusDemande');
+let urlPlusDemande = Routing.generate('plus_demande', true);
+InitialiserModalRefArticle(modalPlusDemande, submitPlusDemande, urlPlusDemande);
+
 let modalNewFilter = $('#modalNewFilter');
 let submitNewFilter = $('#submitNewFilter');
 let urlNewFilter = Routing.generate('filter_new', true);
@@ -229,13 +234,18 @@ function showDemande(bloc) {
     if (bloc.data("title") == "livraison") {
         $('#collecteShow').removeClass('d-block');
         $('#collecteShow').addClass('d-none');
+        $('#collecteShow').find('div').find('select').removeClass('data')
         $('#livraisonShow').removeClass('d-none');
         $('#livraisonShow').addClass('d-block');
+        $('#livraisonShow').find('div').find('select').addClass('data')
+    
     }else if (bloc.data("title") == "collecte") {
         $('#collecteShow').removeClass('d-none');
         $('#collecteShow').addClass('d-block');
+        $('#collecteShow').find('div').find('select').addClass('data')
         $('#livraisonShow').removeClass('d-block');
         $('#livraisonShow').addClass('d-none');
+        $('#livraisonShow').find('div').find('select').removeClass('data')
     }
 }
 

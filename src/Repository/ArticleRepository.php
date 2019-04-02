@@ -113,6 +113,19 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->getResult();
     }
 
+    public function getIdAndLibelleByRefArticle($articleFournisseur)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+          "SELECT a.id, a.reference
+          FROM App\Entity\Article a
+          JOIN a.articleFournisseur af
+          WHERE af.id IN(:articleFournisseur)"
+        )->setParameter('articleFournisseur',  $articleFournisseur);
+
+        return $query->execute();
+    }
+
     //    // Creation des preparations
     //    public function findByRefAndConfAndStock($refArticle)
     //    {

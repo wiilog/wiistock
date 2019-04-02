@@ -14,6 +14,7 @@ use App\Repository\TypeRepository;
 use App\Repository\StatutRepository;
 use App\Repository\CollecteRepository;
 use App\Repository\DemandeRepository;
+use App\Repository\LivraisonRepository;
 
 use App\Service\RefArticleDataService;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
@@ -38,6 +39,11 @@ class ReferenceArticleController extends Controller
      * @var ReferenceArticleRepository
      */
     private $referenceArticleRepository;
+
+    /**
+     * @var LivraisonRepository
+     */
+    private $livraisonRepository;
 
     /**
      * @var CollecteRepository
@@ -85,7 +91,7 @@ class ReferenceArticleController extends Controller
     private $refArticleDataService;
 
 
-    public function __construct(DemandeRepository $demandeRepository, CollecteRepository $collecteRepository, StatutRepository $statutRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FilterRepository $filterRepository, RefArticleDataService $refArticleDataService)
+    public function __construct(LivraisonRepository $livraisonRepository,DemandeRepository $demandeRepository, CollecteRepository $collecteRepository, StatutRepository $statutRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FilterRepository $filterRepository, RefArticleDataService $refArticleDataService)
     {
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->champsLibreRepository = $champsLibreRepository;
@@ -96,6 +102,7 @@ class ReferenceArticleController extends Controller
         $this->collecteRepository = $collecteRepository;
         $this->demandeRepository = $demandeRepository;
         $this->filterRepository = $filterRepository;
+        $this->livraisonRepository = $livraisonRepository;
         $this->refArticleDataService = $refArticleDataService;
     }
 
@@ -451,6 +458,28 @@ class ReferenceArticleController extends Controller
             $refArticles = $this->referenceArticleRepository->getIdAndLibelleBySearch($search);
 
             return new JsonResponse(['results' => $refArticles]);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+     /**
+     * @Route("/plus-demande", name="plus_demande", options={"expose"=true}, methods="GET|POST")
+     */
+    public function plusDemande(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+           dump($data);
+           $articleRef = $this->referenceArticleRepository->find($data['refArticle']);
+           if (array_key_exists ( 'collecte' , $data)) {
+               dump('collecte');
+               $collecte = $this->collecteRepository->find($data['collecte']);
+            //    $collecte->addArticle($articleRef);
+
+           }elseif (array_key_exists ( 'livraison' , $data)) {
+               dump('livraison');
+               $livraison = $this->livrai;
+           }
+            return new JsonResponse();
         }
         throw new NotFoundHttpException("404");
     }
