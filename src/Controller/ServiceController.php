@@ -55,14 +55,8 @@ class ServiceController extends AbstractController
     public function serviceApi(Request $request) : Response
     {
              
-        if ($request->isXmlHttpRequest()) { //Si la requête est de type Xml
-            
-            
-                // $user = $this->getUser()->getId();
-                // $services = $this->serviceRepository->findByUser($user);
-                $services = $this->serviceRepository->findAll();
-        
-            
+        if ($request->isXmlHttpRequest()) {
+            $services = $this->serviceRepository->findAll();
 
             $rows = [];
                 foreach ($services as $service) {
@@ -73,7 +67,7 @@ class ServiceController extends AbstractController
                     'Date'=> ($service->getDate() ? $service->getDate()->format('d/m/Y') : null),
                     'Demandeur'=> ($service->getDemandeur() ? $service->getDemandeur()->getUserName() : null),
                     'Libellé'=> ($service->getlibelle() ? $service->getLibelle() : null),
-                    'Statut'=> ($service->getStatut()->getNom() ? ucfirst($service->getStatut()->getNom()) : null),
+                    'Statut'=> ($service->getStatut()->getNom() ? $service->getStatut()->getNom() : null),
                     'Actions' => $this->renderView('service/datatableServiceRow.html.twig', [
                         'url' => $url,
                         'service' => $service,
@@ -158,7 +152,6 @@ class ServiceController extends AbstractController
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $service = $this->serviceRepository->find($data['id']);
-            dump($service);
             $statutLabel = ($data['statut'] == 1) ? Service::STATUT_TRAITE : Service::STATUT_A_TRAITER;
             $statut = $this->statutRepository->findOneByCategorieAndStatut(Service::CATEGORIE, $statutLabel);
             $service->setStatut($statut);
