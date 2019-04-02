@@ -43,10 +43,10 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
                 inputs.each(function () {
                     $(this).val("");
                 });
-                // on vide tous les select avec classe 'to-clean' (pour select2)
-                let selects = modal.find('.modal-body').find('.to-clean');
+                // on vide tous les select2
+                let selects = modal.find('.modal-body').find('.ajax-autocomplete,.select2');
                 selects.each(function() {
-                    $(this).text('');
+                    $(this).val(null).trigger('change');
                 });
                 // on remet toutes les checkboxes sur off
                 let checkboxes = modal.find('.checkbox');
