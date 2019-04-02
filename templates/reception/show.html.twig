@@ -24,7 +24,7 @@
                     Supprimer</a>
             </div>
             <div class="row justify-content-between">
-                <a href="" data-toggle="modal" data-target="#addArticleModal" class="btn btn-primary btn-action ml-auto">
+                <a href="" data-toggle="modal" data-target="#modalAddArticle" class="btn btn-primary btn-action ml-auto">
                     <span class="fa fa-plus mr-2"></span>Ajouter article
                 </a>
             </div>
@@ -56,7 +56,7 @@
     {% include "reception/modalEditReception.html.twig" %}
     {% include "reception/modalModifyArticle.html.twig" %}
     {% include "reception/modalDeleteArticle.html.twig" %}
-    {% include "reception/addArticleModal.html.twig" %}
+    {% include "reception/modalAddArticle.html.twig" %}
 
 {% endblock %}
 {% block javascript %}

@@ -55,7 +55,7 @@ let tableArticle = $('#tableArticle_id').DataTable({
     ],
 });
 
-let modal = $("#addArticleModal");
+let modal = $("#modalAddArticle");
 let submit = $("#addArticleSubmit");
 let url = Routing.generate('reception_addArticle', true);
 InitialiserModal(modal, submit, url, tableArticle);

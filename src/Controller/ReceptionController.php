@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Reception;
 use App\Form\ReceptionType;
+use App\Repository\ArticleFournisseurRepository;
 use App\Repository\ReceptionRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -68,7 +69,12 @@ class ReceptionController extends AbstractController
      */
     private $fournisseurRepository;
 
-    public function __construct(FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, ArticleRepository $articleRepository)
+    /**
+     * @var ArticleFournisseurRepository
+     */
+    private $articleFournisseurRepository;
+
+    public function __construct(FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository)
     {
         $this->statutRepository = $statutRepository;
         $this->emplacementRepository = $emplacementRepository;
@@ -77,6 +83,7 @@ class ReceptionController extends AbstractController
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->fournisseurRepository = $fournisseurRepository;
         $this->articleRepository = $articleRepository;
+        $this->articleFournisseurRepository = $articleFournisseurRepository;
     }
 
 
@@ -319,19 +326,24 @@ class ReceptionController extends AbstractController
                 $refArticle->setQuantiteStock($refArticle->getQuantiteStock() + $quantite);
                 $date = new \DateTime('now');
                 $ref = $date->format('YmdHis');
-                for ($i = 0; $i < $quantite; $i++) {
-                    $article = new Article();
-                    $article
-                        ->setlabel($contentData['libelle'])
-                        ->setReference($ref . '-' . strval($i))
-                        ->setConform(!$anomalie)
-                        ->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF))
-                        ->setCommentaire($contentData['commentaire'])
-                        ->setReception($reception);
+                $articleFournisseur = $this->articleFournisseurRepository->findOneByRefArticleAndFournisseur($contentData['refArticle'], $contentData['fournisseur']); //TODO CG
 
-                    $em = $this->getDoctrine()->getManager();
-                    $em->persist($article);
-                    $em->flush();
+                if (!empty($articleFournisseur)) {
+                    for ($i = 0; $i < $quantite; $i++) {
+                        $article = new Article();
+                        $article
+                            ->setlabel($contentData['libelle'])
+                            ->setReference($ref . '-' . strval($i))
+                            ->setArticleFournisseur($articleFournisseur)
+                            ->setConform(!$anomalie)
+                            ->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF))
+                            ->setCommentaire($contentData['commentaire'])
+                            ->setReception($reception);
+
+                        $em = $this->getDoctrine()->getManager();
+                        $em->persist($article);
+                        $em->flush();
+                    } //TODO gérer message erreur retour
                 }
                 return new JsonResponse();
             }
@@ -395,9 +407,11 @@ class ReceptionController extends AbstractController
      */
     public function ajoutArticle(Reception $reception, $id): Response
     {
+        $refArticles = $this->referenceArticleRepository->getIdAndLabelByFournisseur($reception->getFournisseur()->getId());
+
         return $this->render("reception/show.html.twig", [
             'reception' => $reception,
-            'refArticle' => $this->referenceArticleRepository->findAll(),
+            'refArticles' => $refArticles,
             'id' => $id,
             'fournisseurs' => $this->fournisseurRepository->findAll(),
             'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),

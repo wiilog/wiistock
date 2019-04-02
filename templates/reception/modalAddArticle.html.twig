@@ -1,4 +1,4 @@
-<form method="" class="modal fade" id="addArticleModal" role="dialog" aria-labelledby="dataModalCenterTitle"
+<form method="" class="modal fade" id="modalAddArticle" role="dialog" aria-labelledby="dataModalCenterTitle"
     aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
         <div class="modal-content">
@@ -16,7 +16,7 @@
                             <select id="refArticle" onchange="updateStock($(this));" class='form-control select1 data'
                                 name='refArticle' type="text">
                                 <option disabled selected> </option>
-                                {% for article in refArticle %}
+                                {% for article in refArticles %}
                                 <option value="{{ article.id }}">
                                     {{ article.libelle }}
                                 </option>
@@ -82,6 +82,7 @@
             </div>
             
             <div class="modal-footer">
+                <input hidden class="data" name="fournisseur" value="{{ reception.fournisseur.id }}">
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>
                 <button id="addArticleSubmit" type="button" data-dismiss="modal"
                     class="btn btn-primary btn-success data" name="reception"
