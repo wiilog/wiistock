@@ -77,9 +77,9 @@ class LivraisonController extends AbstractController
     }
 
     /**
-    *  @Route("/creation/{id}", name="createLivraison", methods={"GET","POST"} )
+    *  @Route("/creer/{id}", name="livraison_new", methods={"GET","POST"} )
     */
-    public function creationLivraison($id): Response
+    public function new($id): Response
     {
         $preparation = $this->preparationRepository->find($id);
 
@@ -110,17 +110,17 @@ class LivraisonController extends AbstractController
     }
 
     /**
-     * @Route("/index", name="livraison_index", methods={"GET", "POST"})
+     * @Route("/", name="livraison_index", methods={"GET", "POST"})
      */
-    public function index(Request $request): Response
+    public function index(): Response
     {
         return $this->render('livraison/index.html.twig');
     }
 
     /**
-     * @Route("/finLivraison/{id}", name="livraison_fin", methods={"GET", "POST"})
+     * @Route("/finir/{id}", name="livraison_finish", options={"expose"=true}, methods={"GET", "POST"})
      */
-    public function finLivraison(Livraison $livraison): Response
+    public function finish(Livraison $livraison): Response
     {
         if ($livraison->getStatut()->getnom() ===  Livraison::STATUT_A_TRAITER) {
 
@@ -155,7 +155,7 @@ class LivraisonController extends AbstractController
     /**
      * @Route("/api", name="livraison_api", options={"expose"=true}, methods={"GET", "POST"})
      */
-    public function livraisonApi(Request $request): Response
+    public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
             {
@@ -180,9 +180,9 @@ class LivraisonController extends AbstractController
     }
 
     /**
-     * @Route("/apiArticle/{id}", name="livraison_article_api", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/api-article/{id}", name="livraison_article_api", options={"expose"=true}, methods={"GET", "POST"})
      */
-    public function livraisonArticleApi(Request $request, $id): Response
+    public function apiArticle(Request $request, $id): Response
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
             {
@@ -224,7 +224,7 @@ class LivraisonController extends AbstractController
     }
 
     /**
-     * @Route("/{id}", name="livraison_delete", methods={"DELETE"}) 
+     * @Route("/supprimer/{id}", name="livraison_delete", methods={"DELETE"})
      */
     public function delete(Request $request, Livraison $livraison): Response
     {

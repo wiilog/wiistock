@@ -22,7 +22,7 @@
         
     <div class="col-2 offset-2">
         {% if not finished %}
-            <p><a class="btn btn-primary btn-action" href={{path('livraison_fin', {'id': livraison.id})}}>Finir la livraison</a></p>
+            <p><a class="btn btn-primary btn-action" href={{path('livraison_finish', {'id': livraison.id})}}>Finir la livraison</a></p>
         {% endif %}
     </div>
     {% endif %}

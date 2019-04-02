@@ -106,7 +106,7 @@ class ArticleFournisseurController extends AbstractController
     }
 
     /**
-     * @Route("/afficher-modifier", name="article_fournisseur_display_edit", options={"expose"=true},  methods="GET|POST")
+     * @Route("/api-modifier", name="article_fournisseur_api_edit", options={"expose"=true},  methods="GET|POST")
      */
     public function displayEdit(Request $request): Response
     {
