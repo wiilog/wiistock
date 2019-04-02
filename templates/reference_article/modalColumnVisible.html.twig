@@ -25,8 +25,9 @@
                                 {{champ.label | capitalize}}
                             </td>
                             <td>
+                                {% set checked = (champ.id) == 0 ? 'checked' : '' %}
                                 <input class="form-check-input" onclick="visibleColumn($(this))" type="checkbox" id="inlineCheckbox1"
-                                    checked data-column="{{i}}">
+                                    {{ checked }} data-column="{{i}}">
                             </td>
                         </tr>
                         {% set i = i + 1 %}
