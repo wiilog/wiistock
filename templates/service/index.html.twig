@@ -4,8 +4,8 @@
 
 {% block page_content %}
 
-
-<div class="row filterService align-items-center">
+</div>
+<div class="row filterService align-items-center pl-2 ">
 
     <div class='col-5'>
         <div class="input-group">
@@ -20,8 +20,8 @@
         </div>
     </div>
 
-    <div class='col-2 '>
-        <div class="form-group">
+    <div class='col-2'>
+        <div class="input-group">
             <select class="form-control data" name="statut" id="statut" placeholder='statut'>
                 <option value>Statut </option>
                 {% for statut in statuts %}
@@ -32,7 +32,7 @@
     </div>
 
     <div class='col-3'>
-        <div class="form-group">
+        <div class="input-group">
             <select type="text" class="form-control data select2 " name="demandeur" multiple="multiple" id="demandeur">
                 {% for demandeur in demandeurs %}
                 <option value="{{ demandeur.username }}">
