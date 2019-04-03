@@ -128,7 +128,7 @@ class CollecteController extends AbstractController
                     $rows[] = [
                         'Référence CEA' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : ""),
                         'Libellé' => $article->getLabel(),
-                        'Emplacement' => $collecte->getPointCollecte()->getLabel(),
+                        'Emplacement' => ($collecte->getPointCollecte() ? $collecte->getPointCollecte()->getLabel() : "" ),
                         'Quantité' => $article->getQuantite(),
                         'Actions' => $this->renderView('collecte/datatableArticleRow.html.twig', [
                             'article' => $article,
