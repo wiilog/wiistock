@@ -57,9 +57,6 @@ class RefArticleSILIFixtures extends Fixture
             ;
             $manager->persist($referenceArticle);
             $manager->flush();
-
-            unset($CLAdresse, $adresse, $refEquip, $DLrefEquip, $refFournisseur, $referenceArticle, $CLDateEntre, $DLMachine,
-            $DLequipementier, $equipementier, $DLfamilleProduit, $DLlot, $lot, $DLrefFournisseur, $DLzone, $zone, $familleProduit, $machine);
         }
         fclose($file);
     }
