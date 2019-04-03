@@ -8,33 +8,34 @@
                 </button>
             </div>
             <div class="modal-body modal-input container-fluid row">
-                <div class="col-12">
+                <div class="col-12 form-group">
                     <label for="username">Nom d'utilisateur</label>
-                    <input type="text" class="form-control data" name="username" required="">
+                    <input type="text" class="form-control data needed" name="username" required="">
                 </div>
 
-                <div class="col-12">
+                <div class="col-12 form-group">
                     <label for="email">Email</label>
-                    <input type="email" class="form-control data" name="email">
+                    <input type="email" class="form-control data needed" name="email">
                 </div>
 
-                <div class="col-12">
+                <div class="col-12 form-group">
                     <label for="password">Mot de passe</label>
-                    <input type="password" class="form-control data" name="password">
+                    <input type="password" class="form-control data needed" name="password">
+                    <div class="password-error-msg"></div>
                 </div>
 
-                <div class="col-12">
+                <div class="col-12 form-group">
                     <label for="password2">Confirmer mot de passe</label>
-                    <input type="password" class="form-control data" name="password2">
+                    <input type="password" class="form-control data needed" name="password2">
                 </div>
-                <div class="col-12">
+                <div class="col-12 form-group">
                     <label for="role">Rôle</label>
-                    <select name="role" class="form-control data" id="">
-                        <option disabled selected> </option>
-                        <option value="ROLE_SUPER_ADMIN">ROLE_SUPER_ADMIN</option>
+                    <select name="role" class="form-control data needed" id="">
                         <option value="ROLE_ROLE_USER">ROLE_USER</option>
+                        <option value="ROLE_SUPER_ADMIN">ROLE_SUPER_ADMIN</option>
                     </select>
                 </div>
+                <div class="col-12 error-msg"></div>
             </div>
             <div class="modal-footer">
                 <div type="button" class="btn" data-dismiss="modal">Annuler</div>

@@ -67,48 +67,42 @@ class UtilisateurController extends Controller
     public function newUser(Request $request, UserPasswordEncoderInterface $passwordEncoder): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $ut[] = $data['role'];
             $password = $data['password'];
-            $passwordOk = false;
-            $class = 'errorMessageContent';
-            $Data =''; 
-            
-            if ($password === $data['password2']) {
-                if (strlen($password) < 8) {
-                    $Data = "Mot de passe trop court(8 caratères minimun)!";
-                } elseif (preg_match('#^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*\@W).{6,}$#', $password)) {
-                    $Data = 'mot de passe non conforme (une majuscule, un chiffre, un caractère spéciale)';
-                } else {
-                    $passwordOk = true;
-                }
-            } else {
-                $Data = "mot de passe incorrecte";
+
+            // validation du mot de passe
+            if ($password !== $data['password2']) {
+                return new JsonResponse('Les mots de passe ne correspondent pas.');
+                //TODO gérer retour erreur propre
             }
-            $userExiste = $this->utilisateurRepository->countByEmail($data['email']);
-            if ($userExiste === "0" && $passwordOk === true) {
-                $utilisateur = new Utilisateur();
-                $password = $passwordEncoder->encodePassword($utilisateur, $data['password']);
-                $utilisateur
-                    ->setUsername($data['username'])
-                    ->setEmail($data['email'])
-                    ->setRoles($ut)
-                    ->setPassword($password);
-                $em = $this->getDoctrine()->getManager();
-                $em->persist($utilisateur);
-                $em->flush();
-                $Data = 'nouvelle utilisateur créé';
-                $class = 'messageContent';
-            } else if($userExiste !== '0') {
-                $Data = "erreur dans le formulaire, l'adresse email est déjà utilisé";
+            if (strlen($password) < 8) {
+                return new JsonResponse('Le mot de passe doit faire au moins 8 caractères.');
+                //TODO gérer retour erreur propre
             }
-            $json =  $this->renderView(
-                "utilisateur/errorMessage.html.twig",
-                [
-                    'data' => $Data,
-                    'class' => $class
-                ]
-            );
-            return new JsonResponse($json);
+            if (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/', $password)) {
+                return new JsonResponse('Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial.');
+                //TODO gérer retour erreur propre
+            }
+
+            // validation de l'email
+            $emailAlreadyUsed = intval($this->utilisateurRepository->countByEmail($data['email']));
+
+            if ($emailAlreadyUsed) {
+                return new JsonResponse('Un compte existe déjà avec cet email.');
+                //TODO gérer retour erreur propre
+            }
+
+            $utilisateur = new Utilisateur();
+            $password = $passwordEncoder->encodePassword($utilisateur, $data['password']);
+            $utilisateur
+                ->setUsername($data['username'])
+                ->setEmail($data['email'])
+                ->setRoles([$data['role']])
+                ->setPassword($password);
+            $em = $this->getDoctrine()->getManager();
+            $em->persist($utilisateur);
+            $em->flush();
+
+            return new JsonResponse(true);
         }
         throw new NotFoundHttpException("404");
     }

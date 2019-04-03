@@ -237,7 +237,7 @@ a:hover {
   color: #b2b2b2;
 }
 
-.error-msg {
+.error-msg, .password-error-msg {
   color: #cc0000;
   font-size: .9rem;
 }
