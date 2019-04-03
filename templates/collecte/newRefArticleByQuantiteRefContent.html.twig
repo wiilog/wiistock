@@ -2,5 +2,6 @@
     <label for="quantity">Quantité</label>
     <input class="form-control data" type="number" min=0 id="quantity" name="quantitie" value="">
 </div>
-
-{% include "reference_article/modalEditRefArticleContent.html.twig" %}
+{% if modifieRefArticle %}
+    {% include "reference_article/modalEditRefArticleContent.html.twig" %}
+{% endif %}

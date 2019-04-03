@@ -14,6 +14,7 @@ use App\Repository\TypeRepository;
 use App\Entity\ReferenceArticle;
 
 use App\Service\RefArticleDataService;
+use App\Service\ArticleDataService;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -57,7 +58,6 @@ class ArticleController extends AbstractController
      * @var ArticleRepository
      */
     private $articleRepository;
-    
 
     /**
      * @var ArticleFournisseurRepository
@@ -69,12 +69,17 @@ class ArticleController extends AbstractController
      */
     private $receptionRepository;
 
-      /**
+    /**
      * @var RefArticleDataService
      */
     private $refArticleDataService;
 
-    public function __construct(TypeRepository $typeRepository ,RefArticleDataService $refArticleDataService, ArticleFournisseurRepository $articleFournisseurRepository,ReferenceArticleRepository $referenceArticleRepository,ReceptionRepository $receptionRepository, StatutRepository $statutRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository)
+    /**
+     * @var ArticleDataService
+     */
+    private $articleDataService;
+
+    public function __construct(ArticleDataService $articleDataService,TypeRepository $typeRepository ,RefArticleDataService $refArticleDataService, ArticleFournisseurRepository $articleFournisseurRepository,ReferenceArticleRepository $referenceArticleRepository,ReceptionRepository $receptionRepository, StatutRepository $statutRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository)
     {
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->statutRepository = $statutRepository;
@@ -85,6 +90,7 @@ class ArticleController extends AbstractController
         $this->receptionRepository = $receptionRepository;
         $this->typeRepository = $typeRepository;
         $this->refArticleDataService = $refArticleDataService;   
+        $this->articleDataService = $articleDataService;   
     }
 
     /**
@@ -153,27 +159,7 @@ class ArticleController extends AbstractController
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
             $refArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
-            $articleFournisseur = $this->articleFournisseurRepository->getByRefArticle($refArticle);
-
-            if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-                $data = $this->refArticleDataService->getDataEditForRefArticle($refArticle); 
-                $statuts = $this->statutRepository->findByCategorieName(ReferenceArticle::CATEGORIE);
-                $json = $this->renderView('collecte/newRefArticleByQuantiteRefContent.html.twig', [
-                    'articleRef'=> $refArticle,
-                    'statut' => ($refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF),
-                    'valeurChampsLibre' => isset($valeurChampLibre) ? $data['valeurChampLibre'] : null,
-                    'types' => $this->typeRepository->getByCategoryLabel(ReferenceArticle::CATEGORIE),
-                    'statuts' => $statuts,
-                    'articlesFournisseur' => $data['listArticlesFournisseur'],
-                    'totalQuantity' => $data['totalQuantity']
-                ]);
-
-            }elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-                $articles = $this->articleRepository->getIdAndLibelleByRefArticle($articleFournisseur);
-                $json = $this->renderView('collecte/newRefArticleByQuantiteArticleContent.html.twig', [
-                    "articles" => $articles,
-                    ]);
-            }
+            $json = $this->articleDataService->getArticleOrNoByRefArticle($refArticle, true);
 
             return new JsonResponse($json);
         }

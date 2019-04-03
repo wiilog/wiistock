@@ -298,7 +298,6 @@ class CollecteController extends AbstractController
                     'modifiable' => ($collecte->getStatut()->getNom() !== Collecte::STATUS_EN_COURS ? true : false)
                 ])
             ];
-            dump($response);
             return new JsonResponse($response);
         }
         throw new NotFoundHttpException("404");

@@ -1,6 +1,6 @@
 $('.select2').select2();
 
-function InitialiserModalRefArticle(modal, submit, path, callback = function(){}, close = true) {
+function InitialiserModalRefArticle(modal, submit, path, callback = function () { }, close = true) {
     submit.click(function () {
         xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function () {
@@ -8,12 +8,12 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function(){}
                 $('.errorMessage').html(JSON.parse(this.responseText))
                 data = JSON.parse(this.responseText);
                 if (data.new) {
-                    tableRefArticle.row.add(data.new).draw( false );
-                }else if(data.delete){
-                    tableRefArticle.row($('#delete'+data.delete).parents('div').parents('td').parents('tr')).remove().draw( false );
-                }else if(data.edit){
-                    tableRefArticle.row($('#edit'+data.id).parents('div').parents('td').parents('tr')).remove().draw( false );
-                    tableRefArticle.row.add(data.edit).draw( false );
+                    tableRefArticle.row.add(data.new).draw(false);
+                } else if (data.delete) {
+                    tableRefArticle.row($('#delete' + data.delete).parents('div').parents('td').parents('tr')).remove().draw(false);
+                } else if (data.edit) {
+                    tableRefArticle.row($('#edit' + data.id).parents('div').parents('td').parents('tr')).remove().draw(false);
+                    tableRefArticle.row.add(data.edit).draw(false);
                 } else if (data.reload) {
                     tableRefArticle.clear();
                     tableRefArticle.rows.add(data.reload).draw();
@@ -156,7 +156,7 @@ $(document).ready(function () {
             "scrollY": "80vh",
             "scrollCollapse": true,
             "pageLength": 50,
-            "lengthMenu": [50, 100, 200, 500 ],
+            "lengthMenu": [50, 100, 200, 500],
             "language": {
                 "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
             },
@@ -214,8 +214,8 @@ function showDemande(bloc) {
         $('#livraisonShow').removeClass('d-none');
         $('#livraisonShow').addClass('d-block');
         $('#livraisonShow').find('div').find('select').addClass('data')
-    
-    }else if (bloc.data("title") == "collecte") {
+
+    } else if (bloc.data("title") == "collecte") {
         $('#collecteShow').removeClass('d-none');
         $('#collecteShow').addClass('d-block');
         $('#collecteShow').find('div').find('select').addClass('data')
@@ -240,7 +240,7 @@ function removeFilter() {
     $(this).remove();
 
     let params = JSON.stringify({ 'filterId': $(this).find('.filter-id').val() });
-    $.post(Routing.generate('filter_delete', true), params, function(data) {
+    $.post(Routing.generate('filter_delete', true), params, function (data) {
         tableRefArticle.clear();
         tableRefArticle.rows.add(data).draw();
     });
@@ -253,7 +253,7 @@ function displayFilterValue(elem) {
 
     // cas particulier de liste déroulante pour type
     if (type == 'list') {
-        $.getJSON(Routing.generate('type_show_select'), function(data) {
+        $.getJSON(Routing.generate('type_show_select'), function (data) {
             modalBody.find('.input').html(data);
         })
     } else {
@@ -288,3 +288,20 @@ function displayError(data) {
     }
 }
 
+function ajaxPlusDemandeContent(button) {
+    xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            dataReponse = JSON.parse(this.responseText);
+            if (dataReponse) {
+               $('.plusDemandeContent').html(dataReponse);
+            } else {
+                //TODO gérer erreur
+            }
+        }
+    }
+    let json = button.data('id');
+    let path =  Routing.generate('ajax_plus_demande_content', true);
+    xhttp.open("POST", path, true);
+    xhttp.send(json);
+}

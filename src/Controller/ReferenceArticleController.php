@@ -15,8 +15,10 @@ use App\Repository\StatutRepository;
 use App\Repository\CollecteRepository;
 use App\Repository\DemandeRepository;
 use App\Repository\LivraisonRepository;
+use App\Repository\ArticleRepository;
 
 use App\Service\RefArticleDataService;
+use App\Service\ArticleDataService;
 
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
@@ -35,6 +37,11 @@ use App\Entity\Demande;
  */
 class ReferenceArticleController extends Controller
 {
+
+    /**
+     * @var ArticleRepository
+     */
+    private $articleRepository;
 
     /**
      * @var ReferenceArticleRepository
@@ -91,8 +98,13 @@ class ReferenceArticleController extends Controller
      */
     private $refArticleDataService;
 
+    /**
+     * @var articleDataService
+     */
+    private $articleDataService;
 
-    public function __construct(LivraisonRepository $livraisonRepository, DemandeRepository $demandeRepository, CollecteRepository $collecteRepository, StatutRepository $statutRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FilterRepository $filterRepository, RefArticleDataService $refArticleDataService)
+
+    public function __construct(ArticleRepository $articleRepository ,ArticleDataService $articleDataService, LivraisonRepository $livraisonRepository, DemandeRepository $demandeRepository, CollecteRepository $collecteRepository, StatutRepository $statutRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FilterRepository $filterRepository, RefArticleDataService $refArticleDataService)
     {
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->champsLibreRepository = $champsLibreRepository;
@@ -105,6 +117,8 @@ class ReferenceArticleController extends Controller
         $this->filterRepository = $filterRepository;
         $this->livraisonRepository = $livraisonRepository;
         $this->refArticleDataService = $refArticleDataService;
+        $this->articleDataService = $articleDataService;
+        $this->articleRepository = $articleRepository;
     }
 
     /**
@@ -228,13 +242,6 @@ class ReferenceArticleController extends Controller
      */
     public function index(): Response
     {
-
-        $statutC = $this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, Collecte::STATUS_DEMANDE);
-        $collectes = $this->collecteRepository->getByStatut($statutC);
-
-        $statutD = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
-        $demandes = $this->demandeRepository->getByStatut($statutD);
-
         $typeQuantite = [
             [
                 'const' => 'QUANTITE_AR',
@@ -283,8 +290,6 @@ class ReferenceArticleController extends Controller
             'types' => $this->typeRepository->getByCategoryLabel(ReferenceArticle::CATEGORIE),
             'typeQuantite' => $typeQuantite,
             'filters' => $this->filterRepository->findBy(['utilisateur' => $this->getUser()]),
-            'collectes' => $collectes,
-            'demandes' => $demandes
         ]);
     }
 
@@ -307,7 +312,7 @@ class ReferenceArticleController extends Controller
                     'valeurChampsLibre' => isset($valeurChampLibre) ? $data['valeurChampLibre'] : null,
                     'types' => $this->typeRepository->getByCategoryLabel(ReferenceArticle::CATEGORIE),
                     'statuts' => $statuts,
-                    'articlesFournisseur' => $data['listArticlesFournisseur'],
+                    'articlesFournisseur' => ($data['listArticlesFournisseur']),
                     'totalQuantity' => $data['totalQuantity']
                 ]);
             } else {
@@ -393,16 +398,57 @@ class ReferenceArticleController extends Controller
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             dump($data);
-            $articleRef = $this->referenceArticleRepository->find($data['refArticle']);
-            if (array_key_exists('collecte', $data)) {
-                dump('collecte');
+            if (array_key_exists('livraison', $data)) {
+                $refArticle = $this->referenceArticleRepository->find($data['refArticle']);
+                if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+                    # code...
+                } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+                    # code...
+                } else {
+                    $json = false;
+                }
+            } elseif (array_key_exists('collecte', $data)) {
+                $refArticle = $this->referenceArticleRepository->find($data['refArticle']);
                 $collecte = $this->collecteRepository->find($data['collecte']);
-                //    $collecte->addArticle($articleRef);
-            } elseif (array_key_exists('livraison', $data)) {
-                dump('livraison');
-                $livraison = $this->livrai;
+                if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+                    $article = $this->articleRepository->find($data['article']);
+                } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+                    # code...
+                } else {
+                    $json = false;
+                }
+            } else {
+                $json = false;
             }
             return new JsonResponse();
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/ajax-plus-demande-content", name="ajax_plus_demande_content", options={"expose"=true}, methods="GET|POST")
+     */
+    public function ajaxPlusDemandeContent(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $refArticle = $this->referenceArticleRepository->find($data);
+            if ($refArticle) {
+                $statutC = $this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, Collecte::STATUS_DEMANDE);
+                $collectes = $this->collecteRepository->getByStatut($statutC);
+
+                $statutD = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
+                $demandes = $this->demandeRepository->getByStatut($statutD);
+
+                $articleOrNo = $this->articleDataService->getArticleOrNoByRefArticle($refArticle, false);
+                $json = $this->renderView('reference_article/modalPlusDemandeContent.html.twig', [
+                    'articleOrNo' => $articleOrNo,
+                    'collectes' => $collectes,
+                    'demandes' => $demandes
+                ]);
+            } else {
+                $json = false;
+            }
+            return new JsonResponse($json);
         }
         throw new NotFoundHttpException("404");
     }
