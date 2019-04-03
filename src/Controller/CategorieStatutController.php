@@ -5,10 +5,13 @@ namespace App\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 
+/**
+ * @Route("/categorie-statut")
+ */
 class CategorieStatutController extends AbstractController
 {
     /**
-     * @Route("/categorie/statut", name="categorie_statut")
+     * @Route("/", name="categorie_statut_index")
      */
     public function index()
     {

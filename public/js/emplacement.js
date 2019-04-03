@@ -21,7 +21,7 @@ var tableEmplacement = $('#tableEmplacement_id').DataTable({
 
 let modalNewEmplacement = $("#modalNewEmplacement"); 
 let submitNewEmplacement = $("#submitNewEmplacement");
-let urlNewEmplacement = Routing.generate('creation_emplacement', true);
+let urlNewEmplacement = Routing.generate('emplacement_new', true);
 InitialiserModal(modalNewEmplacement, submitNewEmplacement, urlNewEmplacement, tableEmplacement);
 
 let ModalDeleteEmplacement = $("#modalDeleteEmplacement");

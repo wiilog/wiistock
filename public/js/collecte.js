@@ -1,6 +1,6 @@
 $('.select2').select2();
 
-var pathCollecte = Routing.generate('collectes_api', true);
+var pathCollecte = Routing.generate('collecte_api', true);
 var table = $('#tableCollecte_id').DataTable({
        "language": {
         "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
@@ -20,7 +20,7 @@ var table = $('#tableCollecte_id').DataTable({
 
 let modalNewCollecte = $("#modalNewCollecte");
 let SubmitNewCollecte = $("#submitNewCollecte");
-let urlNewCollecte = Routing.generate('collecte_create', true)
+let urlNewCollecte = Routing.generate('collecte_new', true)
 InitialiserModal(modalNewCollecte, SubmitNewCollecte, urlNewCollecte, table);
 
 let modalDeleteCollecte = $("#modalDeleteCollecte");

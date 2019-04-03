@@ -32,7 +32,7 @@ class FournisseurController extends AbstractController
     /**
      * @Route("/api", name="fournisseur_api", options={"expose"=true}, methods="POST")
      */
-    public function fournisseurApi(Request $request) : Response
+    public function api(Request $request) : Response
     {
         if ($request->isXmlHttpRequest()) { //Si la requête est de type Xml
             $refs = $this->fournisseurRepository->findAll();
@@ -58,15 +58,15 @@ class FournisseurController extends AbstractController
     /**
      * @Route("/", name="fournisseur_index", methods="GET")
      */
-    public function index(Request $request) : Response
+    public function index() : Response
     {
         return $this->render('fournisseur/index.html.twig', ['fournisseur' => $this->fournisseurRepository->findAll()]);
     }
 
     /**
-     * @Route("/creation/fournisseur", name="creation_fournisseur", options={"expose"=true}, methods="GET|POST")
+     * @Route("/creer", name="fournisseur_new", options={"expose"=true}, methods="GET|POST")
      */
-    public function creationFournisseur(Request $request) : Response
+    public function new(Request $request) : Response
     {
         $em = $this->getDoctrine()->getEntityManager();
 
@@ -83,9 +83,9 @@ class FournisseurController extends AbstractController
     }
 
     /**
-     * @Route("/editApi", name="fournisseur_edit_api", options={"expose"=true},  methods="GET|POST")
+     * @Route("/api-modifier", name="fournisseur_api_edit", options={"expose"=true},  methods="GET|POST")
      */
-    public function editApi(Request $request): Response
+    public function apiEdit(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $fournisseur = $this->fournisseurRepository->find($data);
@@ -98,7 +98,7 @@ class FournisseurController extends AbstractController
     }
 
     /**
-     * @Route("/edit", name="fournisseur_edit",  options={"expose"=true}, methods="GET|POST")
+     * @Route("/modifier", name="fournisseur_edit",  options={"expose"=true}, methods="GET|POST")
      */
     public function edit(Request $request): Response
     {
@@ -115,9 +115,9 @@ class FournisseurController extends AbstractController
     }
 
     /**
-     * @Route("/supprimerFournisseur", name="fournisseur_delete",  options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/supprimer", name="fournisseur_delete",  options={"expose"=true}, methods={"GET", "POST"})
      */
-    public function deleteFournisseur(Request $request) : Response
+    public function delete(Request $request) : Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $fournisseur= $this->fournisseurRepository->find($data['fournisseur']);

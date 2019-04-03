@@ -21,7 +21,7 @@ var tableAlerte = $('#tableAlerte_id').DataTable({
 
 let modalNewAlerte = $("#modalNewAlerte"); 
 let submitNewAlerte = $("#submitNewAlerte");
-let urlNewAlerte = Routing.generate('creation_alerte', true);
+let urlNewAlerte = Routing.generate('alerte_new', true);
 InitialiserModal(modalNewAlerte, submitNewAlerte, urlNewAlerte, tableAlerte);
 
 let ModalDeleteAlerte = $("#modalDeleteAlerte");
