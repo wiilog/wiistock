@@ -13,21 +13,28 @@
  * @param {document} table le DataTable gérant les données
  * 
  */
+
+
 function InitialiserModal(modal, submit, path, table, callback = null, close = true) {
     submit.click(function () {
         xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function () {
+            
             if (this.readyState == 4 && this.status == 200) {
                 $('.errorMessage').html(JSON.parse(this.responseText));
                 data = JSON.parse(this.responseText);
+
+
                 if (data.redirect) {
                     window.location.href = data.redirect;
+                    
                 }
                 // pour mise à jour des données d'en-tête après modification
-                if(data.entete){
+                if (data.entete) {
                     $('.zone-entete').html(data.entete)
                 }
                 table.ajax.reload(function (json) {
+                    
                     if (this.responseText !== undefined) {
                         $('#myInput').val(json.lastInput);
                     }
@@ -36,9 +43,11 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
                     }
                 });
 
-                if (callback !== null) callback(data);
+                if (callback !== null) callback(data) ;
 
+                 
                 let inputs = modal.find('.modal-body').find(".data");
+               
                 console.log(inputs);
                 // on vide tous les inputs
                 inputs.each(function () {
@@ -47,7 +56,7 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
                 });
                 // on remet toutes les checkboxes sur off
                 let checkboxes = modal.find('.checkbox');
-                checkboxes.each(function() {
+                checkboxes.each(function () {
                     $(this).prop('checked', false);
                 })
 
@@ -72,7 +81,7 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
                 $(this).addClass('is-invalid');
             }
             // validation valeur des inputs de type number
-            if($(this).attr('type') === 'number') {
+            if ($(this).attr('type') === 'number') {
                 let val = parseInt($(this).val());
                 let min = parseInt($(this).attr('min'));
                 let max = parseInt($(this).attr('max'));
@@ -82,6 +91,7 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
                 }
             }
         });
+        console.log(Data);
 
         // ... et dans les checkboxes
         let checkboxes = modal.find('.checkbox');
@@ -111,7 +121,7 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
             }
             // cas où les champs number ne respectent pas les valeurs imposées (min et max)
             if (wrongInputs.length > 0) {
-                wrongInputs.forEach(function(elem) {
+                wrongInputs.forEach(function (elem) {
                     let label = elem.closest('.form-group').find('label').text();
 
                     msg += 'La valeur du champ ' + label;
@@ -119,17 +129,17 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
                     let min = elem.attr('min');
                     let max = elem.attr('max');
 
-                    if (typeof(min) !== 'undefined' && typeof(max) !== 'undefined') {
-                        if(min > max) {
+                    if (typeof (min) !== 'undefined' && typeof (max) !== 'undefined') {
+                        if (min > max) {
                             msg += " doit être inférieure à " + max + ".<br>";
                         } else {
                             msg += ' doit être comprise entre ' + min + ' et ' + max + ".<br>";
                         }
-                    } else if (typeof(min) == 'undefined') {
+                    } else if (typeof (min) == 'undefined') {
                         msg += ' doit être inférieure à ' + max + ".<br>";
-                    } else if (typeof(max) == 'undefined') {
+                    } else if (typeof (max) == 'undefined') {
                         msg += ' doit être supérieure à ' + min + ".<br>";
-                    }else if(min < 1){
+                    } else if (min < 1) {
                         msg += ' ne peut pas être rempli'
                     }
 
@@ -193,6 +203,7 @@ function editRow(button, path, modal, submit) {
         if (this.readyState == 4 && this.status == 200) {
             dataReponse = JSON.parse(this.responseText);
             modal.find('.modal-body').html(dataReponse);
+            initEditor();
         }
     }
     let json = button.data('id');
@@ -205,8 +216,11 @@ function editRow(button, path, modal, submit) {
 function toggleRadioButton(button) {
     let sel = button.data('title');
     let tog = button.data('toggle');
-    $('#'+tog).prop('value', sel);
+    $('#' + tog).prop('value', sel);
 
-    $('span[data-toggle="'+tog+'"]').not('[data-title="'+sel+'"]').removeClass('active').addClass('not-active');
-    $('span[data-toggle="'+tog+'"][data-title="'+sel+'"]').removeClass('not-active').addClass('active');
+    $('span[data-toggle="' + tog + '"]').not('[data-title="' + sel + '"]').removeClass('active').addClass('not-active');
+    $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
 }
+
+
+

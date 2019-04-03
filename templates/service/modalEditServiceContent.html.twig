@@ -1,4 +1,4 @@
-<div class="form-group">
+<div class="form-group" >
     <label for="Objet">Objet</label>
     <input type="text" id="libelle" class="form-control data" name="Libelle" value="{{service.libelle}}"
         placeholder="Objet">
@@ -36,9 +36,21 @@
     </div>
 </div>
 
+{# <script> var quill = new Quill('#editor-container', {
+    modules: {
+        toolbar: [
+            [{ header: [1, 2, false] }],
+            ['bold', 'italic', 'underline'],
+            ['image', 'code-block']
+        ]
+    },
+    theme: 'snow'
+});</script> #}
 
 <div class="form-group">
-    <label for="service-commentaire">Commentaire</label>
-    <textarea class="form-control data" name="commentaire" id="commentaire" value="{{service.commentaire}}"
-        placeholder="Commentaire">{{service.commentaire}}</textarea>
+    <label for="service-commentaire" >Commentaire</label>
+    <input class="form-control data" name="commentaire" type="hidden" value="{{service.commentaire}}" >
+    <div id="editor-container" value="{{service.commentaire}}"> {{service.commentaire|raw}}
+        </div>
+    
 </div>

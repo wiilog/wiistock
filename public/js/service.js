@@ -3,8 +3,36 @@ $('.select2').select2({
         id: 'demandeur', // the value of the option
         text: 'Demandeur',
     }
-    
+
 });
+// console.log('test');
+// function textEditor() {
+//     console.log('re');
+//     var quill = new Quill('#editor-container', {
+        
+//         modules: {
+//             toolbar: [
+//                 [{ header: [1, 2, false] }],
+//                 ['bold', 'italic', 'underline'],
+//                 ['image', 'code-block']
+//             ]
+//         },
+//         theme: 'snow'
+//     });
+//     console.log('retest');
+// };
+
+// function setCommentaire() {
+
+//     var commentaire = document.querySelector('input[name=commentaire]');
+//     commentaire.value = quill.container.firstChild.innerHTML;
+
+// };
+
+
+
+
+
 
 var pathService = Routing.generate('service_api', true);
 var tableService = $('#tableService_id').DataTable({
@@ -69,6 +97,26 @@ $('#submitSearchService').on('click', function () {
         .draw();
 });
 
+
+// var quill = new Quill('#editor-container', {
+//     modules: {
+//         toolbar: [
+//             [{ header: [1, 2, false] }],
+//             ['bold', 'italic', 'underline'],
+//             ['image', 'code-block']
+//         ]
+//     },
+//     theme: 'snow'
+// });
+
+// function setCommentaire(){ 
+
+//     var commentaire = document.querySelector('input[name=commentaire]');
+//         commentaire.value = quill.container.firstChild.innerHTML;
+
+
+// };
+
 let modalNewService = $("#modalNewService");
 let submitNewService = $("#submitNewService");
 let urlNewService = Routing.generate('creation_service', true);
@@ -78,4 +126,39 @@ let modalModifyService = $('#modalEditService');
 let submitModifyService = $('#submitEditService');
 let urlModifyService = Routing.generate('service_edit', true);
 InitialiserModal(modalModifyService, submitModifyService, urlModifyService, tableService);
+
+
+function initEditor() {
+    console.log('re');
+    var quill = new Quill('#editor-container', {
+
+        modules: {
+            toolbar: [
+                [{ header: [1, 2, false] }],
+                ['bold', 'italic', 'underline'],
+                ['image', 'code-block']
+            ]
+        },
+        theme: 'snow'
+    });
+    console.log('retest');
+};
+
+var quill = new Quill('#editor-container', {
+    modules: {
+        toolbar: [
+            [{ header: [1, 2, false] }],
+            ['bold', 'italic', 'underline'],
+            ['image', 'code-block']
+        ]
+    },
+    theme: 'snow'
+});
+
+
+function setCommentaire() {
+    console.log('rst');
+    var commentaire = document.querySelector('input[name=commentaire]');
+    commentaire.value = quill.container.firstChild.innerHTML;
+};
 
