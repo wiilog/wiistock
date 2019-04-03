@@ -20,18 +20,23 @@ class CategoryTypeFixtures extends Fixture
     public function load(ObjectManager $manager)
     {
         $categoriesNames = [
-            'référence article',
-             'fournisseur',
-             'emplacement',
-             'collecte',
-             'demande',
+            'referenceArticle',
+//            'fournisseur',
+//            'emplacement',
+//            'collecte',
+//            'demande',
         ];
         foreach ($categoriesNames as $categorieName) {
             $categorie = new CategoryType();
             $categorie->setLabel($categorieName);
             $manager->persist($categorie);
+            $this->addReference('type-' . $categorieName, $categorie);
         }
         $manager->flush();
+    }
+
+    public function getGroups():array {
+        return ['types'];
     }
 
 }
