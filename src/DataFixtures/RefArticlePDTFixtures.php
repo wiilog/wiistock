@@ -2,6 +2,7 @@
 
 namespace App\DataFixtures;
 
+use App\Entity\Type;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\Persistence\ObjectManager;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
@@ -42,7 +43,7 @@ class RefArticlePDTFixtures extends Fixture
 
             $referenceArticle = new ReferenceArticle();
             $referenceArticle
-                ->setType($this->typeRepository->find(3))
+                ->setType($this->typeRepository->findOneBy(['label' => Type::LABEL_PDT]))
                 ->setReference($data[0])
                 ->setQuantiteStock(intval($data[3]))
                 ->setLibelle($data[1]);

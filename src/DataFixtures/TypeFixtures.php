@@ -24,7 +24,8 @@ class TypeFixtures extends Fixture implements DependentFixtureInterface
               'PDD',
               'PSS',
               'SILI',
-              'MOB'
+              'MOB',
+              'SLUGCIBLE'
          ];
 
          foreach ($typesNames as $typeName) {

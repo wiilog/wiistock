@@ -9,11 +9,10 @@ use Doctrine\Common\Persistence\ObjectManager;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 use App\Entity\ReferenceArticle;
-use App\Entity\ValeurChampsLibre;
 use App\Repository\TypeRepository;
 use App\Repository\ChampsLibreRepository;
 
-class RefArticleSILIFixtures extends Fixture
+class RefArticleMOBFixtures extends Fixture
 {
     private $encoder;
 
@@ -42,20 +41,21 @@ class RefArticleSILIFixtures extends Fixture
 
     public function load(ObjectManager $manager)
     {
-        $file = fopen("C:\wamp64\www\WiiStock\public\csv\sili.csv", "r");
+        $file = fopen("C:\wamp64\www\WiiStock\public\csv\mob.csv", "r");
         while (($data = fgetcsv($file, 1000, ";")) !== false) {
             $data = array_map('utf8_encode', $data);
             dump(print_r($data));
 
             $referenceArticle = new ReferenceArticle();
             $referenceArticle
-                ->setType($this->typeRepository->findOneBy(['label' => Type::LABEL_SILI]))
-                ->setReference($data[0])
-                ->setLibelle($data[1])
-                ->setQuantiteStock(intval($data[3]))
+                ->setType($this->typeRepository->findOneBy(['label' => Type::LABEL_MOB]))
+                ->setReference() //TODO où est la référence ??
+                ->setLibelle($data[0])
+                ->setQuantiteStock(intval($data[2]))
                 ->setTypeQuantite('reference')
                 ->setStatut($this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF))
             ;
+            //TODO ajouter fournisseur ? (récup liste distinct et la traiter après ?)
             $manager->persist($referenceArticle);
             $manager->flush();
         }
