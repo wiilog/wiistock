@@ -239,7 +239,7 @@ function visibleBlockModal(bloc) {
 }
 
 
-function typeChoise(bloc, text, content) {
+function typeChoice(bloc, text, content) {
     let cible = bloc.val()
     content.children().removeClass('d-block');
     content.children().addClass('d-none');

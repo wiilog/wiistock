@@ -119,17 +119,16 @@ class RefArticleDataService
 
 
     /**
+     * @param ReferenceArticle $articleRef
      * @return array
-     * @throws \Twig_Error_Loader
-     * @throws \Twig_Error_Runtime
-     * @throws \Twig_Error_Syntax
      */
     public function getDataEditForRefArticle($articleRef)
     {
-        if ($articleRef) {
             $type = $articleRef->getType();
             if ($type) {
                 $valeurChampLibre = $this->valeurChampsLibreRepository->getByRefArticleAndType($articleRef->getId(), $type->getId());
+            } else {
+                $valeurChampLibre = [];
             }
             // construction du tableau des articles fournisseurs
             $listArticlesFournisseur = [];
@@ -149,7 +148,7 @@ class RefArticleDataService
                     'quantity' => $quantity
                 ];
             }
-        }
+
         return $data = [
             'listArticlesFournisseur' => $listArticlesFournisseur,
             'totalQuantity' => $totalQuantity,

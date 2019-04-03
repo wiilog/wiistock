@@ -35,11 +35,13 @@
             <div class="input-group-prepend">
                 <label for="type" class="input-group-text">Type</label>
             </div>
-            <select name="type" onclick="typeChoise($(this), '-edit', $('#typeContentEdit'))"
+            <select name="type" onclick="typeChoice($(this), '-edit', $('#typeContentEdit'))"
                 class="form-control data d-block" id="">
+                {% if articleRef.type %}
                 <option value="{{articleRef.type.id}}">{{articleRef.type.label}}</option>
+                {% endif %}
                 {% for type in types %}
-                {% if type.id != articleRef.type.id %}
+                {% if articleRef.type and type.id != articleRef.type.id %}
                     <option value="{{type.id}}">{{type.label}}</option>
                 {% endif %}
                 {% endfor %}
@@ -124,7 +126,7 @@
     </div>
     <div class="form-group col-12 d-block" id='typeContentEdit'>
         {% for type in types %}
-        <div {{  type.id != articleRef.type.id ? "class='d-none'" : "class='d-block'"}} id="{{type.id}}-edit">
+        <div {{  type.id != (articleRef.type and articleRef.type.id) ? "class='d-none'" : "class='d-block'"}} id="{{type.id}}-edit">
             <div class="row mt-2">
                 {% for champ in type.champsLibres %}
 

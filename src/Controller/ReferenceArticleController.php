@@ -392,16 +392,13 @@ class ReferenceArticleController extends Controller
     public function plusDemande(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            dump($data);
-            $articleRef = $this->referenceArticleRepository->find($data['refArticle']);
-            if (array_key_exists('collecte', $data)) {
-                dump('collecte');
-                $collecte = $this->collecteRepository->find($data['collecte']);
-                //    $collecte->addArticle($articleRef);
-            } elseif (array_key_exists('livraison', $data)) {
-                dump('livraison');
-                $livraison = $this->livrai;
-            }
+//            $articleRef = $this->referenceArticleRepository->find($data['refArticle']);
+//            if (array_key_exists('collecte', $data)) {
+//                $collecte = $this->collecteRepository->find($data['collecte']);
+//                //    $collecte->addArticle($articleRef);
+//            } elseif (array_key_exists('livraison', $data)) {
+//                $livraison = $this->livrai;
+//            }
             return new JsonResponse();
         }
         throw new NotFoundHttpException("404");

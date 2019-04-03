@@ -138,7 +138,6 @@ class ArticleController extends AbstractController
           
             $json =$this->renderView('article/modalShowArticleContent.html.twig', [
                 'article' => $article
-                
                 ]);
             return new JsonResponse($json);
         }
@@ -148,31 +147,38 @@ class ArticleController extends AbstractController
     /**
      * @Route("/get-article", name="get_article_by_refArticle", options={"expose"=true})
      */
-    public function get_article_by_refArticle(Request $request) : Response
+    public function getArticleByRefArticle(Request $request) : Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
             $refArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
-            $articleFournisseur = $this->articleFournisseurRepository->getByRefArticle($refArticle);
 
-            if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-                $data = $this->refArticleDataService->getDataEditForRefArticle($refArticle); 
-                $statuts = $this->statutRepository->findByCategorieName(ReferenceArticle::CATEGORIE);
-                $json = $this->renderView('collecte/newRefArticleByQuantiteRefContent.html.twig', [
-                    'articleRef'=> $refArticle,
-                    'statut' => ($refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF),
-                    'valeurChampsLibre' => isset($valeurChampLibre) ? $data['valeurChampLibre'] : null,
-                    'types' => $this->typeRepository->getByCategoryLabel(ReferenceArticle::CATEGORIE),
-                    'statuts' => $statuts,
-                    'articlesFournisseur' => $data['listArticlesFournisseur'],
-                    'totalQuantity' => $data['totalQuantity']
-                ]);
+            if ($refArticle) {
+                $articleFournisseur = $this->articleFournisseurRepository->getByRefArticle($refArticle);
 
-            }elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-                $articles = $this->articleRepository->getIdAndLibelleByRefArticle($articleFournisseur);
-                $json = $this->renderView('collecte/newRefArticleByQuantiteArticleContent.html.twig', [
-                    "articles" => $articles,
+                if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+                    $data = $this->refArticleDataService->getDataEditForRefArticle($refArticle);
+                    $statuts = $this->statutRepository->findByCategorieName(ReferenceArticle::CATEGORIE);
+                    $json = $this->renderView('collecte/newRefArticleByQuantiteRefContent.html.twig', [
+                        'articleRef' => $refArticle,
+                        'statut' => ($refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF),
+                        'valeurChampsLibre' => isset($valeurChampLibre) ? $data['valeurChampLibre'] : null,
+                        'types' => $this->typeRepository->getByCategoryLabel(ReferenceArticle::CATEGORIE),
+                        'statuts' => $statuts,
+                        'articlesFournisseur' => $data['listArticlesFournisseur'],
+                        'totalQuantity' => $data['totalQuantity']
                     ]);
+
+                } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+                    $articles = $this->articleRepository->getIdAndLibelleByRefArticle($articleFournisseur);
+                    $json = $this->renderView('collecte/newRefArticleByQuantiteArticleContent.html.twig', [
+                        "articles" => $articles,
+                    ]);
+                } else {
+                    $json = false; //TODO gérer erreur retour
+                }
+            } else {
+                $json = false; //TODO gérer erreur retour
             }
 
             return new JsonResponse($json);
