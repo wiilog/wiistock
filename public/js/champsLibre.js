@@ -2,7 +2,7 @@ $('.select2').select2();
 
 //TYPE
 
-const urlApiType = Routing.generate('typeApi', true);
+const urlApiType = Routing.generate('type_api', true);
 let tableType = $('#tableType_id').DataTable({
     "language": {
         "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
@@ -36,7 +36,7 @@ InitialiserModal(dataModalEditType, ButtonSubmitEditType, urlEditType, tableType
 
 //CHAMPS LIBRE
 
-const urlApiChampsLibre = Routing.generate('champsLibreApi', {'id': id},true);
+const urlApiChampsLibre = Routing.generate('champ_libre_api', {'id': id},true);
 let tableChampsLibre = $('#tableChampslibre_id').DataTable({
     "language": {
         "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
@@ -55,17 +55,17 @@ let tableChampsLibre = $('#tableChampslibre_id').DataTable({
 
 let dataModalChampsLibreNew = $("#modalNewChampsLibre");
 let ButtonSubmitChampsLibreNew = $("#submitChampsLibreNew");
-let urlChampsLibreNew = Routing.generate('champs_libre_new', true);
+let urlChampsLibreNew = Routing.generate('champ_libre_new', true);
 InitialiserModal(dataModalChampsLibreNew, ButtonSubmitChampsLibreNew, urlChampsLibreNew, tableChampsLibre);
 
 let dataModalChampsLibreDelete = $("#modalDeleteChampsLibre");
 let ButtonSubmitChampsLibreDelete = $("#submitChampsLibreDelete");
-let urlChampsLibreDelete = Routing.generate('champs_libre_delete', true);
+let urlChampsLibreDelete = Routing.generate('champ_libre_delete', true);
 InitialiserModal(dataModalChampsLibreDelete, ButtonSubmitChampsLibreDelete, urlChampsLibreDelete, tableChampsLibre);
 
 let dataModalEditChampsLibre = $("#modalEditChampLibre");
 let ButtonSubmitEditChampsLibre = $("#submitEditChampsLibre");
-let urlEditChampsLibre = Routing.generate('champsLibre_edit', true);
+let urlEditChampsLibre = Routing.generate('champ_libre_edit', true);
 InitialiserModal(dataModalEditChampsLibre, ButtonSubmitEditChampsLibre, urlEditChampsLibre, tableChampsLibre);
 
 function askForDeleteConfirmation(data)
