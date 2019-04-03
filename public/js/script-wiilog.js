@@ -1,4 +1,3 @@
-//NEW
 /**
  * Initialise une fenêtre modale
  *
@@ -39,18 +38,16 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
                 if (callback !== null) callback(data);
 
                 let inputs = modal.find('.modal-body').find(".data");
-                console.log(inputs);
                 // on vide tous les inputs
                 inputs.each(function () {
                     $(this).val("");
-                    // $(this).text(''); // pour les select2 //TODOO provoque des bugs avec le typage des champs libres => efface les options du select  
+                    // $(this).text(''); // pour les select2 //TODOO provoque des bugs avec le typage des champs libres => efface les options du select
                 });
                 // on remet toutes les checkboxes sur off
                 let checkboxes = modal.find('.checkbox');
                 checkboxes.each(function() {
                     $(this).prop('checked', false);
-                })
-
+                });
             }
         };
 
@@ -138,7 +135,6 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
 
             modal.find('.error-msg').html(msg);
         }
-
     });
 }
 

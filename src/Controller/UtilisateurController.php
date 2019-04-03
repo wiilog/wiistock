@@ -62,7 +62,7 @@ class UtilisateurController extends Controller
 
 
     /**
-     * @Route("/newUser", name="user_new",  options={"expose"=true}, methods="GET|POST")
+     * @Route("/creer", name="user_new",  options={"expose"=true}, methods="GET|POST")
      */
     public function newUser(Request $request, UserPasswordEncoderInterface $passwordEncoder): Response
     {
