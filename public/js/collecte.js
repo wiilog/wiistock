@@ -135,3 +135,10 @@ function ajaxGetArticle(select) {
     xhttp.open("POST", path, true);
     xhttp.send(json);
 }
+
+function deleteRowCollecte(button, modal, submit) {
+    let id = button.data('id');
+    let name = button.data('name');
+    modal.find(submit).attr('value', id);
+    modal.find(submit).attr('name', name);
+}

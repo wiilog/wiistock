@@ -89,7 +89,7 @@ class ReferenceArticle
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\CollecteReference", mappedBy="referenceArticle")
      */
-    private $collecteReference;
+    private $collecteReferences;
 
     public function __construct()
     {
@@ -99,7 +99,7 @@ class ReferenceArticle
         $this->ligneArticles = new ArrayCollection();
         $this->valeurChampsLibres = new ArrayCollection();
         $this->articlesFournisseur = new ArrayCollection();
-        $this->collecteReference = new ArrayCollection();
+        $this->collecteReferences = new ArrayCollection();
     }
 
     public function getId()
@@ -332,25 +332,25 @@ class ReferenceArticle
     /**
      * @return Collection|CollecteReference[]
      */
-    public function getcollecteReference(): Collection
+    public function getCollecteReferences(): Collection
     {
-        return $this->collecteReference;
+        return $this->collecteReferences;
     }
 
-    public function addcollecteReference(CollecteReference $collecteReference): self
+    public function addCollecteReference(CollecteReference $collecteReference): self
     {
-        if (!$this->collecteReference->contains($collecteReference)) {
-            $this->collecteReference[] = $collecteReference;
+        if (!$this->collecteReferences->contains($collecteReference)) {
+            $this->collecteReferences[] = $collecteReference;
             $collecteReference->setReferenceArticle($this);
         }
 
         return $this;
     }
 
-    public function removecollecteReference(CollecteReference $collecteReference): self
+    public function removeCollecteReference(CollecteReference $collecteReference): self
     {
-        if ($this->collecteReference->contains($collecteReference)) {
-            $this->collecteReference->removeElement($collecteReference);
+        if ($this->collecteReferences->contains($collecteReference)) {
+            $this->collecteReferences->removeElement($collecteReference);
             // set the owning side to null (unless already changed)
             if ($collecteReference->getReferenceArticle() === $this) {
                 $collecteReference->setReferenceArticle(null);
@@ -359,4 +359,5 @@ class ReferenceArticle
 
         return $this;
     }
+
 }

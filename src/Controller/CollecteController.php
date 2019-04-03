@@ -4,22 +4,26 @@ namespace App\Controller;
 
 use App\Entity\Collecte;
 use App\Entity\ReferenceArticle;
-use App\Form\CollecteType;
-use App\Repository\CollecteRepository;
+use App\Entity\CollecteReference;
+use App\Entity\Utilisateur;
+use App\Entity\Article;
+use App\Form\ArticleType;
+
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use App\Entity\Article;
-use App\Form\ArticleType;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpFoundation\JsonResponse;
+
+use App\Repository\CollecteRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\StatutRepository;
 use App\Repository\ReferenceArticleRepository;
-use App\Entity\Utilisateur;
 use App\Repository\UtilisateurRepository;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use App\Repository\CollecteReferenceRepository;
+
 use Hoa\Compiler\Visitor\Dump;
 
 /**
@@ -36,6 +40,11 @@ class CollecteController extends AbstractController
      * @var EmplacementRepository
      */
     private $emplacementRepository;
+
+    /**
+     * @var CollecteReferenceRepository
+     */
+    private $collecteReferenceRepository;
 
     /**
      * @var ReferenceArticleRepository
@@ -57,7 +66,7 @@ class CollecteController extends AbstractController
      */
     private $utilisateurRepository;
 
-    public function __construct(ReferenceArticleRepository $referenceArticleRepository ,StatutRepository $statutRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UtilisateurRepository $utilisateurRepository)
+    public function __construct(CollecteReferenceRepository $collecteReferenceRepository, ReferenceArticleRepository $referenceArticleRepository, StatutRepository $statutRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UtilisateurRepository $utilisateurRepository)
     {
         $this->statutRepository = $statutRepository;
         $this->emplacementRepository = $emplacementRepository;
@@ -65,6 +74,7 @@ class CollecteController extends AbstractController
         $this->articleRepository = $articleRepository;
         $this->collecteRepository = $collecteRepository;
         $this->utilisateurRepository = $utilisateurRepository;
+        $this->collecteReferenceRepository = $collecteReferenceRepository;
     }
 
     /**
@@ -131,23 +141,43 @@ class CollecteController extends AbstractController
             {
                 $collecte = $this->collecteRepository->find($id);
                 $articles = $this->articleRepository->getByCollecte($collecte->getId());
-
-                $rows = [];
+                $referenceCollectes = $this->collecteReferenceRepository->getByCollecte($collecte);
+                $rowsRC = [];
+                foreach ($referenceCollectes as $referenceCollecte) {
+                    $rowsRC[] = [
+                        'Référence CEA' => ($referenceCollecte->getReferenceArticle() ? $referenceCollecte->getReferenceArticle()->getReference() : ""),
+                        'Libellé' => ($referenceCollecte->getReferenceArticle() ? $referenceCollecte->getReferenceArticle()->getLibelle() : ""),
+                        'Emplacement' => $collecte->getPointCollecte()->getLabel(),
+                        'Quantité' => ($referenceCollecte->getQuantite() ? $referenceCollecte->getQuantite() : ""),
+                        'Actions' => $this->renderView('collecte/datatableArticleRow.html.twig', [
+                            'data' => [
+                                'id' => $referenceCollecte->getId(),
+                                'name' => ($referenceCollecte->getReferenceArticle() ? $referenceCollecte->getReferenceArticle()->getTypeQuantite() : ReferenceArticle::TYPE_QUANTITE_REFERENCE),
+                            ],
+                            'collecteId' => $collecte->getid(),
+                            'modifiable' => ($collecte->getStatut()->getNom() !== Collecte::STATUS_EN_COURS ? true : false)
+                        ])
+                    ];
+                }
+                $rowsCA = [];
                 foreach ($articles as $article) {
-                    $rows[] = [
+                    $rowsCA[] = [
                         'Référence CEA' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : ""),
                         'Libellé' => $article->getLabel(),
                         'Emplacement' => $collecte->getPointCollecte()->getLabel(),
                         'Quantité' => '',
                         'Actions' => $this->renderView('collecte/datatableArticleRow.html.twig', [
-                            'article' => $article,
+                            'data' => [
+                                'id' => $article->getId(),
+                                'name' => (ReferenceArticle::TYPE_QUANTITE_ARTICLE),
+                            ],
                             'collecteId' => $collecte->getid(),
                             'modifiable' => ($collecte->getStatut()->getNom() !== Collecte::STATUS_EN_COURS ? true : false)
                         ])
 
                     ];
                 }
-                $data['data'] = $rows;
+                $data['data'] = array_merge($rowsCA, $rowsRC);
                 return new JsonResponse($data);
             }
         throw new NotFoundHttpException("404");
@@ -187,26 +217,21 @@ class CollecteController extends AbstractController
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
-            $refArticle = $this->referenceArticleRepository->find($data['reference']);
-            dump($data);
+            $em = $this->getDoctrine()->getManager();
+            $refArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
+            $collecte = $this->collecteRepository->find($data['collecte']);
             if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-                dump('quantite_reference');
-            }elseif($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE){
-                dump('quantite_article');
-
+                $collecteReference = new CollecteReference;
+                $collecteReference
+                    ->setCollecte($collecte)
+                    ->setReferenceArticle($refArticle)
+                    ->setQuantite($data['quantite']);
+                $em->persist($collecteReference);
+            } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+                $article = $this->articleRepository->find($data['article']);
+                $collecte->addArticle($article);
             }
-
-            // $article = $this->articleRepository->find($data['code']);
-            // $collecte = $this->collecteRepository->find($data['collecte']);
-
-            // $article
-            //     ->setQuantite($data['quantity'])
-            //     ->addCollecte($collecte);
-
-            // $em = $this->getDoctrine()->getManager();
-            // $em->persist($article);
-            // $em->flush();
-
+            $em->flush();
             return new JsonResponse();
         }
         throw new NotFoundHttpException("404");
@@ -219,10 +244,16 @@ class CollecteController extends AbstractController
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
-            $article = $this->articleRepository->find($data['article']);
-            $collecte = $this->collecteRepository->find($data['collecte']);
-            $entityManager = $this->getDoctrine()->getManager();
-            $article->removeCollecte($collecte);
+            if (array_key_exists(ReferenceArticle::TYPE_QUANTITE_REFERENCE, $data)) {
+                $collecteReference = $this->collecteReferenceRepository->find($data[ReferenceArticle::TYPE_QUANTITE_REFERENCE]);
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager->remove($collecteReference);
+            }elseif (array_key_exists(ReferenceArticle::TYPE_QUANTITE_ARTICLE, $data)) {
+                $article = $this->articleRepository->find($data['article']);
+                $collecte = $this->collecteRepository->find($data['collecte']);
+                $entityManager = $this->getDoctrine()->getManager();
+                $article->removeCollecte($collecte);
+            }
             $entityManager->flush();
             return new JsonResponse();
         }
@@ -249,7 +280,7 @@ class CollecteController extends AbstractController
             // foreach ($article as $article) {
             //     $article->setStatut($statusEnStock);
             // }
-               $em->flush();
+            $em->flush();
             $response =  [
                 'entete' => $this->renderView('collecte/enteteCollecte.html.twig', [
                     'collecte' => $collecte,

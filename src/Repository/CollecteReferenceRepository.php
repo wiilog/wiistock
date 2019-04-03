@@ -18,33 +18,20 @@ class CollecteReferenceRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, CollecteReference::class);
     }
-
-    // /**
-    //  * @return CollecteReference[] Returns an array of CollecteReference objects
-    //  */
-    /*
-    public function findByExampleField($value)
+    public function getByCollecte($collecte)
     {
-        return $this->createQueryBuilder('c')
-            ->andWhere('c.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('c.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT cr
+          FROM App\Entity\CollecteReference cr
+          WHERE cr.collecte = :collecte"
+        )->setParameter('collecte',  $collecte);
 
-    /*
-    public function findOneBySomeField($value): ?CollecteReference
-    {
-        return $this->createQueryBuilder('c')
-            ->andWhere('c.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
+        return $query->execute();
     }
-    */
+
+
+    
 }
+
+

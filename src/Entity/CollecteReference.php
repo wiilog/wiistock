@@ -17,11 +17,6 @@ class CollecteReference
     private $id;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\ReferenceArticle", inversedBy="collecte")
-     */
-    private $referenceArticle;
-
-    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Collecte", inversedBy="collecteReferences")
      */
     private $collecte;
@@ -31,21 +26,14 @@ class CollecteReference
      */
     private $quantite;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\ReferenceArticle", inversedBy="collecteReferences")
+     */
+    private $referenceArticle;
+
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getReferenceArticle(): ?ReferenceArticle
-    {
-        return $this->referenceArticle;
-    }
-
-    public function setReferenceArticle(?ReferenceArticle $referenceArticle): self
-    {
-        $this->referenceArticle = $referenceArticle;
-
-        return $this;
     }
 
     public function getCollecte(): ?Collecte
@@ -68,6 +56,18 @@ class CollecteReference
     public function setQuantite(?int $quantite): self
     {
         $this->quantite = $quantite;
+
+        return $this;
+    }
+
+    public function getReferenceArticle(): ?ReferenceArticle
+    {
+        return $this->referenceArticle;
+    }
+
+    public function setReferenceArticle(?ReferenceArticle $referenceArticle): self
+    {
+        $this->referenceArticle = $referenceArticle;
 
         return $this;
     }
