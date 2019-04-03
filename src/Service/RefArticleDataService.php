@@ -10,7 +10,7 @@ namespace App\Service;
 
 
 use App\Entity\ReferenceArticle;
-use App\Repository\ArticleFournisseurRepository;
+use App\Entity\ValeurChampsLibre;
 use App\Repository\ChampsLibreRepository;
 use App\Repository\FilterRepository;
 use App\Repository\ReferenceArticleRepository;
@@ -158,15 +158,17 @@ class RefArticleDataService
 
 
     /**
-     * @return array
+     * @param ReferenceArticle $refArticle
+     * @param string[] $data
+     * @return array|bool
      * @throws \Twig_Error_Loader
      * @throws \Twig_Error_Runtime
      * @throws \Twig_Error_Syntax
      */
     public function editRefArticle($refArticle, $data)
     {
-        $entityManager = $this->em;
         if ($refArticle) {
+            $entityManager = $this->em;
             if (isset($data['reference'])) $refArticle->setReference($data['reference']);
             if (isset($data['libelle'])) $refArticle->setLibelle($data['libelle']);
             if (isset($data['quantite'])) $refArticle->setQuantiteStock(intval($data['quantite']));
@@ -220,6 +222,8 @@ class RefArticleDataService
             $rows = array_merge($rowCL, $rowDD);
             $response['id'] = $refArticle->getId();
             $response['edit'] = $rows;
+        } else {
+            $response = false; //TODO gérer retour erreur
         }
         return $response;
     }

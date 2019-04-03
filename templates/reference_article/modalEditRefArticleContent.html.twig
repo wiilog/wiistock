@@ -35,16 +35,16 @@
             <div class="input-group-prepend">
                 <label for="type" class="input-group-text">Type</label>
             </div>
-            <select name="type" onclick="typeChoice($(this), '-edit', $('#typeContentEdit'))"
-                class="form-control data d-block" id="">
-                {% if articleRef.type %}
-                <option value="{{articleRef.type.id}}">{{articleRef.type.label}}</option>
-                {% endif %}
+            <select name="type" onclick="typeChoice($(this), '-edit', $('#typeContentEdit'))" class="form-control data d-block" id="">
+                {% set selected = articleRef.type is null ? 'selected' : '' %}
+                <option {{ selected }} value =''> </option>
+
                 {% for type in types %}
-                {% if articleRef.type and type.id != articleRef.type.id %}
-                    <option value="{{type.id}}">{{type.label}}</option>
-                {% endif %}
+                    {% set selected = '' %}
+                    {% if articleRef.type is not null %}{% set selected = articleRef.type.id == type.id ? 'selected' : '' %}{% endif %}
+                    <option {{ selected }} value="{{type.id}}">{{type.label}}</option>
                 {% endfor %}
+
             </select>
         </div>
     </div>
