@@ -93,7 +93,7 @@ function initEditor() {
 };
 
 function setCommentaire() {
-    var quill = new Quill('#editor-container');
+    var quill = new Quill('.editor-container');
     var commentaire = document.querySelector('input[name=commentaire]');
     commentaire.value = quill.container.firstChild.innerHTML;
 };

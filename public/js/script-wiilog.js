@@ -204,6 +204,7 @@ function editRow(button, path, modal, submit) {
             dataReponse = JSON.parse(this.responseText);
             modal.find('.modal-body').html(dataReponse);
             initEditor();
+            initEditorId();
         }
     }
     let json = button.data('id');

@@ -55,6 +55,11 @@ let tableArticle = $('#tableArticle_id').DataTable({
     ],
 });
 
+
+
+
+
+
 let modal = $("#modalAddArticle");
 let submit = $("#addArticleSubmit");
 let url = Routing.generate('reception_article_add', true);
@@ -69,6 +74,17 @@ let modalEditArticle = $("#modalEditArticle");
 let submitEditArticle = $("#submitEditArticle");
 let urlEditArticle = Routing.generate('reception_article_edit', true);
 InitialiserModal(modalEditArticle, submitEditArticle, urlEditArticle, tableArticle);
+
+
+
+
+
+
+
+
+
+
+
 
 //GENERATOR BARCODE
 
@@ -124,8 +140,8 @@ var editorAlreadyDone = false;
 // console.log(editorAlreadyDone)
 
 function initEditor() {
-     if (editorAlreadyDone === false) {
-       console.log(editorAlreadyDone);
+    if (editorAlreadyDone === false) {
+        console.log(editorAlreadyDone);
         var quill = new Quill('.editor-container', {
             modules: {
                 toolbar: [
@@ -136,42 +152,41 @@ function initEditor() {
             },
             theme: 'snow'
         });
-     editorAlreadyDone = true;
-     console.log(editorAlreadyDone)
-    console.log('vv')
+        editorAlreadyDone = true;
+        console.log(editorAlreadyDone)
+        console.log('vv')
     }
 };
 var editorAlreadyDoneId = false;
 function initEditorId() {
     if (editorAlreadyDoneId === false) {
-      console.log(editorAlreadyDoneId);
-       var quill = new Quill('#editor-container', {
-           modules: {
-               toolbar: [
-                   [{ header: [1, 2, false] }],
-                   ['bold', 'italic', 'underline'],
-                   ['image', 'code-block']
-               ]
-           },
-           theme: 'snow'
-       });
-    editorAlreadyDoneId = true;
-    console.log(editorAlreadyDoneId)
-   console.log('vv')
-   }
+        console.log(editorAlreadyDoneId);
+        var quill = new Quill('#editor', {
+            modules: {
+                toolbar: [
+                    [{ header: [1, 2, false] }],
+                    ['bold', 'italic', 'underline'],
+                    ['image', 'code-block']
+                ]
+            },
+            theme: 'snow'
+        });
+        editorAlreadyDoneId = true;
+        console.log(editorAlreadyDoneId)
+    }
 };
 //passe de l'éditeur àl'imput pour insertion en BDD
 function setCommentaire() {
-    var quill = new Quill('.editor-container');
+    var quill = new Quill('.editor-container'); 
     var commentaire = document.querySelector('input[name=commentaire]');
     commentaire.value = quill.container.firstChild.innerHTML;
 };
+
+
 
 function setCommentaireId() {
-    var quill = new Quill('#editor-container');
-    console.log('testCOmm0');
-    var commentaire = document.querySelector('input[name=commentaire]');
-    commentaire.value = quill.container.firstChild.innerHTML;
+    var quill = new Quill('#editor');
+    let com = quill.container.firstChild.innerHTML;
+    $('#commentaire').val(com);
 };
-
 
