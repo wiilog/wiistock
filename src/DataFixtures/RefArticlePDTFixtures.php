@@ -57,6 +57,7 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
         $file = fopen($path, "r");
 
         $firstRow = true;
+
         while (($data = fgetcsv($file, 1000, ";")) !== false) {
             if ($firstRow) {
                 $firstRow = false;
@@ -110,7 +111,6 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
                 // champs libres
                 $listData = [
                     ['label' => 'adresse', 'col' => 2, 'type' => ChampsLibre::TYPE_TEXT],
-                    ['label' => 'nombre UC', 'col' => 3, 'type' => ChampsLibre::TYPE_NUMBER],
                     ['label' => 'famille produit', 'col' => 4, 'type' => ChampsLibre::TYPE_TEXT],
                     ['label' => 'zone', 'col' => 5, 'type' => ChampsLibre::TYPE_TEXT],
                     ['label' => 'équipementier', 'col' => 6, 'type' => ChampsLibre::TYPE_TEXT],
@@ -140,12 +140,9 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
                     $manager->persist($vcl);
                 }
 
-//
-//                unset($CLAdresse, $adresse, $refEquip, $DLrefEquip, $refFournisseur, $referenceArticle, $CLDateEntre, $DLMachine,
-//                    $DLequipementier, $equipementier, $DLfamilleProduit, $DLlot, $lot, $DLrefFournisseur, $DLzone, $zone, $familleProduit, $machine);
-
                 $manager->flush();
             }
+            unset($data);
         }
         fclose($file);
     }
