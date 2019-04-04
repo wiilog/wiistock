@@ -22,6 +22,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use App\Entity\Article;
 
 /**
  * @Route("/article")
@@ -150,27 +151,31 @@ class ArticleController extends AbstractController
     public function getArticleByRefArticle(Request $request) : Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-
             $refArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
-
             if ($refArticle) {
                 $articleFournisseur = $this->articleFournisseurRepository->getByRefArticle($refArticle);
-
                 if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                     $data = $this->refArticleDataService->getDataEditForRefArticle($refArticle);
                     $statuts = $this->statutRepository->findByCategorieName(ReferenceArticle::CATEGORIE);
                     $json = $this->renderView('collecte/newRefArticleByQuantiteRefContent.html.twig', [
                         'articleRef' => $refArticle,
                         'statut' => ($refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF),
-                        'valeurChampsLibre' => isset($valeurChampLibre) ? $data['valeurChampLibre'] : null,
+                        'valeurChampsLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
                         'types' => $this->typeRepository->getByCategoryLabel(ReferenceArticle::CATEGORIE),
                         'statuts' => $statuts,
                         'articlesFournisseur' => $data['listArticlesFournisseur'],
                         'totalQuantity' => $data['totalQuantity']
                     ]);
-
                 } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-                    $articles = $this->articleRepository->getIdAndLibelleByRefArticle($articleFournisseur);
+                    //TODOO
+                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE,  Article::STATUT_INACTIF);
+                    $articles = $this->articleRepository->getByAFAndInactif($articleFournisseur, $statut);
+                    if(count($articles) < 1 ){
+                        $articles[] = [
+                            'id'=> "",
+                            'reference'=>'aucun article disponible'
+                        ];
+                    }
                     $json = $this->renderView('collecte/newRefArticleByQuantiteArticleContent.html.twig', [
                         "articles" => $articles,
                     ]);

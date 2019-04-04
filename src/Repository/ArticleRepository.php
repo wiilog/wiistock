@@ -114,15 +114,18 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->getResult();
     }
 
-    public function getIdAndLibelleByRefArticle($articleFournisseur)
+    public function getByAFAndInactif($articleFournisseur, $statut)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
           "SELECT a.id, a.reference
           FROM App\Entity\Article a
           JOIN a.articleFournisseur af
-          WHERE af.id IN(:articleFournisseur)"
-        )->setParameter('articleFournisseur',  $articleFournisseur);
+          WHERE a.Statut = :statut AND af.id IN(:articleFournisseur)"
+        )->setParameters([
+            'articleFournisseur' => $articleFournisseur,
+            'statut'=> $statut
+            ]);
 
         return $query->execute();
     }
