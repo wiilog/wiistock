@@ -106,7 +106,7 @@ class ArticleFournisseurController extends AbstractController
     }
 
     /**
-     * @Route("/afficher-modifier", name="article_fournisseur_display_edit", options={"expose"=true},  methods="GET|POST")
+     * @Route("/api-modifier", name="article_fournisseur_api_edit", options={"expose"=true},  methods="GET|POST")
      */
     public function displayEdit(Request $request): Response
     {
@@ -151,7 +151,8 @@ class ArticleFournisseurController extends AbstractController
     public function delete(Request $request) : Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $articleFournisseur= $this->articleFournisseurRepository->find(intval($data['article_fournisseur']));
+            dump($data);
+            $articleFournisseur= $this->articleFournisseurRepository->find(intval($data['article-fournisseur']));
 
             $em = $this->getDoctrine()->getManager();
             $em->remove($articleFournisseur);

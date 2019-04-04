@@ -55,47 +55,19 @@ class ChampsLibreController extends AbstractController
     }
 
     /**
-     * @Route("/", name="champs_libre_index", methods={"GET"})
+     * @Route("/", name="champ_libre_index", methods={"GET"})
      */
     public function index(): Response
     {
-        return $this->render('champs_libre/index.html.twig', [
+        return $this->render('champ_libre/index.html.twig', [
             'category' => $this->categoryTypeRepository->findAll(),
         ]);
     }
 
     /**
-     * @Route("/typeApi", name="typeApi", options={"expose"=true}, methods={"POST"})
+     * @Route("/api/{id}", name="champ_libre_api", options={"expose"=true}, methods={"POST"})
      */
-    public function typeApi(Request $request): Response
-    {
-        if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
-            {
-                $types = $this->typeRepository->findAll();
-                $rows = [];
-                foreach ($types as $type) {
-                    $url = $this->generateUrl('champs_libre_show', ['id' => $type->getId()]);
-                    $rows[] =
-                        [
-                            'id' => ($type->getId() ? $type->getId() : "Non défini"),
-                            'Label' => ($type->getLabel() ? $type->getLabel() : "Non défini"),
-                            'Catégorie' => ($type->getCategory() ? $type->getCategory()->getLabel() : 'Non défini'),
-                            'Actions' =>  $this->renderView('champs_libre/datatableTypeRow.html.twig', [
-                                'urlChampsLibre' => $url,
-                                'idType' => $type->getId()
-                            ]),
-                        ];
-                }
-                $data['data'] = $rows;
-                return new JsonResponse($data);
-            }
-        throw new NotFoundHttpException("404");
-    }
-
-    /**
-     * @Route("/champsLibreApi/{id}", name="champsLibreApi", options={"expose"=true}, methods={"POST"})
-     */
-    public function champsLibreApi(Request $request, $id): Response
+    public function api(Request $request, $id): Response
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
             {
@@ -108,7 +80,7 @@ class ChampsLibreController extends AbstractController
                             'Label' => ($champsLibre->getLabel() ? $champsLibre->getLabel() : "Non défini"),
                             'Typage' => ($champsLibre->getTypage() ? $champsLibre->getTypage() : "Non défini"),
                             'Valeur par défaut' => ($champsLibre->getDefaultValue() ? $champsLibre->getDefaultValue() : "Non défini"),
-                            'Actions' =>  $this->renderView('champs_libre/datatableChampsLibreRow.html.twig', ['idChampsLibre' => $champsLibre->getId()]),
+                            'Actions' =>  $this->renderView('champ_libre/datatableChampsLibreRow.html.twig', ['idChampsLibre' => $champsLibre->getId()]),
                         ];
                 }
                 $data['data'] = $rows;
@@ -118,43 +90,18 @@ class ChampsLibreController extends AbstractController
     }
 
     /**
-     * @Route("/typeNew", name="type_new", options={"expose"=true}, methods={"POST"})
-     */
-    public function typeNew(Request $request): Response
-    {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-
-            if($data['category'] === null){
-                $category = $this->categoryTypeRepository->findoneBy(['label'=> ReferenceArticle::CATEGORIE]);
-            }else{
-                $category = $this->categoryTypeRepository->find($data['category']);
-            }
-            
-            $type = new Type();
-            $type
-                ->setlabel($data["label"])
-                ->setCategory($category);
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($type);
-            $em->flush();
-            return new JsonResponse($data);
-        }
-        throw new NotFoundHttpException("404");
-    }
-
-    /**
      * @Route("/voir/{id}", name="champs_libre_show", methods={"GET","POST"})
      */
     public function show(Request $request, $id): Response
     {
-        return $this->render('champs_libre/show.html.twig', [
+        return $this->render('champ_libre/show.html.twig', [
             'type' => $this->typeRepository->find($id),
 
         ]);
     }
 
     /**
-     * @Route("/new", name="champs_libre_new", options={"expose"=true}, methods={"GET","POST"})
+     * @Route("/new", name="champ_libre_new", options={"expose"=true}, methods={"GET","POST"})
      */
     public function new(Request $request): Response
     {
@@ -176,23 +123,24 @@ class ChampsLibreController extends AbstractController
     }
 
     /**
-     * @Route("/editChampLibreApi", name="champLibre_edit_api", options={"expose"=true},  methods="GET|POST")
+     * @Route("/api-modifier", name="champ_libre_api_edit", options={"expose"=true},  methods="GET|POST")
      */
-    public function editChampLibreApi(Request $request): Response
+    public function editApi(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $champLibre = $this->champsLibreRepository->find($data);
-            $json = $this->renderView('champs_libre/modalEditChampLibreContent.html.twig', [
+            $json = $this->renderView('champ_libre/modalEditChampLibreContent.html.twig', [
                 'champLibre' => $champLibre,
             ]);
             return new JsonResponse($json);
         }
         throw new NotFoundHttpException("404");
     }
+
     /**
-     * @Route("/editChampsLibre", name="champsLibre_edit", options={"expose"=true},  methods="GET|POST")
+     * @Route("/modifier", name="champ_libre_edit", options={"expose"=true},  methods="GET|POST")
      */
-    public function editChampsLibre(Request $request): Response
+    public function edit(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
@@ -212,9 +160,9 @@ class ChampsLibreController extends AbstractController
     }
 
     /**
-     * @Route("/deleteChampsLibre", name="champs_libre_delete",options={"expose"=true}, methods={"GET","POST"})
+     * @Route("/delete", name="champ_libre_delete",options={"expose"=true}, methods={"GET","POST"})
      */
-    public function deleteChampsLibre(Request $request): Response
+    public function delete(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $champsLibre = $this->champsLibreRepository->find($data['champsLibre']);
@@ -226,72 +174,4 @@ class ChampsLibreController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
-    /**
-     * @Route("/supprimerType", name="type_delete",options={"expose"=true}, methods={"GET","POST"})
-     */
-    public function deleteType(Request $request): Response
-    {
-        if ($data = json_decode($request->getContent(), true)) {
-            $type = $this->typeRepository->find($data['type']);
-            $entityManager = $this->getDoctrine()->getManager();
-
-            // si on a confirmé la suppression, on supprime les enregistrements liés
-            if (isset($data['force'])) {
-                $this->refArticleRepository->setTypeIdNull($type);
-                $this->champsLibreRepository->deleteByType($type);
-                $entityManager->flush();
-            } else {
-                // sinon on vérifie qu'il n'est pas lié par des contraintes de clé étrangère
-                $articlesExist = $this->refArticleRepository->countByType($type);
-                $champsLibresExist = $this->champsLibreRepository->countByType($type);
-
-                if ((int)$champsLibresExist + (int)$articlesExist > 0) {
-                    $result = $this->renderView('champs_libre/modalDeleteTypeConfirm.html.twig');
-                    return new JsonResponse($result);
-                }
-            }
-
-            $entityManager->remove($type);
-            $entityManager->flush();
-            $result = true;
-
-            return new JsonResponse($result);
-        }
-        throw new NotFoundHttpException("404");
-    }
-
-
-    /**
-     * @Route("/editTypeApi", name="type_edit_api", options={"expose"=true},  methods="GET|POST")
-     */
-    public function editTypeApi(Request $request): Response
-    {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $type = $this->typeRepository->find($data);
-            $json = $this->renderView('champs_libre/modalEditTypeContent.html.twig', [
-                'type' => $type,
-                'category' => $this->categoryTypeRepository->getNoOne($type->getCategory()->getId())
-            ]);
-            return new JsonResponse($json);
-        }
-        throw new NotFoundHttpException("404");
-    }
-
-    /**
-     * @Route("/editType", name="type_edit", options={"expose"=true},  methods="GET|POST")
-     */
-    public function editType(Request $request): Response
-    {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $category = $this->categoryTypeRepository->find($data['category']);
-            $type = $this->typeRepository->find($data['type']);
-            $type
-                ->setLabel($data['label'])
-                ->setCategory($category);
-            $em = $this->getDoctrine()->getManager();
-            $em->flush();
-            return new JsonResponse();
-        }
-        throw new NotFoundHttpException("404");
-    }
 }

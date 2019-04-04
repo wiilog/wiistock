@@ -1,5 +1,5 @@
 <div class="d-flex">
-    <div data-id='{{ id }}' data-target='#modalEditArticleFournisseur' data-toggle='modal' onclick="editRow($(this), Routing.generate('article_fournisseur_display_edit', true), $('#modalEditArticleFournisseur'), $('#submitEditArticleFournisseur'))">
+    <div data-id='{{ id }}' data-target='#modalEditArticleFournisseur' data-toggle='modal' onclick="editRow($(this), Routing.generate('article_fournisseur_api_edit', true), $('#modalEditArticleFournisseur'), $('#submitEditArticleFournisseur'))">
         <i class='fas fa-pencil-alt'></i>
     </div>
     <div data-id="{{ id }}" data-target='#modalDeleteArticleFournisseur' data-toggle='modal' onclick="deleteRow($(this), $('#modalDeleteArticleFournisseur'), $('#submitDeleteArticleFournisseur'))">
