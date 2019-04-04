@@ -68,7 +68,7 @@ class CollecteController extends AbstractController
      */
     private $utilisateurRepository;
 
-      /**
+    /**
      * @var RefArticleDataService
      */
     private $refArticleDataService;
@@ -105,7 +105,7 @@ class CollecteController extends AbstractController
         return $this->render('collecte/show.html.twig', [
             'collecte' => $collecte,
             'articles' => $this->articleRepository->findAll(),
-            'modifiable' => ($collecte->getStatut()->getNom() !== Collecte::STATUS_EN_COURS ? true : false)
+            'modifiable' => ($collecte->getStatut()->getNom() !== Collecte::STATUS_EN_COURS ?true : false)
         ]);
     }
 
@@ -122,11 +122,11 @@ class CollecteController extends AbstractController
                 foreach ($collectes as $collecte) {
                     $url = $this->generateUrl('collecte_show', ['id' => $collecte->getId()]);
                     $rows[] = [
-                        'id' => ($collecte->getId() ? $collecte->getId() : "Non défini"),
-                        'Date' => ($collecte->getDate() ? $collecte->getDate()->format('d/m/Y') : null),
-                        'Demandeur' => ($collecte->getDemandeur() ? $collecte->getDemandeur()->getUserName() : null),
-                        'Objet' => ($collecte->getObjet() ? $collecte->getObjet() : null),
-                        'Statut' => ($collecte->getStatut()->getNom() ? ucfirst($collecte->getStatut()->getNom()) : null),
+                        'id' => ($collecte->getId() ?$collecte->getId() : "Non défini"),
+                        'Date' => ($collecte->getDate() ?$collecte->getDate()->format('d/m/Y') : null),
+                        'Demandeur' => ($collecte->getDemandeur() ?$collecte->getDemandeur()->getUserName() : null),
+                        'Objet' => ($collecte->getObjet() ?$collecte->getObjet() : null),
+                        'Statut' => ($collecte->getStatut()->getNom() ?ucfirst($collecte->getStatut()->getNom()) : null),
                         'Actions' => $this->renderView('collecte/datatableCollecteRow.html.twig', [
                             'url' => $url,
                         ])
@@ -153,24 +153,24 @@ class CollecteController extends AbstractController
                 $rowsRC = [];
                 foreach ($referenceCollectes as $referenceCollecte) {
                     $rowsRC[] = [
-                        'Référence CEA' => ($referenceCollecte->getReferenceArticle() ? $referenceCollecte->getReferenceArticle()->getReference() : ""),
-                        'Libellé' => ($referenceCollecte->getReferenceArticle() ? $referenceCollecte->getReferenceArticle()->getLibelle() : ""),
+                        'Référence CEA' => ($referenceCollecte->getReferenceArticle() ?$referenceCollecte->getReferenceArticle()->getReference() : ""),
+                        'Libellé' => ($referenceCollecte->getReferenceArticle() ?$referenceCollecte->getReferenceArticle()->getLibelle() : ""),
                         'Emplacement' => $collecte->getPointCollecte()->getLabel(),
-                        'Quantité' => ($referenceCollecte->getQuantite() ? $referenceCollecte->getQuantite() : ""),
+                        'Quantité' => ($referenceCollecte->getQuantite() ?$referenceCollecte->getQuantite() : ""),
                         'Actions' => $this->renderView('collecte/datatableArticleRow.html.twig', [
                             'data' => [
                                 'id' => $referenceCollecte->getId(),
-                                'name' => ($referenceCollecte->getReferenceArticle() ? $referenceCollecte->getReferenceArticle()->getTypeQuantite() : ReferenceArticle::TYPE_QUANTITE_REFERENCE),
+                                'name' => ($referenceCollecte->getReferenceArticle() ?$referenceCollecte->getReferenceArticle()->getTypeQuantite() : ReferenceArticle::TYPE_QUANTITE_REFERENCE),
                             ],
                             'collecteId' => $collecte->getid(),
-                            'modifiable' => ($collecte->getStatut()->getNom() !== Collecte::STATUS_EN_COURS ? true : false)
+                            'modifiable' => ($collecte->getStatut()->getNom() !== Collecte::STATUS_EN_COURS ?true : false)
                         ])
                     ];
                 }
                 $rowsCA = [];
                 foreach ($articles as $article) {
                     $rowsCA[] = [
-                        'Référence CEA' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : ""),
+                        'Référence CEA' => ($article->getArticleFournisseur() ?$article->getArticleFournisseur()->getReferenceArticle()->getReference() : ""),
                         'Libellé' => $article->getLabel(),
                         'Emplacement' => ($collecte->getPointCollecte() ? $collecte->getPointCollecte()->getLabel() : "" ),
                         'Quantité' => $article->getQuantite(),
@@ -180,7 +180,7 @@ class CollecteController extends AbstractController
                                 'name' => (ReferenceArticle::TYPE_QUANTITE_ARTICLE),
                             ],
                             'collecteId' => $collecte->getid(),
-                            'modifiable' => ($collecte->getStatut()->getNom() !== Collecte::STATUS_EN_COURS ? true : false)
+                            'modifiable' => ($collecte->getStatut()->getNom() !== Collecte::STATUS_EN_COURS ?true : false)
                         ])
 
                     ];
@@ -224,20 +224,22 @@ class CollecteController extends AbstractController
     public function addArticle(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-
             $em = $this->getDoctrine()->getManager();
             $refArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
             $collecte = $this->collecteRepository->find($data['collecte']);
             if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-                $collecteReference = new CollecteReference;
-                $collecteReference
-                    ->setCollecte($collecte)
-                    ->setReferenceArticle($refArticle)
-                    ->setQuantite($data['quantitie']);
-
+                if ($this->collecteReferenceRepository->countByCollecteAndRA($collecte, $refArticle) > 0) {
+                    $collecteReference = $this->collecteReferenceRepository->getByCollecteAndRA($collecte, $refArticle);
+                    $collecteReference->setQuantite(intval($collecteReference->getQuantite()) + intval($data['quantitie']));
+                } else {
+                    $collecteReference = new CollecteReference;
+                    $collecteReference
+                        ->setCollecte($collecte)
+                        ->setReferenceArticle($refArticle)
+                        ->setQuantite($data['quantitie']);
+                    $em->persist($collecteReference);
+                }
                 $response = $this->refArticleDataService->editRefArticle($refArticle, $data);
-
-                $em->persist($collecteReference);
             } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
                 $article = $this->articleRepository->find($data['article']);
                 $collecte->addArticle($article);
@@ -255,11 +257,12 @@ class CollecteController extends AbstractController
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
+            dump($data);
             if (array_key_exists(ReferenceArticle::TYPE_QUANTITE_REFERENCE, $data)) {
                 $collecteReference = $this->collecteReferenceRepository->find($data[ReferenceArticle::TYPE_QUANTITE_REFERENCE]);
                 $entityManager = $this->getDoctrine()->getManager();
                 $entityManager->remove($collecteReference);
-            }elseif (array_key_exists(ReferenceArticle::TYPE_QUANTITE_ARTICLE, $data)) {
+            } elseif (array_key_exists(ReferenceArticle::TYPE_QUANTITE_ARTICLE, $data)) {
                 $article = $this->articleRepository->find($data['article']);
                 $collecte = $this->collecteRepository->find($data['collecte']);
                 $entityManager = $this->getDoctrine()->getManager();
@@ -286,16 +289,16 @@ class CollecteController extends AbstractController
             $collecte->setStatut($statusFinCollecte);
 
             // changement statut article
-            // $statusEnStock = $this->statutRepository->findOneBy(['nom' => Articles::STATUS_EN_STOCK]);
-            // $article = $collecte->getArticles();
-            // foreach ($article as $article) {
-            //     $article->setStatut($statusEnStock);
-            // }
+            $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE,  Article::STATUT_INACTIF);
+            $article = $collecte->getArticles();
+            foreach ($article as $article) {
+                $article->setStatut($statut);
+            }
             $em->flush();
             $response =  [
                 'entete' => $this->renderView('collecte/enteteCollecte.html.twig', [
                     'collecte' => $collecte,
-                    'modifiable' => ($collecte->getStatut()->getNom() !== Collecte::STATUS_EN_COURS ? true : false)
+                    'modifiable' => ($collecte->getStatut()->getNom() !== Collecte::STATUS_EN_COURS ?true : false)
                 ])
             ];
             return new JsonResponse($response);
@@ -343,7 +346,7 @@ class CollecteController extends AbstractController
             $json = [
                 'entete' => $this->renderView('collecte/enteteCollecte.html.twig', [
                     'collecte' => $collecte,
-                    'modifiable' => ($collecte->getStatut()->getNom() !== Collecte::STATUS_EN_COURS ? true : false)
+                    'modifiable' => ($collecte->getStatut()->getNom() !== Collecte::STATUS_EN_COURS ?true : false)
                 ])
             ];
 

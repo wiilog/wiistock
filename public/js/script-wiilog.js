@@ -39,7 +39,6 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
                 if (callback !== null) callback(data);
 
                 let inputs = modal.find('.modal-body').find(".data");
-                console.log(inputs);
                 // on vide tous les inputs
                 inputs.each(function () {
                     $(this).val("");
@@ -238,12 +237,25 @@ function visibleBlockModal(bloc) {
     }
 }
 
-
-function typeChoise(bloc, text, content) {
+function typeChoice(bloc, text, content) {
     let cible = bloc.val()
     content.children().removeClass('d-block');
     content.children().addClass('d-none');
 
     $('#'+cible+text).removeClass('d-none')
     $('#'+cible+text).addClass('d-block')
+}
+
+function updateQuantityDisplay(elem) {
+    let typeQuantite = elem.closest('.radio-btn').find('#type_quantite').val();
+    let modalBody = elem.closest('.modal-body');
+
+    if (typeQuantite == 'reference') {
+        modalBody.find('.article').addClass('d-none');
+        modalBody.find('.reference').removeClass('d-none');
+
+    } else if (typeQuantite == 'article') {
+        modalBody.find('.reference').addClass('d-none');
+        modalBody.find('.article').removeClass('d-none');
+    }
 }

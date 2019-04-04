@@ -35,14 +35,16 @@
             <div class="input-group-prepend">
                 <label for="type" class="input-group-text">Type</label>
             </div>
-            <select name="type" onclick="typeChoise($(this), '-edit', $('#typeContentEdit'))"
-                class="form-control data d-block" id="">
-                <option value="{{articleRef.type.id}}">{{articleRef.type.label}}</option>
+            <select name="type" onclick="typeChoice($(this), '-edit', $('#typeContentEdit'))" class="form-control data d-block" id="">
+                {% set selected = articleRef.type is null ? 'selected' : '' %}
+                <option {{ selected }} value =''> </option>
+
                 {% for type in types %}
-                {% if type.id != articleRef.type.id %}
-                    <option value="{{type.id}}">{{type.label}}</option>
-                {% endif %}
+                    {% set selected = '' %}
+                    {% if articleRef.type is not null %}{% set selected = articleRef.type.id == type.id ? 'selected' : '' %}{% endif %}
+                    <option {{ selected }} value="{{type.id}}">{{type.label}}</option>
                 {% endfor %}
+
             </select>
         </div>
     </div>
@@ -124,7 +126,7 @@
     </div>
     <div class="form-group col-12 d-block" id='typeContentEdit'>
         {% for type in types %}
-        <div {{  type.id != articleRef.type.id ? "class='d-none'" : "class='d-block'"}} id="{{type.id}}-edit">
+        <div {{ articleRef.type is defined and type.id == articleRef.type.id ? "class='d-block'" : "class='d-none'"}} id="{{type.id}}-edit">
             <div class="row mt-2">
                 {% for champ in type.champsLibres %}
 
@@ -137,7 +139,7 @@
                     <div class="input-group">
                         <div class="input-group-prepend">
                             <label class="input-group-text" for="input">
-                                {{champ.label}}
+                                {{champ.label | capitalize}}
                             </label>
                         </div>
                         {% if champ.typage == 'booleen' %}

@@ -30,8 +30,32 @@ class CollecteReferenceRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
+    public function countByCollecteAndRA($collecte, $refArticle)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT COUNT(cr)
+          FROM App\Entity\CollecteReference cr
+          WHERE cr.collecte = :collecte AND cr.referenceArticle = :refArticle"
+        )->setParameters([
+            'collecte' => $collecte,
+            'refArticle' => $refArticle
+        ]);
+        return $query->getSingleScalarResult();
+    }
 
-    
+    public function getByCollecteAndRA($collecte, $refArticle)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT cr
+          FROM App\Entity\CollecteReference cr
+          WHERE cr.collecte = :collecte AND cr.referenceArticle = :refArticle"
+        )->setParameters([
+            'collecte' => $collecte,
+            'refArticle' => $refArticle
+        ]);
+        return $query->getOneOrNullResult();
+    }
 }
-
 

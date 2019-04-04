@@ -13,6 +13,8 @@ use App\Entity\Article;
 use App\Entity\ReferenceArticle;
 use App\Entity\ValeurChampsLibre;
 
+use App\Service\RefArticleDataService;
+
 use App\Repository\ArticleRepository;
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\ChampsLibreRepository;
@@ -38,7 +40,7 @@ class ArticleDataService
      * @var ArticleFournisseurRepository
      */
     private $articleFournisseurRepository;
-    
+
     /*
      * @var ChampsLibreRepository
      */
@@ -69,10 +71,15 @@ class ArticleDataService
      */
     private $templating;
 
-      /**
+    /**
      * @var ArticleRepository
      */
     private $articleRepository;
+
+    /**
+     * @var RefArticleDataService
+     */
+    private $refArticleDataService;
 
     /**
      * @var object|string
@@ -82,7 +89,7 @@ class ArticleDataService
     private $em;
 
 
-    public function __construct(ArticleRepository $articleRepository,ArticleFournisseurRepository $articleFournisseurRepository ,TypeRepository  $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampsLibreRepository $champsLibreRepository, FilterRepository $filterRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
+    public function __construct(RefArticleDataService $refArticleDataService, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, TypeRepository  $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampsLibreRepository $champsLibreRepository, FilterRepository $filterRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
     {
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->articleRepository = $articleRepository;
@@ -91,6 +98,7 @@ class ArticleDataService
         $this->valeurChampsLibreRepository = $valeurChampsLibreRepository;
         $this->filterRepository = $filterRepository;
         $this->articleFournisseurRepository = $articleFournisseurRepository;
+        $this->refArticleDataService = $refArticleDataService;
         $this->typeRepository = $typeRepository;
         $this->templating = $templating;
         $this->user = $tokenStorage->getToken()->getUser();
@@ -112,7 +120,7 @@ class ArticleDataService
             }else{
                 $data = false;
             }
-            
+
             $statuts = $this->statutRepository->findByCategorieName(ReferenceArticle::CATEGORIE);
             $json = $this->templating->render('collecte/newRefArticleByQuantiteRefContent.html.twig', [
                 'articleRef' => $refArticle,
@@ -125,12 +133,21 @@ class ArticleDataService
                 'totalQuantity' => ($data['totalQuantity'] ? $data['totalQuantity'] : "")
             ]);
         } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-            $articles = $this->articleRepository->getIdAndLibelleByRefArticle($articleFournisseur);
+            //TODOO
+            $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE,  Article::STATUT_INACTIF);
+            $articles = $this->articleRepository->getByAFAndInactif($articleFournisseur, $statut);
+            if (count($articles) < 1) {
+                $articles[] = [
+                    'id' => "",
+                    'reference' => 'aucun article disponible'
+                ];
+            }
             $json = $this->templating->render('collecte/newRefArticleByQuantiteArticleContent.html.twig', [
                 "articles" => $articles,
             ]);
+        } else {
+            $json = false; //TODO gérer erreur retour
         }
         return $json;
     }
 }
-
