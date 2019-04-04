@@ -72,59 +72,9 @@ class AlerteController extends AbstractController
     }
 
     /**
-     * @Route("/api", name="alerte_api", options={"expose"=true}, methods={"GET"})
-     */
-    // public function alerteApi(\Swift_Mailer $mailer, Request $request) : Response
-    // {
-    //     if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
-    //     {
-    //         $alertes = $this->alerteRepository->findAll();
-
-    //         /* Un tableau d'alertes qui sera envoyer au mailer */
-    //         $alertesUser = [];
-    //         $rows = [];
-
-    //         foreach ($alertes as $alerte) {
-                
-    //             $condition = $alerte->getAlerteRefArticle()->getQuantiteStock() > $alerte->getAlerteSeuil();
-
-    //             /* Si le seuil est inférieur à la quantité, seuil atteint = false sinon true */
-    //             $seuil = ($condition) ? false : true;
-    //             $alerte->setSeuilAtteint($seuil);
-
-    //             if ($seuil) {
-    //                 array_push($alertesUser, $alerte); /* Si seuil atteint est "true" alors on insère l'alerte dans le tableau */
-    //             }
-
-    //             $this->getDoctrine()->getManager()->flush();
-    //             $url['edit'] = $this->generateUrl('alerte_edit', ['id' => $alerte->getId()] );
-    //             $url['show'] = $this->generateUrl('alerte_show', ['id' => $alerte->getId()] );
-    //             $rows[] = [
-    //                 "id" => $alerte->getId(),
-    //                 "Nom" => $alerte->getAlerteNom(),
-    //                 "Code" => $alerte->getAlerteNumero(),
-    //                 "Seuil" => ($condition ? "<p><i class='fas fa-check-circle fa-2x green'></i>" . $alerte->getAlerteRefArticle()->getQuantiteStock() . "/" . $alerte->getAlerteSeuil() . "</p>" :
-    //                     "<p><i class='fas fa-exclamation-circle fa-2x red'></i>" . $alerte->getAlerteRefArticle()->getQuantiteStock() . "/" . $alerte->getAlerteSeuil() . " </p>"),
-    //                 'Actions' => $this->renderView('alerte/datatableAlerteRow.html.twig', ['url' => $url, 'alerte' => $alerte]),
-    //             ];
-    //         }
-
-    //         if (count($alertesUser) > 0) {
-    //             $this->mailer($alertesUser, $mailer); /* On envoie le tableau d'alertes au mailer */
-    //         }
-
-    //         $data['data'] = $rows;
-    //         return new JsonResponse($data);
-    //     }
-    //     throw new NotFoundHttpException("404");
-     
-    // }
-
-
-    /**
      * @Route("/", name="alerte_index", methods="GET")
      */
-    public function index(Request $request) : Response
+    public function index() : Response
     {
         return $this->render('alerte/index.html.twig', [
             "references" => $this->referenceArticleRepository->findAll(),
@@ -134,9 +84,9 @@ class AlerteController extends AbstractController
     }
 
     /**
-     * @Route("/creation/alerte", name="creation_alerte", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/creer", name="alerte_new", options={"expose"=true}, methods={"GET", "POST"})
      */
-    public function creationAlerte(Request $request) : Response
+    public function new(Request $request) : Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $em = $this->getDoctrine()->getEntityManager();
@@ -162,16 +112,14 @@ class AlerteController extends AbstractController
   
 
     /**
-     * @Route("/show", name="alerte_show", options={"expose"=true},  methods="GET|POST")
+     * @Route("/voir", name="alerte_show", options={"expose"=true},  methods="GET|POST")
      */
     public function show(Request $request) : Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $alerte = $this->alerteRepository->find($data);
-            // $utilisateur = $this->UtilisateurRepository->getByUsername()->getId();
             $json =$this->renderView('alerte/modalShowAlerteContent.html.twig', [
                 'alerte' => $alerte
-                // 'utilisateur' => $utilisateur
                 ]);
             return new JsonResponse($json);
         }
@@ -179,7 +127,7 @@ class AlerteController extends AbstractController
     }
 
     /**
-     * @Route("/editApi", name="alerte_edit_api", options={"expose"=true}, methods="GET|POST")
+     * @Route("/api-modifier", name="alerte_api_edit", options={"expose"=true}, methods="GET|POST")
      */
     public function editApi(Request $request): Response
     {
@@ -197,7 +145,7 @@ class AlerteController extends AbstractController
     }
 
     /**
-     * @Route("/edit", name="alerte_edit", options={"expose"=true}, methods="GET|POST")
+     * @Route("/modifier", name="alerte_edit", options={"expose"=true}, methods="GET|POST")
      */
     public function edit(Request $request) : Response
     {
@@ -214,9 +162,9 @@ class AlerteController extends AbstractController
     }
 
     /**
-     * @Route("/supprimerAlerte", name="alerte_delete", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/supprimer", name="alerte_delete", options={"expose"=true}, methods={"GET", "POST"})
      */
-    public function deleteAlerte(Request $request)  : Response
+    public function delete(Request $request)  : Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $alerte= $this->alerteRepository->find($data['alerte']);
@@ -228,7 +176,6 @@ class AlerteController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
-    
     // /* Mailer */
     // public function mailer($alertes, \Swift_Mailer $mailer)
     // {

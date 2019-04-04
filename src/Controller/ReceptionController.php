@@ -88,9 +88,9 @@ class ReceptionController extends AbstractController
 
 
     /**
-     * @Route("/creationReception", name="createReception", options={"expose"=true}, methods="POST")
+     * @Route("/new", name="reception_new", options={"expose"=true}, methods="POST")
      */
-    public function createReception(Request $request): Response
+    public function new(Request $request): Response
     {
         if ($data = json_decode($request->getContent(), true)) //Si data est attribuée
             {
@@ -130,9 +130,9 @@ class ReceptionController extends AbstractController
     }
 
     /**
-     * @Route("/modifierReception", name="reception_edit", options={"expose"=true}, methods="POST")
+     * @Route("/modifier", name="reception_edit", options={"expose"=true}, methods="POST")
      */
-    public function modifierReception(Request $request): Response
+    public function edit(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
                 $fournisseur = $this->fournisseurRepository->find(intval($data['fournisseur']));
@@ -162,9 +162,9 @@ class ReceptionController extends AbstractController
     }
 
     /**
-     * @Route("/editApi", name="reception_edit_api", options={"expose"=true},  methods="GET|POST")
+     * @Route("/api-modifier", name="api_reception_edit", options={"expose"=true},  methods="GET|POST")
      */
-    public function editApi(Request $request): Response
+    public function apiEdit(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $reception = $this->receptionRepository->find($data);
@@ -180,9 +180,9 @@ class ReceptionController extends AbstractController
     }
 
     /**
-     * @Route("/apiReception", name="reception_api", options={"expose"=true}, methods={"GET", "POST"}) 
+     * @Route("/api", name="reception_api", options={"expose"=true}, methods={"GET", "POST"})
      */
-    public function receptionApi(Request $request): Response
+    public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
             {
@@ -210,9 +210,9 @@ class ReceptionController extends AbstractController
     }
 
     /**
-     * @Route("/articleApi/{id}", name="reception_article_api", options={"expose"=true}, methods={"GET", "POST"}) 
+     * @Route("/api-article/{id}", name="reception_article_api", options={"expose"=true}, methods={"GET", "POST"})
      */
-    public function receptionArticleApi(Request $request, $id): Response
+    public function articleApi(Request $request, $id): Response
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
             {
@@ -241,7 +241,7 @@ class ReceptionController extends AbstractController
     }
 
     /**
-     * @Route("/articlePrinter/{id}", name="article_printer_all", options={"expose"=true}, methods={"GET", "POST"}) 
+     * @Route("/article-printer/{id}", name="article_printer_all", options={"expose"=true}, methods={"GET", "POST"})
      */
     public function printerAllApi(Request $request, $id): Response
     {
@@ -269,7 +269,7 @@ class ReceptionController extends AbstractController
     }
 
     /**
-     * @Route("/supprimerReception", name="reception_delete",  options={"expose"=true}, methods={"GET", "POST"}) 
+     * @Route("/supprimer", name="reception_delete",  options={"expose"=true}, methods={"GET", "POST"})
      */
     public function delete(Request $request): Response
     {
@@ -288,7 +288,7 @@ class ReceptionController extends AbstractController
     }
 
     /**
-     * @Route("/supprimerArticle", name="reception_article_delete",  options={"expose"=true}, methods={"GET", "POST"}) 
+     * @Route("/supprimer-article", name="reception_article_delete",  options={"expose"=true}, methods={"GET", "POST"})
      */
     public function deleteArticle(Request $request): Response
     {
@@ -303,7 +303,7 @@ class ReceptionController extends AbstractController
     }
 
     /**
-     * @Route("/addArticle", name="reception_addArticle", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/add-article", name="reception_article_add", options={"expose"=true}, methods={"GET", "POST"})
      */
     public function addArticle(Request $request): Response
     {
@@ -313,7 +313,7 @@ class ReceptionController extends AbstractController
                 $reception = $this->receptionRepository->find($contentData['reception']);
                 $anomalie = $contentData['anomalie'] === 'on';
                 if (!$anomalie) {
-                    $articleAnomalie = $this->articleRepository->countByStatutAndReception(Article::NOT_CONFORM, $reception);
+                    $articleAnomalie = $this->articleRepository->countNotConformByReception($reception);
                     if ($articleAnomalie < 1) {
                         $statutRecep = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_RECEPTION_PARTIELLE);
                         $reception->setStatut($statutRecep);
@@ -351,9 +351,9 @@ class ReceptionController extends AbstractController
     }
 
     /**
-     * @Route("/editArticleApi", name="reception_article_edit_api", options={"expose"=true},  methods="GET|POST")
+     * @Route("/api-modifier-article", name="reception_article_edit_api", options={"expose"=true},  methods="GET|POST")
      */
-    public function editArticleApi(Request $request): Response
+    public function apiEditArticle(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
@@ -367,7 +367,7 @@ class ReceptionController extends AbstractController
     }
 
     /**
-     * @Route("/editArticle", name="reception_article_edit", options={"expose"=true}, methods={"GET", "POST"}) 
+     * @Route("/modifier-article", name="reception_article_edit", options={"expose"=true}, methods={"GET", "POST"})
      */
     public function editArticle(Request $request): Response
     {
@@ -375,28 +375,23 @@ class ReceptionController extends AbstractController
             {
                 $article = $this->articleRepository->find($data['article']);
                 $reception = $this->receptionRepository->find($article->getReception()->getId());
-                $statutAnomalie = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ANOMALIE);
-                if ($data['conform'] === 'on') {
-                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
-                } else {
-                    $statut = $statutAnomalie;
-                    $reception->setStatut($statutAnomalie);
-                }
                 $article
                     ->setCommentaire($data['commentaire'])
-                    ->setConform($data['conform'] === 'on' ? true : false)
-                    ->setStatut($statut)
+                    ->setConform($data['conform'] === 'on' ? Article::CONFORM : Article::NOT_CONFORM)
+                    ->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF))
                     ->setLabel($data['label']);
-
-                $articleAnomalie = $this->articleRepository->countByStatutAndReception($statutAnomalie, $reception);
-                if ($articleAnomalie > 1) {
-                    $statutRecep = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_EN_COURS);
-                    $reception->setStatut($statutRecep);
-                }
-
                 $em = $this->getDoctrine()->getManager();
                 $em->flush();
-                $json = ['anomalie' => $reception->getStatut()->getNom()];
+
+                $nbArticleNotConform = $this->articleRepository->countNotConformByReception($reception);
+                $statutLabel = $nbArticleNotConform > 0 ? Reception::STATUT_ANOMALIE : Reception::STATUT_RECEPTION_PARTIELLE;
+                $statut = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, $statutLabel);
+                $reception->setStatut($statut);
+
+                $em->flush();
+                $json = [
+                    'entete' => $this->renderView('reception/enteteReception.html.twig', ['reception' => $reception])
+                ];
                 return new JsonResponse($json);
             }
         throw new NotFoundHttpException("404");
@@ -420,9 +415,9 @@ class ReceptionController extends AbstractController
     }
 
     /**
-     * @Route("/finreception/{id}", name="reception_fin", methods={"GET", "POST"})
+     * @Route("/finir/{id}", name="reception_finish", methods={"GET", "POST"})
      */
-    public function finReception(Reception $reception): Response
+    public function finish(Reception $reception): Response
     {
 
         $statut = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_RECEPTION_TOTALE);
@@ -434,7 +429,7 @@ class ReceptionController extends AbstractController
     }
 
     /**
-     * @Route("/articleStock", name="get_article_stock", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/article-stock", name="get_article_stock", options={"expose"=true}, methods={"GET", "POST"})
      */
     public function getArticleStock(Request $request)
     {

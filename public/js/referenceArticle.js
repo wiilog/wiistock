@@ -151,7 +151,7 @@ $(document).ready(function () {
             "scrollY": "80vh",
             "scrollCollapse": true,
             "pageLength": 50,
-            "lengthMenu": [50, 100, 200, 500 ],
+            "lengthMenu": [50, 100, 200, 500],
             "language": {
                 "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
             },
@@ -159,7 +159,7 @@ $(document).ready(function () {
             "columns": columnContent
         });
         initRemove();
-        allColumnsUnvisible();
+        hideColumnChampsLibres();
     })
 });
 
@@ -175,7 +175,7 @@ function visibleColumn(check) {
     column.visible(!column.visible());
 }
 
-function allColumnsUnvisible() {
+function hideColumnChampsLibres() {
     tableRefArticle.columns('.libre').visible(false);
 }
 
