@@ -88,9 +88,9 @@ class ReceptionController extends AbstractController
 
 
     /**
-     * @Route("/creationReception", name="createReception", options={"expose"=true}, methods="POST")
+     * @Route("/new", name="reception_new", options={"expose"=true}, methods="POST")
      */
-    public function createReception(Request $request): Response
+    public function new(Request $request): Response
     {
         if ($data = json_decode($request->getContent(), true)) //Si data est attribuée
             {
@@ -130,9 +130,9 @@ class ReceptionController extends AbstractController
     }
 
     /**
-     * @Route("/modifierReception", name="reception_edit", options={"expose"=true}, methods="POST")
+     * @Route("/modifier", name="reception_edit", options={"expose"=true}, methods="POST")
      */
-    public function modifierReception(Request $request): Response
+    public function edit(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
                 $fournisseur = $this->fournisseurRepository->find(intval($data['fournisseur']));
@@ -162,9 +162,9 @@ class ReceptionController extends AbstractController
     }
 
     /**
-     * @Route("/editApi", name="reception_edit_api", options={"expose"=true},  methods="GET|POST")
+     * @Route("/api-modifier", name="api_reception_edit", options={"expose"=true},  methods="GET|POST")
      */
-    public function editApi(Request $request): Response
+    public function apiEdit(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $reception = $this->receptionRepository->find($data);
@@ -180,9 +180,9 @@ class ReceptionController extends AbstractController
     }
 
     /**
-     * @Route("/apiReception", name="reception_api", options={"expose"=true}, methods={"GET", "POST"}) 
+     * @Route("/api", name="reception_api", options={"expose"=true}, methods={"GET", "POST"})
      */
-    public function receptionApi(Request $request): Response
+    public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
             {
@@ -210,9 +210,9 @@ class ReceptionController extends AbstractController
     }
 
     /**
-     * @Route("/articleApi/{id}", name="reception_article_api", options={"expose"=true}, methods={"GET", "POST"}) 
+     * @Route("/api-article/{id}", name="reception_article_api", options={"expose"=true}, methods={"GET", "POST"})
      */
-    public function receptionArticleApi(Request $request, $id): Response
+    public function articleApi(Request $request, $id): Response
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
             {
@@ -241,7 +241,7 @@ class ReceptionController extends AbstractController
     }
 
     /**
-     * @Route("/articlePrinter/{id}", name="article_printer_all", options={"expose"=true}, methods={"GET", "POST"}) 
+     * @Route("/article-printer/{id}", name="article_printer_all", options={"expose"=true}, methods={"GET", "POST"})
      */
     public function printerAllApi(Request $request, $id): Response
     {
@@ -269,7 +269,7 @@ class ReceptionController extends AbstractController
     }
 
     /**
-     * @Route("/supprimerReception", name="reception_delete",  options={"expose"=true}, methods={"GET", "POST"}) 
+     * @Route("/supprimer", name="reception_delete",  options={"expose"=true}, methods={"GET", "POST"})
      */
     public function delete(Request $request): Response
     {
@@ -288,7 +288,7 @@ class ReceptionController extends AbstractController
     }
 
     /**
-     * @Route("/supprimerArticle", name="reception_article_delete",  options={"expose"=true}, methods={"GET", "POST"}) 
+     * @Route("/supprimer-article", name="reception_article_delete",  options={"expose"=true}, methods={"GET", "POST"})
      */
     public function deleteArticle(Request $request): Response
     {
@@ -303,7 +303,7 @@ class ReceptionController extends AbstractController
     }
 
     /**
-     * @Route("/addArticle", name="reception_addArticle", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/add-article", name="reception_article_add", options={"expose"=true}, methods={"GET", "POST"})
      */
     public function addArticle(Request $request): Response
     {
@@ -352,9 +352,9 @@ class ReceptionController extends AbstractController
     }
 
     /**
-     * @Route("/editArticleApi", name="reception_article_edit_api", options={"expose"=true},  methods="GET|POST")
+     * @Route("/api-modifier-article", name="reception_article_edit_api", options={"expose"=true},  methods="GET|POST")
      */
-    public function editArticleApi(Request $request): Response
+    public function apiEditArticle(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
@@ -368,7 +368,7 @@ class ReceptionController extends AbstractController
     }
 
     /**
-     * @Route("/editArticle", name="reception_article_edit", options={"expose"=true}, methods={"GET", "POST"}) 
+     * @Route("/modifier-article", name="reception_article_edit", options={"expose"=true}, methods={"GET", "POST"})
      */
     public function editArticle(Request $request): Response
     {
@@ -421,9 +421,9 @@ class ReceptionController extends AbstractController
     }
 
     /**
-     * @Route("/finreception/{id}", name="reception_fin", methods={"GET", "POST"})
+     * @Route("/finir/{id}", name="reception_finish", methods={"GET", "POST"})
      */
-    public function finReception(Reception $reception): Response
+    public function finish(Reception $reception): Response
     {
 
         $statut = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_RECEPTION_TOTALE);
@@ -435,7 +435,7 @@ class ReceptionController extends AbstractController
     }
 
     /**
-     * @Route("/articleStock", name="get_article_stock", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/article-stock", name="get_article_stock", options={"expose"=true}, methods={"GET", "POST"})
      */
     public function getArticleStock(Request $request)
     {
