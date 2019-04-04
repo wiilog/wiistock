@@ -22,7 +22,6 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
                 if (data.redirect) {
                     window.location.href = data.redirect;
                 }
-                //TODO faire passer ces cas particuliers dans le paramètre callback
                 // pour mise à jour des données d'en-tête après modification
                 if(data.entete){
                     $('.zone-entete').html(data.entete)
@@ -31,11 +30,7 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
                     if (this.responseText !== undefined) {
                         $('#myInput').val(json.lastInput);
                     }
-                    if (data.anomalie) {
-                        $('#statutReception').text(data.anomalie);
-                    }
                 });
-                // fin TODO
 
                 if (callback !== null) callback(data);
 
