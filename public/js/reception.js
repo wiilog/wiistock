@@ -118,3 +118,60 @@ function updateStock(select) {
     }, "json");
 }
 
+//initialisation editeur de texte une seule fois
+var editorAlreadyDone = false;
+// console.log('dd')
+// console.log(editorAlreadyDone)
+
+function initEditor() {
+     if (editorAlreadyDone === false) {
+       console.log(editorAlreadyDone);
+        var quill = new Quill('.editor-container', {
+            modules: {
+                toolbar: [
+                    [{ header: [1, 2, false] }],
+                    ['bold', 'italic', 'underline'],
+                    ['image', 'code-block']
+                ]
+            },
+            theme: 'snow'
+        });
+     editorAlreadyDone = true;
+     console.log(editorAlreadyDone)
+    console.log('vv')
+    }
+};
+var editorAlreadyDoneId = false;
+function initEditorId() {
+    if (editorAlreadyDoneId === false) {
+      console.log(editorAlreadyDoneId);
+       var quill = new Quill('#editor-container', {
+           modules: {
+               toolbar: [
+                   [{ header: [1, 2, false] }],
+                   ['bold', 'italic', 'underline'],
+                   ['image', 'code-block']
+               ]
+           },
+           theme: 'snow'
+       });
+    editorAlreadyDoneId = true;
+    console.log(editorAlreadyDoneId)
+   console.log('vv')
+   }
+};
+//passe de l'éditeur àl'imput pour insertion en BDD
+function setCommentaire() {
+    var quill = new Quill('.editor-container');
+    var commentaire = document.querySelector('input[name=commentaire]');
+    commentaire.value = quill.container.firstChild.innerHTML;
+};
+
+function setCommentaireId() {
+    var quill = new Quill('#editor-container');
+    console.log('testCOmm0');
+    var commentaire = document.querySelector('input[name=commentaire]');
+    commentaire.value = quill.container.firstChild.innerHTML;
+};
+
+

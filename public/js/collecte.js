@@ -18,6 +18,7 @@ var table = $('#tableCollecte_id').DataTable({
     ],
 });
 
+
 let modalNewCollecte = $("#modalNewCollecte");
 let SubmitNewCollecte = $("#submitNewCollecte");
 let urlNewCollecte = Routing.generate('collecte_create', true)
@@ -80,6 +81,26 @@ function finishCollecte(submit, tableArticle) {
     xhttp.send(json);
 }
 
+//initialisation editeur de texte
+function initEditor() {
+    console.log('test');
+    var quill = new Quill('.editor-container', {
+        modules: {
+            toolbar: [
+                [{ header: [1, 2, false] }],
+                ['bold', 'italic', 'underline'],
+                ['image', 'code-block']
+            ]
+        },
+        theme: 'snow'
+    });
+};
+//passe de l'éditeur àl'imput pour insertion en BDD
+function setCommentaire() {
+    var quill = new Quill('#editor-container');
+    var commentaire = document.querySelector('input[name=commentaire]');
+    commentaire.value = quill.container.firstChild.innerHTML;
+};
 
 
 

@@ -47,6 +47,9 @@
 
 <div class="form-group">
     <label for="NumeroReception">Commentaire</label>
-    <input type="text" class="form-control data" name="commentaire" value="{{reception.commentaire}}"
-        placeholder="Commentaire">
+    <input class="form-control data" name="commentaire" type="hidden" value="{{reception.commentaire}}" onchange="setCommentaire()">
+        <div class="editor-container" value="{{reception.commentaire}}"> {{reception.commentaire|raw}}
+            </div>
 </div>
+
+
