@@ -3,12 +3,13 @@
 namespace App\DataFixtures;
 
 use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 use App\Entity\CategoryType;
 
-class CategoryTypeFixtures extends Fixture
+class CategoryTypeFixtures extends Fixture implements FixtureGroupInterface
 {
     private $encoder;
 
@@ -35,7 +36,7 @@ class CategoryTypeFixtures extends Fixture
         $manager->flush();
     }
 
-    public function getGroups():array {
+    public static function getGroups():array {
         return ['types'];
     }
 
