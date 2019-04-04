@@ -57,9 +57,9 @@ class RefArticleSLUGCIBLEFixtures extends Fixture implements FixtureGroupInterfa
     public function load(ObjectManager $manager)
     {
         if ($_SERVER['APP_ENV'] == 'dev') {
-            $path = "C:\wamp64\www\WiiStock\public\csv\mob.csv";
+            $path = "C:\wamp64\www\WiiStock\public\csv\slugcible.csv";
         } else {
-            $path = "https://cl1-test.follow-gt.fr/csv/mob.csv";
+            $path = "https://cl1-test.follow-gt.fr/csv/slugcible.csv";
         };
 
         $file = fopen($path, "r");
