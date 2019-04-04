@@ -311,7 +311,7 @@ class ReferenceArticleController extends Controller
                 $json = $this->renderView('reference_article/modalEditRefArticleContent.html.twig', [
                     'articleRef' => $articleRef,
                     'statut' => ($articleRef->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF),
-                    'valeurChampsLibre' => isset($valeurChampLibre) ?$data['valeurChampLibre'] : null,
+                    'valeurChampsLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
                     'types' => $this->typeRepository->getByCategoryLabel(ReferenceArticle::CATEGORIE),
                     'statuts' => $statuts,
                     'articlesFournisseur' => ($data['listArticlesFournisseur']),

@@ -120,6 +120,7 @@ class ArticleDataService
             }else{
                 $data = false;
             }
+          
 
             $statuts = $this->statutRepository->findByCategorieName(ReferenceArticle::CATEGORIE);
             $json = $this->templating->render('collecte/newRefArticleByQuantiteRefContent.html.twig', [
@@ -128,7 +129,7 @@ class ArticleDataService
                 'types' => $this->typeRepository->getByCategoryLabel(ReferenceArticle::CATEGORIE),
                 'statuts' => $statuts,
                 'modifieRefArticle'=> $modifieRefArticle, 
-                'valeurChampsLibre' => isset($valeurChampLibre) ? $data['valeurChampLibre'] : null,
+                'valeurChampsLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
                 'articlesFournisseur' => ($data ? $data['listArticlesFournisseur'] : ""),
                 'totalQuantity' => ($data['totalQuantity'] ? $data['totalQuantity'] : "")
             ]);
