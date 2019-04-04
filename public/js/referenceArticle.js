@@ -164,7 +164,7 @@ $(document).ready(function () {
             "columns": columnContent
         });
         initRemove();
-        allColumnsUnvisible();
+        hideColumnChampsLibres();
     })
 });
 
@@ -180,7 +180,7 @@ function visibleColumn(check) {
     column.visible(!column.visible());
 }
 
-function allColumnsUnvisible() {
+function hideColumnChampsLibres() {
     tableRefArticle.columns('.libre').visible(false);
 }
 

@@ -26,51 +26,27 @@ class AccueilController extends AbstractController
 {
 
      /**
-     * @var StatutRepository
+     * @var AlerteRepository
      */
-    private $statutRepository;
-
-    /**
-     * @var LignreArticleRepository
-     */
-    private $ligneArticleRepository;
+    private $alerteRepository;
 
     /**
      * @var EmplacementRepository
      */
     private $emplacementRepository;
 
-    /**
-     * @var UtilisateurRepository
-     */
-    private $utilisateurRepository;
-
-    /**
-     * @var DemandeRepository
-     */
-    private $demandeRepository;
-
-    /**
-     * @var ReferenceArticleRepository
-     */
-    private $referenceArticleRepository;
-
-    public function __construct(LigneArticleRepository $ligneArticleRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository)
+    public function __construct(AlerteRepository $alerteRepository, EmplacementRepository $emplacementRepository)
     {
-        $this->statutRepository = $statutRepository;
+        $this->alerteRepository = $alerteRepository;
         $this->emplacementRepository = $emplacementRepository;
-        $this->demandeRepository = $demandeRepository;
-        $this->utilisateurRepository = $utilisateurRepository;
-        $this->referenceArticleRepository = $referenceArticleRepository;
-        $this->ligneArticleRepository = $ligneArticleRepository;
     }
 
     /**
      * @Route("/", name="accueil", methods={"GET"})
      */
-    public function index(AlerteRepository $arlerteRepository, Request $request): Response
+    public function index(): Response
     {  
-        $nbAlerte = $arlerteRepository->countAlertes();
+        $nbAlerte = $this->alerteRepository->countAlertes();
 
         return $this->render('accueil/index.html.twig', [
             'nbAlerte' => $nbAlerte,
