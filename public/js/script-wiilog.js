@@ -1,4 +1,3 @@
-//NEW
 /**
  * Initialise une fenêtre modale
  *
@@ -23,6 +22,7 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
                 if (data.redirect) {
                     window.location.href = data.redirect;
                 }
+                //TODO faire passer ces cas particuliers dans le paramètre callback
                 // pour mise à jour des données d'en-tête après modification
                 if(data.entete){
                     $('.zone-entete').html(data.entete)
@@ -35,6 +35,7 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
                         $('#statutReception').text(data.anomalie);
                     }
                 });
+                // fin TODO
 
                 if (callback !== null) callback(data);
 
@@ -42,14 +43,14 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
                 // on vide tous les inputs
                 inputs.each(function () {
                     $(this).val("");
-                    // $(this).text(''); // pour les select2 //TODOO provoque des bugs avec le typage des champs libres => efface les options du select  
+                    // $(this).text(''); // pour les select2 //TODOO provoque des bugs avec le typage des champs libres => efface les options du select
+                    modal.find('.error-msg, .password-error-msg').html('');
                 });
                 // on remet toutes les checkboxes sur off
                 let checkboxes = modal.find('.checkbox');
                 checkboxes.each(function() {
                     $(this).prop('checked', false);
-                })
-
+                });
             }
         };
 
@@ -58,7 +59,8 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
         let inputs = modal.find(".data");
         let Data = {};
         let missingInputs = [];
-        let wrongInputs = [];
+        let wrongNumberInputs = [];
+        let passwordIsValid = true;
 
         inputs.each(function () {
             let val = $(this).val();
@@ -76,8 +78,22 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
                 let min = parseInt($(this).attr('min'));
                 let max = parseInt($(this).attr('max'));
                 if (val > max || val < min) {
-                    wrongInputs.push($(this));
+                    wrongNumberInputs.push($(this));
                     $(this).addClass('is-invalid');
+                }
+            }
+            // validation valeur des inputs de type password
+            if($(this).attr('type') === 'password') {
+                let password = $(this).val();
+
+                if (password.length < 8) {
+                    modal.find('.password-error-msg').html('Le mot de passe doit faire au moins 8 caractères.');
+                    passwordIsValid = false;
+                } else if(!password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)) {
+                    modal.find('.password-error-msg').html('Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial (@$!%*?&).');
+                    passwordIsValid = false;
+                } else {
+                    passwordIsValid = true;
                 }
             }
         });
@@ -89,7 +105,7 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
         });
 
         // si tout va bien on envoie la requête ajax...
-        if (missingInputs.length == 0 && wrongInputs.length == 0) {
+        if (missingInputs.length == 0 && wrongNumberInputs.length == 0 && passwordIsValid) {
             if (close == true) modal.find('.close').click();
             Json = {};
             Json = JSON.stringify(Data);
@@ -109,8 +125,8 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
                 }
             }
             // cas où les champs number ne respectent pas les valeurs imposées (min et max)
-            if (wrongInputs.length > 0) {
-                wrongInputs.forEach(function(elem) {
+            if (wrongNumberInputs.length > 0) {
+                wrongNumberInputs.forEach(function(elem) {
                     let label = elem.closest('.form-group').find('label').text();
 
                     msg += 'La valeur du champ ' + label;
@@ -137,7 +153,6 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
 
             modal.find('.error-msg').html(msg);
         }
-
     });
 }
 
