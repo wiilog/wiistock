@@ -10,6 +10,7 @@ use App\Repository\StatutRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
+use Symfony\Component\Asset\Packages;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 use App\Entity\ReferenceArticle;
@@ -40,20 +41,27 @@ class RefArticleMOBFixtures extends Fixture implements FixtureGroupInterface
      */
     private $fournisseurRepository;
 
+    /**
+     * @var Packages
+     */
+    private $assetsManager;
 
-    public function __construct(UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampsLibreRepository $champsLibreRepository, StatutRepository $statutRepository, FournisseurRepository $fournisseurRepository)
+
+    public function __construct(UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampsLibreRepository $champsLibreRepository, StatutRepository $statutRepository, FournisseurRepository $fournisseurRepository, Packages $assetsManager)
     {
         $this->typeRepository = $typeRepository;
         $this->champsLibreRepository = $champsLibreRepository;
         $this->encoder = $encoder;
         $this->statutRepository = $statutRepository;
         $this->fournisseurRepository = $fournisseurRepository;
+        $this->assetsManager = $assetsManager;
     }
 
     public function load(ObjectManager $manager)
     {
 //        $file = fopen("C:\wamp64\www\WiiStock\public\csv\mob.csv", "r");
-        $file = fopen("http://cl1-test.follow-gt.fr/csv/mob.csv", "r");
+        $file = fopen($this->assetsManager->getUrl('csv/mob.csv'), "r");
+
         $firstRow = true;
         while (($data = fgetcsv($file, 1000, ";")) !== false) {
             if ($firstRow) {
