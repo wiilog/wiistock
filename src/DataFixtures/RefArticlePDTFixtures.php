@@ -36,7 +36,14 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
 
     public function load(ObjectManager $manager)
     {
-        $file = fopen("C:\wamp64\www\WiiStock\public\csv\pdt.csv", "r");
+        if ($_SERVER['APP_ENV'] == 'dev') {
+            $path = "C:\wamp64\www\WiiStock\public\csv\mob.csv";
+        } else {
+            $path = "https://cl1-test.follow-gt.fr/csv/mob.csv";
+        };
+
+        $file = fopen($path, "r");
+
         $firstRow = true;
         while (($data = fgetcsv($file, 1000, ";")) !== false) {
             if ($firstRow) {
