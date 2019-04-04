@@ -2,7 +2,11 @@
 
 namespace App\DataFixtures;
 
+use App\Entity\ArticleFournisseur;
+use App\Entity\ChampsLibre;
+use App\Entity\Fournisseur;
 use App\Entity\Type;
+use App\Repository\FournisseurRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
@@ -22,16 +26,24 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
      * @var TypeRepository
      */
     private $typeRepository;
+
     /**
      * @var ChampsLibreRepository
      */
     private $champsLibreRepository;
 
-    public function __construct(UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampsLibreRepository $champsLibreRepository)
+    /**
+     * @var FournisseurRepository
+     */
+    private $fournisseurRepository;
+
+
+    public function __construct(UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampsLibreRepository $champsLibreRepository, FournisseurRepository $fournisseurRepository)
     {
         $this->typeRepository = $typeRepository;
         $this->champsLibreRepository = $champsLibreRepository;
         $this->encoder = $encoder;
+        $this->fournisseurRepository = $fournisseurRepository;
     }
 
     public function load(ObjectManager $manager)
@@ -49,101 +61,90 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
             if ($firstRow) {
                 $firstRow = false;
             } else {
-                dump(print_r(fgetcsv($file, 1000, ";")));
+                $data = array_map('utf8_encode', $data);
+                dump(print_r($data));
 
+                $typePdt = $this->typeRepository->findOneBy(['label' => Type::LABEL_PDT]);
+
+                // champs fixes
                 $referenceArticle = new ReferenceArticle();
                 $referenceArticle
-                    ->setType($this->typeRepository->findOneBy(['label' => Type::LABEL_PDT]))
+                    ->setType($typePdt)
                     ->setReference($data[0])
-                    ->setQuantiteStock(intval($data[3]))
-                    ->setLibelle($data[1]);
+                    ->setLibelle($data[1])
+                    ->setQuantiteStock(intval($data[3]));
                 $manager->persist($referenceArticle);
                 $manager->flush();
 
-                $adresse = new ValeurChampsLibre();
-                $CLAdresse = $this->champsLibreRepository->findOneBy(['label' => 'adresse']);
-                $adresse
-                    ->setChampLibre($CLAdresse)
-                    ->addArticleReference($referenceArticle)
-                    ->setValeur($data[2]);
-                $manager->persist($adresse);
 
-                $dateEntre = new ValeurChampsLibre();
-                $CLDateEntre = $this->champsLibreRepository->findOneBy(['label' => "Date d'entrée"]);
-                $dateEntre
-                    ->setChampLibre($CLDateEntre)
-                    ->addArticleReference($referenceArticle)
-                    ->setValeur($data[14]);
-                $manager->persist($dateEntre);
+                // champ fournisseur
+                $fournisseurLabel = $data[9];
+                if (!empty($fournisseurLabel)) {
+                    $fournisseurRef = $data[10];
+                    if (in_array($fournisseurRef, ['nc', 'nd', 'NC', 'ND', '*', '.', ''])) {
+                        $fournisseurRef = $fournisseurLabel;
+                    }
+                    $fournisseur = $this->fournisseurRepository->findOneBy(['nom' => $fournisseurLabel]);
 
-                $equipementier = new ValeurChampsLibre();
-                $DLequipementier = $this->champsLibreRepository->findOneBy(['label' => "Equipementier"]);
-                $equipementier
-                    ->setChampLibre($DLequipementier)
-                    ->addArticleReference($referenceArticle)
-                    ->setValeur($data[6]);
-                $manager->persist($equipementier);
+                    // si le fournisseur n'existe pas, on le crée
+                    if (empty($fournisseur)) {
+                        $fournisseur = new Fournisseur();
+                        $fournisseur
+                            ->setNom($fournisseurLabel)
+                            ->setCodeReference($fournisseurRef);
+                        $manager->persist($fournisseur);
+                    }
 
-                $familleProduit = new ValeurChampsLibre();
-                $DLfamilleProduit = $this->champsLibreRepository->findOneBy(['label' => "famille produit"]);
-                $familleProduit
-                    ->setChampLibre($DLfamilleProduit)
-                    ->addArticleReference($referenceArticle)
-                    ->setValeur($data[4]);
-                $manager->persist($familleProduit);
+                    // on crée l'article fournisseur, on le lie au fournisseur et à l'article de référence
+                    $articleFournisseur = new ArticleFournisseur();
+                    $articleFournisseur
+                        ->setLabel($data[1])
+                        ->setReference(time()) // code aléatoire
+                        ->setFournisseur($fournisseur)
+                        ->setReferenceArticle($referenceArticle);
 
-                $fournisseur = new ValeurChampsLibre();
-                $DLfournisseur = $this->champsLibreRepository->findOneBy(['label' => "fournisseur"]);
-                $fournisseur
-                    ->setChampLibre($DLfournisseur)
-                    ->addArticleReference($referenceArticle)
-                    ->setValeur($data[9]);
-                $manager->persist($fournisseur);
+                    $manager->persist($articleFournisseur);
+                }
 
-                $machine = new ValeurChampsLibre();
-                $DLMachine = $this->champsLibreRepository->findOneBy(['label' => "Machine"]);
-                $machine
-                    ->setChampLibre($DLMachine)
-                    ->addArticleReference($referenceArticle)
-                    ->setValeur($data[8]);
-                $manager->persist($machine);
 
-                $lot = new ValeurChampsLibre();
-                $DLlot = $this->champsLibreRepository->findOneBy(['label' => "No lot"]);
-                $lot
-                    ->setChampLibre($DLlot)
-                    ->addArticleReference($referenceArticle)
-                    ->setValeur($data[13]);
-                $manager->persist($lot);
+                // champs libres
+                $listData = [
+                    ['label' => 'adresse', 'col' => 2, 'type' => ChampsLibre::TYPE_TEXT],
+                    ['label' => 'nombre UC', 'col' => 3, 'type' => ChampsLibre::TYPE_NUMBER],
+                    ['label' => 'famille produit', 'col' => 4, 'type' => ChampsLibre::TYPE_TEXT],
+                    ['label' => 'zone', 'col' => 5, 'type' => ChampsLibre::TYPE_TEXT],
+                    ['label' => 'équipementier', 'col' => 6, 'type' => ChampsLibre::TYPE_TEXT],
+                    ['label' => "R+H1:I9505ef équipementier", 'col' => 7, 'type' => ChampsLibre::TYPE_TEXT],
+                    ['label' => "machine", 'col' => 8, 'type' => ChampsLibre::TYPE_TEXT],
+                    ['label' => "stock mini", 'col' => 11, 'type' => ChampsLibre::TYPE_NUMBER],
+                    ['label' => "stock alerte", 'col' => 12, 'type' => ChampsLibre::TYPE_NUMBER],
+                    ['label' => "n° lot", 'col' => 13, 'type' => ChampsLibre::TYPE_TEXT],
+                    ['label' => "date entrée", 'col' => 14, 'type' => ChampsLibre::TYPE_TEXT],
+                ];
 
-                $refEquip = new ValeurChampsLibre();
-                $DLrefEquip = $this->champsLibreRepository->findOneBy(['label' => "R+H1:I9505ef équipementier"]);
-                $refEquip
-                    ->setChampLibre($DLrefEquip)
-                    ->addArticleReference($referenceArticle)
-                    ->setValeur($data[7]);
-                $manager->persist($refEquip);
+                foreach($listData as $data) {
+                    $vcl = new ValeurChampsLibre();
+                    $cl = $this->champsLibreRepository->findOneBy(['label' => $data['label']]);
+                    if (empty($cl)) {
+                        $cl = new ChampsLibre();
+                        $cl
+                            ->setLabel($data['label'])
+                            ->setTypage($data['type'])
+                            ->setType($typePdt);
+                        $manager->persist($cl);
+                    }
+                    $vcl
+                        ->setChampLibre($cl)
+                        ->addArticleReference($referenceArticle)
+                        ->setValeur($data['col']);
+                    $manager->persist($vcl);
+                }
 
-                $refFournisseur = new ValeurChampsLibre();
-                $DLrefFournisseur = $this->champsLibreRepository->findOneBy(['label' => "Ref Fournisseur"]);
-                $refFournisseur
-                    ->setChampLibre($DLrefFournisseur)
-                    ->addArticleReference($referenceArticle)
-                    ->setValeur($data[10]);
-                $manager->persist($refFournisseur);
-
-                $zone = new ValeurChampsLibre();
-                $DLzone = $this->champsLibreRepository->findOneBy(['label' => "zone"]);
-                $zone
-                    ->setChampLibre($DLzone)
-                    ->addArticleReference($referenceArticle)
-                    ->setValeur($data[5]);
-                $manager->persist($zone);
+//
+//                unset($CLAdresse, $adresse, $refEquip, $DLrefEquip, $refFournisseur, $referenceArticle, $CLDateEntre, $DLMachine,
+//                    $DLequipementier, $equipementier, $DLfamilleProduit, $DLlot, $lot, $DLrefFournisseur, $DLzone, $zone, $familleProduit, $machine);
 
                 $manager->flush();
-
-                unset($CLAdresse, $adresse, $refEquip, $DLrefEquip, $refFournisseur, $referenceArticle, $CLDateEntre, $DLMachine,
-                    $DLequipementier, $equipementier, $DLfamilleProduit, $DLlot, $lot, $DLrefFournisseur, $DLzone, $zone, $familleProduit, $machine);
             }
         }
         fclose($file);
