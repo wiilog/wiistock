@@ -39,9 +39,11 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
                 if (callback !== null) callback(data);
 
                 let inputs = modal.find('.modal-body').find(".data");
-                // on vide tous les inputs
+                // on vide tous les inputs (sauf les disabled)
                 inputs.each(function () {
-                    $(this).val("");
+                    if ($(this).attr('disabled') !== 'disabled') {
+                        $(this).val("");
+                    }
                 });
                 // on vide tous les select2
                 let selects = modal.find('.modal-body').find('.ajax-autocomplete,.select2');
