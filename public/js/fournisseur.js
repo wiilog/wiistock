@@ -18,7 +18,7 @@ let tableFournisseur = $('#tableFournisseur_id').DataTable({
 
 let modalNewFournisseur = $("#modalNewFournisseur"); 
 let submitNewFournisseur = $("#submitNewFournisseur");
-let urlNewFournisseur = Routing.generate('creation_fournisseur', true);
+let urlNewFournisseur = Routing.generate('fournisseur_new', true);
 InitialiserModal(modalNewFournisseur, submitNewFournisseur, urlNewFournisseur, tableFournisseur);
 
 let ModalDeleteFournisseur = $("#modalDeleteFournisseur");

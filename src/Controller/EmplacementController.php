@@ -37,7 +37,7 @@ class EmplacementController extends AbstractController
     /**
      * @Route("/api", name="emplacement_api", options={"expose"=true}, methods="GET|POST")
      */
-    public function emplacementApi(Request $request): Response
+    public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) { //Si la requête est de type Xml
             $emplacements = $this->emplacementRepository->findAll();
@@ -70,9 +70,9 @@ class EmplacementController extends AbstractController
     }
 
     /**
-     * @Route("/creation/emplacement", name="creation_emplacement", options={"expose"=true}, methods="GET|POST")
+     * @Route("/creer", name="emplacement_new", options={"expose"=true}, methods="GET|POST")
      */
-    public function creationEmplacement(Request $request): Response
+    public function new(Request $request): Response
     {
         $em = $this->getDoctrine()->getEntityManager();
 
@@ -89,7 +89,7 @@ class EmplacementController extends AbstractController
     }
 
     /**
-     * @Route("/show", name="emplacement_show", options={"expose"=true},  methods="GET|POST")
+     * @Route("/voir", name="emplacement_show", options={"expose"=true},  methods="GET|POST")
      */
     public function show(Request $request): Response
     {
@@ -105,9 +105,9 @@ class EmplacementController extends AbstractController
     }
 
     /**
-     * @Route("/editApi", name="emplacement_edit_api", options={"expose"=true}, methods="GET|POST")
+     * @Route("/api-modifier", name="emplacement_api_edit", options={"expose"=true}, methods="GET|POST")
      */
-    public function editApi(Request $request): Response
+    public function apiEdit(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $emplacement = $this->emplacementRepository->find($data);
@@ -138,9 +138,9 @@ class EmplacementController extends AbstractController
     }
 
     /**
-     * @Route("/supprimerEmplacement", name="emplacement_delete", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/supprimer", name="emplacement_delete", options={"expose"=true}, methods={"GET", "POST"})
      */
-    public function deleteEmplacement(Request $request): Response
+    public function delete(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $emplacement = $this->emplacementRepository->find($data['emplacement']);

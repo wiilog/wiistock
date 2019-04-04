@@ -71,7 +71,7 @@ $('#submitSearchService').on('click', function () {
 
 let modalNewService = $("#modalNewService");
 let submitNewService = $("#submitNewService");
-let urlNewService = Routing.generate('creation_service', true);
+let urlNewService = Routing.generate('service_new', true);
 InitialiserModal(modalNewService, submitNewService, urlNewService, tableService);
 
 let modalModifyService = $('#modalEditService');

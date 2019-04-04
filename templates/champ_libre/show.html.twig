@@ -24,12 +24,12 @@
         </tbody>
     </table>
 
-    <a href="{{ path('champs_libre_index') }}" class="button btn-left">Retour</a>
+    <a href="{{ path('champ_libre_index') }}" class="btn">Retour à la liste</a>
 
 
-    {% include "champs_libre/modalNewChampsLibre.html.twig" %}
-    {% include "champs_libre/modalDeleteChampsLibre.html.twig" %}
-    {% include "champs_libre/modalEditChampLibre.html.twig" %}
+    {% include "champ_libre/modalNewChampsLibre.html.twig" %}
+    {% include "champ_libre/modalDeleteChampsLibre.html.twig" %}
+    {% include "champ_libre/modalEditChampLibre.html.twig" %}
 
     {% endblock %}
     {% block javascript %}

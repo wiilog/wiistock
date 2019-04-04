@@ -86,7 +86,7 @@ class CollecteController extends AbstractController
     }
 
     /**
-     * @Route("/index", name="collecte_index", methods={"GET", "POST"})
+     * @Route("/", name="collecte_index", methods={"GET", "POST"})
      */
     public function index(): Response
     {
@@ -98,7 +98,7 @@ class CollecteController extends AbstractController
     }
 
     /**
-     * @Route("/show/{id}", name="collecte_show", methods={"GET", "POST"})
+     * @Route("/voir/{id}", name="collecte_show", methods={"GET", "POST"})
      */
     public function show(Collecte $collecte): Response
     {
@@ -110,9 +110,9 @@ class CollecteController extends AbstractController
     }
 
     /**
-     * @Route("/api", name="collectes_api", options={"expose"=true}, methods={"GET", "POST"}) 
+     * @Route("/api", name="collecte_api", options={"expose"=true}, methods={"GET", "POST"})
      */
-    public function collecteApi(Request $request): Response
+    public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
             {
@@ -141,9 +141,9 @@ class CollecteController extends AbstractController
 
 
     /**
-     * @Route("/apiArticle/{id}", name="collecte_article_api", options={"expose"=true}, methods={"GET", "POST"}) 
+     * @Route("/article/api/{id}", name="collecte_article_api", options={"expose"=true}, methods={"GET", "POST"})
      */
-    public function collecteArticleApi(Request $request, $id): Response
+    public function articleApi(Request $request, $id): Response
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
             {
@@ -172,8 +172,8 @@ class CollecteController extends AbstractController
                     $rowsCA[] = [
                         'Référence CEA' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : ""),
                         'Libellé' => $article->getLabel(),
-                        'Emplacement' => $collecte->getPointCollecte()->getLabel(),
-                        'Quantité' => '',
+                        'Emplacement' => ($collecte->getPointCollecte() ? $collecte->getPointCollecte()->getLabel() : "" ),
+                        'Quantité' => $article->getQuantite(),
                         'Actions' => $this->renderView('collecte/datatableArticleRow.html.twig', [
                             'data' => [
                                 'id' => $article->getId(),
@@ -192,9 +192,9 @@ class CollecteController extends AbstractController
     }
 
     /**
-     * @Route("/creer", name="collecte_create", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/creer", name="collecte_new", options={"expose"=true}, methods={"GET", "POST"})
      */
-    public function creationCollecte(Request $request): Response
+    public function new(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $em = $this->getDoctrine()->getEntityManager();
@@ -240,6 +240,7 @@ class CollecteController extends AbstractController
                 $em->persist($collecteReference);
             } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
                 $article = $this->articleRepository->find($data['article']);
+                dump($article);
                 $collecte->addArticle($article);
             }
             $em->flush();
@@ -255,6 +256,7 @@ class CollecteController extends AbstractController
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
+            dump($data);
             if (array_key_exists(ReferenceArticle::TYPE_QUANTITE_REFERENCE, $data)) {
                 $collecteReference = $this->collecteReferenceRepository->find($data[ReferenceArticle::TYPE_QUANTITE_REFERENCE]);
                 $entityManager = $this->getDoctrine()->getManager();
@@ -273,9 +275,9 @@ class CollecteController extends AbstractController
 
 
     /**
-     * @Route("/finish", name="finish_collecte", options={"expose"=true}, methods={"GET", "POST"}))
+     * @Route("/finir", name="finish_collecte", options={"expose"=true}, methods={"GET", "POST"}))
      */
-    public function finishCollecte(Request  $request): Response
+    public function finish(Request  $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $em = $this->getDoctrine()->getManager();
@@ -298,14 +300,13 @@ class CollecteController extends AbstractController
                     'modifiable' => ($collecte->getStatut()->getNom() !== Collecte::STATUS_EN_COURS ? true : false)
                 ])
             ];
-            dump($response);
             return new JsonResponse($response);
         }
         throw new NotFoundHttpException("404");
     }
 
     /**
-     * @Route("/editApi", name="collecte_edit_api", options={"expose"=true}, methods="GET|POST")
+     * @Route("/api-modifier", name="collecte_api_edit", options={"expose"=true}, methods="GET|POST")
      */
     public function editApi(Request $request): Response
     {
@@ -324,18 +325,20 @@ class CollecteController extends AbstractController
     }
 
     /**
-     * @Route("/edit", name="collecte_edit", options={"expose"=true}, methods="GET|POST")
+     * @Route("/modifier", name="collecte_edit", options={"expose"=true}, methods="GET|POST")
      */
     public function edit(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $collecte = $this->collecteRepository->find($data['collecte']);
+            $pointCollecte = $this->emplacementRepository->find($data['Pcollecte']);
+
             $collecte
                 ->setNumero($data["NumeroCollecte"])
                 ->setDate(new \DateTime($data["date-collecte"]))
                 ->setCommentaire($data["commentaire"])
                 ->setObjet($data["objet"])
-                ->setPointCollecte(($data["Pcollecte"]));
+                ->setPointCollecte($pointCollecte);
 
             $em = $this->getDoctrine()->getManager();
             $em->flush();
@@ -352,9 +355,9 @@ class CollecteController extends AbstractController
     }
 
     /**
-     * @Route("/supprimerCollecte", name="collecte_delete", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/supprimer", name="collecte_delete", options={"expose"=true}, methods={"GET", "POST"})
      */
-    public function deleteCollecte(Request $request): Response
+    public function delete(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $collecte = $this->collecteRepository->find($data['collecte']);

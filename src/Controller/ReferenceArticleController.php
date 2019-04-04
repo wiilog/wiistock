@@ -31,7 +31,7 @@ use Proxies\__CG__\App\Entity\Livraison;
 use App\Entity\Demande;
 
 /**
- * @Route("/reference_article")
+ * @Route("/reference-article")
  */
 class ReferenceArticleController extends Controller
 {
@@ -108,9 +108,9 @@ class ReferenceArticleController extends Controller
     }
 
     /**
-     * @Route("/refArticleAPI", name="ref_article_api", options={"expose"=true}, methods="GET|POST")
+     * @Route("/api", name="ref_article_api", options={"expose"=true}, methods="GET|POST")
      */
-    public function refArticleApi(Request $request): Response
+    public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
             {
@@ -160,7 +160,7 @@ class ReferenceArticleController extends Controller
     }
 
     /**
-     * @Route("/nouveau", name="reference_article_new", options={"expose"=true}, methods="GET|POST")
+     * @Route("/creer", name="reference_article_new", options={"expose"=true}, methods="GET|POST")
      */
     public function new(Request $request): Response
     {
@@ -289,7 +289,7 @@ class ReferenceArticleController extends Controller
     }
 
     /**
-     * @Route("/editApi", name="reference_article_edit_api", options={"expose"=true},  methods="GET|POST")
+     * @Route("/api-modifier", name="reference_article_edit_api", options={"expose"=true},  methods="GET|POST")
      */
     public function editApi(Request $request): Response
     {
@@ -319,7 +319,7 @@ class ReferenceArticleController extends Controller
     }
 
     /**
-     * @Route("/edit", name="reference_article_edit",  options={"expose"=true}, methods="GET|POST")
+     * @Route("/modifier", name="reference_article_edit",  options={"expose"=true}, methods="GET|POST")
      */
     public function edit(Request $request): Response
     {
@@ -337,7 +337,7 @@ class ReferenceArticleController extends Controller
     }
 
     /**
-     * @Route("/supprimerRefArticle", name="reference_article_delete", options={"expose"=true}, methods="GET|POST")
+     * @Route("/supprimer", name="reference_article_delete", options={"expose"=true}, methods="GET|POST")
      */
     public function delete(Request $request): Response
     {

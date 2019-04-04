@@ -52,7 +52,7 @@ class ServiceController extends AbstractController
     /**
      * @Route("/api", name="service_api", options={"expose"=true}, methods="GET|POST")
      */
-    public function serviceApi(Request $request) : Response
+    public function api(Request $request) : Response
     {
              
         if ($request->isXmlHttpRequest()) {
@@ -96,9 +96,9 @@ class ServiceController extends AbstractController
 
     
     /**
-     * @Route("/creation", name="creation_service", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/creer", name="service_new", options={"expose"=true}, methods={"GET", "POST"})
      */
-    public function creationService(Request $request) : Response
+    public function new(Request $request) : Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $em = $this->getDoctrine()->getEntityManager();
@@ -126,7 +126,7 @@ class ServiceController extends AbstractController
      
    
     /**
-        * @Route("/editApi", name="service_edit_api", options={"expose"=true}, methods="GET|POST")
+        * @Route("/api-modifier", name="service_edit_api", options={"expose"=true}, methods="GET|POST")
         */
     public function editApi(Request $request): Response
     {
@@ -146,7 +146,7 @@ class ServiceController extends AbstractController
     }
 
     /**
-     * @Route("/edit", name="service_edit", options={"expose"=true}, methods="GET|POST")
+     * @Route("/modifier", name="service_edit", options={"expose"=true}, methods="GET|POST")
      */
     public function edit(Request $request) : Response
     {

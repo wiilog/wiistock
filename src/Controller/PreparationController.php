@@ -77,9 +77,9 @@ class PreparationController extends AbstractController
     }
 
     /**
-     * @Route("/creationpreparation", name="createPreparation", methods="POST") //INUTILE CEA
+     * @Route("/creer", name="", methods="POST") //INUTILE CEA
      */
-    public function createPreparation(Request $request): Response
+    public function new(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) //Si la requête est de type Xml et que data est attribuée
             {
@@ -142,11 +142,11 @@ class PreparationController extends AbstractController
     /**
      * @Route("/api", name="preparation_api", options={"expose"=true}, methods="GET|POST")
      */
-    public function preparationApi(Request $request, PreparationRepository $preparationRepository): Response
+    public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
             {
-                $preparations = $preparationRepository->findAll();
+                $preparations = $this->preparationRepository->findAll();
                 $rows = [];
                 foreach ($preparations as $preparation) {
                         $url['show'] = $this->generateUrl('preparation_show', ['id' => $preparation->getId()]);
@@ -165,9 +165,9 @@ class PreparationController extends AbstractController
 
 
     /**
-     * @Route("/ajoutarticle", name="preparation_ajout_article", options={"expose"=true}, methods="GET|POST")
+     * @Route("/ajoute-article", name="preparation_add_article", options={"expose"=true}, methods="GET|POST")
      */
-    public function ajoutArticle(Request $request): Response
+    public function addArticle(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
                 $article = $this->articleRepository->find($data['article']);
@@ -183,7 +183,7 @@ class PreparationController extends AbstractController
     }
 
     /**
-     * @Route("/articleDelete", name="preparation_ajout_article_delete", options={"expose"=true}, methods={"GET", "POST"}) 
+     * @Route("/supprime-article", name="preparation_delete_article", options={"expose"=true}, methods={"GET", "POST"})
      */
     public function deleteArticle(Request $request): Response
     {
@@ -203,7 +203,7 @@ class PreparationController extends AbstractController
     /**
      * @Route("/api_article/{id}", name="preparation_article_api", options={"expose"=true}, methods={"GET", "POST"}) 
      */
-    public function LignePreparationApi(Request $request, $id): Response
+    public function lignePreparationApi(Request $request, $id): Response
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
             {
@@ -231,11 +231,10 @@ class PreparationController extends AbstractController
     }
 
     /**
-     * @Route("/{id}", name="preparation_show", methods="GET|POST")
+     * @Route("/voir/{id}", name="preparation_show", methods="GET|POST")
      */
     public function show(Preparation $preparation): Response
     {
-        
         return $this->render('preparation/show.html.twig', [
             'preparation' => $preparation,
             'finished' => ($preparation->getStatut()->getNom() === Preparation::STATUT_A_TRAITER),

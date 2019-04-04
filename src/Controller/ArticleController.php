@@ -98,14 +98,14 @@ class ArticleController extends AbstractController
     /**
      * @Route("/api", name="article_api", options={"expose"=true}, methods="GET|POST")
      */
-    public function articleApi(Request $request) : Response
+    public function api(Request $request) : Response
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
         {
             $articles = $this->articleRepository->findAll();
             $rows = [];
             foreach ($articles as $article) {
-                $url['edit'] = $this->generateUrl('article_edit', ['id' => $article->getId()] );
+                $url['edit'] = $this->generateUrl('ligne_article_edit', ['id' => $article->getId()] );
                 
                 $rows[] =
                 [
@@ -128,7 +128,7 @@ class ArticleController extends AbstractController
     }
 
     /**
-     * @Route("/show", name="article_show", options={"expose"=true},  methods="GET|POST")
+     * @Route("/voir", name="article_show", options={"expose"=true},  methods="GET|POST")
      */
     public function show(Request $request) : Response
     {
@@ -184,144 +184,5 @@ class ArticleController extends AbstractController
             return new JsonResponse($json);
         }
         throw new NotFoundHttpException("404");
-
-        
     }
-
-
-
-    
-    // /**
-    //  * @Route("/par-collecte", name="articles_by_collecte", options={"expose"=true}, methods={"GET", "POST"})
-    //  */
-    // public function getArticlesByCollecte(Request $request): Response
-    // {
-    //     if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
-    //     {
-    //         $collecteId = $request->get('collecteId');
-    //         $collecte = $this->collecteRepository->find($collecteId);
-    //         $articles = $collecte->getArticles();
-    //         $rows = [];
-    //         foreach ($articles as $article) {
-    //             $rows[] = [
-    //                 'référence'=>( $article->Reference() ?  $article->getReference():""),
-    //                 'Statut'=> ($article->getStatut()->getNom() ? $article->getStatut()->getNom() : ""),
-    //                 'Référence Article'=> ($article->getRefArticle() ? $article->getRefArticle()->getLibelle() : ""),
-    //                 'Quantité à collecter'=>($article->getQuantiteCollectee() ? $article->getQuantiteCollectee() : ""),
-    //                 'Actions' => $this->renderView('collecte/datatableArticleRow.html.twig', ['article' => $article])
-    //             ];
-    //         }
-    //         $data['data'] = $rows;
-    //         return new JsonResponse($data);
-    //     }
-    //     throw new NotFoundHttpException("404");
-    // }
-
-    // /**
-    //  * @Route("/nouveau", name="article_new", methods="GET|POST")  INUTILE
-    //  */
-    // public function new(Request $request) : Response
-    // {
-    //     $article = new Article();
-    //     $form = $this->createForm(ArticleType::class, $article);
-    //     $form->handleRequest($request);
-
-    //     if ($form->isSubmitted() && $form->isValid()) {
-    //         $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_RECEPTION_EN_COURS);
-    //         $article->setStatut($statut);
-    //         $em = $this->getDoctrine()->getManager();
-    //         $em->persist($article);
-    //         $em->flush();
-    //         return $this->redirectToRoute('article_index');
-    //     }
-
-    //     return $this->render('article/new.html.twig', [
-    //         'article' => $article,
-    //         'form' => $form->createView(),
-    //     ]);
-    // }
-
-   
-
-    // /**
-    //  * @Route("/ajouter", name="modal_add_article")
-    //  */
-    // public function displayModalAddArticle()
-    // {
-    //     $articles = $this->articleRepository->findAllSortedByName();
-
-    //     $html = $this->renderView('collecte/modalAddArticleContent.html.twig', [
-    //         'articles' => $articles
-    //     ]);
-
-    //     return new JsonResponse(['html' => $html]);
-    // }
-
-    // /**
-    //  * @Route("/modifier/{id}", name="article_edit", methods="GET|POST")
-    //  */
-    // public function edit(Request $request, Article $article) : Response
-    // {
-    //     $form = $this->createForm(ArticleType::class, $article);
-    //     $form->handleRequest($request);
-    //     if ($form->isSubmitted() && $form->isValid())
-    //     {
-    //         $reception = $article->getReception()->getId();
-    //         $reception = $this->receptionRepository->find($reception); //a modifier
-    //         $articles = $reception->getArticles();
-    //         foreach($articles as $article) {
-    //             if($article->getStatut()->getId() == 5) {
-    //                 $statut = $this->statutRepository->find(5); //a modifier
-    //                 $reception->setStatut($statut);
-    //                 break;
-    //             }
-    //             else {
-    //                 $statut = $this->statutRepository->find(6); //a modifier
-    //                 $reception->setStatut($statut);
-    //             }
-    //         }
-
-    //         $this->getDoctrine()->getManager()->flush();
-
-    //         return $this->redirect($_POST['url']);
-    //     }
-
-    //     return $this->render('article/edit.html.twig', [
-    //         'article' => $article,
-    //         'form' => $form->createView(),
-    //         'id' => $article->getReception()->getId(),
-
-    //     ]);
-    // }
-
-    // /**
-    //  * @Route("/{id}", name="article_delete", methods="DELETE")
-    //  */
-    // public function delete(Request $request, Article $article) : Response
-    // {
-    //     if ($this->isCsrfTokenValid('delete' . $article->getId(), $request->request->get('_token'))) {
-    //         $em = $this->getDoctrine()->getManager();
-    //         $em->remove($article);
-    //         $em->flush();
-    //     }
-    //     return $this->redirectToRoute('article_index');
-    // }
-
-//     /**
-//      * @Route("/modifier-quantite", name="edit_quantity")
-//      */
-//     public function editQuantity(Request $request)
-//     {
-//         $articleId = $request->request->get('articleId');
-//         $quantity = $request->request->get('quantity');
-
-//         $article = $this->articleRepository->find($articleId);
-//         $article->setQuantiteCollectee($quantity);
-
-//         $em = $this->getDoctrine()->getManager();
-//         $em->persist($article);
-//         $em->flush();
-
-//         return new JsonResponse(true);
-//     }
 }
