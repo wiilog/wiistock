@@ -52,7 +52,8 @@ class RefArticleMOBFixtures extends Fixture implements FixtureGroupInterface
 
     public function load(ObjectManager $manager)
     {
-        $file = fopen("C:\wamp64\www\WiiStock\public\csv\mob.csv", "r");
+//        $file = fopen("C:\wamp64\www\WiiStock\public\csv\mob.csv", "r");
+        $file = fopen("http://cl1-test.follow-gt.fr/csv/mob.csv", "r");
         $firstRow = true;
         while (($data = fgetcsv($file, 1000, ";")) !== false) {
             if ($firstRow) {
@@ -60,6 +61,8 @@ class RefArticleMOBFixtures extends Fixture implements FixtureGroupInterface
             } else {
                 $data = array_map('utf8_encode', $data);
                 dump(print_r($data));
+
+                $typeMob = $this->typeRepository->findOneBy(['label' => Type::LABEL_MOB]);
 
                 $fournisseurLabel = $data[4];
                 $fournisseur = $this->fournisseurRepository->findOneBy(['nom' => $fournisseurLabel]);
@@ -71,12 +74,11 @@ class RefArticleMOBFixtures extends Fixture implements FixtureGroupInterface
                         ->setNom($fournisseurLabel)
                         ->setCodeReference($fournisseurLabel);
                     $manager->persist($fournisseur);
-                    $manager->flush();
                 }
 
                 $referenceArticle = new ReferenceArticle();
                 $referenceArticle
-                    ->setType($this->typeRepository->findOneBy(['label' => Type::LABEL_MOB]))
+                    ->setType($typeMob)
                     ->setReference($data[0])
                     ->setLibelle($data[0])
                     ->setQuantiteStock(intval($data[2]))
@@ -84,7 +86,6 @@ class RefArticleMOBFixtures extends Fixture implements FixtureGroupInterface
                     ->setStatut($this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF));
 
                 $manager->persist($referenceArticle);
-                $manager->flush();
 
                 // on crée l'article fournisseur, on le lie au fournisseur et à l'article de référence
                 $articleFournisseur = new ArticleFournisseur();
@@ -95,8 +96,8 @@ class RefArticleMOBFixtures extends Fixture implements FixtureGroupInterface
                     ->setReferenceArticle($referenceArticle); // code aléatoire
 
                 $manager->persist($articleFournisseur);
-                $manager->flush();
 
+                $manager->flush();
             }
         }
         fclose($file);
