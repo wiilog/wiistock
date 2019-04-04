@@ -384,13 +384,14 @@ class ReceptionController extends AbstractController
                 $em->flush();
 
                 $nbArticleNotConform = $this->articleRepository->countNotConformByReception($reception);
-                $statutLabel = $nbArticleNotConform > 0 ? Reception::STATUT_ANOMALIE : Reception::STATUT_EN_ATTENTE;
-                //TODO on en fait quoi du statut réception s'il n'y a plus d'anomalie ??
+                $statutLabel = $nbArticleNotConform > 0 ? Reception::STATUT_ANOMALIE : Reception::STATUT_RECEPTION_PARTIELLE;
                 $statut = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, $statutLabel);
                 $reception->setStatut($statut);
 
                 $em->flush();
-                $json = ['anomalie' => $reception->getStatut()->getNom()]; //TODO utilisé ?
+                $json = [
+                    'entete' => $this->renderView('reception/enteteReception.html.twig', ['reception' => $reception])
+                ];
                 return new JsonResponse($json);
             }
         throw new NotFoundHttpException("404");
