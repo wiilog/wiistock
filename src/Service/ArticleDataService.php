@@ -11,6 +11,7 @@ namespace App\Service;
 
 use App\Entity\Article;
 use App\Entity\ReferenceArticle;
+use App\Entity\ValeurChampsLibre;
 
 use App\Repository\ArticleRepository;
 use App\Repository\ArticleFournisseurRepository;

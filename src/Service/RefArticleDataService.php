@@ -10,6 +10,8 @@ namespace App\Service;
 
 
 use App\Entity\ReferenceArticle;
+use App\Entity\ValeurChampsLibre;
+
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\ChampsLibreRepository;
 use App\Repository\FilterRepository;

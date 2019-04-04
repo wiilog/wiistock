@@ -210,18 +210,24 @@ function showDemande(bloc) {
     if (bloc.data("title") == "livraison") {
         $('#collecteShow').removeClass('d-block');
         $('#collecteShow').addClass('d-none');
-        $('#collecteShow').find('div').find('select').removeClass('data')
+        $('#collecteShow').find('div').find('select').removeClass('data');
+        $('#collecteShow').find('div').find('.quantite').removeClass('data');
+
         $('#livraisonShow').removeClass('d-none');
         $('#livraisonShow').addClass('d-block');
-        $('#livraisonShow').find('div').find('select').addClass('data')
+        $('#livraisonShow').find('div').find('select').addClass('data');
+        $('#livraisonShow').find('div').find('.quantite').addClass('data');
 
     } else if (bloc.data("title") == "collecte") {
         $('#collecteShow').removeClass('d-none');
         $('#collecteShow').addClass('d-block');
         $('#collecteShow').find('div').find('select').addClass('data')
+        $('#collecteShow').find('div').find('.quantite').addClass('data')
+
         $('#livraisonShow').removeClass('d-block');
         $('#livraisonShow').addClass('d-none');
         $('#livraisonShow').find('div').find('select').removeClass('data')
+        $('#livraisonShow').find('div').find('.quantite').removeClass('data')
     }
 }
 

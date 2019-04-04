@@ -4,6 +4,8 @@ namespace App\Controller;
 
 use App\Entity\ReferenceArticle;
 use App\Entity\ValeurChampsLibre;
+use App\Entity\CollecteReference;
+use App\Entity\LigneArticle;
 
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\FilterRepository;
@@ -104,7 +106,7 @@ class ReferenceArticleController extends Controller
     private $articleDataService;
 
 
-    public function __construct(ArticleRepository $articleRepository ,ArticleDataService $articleDataService, LivraisonRepository $livraisonRepository, DemandeRepository $demandeRepository, CollecteRepository $collecteRepository, StatutRepository $statutRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FilterRepository $filterRepository, RefArticleDataService $refArticleDataService)
+    public function __construct(ArticleRepository $articleRepository, ArticleDataService $articleDataService, LivraisonRepository $livraisonRepository, DemandeRepository $demandeRepository, CollecteRepository $collecteRepository, StatutRepository $statutRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FilterRepository $filterRepository, RefArticleDataService $refArticleDataService)
     {
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->champsLibreRepository = $champsLibreRepository;
@@ -186,14 +188,14 @@ class ReferenceArticleController extends Controller
                 return new JsonResponse(false);
             } else {
                 $em = $this->getDoctrine()->getManager();
-                $statut = ($data['statut'] === 'active' ? $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF) : $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_INACTIF));
+                $statut = ($data['statut'] === 'active' ?$this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF) : $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_INACTIF));
                 $refArticle = new ReferenceArticle();
                 $refArticle
                     ->setLibelle($data['libelle'])
                     ->setReference($data['reference'])
-                    ->setQuantiteStock($data['quantite'] ? $data['quantite'] : 0)
+                    ->setQuantiteStock($data['quantite'] ?$data['quantite'] : 0)
                     ->setStatut($statut)
-                    ->setTypeQuantite($data['type_quantite'] ? ReferenceArticle::TYPE_QUANTITE_REFERENCE : ReferenceArticle::TYPE_QUANTITE_ARTICLE)
+                    ->setTypeQuantite($data['type_quantite'] ?ReferenceArticle::TYPE_QUANTITE_REFERENCE : ReferenceArticle::TYPE_QUANTITE_ARTICLE)
                     ->setType($this->typeRepository->find($data['type']));
                 $em->persist($refArticle);
                 $em->flush();
@@ -216,13 +218,13 @@ class ReferenceArticleController extends Controller
                 $rowCL = [];
                 foreach ($champsLibres as $champLibre) {
                     $valeur = $this->valeurChampsLibreRepository->getByRefArticleANDChampsLibre($refArticle->getId(), $champLibre['id']);
-                    $rowCL[$champLibre['label']] = ($valeur ? $valeur->getValeur() : "");
+                    $rowCL[$champLibre['label']] = ($valeur ?$valeur->getValeur() : "");
                 }
                 $rowDD = [
                     "id" => $refArticle->getId(),
                     "Libellé" => $refArticle->getLibelle(),
                     "Référence" => $refArticle->getReference(),
-                    "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
+                    "Type" => ($refArticle->getType() ?$refArticle->getType()->getLabel() : ""),
                     "Quantité" => $refArticle->getQuantiteStock(),
                     'Actions' => $this->renderView('reference_article/datatableReferenceArticleRow.html.twig', [
                         'idRefArticle' => $refArticle->getId(),
@@ -309,7 +311,7 @@ class ReferenceArticleController extends Controller
                 $json = $this->renderView('reference_article/modalEditRefArticleContent.html.twig', [
                     'articleRef' => $articleRef,
                     'statut' => ($articleRef->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF),
-                    'valeurChampsLibre' => isset($valeurChampLibre) ? $data['valeurChampLibre'] : null,
+                    'valeurChampsLibre' => isset($valeurChampLibre) ?$data['valeurChampLibre'] : null,
                     'types' => $this->typeRepository->getByCategoryLabel(ReferenceArticle::CATEGORIE),
                     'statuts' => $statuts,
                     'articlesFournisseur' => ($data['listArticlesFournisseur']),
@@ -369,7 +371,7 @@ class ReferenceArticleController extends Controller
             $refArticleId = $request->request->get('refArticleId');
             $refArticle = $this->referenceArticleRepository->find($refArticleId);
 
-            $quantity = $refArticle ? ($refArticle->getQuantiteStock() ? $refArticle->getQuantiteStock() : 0) : 0;
+            $quantity = $refArticle ? ($refArticle->getQuantiteStock() ?$refArticle->getQuantiteStock() : 0) : 0;
 
             return new JsonResponse($quantity);
         }
@@ -397,29 +399,40 @@ class ReferenceArticleController extends Controller
     public function plusDemande(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            dump($data);
-            if (array_key_exists('livraison', $data)) {
+            $em = $this->getDoctrine()->getManager();
+            if (array_key_exists('livraison', $data) && $data['livraison']) {
                 $refArticle = $this->referenceArticleRepository->find($data['refArticle']);
-                if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-                    # code...
-                } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-                    # code...
+                $demande = $this->demandeRepository->find($data['livraison']);
+                if ($refArticle) {
+                    $ligneArticle = new LigneArticle;
+                    $ligneArticle
+                        ->setReference($refArticle)
+                        ->setDemande($demande)
+                        ->setQuantite($data['quantitie']);
+                    $em->persist($ligneArticle);
                 } else {
                     $json = false;
                 }
-            } elseif (array_key_exists('collecte', $data)) {
+            } elseif (array_key_exists('collecte', $data) && $data['collecte']) {
                 $refArticle = $this->referenceArticleRepository->find($data['refArticle']);
                 $collecte = $this->collecteRepository->find($data['collecte']);
                 if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
                     $article = $this->articleRepository->find($data['article']);
+                    $collecte->addArticle($article);
                 } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-                    # code...
+                    $collecteReference = new CollecteReference;
+                    $collecteReference
+                        ->setCollecte($collecte)
+                        ->setReferenceArticle($refArticle)
+                        ->setQuantite($data['quantitie']);
+                    $em->persist($collecteReference);
                 } else {
                     $json = false;
                 }
             } else {
                 $json = false;
             }
+            $em->flush();
             return new JsonResponse();
         }
         throw new NotFoundHttpException("404");
