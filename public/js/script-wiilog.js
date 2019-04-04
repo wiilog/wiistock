@@ -131,13 +131,8 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
                 }
             }
             // cas où les champs number ne respectent pas les valeurs imposées (min et max)
-<<<<<<< HEAD
-            if (wrongInputs.length > 0) {
-                wrongInputs.forEach(function (elem) {
-=======
             if (wrongNumberInputs.length > 0) {
                 wrongNumberInputs.forEach(function(elem) {
->>>>>>> dev
                     let label = elem.closest('.form-group').find('label').text();
 
                     msg += 'La valeur du champ ' + label;
@@ -219,6 +214,7 @@ function editRow(button, path, modal, submit) {
             dataReponse = JSON.parse(this.responseText);
             modal.find('.modal-body').html(dataReponse);
             initEditor();
+            console.log('init');
             initEditorId();
         }
     }

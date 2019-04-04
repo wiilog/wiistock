@@ -18,15 +18,11 @@
         </select>
     </div>
 </div>
-<div class="input-group col-12 my-2 mb-4">
-    <div class="input-group-prepend">
-        <span class="input-group-text">Commentaire</span>
-    </div>
-    <textarea class="form-control data" name="commentaire" id='commentaire'>{{article.commentaire}}</textarea>
-    
-            {# <input class="form-control data" name="commentaire" type="hidden">
-            <div id="editor"> #}
-            </div>
-        </div>
 
+<div class="form-group">
+    <label for="article-commentaire">Commentaire</label>
+    <input class="form-control data" name="commentaire" type="hidden" id='commentaire'>
+    <div id="editor"> {{article.commentaire|raw}}
+    </div>
 </div>
+

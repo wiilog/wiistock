@@ -136,9 +136,6 @@ function updateStock(select) {
 
 //initialisation editeur de texte une seule fois
 var editorAlreadyDone = false;
-// console.log('dd')
-// console.log(editorAlreadyDone)
-
 function initEditor() {
     if (editorAlreadyDone === false) {
         console.log(editorAlreadyDone);
@@ -157,10 +154,8 @@ function initEditor() {
         console.log('vv')
     }
 };
-var editorAlreadyDoneId = false;
-function initEditorId() {
-    if (editorAlreadyDoneId === false) {
-        console.log(editorAlreadyDoneId);
+
+function initEditorId() {     
         var quill = new Quill('#editor', {
             modules: {
                 toolbar: [
@@ -170,10 +165,7 @@ function initEditorId() {
                 ]
             },
             theme: 'snow'
-        });
-        editorAlreadyDoneId = true;
-        console.log(editorAlreadyDoneId)
-    }
+        });  
 };
 //passe de l'éditeur àl'imput pour insertion en BDD
 function setCommentaire() {
@@ -181,8 +173,6 @@ function setCommentaire() {
     var commentaire = document.querySelector('input[name=commentaire]');
     commentaire.value = quill.container.firstChild.innerHTML;
 };
-
-
 
 function setCommentaireId() {
     var quill = new Quill('#editor');
