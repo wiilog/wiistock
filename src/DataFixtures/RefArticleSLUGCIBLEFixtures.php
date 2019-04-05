@@ -7,6 +7,7 @@ use App\Entity\ChampsLibre;
 use App\Entity\Fournisseur;
 use App\Entity\Type;
 use App\Repository\FournisseurRepository;
+use App\Repository\StatutRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
@@ -17,20 +18,26 @@ use App\Entity\ValeurChampsLibre;
 use App\Repository\TypeRepository;
 use App\Repository\ChampsLibreRepository;
 
-class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
+class RefArticleSLUGCIBLEFixtures extends Fixture implements FixtureGroupInterface
 {
+    /**
+     * @var UserPasswordEncoderInterface
+     */
     private $encoder;
-
 
     /**
      * @var TypeRepository
      */
     private $typeRepository;
-
     /**
      * @var ChampsLibreRepository
      */
     private $champsLibreRepository;
+
+    /**
+     * @var StatutRepository
+     */
+    private $statutRepository;
 
     /**
      * @var FournisseurRepository
@@ -38,21 +45,21 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
     private $fournisseurRepository;
 
 
-    public function __construct(UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampsLibreRepository $champsLibreRepository, FournisseurRepository $fournisseurRepository)
+    public function __construct(UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampsLibreRepository $champsLibreRepository, StatutRepository $statutRepository, FournisseurRepository $fournisseurRepository)
     {
         $this->typeRepository = $typeRepository;
         $this->champsLibreRepository = $champsLibreRepository;
         $this->encoder = $encoder;
+        $this->statutRepository = $statutRepository;
         $this->fournisseurRepository = $fournisseurRepository;
     }
 
     public function load(ObjectManager $manager)
     {
-        $path = "public/csv/pdt.csv";
+        $path = "public/csv/slugcible.csv";
         $file = fopen($path, "r");
 
         $firstRow = true;
-
         while (($data = fgetcsv($file, 1000, ";")) !== false) {
             if ($firstRow) {
                 $firstRow = false;
@@ -60,23 +67,25 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
                 $data = array_map('utf8_encode', $data);
                 dump(print_r($data));
 
-                $typePdt = $this->typeRepository->findOneBy(['label' => Type::LABEL_PDT]);
+                $typeSlugcible = $this->typeRepository->findOneBy(['label' => Type::LABEL_SLUGCIBLE]);
+                $statutActif = $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF);
 
                 // champs fixes
                 $referenceArticle = new ReferenceArticle();
                 $referenceArticle
-                    ->setType($typePdt)
+                    ->setType($typeSlugcible)
                     ->setReference($data[0])
                     ->setLibelle($data[1])
-                    ->setQuantiteStock(intval($data[3]));
+                    ->setQuantiteStock(intval($data[2]))
+                    ->setTypeQuantite('reference')
+                    ->setStatut($statutActif);
                 $manager->persist($referenceArticle);
-                $manager->flush();
 
 
                 // champ fournisseur
-                $fournisseurLabel = $data[9];
+                $fournisseurLabel = $data[10];
                 if (!empty($fournisseurLabel)) {
-                    $fournisseurRef = $data[10];
+                    $fournisseurRef = $data[11];
                     if (in_array($fournisseurRef, ['nc', 'nd', 'NC', 'ND', '*', '.', ''])) {
                         $fournisseurRef = $fournisseurLabel;
                     }
@@ -94,7 +103,7 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
                     // on crée l'article fournisseur, on le lie au fournisseur et à l'article de référence
                     $articleFournisseur = new ArticleFournisseur();
                     $articleFournisseur
-                        ->setLabel($data[1])
+                        ->setLabel($data[0])
                         ->setReference(time()) // code aléatoire
                         ->setFournisseur($fournisseur)
                         ->setReferenceArticle($referenceArticle);
@@ -105,16 +114,10 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
 
                 // champs libres
                 $listData = [
-                    ['label' => 'adresse', 'col' => 2, 'type' => ChampsLibre::TYPE_TEXT],
-                    ['label' => 'famille produit', 'col' => 4, 'type' => ChampsLibre::TYPE_TEXT],
-                    ['label' => 'zone', 'col' => 5, 'type' => ChampsLibre::TYPE_TEXT],
-                    ['label' => 'équipementier', 'col' => 6, 'type' => ChampsLibre::TYPE_TEXT],
-                    ['label' => "R+H1:I9505ef équipementier", 'col' => 7, 'type' => ChampsLibre::TYPE_TEXT],
-                    ['label' => "machine", 'col' => 8, 'type' => ChampsLibre::TYPE_TEXT],
-                    ['label' => "stock mini", 'col' => 11, 'type' => ChampsLibre::TYPE_NUMBER],
-                    ['label' => "stock alerte", 'col' => 12, 'type' => ChampsLibre::TYPE_NUMBER],
-                    ['label' => "n° lot", 'col' => 13, 'type' => ChampsLibre::TYPE_TEXT],
-                    ['label' => "date entrée", 'col' => 14, 'type' => ChampsLibre::TYPE_TEXT],
+                    ['label' => 'bénéficiaire ou n° commande', 'col' => 7, 'type' => ChampsLibre::TYPE_TEXT],
+                    ['label' => 'machine', 'col' => 9, 'type' => ChampsLibre::TYPE_TEXT],
+                    ['label' => 'stock mini', 'col' => 13, 'type' => ChampsLibre::TYPE_NUMBER],
+                    ['label' => 'date entrée', 'col' => 15, 'type' => ChampsLibre::TYPE_TEXT],
                 ];
 
                 foreach($listData as $data) {
@@ -125,7 +128,7 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
                         $cl
                             ->setLabel($data['label'])
                             ->setTypage($data['type'])
-                            ->setType($typePdt);
+                            ->setType($typeSlugcible);
                         $manager->persist($cl);
                     }
                     $vcl
@@ -137,13 +140,12 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
 
                 $manager->flush();
             }
-            unset($data);
         }
         fclose($file);
     }
 
     public static function getGroups():array {
-        return ['articlePDT'];
+        return ['articles'];
     }
 
 }

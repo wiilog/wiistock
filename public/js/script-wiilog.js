@@ -44,14 +44,20 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
 
                  
                 let inputs = modal.find('.modal-body').find(".data");
-               
-                 console.log(inputs);
-                // on vide tous les inputs
+                // on vide tous les inputs (sauf les disabled)
                 inputs.each(function () {
                     $(this).val("");
-                    // $(this).text(''); // pour les select2 //TODOO provoque des bugs avec le typage des champs libres => efface les options du select
-                    modal.find('.error-msg, .password-error-msg').html('');
+                    if ($(this).attr('disabled') !== 'disabled') {
+                        $(this).val("");
+                    }
                 });
+                // on vide tous les select2
+                let selects = modal.find('.modal-body').find('.ajax-autocomplete,.select2');
+                selects.each(function() {
+                    $(this).val(null).trigger('change');
+                });
+                // on vide les messages d'erreur
+                modal.find('.error-msg, .password-error-msg').html('');
                 // on remet toutes les checkboxes sur off
                 let checkboxes = modal.find('.checkbox');
                 checkboxes.each(function () {
@@ -291,3 +297,53 @@ function setCommentaireID(button) {
     $('#commentaireID').val(com);
 };
 
+
+//FONCTION REFARTICLE
+
+//Cache/affiche les bloc des modal edit/new
+function visibleBlockModal(bloc) {
+    let blocContent = bloc.siblings().filter('.col-12');
+    let sortUp = bloc.find('h3').find('.fa-sort-up');
+    let sortDown = bloc.find('h3').find('.fa-sort-down');
+
+    if (sortUp.attr('class').search('d-none') > 0) {
+        sortUp.removeClass('d-none');
+        sortUp.addClass('d-block');
+        sortDown.removeClass('d-block');
+        sortDown.addClass('d-none');
+
+        blocContent.removeClass('d-none')
+        blocContent.addClass('d-block');
+    } else {
+        sortUp.removeClass('d-block');
+        sortUp.addClass('d-none');
+        sortDown.removeClass('d-none');
+        sortDown.addClass('d-block');
+
+        blocContent.removeClass('d-block')
+        blocContent.addClass('d-none')
+    }
+}
+
+function typeChoice(bloc, text, content) {
+    let cible = bloc.val()
+    content.children().removeClass('d-block');
+    content.children().addClass('d-none');
+
+    $('#'+cible+text).removeClass('d-none')
+    $('#'+cible+text).addClass('d-block')
+}
+
+function updateQuantityDisplay(elem) {
+    let typeQuantite = elem.closest('.radio-btn').find('#type_quantite').val();
+    let modalBody = elem.closest('.modal-body');
+
+    if (typeQuantite == 'reference') {
+        modalBody.find('.article').addClass('d-none');
+        modalBody.find('.reference').removeClass('d-none');
+
+    } else if (typeQuantite == 'article') {
+        modalBody.find('.reference').addClass('d-none');
+        modalBody.find('.article').removeClass('d-none');
+    }
+}

@@ -1,6 +1,6 @@
 <div class="row">
     
-    <div class="col-2" data-id='{{ alerteId }}' data-target='#modalEditAlerte' data-toggle='modal'
+    <div class="col-3" data-id='{{ alerteId }}' data-target='#modalEditAlerte' data-toggle='modal'
     onclick="editRow($(this), Routing.generate('alerte_api_edit', true), $('#modalEditAlerte'), $('#submitEditAlerte'))">
     <i class='fas fa-pencil-alt'></i>
 </div>
@@ -9,7 +9,7 @@ onclick="showRow($('#modalShowAlerte'), $(this), Routing.generate('alerte_show',
 data-id='{{ alerteId }}' data-target='#modalShowAlerte' data-toggle='modal'>
 <i class='fas fa-eye'></i>
 </div> #}
-<div class="col-2" onclick="deleteRow($(this), $('#modalDeleteAlerte'), $('#submitDeleteAlerte'))" data-id='{{ alerteId }}'
+<div class="col-3" onclick="deleteRow($(this), $('#modalDeleteAlerte'), $('#submitDeleteAlerte'))" data-id='{{ alerteId }}'
 data-target='#modalDeleteAlerte' data-toggle='modal'>
 <i class='fas fa-trash'></i>
 </div>

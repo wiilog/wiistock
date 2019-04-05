@@ -86,6 +86,11 @@ class ReferenceArticle
      */
     private $Statut;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\CollecteReference", mappedBy="referenceArticle")
+     */
+    private $collecteReferences;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
@@ -94,6 +99,7 @@ class ReferenceArticle
         $this->ligneArticles = new ArrayCollection();
         $this->valeurChampsLibres = new ArrayCollection();
         $this->articlesFournisseur = new ArrayCollection();
+        $this->collecteReferences = new ArrayCollection();
     }
 
     public function getId()
@@ -276,7 +282,7 @@ class ReferenceArticle
         return $this->articlesFournisseur;
     }
 
-    public function addArticlesFournisseur(ArticleFournisseur $articlesFournisseur): self
+    public function addArticleFournisseur(ArticleFournisseur $articlesFournisseur): self
     {
         if (!$this->articlesFournisseur->contains($articlesFournisseur)) {
             $this->articlesFournisseur[] = $articlesFournisseur;
@@ -286,7 +292,7 @@ class ReferenceArticle
         return $this;
     }
 
-    public function removeArticlesFournisseur(ArticleFournisseur $articlesFournisseur): self
+    public function removeArticleFournisseur(ArticleFournisseur $articlesFournisseur): self
     {
         if ($this->articlesFournisseur->contains($articlesFournisseur)) {
             $this->articlesFournisseur->removeElement($articlesFournisseur);
@@ -322,4 +328,36 @@ class ReferenceArticle
 
         return $this;
     }
+
+    /**
+     * @return Collection|CollecteReference[]
+     */
+    public function getCollecteReferences(): Collection
+    {
+        return $this->collecteReferences;
+    }
+
+    public function addCollecteReference(CollecteReference $collecteReference): self
+    {
+        if (!$this->collecteReferences->contains($collecteReference)) {
+            $this->collecteReferences[] = $collecteReference;
+            $collecteReference->setReferenceArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCollecteReference(CollecteReference $collecteReference): self
+    {
+        if ($this->collecteReferences->contains($collecteReference)) {
+            $this->collecteReferences->removeElement($collecteReference);
+            // set the owning side to null (unless already changed)
+            if ($collecteReference->getReferenceArticle() === $this) {
+                $collecteReference->setReferenceArticle(null);
+            }
+        }
+
+        return $this;
+    }
+
 }

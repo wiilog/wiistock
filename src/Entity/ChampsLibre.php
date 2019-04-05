@@ -11,6 +11,10 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class ChampsLibre
 {
+    const TYPE_BOOL = 'booleen';
+    const TYPE_TEXT = 'text';
+    const TYPE_NUMBER = 'number';
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
@@ -19,7 +23,7 @@ class ChampsLibre
     private $id;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
+     * @ORM\Column(type="string", length=255, nullable=true, unique=true)
      */
     private $label;
 

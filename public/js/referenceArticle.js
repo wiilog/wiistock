@@ -1,6 +1,6 @@
 $('.select2').select2();
 
-function InitialiserModalRefArticle(modal, submit, path, callback = function(){}, close = true) {
+function InitialiserModalRefArticle(modal, submit, path, callback = function () { }, close = true) {
     submit.click(function () {
         xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function () {
@@ -8,12 +8,12 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function(){}
                 $('.errorMessage').html(JSON.parse(this.responseText))
                 data = JSON.parse(this.responseText);
                 if (data.new) {
-                    tableRefArticle.row.add(data.new).draw( false );
-                }else if(data.delete){
-                    tableRefArticle.row($('#delete'+data.delete).parents('div').parents('td').parents('tr')).remove().draw( false );
-                }else if(data.edit){
-                    tableRefArticle.row($('#edit'+data.id).parents('div').parents('td').parents('tr')).remove().draw( false );
-                    tableRefArticle.row.add(data.edit).draw( false );
+                    tableRefArticle.row.add(data.new).draw(false);
+                } else if (data.delete) {
+                    tableRefArticle.row($('#delete' + data.delete).parents('div').parents('td').parents('tr')).remove().draw(false);
+                } else if (data.edit) {
+                    tableRefArticle.row($('#edit' + data.id).parents('div').parents('td').parents('tr')).remove().draw(false);
+                    tableRefArticle.row.add(data.edit).draw(false);
                 } else if (data.reload) {
                     tableRefArticle.clear();
                     tableRefArticle.rows.add(data.reload).draw();
@@ -132,6 +132,11 @@ let submitModifyRefArticle = $('#submitEditRefArticle');
 let urlModifyRefArticle = Routing.generate('reference_article_edit', true);
 InitialiserModalRefArticle(modalModifyRefArticle, submitModifyRefArticle, urlModifyRefArticle);
 
+let modalPlusDemande = $('#modalPlusDemande');
+let submitPlusDemande = $('#submitPlusDemande');
+let urlPlusDemande = Routing.generate('plus_demande', true);
+InitialiserModalRefArticle(modalPlusDemande, submitPlusDemande, urlPlusDemande);
+
 let modalNewFilter = $('#modalNewFilter');
 let submitNewFilter = $('#submitNewFilter');
 let urlNewFilter = Routing.generate('filter_new', true);
@@ -179,19 +184,6 @@ function hideColumnChampsLibres() {
     tableRefArticle.columns('.libre').visible(false);
 }
 
-function updateQuantityDisplay(elem) {
-    let typeQuantite = elem.closest('.radio-btn').find('#type_quantite').val();
-    let modalBody = elem.closest('.modal-body');
-
-    if (typeQuantite == 'reference') {
-        modalBody.find('.article').addClass('d-none');
-        modalBody.find('.reference').removeClass('d-none');
-
-    } else if (typeQuantite == 'article') {
-        modalBody.find('.reference').addClass('d-none');
-        modalBody.find('.article').removeClass('d-none');
-    }
-}
 
 
 //Récupére Id du type selectionné
@@ -200,42 +192,29 @@ function idType(div, idInput) {
     $(idInput).attr('value', id);
 }
 
-//Cache/affiche les bloc des modal edit/new
-function visibleBlockModal(bloc) {
-    let blocContent = bloc.siblings().filter('.col-12');
-    let sortUp = bloc.find('h3').find('.fa-sort-up');
-    let sortDown = bloc.find('h3').find('.fa-sort-down');
-
-    if (sortUp.attr('class').search('d-none') > 0) {
-        sortUp.removeClass('d-none');
-        sortUp.addClass('d-block');
-        sortDown.removeClass('d-block');
-        sortDown.addClass('d-none');
-
-        blocContent.removeClass('d-none')
-        blocContent.addClass('d-block');
-    } else {
-        sortUp.removeClass('d-block');
-        sortUp.addClass('d-none');
-        sortDown.removeClass('d-none');
-        sortDown.addClass('d-block');
-
-        blocContent.removeClass('d-block')
-        blocContent.addClass('d-none')
-    }
-}
 
 function showDemande(bloc) {
     if (bloc.data("title") == "livraison") {
         $('#collecteShow').removeClass('d-block');
         $('#collecteShow').addClass('d-none');
+        $('#collecteShow').find('div').find('select').removeClass('data');
+        $('#collecteShow').find('div').find('.quantite').removeClass('data');
+
         $('#livraisonShow').removeClass('d-none');
         $('#livraisonShow').addClass('d-block');
-    }else if (bloc.data("title") == "collecte") {
+        $('#livraisonShow').find('div').find('select').addClass('data');
+        $('#livraisonShow').find('div').find('.quantite').addClass('data');
+
+    } else if (bloc.data("title") == "collecte") {
         $('#collecteShow').removeClass('d-none');
         $('#collecteShow').addClass('d-block');
+        $('#collecteShow').find('div').find('select').addClass('data')
+        $('#collecteShow').find('div').find('.quantite').addClass('data')
+
         $('#livraisonShow').removeClass('d-block');
         $('#livraisonShow').addClass('d-none');
+        $('#livraisonShow').find('div').find('select').removeClass('data')
+        $('#livraisonShow').find('div').find('.quantite').removeClass('data')
     }
 }
 
@@ -254,7 +233,7 @@ function removeFilter() {
     $(this).remove();
 
     let params = JSON.stringify({ 'filterId': $(this).find('.filter-id').val() });
-    $.post(Routing.generate('filter_delete', true), params, function(data) {
+    $.post(Routing.generate('filter_delete', true), params, function (data) {
         tableRefArticle.clear();
         tableRefArticle.rows.add(data).draw();
     });
@@ -267,7 +246,7 @@ function displayFilterValue(elem) {
 
     // cas particulier de liste déroulante pour type
     if (type == 'list') {
-        $.getJSON(Routing.generate('type_show_select'), function(data) {
+        $.getJSON(Routing.generate('type_show_select'), function (data) {
             modalBody.find('.input').html(data);
         })
     } else {
@@ -302,11 +281,20 @@ function displayError(data) {
     }
 }
 
-function typeChoise(bloc, text, content) {
-    let cible = bloc.val()
-    content.children().removeClass('d-block');
-    content.children().addClass('d-none');
-
-    $('#'+cible+text).removeClass('d-none')
-    $('#'+cible+text).addClass('d-block')
+function ajaxPlusDemandeContent(button) {
+    xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            dataReponse = JSON.parse(this.responseText);
+            if (dataReponse) {
+               $('.plusDemandeContent').html(dataReponse);
+            } else {
+                //TODO gérer erreur
+            }
+        }
+    }
+    let json = button.data('id');
+    let path =  Routing.generate('ajax_plus_demande_content', true);
+    xhttp.open("POST", path, true);
+    xhttp.send(json);
 }

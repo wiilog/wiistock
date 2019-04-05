@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Demande de service{% endblock %}
+{% block title %}Demande de déplacement d’article{% endblock %}
 
 {% block page_content %}
 
@@ -51,13 +51,13 @@
     </div>
 </div>
 <div class="container-fluid">
-    <h1>Demandes de services</h1>
-
-
-    <div class='col-12 mb-5'>
-        <a href="" data-toggle="modal" data-target="#modalNewService" class="btn btn-primary" onclick='initNewServiceEditor("#modalNewService")'>
-            <span class="fa fa-plus mr-2"></span>Nouvelle demande
-        </a>
+    <div class="row justify-content-between mt-3 mb-3">
+        <h1 class="col-6">Demande de déplacement d’article</h1>
+        <div class='col-2'>
+            <a href="" data-toggle="modal" data-target="#modalNewService" class="btn btn-primary" onclick='initNewServiceEditor("#modalNewService")'>
+                <span class="fa fa-plus mr-2"></span>Nouvelle demande
+            </a>
+        </div>
     </div>
 
     <table id="tableService_id" class="table table-striped table-bordered w-100">

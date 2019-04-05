@@ -1,0 +1,8 @@
+<div class="form-group col-12 d-flex w-100 mb-3">
+    <label for="code">Code article</label>
+    <select class="form-control ajax-autocomplete-article data select2" id="article" name="article">
+        {% for article in articles %}
+            <option value="{{article.id}}">{{article.reference}}</option>
+        {% endfor %}
+    </select>
+</div>

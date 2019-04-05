@@ -4,18 +4,13 @@
 </div>
 <div class="form-group col-6">
     <div class="input-group">
-        <div class="input-group-prepend">
-            <label class="input-group-text" for="defaultCheck1">conforme</label>
+        <div class="form-group">
+            <label>Anomalie</label>
+            <label class="switch">
+                <input class="checkbox" type="checkbox" name="anomalie" {{ (article.conform == 1) ? '' : 'checked' }}>
+                <span class="slider round"></span>
+            </label>
         </div>
-        <select class='data form-control' name="conform" id="">
-            {% if article.conform %}
-            <option value="on">oui</option>
-            <option value="off">non</option>
-            {% else %}
-            <option value="off">non</option>
-            <option value="on">oui</option>
-            {% endif %}
-        </select>
     </div>
 </div>
 
