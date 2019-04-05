@@ -20,7 +20,7 @@ class ArticleFournisseur
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\ReferenceArticle", inversedBy="articlesFournisseur")
-     * @ORM\JoinColumn(nullable=false)
+     * @ORM\JoinColumn(name="reference_article_id", referencedColumnName="id", onDelete="CASCADE")
      */
     private $referenceArticle;
 
