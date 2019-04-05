@@ -37,9 +37,9 @@
 </div>
 
 <div class="form-group">
-    <label for="service-commentaire" >Commentaire</label>
-    <input class="form-control data" name="commentaire" type="hidden" value="{{service.commentaire}}" onchange="setCommentaire()">
-    <div class="editor-container" value="{{service.commentaire}}"> {{service.commentaire|raw}}
+    <label for="commentaire" >Commentaire</label>
+    <input id="commentaire" class="form-control data" name="commentaire" type="hidden" value="{{service.commentaire}}" >
+    <div class="editor-container" value="{{service.commentaire}}" > {{service.commentaire|raw}}
         </div>
     
 </div>

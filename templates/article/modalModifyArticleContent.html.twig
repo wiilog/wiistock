@@ -1,4 +1,4 @@
-<div class="form-group">
+{#<div class="form-group">
     <label for="libelle">Libellé</label>
     <input type="text" class="form-control data" name="label" id='label' value="{{article.label}}" placeholder="">
 </div>
@@ -21,8 +21,8 @@
 <div class="input-group col-12 my-2 mb-4">
     <div class="input-group-prepend">
         <span class="input-group-text">Commentaire</span>
+    </div> 
+    <input id='commentaireID'class="form-control data" name="commentaire" type="hidden">
+      <div class="editor-container" onkeyup="setCommentaireID"> {{article.commentaire|raw}}
     </div>
-    <input class="form-control data" name="commentaire" type="hidden" id= 'commentaire' value="{{article.commentaire}}">
-      {#<div class="editor-container" value="{{article.commentaire}}"> {{article.commentaire|raw}}
-    </div>#}
-</div>
+</div>#}

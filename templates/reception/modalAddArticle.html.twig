@@ -71,14 +71,12 @@
                         </label>
                     </div>
                 </div>
-                
-                    <div class="form-group col-6">
-                             <label for="Commentaire">Commentaire</label>
-                             <input class="form-control data" name="commentaire" type="hidden" id='commentaire'>
-                             <div id="editor"></div>
-                    </div>
-                                      
 
+                <div class="form-group col-6">
+                    <label >Commentaire</label>
+                    <input id='commentaireID' class="form-control data" name="commentaire" type="hidden">
+                    <div class="editor-container"></div>
+                </div>
             </div>
 
             <div class="modal-footer">
@@ -86,7 +84,7 @@
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>
                 <button id="addArticleSubmit" type="button" data-dismiss="modal"
                     class="btn btn-primary btn-success data" name="reception" value="{{reception.id}}"
-                    onclick='setCommentaire()'>Enregistrer</button>
+                    onclick='setCommentaireID($(this))'>Enregistrer</button>
             </div>
         </div>
     </div>

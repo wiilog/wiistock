@@ -135,52 +135,41 @@ function updateStock(select) {
 }
 
 //initialisation editeur de texte une seule fois
-var editorAlreadyDone = false;
-function initEditor() {
-    if (editorAlreadyDone === false) {
-        console.log(editorAlreadyDone);
-        var quill = new Quill('.editor-container', {
-            modules: {
-                toolbar: [
-                    [{ header: [1, 2, false] }],
-                    ['bold', 'italic', 'underline'],
-                    ['image', 'code-block']
-                ]
-            },
-            theme: 'snow'
-        });
-        editorAlreadyDone = true;
-        console.log(editorAlreadyDone)
-        console.log('vv')
+var editorNewReceptionAlreadyDone = false;
+function initNewReceptionEditor(modal) {
+    if (!editorNewReceptionAlreadyDone) {
+        initEditor(modal);
+        editorNewReceptionAlreadyDone = true;
     }
 };
-var editorIdAlreadyDone = false;
-function initEditorId() {     
-        var quill = new Quill('#editor', {
-            modules: {
-                toolbar: [
-                    [{ header: [1, 2, false] }],
-                    ['bold', 'italic', 'underline'],
-                    ['image', 'code-block']
-                ]
-            },
-            theme: 'snow'
-        });  
-        editorAlreadyDoneId = true;
-        console.log(editorAlreadyDoneId)
-        console.log('vv')
+
+var editorEditReceptionAlreadyDone = false;
+function initEditReceptionEditor(modal) {
+    if (!editorEditReceptionAlreadyDone) {
+        initEditor(modal);
+        editorEditReceptionAlreadyDone = true;
+    }
 };
 
-//passe de l'éditeur àl'imput pour insertion en BDD
-function setCommentaire() {
-    var quill = new Quill('.editor-container'); 
-    var commentaire = document.querySelector('input[name=commentaire]');
-    commentaire.value = quill.container.firstChild.innerHTML;
+var editorNewArticleAlreadyDone = false;
+function initNewArticleEditor(modal) {
+    console.log('init new art');
+    console.log(editorNewArticleAlreadyDone);
+    if (!editorNewArticleAlreadyDone) {
+        initEditor(modal);
+        editorNewArticleAlreadyDone = true;
+    }
 };
 
-function setCommentaireId() {
-    var quill = new Quill('#editor');
-    let com = quill.container.firstChild.innerHTML;
-    $('#commentaire').val(com);
+// //TODO à brancher
+var editorEditArticleAlreadyDone = false;
+console.log(editorEditArticleAlreadyDone);
+function initEditArticleEditor() {
+    if (!editorEditArticleAlreadyDone) {
+        initEditor();
+        editorEditArticleAlreadyDone = true;
+        console.log(editorEditArticleAlreadyDone);
+    }
 };
+
 

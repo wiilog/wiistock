@@ -20,9 +20,10 @@
 </div>
 
 <div class="form-group">
-    <label for="article-commentaire">Commentaire</label>
-    <input class="form-control data" name="commentaire" type="hidden" id='commentaire' value='{{article.commentaire|raw}}'>
-    <div id="editor"> {{article.commentaire|raw}}
+    <label>Commentaire</label>
+    <input id='commentaireID' class="form-control data" name="commentaire" type="hidden" value='{{article.commentaire}}'>
+    <div class="editor-container" value="{{article.commentaire}}" onkeyup="setCommentaireID($(this))"> 
+        {{article.commentaire|raw}}
     </div>
 </div>
 

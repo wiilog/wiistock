@@ -39,9 +39,9 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="Commentaire">Commentaire</label>
-                    <input class="form-control data" name="commentaire" type="hidden">
-                    <div class="editor-container">
+                    <label for="commentaire">Commentaire</label>
+                    <input id="commentaire" class="commentaire form-control data" name="commentaire" type="hidden" >
+                    <div class="editor-container" >
                     </div>
                 </div>
 
@@ -50,9 +50,9 @@
             <div class="modal-footer">
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>
                 <button
-                onclick="setCommentaire()"
+               
                 id="submitNewService" type="button"
-                    class="btn btn-success">Enregistrer</button>
+                    class="btn btn-success" onclick='setCommentaire($(this))'>Enregistrer</button>
             </div>
         </div>
     </div>

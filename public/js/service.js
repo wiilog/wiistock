@@ -79,22 +79,22 @@ let submitModifyService = $('#submitEditService');
 let urlModifyService = Routing.generate('service_edit', true);
 InitialiserModal(modalModifyService, submitModifyService, urlModifyService, tableService);
 
-function initEditor() {
-    var quill = new Quill('.editor-container', {
-        modules: {
-            toolbar: [
-                [{ header: [1, 2, false] }],
-                ['bold', 'italic', 'underline'],
-                ['image', 'code-block']
-            ]
-        },
-        theme: 'snow'
-    });
+
+var editorEditServiceAlreadyDone = false;
+function initEditServiceEditor(modal) {
+    if (!editorEditServiceAlreadyDone) {
+        initEditor(modal);
+        editorEditServiceAlreadyDone = true;
+
+    }
 };
 
-function setCommentaire() {
-    var quill = new Quill('.editor-container');
-    var commentaire = document.querySelector('input[name=commentaire]');
-    commentaire.value = quill.container.firstChild.innerHTML;
-};
 
+//initialisation editeur de texte une seule fois
+var editorNewServiceAlreadyDone = false;
+function initNewServiceEditor(modal) {
+    if (!editorNewServiceAlreadyDone) {
+        initEditor(modal);
+        editorNewServiceAlreadyDone = true;
+    }
+};

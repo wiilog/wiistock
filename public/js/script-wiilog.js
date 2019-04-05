@@ -15,6 +15,7 @@
 
 
 function InitialiserModal(modal, submit, path, table, callback = null, close = true) {
+    
     submit.click(function () {
         xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function () {
@@ -44,7 +45,7 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
                  
                 let inputs = modal.find('.modal-body').find(".data");
                
-                console.log(inputs);
+                 console.log(inputs);
                 // on vide tous les inputs
                 inputs.each(function () {
                     $(this).val("");
@@ -70,6 +71,9 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
         inputs.each(function () {
             let val = $(this).val();
             let name = $(this).attr("name");
+            // console.log($(this));
+            // console.log(val);
+            // console.log($(this).val);
             Data[name] = val;
             // validation données obligatoires
             if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
@@ -207,15 +211,15 @@ function showRow(modal, button, path) {
  * @param {Document} submit le bouton de validation du form pour le edit
  *  
  */
-function editRow(button, path, modal, submit) {
+//TODO SS ajouter dernier param pour collecte et service et article
+function editRow(button, path, modal, submit, editorToInit = false) {
     xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
             dataReponse = JSON.parse(this.responseText);
             modal.find('.modal-body').html(dataReponse);
-            initEditor();
-            console.log('init');
-            initEditorId();
+
+            if (editorToInit) initEditor('#' + modal.attr('id'));
         }
     }
     let json = button.data('id');
@@ -235,4 +239,66 @@ function toggleRadioButton(button) {
 }
 
 
+//initialisation editeur de texte une seule fois
 
+function initEditor(modal) {
+   
+    var quill = new Quill(modal + ' .editor-container', {
+        modules: {
+            toolbar: [
+                [{ header: [1, 2, false] }],
+                ['bold', 'italic', 'underline'],
+                ['image', 'code-block']
+            ]
+        },
+        theme: 'snow'
+    });
+};
+
+//passe de l'éditeur àl'imput pour insertion en BDD
+function setCommentaire(button) {
+    let modal = button.closest('.modal');
+    let container = '#' + modal.attr('id') + ' .editor-container';
+    var quill = new Quill(container);
+    // let commentaire = modal.find('input[id=commentaire]');
+    // console.log(commentaire);
+    com = quill.container.firstChild.innerHTML;
+    $('#commentaire').val(com);
+    // console.log(com);
+    // console.log($('#commentaire').val(com));
+};
+
+
+function setCommentaireID(button) {
+    // console.log('hello');
+    let modal = button.closest('.modal');
+    // console.log(modal);
+    let container = '#' + modal.attr('id') + ' .editor-container';
+    // console.log(container);
+    var quill = new Quill(container);
+    // let commentaire = modal.find('input[id=commentaireID]');
+    // console.log(commentaire);
+
+    com = quill.container.firstChild.innerHTML;
+    $('#commentaireID').val(com);
+    // console.log(com);
+    // console.log($('#commentaireID').val(com));
+};
+
+
+
+
+
+
+// function setCommentaire() {
+//         var quill = new Quill('.editor-container');
+//         var commentaire = document.querySelector('input[name=commentaire]');
+//         commentaire.value = quill.container.firstChild.innerHTML;
+//         console.log(commentaire.value);
+//     };
+
+// function setCommentaireId() {
+//         var quill = new Quill('#editor');
+//         let com = quill.container.firstChild.innerHTML;
+//         $('#commentaire').val(com);
+// }
