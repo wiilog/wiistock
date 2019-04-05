@@ -102,12 +102,11 @@ class ServiceController extends AbstractController
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $em = $this->getDoctrine()->getEntityManager();
-            dump($request);       
+                  
             $status = $this->statutRepository->findOneByCategorieAndStatut(Service::CATEGORIE, Service::STATUT_A_TRAITER);
             $service = new Service();
             $date = new \DateTime('now');
-            dump($data);
-
+        
             $service
                 ->setDate($date)
                 ->setLibelle($data['Libelle'])

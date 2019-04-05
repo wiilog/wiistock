@@ -261,44 +261,18 @@ function setCommentaire(button) {
     let container = '#' + modal.attr('id') + ' .editor-container';
     var quill = new Quill(container);
     // let commentaire = modal.find('input[id=commentaire]');
-    // console.log(commentaire);
     com = quill.container.firstChild.innerHTML;
     $('#commentaire').val(com);
-    // console.log(com);
-    // console.log($('#commentaire').val(com));
+    
 };
 
 
 function setCommentaireID(button) {
-    // console.log('hello');
     let modal = button.closest('.modal');
-    // console.log(modal);
     let container = '#' + modal.attr('id') + ' .editor-container';
-    // console.log(container);
     var quill = new Quill(container);
     // let commentaire = modal.find('input[id=commentaireID]');
-    // console.log(commentaire);
-
     com = quill.container.firstChild.innerHTML;
     $('#commentaireID').val(com);
-    // console.log(com);
-    // console.log($('#commentaireID').val(com));
 };
 
-
-
-
-
-
-// function setCommentaire() {
-//         var quill = new Quill('.editor-container');
-//         var commentaire = document.querySelector('input[name=commentaire]');
-//         commentaire.value = quill.container.firstChild.innerHTML;
-//         console.log(commentaire.value);
-//     };
-
-// function setCommentaireId() {
-//         var quill = new Quill('#editor');
-//         let com = quill.container.firstChild.innerHTML;
-//         $('#commentaire').val(com);
-// }

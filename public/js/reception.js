@@ -55,11 +55,6 @@ let tableArticle = $('#tableArticle_id').DataTable({
     ],
 });
 
-
-
-
-
-
 let modal = $("#modalAddArticle");
 let submit = $("#addArticleSubmit");
 let url = Routing.generate('reception_article_add', true);
@@ -74,17 +69,6 @@ let modalEditArticle = $("#modalEditArticle");
 let submitEditArticle = $("#submitEditArticle");
 let urlEditArticle = Routing.generate('reception_article_edit', true);
 InitialiserModal(modalEditArticle, submitEditArticle, urlEditArticle, tableArticle);
-
-
-
-
-
-
-
-
-
-
-
 
 //GENERATOR BARCODE
 
@@ -125,8 +109,6 @@ let printerAll = function () {
     xhttp.send(json);
 }
 
-
-
 function updateStock(select) {
     let id = select.val();
     $.post(Routing.generate('get_article_stock'), { 'id': id }, function (data) {
@@ -153,15 +135,12 @@ function initEditReceptionEditor(modal) {
 
 var editorNewArticleAlreadyDone = false;
 function initNewArticleEditor(modal) {
-    console.log('init new art');
-    console.log(editorNewArticleAlreadyDone);
-    if (!editorNewArticleAlreadyDone) {
-        initEditor(modal);
-        editorNewArticleAlreadyDone = true;
+      if (!editorNewArticleAlreadyDone) {
+      initEditor(modal);
+      editorNewArticleAlreadyDone = true;
     }
 };
 
-// //TODO à brancher
 var editorEditArticleAlreadyDone = false;
 console.log(editorEditArticleAlreadyDone);
 function initEditArticleEditor() {
