@@ -212,6 +212,9 @@ class CollecteController extends AbstractController
                 ->setCommentaire($data['commentaire']);
             $em->persist($collecte);
             $em->flush();
+            $data = [
+                "redirect" => $this->generateUrl('collecte_show', ['id' => $collecte->getId()])
+            ];
             return new JsonResponse($data);
         }
         throw new XmlHttpException("404 not found");
@@ -256,8 +259,6 @@ class CollecteController extends AbstractController
     public function removeArticle(Request $request)
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-
-            dump($data);
             if (array_key_exists(ReferenceArticle::TYPE_QUANTITE_REFERENCE, $data)) {
                 $collecteReference = $this->collecteReferenceRepository->find($data[ReferenceArticle::TYPE_QUANTITE_REFERENCE]);
                 $entityManager = $this->getDoctrine()->getManager();
