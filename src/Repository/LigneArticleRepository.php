@@ -36,7 +36,7 @@ class LigneArticleRepository extends ServiceEntityRepository
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-            "SELECT l 
+            "SELECT l
             FROM App\Entity\LigneArticle l
             WHERE l.reference = :referenceArticle
             "
@@ -44,6 +44,7 @@ class LigneArticleRepository extends ServiceEntityRepository
         ;
         return $query->getSingleResult();
     }
+
     public function getByDemande($demande)
     {
         $entityManager = $this->getEntityManager();
