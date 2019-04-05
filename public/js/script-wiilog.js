@@ -245,12 +245,27 @@ function initEditor(modal) {
    
     var quill = new Quill(modal + ' .editor-container', {
         modules: {
-            toolbar: [
-                [{ header: [1, 2, false] }],
-                ['bold', 'italic', 'underline'],
-                ['image', 'code-block']
-            ]
+        //     toolbar: [
+        //         [{ header: [1, 2, 3, false] }],
+        //         ['bold', 'italic', 'underline'],
+        //         [{'list': 'ordered'}, {'list': 'bullet'}]
+        //         ['image', 'code-block']
+        //     ]
+        // },
+        toolbar: [
+            [{ header: [1, 2, 3, false] }],
+            ['bold', 'italic', 'underline', 'image'],
+            
+            [{'list': 'ordered'}, {'list': 'bullet'}]
+          ]
         },
+        formats: [
+          'header',
+          'bold', 'italic', 'underline', 'strike', 'blockquote',
+          'list', 'bullet', 'indent',
+          'link', 'image'
+        ],
+
         theme: 'snow'
     });
 };
