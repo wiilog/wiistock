@@ -4,11 +4,12 @@ namespace App\DataFixtures;
 
 use App\Entity\Statut;
 use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Common\Persistence\ObjectManager;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
-class StatutFixtures extends Fixture implements DependentFixtureInterface
+class StatutFixtures extends Fixture implements DependentFixtureInterface, FixtureGroupInterface
 {
     private $encoder;
 
@@ -155,7 +156,7 @@ class StatutFixtures extends Fixture implements DependentFixtureInterface
         return [CategorieStatutFixtures::class];
     }
 
-    public function getGroups():array {
+    public static function getGroups():array {
         return ['status'];
     }
 
