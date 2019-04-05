@@ -4,12 +4,12 @@
         <div data-id='{{ idArticle }}' class='type-delete col-3' data-target='#modalEditArticle' 
         data-toggle='modal'
         onclick="editRow($(this), Routing.generate('ligne_article_api_edit', true), $('#modalEditArticle'), $('#submitEditArticle'))">
-        <i class='fas fa-pencil-alt'></i>
+            <i class='fas fa-pencil-alt'></i>
         </div>
         <div class='type-delete col-3'
         onclick="deleteRow($(this), $('#modalDeleteArticle'), $('#submitDeleteArticle'))" data-id='{{ idArticle }}'
         data-target='#modalDeleteArticle' data-toggle='modal'>
-        <i class='fas fa-trash '></i>
+            <i class='fas fa-trash '></i>
         </div>
     </div>
 

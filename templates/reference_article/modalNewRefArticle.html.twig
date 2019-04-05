@@ -92,11 +92,6 @@
                                     {% for champ in type.champsLibres %}
                                     <div class="form-group col-6">
                                         <div class="input-group">
-                                            <!-- <div class="input-group-prepend">
-                                                <label class="input-group-text" for="input">
-                                                    {{champ.label}}
-                                                </label>
-                                            </div> -->
                                             {% if champ.typage == 'booleen' %}
                                             {% set checked = (champ.defaultValue == 1) ? 'checked' : '' %}
                                             <label class="input-group-text" for="input">
