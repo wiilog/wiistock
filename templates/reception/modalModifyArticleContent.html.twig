@@ -7,7 +7,7 @@
         <div class="form-group">
             <label>Anomalie</label>
             <label class="switch">
-                <input class="checkbox" type="checkbox" name="anomalie">
+                <input class="checkbox" type="checkbox" name="anomalie" {{ (article.conform == 1) ? '' : 'checked' }}>
                 <span class="slider round"></span>
             </label>
         </div>

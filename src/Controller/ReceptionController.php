@@ -375,9 +375,10 @@ class ReceptionController extends AbstractController
             {
                 $article = $this->articleRepository->find($data['article']);
                 $reception = $this->receptionRepository->find($article->getReception()->getId());
+
                 $article
                     ->setCommentaire($data['commentaire'])
-                    ->setConform($data['conform'] === 'on' ? Article::CONFORM : Article::NOT_CONFORM)
+                    ->setConform($data['anomalie'] ? Article::NOT_CONFORM : Article::CONFORM)
                     ->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF))
                     ->setLabel($data['label']);
                 $em = $this->getDoctrine()->getManager();
