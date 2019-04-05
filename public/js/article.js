@@ -24,29 +24,51 @@ let submitEditArticle = $("#submitEditArticle");
 let urlEditArticle = Routing.generate('reception_article_edit', true);
 InitialiserModal(modalEditArticle, submitEditArticle, urlEditArticle, tableArticle);
 
-// // initialisation editeur de texte une seule fois
-// var editorAlreadyDone = false;
-// console.log('test');
-// function initEditor() {
-//      if (editorAlreadyDone === false) {
-//         var quill = new Quill('#editor-container', {
-//             modules: {
-//                 toolbar: [
-//                     [{ header: [1, 2, false] }],
-//                     ['bold', 'italic', 'underline'],
-//                     ['image', 'code-block']
-//                 ]
-//             },
-//             theme: 'snow'
-//         });
-//         editorAlreadyDone = true;
-//         console.log(editorAlreadyDone)
-//     }
-// };
-// //passe de l'éditeur àl'imput pour insertion en BDD
-// function setCommentaire() {
-//     console.log('test2');
-//     var quill = new Quill('#editor-container');
-//     var commentaire = document.querySelector('input[name=commentaire]');
-//     commentaire.value = quill.container.firstChild.innerHTML;
-// };
+//initialisation editeur de texte une seule fois
+var editorAlreadyDone = false;
+function initEditor() {
+    if (editorAlreadyDone === false) {
+        console.log(editorAlreadyDone);
+        var quill = new Quill('.editor-container', {
+            modules: {
+                toolbar: [
+                    [{ header: [1, 2, false] }],
+                    ['bold', 'italic', 'underline'],
+                    ['image', 'code-block']
+                ]
+            },
+            theme: 'snow'
+        });
+        editorAlreadyDone = true;
+        console.log(editorAlreadyDone)
+        console.log('vv')
+    }
+};
+var editorIdAlreadyDone = false;
+function initEditorId() {     
+        var quill = new Quill('#editor', {
+            modules: {
+                toolbar: [
+                    [{ header: [1, 2, false] }],
+                    ['bold', 'italic', 'underline'],
+                    ['image', 'code-block']
+                ]
+            },
+            theme: 'snow'
+        });  
+        editorAlreadyDoneId = true;
+        console.log(editorAlreadyDoneId)
+        console.log('vv')
+};
+//passe de l'éditeur àl'imput pour insertion en BDD
+function setCommentaire() {
+    var quill = new Quill('.editor-container'); 
+    var commentaire = document.querySelector('input[name=commentaire]');
+    commentaire.value = quill.container.firstChild.innerHTML;
+};
+
+function setCommentaireId() {
+    var quill = new Quill('#editor');
+    let com = quill.container.firstChild.innerHTML;
+    $('#commentaire').val(com);
+};

@@ -154,7 +154,7 @@ function initEditor() {
         console.log('vv')
     }
 };
-
+var editorIdAlreadyDone = false;
 function initEditorId() {     
         var quill = new Quill('#editor', {
             modules: {
@@ -166,7 +166,11 @@ function initEditorId() {
             },
             theme: 'snow'
         });  
+        editorAlreadyDoneId = true;
+        console.log(editorAlreadyDoneId)
+        console.log('vv')
 };
+
 //passe de l'éditeur àl'imput pour insertion en BDD
 function setCommentaire() {
     var quill = new Quill('.editor-container'); 

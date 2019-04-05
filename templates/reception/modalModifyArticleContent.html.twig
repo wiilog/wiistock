@@ -21,7 +21,7 @@
 
 <div class="form-group">
     <label for="article-commentaire">Commentaire</label>
-    <input class="form-control data" name="commentaire" type="hidden" id='commentaire'>
+    <input class="form-control data" name="commentaire" type="hidden" id='commentaire' value='{{article.commentaire|raw}}'>
     <div id="editor"> {{article.commentaire|raw}}
     </div>
 </div>
