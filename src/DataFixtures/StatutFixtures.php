@@ -159,5 +159,4 @@ class StatutFixtures extends Fixture implements DependentFixtureInterface
         return ['status'];
     }
 
-
 }

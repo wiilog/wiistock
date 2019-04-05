@@ -1,9 +1,18 @@
-pour lancer les fixtures :
- 
+`pour lancer les fixtures :`
+php bin/console doctrine:fixtures:load
+
+`sans effacer les données existantes en base`
 php bin/console doctrine:fixtures:load --append
 
-(l'option append permet d'ajouter les données sans effacer les données existantes en base)
-
-pour lancer une (ou plusieurs) fixtures :
-
+`pour lancer une ou pls fixtures seulement`
 php bin/console doctrine:fixtures:load --group=NameOfFixture --group=NameOfOtherFixture
+
+`pour lancer les fixtures d'un group donné`
+`ajouter implements FixtureGroupInterface + ajouter méthode :
+    public static function getGroups():array {
+        return ['types'];
+    }`
+php bin/console doctrine:fixtures:load --group=groupName
+
+`ex. pour lancer l'import des articles :`
+php bin/console doctrine:fixtures:load --append --group=articles
