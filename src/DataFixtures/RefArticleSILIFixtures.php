@@ -42,7 +42,7 @@ class RefArticleSILIFixtures extends Fixture implements FixtureGroupInterface
 
     public function load(ObjectManager $manager)
     {
-        $path = "public/csv/mob.csv";
+        $path = "public/csv/sili.csv";
         $file = fopen($path, "r");
 
         $firstRow = true;

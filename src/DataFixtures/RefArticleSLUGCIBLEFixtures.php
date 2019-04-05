@@ -56,7 +56,7 @@ class RefArticleSLUGCIBLEFixtures extends Fixture implements FixtureGroupInterfa
 
     public function load(ObjectManager $manager)
     {
-        $path = "public/csv/mob.csv";
+        $path = "public/csv/slugcible.csv";
         $file = fopen($path, "r");
 
         $firstRow = true;
