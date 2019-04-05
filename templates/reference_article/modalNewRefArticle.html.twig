@@ -92,19 +92,27 @@
                                     {% for champ in type.champsLibres %}
                                     <div class="form-group col-6">
                                         <div class="input-group">
-                                            <div class="input-group-prepend">
-                                                <label class="input-group-text" for="input">
-                                                    {{champ.label}}
-                                                </label>
-                                            </div>
                                             {% if champ.typage == 'booleen' %}
                                             {% set checked = (champ.defaultValue == 1) ? 'checked' : '' %}
-                                            <input type="checkbox" class="form-control data checkbox" {{ checked }}
+                                            <label class="input-group-text" for="input">
+                                                    {{champ.label}}
+                                                </label>
+                                            <input type="checkbox" class="data checkbox"  {{ checked }}
                                                 name="{{champ.id}}" id="input">
                                             {% elseif champ.typage == 'number' %}
+                                            <div class="input-group-prepend">
+                                                    <label class="input-group-text" for="input">
+                                                        {{champ.label}}
+                                                    </label>
+                                                </div>
                                             <input type="number" class="form-control data"
                                                 value="{{champ.defaultValue}}" name="{{champ.id}}" id="input">
                                             {% else %}
+                                            <div class="input-group-prepend">
+                                                    <label class="input-group-text" for="input">
+                                                        {{champ.label}}
+                                                    </label>
+                                                </div>
                                             <input class="form-control data" type="text" value="{{champ.defaultValue}}"
                                                 name='{{ champ.id }}' id="input">
                                             {% endif %}

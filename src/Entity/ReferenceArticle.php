@@ -282,7 +282,7 @@ class ReferenceArticle
         return $this->articlesFournisseur;
     }
 
-    public function addArticlesFournisseur(ArticleFournisseur $articlesFournisseur): self
+    public function addArticleFournisseur(ArticleFournisseur $articlesFournisseur): self
     {
         if (!$this->articlesFournisseur->contains($articlesFournisseur)) {
             $this->articlesFournisseur[] = $articlesFournisseur;
@@ -292,7 +292,7 @@ class ReferenceArticle
         return $this;
     }
 
-    public function removeArticlesFournisseur(ArticleFournisseur $articlesFournisseur): self
+    public function removeArticleFournisseur(ArticleFournisseur $articlesFournisseur): self
     {
         if ($this->articlesFournisseur->contains($articlesFournisseur)) {
             $this->articlesFournisseur->removeElement($articlesFournisseur);

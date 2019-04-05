@@ -11,6 +11,12 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Type
 {
+    const LABEL_PSS = 'PSS';
+    const LABEL_PDT = 'PDT';
+    const LABEL_SILI = 'SILI';
+    const LABEL_MOB = 'MOB';
+    const LABEL_SLUGCIBLE = 'SLUGCIBLE';
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
