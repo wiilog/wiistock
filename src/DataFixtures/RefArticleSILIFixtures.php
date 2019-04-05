@@ -42,12 +42,7 @@ class RefArticleSILIFixtures extends Fixture implements FixtureGroupInterface
 
     public function load(ObjectManager $manager)
     {
-        if ($_SERVER['APP_ENV'] == 'dev') {
-            $path = "C:\wamp64\www\WiiStock\public\csv\sili.csv";
-        } else {
-            $path = "https://cl1-test.follow-gt.fr/csv/sili.csv";
-        };
-
+        $path = "public/csv/mob.csv";
         $file = fopen($path, "r");
 
         $firstRow = true;
