@@ -167,4 +167,6 @@ class ArticleController extends AbstractController
         }
         throw new NotFoundHttpException("404");
     }
+
+  
 }

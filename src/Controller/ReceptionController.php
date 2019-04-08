@@ -3,9 +3,12 @@
 namespace App\Controller;
 
 use App\Entity\Reception;
+use App\Entity\ReceptionReferenceArticle;
+
 use App\Form\ReceptionType;
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\ReceptionRepository;
+use App\Repository\ReceptionReferenceArticleRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -74,11 +77,17 @@ class ReceptionController extends AbstractController
      */
     private $articleFournisseurRepository;
 
-    public function __construct(FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository)
+    /**
+     * @var ReceptionReferenceArticleRepository
+     */
+    private $receptionReferenceArticleRepository;
+
+    public function __construct(ReceptionReferenceArticleRepository $receptionReferenceArticleRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository)
     {
         $this->statutRepository = $statutRepository;
         $this->emplacementRepository = $emplacementRepository;
         $this->receptionRepository = $receptionRepository;
+        $this->receptionReferenceArticleRepository = $receptionReferenceArticleRepository;
         $this->utilisateurRepository = $utilisateurRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->fournisseurRepository = $fournisseurRepository;
@@ -125,7 +134,6 @@ class ReceptionController extends AbstractController
                 ];
                 return new JsonResponse($data);
             }
-
         throw new NotFoundHttpException("404");
     }
 
@@ -135,29 +143,29 @@ class ReceptionController extends AbstractController
     public function edit(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-                $fournisseur = $this->fournisseurRepository->find(intval($data['fournisseur']));
-                $utilisateur = $this->utilisateurRepository->find(intval($data['utilisateur']));
-                $statut = $this->statutRepository->find(intval($data['statut']));
+            $fournisseur = $this->fournisseurRepository->find(intval($data['fournisseur']));
+            $utilisateur = $this->utilisateurRepository->find(intval($data['utilisateur']));
+            $statut = $this->statutRepository->find(intval($data['statut']));
 
-                $reception = $this->receptionRepository->find($data['receptionId']);
-                $reception
-                    ->setNumeroReception($data['NumeroReception'])
-                    ->setDate(new \DateTime($data['date-commande']))
-                    ->setDateAttendu(new \DateTime($data['date-attendu']))
-                    ->setStatut($statut)
-                    ->setFournisseur($fournisseur)
-                    ->setUtilisateur($utilisateur)
-                    ->setCommentaire($data['commentaire']);
+            $reception = $this->receptionRepository->find($data['receptionId']);
+            $reception
+                ->setNumeroReception($data['NumeroReception'])
+                ->setDate(new \DateTime($data['date-commande']))
+                ->setDateAttendu(new \DateTime($data['date-attendu']))
+                ->setStatut($statut)
+                ->setFournisseur($fournisseur)
+                ->setUtilisateur($utilisateur)
+                ->setCommentaire($data['commentaire']);
 
-                $em = $this->getDoctrine()->getManager();
-                $em->flush();
-                $json = [
-                    'entete' => $this->renderView('reception/enteteReception.html.twig', [
-                        'reception' => $reception,
-                    ])
-                ];
-                return new JsonResponse($json);
-            }
+            $em = $this->getDoctrine()->getManager();
+            $em->flush();
+            $json = [
+                'entete' => $this->renderView('reception/enteteReception.html.twig', [
+                    'reception' => $reception,
+                ])
+            ];
+            return new JsonResponse($json);
+        }
         throw new NotFoundHttpException("404");
     }
 
@@ -216,25 +224,48 @@ class ReceptionController extends AbstractController
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
             {
-                $articles = $this->articleRepository->getArticleByReception($id);
-                $rows = [];
-                foreach ($articles as $article) {
+                $receptionRAByreferences = $this->receptionReferenceArticleRepository->getByReception($id);
+                dump($receptionRAByreferences);
+                $rowsARR = [];
+                foreach ($receptionRAByreferences as $receptionRAByreference) {
                     $articleData = [
-                        'ref' => $article->getReference(),
-                        'id' => $article->getId()
+                        'ref' => "",
+                        'id' => $receptionRAByreference->getId()
                     ];
-                    $rows[] =
+                    $rowsARA[] =
                         [
-                            "Référence" => ($article->getReference() ? $article->getReference() : ''),
-                            "Libellé" => ($article->getLabel() ? $article->getlabel() : ''),
-                            "Référence CEA" => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : ''),
-                            "Statut" => ($article->getStatut() ? $article->getStatut()->getNom() : ""),
+                            "Référence" => '',
+                            "Libellé" => ($receptionRAByreference->getReferenceArticle() ? $receptionRAByreference->getReferenceArticle()->getlibelle() : ''),
+                            "Référence CEA" => ($receptionRAByreference->getReferenceArticle() ? $receptionRAByreference->getReferenceArticle()->getReference() : ''),
+                            "Fabriquant" => '',
+                            "A recevoir" => ($receptionRAByreference->getQuantiteAR() ? $receptionRAByreference->getQuantiteAR() : ""),
+                            "Reçu" => ($receptionRAByreference->getQuantite() ? $receptionRAByreference->getQuantite : ""),
                             'Actions' => $this->renderView('reception/datatableArticleRow.html.twig', [
                                 'article' => $articleData,
                             ]),
                         ];
                 }
-                $data['data'] = $rows;
+                $articles = $this->articleRepository->getArticleByReception($id);
+                $rowsARA = [];
+                foreach ($articles as $article) {
+                    $articleData = [
+                        'ref' => $article->getReference(),
+                        'id' => $article->getId()
+                    ];
+                    $rowsARA[] =
+                        [
+                            "Référence" => ($article->getReference() ? $article->getReference() : ''),
+                            "Libellé" => ($article->getLabel() ? $article->getlabel() : ''),
+                            "Référence CEA" => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : ''),
+                            "Fabriquant" => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getFournisseur()->getNom() : ''),
+                            "A recevoir" => ($article->getStatut() ? $article->getStatut()->getNom() : ""),
+                            "Reçu" => ($article->getStatut() ? $article->getStatut()->getNom() : ""),
+                            'Actions' => $this->renderView('reception/datatableArticleRow.html.twig', [
+                                'article' => $articleData,
+                            ]),
+                        ];
+                }
+                $data['data'] = array_merge($rowsARA, $rowsARR);
                 return new JsonResponse($data);
             }
         throw new NotFoundHttpException("404");
@@ -309,9 +340,10 @@ class ReceptionController extends AbstractController
     {
         if (!$request->isXmlHttpRequest() &&  $contentData = json_decode($request->getContent(), true)) //Si la requête est de type Xml
             {
-                $refArticle = $this->referenceArticleRepository->find($contentData['refArticle']);
+                $refArticle = $this->referenceArticleRepository->find($contentData['referenceArticle']);
                 $reception = $this->receptionRepository->find($contentData['reception']);
                 $anomalie = $contentData['anomalie'] === 'on';
+                $em = $this->getDoctrine()->getManager();
                 if (!$anomalie) {
                     $articleAnomalie = $this->articleRepository->countNotConformByReception($reception);
                     if ($articleAnomalie < 1) {
@@ -321,30 +353,21 @@ class ReceptionController extends AbstractController
                 } else {
                     $reception->setStatut($this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_ANOMALIE));
                 }
-
                 $quantite = $contentData['quantite'];
-                $refArticle->setQuantiteStock($refArticle->getQuantiteStock() + $quantite);
-                $date = new \DateTime('now');
-                $ref = $date->format('YmdHis');
-                $articleFournisseur = $this->articleFournisseurRepository->findOneByRefArticleAndFournisseur($contentData['refArticle'], $contentData['fournisseur']); //TODO CG
 
-                if (!empty($articleFournisseur)) {
-                    for ($i = 0; $i < $quantite; $i++) {
-                        $article = new Article();
-                        $article
-                            ->setlabel($contentData['libelle'])
-                            ->setReference($ref . '-' . strval($i))
-                            ->setArticleFournisseur($articleFournisseur)
-                            ->setConform(!$anomalie)
-                            ->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF))
-                            ->setCommentaire($contentData['commentaire'])
-                            ->setReception($reception);
-
-                        $em = $this->getDoctrine()->getManager();
-                        $em->persist($article);
-                        $em->flush();
-                    } //TODO gérer message erreur retour
+                if ($refArticle) {
+                    $receptionRAByreference = new ReceptionReferenceArticle;
+                    $receptionRAByreference
+                        ->setCommentaire($contentData['commentaire'])
+                        ->setReferenceArticle($refArticle)
+                        ->setReception($reception)
+                        ->setQuantite($quantite);
+                    $em->persist($receptionRAByreference);
+                } else {
+                    $json = false;
                 }
+                $em->flush();
+
                 return new JsonResponse();
             }
         throw new NotFoundHttpException("404");
@@ -422,6 +445,23 @@ class ReceptionController extends AbstractController
     {
 
         $statut = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_RECEPTION_TOTALE);
+
+        // $date = new \DateTime('now');
+        //             $ref = $date->format('YmdHis');
+        //             $articleFournisseur = $this->articleFournisseurRepository->find($contentData['articleFournisseur']);
+        //             for ($i = 0; $i < $quantite; $i++) {
+        //                 $article = new Article();
+        //                 $article
+        //                     ->setlabel($contentData['libelle'])
+        //                     ->setReference($ref . '-' . strval($i))
+        //                     ->setArticleFournisseur($articleFournisseur)
+        //                     ->setConform(!$anomalie)
+        //                     ->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF))
+        //                     ->setCommentaire($contentData['commentaire'])
+        //                     ->setReception($reception);
+
+        //                 $em->persist($article);
+
         $reception->setStatut($statut);
         $reception->setDateReception(new \DateTime('now'));
         $this->getDoctrine()->getManager()->flush();

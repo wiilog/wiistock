@@ -96,6 +96,11 @@ class ReferenceArticle
      */
     private $commentaire;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\ReceptionReferenceArticle", mappedBy="referenceArticle")
+     */
+    private $receptionReferenceArticles;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
@@ -105,6 +110,7 @@ class ReferenceArticle
         $this->valeurChampsLibres = new ArrayCollection();
         $this->articlesFournisseur = new ArrayCollection();
         $this->collecteReferences = new ArrayCollection();
+        $this->receptionReferenceArticles = new ArrayCollection();
     }
 
     public function getId()
@@ -373,6 +379,37 @@ class ReferenceArticle
     public function setCommentaire(?string $commentaire): self
     {
         $this->commentaire = $commentaire;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|ReceptionReferenceArticle[]
+     */
+    public function getReceptionReferenceArticles(): Collection
+    {
+        return $this->receptionReferenceArticles;
+    }
+
+    public function addReceptionReferenceArticle(ReceptionReferenceArticle $receptionReferenceArticle): self
+    {
+        if (!$this->receptionReferenceArticles->contains($receptionReferenceArticle)) {
+            $this->receptionReferenceArticles[] = $receptionReferenceArticle;
+            $receptionReferenceArticle->setReferenceArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReceptionReferenceArticle(ReceptionReferenceArticle $receptionReferenceArticle): self
+    {
+        if ($this->receptionReferenceArticles->contains($receptionReferenceArticle)) {
+            $this->receptionReferenceArticles->removeElement($receptionReferenceArticle);
+            // set the owning side to null (unless already changed)
+            if ($receptionReferenceArticle->getReferenceArticle() === $this) {
+                $receptionReferenceArticle->setReferenceArticle(null);
+            }
+        }
 
         return $this;
     }

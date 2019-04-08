@@ -151,4 +151,40 @@ function initEditArticleEditor() {
     }
 };
 
+$('.ajax-autocomplete').select2({
+    ajax: {
+        url: Routing.generate('get_ref_articles'),
+        dataType: 'json',
+        delay: 250,
+    },
+    language: {
+        inputTooShort: function() {
+            return 'Veuillez entrer au moins 1 caractère.';
+        },
+        searching: function() {
+            return 'Recherche en cours...';
+        },
+        noResults: function() {
+            return 'Aucun résultat.';
+        }
+    },
+    minimumInputLength: 1,
+});
 
+function ajaxGetArticle(select) {
+    xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            data = JSON.parse(this.responseText);
+           $('#newContent').html(data);
+           $('#modalAddArticle').find('div').find('div').find('.modal-footer').removeClass('d-none');
+
+        }
+    }
+    path =  Routing.generate('get_refArticle_in_reception', true)
+    let data = {};
+    data['referenceArticle'] = select.val();
+    json = JSON.stringify(data);
+    xhttp.open("POST", path, true);
+    xhttp.send(json);
+}

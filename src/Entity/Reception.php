@@ -74,11 +74,17 @@ class Reception
      * @ORM\Column(type="string", nullable=true)
      */
     private $reference;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\ReceptionReferenceArticle", mappedBy="reception")
+     */
+    private $receptionReferenceArticles;
     
 
     public function __construct()
     {
         $this->articles = new ArrayCollection();
+        $this->receptionReferenceArticles = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -227,6 +233,37 @@ class Reception
     public function setReference(?string $reference): self
     {
         $this->reference = $reference;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|ReceptionReferenceArticle[]
+     */
+    public function getReceptionReferenceArticles(): Collection
+    {
+        return $this->receptionReferenceArticles;
+    }
+
+    public function addReceptionReferenceArticle(ReceptionReferenceArticle $receptionReferenceArticle): self
+    {
+        if (!$this->receptionReferenceArticles->contains($receptionReferenceArticle)) {
+            $this->receptionReferenceArticles[] = $receptionReferenceArticle;
+            $receptionReferenceArticle->setReception($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReceptionReferenceArticle(ReceptionReferenceArticle $receptionReferenceArticle): self
+    {
+        if ($this->receptionReferenceArticles->contains($receptionReferenceArticle)) {
+            $this->receptionReferenceArticles->removeElement($receptionReferenceArticle);
+            // set the owning side to null (unless already changed)
+            if ($receptionReferenceArticle->getReception() === $this) {
+                $receptionReferenceArticle->setReception(null);
+            }
+        }
 
         return $this;
     }

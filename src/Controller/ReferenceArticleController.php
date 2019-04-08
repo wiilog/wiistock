@@ -194,9 +194,9 @@ class ReferenceArticleController extends Controller
                     ->setLibelle($data['libelle'])
                     ->setReference($data['reference'])
                     ->setCommentaire($data['commentaire'])
-                    ->setQuantiteStock($data['quantite'] ?$data['quantite'] : 0)
+                    ->setQuantiteStock($data['quantite'] ? $data['quantite'] : 0)
                     ->setStatut($statut)
-                    ->setTypeQuantite($data['type_quantite'] ?ReferenceArticle::TYPE_QUANTITE_REFERENCE : ReferenceArticle::TYPE_QUANTITE_ARTICLE)
+                    ->setTypeQuantite($data['type_quantite'] ? ReferenceArticle::TYPE_QUANTITE_REFERENCE : ReferenceArticle::TYPE_QUANTITE_ARTICLE)
                     ->setType($this->typeRepository->find($data['type']));
                 $em->persist($refArticle);
                 $em->flush();
@@ -219,13 +219,13 @@ class ReferenceArticleController extends Controller
                 $rowCL = [];
                 foreach ($champsLibres as $champLibre) {
                     $valeur = $this->valeurChampsLibreRepository->getByRefArticleANDChampsLibre($refArticle->getId(), $champLibre['id']);
-                    $rowCL[$champLibre['label']] = ($valeur ?$valeur->getValeur() : "");
+                    $rowCL[$champLibre['label']] = ($valeur ? $valeur->getValeur() : "");
                 }
                 $rowDD = [
                     "id" => $refArticle->getId(),
                     "Libellé" => $refArticle->getLibelle(),
                     "Référence" => $refArticle->getReference(),
-                    "Type" => ($refArticle->getType() ?$refArticle->getType()->getLabel() : ""),
+                    "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
                     "Quantité" => $refArticle->getQuantiteStock(),
                     'Actions' => $this->renderView('reference_article/datatableReferenceArticleRow.html.twig', [
                         'idRefArticle' => $refArticle->getId(),
@@ -372,7 +372,7 @@ class ReferenceArticleController extends Controller
             $refArticleId = $request->request->get('refArticleId');
             $refArticle = $this->referenceArticleRepository->find($refArticleId);
 
-            $quantity = $refArticle ? ($refArticle->getQuantiteStock() ?$refArticle->getQuantiteStock() : 0) : 0;
+            $quantity = $refArticle ? ($refArticle->getQuantiteStock() ? $refArticle->getQuantiteStock() : 0) : 0;
 
             return new JsonResponse($quantity);
         }
@@ -461,6 +461,31 @@ class ReferenceArticleController extends Controller
                 ]);
             } else {
                 $json = false;
+            }
+            return new JsonResponse($json);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/get-RefArticle", name="get_refArticle_in_reception", options={"expose"=true})
+     */
+    public function getRefArticleInReception(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $refArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
+            if ($refArticle) {
+                if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+                    $json = $this->renderView('reference_article/newRefArticleByReference.html.twig');
+                }elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE){
+                    $json = $this->renderView('reference_article/newRefArticleByArticle.html.twig',[
+                        'articlesFournisseurs' =>$this->articleFournisseurRepository->findALL(),
+                        ]);
+                }else {
+                    $json = false;
+                }
+            } else {
+                $json = false; //TODO gérer erreur retour
             }
             return new JsonResponse($json);
         }
