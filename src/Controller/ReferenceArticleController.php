@@ -184,8 +184,6 @@ class ReferenceArticleController extends Controller
             // on vérifie que la référence n'existe pas déjà
             $refAlreadyExist = $this->articleFournisseurRepository->countByReference($data['reference']);
 
-            dump($data);
-
             if ($refAlreadyExist) {
                 return new JsonResponse(false);
             } else {
@@ -335,7 +333,7 @@ class ReferenceArticleController extends Controller
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $refArticle = $this->referenceArticleRepository->find(intval($data['idRefArticle']));
-
+            dump($data);
             if ($refArticle) {
                 $response = $this->refArticleDataService->editRefArticle($refArticle, $data);
             } else {

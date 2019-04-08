@@ -33,28 +33,30 @@
             <div class="input-group-prepend">
                 <label for="type" class="input-group-text">Type</label>
             </div>
-            <select name="type" onclick="typeChoice($(this), '-edit', $('#typeContentEdit'))" class="form-control data d-block" id="">
+            <select name="type" onclick="typeChoice($(this), '-edit', $('#typeContentEdit'))"
+                class="form-control data d-block" id="">
                 {% set selected = articleRef.type is null ? 'selected' : '' %}
-                <option {{ selected }} value =''> </option>
+                <option {{ selected }} value=''> </option>
 
                 {% for type in types %}
-                    {% set selected = '' %}
-                    {% if articleRef.type is not null %}{% set selected = articleRef.type.id == type.id ? 'selected' : '' %}{% endif %}
-                    <option {{ selected }} value="{{type.id}}">{{type.label}}</option>
+                {% set selected = '' %}
+                {% if articleRef.type is not null %}{% set selected = articleRef.type.id == type.id ? 'selected' : '' %}{% endif %}
+                <option {{ selected }} value="{{type.id}}">{{type.label}}</option>
                 {% endfor %}
             </select>
         </div>
     </div>
     <div class="form-group col-12">
-        <div class="input-group">
+        <div class="">
             <div class="input-group-prepend">
                 <label class="input-group-text">Commentaire</label>
             </div>
-            <textarea class="form-control data" name="commentaire" aria-label="With textarea">{{articleRef.commentaire ? articleRef.commentaire : "" }}</textarea>
+            <input id='commentaire' class="form-control data" name="commentaire" type="hidden"
+                value='{{articleRef.commentaire}}'>
+            <div class="editor-container" value="{{articleRef.commentaire}}" onfocusout="setCommentaireID($(this))"> {{articleRef.commentaire|raw}}</div>
         </div>
     </div>
 </div>
-
 <div class="row mt-4 mb-4">
     <div class="form-group col-6">
         <div class="input-group radio-btn">
@@ -131,7 +133,8 @@
     </div>
     <div class="form-group col-12 d-block" id='typeContentEdit'>
         {% for type in types %}
-        <div {{ articleRef.type is defined and type.id == articleRef.type.id ? "class='d-block'" : "class='d-none'"}} id="{{type.id}}-edit">
+        <div {{ articleRef.type is defined and type.id == articleRef.type.id ? "class='d-block'" : "class='d-none'"}}
+            id="{{type.id}}-edit">
             <div class="row mt-2">
                 {% for champ in type.champsLibres %}
 

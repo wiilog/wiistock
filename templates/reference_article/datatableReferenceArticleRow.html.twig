@@ -1,10 +1,10 @@
 <div class="row">
-    <div data-id='{{ idRefArticle }}' id='delete{{idRefArticle}}' data-target='#modalEditRefArticle' data-toggle='modal'
+    <div data-id='{{ idRefArticle }}' id='edit{{idRefArticle}}' data-target='#modalEditRefArticle' data-toggle='modal'
         class='col-3'
-        onclick="editRow($(this), Routing.generate('reference_article_edit_api', true), $('#modalEditRefArticle'), $('#submitEditRefArticle'))">
+        onclick="editRow($(this), Routing.generate('reference_article_edit_api', true), $('#modalEditRefArticle'), $('#submitEditRefArticle'), true)">
         <i class='fas fa-pencil-alt'></i>
     </div>
-    <div class='col-3' id='edit{{idRefArticle}}'
+    <div class='col-3' id='delete{{idRefArticle}}'
         onclick="deleteRow($(this), $('#modalDeleteRefArticle'), $('#submitDeleteRefArticle'))"
         data-id='{{ idRefArticle }}' data-target='#modalDeleteRefArticle' data-toggle='modal'>
         <i class='fas fa-trash'></i>

@@ -298,3 +298,20 @@ function ajaxPlusDemandeContent(button) {
     xhttp.open("POST", path, true);
     xhttp.send(json);
 }
+
+//initialisation editeur de texte une seule fois
+var editorNewReferenceArticleAlreadyDone = false;
+function initNewReferenceArticleEditor(modal) {
+    if (!editorNewReferenceArticleAlreadyDone) {
+        initEditor(modal);
+        editorNewReferenceArticleAlreadyDone = true;
+    }
+};
+
+var editorEditRefArticleAlreadyDone = false;
+function initEditRefArticleEditor(modal) {
+    if (!editorEditRefArticleAlreadyDone) {
+        initEditor(modal);
+        editorEditRefArticleAlreadyDone = true;
+    }
+};

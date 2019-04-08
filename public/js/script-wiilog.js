@@ -224,7 +224,6 @@ function editRow(button, path, modal, submit, editorToInit = false) {
         if (this.readyState == 4 && this.status == 200) {
             dataReponse = JSON.parse(this.responseText);
             modal.find('.modal-body').html(dataReponse);
-
             if (editorToInit) initEditor('#' + modal.attr('id'));
         }
     }

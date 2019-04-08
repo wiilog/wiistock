@@ -173,6 +173,7 @@ class RefArticleDataService
             $entityManager = $this->em;
             if (isset($data['reference'])) $refArticle->setReference($data['reference']);
             if (isset($data['libelle'])) $refArticle->setLibelle($data['libelle']);
+            if (isset($data['commentaire'])) $refArticle->setCommentaire($data['commentaire']);
             if (isset($data['quantite'])) $refArticle->setQuantiteStock(intval($data['quantite']));
             if (isset($data['statut'])) {
                 $statutLabel = ($data['statut'] == 1) ? ReferenceArticle::STATUT_ACTIF : ReferenceArticle::STATUT_INACTIF;
