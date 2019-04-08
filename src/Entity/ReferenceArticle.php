@@ -91,6 +91,11 @@ class ReferenceArticle
      */
     private $collecteReferences;
 
+    /**
+     * @ORM\Column(type="text", nullable=true)
+     */
+    private $commentaire;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
@@ -356,6 +361,18 @@ class ReferenceArticle
                 $collecteReference->setReferenceArticle(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getCommentaire(): ?string
+    {
+        return $this->commentaire;
+    }
+
+    public function setCommentaire(?string $commentaire): self
+    {
+        $this->commentaire = $commentaire;
 
         return $this;
     }

@@ -184,15 +184,18 @@ class ReferenceArticleController extends Controller
             // on vérifie que la référence n'existe pas déjà
             $refAlreadyExist = $this->articleFournisseurRepository->countByReference($data['reference']);
 
+            dump($data);
+
             if ($refAlreadyExist) {
                 return new JsonResponse(false);
             } else {
                 $em = $this->getDoctrine()->getManager();
-                $statut = ($data['statut'] === 'active' ?$this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF) : $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_INACTIF));
+                $statut = ($data['statut'] === 'active' ? $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF) : $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_INACTIF));
                 $refArticle = new ReferenceArticle();
                 $refArticle
                     ->setLibelle($data['libelle'])
                     ->setReference($data['reference'])
+                    ->setCommentaire($data['commentaire'])
                     ->setQuantiteStock($data['quantite'] ?$data['quantite'] : 0)
                     ->setStatut($statut)
                     ->setTypeQuantite($data['type_quantite'] ?ReferenceArticle::TYPE_QUANTITE_REFERENCE : ReferenceArticle::TYPE_QUANTITE_ARTICLE)

@@ -8,7 +8,6 @@
                 id="reference">
         </div>
     </div>
-
     <div class="form-group col-6">
         <div class="input-group radio-btn">
             <label for="statut" class="mtb-auto mr-2">Statut</label>
@@ -21,7 +20,6 @@
             <input type="hidden" name="statut" id="statut" class="data" value="{{ statut }}">
         </div>
     </div>
-
     <div class="form-group col-6">
         <div class="input-group">
             <div class="input-group-prepend">
@@ -44,8 +42,15 @@
                     {% if articleRef.type is not null %}{% set selected = articleRef.type.id == type.id ? 'selected' : '' %}{% endif %}
                     <option {{ selected }} value="{{type.id}}">{{type.label}}</option>
                 {% endfor %}
-
             </select>
+        </div>
+    </div>
+    <div class="form-group col-12">
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <label class="input-group-text">Commentaire</label>
+            </div>
+            <textarea class="form-control data" name="commentaire" aria-label="With textarea">{{articleRef.commentaire ? articleRef.commentaire : "" }}</textarea>
         </div>
     </div>
 </div>
