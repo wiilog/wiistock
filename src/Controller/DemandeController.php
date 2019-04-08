@@ -143,7 +143,8 @@ class DemandeController extends AbstractController
                 ->setdate($date)
                 //                ->setDateAttendu(new \DateTime($data['dateAttendu']))
                 ->setDestination($destination)
-                ->setNumero("D-" . $date->format('YmdHis'));
+                ->setNumero("D-" . $date->format('YmdHis'))
+                ->setCommentaire($data["commentaire"]);
             $em->persist($demande);
             $em->flush();
 
