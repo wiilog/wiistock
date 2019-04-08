@@ -12,7 +12,7 @@
                 <div class="row">
                     <div class="form-group col-6">
                         <div class="input-group">
-                           <label class="input-group-text data" for="refArticle">Référence CEA</label>
+                            <label class="input-group-text data" for="refArticle">Référence CEA</label>
                             <select id="refArticle" onchange="updateStock($(this));" class='form-control select1 data'
                                 name='refArticle' type="text">
                                 <option disabled selected> </option>
@@ -39,9 +39,9 @@
                             <div class="input-group-prepend">
                                 <label for="" class="input-group-text">Quantité en stock</label>
                             </div>
-                            <input id="stock" type="text" class="form-control data" name="stock" >
+                            <input id="stock" type="text" class="form-control data" name="stock">
                         </div>
-                    </div>                   
+                    </div>
                 </div>
                 <div class="row">
                     <div class="form-group col-6">
@@ -60,22 +60,20 @@
                         </label>
                     </div>
                 </div>
-                <div class="row">
-                    <div class="input-group col-12 my-2 mb-4">
-                        <div class="input-group-prepend">
-                            <label class="input-group-text">Commentaire</label>
-                        </div>
-                        <textarea class="form-control data" name="commentaire" id='commentaire'></textarea>
-                    </div>
+
+                <div class="form-group col-6">
+                    <label >Commentaire</label>
+                    <input id='commentaireID' class="form-control data" name="commentaire" type="hidden">
+                    <div class="editor-container"></div>
                 </div>
             </div>
-            
+
             <div class="modal-footer">
                 <input hidden class="data" name="fournisseur" value="{{ reception.fournisseur.id }}">
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>
                 <button id="addArticleSubmit" type="button" data-dismiss="modal"
-                    class="btn btn-primary btn-success data" name="reception"
-                    value="{{reception.id}}">Enregistrer</button>
+                    class="btn btn-primary btn-success data" name="reception" value="{{reception.id}}"
+                    onclick='setCommentaireID($(this))'>Enregistrer</button>
             </div>
         </div>
     </div>

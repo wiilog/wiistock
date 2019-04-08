@@ -14,7 +14,7 @@ aria-hidden="true">
             <div class="modal-footer">
                 <input type="hidden" class="data" name="receptionId" value="{{ reception.id }}">
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>
-                <button id="submitEditReception" type="button" name="reception" data-dismiss="modal" class="btn btn-primary btn-success data">
+                <button id="submitEditReception" type="button" name="reception" data-dismiss="modal" class="btn btn-primary btn-success data" onclick='setCommentaire($(this))'>
                     Enregistrer
                 </button>
             </div>

@@ -16,7 +16,8 @@
         "_toggle_button.sass",
         "_radio_button.sass",
         "_filters.sass",
-        "_service.sass"
+        "_service.sass",
+        "_WYSIWYG.sass"
     ],
     "names": [],
     "file": "style.css"

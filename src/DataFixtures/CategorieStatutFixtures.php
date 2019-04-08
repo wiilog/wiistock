@@ -3,11 +3,12 @@
 namespace App\DataFixtures;
 
 use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use App\Entity\CategorieStatut;
 
-class CategorieStatutFixtures extends Fixture
+class CategorieStatutFixtures extends Fixture implements FixtureGroupInterface
 {
     private $encoder;
 
@@ -39,7 +40,7 @@ class CategorieStatutFixtures extends Fixture
         $manager->flush();
     }
 
-    public function getGroups():array {
+    public static function getGroups():array {
         return ['status'];
     }
 

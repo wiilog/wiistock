@@ -46,7 +46,10 @@
 </div>
 
 <div class="form-group">
-    <label for="NumeroReception">Commentaire</label>
-    <input type="text" class="form-control data" name="commentaire" value="{{reception.commentaire}}"
-        placeholder="Commentaire">
+    <label for="Reception">Commentaire</label>
+    <input id='commentaire' class="form-control data" name="commentaire" type="hidden" value="{{reception.commentaire}}">
+        <div class="editor-container" value="{{reception.commentaire}}"> {{reception.commentaire|raw}}
+            </div>
 </div>
+
+

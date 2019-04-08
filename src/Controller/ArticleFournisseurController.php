@@ -151,7 +151,7 @@ class ArticleFournisseurController extends AbstractController
     public function delete(Request $request) : Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            dump($data);
+           
             $articleFournisseur= $this->articleFournisseurRepository->find(intval($data['article-fournisseur']));
 
             $em = $this->getDoctrine()->getManager();

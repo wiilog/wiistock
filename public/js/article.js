@@ -24,3 +24,10 @@ let submitEditArticle = $("#submitEditArticle");
 let urlEditArticle = Routing.generate('reception_article_edit', true);
 InitialiserModal(modalEditArticle, submitEditArticle, urlEditArticle, tableArticle);
 
+var editorEditArticleAlreadyDone = false;
+function initEditArticleEditor(modal) {
+    if (!editorEditArticleAlreadyDone) {
+        initEditor(modal);
+        editorEditArticleAlreadyDone = true;
+    }
+};

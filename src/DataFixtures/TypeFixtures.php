@@ -22,7 +22,7 @@ class TypeFixtures extends Fixture implements DependentFixtureInterface, Fixture
     {
 //        categorie referenceArticle
           $typesNames = [
-              'PDD',
+              'PDT',
               'PSS',
               'SILI',
               'MOB',

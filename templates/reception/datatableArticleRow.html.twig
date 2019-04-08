@@ -6,7 +6,7 @@
     </div>
     <div data-id='{{ article.id }}' data-toggle='modal' data-target='#modalEditArticle'
         class='col-3 command-edit'
-        onclick="editRow($(this), Routing.generate('reception_article_edit_api', true), $('#modalEditArticle'), $('#submitEditArticle'))">
+        onclick="editRow($(this), Routing.generate('reception_article_edit_api', true), $('#modalEditArticle'), $('#submitEditArticle'), true)">
         <i class='fas fa-pencil-alt'></i>
     </div>
     <div class='col-3' data-ref="{{article.ref}}" onclick='printBarcode($(this))'>

@@ -18,6 +18,7 @@ var table = $('#tableCollecte_id').DataTable({
     ],
 });
 
+
 let modalNewCollecte = $("#modalNewCollecte");
 let SubmitNewCollecte = $("#submitNewCollecte");
 let urlNewCollecte = Routing.generate('collecte_new', true)

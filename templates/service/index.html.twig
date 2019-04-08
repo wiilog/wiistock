@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Demande de déplacement d’article{% endblock %}
+{% block title %}Déplacement d’article{% endblock %}
 
 {% block page_content %}
 
@@ -54,7 +54,7 @@
     <div class="row justify-content-between mt-3 mb-3">
         <h1 class="col-6">Demande de déplacement d’article</h1>
         <div class='col-2'>
-            <a href="" data-toggle="modal" data-target="#modalNewService" class="btn btn-primary">
+            <a href="" data-toggle="modal" data-target="#modalNewService" class="btn btn-primary" onclick='initNewServiceEditor("#modalNewService")'>
                 <span class="fa fa-plus mr-2"></span>Nouvelle demande
             </a>
         </div>

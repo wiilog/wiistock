@@ -3,7 +3,7 @@ $('.select2').select2({
         id: 'demandeur', // the value of the option
         text: 'Demandeur',
     }
-    
+
 });
 
 var pathService = Routing.generate('service_api', true);
@@ -79,3 +79,22 @@ let submitModifyService = $('#submitEditService');
 let urlModifyService = Routing.generate('service_edit', true);
 InitialiserModal(modalModifyService, submitModifyService, urlModifyService, tableService);
 
+
+var editorEditServiceAlreadyDone = false;
+function initEditServiceEditor(modal) {
+    if (!editorEditServiceAlreadyDone) {
+        initEditor(modal);
+        editorEditServiceAlreadyDone = true;
+
+    }
+};
+
+
+//initialisation editeur de texte une seule fois
+var editorNewServiceAlreadyDone = false;
+function initNewServiceEditor(modal) {
+    if (!editorNewServiceAlreadyDone) {
+        initEditor(modal);
+        editorNewServiceAlreadyDone = true;
+    }
+};
