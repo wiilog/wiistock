@@ -109,12 +109,46 @@ let printerAll = function () {
     xhttp.send(json);
 }
 
-
-
 function updateStock(select) {
     let id = select.val();
     $.post(Routing.generate('get_article_stock'), { 'id': id }, function (data) {
         $('#stock').val(data);
     }, "json");
 }
+
+//initialisation editeur de texte une seule fois
+var editorNewReceptionAlreadyDone = false;
+function initNewReceptionEditor(modal) {
+    if (!editorNewReceptionAlreadyDone) {
+        initEditor(modal);
+        editorNewReceptionAlreadyDone = true;
+    }
+};
+
+var editorEditReceptionAlreadyDone = false;
+function initEditReceptionEditor(modal) {
+    if (!editorEditReceptionAlreadyDone) {
+        initEditor(modal);
+        editorEditReceptionAlreadyDone = true;
+    }
+};
+
+var editorNewArticleAlreadyDone = false;
+function initNewArticleEditor(modal) {
+      if (!editorNewArticleAlreadyDone) {
+      initEditor(modal);
+      editorNewArticleAlreadyDone = true;
+    }
+};
+
+var editorEditArticleAlreadyDone = false;
+console.log(editorEditArticleAlreadyDone);
+function initEditArticleEditor() {
+    if (!editorEditArticleAlreadyDone) {
+        initEditor();
+        editorEditArticleAlreadyDone = true;
+        console.log(editorEditArticleAlreadyDone);
+    }
+};
+
 
