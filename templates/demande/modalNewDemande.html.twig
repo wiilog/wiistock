@@ -24,6 +24,12 @@
                         {% endfor %}
                     </select>
                 </div>
+                <div class="form-group">
+                    <label for="commentaire">Commentaire</label>
+                    <input id='commentaireID' class="commentaire form-control data" name="commentaire" type="hidden" >
+                    <div class="editor-container" >
+                    </div>
+                </div>
 
                 {#<div class="form-group">#}
                         {#<label for="dateAttendu">Date attendue</label>#}
@@ -33,7 +39,7 @@
             <div class="modal-footer">
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>
                 <button id="submitNewDemande" type="button" data-dismiss="modal"
-                    class="btn btn-success">Enregistrer</button>
+                    class="btn btn-success" onclick='setCommentaireID($(this))''>Enregistrer</button>
             </div>
         </div>
     </div>

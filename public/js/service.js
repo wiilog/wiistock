@@ -79,7 +79,6 @@ let submitModifyService = $('#submitEditService');
 let urlModifyService = Routing.generate('service_edit', true);
 InitialiserModal(modalModifyService, submitModifyService, urlModifyService, tableService);
 
-
 var editorEditServiceAlreadyDone = false;
 function initEditServiceEditor(modal) {
     if (!editorEditServiceAlreadyDone) {
@@ -88,7 +87,6 @@ function initEditServiceEditor(modal) {
 
     }
 };
-
 
 //initialisation editeur de texte une seule fois
 var editorNewServiceAlreadyDone = false;
