@@ -163,6 +163,7 @@ $(document).ready(function () {
             "data": dataContent,
             "columns": columnContent
         });
+        loadSpinnerAR($('#spinner'));
         initRemove();
         hideColumnChampsLibres();
     })
@@ -287,14 +288,19 @@ function ajaxPlusDemandeContent(button) {
         if (this.readyState == 4 && this.status == 200) {
             dataReponse = JSON.parse(this.responseText);
             if (dataReponse) {
-               $('.plusDemandeContent').html(dataReponse);
+                $('.plusDemandeContent').html(dataReponse);
             } else {
                 //TODO gérer erreur
             }
         }
     }
     let json = button.data('id');
-    let path =  Routing.generate('ajax_plus_demande_content', true);
+    let path = Routing.generate('ajax_plus_demande_content', true);
     xhttp.open("POST", path, true);
     xhttp.send(json);
+}
+
+function loadSpinnerAR(div) {
+    div.removeClass('d-flex');
+    div.addClass('d-none');
 }
