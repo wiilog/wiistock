@@ -47,7 +47,9 @@
 </div>
 
 <div class="form-group">
-    <label for="collecte-commentaire">Commentaire</label>
-    <input type="text" class="form-control data" name="commentaire" id='commentaire' value="{{collecte.commentaire}}"
-        placeholder="Commentaire">
+    <label for="commentaire" >Commentaire</label>
+    <input id="commentaire" class="form-control data" name="commentaire" type="hidden" value="{{collecte.commentaire}}" >
+    <div class="editor-container" value="{{collecte.commentaire}}" > {{collecte.commentaire|raw}}
+        </div>
+    
 </div>
