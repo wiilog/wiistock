@@ -138,6 +138,10 @@ class UtilisateurController extends Controller
                     return new JsonResponse('Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial.');
                     //TODO gérer retour erreur propre
                 }
+            } else {
+                if ($data['password2'] !== '') {
+                    return new JsonResponse('Les mots de passe ne correspondent pas.');
+                }
             }
 
             // validation de l'email
