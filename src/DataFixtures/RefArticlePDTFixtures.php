@@ -67,6 +67,7 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
 
         $i = 1;
         foreach($rows as $row) {
+            if (empty($row[0])) continue;
             dump($i);
             $i++;
             $typePdt = $this->typeRepository->findOneBy(['label' => Type::LABEL_PDT]);
@@ -115,7 +116,7 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
 
 
             // champs libres
-            $listData = [
+                $listFields = [
                 ['label' => 'adresse', 'col' => 2, 'type' => ChampsLibre::TYPE_TEXT],
                 ['label' => 'famille produit', 'col' => 4, 'type' => ChampsLibre::TYPE_TEXT],
                 ['label' => 'zone', 'col' => 5, 'type' => ChampsLibre::TYPE_TEXT],
@@ -128,21 +129,21 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
                 ['label' => "date entrée", 'col' => 14, 'type' => ChampsLibre::TYPE_TEXT],
             ];
 
-            foreach ($listData as $row) {
+                foreach($listFields as $field) {
                 $vcl = new ValeurChampsLibre();
-                $cl = $this->champsLibreRepository->findOneBy(['label' => $row['label']]);
+                    $cl = $this->champsLibreRepository->findOneBy(['label' => $field['label']]);
                 if (empty($cl)) {
                     $cl = new ChampsLibre();
                     $cl
-                        ->setLabel($row['label'])
-                        ->setTypage($row['type'])
+                        ->setLabel($field['label'])
+                        ->setTypage($field['type'])
                         ->setType($typePdt);
                     $manager->persist($cl);
                 }
                 $vcl
                     ->setChampLibre($cl)
                     ->addArticleReference($referenceArticle)
-                    ->setValeur($row['col']);
+                    ->setValeur($row[$field['col']]);
                 $manager->persist($vcl);
             }
 
