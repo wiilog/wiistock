@@ -55,7 +55,7 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
 
     public function load(ObjectManager $manager)
     {
-        $path = "public/csv/pdt-mini.csv";
+        $path = "public/csv/pdt.csv";
         $file = fopen($path, "r");
 
         $rows = [];
