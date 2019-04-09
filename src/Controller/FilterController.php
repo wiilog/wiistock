@@ -95,8 +95,9 @@ class FilterController extends AbstractController
                     'champFixe' => $filter->getChampFixe(),
                     'value' => $filter->getValue()
                 ];
+
                 $result = [
-                    'reload' => $this->refArticleDataService->getRefArticleData(),
+                    'reload' => $this->refArticleDataService->getRefArticleDataByParams($request->request),
                     'filterHtml' => $this->renderView('reference_article/oneFilter.html.twig', ['filter' => $filterArray])
                 ];
             } else {
@@ -122,7 +123,7 @@ class FilterController extends AbstractController
                 $em->flush();
             }
 
-            $data = $this->refArticleDataService->getRefArticleData();
+            $data = $this->refArticleDataService->getRefArticleDataByParams();
 
             return new JsonResponse($data);
         }

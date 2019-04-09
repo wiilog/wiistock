@@ -83,16 +83,17 @@ class RefArticleDataService
     }
 
     /**
+     * @param null $params
      * @return array
      * @throws \Twig_Error_Loader
      * @throws \Twig_Error_Runtime
      * @throws \Twig_Error_Syntax
      */
-    public function getRefArticleData()
+    public function getRefArticleDataByParams($params = null)
     {
         $userId = $this->user->getId();
         $filters = $this->filterRepository->getFieldsAndValuesByUser($userId);
-        $refs = $this->referenceArticleRepository->findByFilters($filters);
+        $refs = $this->referenceArticleRepository->findByFiltersAndParams($filters, $params);
 
         $rows = [];
         foreach ($refs as $refArticle) {
