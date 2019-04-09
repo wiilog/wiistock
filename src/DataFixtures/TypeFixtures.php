@@ -21,7 +21,7 @@ class TypeFixtures extends Fixture implements DependentFixtureInterface, Fixture
     public function load(ObjectManager $manager)
     {
 //        categorie referenceArticle
-          $typesNames = [
+        $typesNames = [
               'PDT',
               'PSS',
               'SILI',
@@ -31,24 +31,21 @@ class TypeFixtures extends Fixture implements DependentFixtureInterface, Fixture
          ];
         
         foreach ($typesNames as $typeName) {
-             $type = new Type();
-             if ($typeName =='article'){
-                $type->setCategory($this->getReference('type-article'));}
-              else
-              {
-                  $type->setCategory($this->getReference('type-referenceArticle'));
-              }
-              $type->setLabel($typeName);
+            $type = new Type();
+            if ($typeName =='article') {
+                $type->setCategory($this->getReference('type-article'));
+            } else {
+                $type->setCategory($this->getReference('type-referenceArticle'));
+            }
+            $type->setLabel($typeName);
                       
                  
-             $manager->persist($type);
-         }
+            $manager->persist($type);
+        }
 
     
 
         $manager->flush();
-
-
     }
 
     public function getDependencies()
@@ -56,9 +53,8 @@ class TypeFixtures extends Fixture implements DependentFixtureInterface, Fixture
         return [CategoryTypeFixtures::class];
     }
 
-    public static function getGroups():array {
+    public static function getGroups():array
+    {
         return ['types'];
     }
-
-
 }
