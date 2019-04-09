@@ -179,7 +179,7 @@ class ReferenceArticleController extends Controller
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
         {
-            $data['data'] = $this->refArticleDataService->getRefArticleDataByParams($request->request);
+            $data = $this->refArticleDataService->getDataForDatatable($request->request);
 
             return new JsonResponse($data);
         }

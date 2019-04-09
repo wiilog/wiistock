@@ -14,9 +14,6 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function () 
                 } else if (data.edit) {
                     tableRefArticle.row($('#edit' + data.id).parents('div').parents('td').parents('tr')).remove().draw(false);
                     tableRefArticle.row.add(data.edit).draw(false);
-                } else if (data.reload) {
-                    tableRefArticle.clear();
-                    tableRefArticle.rows.add(data.reload).draw();
                 }
 
                 callback(data);
@@ -154,7 +151,6 @@ $(document).ready(function () {
             sortable: false,
             ordering: false,
             paging: true,
-            bInfo: false,
             order: [[1, 'asc']],
             ajax: {
                 'url': url,
@@ -231,6 +227,8 @@ function showDemande(bloc) {
 // affiche le filtre après ajout
 function displayNewFilter(data) {
     $('#filters').append(data.filterHtml);
+    tableRefArticle.clear();
+    tableRefArticle.ajax.reload();
 }
 
 // suppression du filtre au clic dessus
@@ -242,9 +240,9 @@ function removeFilter() {
     $(this).remove();
 
     let params = JSON.stringify({ 'filterId': $(this).find('.filter-id').val() });
-    $.post(Routing.generate('filter_delete', true), params, function (data) {
+    $.post(Routing.generate('filter_delete', true), params, function () {
         tableRefArticle.clear();
-        tableRefArticle.rows.add(data).draw();
+        tableRefArticle.ajax.reload();
     });
 }
 

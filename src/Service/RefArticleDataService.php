@@ -82,6 +82,14 @@ class RefArticleDataService
         $this->em = $em;
     }
 
+    public function getDataForDatatable($params = null)
+    {
+        $data['data'] = $this->getRefArticleDataByParams($params);
+        $data['recordsTotal'] = (int)$this->referenceArticleRepository->countAll();
+        $data['recordsFiltered'] = count($this->getRefArticleDataByParams());
+
+        return $data;
+    }
     /**
      * @param null $params
      * @return array
@@ -231,4 +239,5 @@ class RefArticleDataService
         }
         return $response;
     }
+
 }

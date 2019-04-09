@@ -205,4 +205,16 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
+    public function countAll()
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT COUNT(ra)
+            FROM App\Entity\ReferenceArticle ra
+           "
+        );
+
+        return $query->getSingleScalarResult();
+    }
+
 }
