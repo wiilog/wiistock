@@ -275,7 +275,7 @@ function initEditor(modal) {
     });
 };
 
-//passe de l'éditeur àl'imput pour insertion en BDD
+//passe de l'éditeur à l'imput pour insertion en BDD par la class editor-container
 function setCommentaire(button) {
     let modal = button.closest('.modal');
     let container = '#' + modal.attr('id') + ' .editor-container';
@@ -283,10 +283,10 @@ function setCommentaire(button) {
     // let commentaire = modal.find('input[id=commentaire]');
     com = quill.container.firstChild.innerHTML;
     $('#commentaire').val(com);
-    
+    console.log(com);
 };
 
-
+//passe de l'éditeur à l'imput pour insertion en BDD par l'id commentaireID (cas de conflit avec la class)
 function setCommentaireID(button) {
     let modal = button.closest('.modal');
     let container = '#' + modal.attr('id') + ' .editor-container';
