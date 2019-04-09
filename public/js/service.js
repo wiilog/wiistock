@@ -24,7 +24,7 @@ var tableService = $('#tableService_id').DataTable({
     ],
 
 });
-
+// filtres de recheches
 $('#submitSearchService').on('click', function () {
 
     let statut = $('#statut').val();

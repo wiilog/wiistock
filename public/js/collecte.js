@@ -1,4 +1,10 @@
-$('.select2').select2();
+$('.select2').select2({
+    placeholder: {
+        id: 'demandeur', // the value of the option
+        text: 'Demandeur',
+    }
+
+});
 
 var pathCollecte = Routing.generate('collecte_api', true);
 var table = $('#tableCollecte_id').DataTable({
@@ -131,7 +137,7 @@ function clearNewContent(button) {
         $('#newContent').html('');
         $('#reference').html('');
 }
-
+//initialisation editeur de texte une seule fois à l'édit
 var editorEditCollecteAlreadyDone = false;
 function initEditCollecteEditor(modal) {
     if (!editorEditCollecteAlreadyDone) {
@@ -142,7 +148,7 @@ function initEditCollecteEditor(modal) {
 };
 
 
-//initialisation editeur de texte une seule fois
+//initialisation editeur de texte une seule fois à la création
 var editorNewCollecteAlreadyDone = false;
 function initNewCollecteEditor(modal) {
     if (!editorNewCollecteAlreadyDone) {
@@ -150,4 +156,49 @@ function initNewCollecteEditor(modal) {
         editorNewCollecteAlreadyDone = true;
     }
 };
+
+$('#submitSearchCollecte').on('click', function () {
+
+    let statut = $('#statut').val();
+    let demandeur = [];
+    demandeur = $('#demandeur').val()
+    demandeurString = demandeur.toString();
+    demandeurPiped = demandeurString.split(',').join('|')
+
+    table
+        .columns(3)
+        .search(statut)
+        .draw();
+
+    table
+        .columns(1)
+        .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
+        .draw();
+
+    $.fn.dataTable.ext.search.push(
+        function (settings, data, dataIndex) {
+            let dateMin = $('#dateMin').val();
+            let dateMax = $('#dateMax').val();
+            let dateInit = (data[0]).split('/').reverse().join('-') || 0;
+
+            if (
+                (dateMin == "" && dateMax == "")
+                ||
+                (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
+                ||
+                (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
+                ||
+                (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
+
+            ) {
+                return true;
+            }
+            return false;
+        }
+
+    );
+    table
+       .draw();
+});
+
 

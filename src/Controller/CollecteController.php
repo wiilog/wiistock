@@ -93,7 +93,8 @@ class CollecteController extends AbstractController
         return $this->render('collecte/index.html.twig', [
             'emplacements' => $this->emplacementRepository->findAll(),
             'collecte' => $this->collecteRepository->findAll(),
-            'statuts' => $this->statutRepository->findAll(),
+            'statuts' => $this->statutRepository->findByCategorieName(Collecte::CATEGORIE),
+            'demandeurs'=> $this->utilisateurRepository->findAll(),
         ]);
     }
 
@@ -317,7 +318,7 @@ class CollecteController extends AbstractController
 
             $json = $this->renderView('collecte/modalEditCollecteContent.html.twig', [
                 'collecte' => $collecte,
-                "statuts" => $this->statutRepository->findAll(),
+                "statuts" => $this->statutRepository->findByCategorieName(Collecte::CATEGORIE),
                 "emplacements" => $this->emplacementRepository->findAll(),
                 // 'utilisateurs'=>$this->utilisateurRepository->findAll(),
             ]);
