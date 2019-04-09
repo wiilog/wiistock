@@ -37,11 +37,11 @@
 
 <div class="form-group">
     <label for="Pcollecte">Point de collecte</label>
-    <select class="pointCollecte form-control select2 data" name="Pcollecte">
-        <option disabled selected>Choisir un point de collecte...</option>
-        {% for emplacement in emplacements %}
+    <select class="pointCollecte form-control ajax-autocompleteEmplacement data" onclick="ajaxAutoCompletInit()" name="Pcollecte">
+        <option disabled selected>{{collecte.pointCollecte.label}}</option>
+        <!-- {% for emplacement in emplacements %}
         <option value="{{ emplacement.Id }}">{{ emplacement.label }}</option>
-        {% endfor %}
+        {% endfor %} -->
     </select>
 
 </div>
