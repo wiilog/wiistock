@@ -143,7 +143,7 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
                 $vcl
                     ->setChampLibre($cl)
                     ->addArticleReference($referenceArticle)
-                        ->setValeur($row[$field['col']]);
+                    ->setValeur($row[$field['col']]);
                 $manager->persist($vcl);
             }
 
