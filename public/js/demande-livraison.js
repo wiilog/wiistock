@@ -128,3 +128,12 @@ let ajaxAuto =function () {
         minimumInputLength: 1,
     });
 }
+
+var editorNewLivraisonAlreadyDone = false;
+function initNewLivraisonEditor(modal) {
+    if (!editorNewLivraisonAlreadyDone) {
+        initEditor(modal);
+        editorNewLivraisonAlreadyDone = true;
+    }
+};
+

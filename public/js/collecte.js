@@ -131,3 +131,23 @@ function clearNewContent(button) {
         $('#newContent').html('');
         $('#reference').html('');
 }
+
+var editorEditCollecteAlreadyDone = false;
+function initEditCollecteEditor(modal) {
+    if (!editorEditCollecteAlreadyDone) {
+        initEditor(modal);
+        editorEditCollecteAlreadyDone = true;
+
+    }
+};
+
+
+//initialisation editeur de texte une seule fois
+var editorNewCollecteAlreadyDone = false;
+function initNewCollecteEditor(modal) {
+    if (!editorNewCollecteAlreadyDone) {
+        initEditor(modal);
+        editorNewCollecteAlreadyDone = true;
+    }
+};
+

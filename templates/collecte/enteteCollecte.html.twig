@@ -1,28 +1,28 @@
 <div class="col-3">
-    <p>Demandeur : {{ collecte.demandeur }}</p>
-    <p>Date demande : {{ collecte.date.date|date('d/m/Y') }}</p>
-    <p>Date terminée : </p>
+    <p><strong> Demandeur : </strong> {{ collecte.demandeur }}</p>
+    <p><strong> Date demande : </strong>{{ collecte.date.date|date('d/m/Y') }}</p>
+    <p><strong> Date terminée : </strong> </p>
 </div>
 
 <div class="col-3">
-    <p>Objet : {{ collecte.objet }}</p>
-    <p>Statut : {{ collecte.statut.nom | capitalize }}</p>
+    <p><strong> Objet : </strong>{{ collecte.objet }}</p>
+    <p><strong> Statut : </strong> {{ collecte.statut.nom | capitalize }}</p>
 </div>
 
 <div class="col-3">
 
 </div>
-{% if modifiable %}
+{# {% if modifiable %}
 
 <div class="col-3">
     <div class="row justify-content-between">
-        <a href="#" class="btn btn-primary btn-action ml-auto"  data-id='{{collecte.id}}' id='submitFinishCollecte'
-                onclick="finishCollecte($(this))">
+        <a href="#" class="btn btn-primary btn-action ml-auto" data-id='{{collecte.id}}' id='submitFinishCollecte'
+            onclick="finishCollecte($(this))">
             Valider</a>
     </div>
     <div class="row justify-content-between">
         <a href="#" data-id='{{collecte.id}}' data-target='#modalEditCollecte' data-toggle='modal'
-            onclick="editRow($(this), Routing.generate('collecte_api_edit', true), $('#modalEditCollecte'), $('#submitEditCollecte'))"
+            onclick="editRow($(this), Routing.generate('collecte_api_edit', true), $('#modalEditCollecte'), $('#submitEditCollecte'), true)"
             class="btn btn-primary btn-action ml-auto">
             Modifier</a>
     </div>
@@ -33,9 +33,11 @@
             Supprimer</a>
     </div>
     <div class="row justify-content-between">
-        <a href="" data-toggle="modal" data-target="#modalNewArticle" onclick="clearNewContent($('#submitNewArticle'))" class="btn btn-primary btn-action ml-auto">
+        <a href="" data-toggle="modal" data-target="#modalNewArticle" onclick="clearNewContent($('#submitNewArticle'))"
+            class="btn btn-primary btn-action ml-auto">
             <span class="fa fa-plus mr-2"></span>Ajouter article</a>
     </div>
 
 </div>
-{% endif %}
+{% endif %}  #}
+</div>

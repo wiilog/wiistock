@@ -70,6 +70,11 @@ class Demande
      */
     private $ligneArticle;
 
+    /**
+     * @ORM\Column(type="text", nullable=true)
+     */
+    private $commentaire;
+
     public function __construct()
     {
         $this->ligneArticle = new ArrayCollection();
@@ -164,6 +169,9 @@ class Demande
         return $this;
     }
 
+   
+
+
 //    public function getDateAttendu(): ?\DateTimeInterface
 //    {
 //        return $this->DateAttendu;
@@ -203,6 +211,18 @@ class Demande
                 $ligneArticle->setDemande(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getCommentaire(): ?string
+    {
+        return $this->commentaire;
+    }
+
+    public function setCommentaire(?string $commentaire): self
+    {
+        $this->commentaire = $commentaire;
 
         return $this;
     }
