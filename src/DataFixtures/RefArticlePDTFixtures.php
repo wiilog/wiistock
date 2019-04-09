@@ -7,6 +7,7 @@ use App\Entity\ChampsLibre;
 use App\Entity\Fournisseur;
 use App\Entity\Type;
 use App\Repository\FournisseurRepository;
+use App\Repository\ReferenceArticleRepository;
 use App\Repository\StatutRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
@@ -43,14 +44,20 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
      */
     private $statutRepository;
 
+    /**
+     * @var ReferenceArticleRepository
+     */
+    private $refArticleRepository;
 
-    public function __construct(UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampsLibreRepository $champsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository)
+
+    public function __construct(UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampsLibreRepository $champsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $refArticleRepository)
     {
         $this->typeRepository = $typeRepository;
         $this->champsLibreRepository = $champsLibreRepository;
         $this->encoder = $encoder;
         $this->fournisseurRepository = $fournisseurRepository;
         $this->statutRepository = $statutRepository;
+        $this->refArticleRepository = $refArticleRepository;
     }
 
     public function load(ObjectManager $manager)
@@ -74,6 +81,10 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
             dump($i);
             $i++;
             $typePdt = $this->typeRepository->findOneBy(['label' => Type::LABEL_PDT]);
+
+            // protection contre doublons
+            $refArt = $this->refArticleRepository->findOneBy(['reference' => $row[0]]);
+            if (!empty($refArt)) continue;
 
             // champs fixes
             $referenceArticle = new ReferenceArticle();
