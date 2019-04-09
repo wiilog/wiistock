@@ -94,7 +94,7 @@ class CollecteController extends AbstractController
             'emplacements' => $this->emplacementRepository->findAll(),
             'collecte' => $this->collecteRepository->findAll(),
             'statuts' => $this->statutRepository->findByCategorieName(Collecte::CATEGORIE),
-            'demandeurs'=> $this->utilisateurRepository->findAll(),
+            'utilisateurs'=> $this->utilisateurRepository->findAll(),
         ]);
     }
 
@@ -320,7 +320,6 @@ class CollecteController extends AbstractController
                 'collecte' => $collecte,
                 "statuts" => $this->statutRepository->findByCategorieName(Collecte::CATEGORIE),
                 "emplacements" => $this->emplacementRepository->findAll(),
-                // 'utilisateurs'=>$this->utilisateurRepository->findAll(),
             ]);
             return new JsonResponse($json);
         }

@@ -29,7 +29,7 @@ $('#submitSearchService').on('click', function () {
 
     let statut = $('#statut').val();
     let demandeur = [];
-    demandeur = $('#demandeur').val()
+    demandeur = $('#utilisateur').val()
     demandeurString = demandeur.toString();
     demandeurPiped = demandeurString.split(',').join('|')
 

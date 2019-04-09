@@ -138,7 +138,7 @@ function clearNewContent(button) {
         $('#reference').html('');
 }
 //initialisation editeur de texte une seule fois à l'édit
-var editorEditCollecteAlreadyDone = false;
+let editorEditCollecteAlreadyDone = false;
 function initEditCollecteEditor(modal) {
     if (!editorEditCollecteAlreadyDone) {
         initEditor(modal);
@@ -149,7 +149,7 @@ function initEditCollecteEditor(modal) {
 
 
 //initialisation editeur de texte une seule fois à la création
-var editorNewCollecteAlreadyDone = false;
+let editorNewCollecteAlreadyDone = false;
 function initNewCollecteEditor(modal) {
     if (!editorNewCollecteAlreadyDone) {
         initEditor(modal);
@@ -158,10 +158,9 @@ function initNewCollecteEditor(modal) {
 };
 
 $('#submitSearchCollecte').on('click', function () {
-
     let statut = $('#statut').val();
     let demandeur = [];
-    demandeur = $('#demandeur').val()
+    demandeur = $('#utilisateur').val()
     demandeurString = demandeur.toString();
     demandeurPiped = demandeurString.split(',').join('|')
 

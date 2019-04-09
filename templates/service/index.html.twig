@@ -5,51 +5,9 @@
 {% block page_content %}
 {#fermeture de la div de layout pour fermer le container et ne pas avoir de bordure#}
 </div>
-<div class="row filterService align-items-center pl-2">
 
-    <div class='col-5'>
-        <div class="input-group">
-            <div class="input-group-prepend">
-                <div class="input-group-text">De</div>
-            </div>
-            <input type="date" class="form-control" name="dateMin" id="dateMin" placeholder="Date de début">
-            <div class="input-group-prepend">
-                <div class="input-group-text">Au</div>
-            </div>
-            <input type="date" class="form-control" name="dateMax" id="dateMax" placeholder="Date de fin">
-        </div>
-    </div>
+    {% include 'filters/filters.html.twig' with {'btnName' : 'submitSearchService'} %}
 
-    <div class='col-2'>
-        <div class="input-group">
-            <select class="form-control data" name="statut" id="statut" placeholder='statut'>
-                <option value>Statut </option>
-                {% for statut in statuts %}
-                <option value="{{ statut.nom }}">{{ statut.nom }}</option>
-                {% endfor %}
-            </select>
-        </div>
-    </div>
-
-    <div class='col-3'>
-        <div class="input-group">
-            <select type="text" class="form-control data select2 " name="demandeur" multiple="multiple" id="demandeur">
-                {% for demandeur in demandeurs %}
-                <option value="{{ demandeur.username }}">
-                    {{ demandeur.username }}
-                </option>
-                {% endfor %}
-            </select>
-        </div>
-    </div>
-
-    <div class='col-2'>
-        <div id='submitSearchService' class="btn btn-primary ">
-            <i class="fas fa-filter mr-2"></i>
-            Filtrer
-        </div>
-    </div>
-</div>
 <div class="container-fluid">
     <div class="row justify-content-between mt-3 mb-3">
         <h1 class="col-6">Déplacement d’article</h1>
