@@ -2,6 +2,13 @@
 
 namespace App\Service;
 
+use App\Repository\UtilisateurRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Swift_SmtpTransport;
+use Swift_Mailer;
+
 class PasswordService
 {
     /**
@@ -20,12 +27,12 @@ class PasswordService
     private $utilisateurRepository;
 
     /**
-     * @var transport
+     * @var Swift_SmtpTransport
      */
     private $transport;
 
     /**
-     * @var mailer
+     * @var Swift_Mailer
      */
     private $mailer;
 
@@ -46,13 +53,13 @@ class PasswordService
         $this->utilisateurRepository = $utilisateurRepository;
         $this->username = 'mail';
         $this->password = 'pass';
-        $this->transport = Swift_SmtpTransport::newInstance('smtp.gmail.com', 465, 'ssl')
+        $this->transport = (new Swift_SmtpTransport('smtp.gmail.com', 465, 'ssl'))
             ->setUsername($this->username)
             ->setPassword($this->password);
-        $this->mailer = Swift_Mailer::newInstance($this->transport);
+        $this->mailer = (new Swift_Mailer($this->transport));
     }
 
-    public function sendNewPassword($to, $body)
+    public function sendNewPassword($to)
     {
         $newPass = $this->generatePassword(10);
         updateUser($to, $newPass);
