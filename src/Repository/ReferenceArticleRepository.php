@@ -148,6 +148,8 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             $qb->andWhere($qb->expr()->in('ra.id', $ids));
         }
 
+        $countQuery = count($qb->getQuery()->getResult());
+
         // prise en compte des paramètres issus du datatable
         if (!empty($params)) {
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
@@ -162,7 +164,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
         $query = $qb->getQuery();
 
-        return $query->getResult();
+        return ['data' => $query->getResult(), 'count' => $countQuery];
     }
 
     public function countByType($typeId)

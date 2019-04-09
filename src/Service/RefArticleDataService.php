@@ -84,12 +84,11 @@ class RefArticleDataService
 
     public function getDataForDatatable($params = null)
     {
-        $data['data'] = $this->getRefArticleDataByParams($params);
+        $data = $this->getRefArticleDataByParams($params);
         $data['recordsTotal'] = (int)$this->referenceArticleRepository->countAll();
-        $data['recordsFiltered'] = count($this->getRefArticleDataByParams());
-
         return $data;
     }
+
     /**
      * @param null $params
      * @return array
@@ -101,7 +100,9 @@ class RefArticleDataService
     {
         $userId = $this->user->getId();
         $filters = $this->filterRepository->getFieldsAndValuesByUser($userId);
-        $refs = $this->referenceArticleRepository->findByFiltersAndParams($filters, $params);
+        $queryResult = $this->referenceArticleRepository->findByFiltersAndParams($filters, $params);
+        $refs = $queryResult['data'];
+        $count = $queryResult['count'];
 
         $rows = [];
         foreach ($refs as $refArticle) {
@@ -125,7 +126,7 @@ class RefArticleDataService
             ];
             $rows[] = array_merge($rowCL, $rowCF);
         }
-        return $rows;
+        return ['data' => $rows, 'recordsFiltered' => $count];
     }
 
 
