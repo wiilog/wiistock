@@ -11,6 +11,12 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
+use App\Entity\ValeurChampsLibre;
+use App\Repository\ChampsLibreRepository;
+use App\Repository\ValeurChampsLibreRepository;
+use App\Repository\TypeRepository;
+
+
 use App\Entity\Article;
 use App\Form\ArticleType;
 use App\Repository\ArticleRepository;
@@ -73,8 +79,21 @@ class ReceptionController extends AbstractController
      * @var ArticleFournisseurRepository
      */
     private $articleFournisseurRepository;
+    /**
+     * @var ChampslibreRepository
+     */
+    private $champsLibreRepository;
 
-    public function __construct(FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository)
+    /**
+     * @var ValeurChampsLibreRepository
+     */
+    private $valeurChampsLibreRepository;
+    /**
+     * @var TypeRepository
+     */
+    private $typeRepository;
+
+    public function __construct(TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository)
     {
         $this->statutRepository = $statutRepository;
         $this->emplacementRepository = $emplacementRepository;
@@ -84,6 +103,9 @@ class ReceptionController extends AbstractController
         $this->fournisseurRepository = $fournisseurRepository;
         $this->articleRepository = $articleRepository;
         $this->articleFournisseurRepository = $articleFournisseurRepository;
+        $this->champsLibreRepository = $champsLibreRepository;
+        $this->valeurChampsLibreRepository = $valeurChampsLibreRepository;
+        $this->typeRepository = $typeRepository;
     }
 
 
@@ -338,7 +360,8 @@ class ReceptionController extends AbstractController
                             ->setConform(!$anomalie)
                             ->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF))
                             ->setCommentaire($contentData['commentaire'])
-                            ->setReception($reception);
+                            ->setReception($reception)
+                            ->setType($this->typeRepository->find($contentData['type']));
 
                         $em = $this->getDoctrine()->getManager();
                         $em->persist($article);
@@ -412,6 +435,7 @@ class ReceptionController extends AbstractController
             'fournisseurs' => $this->fournisseurRepository->findAll(),
             'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
             'statuts' => $this->statutRepository->findByCategorieName(Reception::CATEGORIE),
+            'types' => $this->typeRepository->getByCategoryLabel(Article::CATEGORIE),
         ]);
     }
 
