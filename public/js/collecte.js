@@ -147,6 +147,6 @@ function initNewCollecteEditor(modal) {
         initEditor(modal);
         editorNewCollecteAlreadyDone = true;
     }
-    ajaxAutoCompletInit()
+    ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'))
 };
 

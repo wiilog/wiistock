@@ -135,5 +135,6 @@ function initNewLivraisonEditor(modal) {
         initEditor(modal);
         editorNewLivraisonAlreadyDone = true;
     }
+    ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'))
 };
 

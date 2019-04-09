@@ -22,11 +22,8 @@
 
                 <div class="form-group w-100">
                     <label for="AlerteArticleReference">Article Référence</label>
-                    <select name="AlerteArticleReference" class="AlerteNom form-control select2 data">
-                        <option disabled selected> </option>
-                        {% for reference in references %}
-                        <option value="{{ reference.id }}">{{ reference.libelle }}</option>
-                        {% endfor %}
+                    <select name="AlerteArticleReference" class="AlerteNom form-control ajax-autocomplete data">
+                        
                     </select>
                 </div>
 

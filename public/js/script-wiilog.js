@@ -37,6 +37,7 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
 
                     if (this.responseText !== undefined) {
                         $('#myInput').val(json.lastInput);
+
                     }
                 });
 
@@ -63,6 +64,7 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
                 checkboxes.each(function () {
                     $(this).prop('checked', false);
                 });
+
             }
         };
 
@@ -224,6 +226,10 @@ function editRow(button, path, modal, submit, editorToInit = false) {
         if (this.readyState == 4 && this.status == 200) {
             dataReponse = JSON.parse(this.responseText);
             modal.find('.modal-body').html(dataReponse);
+            console.log('patate')
+            ajaxAutoFournisseurInit( $('.ajax-autocomplete-fournisseur-edit'));
+            ajaxAutoRefArticleInit($('.ajax-autocomplete-edit'));
+            ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
             if (editorToInit) initEditor('#' + modal.attr('id'));
         }
     }
@@ -346,8 +352,8 @@ function updateQuantityDisplay(elem) {
         modalBody.find('.article').removeClass('d-none');
     }
 }
-function ajaxAutoCompletInit() {
-    $('.ajax-autocompleteEmplacement').select2({
+function ajaxAutoCompleteEmplacementInit(select) {
+    select.select2({
         ajax: {
             url: Routing.generate('get_emplacement'),
             dataType: 'json',
@@ -362,6 +368,45 @@ function ajaxAutoCompletInit() {
             },
             noResults: function () {
                 return 'Aucun résultat.';
+            }
+        },
+        minimumInputLength: 1,
+    });
+}
+
+let ajaxAutoRefArticleInit = function (select) {
+
+    select.select2({
+        ajax: {
+            url: Routing.generate('get_ref_articles'),
+            dataType: 'json',
+            delay: 250,
+        },
+        language: {
+            inputTooShort: function () {
+                return 'Veuillez entrer au moins 1 caractère.';
+            },
+            searching: function () {
+                return 'Recherche en cours...';
+            }
+        },
+        minimumInputLength: 1,
+    });
+}
+
+function ajaxAutoFournisseurInit(select) {
+    select.select2({
+        ajax: {
+            url: Routing.generate('get_fournisseur'),
+            dataType: 'json',
+            delay: 250,
+        },
+        language: {
+            inputTooShort: function () {
+                return 'Veuillez entrer au moins 1 caractère.';
+            },
+            searching: function () {
+                return 'Recherche en cours...';
             }
         },
         minimumInputLength: 1,
