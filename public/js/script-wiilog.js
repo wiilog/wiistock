@@ -99,7 +99,7 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
             // validation valeur des inputs de type password
             if ($(this).attr('type') === 'password') {
                 let isNotChanged = $(this).hasClass('optional-password') && $(this).val === "";
-                if (isNotChanged) {
+                if (!isNotChanged) {
                     let password = $(this).val();
 
                     if (password.length < 8) {
