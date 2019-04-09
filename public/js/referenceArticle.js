@@ -154,6 +154,7 @@ $(document).ready(function () {
             sortable: false,
             ordering: false,
             paging: true,
+            bInfo: false,
             order: [[1, 'asc']],
             ajax: {
                 'url': url,
