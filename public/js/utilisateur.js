@@ -23,6 +23,11 @@ let submitNewUser = $("#submitNewUser");
 let pathNewUser = Routing.generate('user_new', true);
 InitialiserModal(modalNewUser, submitNewUser, pathNewUser, tableUser, alertErrorMsg);
 
+let modalEditUser = $("#modalEditUser");
+let submitEditUser = $("#submitEditUser");
+let pathEditUser = Routing.generate('user_edit', true);
+InitialiserModal(modalEditUser, submitEditUser, pathEditUser, tableUser, alertErrorMsg);
+
 let modalDeleteUser = $("#modalDeleteUser");
 let submitDeleteUser = $("#submitDeleteUser");
 let pathDeleteUser = Routing.generate('user_delete', true);

@@ -20,9 +20,9 @@
     <label for="statut">Statut</label>
     <select class="form-control select2 data" name="statut">
         <option value="{{collecte.statut.id}}">{{ collecte.statut.nom }}</option>#}
-        {# {% for statut in statuts %}
+        {% for statut in statuts %}
         <option value="{{ statut.id }}">{{ statut.nom }}</option>
-        {% endfor %}#}
+        {% endfor %}
     </select>
 </div>
 
@@ -37,13 +37,12 @@
 
 <div class="form-group">
     <label for="Pcollecte">Point de collecte</label>
-    <select class="pointCollecte form-control select2 data" name="Pcollecte">
-        <option disabled selected>Choisir un point de collecte...</option>
+    <select class="pointCollecte form-control data select2" name="Pcollecte">
         {% for emplacement in emplacements %}
-        <option value="{{ emplacement.Id }}">{{ emplacement.label }}</option>
+            {% set selected = (emplacement.id == collecte.pointCollecte.id ? 'selected' : '') %}
+        <option value="{{ emplacement.id }}" {{ selected }}>{{ emplacement.label }}</option>
         {% endfor %}
     </select>
-
 </div>
 
 <div class="form-group">
