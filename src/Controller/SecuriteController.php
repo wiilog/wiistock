@@ -6,8 +6,6 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use App\Form\UtilisateurType;
 use App\Entity\Utilisateur;
-use Symfony\Component\Form\Extension\Core\Type\EmailType;
-use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
 use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
@@ -15,8 +13,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
-use Symfony\Component\HttpFoundation\Session\SessionInterface;
-use Symfony\Component\Config\Definition\Exception\Exception;
 use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 
 class SecuriteController extends Controller
@@ -34,7 +30,6 @@ class SecuriteController extends Controller
      */
     public function login(Request $request, AuthenticationUtils $authenticationUtils)
     {
-
         // get the login error if there is one
         $error = $authenticationUtils->getLastAuthenticationError();
 
@@ -67,6 +62,7 @@ class SecuriteController extends Controller
             $em->persist($user);
             $em->flush();
             $session->getFlashBag()->add('success', 'Félicitations ! Votre nouveau compte a été créé avec succès !');
+
             return $this->redirectToRoute('login');
         }
 
@@ -81,7 +77,6 @@ class SecuriteController extends Controller
      */
     public function checkLastLogin(EntityManagerInterface $em)
     {
-
         $user = $this->getUser();
 
         if (!$user) {
@@ -94,11 +89,11 @@ class SecuriteController extends Controller
 
         $roles = $user->getRoles();
 
-        if ($this->isGranted("ROLE_STOCK")) {
+        if ($this->isGranted('ROLE_STOCK')) {
             return $this->redirectToRoute('accueil');
         }
 
-        if ($this->isGranted("ROLE_PARC")) {
+        if ($this->isGranted('ROLE_PARC')) {
             return $this->redirectToRoute('parc_list');
         }
 
@@ -120,31 +115,31 @@ class SecuriteController extends Controller
      */
     public function change_password(EntityManagerInterface $em, Request $request, UserPasswordEncoderInterface $passwordEncoder)
     {
-
         $session = $request->getSession();
         $user = $this->getUser();
         $form = $this->createFormBuilder()
-            ->add("password", PasswordType::class, array(
-                'label' => "Mot de Passe actuel"
+            ->add('password', PasswordType::class, array(
+                'label' => 'Mot de Passe actuel',
             ))
-            ->add("plainPassword", RepeatedType::class, array(
+            ->add('plainPassword', RepeatedType::class, array(
                 'type' => PasswordType::class,
                 'first_options' => array('label' => 'Nouveau Mot de Passe'),
-                'second_options' => array('label' => 'Confirmer Nouveau Mot de Passe')
+                'second_options' => array('label' => 'Confirmer Nouveau Mot de Passe'),
             ))
-            ->add("modifier", SubmitType::class)
+            ->add('modifier', SubmitType::class)
             ->getForm();
 
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $data = $form->getData();
-            if ($passwordEncoder->isPasswordValid($user, $data["password"])) {
-                $new_password = $passwordEncoder->encodePassword($user, $data["plainPassword"]);
+            if ($passwordEncoder->isPasswordValid($user, $data['password'])) {
+                $new_password = $passwordEncoder->encodePassword($user, $data['plainPassword']);
                 $user->setPassword($new_password);
                 $em->persist($user);
                 $em->flush();
                 $session->getFlashBag()->add('success', 'Le mot de passe a bien été modifié');
+
                 return $this->redirectToRoute('check_last_login');
             } else {
                 $session->getFlashBag()->add('danger', 'Mot de passe invalide');
@@ -156,7 +151,6 @@ class SecuriteController extends Controller
             'form' => $form->createView(),
         ]);
     }
-
 
     /**
      * @Route("/logout", name="logout")
