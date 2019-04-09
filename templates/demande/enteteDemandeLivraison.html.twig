@@ -1,12 +1,10 @@
-<div class="col-6">  
-    <p>Demandeur : <span id="demandeur">{{ demande.utilisateur ? demande.utilisateur : '' }}</span></p>
-    <p>Statut : {{demande.statut.nom|capitalize}}</p>
-    <p>Destination : <span id="emplacement">{{ demande.destination ? demande.destination.label : "" }}</span></p>
+<div class="col-6">
+    <p><strong>Demandeur :</strong> <span id="demandeur">{{ demande.utilisateur ? demande.utilisateur : '' }}</span></p>
+    <p><strong>Statut :</strong> {{demande.statut.nom|capitalize}}</p>
+    <p><strong>Destination :</strong> <span id="emplacement">{{ demande.destination ? demande.destination.label : "" }}</span></p>
 </div>
 
 <div class="col-6">
-    <p>Date demande : {{ demande.date | date("d/m/Y") }}</p>
-    <p>Référence : {{ demande.numero }}</p>
+    <p><strong>Date demande :</strong> {{ demande.date | date("d/m/Y") }}</p>
+    <p><strong>Référence :</strong> {{ demande.numero }}</p>
 </div>
-
-
