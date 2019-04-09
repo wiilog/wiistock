@@ -26,17 +26,25 @@ class TypeFixtures extends Fixture implements DependentFixtureInterface, Fixture
               'PSS',
               'SILI',
               'MOB',
-              'SLUGCIBLE'
+              'SLUGCIBLE',
+              'article'
          ];
-
-         foreach ($typesNames as $typeName) {
+        
+        foreach ($typesNames as $typeName) {
              $type = new Type();
-             $type
-                 ->setLabel($typeName)
-                 ->setCategory($this->getReference('type-referenceArticle'));
+             if ($typeName =='article'){
+                $type->setCategory($this->getReference('type-article'));}
+              else
+              {
+                  $type->setCategory($this->getReference('type-referenceArticle'));
+              }
+              $type->setLabel($typeName);
+                      
+                 
              $manager->persist($type);
          }
 
+    
 
         $manager->flush();
 
