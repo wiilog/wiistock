@@ -134,6 +134,11 @@ let submitPlusDemande = $('#submitPlusDemande');
 let urlPlusDemande = Routing.generate('plus_demande', true);
 InitialiserModalRefArticle(modalPlusDemande, submitPlusDemande, urlPlusDemande);
 
+let modalColumnVisible = $('#modalColumnVisible');
+let submitColumnVisible = $('#submitColumnVisible');
+let urlColumnVisible = Routing.generate('save_column_visible', true);
+InitialiserModalRefArticle(modalColumnVisible, submitColumnVisible, urlColumnVisible);
+
 let modalNewFilter = $('#modalNewFilter');
 let submitNewFilter = $('#submitNewFilter');
 let urlNewFilter = Routing.generate('filter_new', true);
@@ -142,8 +147,7 @@ InitialiserModalRefArticle(modalNewFilter, submitNewFilter, urlNewFilter, displa
 let url = Routing.generate('ref_article_api', true);
 
 $(document).ready(function () {
-
-    $.post(Routing.generate('ref_article_api_columns'), function(columns) {
+    $.post(Routing.generate('ref_article_api_columns'), function (columns) {
 
         tableRefArticle = $('#tableRefArticle_id').DataTable({
             processing: true,
@@ -155,11 +159,11 @@ $(document).ready(function () {
             ajax: {
                 'url': url,
                 'type': 'POST',
-                'dataSrc': function(json) {
+                'dataSrc': function (json) {
                     return json.data;
                 }
             },
-            'drawCallback': function() {
+            'drawCallback': function () {
                 loadSpinnerAR($('#spinner'));
                 initRemove();
                 hideColumnChampsLibres();
@@ -175,6 +179,9 @@ $(document).ready(function () {
 
 //COLUMN VISIBLE
 let tableColumnVisible = $('#tableColumnVisible_id').DataTable({
+    language: {
+        url: "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
+    },
     "paging": false,
     "info": false
 });
@@ -183,6 +190,11 @@ function visibleColumn(check) {
     let columnNumber = check.data('column')
     let column = tableRefArticle.column(columnNumber);
     column.visible(!column.visible());
+    if (check.hasClass('data')) {
+        check.removeClass('data');
+    } else{
+        check.addClass('data');
+    }
 }
 
 function hideColumnChampsLibres() {

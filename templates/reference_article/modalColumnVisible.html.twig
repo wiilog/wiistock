@@ -25,9 +25,10 @@
                                 {{champ.label | capitalize}}
                             </td>
                             <td>
-                                {% set checked = (champ.id) == 0 ? 'checked' : '' %}
-                                <input class="form-check-input" onclick="visibleColumn($(this))" type="checkbox" id="inlineCheckbox1"
-                                    {{ checked }} data-column="{{i}}">
+                                {% set checked = (champ.label in champsVisible ? 'checked' : '') %}
+                                <input class="form-check-input {{checked == 'checked' ? 'data' : '' }}" name="{{champ.label}}"
+                                    onclick="visibleColumn($(this))" type="checkbox" id="inlineCheckbox1" {{ checked }}
+                                    data-column="{{i}}">
                             </td>
                         </tr>
                         {% set i = i + 1 %}
@@ -38,7 +39,8 @@
 
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-primary" data-dismiss="modal">Fermer</button>
+                <div class="btn" data-dismiss="modal">Fermer</div>
+                <div class="btn btn-primary" id="submitColumnVisible" data-dismiss="modal">Enregistrer</div>
             </div>
         </div>
     </div>
