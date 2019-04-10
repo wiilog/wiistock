@@ -45,14 +45,17 @@ class DemandeRepository extends ServiceEntityRepository
         return $query->execute(); 
     }
 
-    public function getByStatut($statut)
+    public function getByStatutAndUser($statut, $user)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT d
             FROM App\Entity\Demande d
-            WHERE d.statut = :Statut "
-        )->setParameter('Statut', $statut);;
+            WHERE d.statut = :Statut AND d.utilisateur = :user"
+        )->setParameters([
+            'Statut'=> $statut,
+            'user'=> $user
+            ]);
         return $query->execute();
     }
 

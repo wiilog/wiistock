@@ -202,7 +202,7 @@ class DemandeController extends AbstractController
                 $url = $this->generateUrl('ligne_article_show', ['id' => $idDemande]);
                 $rows[] =
                     [
-                        "Date" => ($demande->getDate() ? $demande->getDate()->format('d-m-Y') : ''),
+                        "Date" => ($demande->getDate() ? $demande->getDate()->format('d/m/Y') : ''),
                         "Demandeur" => ($demande->getUtilisateur()->getUsername() ? $demande->getUtilisateur()->getUsername() : ''),
                         "Numéro" => ($demande->getNumero() ? $demande->getNumero() : ''),
                         "Statut" => ($demande->getStatut()->getNom() ? $demande->getStatut()->getNom() : ''),

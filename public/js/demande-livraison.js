@@ -1,7 +1,13 @@
 // $( document ).ready(function () {
 //     $('#modalNewArticle').modal('show')
 // })
+$('.select2').select2();
 
+$('#utilisateur').select2({
+    placeholder: {
+        text: 'Utilisateur',
+    }
+});
 //ARTICLE DEMANDE
 let pathArticle = Routing.generate('ligne_article_api', { id: id }, true);
 let tableArticle = $('#table-lignes').DataTable({
@@ -138,3 +144,46 @@ function initNewLivraisonEditor(modal) {
     ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'))
 };
 
+$('#submitSearchDemandeLivraison').on('click', function () {
+
+    let statut = $('#statut').val();
+    let utilisateur = [];
+    utilisateur = $('#utilisateur').val()
+    utilisateurString = utilisateur.toString();
+    utilisateurPiped = utilisateurString.split(',').join('|')
+
+    tableDemande
+        .columns(3)
+        .search(statut)
+        .draw();
+
+    tableDemande
+        .columns(1)
+        .search(utilisateurPiped ? '^' + utilisateurPiped + '$' : '', true, false)
+        .draw();
+
+    $.fn.dataTable.ext.search.push(
+        function (settings, data, dataIndex) {
+            let dateMin = $('#dateMin').val();
+            let dateMax = $('#dateMax').val();
+            let dateInit = (data[0]).split('/').reverse().join('-') || 0;
+
+            if (
+                (dateMin == "" && dateMax == "")
+                ||
+                (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
+                ||
+                (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
+                ||
+                (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
+
+            ) {
+                return true;
+            }
+            return false;
+        }
+
+    );
+    tableDemande
+        .draw();
+});
