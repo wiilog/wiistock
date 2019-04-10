@@ -24,7 +24,6 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
                 $('.errorMessage').html(JSON.parse(this.responseText));
                 data = JSON.parse(this.responseText);
 
-
                 if (data.redirect) {
                     window.location.href = data.redirect;
 
@@ -101,16 +100,20 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
             }
             // validation valeur des inputs de type password
             if ($(this).attr('type') === 'password') {
-                let password = $(this).val();
+                let isNotChanged = $(this).hasClass('optional-password') && $(this).val === "";
+                if (!isNotChanged) {
+                    let password = $(this).val();
 
-                if (password.length < 8) {
-                    modal.find('.password-error-msg').html('Le mot de passe doit faire au moins 8 caractères.');
-                    passwordIsValid = false;
-                } else if (!password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)) {
-                    modal.find('.password-error-msg').html('Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial (@$!%*?&).');
-                    passwordIsValid = false;
-                } else {
-                    passwordIsValid = true;
+                    if (password.length < 8) {
+                        console.log("hello");
+                        modal.find('.password-error-msg').html('Le mot de passe doit faire au moins 8 caractères.');
+                        passwordIsValid = false;
+                    } else if (!password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)) {
+                        modal.find('.password-error-msg').html('Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial (@$!%*?&).');
+                        passwordIsValid = false;
+                    } else {
+                        passwordIsValid = true;
+                    }
                 }
             }
         });
@@ -121,12 +124,12 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
         checkboxes.each(function () {
             Data[$(this).attr("name")] = $(this).is(':checked');
         });
-
         // si tout va bien on envoie la requête ajax...
         if (missingInputs.length == 0 && wrongNumberInputs.length == 0 && passwordIsValid) {
             if (close == true) modal.find('.close').click();
             Json = {};
             Json = JSON.stringify(Data);
+            console.log(Json);
             xhttp.open("POST", path, true);
             xhttp.send(Json);
         } else {
@@ -234,6 +237,7 @@ function editRow(button, path, modal, submit, editorToInit = false) {
             if (editorToInit) initEditor('#' + modal.attr('id'));
         }
     }
+    console.log("patate");
     let json = button.data('id');
     modal.find(submit).attr('value', json);
     modal.find('#inputId').attr('value', json);

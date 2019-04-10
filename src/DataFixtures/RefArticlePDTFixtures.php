@@ -7,6 +7,7 @@ use App\Entity\ChampsLibre;
 use App\Entity\Fournisseur;
 use App\Entity\Type;
 use App\Repository\FournisseurRepository;
+use App\Repository\ReferenceArticleRepository;
 use App\Repository\StatutRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
@@ -43,19 +44,25 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
      */
     private $statutRepository;
 
+    /**
+     * @var ReferenceArticleRepository
+     */
+    private $refArticleRepository;
 
-    public function __construct(UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampsLibreRepository $champsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository)
+
+    public function __construct(UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampsLibreRepository $champsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $refArticleRepository)
     {
         $this->typeRepository = $typeRepository;
         $this->champsLibreRepository = $champsLibreRepository;
         $this->encoder = $encoder;
         $this->fournisseurRepository = $fournisseurRepository;
         $this->statutRepository = $statutRepository;
+        $this->refArticleRepository = $refArticleRepository;
     }
 
     public function load(ObjectManager $manager)
     {
-        $path = "public/csv/pdt-mini.csv";
+        $path = "public/csv/pdt.csv";
         $file = fopen($path, "r");
 
         $rows = [];
@@ -65,11 +72,19 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
 
         array_shift($rows); // supprime la 1è ligne d'en-têtes
 
+        // à modifier pour faire imports successifs
+        $rows = array_slice($rows, 0, 1000);
+
         $i = 1;
         foreach($rows as $row) {
+            if (empty($row[0])) continue;
             dump($i);
             $i++;
             $typePdt = $this->typeRepository->findOneBy(['label' => Type::LABEL_PDT]);
+
+            // protection contre doublons
+            $refArt = $this->refArticleRepository->findOneBy(['reference' => $row[0]]);
+            if (!empty($refArt)) continue;
 
             // champs fixes
             $referenceArticle = new ReferenceArticle();
@@ -115,7 +130,7 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
 
 
             // champs libres
-            $listData = [
+            $listFields = [
                 ['label' => 'adresse', 'col' => 2, 'type' => ChampsLibre::TYPE_TEXT],
                 ['label' => 'famille produit', 'col' => 4, 'type' => ChampsLibre::TYPE_TEXT],
                 ['label' => 'zone', 'col' => 5, 'type' => ChampsLibre::TYPE_TEXT],
@@ -128,21 +143,21 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
                 ['label' => "date entrée", 'col' => 14, 'type' => ChampsLibre::TYPE_TEXT],
             ];
 
-            foreach ($listData as $row) {
+            foreach($listFields as $field) {
                 $vcl = new ValeurChampsLibre();
-                $cl = $this->champsLibreRepository->findOneBy(['label' => $row['label']]);
+                $cl = $this->champsLibreRepository->findOneBy(['label' => $field['label']]);
                 if (empty($cl)) {
                     $cl = new ChampsLibre();
                     $cl
-                        ->setLabel($row['label'])
-                        ->setTypage($row['type'])
+                        ->setLabel($field['label'])
+                        ->setTypage($field['type'])
                         ->setType($typePdt);
                     $manager->persist($cl);
                 }
                 $vcl
                     ->setChampLibre($cl)
                     ->addArticleReference($referenceArticle)
-                    ->setValeur($row['col']);
+                    ->setValeur($row[$field['col']]);
                 $manager->persist($vcl);
             }
 

@@ -8,10 +8,8 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Serializer\Serializer;
@@ -23,7 +21,6 @@ use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
  */
 class UtilisateurController extends Controller
 {
-
     /**
      * @var UtilisateurRepository
      */
@@ -34,7 +31,6 @@ class UtilisateurController extends Controller
         $this->utilisateurRepository = $utilisateurRepository;
     }
 
-
     /**
      * @Route("/", name="user_index", methods="GET|POST")
      */
@@ -42,7 +38,7 @@ class UtilisateurController extends Controller
     {
         if ($_POST) {
             $utilisateurId = array_keys($_POST); /* Chaque clé représente l'id d'un utilisateur */
-            for ($i = 1; $i < count($utilisateurId); $i++) /* Pour chaque utilisateur on regarde si le rôle a changé */ {
+            for ($i = 1; $i < count($utilisateurId); ++$i) /* Pour chaque utilisateur on regarde si le rôle a changé */ {
                 $utilisateur = $utilisateurRepository->find($utilisateurId[$i]);
                 $roles = $utilisateur->getRoles(); /* On regarde le rôle de l'utilisateur */
                 if ($roles[0] != $_POST[$utilisateurId[$i]]) /* Si le rôle a changé on le modifie dans la bdd */ {
@@ -52,6 +48,7 @@ class UtilisateurController extends Controller
                 }
             }
         }
+
         return $this->render('utilisateur/index.html.twig', [
             'utilisateurs' => $utilisateurRepository->findAll(),
         ]);
@@ -100,7 +97,76 @@ class UtilisateurController extends Controller
 
             return new JsonResponse(true);
         }
-        throw new NotFoundHttpException("404");
+        throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/api-modifier", name="user_api_edit", options={"expose"=true},  methods="GET|POST")
+     */
+    public function editApi(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $user = $this->utilisateurRepository->find($data);
+            $json = $this->renderView('utilisateur/modalEditUserContent.html.twig', [
+                'user' => $user,
+            ]);
+
+            return new JsonResponse($json);
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/modifier", name="user_edit",  options={"expose"=true}, methods="GET|POST")
+     */
+    public function edit(Request $request, UserPasswordEncoderInterface $passwordEncoder): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $utilisateur = $this->utilisateurRepository->find($data['user']);
+            $password = $data['password'];
+            if ($password !== '') {
+                // validation du mot de passe
+                if ($password !== $data['password2']) {
+                    return new JsonResponse('Les mots de passe ne correspondent pas.');
+                    //TODO gérer retour erreur propre
+                }
+                if (strlen($password) < 8) {
+                    return new JsonResponse('Le mot de passe doit faire au moins 8 caractères.');
+                    //TODO gérer retour erreur propre
+                }
+                if (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/', $password)) {
+                    return new JsonResponse('Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial.');
+                    //TODO gérer retour erreur propre
+                }
+            } else {
+                if ($data['password2'] !== '') {
+                    return new JsonResponse('Les mots de passe ne correspondent pas.');
+                }
+            }
+
+            // validation de l'email
+            $emailAlreadyUsed = intval($this->utilisateurRepository->countByEmail($data['email']));
+
+            if ($emailAlreadyUsed && $data['email'] != $utilisateur->getEmail()) {
+                return new JsonResponse('Un compte existe déjà avec cet email.');
+                //TODO gérer retour erreur propre
+            }
+
+            $utilisateur
+                ->setUsername($data['username'])
+                ->setEmail($data['email']);
+            if ($password !== '') {
+                $password = $passwordEncoder->encodePassword($utilisateur, $data['password']);
+                $utilisateur
+                    ->setPassword($password);
+            }
+            $em = $this->getDoctrine()->getManager();
+            $em->persist($utilisateur);
+            $em->flush();
+
+            return new JsonResponse(true);
+        }
+        throw new NotFoundHttpException('404');
     }
 
     /**
@@ -112,26 +178,27 @@ class UtilisateurController extends Controller
             $utilisateurs = $this->utilisateurRepository->findAll();
             $rows = [];
             foreach ($utilisateurs as $utilisateur) {
-                $idUser =  $utilisateur->getId();
+                $idUser = $utilisateur->getId();
                 $rows[] =
                     [
-                        'id' => ($utilisateur->getId() ? $utilisateur->getId() : "Non défini"),
-                        "Nom d'utilisateur" => ($utilisateur->getUsername() ? $utilisateur->getUsername() : ""),
-                        "Email" => ($utilisateur->getEmail() ? $utilisateur->getEmail() : ""),
-                        "Dernière connexion" => ($utilisateur->getLastLogin() ? $utilisateur->getLastLogin()->format('d/m/Y') : ""),
-                        'Rôle' => $this->renderView("utilisateur/role.html.twig", ['utilisateur' => $utilisateur]),
+                        'id' => ($utilisateur->getId() ? $utilisateur->getId() : 'Non défini'),
+                        "Nom d'utilisateur" => ($utilisateur->getUsername() ? $utilisateur->getUsername() : ''),
+                        'Email' => ($utilisateur->getEmail() ? $utilisateur->getEmail() : ''),
+                        'Dernière connexion' => ($utilisateur->getLastLogin() ? $utilisateur->getLastLogin()->format('d/m/Y') : ''),
+                        'Rôle' => $this->renderView('utilisateur/role.html.twig', ['utilisateur' => $utilisateur]),
                         'Actions' => $this->renderView(
-                            "utilisateur/datatableUtilisateurRow.html.twig",
+                            'utilisateur/datatableUtilisateurRow.html.twig',
                             [
-                                'idUser' => $idUser
+                                'idUser' => $idUser,
                             ]
                         ),
                     ];
             }
             $data['data'] = $rows;
+
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException("404");
+        throw new NotFoundHttpException('404');
     }
 
     /**
@@ -144,9 +211,10 @@ class UtilisateurController extends Controller
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($user);
             $entityManager->flush();
+
             return new JsonResponse();
         }
-        throw new NotFoundHttpException("404");
+        throw new NotFoundHttpException('404');
     }
 
     /**
@@ -251,7 +319,6 @@ class UtilisateurController extends Controller
     //        throw new NotFoundHttpException('404 Léo not found');
     //    }
 
-
     //    /**
     //     * @Route("/modif_bis", name="utilisateur_index_modif_bis", methods="GET|POST") //TODOO
     //     */
@@ -290,7 +357,6 @@ class UtilisateurController extends Controller
     //        }
     //        throw new NotFoundHttpException('404 Léo not found');
     //    }
-
 
     //    /**
     //     * @Route("/ajax/username", name="utilisateur_username_error", methods="GET|POST") //TODOO
@@ -337,7 +403,6 @@ class UtilisateurController extends Controller
     //        }
     //        throw new NotFoundHttpException('404 Léo not found');
     //    }
-
 
     //    /**
     //     * @Route("/new", name="utilisateur_new", methods="GET|POST")

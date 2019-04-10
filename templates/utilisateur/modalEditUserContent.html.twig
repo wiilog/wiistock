@@ -1,0 +1,27 @@
+
+<form method="">
+    <div class="modal-body modal-input container-fluid row">
+        <div class="col-12 form-group" style="display:none;">   
+            <input type="text" class="form-control data needed" name="user" required="" value="{{ user.id }}">
+        </div>
+        <div class="col-12 form-group">
+            <label for="username">Nom d'utilisateur</label>
+            <input type="text" class="form-control data needed" name="username" required="" value="{{ user.username }}">
+        </div>
+        <div class="col-12 form-group">
+            <label for="email">Email</label>
+            <input type="email" class="form-control data needed" name="email" value="{{ user.email }}">
+        </div>
+            <div class="col-12 form-group">
+                <label for="password">Mot de passe</label>
+                <input type="password" class="form-control data optional-password" name="password">
+                <div class="password-error-msg"></div>
+            </div>
+                <div class="col-12 form-group">
+                    <label for="password2">Confirmer mot de passe</label>
+                    <input type="password" class="form-control data optional-password" name="password2">
+                </div>
+            <div class="col-12 error-msg"></div>
+        </div>
+    </div>
+</form>

@@ -20,9 +20,9 @@
     <label for="statut">Statut</label>
     <select class="form-control select2 data" name="statut">
         <option value="{{collecte.statut.id}}">{{ collecte.statut.nom }}</option>#}
-        {# {% for statut in statuts %}
+        {% for statut in statuts %}
         <option value="{{ statut.id }}">{{ statut.nom }}</option>
-        {% endfor %}#}
+        {% endfor %}
     </select>
 </div>
 
@@ -40,7 +40,6 @@
     <select class="pointCollecte form-control ajax-autocompleteEmplacement-edit data" name="Pcollecte">
         <option value="{{collecte.pointCollecte.id}}">{{collecte.pointCollecte.label}}</option>
     </select>
-
 </div>
 
 <div class="form-group">
