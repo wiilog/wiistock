@@ -15,7 +15,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 /**
- * @Route("/service")
+ * @Route("/deplacement")
  */
 class ServiceController extends AbstractController
 {
@@ -89,7 +89,7 @@ class ServiceController extends AbstractController
     {
         return $this->render('service/index.html.twig', [
             'emplacements' => $this->emplacementRepository->findAll(),
-            'demandeurs' => $this->utilisateurRepository->findAll(),
+            'utilisateurs' => $this->utilisateurRepository->findAll(),
             'statuts' => $this->statutRepository->findByCategorieName(Service::CATEGORIE),
         ]);
     }
