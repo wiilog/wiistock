@@ -36,37 +36,25 @@ class PasswordService
      */
     private $mailer;
 
-    /**
-     * @var password
-     */
-    private $username;
-
-    /**
-     * @var password
-     */
-    private $password;
-
-    public function __construct(UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, EntityManagerInterface $entityManager)
+    public function __construct(UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, EntityManagerInterface $entityManager, \Swift_Mailer $mailer)
     {
         $this->entityManager = $entityManager;
         $this->passwordEncoder = $passwordEncoder;
         $this->utilisateurRepository = $utilisateurRepository;
-        $this->username = 'matteo.hevin@wiilog.fr';
-        $this->password = 'Lolipoplol24';
-        $this->transport = (new Swift_SmtpTransport('smtp.gmail.com', 465, 'ssl'))
-            ->setUsername($this->username)
-            ->setPassword($this->password);
-        $this->mailer = (new Swift_Mailer($this->transport));
+        $this->mailer = $mailer;
     }
 
-    public function sendNewPassword($to)
+    public function sendNewPassword($from, $to)
     {
         $newPass = $this->generatePassword(10);
-        updateUser($to, $newPass);
-        $message = (new Swift_Message('Oubli de mot de passe Wiilog.'))
-            ->setFrom([$this->username => 'L\'équipe de Wiilog.'])
-            ->setTo([$to => explode('@', $to)])
-            ->setBody('Votre nouveau mot de passe est : ' + $newPass);
+        $this->updateUser($to, $newPass);
+        dump($to);
+        dump($newPass);
+        dump(explode('@', $to)[0]);
+        $message = (new \Swift_Message('Oubli de mot de passe Wiilog.'))
+            ->setFrom([$from => 'L\'équipe de Wiilog.'])
+            ->setTo($to)
+            ->setBody('Votre nouveau mot de passe est : '.$newPass, 'text/plain');
 
         $this->mailer->send($message);
     }
@@ -89,7 +77,7 @@ class PasswordService
 
     private function updateUser($mail, $newPass)
     {
-        $user = $this->utilisateurRepository->getByMail($mail);
+        $user = $this->utilisateurRepository->getByMail($mail)[0];
         if ($user !== null) {
             $password = $this->passwordEncoder->encodePassword($user, $newPass);
             $user->setPassword($password);
