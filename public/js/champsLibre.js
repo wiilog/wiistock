@@ -92,24 +92,33 @@ function askForDeleteConfirmation(data) {
 $(document).ready(function () {
     $('#typage').change(function () {
         if ($(this).val() === 'list') {
+            $("#list").show();
+            $("#noList").hide();
             $("#body").append(
                 "<label for=\"date-attendu\" id=\"ajouterElem\">Ajouter un élément</label>" +
-                "<div class=\"form-group elem input-group\">" +
-                "<input type=\"text\" class=\"form-control data\" name=\"elem\">" +
                 "<span class=\"input-group-btn\">" +
                 "<button class=\"btn\" onclick=\"appendElem()\" type=\"button\">+</button>" +
-                "</span>" +
-                "</div>");
+                "</span>");
         } else {
+            $("#list").hide();
+            $("#noList").show();
             $("div").remove(".elem");
             $("#ajouterElem").remove();
         }
     });
+
 });
 
 function appendElem() {
     $("#body").append(
         "<div class=\"form-group elem\">" +
-        "<input type=\"text\" class=\"form-control data\" name=\"elem\">" +
+        "<input type=\"text\" class=\"form-control data\" name=\"elem\" onblur=\"addToSelect(this)\">" +
         "</div>");
+}
+
+function addToSelect(el) {
+    let input = $(el).val();
+    if (input !== "") {
+        $("#valeur").append(new Option(input, input));
+    }
 }

@@ -107,7 +107,7 @@ class ChampsLibreController extends AbstractController
                 ->setType($type)
                 ->settypage($data['typage'])
                 ->setDefaultValue($data['valeur'])
-                ->setElements($data['elem']);
+                ->setElements(array_filter($data['elem']));
             $em = $this->getDoctrine()->getManager();
             $em->persist($champsLibre);
             $em->flush();
