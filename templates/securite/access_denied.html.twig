@@ -1,0 +1,12 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Accès refusé{% endblock %}
+
+{% block page_content %}
+        <div class="mt-5">
+            <h1 class="main-title">{{ app.user.username|capitalize }}, vous n'avez pas l'autorisation d'accéder à cette page.</h1>
+
+            <p>Vous ne possédez pas les droits nécessaires pour accéder à cette page.</p>
+            <p><em>Veuillez contacter votre administrateur si vous souhaitez modifier vos droits accès.</em></p>
+        </div>
+{% endblock %}

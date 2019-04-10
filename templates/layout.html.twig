@@ -44,6 +44,7 @@
             </ul>
         </li>
         <!-- STOCK -->
+        {% if is_granted('ROLE_ADMIN_GT') %}
         <li class="menu-item has-submenu">
             <a href="#">
                 <i class="fas fa-box"></i>
@@ -68,8 +69,9 @@
                 </li>
             </ul>
         </li>
+        {% endif %}
 
-        {% if is_granted('ROLE_ADMIN') %}
+        {% if is_granted('ROLE_ADMIN_GT') %}
         <li class="menu-item has-submenu">
             <a href="#">
                 <i class="fas fa-gear"></i>

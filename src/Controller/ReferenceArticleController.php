@@ -256,55 +256,60 @@ class ReferenceArticleController extends Controller
      */
     public function index(): Response
     {
-        $typeQuantite = [
-            [
-                'const' => 'QUANTITE_AR',
-                'label' => 'référence',
-            ],
-            [
-                'const' => 'QUANTITE_A',
-                'label' => 'article',
-            ]
-        ];
+        if ($this->isGranted('ROLE_ADMIN_GT')) {
 
-        $champL = $this->champsLibreRepository->getLabelAndIdAndTypage();
-        $champ[] = [
-            'label' => 'Actions',
-            'id' => 0,
-            'typage' => ''
-        ];
-        $champ[] = [
-            'label' => 'Libellé',
-            'id' => 0,
-            'typage' => 'text'
+            $typeQuantite = [
+                [
+                    'const' => 'QUANTITE_AR',
+                    'label' => 'référence',
+                ],
+                [
+                    'const' => 'QUANTITE_A',
+                    'label' => 'article',
+                ]
+            ];
 
-        ];
-        $champ[] = [
-            'label' => 'Référence',
-            'id' => 0,
-            'typage' => 'text'
+            $champL = $this->champsLibreRepository->getLabelAndIdAndTypage();
+            $champ[] = [
+                'label' => 'Actions',
+                'id' => 0,
+                'typage' => ''
+            ];
+            $champ[] = [
+                'label' => 'Libellé',
+                'id' => 0,
+                'typage' => 'text'
 
-        ];
-        $champ[] = [
-            'label' => 'Type',
-            'id' => 0,
-            'typage' => 'list'
-        ];
-        $champ[] = [
-            'label' => 'Quantité',
-            'id' => 0,
-            'typage' => 'number'
-        ];
+            ];
+            $champ[] = [
+                'label' => 'Référence',
+                'id' => 0,
+                'typage' => 'text'
 
-        $champs = array_merge($champ, $champL);
+            ];
+            $champ[] = [
+                'label' => 'Type',
+                'id' => 0,
+                'typage' => 'list'
+            ];
+            $champ[] = [
+                'label' => 'Quantité',
+                'id' => 0,
+                'typage' => 'number'
+            ];
 
-        return $this->render('reference_article/index.html.twig', [
-            'champs' => $champs,
-            'statuts' => $this->statutRepository->findByCategorieName(ReferenceArticle::CATEGORIE),
-            'types' => $this->typeRepository->getByCategoryLabel(ReferenceArticle::CATEGORIE),
-            'typeQuantite' => $typeQuantite,
-            'filters' => $this->filterRepository->findBy(['utilisateur' => $this->getUser()]),
-        ]);
+            $champs = array_merge($champ, $champL);
+
+            return $this->render('reference_article/index.html.twig', [
+                'champs' => $champs,
+                'statuts' => $this->statutRepository->findByCategorieName(ReferenceArticle::CATEGORIE),
+                'types' => $this->typeRepository->getByCategoryLabel(ReferenceArticle::CATEGORIE),
+                'typeQuantite' => $typeQuantite,
+                'filters' => $this->filterRepository->findBy(['utilisateur' => $this->getUser()]),
+            ]);
+        } else {
+            return new Response($this->renderView('securite/access_denied.html.twig'));
+        }
     }
 
     /**

@@ -92,14 +92,17 @@ class SecuriteController extends Controller
         $user->setLastLogin(new \Datetime());
         $em->flush();
 
-        $roles = $user->getRoles();
+//        $roles = $user->getRoles();
 
-        if ($this->isGranted("ROLE_STOCK")) {
+//        if ($this->isGranted("ROLE_STOCK")) {
+//            return $this->redirectToRoute('accueil');
+//        }
+//
+//        if ($this->isGranted("ROLE_PARC")) {
+//            return $this->redirectToRoute('parc_list');
+//        }
+        if ($this->isGranted('ROLE_CUSTOMER')) {
             return $this->redirectToRoute('accueil');
-        }
-
-        if ($this->isGranted("ROLE_PARC")) {
-            return $this->redirectToRoute('parc_list');
         }
 
         return $this->redirectToRoute('attente_validation');
@@ -111,8 +114,17 @@ class SecuriteController extends Controller
     public function attente_validation()
     {
         return $this->render('securite/attente_validation.html.twig', [
-            'controller_name' => 'SecuriteController',
+//            'controller_name' => 'SecuriteController',
         ]);
+    }
+
+    /**
+     * @Route("/acces-refuse", name="access_denied")
+     */
+    public function access_denied()
+    {
+        return $this->render('securite/access_denied.html.twig');
+
     }
 
     /**

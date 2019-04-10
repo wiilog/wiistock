@@ -176,6 +176,8 @@ class UtilisateurController extends Controller
     {
         if ($request->isXmlHttpRequest()) {
             $utilisateurs = $this->utilisateurRepository->findAll();
+            $roles = Utilisateur::ROLES;
+
             $rows = [];
             foreach ($utilisateurs as $utilisateur) {
                 $idUser = $utilisateur->getId();
@@ -185,7 +187,7 @@ class UtilisateurController extends Controller
                         "Nom d'utilisateur" => ($utilisateur->getUsername() ? $utilisateur->getUsername() : ''),
                         'Email' => ($utilisateur->getEmail() ? $utilisateur->getEmail() : ''),
                         'Dernière connexion' => ($utilisateur->getLastLogin() ? $utilisateur->getLastLogin()->format('d/m/Y') : ''),
-                        'Rôle' => $this->renderView('utilisateur/role.html.twig', ['utilisateur' => $utilisateur]),
+                        'Rôle' => $this->renderView('utilisateur/role.html.twig', ['utilisateur' => $utilisateur, 'roles' => $roles]),
                         'Actions' => $this->renderView(
                             'utilisateur/datatableUtilisateurRow.html.twig',
                             [

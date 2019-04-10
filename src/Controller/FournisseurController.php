@@ -60,8 +60,13 @@ class FournisseurController extends AbstractController
      */
     public function index(): Response
     {
-        return $this->render('fournisseur/index.html.twig', ['fournisseur' => $this->fournisseurRepository->findAll()]);
+        if ($this->isGranted('ROLE_ADMIN_GT')) {
+            return $this->render('fournisseur/index.html.twig', ['fournisseur' => $this->fournisseurRepository->findAll()]);
+        } else {
+            return new Response($this->renderView('securite/access_denied.html.twig'));
+        }
     }
+
 
     /**
      * @Route("/creer", name="fournisseur_new", options={"expose"=true}, methods="GET|POST")

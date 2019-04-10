@@ -46,10 +46,14 @@ class ArticleFournisseurController extends AbstractController
      */
     public function index()
     {
-        return $this->render('article_fournisseur/index.html.twig', [
-            'fournisseurs' => $this->fournisseurRepository->findAll(),
-            'referencesArticles' => $this->referenceArticleRepository->findAll()
-        ]);
+        if ($this->isGranted('ROLE_ADMIN_GT')) {
+            return $this->render('article_fournisseur/index.html.twig', [
+                'fournisseurs' => $this->fournisseurRepository->findAll(),
+                'referencesArticles' => $this->referenceArticleRepository->findAll()
+            ]);
+        } else {
+            return new Response($this->renderView('securite/access_denied.html.twig'));
+        }
     }
 
     /**

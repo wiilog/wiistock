@@ -11,8 +11,6 @@ use App\Repository\ReferenceArticleRepository;
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\TypeRepository;
 
-use App\Entity\ReferenceArticle;
-
 use App\Service\RefArticleDataService;
 use App\Service\ArticleDataService;
 
@@ -97,9 +95,13 @@ class ArticleController extends AbstractController
     /**
      * @Route("/", name="article_index", methods={"GET", "POST"})
      */
-    public function index(Request $request): Response
+    public function index(): Response
     {
-        return $this->render('article/index.html.twig');
+        if ($this->isGranted('ROLE_ADMIN_GT')) {
+            return $this->render('article/index.html.twig');
+        } else {
+            return new Response($this->renderView('securite/access_denied.html.twig'));
+        }
     }
 
     /**
