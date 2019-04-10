@@ -177,12 +177,14 @@ class SecuriteController extends Controller
      */
     public function forgot(Request $request, UserPasswordEncoderInterface $passwordEncoder, EntityManagerInterface $em)
     {
+        $session = $request->getSession();
         $user = new Utilisateur();
         $form = $this->createForm(ForgotType::class, $user);
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             $this->psservice->sendNewPassword($user->getEmail());
+            $session->getFlashBag()->add('success', 'Félicitations ! Votre nouveau compte a été créé avec succès !');
 
             return $this->redirectToRoute('login');
         }
