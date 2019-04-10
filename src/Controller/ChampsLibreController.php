@@ -3,16 +3,11 @@
 namespace App\Controller;
 
 use App\Entity\ChampsLibre;
-use App\Entity\ReferenceArticle;
 use App\Entity\Type;
-
-use App\Form\ChampsLibreType;
-
 use App\Repository\ChampsLibreRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\TypeRepository;
 use App\Repository\CategoryTypeRepository;
-
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -25,7 +20,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
  */
 class ChampsLibreController extends AbstractController
 {
-
     /**
      * @var ChampslibreRepository
      */
@@ -69,24 +63,25 @@ class ChampsLibreController extends AbstractController
      */
     public function api(Request $request, $id): Response
     {
-        if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
-            {
-                $champsLibres = $this->champsLibreRepository->getByType($this->typeRepository->find($id));
-                $rows = [];
-                foreach ($champsLibres as $champsLibre) {
-                    $rows[] =
+        if ($request->isXmlHttpRequest()) { //Si la requête est de type Xml
+            $champsLibres = $this->champsLibreRepository->getByType($this->typeRepository->find($id));
+            $rows = [];
+            foreach ($champsLibres as $champsLibre) {
+                $rows[] =
                         [
-                            'id' => ($champsLibre->getId() ? $champsLibre->getId() : "Non défini"),
-                            'Label' => ($champsLibre->getLabel() ? $champsLibre->getLabel() : "Non défini"),
-                            'Typage' => ($champsLibre->getTypage() ? $champsLibre->getTypage() : "Non défini"),
-                            'Valeur par défaut' => ($champsLibre->getDefaultValue() ? $champsLibre->getDefaultValue() : "Non défini"),
-                            'Actions' =>  $this->renderView('champ_libre/datatableChampsLibreRow.html.twig', ['idChampsLibre' => $champsLibre->getId()]),
+                            'id' => ($champsLibre->getId() ? $champsLibre->getId() : 'Non défini'),
+                            'Label' => ($champsLibre->getLabel() ? $champsLibre->getLabel() : 'Non défini'),
+                            'Typage' => ($champsLibre->getTypage() ? $champsLibre->getTypage() : 'Non défini'),
+                            'Valeur par défaut' => ($champsLibre->getDefaultValue() ? $champsLibre->getDefaultValue() : 'Non défini'),
+                            'Elements' => $this->renderView('champ_libre/champLibreElems.html.twig', ['elems' => $champsLibre->getElements()]),
+                            'Actions' => $this->renderView('champ_libre/datatableChampsLibreRow.html.twig', ['idChampsLibre' => $champsLibre->getId()]),
                         ];
-                }
-                $data['data'] = $rows;
-                return new JsonResponse($data);
             }
-        throw new NotFoundHttpException("404");
+            $data['data'] = $rows;
+
+            return new JsonResponse($data);
+        }
+        throw new NotFoundHttpException('404');
     }
 
     /**
@@ -96,7 +91,6 @@ class ChampsLibreController extends AbstractController
     {
         return $this->render('champ_libre/show.html.twig', [
             'type' => $this->typeRepository->find($id),
-
         ]);
     }
 
@@ -107,19 +101,20 @@ class ChampsLibreController extends AbstractController
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $type = $this->typeRepository->find($data['type']);
-
             $champsLibre = new ChampsLibre();
             $champsLibre
-                ->setlabel($data["label"])
+                ->setlabel($data['label'])
                 ->setType($type)
                 ->settypage($data['typage'])
-                ->setDefaultValue($data['valeur']);
+                ->setDefaultValue($data['valeur'])
+                ->setElements($data['elem']);
             $em = $this->getDoctrine()->getManager();
             $em->persist($champsLibre);
             $em->flush();
+
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException("404");
+        throw new NotFoundHttpException('404');
     }
 
     /**
@@ -132,9 +127,10 @@ class ChampsLibreController extends AbstractController
             $json = $this->renderView('champ_libre/modalEditChampLibreContent.html.twig', [
                 'champLibre' => $champLibre,
             ]);
+
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException("404");
+        throw new NotFoundHttpException('404');
     }
 
     /**
@@ -143,20 +139,19 @@ class ChampsLibreController extends AbstractController
     public function edit(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-
-
             $champLibre = $this->champsLibreRepository->find($data['champLibre']);
             $champLibre
                 ->setLabel($data['label'])
                 ->setTypage($data['typage'])
-                ->setDefaultValue($data['valeur']);
+                ->setDefaultValue($data['valeur'])
+                ->setElements(array_filter($data['elem']));
 
             $em = $this->getDoctrine()->getManager();
             $em->flush();
 
             return new JsonResponse();
         }
-        throw new NotFoundHttpException("404");
+        throw new NotFoundHttpException('404');
     }
 
     /**
@@ -169,9 +164,9 @@ class ChampsLibreController extends AbstractController
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($champsLibre);
             $entityManager->flush();
+
             return new JsonResponse();
         }
-        throw new NotFoundHttpException("404");
+        throw new NotFoundHttpException('404');
     }
-
 }

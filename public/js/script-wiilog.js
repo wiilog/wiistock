@@ -74,14 +74,17 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
         let missingInputs = [];
         let wrongNumberInputs = [];
         let passwordIsValid = true;
-
+        Data["elem"] = [];
         inputs.each(function () {
             let val = $(this).val();
             let name = $(this).attr("name");
             // console.log($(this));
             // console.log(val);
             // console.log($(this).val);
-            Data[name] = val;
+            if (name === "elem")
+                Data[name].push(val);
+            else 
+                Data[name] = val;
             // validation données obligatoires
             if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
                 let label = $(this).closest('.form-group').find('label').text();
@@ -229,7 +232,6 @@ function editRow(button, path, modal, submit, editorToInit = false) {
         if (this.readyState == 4 && this.status == 200) {
             dataReponse = JSON.parse(this.responseText);
             modal.find('.modal-body').html(dataReponse);
-            console.log('patate')
             ajaxAutoFournisseurInit( $('.ajax-autocomplete-fournisseur-edit'));
             ajaxAutoRefArticleInit($('.ajax-autocomplete-edit'));
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));

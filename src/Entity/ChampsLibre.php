@@ -52,6 +52,11 @@ class ChampsLibre
      */
     private $filters;
 
+    /**
+     * @ORM\Column(type="json", nullable=true)
+     */
+    private $elements = [];
+
     public function __construct()
     {
         $this->valeurChampsLibres = new ArrayCollection();
@@ -174,6 +179,18 @@ class ChampsLibre
                 $filter->setChampLibre(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getElements(): ?array
+    {
+        return $this->elements;
+    }
+
+    public function setElements(?array $elements): self
+    {
+        $this->elements = $elements;
 
         return $this;
     }

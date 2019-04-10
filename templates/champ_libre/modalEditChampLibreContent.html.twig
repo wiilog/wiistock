@@ -4,14 +4,14 @@
 </div>
 <div class="form-group">
     <label for="typage">Typage</label>
-    <select class="form-control select2 data" name="typage" id='typage'>
+    <select class="form-control select2 data" name="typage" id='typage' onchange="change(this)">
         <option value="{{champLibre.typage}}">{{champLibre.typage}}</option>
         {% if champLibre.typage != "booleen" %}
-            <option value="booleen">Oui/Non</option>
+        <option value="booleen">Oui/Non</option>
         {% elseif champLibre.typage != "number" %}
-            <option value="number">Nombre</option>
+        <option value="number">Nombre</option>
         {% elseif champLibre.typage != "text" %}
-            <option value="text">Texte</option>
+        <option value="text">Texte</option>
         {% endif %}
     </select>
 </div>
@@ -19,4 +19,29 @@
     <label for="date-attendu">Valeur par défaut</label>
     <input type="text" class="form-control data" name="valeur" value="{{champLibre.defaultValue}}" required="true">
 </div>
+
+
+{% if champLibre.typage == "list" %}
+<div class="form-group elem" id="elem">
+    <label for="date-attendu">Elements : </label>
+    {% for elem in champLibre.elements %}
+    <input type="text" class="form-control data" name="elem" value="{{elem}}" required="true">
+    {% endfor %}
+    <button class="btn" onclick="appendElem()" type="button">+</button>
 </div>
+{% endif %}
+
+{% block javascript %}
+<script>
+    function change(select) {
+        if ($(select).val() !== 'list') {
+            $("div").remove(".elem");
+            $("#ajouterElem").remove();
+        }
+    };
+    function appendElem() {
+        $("#elem").append(
+            "<input type=\"text\" class=\"form-control data\" name=\"elem\">");
+    }
+</script>
+{% endblock javascript %}
