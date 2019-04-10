@@ -35,26 +35,37 @@ class PasswordService
      * @var Swift_Mailer
      */
     private $mailer;
+    /**
+     * @var password
+     */
+    private $username;
 
-    public function __construct(UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, EntityManagerInterface $entityManager, \Swift_Mailer $mailer)
+    /**
+     * @var password
+     */
+    private $password;
+
+    public function __construct(UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, EntityManagerInterface $entityManager)
     {
         $this->entityManager = $entityManager;
         $this->passwordEncoder = $passwordEncoder;
         $this->utilisateurRepository = $utilisateurRepository;
-        $this->mailer = $mailer;
+        $this->username = 'mail@mail.com'; // TODO
+        $this->password = 'pass'; // TODO
+        $this->transport = (new Swift_SmtpTransport('smtp.gmail.com', 465, 'ssl'))
+            ->setUsername($this->username)
+            ->setPassword($this->password);
+        $this->mailer = (new Swift_Mailer($this->transport));
     }
 
-    public function sendNewPassword($from, $to)
+    public function sendNewPassword($to)
     {
         $newPass = $this->generatePassword(10);
         $this->updateUser($to, $newPass);
-        dump($to);
-        dump($newPass);
-        dump(explode('@', $to)[0]);
         $message = (new \Swift_Message('Oubli de mot de passe Wiilog.'))
-            ->setFrom([$from => 'L\'équipe de Wiilog.'])
+            ->setFrom([$this->username => 'L\'équipe de Wiilog.'])
             ->setTo($to)
-            ->setBody('Votre nouveau mot de passe est : '.$newPass, 'text/plain');
+            ->setBody('Votre nouveau mot de passe est : '.$newPass);
 
         $this->mailer->send($message);
     }

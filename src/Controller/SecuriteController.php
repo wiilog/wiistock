@@ -187,7 +187,7 @@ class SecuriteController extends Controller
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             $data = $form->getData();
-            $this->psservice->sendNewPassword('matteohevin@gmail.com', $data['email']);
+            $this->psservice->sendNewPassword($data['email']);
             $session->getFlashBag()->add('success', 'Félicitations ! Nous vous avons envoyé votre nouveau mot de passe par email !');
 
             return $this->redirectToRoute('login');
