@@ -124,54 +124,65 @@ class ReferenceArticleController extends Controller
     }
 
     /**
+     * @Route("/api-columns", name="ref_article_api_columns", options={"expose"=true}, methods="GET|POST")
+     */
+    public function apiColumns(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest())
+        {
+            $champs = $this->champsLibreRepository->getLabelAndIdAndTypage();;
+            $columns = [
+                [
+                    "title" => 'Actions',
+                    "data" => 'Actions',
+                    "class" => 'fixe'
+                ],
+                [
+                    "title" => 'Libellé',
+                    "data" => 'Libellé',
+                    "class" => 'fixe'
+                ],
+                [
+                    "title" => 'Référence',
+                    "data" => 'Référence',
+                    "class" => 'fixe'
+                ],
+                [
+                    "title" => 'Type',
+                    "data" => 'Type',
+                    "class" => 'fixe'
+                ],
+                [
+                    "title" => 'Quantité',
+                    "data" => 'Quantité',
+                    "class" => 'fixe'
+                ],
+
+            ];
+            foreach ($champs as $champ) {
+                $columns[] = [
+                    "title" => ucfirst(mb_strtolower($champ['label'])),
+                    "data" => $champ['label'],
+                    "class" => 'libre'
+                ];
+            }
+
+            return new JsonResponse($columns);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
      * @Route("/api", name="ref_article_api", options={"expose"=true}, methods="GET|POST")
      */
     public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
-            {
-                $data['data'] = $this->refArticleDataService->getRefArticleData();
+        {
+            $data = $this->refArticleDataService->getDataForDatatable($request->request);
 
-                $champs = $this->champsLibreRepository->getLabelAndIdAndTypage();;
-                $column = [
-                    [
-                        "title" => 'Actions',
-                        "data" => 'Actions',
-                        "class" => 'fixe'
-                    ],
-                    [
-                        "title" => 'Libellé',
-                        "data" => 'Libellé',
-                        "class" => 'fixe'
-                    ],
-                    [
-                        "title" => 'Référence',
-                        "data" => 'Référence',
-                        "class" => 'fixe'
-                    ],
-                    [
-                        "title" => 'Type',
-                        "data" => 'Type',
-                        "class" => 'fixe'
-                    ],
-                    [
-                        "title" => 'Quantité',
-                        "data" => 'Quantité',
-                        "class" => 'fixe'
-                    ],
-
-                ];
-                foreach ($champs as $champ) {
-                    $column[] = [
-                        "title" => ucfirst(mb_strtolower($champ['label'])),
-                        "data" => $champ['label'],
-                        "class" => 'libre'
-                    ];
-                }
-
-                $data['column'] = $column;
-                return new JsonResponse($data);
-            }
+            return new JsonResponse($data);
+        }
         throw new NotFoundHttpException("404");
     }
 
