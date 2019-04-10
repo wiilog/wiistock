@@ -27,10 +27,10 @@ class UtilisateurRepository extends ServiceEntityRepository
             FROM App\Entity\Utilisateur u
             WHERE u.email = :email"
         )->setParameter('email', $email);
-
+        ;
         return $query->getSingleScalarResult();
     }
-
+    
     public function countApiKey($apiKey)
     {
         $entityManager = $this->getEntityManager();
@@ -39,20 +39,18 @@ class UtilisateurRepository extends ServiceEntityRepository
             FROM App\Entity\Utilisateur u
             WHERE u.apiKey = :apiKey"
         )->setParameter('apiKey', $apiKey);
-
+        ;
         return $query->getSingleScalarResult();
     }
 
-    public function getIdAndUsername()
-    {
+    public function getIdAndUsername(){
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT u.id, u.username
             FROM App\Entity\Utilisateur u
             "
         );
-
-        return $query->execute();
+        return $query->execute(); 
     }
 
     public function getNoOne($id)
@@ -63,23 +61,14 @@ class UtilisateurRepository extends ServiceEntityRepository
             FROM App\Entity\Utilisateur u
             WHERE u.id <> :id"
         )->setParameter('id', $id);
-
-        return $query->execute();
+        ;
+        return $query->execute(); 
     }
 
-    public function getByMail($mail)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT u
-            FROM App\Entity\Utilisateur u
-            WHERE u.email <> :email"
-        )->setParameter('email', $mail);
 
-        return $query->execute();
-    }
 
-    //   /**
+
+//   /**
 //     * @return Utilisateur[] Returns an array of Utilisateurs objects
 //     */
     /*
