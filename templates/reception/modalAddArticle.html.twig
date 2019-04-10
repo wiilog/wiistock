@@ -67,30 +67,7 @@
                         <div class="editor-container"></div>
                     </div>
                 
-                    <div class="form-group col-6">
-                        <select name="type" 
-                        onclick="typeChoice($(this), '-new', $('#typeContentNew'))"
-                            class="form-control data d-block" id="">
-                            <option value="">Type à choisir...</option>
-                            {% for type in types %}
-                            <option value="{{type.id}}">{{type.label}}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                
-
-{# <script
-                    function typeChoice(bloc, text, content) {
-                        let cible = bloc.val()
-                        content.children().removeClass('d-block');
-                        content.children().addClass('d-none');
-                    
-                        $('#'+cible+text).removeClass('d-none')
-                        $('#'+cible+text).addClass('d-block')
-                    }></script> #}
-
-
-
+  
 
                 <!-- CHAMPS LIBRES -->
                 <div class="row mt-4">
@@ -104,10 +81,9 @@
                         </h3>
                     </div>
 
-                    <div class="form-group col-12 d-block" id='typeContentNew'>
-                        {% for type in types %}
-
-                        <div class="d-none" id="{{type.id}}-new">
+                    <div class="form-group col-12 " id='typeContentNew'>
+                      
+                        <div id="{{type.id}}-new">
                             <div class="row mt-2">
 
                                 {% for champ in type.champsLibres %}
@@ -142,7 +118,6 @@
                                 {% endfor %}
                             </div>
                         </div>
-                        {% endfor %}
                     </div>
                 </div>
                 <div class="error-msg"></div>
