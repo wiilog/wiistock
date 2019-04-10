@@ -119,6 +119,17 @@ function appendElem() {
 function addToSelect(el) {
     let input = $(el).val();
     if (input !== "") {
-        $("#valeur").append(new Option(input, input));
+        $('#valeur > option').each(function() {
+            if ($(this).data('elem') === el) {
+                $(this).text(input);
+            } 
+        });
+        $('<option/>', {
+            text: input,
+            value: input,
+            data: {
+              elem: el,
+            }
+        }).appendTo("#valeur");
     }
 }
