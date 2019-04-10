@@ -15,7 +15,6 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function () 
                     tableRefArticle.row($('#edit' + data.id).parents('div').parents('td').parents('tr')).remove().draw(false);
                     tableRefArticle.row.add(data.edit).draw(false);
                 }
-
                 callback(data);
                 initRemove();
 
@@ -148,7 +147,6 @@ let url = Routing.generate('ref_article_api', true);
 
 $(document).ready(function () {
     $.post(Routing.generate('ref_article_api_columns'), function (columns) {
-
         tableRefArticle = $('#tableRefArticle_id').DataTable({
             processing: true,
             serverSide: true,
@@ -190,6 +188,11 @@ function visibleColumn(check) {
     let columnNumber = check.data('column')
     let column = tableRefArticle.column(columnNumber);
     column.visible(!column.visible());
+    let columnClass = $('#tableRefArticle_id').find('thead').find('th');
+    columnClass.each(function () {
+        $(this).removeClass('libre');
+        $(this).addClass('fixe');
+    })
     if (check.hasClass('data')) {
         check.removeClass('data');
     } else{

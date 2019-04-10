@@ -26,8 +26,6 @@ use App\Repository\ReferenceArticleRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\CollecteReferenceRepository;
 
-use Hoa\Compiler\Visitor\Dump;
-
 /**
  * @Route("/collecte")
  */
