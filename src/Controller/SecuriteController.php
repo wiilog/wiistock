@@ -14,21 +14,9 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
-use App\Form\ForgotType;
-use App\Service\PasswordService;
 
 class SecuriteController extends Controller
 {
-    /**
-     * @var PasswordService
-     */
-    private $psservice;
-
-    public function __construct(PasswordService $psservice)
-    {
-        $this->psservice = $psservice;
-    }
-
     /**
      * @Route("/", name="default")
      */
@@ -170,25 +158,5 @@ class SecuriteController extends Controller
     public function logout()
     {
         return $this->redirectToRoute('login');
-    }
-
-    /**
-     * @Route("/oubli", name="forgotten")
-     */
-    public function forgot(Request $request, UserPasswordEncoderInterface $passwordEncoder, EntityManagerInterface $em)
-    {
-        $user = new Utilisateur();
-        $form = $this->createForm(ForgotType::class, $user);
-
-        $form->handleRequest($request);
-        if ($form->isSubmitted() && $form->isValid()) {
-            $this->psservice->sendNewPassword($user->getEmail());
-
-            return $this->redirectToRoute('login');
-        }
-
-        return $this->render('securite/resetPassword.html.twig', [
-            'form' => $form->createView(),
-        ]);
     }
 }
