@@ -59,87 +59,92 @@ class RefArticleSLUGCIBLEFixtures extends Fixture implements FixtureGroupInterfa
         $path = "public/csv/slugcible.csv";
         $file = fopen($path, "r");
 
-        $firstRow = true;
+        $rows = [];
         while (($data = fgetcsv($file, 1000, ";")) !== false) {
-            if ($firstRow) {
-                $firstRow = false;
-            } else {
-                $data = array_map('utf8_encode', $data);
-                dump(print_r($data));
+            $rows[] = array_map('utf8_encode', $data);
+        }
 
-                $typeSlugcible = $this->typeRepository->findOneBy(['label' => Type::LABEL_SLUGCIBLE]);
-                $statutActif = $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF);
+        array_shift($rows); // supprime la 1è ligne d'en-têtes
 
-                // champs fixes
-                $referenceArticle = new ReferenceArticle();
-                $referenceArticle
-                    ->setType($typeSlugcible)
-                    ->setReference($data[0])
-                    ->setLibelle($data[1])
-                    ->setQuantiteStock(intval($data[2]))
-                    ->setTypeQuantite('reference')
-                    ->setStatut($statutActif);
-                $manager->persist($referenceArticle);
+        $i = 1;
+        foreach ($rows as $row) {
+            if (empty($row[0])) continue;
+            dump($i);
+            $i++;
+
+            $typeSlugcible = $this->typeRepository->findOneBy(['label' => Type::LABEL_SLUGCIBLE]);
+            $statutActif = $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF);
+
+            // champs fixes
+            $referenceArticle = new ReferenceArticle();
+            $referenceArticle
+                ->setType($typeSlugcible)
+                ->setReference($row[0])
+                ->setLibelle($row[1])
+                ->setQuantiteStock(intval($row[2]))
+                ->setTypeQuantite('reference')
+                ->setStatut($statutActif);
+            $manager->persist($referenceArticle);
 
 
-                // champ fournisseur
-                $fournisseurLabel = $data[10];
-                if (!empty($fournisseurLabel)) {
-                    $fournisseurRef = $data[11];
-                    if (in_array($fournisseurRef, ['nc', 'nd', 'NC', 'ND', '*', '.', ''])) {
-                        $fournisseurRef = $fournisseurLabel;
-                    }
-                    $fournisseur = $this->fournisseurRepository->findOneBy(['nom' => $fournisseurLabel]);
+            // champ fournisseur
+            $fournisseurLabel = $row[10];
+            if (!empty($fournisseurLabel)) {
+                $fournisseurRef = $row[11];
+                if (in_array($fournisseurRef, ['nc', 'nd', 'NC', 'ND', '*', '.', ''])) {
+                    $fournisseurRef = $fournisseurLabel;
+                }
+                $fournisseur = $this->fournisseurRepository->findOneBy(['nom' => $fournisseurLabel]);
 
-                    // si le fournisseur n'existe pas, on le crée
-                    if (empty($fournisseur)) {
-                        $fournisseur = new Fournisseur();
-                        $fournisseur
-                            ->setNom($fournisseurLabel)
-                            ->setCodeReference($fournisseurRef);
-                        $manager->persist($fournisseur);
-                    }
-
-                    // on crée l'article fournisseur, on le lie au fournisseur et à l'article de référence
-                    $articleFournisseur = new ArticleFournisseur();
-                    $articleFournisseur
-                        ->setLabel($data[0])
-                        ->setReference(time()) // code aléatoire
-                        ->setFournisseur($fournisseur)
-                        ->setReferenceArticle($referenceArticle);
-
-                    $manager->persist($articleFournisseur);
+                // si le fournisseur n'existe pas, on le crée
+                if (empty($fournisseur)) {
+                    $fournisseur = new Fournisseur();
+                    $fournisseur
+                        ->setNom($fournisseurLabel)
+                        ->setCodeReference($fournisseurRef);
+                    $manager->persist($fournisseur);
                 }
 
+                // on crée l'article fournisseur, on le lie au fournisseur et à l'article de référence
+                $articleFournisseur = new ArticleFournisseur();
+                $articleFournisseur
+                    ->setLabel($row[0])
+                    ->setReference(time()) // code aléatoire
+                    ->setFournisseur($fournisseur)
+                    ->setReferenceArticle($referenceArticle);
 
-                // champs libres
-                $listData = [
-                    ['label' => 'bénéficiaire ou n° commande', 'col' => 7, 'type' => ChampsLibre::TYPE_TEXT],
-                    ['label' => 'machine', 'col' => 9, 'type' => ChampsLibre::TYPE_TEXT],
-                    ['label' => 'stock mini', 'col' => 13, 'type' => ChampsLibre::TYPE_NUMBER],
-                    ['label' => 'date entrée', 'col' => 15, 'type' => ChampsLibre::TYPE_TEXT],
-                ];
-
-                foreach($listData as $data) {
-                    $vcl = new ValeurChampsLibre();
-                    $cl = $this->champsLibreRepository->findOneBy(['label' => $data['label']]);
-                    if (empty($cl)) {
-                        $cl = new ChampsLibre();
-                        $cl
-                            ->setLabel($data['label'])
-                            ->setTypage($data['type'])
-                            ->setType($typeSlugcible);
-                        $manager->persist($cl);
-                    }
-                    $vcl
-                        ->setChampLibre($cl)
-                        ->addArticleReference($referenceArticle)
-                        ->setValeur($data['col']);
-                    $manager->persist($vcl);
-                }
-
-                $manager->flush();
+                $manager->persist($articleFournisseur);
             }
+
+
+            // champs libres
+            $listFields = [
+                ['label' => 'bénéficiaire ou n° commande', 'col' => 7, 'type' => ChampsLibre::TYPE_TEXT],
+                ['label' => 'machine', 'col' => 9, 'type' => ChampsLibre::TYPE_TEXT],
+                ['label' => 'stock mini', 'col' => 13, 'type' => ChampsLibre::TYPE_NUMBER],
+                ['label' => 'date entrée', 'col' => 15, 'type' => ChampsLibre::TYPE_TEXT],
+            ];
+
+            foreach($listFields as $field) {
+                $vcl = new ValeurChampsLibre();
+                $cl = $this->champsLibreRepository->findOneBy(['label' => $field['label']]);
+                if (empty($cl)) {
+                    $cl = new ChampsLibre();
+                    $cl
+                        ->setLabel($field['label'])
+                        ->setTypage($field['type'])
+                        ->setType($typeSlugcible);
+                    $manager->persist($cl);
+                }
+                $vcl
+                    ->setChampLibre($cl)
+                    ->addArticleReference($referenceArticle)
+                    ->setValeur($row[$field['col']]);
+                $manager->persist($vcl);
+            }
+
+            $manager->flush();
+
         }
         fclose($file);
     }

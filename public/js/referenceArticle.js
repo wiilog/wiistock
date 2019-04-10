@@ -14,9 +14,6 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function () 
                 } else if (data.edit) {
                     tableRefArticle.row($('#edit' + data.id).parents('div').parents('td').parents('tr')).remove().draw(false);
                     tableRefArticle.row.add(data.edit).draw(false);
-                } else if (data.reload) {
-                    tableRefArticle.clear();
-                    tableRefArticle.rows.add(data.reload).draw();
                 }
 
                 callback(data);
@@ -144,28 +141,35 @@ InitialiserModalRefArticle(modalNewFilter, submitNewFilter, urlNewFilter, displa
 
 let url = Routing.generate('ref_article_api', true);
 
-//REFERENCE ARTICLE
-
 $(document).ready(function () {
-    $.post(url, function (data) {
-        let dataContent = data.data;
-        let columnContent = data.column;
+
+    $.post(Routing.generate('ref_article_api_columns'), function(columns) {
+
         tableRefArticle = $('#tableRefArticle_id').DataTable({
-            "autoWidth": false,
-            "scrollX": true,
-            "scrollY": "80vh",
-            "scrollCollapse": true,
-            "pageLength": 50,
-            "lengthMenu": [50, 100, 200, 500],
-            "language": {
-                "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
+            processing: true,
+            serverSide: true,
+            sortable: false,
+            ordering: false,
+            paging: true,
+            order: [[1, 'asc']],
+            ajax: {
+                'url': url,
+                'type': 'POST',
+                'dataSrc': function(json) {
+                    return json.data;
+                }
             },
-            "data": dataContent,
-            "columns": columnContent
+            'drawCallback': function() {
+                loadSpinnerAR($('#spinner'));
+                initRemove();
+                hideColumnChampsLibres();
+            },
+            length: 10,
+            columns: columns,
+            language: {
+                url: "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
+            },
         });
-        loadSpinnerAR($('#spinner'));
-        initRemove();
-        hideColumnChampsLibres();
     })
 });
 
@@ -223,6 +227,8 @@ function showDemande(bloc) {
 // affiche le filtre après ajout
 function displayNewFilter(data) {
     $('#filters').append(data.filterHtml);
+    tableRefArticle.clear();
+    tableRefArticle.ajax.reload();
 }
 
 // suppression du filtre au clic dessus
@@ -234,9 +240,9 @@ function removeFilter() {
     $(this).remove();
 
     let params = JSON.stringify({ 'filterId': $(this).find('.filter-id').val() });
-    $.post(Routing.generate('filter_delete', true), params, function (data) {
+    $.post(Routing.generate('filter_delete', true), params, function () {
         tableRefArticle.clear();
-        tableRefArticle.rows.add(data).draw();
+        tableRefArticle.ajax.reload();
     });
 }
 
