@@ -15,34 +15,33 @@
 
 
 function InitialiserModal(modal, submit, path, table, callback = null, close = true) {
-    
+
     submit.click(function () {
         xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function () {
-            
+
             if (this.readyState == 4 && this.status == 200) {
                 $('.errorMessage').html(JSON.parse(this.responseText));
                 data = JSON.parse(this.responseText);
 
-
                 if (data.redirect) {
                     window.location.href = data.redirect;
-                    
+
                 }
                 // pour mise à jour des données d'en-tête après modification
                 if (data.entete) {
                     $('.zone-entete').html(data.entete)
                 }
                 table.ajax.reload(function (json) {
-                    
+
                     if (this.responseText !== undefined) {
                         $('#myInput').val(json.lastInput);
                     }
                 });
 
-                if (callback !== null) callback(data) ;
+                if (callback !== null) callback(data);
 
-                 
+
                 let inputs = modal.find('.modal-body').find(".data");
                 // on vide tous les inputs (sauf les disabled)
                 inputs.each(function () {
@@ -53,7 +52,7 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
                 });
                 // on vide tous les select2
                 let selects = modal.find('.modal-body').find('.ajax-autocomplete,.select2');
-                selects.each(function() {
+                selects.each(function () {
                     $(this).val(null).trigger('change');
                 });
                 // on vide les messages d'erreur
@@ -98,17 +97,21 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
                 }
             }
             // validation valeur des inputs de type password
-            if($(this).attr('type') === 'password') {
-                let password = $(this).val();
+            if ($(this).attr('type') === 'password') {
+                let isNotChanged = $(this).hasClass('optional-password') && $(this).val === "";
+                if (!isNotChanged) {
+                    let password = $(this).val();
 
-                if (password.length < 8) {
-                    modal.find('.password-error-msg').html('Le mot de passe doit faire au moins 8 caractères.');
-                    passwordIsValid = false;
-                } else if(!password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)) {
-                    modal.find('.password-error-msg').html('Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial (@$!%*?&).');
-                    passwordIsValid = false;
-                } else {
-                    passwordIsValid = true;
+                    if (password.length < 8) {
+                        console.log("hello");
+                        modal.find('.password-error-msg').html('Le mot de passe doit faire au moins 8 caractères.');
+                        passwordIsValid = false;
+                    } else if (!password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)) {
+                        modal.find('.password-error-msg').html('Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial (@$!%*?&).');
+                        passwordIsValid = false;
+                    } else {
+                        passwordIsValid = true;
+                    }
                 }
             }
         });
@@ -119,12 +122,12 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
         checkboxes.each(function () {
             Data[$(this).attr("name")] = $(this).is(':checked');
         });
-
         // si tout va bien on envoie la requête ajax...
         if (missingInputs.length == 0 && wrongNumberInputs.length == 0 && passwordIsValid) {
             if (close == true) modal.find('.close').click();
             Json = {};
             Json = JSON.stringify(Data);
+            console.log(Json);
             xhttp.open("POST", path, true);
             xhttp.send(Json);
         } else {
@@ -142,7 +145,7 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
             }
             // cas où les champs number ne respectent pas les valeurs imposées (min et max)
             if (wrongNumberInputs.length > 0) {
-                wrongNumberInputs.forEach(function(elem) {
+                wrongNumberInputs.forEach(function (elem) {
                     let label = elem.closest('.form-group').find('label').text();
 
                     msg += 'La valeur du champ ' + label;
@@ -227,6 +230,7 @@ function editRow(button, path, modal, submit, editorToInit = false) {
             if (editorToInit) initEditor('#' + modal.attr('id'));
         }
     }
+    console.log("patate");
     let json = button.data('id');
     modal.find(submit).attr('value', json);
     modal.find('#inputId').attr('value', json);
@@ -247,28 +251,28 @@ function toggleRadioButton(button) {
 //initialisation editeur de texte une seule fois
 
 function initEditor(modal) {
-   
+
     var quill = new Quill(modal + ' .editor-container', {
         modules: {
-        //     toolbar: [
-        //         [{ header: [1, 2, 3, false] }],
-        //         ['bold', 'italic', 'underline'],
-        //         [{'list': 'ordered'}, {'list': 'bullet'}]
-        //         ['image', 'code-block']
-        //     ]
-        // },
-        toolbar: [
-            [{ header: [1, 2, 3, false] }],
-            ['bold', 'italic', 'underline', 'image'],
-            
-            [{'list': 'ordered'}, {'list': 'bullet'}]
-          ]
+            //     toolbar: [
+            //         [{ header: [1, 2, 3, false] }],
+            //         ['bold', 'italic', 'underline'],
+            //         [{'list': 'ordered'}, {'list': 'bullet'}]
+            //         ['image', 'code-block']
+            //     ]
+            // },
+            toolbar: [
+                [{ header: [1, 2, 3, false] }],
+                ['bold', 'italic', 'underline', 'image'],
+
+                [{ 'list': 'ordered' }, { 'list': 'bullet' }]
+            ]
         },
         formats: [
-          'header',
-          'bold', 'italic', 'underline', 'strike', 'blockquote',
-          'list', 'bullet', 'indent',
-          'link', 'image'
+            'header',
+            'bold', 'italic', 'underline', 'strike', 'blockquote',
+            'list', 'bullet', 'indent',
+            'link', 'image'
         ],
 
         theme: 'snow'
@@ -329,8 +333,8 @@ function typeChoice(bloc, text, content) {
     content.children().removeClass('d-block');
     content.children().addClass('d-none');
 
-    $('#'+cible+text).removeClass('d-none')
-    $('#'+cible+text).addClass('d-block')
+    $('#' + cible + text).removeClass('d-none')
+    $('#' + cible + text).addClass('d-block')
 }
 
 function updateQuantityDisplay(elem) {

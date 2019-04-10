@@ -55,7 +55,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult(); 
     }
 
-    public function findByFilters($filters)
+    public function findByFiltersAndParams($filters, $params = null)
     {
         $em = $this->getEntityManager();
         $qb = $em->createQueryBuilder();
@@ -148,9 +148,23 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             $qb->andWhere($qb->expr()->in('ra.id', $ids));
         }
 
+        $countQuery = count($qb->getQuery()->getResult());
+
+        // prise en compte des paramètres issus du datatable
+        if (!empty($params)) {
+            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
+            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+            if (!empty($params->get('search'))) {
+                $search = $params->get('search')['value'];
+                $qb
+                    ->andWhere('ra.libelle LIKE :value OR ra.reference LIKE :value')
+                    ->setParameter('value', '%' . $search . '%');
+            }
+        }
+
         $query = $qb->getQuery();
 
-        return $query->getResult();
+        return ['data' => $query->getResult(), 'count' => $countQuery];
     }
 
     public function countByType($typeId)
@@ -191,6 +205,18 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         )->setParameter('fournisseurId', $fournisseurId);
 
         return $query->execute();
+    }
+
+    public function countAll()
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT COUNT(ra)
+            FROM App\Entity\ReferenceArticle ra
+           "
+        );
+
+        return $query->getSingleScalarResult();
     }
 
 }
