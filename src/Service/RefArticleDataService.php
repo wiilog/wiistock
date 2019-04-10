@@ -82,17 +82,27 @@ class RefArticleDataService
         $this->em = $em;
     }
 
+    public function getDataForDatatable($params = null)
+    {
+        $data = $this->getRefArticleDataByParams($params);
+        $data['recordsTotal'] = (int)$this->referenceArticleRepository->countAll();
+        return $data;
+    }
+
     /**
+     * @param null $params
      * @return array
      * @throws \Twig_Error_Loader
      * @throws \Twig_Error_Runtime
      * @throws \Twig_Error_Syntax
      */
-    public function getRefArticleData()
+    public function getRefArticleDataByParams($params = null)
     {
         $userId = $this->user->getId();
         $filters = $this->filterRepository->getFieldsAndValuesByUser($userId);
-        $refs = $this->referenceArticleRepository->findByFilters($filters);
+        $queryResult = $this->referenceArticleRepository->findByFiltersAndParams($filters, $params);
+        $refs = $queryResult['data'];
+        $count = $queryResult['count'];
 
         $rows = [];
         foreach ($refs as $refArticle) {
@@ -116,7 +126,7 @@ class RefArticleDataService
             ];
             $rows[] = array_merge($rowCL, $rowCF);
         }
-        return $rows;
+        return ['data' => $rows, 'recordsFiltered' => $count];
     }
 
 
@@ -230,4 +240,5 @@ class RefArticleDataService
         }
         return $response;
     }
+
 }
