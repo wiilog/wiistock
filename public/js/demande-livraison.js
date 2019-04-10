@@ -1,13 +1,14 @@
 // $( document ).ready(function () {
 //     $('#modalNewArticle').modal('show')
 // })
-$('.select2').select2({
-    placeholder: {
-        id: 'utilisateur', // the value of the option
-        text: 'Utilisateur',
-    }
+$('.select2').select2();
 
-});
+// $('#utilisateur').select2({
+//     placeholder: {
+//         text: 'Utilisateur',
+//     }
+
+// });
 //ARTICLE DEMANDE
 let pathArticle = Routing.generate('ligne_article_api', { id: id }, true);
 let tableArticle = $('#table-lignes').DataTable({

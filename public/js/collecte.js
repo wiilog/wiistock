@@ -1,4 +1,6 @@
-$('.select2').select2({
+$('.select2').select2();
+
+$('#utilisateur').select2({
     placeholder: {
         id: 'demandeur', // the value of the option
         text: 'Demandeur',
