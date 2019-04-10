@@ -1,0 +1,46 @@
+<div class="row filterService align-items-center pl-2">
+
+    <div class='col-5'>
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <div class="input-group-text">De</div>
+            </div>
+            <input type="date" class="form-control" name="dateMin" id="dateMin" placeholder="Date de début">
+            <div class="input-group-prepend">
+                <div class="input-group-text">Au</div>
+            </div>
+            <input type="date" class="form-control" name="dateMax" id="dateMax" placeholder="Date de fin">
+        </div>
+    </div>
+
+    <div class='col-2'>
+        <div class="input-group">
+            <select class="form-control data" name="statut" id="statut" placeholder='statut'>
+                <option value>Statut </option>
+                {% for statut in statuts %}
+                    <option value="{{ statut.nom }}">{{ statut.nom }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <div class='col-3'>
+        <div class="input-group">
+            <select type="text" class="form-control data select2 " name="utilisateur" multiple="multiple"
+                    id="utilisateur">
+                {% for utilisateur in utilisateurs %}
+                    <option value="{{ utilisateur.username }}">
+                        {{ utilisateur.username }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <div class='col-2'>
+        <div id='{{ btnName }}' class="btn btn-primary ">
+            <i class="fas fa-filter mr-2"></i>
+            Filtrer
+        </div>
+    </div>
+</div>

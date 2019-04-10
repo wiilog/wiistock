@@ -1,9 +1,9 @@
-$('.select2').select2({
-    placeholder: {
-        id: 'demandeur', // the value of the option
-        text: 'Demandeur',
-    }
+$('.select2').select2();
 
+$('#utilisateur').select2({
+    placeholder: {
+         text: 'Demandeur',
+    }
 });
 
 var pathService = Routing.generate('service_api', true);
@@ -24,12 +24,12 @@ var tableService = $('#tableService_id').DataTable({
     ],
 
 });
-
+// filtres de recheches
 $('#submitSearchService').on('click', function () {
 
     let statut = $('#statut').val();
     let demandeur = [];
-    demandeur = $('#demandeur').val()
+    demandeur = $('#utilisateur').val()
     demandeurString = demandeur.toString();
     demandeurPiped = demandeurString.split(',').join('|')
 
