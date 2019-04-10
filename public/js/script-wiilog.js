@@ -230,6 +230,7 @@ function editRow(button, path, modal, submit, editorToInit = false) {
             ajaxAutoFournisseurInit( $('.ajax-autocomplete-fournisseur-edit'));
             ajaxAutoRefArticleInit($('.ajax-autocomplete-edit'));
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
+            ajaxAutoUserInit($('.ajax-autocomplete-user-edit'));
             if (editorToInit) initEditor('#' + modal.attr('id'));
         }
     }
@@ -398,6 +399,24 @@ function ajaxAutoFournisseurInit(select) {
     select.select2({
         ajax: {
             url: Routing.generate('get_fournisseur'),
+            dataType: 'json',
+            delay: 250,
+        },
+        language: {
+            inputTooShort: function () {
+                return 'Veuillez entrer au moins 1 caractère.';
+            },
+            searching: function () {
+                return 'Recherche en cours...';
+            }
+        },
+        minimumInputLength: 1,
+    });
+}
+function ajaxAutoUserInit(select) {
+    select.select2({
+        ajax: {
+            url: Routing.generate('get_user'),
             dataType: 'json',
             delay: 250,
         },

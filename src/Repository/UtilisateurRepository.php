@@ -65,7 +65,17 @@ class UtilisateurRepository extends ServiceEntityRepository
         return $query->execute(); 
     }
 
+    public function getIdAndLibelleBySearch($search)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+          "SELECT u.id, u.username as text
+          FROM App\Entity\Utilisateur u
+          WHERE u.username LIKE :search"
+        )->setParameter('search', '%' . $search . '%');
 
+        return $query->execute();
+    }
 
 
 //   /**
