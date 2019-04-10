@@ -106,7 +106,7 @@ class CollecteController extends AbstractController
         return $this->render('collecte/show.html.twig', [
             'collecte' => $collecte,
             'articles' => $this->articleRepository->findAll(),
-            'modifiable' => ($collecte->getStatut()->getNom() !== Collecte::STATUS_EN_COURS ?true : false)
+            'modifiable' => ($collecte->getStatut()->getNom() === Collecte::STATUS_DEMANDE ? true : false)
         ]);
     }
 

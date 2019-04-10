@@ -186,3 +186,23 @@ $('#submitSearchDemandeLivraison').on('click', function () {
     tableDemande
         .draw();
 });
+
+function finishDemandeLivraison(submit) {
+    xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            data = JSON.parse(this.responseText);
+            $('#tableArticle_id').DataTable().ajax.reload();
+            $('.zone-entete').html(data.entete);
+            $('#boutonCollecteSup').addClass('d-none')
+            $('#boutonCollecteInf').addClass('d-none')
+
+        }
+    }
+    path =  Routing.generate('finish_demande', true)
+    let data = {};
+    data['demande'] = submit.data('id')
+    json = JSON.stringify(data);
+    xhttp.open("POST", path, true);
+    xhttp.send(json);
+}
