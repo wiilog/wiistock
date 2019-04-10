@@ -95,8 +95,8 @@ class FilterController extends AbstractController
                     'champFixe' => $filter->getChampFixe(),
                     'value' => $filter->getValue()
                 ];
+
                 $result = [
-                    'reload' => $this->refArticleDataService->getRefArticleData(),
                     'filterHtml' => $this->renderView('reference_article/oneFilter.html.twig', ['filter' => $filterArray])
                 ];
             } else {
@@ -117,14 +117,15 @@ class FilterController extends AbstractController
 
             if ($filterId) {
                 $filter = $this->filterRepository->find($filterId);
-                $em = $this->getDoctrine()->getManager();
-                $em->remove($filter);
-                $em->flush();
+
+                if ($filter) {
+                    $em = $this->getDoctrine()->getManager();
+                    $em->remove($filter);
+                    $em->flush();
+                }
             }
 
-            $data = $this->refArticleDataService->getRefArticleData();
-
-            return new JsonResponse($data);
+            return new JsonResponse();
         }
         throw new NotFoundHttpException("404");
     }
