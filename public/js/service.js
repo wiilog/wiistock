@@ -95,4 +95,5 @@ function initNewServiceEditor(modal) {
         initEditor(modal);
         editorNewServiceAlreadyDone = true;
     }
+    ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'))
 };

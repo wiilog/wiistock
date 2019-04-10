@@ -37,11 +37,8 @@
 
 <div class="form-group">
     <label for="Pcollecte">Point de collecte</label>
-    <select class="pointCollecte form-control data select2" name="Pcollecte">
-        {% for emplacement in emplacements %}
-            {% set selected = (emplacement.id == collecte.pointCollecte.id ? 'selected' : '') %}
-        <option value="{{ emplacement.id }}" {{ selected }}>{{ emplacement.label }}</option>
-        {% endfor %}
+    <select class="pointCollecte form-control ajax-autocompleteEmplacement-edit data" name="Pcollecte">
+        <option value="{{collecte.pointCollecte.id}}">{{collecte.pointCollecte.label}}</option>
     </select>
 </div>
 

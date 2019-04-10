@@ -5,7 +5,7 @@ var tableEmplacement = $('#tableEmplacement_id').DataTable({
     "language": {
         "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
     },
-    ajax:{
+    ajax: {
         "url": pathEmplacement,
         "type": "POST"
     },
@@ -15,11 +15,11 @@ var tableEmplacement = $('#tableEmplacement_id').DataTable({
         { "data": 'Actions' }
     ],
     buttons: [
-       'copy', 'excel', 'pdf'
-     ]
+        'copy', 'excel', 'pdf'
+    ]
 });
 
-let modalNewEmplacement = $("#modalNewEmplacement"); 
+let modalNewEmplacement = $("#modalNewEmplacement");
 let submitNewEmplacement = $("#submitNewEmplacement");
 let urlNewEmplacement = Routing.generate('emplacement_new', true);
 InitialiserModal(modalNewEmplacement, submitNewEmplacement, urlNewEmplacement, tableEmplacement);
@@ -33,5 +33,4 @@ let modalModifyEmplacement = $('#modalEditEmplacement');
 let submitModifyEmplacement = $('#submitEditEmplacement');
 let urlModifyEmplacement = Routing.generate('emplacement_edit', true);
 InitialiserModal(modalModifyEmplacement, submitModifyEmplacement, urlModifyEmplacement, tableEmplacement);
-
 
