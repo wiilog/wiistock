@@ -7,7 +7,6 @@ $('#utilisateur').select2({
     placeholder: {
         text: 'Utilisateur',
     }
-
 });
 //ARTICLE DEMANDE
 let pathArticle = Routing.generate('ligne_article_api', { id: id }, true);

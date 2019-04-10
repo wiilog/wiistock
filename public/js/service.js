@@ -4,7 +4,6 @@ $('#utilisateur').select2({
     placeholder: {
          text: 'Demandeur',
     }
-
 });
 
 var pathService = Routing.generate('service_api', true);
