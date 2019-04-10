@@ -448,10 +448,10 @@ class ReferenceArticleController extends Controller
             $refArticle = $this->referenceArticleRepository->find($data);
             if ($refArticle) {
                 $statutC = $this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, Collecte::STATUS_DEMANDE);
-                $collectes = $this->collecteRepository->getByStatut($statutC);
+                $collectes = $this->collecteRepository->getByStatutAndUser($statutC, $this->getUser());
 
                 $statutD = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
-                $demandes = $this->demandeRepository->getByStatut($statutD);
+                $demandes = $this->demandeRepository->getByStatutAndUser($statutD, $this->getUser());
 
                 $articleOrNo = $this->articleDataService->getArticleOrNoByRefArticle($refArticle, false);
                 $json = $this->renderView('reference_article/modalPlusDemandeContent.html.twig', [
