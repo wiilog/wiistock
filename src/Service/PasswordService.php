@@ -50,9 +50,9 @@ class PasswordService
         $this->entityManager = $entityManager;
         $this->passwordEncoder = $passwordEncoder;
         $this->utilisateurRepository = $utilisateurRepository;
-        $this->username = 'jeanvivien.sicot@wiilog.fr'; // TODO
-        $this->password = 'kellhus16^^'; // TODO
-        $this->transport = (new Swift_SmtpTransport('/usr/sbin/sendmail -bs'))
+        $this->username = 'jeanvivien'; // TODO
+        $this->password = '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'; // TODO
+        $this->transport = (new Swift_SmtpTransport('smtp.sendgrid.net', 465, 'ssl'))
             ->setUsername($this->username)
             ->setPassword($this->password);
         $this->mailer = (new Swift_Mailer($this->transport));
