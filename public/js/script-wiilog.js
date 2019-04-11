@@ -5,6 +5,7 @@
  *      ajouter une <div class="error-msg"> à la fin du modal-body
  *      ajouter la classe "needed" aux inputs qui sont obligatoires
  *      supprimerle data-dismiss=modal du bouton submit de la modale (la gestion de la fermeture doit se faire dans cette fonction)
+ *      pour un affichage optimal de l'erreur, le label et l'input doivent être dans une div avec la classe "form-group"
  * 
  * @param {Document} modal la fenêtre modale selectionnée : document.getElementById("modal").
  * @param {Document} submit le bouton qui va envoyé les données au controller via Ajax.
@@ -26,7 +27,6 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
 
                 if (data.redirect) {
                     window.location.href = data.redirect;
-
                 }
                 // pour mise à jour des données d'en-tête après modification
                 if (data.entete) {
@@ -39,9 +39,6 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
 
                     }
                 });
-
-                if (callback !== null) callback(data);
-
 
                 let inputs = modal.find('.modal-body').find(".data");
                 // on vide tous les inputs (sauf les disabled)
@@ -64,6 +61,8 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
                     $(this).prop('checked', false);
                 });
 
+                if (callback !== null) callback(data);
+
             }
         };
 
@@ -78,9 +77,6 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
         inputs.each(function () {
             let val = $(this).val();
             let name = $(this).attr("name");
-            // console.log($(this));
-            // console.log(val);
-            // console.log($(this).val);
             Data[name] = val;
             // validation données obligatoires
             if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
@@ -117,7 +113,6 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
                 }
             }
         });
-        console.log(Data);
 
         // ... et dans les checkboxes
         let checkboxes = modal.find('.checkbox');
@@ -229,7 +224,6 @@ function editRow(button, path, modal, submit, editorToInit = false) {
         if (this.readyState == 4 && this.status == 200) {
             dataReponse = JSON.parse(this.responseText);
             modal.find('.modal-body').html(dataReponse);
-            console.log('patate')
             ajaxAutoFournisseurInit( $('.ajax-autocomplete-fournisseur-edit'));
             ajaxAutoRefArticleInit($('.ajax-autocomplete-edit'));
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
@@ -237,7 +231,6 @@ function editRow(button, path, modal, submit, editorToInit = false) {
             if (editorToInit) initEditor('#' + modal.attr('id'));
         }
     }
-    console.log("patate");
     let json = button.data('id');
     modal.find(submit).attr('value', json);
     modal.find('#inputId').attr('value', json);

@@ -44,7 +44,6 @@
             </ul>
         </li>
         <!-- STOCK -->
-        {% if is_granted('ROLE_ADMIN_GT') %}
         <li class="menu-item has-submenu">
             <a href="#">
                 <i class="fas fa-box"></i>
@@ -69,7 +68,6 @@
                 </li>
             </ul>
         </li>
-        {% endif %}
 
         {% if is_granted('ROLE_ADMIN_GT') %}
         <li class="menu-item has-submenu">
@@ -82,7 +80,7 @@
                     <a href="{{ path('user_index') }}" class="sub-item">• Utilisateurs</a>
                 </li>
                 <li>
-                    <!-- <a href="#">• Rôle</a> -->
+                    <a href="{{ path('role_index') }}" class="sub-item">• Rôles</a>
                 </li>
                 <li>
                     <a href="{{ path('champ_libre_index') }}" class="sub-item">• Champs libres</a>

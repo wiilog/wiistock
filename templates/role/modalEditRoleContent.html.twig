@@ -1,0 +1,27 @@
+<div class="mb-3 form-group">
+    <label for="label">Nom</label>
+    <input type="text" class="data form-control needed" name="label" value="{{ role.label }}">
+</div>
+
+{% for menu in menus %}
+    <div class="form-group">
+        <div class="row">
+            <div class="col-3">
+                <label>{{ menu.label }}</label>
+            </div>
+
+            {% for action in menu.actions %}
+                {% set checked = (action.id in actionsIdOfRole) ? 'checked' : '' %}
+                <div class="col-3">
+                    <label class="switch">
+                        <input class="checkbox" type="checkbox" {{ checked }} name="{{ menu.code~'/'~action.label }}">
+                        <span class="slider round"></span>
+                    </label>
+                    {{ action.label }} {{ action.id }}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endfor %}
+
+<div class="error-msg"></div>

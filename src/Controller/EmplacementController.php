@@ -66,11 +66,7 @@ class EmplacementController extends AbstractController
      */
     public function index(): Response
     {
-        if ($this->isGranted('ROLE_ADMIN_GT')) {
-            return $this->render('emplacement/index.html.twig', ['emplacement' => $this->emplacementRepository->findAll()]);
-        } else {
-            return new Response($this->renderView('securite/access_denied.html.twig'));
-        }
+        return $this->render('emplacement/index.html.twig', ['emplacement' => $this->emplacementRepository->findAll()]);
     }
 
     /**

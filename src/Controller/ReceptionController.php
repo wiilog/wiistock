@@ -92,7 +92,8 @@ class ReceptionController extends AbstractController
      */
     public function new(Request $request): Response
     {
-        if ($data = json_decode($request->getContent(), true)) //Si data est attribuée
+        if ($this->isGranted('ROLE_ADMIN_GT')) {
+            if ($data = json_decode($request->getContent(), true)) //Si data est attribuée
             {
                 $fournisseur = $this->fournisseurRepository->find(intval($data['fournisseur']));
                 $reception = new Reception();
@@ -126,7 +127,10 @@ class ReceptionController extends AbstractController
                 return new JsonResponse($data);
             }
 
-        throw new NotFoundHttpException("404");
+            throw new NotFoundHttpException("404");
+        } else {
+            //TODO CG message erreur (pas les droits pour cette action)
+        }
     }
 
     /**
@@ -134,7 +138,8 @@ class ReceptionController extends AbstractController
      */
     public function edit(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($this->isGranted('ROLE_ADMIN_GT')) {
+            if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
                 $fournisseur = $this->fournisseurRepository->find(intval($data['fournisseur']));
                 $utilisateur = $this->utilisateurRepository->find(intval($data['utilisateur']));
                 $statut = $this->statutRepository->find(intval($data['statut']));
@@ -158,7 +163,8 @@ class ReceptionController extends AbstractController
                 ];
                 return new JsonResponse($json);
             }
-        throw new NotFoundHttpException("404");
+            throw new NotFoundHttpException("404");
+        }
     }
 
     /**
@@ -273,18 +279,23 @@ class ReceptionController extends AbstractController
      */
     public function delete(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $reception = $this->receptionRepository->find($data['receptionId']);
+        if ($this->isGranted('ROLE_ADMIN_GT')) {
 
-            $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->remove($reception);
-            $entityManager->flush();
-            $data = [
-                "redirect" => $this->generateUrl('reception_index')
-            ];
-            return new JsonResponse($data);
+            if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+                $reception = $this->receptionRepository->find($data['receptionId']);
+
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager->remove($reception);
+                $entityManager->flush();
+                $data = [
+                    "redirect" => $this->generateUrl('reception_index')
+                ];
+                return new JsonResponse($data);
+            }
+            throw new NotFoundHttpException("404");
+        } else {
+            //TODO CG message erreur (pas les droits pour cette action)
         }
-        throw new NotFoundHttpException("404");
     }
 
     /**
@@ -292,14 +303,19 @@ class ReceptionController extends AbstractController
      */
     public function deleteArticle(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $article = $this->articleRepository->find($data['article']);
-            $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->remove($article);
-            $entityManager->flush();
-            return new JsonResponse();
+        if ($this->isGranted('ROLE_ADMIN_GT')) {
+
+            if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+                $article = $this->articleRepository->find($data['article']);
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager->remove($article);
+                $entityManager->flush();
+                return new JsonResponse();
+            }
+            throw new NotFoundHttpException("404");
+        } else {
+            //TODO CG message erreur (pas les droits pour cette action)
         }
-        throw new NotFoundHttpException("404");
     }
 
     /**
@@ -371,7 +387,9 @@ class ReceptionController extends AbstractController
      */
     public function editArticle(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) //Si la requête est de type Xml
+        if ($this->isGranted('ROLE_ADMIN_GT')) {
+
+            if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) //Si la requête est de type Xml
             {
                 $article = $this->articleRepository->find($data['article']);
                 $reception = $this->receptionRepository->find($article->getReception()->getId());
@@ -395,7 +413,10 @@ class ReceptionController extends AbstractController
                 ];
                 return new JsonResponse($json);
             }
-        throw new NotFoundHttpException("404");
+            throw new NotFoundHttpException("404");
+        } else {
+            //TODO CG message erreur (pas les droits pour cette action)
+        }
     }
 
     /**
