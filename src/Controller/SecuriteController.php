@@ -15,9 +15,20 @@ use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
+use App\Service\PasswordService;
 
 class SecuriteController extends Controller
 {
+    /**
+     * @var PasswordService
+     */
+    private $psservice;
+
+    public function __construct(PasswordService $psservice)
+    {
+        $this->psservice = $psservice;
+    }
+
     /**
      * @Route("/", name="default")
      */
