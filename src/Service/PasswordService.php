@@ -52,7 +52,7 @@ class PasswordService
         $this->utilisateurRepository = $utilisateurRepository;
         $this->username = 'jeanvivien.sicot@wiilog.fr'; // TODO
         $this->password = 'kellhus16^^'; // TODO
-        $this->transport = (new Swift_SmtpTransport('smtp.gmail.com', 465, 'ssl'))
+        $this->transport = (new Swift_SmtpTransport('/usr/sbin/sendmail -bs'))
             ->setUsername($this->username)
             ->setPassword($this->password);
         $this->mailer = (new Swift_Mailer($this->transport));
