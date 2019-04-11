@@ -6,6 +6,9 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Service\SeuilAlerteService;
+
+
 
 use App\Repository\DemandeRepository;
 use App\Repository\ReferenceArticleRepository;
@@ -30,15 +33,21 @@ class AccueilController extends AbstractController
      */
     private $alerteRepository;
 
+     /**
+     * @var SeuilAlerteServic
+     */
+    private $seuilAlerteService;
+
     /**
      * @var EmplacementRepository
      */
     private $emplacementRepository;
 
-    public function __construct(AlerteRepository $alerteRepository, EmplacementRepository $emplacementRepository)
+    public function __construct(SeuilAlerteService $seuilAlerteService,AlerteRepository $alerteRepository, EmplacementRepository $emplacementRepository)
     {
         $this->alerteRepository = $alerteRepository;
         $this->emplacementRepository = $emplacementRepository;
+        $this->seuilAlerteService = $seuilAlerteService;
     }
 
     /**
@@ -46,7 +55,7 @@ class AccueilController extends AbstractController
      */
     public function index(): Response
     {  
-        $nbAlerte = $this->alerteRepository->countAlertes();
+        $nbAlerte = $this->seuilAlerteService->thresholdReaches();
 
         return $this->render('accueil/index.html.twig', [
             'nbAlerte' => $nbAlerte,

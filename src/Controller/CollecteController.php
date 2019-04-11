@@ -91,8 +91,7 @@ class CollecteController extends AbstractController
     public function index(): Response
     {
         return $this->render('collecte/index.html.twig', [
-            'emplacements' => $this->emplacementRepository->findAll(),
-            'collecte' => $this->collecteRepository->findAll(),
+
             'statuts' => $this->statutRepository->findByCategorieName(Collecte::CATEGORIE),
             'utilisateurs'=> $this->utilisateurRepository->findAll(),
         ]);
@@ -105,7 +104,6 @@ class CollecteController extends AbstractController
     {
         return $this->render('collecte/show.html.twig', [
             'collecte' => $collecte,
-            'articles' => $this->articleRepository->findAll(),
             'modifiable' => ($collecte->getStatut()->getNom() !== Collecte::STATUS_EN_COURS ?true : false)
         ]);
     }

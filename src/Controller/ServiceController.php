@@ -88,7 +88,6 @@ class ServiceController extends AbstractController
     public function index(): Response
     {
         return $this->render('service/index.html.twig', [
-            'emplacements' => $this->emplacementRepository->findAll(),
             'utilisateurs' => $this->utilisateurRepository->findAll(),
             'statuts' => $this->statutRepository->findByCategorieName(Service::CATEGORIE),
         ]);

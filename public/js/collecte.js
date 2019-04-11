@@ -199,4 +199,3 @@ $('#submitSearchCollecte').on('click', function () {
        .draw();
 });
 
-
