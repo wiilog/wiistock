@@ -107,7 +107,8 @@ class ChampsLibreController extends AbstractController
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $type = $this->typeRepository->find($data['type']);
-
+            dump($type);
+            dump($data);
             $champsLibre = new ChampsLibre();
             $champsLibre
                 ->setlabel($data["label"])
@@ -115,6 +116,7 @@ class ChampsLibreController extends AbstractController
                 ->settypage($data['typage'])
                 ->setDefaultValue($data['valeur']);
             $em = $this->getDoctrine()->getManager();
+            dump($champsLibre);
             $em->persist($champsLibre);
             $em->flush();
             return new JsonResponse($data);

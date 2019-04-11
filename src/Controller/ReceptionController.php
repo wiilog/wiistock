@@ -326,7 +326,7 @@ class ReceptionController extends AbstractController
     public function addArticle(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() &&  $contentData = json_decode($request->getContent(), true)) { //Si la requête est de type Xml
-            dump($contentData);
+            
             $refArticle = $this->referenceArticleRepository->find($contentData['refArticle']);
             $reception = $this->receptionRepository->find($contentData['reception']);
 
@@ -373,8 +373,6 @@ class ReceptionController extends AbstractController
                                 ->setValeur($contentData[$champs])
                                 ->addArticle($article)
                                 ->setChampLibre($this->champsLibreRepository->find($champs));
-                            dump($contentData);
-                            dump($valeurChampLibre);
                             $em = $this->getDoctrine()->getManager();
                             $em->persist($valeurChampLibre);
                             $em->flush();
@@ -392,17 +390,26 @@ class ReceptionController extends AbstractController
      */
     public function apiEditArticle(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            dump($data);
-            $article = $this->articleRepository->find($data);
-            dump($article);
+        if (!$request->isXmlHttpRequest() && $articleId = json_decode($request->getContent(), true)) {
+            $article = $this->articleRepository->find($articleId);
             $valeurChampsLibre = $this->valeurChampsLibreRepository->getByArticle($article->getId());
-            dump($valeurChampsLibre);
-            $type= $this->typeRepository->getOneByCategoryLabel(Article::CATEGORIE);
+            $champsLibres = $this->champsLibreRepository->findBy(['type' =>$article->getType()->getId()]);
+            $tabInfoChampsLibres = [];
+            foreach ($champsLibres as $champLibre) {
+                $valeurChampLibre = $this->valeurChampsLibreRepository->findOneByChampLibreAndArticle($champLibre->getId(), $articleId);
+                $tabInfoChampsLibres[] = ['id' => $valeurChampLibre->getId(),
+                                        'typage' => $champLibre->getTypage(),
+                                         'label' => $champLibre->getLabel(),
+                                         'valeur' => $valeurChampLibre->getValeur()];
+            }
+            $type=$article->getType();
+            
             $json = $this->renderView('reception/modalModifyArticleContent.html.twig', [
                 'article' => $article,
                 'type' => $type,
                 'valeurChampsLibre' => isset($valeurChampsLibre) ? $valeurChampsLibre: null,
+                'tabInfoChampsLibres' => $tabInfoChampsLibres,
+
 
             ]);
             return new JsonResponse($json);
@@ -415,22 +422,47 @@ class ReceptionController extends AbstractController
      */
     public function editArticle(Request $request): Response
     {
+        
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) { //Si la requête est de type Xml
-            dump($data);
+               
             $article = $this->articleRepository->find($data['article']);
-            dump($article);
+            
             $reception = $this->receptionRepository->find($article->getReception()->getId());
 
             $article
-                    // ->setCommentaire($data['commentaire'])
                     ->setConform($data['anomalie'] ? Article::NOT_CONFORM : Article::CONFORM)
                     ->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF))
                     ->setLabel($data['label'])
                     ->setCommentaire($data['commentaire'])
                     ->setType($this->typeRepository->getOneByCategoryLabel(Article::CATEGORIE));
-                   
+                    
             $em = $this->getDoctrine()->getManager();
             $em->flush();
+
+            $champsLibreKey = array_keys($data);
+
+            foreach ($champsLibreKey as $champ) {
+                if (gettype($champ) === 'integer') {
+                               
+                    $valeurChampLibre = $this->valeurChampsLibreRepository->find($champ);
+                    $valeurChampLibre
+                        ->setValeur($data[$champ]);
+                   
+
+                    // si la valeur n'existe pas, on la crée
+                    if (!$valeurChampLibre) {
+                        $valeurChampLibre = new ValeurChampsLibre();
+                        $valeurChampLibre
+                            ->addArticle($article)
+                            ->setValeur($data[$champ])
+                            ->setChampLibre($this->champsLibreRepository->find($champ));
+                       
+                        $em->persist($valeurChampLibre);
+                    }
+                   
+                    $em->flush();
+                }
+            }
 
             $nbArticleNotConform = $this->articleRepository->countNotConformByReception($reception);
             $statutLabel = $nbArticleNotConform > 0 ? Reception::STATUT_ANOMALIE : Reception::STATUT_RECEPTION_PARTIELLE;
@@ -445,6 +477,8 @@ class ReceptionController extends AbstractController
         }
         throw new NotFoundHttpException("404");
     }
+        
+    
 
     /**
      * @Route("/article/{id}", name="reception_ajout_article", methods={"GET", "POST"})

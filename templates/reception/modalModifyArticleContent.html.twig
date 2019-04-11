@@ -16,56 +16,54 @@
 
 <div class="form-group">
     <label>Commentaire</label>
-    <input id='commentaireID' class="form-control data" name="commentaire" type="hidden" value='{{article.commentaire}}'>
-    <div class="editor-container" value="{{article.commentaire}}" onfocusout="setCommentaireID($(this))"> 
+    <input id='commentaireID' class="form-control data" name="commentaire" type="hidden"
+        value='{{article.commentaire}}'>
+    <div class="editor-container" value="{{article.commentaire}}" onfocusout="setCommentaireID($(this))">
         {{article.commentaire|raw}}
     </div>
 </div>
 <!-- CHAMPS LIBRES -->
 <div class="row mt-4">
-        <div class='col-12 mb-2' onclick="visibleBlockModal($(this))">
-            <h3 class='d-flex pointer'>
-                <i class="fas fa-sort-up d-none mr-2"></i>
-                <i class="fas fa-sort-down d-block mr-2"></i>
-                Champs libres
-            </h3>
-        </div>
-        <div class="form-group col-12 d-block" id='typeContentEdit'>
-          
-           <div class='d-block'}}
-                id="{{type.id}}-edit">
-                <div class="row mt-2">
-                    {% for champ in type.champsLibres %}
-    
-                    {% set value = '' %}
-{{ dump(champ) }}
-                    <div class="form-group col-6">
-                        <div class="input-group">
-                            <div class="input-group-prepend">
-                                <label class="input-group-text" for="input">
-                                    {{champ.label | capitalize}}
-                                </label>
-                            </div>
-                            {% if champ.typage == 'booleen' %}
-                            {% set checked = (value == 1) ? 'checked' : '' %}
-                            <input type="checkbox" class="form-control data checkbox" {{ checked }} value="{{ value }}"
-                                name="{{champ.id}}" id="input">
-                              
-    
-                            {% elseif champ.typage == 'number' %}
-                            <input type="number" class="form-control data" value="{{ value }}" name="{{champ.id}}"
-                                id="input">
-    
-                            {% else %}
-                            <input type="text" class="form-control data" value="{{ value }}" name="{{ champ.id }}"
-                                id="input">
-                            {% endif %}
+    <div class='col-12 mb-2' onclick="visibleBlockModal($(this))">
+        <h3 class='d-flex pointer'>
+            <i class="fas fa-sort-up d-none mr-2"></i>
+            <i class="fas fa-sort-down d-block mr-2"></i>
+            Champs libres
+        </h3>
+    </div>
+    <div class="form-group col-12 d-block" id='typeContentEdit'>
+
+        <div class='d-block' }} id="{{type.id}}-edit">
+            <div class="row mt-2">
+
+                {% for line in tabInfoChampsLibres %}
+
+                <div class="form-group col-6">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <label class="input-group-text" for="input">
+                                {{line.label | capitalize}}
+                            </label>
                         </div>
+                        {% if line.typage == 'booleen' %}
+                        {% set checked = (line.valeur == '1') ? 'checked' : '' %}
+                        <input type="checkbox" class="form-control data checkbox" value="" name="{{line.id}}" id="input"
+                            {{checked}}>
+
+                        {% elseif line.typage == 'number' %}
+                        <input type="number" class="form-control data" value="{{ line.valeur }}" name="{{line.id}}"
+                            id="input">
+
+                        {% else %}
+                        <input type="text" class="form-control data" value="{{ line.valeur }}" name="{{ line.id }}"
+                            id="input">
+                        {% endif %}
+
                     </div>
-                    {% endfor %}
                 </div>
+                {% endfor %}
             </div>
-           
+
         </div>
     </div>
-
+</div>
