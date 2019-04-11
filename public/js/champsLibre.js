@@ -95,10 +95,12 @@ $(document).ready(function () {
             $("#list").show();
             $("#noList").hide();
             $("#body").append(
+                "<div class=\"elem\">" +
                 "<label for=\"date-attendu\" id=\"ajouterElem\">Ajouter un élément</label>" +
                 "<span class=\"input-group-btn\">" +
                 "<button class=\"btn\" onclick=\"appendElem()\" type=\"button\">+</button>" +
-                "</span>");
+                "</span>" +
+                "</div>");
         } else {
             $("#list").hide();
             $("#noList").show();
@@ -106,7 +108,6 @@ $(document).ready(function () {
             $("#ajouterElem").remove();
         }
     });
-
 });
 
 function appendElem() {
@@ -118,18 +119,23 @@ function appendElem() {
 
 function addToSelect(el) {
     let input = $(el).val();
+    let added = false;
     if (input !== "") {
-        $('#valeur > option').each(function() {
+        $('#valeur > option').each(function () {
             if ($(this).data('elem') === el) {
                 $(this).text(input);
-            } 
-        });
-        $('<option/>', {
-            text: input,
-            value: input,
-            data: {
-              elem: el,
+                $(this).val(input);
+                added = true;
             }
-        }).appendTo("#valeur");
+        });
+        if (!added) {
+            $('<option/>', {
+                text: input,
+                value: input,
+                data: {
+                    elem: el,
+                }
+            }).appendTo("#valeur");
+        }
     }
 }
