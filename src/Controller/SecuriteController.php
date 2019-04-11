@@ -14,7 +14,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
-use App\Form\ForgotType;
+use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use App\Service\PasswordService;
 
 class SecuriteController extends Controller
@@ -177,12 +177,18 @@ class SecuriteController extends Controller
      */
     public function forgot(Request $request, UserPasswordEncoderInterface $passwordEncoder, EntityManagerInterface $em)
     {
-        $user = new Utilisateur();
-        $form = $this->createForm(ForgotType::class, $user);
+        $session = $request->getSession();
+        $form = $this->createFormBuilder()
+            ->add('email', EmailType::class, array(
+                'label' => 'Votre adresse email !',
+            ))
+            ->getForm();
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-            $this->psservice->sendNewPassword($user->getEmail());
+            $data = $form->getData();
+            $this->psservice->sendNewPassword($data['email']);
+            $session->getFlashBag()->add('success', 'Félicitations ! Nous vous avons envoyé votre nouveau mot de passe par email !');
 
             return $this->redirectToRoute('login');
         }

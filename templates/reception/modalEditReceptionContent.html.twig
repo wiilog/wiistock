@@ -26,22 +26,18 @@
         {% endfor %}
     </select>
 </div>
-<div class="form-group">
+<div class="form-group w-100">
     <label for="fournisseurs">Fournisseur</label>
-    <select class="form-control select2 data" name="fournisseur" id='fournisseur'>
+    <select class="form-control ajax-autocomplete-fournisseur-edit data" name="fournisseur" id='fournisseur'>
         <option value="{{reception.fournisseur.id}}">{{ reception.fournisseur.nom }}</option>
-        {% for fournisseur in fournisseurs %}
-        <option value="{{ fournisseur.id }}">{{ fournisseur.nom }}</option>
-        {% endfor %}
+        
     </select>
 </div>
-<div class="form-group">
+<div class="form-group w-100">
     <label for="utilisateur">Utilisateur</label>
-    <select class="form-control select2 data" name="utilisateur">
+    <select class="form-control ajax-autocomplete-user-edit data" name="utilisateur">
         <option value="{{reception.utilisateur.id}}">{{ reception.utilisateur.username }}</option>
-        {% for utilisateur in utilisateurs %}
-        <option value="{{ utilisateur.id }}">{{ utilisateur.username }}</option>
-        {% endfor %}
+        
     </select>
 </div>
 

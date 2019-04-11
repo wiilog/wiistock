@@ -12,7 +12,8 @@
         <a href="" data-id='{{ demande.id }}' data-target='#modalDeleteDemande' data-toggle='modal'
             class="btn btn-danger btn-action ml-auto">
             Supprimer</a>
-        <a href="" data-id='{{ demande.id }}' data-target='#modalEditDemande' data-toggle='modal'
+        <a href="" data-id='{{ demande.id }}' data-target='#modalEditDemande'
+            onclick="ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'))" data-toggle='modal'
             class="btn btn-primary btn-action ml-auto" onclick='initNewLivraisonEditor("#modalEditDemande")'>
             Modifier</a>
         <a href="{{path('finish_demande', {'id': demande.id})}}" class="btn btn-primary btn-action ml-auto">

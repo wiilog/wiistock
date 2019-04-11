@@ -114,7 +114,6 @@ function ajaxGetArticle(select) {
             data = JSON.parse(this.responseText);
            $('#newContent').html(data);
            $('#modalNewArticle').find('div').find('div').find('.modal-footer').removeClass('d-none');
-
         }
     }
     path =  Routing.generate('get_article_by_refArticle', true)
@@ -143,7 +142,6 @@ function initEditCollecteEditor(modal) {
     if (!editorEditCollecteAlreadyDone) {
         initEditor(modal);
         editorEditCollecteAlreadyDone = true;
-
     }
 };
 
@@ -155,6 +153,7 @@ function initNewCollecteEditor(modal) {
         initEditor(modal);
         editorNewCollecteAlreadyDone = true;
     }
+    ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'))
 };
 
 $('#submitSearchCollecte').on('click', function () {

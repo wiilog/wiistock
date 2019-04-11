@@ -23,7 +23,7 @@ class FournisseurController extends AbstractController
      * @var FournisseurRepository
      */
     private $fournisseurRepository;
-   
+
     public function __construct(FournisseurRepository $fournisseurRepository)
     {
         $this->fournisseurRepository = $fournisseurRepository;
@@ -32,7 +32,7 @@ class FournisseurController extends AbstractController
     /**
      * @Route("/api", name="fournisseur_api", options={"expose"=true}, methods="POST")
      */
-    public function api(Request $request) : Response
+    public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) { //Si la requête est de type Xml
             $refs = $this->fournisseurRepository->findAll();
@@ -45,8 +45,8 @@ class FournisseurController extends AbstractController
                     "Code de référence" => $fournisseur->getCodeReference(),
                     'Actions' => $this->renderView('fournisseur/datatableFournisseurRow.html.twig', [
                         'url' => $url,
-                        'fournisseurId'=>$fournisseurId
-                        ]),
+                        'fournisseurId' => $fournisseurId
+                    ]),
                 ];
             }
             $data['data'] = $rows;
@@ -58,7 +58,7 @@ class FournisseurController extends AbstractController
     /**
      * @Route("/", name="fournisseur_index", methods="GET")
      */
-    public function index() : Response
+    public function index(): Response
     {
         return $this->render('fournisseur/index.html.twig', ['fournisseur' => $this->fournisseurRepository->findAll()]);
     }
@@ -66,7 +66,7 @@ class FournisseurController extends AbstractController
     /**
      * @Route("/creer", name="fournisseur_new", options={"expose"=true}, methods="GET|POST")
      */
-    public function new(Request $request) : Response
+    public function new(Request $request): Response
     {
         $em = $this->getDoctrine()->getEntityManager();
 
@@ -103,7 +103,7 @@ class FournisseurController extends AbstractController
     public function edit(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $fournisseur = $this->fournisseurRepository->find($data['id']);         
+            $fournisseur = $this->fournisseurRepository->find($data['id']);
             $fournisseur
                 ->setNom($data['nom'])
                 ->setCodeReference($data['CodeReference']);
@@ -117,14 +117,29 @@ class FournisseurController extends AbstractController
     /**
      * @Route("/supprimer", name="fournisseur_delete",  options={"expose"=true}, methods={"GET", "POST"})
      */
-    public function delete(Request $request) : Response
+    public function delete(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $fournisseur= $this->fournisseurRepository->find($data['fournisseur']);
+            $fournisseur = $this->fournisseurRepository->find($data['fournisseur']);
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($fournisseur);
             $entityManager->flush();
             return new JsonResponse();
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/autocomplete", name="get_fournisseur", options={"expose"=true})
+     */
+    public function getFournisseur(Request $request)
+    {
+        if ($request->isXmlHttpRequest()) {
+            $search = $request->query->get('term');
+
+            $fournisseur = $this->fournisseurRepository->getIdAndLibelleBySearch($search);
+
+            return new JsonResponse(['results' => $fournisseur]);
         }
         throw new NotFoundHttpException("404");
     }

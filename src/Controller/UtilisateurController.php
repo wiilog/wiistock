@@ -217,6 +217,22 @@ class UtilisateurController extends Controller
         throw new NotFoundHttpException('404');
     }
 
+    /**
+     * @Route("/autocomplete", name="get_user", options={"expose"=true}, methods="GET|POST")
+     */
+    public function getUserAutoComplete(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest()) {
+            $search = $request->query->get('term');
+
+            $fournisseur = $this->utilisateurRepository->getIdAndLibelleBySearch($search);
+
+            return new JsonResponse(['results' => $fournisseur]);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+
     //    /**
     //     * @Route("/create", name="utilisateur_index_create", methods="GET|POST")
     //     */
@@ -279,6 +295,8 @@ class UtilisateurController extends Controller
     //            return $this->render('utilisateur/create.html.twig');
     //        }
     //    }
+
+
 
     //    /**
     //     * @Route("/modif", name="utilisateur_index_modif", methods="GET|POST") //TODOO
@@ -449,6 +467,8 @@ class UtilisateurController extends Controller
     //         'form' => $form->createView(),
     //     ]);
     // }
+
+
 
     //    /**
     //     * @Route("/{id}/remove", name="utilisateur_remove", methods="DELETE")

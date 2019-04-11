@@ -35,7 +35,6 @@ class PasswordService
      * @var Swift_Mailer
      */
     private $mailer;
-
     /**
      * @var password
      */
@@ -51,8 +50,8 @@ class PasswordService
         $this->entityManager = $entityManager;
         $this->passwordEncoder = $passwordEncoder;
         $this->utilisateurRepository = $utilisateurRepository;
-        $this->username = 'mail';
-        $this->password = 'pass';
+        $this->username = 'mail@mail.com'; // TODO
+        $this->password = 'pass'; // TODO
         $this->transport = (new Swift_SmtpTransport('smtp.gmail.com', 465, 'ssl'))
             ->setUsername($this->username)
             ->setPassword($this->password);
@@ -62,11 +61,11 @@ class PasswordService
     public function sendNewPassword($to)
     {
         $newPass = $this->generatePassword(10);
-        updateUser($to, $newPass);
-        $message = (new Swift_Message('Oubli de mot de passe Wiilog.'))
+        $this->updateUser($to, $newPass);
+        $message = (new \Swift_Message('Oubli de mot de passe Wiilog.'))
             ->setFrom([$this->username => 'L\'équipe de Wiilog.'])
-            ->setTo([$to => explode('@', $to)])
-            ->setBody('Votre nouveau mot de passe est : ' + $newPass);
+            ->setTo($to)
+            ->setBody('Votre nouveau mot de passe est : '.$newPass);
 
         $this->mailer->send($message);
     }
@@ -89,7 +88,7 @@ class PasswordService
 
     private function updateUser($mail, $newPass)
     {
-        $user = $this->utilisateurRepository->getByMail($mail);
+        $user = $this->utilisateurRepository->getByMail($mail)[0];
         if ($user !== null) {
             $password = $this->passwordEncoder->encodePassword($user, $newPass);
             $user->setPassword($password);

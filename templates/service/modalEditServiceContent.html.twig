@@ -13,13 +13,9 @@
 
 <div class="form-group">
     <label for="Localité">Localité</label>
-    <select class="Localité form-control data select2" name="Localité">
+    <select class="Localité form-control data ajax-autocompleteEmplacement-edit"  name="Localité">
         <option value="{{service.emplacement.id}}">{{service.emplacement.label}}</option>
-        {% for emplacement in emplacements %}
-        <option value="{{ emplacement.Id }}">
-            {{ emplacement.label }}
-        </option>
-        {% endfor %}
+      
     </select>
 </div>
 
