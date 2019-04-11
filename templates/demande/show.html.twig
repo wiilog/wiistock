@@ -18,12 +18,12 @@
                     onclick="ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'))" data-toggle='modal'
                     class="btn btn-primary btn-action ml-auto" onclick='initNewLivraisonEditor("#modalEditDemande")'>
                     Modifier</a>
-            {% endif %}
                 <a href="{{path('finish_demande', {'id': demande.id})}}" class="btn btn-primary btn-action ml-auto">
                     Valider</a>
+            {% endif %}
 
         {% elseif demande.preparation is not empty %}
-                <a href="{{path('preparation_show', {'id': demande.preparation.id }) }}">
+                <a href="{{path('preparation_show', {'id': demande.preparation.id }) }}" class="btn btn-primary btn-action">
                     Aller vers la préparation
                 </a>
         {% endif %}

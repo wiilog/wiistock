@@ -67,37 +67,41 @@ class DemandeController extends AbstractController
     }
 
     /**
-     * @Route("/finir/{id}", name="finish_demande") //TODOO
+     * @Route("/finir/{id}", name="finish_demande")
      */
-    public function finish(Demande $demande): Response
+    public function finish(Demande $demande)
     {
-        if ($demande->getPreparation() === null && count($demande->getLigneArticle()) > 0) {
-            // Creation d'une nouvelle preparation basée sur une selection de demandes
-            $preparation = new Preparation();
+        if ($this->isGranted('ROLE_SUPER_CUSTOMER')) {
+            if ($demande->getPreparation() === null && count($demande->getLigneArticle()) > 0) {
+                // Creation d'une nouvelle preparation basée sur une selection de demandes
+                $preparation = new Preparation();
 
-            $date = new \DateTime('now');
-            $preparation
-                ->setNumero('P-' . $date->format('YmdHis'))
-                ->setDate($date)
-                ->setUtilisateur($this->getUser());
+                $date = new \DateTime('now');
+                $preparation
+                    ->setNumero('P-' . $date->format('YmdHis'))
+                    ->setDate($date)
+                    ->setUtilisateur($this->getUser());
 
-            $statutP = $this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
-            $preparation->setStatut($statutP);
+                $statutP = $this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
+                $preparation->setStatut($statutP);
 
-            $demande->setPreparation($preparation);
+                $demande->setPreparation($preparation);
 
-            $statutD = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
-            $demande->setStatut($statutD);
+                $statutD = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
+                $demande->setStatut($statutD);
 
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($preparation);
-            $em->flush();
+                $em = $this->getDoctrine()->getManager();
+                $em->persist($preparation);
+                $em->flush();
 
-            return $this->redirectToRoute('ligne_article_show', ['id' => $demande->getId()]);
-        } else if ($demande->getPreparation() !== null) {
-            return $this->redirectToRoute('ligne_article_show', ['id' => $demande->getId()]);
+                return $this->redirectToRoute('ligne_article_show', ['id' => $demande->getId()]);
+            } else if ($demande->getPreparation() !== null) {
+                return $this->redirectToRoute('ligne_article_show', ['id' => $demande->getId()]);
+            }
+            throw new NotFoundHttpException("404"); //TODO CG retour msg erreur (pas d'article dans la DL)
+        } else {
+            //TODO CG message erreur (pas les droits pour cette action)
         }
-        throw new NotFoundHttpException("404");
     }
 
     /**

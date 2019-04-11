@@ -7,9 +7,11 @@
 <h1>Ordres de réception</h1>
 
 <div class='col-12 mb-5'>
-    <a href="" data-toggle="modal" data-target="#modalNewReception" class="btn btn-primary" onclick='initNewReceptionEditor("#modalNewReception")'>
-        <span class="fa fa-plus mr-2"></span>Nouvelle réception
-    </a>
+    {% if is_granted('ROLE_ADMIN_GT') %}
+        <a href="" data-toggle="modal" data-target="#modalNewReception" class="btn btn-primary" onclick='initNewReceptionEditor("#modalNewReception")'>
+            <span class="fa fa-plus mr-2"></span>Nouvelle réception
+        </a>
+    {% endif %}
 </div>
 
 <div class="col-12">

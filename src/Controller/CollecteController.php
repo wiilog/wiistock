@@ -287,7 +287,8 @@ class CollecteController extends AbstractController
      */
     public function finish(Request  $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($this->isGranted('ROLE_SUPER_CUSTOMER')) {
+            if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $em = $this->getDoctrine()->getManager();
             $collecte = $this->collecteRepository->find($data['collecte']);
 
@@ -311,6 +312,9 @@ class CollecteController extends AbstractController
             return new JsonResponse($response);
         }
         throw new NotFoundHttpException("404");
+        } else {
+            //TODO CG message erreur (pas les droits pour cette action)
+        }
     }
 
     /**

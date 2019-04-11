@@ -21,10 +21,10 @@
                     onclick="editRow($(this), Routing.generate('collecte_api_edit', true), $('#modalEditCollecte'), $('#submitEditCollecte'), true)"
                     class="btn btn-primary btn-action ml-auto">
                     Modifier</a>
+                    <a href="#" class="btn btn-primary btn-action ml-auto"  data-id='{{collecte.id}}' id='submitFinishCollecte'
+                    onclick="finishCollecte($(this))">
+                    Valider</a>
                 {% endif %}
-                <a href="#" class="btn btn-primary btn-action ml-auto"  data-id='{{collecte.id}}' id='submitFinishCollecte'
-                onclick="finishCollecte($(this))">
-                Valider</a>
             {% endif %}
         </div>    
     </div>
