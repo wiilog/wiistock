@@ -1,7 +1,7 @@
 <div class="form-group col-12 d-flex  mb-3">
     <label for="quantity">Quantité à collecter</label>
-    <input class="form-control data" type="number" min=1 id="quantity" name="quantitie" value="">
+    <input class="form-control data" type="number" min=1 id="quantity" name="quantitie" value="0">
 </div>
 {% if modifieRefArticle %}
-    {% include "reference_article/modalEditRefArticleContent.html.twig" %}
+    {% include "collecte/modalNewArticleContent.html.twig" %}
 {% endif %}
