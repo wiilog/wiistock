@@ -50,8 +50,8 @@ class PasswordService
         $this->entityManager = $entityManager;
         $this->passwordEncoder = $passwordEncoder;
         $this->utilisateurRepository = $utilisateurRepository;
-        $this->username = 'mail@mail.com'; // TODO
-        $this->password = 'pass'; // TODO
+        $this->username = 'jeanvivien.sicot@wiilog.fr'; // TODO
+        $this->password = 'kellhus16^^'; // TODO
         $this->transport = (new Swift_SmtpTransport('smtp.gmail.com', 465, 'ssl'))
             ->setUsername($this->username)
             ->setPassword($this->password);
