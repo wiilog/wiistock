@@ -59,6 +59,7 @@ class UtilisateurController extends Controller
 
         return $this->render('utilisateur/index.html.twig', [
             'utilisateurs' => $utilisateurRepository->findAll(),
+            'roles' => $this->roleRepository->findAll()
         ]);
     }
 
@@ -94,10 +95,12 @@ class UtilisateurController extends Controller
 
             $utilisateur = new Utilisateur();
             $password = $passwordEncoder->encodePassword($utilisateur, $data['password']);
+
+            $role = $this->roleRepository->find($data['role']);
             $utilisateur
                 ->setUsername($data['username'])
                 ->setEmail($data['email'])
-                ->setRoles([$data['role']])
+                ->setRole($role)
                 ->setPassword($password);
             $em = $this->getDoctrine()->getManager();
             $em->persist($utilisateur);
@@ -183,11 +186,12 @@ class UtilisateurController extends Controller
     public function editRole(Request $request)
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $roleLabel = $data['role'];
+
+            $role = $this->roleRepository->find((int)$data['role']);
             $user = $this->utilisateurRepository->find($data['userId']);
 
             if ($user) {
-                $user->setRoles([$roleLabel]);
+                $user->setRole($role);
                 $em = $this->getDoctrine()->getManager();
                 $em->flush();
 

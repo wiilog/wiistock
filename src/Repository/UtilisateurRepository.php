@@ -77,33 +77,16 @@ class UtilisateurRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-
-//   /**
-//     * @return Utilisateur[] Returns an array of Utilisateurs objects
-//     */
-    /*
-    public function findByExampleField($value)
+    public function countByRoleId($roleId)
     {
-        return $this->createQueryBuilder('u')
-            ->andWhere('u.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('u.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT COUNT(u)
+            FROM App\Entity\Utilisateur u
+            JOIN u.role r
+            WHERE r.id = :roleId"
+        )->setParameter('roleId', $roleId);
         ;
+        return $query->getSingleScalarResult();
     }
-    */
-
-    /*
-    public function findOneBySomeField($value): ?Utilisateur
-    {
-        return $this->createQueryBuilder('u')
-            ->andWhere('u.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
-    }
-    */
 }

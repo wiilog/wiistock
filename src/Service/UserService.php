@@ -39,11 +39,11 @@ class UserService
 
     public function getCurrentUserRole()
     {
-        $role = '';
+        $role = null;
 
         $user = $this->user;
-        if ($user && $user->getRoles()) {
-            $role = $user->getRoles()[0];
+        if ($user) {
+            $role = $user->getRole();
         }
 
         return $role;

@@ -104,7 +104,7 @@ class ReceptionController extends AbstractController
             }
 
             $date = new \DateTime('now');
-            $numeroReception = 'R' . $date->format('ymd-His'); //TODO CG ajouter numéro
+            $numeroReception = 'R' . $date->format('ymd-His'); //TODO ajouter numéro
 
             $reception
                 ->setStatut($statut)
@@ -326,7 +326,7 @@ class ReceptionController extends AbstractController
                 $refArticle->setQuantiteStock($refArticle->getQuantiteStock() + $quantite);
                 $date = new \DateTime('now');
                 $ref = $date->format('YmdHis');
-                $articleFournisseur = $this->articleFournisseurRepository->findOneByRefArticleAndFournisseur($contentData['refArticle'], $contentData['fournisseur']); //TODO CG
+                $articleFournisseur = $this->articleFournisseurRepository->findOneByRefArticleAndFournisseur($contentData['refArticle'], $contentData['fournisseur']);
 
                 if (!empty($articleFournisseur)) {
                     for ($i = 0; $i < $quantite; $i++) {

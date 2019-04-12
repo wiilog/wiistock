@@ -101,7 +101,6 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
                     let password = $(this).val();
 
                     if (password.length < 8) {
-                        console.log("hello");
                         modal.find('.password-error-msg').html('Le mot de passe doit faire au moins 8 caractères.');
                         passwordIsValid = false;
                     } else if (!password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)) {

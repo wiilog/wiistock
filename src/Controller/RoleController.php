@@ -7,6 +7,7 @@ use App\Entity\Role;
 use App\Repository\ActionRepository;
 use App\Repository\MenuRepository;
 use App\Repository\RoleRepository;
+use App\Repository\UtilisateurRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -34,12 +35,18 @@ class RoleController extends AbstractController
      */
     private $menuRepository;
 
+    /**
+     * @var UtilisateurRepository
+     */
+    private $utilisateurRepository;
 
-    public function __construct(RoleRepository $roleRepository, ActionRepository $actionRepository, MenuRepository $menuRepository)
+
+    public function __construct(RoleRepository $roleRepository, ActionRepository $actionRepository, MenuRepository $menuRepository, UtilisateurRepository $utilisateurRepository)
     {
         $this->roleRepository = $roleRepository;
         $this->actionRepository = $actionRepository;
         $this->menuRepository = $menuRepository;
+        $this->utilisateurRepository = $utilisateurRepository;
     }
 
     /**
@@ -190,12 +197,22 @@ class RoleController extends AbstractController
     public function delete(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if ($data['role']) {
-                //TODO CG vérifier que le rôle n'est pas attribué à un utilisateur
-                $role = $this->roleRepository->find($data['role']);
-                $entityManager = $this->getDoctrine()->getManager();
-                $entityManager->remove($role);
-                $entityManager->flush();
+
+            if ($roleId = (int)$data['role']) {
+
+                $role = $this->roleRepository->find($roleId);
+
+                // on vérifie que le rôle n'est plus attribué à aucun utilisateur
+                $usedRole = $this->utilisateurRepository->countByRoleId($roleId);
+
+                if ($usedRole > 0) {
+                    return new JsonResponse(false); //TODO gérer retour msg erreur (rôle attribué ne peut pas être supprimé)
+                } else {
+                    $entityManager = $this->getDoctrine()->getManager();
+                    $entityManager->remove($role);
+                    $entityManager->flush();
+                }
+                return new JsonResponse();
             }
             return new JsonResponse();
         }

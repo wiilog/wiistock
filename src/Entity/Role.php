@@ -2,6 +2,9 @@
 
 namespace App\Entity;
 
+use App\Entity\Action;
+use App\Entity\Utilisateur;
+
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -33,9 +36,15 @@ class Role
      */
     private $active;
 
+    /**
+     * @ORM\OneToMany(targetEntity="Utilisateur", mappedBy="role")
+     */
+    private $users;
+
     public function __construct()
     {
         $this->actions = new ArrayCollection();
+        $this->users = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -90,6 +99,37 @@ class Role
         if ($this->actions->contains($action)) {
             $this->actions->removeElement($action);
             $action->removeRole($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Utilisateur[]
+     */
+    public function getUsers(): Collection
+    {
+        return $this->users;
+    }
+
+    public function addUser(Utilisateur $user): self
+    {
+        if (!$this->users->contains($user)) {
+            $this->users[] = $user;
+            $user->setRole($this);
+        }
+
+        return $this;
+    }
+
+    public function removeUser(Utilisateur $user): self
+    {
+        if ($this->users->contains($user)) {
+            $this->users->removeElement($user);
+            // set the owning side to null (unless already changed)
+            if ($user->getRole() === $this) {
+                $user->setRole(null);
+            }
         }
 
         return $this;

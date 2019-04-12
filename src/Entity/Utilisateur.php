@@ -1,5 +1,7 @@
 <?php
 namespace App\Entity;
+
+use App\Entity\Role;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -45,6 +47,10 @@ class Utilisateur implements UserInterface, EquatableInterface
      * @ORM\Column(type="array")
      */
     private $roles;
+    /**
+     * @ORM\ManyToOne(targetEntity="Role", inversedBy="users")
+     */
+    private $role;
     private $salt;
     /**
      * @ORM\Column(type="datetime", nullable=true)
@@ -454,6 +460,18 @@ class Utilisateur implements UserInterface, EquatableInterface
                 $filter->setUtilisateur(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getRole(): ?Role
+    {
+        return $this->role;
+    }
+
+    public function setRole(?Role $role): self
+    {
+        $this->role = $role;
 
         return $this;
     }

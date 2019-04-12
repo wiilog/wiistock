@@ -49,13 +49,13 @@ class AppExtension extends AbstractExtension
 
     public function hasRightFunction(string $menuCode, string $actionLabel = Action::YES)
     {
-        $roleLabel = $this->userService->getCurrentUserRole();
+        $role = $this->userService->getCurrentUserRole();
+        $actions = $role->getActions();
 
-        $action = $this->actionRepository->findOneByMenuCodeAndLabel($menuCode, $actionLabel);
-        $roles = $action->getRoles();
+        $thisAction = $this->actionRepository->findOneByMenuCodeAndLabel($menuCode, $actionLabel);
 
-        foreach($roles as $role) {
-            if ($roleLabel == $role->getLabel()) return true;
+        foreach($actions as $action) {
+            if ($action->getId() == $thisAction->getId()) return true;
         }
 
         return false;

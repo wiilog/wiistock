@@ -97,7 +97,7 @@ class DemandeController extends AbstractController
         } else if ($demande->getPreparation() !== null) {
             return $this->redirectToRoute('ligne_article_show', ['id' => $demande->getId()]);
         }
-        throw new NotFoundHttpException("404"); //TODO CG retour msg erreur (pas d'article dans la DL)
+        throw new NotFoundHttpException("404"); //TODO retour msg erreur (pas d'article dans la DL)
     }
 
     /**
