@@ -128,7 +128,7 @@ class CollecteController extends AbstractController
                         'Date' => ($collecte->getDate() ?$collecte->getDate()->format('d/m/Y') : null),
                         'Demandeur' => ($collecte->getDemandeur() ?$collecte->getDemandeur()->getUserName() : null),
                         'Objet' => ($collecte->getObjet() ?$collecte->getObjet() : null),
-                        'Statut' => ($collecte->getStatut()->getNom() ?ucfirst($collecte->getStatut()->getNom()) : null),
+                        'Statut' => ($collecte->getStatut()->getNom() ? ucfirst($collecte->getStatut()->getNom()) : null),
                         'Actions' => $this->renderView('collecte/datatableCollecteRow.html.twig', [
                             'url' => $url,
                         ])

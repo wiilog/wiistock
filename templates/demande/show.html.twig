@@ -8,15 +8,21 @@
     </div>
     <div class="col text-right">
         {% if modifiable %}
-            <a href="" data-id='{{ demande.id }}' data-target='#modalDeleteDemande' data-toggle='modal'
-                class="btn btn-danger btn-action ml-auto">
-                Supprimer</a>
-            <a href="" data-id='{{ demande.id }}' data-target='#modalEditDemande'
-                onclick="ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'))" data-toggle='modal'
-                class="btn btn-primary btn-action ml-auto" onclick='initNewLivraisonEditor("#modalEditDemande")'>
-                Modifier</a>
-            <a href="{{path('finish_demande', {'id': demande.id})}}" class="btn btn-primary btn-action ml-auto">
-                    Valider</a>
+            {% if hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::DELETE')) %}
+                <a href="" data-id='{{ demande.id }}' data-target='#modalDeleteDemande' data-toggle='modal'
+                    class="btn btn-danger btn-action ml-auto">
+                    Supprimer</a>
+            {% endif %}
+            {% if hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::CREATE')) %}
+                <a href="" data-id='{{ demande.id }}' data-target='#modalEditDemande'
+                    onclick="ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'))" data-toggle='modal'
+                    class="btn btn-primary btn-action ml-auto" onclick='initNewLivraisonEditor("#modalEditDemande")'>
+                    Modifier</a>
+            {% endif %}
+            {% if hasRight(constant('App\\Entity\\Menu::PREPA'), constant('App\\Entity\\Action::CREATE')) %}
+                <a href="{{path('finish_demande', {'id': demande.id})}}" class="btn btn-primary btn-action ml-auto">
+                        Valider</a>
+            {% endif %}
 
         {% elseif demande.preparation is not empty %}
                 <a href="{{path('preparation_show', {'id': demande.preparation.id }) }}" class="btn btn-primary btn-action">
@@ -35,8 +41,11 @@
 <div class="col text-right">
     <a href="{{ path('reference_article_index') }}" data-toggle="modal" class="btn btn-primary btn-action ml-auto">
         Chercher une référence</a>
-    <a href="" data-toggle="modal" data-target="#modalNewArticle" class="btn btn-primary btn-action ml-auto">
-        <span class="fa fa-plus mr-2"></span>Ajouter article</a>
+    {% if hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::CREATE')) %}
+        <a href="" data-toggle="modal" data-target="#modalNewArticle" class="btn btn-primary btn-action ml-auto">
+            <span class="fa fa-plus mr-2"></span>Ajouter article
+        </a>
+    {% endif %}
 </div>
 
 
