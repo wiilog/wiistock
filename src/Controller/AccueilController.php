@@ -42,7 +42,7 @@ class AccueilController extends AbstractController
     public function index(): Response
     {
         $nbAlerte = $this->seuilAlerteService->thresholdReaches();
-        $this->seuilAlerteService->warnUsers();
+        //$this->seuilAlerteService->warnUsers(); // TODO : le placer au bon endroit
 
         return $this->render('accueil/index.html.twig', [
             'nbAlerte' => $nbAlerte,
