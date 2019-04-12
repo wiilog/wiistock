@@ -88,7 +88,7 @@ class UtilisateurRepository extends ServiceEntityRepository
             WHERE u.email = :email"
         )->setParameter('email', $mail);
 
-        return $query->execute();
+        return $query->getOneOrNullResult();
     }
 
     //   /**

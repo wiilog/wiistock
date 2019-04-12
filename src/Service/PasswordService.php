@@ -89,7 +89,7 @@ class PasswordService
 
     private function updateUser($mail, $newPass)
     {
-        $user = $this->utilisateurRepository->getByMail($mail)[0];
+        $user = $this->utilisateurRepository->getByMail($mail);
         if ($user !== null) {
             $password = $this->passwordEncoder->encodePassword($user, $newPass);
             $user->setPassword($password);
