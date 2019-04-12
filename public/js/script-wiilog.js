@@ -74,14 +74,20 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
         let missingInputs = [];
         let wrongNumberInputs = [];
         let passwordIsValid = true;
-
+        Data["elem"] = [];
         inputs.each(function () {
             let val = $(this).val();
             let name = $(this).attr("name");
             // console.log($(this));
             // console.log(val);
             // console.log($(this).val);
-            Data[name] = val;
+            if (name === "elem")
+                Data[name].push(val);
+            else {
+                if ($(this).parent().is(":visible")) {
+                    Data[name] = val;
+                }
+            }
             // validation données obligatoires
             if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
                 let label = $(this).closest('.form-group').find('label').text();
@@ -117,19 +123,20 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
                 }
             }
         });
-        console.log(Data);
+        // console.log(Data);
 
         // ... et dans les checkboxes
         let checkboxes = modal.find('.checkbox');
         checkboxes.each(function () {
             Data[$(this).attr("name")] = $(this).is(':checked');
         });
+        modal.find(".elem").remove();
         // si tout va bien on envoie la requête ajax...
         if (missingInputs.length == 0 && wrongNumberInputs.length == 0 && passwordIsValid) {
             if (close == true) modal.find('.close').click();
             Json = {};
             Json = JSON.stringify(Data);
-            console.log(Json);
+            // console.log(Json);
             xhttp.open("POST", path, true);
             xhttp.send(Json);
         } else {
@@ -229,7 +236,7 @@ function editRow(button, path, modal, submit, editorToInit = false) {
         if (this.readyState == 4 && this.status == 200) {
             dataReponse = JSON.parse(this.responseText);
             modal.find('.modal-body').html(dataReponse);
-            console.log('patate')
+           
             ajaxAutoFournisseurInit( $('.ajax-autocomplete-fournisseur-edit'));
             ajaxAutoRefArticleInit($('.ajax-autocomplete-edit'));
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
@@ -237,7 +244,7 @@ function editRow(button, path, modal, submit, editorToInit = false) {
             if (editorToInit) initEditor('#' + modal.attr('id'));
         }
     }
-    console.log("patate");
+   
     let json = button.data('id');
     modal.find(submit).attr('value', json);
     modal.find('#inputId').attr('value', json);
@@ -249,6 +256,7 @@ function toggleRadioButton(button) {
     let sel = button.data('title');
     let tog = button.data('toggle');
     $('#' + tog).prop('value', sel);
+
 
     $('span[data-toggle="' + tog + '"]').not('[data-title="' + sel + '"]').removeClass('active').addClass('not-active');
     $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
@@ -294,7 +302,7 @@ function setCommentaire(button) {
     // let commentaire = modal.find('input[id=commentaire]');
     com = quill.container.firstChild.innerHTML;
     $('#commentaire').val(com);
-    console.log(com);
+    
 };
 
 //passe de l'éditeur à l'imput pour insertion en BDD par l'id commentaireID (cas de conflit avec la class)

@@ -119,6 +119,24 @@
                                         </div>
                                         <input type="number" class="form-control data" value="{{champ.defaultValue}}"
                                             name="{{champ.id}}" id="input">
+                                        {% elseif champ.typage == 'list' %}
+                                        <div class="input-group-prepend">
+                                            <label class="input-group-text" for="input">
+                                                {{champ.label}}
+                                            </label>
+                                        </div>
+                                        <select class="form-control unTruc data " name="{{champ.id}}" id="input">
+                                            <option value="{{champ.defaultValue}}">{{champ.defaultValue}}
+                                            </option>
+                                            {% for elem in champ.elements %}
+                                            {% if champ.defaultValue != elem %}
+                                            <option value="{{elem}}">{{elem}}</option>
+                                            {% endif %}
+                                            {% endfor %}
+                                            {% if champ.defaultValue != "" %}
+                                            <option value=""></option>
+                                            {% endif %}
+                                        </select>
                                         {% else %}
                                         <div class="input-group-prepend">
                                             <label class="input-group-text" for="input">
@@ -140,7 +158,8 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>
-                <div id="submitNewRefArticle" class="btn btn-primary btn-success" onclick='setCommentaire($(this))'>Enregistrer</div>
+                <div id="submitNewRefArticle" class="btn btn-primary btn-success" onclick='setCommentaire($(this))'>
+                    Enregistrer</div>
             </div>
         </div>
     </div>
