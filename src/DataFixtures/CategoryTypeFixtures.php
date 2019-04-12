@@ -22,6 +22,7 @@ class CategoryTypeFixtures extends Fixture implements FixtureGroupInterface
     {
         $categoriesNames = [
             'referenceArticle',
+            'article',
 //            'fournisseur',
 //            'emplacement',
 //            'collecte',
