@@ -61,13 +61,14 @@ class PasswordService
     public function sendNewPassword($to)
     {
         $newPass = $this->generatePassword(10);
-        $this->updateUser($to, $newPass);
-        $message = (new \Swift_Message('Oubli de mot de passe Wiilog.'))
-            ->setFrom([$this->username => 'L\'équipe de Wiilog.'])
-            ->setTo($to)
-            ->setBody('Votre nouveau mot de passe est : '.$newPass);
+        if ($this->updateUser($to, $newPass) === 1) {
+            $message = (new \Swift_Message('Oubli de mot de passe Wiilog.'))
+                ->setFrom([$this->username => 'L\'équipe de Wiilog.'])
+                ->setTo($to)
+                ->setBody('Votre nouveau mot de passe est : '.$newPass);
 
-        $this->mailer->send($message);
+            $this->mailer->send($message);
+        }
     }
 
     private function generatePassword($length)
@@ -88,12 +89,14 @@ class PasswordService
 
     private function updateUser($mail, $newPass)
     {
-        $user = $this->utilisateurRepository->getByMail($mail)[0];
+        $user = $this->utilisateurRepository->getByMail($mail);
         if ($user !== null) {
             $password = $this->passwordEncoder->encodePassword($user, $newPass);
             $user->setPassword($password);
             $this->entityManager->persist($user);
             $this->entityManager->flush();
+
+            return 1;
         } else {
             return new JsonResponse('Adresse email inconnue.');
         }

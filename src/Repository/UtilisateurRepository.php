@@ -85,10 +85,10 @@ class UtilisateurRepository extends ServiceEntityRepository
         $query = $entityManager->createQuery(
             "SELECT u
             FROM App\Entity\Utilisateur u
-            WHERE u.email <> :email"
+            WHERE u.email = :email"
         )->setParameter('email', $mail);
 
-        return $query->execute();
+        return $query->getOneOrNullResult();
     }
 
     //   /**

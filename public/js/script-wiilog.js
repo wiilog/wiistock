@@ -84,7 +84,7 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
             if (name === "elem")
                 Data[name].push(val);
             else {
-                if ($(this).parent().is(":visible")) {
+                if ($(this).parent().is(":visible") || $(this).parent().hasClass('required')) {
                     Data[name] = val;
                 }
             }
@@ -111,7 +111,6 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
                     let password = $(this).val();
 
                     if (password.length < 8) {
-                        console.log("hello");
                         modal.find('.password-error-msg').html('Le mot de passe doit faire au moins 8 caractères.');
                         passwordIsValid = false;
                     } else if (!password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)) {
@@ -123,7 +122,6 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
                 }
             }
         });
-        // console.log(Data);
 
         // ... et dans les checkboxes
         let checkboxes = modal.find('.checkbox');
@@ -136,7 +134,6 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
             if (close == true) modal.find('.close').click();
             Json = {};
             Json = JSON.stringify(Data);
-            // console.log(Json);
             xhttp.open("POST", path, true);
             xhttp.send(Json);
         } else {
@@ -244,7 +241,6 @@ function editRow(button, path, modal, submit, editorToInit = false) {
             if (editorToInit) initEditor('#' + modal.attr('id'));
         }
     }
-   
     let json = button.data('id');
     modal.find(submit).attr('value', json);
     modal.find('#inputId').attr('value', json);
@@ -302,7 +298,6 @@ function setCommentaire(button) {
     // let commentaire = modal.find('input[id=commentaire]');
     com = quill.container.firstChild.innerHTML;
     $('#commentaire').val(com);
-    
 };
 
 //passe de l'éditeur à l'imput pour insertion en BDD par l'id commentaireID (cas de conflit avec la class)
