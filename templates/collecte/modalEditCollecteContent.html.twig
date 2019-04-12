@@ -1,10 +1,4 @@
 <div class="form-group">
-    <label for="NumeroCollecte">Numéro de collecte</label>
-    <input type="text" class="form-control data" name="NumeroCollecte" id='collecte' value="{{collecte.numero}}"
-        placeholder="N°Collecte">
-</div>
-
-<div class="form-group">
     <label for="date-collecte">Date de la collecte</label>
     <input type="date" class="form-control data" name="date-collecte" id="dateCollecte"
         value="{{collecte.date | date('Y-m-d')}}" required="true" min="{{ 'now' | date('Y-m-d') }}"
@@ -13,7 +7,7 @@
 
 <div class="form-group">
     <label for="objet">Objet de collecte</label>
-    <input type="text" class="form-control data" name="objet" id='objet' value="{{collecte.objet}}" placeholder="objet">
+    <input type="text" class="form-control data needed" name="objet" id='objet' value="{{collecte.objet}}" placeholder="objet">
 </div>
 
 <div class="form-group">
@@ -49,3 +43,4 @@
         </div>
     
 </div>
+<div class="error-msg"></div> 
