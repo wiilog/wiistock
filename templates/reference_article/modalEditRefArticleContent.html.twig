@@ -161,14 +161,14 @@
 
                         {% elseif champ.typage == 'list' %}
                         <select class="form-control unTruc data " name="{{champ.id}}" id="input">
-                            <option value="{{champ.defaultValue}}">{{champ.defaultValue}}
+                            <option value="{{value}}">{{value}}
                             </option>
                             {% for elem in champ.elements %}
-                            {% if champ.defaultValue != elem %}
+                            {% if value != elem %}
                             <option value="{{elem}}">{{elem}}</option>
                             {% endif %}
                             {% endfor %}
-                            {% if champ.defaultValue != "" %}
+                            {% if value != "" %}
                             <option value=""></option>
                             {% endif %}
                         </select>
