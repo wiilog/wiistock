@@ -46,11 +46,8 @@ class ArticleFournisseurController extends AbstractController
      */
     public function index()
     {
-        return $this->render('article_fournisseur/index.html.twig', [
-            'fournisseurs' => $this->fournisseurRepository->findAll(),
-            'referencesArticles' => $this->referenceArticleRepository->findAll()
-        ]);
-}
+        return $this->render('article_fournisseur/index.html.twig');
+    }
 
     /**
      * @Route("/api", name="article_fournisseur_api", options={"expose"=true}, methods="POST")
@@ -115,8 +112,6 @@ class ArticleFournisseurController extends AbstractController
 
             $json = $this->renderView('article_fournisseur/modalEditArticleFournisseurContent.html.twig', [
                 'articleFournisseur' => $articleFournisseur,
-                'fournisseurs' => $this->fournisseurRepository->findAll(),
-                'referencesArticles' => $this->referenceArticleRepository->findAll()
             ]);
             return new JsonResponse($json);
         }

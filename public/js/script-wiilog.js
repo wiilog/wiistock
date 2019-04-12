@@ -6,7 +6,7 @@
  *      ajouter la classe "needed" aux inputs qui sont obligatoires
  *      supprimerle data-dismiss=modal du bouton submit de la modale (la gestion de la fermeture doit se faire dans cette fonction)
  *      pour un affichage optimal de l'erreur, le label et l'input doivent être dans une div avec la classe "form-group"
- * 
+ *
  * @param {Document} modal la fenêtre modale selectionnée : document.getElementById("modal").
  * @param {Document} submit le bouton qui va envoyé les données au controller via Ajax.
  * @param {string} path le chemin pris pour envoyer les données.
@@ -73,11 +73,17 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
         let missingInputs = [];
         let wrongNumberInputs = [];
         let passwordIsValid = true;
-
+        Data["elem"] = [];
         inputs.each(function () {
             let val = $(this).val();
             let name = $(this).attr("name");
-            Data[name] = val;
+            if (name === "elem")
+                Data[name].push(val);
+            else {
+                if ($(this).parent().is(":visible") || $(this).parent().hasClass('required')) {
+                    Data[name] = val;
+                }
+            }
             // validation données obligatoires
             if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
                 let label = $(this).closest('.form-group').find('label').text();
@@ -118,6 +124,10 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
         checkboxes.each(function () {
             Data[$(this).attr("name")] = $(this).is(':checked');
         });
+        $("div[name='id']").each(function () {
+            Data[$(this).attr("name")] = $(this).attr('value');
+        });
+        modal.find(".elem").remove();
         // si tout va bien on envoie la requête ajax...
         if (missingInputs.length == 0 && wrongNumberInputs.length == 0 && passwordIsValid) {
             if (close == true) modal.find('.close').click();
@@ -241,6 +251,7 @@ function toggleRadioButton(button) {
     let tog = button.data('toggle');
     $('#' + tog).prop('value', sel);
 
+
     $('span[data-toggle="' + tog + '"]').not('[data-title="' + sel + '"]').removeClass('active').addClass('not-active');
     $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
 }
@@ -285,7 +296,6 @@ function setCommentaire(button) {
     // let commentaire = modal.find('input[id=commentaire]');
     com = quill.container.firstChild.innerHTML;
     $('#commentaire').val(com);
-    console.log(com);
 };
 
 //passe de l'éditeur à l'imput pour insertion en BDD par l'id commentaireID (cas de conflit avec la class)

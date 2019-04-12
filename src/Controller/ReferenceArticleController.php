@@ -33,6 +33,7 @@ use App\Service\FileUploader;
 use App\Entity\Collecte;
 use Proxies\__CG__\App\Entity\Livraison;
 use App\Entity\Demande;
+use Symfony\Component\Serializer\Encoder\JsonEncode;
 
 /**
  * @Route("/reference-article")
@@ -128,43 +129,81 @@ class ReferenceArticleController extends Controller
      */
     public function apiColumns(Request $request): Response
     {
-        if ($request->isXmlHttpRequest())
-        {
-            $champs = $this->champsLibreRepository->getLabelAndIdAndTypage();;
-            $columns = [
-                [
-                    "title" => 'Actions',
-                    "data" => 'Actions',
-                    "class" => 'fixe'
-                ],
-                [
-                    "title" => 'Libellé',
-                    "data" => 'Libellé',
-                    "class" => 'fixe'
-                ],
-                [
-                    "title" => 'Référence',
-                    "data" => 'Référence',
-                    "class" => 'fixe'
-                ],
-                [
-                    "title" => 'Type',
-                    "data" => 'Type',
-                    "class" => 'fixe'
-                ],
-                [
-                    "title" => 'Quantité',
-                    "data" => 'Quantité',
-                    "class" => 'fixe'
-                ],
+        if ($request->isXmlHttpRequest()) {
+            $colonmVisible = $this->getUser()->getColumnVisible();
 
-            ];
-            foreach ($champs as $champ) {
-                $columns[] = [
-                    "title" => ucfirst(mb_strtolower($champ['label'])),
-                    "data" => $champ['label'],
-                    "class" => 'libre'
+            $champs = $this->champsLibreRepository->getLabelAndIdAndTypage();
+            if ($colonmVisible) {
+                $columns = [
+                    [
+                        "title" => 'Actions',
+                        "data" => 'Actions',
+                        "class" => (in_array( 'Actions' , $colonmVisible) ? 'fixe' : 'libre')
+                    ],
+                    [
+                        "title" => 'Libellé',
+                        "data" => 'Libellé',
+                        "class" => (in_array( 'Libellé', $colonmVisible) ? 'fixe' : 'libre')
+                    ],
+                    [
+                        "title" => 'Référence',
+                        "data" => 'Référence',
+                        "class" => (in_array( 'Référence', $colonmVisible) ? 'fixe' : 'libre')
+                    ],
+                    [
+                        "title" => 'Type',
+                        "data" => 'Type',
+                        "class" => (in_array( 'Type', $colonmVisible) ? 'fixe' : 'libre')
+                    ],
+                    [
+                        "title" => 'Quantité',
+                        "data" => 'Quantité',
+                        "class" => (in_array( 'Quantité', $colonmVisible) ? 'fixe' : 'libre')
+                    ],
+    
                 ];
+                foreach ($champs as $champ) {
+                    $columns[] = [
+                        "title" => ucfirst(mb_strtolower($champ['label'])),
+                        "data" => $champ['label'],
+                        "class" =>  (in_array(  $champ['label'] , $colonmVisible) ? 'fixe' : 'libre')
+                    ];
+                }
+            } else {
+                $columns = [
+                    [
+                        "title" => 'Actions',
+                        "data" => 'Actions',
+                        "class" => 'fixe'
+                    ],
+                    [
+                        "title" => 'Libellé',
+                        "data" => 'Libellé',
+                        "class" => 'fixe'
+                    ],
+                    [
+                        "title" => 'Référence',
+                        "data" => 'Référence',
+                        "class" => 'fixe'
+                    ],
+                    [
+                        "title" => 'Type',
+                        "data" => 'Type',
+                        "class" => 'fixe'
+                    ],
+                    [
+                        "title" => 'Quantité',
+                        "data" => 'Quantité',
+                        "class" => 'fixe'
+                    ],
+                ];
+                foreach ($champs as $champ) {
+                    $columns[] = [
+                        "title" => ucfirst(mb_strtolower($champ['label'])),
+                        "data" => $champ['label'],
+                        "class" => 'libre'
+                    ];
+                }
             }
 
             return new JsonResponse($columns);
@@ -178,11 +217,11 @@ class ReferenceArticleController extends Controller
     public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
-        {
-            $data = $this->refArticleDataService->getDataForDatatable($request->request);
+            {
+                $data = $this->refArticleDataService->getDataForDatatable($request->request);
 
-            return new JsonResponse($data);
-        }
+                return new JsonResponse($data);
+            }
         throw new NotFoundHttpException("404");
     }
 
@@ -205,9 +244,9 @@ class ReferenceArticleController extends Controller
                     ->setLibelle($data['libelle'])
                     ->setReference($data['reference'])
                     ->setCommentaire($data['commentaire'])
-                    ->setQuantiteStock($data['quantite'] ?$data['quantite'] : 0)
+                    ->setQuantiteStock($data['quantite'] ? $data['quantite'] : 0)
                     ->setStatut($statut)
-                    ->setTypeQuantite($data['type_quantite'] ?ReferenceArticle::TYPE_QUANTITE_REFERENCE : ReferenceArticle::TYPE_QUANTITE_ARTICLE)
+                    ->setTypeQuantite($data['type_quantite'] ? ReferenceArticle::TYPE_QUANTITE_REFERENCE : ReferenceArticle::TYPE_QUANTITE_ARTICLE)
                     ->setType($this->typeRepository->find($data['type']));
                 $em->persist($refArticle);
                 $em->flush();
@@ -230,13 +269,13 @@ class ReferenceArticleController extends Controller
                 $rowCL = [];
                 foreach ($champsLibres as $champLibre) {
                     $valeur = $this->valeurChampsLibreRepository->getByRefArticleANDChampsLibre($refArticle->getId(), $champLibre['id']);
-                    $rowCL[$champLibre['label']] = ($valeur ?$valeur->getValeur() : "");
+                    $rowCL[$champLibre['label']] = ($valeur ? $valeur->getValeur() : "");
                 }
                 $rowDD = [
                     "id" => $refArticle->getId(),
                     "Libellé" => $refArticle->getLibelle(),
                     "Référence" => $refArticle->getReference(),
-                    "Type" => ($refArticle->getType() ?$refArticle->getType()->getLabel() : ""),
+                    "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
                     "Quantité" => $refArticle->getQuantiteStock(),
                     'Actions' => $this->renderView('reference_article/datatableReferenceArticleRow.html.twig', [
                         'idRefArticle' => $refArticle->getId(),
@@ -297,9 +336,10 @@ class ReferenceArticleController extends Controller
         ];
 
         $champs = array_merge($champ, $champL);
-
+        $champsVisibleDefault =['Actions', 'Libellé', 'Référence', 'Type', 'Quantité'];
         return $this->render('reference_article/index.html.twig', [
             'champs' => $champs,
+            'champsVisible' => ($this->getUser()->getColumnVisible() !== null ? $this->getUser()->getColumnVisible() : $champsVisibleDefault ),
             'statuts' => $this->statutRepository->findByCategorieName(ReferenceArticle::CATEGORIE),
             'types' => $this->typeRepository->getByCategoryLabel(ReferenceArticle::CATEGORIE),
             'typeQuantite' => $typeQuantite,
@@ -316,10 +356,8 @@ class ReferenceArticleController extends Controller
 
             $articleRef = $this->referenceArticleRepository->find($data);
             $statuts = $this->statutRepository->findByCategorieName(ReferenceArticle::CATEGORIE);
-
             if ($articleRef) {
                 $data = $this->refArticleDataService->getDataEditForRefArticle($articleRef);
-
                 $json = $this->renderView('reference_article/modalEditRefArticleContent.html.twig', [
                     'articleRef' => $articleRef,
                     'statut' => ($articleRef->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF),
@@ -344,7 +382,6 @@ class ReferenceArticleController extends Controller
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $refArticle = $this->referenceArticleRepository->find(intval($data['idRefArticle']));
-            dump($data);
             if ($refArticle) {
                 $response = $this->refArticleDataService->editRefArticle($refArticle, $data);
             } else {
@@ -383,7 +420,7 @@ class ReferenceArticleController extends Controller
             $refArticleId = $request->request->get('refArticleId');
             $refArticle = $this->referenceArticleRepository->find($refArticleId);
 
-            $quantity = $refArticle ? ($refArticle->getQuantiteStock() ?$refArticle->getQuantiteStock() : 0) : 0;
+            $quantity = $refArticle ? ($refArticle->getQuantiteStock() ? $refArticle->getQuantiteStock() : 0) : 0;
 
             return new JsonResponse($quantity);
         }
@@ -474,6 +511,22 @@ class ReferenceArticleController extends Controller
                 $json = false;
             }
             return new JsonResponse($json);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/colonne-visible", name="save_column_visible", options={"expose"=true}, methods="GET|POST")
+     */
+    public function saveColumnVisible(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $champs = array_keys($data);
+            $user = $this->getUser();
+            $user->setColumnVisible($champs);
+            $em = $this->getDoctrine()->getManager();
+            $em->flush();
+            return new JsonResponse();
         }
         throw new NotFoundHttpException("404");
     }

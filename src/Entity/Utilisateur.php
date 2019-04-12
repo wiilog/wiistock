@@ -101,7 +101,12 @@ class Utilisateur implements UserInterface, EquatableInterface
      * @ORM\OneToMany(targetEntity="App\Entity\Filter", mappedBy="utilisateur", orphanRemoval=true)
      */
     private $filters;
-    
+
+    /**
+     * @ORM\Column(type="json", nullable=true)
+     */
+    private $columnVisible = [];
+
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
@@ -472,6 +477,18 @@ class Utilisateur implements UserInterface, EquatableInterface
     public function setRole(?Role $role): self
     {
         $this->role = $role;
+
+        return $this;
+    }
+
+    public function getColumnVisible(): ?array
+    {
+        return $this->columnVisible;
+    }
+
+    public function setColumnVisible(?array $columnVisible): self
+    {
+        $this->columnVisible = $columnVisible;
 
         return $this;
     }

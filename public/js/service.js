@@ -97,3 +97,18 @@ function initNewServiceEditor(modal) {
     }
     ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'))
 };
+
+function changeStatus(button) {
+    let sel = $(button).data('title');
+    let tog = $(button).data('toggle');
+    if ($(button).hasClass('not-active')) {
+        if ($("#s").val() == "0") {
+            $("#s").val("1");
+        } else {
+            $("#s").val("0");
+        }
+    }
+
+    $('span[data-toggle="' + tog + '"]').not('[data-title="' + sel + '"]').removeClass('active').addClass('not-active');
+    $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
+}

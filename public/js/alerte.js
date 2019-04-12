@@ -10,9 +10,10 @@ var tableAlerte = $('#tableAlerte_id').DataTable({
         "type": "POST"
 },
     columns: [
-        { "data": 'Nom' },
         { "data": 'Code' },
         { "data": 'Article Référence' },
+        { "data": 'Quantité en stock' },
+        { "data": 'Seuil limite' },
         { "data": 'Seuil' },
         { "data": 'Utilisateur' },
         { "data": 'Actions'},

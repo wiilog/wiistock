@@ -1,0 +1,12 @@
+{% if elems %}
+<select>
+    {% for elem in elems %}
+    <option>{{elem}}</option>
+    {% endfor %}
+</select>
+
+{% else %}
+
+<p>Non défini</p>
+
+{% endif %}

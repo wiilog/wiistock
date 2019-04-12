@@ -70,13 +70,16 @@ let submitDeleteArticle = $("#submitDeleteArticle");
 let urlDeleteArticle = Routing.generate('collecte_remove_article', true);
 InitialiserModal(modalDeleteArticle, submitDeleteArticle, urlDeleteArticle, tableArticle);
 
-function finishCollecte(submit, tableArticle) {
+function finishCollecte(submit) {
     xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
             data = JSON.parse(this.responseText);
             $('#tableArticle_id').DataTable().ajax.reload();
-            $('.zone-entete').html(data.entete)
+            $('.zone-entete').html(data.entete);
+            $('#boutonCollecteSup').addClass('d-none')
+            $('#boutonCollecteInf').addClass('d-none')
+
         }
     }
     path =  Routing.generate('finish_collecte', true)
@@ -119,6 +122,23 @@ function ajaxGetArticle(select) {
     path =  Routing.generate('get_article_by_refArticle', true)
     let data = {};
     data['referenceArticle'] = select.val();
+    json = JSON.stringify(data);
+    xhttp.open("POST", path, true);
+    xhttp.send(json);
+}
+
+function ajaxGetCollecteArticle(select) {
+    xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            data = JSON.parse(this.responseText);
+           $('#newContent').html(data);
+           $('#modalNewArticle').find('div').find('div').find('.modal-footer').removeClass('d-none');
+        }
+    }
+    path =  Routing.generate('get_collecte_article_by_refArticle', true)
+    let data = {};
+    data['referenceArticle'] = $(select).val();
     json = JSON.stringify(data);
     xhttp.open("POST", path, true);
     xhttp.send(json);
@@ -198,5 +218,4 @@ $('#submitSearchCollecte').on('click', function () {
     table
        .draw();
 });
-
 
