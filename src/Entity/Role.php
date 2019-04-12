@@ -14,6 +14,8 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Role
 {
+    const SIMPLE_USER = 'utilisateur simple';
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()

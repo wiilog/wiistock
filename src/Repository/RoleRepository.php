@@ -37,4 +37,22 @@ class RoleRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
+    /**
+     * @param string $label
+     * @return mixed
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
+    public function findByLabel($label)
+    {
+        $em = $this->getEntityManager();
+
+        $query = $em->createQuery(
+            "SELECT r
+            FROM App\Entity\Role r
+            WHERE r.label = :label"
+        )->setParameter('label', $label);
+
+        return $query->getOneOrNullResult();
+    }
+
 }
