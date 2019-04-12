@@ -55,6 +55,7 @@ class Type
     {
         $this->champsLibres = new ArrayCollection();
         $this->referenceArticles = new ArrayCollection();
+        $this->articles = new ArrayCollection();
     }
 
     public function getId(): ?int

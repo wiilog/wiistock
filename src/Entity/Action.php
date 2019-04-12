@@ -60,18 +60,6 @@ class Action
         return $this;
     }
 
-    public function getMenu(): ?string
-    {
-        return $this->menu;
-    }
-
-    public function setMenu(string $menu): self
-    {
-        $this->menu = $menu;
-
-        return $this;
-    }
-
     /**
      * @return Collection|Role[]
      */
@@ -94,6 +82,18 @@ class Action
         if ($this->roles->contains($role)) {
             $this->roles->removeElement($role);
         }
+
+        return $this;
+    }
+
+    public function getMenu(): ?Menu
+    {
+        return $this->menu;
+    }
+
+    public function setMenu(?Menu $menu): self
+    {
+        $this->menu = $menu;
 
         return $this;
     }
