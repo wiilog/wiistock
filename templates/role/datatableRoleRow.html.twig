@@ -3,7 +3,7 @@
         {#<i class='fas fa-eye'></i>#}
     {#</a>#}
     <div data-id='{{ roleId }}' class='col-3' data-toggle='modal' data-target='#modalEditRole'
-         onclick="editRow($(this), Routing.generate('role_api_edit', true), $('#modalEditRole'), $('#submitEditRole'), true)">
+         onclick="editRow($(this), Routing.generate('role_api_edit', true), $('#modalEditRole'), $('#submitEditRole'))">
         <i class='fas fa-pencil-alt'></i>
     </div>
     <div data-id='{{ roleId }}' class='col-3' data-toggle='modal' data-target='#modalDeleteRole'
