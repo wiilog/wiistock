@@ -128,6 +128,9 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
         checkboxes.each(function () {
             Data[$(this).attr("name")] = $(this).is(':checked');
         });
+        $("div[name='id']").each(function () {
+            Data[$(this).attr("name")] = $(this).attr('value');
+        });
         modal.find(".elem").remove();
         // si tout va bien on envoie la requête ajax...
         if (missingInputs.length == 0 && wrongNumberInputs.length == 0 && passwordIsValid) {
