@@ -6,8 +6,8 @@
     <div class="col">
         <h1>Demande de livraison</h1>
     </div>
-    <div class="col text-right">
-        {% if modifiable %}
+    {% if modifiable %}
+    <div class="col text-right" id='boutonCollecteSup'>
 
         <a href="" data-id='{{ demande.id }}' data-target='#modalDeleteDemande' data-toggle='modal'
             class="btn btn-danger btn-action ml-auto">
@@ -16,14 +16,17 @@
             onclick="ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'))" data-toggle='modal'
             class="btn btn-primary btn-action ml-auto" onclick='initNewLivraisonEditor("#modalEditDemande")'>
             Modifier</a>
-        <a href="{{path('finish_demande', {'id': demande.id})}}" class="btn btn-primary btn-action ml-auto">
+        <a href="#" class="btn btn-primary btn-action ml-auto" data-id='{{demande.id}}'
+            onclick="finishDemandeLivraison($(this))">
             Valider</a>
-        {% elseif demande.preparation is not empty %}
+    </div>
+    {% elseif demande.preparation is defined %}
+    <div class="col text-right" >
         <a href="{{path('preparation_show', {'id': demande.preparation.id }) }}">
             Aller vers la préparation
         </a>
-        {% endif %}
     </div>
+    {% endif %}
 </div>
 
 <div class="row">
@@ -31,14 +34,14 @@
         {% include "demande/enteteDemandeLivraison.html.twig" %}
     </div>
 </div>
-
-<div class="col text-right">
+{% if modifiable %}
+<div class="col text-right" id="boutonCollecteInf">
     <a href="{{ path('reference_article_index') }}" data-toggle="modal" class="btn btn-primary btn-action ml-auto">
         Chercher une référence</a>
     <a href="" data-toggle="modal" data-target="#modalNewArticle" class="btn btn-primary btn-action ml-auto">
         <span class="fa fa-plus mr-2"></span>Ajouter article</a>
 </div>
-
+{% endif %}
 
 <span id="demande-id" data-id="{{ demande.id }}"></span>
 

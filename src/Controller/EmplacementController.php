@@ -161,7 +161,6 @@ class EmplacementController extends AbstractController
             $search = $request->query->get('term');
             
             $emplacement = $this->emplacementRepository->getIdAndLibelleBySearch($search);
-
             return new JsonResponse(['results' => $emplacement]);
         }
         throw new NotFoundHttpException("404");
