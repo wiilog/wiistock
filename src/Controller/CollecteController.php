@@ -326,7 +326,7 @@ class CollecteController extends AbstractController
             $pointCollecte = $this->emplacementRepository->find($data['Pcollecte']);
 
             $collecte
-                ->setNumero($data['NumeroCollecte'])
+                
                 ->setDate(new \DateTime($data['date-collecte']))
                 ->setCommentaire($data['commentaire'])
                 ->setObjet($data['objet'])
