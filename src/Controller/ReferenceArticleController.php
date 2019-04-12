@@ -131,8 +131,8 @@ class ReferenceArticleController extends Controller
     {
         if ($request->isXmlHttpRequest()) {
             $colonmVisible = $this->getUser()->getColumnVisible();
-
-            $champs = $this->champsLibreRepository->getLabelAndIdAndTypage();
+            $category = ReferenceArticle::CATEGORIE;
+            $champs = $this->champsLibreRepository->getLabelByCategory($category);
             if ($colonmVisible) {
                 $columns = [
                     [
@@ -306,7 +306,8 @@ class ReferenceArticleController extends Controller
             ]
         ];
 
-        $champL = $this->champsLibreRepository->getLabelAndIdAndTypage();
+        $category = ReferenceArticle::CATEGORIE;
+        $champL = $this->champsLibreRepository->getLabelByCategory($category);
         $champ[] = [
             'label' => 'Actions',
             'id' => 0,
