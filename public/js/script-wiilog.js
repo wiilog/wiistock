@@ -74,11 +74,20 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
         let missingInputs = [];
         let wrongNumberInputs = [];
         let passwordIsValid = true;
-
+        Data["elem"] = [];
         inputs.each(function () {
             let val = $(this).val();
             let name = $(this).attr("name");
-            Data[name] = val;
+            // console.log($(this));
+            // console.log(val);
+            // console.log($(this).val);
+            if (name === "elem")
+                Data[name].push(val);
+            else {
+                if ($(this).parent().is(":visible")) {
+                    Data[name] = val;
+                }
+            }
             // validation données obligatoires
             if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
                 let label = $(this).closest('.form-group').find('label').text();
@@ -119,6 +128,7 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
         checkboxes.each(function () {
             Data[$(this).attr("name")] = $(this).is(':checked');
         });
+        modal.find(".elem").remove();
         // si tout va bien on envoie la requête ajax...
         if (missingInputs.length == 0 && wrongNumberInputs.length == 0 && passwordIsValid) {
             if (close == true) modal.find('.close').click();
