@@ -33,6 +33,7 @@ use App\Service\FileUploader;
 use App\Entity\Collecte;
 use Proxies\__CG__\App\Entity\Livraison;
 use App\Entity\Demande;
+use Symfony\Component\Serializer\Encoder\JsonEncode;
 
 /**
  * @Route("/reference-article")
@@ -124,16 +125,52 @@ class ReferenceArticleController extends Controller
     }
 
     /**
-     * @Route("/api", name="ref_article_api", options={"expose"=true}, methods="GET|POST")
+     * @Route("/api-columns", name="ref_article_api_columns", options={"expose"=true}, methods="GET|POST")
      */
-    public function api(Request $request): Response
+    public function apiColumns(Request $request): Response
     {
-        if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
-            {
-                $data['data'] = $this->refArticleDataService->getRefArticleData();
+        if ($request->isXmlHttpRequest()) {
+            $colonmVisible = $this->getUser()->getColumnVisible();
 
-                $champs = $this->champsLibreRepository->getLabelAndIdAndTypage();;
-                $column = [
+            $champs = $this->champsLibreRepository->getLabelAndIdAndTypage();
+            if ($colonmVisible) {
+                $columns = [
+                    [
+                        "title" => 'Actions',
+                        "data" => 'Actions',
+                        "class" => (in_array('Actions', $colonmVisible) ? 'fixe' : 'libre')
+                    ],
+                    [
+                        "title" => 'Libellé',
+                        "data" => 'Libellé',
+                        "class" => (in_array('Libellé', $colonmVisible) ? 'fixe' : 'libre')
+                    ],
+                    [
+                        "title" => 'Référence',
+                        "data" => 'Référence',
+                        "class" => (in_array('Référence', $colonmVisible) ? 'fixe' : 'libre')
+                    ],
+                    [
+                        "title" => 'Type',
+                        "data" => 'Type',
+                        "class" => (in_array('Type', $colonmVisible) ? 'fixe' : 'libre')
+                    ],
+                    [
+                        "title" => 'Quantité',
+                        "data" => 'Quantité',
+                        "class" => (in_array('Quantité', $colonmVisible) ? 'fixe' : 'libre')
+                    ],
+
+                ];
+                foreach ($champs as $champ) {
+                    $columns[] = [
+                        "title" => ucfirst(mb_strtolower($champ['label'])),
+                        "data" => $champ['label'],
+                        "class" => (in_array($champ['label'], $colonmVisible) ? 'fixe' : 'libre')
+                    ];
+                }
+            } else {
+                $columns = [
                     [
                         "title" => 'Actions',
                         "data" => 'Actions',
@@ -159,17 +196,30 @@ class ReferenceArticleController extends Controller
                         "data" => 'Quantité',
                         "class" => 'fixe'
                     ],
-
                 ];
                 foreach ($champs as $champ) {
-                    $column[] = [
+                    $columns[] = [
                         "title" => ucfirst(mb_strtolower($champ['label'])),
                         "data" => $champ['label'],
                         "class" => 'libre'
                     ];
                 }
+            }
 
-                $data['column'] = $column;
+            return new JsonResponse($columns);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/api", name="ref_article_api", options={"expose"=true}, methods="GET|POST")
+     */
+    public function api(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
+            {
+                $data = $this->refArticleDataService->getDataForDatatable($request->request);
+
                 return new JsonResponse($data);
             }
         throw new NotFoundHttpException("404");
@@ -286,9 +336,10 @@ class ReferenceArticleController extends Controller
         ];
 
         $champs = array_merge($champ, $champL);
-
+        $champsVisibleDefault = ['Actions', 'Libellé', 'Référence', 'Type', 'Quantité'];
         return $this->render('reference_article/index.html.twig', [
             'champs' => $champs,
+            'champsVisible' => ($this->getUser()->getColumnVisible() !== null ? $this->getUser()->getColumnVisible() : $champsVisibleDefault),
             'statuts' => $this->statutRepository->findByCategorieName(ReferenceArticle::CATEGORIE),
             'types' => $this->typeRepository->getByCategoryLabel(ReferenceArticle::CATEGORIE),
             'typeQuantite' => $typeQuantite,
@@ -305,10 +356,8 @@ class ReferenceArticleController extends Controller
 
             $articleRef = $this->referenceArticleRepository->find($data);
             $statuts = $this->statutRepository->findByCategorieName(ReferenceArticle::CATEGORIE);
-
             if ($articleRef) {
                 $data = $this->refArticleDataService->getDataEditForRefArticle($articleRef);
-
                 $json = $this->renderView('reference_article/modalEditRefArticleContent.html.twig', [
                     'articleRef' => $articleRef,
                     'statut' => ($articleRef->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF),
@@ -333,7 +382,6 @@ class ReferenceArticleController extends Controller
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $refArticle = $this->referenceArticleRepository->find(intval($data['idRefArticle']));
-            dump($data);
             if ($refArticle) {
                 $response = $this->refArticleDataService->editRefArticle($refArticle, $data);
             } else {
@@ -448,10 +496,10 @@ class ReferenceArticleController extends Controller
             $refArticle = $this->referenceArticleRepository->find($data);
             if ($refArticle) {
                 $statutC = $this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, Collecte::STATUS_DEMANDE);
-                $collectes = $this->collecteRepository->getByStatut($statutC);
+                $collectes = $this->collecteRepository->getByStatutAndUser($statutC, $this->getUser());
 
                 $statutD = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
-                $demandes = $this->demandeRepository->getByStatut($statutD);
+                $demandes = $this->demandeRepository->getByStatutAndUser($statutD, $this->getUser());
 
                 $articleOrNo = $this->articleDataService->getArticleOrNoByRefArticle($refArticle, false);
                 $json = $this->renderView('reference_article/modalPlusDemandeContent.html.twig', [
@@ -477,17 +525,33 @@ class ReferenceArticleController extends Controller
             if ($refArticle) {
                 if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                     $json = $this->renderView('reference_article/newRefArticleByReference.html.twig');
-                }elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE){
-                    $json = $this->renderView('reference_article/newRefArticleByArticle.html.twig',[
-                        'articlesFournisseurs' =>$this->articleFournisseurRepository->findALL(),
-                        ]);
-                }else {
+                } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+                    $json = $this->renderView('reference_article/newRefArticleByArticle.html.twig', [
+                        'articlesFournisseurs' => $this->articleFournisseurRepository->findALL(),
+                    ]);
+                } else {
                     $json = false;
                 }
             } else {
                 $json = false; //TODO gérer erreur retour
             }
             return new JsonResponse($json);
+        }
+        throw new NotFoundHttpException("404");
+    }
+    
+    /** 
+     * @Route("/colonne-visible", name="save_column_visible", options={"expose"=true}, methods="GET|POST")
+     */
+    public function saveColumnVisible(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $champs = array_keys($data);
+            $user = $this->getUser();
+            $user->setColumnVisible($champs);
+            $em = $this->getDoctrine()->getManager();
+            $em->flush();
+            return new JsonResponse();
         }
         throw new NotFoundHttpException("404");
     }

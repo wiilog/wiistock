@@ -1,9 +1,9 @@
-$('.select2').select2({
-    placeholder: {
-        id: 'demandeur', // the value of the option
-        text: 'Demandeur',
-    }
+$('.select2').select2();
 
+$('#utilisateur').select2({
+    placeholder: {
+         text: 'Demandeur',
+    }
 });
 
 var pathService = Routing.generate('service_api', true);
@@ -24,12 +24,12 @@ var tableService = $('#tableService_id').DataTable({
     ],
 
 });
-
+// filtres de recheches
 $('#submitSearchService').on('click', function () {
 
     let statut = $('#statut').val();
     let demandeur = [];
-    demandeur = $('#demandeur').val()
+    demandeur = $('#utilisateur').val()
     demandeurString = demandeur.toString();
     demandeurPiped = demandeurString.split(',').join('|')
 
@@ -79,7 +79,6 @@ let submitModifyService = $('#submitEditService');
 let urlModifyService = Routing.generate('service_edit', true);
 InitialiserModal(modalModifyService, submitModifyService, urlModifyService, tableService);
 
-
 var editorEditServiceAlreadyDone = false;
 function initEditServiceEditor(modal) {
     if (!editorEditServiceAlreadyDone) {
@@ -89,7 +88,6 @@ function initEditServiceEditor(modal) {
     }
 };
 
-
 //initialisation editeur de texte une seule fois
 var editorNewServiceAlreadyDone = false;
 function initNewServiceEditor(modal) {
@@ -97,4 +95,20 @@ function initNewServiceEditor(modal) {
         initEditor(modal);
         editorNewServiceAlreadyDone = true;
     }
+    ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'))
 };
+
+function changeStatus(button) {
+    let sel = $(button).data('title');
+    let tog = $(button).data('toggle');
+    if ($(button).hasClass('not-active')) {
+        if ($("#s").val() == "0") {
+            $("#s").val("1");
+        } else {
+            $("#s").val("0");
+        }
+    }
+
+    $('span[data-toggle="' + tog + '"]').not('[data-title="' + sel + '"]').removeClass('active').addClass('not-active');
+    $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
+}

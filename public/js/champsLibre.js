@@ -21,7 +21,7 @@ let tableType = $('#tableType_id').DataTable({
 let dataModalTypeNew = $("#modalNewType");
 let ButtonSubmitTypeNew = $("#submitTypeNew");
 let urlTypeNew = Routing.generate('type_new', true);
-InitialiserModal(dataModalTypeNew, ButtonSubmitTypeNew, urlTypeNew,tableType);
+InitialiserModal(dataModalTypeNew, ButtonSubmitTypeNew, urlTypeNew, tableType);
 
 let dataModalTypeDelete = $("#modalDeleteType");
 let ButtonSubmitTypeDelete = $("#submitDeleteType");
@@ -36,7 +36,7 @@ InitialiserModal(dataModalEditType, ButtonSubmitEditType, urlEditType, tableType
 
 //CHAMPS LIBRE
 
-const urlApiChampsLibre = Routing.generate('champ_libre_api', {'id': id},true);
+const urlApiChampsLibre = Routing.generate('champ_libre_api', { 'id': id }, true);
 let tableChampsLibre = $('#tableChampslibre_id').DataTable({
     "language": {
         "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
@@ -49,6 +49,7 @@ let tableChampsLibre = $('#tableChampslibre_id').DataTable({
         { "data": 'Label' },
         { "data": 'Typage' },
         { "data": 'Valeur par défaut' },
+        { "data": 'Elements' },
         { "data": 'Actions' },
     ],
 });
@@ -68,8 +69,7 @@ let ButtonSubmitEditChampsLibre = $("#submitEditChampsLibre");
 let urlEditChampsLibre = Routing.generate('champ_libre_edit', true);
 InitialiserModal(dataModalEditChampsLibre, ButtonSubmitEditChampsLibre, urlEditChampsLibre, tableChampsLibre);
 
-function askForDeleteConfirmation(data)
-{
+function askForDeleteConfirmation(data) {
     let modal = $('#modalDeleteType');
 
     if (data !== true) {
@@ -77,14 +77,65 @@ function askForDeleteConfirmation(data)
         let submit = $('#submitDeleteType');
 
         let typeId = submit.val();
-        let params = JSON.stringify({force: true, type: typeId});
+        let params = JSON.stringify({ force: true, type: typeId });
 
-        submit.on('click', function() {
-            $.post(Routing.generate('type_delete'), params, function() {
+        submit.on('click', function () {
+            $.post(Routing.generate('type_delete'), params, function () {
                 tableChampsLibre.ajax.reload();
             }, 'json');
         });
     } else {
         modal.find('.close').click();
+    }
+}
+
+$(document).ready(function () {
+    $('#typage').change(function () {
+        if ($(this).val() === 'list') {
+            $("#list").show();
+            $("#noList").hide();
+            $("#body").append(
+                "<div class=\"elem\">" +
+                "<label for=\"date-attendu\" id=\"ajouterElem\">Ajouter un élément</label>" +
+                "<span class=\"input-group-btn\">" +
+                "<button class=\"btn\" onclick=\"appendElem()\" type=\"button\">+</button>" +
+                "</span>" +
+                "</div>");
+        } else {
+            $("#list").hide();
+            $("#noList").show();
+            $("div").remove(".elem");
+            $("#ajouterElem").remove();
+        }
+    });
+});
+
+function appendElem() {
+    $("#body").append(
+        "<div class=\"form-group elem\">" +
+        "<input type=\"text\" class=\"form-control data\" name=\"elem\" onblur=\"addToSelect(this)\">" +
+        "</div>");
+}
+
+function addToSelect(el) {
+    let input = $(el).val();
+    let added = false;
+    if (input !== "") {
+        $('#valeur > option').each(function () {
+            if ($(this).data('elem') === el) {
+                $(this).text(input);
+                $(this).val(input);
+                added = true;
+            }
+        });
+        if (!added) {
+            $('<option/>', {
+                text: input,
+                value: input,
+                data: {
+                    elem: el,
+                }
+            }).appendTo("#valeur");
+        }
     }
 }

@@ -32,4 +32,21 @@ class TypeRepository extends ServiceEntityRepository
 
         return $query->execute();
     }
+
+    public function getOneByCategoryLabel($category)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT t
+            FROM App\Entity\Type t
+            JOIN t.category c
+            WHERE c.label = :category"
+            );
+        $query->setParameter("category", $category);
+
+        return $query->getOneOrNullResult();
+    }
+
+
+
 }

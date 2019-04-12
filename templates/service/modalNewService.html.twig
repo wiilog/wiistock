@@ -27,13 +27,7 @@
 
                 <div class="form-group w-100">
                     <label for="Localité">Localité</label>
-                    <select class="Localité form-control select2 data" name="Localité">
-                        <option disabled selected>Choisir une localité</option>
-                        {% for emplacement in emplacements %}
-                        <option value="{{ emplacement.Id }}">
-                            {{ emplacement.label }}
-                        </option>
-                        {% endfor %}
+                    <select class="Localité form-control ajax-autocompleteEmplacement data" name="Localité">
                     </select>
                     <div class="error-msg"></div>
                 </div>

@@ -13,11 +13,8 @@
 
                 <div class="form-group w-100">
                     <label for="fournisseurs">Fournisseur</label>
-                    <select class="form-control select2 data needed" name="fournisseur" required>
-                        <option disabled selected> </option>
-                        {% for fournisseur in fournisseurs %}
-                        <option value="{{ fournisseur.id }}">{{ fournisseur.nom }}</option>
-                        {% endfor %}
+                    <select class="form-control ajax-autocomplete-fournisseur data needed" name="fournisseur" required>
+                        
                     </select>
                 </div>
 

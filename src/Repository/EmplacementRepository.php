@@ -44,6 +44,18 @@ class EmplacementRepository extends ServiceEntityRepository
         return $query->execute(); 
     }
 
+    public function getIdAndLibelleBySearch($search)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+          "SELECT e.id, e.label as text
+          FROM App\Entity\Emplacement e
+          WHERE e.label LIKE :search"
+        )->setParameter('search', '%' . $search . '%');
+
+        return $query->execute();
+    }
+
 //    /**
 //     * @return Emplacement[] Returns an array of Emplacement objects
 //     */

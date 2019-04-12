@@ -15,34 +15,34 @@
 
 
 function InitialiserModal(modal, submit, path, table, callback = null, close = true) {
-    
+
     submit.click(function () {
         xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function () {
-            
+
             if (this.readyState == 4 && this.status == 200) {
                 $('.errorMessage').html(JSON.parse(this.responseText));
                 data = JSON.parse(this.responseText);
 
-
                 if (data.redirect) {
                     window.location.href = data.redirect;
-                    
+
                 }
                 // pour mise à jour des données d'en-tête après modification
                 if (data.entete) {
                     $('.zone-entete').html(data.entete)
                 }
                 table.ajax.reload(function (json) {
-                    
+
                     if (this.responseText !== undefined) {
                         $('#myInput').val(json.lastInput);
+
                     }
                 });
 
-                if (callback !== null) callback(data) ;
+                if (callback !== null) callback(data);
 
-                 
+
                 let inputs = modal.find('.modal-body').find(".data");
                 // on vide tous les inputs (sauf les disabled)
                 inputs.each(function () {
@@ -53,7 +53,7 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
                 });
                 // on vide tous les select2
                 let selects = modal.find('.modal-body').find('.ajax-autocomplete,.select2');
-                selects.each(function() {
+                selects.each(function () {
                     $(this).val(null).trigger('change');
                 });
                 // on vide les messages d'erreur
@@ -63,6 +63,7 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
                 checkboxes.each(function () {
                     $(this).prop('checked', false);
                 });
+
             }
         };
 
@@ -73,14 +74,20 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
         let missingInputs = [];
         let wrongNumberInputs = [];
         let passwordIsValid = true;
-
+        Data["elem"] = [];
         inputs.each(function () {
             let val = $(this).val();
             let name = $(this).attr("name");
             // console.log($(this));
             // console.log(val);
             // console.log($(this).val);
-            Data[name] = val;
+            if (name === "elem")
+                Data[name].push(val);
+            else {
+                if ($(this).parent().is(":visible") || $(this).parent().hasClass('required')) {
+                    Data[name] = val;
+                }
+            }
             // validation données obligatoires
             if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
                 let label = $(this).closest('.form-group').find('label').text();
@@ -98,28 +105,30 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
                 }
             }
             // validation valeur des inputs de type password
-            if($(this).attr('type') === 'password') {
-                let password = $(this).val();
+            if ($(this).attr('type') === 'password') {
+                let isNotChanged = $(this).hasClass('optional-password') && $(this).val === "";
+                if (!isNotChanged) {
+                    let password = $(this).val();
 
-                if (password.length < 8) {
-                    modal.find('.password-error-msg').html('Le mot de passe doit faire au moins 8 caractères.');
-                    passwordIsValid = false;
-                } else if(!password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)) {
-                    modal.find('.password-error-msg').html('Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial (@$!%*?&).');
-                    passwordIsValid = false;
-                } else {
-                    passwordIsValid = true;
+                    if (password.length < 8) {
+                        modal.find('.password-error-msg').html('Le mot de passe doit faire au moins 8 caractères.');
+                        passwordIsValid = false;
+                    } else if (!password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)) {
+                        modal.find('.password-error-msg').html('Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial (@$!%*?&).');
+                        passwordIsValid = false;
+                    } else {
+                        passwordIsValid = true;
+                    }
                 }
             }
         });
-        console.log(Data);
 
         // ... et dans les checkboxes
         let checkboxes = modal.find('.checkbox');
         checkboxes.each(function () {
             Data[$(this).attr("name")] = $(this).is(':checked');
         });
-
+        modal.find(".elem").remove();
         // si tout va bien on envoie la requête ajax...
         if (missingInputs.length == 0 && wrongNumberInputs.length == 0 && passwordIsValid) {
             if (close == true) modal.find('.close').click();
@@ -142,7 +151,7 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
             }
             // cas où les champs number ne respectent pas les valeurs imposées (min et max)
             if (wrongNumberInputs.length > 0) {
-                wrongNumberInputs.forEach(function(elem) {
+                wrongNumberInputs.forEach(function (elem) {
                     let label = elem.closest('.form-group').find('label').text();
 
                     msg += 'La valeur du champ ' + label;
@@ -224,6 +233,11 @@ function editRow(button, path, modal, submit, editorToInit = false) {
         if (this.readyState == 4 && this.status == 200) {
             dataReponse = JSON.parse(this.responseText);
             modal.find('.modal-body').html(dataReponse);
+           
+            ajaxAutoFournisseurInit( $('.ajax-autocomplete-fournisseur-edit'));
+            ajaxAutoRefArticleInit($('.ajax-autocomplete-edit'));
+            ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
+            ajaxAutoUserInit($('.ajax-autocomplete-user-edit'));
             if (editorToInit) initEditor('#' + modal.attr('id'));
         }
     }
@@ -239,6 +253,7 @@ function toggleRadioButton(button) {
     let tog = button.data('toggle');
     $('#' + tog).prop('value', sel);
 
+
     $('span[data-toggle="' + tog + '"]').not('[data-title="' + sel + '"]').removeClass('active').addClass('not-active');
     $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
 }
@@ -247,35 +262,35 @@ function toggleRadioButton(button) {
 //initialisation editeur de texte une seule fois
 
 function initEditor(modal) {
-   
+
     var quill = new Quill(modal + ' .editor-container', {
         modules: {
-        //     toolbar: [
-        //         [{ header: [1, 2, 3, false] }],
-        //         ['bold', 'italic', 'underline'],
-        //         [{'list': 'ordered'}, {'list': 'bullet'}]
-        //         ['image', 'code-block']
-        //     ]
-        // },
-        toolbar: [
-            [{ header: [1, 2, 3, false] }],
-            ['bold', 'italic', 'underline', 'image'],
-            
-            [{'list': 'ordered'}, {'list': 'bullet'}]
-          ]
+            //     toolbar: [
+            //         [{ header: [1, 2, 3, false] }],
+            //         ['bold', 'italic', 'underline'],
+            //         [{'list': 'ordered'}, {'list': 'bullet'}]
+            //         ['image', 'code-block']
+            //     ]
+            // },
+            toolbar: [
+                [{ header: [1, 2, 3, false] }],
+                ['bold', 'italic', 'underline', 'image'],
+
+                [{ 'list': 'ordered' }, { 'list': 'bullet' }]
+            ]
         },
         formats: [
-          'header',
-          'bold', 'italic', 'underline', 'strike', 'blockquote',
-          'list', 'bullet', 'indent',
-          'link', 'image'
+            'header',
+            'bold', 'italic', 'underline', 'strike', 'blockquote',
+            'list', 'bullet', 'indent',
+            'link', 'image'
         ],
 
         theme: 'snow'
     });
 };
 
-//passe de l'éditeur àl'imput pour insertion en BDD
+//passe de l'éditeur à l'imput pour insertion en BDD par la class editor-container
 function setCommentaire(button) {
     let modal = button.closest('.modal');
     let container = '#' + modal.attr('id') + ' .editor-container';
@@ -283,10 +298,9 @@ function setCommentaire(button) {
     // let commentaire = modal.find('input[id=commentaire]');
     com = quill.container.firstChild.innerHTML;
     $('#commentaire').val(com);
-    
 };
 
-
+//passe de l'éditeur à l'imput pour insertion en BDD par l'id commentaireID (cas de conflit avec la class)
 function setCommentaireID(button) {
     let modal = button.closest('.modal');
     let container = '#' + modal.attr('id') + ' .editor-container';
@@ -329,8 +343,8 @@ function typeChoice(bloc, text, content) {
     content.children().removeClass('d-block');
     content.children().addClass('d-none');
 
-    $('#'+cible+text).removeClass('d-none')
-    $('#'+cible+text).addClass('d-block')
+    $('#' + cible + text).removeClass('d-none')
+    $('#' + cible + text).addClass('d-block')
 }
 
 function updateQuantityDisplay(elem) {
@@ -345,4 +359,82 @@ function updateQuantityDisplay(elem) {
         modalBody.find('.reference').addClass('d-none');
         modalBody.find('.article').removeClass('d-none');
     }
+}
+function ajaxAutoCompleteEmplacementInit(select) {
+    select.select2({
+        ajax: {
+            url: Routing.generate('get_emplacement'),
+            dataType: 'json',
+            delay: 250,
+        },
+        language: {
+            inputTooShort: function () {
+                return 'Veuillez entrer au moins 1 caractère.';
+            },
+            searching: function () {
+                return 'Recherche en cours...';
+            },
+            noResults: function () {
+                return 'Aucun résultat.';
+            }
+        },
+        minimumInputLength: 1,
+    });
+}
+
+let ajaxAutoRefArticleInit = function (select) {
+
+    select.select2({
+        ajax: {
+            url: Routing.generate('get_ref_articles'),
+            dataType: 'json',
+            delay: 250,
+        },
+        language: {
+            inputTooShort: function () {
+                return 'Veuillez entrer au moins 1 caractère.';
+            },
+            searching: function () {
+                return 'Recherche en cours...';
+            }
+        },
+        minimumInputLength: 1,
+    });
+}
+
+function ajaxAutoFournisseurInit(select) {
+    select.select2({
+        ajax: {
+            url: Routing.generate('get_fournisseur'),
+            dataType: 'json',
+            delay: 250,
+        },
+        language: {
+            inputTooShort: function () {
+                return 'Veuillez entrer au moins 1 caractère.';
+            },
+            searching: function () {
+                return 'Recherche en cours...';
+            }
+        },
+        minimumInputLength: 1,
+    });
+}
+function ajaxAutoUserInit(select) {
+    select.select2({
+        ajax: {
+            url: Routing.generate('get_user'),
+            dataType: 'json',
+            delay: 250,
+        },
+        language: {
+            inputTooShort: function () {
+                return 'Veuillez entrer au moins 1 caractère.';
+            },
+            searching: function () {
+                return 'Recherche en cours...';
+            }
+        },
+        minimumInputLength: 1,
+    });
 }

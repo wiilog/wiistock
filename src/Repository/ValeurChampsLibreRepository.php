@@ -71,6 +71,35 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
+    public function getByArticle($id)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT v.id, v.valeur, c.label
+            FROM App\Entity\ValeurChampsLibre v
+            JOIN v.article a
+            JOIN v.champLibre c
+            WHERE a.id = :id "
+            );
+        $query->setParameter("id", $id);
+
+        return $query->execute();
+    }
+    
+    public function findOneByChampLibreAndArticle($champLibreId, $articleId)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT v
+            FROM App\Entity\ValeurChampsLibre v
+            JOIN v.article a
+            JOIN v.champLibre c
+            WHERE a.id = :articleId AND c.id = :champLibreId"
+        );
+        $query->setParameters(['champLibreId' => $champLibreId, 'articleId' => $articleId]);
+
+        return $query->getOneOrNullResult();
+    }
 
     // /**
     //  * @return ValeurChampsLibre[] Returns an array of ValeurChampsLibre objects

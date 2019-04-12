@@ -1,4 +1,4 @@
-<div class="form-group" >
+<div class="form-group">
     <label for="Objet">Objet</label>
     <input type="text" id="libelle" class="form-control data" name="Libelle" value="{{service.libelle}}"
         placeholder="Objet">
@@ -13,13 +13,9 @@
 
 <div class="form-group">
     <label for="Localité">Localité</label>
-    <select class="Localité form-control data select2" name="Localité">
+    <select class="Localité form-control data ajax-autocompleteEmplacement-edit" name="Localité">
         <option value="{{service.emplacement.id}}">{{service.emplacement.label}}</option>
-        {% for emplacement in emplacements %}
-        <option value="{{ emplacement.Id }}">
-            {{ emplacement.label }}
-        </option>
-        {% endfor %}
+
     </select>
 </div>
 
@@ -27,19 +23,26 @@
     <div class="input-group radio-btn">
         <label for="statut" class="mtb-auto mr-2">Statut</label>
         <div>
+            {% if statut == 1 %}
             <span class="btn {{ statut == 1 ? 'active' : 'not-active'}}" data-toggle="statut" data-title="active"
-                onclick="toggleRadioButton($(this))">A Traiter</span><span
+                onclick="changeStatus(this)">A Traiter</span><span
                 class="btn {{ statut == 0 ? 'active' : 'not-active'}}" data-toggle="statut" data-title="inactive"
-                onclick="toggleRadioButton($(this))">Traité</span>
+                onclick="changeStatus(this)">Traité</span>
+            {% else %}
+            <span class="btn {{ statut == 1 ? 'active' : 'not-active'}}" data-toggle="statut" data-title="active"
+                style="pointer-events:none;">A Traiter</span><span
+                class="btn {{ statut == 0 ? 'active' : 'not-active'}}" data-toggle="statut" data-title="inactive"
+                style="pointer-events:none;">Traité</span>
+            {% endif %}
+            <input id="s" type="hidden" value="{{statut}}" name="statut" class="data">
         </div>
-        <input type="hidden" name="statut" id="statut" class="data" value="{{ statut }}">
     </div>
 </div>
 
 <div class="form-group">
-    <label for="commentaire" >Commentaire</label>
-    <input id="commentaire" class="form-control data" name="commentaire" type="hidden" value="{{service.commentaire}}" >
-    <div class="editor-container" value="{{service.commentaire}}" > {{service.commentaire|raw}}
-        </div>
-    
+    <label for="commentaire">Commentaire</label>
+    <input id="commentaire" class="form-control data" name="commentaire" type="hidden" value="{{service.commentaire}}">
+    <div class="editor-container" value="{{service.commentaire}}"> {{service.commentaire|raw}}
+    </div>
+
 </div>

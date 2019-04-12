@@ -123,6 +123,7 @@ function initNewReceptionEditor(modal) {
         initEditor(modal);
         editorNewReceptionAlreadyDone = true;
     }
+    ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'));
 };
 
 var editorEditReceptionAlreadyDone = false;
@@ -131,6 +132,8 @@ function initEditReceptionEditor(modal) {
         initEditor(modal);
         editorEditReceptionAlreadyDone = true;
     }
+    ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur-edit'));
+    ajaxAutoUserInit($('.ajax-autocomplete-user-edit'));
 };
 
 var editorNewArticleAlreadyDone = false;

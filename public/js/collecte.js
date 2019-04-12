@@ -1,7 +1,13 @@
 $('.select2').select2();
 
-var pathCollecte = Routing.generate('collecte_api', true);
-var table = $('#tableCollecte_id').DataTable({
+$('#utilisateur').select2({
+    placeholder: {
+         text: 'Demandeur',
+    }
+});
+
+let pathCollecte = Routing.generate('collecte_api', true);
+let table = $('#tableCollecte_id').DataTable({
        "language": {
         "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
     },
@@ -64,13 +70,16 @@ let submitDeleteArticle = $("#submitDeleteArticle");
 let urlDeleteArticle = Routing.generate('collecte_remove_article', true);
 InitialiserModal(modalDeleteArticle, submitDeleteArticle, urlDeleteArticle, tableArticle);
 
-function finishCollecte(submit, tableArticle) {
+function finishCollecte(submit) {
     xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
             data = JSON.parse(this.responseText);
             $('#tableArticle_id').DataTable().ajax.reload();
-            $('.zone-entete').html(data.entete)
+            $('.zone-entete').html(data.entete);
+            $('#boutonCollecteSup').addClass('d-none')
+            $('#boutonCollecteInf').addClass('d-none')
+
         }
     }
     path =  Routing.generate('finish_collecte', true)
@@ -108,12 +117,28 @@ function ajaxGetArticle(select) {
             data = JSON.parse(this.responseText);
            $('#newContent').html(data);
            $('#modalNewArticle').find('div').find('div').find('.modal-footer').removeClass('d-none');
-
         }
     }
     path =  Routing.generate('get_article_by_refArticle', true)
     let data = {};
     data['referenceArticle'] = select.val();
+    json = JSON.stringify(data);
+    xhttp.open("POST", path, true);
+    xhttp.send(json);
+}
+
+function ajaxGetCollecteArticle(select) {
+    xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            data = JSON.parse(this.responseText);
+           $('#newContent').html(data);
+           $('#modalNewArticle').find('div').find('div').find('.modal-footer').removeClass('d-none');
+        }
+    }
+    path =  Routing.generate('get_collecte_article_by_refArticle', true)
+    let data = {};
+    data['referenceArticle'] = $(select).val();
     json = JSON.stringify(data);
     xhttp.open("POST", path, true);
     xhttp.send(json);
@@ -131,3 +156,66 @@ function clearNewContent(button) {
         $('#newContent').html('');
         $('#reference').html('');
 }
+//initialisation editeur de texte une seule fois à l'édit
+let editorEditCollecteAlreadyDone = false;
+function initEditCollecteEditor(modal) {
+    if (!editorEditCollecteAlreadyDone) {
+        initEditor(modal);
+        editorEditCollecteAlreadyDone = true;
+    }
+};
+
+
+//initialisation editeur de texte une seule fois à la création
+let editorNewCollecteAlreadyDone = false;
+function initNewCollecteEditor(modal) {
+    if (!editorNewCollecteAlreadyDone) {
+        initEditor(modal);
+        editorNewCollecteAlreadyDone = true;
+    }
+    ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'))
+};
+
+$('#submitSearchCollecte').on('click', function () {
+    let statut = $('#statut').val();
+    let demandeur = [];
+    demandeur = $('#utilisateur').val()
+    demandeurString = demandeur.toString();
+    demandeurPiped = demandeurString.split(',').join('|')
+
+    table
+        .columns(3)
+        .search(statut)
+        .draw();
+
+    table
+        .columns(1)
+        .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
+        .draw();
+
+    $.fn.dataTable.ext.search.push(
+        function (settings, data, dataIndex) {
+            let dateMin = $('#dateMin').val();
+            let dateMax = $('#dateMax').val();
+            let dateInit = (data[0]).split('/').reverse().join('-') || 0;
+
+            if (
+                (dateMin == "" && dateMax == "")
+                ||
+                (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
+                ||
+                (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
+                ||
+                (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
+
+            ) {
+                return true;
+            }
+            return false;
+        }
+
+    );
+    table
+       .draw();
+});
+

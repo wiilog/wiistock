@@ -14,7 +14,7 @@
             <div class="modal-footer">
                 <input type="hidden" class="data" name="demandeId" value="{{ demande.id }}">
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>
-                <button id="submitEditDemande" type="button" data-dismiss="modal" class="btn btn-success">
+                <button id="submitEditDemande" type="button" data-dismiss="modal" class="btn btn-success" onclick='setCommentaire($(this))'>
                     Enregistrer
                 </button>
             </div>

@@ -15,7 +15,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 /**
- * @Route("/service")
+ * @Route("/deplacement")
  */
 class ServiceController extends AbstractController
 {
@@ -88,8 +88,7 @@ class ServiceController extends AbstractController
     public function index(): Response
     {
         return $this->render('service/index.html.twig', [
-            'emplacements' => $this->emplacementRepository->findAll(),
-            'demandeurs' => $this->utilisateurRepository->findAll(),
+            'utilisateurs' => $this->utilisateurRepository->findAll(),
             'statuts' => $this->statutRepository->findByCategorieName(Service::CATEGORIE),
         ]);
     }
@@ -106,7 +105,7 @@ class ServiceController extends AbstractController
             $status = $this->statutRepository->findOneByCategorieAndStatut(Service::CATEGORIE, Service::STATUT_A_TRAITER);
             $service = new Service();
             $date = new \DateTime('now');
-        
+       
             $service
                 ->setDate($date)
                 ->setLibelle($data['Libelle'])
@@ -131,12 +130,13 @@ class ServiceController extends AbstractController
     public function editApi(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+           
             $service = $this->serviceRepository->find($data);         
             $json = $this->renderView('service/modalEditServiceContent.html.twig', [
                 'service' => $service,
                 'utilisateurs'=>$this->utilisateurRepository->findAll(),
                 'emplacements'=>$this->emplacementRepository->findAll(),
-                'statut' => ($service->getStatut()->getNom() == Service::STATUT_A_TRAITER),
+                'statut' => (($service->getStatut()->getNom() == Service::STATUT_A_TRAITER) ? 1 : 0),
                 'statuts'=>$this->statutRepository->findByCategorieName(Service::CATEGORIE),
             ]);
         
@@ -151,14 +151,16 @@ class ServiceController extends AbstractController
     public function edit(Request $request) : Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+         
             $service = $this->serviceRepository->find($data['id']);
-            $statutLabel = ($data['statut'] == 1) ? Service::STATUT_TRAITE : Service::STATUT_A_TRAITER;
+            $statutLabel = ($data['statut'] == 1) ? Service::STATUT_A_TRAITER : Service::STATUT_TRAITE;
+           
             $statut = $this->statutRepository->findOneByCategorieAndStatut(Service::CATEGORIE, $statutLabel);
             $service->setStatut($statut);
             $service
                 ->setLibelle($data['Libelle'])
                 ->setEmplacement($this->emplacementRepository->find($data['Localité']))
-                // ->setStatut($this->statutRepository->find($data['statut']))
+               
                 ->setDemandeur($this->utilisateurRepository->find($data['demandeur']))
                 ->setCommentaire($data['commentaire']);
             $em = $this->getDoctrine()->getManager();

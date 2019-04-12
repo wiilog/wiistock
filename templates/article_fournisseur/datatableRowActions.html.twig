@@ -1,8 +1,10 @@
 <div class="row">
-    <div data-id='{{ id }}' class="col-3" data-target='#modalEditArticleFournisseur' data-toggle='modal' onclick="editRow($(this), Routing.generate('article_fournisseur_api_edit', true), $('#modalEditArticleFournisseur'), $('#submitEditArticleFournisseur'))">
+    <div data-id='{{ id }}' class="col-3" data-target='#modalEditArticleFournisseur' data-toggle='modal'
+        onclick="editRow($(this), Routing.generate('article_fournisseur_api_edit', true), $('#modalEditArticleFournisseur'), $('#submitEditArticleFournisseur'))">
         <i class='fas fa-pencil-alt'></i>
     </div>
-    <div data-id="{{ id }}" class="col-3" data-target='#modalDeleteArticleFournisseur' data-toggle='modal' onclick="deleteRow($(this), $('#modalDeleteArticleFournisseur'), $('#submitDeleteArticleFournisseur'))">
+    <div data-id="{{ id }}" class="col-3" data-target='#modalDeleteArticleFournisseur' data-toggle='modal'
+        onclick="deleteRow($(this), $('#modalDeleteArticleFournisseur'), $('#submitDeleteArticleFournisseur'))">
         <i class='fas fa-trash'></i>
     </div>
 </div>

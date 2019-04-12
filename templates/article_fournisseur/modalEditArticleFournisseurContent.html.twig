@@ -1,22 +1,15 @@
-<div class="form-group">
+<div class="form-group w-100">
     <label for="fournisseur">Fournisseur</label>
-    <select class="form-control data needed" name="fournisseur" id="fournisseur">
-        <option selected disabled></option>
-        {% for fournisseur in fournisseurs %}
-            {% set selected = (fournisseur.id == articleFournisseur.fournisseur.id ? 'selected' : '') %}
-            <option value="{{ fournisseur.id }}" {{ selected }}>{{ fournisseur.nom }}</option>
-        {% endfor %}
+    <select class="form-control data ajax-autocomplete-fournisseur-edit needed" name="fournisseur" id="fournisseur">
+       <option value="{{articleFournisseur.fournisseur.id}}">{{articleFournisseur.fournisseur.nom}}</option>
     </select>
 </div>
 
-<div class="form-group">
+<div class="form-group w-100">
     <label for="article-reference">Article de référence</label>
-    <select class="form-control data needed" name="article-reference" id="article-reference">
-        <option disabled selected></option>
-        {% for referenceArticle in referencesArticles %}
-            {% set selected = (referenceArticle.id == articleFournisseur.referenceArticle.id ? 'selected' : '') %}
-            <option value="{{ referenceArticle.id }}" {{ selected }}>{{ referenceArticle.libelle }}</option>
-        {% endfor %}
+    <select class="form-control ajax-autocomplete-edit data needed" name="article-reference" id="article-reference">
+        <option value="{{ articleFournisseur.referenceArticle.id }}">{{ articleFournisseur.referenceArticle.libelle }}</option>
+       
     </select>
 </div>
 

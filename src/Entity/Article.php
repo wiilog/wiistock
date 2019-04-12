@@ -94,12 +94,23 @@ class Article
      */
     private $articleFournisseur;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="articles")
+     */
+    private $type;
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\ValeurChampsLibre", mappedBy="article")
+     */
+    private $valeurChampsLibres;
+
     
     public function __construct()
     {
         $this->preparations = new ArrayCollection();
         $this->collectes = new ArrayCollection();
         $this->mouvements = new ArrayCollection();
+        $this->valeurChampsLibres = new ArrayCollection();
+        
     }
 
     public function getId(): ?int
@@ -312,6 +323,44 @@ class Article
     public function setArticleFournisseur(?ArticleFournisseur $articleFournisseur): self
     {
         $this->articleFournisseur = $articleFournisseur;
+
+        return $this;
+    }
+    public function getType(): ?Type
+    {
+        return $this->type;
+    }
+
+    public function setType(?Type $type): self
+    {
+        $this->type = $type;
+
+        return $this;
+    }
+      /**
+     * @return Collection|ValeurChampsLibre[]
+     */
+    public function getValeurChampsLibres(): Collection
+    {
+        return $this->valeurChampsLibres;
+    }
+
+    public function addValeurChampsLibre(ValeurChampsLibre $valeurChampsLibre): self
+    {
+        if (!$this->valeurChampsLibres->contains($valeurChampsLibre)) {
+            $this->valeurChampsLibres[] = $valeurChampsLibre;
+            $valeurChampsLibre->addArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeValeurChampsLibre(ValeurChampsLibre $valeurChampsLibre): self
+    {
+        if ($this->valeurChampsLibres->contains($valeurChampsLibre)) {
+            $this->valeurChampsLibres->removeElement($valeurChampsLibre);
+            $valeurChampsLibre->removeArticle($this);
+        }
 
         return $this;
     }

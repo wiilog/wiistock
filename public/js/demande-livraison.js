@@ -1,7 +1,13 @@
 // $( document ).ready(function () {
 //     $('#modalNewArticle').modal('show')
 // })
+$('.select2').select2();
 
+$('#utilisateur').select2({
+    placeholder: {
+        text: 'Utilisateur',
+    }
+});
 //ARTICLE DEMANDE
 let pathArticle = Routing.generate('ligne_article_api', { id: id }, true);
 let tableArticle = $('#table-lignes').DataTable({
@@ -127,4 +133,77 @@ let ajaxAuto =function () {
         },
         minimumInputLength: 1,
     });
+}
+
+var editorNewLivraisonAlreadyDone = false;
+function initNewLivraisonEditor(modal) {
+    if (!editorNewLivraisonAlreadyDone) {
+        initEditor(modal);
+        editorNewLivraisonAlreadyDone = true;
+    }
+    ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'))
+};
+
+$('#submitSearchDemandeLivraison').on('click', function () {
+
+    let statut = $('#statut').val();
+    let utilisateur = [];
+    utilisateur = $('#utilisateur').val()
+    utilisateurString = utilisateur.toString();
+    utilisateurPiped = utilisateurString.split(',').join('|')
+
+    tableDemande
+        .columns(3)
+        .search(statut)
+        .draw();
+
+    tableDemande
+        .columns(1)
+        .search(utilisateurPiped ? '^' + utilisateurPiped + '$' : '', true, false)
+        .draw();
+
+    $.fn.dataTable.ext.search.push(
+        function (settings, data, dataIndex) {
+            let dateMin = $('#dateMin').val();
+            let dateMax = $('#dateMax').val();
+            let dateInit = (data[0]).split('/').reverse().join('-') || 0;
+
+            if (
+                (dateMin == "" && dateMax == "")
+                ||
+                (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
+                ||
+                (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
+                ||
+                (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
+
+            ) {
+                return true;
+            }
+            return false;
+        }
+
+    );
+    tableDemande
+        .draw();
+});
+
+function finishDemandeLivraison(submit) {
+    xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            data = JSON.parse(this.responseText);
+            $('#tableArticle_id').DataTable().ajax.reload();
+            $('.zone-entete').html(data.entete);
+            $('#boutonCollecteSup').addClass('d-none')
+            $('#boutonCollecteInf').addClass('d-none')
+
+        }
+    }
+    path =  Routing.generate('finish_demande', true)
+    let data = {};
+    data['demande'] = submit.data('id')
+    json = JSON.stringify(data);
+    xhttp.open("POST", path, true);
+    xhttp.send(json);
 }

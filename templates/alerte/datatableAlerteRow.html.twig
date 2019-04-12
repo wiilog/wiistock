@@ -1,16 +1,10 @@
 <div class="row">
-    
     <div class="col-3" data-id='{{ alerteId }}' data-target='#modalEditAlerte' data-toggle='modal'
-    onclick="editRow($(this), Routing.generate('alerte_api_edit', true), $('#modalEditAlerte'), $('#submitEditAlerte'))">
-    <i class='fas fa-pencil-alt'></i>
-</div>
-{# <div class='btn btn-xs btn-default type-show'
-onclick="showRow($('#modalShowAlerte'), $(this), Routing.generate('alerte_show', true) )"
-data-id='{{ alerteId }}' data-target='#modalShowAlerte' data-toggle='modal'>
-<i class='fas fa-eye'></i>
-</div> #}
-<div class="col-3" onclick="deleteRow($(this), $('#modalDeleteAlerte'), $('#submitDeleteAlerte'))" data-id='{{ alerteId }}'
-data-target='#modalDeleteAlerte' data-toggle='modal'>
-<i class='fas fa-trash'></i>
-</div>
+        onclick="editRow($(this), Routing.generate('alerte_api_edit', true), $('#modalEditAlerte'), $('#submitEditAlerte'))">
+        <i class='fas fa-pencil-alt'></i>
+    </div>
+    <div class="col-3" onclick="deleteRow($(this), $('#modalDeleteAlerte'), $('#submitDeleteAlerte'))"
+        data-id='{{ alerteId }}' data-target='#modalDeleteAlerte' data-toggle='modal'>
+        <i class='fas fa-trash'></i>
+    </div>
 </div>

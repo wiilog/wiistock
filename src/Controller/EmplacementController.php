@@ -151,4 +151,19 @@ class EmplacementController extends AbstractController
         }
         throw new NotFoundHttpException("404");
     }
+
+    /**
+     * @Route("/autocomplete", name="get_emplacement", options={"expose"=true})
+     */
+    public function getRefArticles(Request $request)
+    {
+        if ($request->isXmlHttpRequest()) {
+            $search = $request->query->get('term');
+            
+            $emplacement = $this->emplacementRepository->getIdAndLibelleBySearch($search);
+            return new JsonResponse(['results' => $emplacement]);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
 }

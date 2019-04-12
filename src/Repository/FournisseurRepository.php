@@ -41,6 +41,17 @@ class FournisseurRepository extends ServiceEntityRepository
         return $query->execute(); 
     }
     
+    public function getIdAndLibelleBySearch($search)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+          "SELECT f.id, f.nom as text
+          FROM App\Entity\Fournisseur f
+          WHERE f.nom LIKE :search"
+        )->setParameter('search', '%' . $search . '%');
+
+        return $query->execute();
+    }
     
 
 //    /**

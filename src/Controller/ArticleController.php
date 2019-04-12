@@ -10,17 +10,12 @@ use App\Repository\EmplacementRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\TypeRepository;
-
-use App\Entity\ReferenceArticle;
-
 use App\Service\RefArticleDataService;
 use App\Service\ArticleDataService;
-
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use App\Entity\Article;
@@ -107,31 +102,31 @@ class ArticleController extends AbstractController
      */
     public function api(Request $request): Response
     {
-        if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
-            {
-                $articles = $this->articleRepository->findAll();
-                $rows = [];
-                foreach ($articles as $article) {
-                    $url['edit'] = $this->generateUrl('ligne_article_edit', ['id' => $article->getId()]);
+        if ($request->isXmlHttpRequest()) { //Si la requête est de type Xml
+            $articles = $this->articleRepository->findAll();
+            $rows = [];
+            foreach ($articles as $article) {
+                $url['edit'] = $this->generateUrl('ligne_article_edit', ['id' => $article->getId()]);
 
-                    $rows[] =
+                $rows[] =
                         [
-                            'id' => ($article->getId() ?$article->getId() : "Non défini"),
-                            'Référence' => ($article->getReference() ?$article->getReference() : "Non défini"),
-                            'Statut' => ($article->getStatut() ?$article->getStatut()->getNom() : "Non défini"),
-                            'Libellé' => ($article->getLabel() ?$article->getLabel() : "Non défini"),
-                            'Référence article' => ($article->getArticleFournisseur() ?$article->getArticleFournisseur()->getReferenceArticle()->getReference() : "Non défini"),
-                            'Quantité' => ($article->getQuantite() ?$article->getQuantite() : "Non défini"),
+                            'id' => ($article->getId() ? $article->getId() : 'Non défini'),
+                            'Référence' => ($article->getReference() ? $article->getReference() : 'Non défini'),
+                            'Statut' => ($article->getStatut() ? $article->getStatut()->getNom() : 'Non défini'),
+                            'Libellé' => ($article->getLabel() ? $article->getLabel() : 'Non défini'),
+                            'Référence article' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : 'Non défini'),
+                            'Quantité' => ($article->getQuantite() ? $article->getQuantite() : 'Non défini'),
                             'Actions' => $this->renderView('article/datatableArticleRow.html.twig', [
                                 'url' => $url,
                                 'articleId' => $article->getId(),
                             ]),
                         ];
-                }
-                $data['data'] = $rows;
-                return new JsonResponse($data);
             }
-        throw new NotFoundHttpException("404");
+            $data['data'] = $rows;
+
+            return new JsonResponse($data);
+        }
+        throw new NotFoundHttpException('404');
     }
 
     /**
@@ -140,15 +135,15 @@ class ArticleController extends AbstractController
     public function show(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-
             $article = $this->articleRepository->find($data);
 
             $json = $this->renderView('article/modalShowArticleContent.html.twig', [
-                'article' => $article
+                'article' => $article,
             ]);
+
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException("404");
+        throw new NotFoundHttpException('404');
     }
 
     /**
@@ -163,9 +158,28 @@ class ArticleController extends AbstractController
             } else {
                 $json = false; //TODO gérer erreur retour
             }
+
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException("404");
+        throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/get-article-collecte", name="get_collecte_article_by_refArticle", options={"expose"=true})
+     */
+    public function getCollecteArticleByRefArticle(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $refArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
+            if ($refArticle) {
+                $json = $this->articleDataService->getCollecteArticleOrNoByRefArticle($refArticle, true);
+            } else {
+                $json = false; //TODO gérer erreur retour
+            }
+
+            return new JsonResponse($json);
+        }
+        throw new NotFoundHttpException('404');
     }
 
   

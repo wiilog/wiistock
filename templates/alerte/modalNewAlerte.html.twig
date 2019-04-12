@@ -9,39 +9,27 @@
                 </button>
             </div>
             <div class="modal-body modal-input container-fluid">
-                <div class="form-group">
-                    <label for="AlerteNom">Nom</label>
-                    <input type="text" id="AlerteNom" class="form-control data" name="AlerteNom">
+                <div class="form-group w-100">
+                    <label for="utilisateur">Utilisateur</label>
+                    <select class="form-control ajax-autocomplete-user data" name="utilisateur">
+                        <option value="{{app.user.id}}">{{ app.user.username }}</option>
+                    </select>
                 </div>
-
+                <div class="form-group w-100">
+                    <label for="AlerteArticleReference">Article Référence</label>
+                    <select name="AlerteArticleReference" class="AlerteNom form-control ajax-autocomplete data">
+                    </select>
+                </div>
                 <div class="form-group">
                     <label for="AlerteNom">Seuil</label>
                     <input type="number" min="0" id="AlerteSeuil" class="form-control data" name="AlerteSeuil"
                         placeholder=" ">
                 </div>
-
-                <div class="form-group w-100">
-                    <label for="AlerteArticleReference">Article Référence</label>
-                    <select name="AlerteArticleReference" class="AlerteNom form-control select2 data">
-                        <option disabled selected> </option>
-                        {% for reference in references %}
-                        <option value="{{ reference.id }}">{{ reference.libelle }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <div class="form-group w-100">
-                    <label for="utilisateur">Utilisateur</label>
-                    <select class="form-control select2 data" name="utilisateur">
-                        <option value = "{{app.user.id}}">{{ app.user.username }}</option>
-                    </select>
-                </div>
-
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn" data-dismiss="modal">Annuler</button>
-                <button id="submitNewAlerte" type="button" data-dismiss="modal"
-                    class="btn btn-success">Enregistrer</button>
+                <div class="btn" data-dismiss="modal">Annuler</div>
+                <div id="submitNewAlerte"  data-dismiss="modal"
+                    class="btn btn-success">Enregistrer</div>
             </div>
         </div>
     </div>
