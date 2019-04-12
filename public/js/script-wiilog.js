@@ -111,7 +111,6 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
                     let password = $(this).val();
 
                     if (password.length < 8) {
-                        console.log("hello");
                         modal.find('.password-error-msg').html('Le mot de passe doit faire au moins 8 caractères.');
                         passwordIsValid = false;
                     } else if (!password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)) {
@@ -123,7 +122,6 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
                 }
             }
         });
-        console.log(Data);
 
         // ... et dans les checkboxes
         let checkboxes = modal.find('.checkbox');
@@ -136,7 +134,6 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
             if (close == true) modal.find('.close').click();
             Json = {};
             Json = JSON.stringify(Data);
-            console.log(Json);
             xhttp.open("POST", path, true);
             xhttp.send(Json);
         } else {
@@ -236,6 +233,7 @@ function editRow(button, path, modal, submit, editorToInit = false) {
         if (this.readyState == 4 && this.status == 200) {
             dataReponse = JSON.parse(this.responseText);
             modal.find('.modal-body').html(dataReponse);
+           
             ajaxAutoFournisseurInit( $('.ajax-autocomplete-fournisseur-edit'));
             ajaxAutoRefArticleInit($('.ajax-autocomplete-edit'));
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
@@ -243,7 +241,6 @@ function editRow(button, path, modal, submit, editorToInit = false) {
             if (editorToInit) initEditor('#' + modal.attr('id'));
         }
     }
-    console.log("patate");
     let json = button.data('id');
     modal.find(submit).attr('value', json);
     modal.find('#inputId').attr('value', json);
@@ -255,6 +252,7 @@ function toggleRadioButton(button) {
     let sel = button.data('title');
     let tog = button.data('toggle');
     $('#' + tog).prop('value', sel);
+
 
     $('span[data-toggle="' + tog + '"]').not('[data-title="' + sel + '"]').removeClass('active').addClass('not-active');
     $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
@@ -300,7 +298,6 @@ function setCommentaire(button) {
     // let commentaire = modal.find('input[id=commentaire]');
     com = quill.container.firstChild.innerHTML;
     $('#commentaire').val(com);
-    console.log(com);
 };
 
 //passe de l'éditeur à l'imput pour insertion en BDD par l'id commentaireID (cas de conflit avec la class)
