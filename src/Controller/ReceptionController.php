@@ -393,7 +393,8 @@ class ReceptionController extends AbstractController
         if (!$request->isXmlHttpRequest() && $articleId = json_decode($request->getContent(), true)) {
             $article = $this->articleRepository->find($articleId);
             $valeurChampsLibre = $this->valeurChampsLibreRepository->getByArticle($article->getId());
-            $champsLibres = $this->champsLibreRepository->findBy(['type' => ($article->getType() ? $article->getType()->getId() : "")]);
+            $type = ($article->getType() ? $article->getType() : "");
+            $champsLibres = $this->champsLibreRepository->getByType($type->getId());
             $tabInfoChampsLibres = [];
             foreach ($champsLibres as $champLibre) {
                 $valeurChampLibre = $this->valeurChampsLibreRepository->findOneByChampLibreAndArticle($champLibre->getId(), $articleId);
@@ -402,7 +403,6 @@ class ReceptionController extends AbstractController
                                          'label' => $champLibre->getLabel(),
                                          'valeur' => $valeurChampLibre->getValeur()];
             }
-            $type=$article->getType();
             
             $json = $this->renderView('reception/modalModifyArticleContent.html.twig', [
                 'article' => $article,
