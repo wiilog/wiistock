@@ -84,7 +84,7 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
             if (name === "elem")
                 Data[name].push(val);
             else {
-                if ($(this).parent().is(":visible")) {
+                if ($(this).parent().is(":visible") || !$(this).parent().hasClass('required')) {
                     Data[name] = val;
                 }
             }
