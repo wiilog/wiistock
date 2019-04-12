@@ -127,6 +127,23 @@ function ajaxGetArticle(select) {
     xhttp.send(json);
 }
 
+function ajaxGetCollecteArticle(select) {
+    xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            data = JSON.parse(this.responseText);
+           $('#newContent').html(data);
+           $('#modalNewArticle').find('div').find('div').find('.modal-footer').removeClass('d-none');
+        }
+    }
+    path =  Routing.generate('get_collecte_article_by_refArticle', true)
+    let data = {};
+    data['referenceArticle'] = $(select).val();
+    json = JSON.stringify(data);
+    xhttp.open("POST", path, true);
+    xhttp.send(json);
+}
+
 function deleteRowCollecte(button, modal, submit) {
     let id = button.data('id');
     let name = button.data('name');
@@ -201,5 +218,4 @@ $('#submitSearchCollecte').on('click', function () {
     table
        .draw();
 });
-
 

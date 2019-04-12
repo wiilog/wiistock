@@ -27,6 +27,10 @@ class ValeurChampsLibre
      * @ORM\ManyToMany(targetEntity="App\Entity\ReferenceArticle", inversedBy="valeurChampsLibres")
      */
     private $articleReference;
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\Article", inversedBy="valeurChampsLibres")
+     */
+    private $article;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\ChampsLibre", inversedBy="valeurChampsLibres")
@@ -38,6 +42,7 @@ class ValeurChampsLibre
     {
         $this->champLibre = new ArrayCollection();
         $this->articleReference = new ArrayCollection();
+        $this->article = new ArrayCollection();
     }
 
 
@@ -97,6 +102,33 @@ class ValeurChampsLibre
     public function setChampLibre(?ChampsLibre $champLibre): self
     {
         $this->champLibre = $champLibre;
+
+        return $this;
+    }
+
+
+    /**
+    * @return Collection|Article[]
+    */
+    public function getArticle(): Collection
+    {
+        return $this->article;
+    }
+
+    public function addArticle(Article $article): self
+    {
+        if (!$this->article->contains($article)) {
+            $this->article[] = $article;
+        }
+
+        return $this;
+    }
+
+    public function removeArticle(Article $article): self
+    {
+        if ($this->article->contains($article)) {
+            $this->article->removeElement($article);
+        }
 
         return $this;
     }

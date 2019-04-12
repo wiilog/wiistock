@@ -356,10 +356,8 @@ class ReferenceArticleController extends Controller
 
             $articleRef = $this->referenceArticleRepository->find($data);
             $statuts = $this->statutRepository->findByCategorieName(ReferenceArticle::CATEGORIE);
-
             if ($articleRef) {
                 $data = $this->refArticleDataService->getDataEditForRefArticle($articleRef);
-
                 $json = $this->renderView('reference_article/modalEditRefArticleContent.html.twig', [
                     'articleRef' => $articleRef,
                     'statut' => ($articleRef->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF),

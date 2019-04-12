@@ -16,6 +16,7 @@ class Type
     const LABEL_SILI = 'SILI';
     const LABEL_MOB = 'MOB';
     const LABEL_SLUGCIBLE = 'SLUGCIBLE';
+    const LABEL_ARTICLE = 'ARTICLE';
 
     /**
      * @ORM\Id()
@@ -38,6 +39,12 @@ class Type
      * @ORM\OneToMany(targetEntity="App\Entity\ReferenceArticle", mappedBy="type")
      */
     private $referenceArticles;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Article", mappedBy="type")
+     */
+    private $articles;
+
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\CategoryType", inversedBy="types")
@@ -137,6 +144,36 @@ class Type
     public function setCategory(?CategoryType $category): self
     {
         $this->category = $category;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Article[]
+     */
+    public function getArticles(): Collection
+    {
+        return $this->articles;
+    }
+
+    public function addArticle(Article $article): self
+    {
+        if (!$this->articles->contains($article)) {
+            $this->articles[] = $article;
+            $article->setType($this);
+        }
+
+        return $this;
+    }
+    public function removeArticle(Article $article): self
+    {
+        if ($this->articles->contains($article)) {
+            $this->articles->removeElement($article);
+            // set the owning side to null (unless already changed)
+            if ($article->getType() === $this) {
+                $article->setType(null);
+            }
+        }
 
         return $this;
     }
