@@ -1,10 +1,10 @@
-<select name="{{utilisateur.id}}">
+<select data-user-id="{{utilisateur.id}}" onchange="editRole($(this))">
     {% if utilisateur.roles == null %}
-        <option value="Aucun rôle" selected>Aucun rôle</option>
+        <option value="0" selected>Aucun rôle</option>
     {% else %}
         {% for role in roles %}
-            {% set selected = role.value == utilisateur.roles[0] ? 'selected' : '' %}
-            <option value="{{ role.value }}" {{ selected }}>{{ role.label }}</option>
+            {% set selected = role.label == utilisateur.roles[0] ? 'selected' : '' %}
+            <option value="{{ role.label }}" {{ selected }}>{{ role.label }}</option>
         {% endfor %}
     {% endif %}
 </select>

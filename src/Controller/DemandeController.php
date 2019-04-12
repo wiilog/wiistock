@@ -71,37 +71,33 @@ class DemandeController extends AbstractController
      */
     public function finish(Demande $demande)
     {
-        if ($this->isGranted('ROLE_SUPER_CUSTOMER')) {
-            if ($demande->getPreparation() === null && count($demande->getLigneArticle()) > 0) {
-                // Creation d'une nouvelle preparation basée sur une selection de demandes
-                $preparation = new Preparation();
+        if ($demande->getPreparation() === null && count($demande->getLigneArticle()) > 0) {
+            // Creation d'une nouvelle preparation basée sur une selection de demandes
+            $preparation = new Preparation();
 
-                $date = new \DateTime('now');
-                $preparation
-                    ->setNumero('P-' . $date->format('YmdHis'))
-                    ->setDate($date)
-                    ->setUtilisateur($this->getUser());
+            $date = new \DateTime('now');
+            $preparation
+                ->setNumero('P-' . $date->format('YmdHis'))
+                ->setDate($date)
+                ->setUtilisateur($this->getUser());
 
-                $statutP = $this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
-                $preparation->setStatut($statutP);
+            $statutP = $this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
+            $preparation->setStatut($statutP);
 
-                $demande->setPreparation($preparation);
+            $demande->setPreparation($preparation);
 
-                $statutD = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
-                $demande->setStatut($statutD);
+            $statutD = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
+            $demande->setStatut($statutD);
 
-                $em = $this->getDoctrine()->getManager();
-                $em->persist($preparation);
-                $em->flush();
+            $em = $this->getDoctrine()->getManager();
+            $em->persist($preparation);
+            $em->flush();
 
-                return $this->redirectToRoute('ligne_article_show', ['id' => $demande->getId()]);
-            } else if ($demande->getPreparation() !== null) {
-                return $this->redirectToRoute('ligne_article_show', ['id' => $demande->getId()]);
-            }
-            throw new NotFoundHttpException("404"); //TODO CG retour msg erreur (pas d'article dans la DL)
-        } else {
-            //TODO CG message erreur (pas les droits pour cette action)
+            return $this->redirectToRoute('ligne_article_show', ['id' => $demande->getId()]);
+        } else if ($demande->getPreparation() !== null) {
+            return $this->redirectToRoute('ligne_article_show', ['id' => $demande->getId()]);
         }
+        throw new NotFoundHttpException("404"); //TODO CG retour msg erreur (pas d'article dans la DL)
     }
 
     /**
@@ -109,28 +105,24 @@ class DemandeController extends AbstractController
      */
     public function edit(Request $request): Response
     {
-        if ($this->isGranted('ROLE_SUPER_CUSTOMER')) {
-            if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-                $utilisateur = $this->utilisateurRepository->find(intval($data["demandeur"]));
-                $emplacement = $this->emplacementRepository->find(intval($data['destination']));
-                $demande = $this->demandeRepository->find($data['demandeId']);
-                $demande
-                    ->setUtilisateur($utilisateur)
-                    ->setDestination($emplacement);
-                $em = $this->getDoctrine()->getEntityManager();
-                $em->flush();
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $utilisateur = $this->utilisateurRepository->find(intval($data["demandeur"]));
+            $emplacement = $this->emplacementRepository->find(intval($data['destination']));
+            $demande = $this->demandeRepository->find($data['demandeId']);
+            $demande
+                ->setUtilisateur($utilisateur)
+                ->setDestination($emplacement);
+            $em = $this->getDoctrine()->getEntityManager();
+            $em->flush();
 
-                $json = [
-                    'entete' => $this->renderView('demande/enteteDemandeLivraison.html.twig', [
-                        'demande' => $demande,
-                    ])
-                ];
-                return new JsonResponse($json);
-            }
-            throw new NotFoundHttpException("404");
-        } else {
-            //TODO CG message erreur (pas les droits pour cette action)
+            $json = [
+                'entete' => $this->renderView('demande/enteteDemandeLivraison.html.twig', [
+                    'demande' => $demande,
+                ])
+            ];
+            return new JsonResponse($json);
         }
+        throw new NotFoundHttpException("404");
     }
 
     /**
@@ -138,35 +130,31 @@ class DemandeController extends AbstractController
      */
     public function new(Request $request): Response
     {
-        if ($this->isGranted('ROLE_SUPER_CUSTOMER')) {
-            if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-                $em = $this->getDoctrine()->getManager();
-                $utilisateur = $this->utilisateurRepository->find($data["demandeur"]);
-                $date = new \DateTime('now');
-                $statut = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
-                $destination = $this->emplacementRepository->find($data["destination"]);
-                $demande = new Demande();
-                $demande
-                    ->setStatut($statut)
-                    ->setUtilisateur($utilisateur)
-                    ->setdate($date)
-                    //                ->setDateAttendu(new \DateTime($data['dateAttendu']))
-                    ->setDestination($destination)
-                    ->setNumero("D-" . $date->format('YmdHis'))
-                    ->setCommentaire($data["commentaire"]);
-                $em->persist($demande);
-                $em->flush();
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $em = $this->getDoctrine()->getManager();
+            $utilisateur = $this->utilisateurRepository->find($data["demandeur"]);
+            $date = new \DateTime('now');
+            $statut = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
+            $destination = $this->emplacementRepository->find($data["destination"]);
+            $demande = new Demande();
+            $demande
+                ->setStatut($statut)
+                ->setUtilisateur($utilisateur)
+                ->setdate($date)
+                //                ->setDateAttendu(new \DateTime($data['dateAttendu']))
+                ->setDestination($destination)
+                ->setNumero("D-" . $date->format('YmdHis'))
+                ->setCommentaire($data["commentaire"]);
+            $em->persist($demande);
+            $em->flush();
 
-                $data = [
-                    "redirect" => $this->generateUrl('ligne_article_show', ['id' => $demande->getId()])
-                ];
+            $data = [
+                "redirect" => $this->generateUrl('ligne_article_show', ['id' => $demande->getId()])
+            ];
 
-                return new JsonResponse($data);
-            }
-            throw new NotFoundHttpException("404");
-        } else {
-            //TODO CG message erreur (pas les droits pour cette action)
+            return new JsonResponse($data);
         }
+        throw new NotFoundHttpException("404");
     }
 
     /**
@@ -186,21 +174,17 @@ class DemandeController extends AbstractController
      */
     public function delete(Request $request): Response
     {
-        if ($this->isGranted('ROLE_ADMIN_GT')) {
-            if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-                $demande = $this->demandeRepository->find($data['demandeId']);
-                $entityManager = $this->getDoctrine()->getManager();
-                $entityManager->remove($demande);
-                $entityManager->flush();
-                $data = [
-                    "redirect" => $this->generateUrl('demande_index')
-                ];
-                return new JsonResponse($data);
-            }
-            throw new NotFoundHttpException("404");
-        } else {
-            //TODO CG message erreur (pas les droits pour cette action)
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $demande = $this->demandeRepository->find($data['demandeId']);
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->remove($demande);
+            $entityManager->flush();
+            $data = [
+                "redirect" => $this->generateUrl('demande_index')
+            ];
+            return new JsonResponse($data);
         }
+        throw new NotFoundHttpException("404");
     }
 
     /**

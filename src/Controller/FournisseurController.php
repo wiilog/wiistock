@@ -103,20 +103,16 @@ class FournisseurController extends AbstractController
      */
     public function edit(Request $request): Response
     {
-        if ($this->isGranted('ROLE_ADMIN_GT')) {
-            if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-                $fournisseur = $this->fournisseurRepository->find($data['id']);
-                $fournisseur
-                    ->setNom($data['nom'])
-                    ->setCodeReference($data['CodeReference']);
-                $em = $this->getDoctrine()->getManager();
-                $em->flush();
-                return new JsonResponse();
-            }
-            throw new NotFoundHttpException("404");
-        } else {
-            //TODO CG message erreur (pas les droits pour cette action)
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $fournisseur = $this->fournisseurRepository->find($data['id']);
+            $fournisseur
+                ->setNom($data['nom'])
+                ->setCodeReference($data['CodeReference']);
+            $em = $this->getDoctrine()->getManager();
+            $em->flush();
+            return new JsonResponse();
         }
+        throw new NotFoundHttpException("404");
     }
 
     /**
@@ -124,18 +120,14 @@ class FournisseurController extends AbstractController
      */
     public function delete(Request $request): Response
     {
-        if ($this->isGranted('ROLE_ADMIN_GT')) {
-            if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-                $fournisseur = $this->fournisseurRepository->find($data['fournisseur']);
-                $entityManager = $this->getDoctrine()->getManager();
-                $entityManager->remove($fournisseur);
-                $entityManager->flush();
-                return new JsonResponse();
-            }
-            throw new NotFoundHttpException("404");
-        } else {
-            //TODO CG message erreur (pas les droits pour cette action)
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $fournisseur = $this->fournisseurRepository->find($data['fournisseur']);
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->remove($fournisseur);
+            $entityManager->flush();
+            return new JsonResponse();
         }
+        throw new NotFoundHttpException("404");
     }
 
     /**

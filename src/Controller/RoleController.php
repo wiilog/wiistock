@@ -183,4 +183,22 @@ class RoleController extends AbstractController
         }
         throw new NotFoundHttpException("404");
     }
+
+    /**
+     * @Route("/supprimer", name="role_delete",  options={"expose"=true}, methods={"GET", "POST"})
+     */
+    public function delete(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if ($data['role']) {
+                //TODO CG vérifier que le rôle n'est pas attribué à un utilisateur
+                $role = $this->roleRepository->find($data['role']);
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager->remove($role);
+                $entityManager->flush();
+            }
+            return new JsonResponse();
+        }
+        throw new NotFoundHttpException("404");
+    }
 }

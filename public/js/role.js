@@ -24,6 +24,11 @@ let submitEditRole = $('#submitEditRole');
 let urlEditRole = Routing.generate('role_edit', true);
 InitialiserModal(modalEditRole, submitEditRole, urlEditRole, tableRoles);
 
+let ModalDeleteRole = $("#modalDeleteRole");
+let SubmitDeleteRole = $("#submitDeleteRole");
+let urlDeleteRole = Routing.generate('role_delete', true)
+InitialiserModal(ModalDeleteRole, SubmitDeleteRole, urlDeleteRole, tableRoles);
+
 function displayError(data) {
     let modal = $("#modalNewRole");
     if (data === false) {

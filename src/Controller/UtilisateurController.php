@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Utilisateur;
+use App\Repository\RoleRepository;
 use App\Repository\UtilisateurRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
@@ -26,9 +27,16 @@ class UtilisateurController extends Controller
      */
     private $utilisateurRepository;
 
-    public function __construct(UtilisateurRepository $utilisateurRepository)
+    /**
+     * @var RoleRepository
+     */
+    private $roleRepository;
+
+
+    public function __construct(UtilisateurRepository $utilisateurRepository, RoleRepository $roleRepository)
     {
         $this->utilisateurRepository = $utilisateurRepository;
+        $this->roleRepository = $roleRepository;
     }
 
     /**
@@ -170,13 +178,36 @@ class UtilisateurController extends Controller
     }
 
     /**
+     * @Route("/modifier-role", name="user_edit_role",  options={"expose"=true}, methods="GET|POST")
+     */
+    public function editRole(Request $request)
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $roleLabel = $data['role'];
+            $user = $this->utilisateurRepository->find($data['userId']);
+
+            if ($user) {
+                $user->setRoles([$roleLabel]);
+                $em = $this->getDoctrine()->getManager();
+                $em->flush();
+
+                return new JsonResponse(true);
+            } else {
+                return new JsonResponse(false); //TODO gérer erreur
+            }
+
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+    /**
      * @Route("/api", name="user_api",  options={"expose"=true}, methods="GET|POST")
      */
-    public function apiUser(Request $request): Response
+    public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
             $utilisateurs = $this->utilisateurRepository->findAll();
-            $roles = Utilisateur::ROLES;
+            $roles = $this->roleRepository->findAll();
 
             $rows = [];
             foreach ($utilisateurs as $utilisateur) {

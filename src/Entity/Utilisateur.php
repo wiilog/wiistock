@@ -14,15 +14,6 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  */
 class Utilisateur implements UserInterface, EquatableInterface
 {
-    const ROLES = [
-        ['value' => "ROLE_SUPER_ADMIN", 'label' => 'administrateur'],
-        ['value' => "ROLE_ADMIN_GT", 'label' => 'administrateur GT'],
-        ['value' => "ROLE_USER_GT", 'label' => 'utilisateur GT'],
-        ['value' => "ROLE_SUPER_CUSTOMER", 'label' => 'client utilisation'],
-        ['value' => "ROLE_CUSTOMER", 'label' => 'client consultation'],
-        ['value' => "ROLE_USER", 'label' => 'simple utilisateur'],
-    ];//TODO CG à mettre plutôt en base
-
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()

@@ -92,45 +92,41 @@ class ReceptionController extends AbstractController
      */
     public function new(Request $request): Response
     {
-        if ($this->isGranted('ROLE_ADMIN_GT')) {
-            if ($data = json_decode($request->getContent(), true)) //Si data est attribuée
-            {
-                $fournisseur = $this->fournisseurRepository->find(intval($data['fournisseur']));
-                $reception = new Reception();
+        if ($data = json_decode($request->getContent(), true)) //Si data est attribuée
+        {
+            $fournisseur = $this->fournisseurRepository->find(intval($data['fournisseur']));
+            $reception = new Reception();
 
-                if ($data['anomalie'] == true) {
-                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_ANOMALIE);
-                } else {
-                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_EN_ATTENTE);
-                }
-
-                $date = new \DateTime('now');
-                $numeroReception = 'R' . $date->format('ymd-His'); //TODO CG ajouter numéro
-
-                $reception
-                    ->setStatut($statut)
-                    ->setNumeroReception($numeroReception)
-                    ->setDate(new \DateTime($data['date-commande']))
-                    ->setDateAttendu(new \DateTime($data['date-attendu']))
-                    ->setFournisseur($fournisseur)
-                    ->setReference($data['reference'])
-                    ->setUtilisateur($this->getUser())
-                    ->setCommentaire($data['commentaire']);
-
-                $em = $this->getDoctrine()->getManager();
-                $em->persist($reception);
-                $em->flush();
-
-                $data = [
-                    "redirect" => $this->generateUrl('reception_ajout_article', ['id' => $reception->getId()])
-                ];
-                return new JsonResponse($data);
+            if ($data['anomalie'] == true) {
+                $statut = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_ANOMALIE);
+            } else {
+                $statut = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_EN_ATTENTE);
             }
 
-            throw new NotFoundHttpException("404");
-        } else {
-            //TODO CG message erreur (pas les droits pour cette action)
+            $date = new \DateTime('now');
+            $numeroReception = 'R' . $date->format('ymd-His'); //TODO CG ajouter numéro
+
+            $reception
+                ->setStatut($statut)
+                ->setNumeroReception($numeroReception)
+                ->setDate(new \DateTime($data['date-commande']))
+                ->setDateAttendu(new \DateTime($data['date-attendu']))
+                ->setFournisseur($fournisseur)
+                ->setReference($data['reference'])
+                ->setUtilisateur($this->getUser())
+                ->setCommentaire($data['commentaire']);
+
+            $em = $this->getDoctrine()->getManager();
+            $em->persist($reception);
+            $em->flush();
+
+            $data = [
+                "redirect" => $this->generateUrl('reception_ajout_article', ['id' => $reception->getId()])
+            ];
+            return new JsonResponse($data);
         }
+
+        throw new NotFoundHttpException("404");
     }
 
     /**
@@ -138,33 +134,31 @@ class ReceptionController extends AbstractController
      */
     public function edit(Request $request): Response
     {
-        if ($this->isGranted('ROLE_ADMIN_GT')) {
-            if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-                $fournisseur = $this->fournisseurRepository->find(intval($data['fournisseur']));
-                $utilisateur = $this->utilisateurRepository->find(intval($data['utilisateur']));
-                $statut = $this->statutRepository->find(intval($data['statut']));
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $fournisseur = $this->fournisseurRepository->find(intval($data['fournisseur']));
+            $utilisateur = $this->utilisateurRepository->find(intval($data['utilisateur']));
+            $statut = $this->statutRepository->find(intval($data['statut']));
 
-                $reception = $this->receptionRepository->find($data['receptionId']);
-                $reception
-                    ->setNumeroReception($data['NumeroReception'])
-                    ->setDate(new \DateTime($data['date-commande']))
-                    ->setDateAttendu(new \DateTime($data['date-attendu']))
-                    ->setStatut($statut)
-                    ->setFournisseur($fournisseur)
-                    ->setUtilisateur($utilisateur)
-                    ->setCommentaire($data['commentaire']);
+            $reception = $this->receptionRepository->find($data['receptionId']);
+            $reception
+                ->setNumeroReception($data['NumeroReception'])
+                ->setDate(new \DateTime($data['date-commande']))
+                ->setDateAttendu(new \DateTime($data['date-attendu']))
+                ->setStatut($statut)
+                ->setFournisseur($fournisseur)
+                ->setUtilisateur($utilisateur)
+                ->setCommentaire($data['commentaire']);
 
-                $em = $this->getDoctrine()->getManager();
-                $em->flush();
-                $json = [
-                    'entete' => $this->renderView('reception/enteteReception.html.twig', [
-                        'reception' => $reception,
-                    ])
-                ];
-                return new JsonResponse($json);
-            }
-            throw new NotFoundHttpException("404");
+            $em = $this->getDoctrine()->getManager();
+            $em->flush();
+            $json = [
+                'entete' => $this->renderView('reception/enteteReception.html.twig', [
+                    'reception' => $reception,
+                ])
+            ];
+            return new JsonResponse($json);
         }
+        throw new NotFoundHttpException("404");
     }
 
     /**
@@ -279,23 +273,18 @@ class ReceptionController extends AbstractController
      */
     public function delete(Request $request): Response
     {
-        if ($this->isGranted('ROLE_ADMIN_GT')) {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $reception = $this->receptionRepository->find($data['receptionId']);
 
-            if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-                $reception = $this->receptionRepository->find($data['receptionId']);
-
-                $entityManager = $this->getDoctrine()->getManager();
-                $entityManager->remove($reception);
-                $entityManager->flush();
-                $data = [
-                    "redirect" => $this->generateUrl('reception_index')
-                ];
-                return new JsonResponse($data);
-            }
-            throw new NotFoundHttpException("404");
-        } else {
-            //TODO CG message erreur (pas les droits pour cette action)
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->remove($reception);
+            $entityManager->flush();
+            $data = [
+                "redirect" => $this->generateUrl('reception_index')
+            ];
+            return new JsonResponse($data);
         }
+        throw new NotFoundHttpException("404");
     }
 
     /**
@@ -303,19 +292,14 @@ class ReceptionController extends AbstractController
      */
     public function deleteArticle(Request $request): Response
     {
-        if ($this->isGranted('ROLE_ADMIN_GT')) {
-
-            if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-                $article = $this->articleRepository->find($data['article']);
-                $entityManager = $this->getDoctrine()->getManager();
-                $entityManager->remove($article);
-                $entityManager->flush();
-                return new JsonResponse();
-            }
-            throw new NotFoundHttpException("404");
-        } else {
-            //TODO CG message erreur (pas les droits pour cette action)
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $article = $this->articleRepository->find($data['article']);
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->remove($article);
+            $entityManager->flush();
+            return new JsonResponse();
         }
+        throw new NotFoundHttpException("404");
     }
 
     /**
@@ -387,36 +371,31 @@ class ReceptionController extends AbstractController
      */
     public function editArticle(Request $request): Response
     {
-        if ($this->isGranted('ROLE_ADMIN_GT')) {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) //Si la requête est de type Xml
+        {
+            $article = $this->articleRepository->find($data['article']);
+            $reception = $this->receptionRepository->find($article->getReception()->getId());
 
-            if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) //Si la requête est de type Xml
-            {
-                $article = $this->articleRepository->find($data['article']);
-                $reception = $this->receptionRepository->find($article->getReception()->getId());
+            $article
+                ->setCommentaire($data['commentaire'])
+                ->setConform($data['anomalie'] ? Article::NOT_CONFORM : Article::CONFORM)
+                ->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF))
+                ->setLabel($data['label']);
+            $em = $this->getDoctrine()->getManager();
+            $em->flush();
 
-                $article
-                    ->setCommentaire($data['commentaire'])
-                    ->setConform($data['anomalie'] ? Article::NOT_CONFORM : Article::CONFORM)
-                    ->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF))
-                    ->setLabel($data['label']);
-                $em = $this->getDoctrine()->getManager();
-                $em->flush();
+            $nbArticleNotConform = $this->articleRepository->countNotConformByReception($reception);
+            $statutLabel = $nbArticleNotConform > 0 ? Reception::STATUT_ANOMALIE : Reception::STATUT_RECEPTION_PARTIELLE;
+            $statut = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, $statutLabel);
+            $reception->setStatut($statut);
 
-                $nbArticleNotConform = $this->articleRepository->countNotConformByReception($reception);
-                $statutLabel = $nbArticleNotConform > 0 ? Reception::STATUT_ANOMALIE : Reception::STATUT_RECEPTION_PARTIELLE;
-                $statut = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, $statutLabel);
-                $reception->setStatut($statut);
-
-                $em->flush();
-                $json = [
-                    'entete' => $this->renderView('reception/enteteReception.html.twig', ['reception' => $reception])
-                ];
-                return new JsonResponse($json);
-            }
-            throw new NotFoundHttpException("404");
-        } else {
-            //TODO CG message erreur (pas les droits pour cette action)
+            $em->flush();
+            $json = [
+                'entete' => $this->renderView('reception/enteteReception.html.twig', ['reception' => $reception])
+            ];
+            return new JsonResponse($json);
         }
+        throw new NotFoundHttpException("404");
     }
 
     /**

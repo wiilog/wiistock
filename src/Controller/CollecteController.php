@@ -198,32 +198,28 @@ class CollecteController extends AbstractController
      */
     public function new(Request $request): Response
     {
-        if ($this->isGranted('ROLE_SUPER_CUSTOMER')) {
-            if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-                $em = $this->getDoctrine()->getEntityManager();
-                $date = new \DateTime('now');
-                $status = $this->statutRepository->findOneByNom(Collecte::STATUS_DEMANDE);
-                $numero = "C-" . $date->format('YmdHis');
-                $collecte = new Collecte;
-                $collecte
-                    ->setDemandeur($this->utilisateurRepository->find($data['demandeur']))
-                    ->setNumero($numero)
-                    ->setDate($date)
-                    ->setStatut($status)
-                    ->setPointCollecte($this->emplacementRepository->find($data['Pcollecte']))
-                    ->setObjet($data['Objet'])
-                    ->setCommentaire($data['commentaire']);
-                $em->persist($collecte);
-                $em->flush();
-                $data = [
-                    "redirect" => $this->generateUrl('collecte_show', ['id' => $collecte->getId()])
-                ];
-                return new JsonResponse($data);
-            }
-            throw new XmlHttpException("404 not found");
-        } else {
-            //TODO CG message erreur (pas les droits pour cette action)
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $em = $this->getDoctrine()->getEntityManager();
+            $date = new \DateTime('now');
+            $status = $this->statutRepository->findOneByNom(Collecte::STATUS_DEMANDE);
+            $numero = "C-" . $date->format('YmdHis');
+            $collecte = new Collecte;
+            $collecte
+                ->setDemandeur($this->utilisateurRepository->find($data['demandeur']))
+                ->setNumero($numero)
+                ->setDate($date)
+                ->setStatut($status)
+                ->setPointCollecte($this->emplacementRepository->find($data['Pcollecte']))
+                ->setObjet($data['Objet'])
+                ->setCommentaire($data['commentaire']);
+            $em->persist($collecte);
+            $em->flush();
+            $data = [
+                "redirect" => $this->generateUrl('collecte_show', ['id' => $collecte->getId()])
+            ];
+            return new JsonResponse($data);
         }
+        throw new XmlHttpException("404 not found");
     }
 
 
@@ -287,34 +283,30 @@ class CollecteController extends AbstractController
      */
     public function finish(Request  $request): Response
     {
-        if ($this->isGranted('ROLE_SUPER_CUSTOMER')) {
-            if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $em = $this->getDoctrine()->getManager();
-            $collecte = $this->collecteRepository->find($data['collecte']);
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        $em = $this->getDoctrine()->getManager();
+        $collecte = $this->collecteRepository->find($data['collecte']);
 
-            // changement statut collecte
-            $statusFinCollecte = $this->statutRepository->findOneBy(['nom' => Collecte::STATUS_EN_COURS]);
-            $collecte->setStatut($statusFinCollecte);
+        // changement statut collecte
+        $statusFinCollecte = $this->statutRepository->findOneBy(['nom' => Collecte::STATUS_EN_COURS]);
+        $collecte->setStatut($statusFinCollecte);
 
-            // changement statut article
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE,  Article::STATUT_INACTIF);
-            $article = $collecte->getArticles();
-            foreach ($article as $article) {
-                $article->setStatut($statut);
-            }
-            $em->flush();
-            $response =  [
-                'entete' => $this->renderView('collecte/enteteCollecte.html.twig', [
-                    'collecte' => $collecte,
-                    'modifiable' => ($collecte->getStatut()->getNom() !== Collecte::STATUS_EN_COURS ?true : false)
-                ])
-            ];
-            return new JsonResponse($response);
+        // changement statut article
+        $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE,  Article::STATUT_INACTIF);
+        $article = $collecte->getArticles();
+        foreach ($article as $article) {
+            $article->setStatut($statut);
         }
-        throw new NotFoundHttpException("404");
-        } else {
-            //TODO CG message erreur (pas les droits pour cette action)
-        }
+        $em->flush();
+        $response =  [
+            'entete' => $this->renderView('collecte/enteteCollecte.html.twig', [
+                'collecte' => $collecte,
+                'modifiable' => ($collecte->getStatut()->getNom() !== Collecte::STATUS_EN_COURS ?true : false)
+            ])
+        ];
+        return new JsonResponse($response);
+    }
+    throw new NotFoundHttpException("404");
     }
 
     /**
@@ -340,33 +332,29 @@ class CollecteController extends AbstractController
      */
     public function edit(Request $request): Response
     {
-        if ($this->isGranted('ROLE_SUPER_CUSTOMER')) {
-            if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-                $collecte = $this->collecteRepository->find($data['collecte']);
-                $pointCollecte = $this->emplacementRepository->find($data['Pcollecte']);
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $collecte = $this->collecteRepository->find($data['collecte']);
+            $pointCollecte = $this->emplacementRepository->find($data['Pcollecte']);
 
-                $collecte
-                    ->setNumero($data["NumeroCollecte"])
-                    ->setDate(new \DateTime($data["date-collecte"]))
-                    ->setCommentaire($data["commentaire"])
-                    ->setObjet($data["objet"])
-                    ->setPointCollecte($pointCollecte);
+            $collecte
+                ->setNumero($data["NumeroCollecte"])
+                ->setDate(new \DateTime($data["date-collecte"]))
+                ->setCommentaire($data["commentaire"])
+                ->setObjet($data["objet"])
+                ->setPointCollecte($pointCollecte);
 
-                $em = $this->getDoctrine()->getManager();
-                $em->flush();
-                $json = [
-                    'entete' => $this->renderView('collecte/enteteCollecte.html.twig', [
-                        'collecte' => $collecte,
-                        'modifiable' => ($collecte->getStatut()->getNom() !== Collecte::STATUS_EN_COURS ? true : false)
-                    ])
-                ];
+            $em = $this->getDoctrine()->getManager();
+            $em->flush();
+            $json = [
+                'entete' => $this->renderView('collecte/enteteCollecte.html.twig', [
+                    'collecte' => $collecte,
+                    'modifiable' => ($collecte->getStatut()->getNom() !== Collecte::STATUS_EN_COURS ? true : false)
+                ])
+            ];
 
-                return new JsonResponse($json);
-            }
-            throw new NotFoundHttpException("404");
-        } else {
-            //TODO CG message erreur (pas les droits pour cette action)
+            return new JsonResponse($json);
         }
+        throw new NotFoundHttpException("404");
     }
 
     /**
@@ -374,20 +362,16 @@ class CollecteController extends AbstractController
      */
     public function delete(Request $request): Response
     {
-        if ($this->isGranted('ROLE_ADMIN_GT')) {
-            if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-                $collecte = $this->collecteRepository->find($data['collecte']);
-                $entityManager = $this->getDoctrine()->getManager();
-                $entityManager->remove($collecte);
-                $entityManager->flush();
-                $data = [
-                    "redirect" => $this->generateUrl('collecte_index')
-                ];
-                return new JsonResponse($data);
-            }
-            throw new NotFoundHttpException("404");
-        } else {
-            //TODO CG message erreur (pas les droits pour cette action)
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $collecte = $this->collecteRepository->find($data['collecte']);
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->remove($collecte);
+            $entityManager->flush();
+            $data = [
+                "redirect" => $this->generateUrl('collecte_index')
+            ];
+            return new JsonResponse($data);
         }
+        throw new NotFoundHttpException("404");
     }
 }

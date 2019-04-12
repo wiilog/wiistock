@@ -11,6 +11,11 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Action
 {
+    const LIST = 'lister';
+    const CREATE = 'créer';
+    const DELETE = 'supprimer';
+    const YES = 'oui';
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()

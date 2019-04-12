@@ -11,6 +11,17 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Menu
 {
+    const RECEPTION = 'REC';
+    const PREPA = 'PREPA';
+    const LIVRAISON = 'LIVR';
+    const DEM_LIVRAISON = 'DEMLIVR';
+    const DEM_COLLECTE = 'DEMCOL';
+    const COLLECTE = 'COL';
+    const NOMAD = 'NOMAD';
+    const ADMIN_ROLE = 'ADMINROLE';
+    const PARAM = 'PARAM';
+
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()

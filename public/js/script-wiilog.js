@@ -124,7 +124,6 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
             if (close == true) modal.find('.close').click();
             Json = {};
             Json = JSON.stringify(Data);
-            console.log(Json);
             xhttp.open("POST", path, true);
             xhttp.send(Json);
         } else {

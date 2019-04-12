@@ -81,37 +81,32 @@ class LivraisonController extends AbstractController
     */
     public function new($id): Response
     {
-        if ($this->isGranted('ADMIN_GT')) {
+        $preparation = $this->preparationRepository->find($id);
 
-            $preparation = $this->preparationRepository->find($id);
+        $demande1 = $preparation->getDemandes();
+        $demande = $demande1[0];
+        $statut = $this->statutRepository->findOneByCategorieAndStatut(Livraison::CATEGORIE, Livraison::STATUT_A_TRAITER);
+        $livraison = new Livraison();
+        $date = new \DateTime('now');
+        $livraison
+            ->setDate($date)
+            ->setNumero('L-' . $date->format('YmdHis'))
+            ->setStatut($statut)
+            ->setUtilisateur($this->getUser());
+        $entityManager = $this->getDoctrine()->getManager();
+        $entityManager->persist($livraison);
+        $preparation->addLivraison($livraison);
+        $preparation->setStatut($this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_PREPARE));
 
-            $demande1 = $preparation->getDemandes();
-            $demande = $demande1[0];
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(Livraison::CATEGORIE, Livraison::STATUT_A_TRAITER);
-            $livraison = new Livraison();
-            $date = new \DateTime('now');
-            $livraison
-                ->setDate($date)
-                ->setNumero('L-' . $date->format('YmdHis'))
-                ->setStatut($statut)
-                ->setUtilisateur($this->getUser());
-            $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->persist($livraison);
-            $preparation->addLivraison($livraison);
-            $preparation->setStatut($this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_PREPARE));
+        $demande
+            ->setStatut($this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_PREPARE))
+            ->setLivraison($livraison);
+        $entityManager->flush();
+        $livraison = $preparation->getLivraisons()->toArray();
 
-            $demande
-                ->setStatut($this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_PREPARE))
-                ->setLivraison($livraison);
-            $entityManager->flush();
-            $livraison = $preparation->getLivraisons()->toArray();
-
-            return $this->redirectToRoute('livraison_show', [
-                'id' => $livraison[0]->getId(),
-            ]);
-        } else {
-            //TODO CG message erreur (pas les droits pour cette action)
-        }
+        return $this->redirectToRoute('livraison_show', [
+            'id' => $livraison[0]->getId(),
+        ]);
     }
 
     /**
