@@ -47,7 +47,7 @@ class ChampsLibreRepository extends ServiceEntityRepository
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-            "SELECT c.label, c.id
+            "SELECT c.label, c.id, c.typage
             FROM App\Entity\ChampsLibre c 
             JOIN c.type t
             JOIN t.category z

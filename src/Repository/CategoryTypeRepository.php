@@ -31,7 +31,6 @@ class CategoryTypeRepository extends ServiceEntityRepository
         return $query->execute(); 
     }
 
-
     // /**
     //  * @return CategoryType[] Returns an array of CategoryType objects
     //  */
