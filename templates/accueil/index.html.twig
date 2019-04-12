@@ -8,13 +8,13 @@ class='accueil-back'
 {% block page_content %}
 <div class="row ">
     <div class="col-3">
-        <div class='row'>
+        {# <div class='row'>
             <div href="" data-toggle="modal" data-target="#modalNewDemande" class="btn btn-primary">
                 <span class="fa fa-plus mr-2"></span>Nouvelle demande
-            </div>
+            </div> #}
         </div>
     </div>
-    <div class="text-center offset-3 col-1 alerte">
+    <div class="text-center offset-6 col-1 alerte">
         <h2>Alertes de seuil</h2>
         <a href="{{path('alerte_index')}}" class="fa fa-warning fa-2x">
             <div class="marker">{{nbAlerte}}</div>
