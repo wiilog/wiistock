@@ -80,27 +80,29 @@
             </li>
         {% endif %}
 
-        {% if hasRight(constant('App\\Entity\\Menu::PARAM')) %}
+        {% if (hasRight(constant('App\\Entity\\Menu::PARAM')) or hasRight(constant('App\\Entity\\Menu::ADMIN_ROLE'))) %}
             <li class="menu-item has-submenu">
                 <a href="#">
                     <i class="fas fa-gear"></i>
                     <h4>Paramétrage</h4>
                 </a>
                 <ul class="sidemenu-sub">
-                    <li>
-                        <a href="{{ path('user_index') }}" class="sub-item">• Utilisateurs</a>
-                    </li>
                     {% if hasRight(constant('App\\Entity\\Menu::ADMIN_ROLE')) %}
                         <li>
                             <a href="{{ path('role_index') }}" class="sub-item">• Rôles</a>
                         </li>
                     {% endif %}
-                    <li>
-                        <a href="{{ path('champ_libre_index') }}" class="sub-item">• Champs libres</a>
-                    </li>
-                    <li>
-                        <a href="{{ path('alerte_index') }}" class="sub-item">• Alertes</a>
-                    </li>
+                    {% if hasRight(constant('App\\Entity\\Menu::PARAM')) %}
+                        <li>
+                            <a href="{{ path('user_index') }}" class="sub-item">• Utilisateurs</a>
+                        </li>
+                        <li>
+                            <a href="{{ path('champ_libre_index') }}" class="sub-item">• Champs libres</a>
+                        </li>
+                        <li>
+                            <a href="{{ path('alerte_index') }}" class="sub-item">• Alertes</a>
+                        </li>
+                    {% endif %}
                 </ul>
             </li>
         {% endif %}

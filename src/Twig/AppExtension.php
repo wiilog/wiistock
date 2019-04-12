@@ -54,8 +54,10 @@ class AppExtension extends AbstractExtension
 
         $thisAction = $this->actionRepository->findOneByMenuCodeAndLabel($menuCode, $actionLabel);
 
-        foreach($actions as $action) {
-            if ($action->getId() == $thisAction->getId()) return true;
+        if ($thisAction) {
+            foreach ($actions as $action) {
+                if ($action->getId() == $thisAction->getId()) return true;
+            }
         }
 
         return false;
