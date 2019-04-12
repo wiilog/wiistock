@@ -53,7 +53,7 @@
             </div>
             <input id='commentaire' class="form-control data" name="commentaire" type="hidden"
                 value='{{articleRef.commentaire}}'>
-            <div class="editor-container" value="{{articleRef.commentaire}}" > {{articleRef.commentaire|raw}}</div>
+            <div class="editor-container" value="{{articleRef.commentaire}}"> {{articleRef.commentaire|raw}}</div>
         </div>
     </div>
 </div>
@@ -159,6 +159,19 @@
                         <input type="number" class="form-control data" value="{{ value }}" name="{{champ.id}}"
                             id="input">
 
+                        {% elseif champ.typage == 'list' %}
+                        <select class="form-control unTruc data " name="{{champ.id}}" id="input">
+                            <option value="{{value}}">{{value}}
+                            </option>
+                            {% for elem in champ.elements %}
+                            {% if value != elem %}
+                            <option value="{{elem}}">{{elem}}</option>
+                            {% endif %}
+                            {% endfor %}
+                            {% if value != "" %}
+                            <option value=""></option>
+                            {% endif %}
+                        </select>
                         {% else %}
                         <input type="text" class="form-control data" value="{{ value }}" name="{{ champ.id }}"
                             id="input">
