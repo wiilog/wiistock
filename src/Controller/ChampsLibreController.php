@@ -145,8 +145,7 @@ class ChampsLibreController extends AbstractController
     public function edit(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-
-
+            dump($data);
             $champLibre = $this->champsLibreRepository->find($data['champLibre']);
             $champLibre
                 ->setLabel($data['label'])

@@ -393,7 +393,7 @@ class ReceptionController extends AbstractController
         if (!$request->isXmlHttpRequest() && $articleId = json_decode($request->getContent(), true)) {
             $article = $this->articleRepository->find($articleId);
             $valeurChampsLibre = $this->valeurChampsLibreRepository->getByArticle($article->getId());
-            $champsLibres = $this->champsLibreRepository->findBy(['type' =>$article->getType()->getId()]);
+            $champsLibres = $this->champsLibreRepository->findBy(['type' => ($article->getType() ? $article->getType()->getId() : "")]);
             $tabInfoChampsLibres = [];
             foreach ($champsLibres as $champLibre) {
                 $valeurChampLibre = $this->valeurChampsLibreRepository->findOneByChampLibreAndArticle($champLibre->getId(), $articleId);
