@@ -61,13 +61,14 @@ class PasswordService
     public function sendNewPassword($to)
     {
         $newPass = $this->generatePassword(10);
-        $this->updateUser($to, $newPass);
-        $message = (new \Swift_Message('Oubli de mot de passe Wiilog.'))
-            ->setFrom([$this->username => 'L\'équipe de Wiilog.'])
-            ->setTo($to)
-            ->setBody('Votre nouveau mot de passe est : '.$newPass);
+        if (gettype($this->updateUser($to, $newPass)) !== JsonResponse) {
+            $message = (new \Swift_Message('Oubli de mot de passe Wiilog.'))
+                ->setFrom([$this->username => 'L\'équipe de Wiilog.'])
+                ->setTo($to)
+                ->setBody('Votre nouveau mot de passe est : '.$newPass);
 
-        $this->mailer->send($message);
+            $this->mailer->send($message);
+        }
     }
 
     private function generatePassword($length)
