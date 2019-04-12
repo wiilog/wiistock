@@ -273,12 +273,12 @@ class CollecteController extends AbstractController
     public function finish(Request  $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-        $em = $this->getDoctrine()->getManager();
-        $collecte = $this->collecteRepository->find($data['collecte']);
+            $em = $this->getDoctrine()->getManager();
+            $collecte = $this->collecteRepository->find($data['collecte']);
 
-        // changement statut collecte
-        $statusFinCollecte = $this->statutRepository->findOneBy(['nom' => Collecte::STATUS_EN_COURS]);
-        $collecte->setStatut($statusFinCollecte);
+            // changement statut collecte
+            $statusFinCollecte = $this->statutRepository->findOneBy(['nom' => Collecte::STATUS_EN_COURS]);
+            $collecte->setStatut($statusFinCollecte);
 
             // changement statut article
             $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_INACTIF);
@@ -297,22 +297,7 @@ class CollecteController extends AbstractController
             return new JsonResponse($response);
         }
         throw new NotFoundHttpException('404');
-        // changement statut article
-        $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE,  Article::STATUT_INACTIF);
-        $article = $collecte->getArticles();
-        foreach ($article as $article) {
-            $article->setStatut($statut);
-        }
-        $em->flush();
-        $response =  [
-            'entete' => $this->renderView('collecte/enteteCollecte.html.twig', [
-                'collecte' => $collecte,
-                'modifiable' => ($collecte->getStatut()->getNom() !== Collecte::STATUS_EN_COURS ?true : false)
-            ])
-        ];
-        return new JsonResponse($response);
-    }
-    throw new NotFoundHttpException("404");
+
     }
 
     /**

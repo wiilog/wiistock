@@ -167,6 +167,7 @@ class RoleController extends AbstractController
 
             $role->setLabel($data['label']);
             unset($data['label']);
+            unset($data['elem']);
             unset($data['id']);
 
             foreach ($data as $menuAction => $isChecked) {
