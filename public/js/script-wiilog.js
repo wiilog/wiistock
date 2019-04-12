@@ -250,6 +250,7 @@ function toggleRadioButton(button) {
     let tog = button.data('toggle');
     $('#' + tog).prop('value', sel);
 
+
     $('span[data-toggle="' + tog + '"]').not('[data-title="' + sel + '"]').removeClass('active').addClass('not-active');
     $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
 }
@@ -294,7 +295,7 @@ function setCommentaire(button) {
     // let commentaire = modal.find('input[id=commentaire]');
     com = quill.container.firstChild.innerHTML;
     $('#commentaire').val(com);
-    console.log(com);
+    
 };
 
 //passe de l'éditeur à l'imput pour insertion en BDD par l'id commentaireID (cas de conflit avec la class)
