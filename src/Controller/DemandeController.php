@@ -67,14 +67,14 @@ class DemandeController extends AbstractController
     }
 
     /**
-     * @Route("/finir/{id}", name="finish_demande") //TODOO
+     * @Route("/finir", name="finish_demande", options={"expose"=true}, methods="GET|POST")
      */
-    public function finish(Demande $demande): Response
+    public function finish(Request $request): Response
     {
-        if ($demande->getPreparation() === null && count($demande->getLigneArticle()) > 0) {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             // Creation d'une nouvelle preparation basée sur une selection de demandes
+            $demande = $this->demandeRepository->find($data['demande']);
             $preparation = new Preparation();
-
             $date = new \DateTime('now');
             $preparation
                 ->setNumero('P-' . $date->format('YmdHis'))
@@ -93,9 +93,16 @@ class DemandeController extends AbstractController
             $em->persist($preparation);
             $em->flush();
 
-            return $this->redirectToRoute('ligne_article_show', ['id' => $demande->getId()]);
-        } else if ($demande->getPreparation() !== null) {
-            return $this->redirectToRoute('ligne_article_show', ['id' => $demande->getId()]);
+            $data = [
+                'entete'=> $this->renderView(
+                    'demande/enteteDemandeLivraison.html.twig',
+                    [
+                        'demande' => $demande,
+                    ]
+                ),
+            ];
+
+            return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
     }
