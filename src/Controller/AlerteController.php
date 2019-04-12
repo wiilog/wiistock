@@ -12,7 +12,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
-
 use App\Service\SeuilAlerteService;
 
 /**
@@ -45,9 +44,8 @@ class AlerteController extends AbstractController
         $this->alerteRepository = $alerteRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->utilisateurRepository = $utilisateurRepository;
-        $this->seuilAlerteService =  $seuilAlerteService;
+        $this->seuilAlerteService = $seuilAlerteService;
     }
-
 
     /**
      * @Route("/api", name="alerte_api", options={"expose"=true}, methods="GET|POST")
@@ -63,7 +61,7 @@ class AlerteController extends AbstractController
                 $rows[] = [
                     'id' => $alerte->getId(),
                     'Code' => $alerte->getAlerteNumero(),
-                    'Seuil limite' => $alerte->getAlerteSeuil(), 
+                    'Seuil limite' => $alerte->getAlerteSeuil(),
                     'Seuil' => ($alerte->getSeuilAtteint() ? "<i class='fas fa-exclamation' style='color:red'></i>" : "<i class='fas fa-check' style='color:green'></i>"),
                     'Article Référence' => $alerte->getAlerteRefArticle()->getLibelle(),
                     'Quantité en stock' => $alerte->getAlerteRefArticle()->getQuantiteStock(),
@@ -74,9 +72,10 @@ class AlerteController extends AbstractController
                 ];
             }
             $data['data'] = $rows;
+
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException("404");
+        throw new NotFoundHttpException('404');
     }
 
     /**
@@ -95,12 +94,12 @@ class AlerteController extends AbstractController
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $em = $this->getDoctrine()->getEntityManager();
 
-            $refArticle = $this->referenceArticleRepository->find($data["AlerteArticleReference"]);
+            $refArticle = $this->referenceArticleRepository->find($data['AlerteArticleReference']);
 
             $alerte = new Alerte();
             $date = new \DateTime('now');
             $alerte
-                ->setAlerteNumero('P-' . $date->format('YmdHis'))
+                ->setAlerteNumero('P-'.$date->format('YmdHis'))
                 ->setAlerteSeuil($data['AlerteSeuil'])
                 ->setAlerteUtilisateur($this->utilisateurRepository->find($data['utilisateur']))
                 ->setAlerteRefArticle($refArticle);
@@ -110,7 +109,7 @@ class AlerteController extends AbstractController
 
             return new JsonResponse($data);
         }
-        throw new XmlHttpException("404 not found");
+        throw new XmlHttpException('404 not found');
     }
 
     /**
@@ -126,7 +125,7 @@ class AlerteController extends AbstractController
 
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException("404");
+        throw new NotFoundHttpException('404');
     }
 
     /**
@@ -137,13 +136,14 @@ class AlerteController extends AbstractController
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $alerte = $this->alerteRepository->find($data['id']);
             $alerte
-                ->setAlerteNom($data["Nom"])
-                ->setAlerteSeuil($data["Seuil"]);
+                ->setAlerteNom($data['Nom'])
+                ->setAlerteSeuil($data['Seuil']);
             $em = $this->getDoctrine()->getManager();
             $em->flush();
+
             return new JsonResponse();
         }
-        throw new NotFoundHttpException("404");
+        throw new NotFoundHttpException('404');
     }
 
     /**
@@ -156,9 +156,20 @@ class AlerteController extends AbstractController
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($alerte);
             $entityManager->flush();
+
             return new JsonResponse();
         }
-        throw new NotFoundHttpException("404");
+        throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/verifier", name="check")
+     */
+    public function check()
+    {
+        $this->seuilAlerteService->warnUsers();
+
+        return $this->redirectToRoute('alerte_index');
     }
 
     // /* Mailer */
