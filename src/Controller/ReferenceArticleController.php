@@ -336,10 +336,10 @@ class ReferenceArticleController extends Controller
         ];
 
         $champs = array_merge($champ, $champL);
-
+        $champsVisibleDefault =['Actions', 'Libellé', 'Référence', 'Type', 'Quantité'];
         return $this->render('reference_article/index.html.twig', [
             'champs' => $champs,
-            'champsVisible' => $this->getUser()->getColumnVisible(),
+            'champsVisible' => ($this->getUser()->getColumnVisible() !== null ? $this->getUser()->getColumnVisible() : $champsVisibleDefault ),
             'statuts' => $this->statutRepository->findByCategorieName(ReferenceArticle::CATEGORIE),
             'types' => $this->typeRepository->getByCategoryLabel(ReferenceArticle::CATEGORIE),
             'typeQuantite' => $typeQuantite,
