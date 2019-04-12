@@ -3,14 +3,6 @@
 {% block title %}Demandes de livraison{% endblock %}
 
 {% block page_content %}
-<div class="zone-actions col-12 mb-5">
-    <div href="" data-toggle="modal" data-target="#modalNewDemande" class="btn btn-primary"
-        onclick='initNewLivraisonEditor("#modalNewDemande")'>
-        <span class="fa fa-plus mr-2"></span>Nouvelle demande
-    </div>
-{#fermeture de la div de layout pour fermer le container et ne pas avoir de bordure#}
-</div>
-
     {% include 'filters/filters.html.twig' with {'btnName' : 'submitSearchDemandeLivraison'} %}
 {#fermeture des filtres#}
 {#ouverture d'un nouveau container pour aligner sur tableau#}
