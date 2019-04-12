@@ -20,6 +20,7 @@ class Menu
     const NOMAD = 'NOMAD';
     const ADMIN_ROLE = 'ADMINROLE';
     const PARAM = 'PARAM';
+    const STOCK = 'STOCK';
 
 
     /**

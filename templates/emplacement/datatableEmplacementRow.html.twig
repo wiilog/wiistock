@@ -1,14 +1,12 @@
 <div class="row">
-    {% if is_granted('ROLE_ADMIN_GT') %}
-        <div data-id='{{ emplacementId }}' data-target='#modalEditEmplacement' data-toggle='modal'
-            class='command-edit col-3'
-            onclick="editRow($(this), Routing.generate('emplacement_api_edit', true), $('#modalEditEmplacement'), $('#submitEditEmplacement'))">
-            <i class='fas fa-pencil-alt'></i>
-        </div>
-        <div class='emplacement-delete col-3'
-            onclick="deleteRow($(this), $('#modalDeleteEmplacement'), $('#submitDeleteEmplacement'))"
-            data-id='{{ emplacementId }}' data-target='#modalDeleteEmplacement' data-toggle='modal'>
-            <i class='fas fa-trash'></i>
-        </div>
-    {% endif %}
+    <div data-id='{{ emplacementId }}' data-target='#modalEditEmplacement' data-toggle='modal'
+        class='command-edit col-3'
+        onclick="editRow($(this), Routing.generate('emplacement_api_edit', true), $('#modalEditEmplacement'), $('#submitEditEmplacement'))">
+        <i class='fas fa-pencil-alt'></i>
+    </div>
+    <div class='emplacement-delete col-3'
+        onclick="deleteRow($(this), $('#modalDeleteEmplacement'), $('#submitDeleteEmplacement'))"
+        data-id='{{ emplacementId }}' data-target='#modalDeleteEmplacement' data-toggle='modal'>
+        <i class='fas fa-trash'></i>
+    </div>
 </div>

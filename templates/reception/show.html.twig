@@ -8,16 +8,14 @@
         <h1>Réception</h1>
     </div>
     <div class="col text-right">
-        {% if is_granted('ROLE_ADMIN_GT') %}
-            <a href="" data-id='{{ id }}' data-target='#modalDeleteReception' data-toggle='modal'
-                class="btn btn-danger btn-action ml-auto">
-                Supprimer</a>
-            <a href="" data-id='{{ id }}' data-target='#modalEditReception' data-toggle='modal'
-                class="btn btn-primary btn-action ml-auto" onclick='initEditReceptionEditor("#modalEditReception")'>
-                Modifier</a>
-            <a href="{{path('reception_finish', {'id': id})}}" class="btn btn-primary btn-action ml-auto">
-                Fin réception</a>
-        {% endif %}
+        <a href="" data-id='{{ id }}' data-target='#modalDeleteReception' data-toggle='modal'
+            class="btn btn-danger btn-action ml-auto">
+            Supprimer</a>
+        <a href="" data-id='{{ id }}' data-target='#modalEditReception' data-toggle='modal'
+            class="btn btn-primary btn-action ml-auto" onclick='initEditReceptionEditor("#modalEditReception")'>
+            Modifier</a>
+        <a href="{{path('reception_finish', {'id': id})}}" class="btn btn-primary btn-action ml-auto">
+            Fin réception</a>
     </div>
 </div>
 <div class="row">

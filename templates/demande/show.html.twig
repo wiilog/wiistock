@@ -8,19 +8,15 @@
     </div>
     <div class="col text-right">
         {% if modifiable %}
-            {% if is_granted('ROLE_ADMIN_GT') %}
-                <a href="" data-id='{{ demande.id }}' data-target='#modalDeleteDemande' data-toggle='modal'
-                    class="btn btn-danger btn-action ml-auto">
-                    Supprimer</a>
-            {% endif %}
-            {% if is_granted('ROLE_SUPER_CUSTOMER') %}
-                <a href="" data-id='{{ demande.id }}' data-target='#modalEditDemande'
-                    onclick="ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'))" data-toggle='modal'
-                    class="btn btn-primary btn-action ml-auto" onclick='initNewLivraisonEditor("#modalEditDemande")'>
-                    Modifier</a>
-                <a href="{{path('finish_demande', {'id': demande.id})}}" class="btn btn-primary btn-action ml-auto">
+            <a href="" data-id='{{ demande.id }}' data-target='#modalDeleteDemande' data-toggle='modal'
+                class="btn btn-danger btn-action ml-auto">
+                Supprimer</a>
+            <a href="" data-id='{{ demande.id }}' data-target='#modalEditDemande'
+                onclick="ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'))" data-toggle='modal'
+                class="btn btn-primary btn-action ml-auto" onclick='initNewLivraisonEditor("#modalEditDemande")'>
+                Modifier</a>
+            <a href="{{path('finish_demande', {'id': demande.id})}}" class="btn btn-primary btn-action ml-auto">
                     Valider</a>
-            {% endif %}
 
         {% elseif demande.preparation is not empty %}
                 <a href="{{path('preparation_show', {'id': demande.preparation.id }) }}" class="btn btn-primary btn-action">

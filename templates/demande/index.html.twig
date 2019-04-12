@@ -12,12 +12,10 @@
         <h1>Demandes de livraison</h1>
 
         <div class="zone-actions col-12 mb-5">
-            {% if is_granted('ROLE_SUPER_CUSTOMER') %}
-                <div href="" data-toggle="modal" data-target="#modalNewDemande" class="btn btn-primary"
-                    onclick='initNewLivraisonEditor("#modalNewDemande")'>
-                    <span class="fa fa-plus mr-2"></span>Nouvelle demande
-                </div>
-            {% endif %}
+            <div href="" data-toggle="modal" data-target="#modalNewDemande" class="btn btn-primary"
+                onclick='initNewLivraisonEditor("#modalNewDemande")'>
+                <span class="fa fa-plus mr-2"></span>Nouvelle demande
+            </div>
         </div>
 
         <div class="zone-affichage col-12">

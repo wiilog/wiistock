@@ -13,7 +13,7 @@
     <div class="col text-right">
         <!-- <a href="" data-toggle="modal" data-target="#modalNewArticle" class="btn btn-primary ml-auto">
             Ajouter un article</a> -->
-        {% if finished and is_granted('ROLE_ADMIN_GT') %}
+        {% if finished %}
             <a href="{{path('livraison_new', {'id': preparation.id}) }}" class="btn btn-primary btn-action ml-auto">Valider</a>
         {% elseif preparation.livraisons is not empty %}
             <a href="{{path('livraison_show', {'id': preparation.livraisons.0.id})}}"class="btn btn-primary btn-action ml-auto">Aller vers la livraison</a>

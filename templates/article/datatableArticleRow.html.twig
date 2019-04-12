@@ -1,9 +1,7 @@
 <div class="row">
-    {% if is_granted('ROLE_ADMIN_GT') %}
-        <div data-id='{{ articleId }}' data-toggle='modal' data-target='#modalEditArticle'
-             class='col-3 command-edit'
-             onclick="editRow($(this), Routing.generate('reception_article_edit_api', true), $('#modalEditArticle'), $('#submitEditArticle'), true)">
-            <i class='fas fa-pencil-alt'></i>
-        </div>
-    {% endif %}
+    <div data-id='{{ articleId }}' data-toggle='modal' data-target='#modalEditArticle'
+         class='col-3 command-edit'
+         onclick="editRow($(this), Routing.generate('reception_article_edit_api', true), $('#modalEditArticle'), $('#submitEditArticle'), true)">
+        <i class='fas fa-pencil-alt'></i>
+    </div>
 </div>

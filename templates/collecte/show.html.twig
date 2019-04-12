@@ -10,13 +10,10 @@
         </div>
         <div class="col text-right">
             {% if modifiable %}
-                {% if is_granted('ROLE_ADMIN_GT') %}
                     <a href="" onclick="deleteRow($(this), $('#modalDeleteCollecte'), $('#submitDeleteCollecte'))"
                     data-id='{{collecte.id}}' data-target='#modalDeleteCollecte' data-toggle='modal'
                     class="btn btn-danger btn-action ml-auto">
                     Supprimer</a>
-                {% endif %}
-                {% if is_granted('ROLE_SUPER_CUSTOMER') %}
                     <a href="#" data-id='{{collecte.id}}' data-target='#modalEditCollecte' data-toggle='modal'
                     onclick="editRow($(this), Routing.generate('collecte_api_edit', true), $('#modalEditCollecte'), $('#submitEditCollecte'), true)"
                     class="btn btn-primary btn-action ml-auto">
@@ -24,7 +21,6 @@
                     <a href="#" class="btn btn-primary btn-action ml-auto"  data-id='{{collecte.id}}' id='submitFinishCollecte'
                     onclick="finishCollecte($(this))">
                     Valider</a>
-                {% endif %}
             {% endif %}
         </div>    
     </div>

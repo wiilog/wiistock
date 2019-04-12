@@ -54,30 +54,31 @@
             </ul>
         </li>
         <!-- STOCK -->
-        <li class="menu-item has-submenu">
-            <a href="#">
-                <i class="fas fa-box"></i>
-                <h4>Stock</h4>
-            </a>
-            <ul class="sidemenu-sub">
-                <li><a href="{{ path('article_index') }}" class="sub-item">• Article</a></li>
-                <!-- <li><a href="#">• Mouvement</a></li> -->
-                <li><a href="{{path('emplacement_index')}}" class="sub-item">• Emplacement</a></li>
-                <!-- <li><a href="#">• Inventaire</a></li>        -->
-                <li>
-                    <a href="{{ path('fournisseur_index') }}" class="sub-item">• Fournisseur</a>
-                </li>
-                <li>
-                    <a href="{{ path('reference_article_index') }}" class="sub-item">• Article référence</a>
-                </li>
-                <li>
-                    <!-- <a href="#">• Article type</a> -->
-                </li>
-                <li>
-                    <a href="{{ path('article_fournisseur_index') }}" class="sub-item">• Article fournisseur</a>
-                </li>
-            </ul>
-        </li>
+        {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::LIST')) %}
+            <li class="menu-item has-submenu">
+                <a href="#">
+                    <i class="fas fa-box"></i>
+                    <h4>Stock</h4>
+                </a>
+                <ul class="sidemenu-sub">
+                    <li>
+                        <a href="{{ path('article_index') }}" class="sub-item">• Article</a>
+                    </li>
+                    <li>
+                        <a href="{{path('emplacement_index')}}" class="sub-item">• Emplacement</a>
+                    </li>
+                    <li>
+                        <a href="{{ path('fournisseur_index') }}" class="sub-item">• Fournisseur</a>
+                    </li>
+                    <li>
+                        <a href="{{ path('reference_article_index') }}" class="sub-item">• Article référence</a>
+                    </li>
+                    <li>
+                        <a href="{{ path('article_fournisseur_index') }}" class="sub-item">• Article fournisseur</a>
+                    </li>
+                </ul>
+            </li>
+        {% endif %}
 
         {% if hasRight(constant('App\\Entity\\Menu::PARAM')) %}
             <li class="menu-item has-submenu">
