@@ -175,7 +175,7 @@ class SeuilAlerteService
 
     public function sendWarning($to, $alerte)
     {
-        $message = (new \Swift_Message('Oubli de mot de passe Wiilog.'))
+        $message = (new \Swift_Message('Alerte de seuil Wiilog.'))
             ->setFrom([$this->username => 'L\'équipe de Wiilog.'])
             ->setTo($to)
             ->setBody('Vous avez une alerte de seuil concernant l\'article '.$alerte->getAlerteRefArticle()->getLibelle().'!');
