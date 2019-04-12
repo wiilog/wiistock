@@ -159,8 +159,7 @@ class EmplacementController extends AbstractController
     {
         if ($request->isXmlHttpRequest()) {
             $search = $request->query->get('term');
-            dump($search);
-
+            
             $emplacement = $this->emplacementRepository->getIdAndLibelleBySearch($search);
 
             return new JsonResponse(['results' => $emplacement]);

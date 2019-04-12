@@ -117,7 +117,7 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
                 }
             }
         });
-        console.log(Data);
+        // console.log(Data);
 
         // ... et dans les checkboxes
         let checkboxes = modal.find('.checkbox');
@@ -129,7 +129,7 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
             if (close == true) modal.find('.close').click();
             Json = {};
             Json = JSON.stringify(Data);
-            console.log(Json);
+            // console.log(Json);
             xhttp.open("POST", path, true);
             xhttp.send(Json);
         } else {
@@ -229,7 +229,7 @@ function editRow(button, path, modal, submit, editorToInit = false) {
         if (this.readyState == 4 && this.status == 200) {
             dataReponse = JSON.parse(this.responseText);
             modal.find('.modal-body').html(dataReponse);
-            console.log('patate')
+           
             ajaxAutoFournisseurInit( $('.ajax-autocomplete-fournisseur-edit'));
             ajaxAutoRefArticleInit($('.ajax-autocomplete-edit'));
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
@@ -237,7 +237,7 @@ function editRow(button, path, modal, submit, editorToInit = false) {
             if (editorToInit) initEditor('#' + modal.attr('id'));
         }
     }
-    console.log("patate");
+   
     let json = button.data('id');
     modal.find(submit).attr('value', json);
     modal.find('#inputId').attr('value', json);
