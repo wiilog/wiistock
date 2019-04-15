@@ -26,7 +26,7 @@ class PasswordService
      * @var UtilisateurRepository
      */
     private $utilisateurRepository;
-   
+
     /**
      * @var MailerServerRepository
      */
@@ -51,29 +51,35 @@ class PasswordService
      */
     private $password;
 
-    public function __construct(MailerServerRepository $mailerServerRepository ,UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, EntityManagerInterface $entityManager)
+    public function __construct(MailerServerRepository $mailerServerRepository, UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, EntityManagerInterface $entityManager)
     {
-        $mailerServer =  $mailerServerRepository->getOneMailerServer(); 
         $this->entityManager = $entityManager;
         $this->passwordEncoder = $passwordEncoder;
         $this->utilisateurRepository = $utilisateurRepository;
         $this->mailerServerRepository = $mailerServerRepository;
-        $this->username = $mailerServer->getUser(); 
-        $this->password = $mailerServer->getPassword(); 
-        $this->transport = (new Swift_SmtpTransport($mailerServer->getSmtp(), $mailerServer->getPort(), $mailerServer->getProtocol()))
-            ->setUsername($this->username)
-            ->setPassword($this->password);
-        $this->mailer = (new Swift_Mailer($this->transport));
     }
 
     public function sendNewPassword($to)
     {
         $newPass = $this->generatePassword(10);
         if ($this->updateUser($to, $newPass) === 1) {
+            $mailerServer = $this->mailerServerRepository->getOneMailerServer();
+            $username = ($mailerServer->getUser() ?  $mailerServer->getUser() : "");
+            $password = ($mailerServer->getPassword() ? $mailerServer->getPassword() : "");
+            $transport = (new Swift_SmtpTransport(
+                ($mailerServer->getSmtp() ? $mailerServer->getSmtp() : ""),
+                ($mailerServer->getPort() ?  $mailerServer->getPort() : ""),
+                $mailerServer->getProtocol() ? $mailerServer->getProtocol() : ""
+            ))
+                ->setUsername($username)
+                ->setPassword($password);
+            $mailer = (new Swift_Mailer($transport));
+
+
             $message = (new \Swift_Message('Oubli de mot de passe Wiilog.'))
                 ->setFrom([$this->username => 'L\'équipe de Wiilog.'])
                 ->setTo($to)
-                ->setBody('Votre nouveau mot de passe est : '.$newPass);
+                ->setBody('Votre nouveau mot de passe est : ' . $newPass);
 
             $this->mailer->send($message);
         }
@@ -88,7 +94,7 @@ class PasswordService
             $len = strlen($domain);
             for ($i = 0; $i < $length; ++$i) {
                 $index = rand(0, $len - 1);
-                $generated_string = $generated_string.$domain[$index];
+                $generated_string = $generated_string . $domain[$index];
             }
         } while (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/', $generated_string));
 
