@@ -22,7 +22,9 @@
         
     <div class="col-2 offset-2">
         {% if not finished %}
-            <p><a class="btn btn-primary btn-action" href={{path('livraison_finish', {'id': livraison.id})}}>Finir la livraison</a></p>
+            {% if hasRight(constant('App\\Entity\\Menu::DEM_COLLECTE'), constant('App\\Entity\\Action::CREATE')) %}
+                <p><a class="btn btn-primary btn-action" href={{path('livraison_finish', {'id': livraison.id})}}>Finir la livraison</a></p>
+            {% endif %}
         {% endif %}
     </div>
     {% endif %}

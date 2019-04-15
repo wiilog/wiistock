@@ -10,6 +10,7 @@ use App\Repository\EmplacementRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\TypeRepository;
+
 use App\Service\RefArticleDataService;
 use App\Service\ArticleDataService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -92,7 +93,7 @@ class ArticleController extends AbstractController
     /**
      * @Route("/", name="article_index", methods={"GET", "POST"})
      */
-    public function index(Request $request): Response
+    public function index(): Response
     {
         return $this->render('article/index.html.twig');
     }

@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Utilisateur;
+use App\Repository\RoleRepository;
 use App\Repository\UtilisateurRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
@@ -26,9 +27,16 @@ class UtilisateurController extends Controller
      */
     private $utilisateurRepository;
 
-    public function __construct(UtilisateurRepository $utilisateurRepository)
+    /**
+     * @var RoleRepository
+     */
+    private $roleRepository;
+
+
+    public function __construct(UtilisateurRepository $utilisateurRepository, RoleRepository $roleRepository)
     {
         $this->utilisateurRepository = $utilisateurRepository;
+        $this->roleRepository = $roleRepository;
     }
 
     /**
@@ -51,6 +59,7 @@ class UtilisateurController extends Controller
 
         return $this->render('utilisateur/index.html.twig', [
             'utilisateurs' => $utilisateurRepository->findAll(),
+            'roles' => $this->roleRepository->findAll()
         ]);
     }
 
@@ -86,10 +95,12 @@ class UtilisateurController extends Controller
 
             $utilisateur = new Utilisateur();
             $password = $passwordEncoder->encodePassword($utilisateur, $data['password']);
+
+            $role = $this->roleRepository->find($data['role']);
             $utilisateur
                 ->setUsername($data['username'])
                 ->setEmail($data['email'])
-                ->setRoles([$data['role']])
+                ->setRole($role)
                 ->setPassword($password);
             $em = $this->getDoctrine()->getManager();
             $em->persist($utilisateur);
@@ -170,12 +181,38 @@ class UtilisateurController extends Controller
     }
 
     /**
+     * @Route("/modifier-role", name="user_edit_role",  options={"expose"=true}, methods="GET|POST")
+     */
+    public function editRole(Request $request)
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+
+            $role = $this->roleRepository->find((int)$data['role']);
+            $user = $this->utilisateurRepository->find($data['userId']);
+
+            if ($user) {
+                $user->setRole($role);
+                $em = $this->getDoctrine()->getManager();
+                $em->flush();
+
+                return new JsonResponse(true);
+            } else {
+                return new JsonResponse(false); //TODO gérer erreur
+            }
+
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+    /**
      * @Route("/api", name="user_api",  options={"expose"=true}, methods="GET|POST")
      */
-    public function apiUser(Request $request): Response
+    public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
             $utilisateurs = $this->utilisateurRepository->findAll();
+            $roles = $this->roleRepository->findAll();
+
             $rows = [];
             foreach ($utilisateurs as $utilisateur) {
                 $idUser = $utilisateur->getId();
@@ -185,7 +222,7 @@ class UtilisateurController extends Controller
                         "Nom d'utilisateur" => ($utilisateur->getUsername() ? $utilisateur->getUsername() : ''),
                         'Email' => ($utilisateur->getEmail() ? $utilisateur->getEmail() : ''),
                         'Dernière connexion' => ($utilisateur->getLastLogin() ? $utilisateur->getLastLogin()->format('d/m/Y') : ''),
-                        'Rôle' => $this->renderView('utilisateur/role.html.twig', ['utilisateur' => $utilisateur]),
+                        'Rôle' => $this->renderView('utilisateur/role.html.twig', ['utilisateur' => $utilisateur, 'roles' => $roles]),
                         'Actions' => $this->renderView(
                             'utilisateur/datatableUtilisateurRow.html.twig',
                             [

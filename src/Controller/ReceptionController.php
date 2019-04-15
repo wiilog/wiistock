@@ -323,7 +323,7 @@ class ReceptionController extends AbstractController
     public function addArticle(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() &&  $contentData = json_decode($request->getContent(), true)) { //Si la requête est de type Xml
-            
+
             $refArticle = $this->referenceArticleRepository->find($contentData['refArticle']);
             $reception = $this->receptionRepository->find($contentData['reception']);
 
@@ -342,12 +342,12 @@ class ReceptionController extends AbstractController
             $refArticle->setQuantiteStock($refArticle->getQuantiteStock() + $quantite);
             $date = new \DateTime('now');
             $ref = $date->format('YmdHis');
-            $articleFournisseur = $this->articleFournisseurRepository->findOneByRefArticleAndFournisseur($contentData['refArticle'], $contentData['fournisseur']); //TODO CG
+            $articleFournisseur = $this->articleFournisseurRepository->findOneByRefArticleAndFournisseur($contentData['refArticle'], $contentData['fournisseur']);
 
             if (!empty($articleFournisseur)) {
                 for ($i = 0; $i < $quantite; $i++) {
                     $article = new Article();
-                   
+
                     $article
                             ->setlabel($contentData['libelle'])
                             ->setReference($ref . '-' . strval($i))
@@ -360,9 +360,9 @@ class ReceptionController extends AbstractController
                     $em = $this->getDoctrine()->getManager();
                     $em->persist($article);
                     $em->flush();
-                   
+
                     $champsLibreKey = array_keys($contentData);
-                    
+
                     foreach ($champsLibreKey as $champs) {
                         if (gettype($champs) === 'integer') {
                             $valeurChampLibre = new ValeurChampsLibre();
@@ -400,7 +400,7 @@ class ReceptionController extends AbstractController
                                          'label' => $champLibre->getLabel(),
                                          'valeur' => $valeurChampLibre->getValeur()];
             }
-            
+
             $json = $this->renderView('reception/modalModifyArticleContent.html.twig', [
                 'article' => $article,
                 'type' => $type,
@@ -419,11 +419,11 @@ class ReceptionController extends AbstractController
      */
     public function editArticle(Request $request): Response
     {
-        
+
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) { //Si la requête est de type Xml
-               
+
             $article = $this->articleRepository->find($data['article']);
-            
+
             $reception = $this->receptionRepository->find($article->getReception()->getId());
 
             $article
@@ -432,7 +432,7 @@ class ReceptionController extends AbstractController
                     ->setLabel($data['label'])
                     ->setCommentaire($data['commentaire'])
                     ->setType($this->typeRepository->getOneByCategoryLabel(Article::CATEGORIE));
-                    
+
             $em = $this->getDoctrine()->getManager();
             $em->flush();
 
@@ -440,11 +440,11 @@ class ReceptionController extends AbstractController
 
             foreach ($champsLibreKey as $champ) {
                 if (gettype($champ) === 'integer') {
-                               
+
                     $valeurChampLibre = $this->valeurChampsLibreRepository->find($champ);
                     $valeurChampLibre
                         ->setValeur($data[$champ]);
-                   
+
 
                     // si la valeur n'existe pas, on la crée
                     if (!$valeurChampLibre) {
@@ -453,10 +453,10 @@ class ReceptionController extends AbstractController
                             ->addArticle($article)
                             ->setValeur($data[$champ])
                             ->setChampLibre($this->champsLibreRepository->find($champ));
-                       
+
                         $em->persist($valeurChampLibre);
                     }
-                   
+
                     $em->flush();
                 }
             }
@@ -474,8 +474,8 @@ class ReceptionController extends AbstractController
         }
         throw new NotFoundHttpException("404");
     }
-        
-    
+
+
 
     /**
      * @Route("/article/{id}", name="reception_ajout_article", methods={"GET", "POST"})

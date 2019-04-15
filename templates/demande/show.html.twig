@@ -7,25 +7,31 @@
         <h1>Demande de livraison</h1>
     </div>
     {% if modifiable %}
-    <div class="col text-right" id='boutonCollecteSup'>
+        <div class="col text-right id='boutonCollecteSup'">
+            {% if hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::DELETE')) %}
+                <a href="" data-id='{{ demande.id }}' data-target='#modalDeleteDemande' data-toggle='modal'
+                    class="btn btn-danger btn-action ml-auto">
+                    Supprimer</a>
+            {% endif %}
+            {% if hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::CREATE')) %}
+                <a href="" data-id='{{ demande.id }}' data-target='#modalEditDemande'
+                    onclick="ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'))" data-toggle='modal'
+                    class="btn btn-primary btn-action ml-auto" onclick='initNewLivraisonEditor("#modalEditDemande")'>
+                    Modifier</a>
+            {% endif %}
+            {% if hasRight(constant('App\\Entity\\Menu::PREPA'), constant('App\\Entity\\Action::CREATE')) %}
+                <a href="#" class="btn btn-primary btn-action ml-auto" data-id='{{demande.id}}'
+                   onclick="finishDemandeLivraison($(this))">
+                        Valider</a>
+            {% endif %}
+        </div>
 
-        <a href="" data-id='{{ demande.id }}' data-target='#modalDeleteDemande' data-toggle='modal'
-            class="btn btn-danger btn-action ml-auto">
-            Supprimer</a>
-        <a href="" data-id='{{ demande.id }}' data-target='#modalEditDemande'
-            onclick="ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'))" data-toggle='modal'
-            class="btn btn-primary btn-action ml-auto" onclick='initNewLivraisonEditor("#modalEditDemande")'>
-            Modifier</a>
-        <a href="#" class="btn btn-primary btn-action ml-auto" data-id='{{demande.id}}'
-            onclick="finishDemandeLivraison($(this))">
-            Valider</a>
-    </div>
-    {% elseif demande.preparation is defined %}
-    <div class="col text-right" >
-        <a href="{{path('preparation_show', {'id': demande.preparation.id }) }}">
-            Aller vers la préparation
-        </a>
-    </div>
+        {% elseif demande.preparation is defined %}
+        <div class="col text-right" >
+            <a href="{{path('preparation_show', {'id': demande.preparation.id }) }}" class="btn btn-primary btn-action">
+                Aller vers la préparation
+            </a>
+        </div>
     {% endif %}
 </div>
 
@@ -38,8 +44,11 @@
 <div class="col text-right" id="boutonCollecteInf">
     <a href="{{ path('reference_article_index') }}" data-toggle="modal" class="btn btn-primary btn-action ml-auto">
         Chercher une référence</a>
-    <a href="" data-toggle="modal" data-target="#modalNewArticle" class="btn btn-primary btn-action ml-auto">
-        <span class="fa fa-plus mr-2"></span>Ajouter article</a>
+    {% if hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::CREATE')) %}
+        <a href="" data-toggle="modal" data-target="#modalNewArticle" class="btn btn-primary btn-action ml-auto">
+            <span class="fa fa-plus mr-2"></span>Ajouter article
+        </a>
+    {% endif %}
 </div>
 {% endif %}
 

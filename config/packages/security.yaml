@@ -9,9 +9,11 @@ security:
             cost: 12
 
     role_hierarchy:
-        ROLE_STOCK_ADMIN: [ROLE_ADMIN, ROLE_STOCK]
-        ROLE_PARC_ADMIN: [ROLE_ADMIN, ROLE_PARC]
-        ROLE_SUPER_ADMIN: [ROLE_STOCK_ADMIN, ROLE_PARC_ADMIN]
+        ROLE_SUPER_ADMIN: [ROLE_ADMIN_GT]
+        ROLE_ADMIN_GT: [ROLE_USER_GT]
+        ROLE_USER_GT: [ROLE_SUPER_CUSTOMER]
+        ROLE_SUPER_CUSTOMER: [ROLE_CUSTOMER]
+        ROLE_CUSTOMER: [ROLE_USER]
 
     providers:
         my_in_memory_provider:
@@ -55,6 +57,7 @@ security:
                 lifetime: 604800 # 1 semaine
             logout: true
             anonymous: true
+#            access_denied_handler: App\Security\AccessDeniedHandler
 
         # default:
         #     anonymous: ~
@@ -85,16 +88,10 @@ security:
         # - { path: ^/admin, roles: ROLE_ADMIN, requires_channel: https}
         # - { path: ^/super/admin, roles: ROLE_SUPER_ADMIN, requires_channel: https}
         # - { path: ^/, role: IS_AUTHENTICATED_REMEMBERED, requires_channel: https}
+#        - { path: ^/tests, roles: ROLE_API }
         - { path: ^/api, role: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/login, role: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/register, role: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/oubli, role: IS_AUTHENTICATED_ANONYMOUSLY }
         - { path: ^/check_last_login, role: IS_AUTHENTICATED_ANONYMOUSLY }
-        - { path: ^/tests, roles: ROLE_API }
-        - { path: ^/stock/admin, roles: ROLE_STOCK_ADMIN }
-        - { path: ^/stock, roles: ROLE_STOCK }
-        - { path: ^/parc/admin, roles: ROLE_PARC_ADMIN }
-        - { path: ^/parc, roles: ROLE_PARC }
-        - { path: ^/admin, roles: ROLE_ADMIN }
-        - { path: ^/super/admin, roles: ROLE_SUPER_ADMIN }
         - { path: ^/, role: IS_AUTHENTICATED_REMEMBERED }

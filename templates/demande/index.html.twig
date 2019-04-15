@@ -3,18 +3,21 @@
 {% block title %}Demandes de livraison{% endblock %}
 
 {% block page_content %}
+
     {% include 'filters/filters.html.twig' with {'btnName' : 'submitSearchDemandeLivraison'} %}
 {#fermeture des filtres#}
 {#ouverture d'un nouveau container pour aligner sur tableau#}
 <div class="container-fluid">
-    
+
         <h1>Demandes de livraison</h1>
 
         <div class="zone-actions col-12 mb-5">
-            <div href="" data-toggle="modal" data-target="#modalNewDemande" class="btn btn-primary"
-                onclick='initNewLivraisonEditor("#modalNewDemande")'>
-                <span class="fa fa-plus mr-2"></span>Nouvelle demande
-            </div>
+            {% if hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::CREATE')) %}
+                <div href="" data-toggle="modal" data-target="#modalNewDemande" class="btn btn-primary"
+                    onclick='initNewLivraisonEditor("#modalNewDemande")'>
+                    <span class="fa fa-plus mr-2"></span>Nouvelle demande
+                </div>
+            {% endif %}
         </div>
 
         <div class="zone-affichage col-12">

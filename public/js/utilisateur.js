@@ -38,3 +38,12 @@ function alertErrorMsg(data) {
         alert(data); //TODO gérer erreur retour plus propre (alert bootstrap)
     }
 }
+
+function editRole(select) {
+    let params = JSON.stringify({
+        'role': select.val(),
+        'userId': select.data('user-id')
+        });
+
+    $.post(Routing.generate('user_edit_role'), params, 'json');
+}

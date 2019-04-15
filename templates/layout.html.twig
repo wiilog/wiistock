@@ -26,8 +26,12 @@
                 <h4>Demande</h4>
             </a>
             <ul class="sidemenu-sub">
-                <li><a href="{{path("collecte_index")}}" class="sub-item">• Collecte</a></li>
-                <li><a href="{{ path('demande_index') }}" class="sub-item">• Livraison</a></li>
+                {% if hasRight(constant('App\\Entity\\Menu::DEM_COLLECTE'), constant('App\\Entity\\Action::LIST')) %}
+                    <li><a href="{{path("collecte_index")}}" class="sub-item">• Collecte</a></li>
+                {% endif %}
+                {% if hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::LIST')) %}
+                    <li><a href="{{ path('demande_index') }}" class="sub-item">• Livraison</a></li>
+                {% endif %}
                 <li><a href="{{ path('service_index') }}" class="sub-item">• Déplacement d'article</a></li>
             </ul>
         </li>
@@ -38,64 +42,75 @@
                 <h4>Ordre</h4>
             </a>
             <ul class="sidemenu-sub">
-                <li><a href="{{path("reception_index")}}" class="sub-item">• Réception</a></li>
-                <li><a href="{{ path('preparation_index') }}" class="sub-item">• Préparation</a></li>
-                <li><a href="{{ path("livraison_index") }}" class="sub-item">• Livraison</a></li>
+                {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::LIST')) %}
+                    <li><a href="{{path("reception_index")}}" class="sub-item">• Réception</a></li>
+                {% endif %}
+                {% if hasRight(constant('App\\Entity\\Menu::PREPA'), constant('App\\Entity\\Action::LIST')) %}
+                    <li><a href="{{ path('preparation_index') }}" class="sub-item">• Préparation</a></li>
+                {% endif %}
+                {% if hasRight(constant('App\\Entity\\Menu::LIVRAISON'), constant('App\\Entity\\Action::LIST')) %}
+                    <li><a href="{{ path("livraison_index") }}" class="sub-item">• Livraison</a></li>
+                {% endif %}
             </ul>
         </li>
         <!-- STOCK -->
-        <li class="menu-item has-submenu">
-            <a href="#">
-                <i class="fas fa-box"></i>
-                <h4>Stock</h4>
-            </a>
-            <ul class="sidemenu-sub">
-                <li><a href="{{ path('article_index') }}" class="sub-item">• Article</a></li>
-                <!-- <li><a href="#">• Mouvement</a></li> -->
-                <li><a href="{{path('emplacement_index')}}" class="sub-item">• Emplacement</a></li>
-                <!-- <li><a href="#">• Inventaire</a></li>        -->
-                <li>
-                    <a href="{{ path('fournisseur_index') }}" class="sub-item">• Fournisseur</a>
-                </li>
-                <li>
-                    <a href="{{ path('reference_article_index') }}" class="sub-item">• Article référence</a>
-                </li>
-                <li>
-                    <!-- <a href="#">• Article type</a> -->
-                </li>
-                <li>
-                    <a href="{{ path('article_fournisseur_index') }}" class="sub-item">• Article fournisseur</a>
-                </li>
-            </ul>
-        </li>
-
-        {% if is_granted('ROLE_ADMIN') %}
-        <li class="menu-item has-submenu">
-            <a href="#">
-                <i class="fas fa-gear"></i>
-                <h4>Paramétrage</h4>
-            </a>
-            <ul class="sidemenu-sub">
-                <li>
-                    <a href="{{ path('user_index') }}" class="sub-item">• Utilisateurs</a>
-                </li>
-                <li>
-                    <!-- <a href="#">• Rôle</a> -->
-                </li>
-                <li>
-                    <a href="{{ path('champ_libre_index') }}" class="sub-item">• Champs libres</a>
-                </li>
-                <li>
-                    <a href="{{ path('alerte_index') }}" class="sub-item">• Alertes</a>
-                </li>
-            </ul>
-        </li>
+        {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::LIST')) %}
+            <li class="menu-item has-submenu">
+                <a href="#">
+                    <i class="fas fa-box"></i>
+                    <h4>Stock</h4>
+                </a>
+                <ul class="sidemenu-sub">
+                    <li>
+                        <a href="{{ path('article_index') }}" class="sub-item">• Article</a>
+                    </li>
+                    <li>
+                        <a href="{{path('emplacement_index')}}" class="sub-item">• Emplacement</a>
+                    </li>
+                    <li>
+                        <a href="{{ path('fournisseur_index') }}" class="sub-item">• Fournisseur</a>
+                    </li>
+                    <li>
+                        <a href="{{ path('reference_article_index') }}" class="sub-item">• Article référence</a>
+                    </li>
+                    <li>
+                        <a href="{{ path('article_fournisseur_index') }}" class="sub-item">• Article fournisseur</a>
+                    </li>
+                </ul>
+            </li>
         {% endif %}
+
+        {% if (hasRight(constant('App\\Entity\\Menu::PARAM')) or hasRight(constant('App\\Entity\\Menu::ADMIN_ROLE'))) %}
+            <li class="menu-item has-submenu">
+                <a href="#">
+                    <i class="fas fa-gear"></i>
+                    <h4>Paramétrage</h4>
+                </a>
+                <ul class="sidemenu-sub">
+                    {% if hasRight(constant('App\\Entity\\Menu::ADMIN_ROLE')) %}
+                        <li>
+                            <a href="{{ path('role_index') }}" class="sub-item">• Rôles</a>
+                        </li>
+                    {% endif %}
+                    {% if hasRight(constant('App\\Entity\\Menu::PARAM')) %}
+                        <li>
+                            <a href="{{ path('user_index') }}" class="sub-item">• Utilisateurs</a>
+                        </li>
+                        <li>
+                            <a href="{{ path('champ_libre_index') }}" class="sub-item">• Champs libres</a>
+                        </li>
+                        <li>
+                            <a href="{{ path('alerte_index') }}" class="sub-item">• Alertes</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </li>
+        {% endif %}
+
         <li class="menu-item">
             <a href="{{ path('logout') }}">
                 <i class="fas fa-power-off"></i>
                 <h4>Déconnexion</h4>
-
             </a>
         </li>
       
