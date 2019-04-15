@@ -246,7 +246,6 @@ class ReceptionController extends AbstractController
      */
     public function articleApi(Request  $request,  $id): Response
     {
-        dump('hello"');
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
             {
                 $reception = $this->receptionRepository->find($id);
@@ -261,9 +260,9 @@ class ReceptionController extends AbstractController
                             "Libellé" => ($ligneArticle->getlibelle() ?  $ligneArticle->getlibelle() : ''),
                             "A recevoir" => ($ligneArticle->getQuantiteAR() ?  $ligneArticle->getQuantiteAR() : ''),
                             "Reçu" => ($ligneArticle->getQuantite() ?  $ligneArticle->getQuantite() : ''),
-                            'Actions' => " $this->renderView(
+                            'Actions' =>  $this->renderView('reception/data'
                                 
-                            ),"
+                            ),
                         ];
                 }
                 $data['data'] =  $rows;
@@ -335,13 +334,20 @@ class ReceptionController extends AbstractController
      */
     public function addArticle(Request  $request): Response
     {
-        if (!$request->isXmlHttpRequest() &&   $contentData = json_decode($request->getContent(), true)) { //Si la requête est de type Xml
+        if (!$request->isXmlHttpRequest() && $contentData = json_decode($request->getContent(), true)) { //Si la requête est de type Xml
 
-            $refArticle =  $this->referenceArticleRepository->find($contentData['refArticle']);
+
+            dump( $contentData);
+            dump('hell');
+            
+            $refArticle =  $this->referenceArticleRepository->find($contentData['referenceArticle']);
             $reception =  $this->receptionRepository->find($contentData['reception']);
-
+            $fournisseur = $this->fournisseurRepository->find($contentData['fournisseur']);
+            
+            dump('hell1');
             $anomalie =  $contentData['anomalie'] === 'on';
             if (!$anomalie) {
+                dump($this->articleRepository->countNotConformByReception($reception));
                 $articleAnomalie =  $this->articleRepository->countNotConformByReception($reception);
                 if ($articleAnomalie < 1) {
                     $statutRecep =  $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_RECEPTION_PARTIELLE);
@@ -353,41 +359,40 @@ class ReceptionController extends AbstractController
 
             $quantite =  $contentData['quantite'];
             $refArticle->setQuantiteStock($refArticle->getQuantiteStock() +  $quantite);
-            $date = new \DateTime('now');
-            $ref =  $date->format('YmdHis');
-            $articleFournisseur =  $this->articleFournisseurRepository->findOneByRefArticleAndFournisseur($contentData['refArticle'],  $contentData['fournisseur']); //TODO CG
+           // $articleFournisseur =  $this->articleFournisseurRepository->findOneByRefArticleAndFournisseur($contentData['refArticle'],  $contentData['fournisseur']); //TODO CG
 
             if (!empty($articleFournisseur)) {
                 for ($i = 0; $i <  $quantite; $i++) {
-                    $article = new Article();
+                    $receptionReferenceArticle = new ReceptionReferenceArticle;
 
-                    $article
-                        ->setlabel($contentData['libelle'])
-                        ->setReference($ref . '-' . strval($i))
-                        ->setArticleFournisseur($articleFournisseur)
-                        ->setConform(!$anomalie)
-                        ->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF))
+                    $receptionReferenceArticle
+                        ->setLibelle($contentData['libelle'])
+                        ->setAnomalie(!$anomalie)
+                        ->setFournisseur($fournisseur)
+                        ->setReferenceArticel($refArticle)
+                        ->setQuantite($contentData['quantite'])
+                        ->setQuantiteAR($contentData['quantiteAR'])
                         ->setCommentaire($contentData['commentaire'])
                         ->setReception($reception)
                         ->setType($this->typeRepository->getOneByCategoryLabel(Article::CATEGORIE));
                     $em =  $this->getDoctrine()->getManager();
-                    $em->persist($article);
+                    $em->persist($receptionReferenceArticle);
                     $em->flush();
 
-                    $champsLibreKey = array_keys($contentData);
+                    // $champsLibreKey = array_keys($contentData);
 
-                    foreach ($champsLibreKey as  $champs) {
-                        if (gettype($champs) === 'integer') {
-                            $valeurChampLibre = new ValeurChampsLibre();
-                            $valeurChampLibre
-                                ->setValeur($contentData[$champs])
-                                ->addArticle($article)
-                                ->setChampLibre($this->champsLibreRepository->find($champs));
-                            $em =  $this->getDoctrine()->getManager();
-                            $em->persist($valeurChampLibre);
-                            $em->flush();
-                        } //TODO gérer message erreur retour
-                    }
+                    // foreach ($champsLibreKey as  $champs) {
+                    //     if (gettype($champs) === 'integer') {
+                    //         $valeurChampLibre = new ValeurChampsLibre();
+                    //         $valeurChampLibre
+                    //             ->setValeur($contentData[$champs])
+                    //             ->addArticle($article)
+                    //             ->setChampLibre($this->champsLibreRepository->find($champs));
+                    //         $em =  $this->getDoctrine()->getManager();
+                    //         $em->persist($valeurChampLibre);
+                    //         $em->flush();
+                    //     } //TODO gérer message erreur retour
+                    // }
                     return new JsonResponse();
                 }
                 throw new NotFoundHttpException("404");

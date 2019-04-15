@@ -34,7 +34,7 @@
         Chercher une référence</a>
     {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::CREATE')) %}
         <a href="" data-toggle="modal" data-target="#modalAddArticle" class="btn btn-primary btn-action ml-auto"
-            onclick='initNewArticleEditor("#modalAddArticle")'>
+            onclick="initNewArticleEditor('#modalAddArticle'),  ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'))">
             <span class="fa fa-plus mr-2"></span>Ajouter article
         </a>
     {% endif %}
