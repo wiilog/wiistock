@@ -114,10 +114,10 @@ class DemandeController extends AbstractController
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $demandeLivraison = $this->demandeRepository->find($data);
-            //$utilisateurs = $this->utilisateurRepository->findAll();
+           
             $json = $this->renderView('demande/modalEditdemandeContent.html.twig', [
                 'demande' => $demandeLivraison,
-                //'utilisateurs' => $utilisateurs,
+              
                
             ]);
 
@@ -125,10 +125,6 @@ class DemandeController extends AbstractController
         }
         throw new NotFoundHttpException('404');
     }
-
-
-
-
 
     /**
      * @Route("/modifier", name="demande_edit", options={"expose"=true}, methods="GET|POST")
