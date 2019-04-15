@@ -94,7 +94,7 @@ class DemandeController extends AbstractController
             $em->flush();
 
             $data = [
-                'entete'=> $this->renderView(
+                'entete' => $this->renderView(
                     'demande/enteteDemandeLivraison.html.twig',
                     [
                         'demande' => $demande,
@@ -176,7 +176,7 @@ class DemandeController extends AbstractController
         ]);
     }
 
-    /**
+    /** 
      * @Route("/delete", name="demande_delete", options={"expose"=true}, methods="GET|POST")
      */
     public function delete(Request $request): Response

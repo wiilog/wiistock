@@ -18,6 +18,7 @@ use App\Repository\CollecteRepository;
 use App\Repository\DemandeRepository;
 use App\Repository\LivraisonRepository;
 use App\Repository\ArticleRepository;
+use App\Repository\LigneArticleRepository;
 
 use App\Service\RefArticleDataService;
 use App\Service\ArticleDataService;
@@ -92,6 +93,12 @@ class ReferenceArticleController extends Controller
     private $articleFournisseurRepository;
 
     /**
+     * @var LigneArticleRepository
+     */
+    private $ligneArticleRepository;
+
+
+    /**
      * @var FilterRepository
      */
     private $filterRepository;
@@ -107,7 +114,7 @@ class ReferenceArticleController extends Controller
     private $articleDataService;
 
 
-    public function __construct(ArticleRepository $articleRepository, ArticleDataService $articleDataService, LivraisonRepository $livraisonRepository, DemandeRepository $demandeRepository, CollecteRepository $collecteRepository, StatutRepository $statutRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FilterRepository $filterRepository, RefArticleDataService $refArticleDataService)
+    public function __construct(LigneArticleRepository $ligneArticleRepository,ArticleRepository $articleRepository, ArticleDataService $articleDataService, LivraisonRepository $livraisonRepository, DemandeRepository $demandeRepository, CollecteRepository $collecteRepository, StatutRepository $statutRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FilterRepository $filterRepository, RefArticleDataService $refArticleDataService)
     {
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->champsLibreRepository = $champsLibreRepository;
@@ -122,6 +129,7 @@ class ReferenceArticleController extends Controller
         $this->refArticleDataService = $refArticleDataService;
         $this->articleDataService = $articleDataService;
         $this->articleRepository = $articleRepository;
+        $this->ligneArticleRepository = $ligneArticleRepository;
     }
 
     /**
@@ -346,7 +354,7 @@ class ReferenceArticleController extends Controller
             'typeQuantite' => $typeQuantite,
             'filters' => $this->filterRepository->findBy(['utilisateur' => $this->getUser()]),
         ]);
-}
+    }
 
     /**
      * @Route("/api-modifier", name="reference_article_edit_api", options={"expose"=true},  methods="GET|POST")
@@ -454,12 +462,20 @@ class ReferenceArticleController extends Controller
                 $refArticle = $this->referenceArticleRepository->find($data['refArticle']);
                 $demande = $this->demandeRepository->find($data['livraison']);
                 if ($refArticle) {
-                    $ligneArticle = new LigneArticle;
-                    $ligneArticle
-                        ->setReference($refArticle)
-                        ->setDemande($demande)
-                        ->setQuantite($data['quantitie']);
-                    $em->persist($ligneArticle);
+                    if ($this->ligneArticleRepository->countByRefArticleDemande($refArticle, $demande) < 1) {
+                        $ligneArticle = new LigneArticle;
+                        $ligneArticle
+                            ->setReference($refArticle)
+                            ->setDemande($demande)
+                            ->setQuantite($data['quantitie']);
+                        $em->persist($ligneArticle);
+                    } else {
+                        $ligneArticle = $this->ligneArticleRepository->getByRefArticle($refArticle);
+                        dump($ligneArticle);
+                        $ligneArticle
+                        ->setQuantite($ligneArticle->getQuantite() + $data["quantitie"]);
+                        dump('helo');
+                    }
                 } else {
                     $json = false;
                 }
