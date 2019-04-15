@@ -107,7 +107,7 @@ class ArticleController extends AbstractController
             $articles = $this->articleRepository->findAll();
             $rows = [];
             foreach ($articles as $article) {
-                $url['edit'] = $this->generateUrl('ligne_article_edit', ['id' => $article->getId()]);
+                $url['edit'] = $this->generateUrl('demande_article_edit', ['id' => $article->getId()]);
 
                 $rows[] =
                         [

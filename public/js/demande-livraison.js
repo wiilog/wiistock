@@ -9,7 +9,7 @@ $('#utilisateur').select2({
     }
 });
 //ARTICLE DEMANDE
-let pathArticle = Routing.generate('ligne_article_api', { id: id }, true);
+let pathArticle = Routing.generate('demande_article_api', { id: id }, true);
 let tableArticle = $('#table-lignes').DataTable({
     "language": {
         "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
@@ -29,17 +29,17 @@ let tableArticle = $('#table-lignes').DataTable({
 
 let modalNewArticle = $("#modalNewArticle");
 let submitNewArticle = $("#submitNewArticle");
-let pathNewArticle = Routing.generate('ligne_article_new', true);
+let pathNewArticle = Routing.generate('demande_add_article', true);
 InitialiserModal(modalNewArticle, submitNewArticle, pathNewArticle, tableArticle);
 
 let modalDeleteArticle = $("#modalDeleteArticle");
 let submitDeleteArticle = $("#submitDeleteArticle");
-let pathDeleteArticle = Routing.generate('ligne_article_delete', true);
+let pathDeleteArticle = Routing.generate('demande_remove_article', true);
 InitialiserModal(modalDeleteArticle, submitDeleteArticle, pathDeleteArticle, tableArticle);
 
 let modalEditArticle = $("#modalEditArticle");
 let submitEditArticle = $("#submitEditArticle");
-let pathEditArticle = Routing.generate('ligne_article_edit', true);
+let pathEditArticle = Routing.generate('demande_article_edit', true);
 InitialiserModal(modalEditArticle, submitEditArticle, pathEditArticle, tableArticle);
 
 
