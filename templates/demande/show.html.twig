@@ -15,7 +15,9 @@
             {% endif %}
             {% if hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::CREATE')) %}
                 <a href="" data-id='{{ demande.id }}' data-target='#modalEditDemande'
-                    onclick="ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit')); initNewLivraisonEditor('#modalEditDemande')" data-toggle='modal'
+                onclick="editRow($(this), Routing.generate('demandeLivraison_api_edit', true), $('#modalEditDemande'), $('#submitEditdemande'), true)"    
+                {#onclick="ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit')); initNewLivraisonEditor('#modalEditDemande')"#} 
+                    data-toggle='modal'
                     class="btn btn-primary btn-action ml-auto" onclick=>
                     Modifier</a>
             {% endif %}

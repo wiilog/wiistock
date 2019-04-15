@@ -107,6 +107,29 @@ class DemandeController extends AbstractController
         throw new NotFoundHttpException("404"); //TODO retour msg erreur (pas d'article dans la DL)
     }
 
+   /**
+     * @Route("/api-modifier", name="demandeLivraison_api_edit", options={"expose"=true}, methods="GET|POST")
+     */
+    public function editApi(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $demandeLivraison = $this->demandeRepository->find($data);
+            //$utilisateurs = $this->utilisateurRepository->findAll();
+            $json = $this->renderView('demande/modalEditdemandeContent.html.twig', [
+                'demande' => $demandeLivraison,
+                //'utilisateurs' => $utilisateurs,
+               
+            ]);
+
+            return new JsonResponse($json);
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+
+
+
+
     /**
      * @Route("/modifier", name="demande_edit", options={"expose"=true}, methods="GET|POST")
      */

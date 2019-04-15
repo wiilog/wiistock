@@ -1,10 +1,8 @@
 <div class="form-group">
-    <label for="demandeur">Utilisateur</label>
-    <select name="demandeur" class="form-control data select2">
-        {% for utilisateur in utilisateurs %}
-            {% set selected = (utilisateur.id == demande.utilisateur.id ? 'selected' : '') %}
-            <option value="{{ utilisateur.id }}" {{ selected }}>{{ utilisateur.username }}</option>
-        {% endfor %}
+    <label for="utilisateur">Utilisateur</label>
+    <select class="form-control select2 data" name="demandeur">
+        <option value="{{demande.utilisateur.id}}">{{ demande.utilisateur.username }}</option>
+
     </select>
 </div>
 
