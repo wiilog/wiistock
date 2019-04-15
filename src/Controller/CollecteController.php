@@ -13,6 +13,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
+
 use App\Repository\CollecteRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\EmplacementRepository;
@@ -295,6 +297,7 @@ class CollecteController extends AbstractController
             return new JsonResponse($response);
         }
         throw new NotFoundHttpException('404');
+
     }
 
     /**
@@ -326,7 +329,7 @@ class CollecteController extends AbstractController
             $pointCollecte = $this->emplacementRepository->find($data['Pcollecte']);
 
             $collecte
-                
+
                 ->setDate(new \DateTime($data['date-collecte']))
                 ->setCommentaire($data['commentaire'])
                 ->setObjet($data['objet'])

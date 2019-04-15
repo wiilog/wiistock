@@ -8,14 +8,19 @@
         <h1>Réception</h1>
     </div>
     <div class="col text-right">
-        <a href="" data-id='{{ id }}' data-target='#modalDeleteReception' data-toggle='modal'
-            class="btn btn-danger btn-action ml-auto">
-            Supprimer</a>
-        <a href="" data-id='{{ id }}' data-target='#modalEditReception' data-toggle='modal'
-            class="btn btn-primary btn-action ml-auto" onclick='initEditReceptionEditor("#modalEditReception")'>
-            Modifier</a>
-        <a href="{{path('reception_finish', {'id': id})}}" class="btn btn-primary btn-action ml-auto">
-            Fin réception</a>
+        {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::DELETE')) %}
+            <a href="" data-id='{{ id }}' data-target='#modalDeleteReception' data-toggle='modal'
+                class="btn btn-danger btn-action ml-auto">
+                Supprimer</a>
+        {% endif %}
+
+        {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::CREATE')) %}
+            <a href="" data-id='{{ id }}' data-target='#modalEditReception' data-toggle='modal'
+                class="btn btn-primary btn-action ml-auto" onclick='initEditReceptionEditor("#modalEditReception")'>
+                Modifier</a>
+            <a href="{{path('reception_finish', {'id': id})}}" class="btn btn-primary btn-action ml-auto">
+                Fin réception</a>
+        {% endif %}
     </div>
 </div>
 <div class="row">
@@ -27,10 +32,12 @@
 <div class="col text-right">
     <a href="{{ path('reference_article_index') }}" data-toggle="modal" class="btn btn-primary btn-action ml-auto">
         Chercher une référence</a>
-    <a href="" data-toggle="modal" data-target="#modalAddArticle" class="btn btn-primary btn-action ml-auto"
-        onclick='initNewArticleEditor("#modalAddArticle")'>
-        <span class="fa fa-plus mr-2"></span>Ajouter article
-    </a>
+    {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::CREATE')) %}
+        <a href="" data-toggle="modal" data-target="#modalAddArticle" class="btn btn-primary btn-action ml-auto"
+            onclick='initNewArticleEditor("#modalAddArticle")'>
+            <span class="fa fa-plus mr-2"></span>Ajouter article
+        </a>
+    {% endif %}
 </div>
 
 <table id="tableArticle_id" class="table table-striped table-bordered" style="width:100%">

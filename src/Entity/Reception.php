@@ -51,11 +51,6 @@ class Reception
     private $utilisateur;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Article", mappedBy="reception")
-     */
-    private $articles;
-
-    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="receptions")
      */
     private $Statut;
@@ -83,7 +78,6 @@ class Reception
 
     public function __construct()
     {
-        $this->articles = new ArrayCollection();
         $this->receptionReferenceArticles = new ArrayCollection();
     }
 
@@ -154,37 +148,6 @@ class Reception
     public function setUtilisateur(?Utilisateur $utilisateur): self
     {
         $this->utilisateur = $utilisateur;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|Article[]
-     */
-    public function getArticles(): Collection
-    {
-        return $this->articles;
-    }
-
-    public function addArticle(Article $article): self
-    {
-        if (!$this->articles->contains($article)) {
-            $this->articles[] = $article;
-            $article->setReception($this);
-        }
-
-        return $this;
-    }
-
-    public function removeArticle(Article $article): self
-    {
-        if ($this->articles->contains($article)) {
-            $this->articles->removeElement($article);
-            // set the owning side to null (unless already changed)
-            if ($article->getReception() === $this) {
-                $article->setReception(null);
-            }
-        }
 
         return $this;
     }

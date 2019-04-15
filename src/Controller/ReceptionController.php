@@ -511,8 +511,8 @@ class ReceptionController extends AbstractController
         }
         throw new NotFoundHttpException("404");
     }
-        
-    
+
+
 
     /**
      * @Route("/article/{id}", name="reception_ajout_article", methods={"GET", "POST"})

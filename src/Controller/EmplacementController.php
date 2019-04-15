@@ -64,7 +64,7 @@ class EmplacementController extends AbstractController
     /**
      * @Route("/", name="emplacement_index", methods="GET")
      */
-    public function index(Request $request): Response
+    public function index(): Response
     {
         return $this->render('emplacement/index.html.twig', ['emplacement' => $this->emplacementRepository->findAll()]);
     }

@@ -2,6 +2,8 @@
 
 namespace App\Controller;
 
+use App\Entity\Role;
+use App\Repository\RoleRepository;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use App\Form\UtilisateurType;
@@ -24,9 +26,16 @@ class SecuriteController extends Controller
      */
     private $psservice;
 
-    public function __construct(PasswordService $psservice)
+    /**
+     * @var RoleRepository
+     */
+    private $roleRepository;
+
+
+    public function __construct(PasswordService $psservice, RoleRepository $roleRepository)
     {
         $this->psservice = $psservice;
+        $this->roleRepository = $roleRepository;
     }
 
     /**
@@ -68,8 +77,9 @@ class SecuriteController extends Controller
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             $password = $passwordEncoder->encodePassword($user, $user->getPlainPassword());
-            $user->setPassword($password);
-            $user->setRoles(array('ROLE_USER'));
+            $user
+                ->setPassword($password)
+                ->setRole($this->roleRepository->findOneByLabel(Role::SIMPLE_USER));
 
             $em->persist($user);
             $em->flush();
@@ -99,17 +109,8 @@ class SecuriteController extends Controller
         $user->setLastLogin(new \Datetime());
         $em->flush();
 
-        $roles = $user->getRoles();
+        return $this->redirectToRoute('accueil');
 
-        if ($this->isGranted('ROLE_STOCK')) {
-            return $this->redirectToRoute('accueil');
-        }
-
-        if ($this->isGranted('ROLE_PARC')) {
-            return $this->redirectToRoute('parc_list');
-        }
-
-        return $this->redirectToRoute('attente_validation');
     }
 
     /**
@@ -118,8 +119,17 @@ class SecuriteController extends Controller
     public function attente_validation()
     {
         return $this->render('securite/attente_validation.html.twig', [
-            'controller_name' => 'SecuriteController',
+//            'controller_name' => 'SecuriteController',
         ]);
+    }
+
+    /**
+     * @Route("/acces-refuse", name="access_denied")
+     */
+    public function access_denied()
+    {
+        return $this->render('securite/access_denied.html.twig');
+
     }
 
     /**

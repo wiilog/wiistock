@@ -397,21 +397,19 @@ class ReferenceArticle
             $this->receptionReferenceArticles[] = $receptionReferenceArticle;
             $receptionReferenceArticle->setReferenceArticle($this);
         }
-
         return $this;
     }
 
-    public function removeReceptionReferenceArticle(ReceptionReferenceArticle $receptionReferenceArticle): self
+    public function removeReceptionReferenceArticle(ReceptionReferenceArticle  $receptionReferenceArticle): self
     {
         if ($this->receptionReferenceArticles->contains($receptionReferenceArticle)) {
             $this->receptionReferenceArticles->removeElement($receptionReferenceArticle);
             // set the owning side to null (unless already changed)
-            if ($receptionReferenceArticle->getReferenceArticle() === $this) {
+            if ($receptionReferenceArticle->getReferenceArticle() ===  $this) {
                 $receptionReferenceArticle->setReferenceArticle(null);
             }
+            return $this;
         }
-
-        return $this;
     }
 
 }

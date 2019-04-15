@@ -41,6 +41,21 @@ class ReceptionReferenceArticle
      */
     private $quantiteAR;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Fournisseur", inversedBy="receptionReferenceArticles")
+     */
+    private $fournisseur;
+
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $anomalie;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $label;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -102,6 +117,42 @@ class ReceptionReferenceArticle
     public function setQuantiteAR(?int $quantiteAR): self
     {
         $this->quantiteAR = $quantiteAR;
+
+        return $this;
+    }
+
+    public function getFournisseur(): ?Fournisseur
+    {
+        return $this->fournisseur;
+    }
+
+    public function setFournisseur(?Fournisseur $fournisseur): self
+    {
+        $this->fournisseur = $fournisseur;
+
+        return $this;
+    }
+
+    public function getAnomalie(): ?bool
+    {
+        return $this->anomalie;
+    }
+
+    public function setAnomalie(?bool $anomalie): self
+    {
+        $this->anomalie = $anomalie;
+
+        return $this;
+    }
+
+    public function getLabel(): ?string
+    {
+        return $this->label;
+    }
+
+    public function setLabel(?string $label): self
+    {
+        $this->label = $label;
 
         return $this;
     }

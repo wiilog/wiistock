@@ -32,7 +32,7 @@ class DemandeController extends AbstractController
     private $statutRepository;
 
     /**
-     * @var LignreArticleRepository
+     * @var LigneArticleRepository
      */
     private $ligneArticleRepository;
 
@@ -104,7 +104,7 @@ class DemandeController extends AbstractController
 
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException("404");
+        throw new NotFoundHttpException("404"); //TODO retour msg erreur (pas d'article dans la DL)
     }
 
     /**
