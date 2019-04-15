@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Repository\UtilisateurRepository;
+use App\Repository\MailerServerRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
@@ -25,6 +26,11 @@ class PasswordService
      * @var UtilisateurRepository
      */
     private $utilisateurRepository;
+   
+    /**
+     * @var MailerServerRepository
+     */
+    private $mailerServerRepository;
 
     /**
      * @var Swift_SmtpTransport
@@ -45,14 +51,16 @@ class PasswordService
      */
     private $password;
 
-    public function __construct(UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, EntityManagerInterface $entityManager)
+    public function __construct(MailerServerRepository $mailerServerRepository ,UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, EntityManagerInterface $entityManager)
     {
+        $mailerServer =  $mailerServerRepository->getOneMailerServer(); 
         $this->entityManager = $entityManager;
         $this->passwordEncoder = $passwordEncoder;
         $this->utilisateurRepository = $utilisateurRepository;
-        $this->username = 'admin@wiilog.fr'; // TODO
-        $this->password = 'Kellhus16^^'; // TODO
-        $this->transport = (new Swift_SmtpTransport('smtp.sendgrid.net', 465, 'ssl'))
+        $this->mailerServerRepository = $mailerServerRepository;
+        $this->username = $mailerServer->getUser(); 
+        $this->password = $mailerServer->getPassword(); 
+        $this->transport = (new Swift_SmtpTransport($mailerServer->getSmtp(), $mailerServer->getPort(), $mailerServer->getProtocol()))
             ->setUsername($this->username)
             ->setPassword($this->password);
         $this->mailer = (new Swift_Mailer($this->transport));

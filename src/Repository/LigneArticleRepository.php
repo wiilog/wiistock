@@ -42,7 +42,7 @@ class LigneArticleRepository extends ServiceEntityRepository
             "
         )->setParameter('referenceArticle', $referenceArticle);
         ;
-        return $query->getSingleResult();
+        return $query->getOneOrNullResult();
     }
 
     public function getByDemande($demande)

@@ -17,7 +17,7 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function () 
                 }
                 callback(data);
                 initRemove();
-
+                
                 let inputs = modal.find('.modal-body').find(".data");
                 // on vide tous les inputs
                 inputs.each(function () {
@@ -30,14 +30,14 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function () 
                 })
             }
         };
-
+        
         // On récupère toutes les données qui nous intéressent
         // dans les inputs...
         let inputs = modal.find(".data");
         let Data = {};
         let missingInputs = [];
         let wrongInputs = [];
-
+        
         inputs.each(function () {
             let val = $(this).val();
             let name = $(this).attr("name");
@@ -49,23 +49,25 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function () 
                 $(this).addClass('is-invalid');
             }
             // validation valeur des inputs de type number
-            if ($(this).attr('type') === 'number') {
-                let val = parseInt($(this).val());
-                let min = parseInt($(this).attr('min'));
-                let max = parseInt($(this).attr('max'));
-                if (val > max || val < min) {
-                    wrongInputs.push($(this));
-                    $(this).addClass('is-invalid');
-                }
-            }
+            // if ($(this).attr('type') === 'number') {
+            //     let val = parseInt($(this).val());
+            //     console.log(val)
+            //     let min = parseInt($(this).attr('min'));
+            //     console.log(min)
+            //     let max = parseInt($(this).attr('max'));
+            //     console.log(max)
+            //     if (val > max || val < min) {
+            //         wrongInputs.push($(this));
+            //         $(this).addClass('is-invalid');
+            //     }
+            // }
         });
-
+        
         // ... et dans les checkboxes
         let checkboxes = modal.find('.checkbox');
         checkboxes.each(function () {
             Data[$(this).attr("name")] = $(this).is(':checked');
         });
-
         // si tout va bien on envoie la requête ajax...
         if (missingInputs.length == 0 && wrongInputs.length == 0) {
             if (close == true) modal.find('.close').click();
