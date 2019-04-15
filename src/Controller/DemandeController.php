@@ -115,10 +115,8 @@ class DemandeController extends AbstractController
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $demandeLivraison = $this->demandeRepository->find($data);
            
-            $json = $this->renderView('demande/modalEditdemandeContent.html.twig', [
+            $json = $this->renderView('demande/modalEditDemandeContent.html.twig', [
                 'demande' => $demandeLivraison,
-              
-               
             ]);
 
             return new JsonResponse($json);
