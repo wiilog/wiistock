@@ -19,14 +19,14 @@ class ReceptionReferenceArticleRepository extends ServiceEntityRepository
         parent::__construct($registry, ReceptionReferenceArticle::class);
     }
 
-    public function getByReception($id)
+    public function getByReception($reception)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             'SELECT a
             FROM App\Entity\ReceptionReferenceArticle a
-            WHERE a.reception = :id'
-        )->setParameter('id', $id);;
+            WHERE a.reception = :reception'
+        )->setParameter('reception', $reception);;
         return $query->execute();
     }
 

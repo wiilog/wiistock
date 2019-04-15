@@ -47,10 +47,11 @@ let tableArticle = $('#tableArticle_id').DataTable({
         "type": "POST"
     },
     columns: [
-        { "data": 'Libellé' },
-        { "data": 'Référence' },
         { "data": 'Référence CEA' },
-        { "data": 'Statut' },
+        { "data": 'Libellé' },
+        { "data": 'A recevoir' },
+        { "data": 'Reçu' },
+        { "data": 'Fournisseur' },
         { "data": 'Actions' }
     ],
 });
