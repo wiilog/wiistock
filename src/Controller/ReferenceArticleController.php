@@ -18,6 +18,7 @@ use App\Repository\CollecteRepository;
 use App\Repository\DemandeRepository;
 use App\Repository\LivraisonRepository;
 use App\Repository\ArticleRepository;
+use App\Repository\LigneArticleRepository;
 
 use App\Service\RefArticleDataService;
 use App\Service\ArticleDataService;
@@ -92,6 +93,12 @@ class ReferenceArticleController extends Controller
     private $articleFournisseurRepository;
 
     /**
+     * @var LigneArticleRepository
+     */
+    private $ligneArticleRepository;
+
+
+    /**
      * @var FilterRepository
      */
     private $filterRepository;
@@ -107,7 +114,7 @@ class ReferenceArticleController extends Controller
     private $articleDataService;
 
 
-    public function __construct(ArticleRepository $articleRepository, ArticleDataService $articleDataService, LivraisonRepository $livraisonRepository, DemandeRepository $demandeRepository, CollecteRepository $collecteRepository, StatutRepository $statutRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FilterRepository $filterRepository, RefArticleDataService $refArticleDataService)
+    public function __construct(LigneArticleRepository $ligneArticleRepository,ArticleRepository $articleRepository, ArticleDataService $articleDataService, LivraisonRepository $livraisonRepository, DemandeRepository $demandeRepository, CollecteRepository $collecteRepository, StatutRepository $statutRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FilterRepository $filterRepository, RefArticleDataService $refArticleDataService)
     {
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->champsLibreRepository = $champsLibreRepository;
@@ -122,6 +129,7 @@ class ReferenceArticleController extends Controller
         $this->refArticleDataService = $refArticleDataService;
         $this->articleDataService = $articleDataService;
         $this->articleRepository = $articleRepository;
+        $this->ligneArticleRepository = $ligneArticleRepository;
     }
 
     /**
@@ -138,35 +146,35 @@ class ReferenceArticleController extends Controller
                     [
                         "title" => 'Actions',
                         "data" => 'Actions',
-                        "class" => (in_array( 'Actions' , $colonmVisible) ? 'fixe' : 'libre')
+                        "class" => (in_array('Actions', $colonmVisible) ? 'fixe' : 'libre')
                     ],
                     [
                         "title" => 'Libellé',
                         "data" => 'Libellé',
-                        "class" => (in_array( 'Libellé', $colonmVisible) ? 'fixe' : 'libre')
+                        "class" => (in_array('Libellé', $colonmVisible) ? 'fixe' : 'libre')
                     ],
                     [
                         "title" => 'Référence',
                         "data" => 'Référence',
-                        "class" => (in_array( 'Référence', $colonmVisible) ? 'fixe' : 'libre')
+                        "class" => (in_array('Référence', $colonmVisible) ? 'fixe' : 'libre')
                     ],
                     [
                         "title" => 'Type',
                         "data" => 'Type',
-                        "class" => (in_array( 'Type', $colonmVisible) ? 'fixe' : 'libre')
+                        "class" => (in_array('Type', $colonmVisible) ? 'fixe' : 'libre')
                     ],
                     [
                         "title" => 'Quantité',
                         "data" => 'Quantité',
-                        "class" => (in_array( 'Quantité', $colonmVisible) ? 'fixe' : 'libre')
+                        "class" => (in_array('Quantité', $colonmVisible) ? 'fixe' : 'libre')
                     ],
-    
+
                 ];
                 foreach ($champs as $champ) {
                     $columns[] = [
                         "title" => ucfirst(mb_strtolower($champ['label'])),
                         "data" => $champ['label'],
-                        "class" =>  (in_array(  $champ['label'] , $colonmVisible) ? 'fixe' : 'libre')
+                        "class" => (in_array($champ['label'], $colonmVisible) ? 'fixe' : 'libre')
                     ];
                 }
             } else {
@@ -337,16 +345,16 @@ class ReferenceArticleController extends Controller
         ];
 
         $champs = array_merge($champ, $champL);
-        $champsVisibleDefault =['Actions', 'Libellé', 'Référence', 'Type', 'Quantité'];
+        $champsVisibleDefault = ['Actions', 'Libellé', 'Référence', 'Type', 'Quantité'];
         return $this->render('reference_article/index.html.twig', [
             'champs' => $champs,
-            'champsVisible' => ($this->getUser()->getColumnVisible() !== null ? $this->getUser()->getColumnVisible() : $champsVisibleDefault ),
+            'champsVisible' => ($this->getUser()->getColumnVisible() !== null ? $this->getUser()->getColumnVisible() : $champsVisibleDefault),
             'statuts' => $this->statutRepository->findByCategorieName(ReferenceArticle::CATEGORIE),
             'types' => $this->typeRepository->getByCategoryLabel(ReferenceArticle::CATEGORIE),
             'typeQuantite' => $typeQuantite,
             'filters' => $this->filterRepository->findBy(['utilisateur' => $this->getUser()]),
         ]);
-}
+    }
 
     /**
      * @Route("/api-modifier", name="reference_article_edit_api", options={"expose"=true},  methods="GET|POST")
@@ -454,12 +462,20 @@ class ReferenceArticleController extends Controller
                 $refArticle = $this->referenceArticleRepository->find($data['refArticle']);
                 $demande = $this->demandeRepository->find($data['livraison']);
                 if ($refArticle) {
-                    $ligneArticle = new LigneArticle;
-                    $ligneArticle
-                        ->setReference($refArticle)
-                        ->setDemande($demande)
-                        ->setQuantite($data['quantitie']);
-                    $em->persist($ligneArticle);
+                    if ($this->ligneArticleRepository->countByRefArticleDemande($refArticle, $demande) < 1) {
+                        $ligneArticle = new LigneArticle;
+                        $ligneArticle
+                            ->setReference($refArticle)
+                            ->setDemande($demande)
+                            ->setQuantite($data['quantitie']);
+                        $em->persist($ligneArticle);
+                    } else {
+                        $ligneArticle = $this->ligneArticleRepository->getByRefArticle($refArticle);
+                        dump($ligneArticle);
+                        $ligneArticle
+                        ->setQuantite($ligneArticle->getQuantite() + $data["quantitie"]);
+                        dump('helo');
+                    }
                 } else {
                     $json = false;
                 }
