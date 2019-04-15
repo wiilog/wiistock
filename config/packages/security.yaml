@@ -8,13 +8,6 @@ security:
             algorithm: bcrypt
             cost: 12
 
-    role_hierarchy:
-        ROLE_SUPER_ADMIN: [ROLE_ADMIN_GT]
-        ROLE_ADMIN_GT: [ROLE_USER_GT]
-        ROLE_USER_GT: [ROLE_SUPER_CUSTOMER]
-        ROLE_SUPER_CUSTOMER: [ROLE_CUSTOMER]
-        ROLE_CUSTOMER: [ROLE_USER]
-
     providers:
         my_in_memory_provider:
             memory:

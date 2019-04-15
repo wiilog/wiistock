@@ -79,6 +79,7 @@ class SecuriteController extends Controller
             $password = $passwordEncoder->encodePassword($user, $user->getPlainPassword());
             $user
                 ->setPassword($password)
+                ->setRoles(['USER']) // évite bug -> champ roles ne doit pas être vide
                 ->setRole($this->roleRepository->findOneByLabel(Role::SIMPLE_USER));
 
             $em->persist($user);
