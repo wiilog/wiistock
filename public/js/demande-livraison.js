@@ -137,9 +137,12 @@ let ajaxAuto =function () {
 
 var editorNewLivraisonAlreadyDone = false;
 function initNewLivraisonEditor(modal) {
+    
     if (!editorNewLivraisonAlreadyDone) {
+       
         initEditor(modal);
         editorNewLivraisonAlreadyDone = true;
+        
     }
     ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'))
 };

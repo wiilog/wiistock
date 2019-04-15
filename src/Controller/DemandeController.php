@@ -113,12 +113,14 @@ class DemandeController extends AbstractController
     public function edit(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+           
             $utilisateur = $this->utilisateurRepository->find(intval($data["demandeur"]));
             $emplacement = $this->emplacementRepository->find(intval($data['destination']));
             $demande = $this->demandeRepository->find($data['demandeId']);
             $demande
                 ->setUtilisateur($utilisateur)
-                ->setDestination($emplacement);
+                ->setDestination($emplacement)
+                ->setCommentaire($data['commentaire']);
             $em = $this->getDoctrine()->getEntityManager();
             $em->flush();
 

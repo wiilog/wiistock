@@ -77,6 +77,9 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
         inputs.each(function () {
             let val = $(this).val();
             let name = $(this).attr("name");
+          
+            
+            console.log(val);
             if (name === "elem")
                 Data[name].push(val);
             else {
@@ -84,6 +87,7 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
                     Data[name] = val;
                 }
             }
+            
             // validation données obligatoires
             if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
                 let label = $(this).closest('.form-group').find('label').text();
@@ -225,7 +229,7 @@ function showRow(modal, button, path) {
  * @param {Document} submit le bouton de validation du form pour le edit
  *  
  */
-//TODO SS ajouter dernier param pour collecte et service et article
+
 function editRow(button, path, modal, submit, editorToInit = false) {
     xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {
@@ -296,6 +300,7 @@ function setCommentaire(button) {
     // let commentaire = modal.find('input[id=commentaire]');
     com = quill.container.firstChild.innerHTML;
     $('#commentaire').val(com);
+   
 };
 
 //passe de l'éditeur à l'imput pour insertion en BDD par l'id commentaireID (cas de conflit avec la class)
