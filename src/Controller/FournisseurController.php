@@ -2,9 +2,12 @@
 
 namespace App\Controller;
 
+use App\Entity\Action;
 use App\Entity\Fournisseur;
+use App\Entity\Menu;
 use App\Form\FournisseurType;
 use App\Repository\FournisseurRepository;
+use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -24,9 +27,16 @@ class FournisseurController extends AbstractController
      */
     private $fournisseurRepository;
 
-    public function __construct(FournisseurRepository $fournisseurRepository)
+    /**
+     * @var UserService
+     */
+    private $userService;
+
+
+    public function __construct(FournisseurRepository $fournisseurRepository, UserService $userService)
     {
         $this->fournisseurRepository = $fournisseurRepository;
+        $this->userService = $userService;
     }
 
     /**
@@ -34,7 +44,11 @@ class FournisseurController extends AbstractController
      */
     public function api(Request $request): Response
     {
-        if ($request->isXmlHttpRequest()) { //Si la requête est de type Xml
+        if ($request->isXmlHttpRequest()) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
             $refs = $this->fournisseurRepository->findAll();
             $rows = [];
             foreach ($refs as $fournisseur) {
@@ -60,18 +74,24 @@ class FournisseurController extends AbstractController
      */
     public function index(): Response
     {
+        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+            return $this->redirectToRoute('access_denied');
+        }
+
         return $this->render('fournisseur/index.html.twig', ['fournisseur' => $this->fournisseurRepository->findAll()]);
     }
-
 
     /**
      * @Route("/creer", name="fournisseur_new", options={"expose"=true}, methods="GET|POST")
      */
     public function new(Request $request): Response
     {
-        $em = $this->getDoctrine()->getEntityManager();
-
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+            $em = $this->getDoctrine()->getEntityManager();
             $fournisseur = new Fournisseur();
             $fournisseur->setNom($data["Nom"]);
             $fournisseur->setCodeReference($data["Code"]);
@@ -89,6 +109,10 @@ class FournisseurController extends AbstractController
     public function apiEdit(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
             $fournisseur = $this->fournisseurRepository->find($data);
             $json = $this->renderView('fournisseur/modalEditFournisseurContent.html.twig', [
                 'fournisseur' => $fournisseur,
@@ -104,6 +128,10 @@ class FournisseurController extends AbstractController
     public function edit(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
             $fournisseur = $this->fournisseurRepository->find($data['id']);
             $fournisseur
                 ->setNom($data['nom'])
@@ -121,6 +149,10 @@ class FournisseurController extends AbstractController
     public function delete(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
             $fournisseur = $this->fournisseurRepository->find($data['fournisseur']);
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($fournisseur);
@@ -136,6 +168,10 @@ class FournisseurController extends AbstractController
     public function getFournisseur(Request $request)
     {
         if ($request->isXmlHttpRequest()) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+                return new JsonResponse(['results' => null]);
+            }
+
             $search = $request->query->get('term');
 
             $fournisseur = $this->fournisseurRepository->getIdAndLibelleBySearch($search);

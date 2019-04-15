@@ -2,8 +2,11 @@
 
 namespace App\Controller;
 
+use App\Entity\Action;
 use App\Entity\Emplacement;
+use App\Entity\Menu;
 use App\Repository\EmplacementRepository;
+use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -28,10 +31,17 @@ class EmplacementController extends AbstractController
      */
     private $articleRepository;
 
-    public function __construct(ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
+    /**
+     * @var UserService
+     */
+    private $userService;
+
+
+    public function __construct(ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, UserService $userService)
     {
         $this->emplacementRepository = $emplacementRepository;
         $this->articleRepository = $articleRepository;
+        $this->userService = $userService;
     }
 
     /**
@@ -39,7 +49,11 @@ class EmplacementController extends AbstractController
      */
     public function api(Request $request): Response
     {
-        if ($request->isXmlHttpRequest()) { //Si la requête est de type Xml
+        if ($request->isXmlHttpRequest()) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
             $emplacements = $this->emplacementRepository->findAll();
             $rows = [];
             foreach ($emplacements as $emplacement) {
@@ -66,6 +80,10 @@ class EmplacementController extends AbstractController
      */
     public function index(): Response
     {
+        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+            return $this->redirectToRoute('access_denied');
+        }
+
         return $this->render('emplacement/index.html.twig', ['emplacement' => $this->emplacementRepository->findAll()]);
     }
 
@@ -74,9 +92,12 @@ class EmplacementController extends AbstractController
      */
     public function new(Request $request): Response
     {
-        $em = $this->getDoctrine()->getEntityManager();
-
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+            $em = $this->getDoctrine()->getEntityManager();
             $emplacement = new Emplacement();
             $emplacement->setLabel($data["Label"]);
             $emplacement->setDescription($data["Description"]);
@@ -88,21 +109,21 @@ class EmplacementController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
-    /**
-     * @Route("/voir", name="emplacement_show", options={"expose"=true},  methods="GET|POST")
-     */
-    public function show(Request $request): Response
-    {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $emplacement = $this->emplacementRepository->find($data);
-
-            $json = $this->renderView('emplacement/modalShowEmplacementContent.html.twig', [
-                'emplacement' => $emplacement,
-            ]);
-            return new JsonResponse($json);
-        }
-        throw new NotFoundHttpException("404");
-    }
+//    /**
+//     * @Route("/voir", name="emplacement_show", options={"expose"=true},  methods="GET|POST")
+//     */
+//    public function show(Request $request): Response
+//    {
+//        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+//            $emplacement = $this->emplacementRepository->find($data);
+//
+//            $json = $this->renderView('emplacement/modalShowEmplacementContent.html.twig', [
+//                'emplacement' => $emplacement,
+//            ]);
+//            return new JsonResponse($json);
+//        }
+//        throw new NotFoundHttpException("404");
+//    }
 
     /**
      * @Route("/api-modifier", name="emplacement_api_edit", options={"expose"=true}, methods="GET|POST")
@@ -110,6 +131,10 @@ class EmplacementController extends AbstractController
     public function apiEdit(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
             $emplacement = $this->emplacementRepository->find($data);
             $json = $this->renderView('emplacement/modalEditEmplacementContent.html.twig', [
                 'emplacement' => $emplacement,
@@ -126,6 +151,10 @@ class EmplacementController extends AbstractController
     public function edit(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
             $emplacement = $this->emplacementRepository->find($data['id']);
             $emplacement
                 ->setLabel($data["Label"])
@@ -143,6 +172,10 @@ class EmplacementController extends AbstractController
     public function delete(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
             $emplacement = $this->emplacementRepository->find($data['emplacement']);
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($emplacement);
@@ -158,6 +191,10 @@ class EmplacementController extends AbstractController
     public function getRefArticles(Request $request)
     {
         if ($request->isXmlHttpRequest()) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+                return new JsonResponse(['results' => []]);
+            }
+
             $search = $request->query->get('term');
             
             $emplacement = $this->emplacementRepository->getIdAndLibelleBySearch($search);

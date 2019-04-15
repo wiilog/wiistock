@@ -2,12 +2,15 @@
 
 namespace App\Controller;
 
+use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\Demande;
 use App\Entity\Livraison;
+use App\Entity\Menu;
 use App\Entity\Preparation;
 use App\Repository\LivraisonRepository;
 use App\Repository\PreparationRepository;
+use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -64,8 +67,13 @@ class LivraisonController extends AbstractController
      */
     private $ligneArticleRepository;
 
+    /**
+     * @var UserService
+     */
+    private $userService;
 
-    public function __construct(ReferenceArticleRepository $referenceArticleRepository, PreparationRepository $preparationRepository, LigneArticleRepository $ligneArticleRepository, EmplacementRepository $emplacementRepository, DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, StatutRepository $statutRepository)
+
+    public function __construct(ReferenceArticleRepository $referenceArticleRepository, PreparationRepository $preparationRepository, LigneArticleRepository $ligneArticleRepository, EmplacementRepository $emplacementRepository, DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, StatutRepository $statutRepository, UserService $userService)
     {
         $this->emplacementRepository = $emplacementRepository;
         $this->demandeRepository = $demandeRepository;
@@ -74,6 +82,7 @@ class LivraisonController extends AbstractController
         $this->preparationRepository = $preparationRepository;
         $this->ligneArticleRepository = $ligneArticleRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
+        $this->userService = $userService;
     }
 
     /**
@@ -81,6 +90,10 @@ class LivraisonController extends AbstractController
     */
     public function new($id): Response
     {
+        if (!$this->userService->hasRightFunction(Menu::LIVRAISON, Action::CREATE)) {
+            return $this->redirectToRoute('access_denied');
+        }
+
         $preparation = $this->preparationRepository->find($id);
 
         $demande1 = $preparation->getDemandes();
@@ -114,6 +127,10 @@ class LivraisonController extends AbstractController
      */
     public function index(): Response
     {
+        if (!$this->userService->hasRightFunction(Menu::LIVRAISON, Action::LIST)) {
+            return $this->redirectToRoute('access_denied');
+        }
+
         return $this->render('livraison/index.html.twig');
     }
 
@@ -122,6 +139,10 @@ class LivraisonController extends AbstractController
      */
     public function finish(Livraison $livraison): Response
     {
+        if (!$this->userService->hasRightFunction(Menu::LIVRAISON, Action::CREATE)) {
+            return $this->redirectToRoute('access_denied');
+        }
+
         if ($livraison->getStatut()->getnom() ===  Livraison::STATUT_A_TRAITER) {
 
             $livraison
@@ -159,6 +180,10 @@ class LivraisonController extends AbstractController
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
             {
+                if (!$this->userService->hasRightFunction(Menu::LIVRAISON, Action::LIST)) {
+                    return $this->redirectToRoute('access_denied');
+                }
+
                 $livraisons = $this->livraisonRepository->findAll();
                 $rows = [];
                 foreach ($livraisons as $livraison) {
@@ -186,6 +211,10 @@ class LivraisonController extends AbstractController
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
             {
+                if (!$this->userService->hasRightFunction(Menu::DEM_COLLECTE, Action::LIST)) {
+                    return $this->redirectToRoute('access_denied');
+                }
+
                 $livraison = $this->livraisonRepository->find($id);
                 $demande = $this->demandeRepository->getByLivraison($livraison->getId());
                 if ($demande) {
@@ -216,6 +245,10 @@ class LivraisonController extends AbstractController
      */
     public function show(Livraison $livraison): Response
     {
+        if (!$this->userService->hasRightFunction(Menu::DEM_COLLECTE, Action::LIST)) {
+            return $this->redirectToRoute('access_denied');
+        }
+
         return $this->render('livraison/show.html.twig', [
             'livraison' => $livraison,
             'preparation' => $this->preparationRepository->find($livraison->getPreparation()->getId()),
@@ -223,17 +256,17 @@ class LivraisonController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/supprimer/{id}", name="livraison_delete", methods={"DELETE"})
-     */
-    public function delete(Request $request, Livraison $livraison): Response
-    {
-        if ($this->isCsrfTokenValid('delete' . $livraison->getId(), $request->request->get('_token'))) {
-            $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->remove($livraison);
-            $entityManager->flush();
-        }
-
-        return $this->redirectToRoute('livraison_index');
-    }
+//    /**
+//     * @Route("/supprimer/{id}", name="livraison_delete", methods={"DELETE"})
+//     */
+//    public function delete(Request $request, Livraison $livraison): Response
+//    {
+//        if ($this->isCsrfTokenValid('delete' . $livraison->getId(), $request->request->get('_token'))) {
+//            $entityManager = $this->getDoctrine()->getManager();
+//            $entityManager->remove($livraison);
+//            $entityManager->flush();
+//        }
+//
+//        return $this->redirectToRoute('livraison_index');
+//    }
 }
