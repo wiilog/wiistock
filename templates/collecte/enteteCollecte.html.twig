@@ -8,7 +8,9 @@
     <div class="col-6">
         <p><strong> Objet : </strong>{{ collecte.objet }}</p>
         <p><strong> Statut : </strong> {{ collecte.statut.nom | capitalize }}</p>
-        <p><strong> Commentaire : </strong>{{collecte.commentaire|raw}}</p>
-
+        <p><strong> Commentaire : </strong></p>
+        <div class="commentOverflow">
+            <p>{{collecte.commentaire|raw}}</p>
+        </div>
     </div>
 </div>
