@@ -19,11 +19,11 @@ let tableArticle = $('#table-lignes').DataTable({
         "url": pathArticle,
         "type": "POST"
     },
-    columns:[
-            {"data": 'Référence CEA'},
-            {"data": 'Libellé'},
-            {"data": 'Quantité'},
-            {"data": 'Actions'}
+    columns: [
+        { "data": 'Référence CEA' },
+        { "data": 'Libellé' },
+        { "data": 'Quantité' },
+        { "data": 'Actions' }
     ],
 });
 
@@ -85,7 +85,7 @@ function updateQuantity(input) {
         refArticleId: input.val()
     };
 
-    $.post(Routing.generate('get_quantity_ref_article'), params, function(data) {
+    $.post(Routing.generate('get_quantity_ref_article'), params, function (data) {
         let modalBody = input.closest('.modal-body');
         modalBody.find('#in-stock').val(data);
         modalBody.find('#quantite').attr('max', data);
@@ -101,13 +101,13 @@ $('.ajax-autocomplete').select2({
         delay: 250,
     },
     language: {
-        inputTooShort: function() {
+        inputTooShort: function () {
             return 'Veuillez entrer au moins 1 caractère.';
         },
-        searching: function() {
+        searching: function () {
             return 'Recherche en cours...';
         },
-        noResults: function() {
+        noResults: function () {
             return 'Aucun résultat.';
         }
     },
@@ -115,19 +115,19 @@ $('.ajax-autocomplete').select2({
 });
 
 
-let ajaxAuto =function () {
-    
- $('.ajax-autocomplete').select2({
+let ajaxAuto = function () {
+
+    $('.ajax-autocomplete').select2({
         ajax: {
             url: Routing.generate('get_ref_articles'),
             dataType: 'json',
             delay: 250,
         },
         language: {
-            inputTooShort: function() {
+            inputTooShort: function () {
                 return 'Veuillez entrer au moins 1 caractère.';
             },
-            searching: function() {
+            searching: function () {
                 return 'Recherche en cours...';
             }
         },
@@ -137,12 +137,12 @@ let ajaxAuto =function () {
 
 var editorNewLivraisonAlreadyDone = false;
 function initNewLivraisonEditor(modal) {
-    
+
     if (!editorNewLivraisonAlreadyDone) {
-       
+
         initEditor(modal);
         editorNewLivraisonAlreadyDone = true;
-        
+
     }
     ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'))
 };
@@ -203,10 +203,24 @@ function finishDemandeLivraison(submit) {
 
         }
     }
-    path =  Routing.generate('finish_demande', true)
+    path = Routing.generate('finish_demande', true)
     let data = {};
     data['demande'] = submit.data('id')
     json = JSON.stringify(data);
     xhttp.open("POST", path, true);
     xhttp.send(json);
+}
+
+function ajaxGetAndFillArticle(select) {
+    if ($(select).val() !== null) {
+        let path = Routing.generate('demande_article_by_refArticle', true)
+
+        let refArticle = $(select).val();
+        let params = JSON.stringify(refArticle);
+
+        $.post(path, params, function (data) {
+            $('#newContent').html(data);
+            $('#modalNewArticle').find('div').find('div').find('.modal-footer').removeClass('d-none');
+        })
+    }
 }

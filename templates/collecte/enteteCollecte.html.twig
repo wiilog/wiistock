@@ -1,14 +1,14 @@
-<div class="col-3">
-    <p><strong> Demandeur : </strong> {{ collecte.demandeur }}</p>
-    <p><strong> Date demande : </strong>{{ collecte.date.date|date('d/m/Y') }}</p>
-    <p><strong> Date terminée : </strong> </p>
-</div>
+<div class='row'>
+    <div class="col-6">
+        <p><strong> Demandeur : </strong> {{ collecte.demandeur }}</p>
+        <p><strong> Date demande : </strong>{{ collecte.date.date|date('d/m/Y') }}</p>
+        <p><strong> Date terminée : </strong> </p>
+    </div>
 
-<div class="col-3">
-    <p><strong> Objet : </strong>{{ collecte.objet }}</p>
-    <p><strong> Statut : </strong> {{ collecte.statut.nom | capitalize }}</p>
-</div>
+    <div class="col-6">
+        <p><strong> Objet : </strong>{{ collecte.objet }}</p>
+        <p><strong> Statut : </strong> {{ collecte.statut.nom | capitalize }}</p>
+        <p><strong> Commentaire : </strong>{{collecte.commentaire|raw}}</p>
 
-<div class="col-3">
-
+    </div>
 </div>
