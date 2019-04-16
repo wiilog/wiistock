@@ -4,16 +4,12 @@ namespace App\Controller;
 
 use App\Entity\Demande;
 use App\Entity\LigneArticle;
-
-use App\Form\LivraisonType;
-
 use App\Repository\DemandeRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\LigneArticleRepository;
 use App\Repository\StatutRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\UtilisateurRepository;
-
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -71,31 +67,31 @@ class LigneArticleController extends AbstractController
      */
     public function api(Request $request, Demande $demande): Response
     {
-        if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
-            {
-                $ligneArticles = $demande->getLigneArticle();
-                $rows = [];
-                foreach ($ligneArticles as $ligneArticle) {
-                    $idArticle = $ligneArticle->getId();
-                    $url['delete'] = $this->generateUrl('ligne_article_delete', ['id' => $ligneArticle->getId()]);
-                    $rows[] = [
-                        "Référence CEA" => ($ligneArticle->getReference()->getReference() ? $ligneArticle->getReference()->getReference() : ''),
-                        "Libellé" => ($ligneArticle->getReference()->getLibelle() ? $ligneArticle->getReference()->getLibelle() : ''),
-                        "Quantité" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ''),
-                        "Actions" => $this->renderView(
+        if ($request->isXmlHttpRequest()) { //Si la requête est de type Xml
+            $ligneArticles = $demande->getLigneArticle();
+            $rows = [];
+            foreach ($ligneArticles as $ligneArticle) {
+                $idArticle = $ligneArticle->getId();
+                $url['delete'] = $this->generateUrl('ligne_article_delete', ['id' => $ligneArticle->getId()]);
+                $rows[] = [
+                        'Référence CEA' => ($ligneArticle->getReference()->getReference() ? $ligneArticle->getReference()->getReference() : ''),
+                        'Libellé' => ($ligneArticle->getReference()->getLibelle() ? $ligneArticle->getReference()->getLibelle() : ''),
+                        'Quantité' => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ''),
+                        'Actions' => $this->renderView(
                             'demande/datatableLigneArticleRow.html.twig',
                             [
                                 'idArticle' => $idArticle,
                                 'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
                             ]
-                        )
+                        ),
                     ];
-                }
-
-                $data['data'] = $rows;
-                return new JsonResponse($data);
             }
-        throw new NotFoundHttpException("404");
+
+            $data['data'] = $rows;
+
+            return new JsonResponse($data);
+        }
+        throw new NotFoundHttpException('404');
     }
 
     /**
@@ -104,20 +100,20 @@ class LigneArticleController extends AbstractController
     public function new(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $referenceArticle = $this->referenceArticleRepository->find($data["reference"]);
+            $referenceArticle = $this->referenceArticleRepository->find($data['reference']);
             $demande = $this->demandeRepository->find($data['demande']);
             if ($this->ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
                 $ligneArticle = new LigneArticle();
                 $ligneArticle
-                    ->setQuantite($data["quantite"])
+                    ->setQuantite($data['quantite'])
                     ->setReference($referenceArticle);
             } else {
                 $ligneArticle = $this->ligneArticleRepository->getByRefArticle($referenceArticle);
                 $ligneArticle
-                    ->setQuantite($ligneArticle->getQuantite() + $data["quantite"]);
+                    ->setQuantite($ligneArticle->getQuantite() + $data['quantite']);
             }
 
-            $quantiteReservee = intval($data["quantite"]);
+            $quantiteReservee = intval($data['quantite']);
             $quantiteArticleReservee = $referenceArticle->getQuantiteReservee();
 
             $referenceArticle
@@ -131,7 +127,7 @@ class LigneArticleController extends AbstractController
 
             return new JsonResponse();
         }
-        throw new NotFoundHttpException("404");
+        throw new NotFoundHttpException('404');
     }
 
     /**
@@ -140,14 +136,14 @@ class LigneArticleController extends AbstractController
     public function editApi(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-
             $ligneArticle = $this->ligneArticleRepository->getQuantity($data);
             $json = $this->renderView('demande/modalEditArticleContent.html.twig', [
                 'ligneArticle' => $ligneArticle,
             ]);
+
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException("404");
+        throw new NotFoundHttpException('404');
     }
 
     /**
@@ -160,12 +156,12 @@ class LigneArticleController extends AbstractController
             $ligneArticle = $this->ligneArticleRepository->find($data['ligneArticle']);
             $ligneArticle
                 ->setReference($reference)
-                ->setQuantite($data["quantite"]);
+                ->setQuantite($data['quantite']);
             $this->getDoctrine()->getEntityManager()->flush();
 
             return new JsonResponse();
         }
-        throw new NotFoundHttpException("404");
+        throw new NotFoundHttpException('404');
     }
 
     /**
@@ -178,9 +174,10 @@ class LigneArticleController extends AbstractController
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($ligneAricle);
             $entityManager->flush();
+
             return new JsonResponse();
         }
-        throw new NotFoundHttpException("404");
+        throw new NotFoundHttpException('404');
     }
 
     /**
@@ -194,8 +191,7 @@ class LigneArticleController extends AbstractController
             'statuts' => $this->statutRepository->findByCategorieName(Demande::CATEGORIE),
             'references' => $this->referenceArticleRepository->getIdAndLibelle(),
             'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
-            'emplacements' => $this->emplacementRepository->findAll()
+            'emplacements' => $this->emplacementRepository->findAll(),
         ]);
     }
-
 }
