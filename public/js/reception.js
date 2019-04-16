@@ -139,19 +139,17 @@ function initEditReceptionEditor(modal) {
 
 var editorNewArticleAlreadyDone = false;
 function initNewArticleEditor(modal) {
-      if (!editorNewArticleAlreadyDone) {
-      initEditor(modal);
-      editorNewArticleAlreadyDone = true;
+    if (!editorNewArticleAlreadyDone) {
+        initEditor(modal);
+        editorNewArticleAlreadyDone = true;
     }
 };
 
 var editorEditArticleAlreadyDone = false;
-console.log(editorEditArticleAlreadyDone);
 function initEditArticleEditor() {
     if (!editorEditArticleAlreadyDone) {
         initEditor();
         editorEditArticleAlreadyDone = true;
-        console.log(editorEditArticleAlreadyDone);
     }
 };
 
@@ -162,13 +160,13 @@ $('.ajax-autocomplete').select2({
         delay: 250,
     },
     language: {
-        inputTooShort: function() {
+        inputTooShort: function () {
             return 'Veuillez entrer au moins 1 caractère.';
         },
-        searching: function() {
+        searching: function () {
             return 'Recherche en cours...';
         },
-        noResults: function() {
+        noResults: function () {
             return 'Aucun résultat.';
         }
     },
@@ -180,15 +178,39 @@ function ajaxGetArticle(select) {
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
             data = JSON.parse(this.responseText);
-           $('#newContent').html(data);
-           $('#modalAddArticle').find('div').find('div').find('.modal-footer').removeClass('d-none');
+            $('#newContent').html(data);
+            $('#modalAddArticle').find('div').find('div').find('.modal-footer').removeClass('d-none');
 
         }
     }
-    path =  Routing.generate('get_refArticle_in_reception', true)
+    path = Routing.generate('get_refArticle_in_reception', true)
     let data = {};
     data['referenceArticle'] = select.val();
     json = JSON.stringify(data);
     xhttp.open("POST", path, true);
     xhttp.send(json);
+}
+
+
+let getArticleFournisseur = function () {
+    xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            data = JSON.parse(this.responseText);
+            if(data.option){
+                $('#articleFournisseur').parent('div').removeClass('d-none');
+                $('#articleFournisseur').parent('div').addClass('d-block');
+                $('#articleFournisseur').html(data.option);
+            }
+        }
+    }
+    path = Routing.generate('get_article_fournisseur', true)
+    let data = {};
+    data['referenceArticle'] = $('#referenceCEA').val();
+    data['fournisseur'] = $('#fournisseurAddArticle').val();
+    if (data['referenceArticle'] || data['fournisseur']) {
+        json = JSON.stringify(data);
+        xhttp.open("POST", path, true);
+        xhttp.send(json);
+    }
 }

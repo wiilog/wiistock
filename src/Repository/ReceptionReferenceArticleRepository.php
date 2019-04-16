@@ -30,6 +30,20 @@ class ReceptionReferenceArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
+    public function countNotConformByReception($reception)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT COUNT (a)
+            FROM App\Entity\ReceptionReferenceArticle a
+            WHERE a.anomalie = :conform AND a.reception = :reception"
+        )->setParameters([
+            'conform' => 1,
+            'reception' => $reception
+        ]);
+        return $query->getSingleScalarResult();;
+    }
+
 
     // /**
     //  * @return ReceptionReferenceArticle[] Returns an array of ReceptionReferenceArticle objects

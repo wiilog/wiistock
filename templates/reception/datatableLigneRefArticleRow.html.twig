@@ -1,21 +1,19 @@
 <div class="row">
-    {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::DELETE')) %}
-        <div class='col-3 article-delete'
-            onclick="deleteRow($(this), $('#modalDeleteArticle'), $('#submitDeleteArticle'))" data-id='{{ article.id }}'
-            data-target='#modalDeleteArticle' data-toggle='modal'>
-            <i class='fas fa-trash'></i>
-        </div>
-    {% endif %}
-
     {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::CREATE')) %}
-        <div data-id='{{ article.id }}' data-toggle='modal' data-target='#modalEditArticle'
-            class='col-3 command-edit'
-            onclick="editRow($(this), Routing.generate('reception_article_edit_api', true), $('#modalEditArticle'), $('#submitEditArticle'), true)">
-            <i class='fas fa-pencil-alt'></i>
-        </div>
+    <div data-id='{{ligneId}}' data-toggle='modal' data-target='#modalEditArticle' class='col-3 command-edit'
+        onclick="editRow($(this), Routing.generate('reception_article_edit_api', true), $('#modalEditArticle'), $('#submitEditArticle'), true)">
+        <i class='fas fa-pencil-alt'></i>
+    </div>
+    {% endif %}
+    {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::DELETE')) %}
+    <div class='col-3 article-delete' onclick="deleteRow($(this), $('#modalDeleteArticle'), $('#submitDeleteArticle'))"
+        data-id='{{ligneId}}' data-target='#modalDeleteArticle' data-toggle='modal'>
+        <i class='fas fa-trash'></i>
+    </div>
     {% endif %}
 
-    <div class='col-3' data-ref="{{article.ref}}" onclick='printBarcode($(this))'>
+
+    <div class='col-3' data-ref="" onclick='printBarcode($(this))'>
         <i class="fas fa-print"></i>
     </div>
 </div>

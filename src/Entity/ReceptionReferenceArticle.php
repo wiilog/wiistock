@@ -56,6 +56,11 @@ class ReceptionReferenceArticle
      */
     private $label;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\ArticleFournisseur", inversedBy="receptionReferenceArticles")
+     */
+    private $articleFournisseur;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -153,6 +158,18 @@ class ReceptionReferenceArticle
     public function setLabel(?string $label): self
     {
         $this->label = $label;
+
+        return $this;
+    }
+
+    public function getArticleFournisseur(): ?ArticleFournisseur
+    {
+        return $this->articleFournisseur;
+    }
+
+    public function setArticleFournisseur(?ArticleFournisseur $articleFournisseur): self
+    {
+        $this->articleFournisseur = $articleFournisseur;
 
         return $this;
     }
