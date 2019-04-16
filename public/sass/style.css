@@ -584,6 +584,7 @@ a:hover {
 
 .radio-btn .btn:hover {
   background-color: #130078;
+  color: white;
 }
 
 .radio-btn .not-active {
