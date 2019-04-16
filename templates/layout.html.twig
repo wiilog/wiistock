@@ -19,6 +19,7 @@
                 <h4>Accueil</h4>
             </a>
         </li>
+
         <!-- DEMANDE   -->
         <li class="menu-item has-submenu">
             <a href="#">
@@ -35,6 +36,7 @@
                 <li><a href="{{ path('service_index') }}" class="sub-item">• Déplacement d'article</a></li>
             </ul>
         </li>
+
         <!-- ORDRE -->
         {% if
             hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::LIST')) or
@@ -59,6 +61,7 @@
             </ul>
         </li>
         {% endif %}
+
         <!-- STOCK -->
         {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::LIST')) %}
             <li class="menu-item has-submenu">
@@ -86,6 +89,7 @@
             </li>
         {% endif %}
 
+        <!-- PARAMETRAGE -->
         {% if (hasRight(constant('App\\Entity\\Menu::PARAM')) or hasRight(constant('App\\Entity\\Menu::ADMIN_ROLE'))) %}
             <li class="menu-item has-submenu">
                 <a href="#">
