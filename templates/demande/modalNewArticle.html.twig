@@ -1,36 +1,31 @@
-<form method="" class="modal fade" id="modalNewArticle" data-id="{{ demande.id }}" role="dialog"
-    aria-labelledby="dataModalCenterTitle" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
+<!-- Modale Ajout d'article -->
+<div method="" class="modal fade" id="modalNewArticle" role="dialog" aria-labelledby="modalAddArticleTitle"
+    aria-hidden="true" data-collecte-id="{{ demande.id }}">
+    <div class="modal-dialog  modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLongTitle">Ajouter une ligne</h5>
+                <h5 class="modal-title">Ajouter un article</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body modal-input container-fluid">
-                <div class="form-group w-100 mb-3">
-                    <label for="reference">Référence</label>
-                    <select class="ajax-autocomplete data form-control needed" id="reference" name="reference" onchange="updateQuantity($(this));">
-                    </select>
-                </div>
+                <form class="row">
+                    <div class="form-group col-12 d-flex w-100 mb-3"  >
+                        <label for="reference">Référence CEA</label>
+                        <select class="ajax-autocomplete data form-control needed" onchange="ajaxGetAndFillArticle(this)" id="reference" name="reference">
+                        </select>
+                    </div>
+                   <div id='newContent' class="col-12">
 
-                <div class="form-group w-50">
-                    <label for="in-stock">En stock</label>
-                    <input class="form-control data" id="in-stock" disabled>
-                </div>
-
-                <div class="form-group w-50">
-                    <label for="quantite">Quantité</label>
-                    <input type="number" class="data form-control needed" name="quantite" id="quantite" value="" min="1">
-                </div>
-
-                <div class="error-msg"></div>
+                   </div>
+                </form>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn" data-dismiss="modal">Annuler</button>
-                <button id="submitNewArticle" name="demande" value="{{demande.id}}" type="button" class="btn data btn-success">Enregistrer</button>
+            <div class="modal-footer d-none">
+                <div class="btn" data-dismiss="modal">Annuler</div>
+                <button id="submitNewArticle" name="demande" value="{{demande.id}}" type="button"
+                    class="btn data btn-success" >Ajouter</button>
             </div>
         </div>
     </div>
-</form>
+</div>

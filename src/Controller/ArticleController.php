@@ -10,7 +10,6 @@ use App\Repository\EmplacementRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\TypeRepository;
-
 use App\Service\RefArticleDataService;
 use App\Service\ArticleDataService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -171,9 +170,31 @@ class ArticleController extends AbstractController
     public function getCollecteArticleByRefArticle(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $refArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
+            $refArticle = null;
+            if ($data['referenceArticle']) {
+                $refArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
+            }
             if ($refArticle) {
                 $json = $this->articleDataService->getCollecteArticleOrNoByRefArticle($refArticle, true);
+            } else {
+                $json = false; //TODO gérer erreur retour
+            }
+
+            return new JsonResponse($json);
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/get-article-demande", name="demande_article_by_refArticle", options={"expose"=true})
+     */
+    public function getLivraisonArticleByRefArticle(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $refArticle = json_decode($request->getContent(), true)) {
+            $refArticle = $this->referenceArticleRepository->find($refArticle);
+
+            if ($refArticle) {
+                $json = $this->articleDataService->getLivraisonArticleOrNoByRefArticle($refArticle, true);
             } else {
                 $json = false; //TODO gérer erreur retour
             }
