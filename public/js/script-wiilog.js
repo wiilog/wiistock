@@ -103,10 +103,9 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
             }
             // validation valeur des inputs de type password
             if ($(this).attr('type') === 'password') {
-                let isNotChanged = $(this).hasClass('optional-password') && $(this).val === "";
+                let password = $(this).val();
+                let isNotChanged = $(this).hasClass('optional-password') && password === "";
                 if (!isNotChanged) {
-                    let password = $(this).val();
-
                     if (password.length < 8) {
                         modal.find('.password-error-msg').html('Le mot de passe doit faire au moins 8 caractères.');
                         passwordIsValid = false;
