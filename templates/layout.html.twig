@@ -36,6 +36,11 @@
             </ul>
         </li>
         <!-- ORDRE -->
+        {% if
+            hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::LIST')) or
+            hasRight(constant('App\\Entity\\Menu::PREPA'), constant('App\\Entity\\Action::LIST')) or
+            hasRight(constant('App\\Entity\\Menu::LIVRAISON'), constant('App\\Entity\\Action::LIST'))
+        %}
         <li class="menu-item has-submenu">
             <a href="#">
                 <i class="fas fa-network-wired"></i>
@@ -53,6 +58,7 @@
                 {% endif %}
             </ul>
         </li>
+        {% endif %}
         <!-- STOCK -->
         {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::LIST')) %}
             <li class="menu-item has-submenu">
