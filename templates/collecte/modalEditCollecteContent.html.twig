@@ -13,19 +13,17 @@
 <div class="form-group">
     <label for="statut">Statut</label>
     <select class="form-control select2 data" name="statut">
-        <option value="{{collecte.statut.id}}">{{ collecte.statut.nom }}</option>#}
         {% for statut in statuts %}
-        <option value="{{ statut.id }}">{{ statut.nom }}</option>
+            {% set selected = (statut.id == collecte.statut.id) ? 'selected' : '' %}
+            <option value="{{ statut.id }}" {{ selected }}>{{ statut.nom }}</option>
         {% endfor %}
     </select>
 </div>
-
 
 <div class="form-group">
     <label for="utilisateur">Utilisateur</label>
     <select class="form-control select2 data" name="demandeur">
         <option value="{{collecte.demandeur.id}}">{{ collecte.demandeur.username }}</option>
-
     </select>
 </div>
 
