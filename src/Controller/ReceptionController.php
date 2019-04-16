@@ -154,9 +154,8 @@ class ReceptionController extends AbstractController
             $em->flush();
 
             $data = [
-                "redirect" => $this->generateUrl('reception_ajout_article', ['id' => $reception->getId()])
-            ];
-
+                    "redirect" => $this->generateUrl('reception_show', ['id' => $reception->getId()])
+                ];
             return new JsonResponse($data);
         }
 
@@ -221,8 +220,8 @@ class ReceptionController extends AbstractController
         if ($request->isXmlHttpRequest()) { //Si la requête est de type Xml
             $receptions =  $this->receptionRepository->findAll();
             $rows = [];
-            foreach ($receptions as  $reception) {
-                $url =  $this->generateUrl('reception_ajout_article', ['id' =>  $reception->getId()]);
+            foreach ($receptions as $reception) {
+                $url = $this->generateUrl('reception_show', ['id' => $reception->getId()]);
                 $rows[] =
                     [
                         'id' => ($reception->getId()),
@@ -446,9 +445,9 @@ class ReceptionController extends AbstractController
 
 
     /**
-     * @Route("/article/{id}", name="reception_ajout_article", methods={"GET", "POST"})
+     * @Route("/voir/{id}", name="reception_show", methods={"GET", "POST"})
      */
-    public function ajoutArticle(Reception  $reception,  $id): Response
+    public function show(Reception $reception, $id): Response
     {
         return  $this->render("reception/show.html.twig", [
             'reception' =>  $reception,

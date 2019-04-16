@@ -26,6 +26,22 @@
                     <select class="ajax-autocompleteEmplacement data form-control needed" name="Pcollecte">
                     </select>
                 </div>
+
+                <div class="form-group">
+                <div class="input-group radio-btn">
+                    
+                           <span class="btn active" data-toggle="destination" data-title="destruction"
+                            onclick="toggleRadioButton($(this))">Destruction</span><span
+                            class="btn not-active" data-toggle="destination" data-title="mise_en_stock"
+                            onclick="toggleRadioButton($(this))">Mise en stock</span>
+                    </div>
+                    <input type="hidden" name="destination" class="data" value="reference" id="destination">
+              </div>
+
+
+
+
+
                 <div class="form-group">
                     <label for="commentaire">Commentaire</label>
                     <input id="commentaire" class="commentaire form-control data" name="commentaire" type="hidden" >
