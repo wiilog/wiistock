@@ -7,4 +7,5 @@
 <div class="col-6">
     <p><strong>Date demande :</strong> {{ demande.date | date("d/m/Y") }}</p>
     <p><strong>Référence :</strong> {{ demande.numero }}</p>
+    <p><strong> Commentaire : </strong>{{demande.commentaire|raw}}</p>
 </div>
