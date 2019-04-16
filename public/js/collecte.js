@@ -17,9 +17,9 @@ let table = $('#tableCollecte_id').DataTable({
     },
     columns: [
         { "data": 'Date' },
-        { "data": 'Demandeur' },
+        { "data": 'Demandeur', 'name': 'Demandeur'},
         { "data": 'Objet' },
-        { "data": 'Statut' },
+        { "data": 'Statut', 'name': 'Statut' },
         { "data": 'Actions' }
     ],
 });
@@ -58,6 +58,7 @@ let tableArticle = $('#tableArticle_id').DataTable({
         { "data": 'Quantité' },
         { "data": 'Actions' }
     ],
+
 });
 
 let modal = $("#modalNewArticle");
@@ -178,18 +179,18 @@ function initNewCollecteEditor(modal) {
 
 $('#submitSearchCollecte').on('click', function () {
     let statut = $('#statut').val();
-    let demandeur = [];
-    demandeur = $('#utilisateur').val()
-    demandeurString = demandeur.toString();
-    demandeurPiped = demandeurString.split(',').join('|')
+    // let demandeur = [];
+    let demandeur = $('#utilisateur').val()
+    let demandeurString = demandeur.toString();
+    let demandeurPiped = demandeurString.split(',').join('|')
 
     table
-        .columns(3)
+        .columns('Statut:name')
         .search(statut)
         .draw();
 
     table
-        .columns(1)
+        .columns('Demandeur:name')
         .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
         .draw();
 
