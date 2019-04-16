@@ -190,11 +190,9 @@ class ArticleController extends AbstractController
      */
     public function getLivraisonArticleByRefArticle(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $refArticle = null;
-            if ($data['referenceArticle']) {
-                $refArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
-            }
+        if ($request->isXmlHttpRequest() && $refArticle = json_decode($request->getContent(), true)) {
+            $refArticle = $this->referenceArticleRepository->find($refArticle);
+
             if ($refArticle) {
                 $json = $this->articleDataService->getLivraisonArticleOrNoByRefArticle($refArticle, true);
             } else {
