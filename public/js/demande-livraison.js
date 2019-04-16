@@ -200,7 +200,11 @@ function finishDemandeLivraison(submit) {
             $('.zone-entete').html(data.entete);
             $('#boutonCollecteSup').addClass('d-none')
             $('#boutonCollecteInf').addClass('d-none')
-
+            tableArticle.ajax.reload(function (json) {
+                if (this.responseText !== undefined) {
+                    $('#myInput').val(json.lastInput);
+                }
+            });
         }
     }
     path = Routing.generate('finish_demande', true)
