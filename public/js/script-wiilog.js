@@ -75,7 +75,6 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
         let passwordIsValid = true;
         Data["elem"] = [];
         inputs.each(function () {
-            console.log($(this).attr("name") + " : " + $(this).val());
             let val = $(this).val();
             let name = $(this).attr("name");
             if (name === "elem")
