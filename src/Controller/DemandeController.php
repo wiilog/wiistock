@@ -94,7 +94,7 @@ class DemandeController extends AbstractController
             $em->flush();
 
             $data = [
-                'entete'=> $this->renderView(
+                'entete' => $this->renderView(
                     'demande/enteteDemandeLivraison.html.twig',
                     [
                         'demande' => $demande,
@@ -107,18 +107,37 @@ class DemandeController extends AbstractController
         throw new NotFoundHttpException("404"); //TODO retour msg erreur (pas d'article dans la DL)
     }
 
+   /**
+     * @Route("/api-modifier", name="demandeLivraison_api_edit", options={"expose"=true}, methods="GET|POST")
+     */
+    public function editApi(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $demandeLivraison = $this->demandeRepository->find($data);
+           
+            $json = $this->renderView('demande/modalEditDemandeContent.html.twig', [
+                'demande' => $demandeLivraison,
+            ]);
+
+            return new JsonResponse($json);
+        }
+        throw new NotFoundHttpException('404');
+    }
+
     /**
      * @Route("/modifier", name="demande_edit", options={"expose"=true}, methods="GET|POST")
      */
     public function edit(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+           
             $utilisateur = $this->utilisateurRepository->find(intval($data["demandeur"]));
             $emplacement = $this->emplacementRepository->find(intval($data['destination']));
             $demande = $this->demandeRepository->find($data['demandeId']);
             $demande
                 ->setUtilisateur($utilisateur)
-                ->setDestination($emplacement);
+                ->setDestination($emplacement)
+                ->setCommentaire($data['commentaire']);
             $em = $this->getDoctrine()->getEntityManager();
             $em->flush();
 
@@ -176,7 +195,7 @@ class DemandeController extends AbstractController
         ]);
     }
 
-    /**
+    /** 
      * @Route("/delete", name="demande_delete", options={"expose"=true}, methods="GET|POST")
      */
     public function delete(Request $request): Response

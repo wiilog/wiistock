@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Repository\UtilisateurRepository;
+use App\Repository\MailerServerRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
@@ -27,6 +28,11 @@ class PasswordService
     private $utilisateurRepository;
 
     /**
+     * @var MailerServerRepository
+     */
+    private $mailerServerRepository;
+
+    /**
      * @var Swift_SmtpTransport
      */
     private $transport;
@@ -45,27 +51,35 @@ class PasswordService
      */
     private $password;
 
-    public function __construct(UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, EntityManagerInterface $entityManager)
+    public function __construct(MailerServerRepository $mailerServerRepository, UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, EntityManagerInterface $entityManager)
     {
         $this->entityManager = $entityManager;
         $this->passwordEncoder = $passwordEncoder;
         $this->utilisateurRepository = $utilisateurRepository;
-        $this->username = 'admin@wiilog.fr'; // TODO
-        $this->password = 'Kellhus16^^'; // TODO
-        $this->transport = (new Swift_SmtpTransport('smtp.sendgrid.net', 465, 'ssl'))
-            ->setUsername($this->username)
-            ->setPassword($this->password);
-        $this->mailer = (new Swift_Mailer($this->transport));
+        $this->mailerServerRepository = $mailerServerRepository;
     }
 
     public function sendNewPassword($to)
     {
         $newPass = $this->generatePassword(10);
         if ($this->updateUser($to, $newPass) === 1) {
+            $mailerServer = $this->mailerServerRepository->getOneMailerServer();
+            $username = ($mailerServer->getUser() ?  $mailerServer->getUser() : "");
+            $password = ($mailerServer->getPassword() ? $mailerServer->getPassword() : "");
+            $transport = (new Swift_SmtpTransport(
+                ($mailerServer->getSmtp() ? $mailerServer->getSmtp() : ""),
+                ($mailerServer->getPort() ?  $mailerServer->getPort() : ""),
+                $mailerServer->getProtocol() ? $mailerServer->getProtocol() : ""
+            ))
+                ->setUsername($username)
+                ->setPassword($password);
+            $mailer = (new Swift_Mailer($transport));
+
+
             $message = (new \Swift_Message('Oubli de mot de passe Wiilog.'))
                 ->setFrom([$this->username => 'L\'équipe de Wiilog.'])
                 ->setTo($to)
-                ->setBody('Votre nouveau mot de passe est : '.$newPass);
+                ->setBody('Votre nouveau mot de passe est : ' . $newPass);
 
             $this->mailer->send($message);
         }
@@ -80,7 +94,7 @@ class PasswordService
             $len = strlen($domain);
             for ($i = 0; $i < $length; ++$i) {
                 $index = rand(0, $len - 1);
-                $generated_string = $generated_string.$domain[$index];
+                $generated_string = $generated_string . $domain[$index];
             }
         } while (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/', $generated_string));
 
