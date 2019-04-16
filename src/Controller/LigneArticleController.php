@@ -185,6 +185,8 @@ class LigneArticleController extends AbstractController
      */
     public function show(Demande $demande): Response
     {
+        dump($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON));
+
         return $this->render('demande/show.html.twig', [
             'demande' => $demande,
             'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
