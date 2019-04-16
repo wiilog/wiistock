@@ -438,3 +438,9 @@ function ajaxAutoUserInit(select) {
         minimumInputLength: 1,
     });
 }
+
+function clearNewContent(button) {
+    button.parent().addClass('d-none');
+    $('#newContent').html('');
+    $('#reference').html('');
+}

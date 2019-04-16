@@ -90,25 +90,25 @@ function finishCollecte(submit) {
     xhttp.send(json);
 }
 
-$('.ajax-autocomplete').select2({
-    ajax: {
-        url: Routing.generate('get_ref_articles'),
-        dataType: 'json',
-        delay: 250,
-    },
-    language: {
-        inputTooShort: function() {
-            return 'Veuillez entrer au moins 1 caractère.';
-        },
-        searching: function() {
-            return 'Recherche en cours...';
-        },
-        noResults: function() {
-            return 'Aucun résultat.';
-        }
-    },
-    minimumInputLength: 1,
-});
+// $('.ajax-autocomplete').select2({
+//     ajax: {
+//         url: Routing.generate('get_ref_articles'),
+//         dataType: 'json',
+//         delay: 250,
+//     },
+//     language: {
+//         inputTooShort: function() {
+//             return 'Veuillez entrer au moins 1 caractère.';
+//         },
+//         searching: function() {
+//             return 'Recherche en cours...';
+//         },
+//         noResults: function() {
+//             return 'Aucun résultat.';
+//         }
+//     },
+//     minimumInputLength: 1,
+// });
 
 function ajaxGetArticle(select) {
     xhttp = new XMLHttpRequest();
@@ -151,11 +151,7 @@ function deleteRowCollecte(button, modal, submit) {
     modal.find(submit).attr('name', name);
 }
 
-function clearNewContent(button) {
-        button.parent().addClass('d-none');
-        $('#newContent').html('');
-        $('#reference').html('');
-}
+
 //initialisation editeur de texte une seule fois à l'édit
 let editorEditCollecteAlreadyDone = false;
 function initEditCollecteEditor(modal) {
