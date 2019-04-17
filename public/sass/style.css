@@ -621,6 +621,13 @@ a:hover {
   min-height: 38px !important;
 }
 
+.commentOverflow {
+  height: 25vh;
+  width: 120vh;
+  overflow-x: scroll;
+  word-wrap: break-word;
+}
+
 strong {
   font-weight: bold !important;
 }

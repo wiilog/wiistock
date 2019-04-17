@@ -48,6 +48,10 @@ class Utilisateur implements UserInterface, EquatableInterface
      */
     private $roles;
     /**
+     * @ORM\Column(type="boolean")
+     */
+    private $status;
+    /**
      * @ORM\ManyToOne(targetEntity="Role", inversedBy="users")
      */
     private $role;
@@ -101,6 +105,7 @@ class Utilisateur implements UserInterface, EquatableInterface
      * @ORM\OneToMany(targetEntity="App\Entity\Filter", mappedBy="utilisateur", orphanRemoval=true)
      */
     private $filters;
+
 
     /**
      * @ORM\Column(type="json", nullable=true)
@@ -489,6 +494,18 @@ class Utilisateur implements UserInterface, EquatableInterface
     public function setColumnVisible(?array $columnVisible): self
     {
         $this->columnVisible = $columnVisible;
+
+        return $this;
+    }
+
+    public function getStatus(): ?bool
+    {
+        return $this->status;
+    }
+
+    public function setStatus(bool $status): self
+    {
+        $this->status = $status;
 
         return $this;
     }
