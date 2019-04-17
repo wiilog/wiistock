@@ -105,8 +105,10 @@ $(document).ready(function () {
 
 function changeType(select) {
     if ($(select).val() === 'list') {
+        $('#defaultValue').hide();
         $('#isList').show();
     } else {
         $('#isList').hide();
+        $('#defaultValue').show();
     }
 }

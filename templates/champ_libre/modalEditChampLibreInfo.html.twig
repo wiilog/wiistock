@@ -1,13 +1,18 @@
-<label for="date-attendu">Valeur par défaut</label>
-<input type="text" class="form-control data" name="valeur" value="{{champLibre.defaultValue}}" required="true">
-
 {% if champLibre.typage == 'list' %}
+<div id="defaultValue" style="display:none;">
+    <label for="date-attendu">Valeur par défaut</label>
+    <input type="text" class="form-control data" name="valeur" value="{{champLibre.defaultValue}}" required="true">
+</div>
 <div class="form-group" id="isList">
     <label for="date-attendu">Elements</label>
     <input type="text" class="form-control data" name="elem" value="{{ champLibre.elements|join(';') }}"
         required='true'>
 </div>
 {% else %}
+<div id="defaultValue">
+    <label for="date-attendu">Valeur par défaut</label>
+    <input type="text" class="form-control data" name="valeur" value="{{champLibre.defaultValue}}" required="true">
+</div>
 <div class="form-group" id="isList" style="display:none;">
     <label for="date-attendu">Elements</label>
     <input type="text" class="form-control data" name="elem" value="{{ champLibre.elements|join(';') }}"
