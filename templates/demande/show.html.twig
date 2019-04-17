@@ -2,7 +2,7 @@
 {% block title %}Demande{% endblock %}
 {% block page_content %}
 
-<div class="entete">
+<div class="zone-entete">
     {% include "demande/enteteDemandeLivraison.html.twig" %}
 </div>
 
@@ -34,7 +34,7 @@
 
 {% block javascript %}
 <script>
-    const id = {{ demande.id }}
+    const id = {{ demande.id }};
 </script>
 
 <script src="{{ asset('js/demande-livraison.js') }}"></script>
