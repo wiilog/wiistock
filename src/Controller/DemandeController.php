@@ -158,6 +158,7 @@ class DemandeController extends AbstractController
             $json = [
                 'entete' => $this->renderView('demande/enteteDemandeLivraison.html.twig', [
                     'demande' => $demande,
+                    'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
                 ]),
             ];
 
