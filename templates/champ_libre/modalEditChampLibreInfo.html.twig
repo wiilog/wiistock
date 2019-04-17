@@ -1,106 +1,16 @@
+<label for="date-attendu">Valeur par défaut</label>
+<input type="text" class="form-control data" name="valeur" value="{{champLibre.defaultValue}}" required="true">
+
+{% if champLibre.typage == 'list' %}
 <div class="form-group" id="isList">
-    <label for="date-attendu">Valeur par défaut</label>
-    <select class="form-control unTruc data " name="valeur" id="valeurModif">
-        <option value="{{champLibre.defaultValue}}">{{champLibre.defaultValue}}</option>
-        {% for elem in champLibre.elements %}
-
-        {% if champLibre.defaultValue != elem %}
-
-        <option value="{{elem}}" >{{elem}}</option>
-
-        {% endif %}
-
-        {% endfor %}
-
-        {% if champLibre.defaultValue != "" %}
-
-        <option value=""></option>
-
-        {% endif %}
-    </select>
-    <div class="form-group elem" id="elemModif">
-        <label for="date-attendu">Elements : </label>
-        {% for elem in champLibre.elements %}
-        <input type="text" class="form-control data" name="elem" value="{{elem}}" required="true" onblur="addToSelect(this)">
-        {% endfor %}
-        <button class="btn" type="button" onclick="appendElem()">+</button>
-    </div>
+    <label for="date-attendu">Elements</label>
+    <input type="text" class="form-control data" name="elem" value="{{ champLibre.elements|join(';') }}"
+        required='true'>
 </div>
-
-
-<div class="form-group" id="isNoList">
-    <label for="date-attendu">Valeur par défaut</label>
-    <input type="text" class="form-control data" name="valeur" value="{{champLibre.defaultValue}}" required="true">
+{% else %}
+<div class="form-group" id="isList" style="display:none;">
+    <label for="date-attendu">Elements</label>
+    <input type="text" class="form-control data" name="elem" value="{{ champLibre.elements|join(';') }}"
+        required='true'>
 </div>
-
-{% block javascript %}
-
-<script>
-    $("input[name='elem']").each(function () {
-        var that = this;
-        $('#valeurModif > option').each(function () {
-            if ($(this).val() === $(that).val()) {
-                $(this).data('elem', that);
-            }
-        });
-    });
-    var isList = $("#isList");
-    var isNoList = $("#isNoList");
-    emptyInfo();
-    if ($("#typageModif").val() === 'list') {
-        isList.appendTo("#infos");
-    } else {
-        isNoList.appendTo("#infos");
-    }
-
-    function change(select) {
-        emptyInfo();
-        if ($(select).val() === 'list') {
-            isList.appendTo("#infos");
-            $('#valeurModif')
-                .find('option')
-                .remove()
-                .end()
-                .append('<option value=""></option>')
-                ;
-        } else {
-            isNoList.appendTo("#infos");
-        }
-    }
-
-    function emptyInfo() {
-        $("#isNoList").detach();
-        $("#isList").detach();
-    }
-
-    function appendElem() {
-        $("<div class=\"form-group elem\">" +
-            "<input type=\"text\" class=\"form-control data\" name=\"elem\" onblur=\"addToSelect(this)\">" +
-            "</div>").insertAfter("#isList");
-    }
-
-    function addToSelect(el) {
-        let input = $(el).val();
-        let added = false;
-        if (input !== "") {
-            $('#valeurModif > option').each(function () {
-                if ($(this).data('elem') === el) {
-                    $(this).text(input);
-                    $(this).val(input);
-                    added = true;
-                }
-            });
-            if (!added) {
-                $('<option/>', {
-                    text: input,
-                    value: input,
-                    data: {
-                        elem: el,
-                    }
-                }).appendTo("#valeurModif");
-            }
-        }
-    }
-</script>
-
-{% endblock %}
+{% endif %}

@@ -107,7 +107,7 @@ class ChampsLibreController extends AbstractController
                 ->setType($type)
                 ->settypage($data['typage'])
                 ->setDefaultValue($data['valeur'])
-                ->setElements(array_filter($data['elem']));
+                ->setElements(array_filter(explode(';', $data['elem'])));
             $em = $this->getDoctrine()->getManager();
             $em->persist($champsLibre);
             $em->flush();
@@ -143,9 +143,12 @@ class ChampsLibreController extends AbstractController
             $champLibre
                 ->setLabel($data['label'])
                 ->setTypage($data['typage'])
-                ->setDefaultValue($data['valeur'])
-                ->setElements(array_filter($data['elem']));
-
+                ->setDefaultValue($data['valeur']);
+            if ($champLibre->getTypage() === 'list') {
+                $champLibre->setElements(array_filter(explode(';', $data['elem'])));
+            } else {
+                $champLibre->setElements(null);
+            }
             $em = $this->getDoctrine()->getManager();
             $em->flush();
 
