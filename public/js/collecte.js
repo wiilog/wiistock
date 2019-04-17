@@ -144,7 +144,7 @@ function ajaxGetCollecteArticle(select) {
     xhttp.send(json);
 }
 
-function deleteRowCollecte(button, modal, submit) {
+function deleteRowDemande(button, modal, submit) {
     let id = button.data('id');
     let name = button.data('name');
     modal.find(submit).attr('value', id);

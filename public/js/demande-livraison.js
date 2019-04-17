@@ -218,13 +218,19 @@ function finishDemandeLivraison(submit) {
 function ajaxGetAndFillArticle(select) {
     if ($(select).val() !== null) {
         let path = Routing.generate('demande_article_by_refArticle', true)
-
         let refArticle = $(select).val();
         let params = JSON.stringify(refArticle);
-
+        
         $.post(path, params, function (data) {
             $('#newContent').html(data);
             $('#modalNewArticle').find('div').find('div').find('.modal-footer').removeClass('d-none');
         })
     }
+}
+
+function deleteRowDemande(button, modal, submit) {
+    let id = button.data('id');
+    let name = button.data('name');
+    modal.find(submit).attr('value', id);
+    modal.find(submit).attr('name', name);
 }

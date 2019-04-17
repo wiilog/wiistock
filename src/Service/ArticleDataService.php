@@ -176,6 +176,7 @@ class ArticleDataService
             //TODOO
             $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_INACTIF);
             $articles = $this->articleRepository->getByAFAndInactif($articleFournisseur, $statut);
+            dump($articles);
             if (count($articles) < 1) {
                 $articles[] = [
                     'id' => '',
@@ -222,7 +223,7 @@ class ArticleDataService
             ]);
         } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             //TODOO
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_INACTIF);
+            $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
             $articles = $this->articleRepository->getByAFAndInactif($articleFournisseur, $statut);
             if (count($articles) < 1) {
                 $articles[] = [

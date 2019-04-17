@@ -122,7 +122,7 @@ class ReferenceArticleController extends Controller
     private $userService;
 
 
-    public function __construct(LigneArticleRepository $ligneArticleRepository,ArticleRepository $articleRepository, ArticleDataService $articleDataService, LivraisonRepository $livraisonRepository, DemandeRepository $demandeRepository, CollecteRepository $collecteRepository, StatutRepository $statutRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FilterRepository $filterRepository, RefArticleDataService $refArticleDataService, UserService $userService)
+    public function __construct(LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, ArticleDataService $articleDataService, LivraisonRepository $livraisonRepository, DemandeRepository $demandeRepository, CollecteRepository $collecteRepository, StatutRepository $statutRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FilterRepository $filterRepository, RefArticleDataService $refArticleDataService, UserService $userService)
     {
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->champsLibreRepository = $champsLibreRepository;
@@ -499,7 +499,7 @@ class ReferenceArticleController extends Controller
             if (array_key_exists('livraison', $data) && $data['livraison']) {
                 $refArticle = $this->referenceArticleRepository->find($data['refArticle']);
                 $demande = $this->demandeRepository->find($data['livraison']);
-                if ($refArticle) {
+                if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                     if ($this->ligneArticleRepository->countByRefArticleDemande($refArticle, $demande) < 1) {
                         $ligneArticle = new LigneArticle;
                         $ligneArticle
@@ -509,10 +509,12 @@ class ReferenceArticleController extends Controller
                         $em->persist($ligneArticle);
                     } else {
                         $ligneArticle = $this->ligneArticleRepository->getByRefArticle($refArticle);
-                        dump($ligneArticle);
                         $ligneArticle
-                        ->setQuantite($ligneArticle->getQuantite() + $data["quantitie"]);
+                            ->setQuantite($ligneArticle->getQuantite() + $data["quantitie"]);
                     }
+                } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+                    $article = $this->articleRepository->find($data['article']);
+                    $demande->addArticle($article);
                 } else {
                     $json = false;
                 }

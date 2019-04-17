@@ -44,6 +44,19 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->getResult();
     }
 
+    public function getByDemande($demande)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT a
+             FROM App\Entity\Article a
+             WHERE a.demande =:demande
+            "
+        )->setParameter('demande', $demande);
+        return $query->execute();
+    }
+
+
     public function findByEmplacement($empl)
     {
         $entityManager = $this->getEntityManager();
