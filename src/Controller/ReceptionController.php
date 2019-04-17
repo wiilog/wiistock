@@ -372,8 +372,9 @@ class ReceptionController extends AbstractController
                 $reception->setStatut($this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_ANOMALIE));
             }
 
-            $quantite =  $contentData['quantite'];
-            $refArticle->setQuantiteStock($refArticle->getQuantiteStock() +  $quantite);
+            // $quantite =  $contentData['quantite'];
+            // $refArticle->setQuantiteStock($refArticle->getQuantiteStock() +  $quantite);
+
             $receptionReferenceArticle = new ReceptionReferenceArticle;
             $receptionReferenceArticle
                 ->setLabel($contentData['libelle'])

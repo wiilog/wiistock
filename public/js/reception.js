@@ -215,3 +215,8 @@ let getArticleFournisseur = function () {
         xhttp.send(json);
     }
 }
+
+let resetNewArticle = function (element) {
+element.removeClass('d-block');
+element.addClass('d-none');
+}

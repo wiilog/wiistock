@@ -22,7 +22,7 @@
                             id="fournisseurAddArticle">
                         </select>
                     </div>
-                    <div class="form-group d-none w-100 col-6">
+                    <div id='articleFournisseurAddArticle' class="form-group d-none w-100 col-6">
                         <label for="fournisseur">Référence fournisseur</label>
                         <select class="form-control data" name="articleFournisseur" id="articleFournisseur">
                         </select>
@@ -62,7 +62,7 @@
             <div class="modal-footer">
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>
                 <button type="button" id="addArticleSubmit" class="btn btn-success data"
-                    name="reception" value="{{reception.id}}" onclick='setCommentaireID($(this))'>Enregistrer</button>
+                    name="reception" value="{{reception.id}}" onclick="setCommentaireID($(this)), resetNewArticle($('#articleFournisseurAddArticle'))">Enregistrer</button>
             </div>
         </div>
     </div>
