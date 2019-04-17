@@ -47,13 +47,12 @@ class Service
     private $statut;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\emplacement", inversedBy="services")
-     * @ORM\JoinColumn(nullable=false)
+     * @ORM\Column(type="string", length=64)
      */
     private $destination;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="sources")
+     * @ORM\Column(type="string", length=64)
      */
     private $source;
 
@@ -122,24 +121,24 @@ class Service
         return $this;
     }
 
-    public function getDestination(): ?emplacement
+    public function getDestination(): ?string
     {
         return $this->destination;
     }
 
-    public function setDestination(?emplacement $destination): self
+    public function setDestination(?string $destination): self
     {
         $this->destination = $destination;
 
         return $this;
     }
 
-    public function getSource(): ?Emplacement
+    public function getSource(): ?string
     {
         return $this->source;
     }
 
-    public function setSource(?Emplacement $source): self
+    public function setSource(?string $source): self
     {
         $this->source = $source;
 

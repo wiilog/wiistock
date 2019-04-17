@@ -105,8 +105,8 @@ class ServiceController extends AbstractController
             $service
                 ->setDate($date)
                 ->setLibelle($data['Libelle'])
-                ->setSource($this->emplacementRepository->find($data['source']))
-                ->setDestination($this->emplacementRepository->find($data['destination']))
+                ->setSource($data['source'])
+                ->setDestination($data['destination'])
                 ->setStatut($status)
                 ->setDemandeur($this->utilisateurRepository->find($data['demandeur']))
                 ->setCommentaire($data['commentaire']);
@@ -153,8 +153,8 @@ class ServiceController extends AbstractController
             $service->setStatut($statut);
             $service
                 ->setLibelle($data['Libelle'])
-                ->setSource($this->emplacementRepository->find($data['source']))
-                ->setDestination($this->emplacementRepository->find($data['destination']))
+                ->setSource($data['source'])
+                ->setDestination($data['destination'])
                 ->setDemandeur($this->utilisateurRepository->find($data['demandeur']))
                 ->setCommentaire($data['commentaire']);
             $em = $this->getDoctrine()->getManager();

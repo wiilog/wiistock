@@ -13,18 +13,12 @@
 
 <div class="form-group needed">
     <label for="Localité">Source</label>
-    <select class="Localité form-control data ajax-autocompleteEmplacement-edit needed input" name="source">
-        <option value="{{service.source.id}}">{{service.source.label}}</option>
-
-    </select>
+    <input class="form-control data needed input" value="{{service.source}}" name="source">
 </div>
 
 <div class="form-group needed">
     <label for="Localité">Destination</label>
-    <select class="Localité form-control data ajax-autocompleteEmplacement-edit needed input" name="destination">
-        <option value="{{service.destination.id}}">{{service.destination.label}}</option>
-
-    </select>
+    <input class="form-control data needed input" value="{{service.destination}}" name="destination">
 </div>
 
 <div class="form-group col-6">
@@ -47,9 +41,10 @@
     </div>
 </div>
 
-<div class="form-group com">
+<div class="form-group">
     <label for="commentaire">Commentaire</label>
-    <input id="commentaire" class="form-control data input" name="commentaire" type="hidden" value="{{service.commentaire}}">
+    <input id="commentaire" class="form-control data input" name="commentaire" type="hidden"
+        value="{{service.commentaire}}">
     <div class="editor-container input" value="{{service.commentaire}}"> {{service.commentaire|raw}}
     </div>
 
@@ -59,11 +54,7 @@
 {% block javascript %}
 
 <script>
-    if ( {{ statut }} === 0) {
-        $('.com').empty();
-        $('.com').append(
-        "<label for=\"commentaire\">Commentaire : </label>" + 
-        "<input class=\"data input form-control\" name=\"commentaire\" value=\"{{ service.commentaire|raw }}\"></input>");
+    if ({{ statut }} === 0) {
         $('.input').prop('disabled', true);
     }
 </script>
