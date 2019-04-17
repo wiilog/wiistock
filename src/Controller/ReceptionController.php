@@ -321,7 +321,7 @@ class ReceptionController extends AbstractController
     /**
      * @Route("/supprimer-article", name="reception_article_delete",  options={"expose"=true}, methods={"GET", "POST"})
      */
-    public function deleteArticle(Request  $request): Response //TODOO
+    public function deleteArticle(Request  $request): Response
     {
         if (!$request->isXmlHttpRequest() &&  $data = json_decode($request->getContent(), true)) {
             $ligneArticle =  $this->receptionReferenceArticleRepository->find($data['ligneArticle']);
@@ -484,19 +484,6 @@ class ReceptionController extends AbstractController
                     $em = $this->getDoctrine()->getManager();
                     $em->persist($article);
                     $em->flush();
-                    // $champsLibreKey = array_keys($contentData);
-                    // foreach ($champsLibreKey as $champs) {
-                    //     if (gettype($champs) === 'integer') {
-                    //         $valeurChampLibre = new ValeurChampsLibre();
-                    //         $valeurChampLibre
-                    //             ->setValeur($contentData[$champs])
-                    //             ->addArticle($article)
-                    //             ->setChampLibre($this->champsLibreRepository->find($champs));
-                    //         $em = $this->getDoctrine()->getManager();
-                    //         $em->persist($valeurChampLibre);
-                    //         $em->flush();
-                        // } //TODO gérer message erreur retour
-                    // }
                 }
             }
         }
