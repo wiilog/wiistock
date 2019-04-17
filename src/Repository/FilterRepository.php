@@ -25,7 +25,7 @@ class FilterRepository extends ServiceEntityRepository
         $query = $em->createQuery(
             "SELECT COUNT (f)
             FROM App\Entity\Filter f
-            WHERE f.champLibre = :clId OR f.champFixe = :clId
+            WHERE (f.champLibre = :clId OR f.champFixe = :clId)
             AND f.utilisateur = :userId"
         )->setParameters(['clId' => $field, 'userId' => $userId]);
 

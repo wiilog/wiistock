@@ -4,16 +4,12 @@ namespace App\Controller;
 
 use App\Entity\Demande;
 use App\Entity\Preparation;
-
-use App\Form\LivraisonType;
-
 use App\Repository\DemandeRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\LigneArticleRepository;
 use App\Repository\StatutRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\UtilisateurRepository;
-
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -77,7 +73,7 @@ class DemandeController extends AbstractController
             $preparation = new Preparation();
             $date = new \DateTime('now');
             $preparation
-                ->setNumero('P-' . $date->format('YmdHis'))
+                ->setNumero('P-'.$date->format('YmdHis'))
                 ->setDate($date)
                 ->setUtilisateur($this->getUser());
 
@@ -98,23 +94,24 @@ class DemandeController extends AbstractController
                     'demande/enteteDemandeLivraison.html.twig',
                     [
                         'demande' => $demande,
+                        'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
                     ]
                 ),
             ];
 
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException("404"); //TODO retour msg erreur (pas d'article dans la DL)
+        throw new NotFoundHttpException('404'); //TODO retour msg erreur (pas d'article dans la DL)
     }
 
-   /**
+    /**
      * @Route("/api-modifier", name="demandeLivraison_api_edit", options={"expose"=true}, methods="GET|POST")
      */
     public function editApi(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $demandeLivraison = $this->demandeRepository->find($data);
-           
+
             $json = $this->renderView('demande/modalEditDemandeContent.html.twig', [
                 'demande' => $demandeLivraison,
             ]);
@@ -130,8 +127,7 @@ class DemandeController extends AbstractController
     public function edit(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-           
-            $utilisateur = $this->utilisateurRepository->find(intval($data["demandeur"]));
+            $utilisateur = $this->utilisateurRepository->find(intval($data['demandeur']));
             $emplacement = $this->emplacementRepository->find(intval($data['destination']));
             $demande = $this->demandeRepository->find($data['demandeId']);
             $demande
@@ -144,11 +140,12 @@ class DemandeController extends AbstractController
             $json = [
                 'entete' => $this->renderView('demande/enteteDemandeLivraison.html.twig', [
                     'demande' => $demande,
-                ])
+                ]),
             ];
+
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException("404");
+        throw new NotFoundHttpException('404');
     }
 
     /**
@@ -158,10 +155,10 @@ class DemandeController extends AbstractController
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $em = $this->getDoctrine()->getManager();
-            $utilisateur = $this->utilisateurRepository->find($data["demandeur"]);
+            $utilisateur = $this->utilisateurRepository->find($data['demandeur']);
             $date = new \DateTime('now');
             $statut = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
-            $destination = $this->emplacementRepository->find($data["destination"]);
+            $destination = $this->emplacementRepository->find($data['destination']);
             $demande = new Demande();
             $demande
                 ->setStatut($statut)
@@ -169,18 +166,18 @@ class DemandeController extends AbstractController
                 ->setdate($date)
                 //                ->setDateAttendu(new \DateTime($data['dateAttendu']))
                 ->setDestination($destination)
-                ->setNumero("D-" . $date->format('YmdHis'))
-                ->setCommentaire($data["commentaire"]);
+                ->setNumero('D-'.$date->format('YmdHis'))
+                ->setCommentaire($data['commentaire']);
             $em->persist($demande);
             $em->flush();
 
             $data = [
-                "redirect" => $this->generateUrl('ligne_article_show', ['id' => $demande->getId()])
+                'redirect' => $this->generateUrl('ligne_article_show', ['id' => $demande->getId()]),
             ];
 
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException("404");
+        throw new NotFoundHttpException('404');
     }
 
     /**
@@ -191,11 +188,11 @@ class DemandeController extends AbstractController
         return $this->render('demande/index.html.twig', [
             'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
             'statuts' => $this->statutRepository->findByCategorieName(Demande::CATEGORIE),
-            'emplacements' => $this->emplacementRepository->getIdAndNom()
+            'emplacements' => $this->emplacementRepository->getIdAndNom(),
         ]);
     }
 
-    /** 
+    /**
      * @Route("/delete", name="demande_delete", options={"expose"=true}, methods="GET|POST")
      */
     public function delete(Request $request): Response
@@ -206,11 +203,12 @@ class DemandeController extends AbstractController
             $entityManager->remove($demande);
             $entityManager->flush();
             $data = [
-                "redirect" => $this->generateUrl('demande_index')
+                'redirect' => $this->generateUrl('demande_index'),
             ];
+
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException("404");
+        throw new NotFoundHttpException('404');
     }
 
     /**
@@ -219,7 +217,6 @@ class DemandeController extends AbstractController
     public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-
             // $demandes = $demandeRepository->findByUserAndNotStatus($this->getUser(), Livraison::STATUT_TERMINE);
             $demandes = $this->demandeRepository->findAll();
             $rows = [];
@@ -228,23 +225,24 @@ class DemandeController extends AbstractController
                 $url = $this->generateUrl('ligne_article_show', ['id' => $idDemande]);
                 $rows[] =
                     [
-                        "Date" => ($demande->getDate() ? $demande->getDate()->format('d/m/Y') : ''),
-                        "Demandeur" => ($demande->getUtilisateur()->getUsername() ? $demande->getUtilisateur()->getUsername() : ''),
-                        "Numéro" => ($demande->getNumero() ? $demande->getNumero() : ''),
-                        "Statut" => ($demande->getStatut()->getNom() ? $demande->getStatut()->getNom() : ''),
+                        'Date' => ($demande->getDate() ? $demande->getDate()->format('d/m/Y') : ''),
+                        'Demandeur' => ($demande->getUtilisateur()->getUsername() ? $demande->getUtilisateur()->getUsername() : ''),
+                        'Numéro' => ($demande->getNumero() ? $demande->getNumero() : ''),
+                        'Statut' => ($demande->getStatut()->getNom() ? $demande->getStatut()->getNom() : ''),
                         'Actions' => $this->renderView(
                             'demande/datatableDemandeRow.html.twig',
                             [
                                 'idDemande' => $idDemande,
-                                'url' => $url
+                                'url' => $url,
                             ]
                         ),
                     ];
             }
             $data['data'] = $rows;
+
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException("404");
+        throw new NotFoundHttpException('404');
     }
 
     /**
@@ -257,8 +255,9 @@ class DemandeController extends AbstractController
             $json = $this->renderView('demande/modalEditDemand.html.twig', [
                 'demande' => $demande,
             ]);
+
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException("404");
+        throw new NotFoundHttpException('404');
     }
 }
