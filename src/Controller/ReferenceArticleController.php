@@ -490,7 +490,7 @@ class ReferenceArticleController extends Controller
                     $collecteReference
                         ->setCollecte($collecte)
                         ->setReferenceArticle($refArticle)
-                        ->setQuantite($data['quantitie']);
+                        ->setQuantite((int)$data['quantitie']);
                     $em->persist($collecteReference);
                 } else {
                     $json = false;
