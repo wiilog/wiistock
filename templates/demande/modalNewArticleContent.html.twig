@@ -4,7 +4,7 @@
             <div class="input-group-prepend">
                 <label class="input-group-text" for="reference">Référence</label>
             </div>
-            <input class="form-control data " disabled type="text" value="{{articleRef.reference}}" name="reference"
+            <input class="form-control " disabled type="text" value="{{articleRef.reference}}" name="reference"
                 id="reference">
         </div>
     </div>
@@ -12,9 +12,9 @@
         <div class="input-group radio-btn">
             <label for="statut" class="mtb-auto mr-2">Statut</label>
             <div>
-                <span class="btn {{ statut == 1 ? 'active' : 'not-active'}} " disabled data-toggle="statut" data-title="active"
-                   >Actif</span><span
-                    class="btn {{ statut == 0 ? 'active' : 'not-active'}} " disabled data-toggle="statut" data-title="inactive"
+                <span class="btn {{ statut == 1 ? 'active' : 'not-active'}} " data-toggle="statut" data-title="active"
+                    >Actif</span><span
+                    class="btn {{ statut == 0 ? 'active' : 'not-active'}} "  data-toggle="statut" data-title="inactive"
                     >Inactif</span>
             </div>
             <input type="hidden" name="statut" id="statut" class="data " disabled value="{{ statut }}">
@@ -62,10 +62,10 @@
         <div class="input-group radio-btn">
             <label for="statut" class="mtb-auto mr-2">Gestion quantité</label>
             <div onclick="updateQuantityDisplay($(this))">
-                <span class="btn {{ (articleRef.typeQuantite == 'reference') ? 'active' : 'not-active'}} " disabled
-                    data-toggle="type_quantite" data-title="reference" >Par
+                <span class="btn {{ (articleRef.typeQuantite == 'reference') ? 'active' : 'not-active'}} "
+                    data-toggle="type_quantite" data-title="reference">Par
                     référence</span><span
-                    class="btn {{ (articleRef.typeQuantite == 'article') ? 'active' : 'not-active'}} " disabled
+                    class="btn {{ (articleRef.typeQuantite == 'article') ? 'active' : 'not-active'}} "
                     data-toggle="type_quantite" data-title="article" >Par
                     article</span>
             </div>
@@ -81,7 +81,7 @@
             <div class="input-group-prepend">
                 <label class="input-group-text" for="quantité">Quantité</label>
             </div>
-            <input class="form-control data " disabled value='{{ articleRef.quantiteStock }}' type="number" min="0"
+            <input class="form-control " disabled value='{{ articleRef.quantiteStock }}' type="number" min="0"
                 name="quantite" id="quantité">
         </div>
 
@@ -171,4 +171,3 @@
         {% endfor %}
     </div>
 </div>
-

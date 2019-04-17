@@ -6,9 +6,6 @@ use App\Entity\Action;
 use App\Entity\Demande;
 use App\Entity\Menu;
 use App\Entity\Preparation;
-
-use App\Form\LivraisonType;
-
 use App\Repository\DemandeRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\LigneArticleRepository;
@@ -112,13 +109,14 @@ class DemandeController extends AbstractController
                     'demande/enteteDemandeLivraison.html.twig',
                     [
                         'demande' => $demande,
+                        'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
                     ]
                 ),
             ];
 
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException("404"); //TODO retour msg erreur (pas d'article dans la DL)
+        throw new NotFoundHttpException('404'); //TODO retour msg erreur (pas d'article dans la DL)
     }
 
    /**
@@ -148,7 +146,7 @@ class DemandeController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $utilisateur = $this->utilisateurRepository->find(intval($data["demandeur"]));
+            $utilisateur = $this->utilisateurRepository->find(intval($data['demandeur']));
             $emplacement = $this->emplacementRepository->find(intval($data['destination']));
             $demande = $this->demandeRepository->find($data['demandeId']);
             $demande
@@ -161,11 +159,12 @@ class DemandeController extends AbstractController
             $json = [
                 'entete' => $this->renderView('demande/enteteDemandeLivraison.html.twig', [
                     'demande' => $demande,
-                ])
+                ]),
             ];
+
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException("404");
+        throw new NotFoundHttpException('404');
     }
 
     /**
@@ -179,10 +178,10 @@ class DemandeController extends AbstractController
             }
 
             $em = $this->getDoctrine()->getManager();
-            $utilisateur = $this->utilisateurRepository->find($data["demandeur"]);
+            $utilisateur = $this->utilisateurRepository->find($data['demandeur']);
             $date = new \DateTime('now');
             $statut = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
-            $destination = $this->emplacementRepository->find($data["destination"]);
+            $destination = $this->emplacementRepository->find($data['destination']);
             $demande = new Demande();
             $demande
                 ->setStatut($statut)
@@ -201,7 +200,7 @@ class DemandeController extends AbstractController
 
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException("404");
+        throw new NotFoundHttpException('404');
     }
 
     /**
@@ -220,7 +219,7 @@ class DemandeController extends AbstractController
         ]);
     }
 
-    /**
+    /** 
      * @Route("/delete", name="demande_delete", options={"expose"=true}, methods="GET|POST")
      */
     public function delete(Request $request): Response
@@ -235,11 +234,12 @@ class DemandeController extends AbstractController
             $entityManager->remove($demande);
             $entityManager->flush();
             $data = [
-                "redirect" => $this->generateUrl('demande_index')
+                'redirect' => $this->generateUrl('demande_index'),
             ];
+
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException("404");
+        throw new NotFoundHttpException('404');
     }
 
     /**
@@ -275,7 +275,7 @@ class DemandeController extends AbstractController
             $data['data'] = $rows;
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException("404");
+        throw new NotFoundHttpException('404');
     }
 
     /**
@@ -429,7 +429,7 @@ class DemandeController extends AbstractController
             ]);
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException("404");
+        throw new NotFoundHttpException('404');
     }
 
 }

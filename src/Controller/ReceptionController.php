@@ -154,7 +154,7 @@ class ReceptionController extends AbstractController
             $em->flush();
 
             $data = [
-                    "redirect" => $this->generateUrl('reception_ajout_article', ['id' => $reception->getId()])
+                    "redirect" => $this->generateUrl('reception_show', ['id' => $reception->getId()])
                 ];
             return new JsonResponse($data);
         }
@@ -225,7 +225,7 @@ class ReceptionController extends AbstractController
             $receptions = $this->receptionRepository->findAll();
             $rows = [];
             foreach ($receptions as $reception) {
-                $url = $this->generateUrl('reception_ajout_article', ['id' => $reception->getId()]);
+                $url = $this->generateUrl('reception_show', ['id' => $reception->getId()]);
                 $rows[] =
                         [
                             'id' => ($reception->getId()),
@@ -410,8 +410,14 @@ class ReceptionController extends AbstractController
         if (!$request->isXmlHttpRequest() && $articleId = json_decode($request->getContent(), true)) {
             $article = $this->articleRepository->find($articleId);
             $valeurChampsLibre = $this->valeurChampsLibreRepository->getByArticle($article->getId());
-            $type = ($article->getType() ? $article->getType() : "");
-            $champsLibres = $this->champsLibreRepository->getByType($type->getId());
+
+            if ($article->getType()) {
+                $type = $article->getType();
+                $champsLibres = $this->champsLibreRepository->getByType($type->getId());
+            } else {
+                $type = '';
+                $champsLibres = [];
+            }
             $tabInfoChampsLibres = [];
             foreach ($champsLibres as $champLibre) {
                 $valeurChampLibre = $this->valeurChampsLibreRepository->findOneByChampLibreAndArticle($champLibre->getId(), $articleId);
@@ -501,9 +507,9 @@ class ReceptionController extends AbstractController
 
 
     /**
-     * @Route("/article/{id}", name="reception_ajout_article", methods={"GET", "POST"})
+     * @Route("/voir/{id}", name="reception_show", methods={"GET", "POST"})
      */
-    public function ajoutArticle(Reception $reception, $id): Response
+    public function show(Reception $reception, $id): Response
     {
         $refArticles = $this->referenceArticleRepository->getIdAndLabelByFournisseur($reception->getFournisseur()->getId());
 
