@@ -16,8 +16,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
-
 use App\Repository\CollecteRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\EmplacementRepository;
@@ -76,7 +74,6 @@ class CollecteController extends AbstractController
      */
     private $userService;
 
-
     public function __construct(RefArticleDataService $refArticleDataService, CollecteReferenceRepository $collecteReferenceRepository, ReferenceArticleRepository $referenceArticleRepository, StatutRepository $statutRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UtilisateurRepository $utilisateurRepository, UserService $userService)
     {
         $this->statutRepository = $statutRepository;
@@ -115,6 +112,7 @@ class CollecteController extends AbstractController
         }
 
         return $this->render('collecte/show.html.twig', [
+            'refCollecte' => $this->collecteReferenceRepository->getByCollecte($collecte),
             'collecte' => $collecte,
             'modifiable' => ($collecte->getStatut()->getNom() !== Collecte::STATUS_EN_COURS ? true : false),
         ]);
@@ -126,7 +124,6 @@ class CollecteController extends AbstractController
     public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) { //Si la requête est de type Xml
-
             if (!$this->userService->hasRightFunction(Menu::DEM_COLLECTE, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
             }
@@ -221,7 +218,7 @@ class CollecteController extends AbstractController
             $em = $this->getDoctrine()->getEntityManager();
             $date = new \DateTime('now');
             $status = $this->statutRepository->findOneByNom(Collecte::STATUS_DEMANDE);
-            $numero = 'C-' . $date->format('YmdHis');
+            $numero = 'C-'.$date->format('YmdHis');
             $collecte = new Collecte();
             $collecte
                 ->setDemandeur($this->utilisateurRepository->find($data['demandeur']))
@@ -275,6 +272,44 @@ class CollecteController extends AbstractController
             $em->flush();
 
             return new JsonResponse();
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/modifier-quantite-article", name="collecte_edit_article", options={"expose"=true}, methods={"GET", "POST"})
+     */
+    public function editArticle(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::DEM_COLLECTE, Action::CREATE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+            $em = $this->getDoctrine()->getManager();
+            dump($data);
+            $collecteReference = $this->collecteReferenceRepository->find($data['collecteRef']);
+            $collecteReference->setQuantite(intval($collecteReference->getQuantite()) + intval($data['quantite']));
+            $em->flush();
+
+            return new JsonResponse();
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/modifier-quantite-api-article", name="collecte_edit_api_article", options={"expose"=true}, methods={"GET", "POST"})
+     */
+    public function editApiArticle(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::DEM_COLLECTE, Action::CREATE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+            $json = $this->renderView('collecte/modalEditArticleContent.html.twig', [
+                'collecteRef' => $this->collecteReferenceRepository->find($data),
+            ]);
+
+            return new JsonResponse($json);
         }
         throw new NotFoundHttpException('404');
     }
@@ -340,7 +375,6 @@ class CollecteController extends AbstractController
             return new JsonResponse($response);
         }
         throw new NotFoundHttpException('404');
-
     }
 
     /**

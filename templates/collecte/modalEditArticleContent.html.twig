@@ -1,0 +1,14 @@
+<input hidden class="data" name="collecteRef" value="{{collecteRef.id}}">
+<div class="mb-3">
+    <label for="quantite">Quantité</label>
+    <input type="number" class="data form-control needed" name="quantite" id="quantite"
+        value="{{collecteRef.quantite}}" placeholder="Quantité" min="1" required="true">
+</div>
+<div class="form-group w-100 mb-3">
+    <label for="reference">Référence</label>
+    <select class="ajax-autocomplete data form-control" value='{{collecteRef.referenceArticle.reference}}' id='referenceEdit'
+        name='referenceArticle' onclick="ajaxAuto()">
+        <option class=" refAjax" value="{{collecteRef.referenceArticle.id}}">{{collecteRef.referenceArticle.reference}}</option>
+    </select>
+</div>
+<div class="error-msg"></div>

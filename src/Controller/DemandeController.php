@@ -12,7 +12,6 @@ use App\Repository\LigneArticleRepository;
 use App\Repository\StatutRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\UtilisateurRepository;
-
 use App\Service\UserService;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -20,6 +19,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Entity\LigneArticle;
 
 /**
  * @Route("/demande")
@@ -61,7 +61,6 @@ class DemandeController extends AbstractController
      */
     private $userService;
 
-
     public function __construct(LigneArticleRepository $ligneArticleRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, UserService $userService)
     {
         $this->statutRepository = $statutRepository;
@@ -88,7 +87,7 @@ class DemandeController extends AbstractController
             $preparation = new Preparation();
             $date = new \DateTime('now');
             $preparation
-                ->setNumero('P-' . $date->format('YmdHis'))
+                ->setNumero('P-'.$date->format('YmdHis'))
                 ->setDate($date)
                 ->setUtilisateur($this->getUser());
 
@@ -119,7 +118,7 @@ class DemandeController extends AbstractController
         throw new NotFoundHttpException('404'); //TODO retour msg erreur (pas d'article dans la DL)
     }
 
-   /**
+    /**
      * @Route("/api-modifier", name="demandeLivraison_api_edit", options={"expose"=true}, methods="GET|POST")
      */
     public function editApi(Request $request): Response
@@ -189,13 +188,13 @@ class DemandeController extends AbstractController
                 ->setdate($date)
                 //                ->setDateAttendu(new \DateTime($data['dateAttendu']))
                 ->setDestination($destination)
-                ->setNumero("D-" . $date->format('YmdHis'))
-                ->setCommentaire($data["commentaire"]);
+                ->setNumero('D-'.$date->format('YmdHis'))
+                ->setCommentaire($data['commentaire']);
             $em->persist($demande);
             $em->flush();
 
             $data = [
-                "redirect" => $this->generateUrl('demande_show', ['id' => $demande->getId()])
+                'redirect' => $this->generateUrl('demande_show', ['id' => $demande->getId()]),
             ];
 
             return new JsonResponse($data);
@@ -215,11 +214,11 @@ class DemandeController extends AbstractController
         return $this->render('demande/index.html.twig', [
             'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
             'statuts' => $this->statutRepository->findByCategorieName(Demande::CATEGORIE),
-            'emplacements' => $this->emplacementRepository->getIdAndNom()
+            'emplacements' => $this->emplacementRepository->getIdAndNom(),
         ]);
     }
 
-    /** 
+    /**
      * @Route("/delete", name="demande_delete", options={"expose"=true}, methods="GET|POST")
      */
     public function delete(Request $request): Response
@@ -259,20 +258,21 @@ class DemandeController extends AbstractController
                 $url = $this->generateUrl('demande_show', ['id' => $idDemande]);
                 $rows[] =
                     [
-                        "Date" => ($demande->getDate() ? $demande->getDate()->format('d/m/Y') : ''),
-                        "Demandeur" => ($demande->getUtilisateur()->getUsername() ? $demande->getUtilisateur()->getUsername() : ''),
-                        "Numéro" => ($demande->getNumero() ? $demande->getNumero() : ''),
-                        "Statut" => ($demande->getStatut()->getNom() ? $demande->getStatut()->getNom() : ''),
+                        'Date' => ($demande->getDate() ? $demande->getDate()->format('d/m/Y') : ''),
+                        'Demandeur' => ($demande->getUtilisateur()->getUsername() ? $demande->getUtilisateur()->getUsername() : ''),
+                        'Numéro' => ($demande->getNumero() ? $demande->getNumero() : ''),
+                        'Statut' => ($demande->getStatut()->getNom() ? $demande->getStatut()->getNom() : ''),
                         'Actions' => $this->renderView(
                             'demande/datatableDemandeRow.html.twig',
                             [
                                 'idDemande' => $idDemande,
-                                'url' => $url
+                                'url' => $url,
                             ]
                         ),
                     ];
             }
             $data['data'] = $rows;
+
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException('404');
@@ -293,7 +293,7 @@ class DemandeController extends AbstractController
             'statuts' => $this->statutRepository->findByCategorieName(Demande::CATEGORIE),
             'references' => $this->referenceArticleRepository->getIdAndLibelle(),
             'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
-            'emplacements' => $this->emplacementRepository->findAll()
+            'emplacements' => $this->emplacementRepository->findAll(),
         ]);
     }
 
@@ -313,23 +313,24 @@ class DemandeController extends AbstractController
                 $idArticle = $ligneArticle->getId();
                 $url['delete'] = $this->generateUrl('demande_remove_article', ['id' => $ligneArticle->getId()]);
                 $rows[] = [
-                    "Référence CEA" => ($ligneArticle->getReference()->getReference() ? $ligneArticle->getReference()->getReference() : ''),
-                    "Libellé" => ($ligneArticle->getReference()->getLibelle() ? $ligneArticle->getReference()->getLibelle() : ''),
-                    "Quantité" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ''),
-                    "Actions" => $this->renderView(
+                    'Référence CEA' => ($ligneArticle->getReference()->getReference() ? $ligneArticle->getReference()->getReference() : ''),
+                    'Libellé' => ($ligneArticle->getReference()->getLibelle() ? $ligneArticle->getReference()->getLibelle() : ''),
+                    'Quantité' => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ''),
+                    'Actions' => $this->renderView(
                         'demande/datatableLigneArticleRow.html.twig',
                         [
                             'idArticle' => $idArticle,
                             'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
                         ]
-                    )
+                    ),
                 ];
             }
 
             $data['data'] = $rows;
+
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException("404");
+        throw new NotFoundHttpException('404');
     }
 
     /**
@@ -342,20 +343,20 @@ class DemandeController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $referenceArticle = $this->referenceArticleRepository->find($data["reference"]);
+            $referenceArticle = $this->referenceArticleRepository->find($data['reference']);
             $demande = $this->demandeRepository->find($data['demande']);
             if ($this->ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
                 $ligneArticle = new LigneArticle();
                 $ligneArticle
-                    ->setQuantite($data["quantite"])
+                    ->setQuantite($data['quantite'])
                     ->setReference($referenceArticle);
             } else {
                 $ligneArticle = $this->ligneArticleRepository->getByRefArticle($referenceArticle);
                 $ligneArticle
-                    ->setQuantite($ligneArticle->getQuantite() + $data["quantite"]);
+                    ->setQuantite($ligneArticle->getQuantite() + $data['quantite']);
             }
 
-            $quantiteReservee = intval($data["quantite"]);
+            $quantiteReservee = intval($data['quantite']);
             $quantiteArticleReservee = $referenceArticle->getQuantiteReservee();
 
             $referenceArticle
@@ -369,7 +370,7 @@ class DemandeController extends AbstractController
 
             return new JsonResponse();
         }
-        throw new NotFoundHttpException("404");
+        throw new NotFoundHttpException('404');
     }
 
     /**
@@ -386,9 +387,10 @@ class DemandeController extends AbstractController
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($ligneAricle);
             $entityManager->flush();
+
             return new JsonResponse();
         }
-        throw new NotFoundHttpException("404");
+        throw new NotFoundHttpException('404');
     }
 
     /**
@@ -405,12 +407,12 @@ class DemandeController extends AbstractController
             $ligneArticle = $this->ligneArticleRepository->find($data['ligneArticle']);
             $ligneArticle
                 ->setReference($reference)
-                ->setQuantite($data["quantite"]);
+                ->setQuantite($data['quantite']);
             $this->getDoctrine()->getEntityManager()->flush();
 
             return new JsonResponse();
         }
-        throw new NotFoundHttpException("404");
+        throw new NotFoundHttpException('404');
     }
 
     /**
@@ -427,9 +429,9 @@ class DemandeController extends AbstractController
             $json = $this->renderView('demande/modalEditArticleContent.html.twig', [
                 'ligneArticle' => $ligneArticle,
             ]);
+
             return new JsonResponse($json);
         }
         throw new NotFoundHttpException('404');
     }
-
 }

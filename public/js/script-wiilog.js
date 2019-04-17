@@ -76,7 +76,8 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
         Data["elem"] = [];
         inputs.each(function () {
             let val = $(this).val();
-            let name = $(this).attr("name");          
+            let name = $(this).attr("name");     
+            console.log(name + " " + val);     
             if (name === "elem")
                 Data[name].push(val);
             else {
