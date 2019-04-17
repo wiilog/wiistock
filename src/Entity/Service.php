@@ -50,7 +50,12 @@ class Service
      * @ORM\ManyToOne(targetEntity="App\Entity\emplacement", inversedBy="services")
      * @ORM\JoinColumn(nullable=false)
      */
-    private $emplacement;
+    private $destination;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="sources")
+     */
+    private $source;
 
     public function getId(): ?int
     {
@@ -81,7 +86,7 @@ class Service
         return $this;
     }
 
-       public function getCommentaire(): ?string
+    public function getCommentaire(): ?string
     {
         return $this->commentaire;
     }
@@ -117,14 +122,26 @@ class Service
         return $this;
     }
 
-    public function getEmplacement(): ?emplacement
+    public function getDestination(): ?emplacement
     {
-        return $this->emplacement;
+        return $this->destination;
     }
 
-    public function setEmplacement(?emplacement $emplacement): self
+    public function setDestination(?emplacement $destination): self
     {
-        $this->emplacement = $emplacement;
+        $this->destination = $destination;
+
+        return $this;
+    }
+
+    public function getSource(): ?Emplacement
+    {
+        return $this->source;
+    }
+
+    public function setSource(?Emplacement $source): self
+    {
+        $this->source = $source;
 
         return $this;
     }

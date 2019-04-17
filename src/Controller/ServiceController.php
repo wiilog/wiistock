@@ -20,13 +20,13 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 class ServiceController extends AbstractController
 {
     /**
-      * @var ServiceRepository
-      */
+     * @var ServiceRepository
+     */
     private $serviceRepository;
 
     /**
-      * @var EmplacementRepository
-      */
+     * @var EmplacementRepository
+     */
     private $emplacementRepository;
 
     /**
@@ -35,11 +35,9 @@ class ServiceController extends AbstractController
     private $statutRepository;
 
     /**
-    * @var UtilisateurRepository
-    */
+     * @var UtilisateurRepository
+     */
     private $utilisateurRepository;
-
-    
 
     public function __construct(ServiceRepository $serviceRepository, EmplacementRepository $emplacementRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository)
     {
@@ -48,39 +46,38 @@ class ServiceController extends AbstractController
         $this->statutRepository = $statutRepository;
         $this->utilisateurRepository = $utilisateurRepository;
     }
-   
+
     /**
      * @Route("/api", name="service_api", options={"expose"=true}, methods="GET|POST")
      */
-    public function api(Request $request) : Response
+    public function api(Request $request): Response
     {
-             
         if ($request->isXmlHttpRequest()) {
             $services = $this->serviceRepository->findAll();
 
             $rows = [];
-                foreach ($services as $service) {
+            foreach ($services as $service) {
                 $url['edit'] = $this->generateUrl('service_edit', ['id' => $service->getId()]);
-               
+
                 $rows[] = [
-                    'id' => ($service->getId() ? $service->getId() : "Non défini"),
-                    'Date'=> ($service->getDate() ? $service->getDate()->format('d/m/Y') : null),
-                    'Demandeur'=> ($service->getDemandeur() ? $service->getDemandeur()->getUserName() : null),
-                    'Libellé'=> ($service->getlibelle() ? $service->getLibelle() : null),
-                    'Statut'=> ($service->getStatut()->getNom() ? $service->getStatut()->getNom() : null),
+                    'id' => ($service->getId() ? $service->getId() : 'Non défini'),
+                    'Date' => ($service->getDate() ? $service->getDate()->format('d/m/Y') : null),
+                    'Demandeur' => ($service->getDemandeur() ? $service->getDemandeur()->getUserName() : null),
+                    'Libellé' => ($service->getlibelle() ? $service->getLibelle() : null),
+                    'Statut' => ($service->getStatut()->getNom() ? $service->getStatut()->getNom() : null),
                     'Actions' => $this->renderView('service/datatableServiceRow.html.twig', [
                         'url' => $url,
                         'service' => $service,
-                        'serviceId'=>$service->getId()
-                        ])
+                        'serviceId' => $service->getId(),
+                        ]),
                 ];
             }
             $data['data'] = $rows;
+
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException("404");
+        throw new NotFoundHttpException('404');
     }
-
 
     /**
      * @Route("/", name="service_index", methods={"GET", "POST"})
@@ -93,82 +90,78 @@ class ServiceController extends AbstractController
         ]);
     }
 
-    
     /**
      * @Route("/creer", name="service_new", options={"expose"=true}, methods={"GET", "POST"})
      */
-    public function new(Request $request) : Response
+    public function new(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $em = $this->getDoctrine()->getEntityManager();
-                  
+
             $status = $this->statutRepository->findOneByCategorieAndStatut(Service::CATEGORIE, Service::STATUT_A_TRAITER);
             $service = new Service();
             $date = new \DateTime('now');
-       
+
             $service
                 ->setDate($date)
                 ->setLibelle($data['Libelle'])
-                ->setEmplacement($this->emplacementRepository->find($data['Localité']))
+                ->setSource($this->emplacementRepository->find($data['source']))
+                ->setDestination($this->emplacementRepository->find($data['destination']))
                 ->setStatut($status)
                 ->setDemandeur($this->utilisateurRepository->find($data['demandeur']))
                 ->setCommentaire($data['commentaire']);
-           
+
             $em->persist($service);
-            
+
             $em->flush();
-            
+
             return new JsonResponse($data);
         }
-        throw new XmlHttpException("404 not found");
+        throw new XmlHttpException('404 not found');
     }
-     
-   
+
     /**
-        * @Route("/api-modifier", name="service_edit_api", options={"expose"=true}, methods="GET|POST")
-        */
+     * @Route("/api-modifier", name="service_edit_api", options={"expose"=true}, methods="GET|POST")
+     */
     public function editApi(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-           
-            $service = $this->serviceRepository->find($data);         
+            $service = $this->serviceRepository->find($data);
             $json = $this->renderView('service/modalEditServiceContent.html.twig', [
                 'service' => $service,
-                'utilisateurs'=>$this->utilisateurRepository->findAll(),
-                'emplacements'=>$this->emplacementRepository->findAll(),
+                'utilisateurs' => $this->utilisateurRepository->findAll(),
+                'emplacements' => $this->emplacementRepository->findAll(),
                 'statut' => (($service->getStatut()->getNom() == Service::STATUT_A_TRAITER) ? 1 : 0),
-                'statuts'=>$this->statutRepository->findByCategorieName(Service::CATEGORIE),
+                'statuts' => $this->statutRepository->findByCategorieName(Service::CATEGORIE),
             ]);
-        
+
             return new JsonResponse($json);
         }
-        throw new NotFoundHttpException("404");
+        throw new NotFoundHttpException('404');
     }
 
     /**
      * @Route("/modifier", name="service_edit", options={"expose"=true}, methods="GET|POST")
      */
-    public function edit(Request $request) : Response
+    public function edit(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-         
             $service = $this->serviceRepository->find($data['id']);
             $statutLabel = ($data['statut'] == 1) ? Service::STATUT_A_TRAITER : Service::STATUT_TRAITE;
-           
+
             $statut = $this->statutRepository->findOneByCategorieAndStatut(Service::CATEGORIE, $statutLabel);
             $service->setStatut($statut);
             $service
                 ->setLibelle($data['Libelle'])
-                ->setEmplacement($this->emplacementRepository->find($data['Localité']))
-               
+                ->setSource($this->emplacementRepository->find($data['source']))
+                ->setDestination($this->emplacementRepository->find($data['destination']))
                 ->setDemandeur($this->utilisateurRepository->find($data['demandeur']))
                 ->setCommentaire($data['commentaire']);
             $em = $this->getDoctrine()->getManager();
             $em->flush();
+
             return new JsonResponse();
         }
-        throw new NotFoundHttpException("404");
+        throw new NotFoundHttpException('404');
     }
 }
-
-
