@@ -16,11 +16,11 @@ let table = $('#tableCollecte_id').DataTable({
         "type": "POST"
     },
     columns: [
-        { "data": 'Date' },
+        { "data": 'Date', 'name': 'Date' },
         { "data": 'Demandeur', 'name': 'Demandeur'},
-        { "data": 'Objet' },
+        { "data": 'Objet', 'name' : 'Objet' },
         { "data": 'Statut', 'name': 'Statut' },
-        { "data": 'Actions' }
+        { "data": 'Actions', 'name': 'Actions' }
     ],
 });
 

@@ -6,8 +6,8 @@ $('#utilisateur').select2({
     }
 });
 
-var pathService = Routing.generate('service_api', true);
-var tableService = $('#tableService_id').DataTable({
+let pathService = Routing.generate('service_api', true);
+let tableService = $('#tableService_id').DataTable({
     "language": {
         "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
     },
@@ -16,14 +16,24 @@ var tableService = $('#tableService_id').DataTable({
         "type": "POST"
     },
     columns: [
-        { "data": 'Date' },
-        { "data": 'Demandeur' },
-        { "data": 'Libellé' },
-        { "data": 'Statut' },
-        { "data": 'Actions' },
+        { "data": 'Date', 'name': 'Date' },
+        { "data": 'Demandeur', 'name': 'Demandeur' },
+        { "data": 'Libellé', 'name': 'Libellé' },
+        { "data": 'Statut', 'name': 'Statut' },
+        { "data": 'Actions', 'name': 'Actions' },
     ],
-
 });
+
+// recherche par défaut demandeur = utilisateur courant
+let demandeur = $('.current-username').val();
+let demandeurPiped = demandeur.split(',').join('|')
+tableService
+    .columns('Demandeur:name')
+    .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
+    .draw();
+// affichage par défaut du filtre select2 demandeur = utilisateur courant
+$('#utilisateur').val(demandeur).trigger('change');
+
 // filtres de recheches
 $('#submitSearchService').on('click', function () {
 
