@@ -80,19 +80,28 @@ let modalEditDemande = $("#modalEditDemande");
 let submitEditDemande = $("#submitEditDemande");
 InitialiserModal(modalEditDemande, submitEditDemande, urlEditDemande, tableDemande);
 
-function setMaxQuantity(select) {
-    console.log(select);
-    // let params = {
-    //     refArticleId: select.val()
-    // };
-
-    // $.post(Routing.generate('get_quantity_ref_article'), params, function (data) {
-    //     let modalBody = input.closest('.modal-body');
-    //     modalBody.find('#in-stock').val(data);
-    //     modalBody.find('#quantite').attr('max', data);
-        
-    // }, 'json');
+function setMaxQuantityEdit(select){
+    let params = {
+        refArticleId: select.val(),   
+   };
+   $.post(Routing.generate('get_quantity_ref_article'), params, function (data) {
+        let modalBody = select.closest(".modal-body");
+        modalBody.find('#quantite').attr('max', data);
+    }, 'json');
 }
+
+function setMaxQuantity(select) {   
+    let params = {
+        refArticleId: select.val(),  
+   };
+   console.log(params);
+   
+   $.post(Routing.generate('get_quantity_ref_article'), params, function (data) {
+        let modalBody = select.closest(".modal-body");
+        modalBody.find('#quantity').attr('max', data);
+    }, 'json');
+}
+
 
 $('.ajax-autocomplete').select2({
     ajax: {
