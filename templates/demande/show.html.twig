@@ -2,8 +2,54 @@
 {% block title %}Demande{% endblock %}
 {% block page_content %}
 
-<div class="entete">
-    {% include "demande/enteteDemandeLivraison.html.twig" %}
+<div class="row">
+    <div class="col">
+        <h1>Demande de livraison</h1>
+    </div>
+    {% if modifiable %}
+        <div class="col text-right id='boutonCollecteSup'">
+            {% if hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::DELETE')) %}
+                <a href="" data-id='{{ demande.id }}' data-target='#modalDeleteDemande' data-toggle='modal'
+                    class="btn btn-danger btn-action ml-auto">
+                    Supprimer</a>
+            {% endif %}
+            {% if hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::CREATE')) %}
+                <a href="" data-id='{{ demande.id }}' data-target='#modalEditDemande'
+                onclick="editRow($(this), Routing.generate('demandeLivraison_api_edit', true), $('#modalEditDemande'), $('#submitEditdemande'), true)"    
+                    data-toggle='modal'
+                    class="btn btn-primary btn-action ml-auto" onclick=>
+                    Modifier</a>
+            {% endif %}
+            {% if hasRight(constant('App\\Entity\\Menu::PREPA'), constant('App\\Entity\\Action::CREATE')) %}
+                <a href="#" class="btn btn-primary btn-action ml-auto" data-id='{{demande.id}}'
+                   onclick="finishDemandeLivraison($(this))">
+                        Valider</a>
+            {% endif %}
+        </div>
+
+        {% elseif demande.preparation is defined %}
+        <div class="col text-right" >
+            <a href="{{path('preparation_show', {'id': demande.preparation.id }) }}" class="btn btn-primary btn-action">
+                Aller vers la préparation
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<div class="row">
+    <div class="zone-entete col-6 row">
+        {% include "demande/enteteDemandeLivraison.html.twig" %}
+    </div>
+</div>
+{% if modifiable %}
+<div class="col text-right" id="boutonCollecteInf">
+    <a href="{{ path('reference_article_index') }}" data-toggle="modal" class="btn btn-primary btn-action ml-auto">
+        Chercher une référence</a>
+    {% if hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::CREATE')) %}
+        <a href="" data-toggle="modal" data-target="#modalNewArticle" onclick="clearNewContent($('#submitNewArticle')), ajaxAutoRefArticleInit($('#reference'))" class="btn btn-primary btn-action ml-auto">
+            <span class="fa fa-plus mr-2"></span>Ajouter article
+        </a>
+    {% endif %}
 </div>
 
 <span id="demande-id" data-id="{{ demande.id }}"></span>
