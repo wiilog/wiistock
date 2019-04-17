@@ -31,6 +31,8 @@ table
 .columns('Demandeur:name')
     .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
     .draw();
+// affichage par défaut du filtre select2 demandeur = utilisateur courant
+$('#utilisateur').val(demandeur).trigger('change');
 
 let modalNewCollecte = $("#modalNewCollecte");
 let SubmitNewCollecte = $("#submitNewCollecte");
