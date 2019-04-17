@@ -2,12 +2,15 @@
 
 namespace App\Controller;
 
+use App\Entity\Action;
+use App\Entity\Menu;
 use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
 
 use App\Form\ReceptionType;
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\ReceptionRepository;
+use App\Service\UserService;
 use App\Repository\ReceptionReferenceArticleRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -104,7 +107,13 @@ class ReceptionController extends AbstractController
      */
     private $typeRepository;
 
-    public function __construct(ReceptionReferenceArticleRepository $receptionReferenceArticleRepository, TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository)
+    /**
+     * @var UserService
+     */
+    private $userService;
+
+
+    public function __construct(TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, UserService $userService, ReferenceArticleRepository $referenceArticleRepository)
     {
         $this->statutRepository = $statutRepository;
         $this->emplacementRepository = $emplacementRepository;
@@ -118,6 +127,7 @@ class ReceptionController extends AbstractController
         $this->champsLibreRepository = $champsLibreRepository;
         $this->valeurChampsLibreRepository = $valeurChampsLibreRepository;
         $this->typeRepository = $typeRepository;
+        $this->userService = $userService;
     }
 
 
@@ -215,10 +225,14 @@ class ReceptionController extends AbstractController
     /**
      * @Route("/api", name="reception_api", options={"expose"=true}, methods={"GET", "POST"})
      */
-    public function api(Request  $request): Response
+    public function api(Request $request): Response
     {
-        if ($request->isXmlHttpRequest()) { //Si la requête est de type Xml
-            $receptions =  $this->receptionRepository->findAll();
+        if ($request->isXmlHttpRequest()) {
+            if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::LIST)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+            $receptions = $this->receptionRepository->findAll();
             $rows = [];
             foreach ($receptions as $reception) {
                 $url = $this->generateUrl('reception_show', ['id' => $reception->getId()]);
@@ -296,7 +310,11 @@ class ReceptionController extends AbstractController
      */
     public function index(): Response
     {
-        return  $this->render('reception/index.html.twig');
+        if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::LIST)) {
+            return $this->redirectToRoute('access_denied');
+        }
+
+        return $this->render('reception/index.html.twig' );
     }
 
     /**
@@ -402,6 +420,11 @@ class ReceptionController extends AbstractController
      */
     public function editArticle(Request  $request): Response
     {
+        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE)) {
+            return $this->redirectToRoute('access_denied');
+        }
+
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) { //Si la requête est de type Xml
         if (!$request->isXmlHttpRequest() &&  $data = json_decode($request->getContent(), true)) { //Si la requête est de type Xml
 
             $receptionReferenceArticle =  $this->receptionReferenceArticleRepository->find($data['article']);

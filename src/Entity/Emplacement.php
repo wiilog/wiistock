@@ -48,11 +48,6 @@ class Emplacement
      */
     private $mouvements;
 
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Service", mappedBy="emplacement")
-     */
-    private $services;
-
     public function __construct()
     {
         $this->articles = new ArrayCollection();
@@ -61,7 +56,6 @@ class Emplacement
         $this->demandes = new ArrayCollection();
         $this->collectes = new ArrayCollection();
         $this->mouvements = new ArrayCollection();
-        $this->services = new ArrayCollection();
     }
 
     public function getId(): ? int
@@ -216,37 +210,6 @@ class Emplacement
             // set the owning side to null (unless already changed)
             if ($mouvement->getEmplacement() === $this) {
                 $mouvement->setEmplacement(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection|Service[]
-     */
-    public function getServices(): Collection
-    {
-        return $this->services;
-    }
-
-    public function addService(Service $service): self
-    {
-        if (!$this->services->contains($service)) {
-            $this->services[] = $service;
-            $service->setEmplacement($this);
-        }
-
-        return $this;
-    }
-
-    public function removeService(Service $service): self
-    {
-        if ($this->services->contains($service)) {
-            $this->services->removeElement($service);
-            // set the owning side to null (unless already changed)
-            if ($service->getEmplacement() === $this) {
-                $service->setEmplacement(null);
             }
         }
 

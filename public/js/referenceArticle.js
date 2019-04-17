@@ -155,6 +155,7 @@ $(document).ready(function () {
             sortable: false,
             ordering: false,
             paging: true,
+            scrollX: true,
             order: [[1, 'asc']],
             ajax: {
                 'url': url,

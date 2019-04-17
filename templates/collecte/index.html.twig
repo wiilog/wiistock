@@ -13,10 +13,12 @@
         <h1>Demande de collecte</h1>
 
         <div class='row'>
-            <a href="" data-toggle="modal" data-target="#modalNewCollecte" class="btn btn-primary"
-                onclick='initNewCollecteEditor("#modalNewCollecte")'>
-                <span class="fa fa-plus mr-2"></span>Nouvelle collecte
-            </a>
+            {% if hasRight(constant('App\\Entity\\Menu::DEM_COLLECTE'), constant('App\\Entity\\Action::CREATE')) %}
+                <a href="" data-toggle="modal" data-target="#modalNewCollecte" class="btn btn-primary"
+                    onclick='initNewCollecteEditor("#modalNewCollecte")'>
+                    <span class="fa fa-plus mr-2"></span>Nouvelle collecte
+                </a>
+            {% endif %}
         </div>
 
         <div>

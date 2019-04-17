@@ -24,16 +24,16 @@ var tableArticle = $('#tableArticle_id').DataTable({
         { "data": 'Référence CEA' },
         { "data": 'Libellé' },
         { "data": 'Quantité' },
-        { "data": 'Action' },
+        { "data": 'Actions' },
     ],
 });
 
-let modalNewArticle = $("#modalNewArticle");
-let submitNewArticle = $("#submitNewArticle");
-let urlNewArticle = Routing.generate('preparation_add_article', true);
-InitialiserModal(modalNewArticle, submitNewArticle, urlNewArticle, tableArticle);
+// let modalNewArticle = $("#modalNewArticle");
+// let submitNewArticle = $("#submitNewArticle");
+// let urlNewArticle = Routing.generate('preparation_add_article', true);
+// InitialiserModal(modalNewArticle, submitNewArticle, urlNewArticle, tableArticle);
 
-let modalDeleteArticle = $("#modalDeleteArticle");
-let submitDeleteArticle = $("#submitDeleteArticle");
-let urlDeleteArticle = Routing.generate('preparation_delete_article', true);
-InitialiserModal(modalDeleteArticle, submitDeleteArticle, urlDeleteArticle, tableArticle);
+// let modalDeleteArticle = $("#modalDeleteArticle");
+// let submitDeleteArticle = $("#submitDeleteArticle");
+// let urlDeleteArticle = Routing.generate('preparation_delete_article', true);
+// InitialiserModal(modalDeleteArticle, submitDeleteArticle, urlDeleteArticle, tableArticle);
