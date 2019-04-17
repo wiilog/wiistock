@@ -467,7 +467,7 @@ class ReferenceArticleController extends Controller
                         $ligneArticle
                             ->setReference($refArticle)
                             ->setDemande($demande)
-                            ->setQuantite($data['quantitie']);
+                            ->setQuantite((int)$data['quantitie']);
                         $em->persist($ligneArticle);
                     } else {
                         $ligneArticle = $this->ligneArticleRepository->getByRefArticle($refArticle);
