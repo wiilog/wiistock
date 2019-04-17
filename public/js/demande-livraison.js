@@ -64,7 +64,6 @@ let tableDemande = $('#table_demande').DataTable({
     ],
 });
 
-
 let urlNewDemande = Routing.generate('demande_new', true);
 let modalNewDemande = $("#modalNewDemande");
 let submitNewDemande = $("#submitNewDemande");
