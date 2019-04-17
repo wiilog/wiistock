@@ -119,7 +119,7 @@ class DemandeController extends AbstractController
         throw new NotFoundHttpException('404'); //TODO retour msg erreur (pas d'article dans la DL)
     }
 
-   /**
+    /**
      * @Route("/api-modifier", name="demandeLivraison_api_edit", options={"expose"=true}, methods="GET|POST")
      */
     public function editApi(Request $request): Response
@@ -159,6 +159,7 @@ class DemandeController extends AbstractController
             $json = [
                 'entete' => $this->renderView('demande/enteteDemandeLivraison.html.twig', [
                     'demande' => $demande,
+                    'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
                 ]),
             ];
 
@@ -431,5 +432,4 @@ class DemandeController extends AbstractController
         }
         throw new NotFoundHttpException('404');
     }
-
 }
