@@ -165,12 +165,12 @@ class UtilisateurController extends Controller
             }
 
             $utilisateur
+                ->setStatus($data['status'] === 'active')
                 ->setUsername($data['username'])
                 ->setEmail($data['email']);
             if ($password !== '') {
                 $password = $passwordEncoder->encodePassword($utilisateur, $data['password']);
-                $utilisateur
-                    ->setPassword($password);
+                $utilisateur->setPassword($password);
             }
             $em = $this->getDoctrine()->getManager();
             $em->persist($utilisateur);

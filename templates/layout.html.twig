@@ -9,7 +9,7 @@
         <li>
             <div class="menu-header">
                 <img src="{{asset('img/Logo-FollowGTpetit.png')}}" class='logoGt'>
-                <div class="version"> V0.1.8</div>
+                <div class="version"> V0.1.9</div>
                 <h4 class="mt-2">{{ app.user.username }}</h4>
             </div>
         </li>
@@ -37,9 +37,21 @@
             </ul>
         </li>
 
+        <!-- RECEPTION -->
+        {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::LIST')) %}
+            <li class="menu-item has-submenu">
+                <a href="#">
+                    <i class="fas fa-arrow-alt-circle-down "></i>
+                    <h4>Réception</h4>
+                </a>
+                <ul class="sidemenu-sub">
+                    <li><a href="{{path("reception_index")}}" class="sub-item">• Réception</a></li>
+                </ul>
+            </li>
+        {% endif %}
+
         <!-- ORDRE -->
         {% if
-            hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::LIST')) or
             hasRight(constant('App\\Entity\\Menu::PREPA'), constant('App\\Entity\\Action::LIST')) or
             hasRight(constant('App\\Entity\\Menu::LIVRAISON'), constant('App\\Entity\\Action::LIST'))
         %}
@@ -49,9 +61,6 @@
                 <h4>Ordre</h4>
             </a>
             <ul class="sidemenu-sub">
-                {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::LIST')) %}
-                    <li><a href="{{path("reception_index")}}" class="sub-item">• Réception</a></li>
-                {% endif %}
                 {% if hasRight(constant('App\\Entity\\Menu::PREPA'), constant('App\\Entity\\Action::LIST')) %}
                     <li><a href="{{ path('preparation_index') }}" class="sub-item">• Préparation</a></li>
                 {% endif %}

@@ -84,7 +84,6 @@ function initEditServiceEditor(modal) {
     if (!editorEditServiceAlreadyDone) {
         initEditor(modal);
         editorEditServiceAlreadyDone = true;
-
     }
 };
 

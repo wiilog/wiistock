@@ -2,10 +2,13 @@
 
 namespace App\Controller;
 
+use App\Entity\Action;
+use App\Entity\Menu;
 use App\Entity\Reception;
 use App\Form\ReceptionType;
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\ReceptionRepository;
+use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -79,6 +82,7 @@ class ReceptionController extends AbstractController
      * @var ArticleFournisseurRepository
      */
     private $articleFournisseurRepository;
+
     /**
      * @var ChampslibreRepository
      */
@@ -88,12 +92,19 @@ class ReceptionController extends AbstractController
      * @var ValeurChampsLibreRepository
      */
     private $valeurChampsLibreRepository;
+
     /**
      * @var TypeRepository
      */
     private $typeRepository;
 
-    public function __construct(TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository)
+    /**
+     * @var UserService
+     */
+    private $userService;
+
+
+    public function __construct(TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, UserService $userService)
     {
         $this->statutRepository = $statutRepository;
         $this->emplacementRepository = $emplacementRepository;
@@ -106,6 +117,7 @@ class ReceptionController extends AbstractController
         $this->champsLibreRepository = $champsLibreRepository;
         $this->valeurChampsLibreRepository = $valeurChampsLibreRepository;
         $this->typeRepository = $typeRepository;
+        $this->userService = $userService;
     }
 
 
@@ -205,7 +217,11 @@ class ReceptionController extends AbstractController
      */
     public function api(Request $request): Response
     {
-        if ($request->isXmlHttpRequest()) { //Si la requête est de type Xml
+        if ($request->isXmlHttpRequest()) {
+            if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::LIST)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
             $receptions = $this->receptionRepository->findAll();
             $rows = [];
             foreach ($receptions as $reception) {
@@ -280,6 +296,10 @@ class ReceptionController extends AbstractController
      */
     public function index(): Response
     {
+        if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::LIST)) {
+            return $this->redirectToRoute('access_denied');
+        }
+
         return $this->render('reception/index.html.twig' );
     }
 
@@ -425,6 +445,9 @@ class ReceptionController extends AbstractController
      */
     public function editArticle(Request $request): Response
     {
+        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE)) {
+            return $this->redirectToRoute('access_denied');
+        }
 
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) { //Si la requête est de type Xml
 
