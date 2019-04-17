@@ -47,12 +47,12 @@ let tableArticle = $('#tableArticle_id').DataTable({
         "type": "POST"
     },
     columns: [
-        { "data": 'Référence CEA' },
-        { "data": 'Libellé' },
-        { "data": 'A recevoir' },
-        { "data": 'Reçu' },
-        { "data": 'Fournisseur' },
-        { "data": 'Actions' }
+        { "data": 'Référence CEA', 'title': 'Référence CEA' },
+        { "data": 'Libellé', 'title': 'Libellé' },
+        { "data": 'Fournisseur', 'title': 'Fournisseur' },
+        { "data": 'A recevoir', 'title': 'A recevoir' },
+        { "data": 'Reçu', 'title': 'Reçu' },
+        { "data": 'Actions', 'title': 'Actions' }
     ],
 });
 
@@ -73,17 +73,17 @@ InitialiserModal(modalEditArticle, submitEditArticle, urlEditArticle, tableArtic
 
 //GENERATOR BARCODE
 
-let printBarcode = function (button) {
-    barcode = button.data('ref')
-    JsBarcode("#barcode", barcode, {
-        format: "CODE128",
-    });
-    printJS({
-        printable: 'barcode',
-        type: 'html',
-        maxWidth: 250
-    });
-}
+// let printBarcode = function (button) {
+//     let barcode = button.data('ref')
+//     JsBarcode("#barcode", barcode, {
+//         format: "CODE128",
+//     });
+//     printJS({
+//         printable: 'barcode',
+//         type: 'html',
+//         maxWidth: 250
+//     });
+// }
 
 let pathPrinterAll = Routing.generate('article_printer_all', { 'id': id }, true);
 let printerAll = function () {
@@ -198,9 +198,10 @@ let getArticleFournisseur = function () {
         if (this.readyState == 4 && this.status == 200) {
             data = JSON.parse(this.responseText);
             if(data.option){
-                $('#articleFournisseur').parent('div').removeClass('d-none');
-                $('#articleFournisseur').parent('div').addClass('d-block');
-                $('#articleFournisseur').html(data.option);
+                let $articleFourn = $('#articleFournisseur');
+                $articleFourn.parent('div').removeClass('d-none');
+                $articleFourn.parent('div').addClass('d-block');
+                $articleFourn.html(data.option);
             }
         }
     }
@@ -208,7 +209,7 @@ let getArticleFournisseur = function () {
     let data = {};
     data['referenceArticle'] = $('#referenceCEA').val();
     data['fournisseur'] = $('#fournisseurAddArticle').val();
-    if (data['referenceArticle'] || data['fournisseur']) {
+    if (data['referenceArticle'] && data['fournisseur']) {
         json = JSON.stringify(data);
         xhttp.open("POST", path, true);
         xhttp.send(json);

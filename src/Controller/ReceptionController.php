@@ -113,7 +113,7 @@ class ReceptionController extends AbstractController
     private $userService;
 
 
-    public function __construct(TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, UserService $userService, ReferenceArticleRepository $referenceArticleRepository)
+    public function __construct(TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, UserService $userService, ReceptionReferenceArticleRepository $receptionReferenceArticleRepository)
     {
         $this->statutRepository = $statutRepository;
         $this->emplacementRepository = $emplacementRepository;
@@ -258,7 +258,7 @@ class ReceptionController extends AbstractController
     /**
      * @Route("/api-article/{id}", name="reception_article_api", options={"expose"=true}, methods={"GET", "POST"})
      */
-    public function articleApi(Request  $request,  $id): Response
+    public function articleApi(Request $request, $id): Response
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
             {
@@ -278,6 +278,7 @@ class ReceptionController extends AbstractController
                                 'reception/datatableLigneRefArticleRow.html.twig',
                                 [
                                     'ligneId' => $ligneArticle->getId(),
+                                    'modifiable' => ($reception->getStatut()->getNom() !== (Reception::STATUT_RECEPTION_TOTALE)),
                                 ]
 
                             ),
@@ -424,7 +425,6 @@ class ReceptionController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) { //Si la requête est de type Xml
         if (!$request->isXmlHttpRequest() &&  $data = json_decode($request->getContent(), true)) { //Si la requête est de type Xml
 
             $receptionReferenceArticle =  $this->receptionReferenceArticleRepository->find($data['article']);
@@ -465,8 +465,6 @@ class ReceptionController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
-
-
     /**
      * @Route("/voir/{id}", name="reception_show", methods={"GET", "POST"})
      */
@@ -477,32 +475,36 @@ class ReceptionController extends AbstractController
             'id' =>  $id,
             'statuts' =>  $this->statutRepository->findByCategorieName(Reception::CATEGORIE),
             'type' =>  $this->typeRepository->getOneByCategoryLabel(Article::CATEGORIE),
+            'modifiable' => ($reception->getStatut()->getNom() !== (Reception::STATUT_RECEPTION_TOTALE)),
         ]);
     }
 
     /**
      * @Route("/finir/{id}", name="reception_finish", methods={"GET", "POST"})
      */
-    public function finish(Reception  $reception): Response
+    public function finish(Reception $reception): Response
     {
         $statut =  $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_RECEPTION_TOTALE);
-        $receptionReferenceArticle = $this->receptionReferenceArticleRepository->getByReception($reception);
-        foreach ($receptionReferenceArticle as $row) {
-            $referenceArticle = $row->getReferenceArticle();
+        $listReceptionReferenceArticle = $this->receptionReferenceArticleRepository->getByReception($reception);
+
+        foreach ($listReceptionReferenceArticle as $receptionRA) {
+            /** @var ReceptionReferenceArticle $receptionRA */
+            $referenceArticle = $receptionRA->getReferenceArticle();
+
             if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-                $referenceArticle->setQuantiteStock($referenceArticle->getQuantiteStock() + $row->getQuantite());
+                $referenceArticle->setQuantiteStock($referenceArticle->getQuantiteStock() + $receptionRA->getQuantite());
+
             } elseif ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-                for ($i = 0; $i < $row->getQuantite(); $i++) {
+                for ($i = 0; $i < $receptionRA->getQuantite(); $i++) {
                     $date = new \DateTime('now');
                     $ref = $date->format('YmdHis');
                     $article = new Article();
                     $article
-                        ->setlabel($row->getLabel())
+                        ->setlabel($receptionRA->getLabel())
                         ->setReference($ref . '-' . strval($i))
-                        ->setArticleFournisseur($row->getArticleFournisseur())
-                        ->setConform(!$row->²getAnomalie)
+                        ->setArticleFournisseur($receptionRA->getArticleFournisseur())
+                        ->setConform(!$receptionRA->getAnomalie())
                         ->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF))
-                        ->setReception($reception)
                         ->setType($this->typeRepository->getOneByCategoryLabel(Article::CATEGORIE));
                     $em = $this->getDoctrine()->getManager();
                     $em->persist($article);
@@ -534,7 +536,10 @@ class ReceptionController extends AbstractController
     public function getArticleFournisseur(Request  $request)
     {
         if (!$request->isXmlHttpRequest() &&  $data = json_decode($request->getContent(), true)) {
+            $json = null;
+
             $refArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
+
             if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
                 $fournisseur = $this->fournisseurRepository->find($data['fournisseur']);
                 $articlesFournisseurs = $this->articleFournisseurRepository->getByRefArticleAndFournisseur($refArticle, $fournisseur);
@@ -547,11 +552,7 @@ class ReceptionController extends AbstractController
                             ]
                         )
                     ];
-                } else {
-                    $json = null;
                 }
-            } else {
-                $json = null;
             }
             return new JsonResponse($json);
         }
