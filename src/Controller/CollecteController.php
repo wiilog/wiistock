@@ -288,7 +288,7 @@ class CollecteController extends AbstractController
             $em = $this->getDoctrine()->getManager();
             dump($data);
             $collecteReference = $this->collecteReferenceRepository->find($data['collecteRef']);
-            $collecteReference->setQuantite(intval($collecteReference->getQuantite()) + intval($data['quantite']));
+            $collecteReference->setQuantite(intval($data['quantite']));
             $em->flush();
 
             return new JsonResponse();
