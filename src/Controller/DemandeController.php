@@ -61,7 +61,45 @@ class DemandeController extends AbstractController
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->ligneArticleRepository = $ligneArticleRepository;
     }
+    /**
+     * @Route("/compareStock", name="compare_stock", options={"expose"=true}, methods="GET|POST")
+     */
+    public function compareStock(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            dump($data);
+            $demande = $this->demandeRepository->find($data['demandeId']);
+            dump($demande);
+            foreach ($demande->getLigneArticle() as $ligne) {
+                $articleRef = $ligne->getReference();
+                $stock = $articleRef->getQuantiteStock();
+                $quantiteReservee = $ligne->getQuantite();
+                foreach ($this->ligneArticleRepository->findAlll() as $l) {
+                    if ($l->getReference()->getId() === $articleRef->getId() && 
+                    ($l->getDemande()->getStatut === Demande::STATUT_A_TRAITER || 
+                    $l->getDemande()->getStatut === Demande::STATUT_PREPARE)) {
+                        $quantiteReservee += $l->getQuantite();
+                    }
+                }
+            }
+            if ($quantiteReservee > $stock) {
+                throw new NotFoundHttpException('404');
+            } else {
 
+                $data = [
+                    'entete' => $this->renderView(
+                        'demande/enteteDemandeLivraison.html.twig',
+                        [
+                            'demande' => $demande,
+                            'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
+                        ]
+                    ),
+                ];
+                return new JsonResponse($data);
+            }
+        }
+        throw new NotFoundHttpException('404');
+    }
     /**
      * @Route("/finir", name="finish_demande", options={"expose"=true}, methods="GET|POST")
      */
@@ -197,7 +235,9 @@ class DemandeController extends AbstractController
      */
     public function delete(Request $request): Response
     {
+        dump($request);
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            dump($data);
             $demande = $this->demandeRepository->find($data['demandeId']);
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($demande);
@@ -260,4 +300,6 @@ class DemandeController extends AbstractController
         }
         throw new NotFoundHttpException('404');
     }
+
+
 }

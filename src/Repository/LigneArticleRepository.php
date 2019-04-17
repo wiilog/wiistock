@@ -75,6 +75,21 @@ class LigneArticleRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
+    public function countByArticle($referenceArticle)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT COUNT(l)
+            FROM App\Entity\LigneArticle l
+            WHERE l.reference = :referenceArticle
+            "
+        )->setParameters([
+            'referenceArticle'=> $referenceArticle,
+            ]);
+        ;
+        return $query->getSingleScalarResult();
+    }
+
     // /**
     //  * @return LigneArticle[] Returns an array of LigneArticle objects
     //  */
