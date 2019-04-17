@@ -11,20 +11,22 @@
             </div>
             <div class="modal-body modal-input container-fluid">
                 <form class="row">
-                    <div class="form-group col-12 d-flex w-100 mb-3"  >
+                    <div class="form-group col-12 d-flex w-100 mb-3">
                         <label for="reference">Référence CEA</label>
-                        <select class="ajax-autocomplete data form-control needed" onchange="ajaxGetAndFillArticle(this)" id="reference" name="reference">
+                        <select class="ajax-autocomplete data form-control needed"
+                            onchange="ajaxGetAndFillArticle(this)" id="reference" name="reference">
                         </select>
                     </div>
-                   <div id='newContent' class="col-12">
-
-                   </div>
+                    <div id='newContent' class="col-12">
+                    </div>
                 </form>
+                
             </div>
+            
             <div class="modal-footer d-none">
                 <div class="btn" data-dismiss="modal">Annuler</div>
                 <button id="submitNewArticle" name="demande" value="{{demande.id}}" type="button"
-                    class="btn data btn-success" >Ajouter</button>
+                    class="btn data btn-success">Ajouter</button>
             </div>
         </div>
     </div>

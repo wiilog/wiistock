@@ -80,18 +80,18 @@ let modalEditDemande = $("#modalEditDemande");
 let submitEditDemande = $("#submitEditDemande");
 InitialiserModal(modalEditDemande, submitEditDemande, urlEditDemande, tableDemande);
 
-function updateQuantity(input) {
-    let params = {
-        refArticleId: input.val()
-    };
+function setMaxQuantity(select) {
+    console.log(select);
+    // let params = {
+    //     refArticleId: select.val()
+    // };
 
-    $.post(Routing.generate('get_quantity_ref_article'), params, function (data) {
-        let modalBody = input.closest('.modal-body');
-        modalBody.find('#in-stock').val(data);
-        modalBody.find('#quantite').attr('max', data);
-
-
-    }, 'json');
+    // $.post(Routing.generate('get_quantity_ref_article'), params, function (data) {
+    //     let modalBody = input.closest('.modal-body');
+    //     modalBody.find('#in-stock').val(data);
+    //     modalBody.find('#quantite').attr('max', data);
+        
+    // }, 'json');
 }
 
 $('.ajax-autocomplete').select2({

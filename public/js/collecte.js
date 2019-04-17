@@ -219,3 +219,17 @@ $('#submitSearchCollecte').on('click', function () {
        .draw();
 });
 
+function setMaxQuantity(select) {   
+     let params = {
+         refArticleId: select.val(),  
+    };
+    
+    $.post(Routing.generate('get_quantity_ref_article'), params, function (data) {
+         let modalBody = select.closest(".modal-body");
+         modalBody.find('#quantity').attr('max', data);
+     }, 'json');
+}
+
+
+
+
