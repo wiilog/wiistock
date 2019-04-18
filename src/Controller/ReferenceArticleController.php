@@ -506,7 +506,15 @@ class ReferenceArticleController extends Controller
     public function plusDemande(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+
+            dump($data);
+
             $em = $this->getDoctrine()->getManager();
+
+            //edit Refrence Article
+//TODOO
+
+            //ajout demande
             if (array_key_exists('livraison', $data) && $data['livraison']) {
                 $refArticle = $this->referenceArticleRepository->find($data['refArticle']);
                 $demande = $this->demandeRepository->find($data['livraison']);

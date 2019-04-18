@@ -181,7 +181,6 @@ class ChampsLibreController extends AbstractController
      */
     public function displayRequireChamp(Request $request): Response
     {
-        dump(json_decode($request->getContent(), true));
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (array_key_exists('create', $data)) {
                 $type = $this->typeRepository->find($data['create']);
@@ -198,7 +197,6 @@ class ChampsLibreController extends AbstractController
             foreach ($champsLibres as $champLibre) {
                 $json[] = $champLibre['label'];
             }
-            dump($json);
             return new JsonResponse($json);
         }
         throw new NotFoundHttpException('404');
