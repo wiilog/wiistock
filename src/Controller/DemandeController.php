@@ -6,12 +6,16 @@ use App\Entity\Action;
 use App\Entity\Demande;
 use App\Entity\Menu;
 use App\Entity\Preparation;
+use App\Entity\ReferenceArticle;
+use App\Entity\LigneArticle;
+
 use App\Repository\DemandeRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\LigneArticleRepository;
 use App\Repository\StatutRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\UtilisateurRepository;
+use App\Repository\ArticleRepository;
 
 use App\Service\UserService;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -57,18 +61,24 @@ class DemandeController extends AbstractController
     private $referenceArticleRepository;
 
     /**
+     * @var ArticleRepository
+     */
+    private $articleRepository;
+
+    /**
      * @var UserService
      */
     private $userService;
 
 
-    public function __construct(LigneArticleRepository $ligneArticleRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, UserService $userService)
+    public function __construct(ArticleRepository $articleRepository, LigneArticleRepository $ligneArticleRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, UserService $userService)
     {
         $this->statutRepository = $statutRepository;
         $this->emplacementRepository = $emplacementRepository;
         $this->demandeRepository = $demandeRepository;
         $this->utilisateurRepository = $utilisateurRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
+        $this->articleRepository = $articleRepository;
         $this->ligneArticleRepository = $ligneArticleRepository;
         $this->userService = $userService;
     }
@@ -125,10 +135,9 @@ class DemandeController extends AbstractController
     public function editApi(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $demandeLivraison = $this->demandeRepository->find($data);
-
+            $demande = $this->demandeRepository->find($data);
             $json = $this->renderView('demande/modalEditDemandeContent.html.twig', [
-                'demande' => $demandeLivraison,
+                'demande' => $demande,
             ]);
 
             return new JsonResponse($json);
@@ -309,25 +318,49 @@ class DemandeController extends AbstractController
             }
 
             $ligneArticles = $demande->getLigneArticle();
-            $rows = [];
+            $rowsRC = [];
             foreach ($ligneArticles as $ligneArticle) {
-                $idArticle = $ligneArticle->getId();
-                $url['delete'] = $this->generateUrl('demande_remove_article', ['id' => $ligneArticle->getId()]);
-                $rows[] = [
+                $rowsRC[] = [
                     "Référence CEA" => ($ligneArticle->getReference()->getReference() ? $ligneArticle->getReference()->getReference() : ''),
                     "Libellé" => ($ligneArticle->getReference()->getLibelle() ? $ligneArticle->getReference()->getLibelle() : ''),
                     "Quantité" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ''),
                     "Actions" => $this->renderView(
                         'demande/datatableLigneArticleRow.html.twig',
                         [
-                            'idArticle' => $idArticle,
+                            'data' => [
+                                'id' => $ligneArticle->getId(),
+                                'name' => (ReferenceArticle::TYPE_QUANTITE_REFERENCE),
+                            ],
+                            'reference'=>ReferenceArticle::TYPE_QUANTITE_REFERENCE,
+                            'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
+                        ]
+                    )
+                ];
+            }
+            $articles = $this->articleRepository->getByDemande($demande);
+            $rowsCA = [];
+            foreach ($articles as $article) {
+                $idArticle = $ligneArticle->getId();
+                $url['delete'] = $this->generateUrl('demande_remove_article', ['id' => $ligneArticle->getId()]);
+                $rowsCA[] = [
+                    "Référence CEA" => ($article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : ''),
+                    "Libellé" => ($article->getLabel() ? $article->getLabel() : ''),
+                    "Quantité" =>  '',
+                    "Actions" => $this->renderView(
+                        'demande/datatableLigneArticleRow.html.twig',
+                        [
+                            'data' => [
+                                'id' => $article->getId(),
+                                'name' => (ReferenceArticle::TYPE_QUANTITE_ARTICLE),
+                            ],
+                            'reference'=>ReferenceArticle::TYPE_QUANTITE_REFERENCE,
                             'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
                         ]
                     )
                 ];
             }
 
-            $data['data'] = $rows;
+            $data['data'] = array_merge($rowsCA, $rowsRC);
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
@@ -342,30 +375,29 @@ class DemandeController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
+            $em = $this->getDoctrine()->getEntityManager();
 
             $referenceArticle = $this->referenceArticleRepository->find($data["reference"]);
             $demande = $this->demandeRepository->find($data['demande']);
-            if ($this->ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
-                $ligneArticle = new LigneArticle();
-                $ligneArticle
-                    ->setQuantite($data["quantite"])
-                    ->setReference($referenceArticle);
-            } else {
-                $ligneArticle = $this->ligneArticleRepository->getByRefArticle($referenceArticle);
-                $ligneArticle
-                    ->setQuantite($ligneArticle->getQuantite() + $data["quantite"]);
+            if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+                $article = $this->articleRepository->find($data['article']);
+                $demande->addArticle($article);
+            } elseif ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+                if ($this->ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
+                    $ligneArticle = new LigneArticle();
+                    $ligneArticle
+                        ->setQuantite($data["quantite"])
+                        ->setReference($referenceArticle);
+                    $em->persist($ligneArticle);
+                } else {
+                    $ligneArticle = $this->ligneArticleRepository->getByRefArticle($referenceArticle);
+                    $ligneArticle
+                        ->setQuantite($ligneArticle->getQuantite() + $data["quantite"]);
+                }
+                $demande
+                    ->addLigneArticle($ligneArticle);
             }
 
-            $quantiteReservee = intval($data["quantite"]);
-            $quantiteArticleReservee = $referenceArticle->getQuantiteReservee();
-
-            $referenceArticle
-                ->setQuantiteReservee($quantiteReservee + $quantiteArticleReservee);
-            $demande
-                ->addLigneArticle($ligneArticle);
-
-            $em = $this->getDoctrine()->getEntityManager();
-            $em->persist($ligneArticle);
             $em->flush();
 
             return new JsonResponse();
@@ -382,10 +414,15 @@ class DemandeController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
-
-            $ligneAricle = $this->ligneArticleRepository->find($data['ligneArticle']);
             $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->remove($ligneAricle);
+            if (array_key_exists(ReferenceArticle::TYPE_QUANTITE_REFERENCE, $data)) {
+                $ligneAricle = $this->ligneArticleRepository->find($data[ReferenceArticle::TYPE_QUANTITE_REFERENCE]);
+                $entityManager->remove($ligneAricle);
+            } elseif (array_key_exists(ReferenceArticle::TYPE_QUANTITE_ARTICLE, $data)) {
+                $article = $this->articleRepository->find($data[ReferenceArticle::TYPE_QUANTITE_ARTICLE]);
+                $demande = $article->getDemande();
+                $demande->removeArticle($article);
+            } 
             $entityManager->flush();
             return new JsonResponse();
         }
@@ -401,11 +438,8 @@ class DemandeController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
-
-            $reference = $this->referenceArticleRepository->find($data['reference']);
             $ligneArticle = $this->ligneArticleRepository->find($data['ligneArticle']);
             $ligneArticle
-                ->setReference($reference)
                 ->setQuantite($data["quantite"]);
             $this->getDoctrine()->getEntityManager()->flush();
 
@@ -415,7 +449,7 @@ class DemandeController extends AbstractController
     }
 
     /**
-     * @Route("/api-modifier", name="demande_article_api_edit", options={"expose"=true}, methods={"POST"})
+     * @Route("/api-modifier-article", name="demande_article_api_edit", options={"expose"=true}, methods={"POST"})
      */
     public function articleEditApi(Request $request): Response
     {

@@ -216,7 +216,7 @@ class ArticleController extends AbstractController
             } else {
                 $json = false; //TODO gérer erreur retour
             }
-
+            dump($json);
             return new JsonResponse($json);
         }
         throw new NotFoundHttpException('404');
