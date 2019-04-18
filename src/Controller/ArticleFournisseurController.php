@@ -2,10 +2,13 @@
 
 namespace App\Controller;
 
+use App\Entity\Action;
 use App\Entity\ArticleFournisseur;
+use App\Entity\Menu;
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\ReferenceArticleRepository;
+use App\Service\UserService;
 use Doctrine\ORM\EntityManager;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -33,12 +36,18 @@ class ArticleFournisseurController extends AbstractController
      */
     private $referenceArticleRepository;
 
+    /**
+     * @var UserService
+     */
+    private $userService;
 
-    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository, FournisseurRepository $fournisseurRepository, ReferenceArticleRepository $referenceArticleRepository)
+
+    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository, FournisseurRepository $fournisseurRepository, ReferenceArticleRepository $referenceArticleRepository, UserService $userService)
     {
         $this->articleFournisseurRepository = $articleFournisseurRepository;
         $this->fournisseurRepository = $fournisseurRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
+        $this->userService = $userService;
     }
 
     /**
@@ -46,6 +55,10 @@ class ArticleFournisseurController extends AbstractController
      */
     public function index()
     {
+        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+            return $this->redirectToRoute('access_denied');
+        }
+
         return $this->render('article_fournisseur/index.html.twig');
     }
 
@@ -55,6 +68,10 @@ class ArticleFournisseurController extends AbstractController
     public function api(Request $request) : Response
     {
         if ($request->isXmlHttpRequest()) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
             $articleFournisseurs = $this->articleFournisseurRepository->findAll();
             $rows = [];
             foreach ($articleFournisseurs as $articleFournisseur) {
@@ -84,6 +101,10 @@ class ArticleFournisseurController extends AbstractController
     public function new(Request $request) : Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
             $fournisseur = $this->fournisseurRepository->find(intval($data['fournisseur']));
             $referenceArticle = $this->referenceArticleRepository->find(intval($data['article-reference']));
 
@@ -108,6 +129,10 @@ class ArticleFournisseurController extends AbstractController
     public function displayEdit(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
             $articleFournisseur = $this->articleFournisseurRepository->find(intval($data));
 
             $json = $this->renderView('article_fournisseur/modalEditArticleFournisseurContent.html.twig', [
@@ -124,6 +149,10 @@ class ArticleFournisseurController extends AbstractController
     public function edit(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
             $articleFournisseur = $this->articleFournisseurRepository->find(intval($data['id']));
             $fournisseur = $this->fournisseurRepository->find(intval($data['fournisseur']));
             $referenceArticle = $this->referenceArticleRepository->find(intval($data['article-reference']));
@@ -146,6 +175,9 @@ class ArticleFournisseurController extends AbstractController
     public function delete(Request $request) : Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)) {
+                return $this->redirectToRoute('access_denied');
+            }
            
             $articleFournisseur= $this->articleFournisseurRepository->find(intval($data['article-fournisseur']));
 

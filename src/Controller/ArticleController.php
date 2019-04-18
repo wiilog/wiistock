@@ -2,6 +2,8 @@
 
 namespace App\Controller;
 
+use App\Entity\Action;
+use App\Entity\Menu;
 use App\Repository\ArticleRepository;
 use App\Repository\StatutRepository;
 use App\Repository\CollecteRepository;
@@ -12,6 +14,7 @@ use App\Repository\ArticleFournisseurRepository;
 use App\Repository\TypeRepository;
 use App\Service\RefArticleDataService;
 use App\Service\ArticleDataService;
+use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -75,7 +78,13 @@ class ArticleController extends AbstractController
      */
     private $articleDataService;
 
-    public function __construct(ArticleDataService $articleDataService, TypeRepository $typeRepository, RefArticleDataService $refArticleDataService, ArticleFournisseurRepository $articleFournisseurRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, StatutRepository $statutRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository)
+    /**
+     * @var UserService
+     */
+    private $userService;
+
+
+    public function __construct(ArticleDataService $articleDataService, TypeRepository $typeRepository, RefArticleDataService $refArticleDataService, ArticleFournisseurRepository $articleFournisseurRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, StatutRepository $statutRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UserService $userService)
     {
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->statutRepository = $statutRepository;
@@ -87,6 +96,7 @@ class ArticleController extends AbstractController
         $this->typeRepository = $typeRepository;
         $this->refArticleDataService = $refArticleDataService;
         $this->articleDataService = $articleDataService;
+        $this->userService = $userService;
     }
 
     /**
@@ -94,6 +104,10 @@ class ArticleController extends AbstractController
      */
     public function index(): Response
     {
+        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+            return $this->redirectToRoute('access_denied');
+        }
+
         return $this->render('article/index.html.twig');
     }
 
@@ -102,11 +116,15 @@ class ArticleController extends AbstractController
      */
     public function api(Request $request): Response
     {
-        if ($request->isXmlHttpRequest()) { //Si la requête est de type Xml
+        if ($request->isXmlHttpRequest()) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
             $articles = $this->articleRepository->findAll();
             $rows = [];
             foreach ($articles as $article) {
-                $url['edit'] = $this->generateUrl('ligne_article_edit', ['id' => $article->getId()]);
+                $url['edit'] = $this->generateUrl('demande_article_edit', ['id' => $article->getId()]);
 
                 $rows[] =
                         [
@@ -129,40 +147,40 @@ class ArticleController extends AbstractController
         throw new NotFoundHttpException('404');
     }
 
-    /**
-     * @Route("/voir", name="article_show", options={"expose"=true},  methods="GET|POST")
-     */
-    public function show(Request $request): Response
-    {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $article = $this->articleRepository->find($data);
+//    /**
+//     * @Route("/voir", name="article_show", options={"expose"=true},  methods="GET|POST")
+//     */
+//    public function show(Request $request): Response
+//    {
+//        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+//            $article = $this->articleRepository->find($data);
+//
+//            $json = $this->renderView('article/modalShowArticleContent.html.twig', [
+//                'article' => $article,
+//            ]);
+//
+//            return new JsonResponse($json);
+//        }
+//        throw new NotFoundHttpException('404');
+//    }
 
-            $json = $this->renderView('article/modalShowArticleContent.html.twig', [
-                'article' => $article,
-            ]);
-
-            return new JsonResponse($json);
-        }
-        throw new NotFoundHttpException('404');
-    }
-
-    /**
-     * @Route("/get-article", name="get_article_by_refArticle", options={"expose"=true})
-     */
-    public function getArticleByRefArticle(Request $request): Response
-    {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $refArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
-            if ($refArticle) {
-                $json = $this->articleDataService->getArticleOrNoByRefArticle($refArticle, true);
-            } else {
-                $json = false; //TODO gérer erreur retour
-            }
-
-            return new JsonResponse($json);
-        }
-        throw new NotFoundHttpException('404');
-    }
+//    /**
+//     * @Route("/get-article", name="get_article_by_refArticle", options={"expose"=true})
+//     */
+//    public function getArticleByRefArticle(Request $request): Response
+//    {
+//        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+//            $refArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
+//            if ($refArticle) {
+//                $json = $this->articleDataService->getArticleOrNoByRefArticle($refArticle, true);
+//            } else {
+//                $json = false; //TODO gérer erreur retour
+//            }
+//
+//            return new JsonResponse($json);
+//        }
+//        throw new NotFoundHttpException('404');
+//    }
 
     /**
      * @Route("/get-article-collecte", name="get_collecte_article_by_refArticle", options={"expose"=true})

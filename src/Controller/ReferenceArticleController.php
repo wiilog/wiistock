@@ -2,6 +2,8 @@
 
 namespace App\Controller;
 
+use App\Entity\Action;
+use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
 use App\Entity\ValeurChampsLibre;
 use App\Entity\CollecteReference;
@@ -23,6 +25,7 @@ use App\Repository\LigneArticleRepository;
 use App\Service\RefArticleDataService;
 use App\Service\ArticleDataService;
 
+use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -113,8 +116,13 @@ class ReferenceArticleController extends Controller
      */
     private $articleDataService;
 
+    /**
+     * @var UserService
+     */
+    private $userService;
 
-    public function __construct(LigneArticleRepository $ligneArticleRepository,ArticleRepository $articleRepository, ArticleDataService $articleDataService, LivraisonRepository $livraisonRepository, DemandeRepository $demandeRepository, CollecteRepository $collecteRepository, StatutRepository $statutRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FilterRepository $filterRepository, RefArticleDataService $refArticleDataService)
+
+    public function __construct(LigneArticleRepository $ligneArticleRepository,ArticleRepository $articleRepository, ArticleDataService $articleDataService, LivraisonRepository $livraisonRepository, DemandeRepository $demandeRepository, CollecteRepository $collecteRepository, StatutRepository $statutRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FilterRepository $filterRepository, RefArticleDataService $refArticleDataService, UserService $userService)
     {
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->champsLibreRepository = $champsLibreRepository;
@@ -129,6 +137,7 @@ class ReferenceArticleController extends Controller
         $this->refArticleDataService = $refArticleDataService;
         $this->articleDataService = $articleDataService;
         $this->articleRepository = $articleRepository;
+        $this->userService = $userService;
         $this->ligneArticleRepository = $ligneArticleRepository;
     }
 
@@ -138,6 +147,10 @@ class ReferenceArticleController extends Controller
     public function apiColumns(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
             $colonmVisible = $this->getUser()->getColumnVisible();
             $category = ReferenceArticle::CATEGORIE;
             $champs = $this->champsLibreRepository->getLabelByCategory($category);
@@ -224,12 +237,14 @@ class ReferenceArticleController extends Controller
      */
     public function api(Request $request): Response
     {
-        if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
-            {
-                $data = $this->refArticleDataService->getDataForDatatable($request->request);
-
-                return new JsonResponse($data);
+        if ($request->isXmlHttpRequest()) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+                return $this->redirectToRoute('access_denied');
             }
+            $data = $this->refArticleDataService->getDataForDatatable($request->request);
+
+            return new JsonResponse($data);
+        }
         throw new NotFoundHttpException("404");
     }
 
@@ -239,6 +254,10 @@ class ReferenceArticleController extends Controller
     public function new(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
             // on vérifie que la référence n'existe pas déjà
             $refAlreadyExist = $this->articleFournisseurRepository->countByReference($data['reference']);
 
@@ -303,6 +322,10 @@ class ReferenceArticleController extends Controller
      */
     public function index(): Response
     {
+        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+            return $this->redirectToRoute('access_denied');
+        }
+
         $typeQuantite = [
             [
                 'const' => 'QUANTITE_AR',
@@ -362,6 +385,9 @@ class ReferenceArticleController extends Controller
     public function editApi(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE)) {
+                return $this->redirectToRoute('access_denied');
+            }
 
             $articleRef = $this->referenceArticleRepository->find($data);
             $statuts = $this->statutRepository->findByCategorieName(ReferenceArticle::CATEGORIE);
@@ -390,6 +416,10 @@ class ReferenceArticleController extends Controller
     public function edit(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
             $refArticle = $this->referenceArticleRepository->find(intval($data['idRefArticle']));
             if ($refArticle) {
                 $response = $this->refArticleDataService->editRefArticle($refArticle, $data);
@@ -407,6 +437,10 @@ class ReferenceArticleController extends Controller
     public function delete(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
             $refArticle = $this->referenceArticleRepository->find($data['refArticle']);
             $rows = $refArticle->getId();
 
@@ -426,6 +460,10 @@ class ReferenceArticleController extends Controller
     public function getQuantityByRefArticleId(Request $request)
     {
         if ($request->isXmlHttpRequest()) {
+            if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::CREATE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
             $refArticleId = $request->request->get('refArticleId');
             $refArticle = $this->referenceArticleRepository->find($refArticleId);
 
@@ -474,7 +512,6 @@ class ReferenceArticleController extends Controller
                         dump($ligneArticle);
                         $ligneArticle
                         ->setQuantite($ligneArticle->getQuantite() + $data["quantitie"]);
-                        dump('helo');
                     }
                 } else {
                     $json = false;
@@ -538,6 +575,9 @@ class ReferenceArticleController extends Controller
     public function saveColumnVisible(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+                return $this->redirectToRoute('access_denied');
+            }
             $champs = array_keys($data);
             $user = $this->getUser();
             $user->setColumnVisible($champs);

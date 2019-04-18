@@ -45,6 +45,12 @@
             <p><strong>Date demande :</strong> {{ demande.date | date("d/m/Y") }}</p>
             <p><strong>Référence :</strong> {{ demande.numero }}</p>
         </div>
+        <div class="col-12">
+            <p><strong> Commentaire : </strong></p>
+            <div class="commentOverflow">
+                <p>{{demande.commentaire|raw}}</p>
+            </div>
+        </div>
     </div>
 </div>
 

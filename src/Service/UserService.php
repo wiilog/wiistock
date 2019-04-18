@@ -10,8 +10,10 @@ namespace App\Service;
 
 
 
+use App\Entity\Action;
 use App\Entity\Utilisateur;
 
+use App\Repository\ActionRepository;
 use Symfony\Component\Security\Core\Security;
 
 
@@ -23,12 +25,16 @@ class UserService
      */
     private $user;
 
+    /**
+     * @var ActionRepository
+     */
+    private $actionRepository;
 
-    public function __construct(Security $security)
+
+    public function __construct(Security $security, ActionRepository $actionRepository)
     {
-
         $this->user= $security->getUser();
-
+        $this->actionRepository = $actionRepository;
     }
 
 
@@ -47,5 +53,21 @@ class UserService
         }
 
         return $role;
+    }
+
+    public function hasRightFunction(string $menuCode, string $actionLabel = Action::YES)
+    {
+        $role = $this->getCurrentUserRole();
+        $actions = $role->getActions();
+
+        $thisAction = $this->actionRepository->findOneByMenuCodeAndLabel($menuCode, $actionLabel);
+
+        if ($thisAction) {
+            foreach ($actions as $action) {
+                if ($action->getId() == $thisAction->getId()) return true;
+            }
+        }
+
+        return false;
     }
 }

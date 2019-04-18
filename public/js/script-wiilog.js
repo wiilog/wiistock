@@ -28,6 +28,7 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
                 if (data.redirect) {
                     window.location.href = data.redirect;
                 }
+                console.log(data)
                 // pour mise à jour des données d'en-tête après modification
                 if (data.entete) {
                     $('.zone-entete').html(data.entete)
@@ -43,7 +44,7 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
                 let inputs = modal.find('.modal-body').find(".data");
                 // on vide tous les inputs (sauf les disabled)
                 inputs.each(function () {
-                    $(this).val("");
+                    // $(this).val("");
                     if ($(this).attr('disabled') !== 'disabled') {
                         $(this).val("");
                     }
@@ -103,10 +104,9 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
             }
             // validation valeur des inputs de type password
             if ($(this).attr('type') === 'password') {
-                let isNotChanged = $(this).hasClass('optional-password') && $(this).val === "";
+                let password = $(this).val();
+                let isNotChanged = $(this).hasClass('optional-password') && password === "";
                 if (!isNotChanged) {
-                    let password = $(this).val();
-
                     if (password.length < 8) {
                         modal.find('.password-error-msg').html('Le mot de passe doit faire au moins 8 caractères.');
                         passwordIsValid = false;

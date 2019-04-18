@@ -2,11 +2,14 @@
 
 namespace App\Controller;
 
+use App\Entity\Action;
 use App\Entity\Collecte;
+use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
 use App\Entity\CollecteReference;
 use App\Entity\Article;
 use App\Service\RefArticleDataService;
+use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -68,7 +71,13 @@ class CollecteController extends AbstractController
      */
     private $refArticleDataService;
 
-    public function __construct(RefArticleDataService $refArticleDataService, CollecteReferenceRepository $collecteReferenceRepository, ReferenceArticleRepository $referenceArticleRepository, StatutRepository $statutRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UtilisateurRepository $utilisateurRepository)
+    /**
+     * @var UserService
+     */
+    private $userService;
+
+
+    public function __construct(RefArticleDataService $refArticleDataService, CollecteReferenceRepository $collecteReferenceRepository, ReferenceArticleRepository $referenceArticleRepository, StatutRepository $statutRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UtilisateurRepository $utilisateurRepository, UserService $userService)
     {
         $this->statutRepository = $statutRepository;
         $this->emplacementRepository = $emplacementRepository;
@@ -78,6 +87,7 @@ class CollecteController extends AbstractController
         $this->utilisateurRepository = $utilisateurRepository;
         $this->collecteReferenceRepository = $collecteReferenceRepository;
         $this->refArticleDataService = $refArticleDataService;
+        $this->userService = $userService;
     }
 
     /**
@@ -85,6 +95,10 @@ class CollecteController extends AbstractController
      */
     public function index(): Response
     {
+        if (!$this->userService->hasRightFunction(Menu::DEM_COLLECTE, Action::LIST)) {
+            return $this->redirectToRoute('access_denied');
+        }
+
         return $this->render('collecte/index.html.twig', [
             'statuts' => $this->statutRepository->findByCategorieName(Collecte::CATEGORIE),
             'utilisateurs' => $this->utilisateurRepository->findAll(),
@@ -96,6 +110,10 @@ class CollecteController extends AbstractController
      */
     public function show(Collecte $collecte): Response
     {
+        if (!$this->userService->hasRightFunction(Menu::DEM_COLLECTE, Action::LIST)) {
+            return $this->redirectToRoute('access_denied');
+        }
+
         return $this->render('collecte/show.html.twig', [
             'collecte' => $collecte,
             'modifiable' => ($collecte->getStatut()->getNom() !== Collecte::STATUS_EN_COURS ? true : false),
@@ -108,6 +126,11 @@ class CollecteController extends AbstractController
     public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) { //Si la requête est de type Xml
+
+            if (!$this->userService->hasRightFunction(Menu::DEM_COLLECTE, Action::LIST)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
             $collectes = $this->collecteRepository->findAll();
 
             $rows = [];
@@ -137,42 +160,46 @@ class CollecteController extends AbstractController
     public function articleApi(Request $request, $id): Response
     {
         if ($request->isXmlHttpRequest()) { //Si la requête est de type Xml
+            if (!$this->userService->hasRightFunction(Menu::DEM_COLLECTE, Action::LIST)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
             $collecte = $this->collecteRepository->find($id);
             $articles = $this->articleRepository->getByCollecte($collecte->getId());
             $referenceCollectes = $this->collecteReferenceRepository->getByCollecte($collecte);
             $rowsRC = [];
             foreach ($referenceCollectes as $referenceCollecte) {
                 $rowsRC[] = [
-                        'Référence CEA' => ($referenceCollecte->getReferenceArticle() ? $referenceCollecte->getReferenceArticle()->getReference() : ''),
-                        'Libellé' => ($referenceCollecte->getReferenceArticle() ? $referenceCollecte->getReferenceArticle()->getLibelle() : ''),
-                        'Emplacement' => $collecte->getPointCollecte()->getLabel(),
-                        'Quantité' => ($referenceCollecte->getQuantite() ? $referenceCollecte->getQuantite() : ''),
-                        'Actions' => $this->renderView('collecte/datatableArticleRow.html.twig', [
-                            'data' => [
-                                'id' => $referenceCollecte->getId(),
-                                'name' => ($referenceCollecte->getReferenceArticle() ? $referenceCollecte->getReferenceArticle()->getTypeQuantite() : ReferenceArticle::TYPE_QUANTITE_REFERENCE),
-                            ],
-                            'collecteId' => $collecte->getid(),
-                            'modifiable' => ($collecte->getStatut()->getNom() !== Collecte::STATUS_EN_COURS ? true : false),
-                        ]),
-                    ];
+                    'Référence CEA' => ($referenceCollecte->getReferenceArticle() ? $referenceCollecte->getReferenceArticle()->getReference() : ''),
+                    'Libellé' => ($referenceCollecte->getReferenceArticle() ? $referenceCollecte->getReferenceArticle()->getLibelle() : ''),
+                    'Emplacement' => $collecte->getPointCollecte()->getLabel(),
+                    'Quantité' => ($referenceCollecte->getQuantite() ? $referenceCollecte->getQuantite() : ''),
+                    'Actions' => $this->renderView('collecte/datatableArticleRow.html.twig', [
+                        'data' => [
+                            'id' => $referenceCollecte->getId(),
+                            'name' => ($referenceCollecte->getReferenceArticle() ? $referenceCollecte->getReferenceArticle()->getTypeQuantite() : ReferenceArticle::TYPE_QUANTITE_REFERENCE),
+                        ],
+                        'collecteId' => $collecte->getid(),
+                        'modifiable' => ($collecte->getStatut()->getNom() !== Collecte::STATUS_EN_COURS ? true : false),
+                    ]),
+                ];
             }
             $rowsCA = [];
             foreach ($articles as $article) {
                 $rowsCA[] = [
-                        'Référence CEA' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : ''),
-                        'Libellé' => $article->getLabel(),
-                        'Emplacement' => ($collecte->getPointCollecte() ? $collecte->getPointCollecte()->getLabel() : ''),
-                        'Quantité' => $article->getQuantite(),
-                        'Actions' => $this->renderView('collecte/datatableArticleRow.html.twig', [
-                            'data' => [
-                                'id' => $article->getId(),
-                                'name' => (ReferenceArticle::TYPE_QUANTITE_ARTICLE),
-                            ],
-                            'collecteId' => $collecte->getid(),
-                            'modifiable' => ($collecte->getStatut()->getNom() !== Collecte::STATUS_EN_COURS ? true : false),
-                        ]),
-                    ];
+                    'Référence CEA' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : ''),
+                    'Libellé' => $article->getLabel(),
+                    'Emplacement' => ($collecte->getPointCollecte() ? $collecte->getPointCollecte()->getLabel() : ''),
+                    'Quantité' => $article->getQuantite(),
+                    'Actions' => $this->renderView('collecte/datatableArticleRow.html.twig', [
+                        'data' => [
+                            'id' => $article->getId(),
+                            'name' => (ReferenceArticle::TYPE_QUANTITE_ARTICLE),
+                        ],
+                        'collecteId' => $collecte->getid(),
+                        'modifiable' => ($collecte->getStatut()->getNom() !== Collecte::STATUS_EN_COURS ? true : false),
+                    ]),
+                ];
             }
             $data['data'] = array_merge($rowsCA, $rowsRC);
 
@@ -187,10 +214,14 @@ class CollecteController extends AbstractController
     public function new(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::DEM_COLLECTE, Action::CREATE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
             $em = $this->getDoctrine()->getEntityManager();
             $date = new \DateTime('now');
             $status = $this->statutRepository->findOneByNom(Collecte::STATUS_DEMANDE);
-            $numero = 'C-'.$date->format('YmdHis');
+            $numero = 'C-' . $date->format('YmdHis');
             $collecte = new Collecte();
             $collecte
                 ->setDemandeur($this->utilisateurRepository->find($data['demandeur']))
@@ -217,6 +248,10 @@ class CollecteController extends AbstractController
     public function addArticle(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::DEM_COLLECTE, Action::CREATE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
             $em = $this->getDoctrine()->getManager();
             $refArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
             $collecte = $this->collecteRepository->find($data['collecte']);
@@ -250,14 +285,18 @@ class CollecteController extends AbstractController
     public function removeArticle(Request $request)
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::DEM_COLLECTE, Action::CREATE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+            $entityManager = $this->getDoctrine()->getManager();
+
             if (array_key_exists(ReferenceArticle::TYPE_QUANTITE_REFERENCE, $data)) {
                 $collecteReference = $this->collecteReferenceRepository->find($data[ReferenceArticle::TYPE_QUANTITE_REFERENCE]);
-                $entityManager = $this->getDoctrine()->getManager();
                 $entityManager->remove($collecteReference);
             } elseif (array_key_exists(ReferenceArticle::TYPE_QUANTITE_ARTICLE, $data)) {
                 $article = $this->articleRepository->find($data['article']);
                 $collecte = $this->collecteRepository->find($data['collecte']);
-                $entityManager = $this->getDoctrine()->getManager();
                 $article->removeCollecte($collecte);
             }
             $entityManager->flush();
@@ -273,6 +312,10 @@ class CollecteController extends AbstractController
     public function finish(Request  $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::DEM_COLLECTE, Action::CREATE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
             $em = $this->getDoctrine()->getManager();
             $collecte = $this->collecteRepository->find($data['collecte']);
 
@@ -306,6 +349,10 @@ class CollecteController extends AbstractController
     public function editApi(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::DEM_COLLECTE, Action::CREATE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
             $collecte = $this->collecteRepository->find($data);
 
             $json = $this->renderView('collecte/modalEditCollecteContent.html.twig', [
@@ -316,6 +363,7 @@ class CollecteController extends AbstractController
 
             return new JsonResponse($json);
         }
+
         throw new NotFoundHttpException('404');
     }
 
@@ -325,6 +373,10 @@ class CollecteController extends AbstractController
     public function edit(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::DEM_COLLECTE, Action::CREATE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
             $collecte = $this->collecteRepository->find($data['collecte']);
             $pointCollecte = $this->emplacementRepository->find($data['Pcollecte']);
 
@@ -355,6 +407,10 @@ class CollecteController extends AbstractController
     public function delete(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::DEM_COLLECTE, Action::DELETE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
             $collecte = $this->collecteRepository->find($data['collecte']);
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($collecte);

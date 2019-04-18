@@ -2,10 +2,13 @@
 
 namespace App\Controller;
 
+use App\Entity\Action;
 use App\Entity\Article;
+use App\Entity\Menu;
 use App\Entity\Preparation;
 use App\Form\PreparationType;
 use App\Repository\PreparationRepository;
+use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\Tests\Compiler\D;
 use Symfony\Component\HttpFoundation\Request;
@@ -66,7 +69,13 @@ class PreparationController extends AbstractController
      */
     private $preparationRepository;
 
-    public function __construct(PreparationRepository $preparationRepository, LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, StatutRepository $statutRepository, DemandeRepository $demandeRepository, ReferenceArticleRepository $referenceArticleRepository)
+    /**
+     * @var UserService
+     */
+    private $userService;
+
+
+    public function __construct(PreparationRepository $preparationRepository, LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, StatutRepository $statutRepository, DemandeRepository $demandeRepository, ReferenceArticleRepository $referenceArticleRepository, UserService $userService)
     {
         $this->statutRepository = $statutRepository;
         $this->preparationRepository = $preparationRepository;
@@ -74,6 +83,7 @@ class PreparationController extends AbstractController
         $this->articleRepository = $articleRepository;
         $this->demandeRepository = $demandeRepository;
         $this->ligneArticleRepository = $ligneArticleRepository;
+        $this->userService = $userService;
     }
 
     /**
@@ -83,6 +93,10 @@ class PreparationController extends AbstractController
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) //Si la requête est de type Xml et que data est attribuée
             {
+                if (!$this->userService->hasRightFunction(Menu::PREPA, Action::CREATE)) {
+                    return $this->redirectToRoute('access_denied');
+                }
+
                 // creation d'une nouvelle preparation basée sur une selection de demandes
                 $preparation = new Preparation();
 
@@ -134,8 +148,11 @@ class PreparationController extends AbstractController
     /**
      * @Route("/", name="preparation_index", methods="GET|POST")
      */
-    public function index(Request $request): Response
+    public function index(): Response
     {
+        if (!$this->userService->hasRightFunction(Menu::PREPA, Action::LIST)) {
+            return $this->redirectToRoute('access_denied');
+        }
         return $this->render('preparation/index.html.twig');
     }
 
@@ -146,6 +163,10 @@ class PreparationController extends AbstractController
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
             {
+                if (!$this->userService->hasRightFunction(Menu::PREPA, Action::LIST)) {
+                    return $this->redirectToRoute('access_denied');
+                }
+
                 $preparations = $this->preparationRepository->findAll();
                 $rows = [];
                 foreach ($preparations as $preparation) {
@@ -164,40 +185,40 @@ class PreparationController extends AbstractController
     }
 
 
-    /**
-     * @Route("/ajoute-article", name="preparation_add_article", options={"expose"=true}, methods="GET|POST")
-     */
-    public function addArticle(Request $request): Response
-    {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-                $article = $this->articleRepository->find($data['article']);
-                $preparation = $this->preparationRepository->find($data['preparation']);
-                $preparation->addArticle($article);
-                $em = $this->getDoctrine()->getManager();
-                $em->flush();
+//    /**
+//     * @Route("/ajoute-article", name="preparation_add_article", options={"expose"=true}, methods="GET|POST")
+//     */
+//    public function addArticle(Request $request): Response
+//    {
+//        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+//            $article = $this->articleRepository->find($data['article']);
+//            $preparation = $this->preparationRepository->find($data['preparation']);
+//            $preparation->addArticle($article);
+//            $em = $this->getDoctrine()->getManager();
+//            $em->flush();
+//
+//
+//            return new JsonResponse();
+//        }
+//        throw new NotFoundHttpException("404");
+//    }
 
-
-                return new JsonResponse();
-            }
-        throw new NotFoundHttpException("404");
-    }
-
-    /**
-     * @Route("/supprime-article", name="preparation_delete_article", options={"expose"=true}, methods={"GET", "POST"})
-     */
-    public function deleteArticle(Request $request): Response
-    {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-                $article = $this->articleRepository->find($data['article']);
-                $preparation = $this->preparationRepository->find($data['preparation']);
-                $preparation->removeArticle($article);
-                $em = $this->getDoctrine()->getManager();
-                $em->flush();
-           
-                return new JsonResponse();
-            }
-        throw new NotFoundHttpException("404");
-    }
+//    /**
+//     * @Route("/supprime-article", name="preparation_delete_article", options={"expose"=true}, methods={"GET", "POST"})
+//     */
+//    public function deleteArticle(Request $request): Response
+//    {
+//        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+//                $article = $this->articleRepository->find($data['article']);
+//                $preparation = $this->preparationRepository->find($data['preparation']);
+//                $preparation->removeArticle($article);
+//                $em = $this->getDoctrine()->getManager();
+//                $em->flush();
+//
+//                return new JsonResponse();
+//            }
+//        throw new NotFoundHttpException("404");
+//    }
 
 
     /**
@@ -207,6 +228,10 @@ class PreparationController extends AbstractController
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
             {
+                if (!$this->userService->hasRightFunction(Menu::PREPA, Action::LIST)) {
+                    return $this->redirectToRoute('access_denied');
+                }
+
                 $demande = $this->demandeRepository->find($id);
                 if ($demande) {
                     $ligneArticles = $this->ligneArticleRepository->getByDemande($demande->getId());
@@ -217,7 +242,7 @@ class PreparationController extends AbstractController
                             "Référence CEA" => ($article->getReference() ? $article->getReference()->getReference() : ' '),
                             "Libellé" => ($article->getReference() ? $article->getReference()->getLibelle() : ' '),
                             "Quantité" => ($article->getQuantite() ? $article->getQuantite() : ' '),
-                            "Action" => "",
+                            "Actions" => "",
                         ];
                     }
 
@@ -235,6 +260,10 @@ class PreparationController extends AbstractController
      */
     public function show(Preparation $preparation): Response
     {
+        if (!$this->userService->hasRightFunction(Menu::PREPA, Action::LIST)) {
+            return $this->redirectToRoute('access_denied');
+        }
+
         return $this->render('preparation/show.html.twig', [
             'preparation' => $preparation,
             'finished' => ($preparation->getStatut()->getNom() === Preparation::STATUT_A_TRAITER),

@@ -10,23 +10,23 @@
     </div>
     <div class="col text-right" id='boutonCollecteSup'>
         {% if modifiable %}
-        {% if hasRight(constant('App\\Entity\\Menu::DEM_COLLECTE'), constant('App\\Entity\\Action::DELETE')) %}
-        <a href="" onclick="deleteRow($(this), $('#modalDeleteCollecte'), $('#submitDeleteCollecte'))"
-            data-id='{{collecte.id}}' data-target='#modalDeleteCollecte' data-toggle='modal'
-            class="btn btn-danger btn-action ml-auto">
-            Supprimer</a>
-        {% endif %}
-        {% if hasRight(constant('App\\Entity\\Menu::DEM_COLLECTE'), constant('App\\Entity\\Action::CREATE')) %}
-        <a href="#" data-id='{{collecte.id}}' data-target='#modalEditCollecte' data-toggle='modal'
-            onclick="editRow($(this), Routing.generate('collecte_api_edit', true), $('#modalEditCollecte'), $('#submitEditCollecte'), true)"
-            class="btn btn-primary btn-action ml-auto">
-            Modifier</a>
-        {% endif %}
-        {% if hasRight(constant('App\\Entity\\Menu::COLLECTE'), constant('App\\Entity\\Action::CREATE')) %}
-        <a href="#" class="btn btn-primary btn-action ml-auto" data-id='{{collecte.id}}' id='submitFinishCollecte'
-            onclick="finishCollecte($(this))">
-            Valider</a>
-        {% endif %}
+            {% if hasRight(constant('App\\Entity\\Menu::DEM_COLLECTE'), constant('App\\Entity\\Action::DELETE')) %}
+                <a href="" onclick="deleteRow($(this), $('#modalDeleteCollecte'), $('#submitDeleteCollecte'))"
+                   data-id='{{collecte.id}}' data-target='#modalDeleteCollecte' data-toggle='modal'
+                   class="btn btn-danger btn-action ml-auto">
+                    Supprimer</a>
+            {% endif %}
+            {% if hasRight(constant('App\\Entity\\Menu::DEM_COLLECTE'), constant('App\\Entity\\Action::CREATE')) %}
+                <a href="#" data-id='{{collecte.id}}' data-target='#modalEditCollecte' data-toggle='modal'
+                   onclick="editRow($(this), Routing.generate('collecte_api_edit', true), $('#modalEditCollecte'), $('#submitEditCollecte'), true)"
+                   class="btn btn-primary btn-action ml-auto">
+                    Modifier</a>
+            {% endif %}
+            {% if hasRight(constant('App\\Entity\\Menu::COLLECTE'), constant('App\\Entity\\Action::CREATE')) %}
+                <a href="#" class="btn btn-primary btn-action ml-auto" data-id='{{collecte.id}}' id='submitFinishCollecte'
+                   onclick="finishCollecte($(this))">
+                    Valider</a>
+            {% endif %}
         {% endif %}
     </div>
 </div>
@@ -66,6 +66,8 @@
 
     </tbody>
 </table>
+
+<a href="{{ path('collecte_index') }}" class='btn btn-action'>Retour à la liste</a>
 
 {% include "collecte/modalNewArticle.html.twig" %}
 {% include "collecte/modalDeleteArticle.html.twig" %}
