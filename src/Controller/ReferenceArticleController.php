@@ -509,7 +509,6 @@ class ReferenceArticleController extends Controller
                         $em->persist($ligneArticle);
                     } else {
                         $ligneArticle = $this->ligneArticleRepository->getByRefArticle($refArticle);
-                        dump($ligneArticle);
                         $ligneArticle
                         ->setQuantite($ligneArticle->getQuantite() + $data["quantitie"]);
                     }

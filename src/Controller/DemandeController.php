@@ -20,6 +20,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Entity\LigneArticle;
 
 /**
  * @Route("/demande")
@@ -78,35 +79,23 @@ class DemandeController extends AbstractController
     public function compareStock(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            dump($data);
-            $demande = $this->demandeRepository->find($data['demandeId']);
-            dump($demande);
-            foreach ($demande->getLigneArticle() as $ligne) {
+            $demande = $this->demandeRepository->find($data['demande']);
+           foreach ($demande->getLigneArticle() as $ligne) {
                 $articleRef = $ligne->getReference();
                 $stock = $articleRef->getQuantiteStock();
                 $quantiteReservee = $ligne->getQuantite();
-                foreach ($this->ligneArticleRepository->findAlll() as $l) {
+                foreach ($this->ligneArticleRepository->findAll() as $l) {
                     if ($l->getReference()->getId() === $articleRef->getId() && 
-                    ($l->getDemande()->getStatut === Demande::STATUT_A_TRAITER || 
-                    $l->getDemande()->getStatut === Demande::STATUT_PREPARE)) {
+                    ($l->getDemande()->getStatut()->getNom() === Demande::STATUT_A_TRAITER || 
+                    $l->getDemande()->getStatut()->getNom() === Demande::STATUT_PREPARE)) {
                         $quantiteReservee += $l->getQuantite();
                     }
                 }
             }
             if ($quantiteReservee > $stock) {
-                throw new NotFoundHttpException('404');
+                return new JsonResponse('La quantité souhaitée dépasse la quantité en stock', 250);
             } else {
-
-                $data = [
-                    'entete' => $this->renderView(
-                        'demande/enteteDemandeLivraison.html.twig',
-                        [
-                            'demande' => $demande,
-                            'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
-                        ]
-                    ),
-                ];
-                return new JsonResponse($data);
+                return $this->finish($request);
             }
         }
         throw new NotFoundHttpException('404');
@@ -263,7 +252,6 @@ class DemandeController extends AbstractController
      */
     public function delete(Request $request): Response
     {
-        dump($request);
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');

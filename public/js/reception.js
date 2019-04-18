@@ -145,12 +145,12 @@ function initNewArticleEditor(modal) {
 };
 
 var editorEditArticleAlreadyDone = false;
-console.log(editorEditArticleAlreadyDone);
+// console.log(editorEditArticleAlreadyDone);
 function initEditArticleEditor() {
     if (!editorEditArticleAlreadyDone) {
         initEditor();
         editorEditArticleAlreadyDone = true;
-        console.log(editorEditArticleAlreadyDone);
+        // console.log(editorEditArticleAlreadyDone);
     }
 };
 

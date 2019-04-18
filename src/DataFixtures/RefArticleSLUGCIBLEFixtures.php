@@ -69,7 +69,6 @@ class RefArticleSLUGCIBLEFixtures extends Fixture implements FixtureGroupInterfa
         $i = 1;
         foreach ($rows as $row) {
             if (empty($row[0])) continue;
-            dump($i);
             $i++;
 
             $typeSlugcible = $this->typeRepository->findOneBy(['label' => Type::LABEL_SLUGCIBLE]);

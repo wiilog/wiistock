@@ -85,8 +85,8 @@ function getCompareStock(submit) {
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
             data = JSON.parse(this.responseText);
-            $('#tableArticle_id').DataTable().ajax.reload();
             $('.zone-entete').html(data.entete);
+            $('#tableArticle_id').DataTable().ajax.reload();
             $('#boutonCollecteSup').addClass('d-none')
             $('#boutonCollecteInf').addClass('d-none')
             tableArticle.ajax.reload(function (json) {
@@ -94,13 +94,14 @@ function getCompareStock(submit) {
                     $('#myInput').val(json.lastInput);
                 }
             });
+        } else if (this.readyState === 4 && this.status === 250) {
+            data = JSON.parse(this.responseText);
+            alert(data);
         }
     }
     path = Routing.generate('compare_stock', true)
     let data = {};
-    data['demandeId'] = submit.data('id')
-
-    console.log(data);
+    data['demande'] = submit.data('id')
     json = JSON.stringify(data);
     xhttp.open("POST", path, true);
     xhttp.send(json);
@@ -122,8 +123,6 @@ function setMaxQuantity(select) {
     let params = {
         refArticleId: select.val(),
     };
-    console.log(params);
-
     $.post(Routing.generate('get_quantity_ref_article'), params, function (data) {
         let modalBody = select.closest(".modal-body");
         modalBody.find('#quantity').attr('max', data);
