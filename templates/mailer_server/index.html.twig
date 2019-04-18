@@ -9,23 +9,23 @@
     <form action="" class="col-6" id="mailerServerForm">
         <div class="form-group">
             <label for="">Serveur SMTP</label>
-            <input type="text"  class="form-control data"  name="smtp" value="{{mailerServer.smtp ? mailerServer.smtp :'' }}" id="">
+            <input type="text"  class="form-control data"  name="smtp" value="{{mailerServer.smtp is defined ? mailerServer.smtp :'' }}" id="">
         </div>
         <div class="form-group">
             <label for="">Nom d'utilisateur</label>
-            <input type="text"  class="form-control data"  name="user" value="{{mailerServer.user ? mailerServer.user : ''}}" id="">
+            <input type="text"  class="form-control data"  name="user" value="{{mailerServer.user is defined ? mailerServer.user : ''}}" id="">
         </div>
         <div class="form-group">
             <label for="">Mot de passe</label>
-            <input type="password"  class="form-control data"  name="password" value="{{mailerServer.password ? mailerServer.password : ''}}" id="">
+            <input type="password"  class="form-control data"  name="password" value="{{mailerServer.password is defined ? mailerServer.password : ''}}" id="">
         </div>
         <div class="form-group">
             <label for="">Port</label>
-            <input type='number'  class="form-control data"  name="port" value="{{mailerServer.port ? mailerServer.port : ''}}" id="">
+            <input type='number'  class="form-control data"  name="port" value="{{mailerServer.port is defined ? mailerServer.port : ''}}" id="">
         </div>
         <div class="form-group">
             <label for="">Protocol</label>
-            <input type="text"  class="form-control data"  name="protocol" value="{{mailerServer.protocol ? mailerServer.protocol : ''}}" id="">
+            <input type="text"  class="form-control data"  name="protocol" value="{{mailerServer.protocol is defined ? mailerServer.protocol : ''}}" id="">
         </div>
         <button type="button"  class="btn btn-success" onclick="ajaxMailerServer()">Enregistrer</button>
     </form>
