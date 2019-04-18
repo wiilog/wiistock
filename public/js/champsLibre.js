@@ -94,13 +94,6 @@ $(document).ready(function () {
         if ($(this).val() === 'list') {
             $("#list").show();
             $("#noList").hide();
-            $("#body").append(
-                "<div class=\"elem\">" +
-                "<label for=\"date-attendu\" id=\"ajouterElem\">Ajouter un élément</label>" +
-                "<span class=\"input-group-btn\">" +
-                "<button class=\"btn\" onclick=\"appendElem()\" type=\"button\">+</button>" +
-                "</span>" +
-                "</div>");
         } else {
             $("#list").hide();
             $("#noList").show();
@@ -110,32 +103,12 @@ $(document).ready(function () {
     });
 });
 
-function appendElem() {
-    $("#body").append(
-        "<div class=\"form-group elem\">" +
-        "<input type=\"text\" class=\"form-control data\" name=\"elem\" onblur=\"addToSelect(this)\">" +
-        "</div>");
-}
-
-function addToSelect(el) {
-    let input = $(el).val();
-    let added = false;
-    if (input !== "") {
-        $('#valeur > option').each(function () {
-            if ($(this).data('elem') === el) {
-                $(this).text(input);
-                $(this).val(input);
-                added = true;
-            }
-        });
-        if (!added) {
-            $('<option/>', {
-                text: input,
-                value: input,
-                data: {
-                    elem: el,
-                }
-            }).appendTo("#valeur");
-        }
+function changeType(select) {
+    if ($(select).val() === 'list') {
+        $('#defaultValue').hide();
+        $('#isList').show();
+    } else {
+        $('#isList').hide();
+        $('#defaultValue').show();
     }
 }

@@ -1,0 +1,69 @@
+<form method="" class="modal fade" id="modalAddArticle" role="dialog" aria-labelledby="dataModalCenterTitle"
+    aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Ajouter une ligne</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body modal-input container-fluid">
+                <div class="row">
+                    <div class="form-group col-12  w-100 mb-3">
+                        <label for="reference">Référence CEA</label>
+                        <select class="ajax-autocomplete data form-control needed" onchange="getArticleFournisseur()" id="referenceCEA"
+                            name="referenceArticle">
+                        </select>
+                    </div>
+                    <div class="form-group w-100 col-6">
+                        <label for="fournisseur">Fournisseur</label>
+                        <select class="form-control data ajax-autocomplete-fournisseur needed" onchange="getArticleFournisseur()" name="fournisseur"
+                            id="fournisseurAddArticle">
+                        </select>
+                    </div>
+                    <div id='articleFournisseurAddArticle' class="form-group d-none w-100 col-6">
+                        <label for="fournisseur">Référence fournisseur</label>
+                        <select class="form-control data" name="articleFournisseur" id="articleFournisseur">
+                        </select>
+                    </div>
+                    <div class="form-group col-6">
+                        <label for="libelle">Libellé</label>
+                        <input class="form-control data" type="text" name="libelle" id="libelle">
+                    </div>
+                    <div class="form-group col-6">
+                        <label for="">Quantité à recevoir</label>
+                        <input type="number" class="form-control data needed" name="quantiteAR" id="stock" min=0>
+                    </div>
+                    <div class="form-group col-6">
+                        <label for="">Quantité reçue</label>
+                        <input type="number" class="form-control data needed" name="quantite" id="quantite" min=0>
+                    </div>
+                    <div class="form-group col-6">
+                        <label>Anomalie</label>
+                        <label class="switch">
+                            <input class="checkbox" type="checkbox" name="anomalie">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+
+                </div>
+                <div class="form-group col-12">
+                    <label>Commentaire</label>
+                    <input id='commentaireID' class="form-control data" name="commentaire" type="hidden">
+                    <div class="editor-container"></div>
+                </div>
+
+                <div class="error-msg">
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn" data-dismiss="modal">Annuler</button>
+                <button type="button" id="addArticleSubmit" class="btn btn-success data"
+                    name="reception" value="{{reception.id}}" onclick="setCommentaireID($(this)), resetNewArticle($('#articleFournisseurAddArticle'))">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+</form>
