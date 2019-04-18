@@ -44,7 +44,7 @@ function checkAndDeleteRow(icon) {
         if (resp.delete == false) {
             submitDeleteEmplacement.hide();
         } else {
-            submit.show();
+            submitDeleteEmplacement.show();
             submitDeleteEmplacement.attr('value', id);
         }
     });
