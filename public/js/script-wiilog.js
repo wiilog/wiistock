@@ -79,6 +79,7 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
         inputs.each(function () {
             let val = $(this).val();
             let name = $(this).attr("name");
+            console.log(name + " " + val);
             Data[name] = val;
             // validation données obligatoires
             if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
@@ -222,9 +223,11 @@ function showRow(modal, button, path) {
  */
 
 function editRow(button, path, modal, submit, editorToInit = false) {
+    console.log("enter");
     xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
+            console.log("reponse");
             dataReponse = JSON.parse(this.responseText);
             modal.find('.modal-body').html(dataReponse);
             ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur-edit'));
@@ -301,6 +304,7 @@ function setCommentaireID(button) {
     var quill = new Quill(container);
     // let commentaire = modal.find('input[id=commentaireID]');
     com = quill.container.firstChild.innerHTML;
+    console.log(com);
     $('#commentaireID').val(com);
 };
 

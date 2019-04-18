@@ -1,9 +1,8 @@
 <div class="row">
     {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE')) %}
-        <div data-id='{{ articleId }}' data-toggle='modal' data-target='#modalEditArticle'
-             class='col-3 command-edit'
-             onclick="editRow($(this), Routing.generate('reception_article_edit_api', true), $('#modalEditArticle'), $('#submitEditArticle'), true)">
-            <i class='fas fa-pencil-alt'></i>
-        </div>
+    <div data-id='{{ articleId }}' data-toggle='modal' data-target='#modalEditArticle' class='col-3 command-edit'
+        onclick="editRow($(this), Routing.generate('article_edit', true), $('#modalEditArticle'), $('#submitEditArticle'), true)">
+        <i class='fas fa-pencil-alt'></i>
+    </div>
     {% endif %}
 </div>
