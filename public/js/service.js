@@ -28,13 +28,15 @@ let tableService = $('#tableService_id').DataTable({
 
 // recherche par défaut demandeur = utilisateur courant
 let demandeur = $('.current-username').val();
-let demandeurPiped = demandeur.split(',').join('|')
-tableService
-    .columns('Demandeur:name')
-    .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
-    .draw();
-// affichage par défaut du filtre select2 demandeur = utilisateur courant
-$('#utilisateur').val(demandeur).trigger('change');
+if (demandeur !== undefined) {
+    let demandeurPiped = demandeur.split(',').join('|')
+    tableService
+        .columns('Demandeur:name')
+        .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
+        .draw();
+    // affichage par défaut du filtre select2 demandeur = utilisateur courant
+    $('#utilisateur').val(demandeur).trigger('change');
+}
 
 // filtres de recheches
 $('#submitSearchService').on('click', function () {
