@@ -11,6 +11,7 @@ let tableService = $('#tableService_id').DataTable({
     "language": {
         "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
     },
+    "order": [[ 0, "desc" ]],
     ajax: {
         "url": pathService,
         "type": "POST"
@@ -21,7 +22,8 @@ let tableService = $('#tableService_id').DataTable({
         { "data": 'Libellé', 'name': 'Libellé' },
         { "data": 'Statut', 'name': 'Statut' },
         { "data": 'Actions', 'name': 'Actions' },
-    ],
+    ],  
+
 });
 
 // recherche par défaut demandeur = utilisateur courant
@@ -44,12 +46,12 @@ $('#submitSearchService').on('click', function () {
     demandeurPiped = demandeurString.split(',').join('|')
 
     tableService
-        .columns(3)
+        .columns('Statut:name')
         .search(statut)
         .draw();
 
     tableService
-        .columns(1)
+        .columns('Demandeur:name')
         .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
         .draw();
 
