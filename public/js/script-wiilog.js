@@ -16,7 +16,6 @@
 
 
 function InitialiserModal(modal, submit, path, table, callback = null, close = true) {
-
     submit.click(function () {
         xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function () {
@@ -28,7 +27,6 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
                 if (data.redirect) {
                     window.location.href = data.redirect;
                 }
-                console.log(data)
                 // pour mise à jour des données d'en-tête après modification
                 if (data.entete) {
                     $('.zone-entete').html(data.entete)
@@ -44,7 +42,6 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
                 let inputs = modal.find('.modal-body').find(".data");
                 // on vide tous les inputs (sauf les disabled)
                 inputs.each(function () {
-                    // $(this).val("");
                     if ($(this).attr('disabled') !== 'disabled') {
                         $(this).val("");
                     }
@@ -63,7 +60,6 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
                 });
 
                 if (callback !== null) callback(data);
-
             }
         };
 
