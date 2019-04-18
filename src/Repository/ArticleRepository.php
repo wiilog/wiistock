@@ -141,20 +141,6 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function countNotConformByReception($reception)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT COUNT (a)
-           FROM App\Entity\Article a
-           WHERE a.conform = :conform AND a.reception = :reception"
-        )->setParameters([
-            'conform' => 0,
-            'reception' => $reception
-        ]);
-        return $query->getSingleScalarResult();;
-    }
-
     public function countByRefArticleAndStatut($refArticle, $statut)
     {
         $entityManager = $this->getEntityManager();

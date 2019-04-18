@@ -569,6 +569,31 @@ class ReferenceArticleController extends Controller
     }
 
     /**
+     * @Route("/get-RefArticle", name="get_refArticle_in_reception", options={"expose"=true})
+     */
+    public function getRefArticleInReception(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $refArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
+            if ($refArticle) {
+                if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+                    $json = $this->renderView('reference_article/newRefArticleByReference.html.twig');
+                } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+                    $json = $this->renderView('reference_article/newRefArticleByArticle.html.twig', [
+                        'articlesFournisseurs' => $this->articleFournisseurRepository->findALL(),
+                    ]);
+                } else {
+                    $json = false;
+                }
+            } else {
+                $json = false; //TODO gérer erreur retour
+            }
+            return new JsonResponse($json);
+        }
+        throw new NotFoundHttpException("404");
+    }
+    
+    /** 
      * @Route("/colonne-visible", name="save_column_visible", options={"expose"=true}, methods="GET|POST")
      */
     public function saveColumnVisible(Request $request): Response
