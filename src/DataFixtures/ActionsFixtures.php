@@ -22,12 +22,11 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface
         // actions de type lister/créer/supprimer
         $menus = [
             'REC',
-            'PREPA',
-            'LIVR',
             'DEMLIVR',
             'DEMCOL',
-            'COL',
-            'STOCK'
+//            'COL',
+            'STOCK',
+            'MANUT'
         ];
 
         $actionLabels = ['lister', 'créer', 'supprimer'];
@@ -43,11 +42,29 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface
             }
         }
 
+        // actions de type lister/créer
+        $menus = [
+            'PREPA',
+            'LIVR',
+        ];
+
+        $actionLabels = ['lister', 'créer'];
+
+        foreach ($menus as $menu) {
+            foreach ($actionLabels as $actionLabel) {
+                $action = new Action();
+
+                $action
+                    ->setLabel($actionLabel)
+                    ->setMenu($this->getReference('menu-' . $menu));
+                $manager->persist($action);
+            }
+        }
+
 
         // actions de type oui
         $menus = [
-            'NOMAD',
-            'ADMINROLE',
+//            'NOMAD',
             'PARAM',
         ];
 

@@ -3,11 +3,13 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\Menu;
 use App\Entity\Role;
 use App\Repository\ActionRepository;
 use App\Repository\MenuRepository;
 use App\Repository\RoleRepository;
 use App\Repository\UtilisateurRepository;
+use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -40,13 +42,19 @@ class RoleController extends AbstractController
      */
     private $utilisateurRepository;
 
+    /**
+     * @var UserService
+     */
+    private $userService;
 
-    public function __construct(RoleRepository $roleRepository, ActionRepository $actionRepository, MenuRepository $menuRepository, UtilisateurRepository $utilisateurRepository)
+
+    public function __construct(RoleRepository $roleRepository, ActionRepository $actionRepository, MenuRepository $menuRepository, UtilisateurRepository $utilisateurRepository, UserService$userService)
     {
         $this->roleRepository = $roleRepository;
         $this->actionRepository = $actionRepository;
         $this->menuRepository = $menuRepository;
         $this->utilisateurRepository = $utilisateurRepository;
+        $this->userService = $userService;
     }
 
     /**
@@ -54,6 +62,10 @@ class RoleController extends AbstractController
      */
     public function index()
     {
+        if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+            return $this->redirectToRoute('access_denied');
+        }
+
         $menus = $this->menuRepository->findAll();
 
         return $this->render('role/index.html.twig', ['menus' => $menus]);
@@ -66,6 +78,10 @@ class RoleController extends AbstractController
     {
         if ($request->isXmlHttpRequest())
         {
+            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
             $roles = $this->roleRepository->findAll();
             $rows = [];
             foreach ($roles as $role) {
@@ -94,6 +110,9 @@ class RoleController extends AbstractController
     public function new(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+                return $this->redirectToRoute('access_denied');
+            }
 
             $em = $this->getDoctrine()->getEntityManager();
 
@@ -138,6 +157,10 @@ class RoleController extends AbstractController
     public function apiEdit(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
             $role = $this->roleRepository->find($data);
             $menus = $this->menuRepository->findAll();
 
@@ -164,6 +187,10 @@ class RoleController extends AbstractController
     public function edit(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
             $role = $this->roleRepository->find($data['id']);
 
             $role->setLabel($data['label']);
@@ -199,6 +226,9 @@ class RoleController extends AbstractController
     public function delete(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+                return $this->redirectToRoute('access_denied');
+            }
 
             if ($roleId = (int)$data['role']) {
 

@@ -509,7 +509,6 @@ class ReferenceArticleController extends Controller
                         $em->persist($ligneArticle);
                     } else {
                         $ligneArticle = $this->ligneArticleRepository->getByRefArticle($refArticle);
-                        dump($ligneArticle);
                         $ligneArticle
                         ->setQuantite($ligneArticle->getQuantite() + $data["quantitie"]);
                     }
@@ -611,5 +610,36 @@ class ReferenceArticleController extends Controller
             return new JsonResponse();
         }
         throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/voir", name="reference_article_show", options={"expose"=true})
+     */
+    public function showRefArticle(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+            $articleRef = $this->referenceArticleRepository->find($data);
+
+            if ($articleRef) {
+                $data = $this->refArticleDataService->getDataEditForRefArticle($articleRef);
+
+                $json = $this->renderView('reference_article/modalShowRefArticleContent.html.twig',
+                    ['articleRef' => $articleRef,
+                        'statut' => ($articleRef->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF),
+                        //                    'valeurChampsLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
+                        //                    'types' => $this->typeRepository->getByCategoryLabel(ReferenceArticle::CATEGORIE),
+                        //                    'statuts' => $statuts,
+                        'articlesFournisseur' => $data['listArticlesFournisseur'],
+                        'totalQuantity' => $data['totalQuantity']
+                    ]);
+
+                return new JsonResponse($json);
+            }
+        }
+        throw new NotFoundHttpException('404');
     }
 }

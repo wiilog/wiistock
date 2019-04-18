@@ -191,21 +191,13 @@ function deleteRow(button, modal, submit) {
  * @param {string} path le chemin pris pour envoyer les données.
  * 
  */
-function showRow(modal, button, path) {
-    xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function () {
-        if (this.readyState == 4 && this.status == 200) {
-            dataReponse = JSON.parse(this.responseText);
-            if (dataReponse) {
-                modal.find('.modal-body').html(dataReponse);
-            } else {
-                //TODO gérer erreur
-            }
-        }
-    }
-    let json = button.data('id');
-    xhttp.open("POST", path, true);
-    xhttp.send(json);
+function showRow(button, path, modal) {
+    let id = button.data('id');
+    let params = JSON.stringify(id);
+
+    $.post(path, params, function(data) {
+        modal.find('.modal-body').html(data);
+    }, 'json');
 }
 
 
