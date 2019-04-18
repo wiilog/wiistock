@@ -152,15 +152,15 @@
                         </div>
                         {% if champ.typage == 'booleen' %}
                         {% set checked = (value == 1) ? 'checked' : '' %}
-                        <input type="checkbox" class="form-control data checkbox " disabled {{ checked }} value="{{ value }}"
+                        <input type="checkbox" class="form-control data checkbox " {{ checked }} value="{{ value }}"
                             name="{{champ.id}}" id="input">
 
                         {% elseif champ.typage == 'number' %}
-                        <input type="number" class="form-control data " disabled value="{{ value }}" name="{{champ.id}}"
+                        <input type="number" class="form-control data " value="{{ value }}" name="{{champ.id}}"
                             id="input">
 
                         {% else %}
-                        <input type="text" class="form-control data " disabled value="{{ value }}" name="{{ champ.id }}"
+                        <input type="text" class="form-control data " value="{{ value }}" name="{{ champ.id }}"
                             id="input">
                         {% endif %}
                     </div>

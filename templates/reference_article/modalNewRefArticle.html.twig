@@ -11,12 +11,8 @@
             <div class="modal-body modal-input container-fluid">
                 <div class="row">
                     <div class="form-group col-6">
-                        <div class="input-group">
-                            <div class="input-group-prepend">
-                                <label class="input-group-text" for="reference">Référence</label>
-                            </div>
-                            <input class="form-control data" type="text" name="reference" id="reference">
-                        </div>
+                        <label for="reference">Référence</label>
+                        <input class="form-control data" type="text" name="reference" id="reference">
                     </div>
                     <div class="form-group col-6">
                         <div class="input-group radio-btn">
@@ -31,34 +27,24 @@
                         </div>
                     </div>
                     <div class="form-group col-6">
-                        <div class="input-group">
-                            <div class="input-group-prepend">
-                                <label class="input-group-text" for="libelle">Nom</label>
-                            </div>
-                            <input class="form-control data" type="text" name="libelle" id="libelle">
-                        </div>
+                        <label for="libelle">Nom</label>
+                        <input class="form-control data" type="text" name="libelle" id="libelle">
                     </div>
                     <div class="form-group col-6">
-                        <div class="input-group">
-                            <div class="input-group-prepend">
-                                <label for="type" class="input-group-text">Type</label>
-                            </div>
-                            <select name="type" onclick="typeChoice($(this), '-new', $('#typeContentNew'))"
-                                class="form-control data d-block" id="">
-                                <option value="">Type à choisir...</option>
-                                {% for type in types %}
-                                <option value="{{type.id}}">{{type.label}}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
+                        <label for="type">Type</label>
+                        <select name="type" onclick="typeChoice($(this), '-new', $('#typeContentNew'))"
+                            onchange="displayRequireChamp($(this),'create')" class="form-control data d-block type" id="">
+                            <option value="">Type à choisir...</option>
+                            {% for type in types %}
+                            <option value="{{type.id}}">{{type.label}}</option>
+                            {% endfor %}
+                        </select>
                     </div>
                 </div>
                 <div class="row mb-4">
                     <div class="form-group col-12">
-                        <div class="">
-                            <div class="input-group-prepend">
-                                <label class="input-group-text">Nomenclature</label>
-                            </div>
+                        <div>
+                            <label>Nomenclature</label>
                             <input id='commentaire' class="form-control data" name="commentaire" type="hidden" value=''>
                             <div class="editor-container" value=""></div>
                         </div>
@@ -78,12 +64,8 @@
                         </div>
                     </div>
                     <div class="form-group col-6">
-                        <div class="input-group reference">
-                            <div class="input-group-prepend">
-                                <label class="input-group-text" for="quantité">Quantité</label>
-                            </div>
-                            <input class="form-control data" type="number" min="0" name="quantite" id="quantité">
-                        </div>
+                        <label for="quantité">Quantité</label>
+                        <input class="form-control data" type="number" min="0" name="quantite" id="quantité">
                     </div>
                 </div>
 
@@ -103,50 +85,45 @@
                             <div class="row mt-2">
                                 {% for champ in type.champsLibres %}
                                 <div class="form-group col-6">
-                                    <div class="input-group">
-                                        {% if champ.typage == 'booleen' %}
-                                        {% set checked = (champ.defaultValue == 1) ? 'checked' : '' %}
-                                        <label class="input-group-text" for="input">
-                                            {{champ.label}}
-                                        </label>
-                                        <input type="checkbox" class="data checkbox" {{ checked }} name="{{champ.id}}"
-                                            id="input">
-                                        {% elseif champ.typage == 'number' %}
-                                        <div class="input-group-prepend">
-                                            <label class="input-group-text" for="input">
-                                                {{champ.label}}
-                                            </label>
-                                        </div>
-                                        <input type="number" class="form-control data" value="{{champ.defaultValue}}"
-                                            name="{{champ.id}}" id="input">
-                                        {% elseif champ.typage == 'list' %}
-                                        <div class="input-group-prepend">
-                                            <label class="input-group-text" for="input">
-                                                {{champ.label}}
-                                            </label>
-                                        </div>
-                                        <select class="form-control unTruc data " name="{{champ.id}}" id="input">
-                                            <option value="{{champ.defaultValue}}">{{champ.defaultValue}}
-                                            </option>
-                                            {% for elem in champ.elements %}
-                                            {% if champ.defaultValue != elem %}
-                                            <option value="{{elem}}">{{elem}}</option>
-                                            {% endif %}
-                                            {% endfor %}
-                                            {% if champ.defaultValue != "" %}
-                                            <option value=""></option>
-                                            {% endif %}
-                                        </select>
-                                        {% else %}
-                                        <div class="input-group-prepend">
-                                            <label class="input-group-text" for="input">
-                                                {{champ.label}}
-                                            </label>
-                                        </div>
-                                        <input class="form-control data" type="text" value="{{champ.defaultValue}}"
-                                            name='{{ champ.id }}' id="input">
+                                    {% if champ.typage == 'booleen' %}
+                                    {% set checked = (champ.defaultValue == 1) ? 'checked' : '' %}
+                                    <label>
+                                        {{champ.label}}
+                                    </label>
+                                    <label class="switch">
+                                        <input type="checkbox" class="data checkbox" {{ checked }} name="{{champ.id}}">
+                                        <span class="slider round"></span>
+                                    </label>
+                                    {% elseif champ.typage == 'number' %}
+                                    <label>
+                                        {{champ.label}}
+                                    </label>
+                                    <input type="number" id="{{champ.label ~ 'create'}}" class="form-control data"
+                                        value="{{champ.defaultValue}}" name="{{champ.id}}">
+                                    {% elseif champ.typage == 'list' %}
+                                    <label>
+                                        {{champ.label}}
+                                    </label>
+                                    <select id="{{champ.label ~ 'create'}}" class="form-control unTruc data" name="{{champ.id}}"
+                                        id="input">
+                                        <option value="{{champ.defaultValue}}">{{champ.defaultValue}}
+                                        </option>
+                                        {% for elem in champ.elements %}
+                                        {% if champ.defaultValue != elem %}
+                                        <option value="{{elem}}">{{elem}}</option>
                                         {% endif %}
-                                    </div>
+                                        {% endfor %}
+                                        {% if champ.defaultValue != "" %}
+                                        <option value=""></option>
+                                        {% endif %}
+                                    </select>
+                                    {% else %}
+                                    <label>
+                                        {{champ.label}}
+                                    </label>
+                                    <input id="{{champ.label ~ 'create'}}" class="form-control data" type="text"
+                                        value="{{champ.defaultValue}}" name='{{ champ.id }}'>
+                                    {% endif %}
                                 </div>
                                 {% endfor %}
                             </div>

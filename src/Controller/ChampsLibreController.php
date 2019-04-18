@@ -72,6 +72,8 @@ class ChampsLibreController extends AbstractController
                             'id' => ($champsLibre->getId() ? $champsLibre->getId() : 'Non défini'),
                             'Label' => ($champsLibre->getLabel() ? $champsLibre->getLabel() : 'Non défini'),
                             'Typage' => ($champsLibre->getTypage() ? $champsLibre->getTypage() : 'Non défini'),
+                            'Obligatoire à la création' => ($champsLibre->getRequiredCreate() ? "oui" :"non"),
+                            'Obligatoire à la modification' => ($champsLibre->getRequiredEdit() ? "oui" :"non"),
                             'Valeur par défaut' => ($champsLibre->getDefaultValue() ? $champsLibre->getDefaultValue() : 'Non défini'),
                             'Elements' => $this->renderView('champ_libre/champLibreElems.html.twig', ['elems' => $champsLibre->getElements()]),
                             'Actions' => $this->renderView('champ_libre/datatableChampsLibreRow.html.twig', ['idChampsLibre' => $champsLibre->getId()]),
@@ -105,6 +107,8 @@ class ChampsLibreController extends AbstractController
             $champsLibre
                 ->setlabel($data['label'])
                 ->setType($type)
+                ->setRequiredCreate($data['requiredCreate'])
+                ->setRequiredEdit($data['requiredEdit'])
                 ->settypage($data['typage'])
                 ->setDefaultValue($data['valeur'])
                 ->setElements(array_filter($data['elem']));
@@ -132,7 +136,7 @@ class ChampsLibreController extends AbstractController
         }
         throw new NotFoundHttpException('404');
     }
-
+    
     /**
      * @Route("/modifier", name="champ_libre_edit", options={"expose"=true},  methods="GET|POST")
      */
@@ -141,19 +145,21 @@ class ChampsLibreController extends AbstractController
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $champLibre = $this->champsLibreRepository->find($data['champLibre']);
             $champLibre
-                ->setLabel($data['label'])
-                ->setTypage($data['typage'])
-                ->setDefaultValue($data['valeur'])
-                ->setElements(array_filter($data['elem']));
-
+            ->setLabel($data['label'])
+            ->setTypage($data['typage'])
+            ->setRequiredCreate($data['requiredCreate'])
+            ->setRequiredEdit($data['requiredEdit'])
+            ->setDefaultValue($data['valeur'])
+            ->setElements(array_filter($data['elem']));
+            
             $em = $this->getDoctrine()->getManager();
             $em->flush();
-
+            
             return new JsonResponse();
         }
         throw new NotFoundHttpException('404');
     }
-
+    
     /**
      * @Route("/delete", name="champ_libre_delete",options={"expose"=true}, methods={"GET","POST"})
      */
@@ -164,8 +170,36 @@ class ChampsLibreController extends AbstractController
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($champsLibre);
             $entityManager->flush();
-
+            
             return new JsonResponse();
+        }
+        throw new NotFoundHttpException('404');
+    }
+   
+    /**
+     * @Route("/display-require-champ", name="display_require_champ", options={"expose"=true},  methods="GET|POST")
+     */
+    public function displayRequireChamp(Request $request): Response
+    {
+        dump(json_decode($request->getContent(), true));
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (array_key_exists('create', $data)) {
+                $type = $this->typeRepository->find($data['create']);
+                $champsLibres = $this->champsLibreRepository->getByTypeAndRequiredCreate($type);
+            } else if (array_key_exists('edit', $data)) {
+                $type = $this->typeRepository->find($data['edit']);
+                $champsLibres = $this->champsLibreRepository->getByTypeAndRequiredEdit($type);
+            } else {
+                $json = false;
+                return new JsonResponse($json);
+            }
+            
+            $json = [];
+            foreach ($champsLibres as $champLibre) {
+                $json[] = $champLibre['label'];
+            }
+            dump($json);
+            return new JsonResponse($json);
         }
         throw new NotFoundHttpException('404');
     }

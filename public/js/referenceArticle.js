@@ -17,7 +17,7 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function () 
                 }
                 callback(data);
                 initRemove();
-                
+
                 let inputs = modal.find('.modal-body').find(".data");
                 // on vide tous les inputs
                 inputs.each(function () {
@@ -30,14 +30,14 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function () 
                 })
             }
         };
-        
+
         // On récupère toutes les données qui nous intéressent
         // dans les inputs...
         let inputs = modal.find(".data");
         let Data = {};
         let missingInputs = [];
         let wrongInputs = [];
-        
+
         inputs.each(function () {
             let val = $(this).val();
             let name = $(this).attr("name");
@@ -62,7 +62,7 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function () 
             //     }
             // }
         });
-        
+
         // ... et dans les checkboxes
         let checkboxes = modal.find('.checkbox');
         checkboxes.each(function () {
@@ -198,7 +198,7 @@ function visibleColumn(check) {
     })
     if (check.hasClass('data')) {
         check.removeClass('data');
-    } else{
+    } else {
         check.addClass('data');
     }
 }
@@ -344,4 +344,24 @@ function initEditRefArticleEditor(modal) {
 function loadSpinnerAR(div) {
     div.removeClass('d-flex');
     div.addClass('d-none');
+}
+
+
+let displayRequireChamp = function (select, require) {
+    xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            data = JSON.parse(this.responseText);
+            data.forEach(function (element) {
+                $('#'+element+require).addClass('needed');
+            });
+        }
+    }
+    let path = Routing.generate('display_require_champ', true);
+    let json = {};
+    json[require] = select.val();
+    let Json = JSON.stringify(json)
+    $('.data').removeClass('needed');
+    xhttp.open("POST", path, true);
+    xhttp.send(Json);
 }

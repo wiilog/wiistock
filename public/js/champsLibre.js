@@ -50,6 +50,8 @@ let tableChampsLibre = $('#tableChampslibre_id').DataTable({
         { "data": 'Typage' },
         { "data": 'Valeur par défaut' },
         { "data": 'Elements' },
+        { "data": 'Obligatoire à la création' },
+        { "data": 'Obligatoire à la modification' },
         { "data": 'Actions' },
     ],
 });

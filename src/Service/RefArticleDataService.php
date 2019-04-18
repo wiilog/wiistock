@@ -179,7 +179,16 @@ class RefArticleDataService
      */
     public function editRefArticle($refArticle, $data)
     {
-        if ($refArticle) {
+        $requiredEdit = true;
+        $type =  $this->typeRepository->find(intval($data['type']));
+        $CLRequired = $this->champsLibreRepository->getByTypeAndRequiredCreate($type);
+        foreach ($CLRequired as $CL) {
+            if (array_key_exists($CL['id'], $data) and $data[$CL['id']] === "" ) {
+                $requiredEdit = false;
+            }
+        }
+
+        if ($requiredEdit) {
             $entityManager = $this->em;
             if (isset($data['reference'])) $refArticle->setReference($data['reference']);
             if (isset($data['libelle'])) $refArticle->setLibelle($data['libelle']);
