@@ -48,6 +48,8 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
                     if ($(this).attr('disabled') !== 'disabled') {
                         $(this).val("");
                     }
+                    // on enlève les classes is-invalid
+                    $(this).removeClass('is-invalid');
                 });
                 // on vide tous les select2
                 let selects = modal.find('.modal-body').find('.ajax-autocomplete,.select2');

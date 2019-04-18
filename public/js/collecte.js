@@ -65,6 +65,11 @@ let submit = $("#submitNewArticle");
 let url = Routing.generate('collecte_add_article', true);
 InitialiserModal(modal, submit, url, tableArticle);
 
+let modalEditArticle = $("#modalEditArticle");
+let submitEditArticle = $("#submitEditArticle");
+let urlEditArticle = Routing.generate('collecte_edit_article', true);
+InitialiserModal(modalEditArticle, submitEditArticle, urlEditArticle, tableArticle);
+
 let modalDeleteArticle = $("#modalDeleteArticle");
 let submitDeleteArticle = $("#submitDeleteArticle");
 let urlDeleteArticle = Routing.generate('collecte_remove_article', true);
