@@ -211,7 +211,7 @@ class ArticleController extends AbstractController
             $em = $this->getDoctrine()->getManager();
 
             $article->setLabel($data['label']);
-            $article->setConform($data['conform']);
+            $article->setConform(($data['conform'] === '1') ? true : false);
             $article->setCommentaire($data['commentaire']);
             $champsLibreKey = array_keys($data);
             foreach ($champsLibreKey as $champ) {

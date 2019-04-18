@@ -223,11 +223,9 @@ function showRow(modal, button, path) {
  */
 
 function editRow(button, path, modal, submit, editorToInit = false) {
-    console.log("enter");
     xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
-            console.log("reponse");
             dataReponse = JSON.parse(this.responseText);
             modal.find('.modal-body').html(dataReponse);
             ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur-edit'));

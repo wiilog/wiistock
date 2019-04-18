@@ -39,14 +39,11 @@ function InitialiserModalArticle(modal, submit, path, callback = function () { }
             if (this.readyState == 4 && this.status == 200) {
                 $('.errorMessage').html(JSON.parse(this.responseText))
                 data = JSON.parse(this.responseText);
-                if (data.new) {
-                    tableArticle.row.add(data.new).draw(false);
-                } else if (data.delete) {
-                    tableArticle.row($('#delete' + data.delete).parents('div').parents('td').parents('tr')).remove().draw(false);
-                } else if (data.edit) {
-                    tableArticle.row($('#edit' + data.id).parents('div').parents('td').parents('tr')).remove().draw(false);
-                    tableArticle.row.add(data.edit).draw(false);
-                }
+                tableArticle.ajax.reload(function (json) {
+                    if (this.responseText !== undefined) {
+                        $('#myInput').val(json.lastInput);
+                    }
+                });
                 callback(data);
 
                 let inputs = modal.find('.modal-body').find(".data");

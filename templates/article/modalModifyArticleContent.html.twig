@@ -9,11 +9,11 @@
         </div>
         <select class='data form-control' name="conform" id="">
             {% if article.conform %}
-            <option value="on">oui</option>
-            <option value="off">non</option>
+            <option value="1">oui</option>
+            <option value="0">non</option>
             {% else %}
-            <option value="off">non</option>
-            <option value="on">oui</option>
+            <option value="0">non</option>
+            <option value="1">oui</option>
             {% endif %}
         </select>
     </div>
