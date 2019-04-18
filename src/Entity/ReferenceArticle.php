@@ -96,6 +96,11 @@ class ReferenceArticle
      */
     private $commentaire;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\ReceptionReferenceArticle", mappedBy="referenceArticle")
+     */
+    private $receptionReferenceArticles;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
@@ -105,6 +110,7 @@ class ReferenceArticle
         $this->valeurChampsLibres = new ArrayCollection();
         $this->articlesFournisseur = new ArrayCollection();
         $this->collecteReferences = new ArrayCollection();
+        $this->receptionReferenceArticles = new ArrayCollection();
     }
 
     public function getId()
@@ -377,27 +383,33 @@ class ReferenceArticle
         return $this;
     }
 
-    public function addArticlesFournisseur(ArticleFournisseur $articlesFournisseur): self
+    /**
+     * @return Collection|ReceptionReferenceArticle[]
+     */
+    public function getReceptionReferenceArticles(): Collection
     {
-        if (!$this->articlesFournisseur->contains($articlesFournisseur)) {
-            $this->articlesFournisseur[] = $articlesFournisseur;
-            $articlesFournisseur->setReferenceArticle($this);
-        }
+        return $this->receptionReferenceArticles;
+    }
 
+    public function addReceptionReferenceArticle(ReceptionReferenceArticle $receptionReferenceArticle): self
+    {
+        if (!$this->receptionReferenceArticles->contains($receptionReferenceArticle)) {
+            $this->receptionReferenceArticles[] = $receptionReferenceArticle;
+            $receptionReferenceArticle->setReferenceArticle($this);
+        }
         return $this;
     }
 
-    public function removeArticlesFournisseur(ArticleFournisseur $articlesFournisseur): self
+    public function removeReceptionReferenceArticle(ReceptionReferenceArticle  $receptionReferenceArticle): self
     {
-        if ($this->articlesFournisseur->contains($articlesFournisseur)) {
-            $this->articlesFournisseur->removeElement($articlesFournisseur);
+        if ($this->receptionReferenceArticles->contains($receptionReferenceArticle)) {
+            $this->receptionReferenceArticles->removeElement($receptionReferenceArticle);
             // set the owning side to null (unless already changed)
-            if ($articlesFournisseur->getReferenceArticle() === $this) {
-                $articlesFournisseur->setReferenceArticle(null);
+            if ($receptionReferenceArticle->getReferenceArticle() ===  $this) {
+                $receptionReferenceArticle->setReferenceArticle(null);
             }
+            return $this;
         }
-
-        return $this;
     }
 
 }

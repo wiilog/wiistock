@@ -45,9 +45,15 @@ class ArticleFournisseur
      */
     private $articles;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\ReceptionReferenceArticle", mappedBy="articleFournisseur")
+     */
+    private $receptionReferenceArticles;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
+        $this->receptionReferenceArticles = new ArrayCollection();
     }
 
 
@@ -129,6 +135,37 @@ class ArticleFournisseur
             // set the owning side to null (unless already changed)
             if ($article->getArticleFournisseur() === $this) {
                 $article->setArticleFournisseur(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|ReceptionReferenceArticle[]
+     */
+    public function getReceptionReferenceArticles(): Collection
+    {
+        return $this->receptionReferenceArticles;
+    }
+
+    public function addReceptionReferenceArticle(ReceptionReferenceArticle $receptionReferenceArticle): self
+    {
+        if (!$this->receptionReferenceArticles->contains($receptionReferenceArticle)) {
+            $this->receptionReferenceArticles[] = $receptionReferenceArticle;
+            $receptionReferenceArticle->setArticleFournisseur($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReceptionReferenceArticle(ReceptionReferenceArticle $receptionReferenceArticle): self
+    {
+        if ($this->receptionReferenceArticles->contains($receptionReferenceArticle)) {
+            $this->receptionReferenceArticles->removeElement($receptionReferenceArticle);
+            // set the owning side to null (unless already changed)
+            if ($receptionReferenceArticle->getArticleFournisseur() === $this) {
+                $receptionReferenceArticle->setArticleFournisseur(null);
             }
         }
 
