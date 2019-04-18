@@ -204,22 +204,27 @@ class EmplacementController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            // on vérifie que l'emplacement n'est plus utilisé
-            $usedEmplacement = $this->demandeRepository->countByEmplacement($emplacementId);
-            $usedEmplacement += $this->livraisonRepository->countByEmplacement($emplacementId);
-            $usedEmplacement += $this->collecteRepository->countByEmplacement($emplacementId);
-            $usedEmplacement += $this->mouvementRepository->countByEmplacement($emplacementId);
-
-            if ($usedEmplacement == 0) {
+            if ($this->countUsedEmplacements($emplacementId) == 0) {
                 $delete = true;
                 $html = $this->renderView('emplacement/modalDeleteEmplacementRight.html.twig');
             } else {
                 $delete = false;
                 $html = $this->renderView('emplacement/modalDeleteEmplacementWrong.html.twig', ['delete' => false]);
             }
+
             return new JsonResponse(['delete' => $delete, 'html' => $html]);
         }
         throw new NotFoundHttpException('404');
+    }
+
+    private function countUsedEmplacements($emplacementId)
+    {
+        $usedEmplacement = $this->demandeRepository->countByEmplacement($emplacementId);
+        $usedEmplacement += $this->livraisonRepository->countByEmplacement($emplacementId);
+        $usedEmplacement += $this->collecteRepository->countByEmplacement($emplacementId);
+        $usedEmplacement += $this->mouvementRepository->countByEmplacement($emplacementId);
+
+        return $usedEmplacement;
     }
 
     /**
@@ -237,10 +242,7 @@ class EmplacementController extends AbstractController
                 $emplacement = $this->emplacementRepository->find($emplacementId);
 
                 // on vérifie que l'emplacement n'est plus utilisé
-                $usedEmplacement = $this->demandeRepository->countByEmplacement($emplacementId);
-                $usedEmplacement += $this->livraisonRepository->countByEmplacement($emplacementId);
-                $usedEmplacement += $this->collecteRepository->countByEmplacement($emplacementId);
-                $usedEmplacement += $this->mouvementRepository->countByEmplacement($emplacementId);
+                $usedEmplacement = $this->countUsedEmplacements($emplacementId);
 
                 if ($usedEmplacement > 0) {
                     return new JsonResponse(false);
