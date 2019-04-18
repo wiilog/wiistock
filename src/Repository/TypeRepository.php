@@ -44,7 +44,7 @@ class TypeRepository extends ServiceEntityRepository
             );
         $query->setParameter("category", $category);
 
-        return $query->getOneOrNullResult();
+        return $query->getFirstResult();
     }
 
 

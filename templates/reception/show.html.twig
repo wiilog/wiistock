@@ -8,18 +8,20 @@
         <h1>Réception</h1>
     </div>
     <div class="col text-right">
-        {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::DELETE')) %}
-            <a href="" data-id='{{ id }}' data-target='#modalDeleteReception' data-toggle='modal'
-                class="btn btn-danger btn-action ml-auto">
-                Supprimer</a>
-        {% endif %}
+        {% if modifiable %}
+            {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::DELETE')) %}
+                <a href="" data-id='{{ id }}' data-target='#modalDeleteReception' data-toggle='modal'
+                    class="btn btn-danger btn-action ml-auto">
+                    Supprimer</a>
+            {% endif %}
 
-        {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::CREATE')) %}
-            <a href="" data-id='{{ id }}' data-target='#modalEditReception' data-toggle='modal'
-                class="btn btn-primary btn-action ml-auto" onclick='initEditReceptionEditor("#modalEditReception")'>
-                Modifier</a>
-            <a href="{{path('reception_finish', {'id': id})}}" class="btn btn-primary btn-action ml-auto">
-                Fin réception</a>
+            {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::CREATE')) %}
+                <a href="" data-id='{{ id }}' data-target='#modalEditReception' data-toggle='modal'
+                    class="btn btn-primary btn-action ml-auto" onclick='initEditReceptionEditor("#modalEditReception")'>
+                    Modifier</a>
+                <a href="{{path('reception_finish', {'id': id})}}" class="btn btn-primary btn-action ml-auto">
+                    Fin réception</a>
+            {% endif %}
         {% endif %}
     </div>
 </div>
@@ -30,28 +32,17 @@
 </div>
 
 <div class="col text-right">
-    <a href="{{ path('reference_article_index') }}" data-toggle="modal" class="btn btn-primary btn-action ml-auto">
-        Chercher une référence</a>
-    {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::CREATE')) %}
-        <a href="" data-toggle="modal" data-target="#modalAddArticle" class="btn btn-primary btn-action ml-auto"
-            onclick='initNewArticleEditor("#modalAddArticle")'>
-            <span class="fa fa-plus mr-2"></span>Ajouter article
-        </a>
+    {% if modifiable %}
+        {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::CREATE')) %}
+            <a href="" data-toggle="modal" data-target="#modalAddArticle" class="btn btn-primary btn-action ml-auto"
+                onclick="initNewArticleEditor('#modalAddArticle'),  ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'))">
+                <span class="fa fa-plus mr-2"></span>Ajouter article
+            </a>
+        {% endif %}
     {% endif %}
 </div>
 
-<table id="tableArticle_id" class="table table-striped table-bordered" style="width:100%">
-    <thead>
-        <tr>
-            <th>Libellé</th>
-            <th>Référence</th>
-            <th>Référence CEA</th>
-            <th>Statut</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-    </tbody>
+<table id="tableArticle_id" class="table table-striped table-bordered w-100">
 </table>
 
 <a href="{{ path('reception_index') }}" class='btn btn-action'>Retour à la liste</a>
@@ -63,14 +54,14 @@
 
 {% include "reception/modalDeleteReception.html.twig" %}
 {% include "reception/modalEditReception.html.twig" %}
-{% include "reception/modalModifyArticle.html.twig" %}
-{% include "reception/modalDeleteArticle.html.twig" %}
-{% include "reception/modalAddArticle.html.twig" %}
+{% include "reception/modalModifyLigneArticle.html.twig" %}
+{% include "reception/modalDeleteLigneArticle.html.twig" %}
+{% include "reception/modalAddLigneArticle.html.twig" %}
 
 {% endblock %}
 {% block javascript %}
 <script>
-    let id = {{ reception.id }}
+    let id = {{ reception.id }};
 </script>
 <script src="{{asset('js/reception.js')}}"></script>
 {% endblock javascript %}

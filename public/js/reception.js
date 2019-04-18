@@ -47,11 +47,12 @@ let tableArticle = $('#tableArticle_id').DataTable({
         "type": "POST"
     },
     columns: [
-        { "data": 'Libellé' },
-        { "data": 'Référence' },
-        { "data": 'Référence CEA' },
-        { "data": 'Statut' },
-        { "data": 'Actions' }
+        { "data": 'Référence CEA', 'title': 'Référence CEA' },
+        { "data": 'Libellé', 'title': 'Libellé' },
+        { "data": 'Fournisseur', 'title': 'Fournisseur' },
+        { "data": 'A recevoir', 'title': 'A recevoir' },
+        { "data": 'Reçu', 'title': 'Reçu' },
+        { "data": 'Actions', 'title': 'Actions' }
     ],
 });
 
@@ -72,17 +73,17 @@ InitialiserModal(modalEditArticle, submitEditArticle, urlEditArticle, tableArtic
 
 //GENERATOR BARCODE
 
-let printBarcode = function (button) {
-    barcode = button.data('ref')
-    JsBarcode("#barcode", barcode, {
-        format: "CODE128",
-    });
-    printJS({
-        printable: 'barcode',
-        type: 'html',
-        maxWidth: 250
-    });
-}
+// let printBarcode = function (button) {
+//     let barcode = button.data('ref')
+//     JsBarcode("#barcode", barcode, {
+//         format: "CODE128",
+//     });
+//     printJS({
+//         printable: 'barcode',
+//         type: 'html',
+//         maxWidth: 250
+//     });
+// }
 
 let pathPrinterAll = Routing.generate('article_printer_all', { 'id': id }, true);
 let printerAll = function () {
@@ -138,20 +139,84 @@ function initEditReceptionEditor(modal) {
 
 var editorNewArticleAlreadyDone = false;
 function initNewArticleEditor(modal) {
-      if (!editorNewArticleAlreadyDone) {
-      initEditor(modal);
-      editorNewArticleAlreadyDone = true;
+    if (!editorNewArticleAlreadyDone) {
+        initEditor(modal);
+        editorNewArticleAlreadyDone = true;
     }
 };
 
 var editorEditArticleAlreadyDone = false;
-console.log(editorEditArticleAlreadyDone);
 function initEditArticleEditor() {
     if (!editorEditArticleAlreadyDone) {
         initEditor();
         editorEditArticleAlreadyDone = true;
-        console.log(editorEditArticleAlreadyDone);
     }
 };
 
+$('.ajax-autocomplete').select2({
+    ajax: {
+        url: Routing.generate('get_ref_articles'),
+        dataType: 'json',
+        delay: 250,
+    },
+    language: {
+        inputTooShort: function () {
+            return 'Veuillez entrer au moins 1 caractère.';
+        },
+        searching: function () {
+            return 'Recherche en cours...';
+        },
+        noResults: function () {
+            return 'Aucun résultat.';
+        }
+    },
+    minimumInputLength: 1,
+});
 
+function ajaxGetArticle(select) {
+    xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            data = JSON.parse(this.responseText);
+            $('#newContent').html(data);
+            $('#modalAddArticle').find('div').find('div').find('.modal-footer').removeClass('d-none');
+
+        }
+    }
+    path = Routing.generate('get_refArticle_in_reception', true)
+    let data = {};
+    data['referenceArticle'] = select.val();
+    json = JSON.stringify(data);
+    xhttp.open("POST", path, true);
+    xhttp.send(json);
+}
+
+
+let getArticleFournisseur = function () {
+    xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            data = JSON.parse(this.responseText);
+            if(data.option){
+                let $articleFourn = $('#articleFournisseur');
+                $articleFourn.parent('div').removeClass('d-none');
+                $articleFourn.parent('div').addClass('d-block');
+                $articleFourn.html(data.option);
+            }
+        }
+    }
+    path = Routing.generate('get_article_fournisseur', true)
+    let data = {};
+    data['referenceArticle'] = $('#referenceCEA').val();
+    data['fournisseur'] = $('#fournisseurAddArticle').val();
+    if (data['referenceArticle'] && data['fournisseur']) {
+        json = JSON.stringify(data);
+        xhttp.open("POST", path, true);
+        xhttp.send(json);
+    }
+}
+
+let resetNewArticle = function (element) {
+element.removeClass('d-block');
+element.addClass('d-none');
+}

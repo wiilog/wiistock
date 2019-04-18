@@ -38,10 +38,16 @@ class Fournisseur
      */
     private $articlesFournisseur;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\ReceptionReferenceArticle", mappedBy="fournisseur")
+     */
+    private $receptionReferenceArticles;
+
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
         $this->articlesFournisseur = new ArrayCollection();
+        $this->receptionReferenceArticles = new ArrayCollection();
     }
 
     public function getId() : ? int
@@ -157,6 +163,37 @@ class Fournisseur
             // set the owning side to null (unless already changed)
             if ($articlesFournisseur->getFournisseur() === $this) {
                 $articlesFournisseur->setFournisseur(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|ReceptionReferenceArticle[]
+     */
+    public function getReceptionReferenceArticles(): Collection
+    {
+        return $this->receptionReferenceArticles;
+    }
+
+    public function addReceptionReferenceArticle(ReceptionReferenceArticle $receptionReferenceArticle): self
+    {
+        if (!$this->receptionReferenceArticles->contains($receptionReferenceArticle)) {
+            $this->receptionReferenceArticles[] = $receptionReferenceArticle;
+            $receptionReferenceArticle->setFournisseur($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReceptionReferenceArticle(ReceptionReferenceArticle $receptionReferenceArticle): self
+    {
+        if ($this->receptionReferenceArticles->contains($receptionReferenceArticle)) {
+            $this->receptionReferenceArticles->removeElement($receptionReferenceArticle);
+            // set the owning side to null (unless already changed)
+            if ($receptionReferenceArticle->getFournisseur() === $this) {
+                $receptionReferenceArticle->setFournisseur(null);
             }
         }
 

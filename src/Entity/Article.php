@@ -39,12 +39,6 @@ class Article
     private $quantite;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Reception", inversedBy="articles")
-     * @ORM\JoinColumn(name="reception_id", referencedColumnName="id", onDelete="CASCADE")
-     */
-    private $reception;
-
-    /**
      * @ORM\Column(type="text", nullable=true)
      */
     private $commentaire;
@@ -58,17 +52,7 @@ class Article
      * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="articles")
      */
     private $Statut;
-
-    /**
-     * @ORM\Column(type="integer", nullable=true)
-     */
-    private $quantiteARecevoir;
-
-    /**
-     * @ORM\Column(type="integer", nullable=true)
-     */
-    private $quantiteCollectee;
-
+   
     /**
      * @ORM\Column(type="boolean")
      */
@@ -98,6 +82,7 @@ class Article
      * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="articles")
      */
     private $type;
+
     /**
      * @ORM\ManyToMany(targetEntity="App\Entity\ValeurChampsLibre", mappedBy="article")
      */
@@ -145,18 +130,6 @@ class Article
     public function __toString()
     {
         return $this->label;
-    }
-
-    public function getReception(): ?Reception
-    {
-        return $this->reception;
-    }
-
-    public function setReception(?Reception $reception): self
-    {
-        $this->reception = $reception;
-
-        return $this;
     }
 
     public function getCommentaire(): ?string
@@ -207,30 +180,6 @@ class Article
     public function setStatut(?Statut $Statut): self
     {
         $this->Statut = $Statut;
-
-        return $this;
-    }
-
-    public function getQuantiteARecevoir(): ?int
-    {
-        return $this->quantiteARecevoir;
-    }
-
-    public function setQuantiteARecevoir(?int $quantiteARecevoir): self
-    {
-        $this->quantiteARecevoir = $quantiteARecevoir;
-
-        return $this;
-    }
-
-    public function getQuantiteCollectee(): ?int
-    {
-        return $this->quantiteCollectee;
-    }
-
-    public function setQuantiteCollectee(?int $quantiteCollectee): self
-    {
-        $this->quantiteCollectee = $quantiteCollectee;
 
         return $this;
     }
