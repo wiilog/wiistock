@@ -255,7 +255,6 @@ class Demande
     {
         if ($this->articles->contains($article)) {
             $this->articles->removeElement($article);
-            // set the owning side to null (unless already changed)
             if ($article->getDemande() === $this) {
                 $article->setDemande(null);
             }

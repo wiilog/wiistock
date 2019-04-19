@@ -109,8 +109,7 @@ class ChampsLibreController extends AbstractController
                 ->setType($type)
                 ->setRequiredCreate($data['requiredCreate'])
                 ->setRequiredEdit($data['requiredEdit'])
-                ->settypage($data['typage'])
-                ->settypage($data['typage']);
+                ->setTypage($data['typage']);
             if ($champLibre->getTypage() === 'list') {
                 $champLibre
                     ->setElements(array_filter(explode(';', $data['elem'])))

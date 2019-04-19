@@ -290,7 +290,6 @@ function setCommentaireID(button) {
     var quill = new Quill(container);
     // let commentaire = modal.find('input[id=commentaireID]');
     com = quill.container.firstChild.innerHTML;
-    console.log(com);
     $('#commentaireID').val(com);
 };
 

@@ -151,7 +151,7 @@ class ArticleDataService
     }
 
     /**
-     * @param ReferenceArticle $articleRef
+     * @param Article $article
      * @return array
      */
     public function getDataEditForArticle($article)

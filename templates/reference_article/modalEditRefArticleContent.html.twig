@@ -142,7 +142,7 @@
                     <input type="number" id="{{champ.label ~ 'edit'}}" class="form-control data" value="{{ value }}" name="{{champ.id}}" id="input">
 
                     {% elseif champ.typage == 'list' %}
-                    <select class="form-control unTruc data"  id="{{champ.label ~ 'edit'}}" name="{{champ.id}}" id="input">
+                    <select class="form-control data"  id="{{champ.label ~ 'edit'}}" name="{{champ.id}}" id="input">
                         <option value="{{value}}">{{value}}
                         </option>
                         {% for elem in champ.elements %}
