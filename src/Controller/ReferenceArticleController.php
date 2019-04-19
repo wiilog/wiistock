@@ -512,12 +512,11 @@ class ReferenceArticleController extends Controller
             //edit Refrence Article
 
             $refArticle = (isset($data['refArticle']) ? $this->referenceArticleRepository->find($data['refArticle']) : '');
-            $response = $this->refArticleDataService->editRefArticle($refArticle, $data);
-
             //ajout demande
             if (array_key_exists('livraison', $data) && $data['livraison']) {
                 $demande = $this->demandeRepository->find($data['livraison']);
                 if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+                    $response = $this->refArticleDataService->editRefArticle($refArticle, $data);
                     if ($this->ligneArticleRepository->countByRefArticleDemande($refArticle, $demande) < 1) {
                         $ligneArticle = new LigneArticle;
                         $ligneArticle
@@ -531,6 +530,7 @@ class ReferenceArticleController extends Controller
                             ->setQuantite($ligneArticle->getQuantite() + $data["quantitie"]);
                     }
                 } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+                    $response = $this->articleDataService->editArticle($data);
                     $article = $this->articleRepository->find($data['article']);
                     $demande->addArticle($article);
                 } else {
@@ -554,7 +554,7 @@ class ReferenceArticleController extends Controller
             } else {
                 $json = false;
             }
-            $em->flush();
+            // $em->flush();
             return new JsonResponse();
         }
         throw new NotFoundHttpException("404");
@@ -566,7 +566,7 @@ class ReferenceArticleController extends Controller
     public function ajaxPlusDemandeContent(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $refArticle = $this->referenceArticleRepository->find($data);
+            $refArticle = $this->referenceArticleRepository->find($data['id']);
             if ($refArticle) {
                 $statutC = $this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, Collecte::STATUS_DEMANDE);
                 $collectes = $this->collecteRepository->getByStatutAndUser($statutC, $this->getUser());
@@ -578,27 +578,26 @@ class ReferenceArticleController extends Controller
 
                 if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                     if ($refArticle) {
-                        $data = $this->refArticleDataService->getDataEditForRefArticle($refArticle);
+                        $dataArticle = $this->refArticleDataService->getDataEditForRefArticle($refArticle);
+                        
                         $statuts = $this->statutRepository->findByCategorieName(ReferenceArticle::CATEGORIE);
                         $editChampLibre = $this->renderView('reference_article/modalEditRefArticleContent.html.twig', [
                             'articleRef' => $refArticle,
                             'statut' => ($refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF),
-                            'valeurChampsLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
+                            'valeurChampsLibre' => isset($dataArticle['valeurChampLibre']) ? $dataArticle['valeurChampLibre'] : null,
                             'types' => $this->typeRepository->getByCategoryLabel(ReferenceArticle::CATEGORIE),
                             'statuts' => $statuts,
-                            'articlesFournisseur' => ($data['listArticlesFournisseur']),
-                            'totalQuantity' => $data['totalQuantity']
+                            'articlesFournisseur' => ($dataArticle['listArticlesFournisseur']),
+                            'totalQuantity' => $dataArticle['totalQuantity']
                         ]);
                     } else {
                         $editChampLibre = false;
                     }
-                } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-                    # code...
                 } else {
                     # code...
                 }
 
-                $articleOrNo = $this->articleDataService->getArticleOrNoByRefArticle($refArticle, false);
+                $articleOrNo = $this->articleDataService->getArticleOrNoByRefArticle($refArticle, $data['demande'], false);
                 $json = [];
                 $json = [
                     'plusContent' => $this->renderView(

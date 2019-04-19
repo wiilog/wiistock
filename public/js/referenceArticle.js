@@ -306,7 +306,12 @@ function displayError(data) {
     }
 }
 
-function ajaxPlusDemandeContent(button) {
+let recupIdRefArticle = function (div) {
+    let id =div.data('id');
+    $('#submitPlusDemande').val(id);
+}
+
+function ajaxPlusDemandeContent(button, demande) {
     $('.plusDemandeContent').html('');
     $('.editChampLibre').html('');
     xhttp = new XMLHttpRequest();
@@ -321,14 +326,19 @@ function ajaxPlusDemandeContent(button) {
             if (dataReponse.editChampLibre) {
                 $('.editChampLibre').html(dataReponse.editChampLibre);
             } else {
-                 //TODO gérer erreur
+                //TODO gérer erreur
             }
+            showDemande(button)
         }
     }
-    let json = button.data('id');
+    let json = {
+        'demande': demande,
+        'id': $('#submitPlusDemande').val(),
+    };
+    let Json = JSON.stringify(json)
     let path = Routing.generate('ajax_plus_demande_content', true);
     xhttp.open("POST", path, true);
-    xhttp.send(json);
+    xhttp.send(Json);
 }
 
 let ajaxEditArticle = function (select) {
@@ -336,16 +346,16 @@ let ajaxEditArticle = function (select) {
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
             dataReponse = JSON.parse(this.responseText);
-            console.log(dataReponse);
             if (dataReponse.editChampLibre) {
                 $('.editChampLibre').html(dataReponse.editChampLibre);
+                displayRequireChamp($('#typeEditArticle'), 'edit');
+                // initEditor('.editor-container');
             } else {
-                 //TODO gérer erreur
+                //TODO gérer erreur
             }
         }
     }
     let json = select.val();
-console.log(json);
     let path = Routing.generate('ajax_edit_article', true);
     xhttp.open("POST", path, true);
     xhttp.send(json);

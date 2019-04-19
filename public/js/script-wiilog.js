@@ -75,7 +75,6 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
         inputs.each(function () {
             let val = $(this).val();
             let name = $(this).attr("name");
-            console.log(name + " " + val);
             Data[name] = val;
             // validation données obligatoires
             if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
@@ -228,7 +227,7 @@ function editRow(button, path, modal, submit, editorToInit = false) {
             ajaxAutoRefArticleInit($('.ajax-autocomplete-edit'));
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
             ajaxAutoUserInit($('.ajax-autocomplete-user-edit'));
-            displayRequireChamp($('#typeEdit'), 'edit')
+            displayRequireChamp($('#typeEdit'), 'edit');
             setMaxQuantityEdit($('#referenceEdit'));
             if (editorToInit) initEditor('#' + modal.attr('id'));
         }
@@ -445,7 +444,7 @@ let displayRequireChamp = function (select, require) {
         if (this.readyState == 4 && this.status == 200) {
             data = JSON.parse(this.responseText);
             data.forEach(function (element) {
-                $('#'+element+require).addClass('needed');
+                $('#' + element + require).addClass('needed');
             });
         }
     }
@@ -475,24 +474,4 @@ function ajaxFournisseurArticle(select) {
         },
         minimumInputLength: 1,
     });
-}
-
-function setMaxQuantityEdit(select) {
-    let params = {
-        refArticleId: select.val(),
-    };
-    $.post(Routing.generate('get_quantity_ref_article'), params, function (data) {
-        let modalBody = select.closest(".modal-body");
-        modalBody.find('#quantite').attr('max', data);
-    }, 'json');
-}
-
-function setMaxQuantity(select) {
-    let params = {
-        refArticleId: select.val(),
-    };
-    $.post(Routing.generate('get_quantity_ref_article'), params, function (data) {
-        let modalBody = select.closest(".modal-body");
-        modalBody.find('#quantity').attr('max', data);
-    }, 'json');
 }

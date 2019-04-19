@@ -203,7 +203,7 @@ class ArticleController extends AbstractController
                 'valeurChampsLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
                 'types' => $this->typeRepository->getByCategoryLabel(Article::CATEGORIE),
                 'article' => $article,
-                'statut' => ($article->getStatut()->getNom() === Article::STATUT_ACTIF ? true : false),  
+                'statut' => ($article->getStatut()->getNom() === Article::STATUT_ACTIF ? true : false),
             ]);
 
             return new JsonResponse($json);
@@ -280,55 +280,8 @@ class ArticleController extends AbstractController
     public function edit(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $article = $this->articleRepository->find($data['article']);
-            $em = $this->getDoctrine()->getManager();
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $data['actif'] ? Article::STATUT_ACTIF : Article::STATUT_INACTIF);
-
-
-
-            $article
-                ->setLabel($data['label'])
-                ->setConform(!$data['conform'])
-                ->setStatut($statut)
-                ->setCommentaire($data['commentaire']);
-            $champsLibreKey = array_keys($data);
-            foreach ($champsLibreKey as $champ) {
-                if (gettype($champ) === 'integer') {
-                    $valeurChampLibre = $this->valeurChampsLibreRepository->getByArticleANDChampsLibre($article->getId(), $champ);
-                    if (!$valeurChampLibre) {
-                        $valeurChampLibre = new ValeurChampsLibre();
-                        $valeurChampLibre
-                            ->addArticle($article)
-                            ->setChampLibre($this->champsLibreRepository->find($champ));
-                        $em->persist($valeurChampLibre);
-                    }
-                    $valeurChampLibre->setValeur($data[$champ]);
-                    $em->flush();
-                }
-            }
-            $em->flush();
-            $articles = $this->articleRepository->findAll();
-            $rows = [];
-            foreach ($articles as $article) {
-                $url['edit'] = $this->generateUrl('demande_article_edit', ['id' => $article->getId()]);
-
-                $rows[] =
-                    [
-                        'id' => ($article->getId() ? $article->getId() : 'Non défini'),
-                        'Référence' => ($article->getReference() ? $article->getReference() : 'Non défini'),
-                        'Statut' => ($article->getStatut() ? $article->getStatut()->getNom() : 'Non défini'),
-                        'Libellé' => ($article->getLabel() ? $article->getLabel() : 'Non défini'),
-                        'Référence article' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : 'Non défini'),
-                        'Quantité' => ($article->getQuantite() ? $article->getQuantite() : 'Non défini'),
-                        'Actions' => $this->renderView('article/datatableArticleRow.html.twig', [
-                            'url' => $url,
-                            'articleId' => $article->getId(),
-                        ]),
-                    ];
-            }
-            $data['data'] = $rows;
-
-            return new JsonResponse($data);
+            $this->articleDataService->editArticle($data);
+            return new JsonResponse();
         }
         throw new NotFoundHttpException('404');
     }
@@ -369,26 +322,31 @@ class ArticleController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
-       /**
-        * @Route("/ajax-edit-article", name="ajax_edit_article", options={"expose"=true})
-        */
-       public function ajaxEditArticle(Request $request): Response
-       {
-           if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+    /**
+     * @Route("/ajax-edit-article", name="ajax_edit_article", options={"expose"=true})
+     */
+    public function ajaxEditArticle(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $article = $this->articleRepository->find($data);
             $data = $this->articleDataService->getDataEditForArticle($article);
 
-            $json = $this->renderView('article/modalModifyArticleContent.html.twig', [
-                'valeurChampsLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
-                'types' => $this->typeRepository->getByCategoryLabel(Article::CATEGORIE),
-                'article' => $article,
-                'statut' => ($article->getStatut()->getNom() === Article::STATUT_ACTIF ? true : false),  
-            ]);
-    
-               return new JsonResponse($json);
-           }
-           throw new NotFoundHttpException('404');
-       }
+            $json = [
+                'editChampLibre' => $this->renderView(
+                    'article/modalModifyArticleContent.html.twig',
+                    [
+                        'valeurChampsLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
+                        'types' => $this->typeRepository->getByCategoryLabel(Article::CATEGORIE),
+                        'article' => $article,
+                        'statut' => ($article->getStatut()->getNom() === Article::STATUT_ACTIF ? true : false),
+                    ]
+                ),
+            ];
+
+            return new JsonResponse($json);
+        }
+        throw new NotFoundHttpException('404');
+    }
 
     /**
      * @Route("/get-article-collecte", name="get_collecte_article_by_refArticle", options={"expose"=true})

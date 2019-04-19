@@ -14,9 +14,9 @@
                     <div class="col input-group radio-btn">
                         <div>
                             <span class="btn not-active" data-toggle="demande" data-title="livraison"
-                            onclick="toggleRadioButton($(this)), showDemande($(this))">Livraison</span><span
+                            onclick="toggleRadioButton($(this)), ajaxPlusDemandeContent($(this), 'livraison')">Livraison</span><span
                             class="btn not-active" data-toggle="demande" data-title="collecte"
-                            onclick="toggleRadioButton($(this), showDemande($(this)))">Collecte</span>
+                            onclick="toggleRadioButton($(this)), ajaxPlusDemandeContent($(this), 'collecte')">Collecte</span>
                         </div>
                     </div>
                 </div>
@@ -26,7 +26,7 @@
 
             <div class="modal-footer">
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>
-                <button id="submitPlusDemande" name='refArticle' value=''
+                <button type="button" id="submitPlusDemande" name='refArticle' value=''
                     class="btn btn-primary btn-success data">Ajouter</button>
             </div>
         </div>
