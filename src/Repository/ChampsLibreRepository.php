@@ -82,5 +82,18 @@ class ChampsLibreRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
+    public function countByLabel($label)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT COUNT(cl)
+            FROM App\Entity\ChampsLibre cl
+            WHERE cl.label = :label
+           "
+        )->setParameter('label', $label);
+
+        return $query->getSingleScalarResult();
+    }
+
    
 }
