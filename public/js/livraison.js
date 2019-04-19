@@ -3,6 +3,7 @@ let tableLivraison = $('#tableLivraison_id').DataTable({
     "language": {
         "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
     },
+    "order": [[ 2, "desc" ]],
     ajax: {
         'url': pathLivraison,
         "type": "POST"
