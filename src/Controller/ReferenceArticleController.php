@@ -526,7 +526,7 @@ class ReferenceArticleController extends Controller
                             ->setQuantite((int)$data['quantitie']);
                         $em->persist($ligneArticle);
                     } else {
-                        $ligneArticle = $this->ligneArticleRepository->getByRefArticle($refArticle);
+                        $ligneArticle = $this->ligneArticleRepository->findOneByRefArticleAndDemande($refArticle, $demande);
                         $ligneArticle
                             ->setQuantite($ligneArticle->getQuantite() + $data["quantitie"]);
                     }

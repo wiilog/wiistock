@@ -19,32 +19,18 @@ class MouvementRepository extends ServiceEntityRepository
         parent::__construct($registry, Mouvement::class);
     }
 
-    // /**
-    //  * @return Mouvement[] Returns an array of Mouvement objects
-    //  */
-    /*
-    public function findByExampleField($value)
+    public function countByEmplacement($emplacementId)
     {
-        return $this->createQueryBuilder('m')
-            ->andWhere('m.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('m.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT COUNT(m)
+            FROM App\Entity\Mouvement m
+            JOIN m.emplacement empl
+            WHERE empl.id = :emplacementId"
+        )->setParameter('emplacementId', $emplacementId);
 
-    /*
-    public function findOneBySomeField($value): ?Mouvement
-    {
-        return $this->createQueryBuilder('m')
-            ->andWhere('m.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
+        return $query->getSingleScalarResult();
     }
-    */
+
+
 }
