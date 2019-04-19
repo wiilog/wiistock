@@ -49,6 +49,7 @@ class UtilisateurRepository extends ServiceEntityRepository
         $query = $entityManager->createQuery(
             "SELECT u.id, u.username
             FROM App\Entity\Utilisateur u
+            ORDER BY u.username
             "
         );
 

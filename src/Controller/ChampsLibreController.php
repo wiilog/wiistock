@@ -68,16 +68,16 @@ class ChampsLibreController extends AbstractController
             $rows = [];
             foreach ($champsLibres as $champsLibre) {
                 $rows[] =
-                        [
-                            'id' => ($champsLibre->getId() ? $champsLibre->getId() : 'Non défini'),
-                            'Label' => ($champsLibre->getLabel() ? $champsLibre->getLabel() : 'Non défini'),
-                            'Typage' => ($champsLibre->getTypage() ? $champsLibre->getTypage() : 'Non défini'),
-                            'Obligatoire à la création' => ($champsLibre->getRequiredCreate() ? "oui" :"non"),
-                            'Obligatoire à la modification' => ($champsLibre->getRequiredEdit() ? "oui" :"non"),
-                            'Valeur par défaut' => ($champsLibre->getDefaultValue() ? $champsLibre->getDefaultValue() : 'Non défini'),
-                            'Elements' => $this->renderView('champ_libre/champLibreElems.html.twig', ['elems' => $champsLibre->getElements()]),
-                            'Actions' => $this->renderView('champ_libre/datatableChampsLibreRow.html.twig', ['idChampsLibre' => $champsLibre->getId()]),
-                        ];
+                    [
+                        'id' => ($champsLibre->getId() ? $champsLibre->getId() : 'Non défini'),
+                        'Label' => ($champsLibre->getLabel() ? $champsLibre->getLabel() : 'Non défini'),
+                        'Typage' => ($champsLibre->getTypage() ? $champsLibre->getTypage() : 'Non défini'),
+                        'Obligatoire à la création' => ($champsLibre->getRequiredCreate() ? "oui" : "non"),
+                        'Obligatoire à la modification' => ($champsLibre->getRequiredEdit() ? "oui" : "non"),
+                        'Valeur par défaut' => ($champsLibre->getDefaultValue() ? $champsLibre->getDefaultValue() : 'Non défini'),
+                        'Elements' => $this->renderView('champ_libre/champLibreElems.html.twig', ['elems' => $champsLibre->getElements()]),
+                        'Actions' => $this->renderView('champ_libre/datatableChampsLibreRow.html.twig', ['idChampsLibre' => $champsLibre->getId()]),
+                    ];
             }
             $data['data'] = $rows;
 
@@ -103,17 +103,25 @@ class ChampsLibreController extends AbstractController
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $type = $this->typeRepository->find($data['type']);
-            $champsLibre = new ChampsLibre();
-            $champsLibre
+            $champLibre = new ChampsLibre();
+            $champLibre
                 ->setlabel($data['label'])
                 ->setType($type)
                 ->setRequiredCreate($data['requiredCreate'])
                 ->setRequiredEdit($data['requiredEdit'])
                 ->settypage($data['typage'])
-                ->setDefaultValue($data['valeur'])
-                ->setElements(array_filter($data['elem']));
+                ->settypage($data['typage']);
+            if ($champLibre->getTypage() === 'list') {
+                $champLibre
+                    ->setElements(array_filter(explode(';', $data['elem'])))
+                    ->setDefaultValue(null);
+            } else {
+                $champLibre
+                    ->setElements(null)
+                    ->setDefaultValue($data['valeur']);
+            }
             $em = $this->getDoctrine()->getManager();
-            $em->persist($champsLibre);
+            $em->persist($champLibre);
             $em->flush();
 
             return new JsonResponse($data);
@@ -136,7 +144,7 @@ class ChampsLibreController extends AbstractController
         }
         throw new NotFoundHttpException('404');
     }
-    
+
     /**
      * @Route("/modifier", name="champ_libre_edit", options={"expose"=true},  methods="GET|POST")
      */
@@ -145,21 +153,28 @@ class ChampsLibreController extends AbstractController
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $champLibre = $this->champsLibreRepository->find($data['champLibre']);
             $champLibre
-            ->setLabel($data['label'])
-            ->setTypage($data['typage'])
-            ->setRequiredCreate($data['requiredCreate'])
-            ->setRequiredEdit($data['requiredEdit'])
-            ->setDefaultValue($data['valeur'])
-            ->setElements(array_filter($data['elem']));
-            
+                ->setLabel($data['label'])
+                ->setRequiredCreate($data['requiredCreate'])
+                ->setRequiredEdit($data['requiredEdit'])
+                ->setDefaultValue($data['valeur'])
+                ->setTypage($data['typage']);
+            if ($champLibre->getTypage() === 'list') {
+                $champLibre
+                    ->setElements(array_filter(explode(';', $data['elem'])))
+                    ->setDefaultValue(null);
+            } else {
+                $champLibre
+                    ->setElements(null)
+                    ->setDefaultValue($data['valeur']);
+            }
             $em = $this->getDoctrine()->getManager();
             $em->flush();
-            
+
             return new JsonResponse();
         }
         throw new NotFoundHttpException('404');
     }
-    
+
     /**
      * @Route("/delete", name="champ_libre_delete",options={"expose"=true}, methods={"GET","POST"})
      */
@@ -170,12 +185,12 @@ class ChampsLibreController extends AbstractController
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($champsLibre);
             $entityManager->flush();
-            
+
             return new JsonResponse();
         }
         throw new NotFoundHttpException('404');
     }
-   
+
     /**
      * @Route("/display-require-champ", name="display_require_champ", options={"expose"=true},  methods="GET|POST")
      */
@@ -192,7 +207,7 @@ class ChampsLibreController extends AbstractController
                 $json = false;
                 return new JsonResponse($json);
             }
-            
+
             $json = [];
             foreach ($champsLibres as $champLibre) {
                 $json[] = $champLibre['label'];

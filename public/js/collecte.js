@@ -11,19 +11,31 @@ let table = $('#tableCollecte_id').DataTable({
        "language": {
         "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
     },
+    "order": [[ 0, "desc" ]],
     ajax: {
         "url": pathCollecte,
         "type": "POST"
     },
     columns: [
-        { "data": 'Date' },
-        { "data": 'Demandeur' },
-        { "data": 'Objet' },
-        { "data": 'Statut' },
-        { "data": 'Actions' }
+        { "data": 'Date', 'name': 'Date' },
+        { "data": 'Demandeur', 'name': 'Demandeur'},
+        { "data": 'Objet', 'name' : 'Objet' },
+        { "data": 'Statut', 'name': 'Statut' },
+        { "data": 'Actions', 'name': 'Actions' }
     ],
 });
 
+// recherche par défaut demandeur = utilisateur courant
+let demandeur = $('.current-username').val();
+if (demandeur !== undefined){
+    let demandeurPiped = demandeur.split(',').join('|')
+    table
+    .columns('Demandeur:name')
+        .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
+        .draw();
+    // affichage par défaut du filtre select2 demandeur = utilisateur courant
+    $('#utilisateur').val(demandeur).trigger('change');
+}
 
 let modalNewCollecte = $("#modalNewCollecte");
 let SubmitNewCollecte = $("#submitNewCollecte");
@@ -58,12 +70,18 @@ let tableArticle = $('#tableArticle_id').DataTable({
         { "data": 'Quantité' },
         { "data": 'Actions' }
     ],
+
 });
 
 let modal = $("#modalNewArticle");
 let submit = $("#submitNewArticle");
 let url = Routing.generate('collecte_add_article', true);
 InitialiserModal(modal, submit, url, tableArticle);
+
+let modalEditArticle = $("#modalEditArticle");
+let submitEditArticle = $("#submitEditArticle");
+let urlEditArticle = Routing.generate('collecte_edit_article', true);
+InitialiserModal(modalEditArticle, submitEditArticle, urlEditArticle, tableArticle);
 
 let modalDeleteArticle = $("#modalDeleteArticle");
 let submitDeleteArticle = $("#submitDeleteArticle");
@@ -175,18 +193,18 @@ function initNewCollecteEditor(modal) {
 
 $('#submitSearchCollecte').on('click', function () {
     let statut = $('#statut').val();
-    let demandeur = [];
-    demandeur = $('#utilisateur').val()
-    demandeurString = demandeur.toString();
-    demandeurPiped = demandeurString.split(',').join('|')
+    // let demandeur = [];
+    let demandeur = $('#utilisateur').val()
+    let demandeurString = demandeur.toString();
+    let demandeurPiped = demandeurString.split(',').join('|')
 
     table
-        .columns(3)
+        .columns('Statut:name')
         .search(statut)
         .draw();
 
     table
-        .columns(1)
+        .columns('Demandeur:name')
         .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
         .draw();
 
