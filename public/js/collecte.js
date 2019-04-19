@@ -134,8 +134,9 @@ function ajaxGetCollecteArticle(select) {
             data = JSON.parse(this.responseText);
            $('#newContent').html(data);
            $('#modalNewArticle').find('div').find('div').find('.modal-footer').removeClass('d-none');
+           displayRequireChamp($('#typeEdit'), 'edit');
         }
-    }
+    } 
     path =  Routing.generate('get_collecte_article_by_refArticle', true)
     let data = {};
     data['referenceArticle'] = $(select).val();

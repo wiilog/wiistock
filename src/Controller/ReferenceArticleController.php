@@ -507,16 +507,15 @@ class ReferenceArticleController extends Controller
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
-            dump($data);
-
             $em = $this->getDoctrine()->getManager();
 
             //edit Refrence Article
-//TODOO
+            
+            $refArticle = (isset($data['refArticle']) ? $this->referenceArticleRepository->find($data['refArticle']) : '');
+            $response = $this->refArticleDataService->editRefArticle($refArticle, $data);
 
             //ajout demande
             if (array_key_exists('livraison', $data) && $data['livraison']) {
-                $refArticle = $this->referenceArticleRepository->find($data['refArticle']);
                 $demande = $this->demandeRepository->find($data['livraison']);
                 if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                     if ($this->ligneArticleRepository->countByRefArticleDemande($refArticle, $demande) < 1) {
@@ -538,7 +537,6 @@ class ReferenceArticleController extends Controller
                     $json = false;
                 }
             } elseif (array_key_exists('collecte', $data) && $data['collecte']) {
-                $refArticle = $this->referenceArticleRepository->find($data['refArticle']);
                 $collecte = $this->collecteRepository->find($data['collecte']);
                 if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
                     $article = $this->articleRepository->find($data['article']);

@@ -251,6 +251,9 @@ class CollecteController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::DEM_COLLECTE, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
+
+            dump($data);
+
             $em = $this->getDoctrine()->getManager();
             $refArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
             $collecte = $this->collecteRepository->find($data['collecte']);

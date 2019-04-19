@@ -224,6 +224,7 @@ function ajaxGetAndFillArticle(select) {
         $.post(path, params, function (data) {
             $('#newContent').html(data);
             $('#modalNewArticle').find('div').find('div').find('.modal-footer').removeClass('d-none');
+            displayRequireChamp($('#typeEdit'), 'edit');
         })
     }
 }
