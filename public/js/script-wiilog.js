@@ -228,6 +228,7 @@ function editRow(button, path, modal, submit, editorToInit = false) {
             ajaxAutoRefArticleInit($('.ajax-autocomplete-edit'));
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
             ajaxAutoUserInit($('.ajax-autocomplete-user-edit'));
+            setMaxQuantityEdit($('#referenceEdit'));
             if (editorToInit) initEditor('#' + modal.attr('id'));
         }
     }
