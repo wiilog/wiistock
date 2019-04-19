@@ -191,9 +191,9 @@ class ArticleController extends AbstractController
     }
 
     /**
-     * @Route("/modifier", name="article_edit", options={"expose"=true},  methods="GET|POST")
+     * @Route("/modifier", name="article_api_edit", options={"expose"=true},  methods="GET|POST")
      */
-    public function edit(Request $request): Response
+    public function editApi(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $article = $this->articleRepository->find($data);
@@ -203,6 +203,7 @@ class ArticleController extends AbstractController
                 'valeurChampsLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
                 'types' => $this->typeRepository->getByCategoryLabel(Article::CATEGORIE),
                 'article' => $article,
+                'statut' => ($article->getStatut()->getNom() === Article::STATUT_ACTIF ? true : false),  
             ]);
 
             return new JsonResponse($json);
@@ -217,7 +218,7 @@ class ArticleController extends AbstractController
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $toInsert = new Article();
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $data['actif'] ? 'actif' : 'inactif');
+            $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $data['actif'] ? Article::STATUT_ACTIF : Article::STATUT_INACTIF);
             $date = new \DateTime('now');
             $ref = $date->format('YmdHis');
             $toInsert
@@ -228,7 +229,6 @@ class ArticleController extends AbstractController
                 ->setReference($ref . '-0')
                 ->setArticleFournisseur($this->articleFournisseurRepository->find($data['articleFournisseur']))
                 ->setType($this->typeRepository->getOneByCategoryLabel(Article::CATEGORIE));
-            dump($this->typeRepository->getOneByCategoryLabel(Article::CATEGORIE));
             $em = $this->getDoctrine()->getManager();
             $em->persist($toInsert);
             $champsLibreKey = array_keys($data);
@@ -275,17 +275,25 @@ class ArticleController extends AbstractController
     }
 
     /**
-     * @Route("/api-modifier", name="article_api_edit", options={"expose"=true},  methods="GET|POST")
+     * @Route("/api-modifier", name="article_edit", options={"expose"=true},  methods="GET|POST")
      */
-    public function editApi(Request $request): Response
+    public function edit(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+
+            dump($data);
+
             $article = $this->articleRepository->find($data['article']);
             $em = $this->getDoctrine()->getManager();
+            $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $data['actif'] ? Article::STATUT_ACTIF : Article::STATUT_INACTIF);
 
-            $article->setLabel($data['label']);
-            $article->setConform(($data['conform'] === '1') ? true : false);
-            $article->setCommentaire($data['commentaire']);
+
+
+            $article
+                ->setLabel($data['label'])
+                ->setConform(!$data['conform'])
+                ->setStatut($statut)
+                ->setCommentaire($data['commentaire']);
             $champsLibreKey = array_keys($data);
             foreach ($champsLibreKey as $champ) {
                 if (gettype($champ) === 'integer') {
@@ -301,9 +309,8 @@ class ArticleController extends AbstractController
                     $em->flush();
                 }
             }
-
+            dump($article);
             $em->flush();
-
             $articles = $this->articleRepository->findAll();
             $rows = [];
             foreach ($articles as $article) {
@@ -339,8 +346,6 @@ class ArticleController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
-
-            dump($data);
             $article = $this->articleRepository->find($data['article']);
             $rows = $article->getId();
 

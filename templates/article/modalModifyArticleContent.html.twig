@@ -6,14 +6,14 @@
     <div class="form-group col-3">
         <label>Anomalie</label>
         <label class="switch">
-            <input class="checkbox" type="checkbox" name="conform">
+            <input class="checkbox" type="checkbox" name="conform" {{article.conform ? '' : 'checked'}}>
             <span class="slider round"></span>
         </label>
     </div>
     <div class="form-group col-3">
         <label>Statut (Inactif/Actif)</label>
         <label class="switch">
-            <input class="checkbox" type="checkbox" name="actif">
+            <input class="checkbox" type="checkbox" name="actif" {{ statut ? 'checked': ''}} >
             <span class="slider round"></span>
         </label>
     </div>

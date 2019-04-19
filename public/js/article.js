@@ -21,7 +21,7 @@ var tableArticle = $('#tableArticle_id').DataTable({
 
 let modalEditArticle = $("#modalEditArticle");
 let submitEditArticle = $("#submitEditArticle");
-let urlEditArticle = Routing.generate('article_api_edit', true);
+let urlEditArticle = Routing.generate('article_edit', true);
 InitialiserModalArticle(modalEditArticle, submitEditArticle, urlEditArticle);
 
 let modalNewArticle = $("#modalNewArticle");
