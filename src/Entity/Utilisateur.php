@@ -112,6 +112,11 @@ class Utilisateur implements UserInterface, EquatableInterface
      */
     private $columnVisible = [];
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\OrdreCollecte", mappedBy="utilisateur")
+     */
+    private $ordreCollectes;
+
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
@@ -123,6 +128,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->mouvements = new ArrayCollection();
         $this->services = new ArrayCollection();
         $this->filters = new ArrayCollection();
+        $this->ordreCollectes = new ArrayCollection();
     }
     public function getId()
     {
@@ -229,10 +235,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         }
         return $this;
     }
-    public function __toString()
-    {
-        return $this->username;
-    }
+
     /**
      * @return Collection|Demande[]
      */
@@ -506,6 +509,37 @@ class Utilisateur implements UserInterface, EquatableInterface
     public function setStatus(bool $status): self
     {
         $this->status = $status;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|OrdreCollecte[]
+     */
+    public function getOrdreCollectes(): Collection
+    {
+        return $this->ordreCollectes;
+    }
+
+    public function addOrdreCollecte(OrdreCollecte $ordreCollecte): self
+    {
+        if (!$this->ordreCollectes->contains($ordreCollecte)) {
+            $this->ordreCollectes[] = $ordreCollecte;
+            $ordreCollecte->setUtilisateur($this);
+        }
+
+        return $this;
+    }
+
+    public function removeOrdreCollecte(OrdreCollecte $ordreCollecte): self
+    {
+        if ($this->ordreCollectes->contains($ordreCollecte)) {
+            $this->ordreCollectes->removeElement($ordreCollecte);
+            // set the owning side to null (unless already changed)
+            if ($ordreCollecte->getUtilisateur() === $this) {
+                $ordreCollecte->setUtilisateur(null);
+            }
+        }
 
         return $this;
     }

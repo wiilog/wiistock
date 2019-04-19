@@ -68,6 +68,7 @@ class Statut
      */
     private $services;
 
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
@@ -79,6 +80,7 @@ class Statut
         $this->emplacements = new ArrayCollection();
         $this->referenceArticles = new ArrayCollection();
         $this->services = new ArrayCollection();
+        $this->user = new ArrayCollection();
     }
 
     public function getId(): ? int
@@ -357,6 +359,37 @@ class Statut
             // set the owning side to null (unless already changed)
             if ($service->getStatut() === $this) {
                 $service->setStatut(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|OrdreCollecte[]
+     */
+    public function getUser(): Collection
+    {
+        return $this->user;
+    }
+
+    public function addUser(OrdreCollecte $user): self
+    {
+        if (!$this->user->contains($user)) {
+            $this->user[] = $user;
+            $user->setStatut($this);
+        }
+
+        return $this;
+    }
+
+    public function removeUser(OrdreCollecte $user): self
+    {
+        if ($this->user->contains($user)) {
+            $this->user->removeElement($user);
+            // set the owning side to null (unless already changed)
+            if ($user->getStatut() === $this) {
+                $user->setStatut(null);
             }
         }
 

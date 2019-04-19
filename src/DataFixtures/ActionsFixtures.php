@@ -24,7 +24,6 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface
             'REC',
             'DEMLIVR',
             'DEMCOL',
-//            'COL',
             'STOCK',
             'MANUT'
         ];
@@ -46,6 +45,7 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface
         $menus = [
             'PREPA',
             'LIVR',
+            'COL'
         ];
 
         $actionLabels = ['lister', 'créer'];

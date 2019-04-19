@@ -63,11 +63,14 @@
                 <h4>Ordre</h4>
             </a>
             <ul class="sidemenu-sub">
-                {% if hasRight(constant('App\\Entity\\Menu::PREPA'), constant('App\\Entity\\Action::LIST')) %}
-                    <li><a href="{{ path('preparation_index') }}" class="sub-item">• Préparation</a></li>
+                {% if hasRight(constant('App\\Entity\\Menu::COLLECTE'), constant('App\\Entity\\Action::LIST')) %}
+                    <li><a href="{{ path("collecte_index") }}" class="sub-item">• Collecte</a></li>
                 {% endif %}
                 {% if hasRight(constant('App\\Entity\\Menu::LIVRAISON'), constant('App\\Entity\\Action::LIST')) %}
                     <li><a href="{{ path("livraison_index") }}" class="sub-item">• Livraison</a></li>
+                {% endif %}
+                {% if hasRight(constant('App\\Entity\\Menu::PREPA'), constant('App\\Entity\\Action::LIST')) %}
+                    <li><a href="{{ path('preparation_index') }}" class="sub-item">• Préparation</a></li>
                 {% endif %}
             </ul>
         </li>
