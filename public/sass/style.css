@@ -270,6 +270,11 @@ a:hover {
   border-radius: 10px;
 }
 
+.alerte .alert-nb {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
 .btn {
   text-decoration: none;
   background-color: #c6c6c6;
