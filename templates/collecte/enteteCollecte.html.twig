@@ -7,6 +7,12 @@
     <div class="col-6">
         <p><strong> Objet : </strong>{{ collecte.objet }}</p>
         <p><strong> Statut : </strong> {{ collecte.statut.nom | capitalize }}</p>
+        <p><strong> Destination : </strong> 
+            {% if collecte.stockOrDestruct == 1 %}
+            Mise en stock 
+            {% else %}
+            Destruction
+            {% endif %}
     </div>
     <div class="col-12">
         <p><strong> Commentaire : </strong></p>

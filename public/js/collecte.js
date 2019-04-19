@@ -233,6 +233,21 @@ $('#submitSearchCollecte').on('click', function () {
        .draw();
 });
 
+function destinationCollecte(button) {
+    let sel = $(button).data('title');
+    let tog = $(button).data('toggle');
+    if ($(button).hasClass('not-active')) {
+        if ($("#destination").val() == "0") {
+            $("#destination").val("1");
+        } else {
+            $("#destination").val("0");
+        }
+    }
+
+    $('span[data-toggle="' + tog + '"]').not('[data-title="' + sel + '"]').removeClass('active').addClass('not-active');
+    $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
+}
+
 
 
 

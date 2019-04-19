@@ -70,6 +70,11 @@ class Collecte
      */
     private $collecteReferences;
 
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $stockOrDestruct;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
@@ -218,6 +223,18 @@ class Collecte
                 $collecteReference->setCollecte(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getStockOrDestruct(): ?bool
+    {
+        return $this->stockOrDestruct;
+    }
+
+    public function setStockOrDestruct(bool $stockOrDestruct): self
+    {
+        $this->stockOrDestruct = $stockOrDestruct;
 
         return $this;
     }
