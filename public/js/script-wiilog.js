@@ -75,6 +75,7 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
         inputs.each(function () {
             let val = $(this).val();
             let name = $(this).attr("name");
+            console.log(name + " " + val);
             Data[name] = val;
             // validation données obligatoires
             if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
@@ -298,6 +299,7 @@ function setCommentaireID(button) {
     var quill = new Quill(container);
     // let commentaire = modal.find('input[id=commentaireID]');
     com = quill.container.firstChild.innerHTML;
+    console.log(com);
     $('#commentaireID').val(com);
 };
 
@@ -434,4 +436,23 @@ function clearNewContent(button) {
     button.parent().addClass('d-none');
     $('#newContent').html('');
     $('#reference').html('');
+}
+
+function ajaxFournisseurArticle(select) {
+    select.select2({
+        ajax: {
+            url: Routing.generate('get_articleRef_fournisseur'),
+            dataType: 'json',
+            delay: 250,
+        },
+        language: {
+            inputTooShort: function () {
+                return 'Veuillez entrer au moins 1 caractère.';
+            },
+            searching: function () {
+                return 'Recherche en cours...';
+            }
+        },
+        minimumInputLength: 1,
+    });
 }
