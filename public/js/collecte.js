@@ -11,6 +11,7 @@ let table = $('#tableCollecte_id').DataTable({
        "language": {
         "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
     },
+    "order": [[ 0, "desc" ]],
     ajax: {
         "url": pathCollecte,
         "type": "POST"
@@ -26,13 +27,15 @@ let table = $('#tableCollecte_id').DataTable({
 
 // recherche par défaut demandeur = utilisateur courant
 let demandeur = $('.current-username').val();
-let demandeurPiped = demandeur.split(',').join('|')
-table
-.columns('Demandeur:name')
-    .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
-    .draw();
-// affichage par défaut du filtre select2 demandeur = utilisateur courant
-$('#utilisateur').val(demandeur).trigger('change');
+if (demandeur !== undefined){
+    let demandeurPiped = demandeur.split(',').join('|')
+    table
+    .columns('Demandeur:name')
+        .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
+        .draw();
+    // affichage par défaut du filtre select2 demandeur = utilisateur courant
+    $('#utilisateur').val(demandeur).trigger('change');
+}
 
 let modalNewCollecte = $("#modalNewCollecte");
 let SubmitNewCollecte = $("#submitNewCollecte");

@@ -15,6 +15,7 @@ let tableArticle = $('#table-lignes').DataTable({
         "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
     },
     "processing": true,
+    "order": [[ 0, "desc" ]],
     "ajax": {
         "url": pathArticle,
         "type": "POST"
@@ -66,6 +67,7 @@ let tableDemande = $('#table_demande').DataTable({
 
 // recherche par défaut demandeur = utilisateur courant
 let demandeur = $('.current-username').val();
+if (demandeur !== undefined){
 let demandeurPiped = demandeur.split(',').join('|')
 tableDemande
     .columns('Demandeur:name')
@@ -73,6 +75,7 @@ tableDemande
     .draw();
 // affichage par défaut du filtre select2 demandeur = utilisateur courant
 $('#utilisateur').val(demandeur).trigger('change');
+}
 
 let urlNewDemande = Routing.generate('demande_new', true);
 let modalNewDemande = $("#modalNewDemande");
@@ -201,12 +204,12 @@ $('#submitSearchDemandeLivraison').on('click', function () {
     utilisateurPiped = utilisateurString.split(',').join('|')
 
     tableDemande
-        .columns(3)
+        .columns('Statut:name')
         .search(statut)
         .draw();
 
     tableDemande
-        .columns(1)
+        .columns('Demandeur:name')
         .search(utilisateurPiped ? '^' + utilisateurPiped + '$' : '', true, false)
         .draw();
 
