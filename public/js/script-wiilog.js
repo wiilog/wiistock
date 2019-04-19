@@ -76,18 +76,10 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
         let missingInputs = [];
         let wrongNumberInputs = [];
         let passwordIsValid = true;
-        Data["elem"] = [];
         inputs.each(function () {
             let val = $(this).val();
-            let name = $(this).attr("name");          
-            if (name === "elem")
-                Data[name].push(val);
-            else {
-                if ($(this).parent().is(":visible") || $(this).parent().hasClass('required')) {
-                    Data[name] = val;
-                }
-            }
-            
+            let name = $(this).attr("name");
+            Data[name] = val;
             // validation données obligatoires
             if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
                 let label = $(this).closest('.form-group').find('label').text();
@@ -235,7 +227,7 @@ function editRow(button, path, modal, submit, editorToInit = false) {
         if (this.readyState == 4 && this.status == 200) {
             dataReponse = JSON.parse(this.responseText);
             modal.find('.modal-body').html(dataReponse);
-            ajaxAutoFournisseurInit( $('.ajax-autocomplete-fournisseur-edit'));
+            ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur-edit'));
             ajaxAutoRefArticleInit($('.ajax-autocomplete-edit'));
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
             ajaxAutoUserInit($('.ajax-autocomplete-user-edit'));
@@ -300,7 +292,7 @@ function setCommentaire(button) {
     // let commentaire = modal.find('input[id=commentaire]');
     com = quill.container.firstChild.innerHTML;
     $('#commentaire').val(com);
-   
+
 };
 
 //passe de l'éditeur à l'imput pour insertion en BDD par l'id commentaireID (cas de conflit avec la class)

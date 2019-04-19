@@ -56,14 +56,23 @@ let tableDemande = $('#table_demande').DataTable({
         "type": "POST",
     },
     columns: [
-        { "data": 'Date' },
-        { "data": 'Demandeur' },
-        { "data": 'Numéro' },
-        { "data": 'Statut' },
-        { "data": 'Actions' },
+        { "data": 'Date', 'name': 'Date' },
+        { "data": 'Demandeur', 'name': 'Demandeur' },
+        { "data": 'Numéro', 'name': 'Numéro' },
+        { "data": 'Statut', 'name': 'Statut' },
+        { "data": 'Actions', 'name': 'Actions' },
     ],
 });
 
+// recherche par défaut demandeur = utilisateur courant
+let demandeur = $('.current-username').val();
+let demandeurPiped = demandeur.split(',').join('|')
+tableDemande
+    .columns('Demandeur:name')
+    .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
+    .draw();
+// affichage par défaut du filtre select2 demandeur = utilisateur courant
+$('#utilisateur').val(demandeur).trigger('change');
 
 let urlNewDemande = Routing.generate('demande_new', true);
 let modalNewDemande = $("#modalNewDemande");
