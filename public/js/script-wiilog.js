@@ -27,7 +27,6 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
                 if (data.redirect) {
                     window.location.href = data.redirect;
                 }
-                //console.log(data)
                 // pour mise à jour des données d'en-tête après modification
                 if (data.entete) {
                     $('.zone-entete').html(data.entete)
