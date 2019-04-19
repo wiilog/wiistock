@@ -22,7 +22,7 @@
                    class="btn btn-primary btn-action ml-auto">
                     Modifier</a>
             {% endif %}
-            {% if hasRight(constant('App\\Entity\\Menu::COLLECTE'), constant('App\\Entity\\Action::CREATE')) %}
+            {% if hasRight(constant('App\\Entity\\Menu::DEM_COLLECTE'), constant('App\\Entity\\Action::CREATE')) %}
                 <a href="#" class="btn btn-primary btn-action ml-auto" data-id='{{collecte.id}}' id='submitFinishCollecte'
                    onclick="finishCollecte($(this))">
                     Valider</a>
