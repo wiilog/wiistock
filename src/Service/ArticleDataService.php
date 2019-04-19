@@ -145,6 +145,23 @@ class ArticleDataService
     }
 
     /**
+     * @param ReferenceArticle $articleRef
+     * @return array
+     */
+    public function getDataEditForArticle($article)
+    {
+        $type = $article->getType();
+        if ($type) {
+            $valeurChampLibre = $this->valeurChampsLibreRepository->getByArticleAndType($article->getId(), $type->getId());
+        } else {
+            $valeurChampLibre = [];
+        }
+        return $data = [
+            'valeurChampLibre' => $valeurChampLibre
+        ];
+    }
+
+    /**
      * @return array
      *
      * @throws \Twig_Error_Loader

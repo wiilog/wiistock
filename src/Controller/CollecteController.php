@@ -289,7 +289,7 @@ class CollecteController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
             $em = $this->getDoctrine()->getManager();
-            dump($data);
+
             $collecteReference = $this->collecteReferenceRepository->find($data['collecteRef']);
             $collecteReference->setQuantite(intval($data['quantite']));
             $em->flush();

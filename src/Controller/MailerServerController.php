@@ -2,6 +2,9 @@
 
 namespace App\Controller;
 
+use App\Entity\Menu;
+use App\Service\UserService;
+use http\Client\Curl\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,9 +23,16 @@ class MailerServerController extends AbstractController
      */
     private $mailerServerRepository;
 
-    public function __construct(MailerServerRepository $mailerServerRepository)
+    /**
+     * @var UserService
+     */
+    private $userService;
+
+
+    public function __construct(MailerServerRepository $mailerServerRepository, UserService $userService)
     {
         $this->mailerServerRepository = $mailerServerRepository;
+        $this->userService = $userService;
     }
 
     /**
@@ -30,6 +40,10 @@ class MailerServerController extends AbstractController
      */
     public function index(): response
     {
+        if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+            return $this->redirectToRoute('access_denied');
+        }
+
         $mailerServer =  $this->mailerServerRepository->getOneMailerServer();
         return $this->render('mailer_server/index.html.twig', [
             'mailerServer' => $mailerServer
@@ -43,6 +57,10 @@ class MailerServerController extends AbstractController
     public function ajaxMailerServer(Request $request): response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
             $em = $this->getDoctrine()->getEntityManager();
             $mailerServer =  $this->mailerServerRepository->getOneMailerServer();
             if ($mailerServer === null) {

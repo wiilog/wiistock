@@ -187,21 +187,13 @@ function deleteRow(button, modal, submit) {
  * @param {string} path le chemin pris pour envoyer les données.
  * 
  */
-function showRow(modal, button, path) {
-    xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function () {
-        if (this.readyState == 4 && this.status == 200) {
-            dataReponse = JSON.parse(this.responseText);
-            if (dataReponse) {
-                modal.find('.modal-body').html(dataReponse);
-            } else {
-                //TODO gérer erreur
-            }
-        }
-    }
-    let json = button.data('id');
-    xhttp.open("POST", path, true);
-    xhttp.send(json);
+function showRow(button, path, modal) {
+    let id = button.data('id');
+    let params = JSON.stringify(id);
+
+    $.post(path, params, function(data) {
+        modal.find('.modal-body').html(data);
+    }, 'json');
 }
 
 
@@ -227,7 +219,7 @@ function editRow(button, path, modal, submit, editorToInit = false) {
             ajaxAutoRefArticleInit($('.ajax-autocomplete-edit'));
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
             ajaxAutoUserInit($('.ajax-autocomplete-user-edit'));
-            setMaxQuantityEdit($('#referenceEdit'));
+            if (typeof setMaxQuantityEdit === 'function') setMaxQuantityEdit($('#referenceEdit'));
             if (editorToInit) initEditor('#' + modal.attr('id'));
         }
     }
@@ -298,6 +290,7 @@ function setCommentaireID(button) {
     var quill = new Quill(container);
     // let commentaire = modal.find('input[id=commentaireID]');
     com = quill.container.firstChild.innerHTML;
+    console.log(com);
     $('#commentaireID').val(com);
 };
 
@@ -434,4 +427,23 @@ function clearNewContent(button) {
     button.parent().addClass('d-none');
     $('#newContent').html('');
     $('#reference').html('');
+}
+
+function ajaxFournisseurArticle(select) {
+    select.select2({
+        ajax: {
+            url: Routing.generate('get_articleRef_fournisseur'),
+            dataType: 'json',
+            delay: 250,
+        },
+        language: {
+            inputTooShort: function () {
+                return 'Veuillez entrer au moins 1 caractère.';
+            },
+            searching: function () {
+                return 'Recherche en cours...';
+            }
+        },
+        minimumInputLength: 1,
+    });
 }
