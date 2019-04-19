@@ -126,6 +126,7 @@ class RefArticleDataService
             ];
             $rows[] = array_merge($rowCL, $rowCF);
         }
+
         return ['data' => $rows, 'recordsFiltered' => $count];
     }
 
