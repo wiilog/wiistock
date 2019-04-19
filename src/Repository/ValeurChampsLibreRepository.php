@@ -53,7 +53,9 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
             "idChampLibre" => $idChampLibre
         ]);
 
-        return $query->getOneOrNullResult();
+        $result = $query->execute();
+
+        return $result ? $result[0] : null;
     }
 
     public function getByRefArticle($idArticle)
@@ -105,7 +107,7 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function getByArticleANDChampsLibre($idArticle, $idChampLibre)
+    public function getByArticleANDChampsLibre($idArticle, $idChampLibre) //TODO CG findone
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(

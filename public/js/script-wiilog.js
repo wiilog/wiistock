@@ -75,7 +75,6 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
         inputs.each(function () {
             let val = $(this).val();
             let name = $(this).attr("name");
-            console.log(name + " " + val);
             Data[name] = val;
             // validation données obligatoires
             if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
@@ -300,7 +299,6 @@ function setCommentaireID(button) {
     var quill = new Quill(container);
     // let commentaire = modal.find('input[id=commentaireID]');
     com = quill.container.firstChild.innerHTML;
-    console.log(com);
     $('#commentaireID').val(com);
 };
 

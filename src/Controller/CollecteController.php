@@ -249,8 +249,6 @@ class CollecteController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            dump($data);
-
             $em = $this->getDoctrine()->getManager();
             $refArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
             $collecte = $this->collecteRepository->find($data['collecte']);

@@ -273,7 +273,6 @@ class ReferenceArticleController extends Controller
                     }
                 }
                 if ($requiredCreate) {
-                    # code...
                     $em = $this->getDoctrine()->getManager();
                     $statut = ($data['statut'] === 'active' ? $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF) : $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_INACTIF));
                     $refArticle = new ReferenceArticle();
@@ -506,7 +505,7 @@ class ReferenceArticleController extends Controller
     public function plusDemande(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-
+//TODO CG optim return / response
             $em = $this->getDoctrine()->getManager();
 
             //edit Refrence Article
@@ -599,7 +598,6 @@ class ReferenceArticleController extends Controller
                 }
 
                 $articleOrNo = $this->articleDataService->getArticleOrNoByRefArticle($refArticle, false);
-                $json = [];
                 $json = [
                     'plusContent' => $this->renderView(
                         'reference_article/modalPlusDemandeContent.html.twig',
@@ -614,7 +612,7 @@ class ReferenceArticleController extends Controller
             } else {
                 $json = false;
             }
-            dump($json);
+
             return new JsonResponse($json);
         }
         throw new NotFoundHttpException("404");

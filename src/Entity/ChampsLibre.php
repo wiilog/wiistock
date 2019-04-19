@@ -67,6 +67,7 @@ class ChampsLibre
      */
     private $requiredEdit;
 
+
     public function __construct()
     {
         $this->valeurChampsLibres = new ArrayCollection();
