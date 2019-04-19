@@ -133,7 +133,7 @@ class ArticleController extends AbstractController
         }
         return $this->render('article/index.html.twig', [
             'valeurChampsLibre' => null,
-            'type' => $this->typeRepository->getOneByCategoryLabel(Article::CATEGORIE)
+            'type' => $this->typeRepository->findOneByCategoryLabel(Article::CATEGORIE)
         ]);
     }
 
@@ -228,13 +228,13 @@ class ArticleController extends AbstractController
                 ->setCommentaire($data['commentaire'])
                 ->setReference($ref . '-0')
                 ->setArticleFournisseur($this->articleFournisseurRepository->find($data['articleFournisseur']))
-                ->setType($this->typeRepository->getOneByCategoryLabel(Article::CATEGORIE));
+                ->setType($this->typeRepository->findOneByCategoryLabel(Article::CATEGORIE));
             $em = $this->getDoctrine()->getManager();
             $em->persist($toInsert);
             $champsLibreKey = array_keys($data);
             foreach ($champsLibreKey as $champ) {
                 if (gettype($champ) === 'integer') {
-                    $valeurChampLibre = $this->valeurChampsLibreRepository->getByArticleANDChampsLibre($toInsert->getId(), $champ);
+                    $valeurChampLibre = $this->valeurChampsLibreRepository->findOneByArticleANDChampsLibre($toInsert->getId(), $champ);
                     if (!$valeurChampLibre) {
                         $valeurChampLibre = new ValeurChampsLibre();
                         $valeurChampLibre
@@ -297,7 +297,7 @@ class ArticleController extends AbstractController
             $champsLibreKey = array_keys($data);
             foreach ($champsLibreKey as $champ) {
                 if (gettype($champ) === 'integer') {
-                    $valeurChampLibre = $this->valeurChampsLibreRepository->getByArticleANDChampsLibre($article->getId(), $champ);
+                    $valeurChampLibre = $this->valeurChampsLibreRepository->findOneByArticleANDChampsLibre($article->getId(), $champ);
                     if (!$valeurChampLibre) {
                         $valeurChampLibre = new ValeurChampsLibre();
                         $valeurChampLibre

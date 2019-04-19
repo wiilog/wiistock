@@ -63,7 +63,7 @@
                             id="input">
 
                         {% elseif champ.typage == 'list' %}
-                        <select class="form-control unTruc data " name="{{champ.id}}" id="input">
+                        <select class="form-control data " name="{{champ.id}}" id="input">
                             <option value="{{value}}">{{value}}
                             </option>
                             {% for elem in champ.elements %}

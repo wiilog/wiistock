@@ -107,7 +107,7 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function getByArticleANDChampsLibre($idArticle, $idChampLibre) //TODO CG findone
+    public function findOneByArticleANDChampsLibre($idArticle, $idChampLibre)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(

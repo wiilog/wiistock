@@ -33,7 +33,7 @@ class TypeRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function getOneByCategoryLabel($category) //TODO CG find one
+    public function findOneByCategoryLabel($category)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
