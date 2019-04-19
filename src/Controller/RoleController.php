@@ -209,11 +209,11 @@ class RoleController extends AbstractController
 
                 if ($usedRole > 0) {
                     return new JsonResponse(false); //TODO gérer retour msg erreur (rôle attribué ne peut pas être supprimé)
-                } else {
-                    $entityManager = $this->getDoctrine()->getManager();
-                    $entityManager->remove($role);
-                    $entityManager->flush();
                 }
+
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager->remove($role);
+                $entityManager->flush();
                 return new JsonResponse();
             }
             return new JsonResponse();
