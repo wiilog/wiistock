@@ -317,7 +317,7 @@ function ajaxPlusDemandeContent(button) {
                 //TODO gérer erreur
             }
             if (dataReponse.editChampLibre) {
-                $('.editChampLibre').html(dataReponse.EditChampLibre);
+                $('.editChampLibre').html(dataReponse.editChampLibre);
             } else {
                  //TODO gérer erreur
             }

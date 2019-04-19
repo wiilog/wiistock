@@ -574,19 +574,47 @@ class ReferenceArticleController extends Controller
                 $statutD = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
                 $demandes = $this->demandeRepository->getByStatutAndUser($statutD, $this->getUser());
 
+                $editChampLibre = '';
+
+                if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+                    if ($refArticle) {
+                        $data = $this->refArticleDataService->getDataEditForRefArticle($refArticle);
+                        $statuts = $this->statutRepository->findByCategorieName(ReferenceArticle::CATEGORIE);
+                        $editChampLibre = $this->renderView('reference_article/modalEditRefArticleContent.html.twig', [
+                            'articleRef' => $refArticle,
+                            'statut' => ($refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF),
+                            'valeurChampsLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
+                            'types' => $this->typeRepository->getByCategoryLabel(ReferenceArticle::CATEGORIE),
+                            'statuts' => $statuts,
+                            'articlesFournisseur' => ($data['listArticlesFournisseur']),
+                            'totalQuantity' => $data['totalQuantity']
+                        ]);
+                    } else {
+                        $editChampLibre = false;
+                    }
+                } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+                    # code...
+                } else {
+                    # code...
+                }
+
                 $articleOrNo = $this->articleDataService->getArticleOrNoByRefArticle($refArticle, false);
                 $json = [];
                 $json = [
-                    'plusContent' => $this->renderView('reference_article/modalPlusDemandeContent.html.twig', [
-                        'articleOrNo' => $articleOrNo,
-                        'collectes' => $collectes,
-                        'demandes' => $demandes
-                    ]),
-                    'editChampLibre' => ''
+                    'plusContent' => $this->renderView(
+                        'reference_article/modalPlusDemandeContent.html.twig',
+                        [
+                            'articleOrNo' => $articleOrNo,
+                            'collectes' => $collectes,
+                            'demandes' => $demandes
+                        ]
+                    ),
+                    'editChampLibre' => $editChampLibre,
                 ];
             } else {
                 $json = false;
             }
+            dump($json);
             return new JsonResponse($json);
         }
         throw new NotFoundHttpException("404");
