@@ -131,8 +131,10 @@ class ArticleController extends AbstractController
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
             return $this->redirectToRoute('access_denied');
         }
-
-        return $this->render('article/index.html.twig');
+        return $this->render('article/index.html.twig', [
+            'valeurChampsLibre' => null,
+            'type' => $this->typeRepository->getOneByCategoryLabel(Article::CATEGORIE)
+        ]);
     }
 
     /**
@@ -227,8 +229,24 @@ class ArticleController extends AbstractController
                 ->setArticleFournisseur($this->articleFournisseurRepository->find($data['articleFournisseur']))
                 ->setType($this->typeRepository->getOneByCategoryLabel(Article::CATEGORIE));
             dump($this->typeRepository->getOneByCategoryLabel(Article::CATEGORIE));
-            $this->getDoctrine()->getManager()->persist($toInsert);
-            $this->getDoctrine()->getManager()->flush();
+            $em = $this->getDoctrine()->getManager();
+            $em->persist($toInsert);
+            $champsLibreKey = array_keys($data);
+            foreach ($champsLibreKey as $champ) {
+                if (gettype($champ) === 'integer') {
+                    $valeurChampLibre = $this->valeurChampsLibreRepository->getByArticleANDChampsLibre($toInsert->getId(), $champ);
+                    if (!$valeurChampLibre) {
+                        $valeurChampLibre = new ValeurChampsLibre();
+                        $valeurChampLibre
+                            ->addArticle($toInsert)
+                            ->setChampLibre($this->champsLibreRepository->find($champ));
+                        $em->persist($valeurChampLibre);
+                    }
+                    $valeurChampLibre->setValeur($data[$champ]);
+                    $em->flush();
+                }
+            }
+            $em->flush();
 
             $articles = $this->articleRepository->findAll();
             $rows = [];
