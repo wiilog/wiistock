@@ -5,7 +5,11 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\Emplacement;
 use App\Entity\Menu;
+use App\Repository\CollecteRepository;
+use App\Repository\DemandeRepository;
 use App\Repository\EmplacementRepository;
+use App\Repository\LivraisonRepository;
+use App\Repository\MouvementRepository;
 use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -32,16 +36,40 @@ class EmplacementController extends AbstractController
     private $articleRepository;
 
     /**
+     * @var DemandeRepository
+     */
+    private $demandeRepository;
+
+    /**
+     * @var LivraisonRepository
+     */
+    private $livraisonRepository;
+
+    /**
+     * @var CollecteRepository
+     */
+    private $collecteRepository;
+
+    /**
+     * @var MouvementRepository
+     */
+    private $mouvementRepository;
+
+    /**
      * @var UserService
      */
     private $userService;
 
 
-    public function __construct(ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, UserService $userService)
+    public function __construct(ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, UserService $userService, DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, CollecteRepository $collecteRepository, MouvementRepository $mouvementRepository)
     {
         $this->emplacementRepository = $emplacementRepository;
         $this->articleRepository = $articleRepository;
         $this->userService = $userService;
+        $this->demandeRepository = $demandeRepository;
+        $this->livraisonRepository = $livraisonRepository;
+        $this->collecteRepository = $collecteRepository;
+        $this->mouvementRepository = $mouvementRepository;
     }
 
     /**
@@ -167,7 +195,40 @@ class EmplacementController extends AbstractController
     }
 
     /**
-     * @Route("/supprimer", name="emplacement_delete", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/verification", name="emplacement_check_delete", options={"expose"=true})
+     */
+    public function checkEmplacementCanBeDeleted(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $emplacementId = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+            if ($this->countUsedEmplacements($emplacementId) == 0) {
+                $delete = true;
+                $html = $this->renderView('emplacement/modalDeleteEmplacementRight.html.twig');
+            } else {
+                $delete = false;
+                $html = $this->renderView('emplacement/modalDeleteEmplacementWrong.html.twig', ['delete' => false]);
+            }
+
+            return new JsonResponse(['delete' => $delete, 'html' => $html]);
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+    private function countUsedEmplacements($emplacementId)
+    {
+        $usedEmplacement = $this->demandeRepository->countByEmplacement($emplacementId);
+        $usedEmplacement += $this->livraisonRepository->countByEmplacement($emplacementId);
+        $usedEmplacement += $this->collecteRepository->countByEmplacement($emplacementId);
+        $usedEmplacement += $this->mouvementRepository->countByEmplacement($emplacementId);
+
+        return $usedEmplacement;
+    }
+
+    /**
+     * @Route("/supprimer", name="emplacement_delete", options={"expose"=true})
      */
     public function delete(Request $request): Response
     {
@@ -176,10 +237,22 @@ class EmplacementController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $emplacement = $this->emplacementRepository->find($data['emplacement']);
-            $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->remove($emplacement);
-            $entityManager->flush();
+            if ($emplacementId = (int)$data['emplacement']) {
+
+                $emplacement = $this->emplacementRepository->find($emplacementId);
+
+                // on vérifie que l'emplacement n'est plus utilisé
+                $usedEmplacement = $this->countUsedEmplacements($emplacementId);
+
+                if ($usedEmplacement > 0) {
+                    return new JsonResponse(false);
+                }
+
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager->remove($emplacement);
+                $entityManager->flush();
+                return new JsonResponse();
+            }
             return new JsonResponse();
         }
         throw new NotFoundHttpException("404");

@@ -29,16 +29,16 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
             JOIN v.champLibre c
             JOIN c.type t
             WHERE a.id = :idArticle AND t.id = :idType"
-            );
+        );
         $query->setParameters([
-            "idArticle"=> $idArticle,
-            "idType"=> $idType
+            "idArticle" => $idArticle,
+            "idType" => $idType
         ]);
 
         return $query->execute();
     }
-   
-    public function getByRefArticleANDChampsLibre($idArticle,$idChampLibre)
+
+    public function getByRefArticleANDChampsLibre($idArticle, $idChampLibre)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
@@ -47,10 +47,10 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
             JOIN v.articleReference a
             JOIN v.champLibre c
             WHERE a.id = :idArticle AND c.id = :idChampLibre"
-            );
+        );
         $query->setParameters([
-            "idArticle"=> $idArticle,
-            "idChampLibre"=> $idChampLibre
+            "idArticle" => $idArticle,
+            "idChampLibre" => $idChampLibre
         ]);
 
         $result = $query->execute();
@@ -67,7 +67,7 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
             JOIN v.articleReference a
             JOIN v.champLibre c
             WHERE a.id = :idArticle "
-            );
+        );
         $query->setParameter("idArticle", $idArticle);
 
         return $query->execute();
@@ -82,12 +82,49 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
             JOIN v.article a
             JOIN v.champLibre c
             WHERE a.id = :id "
-            );
+        );
         $query->setParameter("id", $id);
 
         return $query->execute();
     }
-    
+
+    public function getByArticleAndType($idArticle, $idType)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT v.id, v.valeur, c.label, c.id idCL
+            FROM App\Entity\ValeurChampsLibre v
+            JOIN v.article a
+            JOIN v.champLibre c
+            JOIN c.type t
+            WHERE a.id = :idArticle AND t.id = :idType"
+        );
+        $query->setParameters([
+            "idArticle" => $idArticle,
+            "idType" => $idType
+        ]);
+
+        return $query->execute();
+    }
+
+    public function getByArticleANDChampsLibre($idArticle, $idChampLibre)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT v
+            FROM App\Entity\ValeurChampsLibre v
+            JOIN v.article a
+            JOIN v.champLibre c
+            WHERE a.id = :idArticle AND c.id = :idChampLibre"
+        );
+        $query->setParameters([
+            "idArticle" => $idArticle,
+            "idChampLibre" => $idChampLibre
+        ]);
+
+        return $query->getOneOrNullResult();
+    }
+
     public function findOneByChampLibreAndArticle($champLibreId, $articleId)
     {
         $em = $this->getEntityManager();

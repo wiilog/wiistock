@@ -15,7 +15,7 @@ let tableArticle = $('#table-lignes').DataTable({
         "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
     },
     "processing": true,
-    "order": [[ 0, "desc" ]],
+    "order": [[0, "desc"]],
     "ajax": {
         "url": pathArticle,
         "type": "POST"
@@ -67,14 +67,14 @@ let tableDemande = $('#table_demande').DataTable({
 
 // recherche par défaut demandeur = utilisateur courant
 let demandeur = $('.current-username').val();
-if (demandeur !== undefined){
-let demandeurPiped = demandeur.split(',').join('|')
-tableDemande
-    .columns('Demandeur:name')
-    .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
-    .draw();
-// affichage par défaut du filtre select2 demandeur = utilisateur courant
-$('#utilisateur').val(demandeur).trigger('change');
+if (demandeur !== undefined) {
+    let demandeurPiped = demandeur.split(',').join('|')
+    tableDemande
+        .columns('Demandeur:name')
+        .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
+        .draw();
+    // affichage par défaut du filtre select2 demandeur = utilisateur courant
+    $('#utilisateur').val(demandeur).trigger('change');
 }
 
 let urlNewDemande = Routing.generate('demande_new', true);
@@ -92,19 +92,55 @@ let modalEditDemande = $("#modalEditDemande");
 let submitEditDemande = $("#submitEditDemande");
 InitialiserModal(modalEditDemande, submitEditDemande, urlEditDemande, tableDemande);
 
-function updateQuantity(input) {
+function getCompareStock(submit) {
+    xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            data = JSON.parse(this.responseText);
+            $('.zone-entete').html(data.entete);
+            $('#tableArticle_id').DataTable().ajax.reload();
+            $('#boutonCollecteSup').addClass('d-none')
+            $('#boutonCollecteInf').addClass('d-none')
+            tableArticle.ajax.reload(function (json) {
+                if (this.responseText !== undefined) {
+                    $('#myInput').val(json.lastInput);
+                }
+            });
+        } else if (this.readyState === 4 && this.status === 250) {
+            data = JSON.parse(this.responseText);
+            $('#negativStock').click();
+        }
+    }
+    path = Routing.generate('compare_stock', true)
+    let data = {};
+    data['demande'] = submit.data('id')
+    json = JSON.stringify(data);
+    xhttp.open("POST", path, true);
+    xhttp.send(json);
+}
+
+
+
+function setMaxQuantityEdit(select) {
     let params = {
-        refArticleId: input.val()
+        refArticleId: select.val(),
     };
-
     $.post(Routing.generate('get_quantity_ref_article'), params, function (data) {
-        let modalBody = input.closest('.modal-body');
-        modalBody.find('#in-stock').val(data);
+        let modalBody = select.closest(".modal-body");
         modalBody.find('#quantite').attr('max', data);
-
-
     }, 'json');
 }
+
+function setMaxQuantity(select) {
+    let params = {
+        refArticleId: select.val(),
+    };
+    $.post(Routing.generate('get_quantity_ref_article'), params, function (data) {
+        let modalBody = select.closest(".modal-body");
+        modalBody.find('#quantity').attr('max', data);
+    }, 'json');
+}
+
 
 $('.ajax-autocomplete').select2({
     ajax: {

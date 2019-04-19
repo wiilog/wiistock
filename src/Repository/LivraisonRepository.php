@@ -19,55 +19,16 @@ class LivraisonRepository extends ServiceEntityRepository
         parent::__construct($registry, Livraison::class);
     }
 
-//    public function findByEptAndAttente($destination)
-//    {
-//        $entityManager = $this->getEntityManager();
-//        $query = $entityManager->createQuery(
-//            "SELECT l
-//            FROM App\Entity\Livraison l
-//            WHERE l.destination = :destination AND l.Statut ='en attente'"
-//        )->setParameter('destination', $destination);
-//        ;
-//        return $query->execute();
-//    }
-
-//    public function findByNoStatut($statut)
-//    {
-//        $entityManager = $this->getEntityManager();
-//        $query = $entityManager->createQuery(
-//            "SELECT l
-//            FROM App\Entity\Livraison l
-//            WHERE l.Statut <> :Statut"
-//        )->setParameter('Statut', $statut);
-//        ;
-//        return $query->execute();
-//    }
-    // /**
-    //  * @return Livraison[] Returns an array of Livraison objects
-    //  */
-    /*
-    public function findByExampleField($value)
+    public function countByEmplacement($emplacementId)
     {
-        return $this->createQueryBuilder('l')
-            ->andWhere('l.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('l.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT COUNT(l)
+            FROM App\Entity\Livraison l
+            JOIN l.destination dest
+            WHERE dest.id = :emplacementId"
+        )->setParameter('emplacementId', $emplacementId);
 
-    /*
-    public function findOneBySomeField($value): ?Livraison
-    {
-        return $this->createQueryBuilder('l')
-            ->andWhere('l.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
+        return $query->getSingleScalarResult();
     }
-    */
 }

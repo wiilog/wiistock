@@ -2,6 +2,7 @@
     <div class="col">
         <h1>Demande de livraison</h1>
     </div>
+    <button class="btn" id="negativStock" data-target='#modalNegativStock' data-toggle='modal' hidden></button>
     {% if modifiable %}
     <div class="col text-right id='boutonCollecteSup'">
         {% if hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::DELETE')) %}
@@ -16,8 +17,8 @@
             Modifier</a>
         {% endif %}
         {% if hasRight(constant('App\\Entity\\Menu::PREPA'), constant('App\\Entity\\Action::CREATE')) %}
-        <a href="#" class="btn btn-primary btn-action ml-auto" data-id='{{demande.id}}'
-            onclick="finishDemandeLivraison($(this))">
+        <a href="#" onclick="getCompareStock($(this))" class="btn btn-primary btn-action ml-auto"
+            data-id='{{demande.id}}' {#onclick="finishDemandeLivraison($(this))"#}>
             Valider</a>
         {% endif %}
     </div>

@@ -71,7 +71,38 @@ class DemandeController extends AbstractController
         $this->ligneArticleRepository = $ligneArticleRepository;
         $this->userService = $userService;
     }
+    /**
+     * @Route("/compareStock", name="compare_stock", options={"expose"=true}, methods="GET|POST")
+     */
+    public function compareStock(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $demande = $this->demandeRepository->find($data['demande']);
 
+            $quantiteReservee = $stock = 0;
+
+            foreach ($demande->getLigneArticle() as $ligne) {
+                $articleRef = $ligne->getReference();
+                $stock = $articleRef->getQuantiteStock();
+                $quantiteReservee = $ligne->getQuantite();
+
+                $listLigneArticleByRefArticle = $this->ligneArticleRepository->findByRefArticle($articleRef);
+
+                foreach($listLigneArticleByRefArticle as $ligneArticle) { /** @var LigneArticle $ligneArticle */
+                    $status = $ligneArticle->getDemande()->getStatut()->getNom();
+                    if ($status === Demande::STATUT_A_TRAITER || $status=== Demande::STATUT_PREPARE) {
+                        $quantiteReservee += $ligneArticle->getQuantite();
+                    }
+                }
+            }
+            if ($quantiteReservee > $stock) {
+                return new JsonResponse('La quantité souhaitée dépasse la quantité en stock.', 250);
+            } else {
+                return $this->finish($request);
+            }
+        }
+        throw new NotFoundHttpException('404');
+    }
     /**
      * @Route("/finir", name="finish_demande", options={"expose"=true}, methods="GET|POST")
      */
@@ -346,13 +377,15 @@ class DemandeController extends AbstractController
 
             $referenceArticle = $this->referenceArticleRepository->find($data['reference']);
             $demande = $this->demandeRepository->find($data['demande']);
+
             if ($this->ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
                 $ligneArticle = new LigneArticle();
                 $ligneArticle
                     ->setQuantite($data['quantite'])
                     ->setReference($referenceArticle);
             } else {
-                $ligneArticle = $this->ligneArticleRepository->getByRefArticle($referenceArticle);
+                $ligneArticle = $this->ligneArticleRepository->findOneByRefArticleAndDemande($referenceArticle, $demande);
+
                 $ligneArticle
                     ->setQuantite($ligneArticle->getQuantite() + $data['quantite']);
             }
@@ -417,7 +450,7 @@ class DemandeController extends AbstractController
     }
 
     /**
-     * @Route("/api-modifier", name="demande_article_api_edit", options={"expose"=true}, methods={"POST"})
+     * @Route("/api-modifier-article", name="demande_article_api_edit", options={"expose"=true}, methods={"POST"})
      */
     public function articleEditApi(Request $request): Response
     {
@@ -435,4 +468,6 @@ class DemandeController extends AbstractController
         }
         throw new NotFoundHttpException('404');
     }
+
+
 }

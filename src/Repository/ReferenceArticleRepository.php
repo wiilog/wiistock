@@ -156,9 +156,11 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
             if (!empty($params->get('search'))) {
                 $search = $params->get('search')['value'];
-                $qb
-                    ->andWhere('ra.libelle LIKE :value OR ra.reference LIKE :value')
-                    ->setParameter('value', '%' . $search . '%');
+                if (!empty($search)) {
+                    $qb
+                        ->andWhere('ra.libelle LIKE :value OR ra.reference LIKE :value')
+                        ->setParameter('value', '%' . $search . '%');
+                }
             }
         }
 

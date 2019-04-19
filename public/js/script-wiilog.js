@@ -16,7 +16,6 @@
 
 
 function InitialiserModal(modal, submit, path, table, callback = null, close = true) {
-
     submit.click(function () {
         xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function () {
@@ -28,7 +27,6 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
                 if (data.redirect) {
                     window.location.href = data.redirect;
                 }
-                console.log(data)
                 // pour mise à jour des données d'en-tête après modification
                 if (data.entete) {
                     $('.zone-entete').html(data.entete)
@@ -44,7 +42,6 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
                 let inputs = modal.find('.modal-body').find(".data");
                 // on vide tous les inputs (sauf les disabled)
                 inputs.each(function () {
-                    // $(this).val("");
                     if ($(this).attr('disabled') !== 'disabled') {
                         $(this).val("");
                     }
@@ -65,7 +62,6 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
                 });
 
                 if (callback !== null) callback(data);
-
             }
         };
 
@@ -79,6 +75,7 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
         inputs.each(function () {
             let val = $(this).val();
             let name = $(this).attr("name");
+            console.log(name + " " + val);
             Data[name] = val;
             // validation données obligatoires
             if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
@@ -223,6 +220,7 @@ function editRow(button, path, modal, submit, editorToInit = false) {
             ajaxAutoRefArticleInit($('.ajax-autocomplete-edit'));
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
             ajaxAutoUserInit($('.ajax-autocomplete-user-edit'));
+            setMaxQuantityEdit($('#referenceEdit'));
             if (editorToInit) initEditor('#' + modal.attr('id'));
         }
     }
@@ -293,6 +291,7 @@ function setCommentaireID(button) {
     var quill = new Quill(container);
     // let commentaire = modal.find('input[id=commentaireID]');
     com = quill.container.firstChild.innerHTML;
+    console.log(com);
     $('#commentaireID').val(com);
 };
 
@@ -429,4 +428,23 @@ function clearNewContent(button) {
     button.parent().addClass('d-none');
     $('#newContent').html('');
     $('#reference').html('');
+}
+
+function ajaxFournisseurArticle(select) {
+    select.select2({
+        ajax: {
+            url: Routing.generate('get_articleRef_fournisseur'),
+            dataType: 'json',
+            delay: 250,
+        },
+        language: {
+            inputTooShort: function () {
+                return 'Veuillez entrer au moins 1 caractère.';
+            },
+            searching: function () {
+                return 'Recherche en cours...';
+            }
+        },
+        minimumInputLength: 1,
+    });
 }

@@ -24,7 +24,7 @@ class Livraison
      */
     private $numero;
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\emplacement", inversedBy="livraisons")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="livraisons")
      */
     private $destination;
     /**
