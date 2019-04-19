@@ -99,6 +99,7 @@ class CollecteController extends AbstractController
         return $this->render('collecte/index.html.twig', [
             'statuts' => $this->statutRepository->findByCategorieName(Collecte::CATEGORIE),
             'utilisateurs' => $this->utilisateurRepository->findAll(),
+        
         ]);
     }
 
@@ -129,7 +130,7 @@ class CollecteController extends AbstractController
             }
 
             $collectes = $this->collecteRepository->findAll();
-
+           
             $rows = [];
             foreach ($collectes as $collecte) {
                 $url = $this->generateUrl('collecte_show', ['id' => $collecte->getId()]);
@@ -214,20 +215,22 @@ class CollecteController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::DEM_COLLECTE, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
-
             $em = $this->getDoctrine()->getEntityManager();
             $date = new \DateTime('now');
             $status = $this->statutRepository->findOneByNom(Collecte::STATUS_DEMANDE);
             $numero = 'C-'.$date->format('YmdHis');
             $collecte = new Collecte();
-            $collecte
+            $destination= ($data['destination'] == 0) ? false : true ; 
+                
+                $collecte
                 ->setDemandeur($this->utilisateurRepository->find($data['demandeur']))
                 ->setNumero($numero)
                 ->setDate($date)
                 ->setStatut($status)
                 ->setPointCollecte($this->emplacementRepository->find($data['Pcollecte']))
                 ->setObjet($data['Objet'])
-                ->setCommentaire($data['commentaire']);
+                ->setCommentaire($data['commentaire'])
+                ->setstockOrDestruct($destination);
             $em->persist($collecte);
             $em->flush();
             $data = [
@@ -288,7 +291,7 @@ class CollecteController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
             $em = $this->getDoctrine()->getManager();
-            dump($data);
+
             $collecteReference = $this->collecteReferenceRepository->find($data['collecteRef']);
             $collecteReference->setQuantite(intval($data['quantite']));
             $em->flush();
@@ -415,14 +418,13 @@ class CollecteController extends AbstractController
 
             $collecte = $this->collecteRepository->find($data['collecte']);
             $pointCollecte = $this->emplacementRepository->find($data['Pcollecte']);
-
+            $destination= ($data['destination'] == 0) ? false : true ; 
             $collecte
-
                 ->setDate(new \DateTime($data['date-collecte']))
                 ->setCommentaire($data['commentaire'])
                 ->setObjet($data['objet'])
-                ->setPointCollecte($pointCollecte);
-
+                ->setPointCollecte($pointCollecte)
+                ->setstockOrDestruct($destination);
             $em = $this->getDoctrine()->getManager();
             $em->flush();
             $json = [

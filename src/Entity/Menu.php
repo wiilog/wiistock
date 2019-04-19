@@ -17,8 +17,8 @@ class Menu
     const DEM_LIVRAISON = 'DEMLIVR';
     const DEM_COLLECTE = 'DEMCOL';
     const COLLECTE = 'COL';
+    const MANUT = 'MANUT';
     const NOMAD = 'NOMAD';
-    const ADMIN_ROLE = 'ADMINROLE';
     const PARAM = 'PARAM';
     const STOCK = 'STOCK';
 

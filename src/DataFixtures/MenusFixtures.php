@@ -24,9 +24,9 @@ class MenusFixtures extends Fixture
             ['Livraison', 'LIVR'],
             ['Demande de livraison', 'DEMLIVR'],
             ['Demande de collecte', 'DEMCOL'],
-            ['Collecte', 'COL'],
-            ['Utilisation Nomade', 'NOMAD'],
-            ['Administration rôles', 'ADMINROLE'],
+//            ['Collecte', 'COL'],
+            ['Manutention', 'MANUT'],
+//            ['Utilisation Nomade', 'NOMAD'],
             ['Paramétrage', 'PARAM'],
             ['Stock', 'STOCK'],
         ];

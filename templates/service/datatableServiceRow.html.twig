@@ -3,6 +3,9 @@
     <div data-id='{{ serviceId }}' data-target='#modalEditService' data-toggle='modal'
         class='btn-xs btn-default command-edit'
         onclick="editRow($(this), Routing.generate('service_edit_api', true), $('#modalEditService'), $('#submitEditService'), true)">
-        <i class='fas fa-eye '></i>
+
+        {% if hasRight(constant('App\\Entity\\Menu::MANUT'), constant('App\\Entity\\Action::CREATE')) %}
+            <i class='fas fa-pencil-alt'></i>
+        {% endif %}
     </div>
 </div>

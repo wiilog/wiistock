@@ -2,11 +2,14 @@
 
 namespace App\Controller;
 
+use App\Entity\Action;
+use App\Entity\Menu;
 use App\Entity\Service;
 use App\Repository\UtilisateurRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\ServiceRepository;
 use App\Repository\StatutRepository;
+use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,7 +18,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 /**
- * @Route("/deplacement")
+ * @Route("/manutention")
  */
 class ServiceController extends AbstractController
 {
@@ -39,12 +42,19 @@ class ServiceController extends AbstractController
      */
     private $utilisateurRepository;
 
-    public function __construct(ServiceRepository $serviceRepository, EmplacementRepository $emplacementRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository)
+    /**
+     * @var UserService
+     */
+    private $userService;
+
+
+    public function __construct(ServiceRepository $serviceRepository, EmplacementRepository $emplacementRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService)
     {
         $this->serviceRepository = $serviceRepository;
         $this->emplacementRepository = $emplacementRepository;
         $this->statutRepository = $statutRepository;
         $this->utilisateurRepository = $utilisateurRepository;
+        $this->userService = $userService;
     }
 
     /**
@@ -53,6 +63,10 @@ class ServiceController extends AbstractController
     public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
+            if (!$this->userService->hasRightFunction(Menu::MANUT, Action::LIST)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
             $services = $this->serviceRepository->findAll();
 
             $rows = [];
@@ -84,6 +98,10 @@ class ServiceController extends AbstractController
      */
     public function index(): Response
     {
+        if (!$this->userService->hasRightFunction(Menu::MANUT, Action::LIST)) {
+            return $this->redirectToRoute('access_denied');
+        }
+
         return $this->render('service/index.html.twig', [
             'utilisateurs' => $this->utilisateurRepository->findAll(),
             'statuts' => $this->statutRepository->findByCategorieName(Service::CATEGORIE),
@@ -96,7 +114,9 @@ class ServiceController extends AbstractController
     public function new(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $em = $this->getDoctrine()->getEntityManager();
+            if (!$this->userService->hasRightFunction(Menu::MANUT, Action::CREATE)) {
+                return $this->redirectToRoute('access_denied');
+            }
 
             $status = $this->statutRepository->findOneByCategorieAndStatut(Service::CATEGORIE, Service::STATUT_A_TRAITER);
             $service = new Service();
@@ -111,6 +131,7 @@ class ServiceController extends AbstractController
                 ->setDemandeur($this->utilisateurRepository->find($data['demandeur']))
                 ->setCommentaire($data['commentaire']);
 
+            $em = $this->getDoctrine()->getEntityManager();
             $em->persist($service);
 
             $em->flush();
@@ -126,6 +147,10 @@ class ServiceController extends AbstractController
     public function editApi(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::MANUT, Action::CREATE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
             $service = $this->serviceRepository->find($data);
             $json = $this->renderView('service/modalEditServiceContent.html.twig', [
                 'service' => $service,
@@ -146,6 +171,10 @@ class ServiceController extends AbstractController
     public function edit(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::MANUT, Action::CREATE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
             $service = $this->serviceRepository->find($data['id']);
             $statutLabel = ($data['statut'] == 1) ? Service::STATUT_A_TRAITER : Service::STATUT_TRAITE;
 
