@@ -307,6 +307,8 @@ function displayError(data) {
 }
 
 function ajaxPlusDemandeContent(button) {
+    $('.plusDemandeContent').html('');
+    $('.editChampLibre').html('');
     xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
@@ -329,6 +331,28 @@ function ajaxPlusDemandeContent(button) {
     xhttp.send(json);
 }
 
+let ajaxEditArticle = function (select) {
+    xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            dataReponse = JSON.parse(this.responseText);
+            console.log(dataReponse);
+            if (dataReponse.editChampLibre) {
+                $('.editChampLibre').html(dataReponse.editChampLibre);
+            } else {
+                 //TODO gérer erreur
+            }
+        }
+    }
+    let json = select.val();
+console.log(json);
+    let path = Routing.generate('ajax_edit_article', true);
+    xhttp.open("POST", path, true);
+    xhttp.send(json);
+}
+
+
+
 //initialisation editeur de texte une seule fois
 var editorNewReferenceArticleAlreadyDone = false;
 function initNewReferenceArticleEditor(modal) {
@@ -350,5 +374,4 @@ function loadSpinnerAR(div) {
     div.removeClass('d-flex');
     div.addClass('d-none');
 }
-
 
