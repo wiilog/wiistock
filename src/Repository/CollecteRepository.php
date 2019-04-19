@@ -33,4 +33,17 @@ class CollecteRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
+    public function countByEmplacement($emplacementId)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT COUNT(c)
+            FROM App\Entity\Collecte c
+            JOIN c.pointCollecte pc
+            WHERE pc.id = :emplacementId"
+        )->setParameter('emplacementId', $emplacementId);
+
+        return $query->getSingleScalarResult();
+    }
+
 }
