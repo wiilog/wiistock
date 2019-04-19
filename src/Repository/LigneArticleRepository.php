@@ -32,16 +32,19 @@ class LigneArticleRepository extends ServiceEntityRepository
         return $query->getSingleResult();
     }
 
-    public function getByRefArticle($referenceArticle)
+    public function findOneByRefArticleAndDemande($referenceArticle, $demande)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT l
             FROM App\Entity\LigneArticle l
-            WHERE l.reference = :referenceArticle
+            WHERE l.reference = :referenceArticle AND l.demande = :demande
             "
-        )->setParameter('referenceArticle', $referenceArticle);
-        ;
+        )->setParameters([
+            'referenceArticle' => $referenceArticle,
+            'demande' => $demande
+        ]);
+
         return $query->getOneOrNullResult();
     }
 
@@ -75,20 +78,32 @@ class LigneArticleRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
-    public function countByArticle($referenceArticle)
+    public function findByRefArticle($refArticle)
     {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT COUNT(l)
-            FROM App\Entity\LigneArticle l
-            WHERE l.reference = :referenceArticle
-            "
-        )->setParameters([
-            'referenceArticle'=> $referenceArticle,
-            ]);
-        ;
-        return $query->getSingleScalarResult();
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT la
+            FROM App\Entity\LigneArticle la
+            WHERE la.reference = :refArticle"
+        )->setParameter('refArticle', $refArticle);
+
+        return $query->execute();
     }
+
+//    public function countByArticle($referenceArticle)
+//    {
+//        $entityManager = $this->getEntityManager();
+//        $query = $entityManager->createQuery(
+//            "SELECT COUNT(l)
+//            FROM App\Entity\LigneArticle l
+//            WHERE l.reference = :referenceArticle
+//            "
+//        )->setParameters([
+//            'referenceArticle'=> $referenceArticle,
+//            ]);
+//        ;
+//        return $query->getSingleScalarResult();
+//    }
 
     // /**
     //  * @return LigneArticle[] Returns an array of LigneArticle objects
