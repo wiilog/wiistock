@@ -440,3 +440,22 @@ function clearNewContent(button) {
     $('#newContent').html('');
     $('#reference').html('');
 }
+
+function ajaxFournisseurArticle(select) {
+    select.select2({
+        ajax: {
+            url: Routing.generate('get_articleRef_fournisseur'),
+            dataType: 'json',
+            delay: 250,
+        },
+        language: {
+            inputTooShort: function () {
+                return 'Veuillez entrer au moins 1 caractère.';
+            },
+            searching: function () {
+                return 'Recherche en cours...';
+            }
+        },
+        minimumInputLength: 1,
+    });
+}

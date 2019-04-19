@@ -24,6 +24,11 @@ let submitEditArticle = $("#submitEditArticle");
 let urlEditArticle = Routing.generate('article_api_edit', true);
 InitialiserModalArticle(modalEditArticle, submitEditArticle, urlEditArticle);
 
+let modalNewArticle = $("#modalNewArticle");
+let submitNewArticle = $("#submitNewArticle");
+let urlNewArticle = Routing.generate('article_new', true);
+InitialiserModalArticle(modalNewArticle, submitNewArticle, urlNewArticle);
+
 var editorEditArticleAlreadyDone = false;
 function initEditArticleEditor(modal) {
     if (!editorEditArticleAlreadyDone) {
@@ -31,6 +36,11 @@ function initEditArticleEditor(modal) {
         editorEditArticleAlreadyDone = true;
     }
 };
+
+let resetNewArticle = function (element) {
+    element.removeClass('d-block');
+    element.addClass('d-none');
+}
 
 function InitialiserModalArticle(modal, submit, path, callback = function () { }, close = true) {
     submit.click(function () {
@@ -142,3 +152,14 @@ function InitialiserModalArticle(modal, submit, path, callback = function () { }
         }
     });
 }
+
+var editorNewArticleAlreadyDone = false;
+function initNewArticleEditor(modal) {
+    if (!editorNewArticleAlreadyDone) {
+        ajaxFournisseurArticle($('#articleFournisseurAdd'));
+        initEditor(modal);
+        editorNewArticleAlreadyDone = true;
+    }
+};
+
+

@@ -164,8 +164,8 @@ class ReceptionController extends AbstractController
             $em->flush();
 
             $data = [
-                    "redirect" => $this->generateUrl('reception_show', ['id' => $reception->getId()])
-                ];
+                "redirect" => $this->generateUrl('reception_show', ['id' => $reception->getId()])
+            ];
             return new JsonResponse($data);
         }
 
@@ -315,7 +315,7 @@ class ReceptionController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
-        return $this->render('reception/index.html.twig' );
+        return $this->render('reception/index.html.twig');
     }
 
     /**
@@ -494,7 +494,6 @@ class ReceptionController extends AbstractController
 
             if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                 $referenceArticle->setQuantiteStock($referenceArticle->getQuantiteStock() + $receptionRA->getQuantite());
-
             } elseif ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
                 for ($i = 0; $i < $receptionRA->getQuantite(); $i++) {
                     $date = new \DateTime('now');

@@ -11,6 +11,7 @@ use App\Repository\ReceptionRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\ArticleFournisseurRepository;
+use App\Repository\FournisseurRepository;
 use App\Repository\ValeurChampsLibreRepository;
 use App\Repository\ChampsLibreRepository;
 use App\Repository\TypeRepository;
@@ -84,6 +85,11 @@ class ArticleController extends AbstractController
     private $receptionRepository;
 
     /**
+     * @var FournisseurRepository
+     */
+    private $fournisseurRepository;
+
+    /**
      * @var RefArticleDataService
      */
     private $refArticleDataService;
@@ -99,8 +105,9 @@ class ArticleController extends AbstractController
     private $userService;
 
 
-    public function __construct(ChampsLibreRepository $champsLibreRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ArticleDataService $articleDataService, TypeRepository $typeRepository, RefArticleDataService $refArticleDataService, ArticleFournisseurRepository $articleFournisseurRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, StatutRepository $statutRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UserService $userService)
+    public function __construct(FournisseurRepository $fournisseurRepository, ChampsLibreRepository $champsLibreRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ArticleDataService $articleDataService, TypeRepository $typeRepository, RefArticleDataService $refArticleDataService, ArticleFournisseurRepository $articleFournisseurRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, StatutRepository $statutRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UserService $userService)
     {
+        $this->fournisseurRepository = $fournisseurRepository;
         $this->champsLibreRepository = $champsLibreRepository;
         $this->valeurChampsLibreRepository = $valeurChampsLibreRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
@@ -202,6 +209,54 @@ class ArticleController extends AbstractController
     }
 
     /**
+     * @Route("/nouveau", name="article_new", options={"expose"=true},  methods="GET|POST")
+     */
+    public function new(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $toInsert = new Article();
+            $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $data['actif'] ? 'actif' : 'inactif');
+            $date = new \DateTime('now');
+            $ref = $date->format('YmdHis');
+            $toInsert
+                ->setLabel($data['libelle'])
+                ->setConform(!$data['conform'])
+                ->setStatut($statut)
+                ->setCommentaire($data['commentaire'])
+                ->setReference($ref . '-0')
+                ->setArticleFournisseur($this->articleFournisseurRepository->find($data['articleFournisseur']))
+                ->setType($this->typeRepository->getOneByCategoryLabel(Article::CATEGORIE));
+            dump($this->typeRepository->getOneByCategoryLabel(Article::CATEGORIE));
+            $this->getDoctrine()->getManager()->persist($toInsert);
+            $this->getDoctrine()->getManager()->flush();
+
+            $articles = $this->articleRepository->findAll();
+            $rows = [];
+            foreach ($articles as $article) {
+                $url['edit'] = $this->generateUrl('demande_article_edit', ['id' => $article->getId()]);
+
+                $rows[] =
+                    [
+                        'id' => ($article->getId() ? $article->getId() : 'Non défini'),
+                        'Référence' => ($article->getReference() ? $article->getReference() : 'Non défini'),
+                        'Statut' => ($article->getStatut() ? $article->getStatut()->getNom() : 'Non défini'),
+                        'Libellé' => ($article->getLabel() ? $article->getLabel() : 'Non défini'),
+                        'Référence article' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : 'Non défini'),
+                        'Quantité' => ($article->getQuantite() ? $article->getQuantite() : 'Non défini'),
+                        'Actions' => $this->renderView('article/datatableArticleRow.html.twig', [
+                            'url' => $url,
+                            'articleId' => $article->getId(),
+                        ]),
+                    ];
+            }
+            $data['data'] = $rows;
+
+            return new JsonResponse($data);
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+    /**
      * @Route("/api-modifier", name="article_api_edit", options={"expose"=true},  methods="GET|POST")
      */
     public function editApi(Request $request): Response
@@ -255,6 +310,20 @@ class ArticleController extends AbstractController
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/autocompleteArticleFournisseur", name="get_articleRef_fournisseur", options={"expose"=true})
+     */
+    public function getRefArticles(Request $request)
+    {
+        if ($request->isXmlHttpRequest()) {
+            $search = $request->query->get('term');
+
+            $articleFournisseur = $this->articleFournisseurRepository->findBySearch($search);
+            return new JsonResponse(['results' => $articleFournisseur]);
+        }
+        throw new NotFoundHttpException("404");
     }
 
     //    /**

@@ -19,6 +19,19 @@ class ArticleFournisseurRepository extends ServiceEntityRepository
         parent::__construct($registry, ArticleFournisseur::class);
     }
 
+
+    public function findBySearch($value)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT a.id, a.label as text
+          FROM App\Entity\ArticleFournisseur a
+          WHERE a.label LIKE :search"
+        )->setParameter('search', '%' . $value . '%');
+
+        return $query->execute();
+    }
+
     public function countByReference($reference)
     {
         $em = $this->getEntityManager();
@@ -67,5 +80,4 @@ class ArticleFournisseurRepository extends ServiceEntityRepository
 
         return $query->getResult();
     }
-
 }

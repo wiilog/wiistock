@@ -1,0 +1,57 @@
+<form method="" class="modal fade" id="modalNewArticle" role="dialog" aria-labelledby="dataModalCenterTitle"
+    aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Nouvel Article</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body modal-input container-fluid">
+                <div class="row">
+                    <div class="form-group w-100 col-6">
+                        <label for="Articlefournisseur">Article Fournisseur</label>
+                        <select class="form-control data ajax-autocomplete-article-fournisseur needed"
+                            name="articleFournisseur" id="articleFournisseurAdd">
+                        </select>
+                    </div>
+                    <div class="form-group col-6">
+                        <label for="libelle">Libellé</label>
+                        <input class="form-control data" type="text" name="libelle" id="libelle">
+                    </div>
+                    <div class="form-group col-6">
+                        <label>Anomalie</label>
+                        <label class="switch">
+                            <input class="checkbox" type="checkbox" name="conform">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+
+                    <div class="form-group col-6">
+                        <label>Statut (Inactif/Actif)</label>
+                        <label class="switch">
+                            <input class="checkbox" type="checkbox" name="actif">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group col-12">
+                    <label>Commentaire</label>
+                    <input id='commentaireID' class="form-control data" name="commentaire" type="hidden">
+                    <div class="editor-container"></div>
+                </div>
+
+                <div class="error-msg">
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn" data-dismiss="modal">Annuler</button>
+                <button type="button" id="submitNewArticle" class="btn btn-success data"
+                    onclick="setCommentaireID($(this)), resetNewArticle($('#articleFournisseurAdd'))">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+</form>
