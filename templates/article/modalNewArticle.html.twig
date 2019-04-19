@@ -58,39 +58,36 @@
                                 {% if (row.idCL == champ.id) %}{% set value = row.valeur %}{% endif %}
                                 {% endfor %}
                                 <div class="form-group col-6">
-                                    <div class="input-group">
-                                        <div class="input-group-prepend">
-                                            <label class="input-group-text" for="input">
-                                                {{champ.label | capitalize}}
-                                            </label>
-                                        </div>
-                                        {% if champ.typage == 'booleen' %}
-                                        {% set checked = (value == 1) ? 'checked' : '' %}
-                                        <input type="checkbox" class="form-control data checkbox" {{ checked }}
-                                            value="{{ value }}" name="{{champ.id}}" id="input">
+                                    <label for="input">
+                                        {{champ.label | capitalize}}
+                                    </label>
+                                    {% if champ.typage == 'booleen' %}
+                                    {% set checked = (value == 1) ? 'checked' : '' %}
+                                    <input type="checkbox" class="form-control data checkbox" {{ checked }}
+                                        value="{{ value }}" name="{{champ.id}}" id="input">
 
-                                        {% elseif champ.typage == 'number' %}
-                                        <input type="number" class="form-control data" value="{{ value }}"
-                                            name="{{champ.id}}" id="input">
+                                    {% elseif champ.typage == 'number' %}
+                                    <input type="number" class="form-control data" value="{{ value }}"
+                                        name="{{champ.id}}" id="input">
 
-                                        {% elseif champ.typage == 'list' %}
-                                        <select class="form-control unTruc data " name="{{champ.id}}" id="input">
-                                            <option value="{{value}}">{{value}}
-                                            </option>
-                                            {% for elem in champ.elements %}
-                                            {% if value != elem %}
-                                            <option value="{{elem}}">{{elem}}</option>
-                                            {% endif %}
-                                            {% endfor %}
-                                            {% if value != "" %}
-                                            <option value=""></option>
-                                            {% endif %}
-                                        </select>
-                                        {% else %}
-                                        <input type="text" class="form-control data" value="{{ value }}"
-                                            name="{{ champ.id }}" id="input">
+                                    {% elseif champ.typage == 'list' %}
+                                    <select class="form-control unTruc data " name="{{champ.id}}" id="input">
+                                        <option value="{{value}}">{{value}}
+                                        </option>
+                                        {% for elem in champ.elements %}
+                                        {% if value != elem %}
+                                        <option value="{{elem}}">{{elem}}</option>
                                         {% endif %}
-                                    </div>
+                                        {% endfor %}
+                                        {% if value != "" %}
+                                        <option value=""></option>
+                                        {% endif %}
+                                    </select>
+                                    {% else %}
+                                    <input type="text" class="form-control data" value="{{ value }}"
+                                        name="{{ champ.id }}" id="input">
+                                    {% endif %}
+
                                 </div>
                                 {% endfor %}
                             </div>
