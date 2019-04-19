@@ -108,7 +108,7 @@ function getCompareStock(submit) {
             });
         } else if (this.readyState === 4 && this.status === 250) {
             data = JSON.parse(this.responseText);
-            $('#modalNegativStock').modal('show');
+            $('#negativStock').click();
         }
     }
     path = Routing.generate('compare_stock', true)
