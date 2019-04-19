@@ -29,6 +29,11 @@ let submitNewArticle = $("#submitNewArticle");
 let urlNewArticle = Routing.generate('article_new', true);
 InitialiserModalArticle(modalNewArticle, submitNewArticle, urlNewArticle);
 
+let modalDeleteArticle = $("#modalDeleteArticle");
+let submitDeleteArticle = $("#submitDeleteArticle");
+let urlDeleteArticle = Routing.generate('article_delete', true);
+InitialiserModalArticle(modalDeleteArticle, submitDeleteArticle, urlDeleteArticle);
+
 var editorEditArticleAlreadyDone = false;
 function initEditArticleEditor(modal) {
     if (!editorEditArticleAlreadyDone) {

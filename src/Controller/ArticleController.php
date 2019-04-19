@@ -331,6 +331,30 @@ class ArticleController extends AbstractController
     }
 
     /**
+     * @Route("/supprimer", name="article_delete", options={"expose"=true}, methods="GET|POST")
+     */
+    public function delete(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+            dump($data);
+            $article = $this->articleRepository->find($data['article']);
+            $rows = $article->getId();
+
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->remove($article);
+            $entityManager->flush();
+
+            $response['delete'] = $rows;
+            return new JsonResponse($response);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
      * @Route("/autocompleteArticleFournisseur", name="get_articleRef_fournisseur", options={"expose"=true})
      */
     public function getRefArticles(Request $request)
