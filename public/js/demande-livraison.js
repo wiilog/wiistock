@@ -15,7 +15,7 @@ let tableArticle = $('#table-lignes').DataTable({
         "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
     },
     "processing": true,
-    "order": [[ 0, "desc" ]],
+    "order": [[0, "desc"]],
     "ajax": {
         "url": pathArticle,
         "type": "POST"
@@ -67,14 +67,14 @@ let tableDemande = $('#table_demande').DataTable({
 
 // recherche par défaut demandeur = utilisateur courant
 let demandeur = $('.current-username').val();
-if (demandeur !== undefined){
-let demandeurPiped = demandeur.split(',').join('|')
-tableDemande
-    .columns('Demandeur:name')
-    .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
-    .draw();
-// affichage par défaut du filtre select2 demandeur = utilisateur courant
-$('#utilisateur').val(demandeur).trigger('change');
+if (demandeur !== undefined) {
+    let demandeurPiped = demandeur.split(',').join('|')
+    tableDemande
+        .columns('Demandeur:name')
+        .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
+        .draw();
+    // affichage par défaut du filtre select2 demandeur = utilisateur courant
+    $('#utilisateur').val(demandeur).trigger('change');
 }
 
 let urlNewDemande = Routing.generate('demande_new', true);
@@ -108,7 +108,7 @@ function getCompareStock(submit) {
             });
         } else if (this.readyState === 4 && this.status === 250) {
             data = JSON.parse(this.responseText);
-            alert(data); //TODO message retour + propre
+            $('#negativStock').click();
         }
     }
     path = Routing.generate('compare_stock', true)

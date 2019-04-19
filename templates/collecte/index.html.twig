@@ -1,6 +1,6 @@
 {% extends 'layout.html.twig' %}
 
-{% block title %}Demande de collecte{% endblock %}
+{% block title %}Demandes de collecte{% endblock %}
 
 {% block page_content %}
 {#fermeture de la div de layout pour fermer le container et ne pas avoir de bordure#}
@@ -10,7 +10,7 @@
 
 <div class="container-fluid">
 
-        <h1>Demande de collecte</h1>
+        <h1>Demandes de collecte</h1>
 
         <div class='row'>
             {% if hasRight(constant('App\\Entity\\Menu::DEM_COLLECTE'), constant('App\\Entity\\Action::CREATE')) %}

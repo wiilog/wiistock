@@ -3,9 +3,11 @@
 namespace App\Controller;
 
 use App\Entity\Alerte;
+use App\Entity\Menu;
 use App\Repository\AlerteRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\ReferenceArticleRepository;
+use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -39,12 +41,19 @@ class AlerteController extends AbstractController
      */
     private $seuilAlerteService;
 
-    public function __construct(SeuilAlerteService $seuilAlerteService, AlerteRepository $alerteRepository, UtilisateurRepository $utilisateurRepository, ReferenceArticleRepository $referenceArticleRepository)
+    /**
+     * @var UserService
+     */
+    private $userService;
+
+
+    public function __construct(SeuilAlerteService $seuilAlerteService, AlerteRepository $alerteRepository, UtilisateurRepository $utilisateurRepository, ReferenceArticleRepository $referenceArticleRepository, UserService $userService)
     {
         $this->alerteRepository = $alerteRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->utilisateurRepository = $utilisateurRepository;
         $this->seuilAlerteService = $seuilAlerteService;
+        $this->userService = $userService;
     }
 
     /**
@@ -52,7 +61,11 @@ class AlerteController extends AbstractController
      */
     public function alerteApi(Request $request): Response
     {
-        if ($request->isXmlHttpRequest()) { //Si la requête est de type Xml
+        if ($request->isXmlHttpRequest()) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
             $alertes = $this->alerteRepository->findAll();
             $seuilAtteint = $this->seuilAlerteService->thresholdReaches();
             $rows = [];
@@ -83,6 +96,10 @@ class AlerteController extends AbstractController
      */
     public function index(): Response
     {
+        if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+            return $this->redirectToRoute('access_denied');
+        }
+
         return $this->render('alerte/index.html.twig');
     }
 
@@ -92,6 +109,10 @@ class AlerteController extends AbstractController
     public function new(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
             $em = $this->getDoctrine()->getEntityManager();
 
             $refArticle = $this->referenceArticleRepository->find($data['AlerteArticleReference']);
@@ -118,6 +139,10 @@ class AlerteController extends AbstractController
     public function editApi(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
             $alerte = $this->alerteRepository->find($data);
             $json = $this->renderView('alerte/modalEditAlerteContent.html.twig', [
                 'alerte' => $alerte,
@@ -134,6 +159,10 @@ class AlerteController extends AbstractController
     public function edit(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
             $alerte = $this->alerteRepository->find($data['id']);
             $alerte
                 ->setAlerteSeuil($data["seuil"]);
@@ -151,6 +180,10 @@ class AlerteController extends AbstractController
     public function delete(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
             $alerte = $this->alerteRepository->find($data['alerte']);
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($alerte);
@@ -166,6 +199,10 @@ class AlerteController extends AbstractController
      */
     public function check()
     {
+        if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+            return $this->redirectToRoute('access_denied');
+        }
+
         $this->seuilAlerteService->warnUsers();
 
         return $this->redirectToRoute('alerte_index');

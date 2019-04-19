@@ -33,7 +33,9 @@
                 {% if hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::LIST')) %}
                     <li><a href="{{ path('demande_index') }}" class="sub-item">• Livraison</a></li>
                 {% endif %}
-                <li><a href="{{ path('service_index') }}" class="sub-item">• Déplacement d'article</a></li>
+                {% if hasRight(constant('App\\Entity\\Menu::MANUT'), constant('App\\Entity\\Action::LIST')) %}
+                    <li><a href="{{ path('service_index') }}" class="sub-item">• Manutention</a></li>
+                {% endif %}
             </ul>
         </li>
 
@@ -99,32 +101,28 @@
         {% endif %}
 
         <!-- PARAMETRAGE -->
-        {% if (hasRight(constant('App\\Entity\\Menu::PARAM')) or hasRight(constant('App\\Entity\\Menu::ADMIN_ROLE'))) %}
+        {% if (hasRight(constant('App\\Entity\\Menu::PARAM'))) %}
             <li class="menu-item has-submenu">
                 <a href="#">
                     <i class="fas fa-gear"></i>
                     <h4>Paramétrage</h4>
                 </a>
                 <ul class="sidemenu-sub">
-                    {% if hasRight(constant('App\\Entity\\Menu::ADMIN_ROLE')) %}
-                        <li>
-                            <a href="{{ path('role_index') }}" class="sub-item">• Rôles</a>
-                        </li>
-                    {% endif %}
-                    {% if hasRight(constant('App\\Entity\\Menu::PARAM')) %}
-                        <li>
-                            <a href="{{ path('user_index') }}" class="sub-item">• Utilisateurs</a>
-                        </li>
-                        <li>
-                            <a href="{{ path('champ_libre_index') }}" class="sub-item">• Champs libres</a>
-                        </li>
-                        <li>
-                            <a href="{{ path('alerte_index') }}" class="sub-item">• Alertes</a>
-                        </li>
-                        <li>
-                            <a href="{{ path('mailer_server') }}" class="sub-item">• Configuration email</a>
-                        </li>
-                    {% endif %}
+                    <li>
+                        <a href="{{ path('role_index') }}" class="sub-item">• Rôles</a>
+                    </li>
+                    <li>
+                        <a href="{{ path('user_index') }}" class="sub-item">• Utilisateurs</a>
+                    </li>
+                    <li>
+                        <a href="{{ path('champ_libre_index') }}" class="sub-item">• Champs libres</a>
+                    </li>
+                    <li>
+                        <a href="{{ path('alerte_index') }}" class="sub-item">• Alertes</a>
+                    </li>
+                    <li>
+                        <a href="{{ path('mailer_server') }}" class="sub-item">• Configuration email</a>
+                    </li>
                 </ul>
             </li>
         {% endif %}
