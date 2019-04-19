@@ -1,28 +1,90 @@
-{#<div class="form-group">
-    <label for="libelle">Libellé</label>
-    <input type="text" class="form-control data" name="label" id='label' value="{{article.label}}" placeholder="">
-</div>
-<div class="form-group col-6">
-    <div class="input-group">
-        <div class="input-group-prepend">
-            <label class="input-group-text" for="defaultCheck1">conforme</label>
+<div class="row">
+    <div class="form-group col-6">
+        <label for="libelle">Libellé</label>
+        <input type="text" class="form-control data" name="label" id='label' value="{{article.label}}" placeholder="">
+    </div>
+    <div class="form-group col-3">
+        <label>Anomalie</label>
+        <label class="switch">
+            <input class="checkbox" type="checkbox" name="conform" {{article.conform ? '' : 'checked'}}>
+            <span class="slider round"></span>
+        </label>
+    </div>
+    <div class="form-group col-3">
+        <label>Statut (Inactif/Actif)</label>
+        <label class="switch">
+            <input class="checkbox" type="checkbox" name="actif" {{ statut ? 'checked': ''}} >
+            <span class="slider round"></span>
+        </label>
+    </div>
+    <div class="form-group col-12">
+        <div>
+            <label for="commentaire">Commentaire</label>
+            <input id="commentaireID" class="form-control data" type="hidden" name="commentaire"
+                value="{{article.commentaire}}">
+            <div class="editor-container" value="{{article.commentaire}}"> {{article.commentaire|raw}}
+            </div>
         </div>
-        <select class='data form-control' name="conform" id="">
-            {% if article.conform %}
-            <option value="on">oui</option>
-            <option value="off">non</option>
-            {% else %}
-            <option value="off">non</option>
-            <option value="on">oui</option>
-            {% endif %}
-        </select>
+    </div>
+    <!-- CHAMPS LIBRES -->
+    <div class="row mt-4">
+        <div class='col-12 mb-2' onclick="visibleBlockModal($(this))">
+            <h3 class='d-flex pointer'>
+                <i class="fas fa-sort-up d-none mr-2"></i>
+                <i class="fas fa-sort-down d-block mr-2"></i>
+                Champs libres
+            </h3>
+        </div>
+        <div class="form-group col-12 d-block" id='typeContentEdit'>
+            {% set articleRef = article.articleFournisseur.referenceArticle %}
+            {% set typeA = article.type %}
+            {% for type in types %}
+            <div {{ typeA != null and type.id == typeA.id ? "class='d-block'" : "class='d-none'"}}
+                id="{{type.id}}-edit">
+                <div class="row mt-2">
+                    {% for champ in type.champsLibres %}
+
+                    {% set value = '' %}
+                    {% for row in valeurChampsLibre %}
+                    {% if (row.idCL == champ.id) %}{% set value = row.valeur %}{% endif %}
+                    {% endfor %}
+
+                    <div class="form-group col-6">
+                        <label for="input">
+                            {{champ.label | capitalize}}
+                        </label>
+                        {% if champ.typage == 'booleen' %}
+                        {% set checked = (value == 1) ? 'checked' : '' %}
+                        <input type="checkbox" class="form-control data checkbox" {{ checked }} value="{{ value }}"
+                            name="{{champ.id}}" id="input">
+
+                        {% elseif champ.typage == 'number' %}
+                        <input type="number" class="form-control data" value="{{ value }}" name="{{champ.id}}"
+                            id="input">
+
+                        {% elseif champ.typage == 'list' %}
+                        <select class="form-control unTruc data " name="{{champ.id}}" id="input">
+                            <option value="{{value}}">{{value}}
+                            </option>
+                            {% for elem in champ.elements %}
+                            {% if value != elem %}
+                            <option value="{{elem}}">{{elem}}</option>
+                            {% endif %}
+                            {% endfor %}
+                            {% if value != "" %}
+                            <option value=""></option>
+                            {% endif %}
+                        </select>
+                        {% else %}
+                        <input type="text" class="form-control data" value="{{ value }}" name="{{ champ.id }}"
+                            id="input">
+                        {% endif %}
+
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
     </div>
 </div>
-<div class="input-group col-12 my-2 mb-4">
-    <div class="input-group-prepend">
-        <span class="input-group-text">Commentaire</span>
-    </div> 
-    <input id='commentaireID'class="form-control data" name="commentaire" type="hidden">
-      <div class="editor-container" onkeyup="setCommentaireID"> {{article.commentaire|raw}}
-    </div>
-</div>#}

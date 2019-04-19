@@ -1,9 +1,13 @@
 <div class="row">
     {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE')) %}
-        <div data-id='{{ articleId }}' data-toggle='modal' data-target='#modalEditArticle'
-             class='col-3 command-edit'
-             onclick="editRow($(this), Routing.generate('reception_article_edit_api', true), $('#modalEditArticle'), $('#submitEditArticle'), true)">
-            <i class='fas fa-pencil-alt'></i>
-        </div>
+    <div data-id='{{ articleId }}' data-toggle='modal' data-target='#modalEditArticle' class='col-3 command-edit'
+        onclick="editRow($(this), Routing.generate('article_api_edit', true), $('#modalEditArticle'), $('#submitEditArticle'), true)">
+        <i class='fas fa-pencil-alt'></i>
+    </div>
+    <div class='col-3' id='delete{{articleId}}'
+        onclick="deleteRow($(this), $('#modalDeleteArticle'), $('#submitDeleteArticle'))"
+        data-id='{{ articleId }}' data-target='#modalDeleteArticle' data-toggle='modal'>
+        <i class='fas fa-trash'></i>
+    </div>
     {% endif %}
 </div>

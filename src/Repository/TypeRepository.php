@@ -27,7 +27,7 @@ class TypeRepository extends ServiceEntityRepository
             FROM App\Entity\Type t
             JOIN t.category c
             WHERE c.label = :category"
-            );
+        );
         $query->setParameter("category", $category);
 
         return $query->execute();
@@ -41,12 +41,9 @@ class TypeRepository extends ServiceEntityRepository
             FROM App\Entity\Type t
             JOIN t.category c
             WHERE c.label = :category"
-            );
+        );
         $query->setParameter("category", $category);
-
-        return $query->getFirstResult();
+        $result = $query->execute();
+        return $result[0];
     }
-
-
-
 }

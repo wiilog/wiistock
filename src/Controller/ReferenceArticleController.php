@@ -265,10 +265,10 @@ class ReferenceArticleController extends Controller
                 return new JsonResponse(false);
             } else {
                 $requiredCreate = true;
-                $type = $this->typeRepository->find($data['type']);                                           
+                $type = $this->typeRepository->find($data['type']);
                 $CLRequired = $this->champsLibreRepository->getByTypeAndRequiredCreate($type);
                 foreach ($CLRequired as $CL) {
-                    if (array_key_exists($CL['id'], $data) and $data[$CL['id']] === "" ) {
+                    if (array_key_exists($CL['id'], $data) and $data[$CL['id']] === "") {
                         $requiredCreate = false;
                     }
                 }
@@ -320,8 +320,8 @@ class ReferenceArticleController extends Controller
                     ];
                     $rows = array_merge($rowCL, $rowDD);
                     $response['new'] = $rows;
-                }else{
-                    $response = false; 
+                } else {
+                    $response = false;
                 }
                 return new JsonResponse($response);
             }
@@ -510,7 +510,7 @@ class ReferenceArticleController extends Controller
             $em = $this->getDoctrine()->getManager();
 
             //edit Refrence Article
-            
+
             $refArticle = (isset($data['refArticle']) ? $this->referenceArticleRepository->find($data['refArticle']) : '');
             $response = $this->refArticleDataService->editRefArticle($refArticle, $data);
 
@@ -575,11 +575,15 @@ class ReferenceArticleController extends Controller
                 $demandes = $this->demandeRepository->getByStatutAndUser($statutD, $this->getUser());
 
                 $articleOrNo = $this->articleDataService->getArticleOrNoByRefArticle($refArticle, false);
-                $json = $this->renderView('reference_article/modalPlusDemandeContent.html.twig', [
-                    'articleOrNo' => $articleOrNo,
-                    'collectes' => $collectes,
-                    'demandes' => $demandes
-                ]);
+                $json = [];
+                $json = [
+                    'plusContent' => $this->renderView('reference_article/modalPlusDemandeContent.html.twig', [
+                        'articleOrNo' => $articleOrNo,
+                        'collectes' => $collectes,
+                        'demandes' => $demandes
+                    ]),
+                    'editChampLibre' => ''
+                ];
             } else {
                 $json = false;
             }

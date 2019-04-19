@@ -311,10 +311,15 @@ function ajaxPlusDemandeContent(button) {
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
             dataReponse = JSON.parse(this.responseText);
-            if (dataReponse) {
-                $('.plusDemandeContent').html(dataReponse);
+            if (dataReponse.plusContent) {
+                $('.plusDemandeContent').html(dataReponse.plusContent);
             } else {
                 //TODO gérer erreur
+            }
+            if (dataReponse.editChampLibre) {
+                $('.editChampLibre').html(dataReponse.EditChampLibre);
+            } else {
+                 //TODO gérer erreur
             }
         }
     }

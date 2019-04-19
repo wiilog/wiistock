@@ -119,29 +119,6 @@ function getCompareStock(submit) {
     xhttp.send(json);
 }
 
-
-
-function setMaxQuantityEdit(select) {
-    let params = {
-        refArticleId: select.val(),
-    };
-    $.post(Routing.generate('get_quantity_ref_article'), params, function (data) {
-        let modalBody = select.closest(".modal-body");
-        modalBody.find('#quantite').attr('max', data);
-    }, 'json');
-}
-
-function setMaxQuantity(select) {
-    let params = {
-        refArticleId: select.val(),
-    };
-    $.post(Routing.generate('get_quantity_ref_article'), params, function (data) {
-        let modalBody = select.closest(".modal-body");
-        modalBody.find('#quantity').attr('max', data);
-    }, 'json');
-}
-
-
 $('.ajax-autocomplete').select2({
     ajax: {
         url: Routing.generate('get_ref_articles'),
