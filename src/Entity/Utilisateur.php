@@ -124,6 +124,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->services = new ArrayCollection();
         $this->filters = new ArrayCollection();
     }
+    
     public function getId()
     {
         return $this->id;
