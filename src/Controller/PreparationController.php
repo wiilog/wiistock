@@ -43,7 +43,7 @@ class PreparationController extends AbstractController
      * @var StatutRepository
      */
     private $statutRepository;
-  
+
     /**
      * @var LigneArticleRepository
      */
@@ -109,21 +109,21 @@ class PreparationController extends AbstractController
                 //Plus de detail voir creation demande meme principe
 
                 foreach ($data as $key) {
-                        $demande = $this->demandeRepository->find($key);
-                        // On avance dans le tableau
-                        $statut = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
-                        $demande
-                            ->setPreparation($preparation)
-                            ->setStatut($statut);
+                    $demande = $this->demandeRepository->find($key);
+                    // On avance dans le tableau
+                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
+                    $demande
+                        ->setPreparation($preparation)
+                        ->setStatut($statut);
 
-                        $articles = $demande->getArticles();
-                        foreach ($articles as $article) {
-                                $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
-                                $article
-                                    ->setStatut($statut)
-                                    ->setDirection($demande->getDestination());
-                            }
+                    $articles = $demande->getArticles();
+                    foreach ($articles as $article) {
+                        $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
+                        $article
+                            ->setStatut($statut)
+                            ->setDirection($demande->getDestination());
                     }
+                }
 
                 $em = $this->getDoctrine()->getManager();
                 $em->persist($preparation);
@@ -170,14 +170,14 @@ class PreparationController extends AbstractController
                 $preparations = $this->preparationRepository->findAll();
                 $rows = [];
                 foreach ($preparations as $preparation) {
-                        $url['show'] = $this->generateUrl('preparation_show', ['id' => $preparation->getId()]);
-                        $rows[] = [
-                            'Numéro' => ($preparation->getNumero() ? $preparation->getNumero() : ""),
-                            'Date' => ($preparation->getDate() ? $preparation->getDate()->format('d/m/Y') : ''),
-                            'Statut' => ($preparation->getStatut() ? $preparation->getStatut()->getNom() : ""),
-                            'Actions' => $this->renderView('preparation/datatablePreparationRow.html.twig', ['url' => $url]),
-                        ];
-                    }
+                    $url['show'] = $this->generateUrl('preparation_show', ['id' => $preparation->getId()]);
+                    $rows[] = [
+                        'Numéro' => ($preparation->getNumero() ? $preparation->getNumero() : ""),
+                        'Date' => ($preparation->getDate() ? $preparation->getDate()->format('d/m/Y') : ''),
+                        'Statut' => ($preparation->getStatut() ? $preparation->getStatut()->getNom() : ""),
+                        'Actions' => $this->renderView('preparation/datatablePreparationRow.html.twig', ['url' => $url]),
+                    ];
+                }
                 $data['data'] = $rows;
                 return new JsonResponse($data);
             }
@@ -185,40 +185,40 @@ class PreparationController extends AbstractController
     }
 
 
-//    /**
-//     * @Route("/ajoute-article", name="preparation_add_article", options={"expose"=true}, methods="GET|POST")
-//     */
-//    public function addArticle(Request $request): Response
-//    {
-//        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-//            $article = $this->articleRepository->find($data['article']);
-//            $preparation = $this->preparationRepository->find($data['preparation']);
-//            $preparation->addArticle($article);
-//            $em = $this->getDoctrine()->getManager();
-//            $em->flush();
-//
-//
-//            return new JsonResponse();
-//        }
-//        throw new NotFoundHttpException("404");
-//    }
+    //    /**
+    //     * @Route("/ajoute-article", name="preparation_add_article", options={"expose"=true}, methods="GET|POST")
+    //     */
+    //    public function addArticle(Request $request): Response
+    //    {
+    //        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+    //            $article = $this->articleRepository->find($data['article']);
+    //            $preparation = $this->preparationRepository->find($data['preparation']);
+    //            $preparation->addArticle($article);
+    //            $em = $this->getDoctrine()->getManager();
+    //            $em->flush();
+    //
+    //
+    //            return new JsonResponse();
+    //        }
+    //        throw new NotFoundHttpException("404");
+    //    }
 
-//    /**
-//     * @Route("/supprime-article", name="preparation_delete_article", options={"expose"=true}, methods={"GET", "POST"})
-//     */
-//    public function deleteArticle(Request $request): Response
-//    {
-//        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-//                $article = $this->articleRepository->find($data['article']);
-//                $preparation = $this->preparationRepository->find($data['preparation']);
-//                $preparation->removeArticle($article);
-//                $em = $this->getDoctrine()->getManager();
-//                $em->flush();
-//
-//                return new JsonResponse();
-//            }
-//        throw new NotFoundHttpException("404");
-//    }
+    //    /**
+    //     * @Route("/supprime-article", name="preparation_delete_article", options={"expose"=true}, methods={"GET", "POST"})
+    //     */
+    //    public function deleteArticle(Request $request): Response
+    //    {
+    //        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+    //                $article = $this->articleRepository->find($data['article']);
+    //                $preparation = $this->preparationRepository->find($data['preparation']);
+    //                $preparation->removeArticle($article);
+    //                $em = $this->getDoctrine()->getManager();
+    //                $em->flush();
+    //
+    //                return new JsonResponse();
+    //            }
+    //        throw new NotFoundHttpException("404");
+    //    }
 
 
     /**
@@ -269,5 +269,23 @@ class PreparationController extends AbstractController
             'finished' => ($preparation->getStatut()->getNom() === Preparation::STATUT_A_TRAITER),
             'articles' => $this->articleRepository->getArticleByRefId(),
         ]);
+    }
+
+    /**
+     * @Route("/supprimer/{id}", name="preparation_delete", methods="GET|POST")
+     */
+    public function delete(Preparation $preparation): Response
+    {
+        if (!$this->userService->hasRightFunction(Menu::PREPA, Action::LIST)) {
+            return $this->redirectToRoute('access_denied');
+        }
+
+        $em = $this->getDoctrine()->getManager();
+        foreach ($preparation->getDemandes() as $demande) {
+            $demande->setPreparation(null);
+        }
+        $em->remove($preparation);
+        $em->flush();
+        return $this->redirectToRoute('preparation_index');
     }
 }

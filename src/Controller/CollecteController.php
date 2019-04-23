@@ -99,6 +99,7 @@ class CollecteController extends AbstractController
         return $this->render('collecte/index.html.twig', [
             'statuts' => $this->statutRepository->findByCategorieName(Collecte::CATEGORIE),
             'utilisateurs' => $this->utilisateurRepository->findAll(),
+        
         ]);
     }
 
@@ -114,7 +115,7 @@ class CollecteController extends AbstractController
         return $this->render('collecte/show.html.twig', [
             'refCollecte' => $this->collecteReferenceRepository->getByCollecte($collecte),
             'collecte' => $collecte,
-            'modifiable' => ($collecte->getStatut()->getNom() !== Collecte::STATUS_EN_COURS ? true : false),
+            'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUS_BROUILLON),
         ]);
     }
 
@@ -129,7 +130,7 @@ class CollecteController extends AbstractController
             }
 
             $collectes = $this->collecteRepository->findAll();
-
+           
             $rows = [];
             foreach ($collectes as $collecte) {
                 $url = $this->generateUrl('collecte_show', ['id' => $collecte->getId()]);
@@ -177,7 +178,7 @@ class CollecteController extends AbstractController
                             'name' => ($referenceCollecte->getReferenceArticle() ? $referenceCollecte->getReferenceArticle()->getTypeQuantite() : ReferenceArticle::TYPE_QUANTITE_REFERENCE),
                         ],
                         'collecteId' => $collecte->getid(),
-                        'modifiable' => ($collecte->getStatut()->getNom() !== Collecte::STATUS_EN_COURS ? true : false),
+                        'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUS_BROUILLON),
                     ]),
                 ];
             }
@@ -194,7 +195,7 @@ class CollecteController extends AbstractController
                             'name' => (ReferenceArticle::TYPE_QUANTITE_ARTICLE),
                         ],
                         'collecteId' => $collecte->getid(),
-                        'modifiable' => ($collecte->getStatut()->getNom() !== Collecte::STATUS_EN_COURS ? true : false),
+                        'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUS_BROUILLON ? true : false),
                     ]),
                 ];
             }
@@ -214,20 +215,22 @@ class CollecteController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::DEM_COLLECTE, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
-
             $em = $this->getDoctrine()->getEntityManager();
             $date = new \DateTime('now');
-            $status = $this->statutRepository->findOneByNom(Collecte::STATUS_DEMANDE);
+            $status = $this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, Collecte::STATUS_BROUILLON);
             $numero = 'C-'.$date->format('YmdHis');
             $collecte = new Collecte();
-            $collecte
+            $destination= ($data['destination'] == 0) ? false : true ; 
+                
+                $collecte
                 ->setDemandeur($this->utilisateurRepository->find($data['demandeur']))
                 ->setNumero($numero)
                 ->setDate($date)
                 ->setStatut($status)
-                ->setPointCollecte($this->emplacementRepository->find($data['Pcollecte']))
+                ->setPointCollecte($this->emplacementRepository->find($data['emplacement']))
                 ->setObjet($data['Objet'])
-                ->setCommentaire($data['commentaire']);
+                ->setCommentaire($data['commentaire'])
+                ->setstockOrDestruct($destination);
             $em->persist($collecte);
             $em->flush();
             $data = [
@@ -330,8 +333,9 @@ class CollecteController extends AbstractController
                 $collecteReference = $this->collecteReferenceRepository->find($data[ReferenceArticle::TYPE_QUANTITE_REFERENCE]);
                 $entityManager->remove($collecteReference);
             } elseif (array_key_exists(ReferenceArticle::TYPE_QUANTITE_ARTICLE, $data)) {
-                $article = $this->articleRepository->find($data['article']);
+                $article = $this->articleRepository->find($data[ReferenceArticle::TYPE_QUANTITE_ARTICLE]);
                 $collecte = $this->collecteRepository->find($data['collecte']);
+
                 $article->removeCollecte($collecte);
             }
             $entityManager->flush();
@@ -341,41 +345,6 @@ class CollecteController extends AbstractController
         throw new NotFoundHttpException('404');
     }
 
-    /**
-     * @Route("/finir", name="finish_collecte", options={"expose"=true}, methods={"GET", "POST"}))
-     */
-    public function finish(Request  $request): Response
-    {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::DEM_COLLECTE, Action::CREATE)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
-            $em = $this->getDoctrine()->getManager();
-            $collecte = $this->collecteRepository->find($data['collecte']);
-
-            // changement statut collecte
-            $statusFinCollecte = $this->statutRepository->findOneBy(['nom' => Collecte::STATUS_EN_COURS]);
-            $collecte->setStatut($statusFinCollecte);
-
-            // changement statut article
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_INACTIF);
-            $article = $collecte->getArticles();
-            foreach ($article as $article) {
-                $article->setStatut($statut);
-            }
-            $em->flush();
-            $response = [
-                'entete' => $this->renderView('collecte/enteteCollecte.html.twig', [
-                    'collecte' => $collecte,
-                    'modifiable' => ($collecte->getStatut()->getNom() !== Collecte::STATUS_EN_COURS ? true : false),
-                ]),
-            ];
-
-            return new JsonResponse($response);
-        }
-        throw new NotFoundHttpException('404');
-    }
 
     /**
      * @Route("/api-modifier", name="collecte_api_edit", options={"expose"=true}, methods="GET|POST")
@@ -413,20 +382,19 @@ class CollecteController extends AbstractController
 
             $collecte = $this->collecteRepository->find($data['collecte']);
             $pointCollecte = $this->emplacementRepository->find($data['Pcollecte']);
-
+            $destination= ($data['destination'] == 0) ? false : true ; 
             $collecte
-
                 ->setDate(new \DateTime($data['date-collecte']))
                 ->setCommentaire($data['commentaire'])
                 ->setObjet($data['objet'])
-                ->setPointCollecte($pointCollecte);
-
+                ->setPointCollecte($pointCollecte)
+                ->setstockOrDestruct($destination);
             $em = $this->getDoctrine()->getManager();
             $em->flush();
             $json = [
                 'entete' => $this->renderView('collecte/enteteCollecte.html.twig', [
                     'collecte' => $collecte,
-                    'modifiable' => ($collecte->getStatut()->getNom() !== Collecte::STATUS_EN_COURS ? true : false),
+                    'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUS_BROUILLON),
                 ]),
             ];
 

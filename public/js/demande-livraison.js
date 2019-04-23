@@ -120,7 +120,6 @@ function getCompareStock(submit) {
 }
 
 
-
 function setMaxQuantityEdit(select) {
     let params = {
         refArticleId: select.val(),
@@ -239,40 +238,47 @@ $('#submitSearchDemandeLivraison').on('click', function () {
         .draw();
 });
 
-function finishDemandeLivraison(submit) {
-    xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function () {
-        if (this.readyState == 4 && this.status == 200) {
-            data = JSON.parse(this.responseText);
-            $('#tableArticle_id').DataTable().ajax.reload();
-            $('.zone-entete').html(data.entete);
-            $('#boutonCollecteSup').addClass('d-none')
-            $('#boutonCollecteInf').addClass('d-none')
-            tableArticle.ajax.reload(function (json) {
-                if (this.responseText !== undefined) {
-                    $('#myInput').val(json.lastInput);
-                }
-            });
-        }
-    }
-    path = Routing.generate('finish_demande', true)
-    let data = {};
-    data['demande'] = submit.data('id')
-    json = JSON.stringify(data);
-    xhttp.open("POST", path, true);
-    xhttp.send(json);
-}
+// function finishDemandeLivraison(submit) {
+//     xhttp = new XMLHttpRequest();
+//     xhttp.onreadystatechange = function () {
+//         if (this.readyState == 4 && this.status == 200) {
+//             data = JSON.parse(this.responseText);
+//             $('#tableArticle_id').DataTable().ajax.reload();
+//             $('.zone-entete').html(data.entete);
+//             $('#boutonCollecteSup').addClass('d-none')
+//             $('#boutonCollecteInf').addClass('d-none')
+//             tableArticle.ajax.reload(function (json) {
+//                 if (this.responseText !== undefined) {
+//                     $('#myInput').val(json.lastInput);
+//                 }
+//             });
+//         }
+//     }
+//     path = Routing.generate('finish_demande', true)
+//     let data = {};
+//     data['demande'] = submit.data('id')
+//     json = JSON.stringify(data);
+//     xhttp.open("POST", path, true);
+//     xhttp.send(json);
+// }
 
 function ajaxGetAndFillArticle(select) {
     if ($(select).val() !== null) {
         let path = Routing.generate('demande_article_by_refArticle', true)
-
         let refArticle = $(select).val();
         let params = JSON.stringify(refArticle);
-
+        
         $.post(path, params, function (data) {
             $('#newContent').html(data);
             $('#modalNewArticle').find('div').find('div').find('.modal-footer').removeClass('d-none');
+            displayRequireChamp($('#typeEdit'), 'edit');
         })
     }
+}
+
+function deleteRowDemande(button, modal, submit) {
+    let id = button.data('id');
+    let name = button.data('name');
+    modal.find(submit).attr('value', id);
+    modal.find(submit).attr('name', name);
 }

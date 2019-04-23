@@ -13,9 +13,9 @@ class Collecte
 {
     const CATEGORIE = 'collecte';
 
-    const STATUS_FIN = 'collecté';
-    const STATUS_EN_COURS = 'à traiter';
-    const STATUS_DEMANDE = 'brouillon';
+    const STATUS_COLLECTE = 'collecté';
+    const STATUS_A_TRAITER = 'à traiter';
+    const STATUS_BROUILLON = 'brouillon';
 
     /**
      * @ORM\Id()
@@ -69,6 +69,11 @@ class Collecte
      * @ORM\OneToMany(targetEntity="App\Entity\CollecteReference", mappedBy="collecte")
      */
     private $collecteReferences;
+
+    /**
+     * @ORM\Column(type="boolean")
+     */
+    private $stockOrDestruct;
 
     public function __construct()
     {
@@ -218,6 +223,18 @@ class Collecte
                 $collecteReference->setCollecte(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getStockOrDestruct(): ?bool
+    {
+        return $this->stockOrDestruct;
+    }
+
+    public function setStockOrDestruct(bool $stockOrDestruct): self
+    {
+        $this->stockOrDestruct = $stockOrDestruct;
 
         return $this;
     }

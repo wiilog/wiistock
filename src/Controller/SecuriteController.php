@@ -78,10 +78,10 @@ class SecuriteController extends Controller
         if ($form->isSubmitted() && $form->isValid()) {
             $password = $passwordEncoder->encodePassword($user, $user->getPlainPassword());
             $user
+                ->setStatus(true)
                 ->setPassword($password)
                 ->setRoles(['USER']) // évite bug -> champ roles ne doit pas être vide
                 ->setRole($this->roleRepository->findOneByLabel(Role::SIMPLE_USER));
-
             $em->persist($user);
             $em->flush();
             $session->getFlashBag()->add('success', 'Félicitations ! Votre nouveau compte a été créé avec succès !');

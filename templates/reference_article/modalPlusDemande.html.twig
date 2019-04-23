@@ -1,6 +1,6 @@
 <form method="" class="modal fade" id="modalPlusDemande" role="dialog" aria-labelledby="dataModalCenterTitle"
     aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="exampleModalLongTitle">Ajouter à une demande </h5>
@@ -10,23 +10,26 @@
             </div>
             <div class="modal-body">
                 <div class='row mb-3'>
-                    <label class='col-5'>Type de demande: </label>
-                    <div class="col-6 input-group radio-btn">
+                    <label class='col'>Type de demande: </label>
+                    <div class="col input-group radio-btn">
                         <div>
                             <span class="btn not-active" data-toggle="demande" data-title="livraison"
-                                onclick="toggleRadioButton($(this)), showDemande($(this))">Livraison</span><span
-                                class="btn not-active" data-toggle="demande" data-title="collecte"
-                                onclick="toggleRadioButton($(this), showDemande($(this)))">Collecte</span>
+                            onclick="toggleRadioButton($(this)), ajaxPlusDemandeContent($(this), 'livraison')">Livraison</span><span
+                            class="btn not-active" data-toggle="demande" data-title="collecte"
+                            onclick="toggleRadioButton($(this)), ajaxPlusDemandeContent($(this), 'collecte')">Collecte</span>
                         </div>
                     </div>
                 </div>
-               <div class="plusDemandeContent"></div>
+                <div class="plusDemandeContent row mb-3"></div>
+                <div class="editChampLibre"></div>
 
+                <div class="error-msg"></div>
             </div>
+
             <div class="modal-footer">
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>
-                <button id="submitPlusDemande" name='refArticle' value='' type="button" data-dismiss="modal"
-                class="btn btn-primary btn-success data">Ajouter</button>
+                <button type="button" id="submitPlusDemande" name='refArticle' value=''
+                    class="btn btn-primary btn-success data">Ajouter</button>
             </div>
         </div>
     </div>

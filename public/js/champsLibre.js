@@ -50,6 +50,8 @@ let tableChampsLibre = $('#tableChampslibre_id').DataTable({
         { "data": 'Typage' },
         { "data": 'Valeur par défaut' },
         { "data": 'Elements' },
+        { "data": 'Obligatoire à la création' },
+        { "data": 'Obligatoire à la modification' },
         { "data": 'Actions' },
     ],
 });
@@ -57,7 +59,7 @@ let tableChampsLibre = $('#tableChampslibre_id').DataTable({
 let dataModalChampsLibreNew = $("#modalNewChampsLibre");
 let ButtonSubmitChampsLibreNew = $("#submitChampsLibreNew");
 let urlChampsLibreNew = Routing.generate('champ_libre_new', true);
-InitialiserModal(dataModalChampsLibreNew, ButtonSubmitChampsLibreNew, urlChampsLibreNew, tableChampsLibre);
+InitialiserModal(dataModalChampsLibreNew, ButtonSubmitChampsLibreNew, urlChampsLibreNew, tableChampsLibre, displayError, false);
 
 let dataModalChampsLibreDelete = $("#modalDeleteChampsLibre");
 let ButtonSubmitChampsLibreDelete = $("#submitChampsLibreDelete");
@@ -110,5 +112,15 @@ function changeType(select) {
     } else {
         $('#isList').hide();
         $('#defaultValue').show();
+    }
+}
+
+function displayError(data) {
+    let modal = $("#modalNewChampsLibre");
+    if (data === false) {
+        let msg = 'Ce nom de champ libre existe déjà. Veuillez en choisir un autre.';
+        modal.find('.error-msg').html(msg);
+    } else {
+        modal.find('.close').click();
     }
 }

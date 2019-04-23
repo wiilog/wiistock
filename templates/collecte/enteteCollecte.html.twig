@@ -1,12 +1,19 @@
 <div class='row'>
     <div class="col-6">
-        <p><strong> Demandeur : </strong> {{ collecte.demandeur }}</p>
+        <p><strong> Demandeur : </strong> {{ collecte.demandeur.username }}</p>
         <p><strong> Date demande : </strong>{{ collecte.date.date|date('d/m/Y') }}</p>
         <p><strong> Date terminée : </strong> </p>
+        <p><strong> Destination : </strong>
+            {% if collecte.stockOrDestruct == 1 %}
+            Mise en stock
+            {% else %}
+            Destruction
+            {% endif %}
     </div>
     <div class="col-6">
         <p><strong> Objet : </strong>{{ collecte.objet }}</p>
         <p><strong> Statut : </strong> {{ collecte.statut.nom | capitalize }}</p>
+        <p><strong> Point de collecte : </strong> {{ collecte.pointCollecte | capitalize }}</p>
     </div>
     <div class="col-12">
         <p><strong> Commentaire : </strong></p>

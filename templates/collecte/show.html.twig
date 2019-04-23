@@ -22,10 +22,8 @@
                    class="btn btn-primary btn-action ml-auto">
                     Modifier</a>
             {% endif %}
-            {% if hasRight(constant('App\\Entity\\Menu::DEM_COLLECTE'), constant('App\\Entity\\Action::CREATE')) %}
-                <a href="#" class="btn btn-primary btn-action ml-auto" data-id='{{collecte.id}}' id='submitFinishCollecte'
-                   onclick="finishCollecte($(this))">
-                    Valider</a>
+            {% if hasRight(constant('App\\Entity\\Menu::COLLECTE'), constant('App\\Entity\\Action::CREATE')) %}
+                <a href="{{path('ordre_collecte_new', {'id': collecte.id}) }}" class="btn btn-primary btn-action ml-auto">Valider</a>
             {% endif %}
         {% endif %}
     </div>

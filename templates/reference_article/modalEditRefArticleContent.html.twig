@@ -1,12 +1,7 @@
 <div class="row">
     <div class="form-group col-6">
-        <div class="input-group">
-            <div class="input-group-prepend">
-                <label class="input-group-text" for="reference">Référence</label>
-            </div>
-            <input class="form-control data" type="text" value="{{articleRef.reference}}" name="reference"
-                id="reference">
-        </div>
+        <label for="reference">Référence</label>
+        <input class="form-control data" type="text" value="{{articleRef.reference}}" name="reference" id="reference">
     </div>
     <div class="form-group col-6">
         <div class="input-group radio-btn">
@@ -21,36 +16,26 @@
         </div>
     </div>
     <div class="form-group col-6">
-        <div class="input-group">
-            <div class="input-group-prepend">
-                <label class="input-group-text" for="libelle">Nom</label>
-            </div>
-            <input class="form-control data" type="text" name="libelle" value="{{articleRef.libelle}}" id="libelle">
-        </div>
+        <label for="libelle">Nom</label>
+        <input class="form-control data" type="text" name="libelle" value="{{articleRef.libelle}}" id="libelle">
     </div>
     <div class="form-group col-6">
-        <div class="input-group">
-            <div class="input-group-prepend">
-                <label for="type" class="input-group-text">Type</label>
-            </div>
-            <select name="type" onclick="typeChoice($(this), '-edit', $('#typeContentEdit'))"
-                class="form-control data d-block" id="">
-                {% set selected = articleRef.type is null ? 'selected' : '' %}
-                <option {{ selected }} value=''> </option>
+        <label for="type">Type</label>
+        <select name="type" onclick="typeChoice($(this), '-edit', $('#typeContentEdit'))" onchange="displayRequireChamp($(this), 'edit')"
+            class="form-control data d-block" id="typeEdit">
+            {% set selected = articleRef.type is null ? 'selected' : '' %}
+            <option {{ selected }} value=''> </option>
 
-                {% for type in types %}
-                {% set selected = '' %}
-                {% if articleRef.type is not null %}{% set selected = articleRef.type.id == type.id ? 'selected' : '' %}{% endif %}
-                <option {{ selected }} value="{{type.id}}">{{type.label}}</option>
-                {% endfor %}
-            </select>
-        </div>
+            {% for type in types %}
+            {% set selected = '' %}
+            {% if articleRef.type is not null %}{% set selected = articleRef.type.id == type.id ? 'selected' : '' %}{% endif %}
+            <option {{ selected }} value="{{type.id}}">{{type.label}}</option>
+            {% endfor %}
+        </select>
     </div>
     <div class="form-group col-12">
         <div class="">
-            <div class="input-group-prepend">
-                <label class="input-group-text">Nomenclature</label>
-            </div>
+            <label>Nomenclature</label>
             <input id='commentaire' class="form-control data" name="commentaire" type="hidden"
                 value='{{articleRef.commentaire}}'>
             <div class="editor-container" value="{{articleRef.commentaire}}"> {{articleRef.commentaire|raw}}</div>
@@ -78,11 +63,10 @@
         {% set dnone = (articleRef.typeQuantite == 'reference') ? '' : 'd-none' %}
 
         <div class="input-group reference {{ dnone }}">
-            <div class="input-group-prepend">
-                <label class="input-group-text" for="quantité">Quantité</label>
-            </div>
+
+            <label class="mtb-auto mr-2" for="quantite">Quantité</label>
             <input class="form-control data" value='{{ articleRef.quantiteStock }}' type="number" min="0"
-                name="quantite" id="quantité">
+                name="quantite" id="quantite">
         </div>
 
         {% set dnone = (articleRef.typeQuantite == 'article') ? '' : 'd-none' %}
@@ -144,39 +128,35 @@
                 {% endfor %}
 
                 <div class="form-group col-6">
-                    <div class="input-group">
-                        <div class="input-group-prepend">
-                            <label class="input-group-text" for="input">
-                                {{champ.label | capitalize}}
-                            </label>
-                        </div>
-                        {% if champ.typage == 'booleen' %}
-                        {% set checked = (value == 1) ? 'checked' : '' %}
-                        <input type="checkbox" class="form-control data checkbox" {{ checked }} value="{{ value }}"
-                            name="{{champ.id}}" id="input">
 
-                        {% elseif champ.typage == 'number' %}
-                        <input type="number" class="form-control data" value="{{ value }}" name="{{champ.id}}"
-                            id="input">
+                    <label for="input">{{champ.label | capitalize}}</label>
 
-                        {% elseif champ.typage == 'list' %}
-                        <select class="form-control unTruc data " name="{{champ.id}}" id="input">
-                            <option value="{{value}}">{{value}}
-                            </option>
-                            {% for elem in champ.elements %}
-                            {% if value != elem %}
-                            <option value="{{elem}}">{{elem}}</option>
-                            {% endif %}
-                            {% endfor %}
-                            {% if value != "" %}
-                            <option value=""></option>
-                            {% endif %}
-                        </select>
-                        {% else %}
-                        <input type="text" class="form-control data" value="{{ value }}" name="{{ champ.id }}"
-                            id="input">
+                    {% if champ.typage == 'booleen' %}
+                    {% set checked = (value == 1) ? 'checked' : '' %}
+                    <label class="switch">
+                        <input type="checkbox" class="data checkbox" {{ checked }} name="{{champ.id}}">
+                        <span class="slider round"></span>
+                    </label>
+
+                    {% elseif champ.typage == 'number' %}
+                    <input type="number" id="{{champ.label ~ 'edit'}}" class="form-control data" value="{{ value }}" name="{{champ.id}}" id="input">
+
+                    {% elseif champ.typage == 'list' %}
+                    <select class="form-control data"  id="{{champ.label ~ 'edit'}}" name="{{champ.id}}" id="input">
+                        <option value="{{value}}">{{value}}
+                        </option>
+                        {% for elem in champ.elements %}
+                        {% if value != elem %}
+                        <option value="{{elem}}">{{elem}}</option>
                         {% endif %}
-                    </div>
+                        {% endfor %}
+                        {% if value != "" %}
+                        <option value=""></option>
+                        {% endif %}
+                    </select>
+                    {% else %}
+                    <input type="text"  id="{{champ.label ~ 'edit'}}" class="form-control data" value="{{ value }}" name="{{ champ.id }}" id="input">
+                    {% endif %}
                 </div>
                 {% endfor %}
             </div>

@@ -52,7 +52,7 @@ class Article
      * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="articles")
      */
     private $Statut;
-   
+
     /**
      * @ORM\Column(type="boolean")
      */
@@ -88,14 +88,22 @@ class Article
      */
     private $valeurChampsLibres;
 
-    
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="articles")
+     */
+    private $emplacement;
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Demande", inversedBy="articles")
+     */
+    private $demande;
+
+
     public function __construct()
     {
         $this->preparations = new ArrayCollection();
         $this->collectes = new ArrayCollection();
         $this->mouvements = new ArrayCollection();
         $this->valeurChampsLibres = new ArrayCollection();
-        
     }
 
     public function getId(): ?int
@@ -286,7 +294,7 @@ class Article
 
         return $this;
     }
-      /**
+    /**
      * @return Collection|ValeurChampsLibre[]
      */
     public function getValeurChampsLibres(): Collection
@@ -313,5 +321,24 @@ class Article
 
         return $this;
     }
+    public function getEmplacement(): ?Emplacement
+    {
+        return  $this->emplacement;
+    }
 
+    public function setEmplacement(?Emplacement  $emplacement): self
+    {
+        $this->emplacement =  $emplacement;
+        return  $this;
+    }
+    public function getDemande(): ?Demande
+    {
+        return  $this->demande;
+    }
+
+    public function setDemande(?Demande  $demande): self
+    {
+        $this->demande =  $demande;
+        return  $this;
+    }
 }

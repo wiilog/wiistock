@@ -31,6 +31,30 @@ class ChampsLibreRepository extends ServiceEntityRepository
         ;
         return $query->execute(); 
     }
+    
+    public function getByTypeAndRequiredCreate($type)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT c.label, c.id
+            FROM App\Entity\ChampsLibre c 
+            WHERE c.type = :type AND c.requiredCreate = TRUE"
+        )->setParameter('type', $type);
+        ;
+        return $query->getResult(); 
+    }
+
+    public function getByTypeAndRequiredEdit($type)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT c.label, c.id
+            FROM App\Entity\ChampsLibre c 
+            WHERE c.type = :type AND c.requiredEdit = TRUE"
+        )->setParameter('type', $type);
+        ;
+        return $query->getResult(); 
+    }
 
     public function getLabelAndIdAndTypage()
     {
@@ -80,6 +104,19 @@ class ChampsLibreRepository extends ServiceEntityRepository
         )->setParameter('typeId', $typeId);
 
         return $query->execute();
+    }
+
+    public function countByLabel($label)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT COUNT(cl)
+            FROM App\Entity\ChampsLibre cl
+            WHERE cl.label = :label
+           "
+        )->setParameter('label', $label);
+
+        return $query->getSingleScalarResult();
     }
 
    

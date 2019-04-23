@@ -88,26 +88,6 @@ let submitDeleteArticle = $("#submitDeleteArticle");
 let urlDeleteArticle = Routing.generate('collecte_remove_article', true);
 InitialiserModal(modalDeleteArticle, submitDeleteArticle, urlDeleteArticle, tableArticle);
 
-function finishCollecte(submit) {
-    xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function () {
-        if (this.readyState == 4 && this.status == 200) {
-            data = JSON.parse(this.responseText);
-            $('#tableArticle_id').DataTable().ajax.reload();
-            $('.zone-entete').html(data.entete);
-            $('#boutonCollecteSup').addClass('d-none')
-            $('#boutonCollecteInf').addClass('d-none')
-
-        }
-    }
-    path =  Routing.generate('finish_collecte', true)
-    let data = {};
-    data['collecte'] = submit.data('id')
-    json = JSON.stringify(data);
-    xhttp.open("POST", path, true);
-    xhttp.send(json);
-}
-
 // $('.ajax-autocomplete').select2({
 //     ajax: {
 //         url: Routing.generate('get_ref_articles'),
@@ -152,8 +132,9 @@ function ajaxGetCollecteArticle(select) {
             data = JSON.parse(this.responseText);
            $('#newContent').html(data);
            $('#modalNewArticle').find('div').find('div').find('.modal-footer').removeClass('d-none');
+           displayRequireChamp($('#typeEdit'), 'edit');
         }
-    }
+    } 
     path =  Routing.generate('get_collecte_article_by_refArticle', true)
     let data = {};
     data['referenceArticle'] = $(select).val();
@@ -232,6 +213,21 @@ $('#submitSearchCollecte').on('click', function () {
     table
        .draw();
 });
+
+function destinationCollecte(button) {
+    let sel = $(button).data('title');
+    let tog = $(button).data('toggle');
+    if ($(button).hasClass('not-active')) {
+        if ($("#destination").val() == "0") {
+            $("#destination").val("1");
+        } else {
+            $("#destination").val("0");
+        }
+    }
+
+    $('span[data-toggle="' + tog + '"]').not('[data-title="' + sel + '"]').removeClass('active').addClass('not-active');
+    $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
+}
 
 
 
