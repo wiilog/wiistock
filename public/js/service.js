@@ -2,7 +2,7 @@ $('.select2').select2();
 
 $('#utilisateur').select2({
     placeholder: {
-         text: 'Demandeur',
+        text: 'Demandeur',
     }
 });
 
@@ -11,7 +11,7 @@ let tableService = $('#tableService_id').DataTable({
     "language": {
         "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
     },
-    "order": [[ 0, "desc" ]],
+    "order": [[0, "desc"]],
     ajax: {
         "url": pathService,
         "type": "POST"
@@ -22,7 +22,7 @@ let tableService = $('#tableService_id').DataTable({
         { "data": 'Libellé', 'name': 'Libellé' },
         { "data": 'Statut', 'name': 'Statut' },
         { "data": 'Actions', 'name': 'Actions' },
-    ],  
+    ],
 
 });
 
@@ -115,11 +115,7 @@ function changeStatus(button) {
     let sel = $(button).data('title');
     let tog = $(button).data('toggle');
     if ($(button).hasClass('not-active')) {
-        if ($("#s").val() == "0") {
-            $("#s").val("1");
-        } else {
-            $("#s").val("0");
-        }
+        $("#s").val($(button).data('value'));
     }
 
     $('span[data-toggle="' + tog + '"]').not('[data-title="' + sel + '"]').removeClass('active').addClass('not-active');
