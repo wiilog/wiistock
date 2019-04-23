@@ -331,7 +331,7 @@ function typeChoice(bloc, text, content) {
 }
 
 function updateQuantityDisplay(elem) {
-    let typeQuantite = elem.closest('.radio-btn').find('#type_quantite').val();
+    let typeQuantite = $('#type_quantite').val();
     let modalBody = elem.closest('.modal-body');
 
     if (typeQuantite == 'reference') { 
