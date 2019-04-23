@@ -33,8 +33,11 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function () 
 
         // On récupère toutes les données qui nous intéressent
         // dans les inputs...
-        let inputs = modal.find(".data");
         let Data = {};
+        let inputs = modal.find(".data");
+        let fournisseurs = modal.find('input[name="fournisseur"]');
+        let fournisseurReferences = modal.find('input[name="referenceFournisseur"]');
+        let labelFournisseur = modal.find('input[name="labelFournisseur"]');
         let missingInputs = [];
         let wrongInputs = [];
         inputs.each(function () {
