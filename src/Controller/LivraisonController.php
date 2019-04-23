@@ -259,7 +259,7 @@ class LivraisonController extends AbstractController
     public function delete(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            dump($data);
+            
             if (!$this->userService->hasRightFunction(Menu::PREPA, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
