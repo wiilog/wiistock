@@ -282,6 +282,7 @@ class ReferenceArticleController extends Controller
                         ->setCommentaire($data['commentaire'])
                         ->setQuantiteStock($data['quantite'] ? $data['quantite'] : 0)
                         ->setStatut($statut)
+                        ->setFournisseur($data['fournisseur'])
                         ->setTypeQuantite($data['type_quantite'] ? ReferenceArticle::TYPE_QUANTITE_REFERENCE : ReferenceArticle::TYPE_QUANTITE_ARTICLE)
                         ->setType($type);
                     $em->persist($refArticle);
@@ -505,7 +506,7 @@ class ReferenceArticleController extends Controller
     public function plusDemande(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-//TODO CG optim return / response
+            //TODO CG optim return / response
             $em = $this->getDoctrine()->getManager();
 
             //edit Refrence Article
@@ -578,7 +579,7 @@ class ReferenceArticleController extends Controller
                 if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                     if ($refArticle) {
                         $dataArticle = $this->refArticleDataService->getDataEditForRefArticle($refArticle);
-                        
+
                         $statuts = $this->statutRepository->findByCategorieName(ReferenceArticle::CATEGORIE);
                         $editChampLibre = $this->renderView('reference_article/modalEditRefArticleContent.html.twig', [
                             'articleRef' => $refArticle,
@@ -676,13 +677,16 @@ class ReferenceArticleController extends Controller
             if ($articleRef) {
                 $data = $this->refArticleDataService->getDataEditForRefArticle($articleRef);
 
-                $json = $this->renderView('reference_article/modalShowRefArticleContent.html.twig',
-                    ['articleRef' => $articleRef,
+                $json = $this->renderView(
+                    'reference_article/modalShowRefArticleContent.html.twig',
+                    [
+                        'articleRef' => $articleRef,
                         'statut' => ($articleRef->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF),
-                         'valeurChampsLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
+                        'valeurChampsLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
                         'articlesFournisseur' => $data['listArticlesFournisseur'],
                         'totalQuantity' => $data['totalQuantity']
-                    ]);
+                    ]
+                );
 
                 return new JsonResponse($json);
             }

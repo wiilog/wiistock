@@ -101,6 +101,11 @@ class ReferenceArticle
      */
     private $receptionReferenceArticles;
 
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $fournisseur;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
@@ -410,6 +415,18 @@ class ReferenceArticle
             }
             return $this;
         }
+    }
+
+    public function getFournisseur(): ?string
+    {
+        return $this->fournisseur;
+    }
+
+    public function setFournisseur(string $fournisseur): self
+    {
+        $this->fournisseur = $fournisseur;
+
+        return $this;
     }
 
 }

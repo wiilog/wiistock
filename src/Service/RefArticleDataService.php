@@ -24,7 +24,7 @@ use Doctrine\ORM\EntityManagerInterface;
 
 
 
-class RefArticleDataService 
+class RefArticleDataService
 {
     /**
      * @var ReferenceArticleRepository
@@ -36,7 +36,7 @@ class RefArticleDataService
      */
     private $champsLibreRepository;
 
-     /**
+    /**
      * @var TypeRepository
      */
     private $typeRepository;
@@ -65,11 +65,11 @@ class RefArticleDataService
      * @var object|string
      */
     private $user;
-   
+
     private $em;
 
 
-    public function __construct(TypeRepository  $typeRepository ,StatutRepository $statutRepository,EntityManagerInterface $em,ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampsLibreRepository $champsLibreRepository, FilterRepository $filterRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
+    public function __construct(TypeRepository  $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampsLibreRepository $champsLibreRepository, FilterRepository $filterRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
     {
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->champsLibreRepository = $champsLibreRepository;
@@ -137,30 +137,30 @@ class RefArticleDataService
      */
     public function getDataEditForRefArticle($articleRef)
     {
-            $type = $articleRef->getType();
-            if ($type) {
-                $valeurChampLibre = $this->valeurChampsLibreRepository->getByRefArticleAndType($articleRef->getId(), $type->getId());
-            } else {
-                $valeurChampLibre = [];
+        $type = $articleRef->getType();
+        if ($type) {
+            $valeurChampLibre = $this->valeurChampsLibreRepository->getByRefArticleAndType($articleRef->getId(), $type->getId());
+        } else {
+            $valeurChampLibre = [];
+        }
+        // construction du tableau des articles fournisseurs
+        $listArticlesFournisseur = [];
+        $articlesFournisseurs = $articleRef->getArticlesFournisseur();
+        $totalQuantity = 0;
+        foreach ($articlesFournisseurs as $articleFournisseur) {
+            $quantity = 0;
+            foreach ($articleFournisseur->getArticles() as $article) {
+                $quantity += $article->getQuantite();
             }
-            // construction du tableau des articles fournisseurs
-            $listArticlesFournisseur = [];
-            $articlesFournisseurs = $articleRef->getArticlesFournisseur();
-            $totalQuantity = 0;
-            foreach ($articlesFournisseurs as $articleFournisseur) {
-                $quantity = 0;
-                foreach ($articleFournisseur->getArticles() as $article) {
-                    $quantity += $article->getQuantite();
-                }
-                $totalQuantity += $quantity;
+            $totalQuantity += $quantity;
 
-                $listArticlesFournisseur[] = [
-                    'fournisseurRef' => $articleFournisseur->getFournisseur()->getCodeReference(),
-                    'label' => $articleFournisseur->getLabel(),
-                    'fournisseurName' => $articleFournisseur->getFournisseur()->getNom(),
-                    'quantity' => $quantity
-                ];
-            }
+            $listArticlesFournisseur[] = [
+                'fournisseurRef' => $articleFournisseur->getFournisseur()->getCodeReference(),
+                'label' => $articleFournisseur->getLabel(),
+                'fournisseurName' => $articleFournisseur->getFournisseur()->getNom(),
+                'quantity' => $quantity
+            ];
+        }
 
         return $data = [
             'listArticlesFournisseur' => $listArticlesFournisseur,
@@ -184,7 +184,7 @@ class RefArticleDataService
         $type =  $this->typeRepository->find(intval($data['type']));
         $CLRequired = $this->champsLibreRepository->getByTypeAndRequiredCreate($type);
         foreach ($CLRequired as $CL) {
-            if (array_key_exists($CL['id'], $data) and $data[$CL['id']] === "" ) {
+            if (array_key_exists($CL['id'], $data) and $data[$CL['id']] === "") {
                 $requiredEdit = false;
             }
         }
@@ -192,12 +192,13 @@ class RefArticleDataService
         if ($requiredEdit) {
             $entityManager = $this->em;
             if (isset($data['reference'])) $refArticle->setReference($data['reference']);
+            if (isset($data['fournisseur'])) $refArticle->setFournisseur($data['fournisseur']);
             if (isset($data['libelle'])) $refArticle->setLibelle($data['libelle']);
             if (isset($data['commentaire'])) $refArticle->setCommentaire($data['commentaire']);
             if (isset($data['quantite'])) $refArticle->setQuantiteStock(intval($data['quantite']));
             if (isset($data['statut'])) {
                 $statutLabel = ($data['statut'] == 1) ? ReferenceArticle::STATUT_ACTIF : ReferenceArticle::STATUT_INACTIF;
-                $statut = $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, $statutLabel);
+                $statut = $this->statutRepository->getByCategorieAndStatut(ReferenceArticle::CATEGORIE, $statutLabel);
                 $refArticle->setStatut($statut);
             }
             if (isset($data['type'])) {
@@ -250,5 +251,4 @@ class RefArticleDataService
         }
         return $response;
     }
-
 }

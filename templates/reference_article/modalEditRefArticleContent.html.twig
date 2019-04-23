@@ -20,9 +20,13 @@
         <input class="form-control data" type="text" name="libelle" value="{{articleRef.libelle}}" id="libelle">
     </div>
     <div class="form-group col-6">
+        <label for="libelle">Fournisseur</label>
+        <input class="form-control data" type="text" name="fournisseur" value="{{articleRef.fournisseur}}" id="libelle">
+    </div>
+    <div class="form-group col-6">
         <label for="type">Type</label>
-        <select name="type" onclick="typeChoice($(this), '-edit', $('#typeContentEdit'))" onchange="displayRequireChamp($(this), 'edit')"
-            class="form-control data d-block" id="typeEdit">
+        <select name="type" onclick="typeChoice($(this), '-edit', $('#typeContentEdit'))"
+            onchange="displayRequireChamp($(this), 'edit')" class="form-control data d-block" id="typeEdit">
             {% set selected = articleRef.type is null ? 'selected' : '' %}
             <option {{ selected }} value=''> </option>
 
@@ -139,10 +143,11 @@
                     </label>
 
                     {% elseif champ.typage == 'number' %}
-                    <input type="number" id="{{champ.label ~ 'edit'}}" class="form-control data" value="{{ value }}" name="{{champ.id}}" id="input">
+                    <input type="number" id="{{champ.label ~ 'edit'}}" class="form-control data" value="{{ value }}"
+                        name="{{champ.id}}" id="input">
 
                     {% elseif champ.typage == 'list' %}
-                    <select class="form-control data"  id="{{champ.label ~ 'edit'}}" name="{{champ.id}}" id="input">
+                    <select class="form-control data" id="{{champ.label ~ 'edit'}}" name="{{champ.id}}" id="input">
                         <option value="{{value}}">{{value}}
                         </option>
                         {% for elem in champ.elements %}
@@ -155,7 +160,8 @@
                         {% endif %}
                     </select>
                     {% else %}
-                    <input type="text"  id="{{champ.label ~ 'edit'}}" class="form-control data" value="{{ value }}" name="{{ champ.id }}" id="input">
+                    <input type="text" id="{{champ.label ~ 'edit'}}" class="form-control data" value="{{ value }}"
+                        name="{{ champ.id }}" id="input">
                     {% endif %}
                 </div>
                 {% endfor %}
