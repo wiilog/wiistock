@@ -198,7 +198,7 @@ class RefArticleDataService
             if (isset($data['quantite'])) $refArticle->setQuantiteStock(intval($data['quantite']));
             if (isset($data['statut'])) {
                 $statutLabel = ($data['statut'] == 1) ? ReferenceArticle::STATUT_ACTIF : ReferenceArticle::STATUT_INACTIF;
-                $statut = $this->statutRepository->getByCategorieAndStatut(ReferenceArticle::CATEGORIE, $statutLabel);
+                $statut = $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, $statutLabel);
                 $refArticle->setStatut($statut);
             }
             if (isset($data['type'])) {
