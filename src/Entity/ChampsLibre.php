@@ -57,6 +57,17 @@ class ChampsLibre
      */
     private $elements = [];
 
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $requiredCreate;
+
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $requiredEdit;
+
+
     public function __construct()
     {
         $this->valeurChampsLibres = new ArrayCollection();
@@ -191,6 +202,30 @@ class ChampsLibre
     public function setElements(?array $elements): self
     {
         $this->elements = $elements;
+
+        return $this;
+    }
+
+    public function getRequiredCreate(): ?bool
+    {
+        return $this->requiredCreate;
+    }
+
+    public function setRequiredCreate(?bool $requiredCreate): self
+    {
+        $this->requiredCreate = $requiredCreate;
+
+        return $this;
+    }
+
+    public function getRequiredEdit(): ?bool
+    {
+        return $this->requiredEdit;
+    }
+
+    public function setRequiredEdit(?bool $requiredEdit): self
+    {
+        $this->requiredEdit = $requiredEdit;
 
         return $this;
     }

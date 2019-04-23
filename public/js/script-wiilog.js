@@ -290,7 +290,6 @@ function setCommentaireID(button) {
     var quill = new Quill(container);
     // let commentaire = modal.find('input[id=commentaireID]');
     com = quill.container.firstChild.innerHTML;
-    console.log(com);
     $('#commentaireID').val(com);
 };
 
@@ -427,6 +426,25 @@ function clearNewContent(button) {
     button.parent().addClass('d-none');
     $('#newContent').html('');
     $('#reference').html('');
+}
+
+let displayRequireChamp = function (select, require) {
+    xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            data = JSON.parse(this.responseText);
+            data.forEach(function (element) {
+                $('#' + element + require).addClass('needed');
+            });
+        }
+    }
+    let path = Routing.generate('display_require_champ', true);
+    let json = {};
+    json[require] = select.val();
+    let Json = JSON.stringify(json)
+    $('.data').removeClass('needed');
+    xhttp.open("POST", path, true);
+    xhttp.send(Json);
 }
 
 function ajaxFournisseurArticle(select) {
