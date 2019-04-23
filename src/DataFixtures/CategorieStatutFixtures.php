@@ -27,7 +27,7 @@ class CategorieStatutFixtures extends Fixture implements FixtureGroupInterface
              'livraison',
              'preparation',
              'reception',
-            'service'
+            'manutention'
         ];
 
         foreach ($categoriesNames as $categorieName) {

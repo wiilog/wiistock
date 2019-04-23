@@ -135,14 +135,15 @@ class StatutFixtures extends Fixture implements DependentFixtureInterface, Fixtu
         // catégorie service
         $statutsNames = [
             'à traiter',
-            'traité'
+            'traité',
+            'brouillon'
         ];
 
         foreach ($statutsNames as $statutName) {
             $statut = new Statut();
             $statut
                 ->setNom($statutName)
-                ->setCategorie($this->getReference('statut-service'));
+                ->setCategorie($this->getReference('statut-manutention'));
             $manager->persist($statut);
         }
 
