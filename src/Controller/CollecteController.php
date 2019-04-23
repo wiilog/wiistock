@@ -227,7 +227,7 @@ class CollecteController extends AbstractController
                 ->setNumero($numero)
                 ->setDate($date)
                 ->setStatut($status)
-                ->setPointCollecte($this->emplacementRepository->find($data['Pcollecte']))
+                ->setPointCollecte($this->emplacementRepository->find($data['emplacement']))
                 ->setObjet($data['Objet'])
                 ->setCommentaire($data['commentaire'])
                 ->setstockOrDestruct($destination);

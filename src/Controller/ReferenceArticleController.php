@@ -529,8 +529,6 @@ class ReferenceArticleController extends Controller
                             ->setQuantite($ligneArticle->getQuantite() + $data["quantitie"]);
                     }
                 } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-                    dump('hell',$data);
-
                     $response = $this->articleDataService->editArticle($data);
                     $article = $this->articleRepository->find($data['article']);
                     $demande->addArticle($article);
