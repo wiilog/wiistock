@@ -509,10 +509,10 @@ class ReferenceArticleController extends Controller
             $em = $this->getDoctrine()->getManager();
 
             //edit Refrence Article
-
             $refArticle = (isset($data['refArticle']) ? $this->referenceArticleRepository->find($data['refArticle']) : '');
             //ajout demande
             if (array_key_exists('livraison', $data) && $data['livraison']) {
+                
                 $demande = $this->demandeRepository->find($data['livraison']);
                 if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                     $response = $this->refArticleDataService->editRefArticle($refArticle, $data);
@@ -529,6 +529,8 @@ class ReferenceArticleController extends Controller
                             ->setQuantite($ligneArticle->getQuantite() + $data["quantitie"]);
                     }
                 } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+                    dump('hell',$data);
+
                     $response = $this->articleDataService->editArticle($data);
                     $article = $this->articleRepository->find($data['article']);
                     $demande->addArticle($article);
@@ -553,7 +555,7 @@ class ReferenceArticleController extends Controller
             } else {
                 $json = false;
             }
-            // $em->flush();
+            $em->flush();
             return new JsonResponse();
         }
         throw new NotFoundHttpException("404");
