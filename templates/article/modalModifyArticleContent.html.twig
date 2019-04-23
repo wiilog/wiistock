@@ -1,5 +1,7 @@
 <div class="row">
+    {% if article.type is not empty %}
     <input type="hidden" name="" id="typeEditArticle" value="{{article.type.id}}">
+    {% endif %}
     <div class="form-group col-6">
         <label for="libelle">Libellé</label>
         <input type="text" class="form-control data" name="label" id='label' value="{{article.label}}" placeholder="">
