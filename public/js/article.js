@@ -84,7 +84,6 @@ function InitialiserModalArticle(modal, submit, path, callback = function () { }
         inputs.each(function () {
             let val = $(this).val();
             let name = $(this).attr("name");
-            console.log(name + " " + val);
             Data[name] = val;
             // validation données obligatoires
             if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
