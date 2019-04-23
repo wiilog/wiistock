@@ -23,7 +23,7 @@
         {% endif %}
     </div>
 
-    {% elseif demande.preparation is defined %}
+    {% elseif demande.preparation is not empty %}
     <div class="col text-right">
         <a href="{{path('preparation_show', {'id': demande.preparation.id }) }}" class="btn btn-primary btn-action">
             Aller vers la préparation
@@ -60,6 +60,7 @@
         Chercher une référence</a>
     {% if hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::CREATE')) %}
     <a href="" data-toggle="modal" data-target="#modalNewArticle" class="btn btn-primary btn-action ml-auto">
+
         <span class="fa fa-plus mr-2"></span>Ajouter article
     </a>
     {% endif %}

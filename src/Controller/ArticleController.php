@@ -230,6 +230,8 @@ class ArticleController extends AbstractController
                 ->setStatut($statut)
                 ->setCommentaire($data['commentaire'])
                 ->setReference($ref . '-0')
+                ->setQuantite($data['quantite'])
+                ->setEmplacement($this->emplacementRepository->find($data['emplacement']))
                 ->setArticleFournisseur($this->articleFournisseurRepository->find($data['articleFournisseur']))
                 ->setType($this->typeRepository->findOneByCategoryLabel(Article::CATEGORIE));
             $em = $this->getDoctrine()->getManager();
@@ -283,8 +285,56 @@ class ArticleController extends AbstractController
     public function edit(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $this->articleDataService->editArticle($data);
-            return new JsonResponse();
+
+            $article = $this->articleRepository->find($data['article']);
+            $em = $this->getDoctrine()->getManager();
+            $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $data['actif'] ? Article::STATUT_ACTIF : Article::STATUT_INACTIF);
+            $article
+                ->setLabel($data['label'])
+                ->setConform(!$data['conform'])
+                ->setStatut($statut)
+                ->setQuantite($data['quantite'] ? $data['quantite'] : 0)
+                ->setCommentaire($data['commentaire']);
+            $champsLibreKey = array_keys($data);
+            ($data['emplacement'] ? $article->setEmplacement($this->emplacementRepository->find($data['emplacement'])) : '');
+
+            foreach ($champsLibreKey as $champ) {
+                if (gettype($champ) === 'integer') {
+                    $valeurChampLibre = $this->valeurChampsLibreRepository->getByArticleANDChampsLibre($article->getId(), $champ);
+                    if (!$valeurChampLibre) {
+                        $valeurChampLibre = new ValeurChampsLibre();
+                        $valeurChampLibre
+                            ->addArticle($article)
+                            ->setChampLibre($this->champsLibreRepository->find($champ));
+                        $em->persist($valeurChampLibre);
+                    }
+                    $valeurChampLibre->setValeur($data[$champ]);
+                    $em->flush();
+                }
+            }
+            $em->flush();
+            $articles = $this->articleRepository->findAll();
+            $rows = [];
+            foreach ($articles as $article) {
+                $url['edit'] = $this->generateUrl('demande_article_edit', ['id' => $article->getId()]);
+
+                $rows[] =
+                    [
+                        'id' => ($article->getId() ? $article->getId() : 'Non défini'),
+                        'Référence' => ($article->getReference() ? $article->getReference() : 'Non défini'),
+                        'Statut' => ($article->getStatut() ? $article->getStatut()->getNom() : 'Non défini'),
+                        'Libellé' => ($article->getLabel() ? $article->getLabel() : 'Non défini'),
+                        'Référence article' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : 'Non défini'),
+                        'Quantité' => ($article->getQuantite() ? $article->getQuantite() : 'Non défini'),
+                        'Actions' => $this->renderView('article/datatableArticleRow.html.twig', [
+                            'url' => $url,
+                            'articleId' => $article->getId(),
+                        ]),
+                    ];
+            }
+            $data['data'] = $rows;
+
+            return new JsonResponse($data);
         }
         throw new NotFoundHttpException('404');
     }
@@ -382,6 +432,28 @@ class ArticleController extends AbstractController
 
             if ($refArticle) {
                 $json = $this->articleDataService->getLivraisonArticleOrNoByRefArticle($refArticle, true);
+            } else {
+                $json = false; //TODO gérer erreur retour
+            }
+            return new JsonResponse($json);
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/get-article-fournisseur", name="demande_reference_by_fournisseur", options={"expose"=true})
+     */
+    public function getRefArticleByFournisseur(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $fournisseur = json_decode($request->getContent(), true)) {
+            $fournisseur = $this->fournisseurRepository->find($fournisseur);
+
+            if ($fournisseur) {
+                $json = $this->renderView('article/modalNewArticleContent.html.twig', [
+                    'references' => $this->articleFournisseurRepository->getByFournisseur($fournisseur),
+                    'valeurChampsLibre' => null,
+                    'type' => $this->typeRepository->findOneByCategoryLabel(Article::CATEGORIE)
+                ]);
             } else {
                 $json = false; //TODO gérer erreur retour
             }
