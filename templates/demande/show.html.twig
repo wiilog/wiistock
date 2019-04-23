@@ -22,7 +22,7 @@
 </table>
 
 <a href="{{ path('demande_index') }}" class='btn btn-action'>Retour à la liste</a>
-
+<button class="btn" id="cannotValidate" data-target='#modalCannotValidate' data-toggle='modal' hidden></button>
 
 {% include 'demande/modalDeleteArticle.html.twig' %}
 {% include 'demande/modalDeleteDemande.html.twig' %}
@@ -30,6 +30,7 @@
 {% include 'demande/modalEditDemande.html.twig' %}
 {% include 'demande/modalEditArticle.html.twig' %}
 {% include 'demande/modalNegativStock.html.twig' %}
+{% include 'demande/modalCannotValidate.html.twig' %}
 
 {% endblock %}
 

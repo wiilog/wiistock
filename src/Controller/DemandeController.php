@@ -409,7 +409,7 @@ class DemandeController extends AbstractController
             }
             $em = $this->getDoctrine()->getEntityManager();
 
-            $referenceArticle = $this->referenceArticleRepository->find($data['reference']);
+            $referenceArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
             $demande = $this->demandeRepository->find($data['demande']);
             if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
                 $article = $this->articleRepository->find($data['article']);
@@ -497,6 +497,22 @@ class DemandeController extends AbstractController
             ]);
 
             return new JsonResponse($json);
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/non-vide", name="demande_livraison_has_articles", options={"expose"=true}, methods={"GET", "POST"})
+     */
+    public function hasArticles(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+
+            $articles = $this->articleRepository->getByDemande($data['id']);
+            $references = $this->ligneArticleRepository->getByDemande($data['id']);
+            $count = count($articles) + count($references);
+
+            return new JsonResponse($count > 0);
         }
         throw new NotFoundHttpException('404');
     }
