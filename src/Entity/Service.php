@@ -9,9 +9,10 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Service
 {
-    const CATEGORIE = 'service';
+    const CATEGORIE = 'manutention';
     const STATUT_A_TRAITER = 'à traiter';
     const STATUT_TRAITE = 'traité';
+    const STATUT_BROUILLON = 'brouillon';
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
