@@ -7,7 +7,7 @@
 <h1>Articles</h1>
 <div class='d-flex justify-content-end'>
     <div data-toggle="modal" data-target="#modalNewArticle" class="btn btn-action btn-primary"
-        onclick='init()'>
+        onclick=" ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseur')), clearNewContent($('#submitNewArticle'))">
         <i class="fa fa-plus mr-2"></i>Nouvel article
     </div>
 </div>

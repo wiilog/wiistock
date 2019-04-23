@@ -1,6 +1,6 @@
 <div class="row">
     <div class="form-group w-100 col-6">
-        <label for="Articlefournisseur">Référence Article</label>
+        <label for="Articlefournisseur">Référence fournisseur</label>
         <select class="form-control data needed select2" name="articleFournisseur" id="articleFournisseurAdd">
             {% for ref in references %}
             <option value="{{ ref.id }}">{{ref.label}}</option>
@@ -67,10 +67,10 @@
                         name="{{champ.id}}" id="input">
 
                     {% elseif champ.typage == 'number' %}
-                    <input type="number" class="form-control data" value="{{ value }}" name="{{champ.id}}" id="input">
+                    <input type="number" class="form-control data {{champ.requiredCreate ? 'needed' : ''}}" value="{{ value }}" name="{{champ.id}}" id="input">
 
                     {% elseif champ.typage == 'list' %}
-                    <select class="form-control unTruc data " name="{{champ.id}}" id="input">
+                    <select class="form-control unTruc data {{champ.requiredCreate ? 'needed' : ''}} " name="{{champ.id}}" id="input">
                         <option value="{{value}}">{{value}}
                         </option>
                         {% for elem in champ.elements %}
@@ -83,7 +83,7 @@
                         {% endif %}
                     </select>
                     {% else %}
-                    <input type="text" class="form-control data" value="{{ value }}" name="{{ champ.id }}" id="input">
+                    <input type="text" class="form-control data {{champ.requiredCreate ? 'needed' : ''}}" value="{{ value }}" name="{{ champ.id }}" id="input">
                     {% endif %}
 
                 </div>

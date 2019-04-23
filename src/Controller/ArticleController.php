@@ -290,10 +290,11 @@ class ArticleController extends AbstractController
                 ->setLabel($data['label'])
                 ->setConform(!$data['conform'])
                 ->setStatut($statut)
-                ->setQuantite($data['quantite'])
-                ->setEmplacement($this->emplacementRepository->find($data['emplacement']))
+                ->setQuantite($data['quantite'] ? $data['quantite'] : 0)
                 ->setCommentaire($data['commentaire']);
             $champsLibreKey = array_keys($data);
+            ($data['emplacement'] ? $article->setEmplacement($this->emplacementRepository->find($data['emplacement'])) : '');
+
             foreach ($champsLibreKey as $champ) {
                 if (gettype($champ) === 'integer') {
                     $valeurChampLibre = $this->valeurChampsLibreRepository->getByArticleANDChampsLibre($article->getId(), $champ);
@@ -448,7 +449,7 @@ class ArticleController extends AbstractController
                 $json = $this->renderView('article/modalNewArticleContent.html.twig', [
                     'references' => $this->articleFournisseurRepository->getByFournisseur($fournisseur),
                     'valeurChampsLibre' => null,
-                    'type' => $this->typeRepository->getOneByCategoryLabel(Article::CATEGORIE)
+                    'type' => $this->typeRepository->findOneByCategoryLabel(Article::CATEGORIE)
                 ]);
             } else {
                 $json = false; //TODO gérer erreur retour
