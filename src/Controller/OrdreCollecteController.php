@@ -237,6 +237,7 @@ class OrdreCollecteController extends AbstractController
         return $this->redirectToRoute('ordre_collecte_show', [
             'id' => $ordreCollecte->getId(),
         ]);
+
     }
 
     /**
