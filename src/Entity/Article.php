@@ -329,6 +329,7 @@ class Article
     public function setEmplacement(?Emplacement  $emplacement): self
     {
         $this->emplacement =  $emplacement;
+        return  $this;
     }
     public function getDemande(): ?Demande
     {
