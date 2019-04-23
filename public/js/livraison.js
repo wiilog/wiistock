@@ -34,3 +34,8 @@ let tableArticle = $('#tableArticle_id').DataTable({
     { "data": 'Actions' },
     ],
 });
+
+let modalDeleteLivraison = $('#modalDeleteLivraison');
+let submitDeleteLivraison = $('#submitDeleteLivraison');
+let urlDeleteLivraison = Routing.generate('livraison_delete',{'id':id}, true);
+InitialiserModal(modalDeleteLivraison, submitDeleteLivraison, urlDeleteLivraison, tableLivraison);
