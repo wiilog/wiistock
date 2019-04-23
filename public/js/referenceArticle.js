@@ -385,3 +385,4 @@ function loadSpinnerAR(div) {
     div.addClass('d-none');
 }
 
+

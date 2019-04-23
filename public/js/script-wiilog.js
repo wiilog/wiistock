@@ -334,7 +334,7 @@ function updateQuantityDisplay(elem) {
     let typeQuantite = elem.closest('.radio-btn').find('#type_quantite').val();
     let modalBody = elem.closest('.modal-body');
 
-    if (typeQuantite == 'reference') {
+    if (typeQuantite == 'reference') { 
         modalBody.find('.article').addClass('d-none');
         modalBody.find('.reference').removeClass('d-none');
 
@@ -343,6 +343,7 @@ function updateQuantityDisplay(elem) {
         modalBody.find('.article').removeClass('d-none');
     }
 }
+
 function ajaxAutoCompleteEmplacementInit(select) {
     select.select2({
         ajax: {
