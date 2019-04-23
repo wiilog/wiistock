@@ -251,7 +251,6 @@ class LivraisonController extends AbstractController
         ]);
     }
 
-}
     /**
      * @Route("/supprimer/{id}", name="livraison_delete", options={"expose"=true},methods={"GET","POST"})
      */
