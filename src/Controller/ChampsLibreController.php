@@ -4,10 +4,13 @@ namespace App\Controller;
 
 use App\Entity\ChampsLibre;
 use App\Entity\Type;
+
 use App\Repository\ChampsLibreRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\TypeRepository;
 use App\Repository\CategoryTypeRepository;
+use App\Repository\CategorieCLRepository;
+
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -40,12 +43,18 @@ class ChampsLibreController extends AbstractController
      */
     private $categoryTypeRepository;
 
-    public function __construct(CategoryTypeRepository $categoryTypeRepository, ChampsLibreRepository $champsLibreRepository, TypeRepository $typeRepository, ReferenceArticleRepository $refArticleRepository)
+    /**
+     * @var CategorieCLRepository
+     */
+    private $categorieCLRepository;
+
+    public function __construct(CategorieCLRepository $categorieCLRepository,CategoryTypeRepository $categoryTypeRepository, ChampsLibreRepository $champsLibreRepository, TypeRepository $typeRepository, ReferenceArticleRepository $refArticleRepository)
     {
         $this->champsLibreRepository = $champsLibreRepository;
         $this->typeRepository = $typeRepository;
         $this->categoryTypeRepository = $categoryTypeRepository;
         $this->refArticleRepository = $refArticleRepository;
+        $this->categorieCLRepository = $categorieCLRepository;
     }
 
     /**
@@ -55,6 +64,7 @@ class ChampsLibreController extends AbstractController
     {
         return $this->render('champ_libre/index.html.twig', [
             'category' => $this->categoryTypeRepository->findAll(),
+            
         ]);
     }
 
@@ -71,6 +81,7 @@ class ChampsLibreController extends AbstractController
                     [
                         'id' => ($champsLibre->getId() ? $champsLibre->getId() : 'Non défini'),
                         'Label' => ($champsLibre->getLabel() ? $champsLibre->getLabel() : 'Non défini'),
+                        'Liaison'=> ($champsLibre->getCategorieCL() ? $champsLibre->getCategorieCL()->getLabel() : ''),
                         'Typage' => ($champsLibre->getTypage() ? $champsLibre->getTypage() : 'Non défini'),
                         'Obligatoire à la création' => ($champsLibre->getRequiredCreate() ? "oui" : "non"),
                         'Obligatoire à la modification' => ($champsLibre->getRequiredEdit() ? "oui" : "non"),
@@ -93,6 +104,7 @@ class ChampsLibreController extends AbstractController
     {
         return $this->render('champ_libre/show.html.twig', [
             'type' => $this->typeRepository->find($id),
+            'categoriesCL'=> $this->categorieCLRepository->findAll(),
         ]);
     }
 
@@ -108,9 +120,11 @@ class ChampsLibreController extends AbstractController
 
             if (!$champLibreExist) {
                 $type = $this->typeRepository->find($data['type']);
+                $categorieCL = $this->categorieCLRepository->find($data['categorieCL']);
                 $champLibre = new ChampsLibre();
                 $champLibre
                     ->setlabel($data['label'])
+                    ->setCategorieCL($categorieCL)
                     ->setRequiredCreate($data['requiredCreate'])
                     ->setRequiredEdit($data['requiredEdit'])
                     ->setType($type)
@@ -145,6 +159,7 @@ class ChampsLibreController extends AbstractController
             $champLibre = $this->champsLibreRepository->find($data);
             $json = $this->renderView('champ_libre/modalEditChampLibreContent.html.twig', [
                 'champLibre' => $champLibre,
+                'categoriesCL'=> $this->categorieCLRepository->findAll(),
             ]);
 
             return new JsonResponse($json);
@@ -158,9 +173,11 @@ class ChampsLibreController extends AbstractController
     public function edit(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $categorieCL = $this->categorieCLRepository->find($data['categorieCL']);
             $champLibre = $this->champsLibreRepository->find($data['champLibre']);
             $champLibre
                 ->setLabel($data['label'])
+                ->setCategorieCL($categorieCL)
                 ->setRequiredCreate($data['requiredCreate'])
                 ->setRequiredEdit($data['requiredEdit'])
                 ->setDefaultValue($data['valeur'])

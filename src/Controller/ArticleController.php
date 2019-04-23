@@ -136,7 +136,7 @@ class ArticleController extends AbstractController
         }
         return $this->render('article/index.html.twig', [
             'valeurChampsLibre' => null,
-            'type' => $this->typeRepository->findOneByCategoryLabel(Article::CATEGORIE)
+            'type' => $this->typeRepository->findOneByCategoryLabel(Article::CATEGORIE)//TODOO
         ]);
     }
 
@@ -204,7 +204,7 @@ class ArticleController extends AbstractController
 
             $json = $this->renderView('article/modalModifyArticleContent.html.twig', [
                 'valeurChampsLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
-                'types' => $this->typeRepository->getByCategoryLabel(Article::CATEGORIE),
+                'types' => $this->typeRepository->getByCategoryLabel(Article::CATEGORIE),//TODOO
                 'article' => $article,
                 'statut' => ($article->getStatut()->getNom() === Article::STATUT_ACTIF ? true : false),
             ]);
@@ -239,7 +239,7 @@ class ArticleController extends AbstractController
             $champsLibreKey = array_keys($data);
             foreach ($champsLibreKey as $champ) {
                 if (gettype($champ) === 'integer') {
-                    $valeurChampLibre = $this->valeurChampsLibreRepository->getByArticleANDChampsLibre($toInsert->getId(), $champ);
+                    $valeurChampLibre = $this->valeurChampsLibreRepository->findOneByArticleANDChampsLibre($toInsert->getId(), $champ);
                     if (!$valeurChampLibre) {
                         $valeurChampLibre = new ValeurChampsLibre();
                         $valeurChampLibre
@@ -253,28 +253,28 @@ class ArticleController extends AbstractController
             }
             $em->flush();
 
-            $articles = $this->articleRepository->findAll();
-            $rows = [];
-            foreach ($articles as $article) {
-                $url['edit'] = $this->generateUrl('demande_article_edit', ['id' => $article->getId()]);
+            // $articles = $this->articleRepository->findAll();
+            // $rows = [];
+            // foreach ($articles as $article) {
+            //     $url['edit'] = $this->generateUrl('demande_article_edit', ['id' => $article->getId()]);
 
-                $rows[] =
-                    [
-                        'id' => ($article->getId() ? $article->getId() : 'Non défini'),
-                        'Référence' => ($article->getReference() ? $article->getReference() : 'Non défini'),
-                        'Statut' => ($article->getStatut() ? $article->getStatut()->getNom() : 'Non défini'),
-                        'Libellé' => ($article->getLabel() ? $article->getLabel() : 'Non défini'),
-                        'Référence article' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : 'Non défini'),
-                        'Quantité' => ($article->getQuantite() ? $article->getQuantite() : 'Non défini'),
-                        'Actions' => $this->renderView('article/datatableArticleRow.html.twig', [
-                            'url' => $url,
-                            'articleId' => $article->getId(),
-                        ]),
-                    ];
-            }
-            $data['data'] = $rows;
+            //     $rows[] =
+            //         [
+            //             'id' => ($article->getId() ? $article->getId() : 'Non défini'),
+            //             'Référence' => ($article->getReference() ? $article->getReference() : 'Non défini'),
+            //             'Statut' => ($article->getStatut() ? $article->getStatut()->getNom() : 'Non défini'),
+            //             'Libellé' => ($article->getLabel() ? $article->getLabel() : 'Non défini'),
+            //             'Référence article' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : 'Non défini'),
+            //             'Quantité' => ($article->getQuantite() ? $article->getQuantite() : 'Non défini'),
+            //             'Actions' => $this->renderView('article/datatableArticleRow.html.twig', [
+            //                 'url' => $url,
+            //                 'articleId' => $article->getId(),
+            //             ]),
+            //         ];
+            // }
+            // $data['data'] = $rows;
 
-            return new JsonResponse($data);
+            return new JsonResponse();
         }
         throw new NotFoundHttpException('404');
     }
@@ -300,7 +300,7 @@ class ArticleController extends AbstractController
 
             foreach ($champsLibreKey as $champ) {
                 if (gettype($champ) === 'integer') {
-                    $valeurChampLibre = $this->valeurChampsLibreRepository->getByArticleANDChampsLibre($article->getId(), $champ);
+                    $valeurChampLibre = $this->valeurChampsLibreRepository->findOneByArticleANDChampsLibre($article->getId(), $champ);
                     if (!$valeurChampLibre) {
                         $valeurChampLibre = new ValeurChampsLibre();
                         $valeurChampLibre

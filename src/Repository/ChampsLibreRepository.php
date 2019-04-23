@@ -27,11 +27,10 @@ class ChampsLibreRepository extends ServiceEntityRepository
             FROM App\Entity\ChampsLibre c 
             JOIN c.type t 
             WHERE t.id = :id"
-        )->setParameter('id', $type);
-        ;
-        return $query->execute(); 
+        )->setParameter('id', $type);;
+        return $query->execute();
     }
-    
+
     public function getByTypeAndRequiredCreate($type)
     {
         $entityManager = $this->getEntityManager();
@@ -39,9 +38,8 @@ class ChampsLibreRepository extends ServiceEntityRepository
             "SELECT c.label, c.id
             FROM App\Entity\ChampsLibre c 
             WHERE c.type = :type AND c.requiredCreate = TRUE"
-        )->setParameter('type', $type);
-        ;
-        return $query->getResult(); 
+        )->setParameter('type', $type);;
+        return $query->getResult();
     }
 
     public function getByTypeAndRequiredEdit($type)
@@ -51,9 +49,8 @@ class ChampsLibreRepository extends ServiceEntityRepository
             "SELECT c.label, c.id
             FROM App\Entity\ChampsLibre c 
             WHERE c.type = :type AND c.requiredEdit = TRUE"
-        )->setParameter('type', $type);
-        ;
-        return $query->getResult(); 
+        )->setParameter('type', $type);;
+        return $query->getResult();
     }
 
     public function getLabelAndIdAndTypage()
@@ -64,7 +61,7 @@ class ChampsLibreRepository extends ServiceEntityRepository
             FROM App\Entity\ChampsLibre c 
             "
         );
-        return $query->getResult(); 
+        return $query->getResult();
     }
 
     public function getLabelByCategory($category)
@@ -78,7 +75,7 @@ class ChampsLibreRepository extends ServiceEntityRepository
             WHERE z.label = :category
             "
         )->setParameter('category', $category);
-        return $query->getResult(); 
+        return $query->getResult();
     }
 
     public function countByType($typeId)
@@ -98,7 +95,7 @@ class ChampsLibreRepository extends ServiceEntityRepository
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
-        /** @lang DQL */
+            /** @lang DQL */
             "DELETE FROM App\Entity\ChampsLibre cl
             WHERE cl.type = :typeId"
         )->setParameter('typeId', $typeId);
@@ -119,5 +116,20 @@ class ChampsLibreRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
-   
+    public function findByLabelTypeAndCategorieCL($label, $categorieCL)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT c
+            FROM App\Entity\ChampsLibre c 
+            JOIN c.type t 
+            WHERE t.label = :label AND c.categorieCL = :categorie"
+        )->setParameters(
+            [
+                'label' => $label,
+                'categorie' => $categorieCL,
+            ]
+        );;
+        return $query->execute();
+    }
 }

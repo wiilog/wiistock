@@ -9,6 +9,7 @@
                 </button>
             </div>
             <div class="modal-body modal-input container-fluid">
+               
                 <div class="row">
                     <div class="form-group col-6">
                         <label for="reference">Référence</label>
@@ -33,7 +34,7 @@
                     <div class="form-group col-6">
                         <label for="type">Type</label>
                         <select name="type" onclick="typeChoice($(this), '-new', $('#typeContentNew'))"
-                            onchange="displayRequireChamp($(this),'create')" class="form-control data d-block type" id="">
+                            onchange="displayRequireChamp($(this),'create')" class="form-control data d-block type needed" id="">
                             <option value="">Type à choisir...</option>
                             {% for type in types %}
                             <option value="{{type.id}}">{{type.label}}</option>

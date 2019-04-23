@@ -8,6 +8,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\ValeurChampsLibre;
 use App\Entity\CollecteReference;
 use App\Entity\LigneArticle;
+use App\Entity\CategorieCL;
 
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\FilterRepository;
@@ -21,6 +22,7 @@ use App\Repository\DemandeRepository;
 use App\Repository\LivraisonRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\LigneArticleRepository;
+use App\Repository\CategorieCLRepository;
 
 use App\Service\RefArticleDataService;
 use App\Service\ArticleDataService;
@@ -100,7 +102,6 @@ class ReferenceArticleController extends Controller
      */
     private $ligneArticleRepository;
 
-
     /**
      * @var FilterRepository
      */
@@ -121,8 +122,13 @@ class ReferenceArticleController extends Controller
      */
     private $userService;
 
+    /**
+     * @var CategorieCLRepository
+     */
+    private $categorieCLRepository;
 
-    public function __construct(LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, ArticleDataService $articleDataService, LivraisonRepository $livraisonRepository, DemandeRepository $demandeRepository, CollecteRepository $collecteRepository, StatutRepository $statutRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FilterRepository $filterRepository, RefArticleDataService $refArticleDataService, UserService $userService)
+
+    public function __construct(CategorieCLRepository $categorieCLRepository, LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, ArticleDataService $articleDataService, LivraisonRepository $livraisonRepository, DemandeRepository $demandeRepository, CollecteRepository $collecteRepository, StatutRepository $statutRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FilterRepository $filterRepository, RefArticleDataService $refArticleDataService, UserService $userService)
     {
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->champsLibreRepository = $champsLibreRepository;
@@ -139,6 +145,7 @@ class ReferenceArticleController extends Controller
         $this->articleRepository = $articleRepository;
         $this->userService = $userService;
         $this->ligneArticleRepository = $ligneArticleRepository;
+        $this->categorieCLRepository = $categorieCLRepository;
     }
 
     /**
@@ -377,14 +384,33 @@ class ReferenceArticleController extends Controller
             'id' => 0,
             'typage' => 'number'
         ];
-
         $champs = array_merge($champ, $champL);
         $champsVisibleDefault = ['Actions', 'Libellé', 'Référence', 'Type', 'Quantité'];
+
+        $type = $this->typeRepository->getLabelByCategoryLabel(ReferenceArticle::CATEGORIE_TYPE); 
+
+        dump($type);
+
+        $categorieCL = $this->categorieCLRepository->findByLabel(CategorieCL::REFERENCE_ARTICLE);
+        $typeChampLibre =  [];
+        foreach ($type as $label) {
+            $champsLibres = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($label['label'], $categorieCL);
+            $typeChampLibre[] = [
+                'type' => $label['label'],
+                'champsLibres' => $champsLibres,
+            ];
+        }
+
+        // dump($typeChampLibre);
+
+
+
         return $this->render('reference_article/index.html.twig', [
             'champs' => $champs,
             'champsVisible' => ($this->getUser()->getColumnVisible() !== null ? $this->getUser()->getColumnVisible() : $champsVisibleDefault),
             'statuts' => $this->statutRepository->findByCategorieName(ReferenceArticle::CATEGORIE),
-            'types' => $this->typeRepository->getByCategoryLabel(ReferenceArticle::CATEGORIE),
+            'typeChampsLibres' => $typeChampLibre,
+            'types' => $this->typeRepository->getByCategoryLabel(ReferenceArticle::CATEGORIE_TYPE), //TODOO $type
             'typeQuantite' => $typeQuantite,
             'filters' => $this->filterRepository->findBy(['utilisateur' => $this->getUser()]),
         ]);
@@ -408,7 +434,7 @@ class ReferenceArticleController extends Controller
                     'articleRef' => $articleRef,
                     'statut' => ($articleRef->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF),
                     'valeurChampsLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
-                    'types' => $this->typeRepository->getByCategoryLabel(ReferenceArticle::CATEGORIE),
+                    'types' => $this->typeRepository->getByCategoryLabel(ReferenceArticle::CATEGORIE), //Todoo
                     'statuts' => $statuts,
                     'articlesFournisseur' => ($data['listArticlesFournisseur']),
                     'totalQuantity' => $data['totalQuantity']
@@ -505,14 +531,14 @@ class ReferenceArticleController extends Controller
     public function plusDemande(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-//TODO CG optim return / response
+            //TODO CG optim return / response
             $em = $this->getDoctrine()->getManager();
 
             //edit Refrence Article
             $refArticle = (isset($data['refArticle']) ? $this->referenceArticleRepository->find($data['refArticle']) : '');
             //ajout demande
             if (array_key_exists('livraison', $data) && $data['livraison']) {
-                
+
                 $demande = $this->demandeRepository->find($data['livraison']);
                 if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                     $response = $this->refArticleDataService->editRefArticle($refArticle, $data);
@@ -578,7 +604,7 @@ class ReferenceArticleController extends Controller
                 if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                     if ($refArticle) {
                         $dataArticle = $this->refArticleDataService->getDataEditForRefArticle($refArticle);
-                        
+
                         $statuts = $this->statutRepository->findByCategorieName(ReferenceArticle::CATEGORIE);
                         $editChampLibre = $this->renderView('reference_article/modalEditRefArticleContent.html.twig', [
                             'articleRef' => $refArticle,
@@ -676,13 +702,16 @@ class ReferenceArticleController extends Controller
             if ($articleRef) {
                 $data = $this->refArticleDataService->getDataEditForRefArticle($articleRef);
 
-                $json = $this->renderView('reference_article/modalShowRefArticleContent.html.twig',
-                    ['articleRef' => $articleRef,
+                $json = $this->renderView(
+                    'reference_article/modalShowRefArticleContent.html.twig',
+                    [
+                        'articleRef' => $articleRef,
                         'statut' => ($articleRef->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF),
-                         'valeurChampsLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
+                        'valeurChampsLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
                         'articlesFournisseur' => $data['listArticlesFournisseur'],
                         'totalQuantity' => $data['totalQuantity']
-                    ]);
+                    ]
+                );
 
                 return new JsonResponse($json);
             }
