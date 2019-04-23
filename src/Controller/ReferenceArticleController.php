@@ -38,6 +38,8 @@ use App\Entity\Collecte;
 use Proxies\__CG__\App\Entity\Livraison;
 use App\Entity\Demande;
 use Symfony\Component\Serializer\Encoder\JsonEncode;
+use App\Entity\ArticleFournisseur;
+use App\Repository\FournisseurRepository;
 
 /**
  * @Route("/reference-article")
@@ -96,6 +98,11 @@ class ReferenceArticleController extends Controller
     private $articleFournisseurRepository;
 
     /**
+     * @var FournisseurRepository
+     */
+    private $fournisseurRepository;
+
+    /**
      * @var LigneArticleRepository
      */
     private $ligneArticleRepository;
@@ -122,7 +129,7 @@ class ReferenceArticleController extends Controller
     private $userService;
 
 
-    public function __construct(LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, ArticleDataService $articleDataService, LivraisonRepository $livraisonRepository, DemandeRepository $demandeRepository, CollecteRepository $collecteRepository, StatutRepository $statutRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FilterRepository $filterRepository, RefArticleDataService $refArticleDataService, UserService $userService)
+    public function __construct(FournisseurRepository $fournisseurRepository, LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, ArticleDataService $articleDataService, LivraisonRepository $livraisonRepository, DemandeRepository $demandeRepository, CollecteRepository $collecteRepository, StatutRepository $statutRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FilterRepository $filterRepository, RefArticleDataService $refArticleDataService, UserService $userService)
     {
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->champsLibreRepository = $champsLibreRepository;
@@ -139,6 +146,7 @@ class ReferenceArticleController extends Controller
         $this->articleRepository = $articleRepository;
         $this->userService = $userService;
         $this->ligneArticleRepository = $ligneArticleRepository;
+        $this->fournisseurRepository = $fournisseurRepository;
     }
 
     /**
@@ -282,10 +290,16 @@ class ReferenceArticleController extends Controller
                         ->setCommentaire($data['commentaire'])
                         ->setQuantiteStock($data['quantite'] ? $data['quantite'] : 0)
                         ->setStatut($statut)
-                        ->setFournisseur($data['fournisseur'])
                         ->setTypeQuantite($data['type_quantite'] ? ReferenceArticle::TYPE_QUANTITE_REFERENCE : ReferenceArticle::TYPE_QUANTITE_ARTICLE)
                         ->setType($type);
+                    $articleFournisseur = new ArticleFournisseur();
+                    $articleFournisseur
+                        ->setReferenceArticle($refArticle)
+                        ->setFournisseur($this->fournisseurRepository->find($data['fournisseur']))
+                        ->setReference($data['referenceFournisseur'])
+                        ->setLabel($data['labelFournisseur']);
                     $em->persist($refArticle);
+                    $em->persist($articleFournisseur);
                     $em->flush();
                     $champsLibreKey = array_keys($data);
 
@@ -513,7 +527,7 @@ class ReferenceArticleController extends Controller
             $refArticle = (isset($data['refArticle']) ? $this->referenceArticleRepository->find($data['refArticle']) : '');
             //ajout demande
             if (array_key_exists('livraison', $data) && $data['livraison']) {
-                
+
                 $demande = $this->demandeRepository->find($data['livraison']);
                 if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                     $response = $this->refArticleDataService->editRefArticle($refArticle, $data);

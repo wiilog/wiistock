@@ -20,10 +20,6 @@
         <input class="form-control data" type="text" name="libelle" value="{{articleRef.libelle}}" id="libelle">
     </div>
     <div class="form-group col-6">
-        <label for="libelle">Fournisseur</label>
-        <input class="form-control data" type="text" name="fournisseur" value="{{articleRef.fournisseur}}" id="libelle">
-    </div>
-    <div class="form-group col-6">
         <label for="type">Type</label>
         <select name="type" onclick="typeChoice($(this), '-edit', $('#typeContentEdit'))"
             onchange="displayRequireChamp($(this), 'edit')" class="form-control data d-block" id="typeEdit">

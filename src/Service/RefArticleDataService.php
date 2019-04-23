@@ -192,7 +192,6 @@ class RefArticleDataService
         if ($requiredEdit) {
             $entityManager = $this->em;
             if (isset($data['reference'])) $refArticle->setReference($data['reference']);
-            if (isset($data['fournisseur'])) $refArticle->setFournisseur($data['fournisseur']);
             if (isset($data['libelle'])) $refArticle->setLibelle($data['libelle']);
             if (isset($data['commentaire'])) $refArticle->setCommentaire($data['commentaire']);
             if (isset($data['quantite'])) $refArticle->setQuantiteStock(intval($data['quantite']));

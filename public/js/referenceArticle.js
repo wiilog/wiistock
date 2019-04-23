@@ -311,7 +311,7 @@ function displayError(data) {
 }
 
 let recupIdRefArticle = function (div) {
-    let id =div.data('id');
+    let id = div.data('id');
     $('#submitPlusDemande').val(id);
 }
 
@@ -374,6 +374,7 @@ function initNewReferenceArticleEditor(modal) {
         initEditor(modal);
         editorNewReferenceArticleAlreadyDone = true;
     }
+    ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseur'));
 };
 
 var editorEditRefArticleAlreadyDone = false;
@@ -387,5 +388,10 @@ function initEditRefArticleEditor(modal) {
 function loadSpinnerAR(div) {
     div.removeClass('d-flex');
     div.addClass('d-none');
+}
+
+function loadAndDisplayInfos(select) {
+    $('.newContent').removeClass('d-none');
+    $('.newContent').addClass('d-block');
 }
 
