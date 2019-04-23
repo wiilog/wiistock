@@ -17,7 +17,7 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function () 
                 }
                 callback(data);
                 initRemove();
-                
+
                 let inputs = modal.find('.modal-body').find(".data");
                 // on vide tous les inputs
                 inputs.each(function () {
@@ -30,14 +30,14 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function () 
                 })
             }
         };
-        
+
         // On récupère toutes les données qui nous intéressent
         // dans les inputs...
         let inputs = modal.find(".data");
         let Data = {};
         let missingInputs = [];
         let wrongInputs = [];
-        
+
         inputs.each(function () {
             let val = $(this).val();
             let name = $(this).attr("name");
@@ -62,7 +62,7 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function () 
             //     }
             // }
         });
-        
+
         // ... et dans les checkboxes
         let checkboxes = modal.find('.checkbox');
         checkboxes.each(function () {
@@ -198,7 +198,7 @@ function visibleColumn(check) {
     })
     if (check.hasClass('data')) {
         check.removeClass('data');
-    } else{
+    } else {
         check.addClass('data');
     }
 }
@@ -306,23 +306,62 @@ function displayError(data) {
     }
 }
 
-function ajaxPlusDemandeContent(button) {
+let recupIdRefArticle = function (div) {
+    let id =div.data('id');
+    $('#submitPlusDemande').val(id);
+}
+
+function ajaxPlusDemandeContent(button, demande) {
+    $('.plusDemandeContent').html('');
+    $('.editChampLibre').html('');
     xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
             dataReponse = JSON.parse(this.responseText);
-            if (dataReponse) {
-                $('.plusDemandeContent').html(dataReponse);
+            if (dataReponse.plusContent) {
+                $('.plusDemandeContent').html(dataReponse.plusContent);
+            } else {
+                //TODO gérer erreur
+            }
+            if (dataReponse.editChampLibre) {
+                $('.editChampLibre').html(dataReponse.editChampLibre);
+            } else {
+                //TODO gérer erreur
+            }
+            showDemande(button)
+        }
+    }
+    let json = {
+        'demande': demande,
+        'id': $('#submitPlusDemande').val(),
+    };
+    let Json = JSON.stringify(json)
+    let path = Routing.generate('ajax_plus_demande_content', true);
+    xhttp.open("POST", path, true);
+    xhttp.send(Json);
+}
+
+let ajaxEditArticle = function (select) {
+    xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            dataReponse = JSON.parse(this.responseText);
+            if (dataReponse.editChampLibre) {
+                $('.editChampLibre').html(dataReponse.editChampLibre);
+                displayRequireChamp($('#typeEditArticle'), 'edit');
+                // initEditor('.editor-container');
             } else {
                 //TODO gérer erreur
             }
         }
     }
-    let json = button.data('id');
-    let path = Routing.generate('ajax_plus_demande_content', true);
+    let json = select.val();
+    let path = Routing.generate('ajax_edit_article', true);
     xhttp.open("POST", path, true);
     xhttp.send(json);
 }
+
+
 
 //initialisation editeur de texte une seule fois
 var editorNewReferenceArticleAlreadyDone = false;
@@ -345,3 +384,4 @@ function loadSpinnerAR(div) {
     div.removeClass('d-flex');
     div.addClass('d-none');
 }
+

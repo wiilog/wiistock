@@ -133,7 +133,7 @@ class ArticleController extends AbstractController
         }
         return $this->render('article/index.html.twig', [
             'valeurChampsLibre' => null,
-            'type' => $this->typeRepository->getOneByCategoryLabel(Article::CATEGORIE)
+            'type' => $this->typeRepository->findOneByCategoryLabel(Article::CATEGORIE)
         ]);
     }
 
@@ -218,7 +218,7 @@ class ArticleController extends AbstractController
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $toInsert = new Article();
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $data['actif'] ? Article::STATUT_ACTIF : Article::STATUT_INACTIF);
+            $statut = $this->statutRepository->getByCategorieAndStatut(Article::CATEGORIE, $data['actif'] ? Article::STATUT_ACTIF : Article::STATUT_INACTIF);
             $date = new \DateTime('now');
             $ref = $date->format('YmdHis');
             $toInsert
@@ -230,7 +230,7 @@ class ArticleController extends AbstractController
                 ->setQuantite($data['quantite'])
                 ->setEmplacement($this->emplacementRepository->find($data['emplacement']))
                 ->setArticleFournisseur($this->articleFournisseurRepository->find($data['articleFournisseur']))
-                ->setType($this->typeRepository->getOneByCategoryLabel(Article::CATEGORIE));
+                ->setType($this->typeRepository->findOneByCategoryLabel(Article::CATEGORIE));
             $em = $this->getDoctrine()->getManager();
             $em->persist($toInsert);
             $champsLibreKey = array_keys($data);
@@ -371,23 +371,31 @@ class ArticleController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
-    //    /**
-    //     * @Route("/get-article", name="get_article_by_refArticle", options={"expose"=true})
-    //     */
-    //    public function getArticleByRefArticle(Request $request): Response
-    //    {
-    //        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-    //            $refArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
-    //            if ($refArticle) {
-    //                $json = $this->articleDataService->getArticleOrNoByRefArticle($refArticle, true);
-    //            } else {
-    //                $json = false; //TODO gérer erreur retour
-    //            }
-    //
-    //            return new JsonResponse($json);
-    //        }
-    //        throw new NotFoundHttpException('404');
-    //    }
+    /**
+     * @Route("/ajax-edit-article", name="ajax_edit_article", options={"expose"=true})
+     */
+    public function ajaxEditArticle(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $article = $this->articleRepository->find($data);
+            $data = $this->articleDataService->getDataEditForArticle($article);
+
+            $json = [
+                'editChampLibre' => $this->renderView(
+                    'article/modalModifyArticleContent.html.twig',
+                    [
+                        'valeurChampsLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
+                        'types' => $this->typeRepository->getByCategoryLabel(Article::CATEGORIE),
+                        'article' => $article,
+                        'statut' => ($article->getStatut()->getNom() === Article::STATUT_ACTIF ? true : false),
+                    ]
+                ),
+            ];
+
+            return new JsonResponse($json);
+        }
+        throw new NotFoundHttpException('404');
+    }
 
     /**
      * @Route("/get-article-collecte", name="get_collecte_article_by_refArticle", options={"expose"=true})
@@ -423,7 +431,6 @@ class ArticleController extends AbstractController
             } else {
                 $json = false; //TODO gérer erreur retour
             }
-
             return new JsonResponse($json);
         }
         throw new NotFoundHttpException('404');

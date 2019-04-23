@@ -514,7 +514,7 @@ class ReceptionController extends AbstractController
             'reception' =>  $reception,
             'id' =>  $id,
             'statuts' =>  $this->statutRepository->findByCategorieName(Reception::CATEGORIE),
-            'type' =>  $this->typeRepository->getOneByCategoryLabel(Article::CATEGORIE),
+            'type' =>  $this->typeRepository->findOneByCategoryLabel(Article::CATEGORIE),
             'modifiable' => ($reception->getStatut()->getNom() !== (Reception::STATUT_RECEPTION_TOTALE)),
         ]);
     }
@@ -548,7 +548,7 @@ class ReceptionController extends AbstractController
                         ->setArticleFournisseur($receptionRA->getArticleFournisseur())
                         ->setConform(!$receptionRA->getAnomalie())
                         ->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF))
-                        ->setType($this->typeRepository->getOneByCategoryLabel(Article::CATEGORIE));
+                        ->setType($this->typeRepository->findOneByCategoryLabel(Article::CATEGORIE));
                     $em = $this->getDoctrine()->getManager();
                     $em->persist($article);
                     $em->flush();

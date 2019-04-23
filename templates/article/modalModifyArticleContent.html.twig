@@ -1,4 +1,5 @@
 <div class="row">
+    <input type="hidden" name="" id="typeEditArticle" value="{{article.type.id}}">
     <div class="form-group col-6">
         <label for="libelle">Libellé</label>
         <input type="text" class="form-control data" name="label" id='label' value="{{article.label}}" placeholder="">
@@ -71,11 +72,11 @@
                             name="{{champ.id}}" id="input">
 
                         {% elseif champ.typage == 'number' %}
-                        <input type="number" class="form-control data" value="{{ value }}" name="{{champ.id}}"
+                        <input type="number" id="{{champ.label ~ 'edit'}}" class="form-control data {{ champ.requiredEdit ? 'needed' : ''}}" value="{{ value }}" name="{{champ.id}}"
                             id="input">
 
                         {% elseif champ.typage == 'list' %}
-                        <select class="form-control unTruc data " name="{{champ.id}}" id="input">
+                        <select class="form-control unTruc data {{ champ.requiredEdit ? 'needed' : ''}}" id="{{champ.label ~ 'edit'}}" name="{{champ.id}}" id="input">
                             <option value="{{value}}">{{value}}
                             </option>
                             {% for elem in champ.elements %}
@@ -88,7 +89,7 @@
                             {% endif %}
                         </select>
                         {% else %}
-                        <input type="text" class="form-control data" value="{{ value }}" name="{{ champ.id }}"
+                        <input type="text" id="{{champ.label ~ 'edit'}}" class="form-control data {{ champ.requiredEdit ? 'needed' : ''}}" value="{{ value }}" name="{{ champ.id }}"
                             id="input">
                         {% endif %}
 

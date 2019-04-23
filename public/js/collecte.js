@@ -152,8 +152,9 @@ function ajaxGetCollecteArticle(select) {
             data = JSON.parse(this.responseText);
            $('#newContent').html(data);
            $('#modalNewArticle').find('div').find('div').find('.modal-footer').removeClass('d-none');
+           displayRequireChamp($('#typeEdit'), 'edit');
         }
-    }
+    } 
     path =  Routing.generate('get_collecte_article_by_refArticle', true)
     let data = {};
     data['referenceArticle'] = $(select).val();
@@ -162,7 +163,7 @@ function ajaxGetCollecteArticle(select) {
     xhttp.send(json);
 }
 
-function deleteRowCollecte(button, modal, submit) {
+function deleteRowDemande(button, modal, submit) {
     let id = button.data('id');
     let name = button.data('name');
     modal.find(submit).attr('value', id);
