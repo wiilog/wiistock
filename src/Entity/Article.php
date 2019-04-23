@@ -88,6 +88,11 @@ class Article
      */
     private $valeurChampsLibres;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="articles")
+     */
+    private $emplacement;
+
     
     public function __construct()
     {
@@ -310,6 +315,18 @@ class Article
             $this->valeurChampsLibres->removeElement($valeurChampsLibre);
             $valeurChampsLibre->removeArticle($this);
         }
+
+        return $this;
+    }
+
+    public function getEmplacement(): ?Emplacement
+    {
+        return $this->emplacement;
+    }
+
+    public function setEmplacement(?Emplacement $emplacement): self
+    {
+        $this->emplacement = $emplacement;
 
         return $this;
     }
