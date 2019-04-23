@@ -281,6 +281,7 @@ class ReferenceArticleController extends Controller
                     }
                 }
                 if ($requiredCreate) {
+                    dump($data);
                     $em = $this->getDoctrine()->getManager();
                     $statut = ($data['statut'] === 'active' ? $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF) : $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_INACTIF));
                     $refArticle = new ReferenceArticle();
@@ -292,14 +293,16 @@ class ReferenceArticleController extends Controller
                         ->setStatut($statut)
                         ->setTypeQuantite($data['type_quantite'] ? ReferenceArticle::TYPE_QUANTITE_REFERENCE : ReferenceArticle::TYPE_QUANTITE_ARTICLE)
                         ->setType($type);
-                    $articleFournisseur = new ArticleFournisseur();
-                    $articleFournisseur
-                        ->setReferenceArticle($refArticle)
-                        ->setFournisseur($this->fournisseurRepository->find($data['fournisseur']))
-                        ->setReference($data['referenceFournisseur'])
-                        ->setLabel($data['labelFournisseur']);
+                    for ($i = 0; $i < sizeof($data['fournisseur']); $i++) {
+                        $articleFournisseur = new ArticleFournisseur();
+                        $articleFournisseur
+                            ->setReferenceArticle($refArticle)
+                            ->setFournisseur($data['fournisseur'][$i])
+                            ->setReference($data['referenceFournisseur'][$i])
+                            ->setLabel($data['labelFournisseur'][$i]);
+                        $em->persist($articleFournisseur);
+                    }
                     $em->persist($refArticle);
-                    $em->persist($articleFournisseur);
                     $em->flush();
                     $champsLibreKey = array_keys($data);
 
@@ -475,6 +478,22 @@ class ReferenceArticleController extends Controller
 
             $response['delete'] = $rows;
             return new JsonResponse($response);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/addFournisseur", name="ajax_render_add_fournisseur", options={"expose"=true}, methods="GET|POST")
+     */
+    public function addFournisseur(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest()) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+            $json =  $this->renderView('reference_article/fournisseurArticle.html.twig');
+            return new JsonResponse($json);
         }
         throw new NotFoundHttpException("404");
     }

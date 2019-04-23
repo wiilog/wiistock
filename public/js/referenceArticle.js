@@ -37,7 +37,6 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function () 
         let Data = {};
         let missingInputs = [];
         let wrongInputs = [];
-
         inputs.each(function () {
             let val = $(this).val();
             let name = $(this).attr("name");
@@ -394,4 +393,18 @@ function loadAndDisplayInfos(select) {
     $('.newContent').removeClass('d-none');
     $('.newContent').addClass('d-block');
 }
+
+$('#addFournisseur').click(function () {
+    xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            dataReponse = JSON.parse(this.responseText);
+            $('#addFournisseur').closest('div').before(dataReponse);
+            ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseur'));
+        }
+    }
+    let path = Routing.generate('ajax_render_add_fournisseur', true);
+    xhttp.open("POST", path, true);
+    xhttp.send();
+});
 

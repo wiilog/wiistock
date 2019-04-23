@@ -30,21 +30,9 @@
                         <label for="libelle">Nom</label>
                         <input class="form-control data" type="text" name="libelle" id="libelle">
                     </div>
-                    <div class="form-group col-6 w-100">
-                        <label for="reference">Fournisseur</label>
-                        <select class="ajax-autocompleteFournisseur data form-control needed"
-                            onchange="loadAndDisplayInfos(this)" id="fournisseurAdd" name="fournisseur">
-                        </select>
-                    </div>
-                    <div class="form-group col-6 d-none newContent">
-                        <label for="reference">Référence fournisseur</label>
-                        <input class="form-control data" type="text" name="referenceFournisseur"
-                            id="referenceFournisseur">
-                    </div>
-                    <div class="form-group col-6 d-none newContent">
-                        <label for="reference">Label</label>
-                        <input class="form-control data" type="text" name="labelFournisseur"
-                            id="referenceFournisseur">
+                    {% include 'reference_article/fournisseurArticle.html.twig' %}
+                    <div class="form-group col-12">
+                        <a class="btn" id="addFournisseur">+</a>
                     </div>
                     <div class="form-group col-6">
                         <label for="type">Type</label>
