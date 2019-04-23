@@ -48,6 +48,11 @@ class Emplacement
      */
     private $mouvements;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Article", mappedBy="emplacement")
+     */
+    private $articles;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
@@ -210,6 +215,37 @@ class Emplacement
             // set the owning side to null (unless already changed)
             if ($mouvement->getEmplacement() === $this) {
                 $mouvement->setEmplacement(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Article[]
+     */
+    public function getArticles(): Collection
+    {
+        return $this->articles;
+    }
+
+    public function addArticle(Article $article): self
+    {
+        if (!$this->articles->contains($article)) {
+            $this->articles[] = $article;
+            $article->setEmplacement($this);
+        }
+
+        return $this;
+    }
+
+    public function removeArticle(Article $article): self
+    {
+        if ($this->articles->contains($article)) {
+            $this->articles->removeElement($article);
+            // set the owning side to null (unless already changed)
+            if ($article->getEmplacement() === $this) {
+                $article->setEmplacement(null);
             }
         }
 
