@@ -1,5 +1,3 @@
-$('.select2').select2();
-
 var pathArticle = Routing.generate('article_api', true);
 var tableArticle = $('#tableArticle_id').DataTable({
     "language": {
@@ -84,7 +82,6 @@ function InitialiserModalArticle(modal, submit, path, callback = function () { }
         inputs.each(function () {
             let val = $(this).val();
             let name = $(this).attr("name");
-            console.log(name + " " + val);
             Data[name] = val;
             // validation données obligatoires
             if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
@@ -158,13 +155,27 @@ function InitialiserModalArticle(modal, submit, path, callback = function () { }
     });
 }
 
-var editorNewArticleAlreadyDone = false;
+function init() {
+    ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseur'));
+}
 function initNewArticleEditor(modal) {
-    if (!editorNewArticleAlreadyDone) {
-        ajaxFournisseurArticle($('#articleFournisseurAdd'));
-        initEditor(modal);
-        editorNewArticleAlreadyDone = true;
-    }
+    initEditor(modal);
 };
+
+function loadAndDisplayInfos(select) {
+    if ($(select).val() !== null) {
+        let path = Routing.generate('demande_reference_by_fournisseur', true)
+        let fournisseur = $(select).val();
+        let params = JSON.stringify(fournisseur);
+
+        $.post(path, params, function (data) {
+            $('#newContent').html(data);
+            $('#modalNewArticle').find('div').find('div').find('.modal-footer').removeClass('d-none');
+            initNewArticleEditor("#modalNewArticle");
+            // $('.select2').select2();
+            ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'));
+        })
+    }
+}
 
 

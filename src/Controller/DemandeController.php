@@ -337,6 +337,7 @@ class DemandeController extends AbstractController
             'references' => $this->referenceArticleRepository->getIdAndLibelle(),
             'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
             'emplacements' => $this->emplacementRepository->findAll(),
+            'finished' => ($demande->getStatut()->getNom() === Demande::STATUT_A_TRAITER),
         ]);
     }
 

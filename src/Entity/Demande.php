@@ -16,7 +16,7 @@ class Demande
     const STATUT_BROUILLON = 'brouillon';
     const STATUT_PREPARE = 'préparé';
     const STATUT_A_TRAITER = 'à traiter';
-    const STATUT_LIVREE = 'livré';
+    const STATUT_LIVRE = 'livré';
 
     /**
      * @ORM\Id()

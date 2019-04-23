@@ -425,8 +425,29 @@ class ReferenceArticle
     public function setFournisseur(string $fournisseur): self
     {
         $this->fournisseur = $fournisseur;
+        return $this;
+    }
+
+    public function addArticlesFournisseur(ArticleFournisseur $articlesFournisseur): self
+    {
+        if (!$this->articlesFournisseur->contains($articlesFournisseur)) {
+            $this->articlesFournisseur[] = $articlesFournisseur;
+            $articlesFournisseur->setReferenceArticle($this);
+        }
 
         return $this;
     }
 
+    public function removeArticlesFournisseur(ArticleFournisseur $articlesFournisseur): self
+    {
+        if ($this->articlesFournisseur->contains($articlesFournisseur)) {
+            $this->articlesFournisseur->removeElement($articlesFournisseur);
+            // set the owning side to null (unless already changed)
+            if ($articlesFournisseur->getReferenceArticle() === $this) {
+                $articlesFournisseur->setReferenceArticle(null);
+            }
+        }
+
+        return $this;
+    }
 }

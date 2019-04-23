@@ -118,6 +118,7 @@ class UtilisateurController extends Controller
                 ->setUsername($data['username'])
                 ->setEmail($data['email'])
                 ->setRole($role)
+                ->setStatus(true)
                 ->setRoles(['USER']) // évite bug -> champ roles ne doit pas être vide
                 ->setPassword($password);
             $em = $this->getDoctrine()->getManager();

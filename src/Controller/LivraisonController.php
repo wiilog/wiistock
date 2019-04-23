@@ -37,9 +37,9 @@ class LivraisonController extends AbstractController
      */
     private $emplacementRepository;
 
-     /**
-     * @var ReferenceArticleRepository
-     */
+    /**
+    * @var ReferenceArticleRepository
+    */
     private $referenceArticleRepository;
 
     /**
@@ -144,13 +144,12 @@ class LivraisonController extends AbstractController
         }
 
         if ($livraison->getStatut()->getnom() ===  Livraison::STATUT_A_TRAITER) {
-
             $livraison
                 ->setStatut($this->statutRepository->findOneByCategorieAndStatut(Livraison::CATEGORIE, Livraison::STATUT_LIVRE))
                 ->setDateFin(new \DateTime('now'));
 
             $demande = $this->demandeRepository->getByLivraison($livraison->getId());
-            $statutLivre = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_LIVREE);
+            $statutLivre = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_LIVRE);
             $demande->setStatut($statutLivre);
 
             $ligneArticles = $this->ligneArticleRepository->getByDemande($demande);
@@ -159,7 +158,6 @@ class LivraisonController extends AbstractController
                 $refArticle = $ligneArticle->getReference();
                 $refArticle->setQuantiteStock($refArticle->getQuantiteStock() - $ligneArticle->getQuantite());
             }
-
 
             $preparation = $livraison->getPreparation();
             $articles = $preparation->getArticle();
@@ -178,17 +176,16 @@ class LivraisonController extends AbstractController
      */
     public function api(Request $request): Response
     {
-        if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
-            {
-                if (!$this->userService->hasRightFunction(Menu::LIVRAISON, Action::LIST)) {
-                    return $this->redirectToRoute('access_denied');
-                }
+        if ($request->isXmlHttpRequest()) { //Si la requête est de type Xml
+            if (!$this->userService->hasRightFunction(Menu::LIVRAISON, Action::LIST)) {
+                return $this->redirectToRoute('access_denied');
+            }
 
-                $livraisons = $this->livraisonRepository->findAll();
-                $rows = [];
-                foreach ($livraisons as $livraison) {
-                    $url['show'] = $this->generateUrl('livraison_show', ['id' => $livraison->getId()]);
-                    $rows[] = [
+            $livraisons = $this->livraisonRepository->findAll();
+            $rows = [];
+            foreach ($livraisons as $livraison) {
+                $url['show'] = $this->generateUrl('livraison_show', ['id' => $livraison->getId()]);
+                $rows[] = [
                         'id' => ($livraison->getId() ? $livraison->getId() : ''),
                         'Numéro' => ($livraison->getNumero() ? $livraison->getNumero() : ''),
                         'Date' => ($livraison->getDate() ? $livraison->getDate()->format('d-m-Y') : ''),
@@ -196,26 +193,25 @@ class LivraisonController extends AbstractController
                         'Opérateur' => ($livraison->getUtilisateur() ? $livraison->getUtilisateur()->getUsername() : ''),
                         'Actions' => $this->renderView('livraison/datatableLivraisonRow.html.twig', ['url' => $url])
                     ];
-                }
-
-                $data['data'] = $rows;
-                return new JsonResponse($data);
             }
+
+            $data['data'] = $rows;
+            return new JsonResponse($data);
+        }
         throw new NotFoundHttpException("404");
     }
 
     /**
      * @Route("/api-article/{id}", name="livraison_article_api", options={"expose"=true}, methods={"GET", "POST"})
      */
-    public function apiArticle(Request $request, $id): Response
+    public function apiArticle(Request $request, Livraison $livraison): Response
     {
-        if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
+        if ($request->isXmlHttpRequest())
             {
-                if (!$this->userService->hasRightFunction(Menu::DEM_COLLECTE, Action::LIST)) {
+                if (!$this->userService->hasRightFunction(Menu::LIVRAISON, Action::LIST)) {
                     return $this->redirectToRoute('access_denied');
                 }
 
-                $livraison = $this->livraisonRepository->find($id);
                 $demande = $this->demandeRepository->getByLivraison($livraison->getId());
                 if ($demande) {
 
@@ -227,7 +223,6 @@ class LivraisonController extends AbstractController
                             "Référence CEA" => ($article->getReference() ? $article->getReference()->getReference() : ' '),
                             "Libellé" => ($article->getReference() ? $article->getReference()->getLibelle() : ' '),
                             "Quantité" => ($article->getQuantite() ? $article->getQuantite() : ' '),
-                            "Actions" => "",
                         ];
                     }
 
@@ -245,7 +240,7 @@ class LivraisonController extends AbstractController
      */
     public function show(Livraison $livraison): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::DEM_COLLECTE, Action::LIST)) {
+        if (!$this->userService->hasRightFunction(Menu::LIVRAISON, Action::LIST)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -256,17 +251,39 @@ class LivraisonController extends AbstractController
         ]);
     }
 
-//    /**
-//     * @Route("/supprimer/{id}", name="livraison_delete", methods={"DELETE"})
-//     */
-//    public function delete(Request $request, Livraison $livraison): Response
-//    {
-//        if ($this->isCsrfTokenValid('delete' . $livraison->getId(), $request->request->get('_token'))) {
-//            $entityManager = $this->getDoctrine()->getManager();
-//            $entityManager->remove($livraison);
-//            $entityManager->flush();
-//        }
-//
-//        return $this->redirectToRoute('livraison_index');
-//    }
+    /**
+     * @Route("/supprimer/{id}", name="livraison_delete", options={"expose"=true},methods={"GET","POST"})
+     */
+
+    public function delete(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+
+            if (!$this->userService->hasRightFunction(Menu::PREPA, Action::DELETE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+            $livraison = $this->livraisonRepository->find($data['livraison']);
+
+            $statutP = $this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
+
+            $preparation = $livraison->getpreparation();
+            $preparation->setStatut($statutP);
+
+            $demandes = $livraison->getDemande();
+            foreach ($demandes as $demande) {
+                $demande->setLivraison(null);
+            }
+
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->remove($livraison);
+            $entityManager->flush();
+            $data = [
+                'redirect' => $this->generateUrl('preparation_show', [
+                    'id' => $livraison->getPreparation()->getId()]),
+            ];
+
+            return new JsonResponse($data);
+        }
+        throw new NotFoundHttpException('404');
+    }
 }

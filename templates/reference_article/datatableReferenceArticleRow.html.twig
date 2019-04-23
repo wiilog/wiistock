@@ -20,11 +20,8 @@
         <i class='fas fa-trash'></i>
     </div>
     {% endif %}
-
-    {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE')) %}
     <div class="col-2" id='' onclick="recupIdRefArticle($(this))" data-id='{{ idRefArticle }}'
         data-target='#modalPlusDemande' data-toggle='modal'>
         <i class="fas fa-plus"></i>
     </div>
-    {% endif %}
 </div>

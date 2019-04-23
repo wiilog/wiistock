@@ -13,9 +13,9 @@ class Collecte
 {
     const CATEGORIE = 'collecte';
 
-    const STATUS_FIN = 'collecté';
-    const STATUS_EN_COURS = 'à traiter';
-    const STATUS_DEMANDE = 'brouillon';
+    const STATUS_COLLECTE = 'collecté';
+    const STATUS_A_TRAITER = 'à traiter';
+    const STATUS_BROUILLON = 'brouillon';
 
     /**
      * @ORM\Id()
