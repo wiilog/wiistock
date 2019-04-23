@@ -102,28 +102,36 @@ class ChampsLibreController extends AbstractController
     public function new(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $type = $this->typeRepository->find($data['type']);
-            $champLibre = new ChampsLibre();
-            $champLibre
-                ->setlabel($data['label'])
-                ->setType($type)
-                ->setRequiredCreate($data['requiredCreate'])
-                ->setRequiredEdit($data['requiredEdit'])
-                ->setTypage($data['typage']);
-            if ($champLibre->getTypage() === 'list') {
-                $champLibre
-                    ->setElements(array_filter(explode(';', $data['elem'])))
-                    ->setDefaultValue(null);
-            } else {
-                $champLibre
-                    ->setElements(null)
-                    ->setDefaultValue($data['valeur']);
-            }
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($champLibre);
-            $em->flush();
 
-            return new JsonResponse($data);
+            // on vérifie que le nom du champ libre n'est pas déjà utilisé
+            $champLibreExist = $this->champsLibreRepository->countByLabel($data['label']);
+
+            if (!$champLibreExist) {
+                $type = $this->typeRepository->find($data['type']);
+                $champLibre = new ChampsLibre();
+                $champLibre
+                    ->setlabel($data['label'])
+                    ->setRequiredCreate($data['requiredCreate'])
+                    ->setRequiredEdit($data['requiredEdit'])
+                    ->setType($type)
+                    ->settypage($data['typage']);
+                if ($champLibre->getTypage() === 'list') {
+                    $champLibre
+                        ->setElements(array_filter(explode(';', $data['elem'])))
+                        ->setDefaultValue(null);
+                } else {
+                    $champLibre
+                        ->setElements(null)
+                        ->setDefaultValue($data['valeur']);
+                }
+                $em = $this->getDoctrine()->getManager();
+                $em->persist($champLibre);
+                $em->flush();
+
+                return new JsonResponse($data);
+            } else {
+                return new JsonResponse(false);
+            }
         }
         throw new NotFoundHttpException('404');
     }

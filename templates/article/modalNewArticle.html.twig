@@ -67,11 +67,11 @@
                                         value="{{ value }}" name="{{champ.id}}" id="input">
 
                                     {% elseif champ.typage == 'number' %}
-                                    <input type="number" class="form-control data" value="{{ value }}"
+                                    <input type="number" class="form-control data {{ champ.requiredCreate ? 'needed' : ''}}" value="{{ value }}"
                                         name="{{champ.id}}" id="input">
 
                                     {% elseif champ.typage == 'list' %}
-                                    <select class="form-control data " name="{{champ.id}}" id="input">
+                                    <select class="form-control data {{ champ.requiredCreate ? 'needed' : ''}}" name="{{champ.id}}" id="input">
                                         <option value="{{value}}">{{value}}
                                         </option>
                                         {% for elem in champ.elements %}
@@ -84,7 +84,7 @@
                                         {% endif %}
                                     </select>
                                     {% else %}
-                                    <input type="text" class="form-control data" value="{{ value }}"
+                                    <input type="text" class="form-control data  {{ champ.requiredCreate ? 'needed' : ''}}" value="{{ value }}"
                                         name="{{ champ.id }}" id="input">
                                     {% endif %}
 

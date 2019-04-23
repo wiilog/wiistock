@@ -218,7 +218,7 @@ class ArticleController extends AbstractController
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $toInsert = new Article();
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $data['actif'] ? Article::STATUT_ACTIF : Article::STATUT_INACTIF);
+            $statut = $this->statutRepository->getByCategorieAndStatut(Article::CATEGORIE, $data['actif'] ? Article::STATUT_ACTIF : Article::STATUT_INACTIF);
             $date = new \DateTime('now');
             $ref = $date->format('YmdHis');
             $toInsert
@@ -234,7 +234,7 @@ class ArticleController extends AbstractController
             $champsLibreKey = array_keys($data);
             foreach ($champsLibreKey as $champ) {
                 if (gettype($champ) === 'integer') {
-                    $valeurChampLibre = $this->valeurChampsLibreRepository->findOneByArticleANDChampsLibre($toInsert->getId(), $champ);
+                    $valeurChampLibre = $this->valeurChampsLibreRepository->getByArticleANDChampsLibre($toInsert->getId(), $champ);
                     if (!$valeurChampLibre) {
                         $valeurChampLibre = new ValeurChampsLibre();
                         $valeurChampLibre

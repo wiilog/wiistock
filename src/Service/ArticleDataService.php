@@ -43,7 +43,7 @@ class ArticleDataService
      */
     private $typeRepository;
 
-    /*
+    /**
      * @var StatutRepository
      */
     private $statutRepository;
@@ -268,7 +268,7 @@ class ArticleDataService
         $entityManager = $this->em;
         $article = $this->articleRepository->find($data['article']);
         if ($article) {
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $data['actif'] ? Article::STATUT_ACTIF : Article::STATUT_INACTIF);
+            $statut = $this->statutRepository->getByCategorieAndStatut(Article::CATEGORIE, $data['actif'] ? Article::STATUT_ACTIF : Article::STATUT_INACTIF);
             $article
             ->setLabel($data['label'])
             ->setConform(!$data['conform'])
