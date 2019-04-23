@@ -43,7 +43,7 @@ class ArticleDataService
      */
     private $typeRepository;
 
-    /*
+    /**
      * @var StatutRepository
      */
     private $statutRepository;
@@ -103,8 +103,15 @@ class ArticleDataService
      * @throws \Twig_Error_Runtime
      * @throws \Twig_Error_Syntax
      */
-    public function getArticleOrNoByRefArticle($refArticle, $modifieRefArticle)
+    public function getArticleOrNoByRefArticle($refArticle,$demande, $modifieRefArticle)
     {
+
+        if ($demande === 'livraison') {
+            $articleStatut = Article::STATUT_ACTIF ;
+        }elseif ($demande === 'collecte') {
+            $articleStatut = Article::STATUT_INACTIF;
+        }
+
         $articleFournisseur = $this->articleFournisseurRepository->getByRefArticle($refArticle);
         if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
             if ($modifieRefArticle === true) {
@@ -125,8 +132,7 @@ class ArticleDataService
                 'totalQuantity' => ($data['totalQuantity'] ? $data['totalQuantity'] : ''),
             ]);
         } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-            //TODOO
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_INACTIF);
+            $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $articleStatut);
             $articles = $this->articleRepository->getByAFAndInactif($articleFournisseur, $statut);
             if (count($articles) < 1) {
                 $articles[] = [
@@ -145,7 +151,7 @@ class ArticleDataService
     }
 
     /**
-     * @param ReferenceArticle $articleRef
+     * @param Article $article
      * @return array
      */
     public function getDataEditForArticle($article)
@@ -239,7 +245,7 @@ class ArticleDataService
             ]);
         } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             //TODOO
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_INACTIF);
+            $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
             $articles = $this->articleRepository->getByAFAndInactif($articleFournisseur, $statut);
             if (count($articles) < 1) {
                 $articles[] = [
@@ -255,5 +261,37 @@ class ArticleDataService
         }
 
         return $json;
+    }
+
+    public function editArticle($data)
+    {
+        $entityManager = $this->em;
+        $article = $this->articleRepository->find($data['article']);
+        if ($article) {
+            $statut = $this->statutRepository->getByCategorieAndStatut(Article::CATEGORIE, $data['actif'] ? Article::STATUT_ACTIF : Article::STATUT_INACTIF);
+            $article
+            ->setLabel($data['label'])
+            ->setConform(!$data['conform'])
+            ->setStatut($statut)
+            ->setCommentaire($data['commentaire']);
+            $champsLibreKey = array_keys($data);
+            foreach ($champsLibreKey as $champ) {
+                if (gettype($champ) === 'integer') {
+                    $valeurChampLibre = $this->valeurChampsLibreRepository->getByArticleANDChampsLibre($article->getId(), $champ);
+                    if (!$valeurChampLibre) {
+                        $valeurChampLibre = new ValeurChampsLibre();
+                        $valeurChampLibre
+                        ->addArticle($article)
+                        ->setChampLibre($this->champsLibreRepository->find($champ));
+                    }
+                    $valeurChampLibre->setValeur($data[$champ]);
+                    $entityManager->flush();
+                }
+            }
+            $entityManager->flush();
+            return true;
+        }else {
+            return false;
+        }
     }
 }

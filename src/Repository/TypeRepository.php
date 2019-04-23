@@ -33,7 +33,7 @@ class TypeRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function getOneByCategoryLabel($category)
+    public function findOneByCategoryLabel($category)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
@@ -44,6 +44,7 @@ class TypeRepository extends ServiceEntityRepository
         );
         $query->setParameter("category", $category);
         $result = $query->execute();
-        return $result[0];
+
+        return $result ? $result[0] : null;
     }
 }

@@ -1,16 +1,18 @@
 {%  if modifiable %}
 
-    <div class="row">
-        <div data-id='{{ idArticle }}' class='type-delete col-3' data-target='#modalEditArticle' 
-        data-toggle='modal'
-        onclick="editRow($(this), Routing.generate('demande_article_api_edit', true), $('#modalEditArticle'), $('#submitEditArticle'))">
-            <i class='fas fa-pencil-alt'></i>
-        </div>
-        <div class='type-delete col-3'
-        onclick="deleteRow($(this), $('#modalDeleteArticle'), $('#submitDeleteArticle'))" data-id='{{ idArticle }}'
-        data-target='#modalDeleteArticle' data-toggle='modal'>
-            <i class='fas fa-trash '></i>
-        </div>
+<div class="row">
+
+    <div class='type-delete col-3' onclick="deleteRowDemande($(this), $('#modalDeleteArticle'), $('#submitDeleteArticle'))"
+        data-id='{{ data.id }}' data-name='{{data.name}}' data-target='#modalDeleteArticle' data-toggle='modal'>
+        <i class='fas fa-trash '></i>
     </div>
+    {% if data.name == reference %}
+
+    <div data-id='{{ data.id }}' class='type-delete col-3' data-target='#modalEditArticle' data-toggle='modal'
+        onclick="editRow($(this), Routing.generate('demande_article_api_edit', true), $('#modalEditArticle'), $('#submitEditArticle'))">
+        <i class='fas fa-pencil-alt'></i>
+    </div>
+    {% endif %}
+</div>
 
 {% endif %}
