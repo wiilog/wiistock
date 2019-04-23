@@ -4,6 +4,9 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\Menu;
+use App\Entity\ValeurChampsLibre;
+use App\Entity\Article;
+
 use App\Repository\ArticleRepository;
 use App\Repository\StatutRepository;
 use App\Repository\CollecteRepository;
@@ -15,18 +18,18 @@ use App\Repository\FournisseurRepository;
 use App\Repository\ValeurChampsLibreRepository;
 use App\Repository\ChampsLibreRepository;
 use App\Repository\TypeRepository;
+
 use App\Service\RefArticleDataService;
 use App\Service\ArticleDataService;
 use App\Service\UserService;
+
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use App\Entity\Article;
 use Proxies\__CG__\App\Entity\ReferenceArticle;
-use App\Entity\ValeurChampsLibre;
 
 /**
  * @Route("/article")
