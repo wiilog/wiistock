@@ -23,7 +23,7 @@
         {% endif %}
     </div>
 
-    {% elseif demande.preparation != null %}
+    {% elseif demande.preparation is not empty %}
     <div class="col text-right">
         <a href="{{path('preparation_show', {'id': demande.preparation.id }) }}" class="btn btn-primary btn-action">
             Aller vers la préparation
