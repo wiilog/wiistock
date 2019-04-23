@@ -10,8 +10,7 @@
     <div class="col-4">
         <p><strong> Statut : </strong> {{ collecte.statut ? collecte.statut.nom : '' }}</p>
         <p><strong> Numéro : </strong> {{ collecte.numero }}</p>
-        <p><strong> Opérateur : </strong> </p>
-        {# TODO mettre le nom de l'utilisateur lié à la demande de collecte #}
+        <p><strong> Opérateur : </strong> {{ collecte.demandeCollecte.demandeur.username }}</p>
     </div>
     <div class="col-4">
 
@@ -35,6 +34,8 @@
 
 <a href="{{ path('ordre_collecte_index') }}" class='btn'>Retour à la liste</a>
 <input id="collecte-id" hidden value="{{ collecte.id }}">
+
+    {% include 'ordre_collecte/modalEditArticle.html.twig' %}
 
 {% endblock %}
 {% block javascript %}

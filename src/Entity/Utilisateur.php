@@ -235,7 +235,10 @@ class Utilisateur implements UserInterface, EquatableInterface
         }
         return $this;
     }
-
+    public function __toString()
+    {
+        return $this->username;
+    }
     /**
      * @return Collection|Demande[]
      */

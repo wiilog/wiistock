@@ -14,5 +14,11 @@ let tableArticle = $('#tableArticle').DataTable({
         { "data": 'Référence CEA', 'title': 'Référence CEA' },
         { "data": 'Libellé', 'title': 'Libellé' },
         { "data": 'Quantité', 'title': 'Quantité' },
+        { "data": 'Actions', 'title': 'Actions' },
     ],
 });
+
+let urlEditArticle = Routing.generate('ordre_collecte_edit_article', true);
+let modalEditArticle = $("#modalEditArticle");
+let submitEditArticle = $("#submitEditArticle");
+InitialiserModal(modalEditArticle, submitEditArticle, urlEditArticle, tableArticle);

@@ -113,8 +113,7 @@ class OrdreCollecteController extends AbstractController
 
         return $this->render('ordre_collecte/show.html.twig', [
             'collecte' => $ordreCollecte,
-//            'preparation' => $this->preparationRepository->find($ordreCollecte->getPreparation()->getId()),
-            'finished' => ($ordreCollecte->getStatut()->getNom() === Collecte::STATUS_FIN)
+            'finished' => $ordreCollecte->getStatut()->getNom() === OrdreCollecte::STATUT_TRAITE
         ]);
     }
 
@@ -129,33 +128,40 @@ class OrdreCollecteController extends AbstractController
 
         if ($collecte->getStatut()->getnom() ===  OrdreCollecte::STATUT_A_TRAITER) {
 
+            // on modifie le statut de l'ordre de collecte
             $collecte
                 ->setStatut($this->statutRepository->findOneByCategorieAndStatut(OrdreCollecte::CATEGORIE, OrdreCollecte::STATUT_TRAITE))
                 ->setDate(new \DateTime('now'));
 
+            // on modifie le statut de la demande de collecte
             $demande = $collecte->getDemandeCollecte();
-            $statutTraite = $this->statutRepository->findOneByCategorieAndStatut(OrdreCollecte::CATEGORIE, OrdreCollecte::STATUT_TRAITE);
-            $demande->setStatut($statutTraite);
+            $demande->setStatut($this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, Collecte::STATUS_COLLECTE));
 
-            // on modifie la quanitité des articles de référence liés à la collecte
+            // on modifie la quantité des articles de référence liés à la collecte
             $ligneArticles = $this->collecteReferenceRepository->getByCollecte($collecte->getDemandeCollecte());
 
-            foreach ($ligneArticles as $ligneArticle) { /** @var  CollecteReference $ligneArticle */
-                $refArticle = $ligneArticle->getReferenceArticle();
-                dump($refArticle->getReference());
-                dump($refArticle->getQuantiteStock());
-                $refArticle->setQuantiteStock($refArticle->getQuantiteStock() + $ligneArticle->getQuantite());
+            $addToStock = $demande->getStockOrDestruct();
+
+            // cas de mise en stockage
+            if ($addToStock) {
+                foreach ($ligneArticles as $ligneArticle) {
+                    /** @var  CollecteReference $ligneArticle */
+                    $refArticle = $ligneArticle->getReferenceArticle();
+                    $refArticle->setQuantiteStock($refArticle->getQuantiteStock() + $ligneArticle->getQuantite());
+                }
+
+                // on modifie le statut des articles liés à la collecte
+                $demandeCollecte = $collecte->getDemandeCollecte();
+
+                $articles = $demandeCollecte->getArticles();
+                foreach ($articles as $article) {
+                    $article->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF));
+                }
             }
 
-            // on modifie le statut des articles liés à la collecte
-            $demandeCollecte = $collecte->getDemandeCollecte();
-
-            $articles = $demandeCollecte->getArticles();
-            foreach ($articles as $article) {
-                $article->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_INACTIF));
-            }
+            $this->getDoctrine()->getManager()->flush();
         }
-        $this->getDoctrine()->getManager()->flush();
+
         return $this->redirectToRoute('ordre_collecte_show', [
             'id' => $collecte->getId()
         ]);
@@ -185,6 +191,10 @@ class OrdreCollecteController extends AbstractController
                         "Référence CEA" => $referenceArticle ? $referenceArticle->getReference() : ' ',
                         "Libellé" => $referenceArticle ? $referenceArticle->getLibelle() : ' ',
                         "Quantité" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ' '),
+                        "Actions" => $this->renderView('ordre_collecte/datatableOrdreCollecteRow.html.twig', [
+                            'id' => $ligneArticle->getId(),
+                            'modifiable' => $collecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER,
+                        ])
                     ];
                 }
 
@@ -196,4 +206,81 @@ class OrdreCollecteController extends AbstractController
         }
         throw new NotFoundHttpException("404");
     }
+
+    /**
+     *  @Route("/creer/{id}", name="ordre_collecte_new", options={"expose"=true}, methods={"GET","POST"} )
+     */
+    public function new(Collecte $demandeCollecte): Response
+    {
+        if (!$this->userService->hasRightFunction(Menu::COLLECTE, Action::CREATE)) {
+            return $this->redirectToRoute('access_denied');
+        }
+
+        // on crée l'ordre de collecte
+        $statut = $this->statutRepository->findOneByCategorieAndStatut(OrdreCollecte::CATEGORIE, OrdreCollecte::STATUT_A_TRAITER);
+        $ordreCollecte = new OrdreCollecte();
+        $date = new \DateTime('now');
+        $ordreCollecte
+            ->setDate($date)
+            ->setNumero('C-' . $date->format('YmdHis'))
+            ->setStatut($statut)
+            ->setUtilisateur($this->getUser())
+            ->setDemandeCollecte($demandeCollecte);
+        $entityManager = $this->getDoctrine()->getManager();
+        $entityManager->persist($ordreCollecte);
+
+        // on modifie le statut de la demande de collecte liée
+        $demandeCollecte->setStatut($this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, Collecte::STATUS_A_TRAITER));
+
+        $entityManager->flush();
+
+        return $this->redirectToRoute('ordre_collecte_show', [
+            'id' => $ordreCollecte->getId(),
+        ]);
+    }
+
+    /**
+     *  @Route("/modifier-article-api", name="ordre_collecte_edit_api", options={"expose"=true}, methods={"GET","POST"} )
+     */
+    public function apiEditArticle(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest() &&  $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::COLLECTE, Action::CREATE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+            $ligneArticle = $this->collecteReferenceRepository->find($data);
+
+            $json =  $this->renderView(
+                'ordre_collecte/modalEditArticleContent.html.twig',
+                ['ligneArticle' => $ligneArticle]
+            );
+            return new JsonResponse($json);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/modifier-article", name="ordre_collecte_edit_article", options={"expose"=true}, methods={"GET", "POST"})
+     */
+    public function editArticle(Request  $request): Response
+    {
+        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE)) {
+            return $this->redirectToRoute('access_denied');
+        }
+
+        if (!$request->isXmlHttpRequest() &&  $data = json_decode($request->getContent(), true)) {
+
+            $ligneArticle = $this->collecteReferenceRepository->find($data['ligneArticle']);
+
+            $ligneArticle->setQuantite($data['quantite']);
+
+            $this->getDoctrine()->getManager()->flush();
+
+            return new JsonResponse();
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+
 }

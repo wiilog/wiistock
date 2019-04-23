@@ -150,7 +150,7 @@ class LivraisonController extends AbstractController
                 ->setDateFin(new \DateTime('now'));
 
             $demande = $this->demandeRepository->getByLivraison($livraison->getId());
-            $statutLivre = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_LIVREE);
+            $statutLivre = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_LIVRE);
             $demande->setStatut($statutLivre);
 
             $ligneArticles = $this->ligneArticleRepository->getByDemande($demande);

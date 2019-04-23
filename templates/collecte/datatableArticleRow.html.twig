@@ -1,7 +1,6 @@
 {% if modifiable %}
 
 <div class="row">
-
     {% if hasRight(constant('App\\Entity\\Menu::DEM_COLLECTE'), constant('App\\Entity\\Action::CREATE')) %}
     <div data-id='{{ data.id }}' class='type-delete col-3' data-target='#modalEditArticle' data-toggle='modal'
         onclick="editRow($(this), Routing.generate('collecte_edit_api_article', true), $('#modalEditArticle'), $('#submitEditArticle'))">

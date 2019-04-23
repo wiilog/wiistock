@@ -88,26 +88,6 @@ let submitDeleteArticle = $("#submitDeleteArticle");
 let urlDeleteArticle = Routing.generate('collecte_remove_article', true);
 InitialiserModal(modalDeleteArticle, submitDeleteArticle, urlDeleteArticle, tableArticle);
 
-function finishCollecte(submit) {
-    xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function () {
-        if (this.readyState == 4 && this.status == 200) {
-            data = JSON.parse(this.responseText);
-            $('#tableArticle_id').DataTable().ajax.reload();
-            $('.zone-entete').html(data.entete);
-            $('#boutonCollecteSup').addClass('d-none')
-            $('#boutonCollecteInf').addClass('d-none')
-
-        }
-    }
-    path =  Routing.generate('finish_collecte', true)
-    let data = {};
-    data['collecte'] = submit.data('id')
-    json = JSON.stringify(data);
-    xhttp.open("POST", path, true);
-    xhttp.send(json);
-}
-
 // $('.ajax-autocomplete').select2({
 //     ajax: {
 //         url: Routing.generate('get_ref_articles'),
@@ -163,7 +143,7 @@ function ajaxGetCollecteArticle(select) {
     xhttp.send(json);
 }
 
-function deleteRowDemande(button, modal, submit) {
+function deleteRowCollecte(button, modal, submit) {
     let id = button.data('id');
     let name = button.data('name');
     modal.find(submit).attr('value', id);
