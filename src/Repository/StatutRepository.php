@@ -46,7 +46,7 @@ class StatutRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function getByCategorieAndStatut($categorieName, $statutName)
+    public function findOneByCategorieAndStatut($categorieName, $statutName)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(

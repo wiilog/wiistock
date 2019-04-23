@@ -9,6 +9,11 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class OrdreCollecte
 {
+    const CATEGORIE = 'ordreCollecte';
+
+    const STATUT_A_TRAITER = 'à traiter';
+    const STATUT_TRAITE = 'traité';
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()

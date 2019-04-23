@@ -64,7 +64,7 @@
             </a>
             <ul class="sidemenu-sub">
                 {% if hasRight(constant('App\\Entity\\Menu::COLLECTE'), constant('App\\Entity\\Action::LIST')) %}
-                    <li><a href="{{ path("collecte_index") }}" class="sub-item">• Collecte</a></li>
+                    <li><a href="{{ path("ordre_collecte_index") }}" class="sub-item">• Collecte</a></li>
                 {% endif %}
                 {% if hasRight(constant('App\\Entity\\Menu::LIVRAISON'), constant('App\\Entity\\Action::LIST')) %}
                     <li><a href="{{ path("livraison_index") }}" class="sub-item">• Livraison</a></li>
