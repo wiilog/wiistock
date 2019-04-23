@@ -130,6 +130,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->filters = new ArrayCollection();
         $this->ordreCollectes = new ArrayCollection();
     }
+    
     public function getId()
     {
         return $this->id;
