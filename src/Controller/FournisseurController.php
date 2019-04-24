@@ -7,6 +7,9 @@ use App\Entity\Fournisseur;
 use App\Entity\Menu;
 use App\Form\FournisseurType;
 use App\Repository\FournisseurRepository;
+use App\Repository\ArticleFournisseurRepository;
+use App\Repository\ReceptionRepository;
+use App\Repository\ReceptionReferenceArticleRepository;
 use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -21,6 +24,20 @@ use Knp\Component\Pager\PaginatorInterface;
  */
 class FournisseurController extends AbstractController
 {
+    /**
+     * @var ReceptionReferenceArticleRepository
+     */
+    private $receptionReferenceArticleRepository;
+
+    /**
+     * @var ReceptionRepository
+     */
+    private $receptionRepository;
+
+    /**
+     * @var ArticleFournisseurRepository
+     */
+    private $articleFournisseurRepository;
 
     /**
      * @var FournisseurRepository
@@ -33,10 +50,13 @@ class FournisseurController extends AbstractController
     private $userService;
 
 
-    public function __construct(FournisseurRepository $fournisseurRepository, UserService $userService)
+    public function __construct(ReceptionReferenceArticleRepository $receptionReferenceArticleRepository, ReceptionRepository $receptionRepository, ArticleFournisseurRepository $articleFournisseurRepository, FournisseurRepository $fournisseurRepository, UserService $userService)
     {
         $this->fournisseurRepository = $fournisseurRepository;
         $this->userService = $userService;
+        $this->articleFournisseurRepository = $articleFournisseurRepository;
+        $this->receptionRepository = $receptionRepository;
+        $this->receptionReferenceArticleRepository = $receptionReferenceArticleRepository;
     }
 
     /**
@@ -143,6 +163,41 @@ class FournisseurController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
+
+    /**
+     * @Route("/verification", name="fournisseur_check_delete", options={"expose"=true})
+     */
+    public function checkFournisseurCanBeDeleted(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $fournisseurId = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+            if ($this->countUsedFournisseurs($fournisseurId) == 0) {
+                $delete = true;
+                $html = $this->renderView('fournisseur/modalDeleteFournisseurRight.html.twig');
+            } else {
+                $delete = false;
+                $html = $this->renderView('fournisseur/modalDeleteFournisseurWrong.html.twig', ['delete' => false]);
+            }
+
+            return new JsonResponse(['delete' => $delete, 'html' => $html]);
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+    private function countUsedFournisseurs($fournisseurId)
+    {
+        $usedFournisseur = $this->articleFournisseurRepository->countByFournisseur($fournisseurId);
+        $usedFournisseur += $this->receptionRepository->countByFournisseur($fournisseurId);
+        $usedFournisseur += $this->receptionReferenceArticleRepository->countByFournisseur($fournisseurId);
+        // $$usedFournisseur += $this->mouvementRepository->countByFournisseur($fournisseurId);
+
+        return $usedFournisseur;
+    }
+
+
     /**
      * @Route("/supprimer", name="fournisseur_delete",  options={"expose"=true}, methods={"GET", "POST"})
      */
@@ -152,11 +207,22 @@ class FournisseurController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
+            if ($fournisseurId = (int)$data['fournisseur']) {
 
-            $fournisseur = $this->fournisseurRepository->find($data['fournisseur']);
-            $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->remove($fournisseur);
-            $entityManager->flush();
+                $fournisseur = $this->fournisseurRepository->find($fournisseurId);
+
+                // on vérifie que le fournisseur n'est plus utilisé
+                $usedFournisseur = $this->countUsedFournisseurs($fournisseurId);
+
+                if ($usedFournisseur > 0) {
+                    return new JsonResponse(false);
+                }
+
+                $entityManager = $this->getDoctrine()->getManager();
+                $entityManager->remove($fournisseur);
+                $entityManager->flush();
+                return new JsonResponse();
+            }
             return new JsonResponse();
         }
         throw new NotFoundHttpException("404");
