@@ -19,13 +19,19 @@ class MailerService
      */
     private $mailerServerRepository;
 
+    /**
+     * @var \Twig_Environment
+     */
+    private $templating;
 
-    public function __construct(MailerServerRepository $mailerServerRepository)
+
+    public function __construct(MailerServerRepository $mailerServerRepository, \Twig_Environment $templating)
     {
         $this->mailerServerRepository = $mailerServerRepository;
+        $this->templating = $templating;
     }
 
-    public function sendMail($subject, $message, $to)
+    public function sendMail($subject, $content, $to)
     {
         $mailerServer = $this->mailerServerRepository->getOneMailerServer(); /** @var MailerServer $mailerServer */
 
@@ -39,19 +45,25 @@ class MailerService
             return false;
         }
 
-        //TODO CG
-        $to = 'cecile.gazaniol@wiilog.fr';
+        //protection dev
+        if (isset($_SERVER['APP_ENV']) && $_SERVER['APP_ENV'] == 'dev') {
+            $to = 'cecile.gazaniol@wiilog.fr';
+        }
 
         $transport = (new \Swift_SmtpTransport($host, $port, $protocole))
                 ->setUsername($from)
                 ->setPassword($password);
 
-        $message = (new \Swift_Message())
-                ->setFrom($from)
-                ->setTo($to)
-                ->setSubject($subject)
-                ->setBody($message);
+        $message = (new \Swift_Message());
 
+//        $image = $message->embed(\Swift_Image::fromPath('img/Logo-FollowGTpetit.png'));
+
+        $message
+            ->setFrom($from)
+            ->setTo($to)
+            ->setSubject($subject)
+            ->setBody($content)
+            ->setContentType('text/html');
         $mailer = (new \Swift_Mailer($transport));
         $mailer->send($message);
     }

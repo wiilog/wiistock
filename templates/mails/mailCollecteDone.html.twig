@@ -16,16 +16,16 @@
 </style>
 <body>
 
-<h2>Votre demande a bien été livrée</h2>
+<h2>Votre demande a bien été collectée</h2>
 
-<p>Rappel de votre demande de livraison :</p>
+<p>Rappel de votre demande de collecte :</p>
 
-Numéro : {{ livraison.numero }}<br>
-Date de demande : {{ livraison.date|date('d/m/Y') }}<br>
-Demandeur : {{ livraison.utilisateur.username }}<br>
-Destination : {{ livraison.destination.label }}<br>
-{% if (livraison.commentaire is not empty and livraison.commentaire != '<p><br></p>') %}
-    Commentaire : {{ livraison.commentaire|raw }}<br>
+Numéro : {{ collecte.numero }}<br>
+Date de demande : {{ collecte.date|date('d/m/Y') }}<br>
+Demandeur : {{ collecte.demandeur.username }}<br>
+Point de collecte : {{ collecte.pointCollecte.label }}<br>
+{% if (collecte.commentaire is not empty and collecte.commentaire != '<p><br></p>') %}
+    Commentaire : {{ collecte.commentaire|raw }}<br>
 {% endif %}
 
 Liste des articles :<br>
@@ -39,7 +39,14 @@ Liste des articles :<br>
         </tr>
     </thead>
     <tbody>
-    {% for article in livraison.ligneArticle %}
+    {% for article in collecte.articles %}
+        <tr>
+            <td>{{ article.reference.reference }}</td>
+            <td>{{ article.reference.libelle }}</td>
+            <td>{{ article.quantite }}</td>
+        </tr>
+    {% endfor %}
+    {% for refArticle in collecte.collecteReferences %}
         <tr>
             <td>{{ article.reference.reference }}</td>
             <td>{{ article.reference.libelle }}</td>

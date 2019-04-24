@@ -9,6 +9,7 @@ use App\Repository\UtilisateurRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\ServiceRepository;
 use App\Repository\StatutRepository;
+use App\Service\MailerService;
 use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -47,14 +48,20 @@ class ServiceController extends AbstractController
      */
     private $userService;
 
+    /**
+     * @var MailerService
+     */
+    private $mailerService;
 
-    public function __construct(ServiceRepository $serviceRepository, EmplacementRepository $emplacementRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService)
+
+    public function __construct(ServiceRepository $serviceRepository, EmplacementRepository $emplacementRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, MailerService $mailerService)
     {
         $this->serviceRepository = $serviceRepository;
         $this->emplacementRepository = $emplacementRepository;
         $this->statutRepository = $statutRepository;
         $this->utilisateurRepository = $utilisateurRepository;
         $this->userService = $userService;
+        $this->mailerService = $mailerService;
     }
 
     /**

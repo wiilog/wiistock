@@ -33,55 +33,34 @@ class PasswordService
     private $mailerServerRepository;
 
     /**
-     * @var Swift_SmtpTransport
+     * @var MailerService
      */
-    private $transport;
+    private $mailerService;
 
     /**
-     * @var Swift_Mailer
+     * @var \Twig_Environment
      */
-    private $mailer;
-    /**
-     * @var password
-     */
-    private $username;
+    private $templating;
 
-    /**
-     * @var password
-     */
-    private $password;
 
-    public function __construct(MailerServerRepository $mailerServerRepository, UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, EntityManagerInterface $entityManager)
+    public function __construct(MailerServerRepository $mailerServerRepository, UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, EntityManagerInterface $entityManager, MailerService $mailerService, \Twig_Environment $templating)
     {
         $this->entityManager = $entityManager;
         $this->passwordEncoder = $passwordEncoder;
         $this->utilisateurRepository = $utilisateurRepository;
         $this->mailerServerRepository = $mailerServerRepository;
+        $this->mailerService = $mailerService;
+        $this->templating = $templating;
     }
 
     public function sendNewPassword($to)
     {
         $newPass = $this->generatePassword(10);
         if ($this->updateUser($to, $newPass) === 1) {
-            $mailerServer = $this->mailerServerRepository->getOneMailerServer();
-            $username = ($mailerServer->getUser() ?  $mailerServer->getUser() : "");
-            $password = ($mailerServer->getPassword() ? $mailerServer->getPassword() : "");
-            $transport = (new Swift_SmtpTransport(
-                ($mailerServer->getSmtp() ? $mailerServer->getSmtp() : ""),
-                ($mailerServer->getPort() ?  $mailerServer->getPort() : ""),
-                $mailerServer->getProtocol() ? $mailerServer->getProtocol() : ""
-            ))
-                ->setUsername($username)
-                ->setPassword($password);
-            $mailer = (new Swift_Mailer($transport));
-
-
-            $message = (new \Swift_Message('Oubli de mot de passe Wiilog.'))
-                ->setFrom([$this->username => 'L\'équipe de Wiilog.'])
-                ->setTo($to)
-                ->setBody('Votre nouveau mot de passe est : ' . $newPass);
-
-            $this->mailer->send($message);
+            $this->mailerService->sendMail(
+                'FOLLOW GT // Mot de passe oublié',
+                $this->templating->render('mails/mailForgotPassword.html.twig', ['password' => $newPass]),
+                $to);
         }
     }
 
