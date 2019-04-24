@@ -117,7 +117,7 @@
     </div>
     <div class="form-group col-12 d-block" id='typeContentEdit'>
         {% for type in types %}
-        <div {{ articleRef.type is defined and type.id == articleRef.type.id ? "class='d-block'" : "class='d-none'"}}
+        <div {{ articleRef.type is not empty and type.id == articleRef.type.id ? "class='d-block'" : "class='d-none'"}}
             id="{{type.id}}-edit">
             <div class="row mt-2">
                 {% for champ in type.champsLibres %}
