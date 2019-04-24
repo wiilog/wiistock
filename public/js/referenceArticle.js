@@ -35,6 +35,7 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function () 
         // dans les inputs...
         let Data = {};
         let inputs = modal.find(".data");
+        // Trouver les champs correspondants aux infos fournisseurs...
         let fournisseursWithRefAndLabel = [];
         let fournisseurReferences = modal.find('input[name="referenceFournisseur"]');
         let labelFournisseur = modal.find('input[name="labelFournisseur"]');
@@ -399,6 +400,10 @@ function loadSpinnerAR(div) {
 function loadAndDisplayInfos(select) {
     $('.newContent').removeClass('d-none');
     $('.newContent').addClass('d-block');
+
+    $('span[role="textbox"]').each(function () {
+        $(this).parent().css('border-color', '');
+    });
 }
 
 $('#addFournisseur').click(function () {
@@ -410,8 +415,34 @@ $('#addFournisseur').click(function () {
             ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseur'));
         }
     }
-    let path = Routing.generate('ajax_render_add_fournisseur', true);
-    xhttp.open("POST", path, true);
-    xhttp.send();
+    if ($('.d-none.newContent').length === 0) {
+        $('#addFournisseur').closest('select[name="fournisseur"]').css('border-color', '');
+        let filled = true;
+        $('input[name="referenceFournisseur"], input[name="labelFournisseur"]').each(function () {
+            if ($(this).val() === '' && filled) {
+                $(this).css('border-color', 'red');
+                filled = false;
+            } else {
+                $(this).css('border-color', '');
+            }
+        });
+        if (filled) {
+            $('input[name="referenceFournisseur"], input[name="labelFournisseur"]').each(function () {
+                $(this).css('border-color', '');
+            });
+            $('span[role="textbox"]').each(function () {
+                $(this).parent().css('border-color', '');
+            });
+            let path = Routing.generate('ajax_render_add_fournisseur', true);
+            xhttp.open("POST", path, true);
+            xhttp.send();
+        }
+    } else {
+        $('span[role="textbox"]').each(function () {
+            if ($(this).text() === '') {
+                $(this).parent().css('border-color', 'red');
+            }
+        });
+    }
 });
 
