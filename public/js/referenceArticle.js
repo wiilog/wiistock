@@ -350,22 +350,20 @@ let ajaxEditArticle = function (select) {
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
             dataReponse = JSON.parse(this.responseText);
-            if (dataReponse.editChampLibre) {
-                $('.editChampLibre').html(dataReponse.editChampLibre);
-                displayRequireChamp($('#typeEditArticle'), 'edit');
-                // initEditor('.editor-container');
+            if (dataReponse) {
+                $('.editChampLibre').html(dataReponse);
+                // displayRequireChamp($('#typeEditArticle'), 'edit');
+                initEditor('.editor-container');
             } else {
                 //TODO gérer erreur
             }
         }
     }
     let json = select.val();
-    let path = Routing.generate('ajax_edit_article', true);
+    let path = Routing.generate('article_api_edit', true);
     xhttp.open("POST", path, true);
     xhttp.send(json);
 }
-
-
 
 //initialisation editeur de texte une seule fois
 var editorNewReferenceArticleAlreadyDone = false;

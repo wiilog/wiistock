@@ -358,33 +358,7 @@ class ArticleController extends AbstractController
         }
         throw new NotFoundHttpException("404");
     }
-
-    /**
-     * @Route("/ajax-edit-article", name="ajax_edit_article", options={"expose"=true})
-     */
-    public function ajaxEditArticle(Request $request): Response
-    {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $article = $this->articleRepository->find($data);
-            $data = $this->articleDataService->getDataEditForArticle($article);
-
-            $json = [
-                'editChampLibre' => $this->renderView(
-                    'article/modalModifyArticleContent.html.twig',
-                    [
-                        'valeurChampsLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
-                        'types' => $this->typeRepository->getByCategoryLabel(Article::CATEGORIE),
-                        'article' => $article,
-                        'statut' => ($article->getStatut()->getNom() === Article::STATUT_ACTIF ? true : false),
-                    ]
-                ),
-            ];
-
-            return new JsonResponse($json);
-        }
-        throw new NotFoundHttpException('404');
-    }
-
+    
     /**
      * @Route("/get-article-collecte", name="get_collecte_article_by_refArticle", options={"expose"=true})
      */

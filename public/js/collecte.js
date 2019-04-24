@@ -136,6 +136,7 @@ function ajaxGetCollecteArticle(select) {
             displayRequireChamp($('#typeEdit'), 'edit');
         }
     }
+    console.log('hellll');
     path = Routing.generate('get_collecte_article_by_refArticle', true)
     let data = {};
     data['referenceArticle'] = $(select).val();
@@ -242,4 +243,23 @@ function validateCollecte(collecteId) {
     });
 }
 
-
+let ajaxEditArticle = function (select) {
+    xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            dataReponse = JSON.parse(this.responseText);
+            console.log(dataReponse);
+            if (dataReponse) {
+                $('#editNewArticle').html(dataReponse);
+                // displayRequireChamp($('#typeEditArticle'), 'edit');
+                initEditor('.editor-container');
+            } else {
+                //TODO gérer erreur
+            }
+        }
+    }
+    let json = select.val();
+    let path = Routing.generate('article_api_edit', true);
+    xhttp.open("POST", path, true);
+    xhttp.send(json);
+}
