@@ -100,9 +100,10 @@ class DemandeController extends AbstractController
 
                 $listLigneArticleByRefArticle = $this->ligneArticleRepository->findByRefArticle($articleRef);
 
-                foreach($listLigneArticleByRefArticle as $ligneArticle) { /** @var LigneArticle $ligneArticle */
+                foreach ($listLigneArticleByRefArticle as $ligneArticle) {
+                    /** @var LigneArticle $ligneArticle */
                     $status = $ligneArticle->getDemande()->getStatut()->getNom();
-                    if ($status === Demande::STATUT_A_TRAITER || $status=== Demande::STATUT_PREPARE) {
+                    if ($status === Demande::STATUT_A_TRAITER || $status === Demande::STATUT_PREPARE) {
                         $quantiteReservee += $ligneArticle->getQuantite();
                     }
                 }
@@ -131,7 +132,7 @@ class DemandeController extends AbstractController
             $preparation = new Preparation();
             $date = new \DateTime('now');
             $preparation
-                ->setNumero('P-'.$date->format('YmdHis'))
+                ->setNumero('P-' . $date->format('YmdHis'))
                 ->setDate($date)
                 ->setUtilisateur($this->getUser());
 
@@ -232,7 +233,7 @@ class DemandeController extends AbstractController
                 ->setdate($date)
                 //                ->setDateAttendu(new \DateTime($data['dateAttendu']))
                 ->setDestination($destination)
-                ->setNumero('D-'.$date->format('YmdHis'))
+                ->setNumero('D-' . $date->format('YmdHis'))
                 ->setCommentaire($data['commentaire']);
             $em->persist($demande);
             $em->flush();
@@ -366,7 +367,7 @@ class DemandeController extends AbstractController
                                 'id' => $ligneArticle->getId(),
                                 'name' => (ReferenceArticle::TYPE_QUANTITE_REFERENCE),
                             ],
-                            'reference'=>ReferenceArticle::TYPE_QUANTITE_REFERENCE,
+                            'reference' => ReferenceArticle::TYPE_QUANTITE_REFERENCE,
                             'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
                         ]
                     )
@@ -386,7 +387,7 @@ class DemandeController extends AbstractController
                                 'id' => $article->getId(),
                                 'name' => (ReferenceArticle::TYPE_QUANTITE_ARTICLE),
                             ],
-                            'reference'=>ReferenceArticle::TYPE_QUANTITE_REFERENCE,
+                            'reference' => ReferenceArticle::TYPE_QUANTITE_REFERENCE,
                             'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
                         ]
                     ),
@@ -419,7 +420,7 @@ class DemandeController extends AbstractController
                 if ($this->ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
                     $ligneArticle = new LigneArticle();
                     $ligneArticle
-                        ->setQuantite($data["quantite"])
+                        ->setQuantite($data["quantitie"])
                         ->setReference($referenceArticle);
                     $em->persist($ligneArticle);
                 } else {
@@ -455,7 +456,7 @@ class DemandeController extends AbstractController
                 $article = $this->articleRepository->find($data[ReferenceArticle::TYPE_QUANTITE_ARTICLE]);
                 $demande = $article->getDemande();
                 $demande->removeArticle($article);
-            } 
+            }
             $entityManager->flush();
 
             return new JsonResponse();
@@ -517,5 +518,4 @@ class DemandeController extends AbstractController
         }
         throw new NotFoundHttpException('404');
     }
-
 }
