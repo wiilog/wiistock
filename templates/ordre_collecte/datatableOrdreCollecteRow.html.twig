@@ -1,0 +1,10 @@
+<div class="row">
+    {% if hasRight(constant('App\\Entity\\Menu::COLLECTE'), constant('App\\Entity\\Action::LIST')) %}
+        {% if modifiable %}
+            <div data-id='{{ id }}' data-target='#modalEditArticle' data-toggle='modal' class='col-3'
+                 onclick="editRow($(this), Routing.generate('ordre_collecte_edit_api', true), $('#modalEditArticle'), $('#submitEditArticle'))">
+                <i class='fas fa-pencil-alt'></i>
+            </div>
+        {% endif %}
+    {% endif %}
+</div>

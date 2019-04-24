@@ -4,6 +4,9 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\Menu;
+use App\Entity\ValeurChampsLibre;
+use App\Entity\Article;
+
 use App\Repository\ArticleRepository;
 use App\Repository\StatutRepository;
 use App\Repository\CollecteRepository;
@@ -15,18 +18,18 @@ use App\Repository\FournisseurRepository;
 use App\Repository\ValeurChampsLibreRepository;
 use App\Repository\ChampsLibreRepository;
 use App\Repository\TypeRepository;
+
 use App\Service\RefArticleDataService;
 use App\Service\ArticleDataService;
 use App\Service\UserService;
+
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use App\Entity\Article;
 use Proxies\__CG__\App\Entity\ReferenceArticle;
-use App\Entity\ValeurChampsLibre;
 
 /**
  * @Route("/article")
@@ -159,7 +162,7 @@ class ArticleController extends AbstractController
                         'Statut' => ($article->getStatut() ? $article->getStatut()->getNom() : 'Non défini'),
                         'Libellé' => ($article->getLabel() ? $article->getLabel() : 'Non défini'),
                         'Référence article' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : 'Non défini'),
-                        'Quantité' => ($article->getQuantite() ? $article->getQuantite() : 'Non défini'),
+                        'Quantité' => ($article->getQuantite() ? $article->getQuantite() : 0),
                         'Actions' => $this->renderView('article/datatableArticleRow.html.twig', [
                             'url' => $url,
                             'articleId' => $article->getId(),
@@ -218,7 +221,7 @@ class ArticleController extends AbstractController
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $toInsert = new Article();
-            $statut = $this->statutRepository->getByCategorieAndStatut(Article::CATEGORIE, $data['actif'] ? Article::STATUT_ACTIF : Article::STATUT_INACTIF);
+            $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $data['actif'] ? Article::STATUT_ACTIF : Article::STATUT_INACTIF);
             $date = new \DateTime('now');
             $ref = $date->format('YmdHis');
             $toInsert
@@ -227,7 +230,7 @@ class ArticleController extends AbstractController
                 ->setStatut($statut)
                 ->setCommentaire($data['commentaire'])
                 ->setReference($ref . '-0')
-                ->setQuantite($data['quantite'])
+                ->setQuantite((int)$data['quantite'])
                 ->setEmplacement($this->emplacementRepository->find($data['emplacement']))
                 ->setArticleFournisseur($this->articleFournisseurRepository->find($data['articleFournisseur']))
                 ->setType($this->typeRepository->findOneByCategoryLabel(Article::CATEGORIE));
@@ -236,7 +239,7 @@ class ArticleController extends AbstractController
             $champsLibreKey = array_keys($data);
             foreach ($champsLibreKey as $champ) {
                 if (gettype($champ) === 'integer') {
-                    $valeurChampLibre = $this->valeurChampsLibreRepository->getByArticleANDChampsLibre($toInsert->getId(), $champ);
+                    $valeurChampLibre = $this->valeurChampsLibreRepository->findOneByArticleANDChampsLibre($toInsert->getId(), $champ);
                     if (!$valeurChampLibre) {
                         $valeurChampLibre = new ValeurChampsLibre();
                         $valeurChampLibre
@@ -297,7 +300,7 @@ class ArticleController extends AbstractController
 
             foreach ($champsLibreKey as $champ) {
                 if (gettype($champ) === 'integer') {
-                    $valeurChampLibre = $this->valeurChampsLibreRepository->getByArticleANDChampsLibre($article->getId(), $champ);
+                    $valeurChampLibre = $this->valeurChampsLibreRepository->findOneByArticleANDChampsLibre($article->getId(), $champ);
                     if (!$valeurChampLibre) {
                         $valeurChampLibre = new ValeurChampsLibre();
                         $valeurChampLibre

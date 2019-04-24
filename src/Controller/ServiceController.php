@@ -83,7 +83,7 @@ class ServiceController extends AbstractController
                         'url' => $url,
                         'service' => $service,
                         'serviceId' => $service->getId(),
-                        ]),
+                    ]),
                 ];
             }
             $data['data'] = $rows;
@@ -118,7 +118,7 @@ class ServiceController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $status = $this->statutRepository->findOneByCategorieAndStatut(Service::CATEGORIE, Service::STATUT_A_TRAITER);
+            $status = $this->statutRepository->findOneByCategorieAndStatut(Service::CATEGORIE, Service::STATUT_BROUILLON);
             $service = new Service();
             $date = new \DateTime('now');
 
@@ -152,11 +152,17 @@ class ServiceController extends AbstractController
             }
 
             $service = $this->serviceRepository->find($data);
+            $statut = 2;
+            if ($service->getStatut()->getNom() === Service::STATUT_A_TRAITER) {
+                $statut = 1;
+            } else if ($service->getStatut()->getNom() === Service::STATUT_TRAITE) {
+                $statut = 0;
+            }
             $json = $this->renderView('service/modalEditServiceContent.html.twig', [
                 'service' => $service,
                 'utilisateurs' => $this->utilisateurRepository->findAll(),
                 'emplacements' => $this->emplacementRepository->findAll(),
-                'statut' => (($service->getStatut()->getNom() == Service::STATUT_A_TRAITER) ? 1 : 0),
+                'statut' => $statut,
                 'statuts' => $this->statutRepository->findByCategorieName(Service::CATEGORIE),
             ]);
 
@@ -176,8 +182,12 @@ class ServiceController extends AbstractController
             }
 
             $service = $this->serviceRepository->find($data['id']);
-            $statutLabel = ($data['statut'] == 1) ? Service::STATUT_A_TRAITER : Service::STATUT_TRAITE;
-
+            $statutLabel = Service::STATUT_BROUILLON;
+            if (intval($data['statut']) === 1) {
+                $statutLabel = Service::STATUT_A_TRAITER;
+            } else if (intval($data['statut']) === 0) {
+                $statutLabel = Service::STATUT_TRAITE;
+            }
             $statut = $this->statutRepository->findOneByCategorieAndStatut(Service::CATEGORIE, $statutLabel);
             $service->setStatut($statut);
             $service
@@ -188,6 +198,10 @@ class ServiceController extends AbstractController
                 ->setCommentaire($data['commentaire']);
             $em = $this->getDoctrine()->getManager();
             $em->flush();
+
+            if ($statutLabel == Service::STATUT_TRAITE) {
+                $this->mailerService->sendMail('Votre demande de manutention a été effectuée.', 'Votre demande de manutention a bien été effectuée.', $service->getDemandeur()->getEmail());
+            }
 
             return new JsonResponse();
         }

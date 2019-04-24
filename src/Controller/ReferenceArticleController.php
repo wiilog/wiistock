@@ -509,10 +509,10 @@ class ReferenceArticleController extends Controller
             $em = $this->getDoctrine()->getManager();
 
             //edit Refrence Article
-
             $refArticle = (isset($data['refArticle']) ? $this->referenceArticleRepository->find($data['refArticle']) : '');
             //ajout demande
             if (array_key_exists('livraison', $data) && $data['livraison']) {
+                
                 $demande = $this->demandeRepository->find($data['livraison']);
                 if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                     $response = $this->refArticleDataService->editRefArticle($refArticle, $data);
@@ -553,7 +553,7 @@ class ReferenceArticleController extends Controller
             } else {
                 $json = false;
             }
-            // $em->flush();
+            $em->flush();
             return new JsonResponse();
         }
         throw new NotFoundHttpException("404");
@@ -567,7 +567,7 @@ class ReferenceArticleController extends Controller
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $refArticle = $this->referenceArticleRepository->find($data['id']);
             if ($refArticle) {
-                $statutC = $this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, Collecte::STATUS_DEMANDE);
+                $statutC = $this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, Collecte::STATUS_BROUILLON);
                 $collectes = $this->collecteRepository->getByStatutAndUser($statutC, $this->getUser());
 
                 $statutD = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_BROUILLON);

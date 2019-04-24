@@ -10,6 +10,8 @@ namespace App\Service;
 
 use App\Entity\Article;
 use App\Entity\ReferenceArticle;
+use App\Entity\ValeurChampsLibre;
+
 use App\Repository\ArticleRepository;
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\ChampsLibreRepository;
@@ -103,12 +105,12 @@ class ArticleDataService
      * @throws \Twig_Error_Runtime
      * @throws \Twig_Error_Syntax
      */
-    public function getArticleOrNoByRefArticle($refArticle,$demande, $modifieRefArticle)
+    public function getArticleOrNoByRefArticle($refArticle, $demande, $modifieRefArticle)
     {
 
         if ($demande === 'livraison') {
-            $articleStatut = Article::STATUT_ACTIF ;
-        }elseif ($demande === 'collecte') {
+            $articleStatut = Article::STATUT_ACTIF;
+        } elseif ($demande === 'collecte') {
             $articleStatut = Article::STATUT_INACTIF;
         }
 
@@ -268,29 +270,31 @@ class ArticleDataService
         $entityManager = $this->em;
         $article = $this->articleRepository->find($data['article']);
         if ($article) {
-            $statut = $this->statutRepository->getByCategorieAndStatut(Article::CATEGORIE, $data['actif'] ? Article::STATUT_ACTIF : Article::STATUT_INACTIF);
+            $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $data['actif'] ? Article::STATUT_ACTIF : Article::STATUT_INACTIF);
             $article
-            ->setLabel($data['label'])
-            ->setConform(!$data['conform'])
-            ->setStatut($statut)
-            ->setCommentaire($data['commentaire']);
+                ->setLabel($data['label'])
+                ->setConform(!$data['conform'])
+                ->setStatut($statut)
+                ->setCommentaire($data['commentaire']);
             $champsLibreKey = array_keys($data);
             foreach ($champsLibreKey as $champ) {
+
                 if (gettype($champ) === 'integer') {
-                    $valeurChampLibre = $this->valeurChampsLibreRepository->getByArticleANDChampsLibre($article->getId(), $champ);
+                    $valeurChampLibre = $this->valeurChampsLibreRepository->findOneByArticleANDChampsLibre($article->getId(), $champ);
                     if (!$valeurChampLibre) {
                         $valeurChampLibre = new ValeurChampsLibre();
                         $valeurChampLibre
-                        ->addArticle($article)
-                        ->setChampLibre($this->champsLibreRepository->find($champ));
+                            ->addArticle($article)
+                            ->setChampLibre($this->champsLibreRepository->find($champ));
                     }
                     $valeurChampLibre->setValeur($data[$champ]);
+                    $entityManager->persist($valeurChampLibre);
                     $entityManager->flush();
                 }
             }
             $entityManager->flush();
             return true;
-        }else {
+        } else {
             return false;
         }
     }

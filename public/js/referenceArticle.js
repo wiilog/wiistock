@@ -49,18 +49,16 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function () 
                 $(this).addClass('is-invalid');
             }
             // validation valeur des inputs de type number
-            // if ($(this).attr('type') === 'number') {
-            //     let val = parseInt($(this).val());
-            //     console.log(val)
-            //     let min = parseInt($(this).attr('min'));
-            //     console.log(min)
-            //     let max = parseInt($(this).attr('max'));
-            //     console.log(max)
-            //     if (val > max || val < min) {
-            //         wrongInputs.push($(this));
-            //         $(this).addClass('is-invalid');
-            //     }
-            // }
+            // protection pour les cas où il y a des champs cachés
+            if ($(this).attr('type') === 'number' && $(this).hasClass('needed')) {
+                let val = parseInt($(this).val());
+                let min = parseInt($(this).attr('min'));
+                let max = parseInt($(this).attr('max'));
+                if (val > max || val < min) {
+                    wrongInputs.push($(this));
+                    $(this).addClass('is-invalid');
+                }
+            }
         });
 
         // ... et dans les checkboxes
@@ -105,7 +103,6 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function () 
                     } else if (typeof (max) == 'undefined') {
                         msg += ' doit être supérieure à ' + min + ".<br>";
                     }
-
                 })
             }
 
@@ -217,27 +214,34 @@ function idType(div, idInput) {
 
 
 function showDemande(bloc) {
-    if (bloc.data("title") == "livraison") {
-        $('#collecteShow').removeClass('d-block');
-        $('#collecteShow').addClass('d-none');
-        $('#collecteShow').find('div').find('select').removeClass('data');
-        $('#collecteShow').find('div').find('.quantite').removeClass('data');
+    let $livraisonShow = $('#livraisonShow');
+    let $collecteShow = $('#collecteShow');
 
-        $('#livraisonShow').removeClass('d-none');
-        $('#livraisonShow').addClass('d-block');
-        $('#livraisonShow').find('div').find('select').addClass('data');
-        $('#livraisonShow').find('div').find('.quantite').addClass('data');
+    if (bloc.data("title") == "livraison") {
+        $collecteShow.removeClass('d-block');
+        $collecteShow.addClass('d-none');
+        $collecteShow.find('div').find('select').removeClass('data');
+        $collecteShow.find('div').find('.quantite').removeClass('data');
+        $collecteShow.find('.data').removeClass('needed');
+
+        $livraisonShow.removeClass('d-none');
+        $livraisonShow.addClass('d-block');
+        $livraisonShow.find('div').find('select').addClass('data');
+        $livraisonShow.find('div').find('.quantite').addClass('data');
+        $livraisonShow.find('.data').addClass('needed');
 
     } else if (bloc.data("title") == "collecte") {
-        $('#collecteShow').removeClass('d-none');
-        $('#collecteShow').addClass('d-block');
-        $('#collecteShow').find('div').find('select').addClass('data')
-        $('#collecteShow').find('div').find('.quantite').addClass('data')
+        $collecteShow.removeClass('d-none');
+        $collecteShow.addClass('d-block');
+        $collecteShow.find('div').find('select').addClass('data')
+        $collecteShow.find('div').find('.quantite').addClass('data')
+        $collecteShow.find('.data').addClass('needed');
 
-        $('#livraisonShow').removeClass('d-block');
-        $('#livraisonShow').addClass('d-none');
-        $('#livraisonShow').find('div').find('select').removeClass('data')
-        $('#livraisonShow').find('div').find('.quantite').removeClass('data')
+        $livraisonShow.removeClass('d-block');
+        $livraisonShow.addClass('d-none');
+        $livraisonShow.find('div').find('select').removeClass('data')
+        $livraisonShow.find('div').find('.quantite').removeClass('data')
+        $livraisonShow.find('.data').removeClass('needed');
     }
 }
 

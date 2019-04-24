@@ -20,14 +20,15 @@ class CategorieStatutFixtures extends Fixture implements FixtureGroupInterface
     public function load(ObjectManager $manager)
     {
         $categoriesNames = [
-             'referenceArticle',
-             'article',
-             'collecte',
-             'demande',
-             'livraison',
-             'preparation',
-             'reception',
-            'service'
+            'referenceArticle',
+            'article',
+            'collecte',
+            'ordreCollecte',
+            'demande',
+            'livraison',
+            'preparation',
+            'reception',
+            'manutention'
         ];
 
         foreach ($categoriesNames as $categorieName) {

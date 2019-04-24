@@ -12,26 +12,29 @@
 </div>
 
 <div class="form-group needed">
-    <label for="Localité">Point de chargement</label>
+    <label for="Localité">Chargement</label>
     <input class="form-control data needed input" value="{{service.source}}" name="source">
 </div>
 
 <div class="form-group needed">
-    <label for="Localité">Point de déchargement</label>
+    <label for="Localité">Déchargement</label>
     <input class="form-control data needed input" value="{{service.destination}}" name="destination">
 </div>
 
-<div class="form-group col-6">
+<div class="form-group col-12 w-100">
     <div class="input-group radio-btn">
         <label for="statut" class="mtb-auto mr-2">Statut</label>
         <div>
-            {% if statut == 1 %}
-            <span class="btn {{ statut == 1 ? 'active' : 'not-active'}}" data-toggle="statut" data-title="active"
-                onclick="changeStatus(this)">A Traiter</span><span
+            {% if statut == 1 or statut == 2 %}
+            <span class="btn {{ statut == 2 ? 'active' : 'not-active'}}" data-toggle="statut" data-title="brouillon"
+                onclick="changeStatus(this)" data-value="2">Brouillon</span><span 
+                class="btn {{ statut == 1 ? 'active' : 'not-active'}}" data-toggle="statut" data-title="active"
+                onclick="changeStatus(this)" data-value="1">A Traiter</span><span 
                 class="btn {{ statut == 0 ? 'active' : 'not-active'}}" data-toggle="statut" data-title="inactive"
-                onclick="changeStatus(this)">Traité</span>
+                onclick="changeStatus(this)" data-value="0">Traité</span>
             {% else %}
-            <span class="btn {{ statut == 1 ? 'active' : 'not-active'}}" data-toggle="statut" data-title="active"
+            <span class="btn {{ statut == 2 ? 'active' : 'not-active'}}" data-toggle="statut" data-title="brouillon"
+                style="pointer-events:none;">Brouillon</span><span class="btn {{ statut == 1 ? 'active' : 'not-active'}}" data-toggle="statut" data-title="active"
                 style="pointer-events:none;">A Traiter</span><span
                 class="btn {{ statut == 0 ? 'active' : 'not-active'}}" data-toggle="statut" data-title="inactive"
                 style="pointer-events:none;">Traité</span>
