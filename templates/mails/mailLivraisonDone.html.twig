@@ -27,7 +27,8 @@ Destination : {{ livraison.destination.label }}<br>
 {% if (livraison.commentaire is not empty and livraison.commentaire != '<p><br></p>') %}
     Commentaire : {{ livraison.commentaire|raw }}<br>
 {% endif %}
-
+<br>
+<br>
 Liste des articles :<br>
 <br>
 <table>
@@ -39,11 +40,18 @@ Liste des articles :<br>
         </tr>
     </thead>
     <tbody>
-    {% for article in livraison.ligneArticle %}
+    {% for ligneArticle in livraison.ligneArticle %}
         <tr>
-            <td>{{ article.reference.reference }}</td>
-            <td>{{ article.reference.libelle }}</td>
-            <td>{{ article.quantite }}</td>
+            <td>{{ ligneArticle.reference.reference }}</td>
+            <td>{{ ligneArticle.reference.libelle }}</td>
+            <td>{{ ligneArticle.quantite }}</td>
+        </tr>
+    {% endfor %}
+    {% for article in livraison.articles %}
+        <tr>
+            <td>{{ article.reference }}</td>
+            <td>{{ article.label }}</td>
+            <td></td>
         </tr>
     {% endfor %}
     </tbody>
