@@ -10,6 +10,7 @@ use App\Entity\Menu;
 use App\Entity\Preparation;
 use App\Repository\LivraisonRepository;
 use App\Repository\PreparationRepository;
+use App\Service\MailerService;
 use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -72,8 +73,13 @@ class LivraisonController extends AbstractController
      */
     private $userService;
 
+    /**
+     * @var MailerService
+     */
+    private $mailerService;
 
-    public function __construct(ReferenceArticleRepository $referenceArticleRepository, PreparationRepository $preparationRepository, LigneArticleRepository $ligneArticleRepository, EmplacementRepository $emplacementRepository, DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, StatutRepository $statutRepository, UserService $userService)
+
+    public function __construct(ReferenceArticleRepository $referenceArticleRepository, PreparationRepository $preparationRepository, LigneArticleRepository $ligneArticleRepository, EmplacementRepository $emplacementRepository, DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, StatutRepository $statutRepository, UserService $userService, MailerService $mailerService)
     {
         $this->emplacementRepository = $emplacementRepository;
         $this->demandeRepository = $demandeRepository;
@@ -83,6 +89,7 @@ class LivraisonController extends AbstractController
         $this->ligneArticleRepository = $ligneArticleRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->userService = $userService;
+        $this->mailerService = $mailerService;
     }
 
     /**
@@ -148,9 +155,11 @@ class LivraisonController extends AbstractController
                 ->setStatut($this->statutRepository->findOneByCategorieAndStatut(Livraison::CATEGORIE, Livraison::STATUT_LIVRE))
                 ->setDateFin(new \DateTime('now'));
 
-            $demande = $this->demandeRepository->getByLivraison($livraison->getId());
+            $demande = $this->demandeRepository->getByLivraison($livraison->getId()); /** @var Demande $demande */
             $statutLivre = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_LIVRE);
             $demande->setStatut($statutLivre);
+
+            $this->mailerService->sendMail('Votre demande a été livrée.', 'Votre demande a bien été livrée.', $demande->getUtilisateur()->getEmail());
 
             $ligneArticles = $this->ligneArticleRepository->getByDemande($demande);
 
