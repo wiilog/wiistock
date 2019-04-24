@@ -288,10 +288,12 @@ class ReferenceArticleController extends Controller
                         ->setLibelle($data['libelle'])
                         ->setReference($data['reference'])
                         ->setCommentaire($data['commentaire'])
-                        ->setQuantiteStock($data['quantite'] ? $data['quantite'] : 0)
                         ->setStatut($statut)
                         ->setTypeQuantite($data['type_quantite'] ? ReferenceArticle::TYPE_QUANTITE_REFERENCE : ReferenceArticle::TYPE_QUANTITE_ARTICLE)
                         ->setType($type);
+                    if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+                        $refArticle->setQuantiteStock($data['quantite'] ? $data['quantite'] : 0);
+                    }
                     foreach ($data['frl'] as $frl) {
                         $fournisseurId = explode(';', $frl)[0];
                         $ref = explode(';', $frl)[1];

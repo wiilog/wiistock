@@ -465,4 +465,3 @@ function addFournisseurEdit(button) {
     xhttp.open("POST", path, true);
     xhttp.send();
 };
-
