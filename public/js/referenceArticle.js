@@ -44,19 +44,7 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function () 
             if ($(this).val()) {
                 if (fournisseurReferences.eq(index).val() && labelFournisseur.eq(index).val()) {
                     fournisseursWithRefAndLabel.push($(this).val() + ';' + fournisseurReferences.eq(index).val() + ';' + labelFournisseur.eq(index).val());
-                } else if (!fournisseurReferences.eq(index).val()) {
-                    let label = fournisseurReferences.eq(index).closest('.form-group').find('label').text();
-                    missingInputs.push(label);
-                    fournisseurReferences.eq(index).addClass('is-invalid');
-                } else if (!labelFournisseur.eq(index).val()) {
-                    let label = labelFournisseur.eq(index).closest('.form-group').find('label').text();
-                    missingInputs.push(label);
-                    labelFournisseur.eq(index).addClass('is-invalid');
                 }
-            } else {
-                let label = $(this).closest('.form-group').find('label').text();
-                missingInputs.push(label);
-                $(this).addClass('is-invalid');
             }
         });
         Data['frl'] = fournisseursWithRefAndLabel;
@@ -434,35 +422,9 @@ $('#addFournisseur').click(function () {
             ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseur'));
         }
     }
-    if ($('.d-none.newContent').length === 0) {
-        $('#addFournisseur').closest('select[name="fournisseur"]').css('border-color', '');
-        let filled = true;
-        $('input[name="referenceFournisseur"], input[name="labelFournisseur"]').each(function () {
-            if ($(this).val() === '' && filled) {
-                $(this).css('border-color', 'red');
-                filled = false;
-            } else {
-                $(this).css('border-color', '');
-            }
-        });
-        if (filled) {
-            $('input[name="referenceFournisseur"], input[name="labelFournisseur"]').each(function () {
-                $(this).css('border-color', '');
-            });
-            $('span[role="textbox"]').each(function () {
-                $(this).parent().css('border-color', '');
-            });
-            let path = Routing.generate('ajax_render_add_fournisseur', true);
-            xhttp.open("POST", path, true);
-            xhttp.send();
-        }
-    } else {
-        $('span[role="textbox"]').each(function () {
-            if ($(this).text() === '') {
-                $(this).parent().css('border-color', 'red');
-            }
-        });
-    }
+    let path = Routing.generate('ajax_render_add_fournisseur', true);
+    xhttp.open("POST", path, true);
+    xhttp.send();
 });
 
 function deleteArticleFournisseur(button) {
