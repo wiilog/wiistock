@@ -121,7 +121,7 @@ class ServiceController extends AbstractController
             $status = $this->statutRepository->findOneByCategorieAndStatut(Service::CATEGORIE, Service::STATUT_BROUILLON);
             $service = new Service();
             $date = new \DateTime('now');
-            dump($data['commentaire']);
+
             $service
                 ->setDate($date)
                 ->setLibelle($data['Libelle'])
@@ -198,6 +198,10 @@ class ServiceController extends AbstractController
                 ->setCommentaire($data['commentaire']);
             $em = $this->getDoctrine()->getManager();
             $em->flush();
+
+            if ($statutLabel == Service::STATUT_TRAITE) {
+                $this->mailerService->sendMail('Votre demande de manutention a été effectuée.', 'Votre demande de manutention a bien été effectuée.', $service->getDemandeur()->getEmail());
+            }
 
             return new JsonResponse();
         }
