@@ -158,13 +158,8 @@ function InitialiserModalArticle(modal, submit, path, callback = function () { }
 function init() {
     ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseur'));
 }
-
-var editorNewArticleAlreadyDone = false;
 function initNewArticleEditor(modal) {
-    if (!editorNewArticleAlreadyDone) {
-        initEditor(modal);
-        editorNewArticleAlreadyDone = true;
-    }
+    initEditor(modal);
 };
 
 function loadAndDisplayInfos(select) {

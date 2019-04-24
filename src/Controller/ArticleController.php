@@ -162,7 +162,7 @@ class ArticleController extends AbstractController
                         'Statut' => ($article->getStatut() ? $article->getStatut()->getNom() : 'Non défini'),
                         'Libellé' => ($article->getLabel() ? $article->getLabel() : 'Non défini'),
                         'Référence article' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : 'Non défini'),
-                        'Quantité' => ($article->getQuantite() ? $article->getQuantite() : 'Non défini'),
+                        'Quantité' => ($article->getQuantite() ? $article->getQuantite() : 0),
                         'Actions' => $this->renderView('article/datatableArticleRow.html.twig', [
                             'url' => $url,
                             'articleId' => $article->getId(),
@@ -230,7 +230,7 @@ class ArticleController extends AbstractController
                 ->setStatut($statut)
                 ->setCommentaire($data['commentaire'])
                 ->setReference($ref . '-0')
-                ->setQuantite($data['quantite'])
+                ->setQuantite((int)$data['quantite'])
                 ->setEmplacement($this->emplacementRepository->find($data['emplacement']))
                 ->setArticleFournisseur($this->articleFournisseurRepository->find($data['articleFournisseur']))
                 ->setType($this->typeRepository->findOneByCategoryLabel(Article::CATEGORIE));

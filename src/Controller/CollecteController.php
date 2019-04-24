@@ -425,4 +425,20 @@ class CollecteController extends AbstractController
         }
         throw new NotFoundHttpException('404');
     }
+
+    /**
+     * @Route("/non-vide", name="demande_collecte_has_articles", options={"expose"=true}, methods={"GET", "POST"})
+     */
+    public function hasArticles(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+
+            $articles = $this->articleRepository->getByCollecte($data['id']);
+            $referenceCollectes = $this->collecteReferenceRepository->getByCollecte($data['id']);
+            $count = count($articles) + count($referenceCollectes);
+
+            return new JsonResponse($count > 0);
+        }
+        throw new NotFoundHttpException('404');
+    }
 }

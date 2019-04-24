@@ -17,9 +17,7 @@
             Modifier</a>
         {% endif %}
         {% if hasRight(constant('App\\Entity\\Menu::PREPA'), constant('App\\Entity\\Action::CREATE')) %}
-        <a href="#" onclick="getCompareStock($(this))" class="btn btn-primary btn-action ml-auto"
-            data-id='{{demande.id}}' {#onclick="finishDemandeLivraison($(this))"#}>
-            Valider</a>
+            <a href="#" onclick="validateLivraison({{ demande.id }}, $(this))" data-id='{{demande.id}}' class="btn btn-primary btn-action ml-auto">Valider</a>
         {% endif %}
     </div>
 

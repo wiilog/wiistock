@@ -137,6 +137,8 @@ class OrdreCollecteController extends AbstractController
             $demande = $collecte->getDemandeCollecte();
             $demande->setStatut($this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, Collecte::STATUS_COLLECTE));
 
+            $this->mailerService->sendMail('Votre demande a été collectée.', 'Votre demande a bien été collectée.', $demande->getDemandeur()->getEmail());
+
             // on modifie la quantité des articles de référence liés à la collecte
             $ligneArticles = $this->collecteReferenceRepository->getByCollecte($collecte->getDemandeCollecte());
 
@@ -237,6 +239,7 @@ class OrdreCollecteController extends AbstractController
         return $this->redirectToRoute('ordre_collecte_show', [
             'id' => $ordreCollecte->getId(),
         ]);
+
     }
 
     /**
