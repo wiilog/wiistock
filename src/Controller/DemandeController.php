@@ -107,6 +107,7 @@ class DemandeController extends AbstractController
                     }
                 }
             }
+
             if ($quantiteReservee > $stock) {
                 return new JsonResponse('La quantité souhaitée dépasse la quantité en stock.', 250);
             } else {

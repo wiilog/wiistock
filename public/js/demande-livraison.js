@@ -259,12 +259,12 @@ function deleteRowDemande(button, modal, submit) {
     modal.find(submit).attr('name', name);
 }
 
-function validateLivraison(livraisonId) {
+function validateLivraison(livraisonId, elem) {
     let params = JSON.stringify({ id: livraisonId });
 
     $.post(Routing.generate('demande_livraison_has_articles'), params, function(resp) {
         if (resp === true) {
-            window.location.href = Routing.generate('livraison_new', {'id' : livraisonId});
+            getCompareStock(elem);
         } else {
             $('#cannotValidate').click();
         }
