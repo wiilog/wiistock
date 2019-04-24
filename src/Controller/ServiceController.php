@@ -207,7 +207,10 @@ class ServiceController extends AbstractController
             $em->flush();
 
             if ($statutLabel == Service::STATUT_TRAITE) {
-                $this->mailerService->sendMail('Votre demande de manutention a été effectuée.', 'Votre demande de manutention a bien été effectuée.', $service->getDemandeur()->getEmail());
+                $this->mailerService->sendMail(
+                    'FOLLOW GT // Manutention effectuée',
+                    $this->renderView('mails/mailManutentionDone.html.twig', ['manut' => $service]),
+                    $service->getDemandeur()->getEmail());
             }
 
             return new JsonResponse();
