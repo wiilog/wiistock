@@ -360,7 +360,7 @@ class CollecteController extends AbstractController
 
             $json = $this->renderView('collecte/modalEditCollecteContent.html.twig', [
                 'collecte' => $collecte,
-                'statuts' => $this->statutRepository->findByCategorieName(Collecte::CATEGORIE),
+                // 'statut' => $this->statutRepository->findByCategorieName(Collecte::CATEGORIE),
                 'emplacements' => $this->emplacementRepository->findAll(),
             ]);
 

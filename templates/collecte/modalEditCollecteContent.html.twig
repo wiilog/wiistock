@@ -7,22 +7,21 @@
 
 <div class="form-group">
     <label for="objet">Objet de collecte</label>
-    <input type="text" class="form-control data needed" name="objet" id='objet' value="{{collecte.objet}}" placeholder="objet">
+    <input type="text" class="form-control data needed" name="objet" id='objet' value="{{collecte.objet}}"
+        placeholder="objet">
 </div>
 
 <div class="form-group">
     <label for="statut">Statut</label>
-    <select class="form-control select2 data" name="statut">
-        {% for statut in statuts %}
-            {% set selected = (statut.id == collecte.statut.id) ? 'selected' : '' %}
-            <option value="{{ statut.id }}" {{ selected }}>{{ statut.nom }}</option>
-        {% endfor %}
+    <select class="form-control select2 data" name="statut" disabled>
+        {% set selected = (collecte.statut.id == collecte.statut.id) ? 'selected' : '' %}
+        <option value="{{ collecte.statut.id }}" {{ selected }}>{{ collecte.statut.nom }}</option>
     </select>
 </div>
 
 <div class="form-group">
     <label for="utilisateur">Utilisateur</label>
-    <select class="form-control select2 data" name="demandeur">
+    <select class="form-control select2 data" name="demandeur" disabled >
         <option value="{{collecte.demandeur.id}}">{{ collecte.demandeur.username }}</option>
     </select>
 </div>
@@ -36,31 +35,30 @@
 <div class="form-group">
     <div class="input-group radio-btn">
         <label for="Destination">Destination</label>
-            <div class="ml-2">
-               {% if collecte.stockOrDestruct == 1 %}
-                <span class="btn not-active" data-toggle="destination" data-title="0"
-                onclick="toggleRadioButton($(this))">Destruction</span><span
-                class="btn active" data-toggle="destination" data-title="1"
-                onclick="toggleRadioButton($(this))">Mise en stock</span>
-                {% endif %}
-                {% if collecte.stockOrDestruct == 0 %}
-                <span class="btn active" data-toggle="destination" data-title="0"
-                onclick="toggleRadioButton($(this))">Destruction</span><span
-                class="btn not-active" data-toggle="destination" data-title="1"
-                onclick="toggleRadioButton($(this))">Mise en stock</span>
-                {% endif %}
-            </div>    
+        <div class="ml-2">
+            {% if collecte.stockOrDestruct == 1 %}
+            <span class="btn not-active" data-toggle="destination" data-title="0"
+                onclick="toggleRadioButton($(this))">Destruction</span><span class="btn active"
+                data-toggle="destination" data-title="1" onclick="toggleRadioButton($(this))">Mise en stock</span>
+            {% endif %}
+            {% if collecte.stockOrDestruct == 0 %}
+            <span class="btn active" data-toggle="destination" data-title="0"
+                onclick="toggleRadioButton($(this))">Destruction</span><span class="btn not-active"
+                data-toggle="destination" data-title="1" onclick="toggleRadioButton($(this))">Mise en stock</span>
+            {% endif %}
         </div>
-        
-        <input type="number" name="destination" class="d-none data needed" value="{{collecte.stockOrDestruct}}"  id="destination">
-                        
-  </div>
+    </div>
+
+    <input type="number" name="destination" class="d-none data needed" value="{{collecte.stockOrDestruct}}"
+        id="destination">
+
+</div>
 
 <div class="form-group">
-    <label for="commentaire" >Commentaire</label>
-    <input id="commentaire" class="form-control data" name="commentaire" type="hidden" value="{{collecte.commentaire}}" >
-    <div class="editor-container" value="{{collecte.commentaire}}" > {{collecte.commentaire|raw}}
-        </div>
-    
+    <label for="commentaire">Commentaire</label>
+    <input id="commentaire" class="form-control data" name="commentaire" type="hidden" value="{{collecte.commentaire}}">
+    <div class="editor-container" value="{{collecte.commentaire}}"> {{collecte.commentaire|raw}}
+    </div>
+
 </div>
-<div class="error-msg"></div> 
+<div class="error-msg"></div>
