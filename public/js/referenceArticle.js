@@ -415,10 +415,12 @@ function loadSpinnerAR(div) {
 }
 
 function loadAndDisplayInfos(select) {
-    $('.newContent').removeClass('d-none');
-    $('.newContent').addClass('d-block');
+    let $modal = select.closest('.modal');
 
-    $('span[role="textbox"]').each(function () {
+    $modal.find('.newContent').removeClass('d-none');
+    $modal.find('.newContent').addClass('d-block');
+
+    $modal.find('span[role="textbox"]').each(function () {
         $(this).parent().css('border-color', '');
     });
 }
@@ -487,11 +489,13 @@ function passArgsToModal(button) {
 }
 
 function addFournisseurEdit(button) {
+    let $modal = button.closest('.modal-body');
+
     xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
             dataReponse = JSON.parse(this.responseText);
-            $('#articleFournisseursEdit').after(dataReponse);
+            $modal.find('#articleFournisseursEdit').parent().append(dataReponse);
             ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseur'));
         }
     }

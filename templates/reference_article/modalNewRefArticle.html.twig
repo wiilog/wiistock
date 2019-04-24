@@ -32,8 +32,10 @@
                     </div>
                     {% include 'reference_article/fournisseurArticle.html.twig' %}
                     <div class="form-group col-1">
-                        <a class="btn" id="addFournisseur"><i class="fa fa-plus"></i></a>
+                        <span class="btn btn-primary" id="addFournisseur"><i class="fa fa-plus"></i></span>
                     </div>
+                </div>
+                <div class="row">
                     <div class="form-group col-6">
                         <label for="type">Type</label>
                         <select name="type" onclick="typeChoice($(this), '-new', $('#typeContentNew'))"

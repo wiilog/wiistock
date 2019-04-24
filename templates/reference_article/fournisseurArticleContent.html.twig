@@ -14,12 +14,11 @@
         <label for="reference">Label</label>
         <input class="form-control needed" type="text" disabled value="{{articleF.label}}">
     </div>
-    <div class="form-group col-1">
-        <label for="reference">Actions</label>
-        <a class="btn" data-toggle="modal" data-target="#modalDeleteFournisseur" data-value="{{ articleF.id }}"
+    <div class="col-1">
+        <span class="btn btn-primary" data-toggle="modal" data-target="#modalDeleteFournisseur" data-value="{{ articleF.id }}"
             data-title="{{articleRef.id}}" onclick="passArgsToModal(this)">
             <i class="fa fa-trash"></i>
-        </a>
+        </span>
     </div>
 </div>
 

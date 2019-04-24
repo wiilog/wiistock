@@ -281,7 +281,6 @@ class ReferenceArticleController extends Controller
                     }
                 }
                 if ($requiredCreate) {
-                    dump($data['frl']);
                     $em = $this->getDoctrine()->getManager();
                     $statut = ($data['statut'] === 'active' ? $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF) : $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_INACTIF));
                     $refArticle = new ReferenceArticle();
@@ -423,9 +422,9 @@ class ReferenceArticleController extends Controller
             }
 
             $articleRef = $this->referenceArticleRepository->find($data);
-            $articlesFournisseur = $this->articleFournisseurRepository->getByRefArticle($articleRef->getId());
             $statuts = $this->statutRepository->findByCategorieName(ReferenceArticle::CATEGORIE);
             if ($articleRef) {
+                $articlesFournisseur = $this->articleFournisseurRepository->getByRefArticle($articleRef->getId());
                 $data = $this->refArticleDataService->getDataEditForRefArticle($articleRef);
                 $json = $this->renderView('reference_article/modalEditRefArticleContent.html.twig', [
                     'articleRef' => $articleRef,
