@@ -152,7 +152,7 @@ class FournisseurController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
-
+         
             $fournisseur = $this->fournisseurRepository->find($data['fournisseur']);
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($fournisseur);
