@@ -6,6 +6,10 @@
         <label for="libelle">Libellé</label>
         <input type="text" class="form-control data" name="label" id='label' value="{{article.label}}" placeholder="">
     </div>
+    <div class="form-group col-6">
+        <label for="libelle">Type</label>
+        <input class="form-control data" type="text" disabled value="{{typeArticle}}" name="type" id="type">
+    </div>
     <div class="form-group col-3">
         <label>Anomalie</label>
         <label class="switch">
@@ -31,7 +35,8 @@
     </div>
     <div class="form-group col-6">
         <label for="quantité">Quantité</label>
-        <input class="form-control data needed" type="number" min="0" name="quantite" id="quantité" value="{{article.quantite}}">
+        <input class="form-control data needed" type="number" min="0" name="quantite" id="quantité"
+            value="{{article.quantite}}">
     </div>
     <div class="form-group col-6 w-100">
         <label for="emplacement">Emplacement</label>
@@ -50,54 +55,38 @@
         </h3>
     </div>
     <div class="form-group col-12 d-block" id='typeContentEdit'>
-        {% set articleRef = article.articleFournisseur.referenceArticle %}
-        {% set typeA = article.type %}
-        {% for type in types %}
-        <div {{ typeA != null and type.id == typeA.id ? "class='d-block'" : "class='d-none'"}}
-            id="{{type.id}}-edit">
+        <div class='d-block' id="{{typeArticle}}-edit">
             <div class="row mt-2">
-                {% for champ in type.champsLibres %}
-
-                {% set value = '' %}
-                {% for row in valeurChampsLibre %}
-                {% if (row.idCL == champ.id) %}{% set value = row.valeur %}{% endif %}
-                {% endfor %}
-
+                {% for champLibre in typeChampsLibres.champsLibres %}
                 <div class="form-group col-6">
-                    <label for="input">
-                        {{champ.label | capitalize}}
+                    <label for="input">{{ champLibre.label | capitalize}}</label>
+                    {% if champLibre.typage == 'booleen' %}
+                    {% set checked = ((champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : 0) == 1) ? 'checked' : '' %}
+                    <label class="switch">
+                        <input type="checkbox" class="data checkbox" { checked } name="{{ champLibre.id}}">
+                        <span class="slider round"></span>
                     </label>
-                    {% if champ.typage == 'booleen' %}
-                    {% set checked = (value == 1) ? 'checked' : '' %}
-                    <input type="checkbox" class="form-control data checkbox" {{ checked }} value="{{ value }}"
-                        name="{{champ.id}}" id="input">
-
-                    {% elseif champ.typage == 'number' %}
-                    <input type="number" id="{{champ.label ~ 'edit'}}" class="form-control data {{ champ.requiredEdit ? 'needed' : ''}}" value="{{ value }}" name="{{champ.id}}"
+                    {% elseif  champLibre.typage == 'number' %}
+                    <input type="number" id="{{ champLibre.label ~ 'edit'}}" class="form-control data"
+                        value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}"
+                        name="{{ champLibre.id}}" id="input">
+                    {% elseif  champLibre.typage == 'list' %}
+                    <select class="form-control data" id="{{ champLibre.label ~ 'edit'}}" name="{{ champLibre.id}}"
                         id="input">
-
-                    {% elseif champ.typage == 'list' %}
-                    <select class="form-control unTruc data {{ champ.requiredEdit ? 'needed' : ''}}" id="{{champ.label ~ 'edit'}}" name="{{champ.id}}" id="input">
-                        <option value="{{value}}">{{value}}
-                        </option>
-                        {% for elem in champ.elements %}
-                        {% if value != elem %}
-                        <option value="{{elem}}">{{elem}}</option>
-                        {% endif %}
+                        <option value="">aucune selection...</option>
+                        {% for elem in  champLibre.elements %}
+                        {% set selected = elem ==( champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' )? 'selected' : '' %}
+                        <option value="{{elem}}" {{ selected }}>{{elem}}</option>
                         {% endfor %}
-                        {% if value != "" %}
-                        <option value=""></option>
-                        {% endif %}
                     </select>
                     {% else %}
-                    <input type="text" id="{{champ.label ~ 'edit'}}" class="form-control data {{ champ.requiredEdit ? 'needed' : ''}}" value="{{ value }}" name="{{ champ.id }}"
-                        id="input">
+                    <input type="text" id="{{ champLibre.label ~ 'edit'}}" class="form-control data"
+                        value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}"
+                        name="{{  champLibre.id }}" id="input">
                     {% endif %}
-
                 </div>
                 {% endfor %}
             </div>
         </div>
-        {% endfor %}
     </div>
 </div>

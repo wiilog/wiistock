@@ -465,3 +465,7 @@ function ajaxFournisseurArticle(select) {
         minimumInputLength: 1,
     });
 }
+
+function clearDiv() {
+    $('.clear').html('');
+}

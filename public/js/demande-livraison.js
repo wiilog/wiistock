@@ -245,7 +245,8 @@ function ajaxGetAndFillArticle(select) {
         let params = JSON.stringify(refArticle);
         
         $.post(path, params, function (data) {
-            $('#newContent').html(data);
+            $('#selection').html(data.selection);
+            $('#editNewArticle').html(data.modif);
             $('#modalNewArticle').find('div').find('div').find('.modal-footer').removeClass('d-none');
             displayRequireChamp($('#typeEdit'), 'edit');
         })
