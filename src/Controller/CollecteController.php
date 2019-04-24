@@ -360,7 +360,6 @@ class CollecteController extends AbstractController
 
             $json = $this->renderView('collecte/modalEditCollecteContent.html.twig', [
                 'collecte' => $collecte,
-                'statuts' => $this->statutRepository->findByCategorieName(Collecte::CATEGORIE),
                 'emplacements' => $this->emplacementRepository->findAll(),
             ]);
 
@@ -412,7 +411,7 @@ class CollecteController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::DEM_COLLECTE, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
-
+            
             $collecte = $this->collecteRepository->find($data['collecte']);
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($collecte);

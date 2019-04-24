@@ -93,6 +93,11 @@ let submitModifyService = $('#submitEditService');
 let urlModifyService = Routing.generate('service_edit', true);
 InitialiserModal(modalModifyService, submitModifyService, urlModifyService, tableService);
 
+let modalDeleteService = $('#modalDeleteService');
+let submitDeleteService = $('#submitDeleteService');
+let urlDeleteService = Routing.generate('service_delete', true);
+InitialiserModal(modalDeleteService, submitDeleteService, urlDeleteService, tableService);
+
 var editorEditServiceAlreadyDone = false;
 function initEditServiceEditor(modal) {
     if (!editorEditServiceAlreadyDone) {
@@ -121,3 +126,4 @@ function changeStatus(button) {
     $('span[data-toggle="' + tog + '"]').not('[data-title="' + sel + '"]').removeClass('active').addClass('not-active');
     $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
 }
+
