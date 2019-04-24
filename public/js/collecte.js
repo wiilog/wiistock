@@ -229,7 +229,16 @@ function destinationCollecte(button) {
     $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
 }
 
+function validateCollecte(collecteId) {
+    let params = JSON.stringify({ id: collecteId });
 
-
+    $.post(Routing.generate('demande_collecte_has_articles'), params, function(resp) {
+        if (resp === true) {
+            window.location.href = Routing.generate('ordre_collecte_new', {'id' : collecteId});
+        } else {
+            $('#cannotValidate').click();
+        }
+    });
+}
 
 

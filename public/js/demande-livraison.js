@@ -238,30 +238,6 @@ $('#submitSearchDemandeLivraison').on('click', function () {
         .draw();
 });
 
-// function finishDemandeLivraison(submit) {
-//     xhttp = new XMLHttpRequest();
-//     xhttp.onreadystatechange = function () {
-//         if (this.readyState == 4 && this.status == 200) {
-//             data = JSON.parse(this.responseText);
-//             $('#tableArticle_id').DataTable().ajax.reload();
-//             $('.zone-entete').html(data.entete);
-//             $('#boutonCollecteSup').addClass('d-none')
-//             $('#boutonCollecteInf').addClass('d-none')
-//             tableArticle.ajax.reload(function (json) {
-//                 if (this.responseText !== undefined) {
-//                     $('#myInput').val(json.lastInput);
-//                 }
-//             });
-//         }
-//     }
-//     path = Routing.generate('finish_demande', true)
-//     let data = {};
-//     data['demande'] = submit.data('id')
-//     json = JSON.stringify(data);
-//     xhttp.open("POST", path, true);
-//     xhttp.send(json);
-// }
-
 function ajaxGetAndFillArticle(select) {
     if ($(select).val() !== null) {
         let path = Routing.generate('demande_article_by_refArticle', true)
@@ -281,4 +257,16 @@ function deleteRowDemande(button, modal, submit) {
     let name = button.data('name');
     modal.find(submit).attr('value', id);
     modal.find(submit).attr('name', name);
+}
+
+function validateLivraison(livraisonId) {
+    let params = JSON.stringify({ id: livraisonId });
+
+    $.post(Routing.generate('demande_livraison_has_articles'), params, function(resp) {
+        if (resp === true) {
+            window.location.href = Routing.generate('livraison_new', {'id' : livraisonId});
+        } else {
+            $('#cannotValidate').click();
+        }
+    });
 }

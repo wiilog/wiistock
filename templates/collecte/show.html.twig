@@ -23,7 +23,7 @@
                     Modifier</a>
             {% endif %}
             {% if hasRight(constant('App\\Entity\\Menu::COLLECTE'), constant('App\\Entity\\Action::CREATE')) %}
-                <a href="{{path('ordre_collecte_new', {'id': collecte.id}) }}" class="btn btn-primary btn-action ml-auto">Valider</a>
+                <a href="#" onclick="validateCollecte({{ collecte.id }})" class="btn btn-primary btn-action ml-auto">Valider</a>
             {% endif %}
         {% endif %}
     </div>
@@ -66,13 +66,14 @@
 </table>
 
 <a href="{{ path('collecte_index') }}" class='btn btn-action'>Retour à la liste</a>
+<button class="btn" id="cannotValidate" data-target='#modalCannotValidate' data-toggle='modal' hidden></button>
 
 {% include "collecte/modalNewArticle.html.twig" %}
 {% include "collecte/modalDeleteArticle.html.twig" %}
 {% include "collecte/modalEditArticle.html.twig" %}
-
 {% include "collecte/modalDeleteCollecte.html.twig" %}
 {% include "collecte/modalEditCollecte.html.twig" %}
+{% include 'collecte/modalCannotValidate.html.twig' %}
 
 {% endblock %}
 
