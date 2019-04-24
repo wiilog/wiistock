@@ -464,23 +464,26 @@ $('#addFournisseur').click(function () {
 });
 
 function deleteArticleFournisseur(button) {
-    if (confirm("Souhaitez vous vraiment supprimer ce lien avec ce fournisseur ?")) {
-        xhttp = new XMLHttpRequest();
-        xhttp.onreadystatechange = function () {
-            if (this.readyState == 4 && this.status == 200) {
-                dataReponse = JSON.parse(this.responseText);
-                $('#articleFournisseursEdit').html(dataReponse);
-            }
+    xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            dataReponse = JSON.parse(this.responseText);
+            $('#articleFournisseursEdit').html(dataReponse);
         }
-
-        let path = Routing.generate('ajax_render_remove_fournisseur', true);
-        let sendArray = {};
-        sendArray['articleF'] = $(button).data('value');
-        sendArray['articleRef'] = $(button).data('title');
-        let toSend = JSON.stringify(sendArray);
-        xhttp.open("POST", path, true);
-        xhttp.send(toSend);
     }
+
+    let path = Routing.generate('ajax_render_remove_fournisseur', true);
+    let sendArray = {};
+    sendArray['articleF'] = $(button).data('value');
+    sendArray['articleRef'] = $(button).data('title');
+    let toSend = JSON.stringify(sendArray);
+    xhttp.open("POST", path, true);
+    xhttp.send(toSend);
+}
+
+function passArgsToModal(button) {
+    $("#submitDeleteFournisseur").data('value', $(button).data('value'));
+    $("#submitDeleteFournisseur").data('title', $(button).data('title'));
 }
 
 function addFournisseurEdit(button) {
