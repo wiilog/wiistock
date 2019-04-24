@@ -281,7 +281,7 @@ class ReferenceArticleController extends Controller
                     }
                 }
                 if ($requiredCreate) {
-                    dump($data);
+                    dump($data['frl']);
                     $em = $this->getDoctrine()->getManager();
                     $statut = ($data['statut'] === 'active' ? $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF) : $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_INACTIF));
                     $refArticle = new ReferenceArticle();
@@ -293,13 +293,17 @@ class ReferenceArticleController extends Controller
                         ->setStatut($statut)
                         ->setTypeQuantite($data['type_quantite'] ? ReferenceArticle::TYPE_QUANTITE_REFERENCE : ReferenceArticle::TYPE_QUANTITE_ARTICLE)
                         ->setType($type);
-                    for ($i = 0; $i < sizeof($data['fournisseur']); $i++) {
+                    foreach ($data['frl'] as $frl) {
+                        $fournisseurId = explode(';', $frl)[0];
+                        $ref = explode(';', $frl)[1];
+                        $label = explode(';', $frl)[2];
+                        $fournisseur = $this->fournisseurRepository->find(intval($fournisseurId));
                         $articleFournisseur = new ArticleFournisseur();
                         $articleFournisseur
                             ->setReferenceArticle($refArticle)
-                            ->setFournisseur($data['fournisseur'][$i])
-                            ->setReference($data['referenceFournisseur'][$i])
-                            ->setLabel($data['labelFournisseur'][$i]);
+                            ->setFournisseur($fournisseur)
+                            ->setReference($ref)
+                            ->setLabel($label);
                         $em->persist($articleFournisseur);
                     }
                     $em->persist($refArticle);

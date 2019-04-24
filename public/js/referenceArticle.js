@@ -35,9 +35,13 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function () 
         // dans les inputs...
         let Data = {};
         let inputs = modal.find(".data");
-        let fournisseurs = modal.find('input[name="fournisseur"]');
+        let fournisseursWithRefAndLabel = [];
         let fournisseurReferences = modal.find('input[name="referenceFournisseur"]');
         let labelFournisseur = modal.find('input[name="labelFournisseur"]');
+        modal.find('select[name="fournisseur"]').each(function (index) {
+            fournisseursWithRefAndLabel.push($(this).val() + ';' + fournisseurReferences.eq(index).val() + ';' + labelFournisseur.eq(index).val());
+        });
+        Data['frl'] = fournisseursWithRefAndLabel;
         let missingInputs = [];
         let wrongInputs = [];
         inputs.each(function () {
