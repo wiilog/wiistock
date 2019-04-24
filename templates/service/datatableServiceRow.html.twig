@@ -8,15 +8,13 @@
         <i class='fas fa-pencil-alt'></i>
         {% endif %}
     </div>
-
+    {% if hasRight(constant('App\\Entity\\Menu::MANUT'), constant('App\\Entity\\Action::DELETE')) and service.statut.nom != constant('App\\Entity\\Service::STATUT_TRAITE')%}
+    
     <div data-id='{{ serviceId }}' data-target='#modalDeleteService' data-toggle='modal' class='service-delete col-3'
         onclick="deleteRow($(this), $('#modalDeleteService'), $('#submitDeleteService'))">
+        <i class='fas fa-trash'></i>
     </div>
+    {% endif %}
+    
 
-    {% if hasRight(constant('App\\Entity\\Menu::MANUT'), constant('App\\Entity\\Action::DELETE')) %}
-    {% if service.statut.nom != constant('App\\Entity\\Service::STATUT_TRAITE') %}
-    <i class='fas fa-trash'></i>
-    {% endif %}
-    {% endif %}
 </div>
-
