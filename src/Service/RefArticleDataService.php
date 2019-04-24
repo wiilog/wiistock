@@ -21,8 +21,8 @@ use App\Repository\TypeRepository;
 use App\Repository\ValeurChampsLibreRepository;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Doctrine\ORM\EntityManagerInterface;
-
-
+use App\Repository\FournisseurRepository;
+use App\Entity\ArticleFournisseur;
 
 class RefArticleDataService
 {
@@ -45,6 +45,11 @@ class RefArticleDataService
      * @var StatutRepository
      */
     private $statutRepository;
+
+    /*
+     * @var FournisseurRepository
+     */
+    private $fournisseurRepository;
 
     /**
      * @var ValeurChampsLibreRepository
@@ -69,8 +74,9 @@ class RefArticleDataService
     private $em;
 
 
-    public function __construct(TypeRepository  $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampsLibreRepository $champsLibreRepository, FilterRepository $filterRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
+    public function __construct(FournisseurRepository $fournisseurRepository, TypeRepository  $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampsLibreRepository $champsLibreRepository, FilterRepository $filterRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
     {
+        $this->fournisseurRepository = $fournisseurRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->champsLibreRepository = $champsLibreRepository;
         $this->statutRepository = $statutRepository;
@@ -192,6 +198,21 @@ class RefArticleDataService
         if ($requiredEdit) {
             $entityManager = $this->em;
             if (isset($data['reference'])) $refArticle->setReference($data['reference']);
+            if (isset($data['frl'])) {
+                foreach ($data['frl'] as $frl) {
+                    $fournisseurId = explode(';', $frl)[0];
+                    $ref = explode(';', $frl)[1];
+                    $label = explode(';', $frl)[2];
+                    $fournisseur = $this->fournisseurRepository->find(intval($fournisseurId));
+                    $articleFournisseur = new ArticleFournisseur();
+                    $articleFournisseur
+                        ->setReferenceArticle($refArticle)
+                        ->setFournisseur($fournisseur)
+                        ->setReference($ref)
+                        ->setLabel($label);
+                    $entityManager->persist($articleFournisseur);
+                }
+            }
             if (isset($data['libelle'])) $refArticle->setLibelle($data['libelle']);
             if (isset($data['commentaire'])) $refArticle->setCommentaire($data['commentaire']);
             if (isset($data['quantite'])) $refArticle->setQuantiteStock(intval($data['quantite']));

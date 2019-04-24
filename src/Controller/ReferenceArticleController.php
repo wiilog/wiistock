@@ -423,6 +423,7 @@ class ReferenceArticleController extends Controller
             }
 
             $articleRef = $this->referenceArticleRepository->find($data);
+            $articlesFournisseur = $this->articleFournisseurRepository->getByRefArticle($articleRef->getId());
             $statuts = $this->statutRepository->findByCategorieName(ReferenceArticle::CATEGORIE);
             if ($articleRef) {
                 $data = $this->refArticleDataService->getDataEditForRefArticle($articleRef);
@@ -433,7 +434,8 @@ class ReferenceArticleController extends Controller
                     'types' => $this->typeRepository->getByCategoryLabel(ReferenceArticle::CATEGORIE),
                     'statuts' => $statuts,
                     'articlesFournisseur' => ($data['listArticlesFournisseur']),
-                    'totalQuantity' => $data['totalQuantity']
+                    'totalQuantity' => $data['totalQuantity'],
+                    'articles' => $articlesFournisseur
                 ]);
             } else {
                 $json = false;
@@ -497,6 +499,27 @@ class ReferenceArticleController extends Controller
             }
 
             $json =  $this->renderView('reference_article/fournisseurArticle.html.twig');
+            return new JsonResponse($json);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/removeFournisseur", name="ajax_render_remove_fournisseur", options={"expose"=true}, methods="GET|POST")
+     */
+    public function removeFournisseur(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+            $em = $this->getDoctrine()->getManager();
+            $em->remove($this->articleFournisseurRepository->find($data['articleF']));
+            $em->flush();
+            $json =  $this->renderView('reference_article/fournisseurArticleContent.html.twig', [
+                'articles' => $this->articleFournisseurRepository->getByRefArticle($data['articleRef']),
+                'articleRef' => $this->referenceArticleRepository->find($data['articleRef'])
+            ]);
             return new JsonResponse($json);
         }
         throw new NotFoundHttpException("404");

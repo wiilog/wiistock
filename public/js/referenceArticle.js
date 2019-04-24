@@ -39,11 +39,27 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function () 
         let fournisseursWithRefAndLabel = [];
         let fournisseurReferences = modal.find('input[name="referenceFournisseur"]');
         let labelFournisseur = modal.find('input[name="labelFournisseur"]');
+        let missingInputs = [];
         modal.find('select[name="fournisseur"]').each(function (index) {
-            fournisseursWithRefAndLabel.push($(this).val() + ';' + fournisseurReferences.eq(index).val() + ';' + labelFournisseur.eq(index).val());
+            if ($(this).val()) {
+                if (fournisseurReferences.eq(index).val() && labelFournisseur.eq(index).val()) {
+                    fournisseursWithRefAndLabel.push($(this).val() + ';' + fournisseurReferences.eq(index).val() + ';' + labelFournisseur.eq(index).val());
+                } else if (!fournisseurReferences.eq(index).val()) {
+                    let label = fournisseurReferences.eq(index).closest('.form-group').find('label').text();
+                    missingInputs.push(label);
+                    fournisseurReferences.eq(index).addClass('is-invalid');
+                } else if (!labelFournisseur.eq(index).val()) {
+                    let label = labelFournisseur.eq(index).closest('.form-group').find('label').text();
+                    missingInputs.push(label);
+                    labelFournisseur.eq(index).addClass('is-invalid');
+                }
+            } else {
+                let label = $(this).closest('.form-group').find('label').text();
+                missingInputs.push(label);
+                $(this).addClass('is-invalid');
+            }
         });
         Data['frl'] = fournisseursWithRefAndLabel;
-        let missingInputs = [];
         let wrongInputs = [];
         inputs.each(function () {
             let val = $(this).val();
@@ -76,6 +92,7 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function () 
         // si tout va bien on envoie la requête ajax...
         if (missingInputs.length == 0 && wrongInputs.length == 0) {
             if (close == true) modal.find('.close').click();
+            modal.find('.error-msg').html('');
             Json = {};
             Json = JSON.stringify(Data);
             xhttp.open("POST", path, true);
@@ -445,4 +462,38 @@ $('#addFournisseur').click(function () {
         });
     }
 });
+
+function deleteArticleFournisseur(button) {
+    if (confirm("Souhaitez vous vraiment supprimer ce lien avec ce fournisseur ?")) {
+        xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                dataReponse = JSON.parse(this.responseText);
+                $('#articleFournisseursEdit').html(dataReponse);
+            }
+        }
+
+        let path = Routing.generate('ajax_render_remove_fournisseur', true);
+        let sendArray = {};
+        sendArray['articleF'] = $(button).data('value');
+        sendArray['articleRef'] = $(button).data('title');
+        let toSend = JSON.stringify(sendArray);
+        xhttp.open("POST", path, true);
+        xhttp.send(toSend);
+    }
+}
+
+function addFournisseurEdit(button) {
+    xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            dataReponse = JSON.parse(this.responseText);
+            $('#articleFournisseursEdit').after(dataReponse);
+            ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseur'));
+        }
+    }
+    let path = Routing.generate('ajax_render_add_fournisseur', true);
+    xhttp.open("POST", path, true);
+    xhttp.send();
+};
 
