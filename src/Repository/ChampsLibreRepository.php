@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\ChampsLibre;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
+use Proxies\__CG__\App\Entity\CategorieCL;
 
 /**
  * @method ChampsLibre|null find($id, $lockMode = null, $lockVersion = null)
@@ -64,7 +65,8 @@ class ChampsLibreRepository extends ServiceEntityRepository
         return $query->getResult();
     }
 
-    public function getLabelByCategory($category)
+    //recup des champs libres selon CategorieType et CategorieChampslibre pour les columns dynamique
+    public function getLabelByCategory($category, $categorieCL)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
@@ -72,9 +74,14 @@ class ChampsLibreRepository extends ServiceEntityRepository
             FROM App\Entity\ChampsLibre c 
             JOIN c.type t
             JOIN t.category z
-            WHERE z.label = :category
+            WHERE z.label = :category AND c.categorieCL = :categorie
             "
-        )->setParameter('category', $category);
+        )->setParameters(
+            [
+                'category' => $category,
+                'categorie' => $categorieCL
+            ]
+        );
         return $query->getResult();
     }
 

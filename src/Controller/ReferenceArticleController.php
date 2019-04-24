@@ -159,8 +159,9 @@ class ReferenceArticleController extends Controller
             }
 
             $colonmVisible = $this->getUser()->getColumnVisible();
-            $category = ReferenceArticle::CATEGORIE;
-            $champs = $this->champsLibreRepository->getLabelByCategory($category);
+            $categorieCL = $this->categorieCLRepository->findByLabel(CategorieCL::REFERENCE_ARTICLE);
+            $category = ReferenceArticle::CATEGORIE_TYPE;
+            $champs = $this->champsLibreRepository->getLabelByCategory($category, $categorieCL);
             if ($colonmVisible) {
                 $columns = [
                     [
@@ -307,7 +308,9 @@ class ReferenceArticleController extends Controller
                         }
                     }
 
-                    $champsLibres = $this->champsLibreRepository->getLabelByCategory(ReferenceArticle::CATEGORIE);
+                    $categorieCL = $this->categorieCLRepository->findByLabel(CategorieCL::REFERENCE_ARTICLE);
+                    $category = ReferenceArticle::CATEGORIE_TYPE;
+                    $champsLibres = $this->champsLibreRepository->getLabelByCategory($category, $categorieCL);
 
                     $rowCL = [];
                     foreach ($champsLibres as $champLibre) {
@@ -355,8 +358,9 @@ class ReferenceArticleController extends Controller
             ]
         ];
 
-        $category = ReferenceArticle::CATEGORIE;
-        $champL = $this->champsLibreRepository->getLabelByCategory($category);
+        $categorieCL = $this->categorieCLRepository->findByLabel(CategorieCL::REFERENCE_ARTICLE);
+        $category = ReferenceArticle::CATEGORIE_TYPE;
+        $champL = $this->champsLibreRepository->getLabelByCategory($category, $categorieCL);
         $champ[] = [
             'label' => 'Actions',
             'id' => 0,
@@ -385,32 +389,25 @@ class ReferenceArticleController extends Controller
             'typage' => 'number'
         ];
         $champs = array_merge($champ, $champL);
+
         $champsVisibleDefault = ['Actions', 'Libellé', 'Référence', 'Type', 'Quantité'];
 
-        $type = $this->typeRepository->getLabelByCategoryLabel(ReferenceArticle::CATEGORIE_TYPE); 
+        $type = $this->typeRepository->getLabelByCategoryLabel(ReferenceArticle::CATEGORIE_TYPE);
 
-        dump($type);
-
-        $categorieCL = $this->categorieCLRepository->findByLabel(CategorieCL::REFERENCE_ARTICLE);
         $typeChampLibre =  [];
         foreach ($type as $label) {
             $champsLibres = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($label['label'], $categorieCL);
             $typeChampLibre[] = [
-                'type' => $label['label'],
+                'typeLabel' =>  $label['label'],
+                'typeId' => $label['id'],
                 'champsLibres' => $champsLibres,
             ];
         }
-
-        // dump($typeChampLibre);
-
-
-
         return $this->render('reference_article/index.html.twig', [
             'champs' => $champs,
             'champsVisible' => ($this->getUser()->getColumnVisible() !== null ? $this->getUser()->getColumnVisible() : $champsVisibleDefault),
-            'statuts' => $this->statutRepository->findByCategorieName(ReferenceArticle::CATEGORIE),
             'typeChampsLibres' => $typeChampLibre,
-            'types' => $this->typeRepository->getByCategoryLabel(ReferenceArticle::CATEGORIE_TYPE), //TODOO $type
+            'types' => $type, //TODOO $type
             'typeQuantite' => $typeQuantite,
             'filters' => $this->filterRepository->findBy(['utilisateur' => $this->getUser()]),
         ]);
@@ -425,20 +422,10 @@ class ReferenceArticleController extends Controller
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
+            $refArticle = $this->referenceArticleRepository->find($data);
 
-            $articleRef = $this->referenceArticleRepository->find($data);
-            $statuts = $this->statutRepository->findByCategorieName(ReferenceArticle::CATEGORIE);
-            if ($articleRef) {
-                $data = $this->refArticleDataService->getDataEditForRefArticle($articleRef);
-                $json = $this->renderView('reference_article/modalEditRefArticleContent.html.twig', [
-                    'articleRef' => $articleRef,
-                    'statut' => ($articleRef->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF),
-                    'valeurChampsLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
-                    'types' => $this->typeRepository->getByCategoryLabel(ReferenceArticle::CATEGORIE), //Todoo
-                    'statuts' => $statuts,
-                    'articlesFournisseur' => ($data['listArticlesFournisseur']),
-                    'totalQuantity' => $data['totalQuantity']
-                ]);
+            if ($refArticle) {
+                $json = $this->refArticleDataService->getViewEditRefArticle($refArticle);
             } else {
                 $json = false;
             }
@@ -591,7 +578,9 @@ class ReferenceArticleController extends Controller
     public function ajaxPlusDemandeContent(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+
             $refArticle = $this->referenceArticleRepository->find($data['id']);
+
             if ($refArticle) {
                 $statutC = $this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, Collecte::STATUS_BROUILLON);
                 $collectes = $this->collecteRepository->getByStatutAndUser($statutC, $this->getUser());
@@ -603,18 +592,7 @@ class ReferenceArticleController extends Controller
 
                 if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                     if ($refArticle) {
-                        $dataArticle = $this->refArticleDataService->getDataEditForRefArticle($refArticle);
-
-                        $statuts = $this->statutRepository->findByCategorieName(ReferenceArticle::CATEGORIE);
-                        $editChampLibre = $this->renderView('reference_article/modalEditRefArticleContent.html.twig', [
-                            'articleRef' => $refArticle,
-                            'statut' => ($refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF),
-                            'valeurChampsLibre' => isset($dataArticle['valeurChampLibre']) ? $dataArticle['valeurChampLibre'] : null,
-                            'types' => $this->typeRepository->getByCategoryLabel(ReferenceArticle::CATEGORIE),
-                            'statuts' => $statuts,
-                            'articlesFournisseur' => ($dataArticle['listArticlesFournisseur']),
-                            'totalQuantity' => $dataArticle['totalQuantity']
-                        ]);
+                        $editChampLibre = $this->refArticleDataService->getViewEditRefArticle($refArticle);
                     } else {
                         $editChampLibre = false;
                     }

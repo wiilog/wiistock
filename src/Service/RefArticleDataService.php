@@ -19,12 +19,13 @@ use App\Repository\ReferenceArticleRepository;
 use App\Repository\StatutRepository;
 use App\Repository\TypeRepository;
 use App\Repository\ValeurChampsLibreRepository;
+use App\Repository\CategorieCLRepository;
+
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use App\Entity\CategorieCL;
 
-
-
-class RefArticleDataService 
+class RefArticleDataService
 {
     /**
      * @var ReferenceArticleRepository
@@ -36,7 +37,7 @@ class RefArticleDataService
      */
     private $champsLibreRepository;
 
-     /**
+    /**
      * @var TypeRepository
      */
     private $typeRepository;
@@ -52,6 +53,11 @@ class RefArticleDataService
     private $valeurChampsLibreRepository;
 
     /**
+     * @var CategorieCLRepository
+     */
+    private $categorieCLRepository;
+
+    /**
      * @var FilterRepository
      */
     private $filterRepository;
@@ -65,11 +71,11 @@ class RefArticleDataService
      * @var object|string
      */
     private $user;
-   
+
     private $em;
 
 
-    public function __construct(TypeRepository  $typeRepository ,StatutRepository $statutRepository,EntityManagerInterface $em,ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampsLibreRepository $champsLibreRepository, FilterRepository $filterRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
+    public function __construct(CategorieCLRepository $categorieCLRepository, TypeRepository  $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampsLibreRepository $champsLibreRepository, FilterRepository $filterRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
     {
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->champsLibreRepository = $champsLibreRepository;
@@ -77,6 +83,7 @@ class RefArticleDataService
         $this->valeurChampsLibreRepository = $valeurChampsLibreRepository;
         $this->filterRepository = $filterRepository;
         $this->typeRepository = $typeRepository;
+        $this->categorieCLRepository = $categorieCLRepository;
         $this->templating = $templating;
         $this->user = $tokenStorage->getToken()->getUser();
         $this->em = $em;
@@ -106,27 +113,8 @@ class RefArticleDataService
 
         $rows = [];
         foreach ($refs as $refArticle) {
-            $champsLibres = $this->champsLibreRepository->getLabelByCategory(ReferenceArticle::CATEGORIE);
-            $rowCL = [];
-
-            foreach ($champsLibres as $champLibre) {
-                $valeur = $this->valeurChampsLibreRepository->getByRefArticleANDChampsLibre($refArticle->getId(), $champLibre['id']);
-                $rowCL[$champLibre['label']] = ($valeur ? $valeur->getValeur() : "");
-            }
-
-            $rowCF = [
-                "id" => $refArticle->getId(),
-                "Libellé" => $refArticle->getLibelle(),
-                "Référence" => $refArticle->getReference(),
-                "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
-                "Quantité" => $refArticle->getQuantiteStock(),
-                'Actions' => $this->templating->render('reference_article/datatableReferenceArticleRow.html.twig', [
-                    'idRefArticle' => $refArticle->getId(),
-                ]),
-            ];
-            $rows[] = array_merge($rowCL, $rowCF);
+            $rows[] = $this->dataRowRefArticle($refArticle);
         }
-
         return ['data' => $rows, 'recordsFiltered' => $count];
     }
 
@@ -137,30 +125,31 @@ class RefArticleDataService
      */
     public function getDataEditForRefArticle($articleRef)
     {
-            $type = $articleRef->getType();
-            if ($type) {
-                $valeurChampLibre = $this->valeurChampsLibreRepository->getByRefArticleAndType($articleRef->getId(), $type->getId());
-            } else {
-                $valeurChampLibre = [];
+        $type = $articleRef->getType();
+        if ($type) {
+            $valeurChampLibre = $this->valeurChampsLibreRepository->getByRefArticleAndType($articleRef->getId(), $type->getId());
+            //TODOO
+        } else {
+            $valeurChampLibre = [];
+        }
+        // construction du tableau des articles fournisseurs
+        $listArticlesFournisseur = [];
+        $articlesFournisseurs = $articleRef->getArticlesFournisseur();
+        $totalQuantity = 0;
+        foreach ($articlesFournisseurs as $articleFournisseur) {
+            $quantity = 0;
+            foreach ($articleFournisseur->getArticles() as $article) {
+                $quantity += $article->getQuantite();
             }
-            // construction du tableau des articles fournisseurs
-            $listArticlesFournisseur = [];
-            $articlesFournisseurs = $articleRef->getArticlesFournisseur();
-            $totalQuantity = 0;
-            foreach ($articlesFournisseurs as $articleFournisseur) {
-                $quantity = 0;
-                foreach ($articleFournisseur->getArticles() as $article) {
-                    $quantity += $article->getQuantite();
-                }
-                $totalQuantity += $quantity;
+            $totalQuantity += $quantity;
 
-                $listArticlesFournisseur[] = [
-                    'fournisseurRef' => $articleFournisseur->getFournisseur()->getCodeReference(),
-                    'label' => $articleFournisseur->getLabel(),
-                    'fournisseurName' => $articleFournisseur->getFournisseur()->getNom(),
-                    'quantity' => $quantity
-                ];
-            }
+            $listArticlesFournisseur[] = [
+                'fournisseurRef' => $articleFournisseur->getFournisseur()->getCodeReference(),
+                'label' => $articleFournisseur->getLabel(),
+                'fournisseurName' => $articleFournisseur->getFournisseur()->getNom(),
+                'quantity' => $quantity
+            ];
+        }
 
         return $data = [
             'listArticlesFournisseur' => $listArticlesFournisseur,
@@ -169,6 +158,45 @@ class RefArticleDataService
         ];
     }
 
+    public function getViewEditRefArticle($refArticle)
+    {
+        $data = $this->getDataEditForRefArticle($refArticle);
+        $type = $this->typeRepository->getLabelByCategoryLabel(ReferenceArticle::CATEGORIE_TYPE);
+        $categorieCL = $this->categorieCLRepository->findByLabel(CategorieCL::REFERENCE_ARTICLE);
+        $typeChampLibre =  [];
+        foreach ($type as $label) {
+            $champsLibresComplet = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($label['label'], $categorieCL);
+            $champsLibres = [];
+            //création array edit pour vue
+            foreach ($champsLibresComplet as $champLibre) {
+                $valeurChampRefArticle = $this->valeurChampsLibreRepository->findOneByRefArticleANDChampsLibre($refArticle->getId(), $champLibre);
+                $champsLibres[] = [
+                    'id' => $champLibre->getId(),
+                    'label' => $champLibre->getLabel(),
+                    'typage' => $champLibre->getTypage(),
+                    'elements' => ($champLibre->getElements() ? $champLibre->getElements() : ''),
+                    'defaultValue' => $champLibre->getDefaultValue(),
+                    'valeurChampLibre' => $valeurChampRefArticle
+                ];
+            }
+
+            $typeChampLibre[] = [
+                'typeLabel' =>  $label['label'],
+                'typeId' => $label['id'],
+                'champsLibres' => $champsLibres,
+            ];
+        }
+        //reponse Vue + data 
+        $view =  $this->templating->render('reference_article/modalEditRefArticleContent.html.twig', [
+            'articleRef' => $refArticle,
+            'statut' => ($refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF),
+            'valeurChampsLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
+            'typeChampsLibres' => $typeChampLibre,
+            'articlesFournisseur' => ($data['listArticlesFournisseur']),
+            'totalQuantity' => $data['totalQuantity']
+        ]);
+        return $view;
+    }
 
     /**
      * @param ReferenceArticle $refArticle
@@ -180,16 +208,17 @@ class RefArticleDataService
      */
     public function editRefArticle($refArticle, $data)
     {
+        //verification des champsLibres eobligatoires
         $requiredEdit = true;
         $type =  $this->typeRepository->find(intval($data['type']));
         $CLRequired = $this->champsLibreRepository->getByTypeAndRequiredCreate($type);
         foreach ($CLRequired as $CL) {
-            if (array_key_exists($CL['id'], $data) and $data[$CL['id']] === "" ) {
+            if (array_key_exists($CL['id'], $data) and $data[$CL['id']] === "") {
                 $requiredEdit = false;
             }
         }
-
         if ($requiredEdit) {
+            //modification champsFixes
             $entityManager = $this->em;
             if (isset($data['reference'])) $refArticle->setReference($data['reference']);
             if (isset($data['libelle'])) $refArticle->setLibelle($data['libelle']);
@@ -205,13 +234,13 @@ class RefArticleDataService
                 if ($type) $refArticle->setType($type);
             }
             if (isset($data['type_quantite'])) $refArticle->setTypeQuantite($data['type_quantite']);
-
             $entityManager->flush();
-
+            //modification ou création des champsLibres
             $champsLibreKey = array_keys($data);
             foreach ($champsLibreKey as $champ) {
                 if (gettype($champ) === 'integer') {
-                    $valeurChampLibre = $this->valeurChampsLibreRepository->getByRefArticleANDChampsLibre($refArticle->getId(), $champ);
+                    $champLibre = $this->champsLibreRepository->find($champ);
+                    $valeurChampLibre = $this->valeurChampsLibreRepository->findOneByRefArticleANDChampsLibre($refArticle->getId(), $champLibre);
                     // si la valeur n'existe pas, on la crée
                     if (!$valeurChampLibre) {
                         $valeurChampLibre = new ValeurChampsLibre();
@@ -224,25 +253,8 @@ class RefArticleDataService
                     $entityManager->flush();
                 }
             }
-
-            $champsLibres = $this->champsLibreRepository->getLabelByCategory(ReferenceArticle::CATEGORIE);
-
-            $rowCL = [];
-            foreach ($champsLibres as $champLibre) {
-                $valeur = $this->valeurChampsLibreRepository->getByRefArticleANDChampsLibre($refArticle->getId(), $champLibre['id']);
-                $rowCL[$champLibre['label']] = ($valeur ? $valeur->getValeur() : "");
-            }
-            $rowDD = [
-                "id" => $refArticle->getId(),
-                "Libellé" => $refArticle->getLibelle(),
-                "Référence" => $refArticle->getReference(),
-                "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
-                "Quantité" => $refArticle->getQuantiteStock(),
-                'Actions' =>  $this->templating->render('reference_article/datatableReferenceArticleRow.html.twig', [
-                    'idRefArticle' => $refArticle->getId(),
-                ]),
-            ];
-            $rows = array_merge($rowCL, $rowDD);
+            //recup de la row pour insert datatable
+            $rows = $this->dataRowRefArticle($refArticle);
             $response['id'] = $refArticle->getId();
             $response['edit'] = $rows;
         } else {
@@ -251,4 +263,30 @@ class RefArticleDataService
         return $response;
     }
 
+    public function dataRowRefArticle($refArticle)
+    {
+        $rows = [];
+        $categorieCL = $this->categorieCLRepository->findByLabel(CategorieCL::REFERENCE_ARTICLE);
+        $category = ReferenceArticle::CATEGORIE_TYPE;
+        $champsLibres = $this->champsLibreRepository->getLabelByCategory($category, $categorieCL);
+        $rowCL = [];
+        foreach ($champsLibres as $champLibre) {
+            $champ = $this->champsLibreRepository->find($champLibre['id']); //TODOO 
+            $valeur = $this->valeurChampsLibreRepository->findOneByRefArticleANDChampsLibre($refArticle->getId(), $champ);
+            $rowCL[$champLibre['label']] = ($valeur ? $valeur->getValeur() : "");
+        }
+        $rowCF = [
+            "id" => $refArticle->getId(),
+            "Libellé" => $refArticle->getLibelle(),
+            "Référence" => $refArticle->getReference(),
+            "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
+            "Quantité" => $refArticle->getQuantiteStock(),
+            'Actions' => $this->templating->render('reference_article/datatableReferenceArticleRow.html.twig', [
+                'idRefArticle' => $refArticle->getId(),
+            ]),
+        ];
+        $rows = array_merge($rowCL, $rowCF);
+
+        return $rows;
+    }
 }
