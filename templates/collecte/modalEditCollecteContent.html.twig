@@ -14,8 +14,7 @@
 <div class="form-group">
     <label for="statut">Statut</label>
     <select class="form-control select2 data" name="statut" disabled>
-        {% set selected = (collecte.statut.id == collecte.statut.id) ? 'selected' : '' %}
-        <option value="{{ collecte.statut.id }}" {{ selected }}>{{ collecte.statut.nom }}</option>
+        <option value="{{ collecte.statut.id }}">{{ collecte.statut.nom }}</option>
     </select>
 </div>
 
