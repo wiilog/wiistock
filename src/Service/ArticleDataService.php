@@ -135,6 +135,7 @@ class ArticleDataService
             $statuts = $this->statutRepository->findByCategorieName(ReferenceArticle::CATEGORIE);
             $json = $this->templating->render('collecte/newRefArticleByQuantiteRefContent.html.twig', [
                 'articleRef' => $refArticle,
+                'articles' => $this->articleFournisseurRepository->getByRefArticle($refArticle->getId()),
                 'statut' => ($refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF),
                 'types' => $this->typeRepository->getByCategoryLabel(ReferenceArticle::CATEGORIE),
                 'statuts' => $statuts,

@@ -30,6 +30,12 @@
                         <label for="libelle">Nom</label>
                         <input class="form-control data" type="text" name="libelle" id="libelle">
                     </div>
+                    {% include 'reference_article/fournisseurArticle.html.twig' %}
+                    <div class="form-group col-1">
+                        <span class="btn btn-primary" id="addFournisseur"><i class="fa fa-plus"></i></span>
+                    </div>
+                </div>
+                <div class="row">
                     <div class="form-group col-6">
                         <label for="type">Type</label>
                         <select name="type" onclick="typeChoice($(this), '-new', $('#typeContentNew'))"
@@ -60,12 +66,18 @@
                                     class="btn not-active" data-toggle="type_quantite" data-title="article"
                                     onclick="toggleRadioButton($(this))">Par article</span>
                             </div>
-                            <input type="hidden" name="type_quantite" class="data" value="reference" id="type_quantite">
+                            <input type="hidden" name="type_quantite" class="data" value="" id="type_quantite">
+
                         </div>
                     </div>
                     <div class="form-group col-6">
-                        <label for="quantité">Quantité</label>
-                        <input class="form-control data" type="number" min="0" name="quantite" id="quantité">
+                        <label for="quantite">Quantité</label>
+                        <div class="reference">
+                            <input class="form-control data" type="number" min="0" name="quantite" id="quantite">
+                        </div>
+                        <div class="article d-none">
+                            <input disabled class="form-control" type="number">
+                        </div>
                     </div>
                 </div>
 
@@ -103,8 +115,8 @@
                                     <label>
                                         {{champ.label}}
                                     </label>
-                                    <select id="{{champ.label ~ 'create'}}" class="form-control data" name="{{champ.id}}"
-                                        id="input">
+                                    <select id="{{champ.label ~ 'create'}}" class="form-control data"
+                                        name="{{champ.id}}" id="input">
                                         <option value="{{champ.defaultValue}}">{{champ.defaultValue}}
                                         </option>
                                         {% for elem in champ.elements %}
@@ -131,7 +143,7 @@
                         {% endfor %}
                     </div>
                 </div>
-                <div class="error-msg"></div> 
+                <div class="error-msg"></div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>

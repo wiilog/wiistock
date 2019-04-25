@@ -33,11 +33,22 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function () 
 
         // On récupère toutes les données qui nous intéressent
         // dans les inputs...
-        let inputs = modal.find(".data");
         let Data = {};
+        let inputs = modal.find(".data");
+        // Trouver les champs correspondants aux infos fournisseurs...
+        let fournisseursWithRefAndLabel = [];
+        let fournisseurReferences = modal.find('input[name="referenceFournisseur"]');
+        let labelFournisseur = modal.find('input[name="labelFournisseur"]');
         let missingInputs = [];
+        modal.find('select[name="fournisseur"]').each(function (index) {
+            if ($(this).val()) {
+                if (fournisseurReferences.eq(index).val() && labelFournisseur.eq(index).val()) {
+                    fournisseursWithRefAndLabel.push($(this).val() + ';' + fournisseurReferences.eq(index).val() + ';' + labelFournisseur.eq(index).val());
+                }
+            }
+        });
+        Data['frl'] = fournisseursWithRefAndLabel;
         let wrongInputs = [];
-
         inputs.each(function () {
             let val = $(this).val();
             let name = $(this).attr("name");
@@ -69,6 +80,7 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function () 
         // si tout va bien on envoie la requête ajax...
         if (missingInputs.length == 0 && wrongInputs.length == 0) {
             if (close == true) modal.find('.close').click();
+            modal.find('.error-msg').html('');
             Json = {};
             Json = JSON.stringify(Data);
             xhttp.open("POST", path, true);
@@ -311,7 +323,7 @@ function displayError(data) {
 }
 
 let recupIdRefArticle = function (div) {
-    let id =div.data('id');
+    let id = div.data('id');
     $('#submitPlusDemande').val(id);
 }
 
@@ -372,6 +384,7 @@ function initNewReferenceArticleEditor(modal) {
         initEditor(modal);
         editorNewReferenceArticleAlreadyDone = true;
     }
+    ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseur'));
 };
 
 var editorEditRefArticleAlreadyDone = false;
@@ -387,4 +400,66 @@ function loadSpinnerAR(div) {
     div.addClass('d-none');
 }
 
+function loadAndDisplayInfos(select) {
+    let $modal = select.closest('.modal');
 
+    $modal.find('.newContent').removeClass('d-none');
+    $modal.find('.newContent').addClass('d-block');
+
+    $modal.find('span[role="textbox"]').each(function () {
+        $(this).parent().css('border-color', '');
+    });
+}
+
+$('#addFournisseur').click(function () {
+    xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            dataReponse = JSON.parse(this.responseText);
+            $('#addFournisseur').closest('div').before(dataReponse);
+            ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseur'));
+        }
+    }
+    let path = Routing.generate('ajax_render_add_fournisseur', true);
+    xhttp.open("POST", path, true);
+    xhttp.send();
+});
+
+function deleteArticleFournisseur(button) {
+    xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            dataReponse = JSON.parse(this.responseText);
+            $('#articleFournisseursEdit').html(dataReponse);
+        }
+    }
+
+    let path = Routing.generate('ajax_render_remove_fournisseur', true);
+    let sendArray = {};
+    sendArray['articleF'] = $(button).data('value');
+    sendArray['articleRef'] = $(button).data('title');
+    let toSend = JSON.stringify(sendArray);
+    xhttp.open("POST", path, true);
+    xhttp.send(toSend);
+}
+
+function passArgsToModal(button) {
+    $("#submitDeleteFournisseur").data('value', $(button).data('value'));
+    $("#submitDeleteFournisseur").data('title', $(button).data('title'));
+}
+
+function addFournisseurEdit(button) {
+    let $modal = button.closest('.modal-body');
+
+    xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            dataReponse = JSON.parse(this.responseText);
+            $modal.find('#articleFournisseursEdit').parent().append(dataReponse);
+            ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseur'));
+        }
+    }
+    let path = Routing.generate('ajax_render_add_fournisseur', true);
+    xhttp.open("POST", path, true);
+    xhttp.send();
+};

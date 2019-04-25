@@ -26,13 +26,14 @@ class StatutRepository extends ServiceEntityRepository
             "SELECT s
             FROM App\Entity\Statut s
             JOIN s.categorie c
-            WHERE c.nom = :categorieName");
+            WHERE c.nom = :categorieName"
+        );
 
         $query->setParameter("categorieName", $categorieName);
 
         return $query->execute();
     }
-   
+
     public function findByName($name)
     {
         $em = $this->getEntityManager();
@@ -40,7 +41,7 @@ class StatutRepository extends ServiceEntityRepository
             "SELECT s
             FROM App\Entity\Statuts s
             WHERE s.nom = :name"
-            );
+        );
         $query->setParameter("name", $name);
 
         return $query->execute();
@@ -50,7 +51,7 @@ class StatutRepository extends ServiceEntityRepository
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
-          "SELECT s
+            "SELECT s
           FROM App\Entity\Statut s
           JOIN s.categorie c
           WHERE c.nom = :categorieName AND s.nom = :statutName
@@ -64,5 +65,4 @@ class StatutRepository extends ServiceEntityRepository
 
         return $query->getSingleResult();
     }
-
 }

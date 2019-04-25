@@ -11,6 +11,8 @@ namespace App\Service;
 
 use App\Entity\ReferenceArticle;
 use App\Entity\ValeurChampsLibre;
+use App\Entity\CategorieCL;
+use App\Entity\ArticleFournisseur;
 
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\ChampsLibreRepository;
@@ -20,10 +22,10 @@ use App\Repository\StatutRepository;
 use App\Repository\TypeRepository;
 use App\Repository\ValeurChampsLibreRepository;
 use App\Repository\CategorieCLRepository;
+use App\Repository\FournisseurRepository;
 
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Doctrine\ORM\EntityManagerInterface;
-use App\Entity\CategorieCL;
 
 class RefArticleDataService
 {
@@ -42,10 +44,20 @@ class RefArticleDataService
      */
     private $typeRepository;
 
-    /*
+    /**
      * @var StatutRepository
      */
     private $statutRepository;
+
+    /**
+     * @var FournisseurRepository
+     */
+    private $fournisseurRepository;
+
+    /**
+     * @var ArticleFournisseurRepository
+     */
+    private $articleFournisseurRepository;
 
     /**
      * @var ValeurChampsLibreRepository
@@ -75,8 +87,9 @@ class RefArticleDataService
     private $em;
 
 
-    public function __construct(CategorieCLRepository $categorieCLRepository, TypeRepository  $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampsLibreRepository $champsLibreRepository, FilterRepository $filterRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
+    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository,FournisseurRepository $fournisseurRepository, CategorieCLRepository $categorieCLRepository, TypeRepository  $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampsLibreRepository $champsLibreRepository, FilterRepository $filterRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
     {
+        $this->fournisseurRepository = $fournisseurRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->champsLibreRepository = $champsLibreRepository;
         $this->statutRepository = $statutRepository;
@@ -85,6 +98,7 @@ class RefArticleDataService
         $this->typeRepository = $typeRepository;
         $this->categorieCLRepository = $categorieCLRepository;
         $this->templating = $templating;
+        $this->articleFournisseurRepository = $articleFournisseurRepository;
         $this->user = $tokenStorage->getToken()->getUser();
         $this->em = $em;
     }
@@ -161,6 +175,7 @@ class RefArticleDataService
     public function getViewEditRefArticle($refArticle)
     {
         $data = $this->getDataEditForRefArticle($refArticle);
+        $articlesFournisseur = $this->articleFournisseurRepository->getByRefArticle($refArticle->getId());
         $type = $this->typeRepository->getLabelByCategoryLabel(ReferenceArticle::CATEGORIE_TYPE);
         $categorieCL = $this->categorieCLRepository->findByLabel(CategorieCL::REFERENCE_ARTICLE);
         $typeChampLibre =  [];
@@ -179,7 +194,6 @@ class RefArticleDataService
                     'valeurChampLibre' => $valeurChampRefArticle
                 ];
             }
-
             $typeChampLibre[] = [
                 'typeLabel' =>  $label['label'],
                 'typeId' => $label['id'],
@@ -193,7 +207,8 @@ class RefArticleDataService
             'valeurChampsLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
             'typeChampsLibres' => $typeChampLibre,
             'articlesFournisseur' => ($data['listArticlesFournisseur']),
-            'totalQuantity' => $data['totalQuantity']
+            'totalQuantity' => $data['totalQuantity'],
+            'articles' => $articlesFournisseur
         ]);
         return $view;
     }
@@ -221,6 +236,21 @@ class RefArticleDataService
             //modification champsFixes
             $entityManager = $this->em;
             if (isset($data['reference'])) $refArticle->setReference($data['reference']);
+            if (isset($data['frl'])) {
+                foreach ($data['frl'] as $frl) {
+                    $fournisseurId = explode(';', $frl)[0];
+                    $ref = explode(';', $frl)[1];
+                    $label = explode(';', $frl)[2];
+                    $fournisseur = $this->fournisseurRepository->find(intval($fournisseurId));
+                    $articleFournisseur = new ArticleFournisseur();
+                    $articleFournisseur
+                        ->setReferenceArticle($refArticle)
+                        ->setFournisseur($fournisseur)
+                        ->setReference($ref)
+                        ->setLabel($label);
+                    $entityManager->persist($articleFournisseur);
+                }
+            }
             if (isset($data['libelle'])) $refArticle->setLibelle($data['libelle']);
             if (isset($data['commentaire'])) $refArticle->setCommentaire($data['commentaire']);
             if (isset($data['quantite'])) $refArticle->setQuantiteStock(intval($data['quantite']));

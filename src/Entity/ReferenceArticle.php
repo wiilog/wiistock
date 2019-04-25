@@ -435,5 +435,4 @@ class ReferenceArticle
 
         return $this;
     }
-
 }
