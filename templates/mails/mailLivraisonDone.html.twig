@@ -1,0 +1,61 @@
+<html>
+<style>
+    body {
+        font-family: Montserrat, Helvetica, Arial, sans-serif;
+    }
+    table, th, td {
+        border: 1px solid black;
+    }
+    table {
+        border-collapse: collapse;
+    }
+    th, td {
+        padding: 6px;
+        text-align: center;
+    }
+</style>
+<body>
+
+<h2>Votre demande a bien été livrée</h2>
+
+<p>Rappel de votre demande de livraison :</p>
+
+Numéro : {{ livraison.numero }}<br>
+Date de demande : {{ livraison.date|date('d/m/Y') }}<br>
+Demandeur : {{ livraison.utilisateur.username }}<br>
+Destination : {{ livraison.destination.label }}<br>
+{% if (livraison.commentaire is not empty and livraison.commentaire != '<p><br></p>') %}
+    Commentaire : {{ livraison.commentaire|raw }}<br>
+{% endif %}
+<br>
+<br>
+Liste des articles :<br>
+<br>
+<table>
+    <thead>
+        <tr>
+            <th>Référence CEA</th>
+            <th>Libellé</th>
+            <th>Quantité</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for ligneArticle in livraison.ligneArticle %}
+        <tr>
+            <td>{{ ligneArticle.reference.reference }}</td>
+            <td>{{ ligneArticle.reference.libelle }}</td>
+            <td>{{ ligneArticle.quantite }}</td>
+        </tr>
+    {% endfor %}
+    {% for article in livraison.articles %}
+        <tr>
+            <td>{{ article.reference }}</td>
+            <td>{{ article.label }}</td>
+            <td></td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+</body>
+</html>
