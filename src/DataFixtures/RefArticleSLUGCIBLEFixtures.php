@@ -3,9 +3,11 @@
 namespace App\DataFixtures;
 
 use App\Entity\ArticleFournisseur;
+use App\Entity\CategorieCL;
 use App\Entity\ChampsLibre;
 use App\Entity\Fournisseur;
 use App\Entity\Type;
+use App\Repository\CategorieCLRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\StatutRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
@@ -44,14 +46,20 @@ class RefArticleSLUGCIBLEFixtures extends Fixture implements FixtureGroupInterfa
      */
     private $fournisseurRepository;
 
+    /**
+     * @var CategorieCLRepository
+     */
+    private $categorieCLRepository;
 
-    public function __construct(UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampsLibreRepository $champsLibreRepository, StatutRepository $statutRepository, FournisseurRepository $fournisseurRepository)
+
+    public function __construct(UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampsLibreRepository $champsLibreRepository, StatutRepository $statutRepository, FournisseurRepository $fournisseurRepository, CategorieCLRepository $categorieCLRepository)
     {
         $this->typeRepository = $typeRepository;
         $this->champsLibreRepository = $champsLibreRepository;
         $this->encoder = $encoder;
         $this->statutRepository = $statutRepository;
         $this->fournisseurRepository = $fournisseurRepository;
+        $this->categorieCLRepository = $categorieCLRepository;
     }
 
     public function load(ObjectManager $manager)
@@ -132,6 +140,7 @@ class RefArticleSLUGCIBLEFixtures extends Fixture implements FixtureGroupInterfa
                     $cl
                         ->setLabel($field['label'])
                         ->setTypage($field['type'])
+                        ->setCategorieCL($this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE))
                         ->setType($typeSlugcible);
                     $manager->persist($cl);
                 }

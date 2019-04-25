@@ -3,9 +3,11 @@
 namespace App\DataFixtures;
 
 use App\Entity\ArticleFournisseur;
+use App\Entity\CategorieCL;
 use App\Entity\ChampsLibre;
 use App\Entity\Fournisseur;
 use App\Entity\Type;
+use App\Repository\CategorieCLRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\StatutRepository;
@@ -49,8 +51,13 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
      */
     private $refArticleRepository;
 
+    /**
+     * @var CategorieCLRepository
+     */
+    private $categorieCLRepository;
 
-    public function __construct(UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampsLibreRepository $champsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $refArticleRepository)
+
+    public function __construct(UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampsLibreRepository $champsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $refArticleRepository, CategorieCLRepository $categorieCLRepository)
     {
         $this->typeRepository = $typeRepository;
         $this->champsLibreRepository = $champsLibreRepository;
@@ -58,6 +65,7 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
         $this->fournisseurRepository = $fournisseurRepository;
         $this->statutRepository = $statutRepository;
         $this->refArticleRepository = $refArticleRepository;
+        $this->categorieCLRepository = $categorieCLRepository;
     }
 
     public function load(ObjectManager $manager)
@@ -151,6 +159,7 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
                     $cl
                         ->setLabel($field['label'])
                         ->setTypage($field['type'])
+                        ->setCategorieCL($this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE))
                         ->setType($typePdt);
                     $manager->persist($cl);
                 }
