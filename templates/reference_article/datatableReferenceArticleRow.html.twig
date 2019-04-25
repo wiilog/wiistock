@@ -3,7 +3,8 @@
     {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE')) %}
     <div data-id='{{ idRefArticle }}' id='edit{{idRefArticle}}' data-target='#modalEditRefArticle' data-toggle='modal'
         class='col-3'
-        onclick="editRow($(this), Routing.generate('reference_article_edit_api', true), $('#modalEditRefArticle'), $('#submitEditRefArticle'), true), clearDiv()">
+        onclick="editRow($(this), Routing.generate('reference_article_edit_api', true), $('#modalEditRefArticle'), $('#submitEditRefArticle'), true), 
+                clearDiv(), displayRequireChamp($(this), 'edit')">
         <i class='fas fa-pencil-alt'></i>
     </div>
     {% else %}

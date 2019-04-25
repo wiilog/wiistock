@@ -20,30 +20,26 @@ class TypeFixtures extends Fixture implements DependentFixtureInterface, Fixture
 
     public function load(ObjectManager $manager)
     {
-//        categorie referenceArticle
+        //        categorie referenceArticle
         $typesNames = [
-              'PDT',
-              'PSS',
-              'SILI',
-              'MOB',
-              'SLUGCIBLE',
-              'ARTICLE'
-         ];
-        
+            'PDT',
+            'PSS',
+            'SILI',
+            'MOB',
+            'SLUGCIBLE',
+            'ARTICLE'
+        ];
+
         foreach ($typesNames as $typeName) {
             $type = new Type();
-            if ($typeName =='article') {
-                $type->setCategory($this->getReference('type-article'));
-            } else {
-                $type->setCategory($this->getReference('type-referenceArticle'));
-            }
+            $type->setCategory($this->getReference('typeArticle'));
             $type->setLabel($typeName);
-                      
-                 
+
+
             $manager->persist($type);
         }
 
-    
+
 
         $manager->flush();
     }
@@ -53,7 +49,7 @@ class TypeFixtures extends Fixture implements DependentFixtureInterface, Fixture
         return [CategoryTypeFixtures::class];
     }
 
-    public static function getGroups():array
+    public static function getGroups(): array
     {
         return ['types'];
     }

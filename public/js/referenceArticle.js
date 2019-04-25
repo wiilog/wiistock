@@ -357,6 +357,7 @@ function ajaxPlusDemandeContent(button, demande) {
     xhttp.send(Json);
 }
 
+//TODOO optimisation plus tard
 let ajaxEditArticle = function (select) {
     xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {

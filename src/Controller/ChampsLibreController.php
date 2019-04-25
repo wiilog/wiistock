@@ -231,7 +231,6 @@ class ChampsLibreController extends AbstractController
                 $json = false;
                 return new JsonResponse($json);
             }
-
             $json = [];
             foreach ($champsLibres as $champLibre) {
                 $json[] = $champLibre['label'];

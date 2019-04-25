@@ -142,7 +142,6 @@ class RefArticleDataService
         $type = $articleRef->getType();
         if ($type) {
             $valeurChampLibre = $this->valeurChampsLibreRepository->getByRefArticleAndType($articleRef->getId(), $type->getId());
-            //TODOO
         } else {
             $valeurChampLibre = [];
         }
@@ -301,7 +300,7 @@ class RefArticleDataService
 
         $rowCL = [];
         foreach ($champsLibres as $champLibre) {
-            $champ = $this->champsLibreRepository->find($champLibre['id']); //TODOO 
+            $champ = $this->champsLibreRepository->find($champLibre['id']); 
             $valeur = $this->valeurChampsLibreRepository->findOneByRefArticleANDChampsLibre($refArticle->getId(), $champ);
             $rowCL[$champLibre['label']] = ($valeur ? $valeur->getValeur() : "");
         }

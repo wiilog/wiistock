@@ -29,7 +29,6 @@ class CategorieCLFixtures extends Fixture implements FixtureGroupInterface
             $categorie = new CategorieCL();
             $categorie->setLabel($categorieName);
             $manager->persist($categorie);
-            $this->addReference('type-' . $categorieName, $categorie);
         }
         $manager->flush();
     }

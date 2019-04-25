@@ -145,7 +145,7 @@ class ArticleController extends AbstractController
         }
         return $this->render('article/index.html.twig', [
             'valeurChampsLibre' => null,
-            'type' => $this->typeRepository->findOneByCategoryLabel(Article::CATEGORIE) //TODOO
+            'type' => $this->typeRepository->findOneByCategoryLabel(Article::CATEGORIE)
         ]);
     }
 
@@ -209,11 +209,11 @@ class ArticleController extends AbstractController
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $article = $this->articleRepository->find($data);
-           if ($article) {
-               $json = $this->articleDataService->getViewEditArticle($article);
-           }else {
-               $json = false;
-           }
+            if ($article) {
+                $json = $this->articleDataService->getViewEditArticle($article);
+            } else {
+                $json = false;
+            }
 
             return new JsonResponse($json);
         }
@@ -227,7 +227,7 @@ class ArticleController extends AbstractController
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $toInsert = new Article();
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $data['actif'] ? Article::STATUT_ACTIF : Article::STATUT_INACTIF);
+            $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $data['statut'] === Article::STATUT_ACTIF ? Article::STATUT_ACTIF : Article::STATUT_INACTIF);
             $date = new \DateTime('now');
             $ref = $date->format('YmdHis');
             $toInsert
@@ -270,55 +270,13 @@ class ArticleController extends AbstractController
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
-            $article = $this->articleRepository->find($data['article']);
-            $em = $this->getDoctrine()->getManager();
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $data['actif'] ? Article::STATUT_ACTIF : Article::STATUT_INACTIF);
-            $article
-                ->setLabel($data['label'])
-                ->setConform(!$data['conform'])
-                ->setStatut($statut)
-                ->setQuantite($data['quantite'] ? $data['quantite'] : 0)
-                ->setCommentaire($data['commentaire']);
-            $champsLibreKey = array_keys($data);
-            ($data['emplacement'] ? $article->setEmplacement($this->emplacementRepository->find($data['emplacement'])) : '');
-
-            foreach ($champsLibreKey as $champ) {
-                if (gettype($champ) === 'integer') {
-                    $valeurChampLibre = $this->valeurChampsLibreRepository->findOneByArticleANDChampsLibre($article->getId(), $champ);
-                    if (!$valeurChampLibre) {
-                        $valeurChampLibre = new ValeurChampsLibre();
-                        $valeurChampLibre
-                            ->addArticle($article)
-                            ->setChampLibre($this->champsLibreRepository->find($champ));
-                        $em->persist($valeurChampLibre);
-                    }
-                    $valeurChampLibre->setValeur($data[$champ]);
-                    $em->flush();
-                }
+            if ($data['article']){
+                $this->articleDataService->editArticle($data);
+                $json = true;
+            }else {
+                $json = false;
             }
-            $em->flush();
-            $articles = $this->articleRepository->findAll();
-            $rows = [];
-            foreach ($articles as $article) {
-                $url['edit'] = $this->generateUrl('demande_article_edit', ['id' => $article->getId()]);
-
-                $rows[] =
-                    [
-                        'id' => ($article->getId() ? $article->getId() : 'Non défini'),
-                        'Référence' => ($article->getReference() ? $article->getReference() : 'Non défini'),
-                        'Statut' => ($article->getStatut() ? $article->getStatut()->getNom() : 'Non défini'),
-                        'Libellé' => ($article->getLabel() ? $article->getLabel() : 'Non défini'),
-                        'Référence article' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : 'Non défini'),
-                        'Quantité' => ($article->getQuantite() ? $article->getQuantite() : 'Non défini'),
-                        'Actions' => $this->renderView('article/datatableArticleRow.html.twig', [
-                            'url' => $url,
-                            'articleId' => $article->getId(),
-                        ]),
-                    ];
-            }
-            $data['data'] = $rows;
-
-            return new JsonResponse($data);
+            return new JsonResponse($json);
         }
         throw new NotFoundHttpException('404');
     }
@@ -358,7 +316,7 @@ class ArticleController extends AbstractController
         }
         throw new NotFoundHttpException("404");
     }
-    
+
     /**
      * @Route("/get-article-collecte", name="get_collecte_article_by_refArticle", options={"expose"=true})
      */
@@ -370,7 +328,7 @@ class ArticleController extends AbstractController
                 $refArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
             }
             if ($refArticle) {
-                $json = $this->articleDataService->getCollecteArticleOrNoByRefArticle($refArticle, true);
+                $json = $this->articleDataService->getCollecteArticleOrNoByRefArticle($refArticle);
             } else {
                 $json = false; //TODO gérer erreur retour
             }
@@ -389,7 +347,7 @@ class ArticleController extends AbstractController
             $refArticle = $this->referenceArticleRepository->find($refArticle);
 
             if ($refArticle) {
-                $json = $this->articleDataService->getLivraisonArticleOrNoByRefArticle($refArticle, true);
+                $json = $this->articleDataService->getLivraisonArticleOrNoByRefArticle($refArticle);
             } else {
                 $json = false; //TODO gérer erreur retour
             }
@@ -436,7 +394,7 @@ class ArticleController extends AbstractController
             } elseif (count($articleFournisseur) > 0) {
                 $typeArticle = $refArticle->getType()->getLabel();
                 $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::ARTICLE);
-                
+
                 $champsLibres = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($typeArticle, $categorieCL);
                 $json = [
                     'content' => $this->renderView(

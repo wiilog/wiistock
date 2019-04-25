@@ -91,7 +91,7 @@ class ArticleDataService
 
     private $em;
 
-    public function __construct(CategorieCLRepository $categorieCLRepository,RefArticleDataService $refArticleDataService, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, TypeRepository  $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampsLibreRepository $champsLibreRepository, FilterRepository $filterRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
+    public function __construct(CategorieCLRepository $categorieCLRepository, RefArticleDataService $refArticleDataService, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, TypeRepository  $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampsLibreRepository $champsLibreRepository, FilterRepository $filterRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
     {
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->articleRepository = $articleRepository;
@@ -170,7 +170,7 @@ class ArticleDataService
      * @throws \Twig_Error_Runtime
      * @throws \Twig_Error_Syntax
      */
-    public function getCollecteArticleOrNoByRefArticle($refArticle, $modifieRefArticle)
+    public function getCollecteArticleOrNoByRefArticle($refArticle)
     {
         $articleFournisseur = $this->articleFournisseurRepository->getByRefArticle($refArticle);
         if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
@@ -209,7 +209,7 @@ class ArticleDataService
      * @throws \Twig_Error_Runtime
      * @throws \Twig_Error_Syntax
      */
-    public function getLivraisonArticleOrNoByRefArticle($refArticle, $modifieRefArticle)
+    public function getLivraisonArticleOrNoByRefArticle($refArticle)
     {
         $articleFournisseur = $this->articleFournisseurRepository->getByRefArticle($refArticle);
         if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
@@ -265,11 +265,11 @@ class ArticleDataService
         $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
         $typeArticle = $refArticle->getType()->getLabel();
         $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::ARTICLE);
-        
+
         $champsLibresComplet = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($typeArticle, $categorieCL);
         $champsLibres = [];
         foreach ($champsLibresComplet as $champLibre) {
-            $valeurChampArticle = $this->valeurChampsLibreRepository->findOneByChampLibreAndArticle($champLibre->getId(),$article->getId() );
+            $valeurChampArticle = $this->valeurChampsLibreRepository->findOneByChampLibreAndArticle($champLibre->getId(), $article->getId());
             $champsLibres[] = [
                 'id' => $champLibre->getId(),
                 'label' => $champLibre->getLabel(),
@@ -283,13 +283,13 @@ class ArticleDataService
         }
 
         $typeChampLibre =
-        [
-            'type'=> $typeArticle,
-            'champsLibres'=> $champsLibres,
-        ];
+            [
+                'type' => $typeArticle,
+                'champsLibres' => $champsLibres,
+            ];
 
         $view = $this->templating->render('article/modalModifyArticleContent.html.twig', [
-           'typeChampsLibres' => $typeChampLibre,
+            'typeChampsLibres' => $typeChampLibre,
             'typeArticle' => $typeArticle,
             'article' => $article,
             'statut' => ($article->getStatut()->getNom() === Article::STATUT_ACTIF ? true : false),
@@ -304,12 +304,15 @@ class ArticleDataService
         $entityManager = $this->em;
         $article = $this->articleRepository->find($data['article']);
         if ($article) {
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $data['actif'] ? Article::STATUT_ACTIF : Article::STATUT_INACTIF);
+            $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $data['statut'] === Article::STATUT_ACTIF ? Article::STATUT_ACTIF : Article::STATUT_INACTIF);
             $article
                 ->setLabel($data['label'])
                 ->setConform(!$data['conform'])
                 ->setStatut($statut)
+                ->setQuantite($data['quantite'] ? $data['quantite'] : 0)
                 ->setCommentaire($data['commentaire']);
+            ($data['emplacement'] ? $article->setEmplacement($this->emplacementRepository->find($data['emplacement'])) : '');
+
             $champsLibreKey = array_keys($data);
             foreach ($champsLibreKey as $champ) {
 

@@ -432,7 +432,7 @@ class ReferenceArticleController extends Controller
             'champs' => $champs,
             'champsVisible' => ($this->getUser()->getColumnVisible() !== null ? $this->getUser()->getColumnVisible() : $champsVisibleDefault),
             'typeChampsLibres' => $typeChampLibre,
-            'types' => $types, //TODOO $type
+            'types' => $types,
             'typeQuantite' => $typeQuantite,
             'filters' => $this->filterRepository->findBy(['utilisateur' => $this->getUser()]),
         ]);
@@ -580,7 +580,6 @@ class ReferenceArticleController extends Controller
     public function plusDemande(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            //TODO CG optim return / response
             $em = $this->getDoctrine()->getManager();
 
             //edit Refrence Article
@@ -702,7 +701,7 @@ class ReferenceArticleController extends Controller
                     $json = false;
                 }
             } else {
-                $json = false; //TODO gérer erreur retour
+                $json = false; 
             }
             return new JsonResponse($json);
         }
