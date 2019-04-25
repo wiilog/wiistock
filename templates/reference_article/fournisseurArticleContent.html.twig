@@ -1,0 +1,27 @@
+{% for articleF in articles %}
+
+{% if articleF is not empty %}
+<div class="row">
+    <div class="form-group col-4 w-100">
+        <label for="reference">Fournisseur</label>
+        <input class="form-control needed" type="text" value="{{articleF.fournisseur.nom}}" disabled>
+    </div>
+    <div class="form-group col-4">
+        <label for="reference">Référence Article fournisseur</label>
+        <input class="form-control needed" disabled type="text" value="{{articleF.reference}}">
+    </div>
+    <div class="form-group col-3">
+        <label for="reference">Label</label>
+        <input class="form-control needed" type="text" disabled value="{{articleF.label}}">
+    </div>
+    <div class="col-1">
+        <span class="btn btn-primary mt-3" data-toggle="modal" data-target="#modalDeleteFournisseur" data-value="{{ articleF.id }}"
+            data-title="{{articleRef.id}}" onclick="passArgsToModal(this)">
+            <i class="fa fa-trash"></i>
+        </span>
+    </div>
+</div>
+
+{% endif %}
+
+{% endfor %}
