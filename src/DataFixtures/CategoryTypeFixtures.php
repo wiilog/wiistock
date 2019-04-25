@@ -27,6 +27,7 @@ class CategoryTypeFixtures extends Fixture implements FixtureGroupInterface
             $categorie = new CategoryType();
             $categorie->setLabel($categorieName);
             $manager->persist($categorie);
+            $this->addReference('type-' . $categorieName, $categorie);
         }
         $manager->flush();
     }

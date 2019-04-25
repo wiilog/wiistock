@@ -53,7 +53,6 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function () 
             let val = $(this).val();
             let name = $(this).attr("name");
             if (!Data[name] || parseInt(Data[name], 10) === 0) {
-                console.log(name + " " + val);
                 Data[name] = val;
             }
             // validation données obligatoires
@@ -360,7 +359,7 @@ function ajaxPlusDemandeContent(button, demande) {
     xhttp.send(Json);
 }
 
-//TODOO optimisation plus tard
+//TODO optimisation plus tard
 let ajaxEditArticle = function (select) {
     xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {

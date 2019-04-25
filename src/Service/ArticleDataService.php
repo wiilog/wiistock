@@ -218,7 +218,7 @@ class ArticleDataService
                 'selection' => $this->templating->render('demande/newRefArticleByQuantiteRefContent.html.twig'),
             ];
         } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-            //TODOO
+
             $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
             $articles = $this->articleRepository->getByAFAndInactif($articleFournisseur, $statut);
             if (count($articles) < 1) {
@@ -311,7 +311,10 @@ class ArticleDataService
                 ->setStatut($statut)
                 ->setQuantite($data['quantite'] ? $data['quantite'] : 0)
                 ->setCommentaire($data['commentaire']);
-            ($data['emplacement'] ? $article->setEmplacement($this->emplacementRepository->find($data['emplacement'])) : '');
+
+            if ($data['emplacement']) {
+                $article->setEmplacement($this->emplacementRepository->find($data['emplacement']));
+            }
 
             $champsLibreKey = array_keys($data);
             foreach ($champsLibreKey as $champ) {

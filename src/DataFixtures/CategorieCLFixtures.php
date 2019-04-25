@@ -9,7 +9,7 @@ use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 use App\Entity\CategorieCL;
 
-class CategorieCLFixtures extends Fixture implements FixtureGroupInterface
+class CategorieCLFixtures extends Fixture
 {
     private $encoder;
 
@@ -31,10 +31,6 @@ class CategorieCLFixtures extends Fixture implements FixtureGroupInterface
             $manager->persist($categorie);
         }
         $manager->flush();
-    }
-
-    public static function getGroups():array {
-        return ['types'];
     }
 
 }
