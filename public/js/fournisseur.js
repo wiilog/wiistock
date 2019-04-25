@@ -33,7 +33,6 @@ InitialiserModal(modalModifyFournisseur, submitModifyFournisseur, urlModifyFourn
 
 function checkAndDeleteRow(icon) {
     let modalBody = ModalDeleteFournisseur.find('.modal-body');
-    console.log(modalBody);
     let id = icon.data('id');
     let param = JSON.stringify(id);
 
