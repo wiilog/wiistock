@@ -229,7 +229,6 @@ class UtilisateurController extends Controller
             } else {
                 return new JsonResponse(false); //TODO gérer erreur
             }
-
         }
         throw new NotFoundHttpException('404');
     }
@@ -284,8 +283,12 @@ class UtilisateurController extends Controller
 
             $user = $this->utilisateurRepository->find($data['user']);
             $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->remove($user);
-            $entityManager->flush();
+            try {
+                $entityManager->remove($user);
+                $entityManager->flush();
+            } catch (\Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException $e) {
+                return new JsonResponse('Impossible de supprimer cet utilisateur, car il est lié à des demandes', 250);
+            }
 
             return new JsonResponse();
         }
@@ -310,5 +313,4 @@ class UtilisateurController extends Controller
         }
         throw new NotFoundHttpException("404");
     }
-
 }
