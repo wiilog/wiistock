@@ -47,11 +47,11 @@ Liste des articles :<br>
             <td>{{ article.quantite }}</td>
         </tr>
     {% endfor %}
-    {% for refArticle in collecte.collecteReferences %}
+    {% for collecteRef in collecte.collecteReferences %}
         <tr>
-            <td>{{ article.reference.reference }}</td>
-            <td>{{ article.reference.libelle }}</td>
-            <td>{{ article.quantite }}</td>
+            <td>{{ collecteRef.referenceArticle.reference }}</td>
+            <td>{{ collecteRef.referenceArticle.libelle }}</td>
+            <td>{{ collecteRef.quantite }}</td>
         </tr>
     {% endfor %}
     </tbody>
