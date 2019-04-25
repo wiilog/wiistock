@@ -40,5 +40,5 @@
 {% endblock %}
 
 {% block javascript %}
-<script src="{{ asset('js/alerte.js') }}"></script>
+<script src="{{ asset('js/alerte.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}
