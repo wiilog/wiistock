@@ -5,7 +5,7 @@ $('.select2').select2();
 const urlApiType = Routing.generate('type_api', true);
 let tableType = $('#tableType_id').DataTable({
     "language": {
-        "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
+        url: "/js/i18n/dataTableLanguage.json",
     },
     ajax: {
         "url": urlApiType,
@@ -39,7 +39,7 @@ InitialiserModal(dataModalEditType, ButtonSubmitEditType, urlEditType, tableType
 const urlApiChampsLibre = Routing.generate('champ_libre_api', { 'id': id }, true);
 let tableChampsLibre = $('#tableChampslibre_id').DataTable({
     "language": {
-        "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
+        url: "/js/i18n/dataTableLanguage.json",
     },
     ajax: {
         "url": urlApiChampsLibre,

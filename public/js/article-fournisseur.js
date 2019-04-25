@@ -1,7 +1,7 @@
 let pathArticleFournisseur = Routing.generate('article_fournisseur_api');
 let tableArticleFournisseur = $('#tableArticleFournisseur').DataTable({
     "language": {
-        "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
+        url: "/js/i18n/dataTableLanguage.json",
     },
     ajax:{
         "url": pathArticleFournisseur,
