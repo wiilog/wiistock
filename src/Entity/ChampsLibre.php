@@ -14,6 +14,30 @@ class ChampsLibre
     const TYPE_BOOL = 'booleen';
     const TYPE_TEXT = 'text';
     const TYPE_NUMBER = 'number';
+    const TYPE_LIST = 'list';
+    const TYPE_DATE = 'date';
+    const TYPAGE = [
+        [
+            'value' => ChampsLibre::TYPE_BOOL,
+            'label' => 'Oui/Non',
+        ],
+        [
+            'value' => ChampsLibre::TYPE_DATE,
+            'label' => 'Date',
+        ],
+        [
+            'value' => ChampsLibre::TYPE_LIST,
+            'label' => 'Liste',
+        ],
+        [
+            'value' => ChampsLibre::TYPE_NUMBER,
+            'label' => 'Nombre',
+        ],
+        [
+            'value' => ChampsLibre::TYPE_TEXT,
+            'label' => 'Texte',
+        ],
+    ];
 
     /**
      * @ORM\Id()

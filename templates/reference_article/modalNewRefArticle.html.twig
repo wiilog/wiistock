@@ -39,7 +39,8 @@
                     <div class="form-group col-6">
                         <label for="type">Type</label>
                         <select name="type" onclick="typeChoice($(this), '-new', $('#typeContentNew'))"
-                            onchange="displayRequireChamp($(this),'create')" class="form-control data d-block type needed" id="">
+                            onchange="displayRequireChamp($(this),'create')"
+                            class="form-control data d-block type needed" id="">
                             <option value="">Type à choisir...</option>
                             {% for type in types %}
                             <option value="{{type.id}}">{{type.label}}</option>
@@ -96,25 +97,20 @@
                             <div class="row mt-2">
                                 {% for champ in type.champsLibres %}
                                 <div class="form-group col-6">
-                                    {% if champ.typage == 'booleen' %}
-                                    {% set checked = (champ.defaultValue == 1) ? 'checked' : '' %}
                                     <label>
                                         {{champ.label}}
                                     </label>
+                                    {{ dump(champ) }}
+                                    {% if champ.typage == 'booleen' %}
+                                    {% set checked = (champ.defaultValue == 1) ? 'checked' : '' %}
                                     <label class="switch">
                                         <input type="checkbox" class="data checkbox" {{ checked }} name="{{champ.id}}">
                                         <span class="slider round"></span>
                                     </label>
                                     {% elseif champ.typage == 'number' %}
-                                    <label>
-                                        {{champ.label}}
-                                    </label>
                                     <input type="number" id="{{champ.label ~ 'create'}}" class="form-control data"
                                         value="{{champ.defaultValue}}" name="{{champ.id}}">
                                     {% elseif champ.typage == 'list' %}
-                                    <label>
-                                        {{champ.label}}
-                                    </label>
                                     <select id="{{champ.label ~ 'create'}}" class="form-control data"
                                         name="{{champ.id}}" id="input">
                                         <option value="{{champ.defaultValue}}">{{champ.defaultValue}}
@@ -128,17 +124,19 @@
                                         <option value=""></option>
                                         {% endif %}
                                     </select>
-                                    {% else %}
-                                    <label>
-                                        {{champ.label}}
-                                    </label>
+                                    {% elseif champ.typage == 'text'  %}
                                     <input id="{{champ.label ~ 'create'}}" class="form-control data" type="text"
                                         value="{{champ.defaultValue}}" name='{{ champ.id }}'>
+                                    {% elseif champ.typage == 'date' %}
+                                    <input type="date" name="{{ champ.id }}" id="{{champ.label ~ 'create'}}"
+                                        class="form-control data" value="{{champ.defaultValue}}">
+                                    {% else %}
+                                    <input disabled>
                                     {% endif %}
                                 </div>
                                 {% endfor %}
                             </div>
-                            
+
                         </div>
                         {% endfor %}
                     </div>

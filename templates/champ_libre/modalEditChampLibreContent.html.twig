@@ -14,10 +14,10 @@
 <div class="form-group">
     <label for="typage">Typage</label>
     <select class="form-control select2 data" name="typage" id='typageModif' onchange="changeType(this)">
-        <option value="booleen" {{champLibre.typage == 'booleen' ? 'selected' : '' }}>Oui/Non</option>
-        <option value="number" {{champLibre.typage == 'number' ? 'selected' : '' }}>Nombre</option>
-        <option value="text" {{champLibre.typage == 'text' ? 'selected' : '' }}>Texte</option>
-        <option value="list" {{champLibre.typage == 'list' ? 'selected' : '' }}>Liste</option>
+        {% for typage in typages %}
+        {% set selected = typage.value == champLibre.typage ? 'selected' : '' %}
+            <option value="{{ typage.value }}" {{ selected }}>{{ typage.label }}</option>
+        {% endfor %}
     </select>
 </div>
 <div class="form-group">
