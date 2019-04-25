@@ -8,10 +8,12 @@ use App\Entity\Collecte;
 use App\Entity\CollecteReference;
 use App\Entity\Menu;
 use App\Entity\OrdreCollecte;
+use App\Repository\ArticleRepository;
 use App\Repository\CollecteReferenceRepository;
 use App\Repository\CollecteRepository;
 use App\Repository\OrdreCollecteRepository;
 use App\Repository\StatutRepository;
+use App\Service\MailerService;
 use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -49,14 +51,26 @@ class OrdreCollecteController extends AbstractController
      */
     private $collecteReferenceRepository;
 
+    /**
+     * @var ArticleRepository
+     */
+    private $articleRepository;
 
-    public function __construct(UserService $userService, OrdreCollecteRepository $ordreCollecteRepository, StatutRepository $statutRepository, CollecteRepository $collecteRepository, CollecteReferenceRepository $collecteReferenceRepository)
+    /**
+     * @var MailerService
+     */
+    private $mailerService;
+
+
+    public function __construct(OrdreCollecteRepository $ordreCollecteRepository, StatutRepository $statutRepository, CollecteRepository $collecteRepository, CollecteReferenceRepository $collecteReferenceRepository, UserService $userService, MailerService $mailerService, ArticleRepository $articleRepository)
     {
-        $this->userService = $userService;
         $this->ordreCollecteRepository = $ordreCollecteRepository;
         $this->statutRepository = $statutRepository;
         $this->collecteRepository = $collecteRepository;
         $this->collecteReferenceRepository = $collecteReferenceRepository;
+        $this->articleRepository = $articleRepository;
+        $this->userService = $userService;
+        $this->mailerService = $mailerService;
     }
 
     /**
@@ -64,7 +78,7 @@ class OrdreCollecteController extends AbstractController
      */
     public function index()
     {
-        if (!$this->userService->hasRightFunction(Menu::LIVRAISON, Action::LIST)) {
+        if (!$this->userService->hasRightFunction(Menu::COLLECTE, Action::LIST)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -137,7 +151,9 @@ class OrdreCollecteController extends AbstractController
             $demande = $collecte->getDemandeCollecte();
             $demande->setStatut($this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, Collecte::STATUS_COLLECTE));
 
-            $this->mailerService->sendMail('Votre demande a été collectée.', 'Votre demande a bien été collectée.', $demande->getDemandeur()->getEmail());
+            $this->mailerService->sendMail('FOLLOW GT // Collecte effectuée',
+                $this->renderView('mails/mailCollecteDone.html.twig', ['collecte' => $demande]),
+                $demande->getDemandeur()->getEmail());
 
             // on modifie la quantité des articles de référence liés à la collecte
             $ligneArticles = $this->collecteReferenceRepository->getByCollecte($collecte->getDemandeCollecte());
@@ -184,9 +200,9 @@ class OrdreCollecteController extends AbstractController
 
             if ($demande) {
 
-                $ligneArticle = $this->collecteReferenceRepository->getByCollecte($demande->getId());
-
                 $rows = [];
+
+                $ligneArticle = $this->collecteReferenceRepository->getByCollecte($demande->getId());
                 foreach ($ligneArticle as $ligneArticle) { /** @var CollecteReference $ligneArticle */
                     $referenceArticle = $ligneArticle->getReferenceArticle();
                     $rows[] = [
@@ -195,6 +211,19 @@ class OrdreCollecteController extends AbstractController
                         "Quantité" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ' '),
                         "Actions" => $this->renderView('ordre_collecte/datatableOrdreCollecteRow.html.twig', [
                             'id' => $ligneArticle->getId(),
+                            'modifiable' => $collecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER,
+                        ])
+                    ];
+                }
+
+                $articles = $this->articleRepository->getByCollecte($demande->getId());
+                foreach ($articles as $article) { /** @var Article $article */
+                    $rows[] = [
+                        'Référence CEA' => $article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
+                        'Libellé' => $article->getLabel(),
+                        'Quantité' => $article->getQuantite(),
+                        "Actions" => $this->renderView('ordre_collecte/datatableOrdreCollecteRow.html.twig', [
+                            'id' => $article->getId(),
                             'modifiable' => $collecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER,
                         ])
                     ];

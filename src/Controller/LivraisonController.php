@@ -8,6 +8,7 @@ use App\Entity\Demande;
 use App\Entity\Livraison;
 use App\Entity\Menu;
 use App\Entity\Preparation;
+use App\Repository\ArticleRepository;
 use App\Repository\LivraisonRepository;
 use App\Repository\PreparationRepository;
 use App\Service\MailerService;
@@ -69,6 +70,11 @@ class LivraisonController extends AbstractController
     private $ligneArticleRepository;
 
     /**
+     * @var ArticleRepository
+     */
+    private $articleRepository;
+
+    /**
      * @var UserService
      */
     private $userService;
@@ -79,7 +85,7 @@ class LivraisonController extends AbstractController
     private $mailerService;
 
 
-    public function __construct(ReferenceArticleRepository $referenceArticleRepository, PreparationRepository $preparationRepository, LigneArticleRepository $ligneArticleRepository, EmplacementRepository $emplacementRepository, DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, StatutRepository $statutRepository, UserService $userService, MailerService $mailerService)
+    public function __construct(ReferenceArticleRepository $referenceArticleRepository, PreparationRepository $preparationRepository, LigneArticleRepository $ligneArticleRepository, EmplacementRepository $emplacementRepository, DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, StatutRepository $statutRepository, UserService $userService, MailerService $mailerService, ArticleRepository $articleRepository)
     {
         $this->emplacementRepository = $emplacementRepository;
         $this->demandeRepository = $demandeRepository;
@@ -88,6 +94,7 @@ class LivraisonController extends AbstractController
         $this->preparationRepository = $preparationRepository;
         $this->ligneArticleRepository = $ligneArticleRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
+        $this->articleRepository = $articleRepository;
         $this->userService = $userService;
         $this->mailerService = $mailerService;
     }
@@ -159,7 +166,10 @@ class LivraisonController extends AbstractController
             $statutLivre = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_LIVRE);
             $demande->setStatut($statutLivre);
 
-            $this->mailerService->sendMail('Votre demande a été livrée.', 'Votre demande a bien été livrée.', $demande->getUtilisateur()->getEmail());
+            $this->mailerService->sendMail(
+                'FOLLOW GT // Livraison effectuée',
+                $this->renderView('mails/mailLivraisonDone.html.twig', ['livraison' => $demande]),
+                $demande->getUtilisateur()->getEmail());
 
             $ligneArticles = $this->ligneArticleRepository->getByDemande($demande);
 
@@ -224,14 +234,23 @@ class LivraisonController extends AbstractController
                 $demande = $this->demandeRepository->getByLivraison($livraison->getId());
                 if ($demande) {
 
-                    $ligneArticle = $this->ligneArticleRepository->getByDemande($demande->getId());
-
                     $rows = [];
+
+                    $ligneArticle = $this->ligneArticleRepository->getByDemande($demande->getId());
                     foreach ($ligneArticle as $article) {
                         $rows[] = [
                             "Référence CEA" => ($article->getReference() ? $article->getReference()->getReference() : ' '),
                             "Libellé" => ($article->getReference() ? $article->getReference()->getLibelle() : ' '),
                             "Quantité" => ($article->getQuantite() ? $article->getQuantite() : ' '),
+                        ];
+                    }
+
+                    $articles = $this->articleRepository->getByDemande($demande);
+                    foreach ($articles as $article) { /** @var Article $article */
+                        $rows[] = [
+                            "Référence CEA" => $article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference(): '',
+                            "Libellé" => $article->getLabel() ? $article->getLabel() : '',
+                            "Quantité" => '',
                         ];
                     }
 

@@ -46,20 +46,7 @@ class='accueil-back'
                     <a class="btn" href="{{ url('register') }}">Créer un compte</a>
                     <button type="submit" class="btn btn-primary float-left">Connexion</button>
                 </div>
-                <a class="btn" href="{{ path('forgotten') }}">Oublié ?</a>
-                {# <div class="pull-right">
-                    <span class="btn-right mdp-oublie" href="#">
-                        Mot de passe oublié
-                        <span class="has-feedback">
-                            <label class="control-label required">
-                                <a data-tooltip="Effectuez la demande par mail auprès de votre administrateur"
-                                    data-position="top" class="top">
-                                    <i class="fa fa-question-circle-o"></i>
-                                </a>
-                            </label>
-                        </span>
-                    </span>
-                </div> #}
+                <a class="btn" href="{{ path('forgotten') }}">Mot de passe oublié ?</a>
                 <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
             </form>
         </div>

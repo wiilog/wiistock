@@ -234,15 +234,23 @@ class PreparationController extends AbstractController
 
                 $demande = $this->demandeRepository->find($id);
                 if ($demande) {
-                    $ligneArticles = $this->ligneArticleRepository->getByDemande($demande->getId());
-
                     $rows = [];
+
+                    $ligneArticles = $this->ligneArticleRepository->getByDemande($demande->getId());
                     foreach ($ligneArticles as $article) {
                         $rows[] = [
                             "Référence CEA" => ($article->getReference() ? $article->getReference()->getReference() : ' '),
                             "Libellé" => ($article->getReference() ? $article->getReference()->getLibelle() : ' '),
                             "Quantité" => ($article->getQuantite() ? $article->getQuantite() : ' '),
-                            "Actions" => "",
+                        ];
+                    }
+
+                    $articles = $this->articleRepository->getByDemande($demande);
+                    foreach ($articles as $article) { /** @var Article $article */
+                        $rows[] = [
+                            "Référence CEA" => $article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference(): '',
+                            "Libellé" => $article->getLabel() ? $article->getLabel() : '',
+                            "Quantité" => '',
                         ];
                     }
 

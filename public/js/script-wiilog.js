@@ -78,6 +78,7 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
             Data[name] = val;
             // validation données obligatoires
             if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
+                console.log(name);
                 let label = $(this).closest('.form-group').find('label').text();
                 missingInputs.push(label);
                 $(this).addClass('is-invalid');
@@ -442,8 +443,8 @@ let displayRequireChamp = function (select, require) {
     let path = Routing.generate('display_require_champ', true);
     let json = {};
     json[require] = select.val();
-    let Json = JSON.stringify(json)
-    $('.data').removeClass('needed');
+    let Json = JSON.stringify(json);
+    $('#typeContentEdit').find('.data').removeClass('needed');
     xhttp.open("POST", path, true);
     xhttp.send(Json);
 }

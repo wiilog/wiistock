@@ -584,6 +584,7 @@ class ReferenceArticleController extends Controller
                             ->setReference($refArticle)
                             ->setDemande($demande)
                             ->setQuantite((int)$data['quantitie']);
+
                         $em->persist($ligneArticle);
                     } else {
                         $ligneArticle = $this->ligneArticleRepository->findOneByRefArticleAndDemande($refArticle, $demande);
@@ -643,6 +644,7 @@ class ReferenceArticleController extends Controller
 
                         $statuts = $this->statutRepository->findByCategorieName(ReferenceArticle::CATEGORIE);
                         $editChampLibre = $this->renderView('reference_article/modalEditRefArticleContent.html.twig', [
+                            'articles' => $this->articleFournisseurRepository->getByRefArticle($refArticle->getId()),
                             'articleRef' => $refArticle,
                             'statut' => ($refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF),
                             'valeurChampsLibre' => isset($dataArticle['valeurChampLibre']) ? $dataArticle['valeurChampLibre'] : null,
