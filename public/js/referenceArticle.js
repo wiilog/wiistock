@@ -52,7 +52,10 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function () 
         inputs.each(function () {
             let val = $(this).val();
             let name = $(this).attr("name");
-            Data[name] = val;
+            if (!Data[name] || parseInt(Data[name], 10) === 0) {
+                console.log(name + " " + val);
+                Data[name] = val;
+            }
             // validation données obligatoires
             if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
                 let label = $(this).closest('.form-group').find('label').text();
