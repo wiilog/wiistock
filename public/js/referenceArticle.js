@@ -181,7 +181,7 @@ $(document).ready(function () {
             length: 10,
             columns: columns,
             language: {
-                url: "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
+                "search": "Rechercher libellé :"
             },
         });
     })
