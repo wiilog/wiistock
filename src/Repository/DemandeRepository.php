@@ -71,6 +71,7 @@ class DemandeRepository extends ServiceEntityRepository
 
         return $query->getSingleScalarResult();
     }
+
     public function findOneByPreparation($preparation)
     {
         $entityManager = $this->getEntityManager();
@@ -81,7 +82,7 @@ class DemandeRepository extends ServiceEntityRepository
         )->setParameter('preparation', $preparation);
         return $query->getOneOrNullResult();
     }
-    public function findOneByPreparationAndLivraison($livraison)
+    public function findOneByLivraison($livraison)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
