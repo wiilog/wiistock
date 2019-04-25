@@ -33,7 +33,8 @@ class MailerService
 
     public function sendMail($subject, $content, $to)
     {
-        $mailerServer = $this->mailerServerRepository->getOneMailerServer(); /** @var MailerServer $mailerServer */
+        $mailerServer = $this->mailerServerRepository->getOneMailerServer();
+        /** @var MailerServer $mailerServer */
 
         $from = $mailerServer->getUser();
         $password = $mailerServer->getPassword();
@@ -51,12 +52,12 @@ class MailerService
         }
 
         $transport = (new \Swift_SmtpTransport($host, $port, $protocole))
-                ->setUsername($from)
-                ->setPassword($password);
+            ->setUsername($from)
+            ->setPassword($password);
 
         $message = (new \Swift_Message());
 
-//        $image = $message->embed(\Swift_Image::fromPath('img/Logo-FollowGTpetit.png'));
+        //        $image = $message->embed(\Swift_Image::fromPath('img/Logo-FollowGTpetit.png'));
 
         $message
             ->setFrom($from)
