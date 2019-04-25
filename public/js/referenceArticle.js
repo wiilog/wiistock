@@ -52,7 +52,9 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function () 
         inputs.each(function () {
             let val = $(this).val();
             let name = $(this).attr("name");
-            Data[name] = val;
+            if (!Data[name] || parseInt(Data[name], 10) === 0) {
+                Data[name] = val;
+            }
             // validation données obligatoires
             if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
                 let label = $(this).closest('.form-group').find('label').text();
@@ -181,7 +183,7 @@ $(document).ready(function () {
             length: 10,
             columns: columns,
             language: {
-                url: "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
+                "search": "Rechercher libellé :"
             },
         });
     })
@@ -357,27 +359,26 @@ function ajaxPlusDemandeContent(button, demande) {
     xhttp.send(Json);
 }
 
+//TODO optimisation plus tard
 let ajaxEditArticle = function (select) {
     xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
             dataReponse = JSON.parse(this.responseText);
-            if (dataReponse.editChampLibre) {
-                $('.editChampLibre').html(dataReponse.editChampLibre);
-                displayRequireChamp($('#typeEditArticle'), 'edit');
-                // initEditor('.editor-container');
+            if (dataReponse) {
+                $('.editChampLibre').html(dataReponse);
+                // displayRequireChamp($('#typeEditArticle'), 'edit');
+                initEditor('.editor-container');
             } else {
                 //TODO gérer erreur
             }
         }
     }
     let json = select.val();
-    let path = Routing.generate('ajax_edit_article', true);
+    let path = Routing.generate('article_api_edit', true);
     xhttp.open("POST", path, true);
     xhttp.send(json);
 }
-
-
 
 //initialisation editeur de texte une seule fois
 var editorNewReferenceArticleAlreadyDone = false;

@@ -99,7 +99,7 @@ class CollecteController extends AbstractController
         return $this->render('collecte/index.html.twig', [
             'statuts' => $this->statutRepository->findByCategorieName(Collecte::CATEGORIE),
             'utilisateurs' => $this->utilisateurRepository->findAll(),
-        
+
         ]);
     }
 
@@ -130,20 +130,20 @@ class CollecteController extends AbstractController
             }
 
             $collectes = $this->collecteRepository->findAll();
-           
+
             $rows = [];
             foreach ($collectes as $collecte) {
                 $url = $this->generateUrl('collecte_show', ['id' => $collecte->getId()]);
                 $rows[] = [
-                        'id' => ($collecte->getId() ? $collecte->getId() : 'Non défini'),
-                        'Date' => ($collecte->getDate() ? $collecte->getDate()->format('d/m/Y') : null),
-                        'Demandeur' => ($collecte->getDemandeur() ? $collecte->getDemandeur()->getUserName() : null),
-                        'Objet' => ($collecte->getObjet() ? $collecte->getObjet() : null),
-                        'Statut' => ($collecte->getStatut()->getNom() ? ucfirst($collecte->getStatut()->getNom()) : null),
-                        'Actions' => $this->renderView('collecte/datatableCollecteRow.html.twig', [
-                            'url' => $url,
-                        ]),
-                    ];
+                    'id' => ($collecte->getId() ? $collecte->getId() : 'Non défini'),
+                    'Date' => ($collecte->getDate() ? $collecte->getDate()->format('d/m/Y') : null),
+                    'Demandeur' => ($collecte->getDemandeur() ? $collecte->getDemandeur()->getUserName() : null),
+                    'Objet' => ($collecte->getObjet() ? $collecte->getObjet() : null),
+                    'Statut' => ($collecte->getStatut()->getNom() ? ucfirst($collecte->getStatut()->getNom()) : null),
+                    'Actions' => $this->renderView('collecte/datatableCollecteRow.html.twig', [
+                        'url' => $url,
+                    ]),
+                ];
             }
             $data['data'] = $rows;
 
@@ -218,11 +218,11 @@ class CollecteController extends AbstractController
             $em = $this->getDoctrine()->getEntityManager();
             $date = new \DateTime('now');
             $status = $this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, Collecte::STATUS_BROUILLON);
-            $numero = 'C-'.$date->format('YmdHis');
+            $numero = 'C-' . $date->format('YmdHis');
             $collecte = new Collecte();
-            $destination= ($data['destination'] == 0) ? false : true ; 
-                
-                $collecte
+            $destination = ($data['destination'] == 0) ? false : true;
+
+            $collecte
                 ->setDemandeur($this->utilisateurRepository->find($data['demandeur']))
                 ->setNumero($numero)
                 ->setDate($date)
@@ -265,6 +265,7 @@ class CollecteController extends AbstractController
                         ->setCollecte($collecte)
                         ->setReferenceArticle($refArticle)
                         ->setQuantite($data['quantitie']);
+
                     $em->persist($collecteReference);
                 }
                 $response = $this->refArticleDataService->editRefArticle($refArticle, $data);
@@ -381,7 +382,7 @@ class CollecteController extends AbstractController
 
             $collecte = $this->collecteRepository->find($data['collecte']);
             $pointCollecte = $this->emplacementRepository->find($data['Pcollecte']);
-            $destination= ($data['destination'] == 0) ? false : true ; 
+            $destination = ($data['destination'] == 0) ? false : true;
             $collecte
                 ->setDate(new \DateTime($data['date-collecte']))
                 ->setCommentaire($data['commentaire'])
@@ -411,9 +412,12 @@ class CollecteController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::DEM_COLLECTE, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
-            
+
             $collecte = $this->collecteRepository->find($data['collecte']);
             $entityManager = $this->getDoctrine()->getManager();
+            foreach ($collecte->getCollecteReferences() as $cr) {
+                $entityManager->remove($cr);
+            }
             $entityManager->remove($collecte);
             $entityManager->flush();
             $data = [

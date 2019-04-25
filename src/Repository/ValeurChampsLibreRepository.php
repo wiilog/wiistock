@@ -38,24 +38,21 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function getByRefArticleANDChampsLibre($idArticle, $idChampLibre)
+    public function findOneByRefArticleANDChampsLibre($refArticleId, $champLibre)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
             "SELECT v
             FROM App\Entity\ValeurChampsLibre v
             JOIN v.articleReference a
-            JOIN v.champLibre c
-            WHERE a.id = :idArticle AND c.id = :idChampLibre"
+            WHERE a.id = :refArticle AND v.champLibre = :champLibre"
         );
         $query->setParameters([
-            "idArticle" => $idArticle,
-            "idChampLibre" => $idChampLibre
+            "refArticle" => $refArticleId,
+            "champLibre" => $champLibre
         ]);
 
-        $result = $query->execute();
-
-        return $result ? $result[0] : null;
+        return $query->getOneOrNullResult();
     }
 
     public function getByRefArticle($idArticle)

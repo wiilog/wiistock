@@ -172,10 +172,40 @@ function loadAndDisplayInfos(select) {
             $('#newContent').html(data);
             $('#modalNewArticle').find('div').find('div').find('.modal-footer').removeClass('d-none');
             initNewArticleEditor("#modalNewArticle");
-            // $('.select2').select2();
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'));
         })
     }
 }
 
+let getArticleFournisseur = function () {
+    xhttp = new XMLHttpRequest();
+    let $articleFourn = $('#newContent');
+    let modalfooter =  $('#modalNewArticle').find('.modal-footer');
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            data = JSON.parse(this.responseText);
 
+            if (data.content) {
+                modalfooter.removeClass('d-none')
+                $articleFourn.parent('div').addClass('d-block');
+                $articleFourn.html(data.content);
+                $('.error-msg').html('')
+                ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'));
+                initNewArticleEditor("#modalNewArticle");
+            } else if (data.error) {
+                $('.error-msg').html(data.error)
+            }
+        }
+    }
+    path = Routing.generate('ajax_article_new_content', true)
+    let data = {};
+    data['referenceArticle'] = $('#referenceCEA').val();
+    data['fournisseur'] = $('#fournisseur').val();
+    $articleFourn.html('')
+    modalfooter.addClass('d-none')
+    if (data['referenceArticle'] && data['fournisseur']) {
+        json = JSON.stringify(data);
+        xhttp.open("POST", path, true);
+        xhttp.send(json);
+    }
+}

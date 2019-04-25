@@ -1,15 +1,19 @@
 <div class="row">
-    <div class="form-group w-100 col-6">
+    <div class="form-group w-100 col-12">
         <label for="Articlefournisseur">Référence fournisseur</label>
         <select class="form-control data needed select2" name="articleFournisseur" id="articleFournisseurAdd">
             {% for ref in references %}
-            <option value="{{ ref.id }}">{{ref.label}}</option>
+            <option value="{{ ref.id }}">{{ref.reference}}</option>
             {% endfor %}
         </select>
     </div>
     <div class="form-group col-6">
         <label for="libelle">Libellé</label>
         <input class="form-control data" type="text" name="libelle" id="libelle">
+    </div>
+    <div class="form-group col-6">
+        <label for="libelle">Type</label>
+        <input class="form-control data" type="text" disabled value="{{typeArticle}}" name="type" id="type">
     </div>
     <div class="form-group col-6">
         <label for="quantité">Quantité</label>
@@ -20,20 +24,23 @@
         <select class="ajax-autocompleteEmplacement data form-control needed" name="emplacement">
         </select>
     </div>
-    <div class="form-group col-6">
+    <div class="form-group col-2">
         <label>Anomalie</label>
         <label class="switch">
             <input class="checkbox" type="checkbox" name="conform">
             <span class="slider round"></span>
         </label>
     </div>
-
-    <div class="form-group col-6">
-        <label>Statut (Inactif/Actif)</label>
-        <label class="switch">
-            <input class="checkbox" type="checkbox" name="actif">
-            <span class="slider round"></span>
-        </label>
+    <div class="form-group col-4">
+        <div class="input-group radio-btn">
+            <label for="statut" class="mtb-auto mr-2">Statut</label>
+            <div>
+                <span class="btn active" data-toggle="statut" data-title="active"
+                    onclick="toggleRadioButton($(this))">Actif</span><span class="btn not-active" data-toggle="statut"
+                    data-title="inactive" onclick="toggleRadioButton($(this))">Inactif</span>
+            </div>
+            <input type="hidden" name="statut" id="statut" class="data" value="active">
+        </div>
     </div>
 </div>
 <div class="form-group col-12">
@@ -44,48 +51,38 @@
 <div class="row mt-4">
     <div class='col-12 mb-2' onclick="visibleBlockModal($(this))">
         <h3 class='d-flex pointer'>
-            <i class="fas fa-sort-up d-none mr-2"></i>
-            <i class="fas fa-sort-down d-block mr-2"></i>
+            <i class="fas fa-sort-up d-block mr-2"></i>
+            <i class="fas fa-sort-down d-none mr-2"></i>
             Champs libres
         </h3>
     </div>
-    <div class="form-group col-12 d-block" id='typeContentEdit'>
-        <div class="d-block" id="{{type.id}}-edit">
+    <div class="form-group col-12 blocVisible d-block" id='typeContentEdit'>
+        <div class="d-block">
             <div class="row mt-2">
-                {% for champ in type.champsLibres %}
-                {% set value = '' %}
-                {% for row in valeurChampsLibre %}
-                {% if (row.idCL == champ.id) %}{% set value = row.valeur %}{% endif %}
-                {% endfor %}
+                {% for champLibre in champsLibres %}
                 <div class="form-group col-6">
-                    <label for="input">
-                        {{champ.label | capitalize}}
+                    <label for="">
+                        {{champLibre.label | capitalize}}
                     </label>
-                    {% if champ.typage == 'booleen' %}
-                    {% set checked = (value == 1) ? 'checked' : '' %}
-                    <input type="checkbox" class="form-control data checkbox" {{ checked }} value="{{ value }}"
-                        name="{{champ.id}}" id="input">
+                    {% if champLibre.typage == 'booleen' %}
+                    <input type="checkbox" class="form-control data checkbox" value="" name="{{ champLibre.id}}" id="">
 
-                    {% elseif champ.typage == 'number' %}
-                    <input type="number" class="form-control data {{champ.requiredCreate ? 'needed' : ''}}" value="{{ value }}" name="{{champ.id}}" id="input">
+                    {% elseif  champLibre.typage == 'number' %}
+                    <input type="number" class="form-control data {{ champLibre.requiredCreate ? 'needed' : ''}}"
+                        value="" name="{{ champLibre.id}}" id="">
 
-                    {% elseif champ.typage == 'list' %}
-                    <select class="form-control unTruc data {{champ.requiredCreate ? 'needed' : ''}} " name="{{champ.id}}" id="input">
-                        <option value="{{value}}">{{value}}
-                        </option>
-                        {% for elem in champ.elements %}
-                        {% if value != elem %}
-                        <option value="{{elem}}">{{elem}}</option>
-                        {% endif %}
-                        {% endfor %}
-                        {% if value != "" %}
+                    {% elseif  champLibre.typage == 'list' %}
+                    <select class="form-control unTruc data {{ champLibre.requiredCreate ? 'needed' : ''}} "
+                        name="{{ champLibre.id}}" id="">
                         <option value=""></option>
-                        {% endif %}
+                        {% for elem in  champLibre.elements %}
+                        <option value="{{elem}}">{{elem}}</option>
+                        {% endfor %}
                     </select>
                     {% else %}
-                    <input type="text" class="form-control data {{champ.requiredCreate ? 'needed' : ''}}" value="{{ value }}" name="{{ champ.id }}" id="input">
+                    <input type="text" class="form-control data {{ champLibre.requiredCreate ? 'needed' : ''}}" value=""
+                        name="{{ champLibre.id }}" id="">
                     {% endif %}
-
                 </div>
                 {% endfor %}
             </div>
