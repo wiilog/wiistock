@@ -109,20 +109,27 @@ class TypeController extends AbstractController
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
-            if($data['category'] === null){
-                $category = $this->categoryTypeRepository->findoneBy(['label'=> ReferenceArticle::CATEGORIE]);
-            }else{
-                $category = $this->categoryTypeRepository->find($data['category']);
-            }
+            // on vérifie que le nom du type n'est pas déjà utilisé
+            $typeExist = $this->typeRepository->countByLabel($data['label']);
 
-            $type = new Type();
-            $type
-                ->setlabel($data["label"])
-                ->setCategory($category);
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($type);
-            $em->flush();
-            return new JsonResponse($data);
+            if (!$typeExist) {
+                if ($data['category'] === null) {
+                    $category = $this->categoryTypeRepository->findoneBy(['label' => ReferenceArticle::CATEGORIE]);
+                } else {
+                    $category = $this->categoryTypeRepository->find($data['category']);
+                }
+
+                $type = new Type();
+                $type
+                    ->setlabel($data["label"])
+                    ->setCategory($category);
+                $em = $this->getDoctrine()->getManager();
+                $em->persist($type);
+                $em->flush();
+                return new JsonResponse($data);
+            } else {
+                return new JsonResponse(false);
+            }
         }
         throw new NotFoundHttpException("404");
     }
