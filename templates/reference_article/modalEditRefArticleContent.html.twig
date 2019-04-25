@@ -21,8 +21,8 @@
     </div>
     <div class="form-group col-6">
         <label for="type">Type</label>
-        <select name="type" onclick="typeChoice($(this), '-edit', $('#typeContentEdit'))" onchange="displayRequireChamp($(this), 'edit')"
-            class="form-control data d-block" id="typeEdit">
+        <select name="type" onclick="typeChoice($(this), '-edit', $('#typeContentEdit'))"
+            onchange="displayRequireChamp($(this), 'edit')" class="form-control data d-block" id="typeEdit">
             {% set selected = articleRef.type is null ? 'selected' : '' %}
             <option {{ selected }} value=''> </option>
 
@@ -117,7 +117,7 @@
     </div>
     <div class="form-group col-12 d-block" id='typeContentEdit'>
         {% for type in types %}
-        <div {{ articleRef.type is defined and type.id == articleRef.type.id ? "class='d-block'" : "class='d-none'"}}
+        <div {{ articleRef.type is not empty and type.id == articleRef.type.id ? "class='d-block'" : "class='d-none'"}}
             id="{{type.id}}-edit">
             <div class="row mt-2">
                 {% for champ in type.champsLibres %}
@@ -139,10 +139,11 @@
                     </label>
 
                     {% elseif champ.typage == 'number' %}
-                    <input type="number" id="{{champ.label ~ 'edit'}}" class="form-control data" value="{{ value }}" name="{{champ.id}}" id="input">
+                    <input type="number" id="{{champ.label ~ 'edit'}}" class="form-control data" value="{{ value }}"
+                        name="{{champ.id}}" id="input">
 
                     {% elseif champ.typage == 'list' %}
-                    <select class="form-control data"  id="{{champ.label ~ 'edit'}}" name="{{champ.id}}" id="input">
+                    <select class="form-control data" id="{{champ.label ~ 'edit'}}" name="{{champ.id}}" id="input">
                         <option value="{{value}}">{{value}}
                         </option>
                         {% for elem in champ.elements %}
@@ -155,7 +156,8 @@
                         {% endif %}
                     </select>
                     {% else %}
-                    <input type="text"  id="{{champ.label ~ 'edit'}}" class="form-control data" value="{{ value }}" name="{{ champ.id }}" id="input">
+                    <input type="text" id="{{champ.label ~ 'edit'}}" class="form-control data" value="{{ value }}"
+                        name="{{ champ.id }}" id="input">
                     {% endif %}
                 </div>
                 {% endfor %}
@@ -164,3 +166,22 @@
         {% endfor %}
     </div>
 </div>
+
+<div class="row mt-4">
+    <div class='col-12 mb-2' onclick="visibleBlockModal($(this))">
+        <h3 class='d-flex pointer'>
+            <i class="fas fa-sort-up d-none mr-2"></i>
+            <i class="fas fa-sort-down d-block mr-2"></i>
+            Articles Fournisseurs
+        </h3>
+    </div>
+    <div class="form-group col-12 d-block">
+        <div class="form-group col-1">
+            <span class="btn btn-primary" onclick="addFournisseurEdit($(this))"><i class="fa fa-plus"></i></span>
+        </div>
+        <div class="form-group col-12 d-block" id='articleFournisseursEdit'>
+            {% include 'reference_article/fournisseurArticleContent.html.twig' %}
+        </div>
+    </div>
+</div>
+<div class="error-msg"></div>

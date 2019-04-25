@@ -5,7 +5,16 @@
         onclick="editRow($(this), Routing.generate('service_edit_api', true), $('#modalEditService'), $('#submitEditService'), true)">
 
         {% if hasRight(constant('App\\Entity\\Menu::MANUT'), constant('App\\Entity\\Action::CREATE')) %}
-            <i class='fas fa-pencil-alt'></i>
+        <i class='fas fa-pencil-alt'></i>
         {% endif %}
     </div>
+    {% if hasRight(constant('App\\Entity\\Menu::MANUT'), constant('App\\Entity\\Action::DELETE')) and service.statut.nom != constant('App\\Entity\\Service::STATUT_TRAITE')%}
+    
+    <div data-id='{{ serviceId }}' data-target='#modalDeleteService' data-toggle='modal' class='service-delete col-3'
+        onclick="deleteRow($(this), $('#modalDeleteService'), $('#submitDeleteService'))">
+        <i class='fas fa-trash'></i>
+    </div>
+    {% endif %}
+    
+
 </div>
