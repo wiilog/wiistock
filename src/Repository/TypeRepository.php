@@ -47,4 +47,17 @@ class TypeRepository extends ServiceEntityRepository
 
         return $result ? $result[0] : null;
     }
+
+    public function countByLabel($label)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT COUNT(t)
+            FROM App\Entity\Type t
+            WHERE LOWER(t.label) = :label
+           "
+        )->setParameter('label', strtolower($label));
+
+        return $query->getSingleScalarResult();
+    }
 }
