@@ -254,6 +254,7 @@ class LivraisonController extends AbstractController
         }
 
         return $this->render('livraison/show.html.twig', [
+            'comLivraison'=> $this->demandeRepository->findOneByLivraison($livraison),
             'livraison' => $livraison,
             'preparation' => $this->preparationRepository->find($livraison->getPreparation()->getId()),
             'finished' => ($livraison->getStatut()->getNom() === Livraison::STATUT_LIVRE)
