@@ -151,9 +151,9 @@ class OrdreCollecteController extends AbstractController
             $demande = $collecte->getDemandeCollecte();
             $demande->setStatut($this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, Collecte::STATUS_COLLECTE));
 
-            $this->mailerService->sendMail('FOLLOW GT // Collecte effectuée',
-                $this->renderView('mails/mailCollecteDone.html.twig', ['collecte' => $demande]),
-                $demande->getDemandeur()->getEmail());
+            // $this->mailerService->sendMail('FOLLOW GT // Collecte effectuée',
+            //     $this->renderView('mails/mailCollecteDone.html.twig', ['collecte' => $demande]),
+            //     $demande->getDemandeur()->getEmail());
 
             // on modifie la quantité des articles de référence liés à la collecte
             $ligneArticles = $this->collecteReferenceRepository->getByCollecte($collecte->getDemandeCollecte());
