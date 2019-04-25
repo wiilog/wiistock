@@ -7,9 +7,9 @@ use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
-use App\Entity\CategoryType;
+use App\Entity\CategorieCL;
 
-class CategoryTypeFixtures extends Fixture implements FixtureGroupInterface
+class CategorieCLFixtures extends Fixture
 {
     private $encoder;
 
@@ -21,19 +21,16 @@ class CategoryTypeFixtures extends Fixture implements FixtureGroupInterface
     public function load(ObjectManager $manager)
     {
         $categoriesNames = [
-           'typeArticle'
+            'referenceArticle',
+            'article',
+            'aucune'
         ];
         foreach ($categoriesNames as $categorieName) {
-            $categorie = new CategoryType();
+            $categorie = new CategorieCL();
             $categorie->setLabel($categorieName);
             $manager->persist($categorie);
-            $this->addReference('type-' . $categorieName, $categorie);
         }
         $manager->flush();
-    }
-
-    public static function getGroups():array {
-        return ['types'];
     }
 
 }

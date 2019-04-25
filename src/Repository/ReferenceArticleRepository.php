@@ -31,6 +31,19 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $query->execute(); 
     }
 
+    public function getChampFixeById($id)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT r.id, r.libelle, r.reference, r.commentaire, r.quantite_stock, r.type_quantite, r.statut, r.type
+            FROM App\Entity\ReferenceArticle r
+            WHERE r.id = :id 
+            "
+             )->setParameter('id', $id);
+
+        return $query->execute(); 
+    }
+
     public function getIdAndLibelleBySearch($search)
     {
         $em = $this->getEntityManager();

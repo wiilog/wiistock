@@ -1,0 +1,61 @@
+<html>
+<style>
+    body {
+        font-family: Montserrat, Helvetica, Arial, sans-serif;
+    }
+    table, th, td {
+        border: 1px solid black;
+    }
+    table {
+        border-collapse: collapse;
+    }
+    th, td {
+        padding: 6px;
+        text-align: center;
+    }
+</style>
+<body>
+
+<h2>Votre demande a bien été collectée</h2>
+
+<p>Rappel de votre demande de collecte :</p>
+
+Numéro : {{ collecte.numero }}<br>
+Date de demande : {{ collecte.date|date('d/m/Y') }}<br>
+Demandeur : {{ collecte.demandeur.username }}<br>
+Point de collecte : {{ collecte.pointCollecte.label }}<br>
+{% if (collecte.commentaire is not empty and collecte.commentaire != '<p><br></p>') %}
+    Commentaire : {{ collecte.commentaire|raw }}<br>
+{% endif %}
+<br>
+<br>
+Liste des articles :<br>
+<br>
+<table>
+    <thead>
+        <tr>
+            <th>Référence CEA</th>
+            <th>Libellé</th>
+            <th>Quantité</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for article in collecte.articles %}
+        <tr>
+            <td>{{ article.reference.reference }}</td>
+            <td>{{ article.reference.libelle }}</td>
+            <td>{{ article.quantite }}</td>
+        </tr>
+    {% endfor %}
+    {% for collecteRef in collecte.collecteReferences %}
+        <tr>
+            <td>{{ collecteRef.referenceArticle.reference }}</td>
+            <td>{{ collecteRef.referenceArticle.libelle }}</td>
+            <td>{{ collecteRef.quantite }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+</body>
+</html>

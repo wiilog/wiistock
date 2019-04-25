@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\ChampsLibre;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
+use Proxies\__CG__\App\Entity\CategorieCL;
 
 /**
  * @method ChampsLibre|null find($id, $lockMode = null, $lockVersion = null)
@@ -27,11 +28,10 @@ class ChampsLibreRepository extends ServiceEntityRepository
             FROM App\Entity\ChampsLibre c 
             JOIN c.type t 
             WHERE t.id = :id"
-        )->setParameter('id', $type);
-        ;
-        return $query->execute(); 
+        )->setParameter('id', $type);;
+        return $query->execute();
     }
-    
+
     public function getByTypeAndRequiredCreate($type)
     {
         $entityManager = $this->getEntityManager();
@@ -39,9 +39,8 @@ class ChampsLibreRepository extends ServiceEntityRepository
             "SELECT c.label, c.id
             FROM App\Entity\ChampsLibre c 
             WHERE c.type = :type AND c.requiredCreate = TRUE"
-        )->setParameter('type', $type);
-        ;
-        return $query->getResult(); 
+        )->setParameter('type', $type);;
+        return $query->getResult();
     }
 
     public function getByTypeAndRequiredEdit($type)
@@ -51,9 +50,8 @@ class ChampsLibreRepository extends ServiceEntityRepository
             "SELECT c.label, c.id
             FROM App\Entity\ChampsLibre c 
             WHERE c.type = :type AND c.requiredEdit = TRUE"
-        )->setParameter('type', $type);
-        ;
-        return $query->getResult(); 
+        )->setParameter('type', $type);;
+        return $query->getResult();
     }
 
     public function getLabelAndIdAndTypage()
@@ -64,21 +62,27 @@ class ChampsLibreRepository extends ServiceEntityRepository
             FROM App\Entity\ChampsLibre c 
             "
         );
-        return $query->getResult(); 
+        return $query->getResult();
     }
 
-    public function getLabelByCategory($category)
+    // pour les colonnes dynamiques
+    public function getByCategoryTypeAndCategoryCL($category, $categorieCL)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-            "SELECT c.label, c.id, c.typage
-            FROM App\Entity\ChampsLibre c 
-            JOIN c.type t
-            JOIN t.category z
-            WHERE z.label = :category
+            "SELECT cl.label, cl.id, cl.typage
+            FROM App\Entity\ChampsLibre cl 
+            JOIN cl.type t
+            JOIN t.category cat
+            WHERE cat.label = :category AND cl.categorieCL = :categorie
             "
-        )->setParameter('category', $category);
-        return $query->getResult(); 
+        )->setParameters(
+            [
+                'category' => $category,
+                'categorie' => $categorieCL
+            ]
+        );
+        return $query->getResult();
     }
 
     public function countByType($typeId)
@@ -98,7 +102,7 @@ class ChampsLibreRepository extends ServiceEntityRepository
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
-        /** @lang DQL */
+            /** @lang DQL */
             "DELETE FROM App\Entity\ChampsLibre cl
             WHERE cl.type = :typeId"
         )->setParameter('typeId', $typeId);
@@ -112,12 +116,27 @@ class ChampsLibreRepository extends ServiceEntityRepository
         $query = $entityManager->createQuery(
             "SELECT COUNT(cl)
             FROM App\Entity\ChampsLibre cl
-            WHERE cl.label = :label
+            WHERE LOWER(cl.label) = :label
            "
-        )->setParameter('label', $label);
+        )->setParameter('label', strtolower($label));
 
         return $query->getSingleScalarResult();
     }
 
-   
+    public function findByLabelTypeAndCategorieCL($label, $categorieCL)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT c
+            FROM App\Entity\ChampsLibre c 
+            JOIN c.type t 
+            WHERE t.label = :label AND c.categorieCL = :categorie"
+        )->setParameters(
+            [
+                'label' => $label,
+                'categorie' => $categorieCL,
+            ]
+        );;
+        return $query->execute();
+    }
 }

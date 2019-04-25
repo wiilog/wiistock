@@ -191,7 +191,7 @@ class SecuriteController extends Controller
         $session = $request->getSession();
         $form = $this->createFormBuilder()
             ->add('email', EmailType::class, array(
-                'label' => 'Votre adresse email !',
+                'label' => 'Votre adresse email',
             ))
             ->getForm();
 

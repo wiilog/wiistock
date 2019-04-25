@@ -15,17 +15,17 @@
                 </div>
                 <div class="form-group w-100 mb-3">
                     <label for='category'>Catégorie</label>
-                    <select class="form-control select2 data" name='category' id='category'>
+                    <select class="form-control select2 data needed" name='category' id='category'>
                         {% for category in category %}
                         <option value="{{ category.id }}">{{ category.label }}</option>
                         {% endfor %}
                     </select>
                 </div>
+                <div class="error-msg"></div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>
-                <div id="submitTypeNew" data-dismiss="modal"
-                class="btn btn-primary btn-success">Enregistrer</div>
+                <div id="submitTypeNew" class="btn btn-primary btn-success">Enregistrer</div>
             </div>
         </div>
     </div>

@@ -67,6 +67,11 @@ class ChampsLibre
      */
     private $requiredEdit;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\CategorieCL", inversedBy="champsLibres")
+     */
+    private $categorieCL;
+
 
     public function __construct()
     {
@@ -226,6 +231,18 @@ class ChampsLibre
     public function setRequiredEdit(?bool $requiredEdit): self
     {
         $this->requiredEdit = $requiredEdit;
+
+        return $this;
+    }
+
+    public function getCategorieCL(): ?CategorieCL
+    {
+        return $this->categorieCL;
+    }
+
+    public function setCategorieCL(?CategorieCL $categorieCL): self
+    {
+        $this->categorieCL = $categorieCL;
 
         return $this;
     }

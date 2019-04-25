@@ -5,7 +5,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Ajouter un article</h5>
-                <button  type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -14,15 +14,19 @@
                     <div class="form-group col-12 d-flex w-100 mb-3">
                         <label for="reference">Référence CEA</label>
                         <select class="ajax-autocomplete data form-control needed"
-                            onchange="ajaxGetAndFillArticle(this), setMaxQuantity($(this))" id="reference" name="referenceArticle">
+                            onchange="ajaxGetAndFillArticle(this), setMaxQuantity($(this))" id="reference"
+                            name="referenceArticle">
                         </select>
                     </div>
-                    <div id='newContent' class="col-12">
+                    <div id='selection' class="col-12 clear">
+
+                    </div>
+                    <div id='editNewArticle' class="col-12 clear">
+
                     </div>
                 </form>
-                <div class="error-msg"></div>
             </div>
-            
+
             <div class="modal-footer d-none">
                 <div class="btn" data-dismiss="modal">Annuler</div>
                 <button id="submitNewArticle" name="demande" value="{{demande.id}}" type="button"
