@@ -77,6 +77,7 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
             Data[name] = val;
             // validation données obligatoires
             if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
+                console.log(name);
                 let label = $(this).closest('.form-group').find('label').text();
                 missingInputs.push(label);
                 $(this).addClass('is-invalid');
@@ -451,7 +452,7 @@ let displayRequireChamp = function (select, require) {
         json['error'] = null;
     }
     let Json = JSON.stringify(json)
-    $('.data').removeClass('needed');
+    $('#typeContentEdit').find('.data').removeClass('needed');
     xhttp.open("POST", path, true);
     xhttp.send(Json);
 }

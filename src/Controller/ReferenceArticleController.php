@@ -596,6 +596,7 @@ class ReferenceArticleController extends Controller
                             ->setReference($refArticle)
                             ->setDemande($demande)
                             ->setQuantite((int)$data['quantitie']);
+
                         $em->persist($ligneArticle);
                     } else {
                         $ligneArticle = $this->ligneArticleRepository->findOneByRefArticleAndDemande($refArticle, $demande);
@@ -653,7 +654,6 @@ class ReferenceArticleController extends Controller
 
                 if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                     if ($refArticle) {
-
                         $editChampLibre  = $this->refArticleDataService->getViewEditRefArticle($refArticle);
                     } else {
                         $editChampLibre = false;

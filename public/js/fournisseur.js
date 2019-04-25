@@ -31,4 +31,18 @@ let submitModifyFournisseur = $('#submitEditFournisseur');
 let urlModifyFournisseur = Routing.generate('fournisseur_edit', true);
 InitialiserModal(modalModifyFournisseur, submitModifyFournisseur, urlModifyFournisseur,  tableFournisseur);
 
+function checkAndDeleteRow(icon) {
+    let modalBody = ModalDeleteFournisseur.find('.modal-body');
+    let id = icon.data('id');
+    let param = JSON.stringify(id);
 
+    $.post(Routing.generate('fournisseur_check_delete'), param, function(resp) {
+        modalBody.html(resp.html);
+        if (resp.delete == false) {
+            SubmitDeleteFournisseur.hide();
+        } else {
+            SubmitDeleteFournisseur.show();
+            SubmitDeleteFournisseur.attr('value', id);
+        }
+    });
+}

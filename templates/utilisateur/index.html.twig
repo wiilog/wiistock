@@ -3,6 +3,7 @@
 {% block title %}Paramétrage utilisateurs{% endblock %}
 
 {% block page_content %}
+<button class="btn" id="cantDelete" data-target='#modalCannotDeleteUser' data-toggle='modal' hidden></button>
 <h1>Utilisateurs</h1>
 <div>
     <form method="POST" name="role">
@@ -31,9 +32,11 @@
     </form>
 </div>
 
+{% include "utilisateur/modalCannotDelete.html.twig" %}
 {% include "utilisateur/modalDeleteUser.html.twig" %}
 {% include "utilisateur/modalNewUser.html.twig" %}
 {% include "utilisateur/modalEditUser.html.twig" %}
+
 
 {% endblock %}
 
