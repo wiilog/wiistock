@@ -162,7 +162,7 @@ class ServiceController extends AbstractController
             $statut = 2;
             if ($service->getStatut()->getNom() === Service::STATUT_A_TRAITER) {
                 $statut = 1;
-            } else if ($service->getStatut()->getNom() === Service::STATUT_TRAITE) {
+            } elseif ($service->getStatut()->getNom() === Service::STATUT_TRAITE) {
                 $statut = 0;
             }
             $json = $this->renderView('service/modalEditServiceContent.html.twig', [
@@ -187,12 +187,13 @@ class ServiceController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::MANUT, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
+                 dump($data);
 
             $service = $this->serviceRepository->find($data['id']);
             $statutLabel = Service::STATUT_BROUILLON;
             if (intval($data['statut']) === 1) {
                 $statutLabel = Service::STATUT_A_TRAITER;
-            } else if (intval($data['statut']) === 0) {
+            } elseif (intval($data['statut']) === 0) {
                 $statutLabel = Service::STATUT_TRAITE;
             }
             $statut = $this->statutRepository->findOneByCategorieAndStatut(Service::CATEGORIE, $statutLabel);
@@ -216,5 +217,30 @@ class ServiceController extends AbstractController
             return new JsonResponse();
         }
         throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/supprimer", name="service_delete", options={"expose"=true},methods={"GET","POST"})
+     */
+
+    public function delete(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::MANUT, Action::DELETE)) {
+                return $this->redirectToRoute('access_denied');
+            }
+            $service = $this->serviceRepository->find($data['service']);
+
+            if ($service->getStatut()->getNom() == Service::STATUT_TRAITE) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->remove($service);
+            $entityManager->flush();
+            return new JsonResponse();
+        }
+     
+        throw new NotFoundHttpException("404");
     }
 }

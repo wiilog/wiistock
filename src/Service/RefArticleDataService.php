@@ -21,10 +21,10 @@ use App\Repository\TypeRepository;
 use App\Repository\ValeurChampsLibreRepository;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use App\Repository\FournisseurRepository;
+use App\Entity\ArticleFournisseur;
 
-
-
-class RefArticleDataService 
+class RefArticleDataService
 {
     /**
      * @var ReferenceArticleRepository
@@ -36,7 +36,7 @@ class RefArticleDataService
      */
     private $champsLibreRepository;
 
-     /**
+    /**
      * @var TypeRepository
      */
     private $typeRepository;
@@ -45,6 +45,11 @@ class RefArticleDataService
      * @var StatutRepository
      */
     private $statutRepository;
+
+    /*
+     * @var FournisseurRepository
+     */
+    private $fournisseurRepository;
 
     /**
      * @var ValeurChampsLibreRepository
@@ -65,12 +70,13 @@ class RefArticleDataService
      * @var object|string
      */
     private $user;
-   
+
     private $em;
 
 
-    public function __construct(TypeRepository  $typeRepository ,StatutRepository $statutRepository,EntityManagerInterface $em,ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampsLibreRepository $champsLibreRepository, FilterRepository $filterRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
+    public function __construct(FournisseurRepository $fournisseurRepository, TypeRepository  $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampsLibreRepository $champsLibreRepository, FilterRepository $filterRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
     {
+        $this->fournisseurRepository = $fournisseurRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->champsLibreRepository = $champsLibreRepository;
         $this->statutRepository = $statutRepository;
@@ -137,30 +143,30 @@ class RefArticleDataService
      */
     public function getDataEditForRefArticle($articleRef)
     {
-            $type = $articleRef->getType();
-            if ($type) {
-                $valeurChampLibre = $this->valeurChampsLibreRepository->getByRefArticleAndType($articleRef->getId(), $type->getId());
-            } else {
-                $valeurChampLibre = [];
+        $type = $articleRef->getType();
+        if ($type) {
+            $valeurChampLibre = $this->valeurChampsLibreRepository->getByRefArticleAndType($articleRef->getId(), $type->getId());
+        } else {
+            $valeurChampLibre = [];
+        }
+        // construction du tableau des articles fournisseurs
+        $listArticlesFournisseur = [];
+        $articlesFournisseurs = $articleRef->getArticlesFournisseur();
+        $totalQuantity = 0;
+        foreach ($articlesFournisseurs as $articleFournisseur) {
+            $quantity = 0;
+            foreach ($articleFournisseur->getArticles() as $article) {
+                $quantity += $article->getQuantite();
             }
-            // construction du tableau des articles fournisseurs
-            $listArticlesFournisseur = [];
-            $articlesFournisseurs = $articleRef->getArticlesFournisseur();
-            $totalQuantity = 0;
-            foreach ($articlesFournisseurs as $articleFournisseur) {
-                $quantity = 0;
-                foreach ($articleFournisseur->getArticles() as $article) {
-                    $quantity += $article->getQuantite();
-                }
-                $totalQuantity += $quantity;
+            $totalQuantity += $quantity;
 
-                $listArticlesFournisseur[] = [
-                    'fournisseurRef' => $articleFournisseur->getFournisseur()->getCodeReference(),
-                    'label' => $articleFournisseur->getLabel(),
-                    'fournisseurName' => $articleFournisseur->getFournisseur()->getNom(),
-                    'quantity' => $quantity
-                ];
-            }
+            $listArticlesFournisseur[] = [
+                'fournisseurRef' => $articleFournisseur->getFournisseur()->getCodeReference(),
+                'label' => $articleFournisseur->getLabel(),
+                'fournisseurName' => $articleFournisseur->getFournisseur()->getNom(),
+                'quantity' => $quantity
+            ];
+        }
 
         return $data = [
             'listArticlesFournisseur' => $listArticlesFournisseur,
@@ -184,7 +190,7 @@ class RefArticleDataService
         $type =  $this->typeRepository->find(intval($data['type']));
         $CLRequired = $this->champsLibreRepository->getByTypeAndRequiredCreate($type);
         foreach ($CLRequired as $CL) {
-            if (array_key_exists($CL['id'], $data) and $data[$CL['id']] === "" ) {
+            if (array_key_exists($CL['id'], $data) and $data[$CL['id']] === "") {
                 $requiredEdit = false;
             }
         }
@@ -192,6 +198,21 @@ class RefArticleDataService
         if ($requiredEdit) {
             $entityManager = $this->em;
             if (isset($data['reference'])) $refArticle->setReference($data['reference']);
+            if (isset($data['frl'])) {
+                foreach ($data['frl'] as $frl) {
+                    $fournisseurId = explode(';', $frl)[0];
+                    $ref = explode(';', $frl)[1];
+                    $label = explode(';', $frl)[2];
+                    $fournisseur = $this->fournisseurRepository->find(intval($fournisseurId));
+                    $articleFournisseur = new ArticleFournisseur();
+                    $articleFournisseur
+                        ->setReferenceArticle($refArticle)
+                        ->setFournisseur($fournisseur)
+                        ->setReference($ref)
+                        ->setLabel($label);
+                    $entityManager->persist($articleFournisseur);
+                }
+            }
             if (isset($data['libelle'])) $refArticle->setLibelle($data['libelle']);
             if (isset($data['commentaire'])) $refArticle->setCommentaire($data['commentaire']);
             if (isset($data['quantite'])) $refArticle->setQuantiteStock(intval($data['quantite']));
@@ -250,5 +271,4 @@ class RefArticleDataService
         }
         return $response;
     }
-
 }
