@@ -424,9 +424,9 @@ class DemandeController extends AbstractController
                         ->setReference($referenceArticle);
                     $em->persist($ligneArticle);
                 } else {
-                    $ligneArticle = $this->ligneArticleRepository->getByRefArticle($referenceArticle);
+                    $ligneArticle = $this->ligneArticleRepository->findByRefArticle($referenceArticle);
                     $ligneArticle
-                        ->setQuantite($ligneArticle->getQuantite() + $data["quantite"]);
+                        ->setQuantite($ligneArticle->getQuantite() + $data["quantitie"]);
                 }
                 $demande
                     ->addLigneArticle($ligneArticle);

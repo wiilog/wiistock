@@ -2,24 +2,24 @@ $('.select2').select2();
 
 $('#utilisateur').select2({
     placeholder: {
-         text: 'Demandeur',
+        text: 'Demandeur',
     }
 });
 
 let pathCollecte = Routing.generate('collecte_api', true);
 let table = $('#tableCollecte_id').DataTable({
-       "language": {
+    "language": {
         "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
     },
-    "order": [[ 0, "desc" ]],
+    "order": [[0, "desc"]],
     ajax: {
         "url": pathCollecte,
         "type": "POST"
     },
     columns: [
         { "data": 'Date', 'name': 'Date' },
-        { "data": 'Demandeur', 'name': 'Demandeur'},
-        { "data": 'Objet', 'name' : 'Objet' },
+        { "data": 'Demandeur', 'name': 'Demandeur' },
+        { "data": 'Objet', 'name': 'Objet' },
         { "data": 'Statut', 'name': 'Statut' },
         { "data": 'Actions', 'name': 'Actions' }
     ],
@@ -27,10 +27,10 @@ let table = $('#tableCollecte_id').DataTable({
 
 // recherche par défaut demandeur = utilisateur courant
 let demandeur = $('.current-username').val();
-if (demandeur !== undefined){
+if (demandeur !== undefined) {
     let demandeurPiped = demandeur.split(',').join('|')
     table
-    .columns('Demandeur:name')
+        .columns('Demandeur:name')
         .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
         .draw();
     // affichage par défaut du filtre select2 demandeur = utilisateur courant
@@ -130,12 +130,13 @@ function ajaxGetCollecteArticle(select) {
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
             data = JSON.parse(this.responseText);
-           $('#newContent').html(data);
-           $('#modalNewArticle').find('div').find('div').find('.modal-footer').removeClass('d-none');
-           displayRequireChamp($('#typeEdit'), 'edit');
+            $('#selection').html(data.selection);
+            $('#editNewArticle').html(data.modif);
+            $('#modalNewArticle').find('.modal-footer').removeClass('d-none');
+            displayRequireChamp($('#typeEdit'), 'edit');
         }
-    } 
-    path =  Routing.generate('get_collecte_article_by_refArticle', true)
+    }
+    path = Routing.generate('get_collecte_article_by_refArticle', true)
     let data = {};
     data['referenceArticle'] = $(select).val();
     json = JSON.stringify(data);
@@ -211,7 +212,7 @@ $('#submitSearchCollecte').on('click', function () {
 
     );
     table
-       .draw();
+        .draw();
 });
 
 function destinationCollecte(button) {
@@ -232,13 +233,31 @@ function destinationCollecte(button) {
 function validateCollecte(collecteId) {
     let params = JSON.stringify({ id: collecteId });
 
-    $.post(Routing.generate('demande_collecte_has_articles'), params, function(resp) {
+    $.post(Routing.generate('demande_collecte_has_articles'), params, function (resp) {
         if (resp === true) {
-            window.location.href = Routing.generate('ordre_collecte_new', {'id' : collecteId});
+            window.location.href = Routing.generate('ordre_collecte_new', { 'id': collecteId });
         } else {
             $('#cannotValidate').click();
         }
     });
 }
 
-
+let ajaxEditArticle = function (select) {
+    xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            dataReponse = JSON.parse(this.responseText);
+            if (dataReponse) {
+                $('#editNewArticle').html(dataReponse);
+                // displayRequireChamp($('#typeEditArticle'), 'edit');
+                initEditor('.editor-container');
+            } else {
+                //TODO gérer erreur
+            }
+        }
+    }
+    let json = select.val();
+    let path = Routing.generate('article_api_edit', true);
+    xhttp.open("POST", path, true);
+    xhttp.send(json);
+}

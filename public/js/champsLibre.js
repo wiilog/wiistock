@@ -47,6 +47,7 @@ let tableChampsLibre = $('#tableChampslibre_id').DataTable({
     },
     columns: [
         { "data": 'Label' },
+        { "data": 'Liaison' },
         { "data": 'Typage' },
         { "data": 'Valeur par défaut' },
         { "data": 'Elements' },
