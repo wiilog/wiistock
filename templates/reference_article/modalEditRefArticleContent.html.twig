@@ -23,10 +23,7 @@
         <label for="type">Type</label>
         <select name="type" onclick="typeChoice($(this), '-edit', $('#typeContentEdit'))"
             onchange="displayRequireChamp($(this), 'edit')" class="form-control data d-block" id="typeEdit">
-<<<<<<< HEAD
 
-=======
->>>>>>> dev
             {% set selected = articleRef.type is null ? 'selected' : '' %}
             <option {{ selected }} value=''> </option>
 

@@ -32,7 +32,8 @@ class TypeRepository extends ServiceEntityRepository
 
         return $query->execute();
     }
-    public function getLabelByCategoryLabel($category)
+
+    public function getIdAndLabelByCategoryLabel($category)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(

@@ -176,8 +176,8 @@ class RefArticleDataService
     {
         $data = $this->getDataEditForRefArticle($refArticle);
         $articlesFournisseur = $this->articleFournisseurRepository->getByRefArticle($refArticle->getId());
-        $type = $this->typeRepository->getLabelByCategoryLabel(ReferenceArticle::CATEGORIE_TYPE);
-        $categorieCL = $this->categorieCLRepository->findByLabel(CategorieCL::REFERENCE_ARTICLE);
+        $type = $this->typeRepository->getIdAndLabelByCategoryLabel(ReferenceArticle::CATEGORIE_TYPE);
+        $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
         $typeChampLibre =  [];
         foreach ($type as $label) {
             $champsLibresComplet = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($label['label'], $categorieCL);
@@ -223,7 +223,7 @@ class RefArticleDataService
      */
     public function editRefArticle($refArticle, $data)
     {
-        //verification des champsLibres eobligatoires
+        //vérification des champsLibres obligatoires
         $requiredEdit = true;
         $type =  $this->typeRepository->find(intval($data['type']));
         $CLRequired = $this->champsLibreRepository->getByTypeAndRequiredCreate($type);
@@ -295,10 +295,10 @@ class RefArticleDataService
 
     public function dataRowRefArticle($refArticle)
     {
-        $rows = [];
-        $categorieCL = $this->categorieCLRepository->findByLabel(CategorieCL::REFERENCE_ARTICLE);
+        $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
         $category = ReferenceArticle::CATEGORIE_TYPE;
-        $champsLibres = $this->champsLibreRepository->getLabelByCategory($category, $categorieCL);
+        $champsLibres = $this->champsLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
+
         $rowCL = [];
         foreach ($champsLibres as $champLibre) {
             $champ = $this->champsLibreRepository->find($champLibre['id']); //TODOO 
@@ -311,7 +311,7 @@ class RefArticleDataService
             "Référence" => $refArticle->getReference(),
             "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
             "Quantité" => $refArticle->getQuantiteStock(),
-            'Actions' => $this->templating->render('reference_article/datatableReferenceArticleRow.html.twig', [
+            "Actions" => $this->templating->render('reference_article/datatableReferenceArticleRow.html.twig', [
                 'idRefArticle' => $refArticle->getId(),
             ]),
         ];

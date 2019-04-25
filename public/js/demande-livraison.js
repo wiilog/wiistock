@@ -277,7 +277,6 @@ let ajaxEditArticle = function (select) {
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
             dataReponse = JSON.parse(this.responseText);
-            console.log(dataReponse);
             if (dataReponse) {
                 $('#editNewArticle').html(dataReponse);
                 // displayRequireChamp($('#typeEditArticle'), 'edit');

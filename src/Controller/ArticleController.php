@@ -431,11 +431,11 @@ class ArticleController extends AbstractController
                 ->findByRefArticleAndFournisseur($data['referenceArticle'], $data['fournisseur']);
             if (count($articleFournisseur) === 0) {
                 $json =  [
-                    'error' => 'aucune référence fournisseur trouvé'
+                    'error' => 'Aucune référence fournisseur trouvée.'
                 ];
             } elseif (count($articleFournisseur) > 0) {
                 $typeArticle = $refArticle->getType()->getLabel();
-                $categorieCL = $this->categorieCLRepository->findByLabel(CategorieCL::ARTICLE);
+                $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::ARTICLE);
                 
                 $champsLibres = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($typeArticle, $categorieCL);
                 $json = [

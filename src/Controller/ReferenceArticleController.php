@@ -167,9 +167,9 @@ class ReferenceArticleController extends Controller
             }
 
             $colonmVisible = $this->getUser()->getColumnVisible();
-            $categorieCL = $this->categorieCLRepository->findByLabel(CategorieCL::REFERENCE_ARTICLE);
+            $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
             $category = ReferenceArticle::CATEGORIE_TYPE;
-            $champs = $this->champsLibreRepository->getLabelByCategory($category, $categorieCL);
+            $champs = $this->champsLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
             if ($colonmVisible) {
                 $columns = [
                     [
@@ -331,13 +331,14 @@ class ReferenceArticleController extends Controller
                         }
                     }
 
-                    $categorieCL = $this->categorieCLRepository->findByLabel(CategorieCL::REFERENCE_ARTICLE);
+                    $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
                     $category = ReferenceArticle::CATEGORIE_TYPE;
-                    $champsLibres = $this->champsLibreRepository->getLabelByCategory($category, $categorieCL);
+                    $champsLibres = $this->champsLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
 
                     $rowCL = [];
                     foreach ($champsLibres as $champLibre) {
                         $valeur = $this->valeurChampsLibreRepository->findOneByRefArticleANDChampsLibre($refArticle->getId(), $champLibre['id']);
+
                         $rowCL[$champLibre['label']] = ($valeur ? $valeur->getValeur() : "");
                     }
                     $rowDD = [
@@ -381,9 +382,9 @@ class ReferenceArticleController extends Controller
             ]
         ];
 
-        $categorieCL = $this->categorieCLRepository->findByLabel(CategorieCL::REFERENCE_ARTICLE);
+        $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
         $category = ReferenceArticle::CATEGORIE_TYPE;
-        $champL = $this->champsLibreRepository->getLabelByCategory($category, $categorieCL);
+        $champL = $this->champsLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
         $champ[] = [
             'label' => 'Actions',
             'id' => 0,
@@ -415,14 +416,15 @@ class ReferenceArticleController extends Controller
 
         $champsVisibleDefault = ['Actions', 'Libellé', 'Référence', 'Type', 'Quantité'];
 
-        $type = $this->typeRepository->getLabelByCategoryLabel(ReferenceArticle::CATEGORIE_TYPE);
+        $types = $this->typeRepository->getIdAndLabelByCategoryLabel(ReferenceArticle::CATEGORIE_TYPE);
 
         $typeChampLibre =  [];
-        foreach ($type as $label) {
-            $champsLibres = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($label['label'], $categorieCL);
+
+        foreach ($types as $type) {
+            $champsLibres = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($type['label'], $categorieCL);
             $typeChampLibre[] = [
-                'typeLabel' =>  $label['label'],
-                'typeId' => $label['id'],
+                'typeLabel' =>  $type['label'],
+                'typeId' => $type['id'],
                 'champsLibres' => $champsLibres,
             ];
         }
@@ -430,7 +432,7 @@ class ReferenceArticleController extends Controller
             'champs' => $champs,
             'champsVisible' => ($this->getUser()->getColumnVisible() !== null ? $this->getUser()->getColumnVisible() : $champsVisibleDefault),
             'typeChampsLibres' => $typeChampLibre,
-            'types' => $type, //TODOO $type
+            'types' => $types, //TODOO $type
             'typeQuantite' => $typeQuantite,
             'filters' => $this->filterRepository->findBy(['utilisateur' => $this->getUser()]),
         ]);
@@ -662,7 +664,7 @@ class ReferenceArticleController extends Controller
                 }
 
                 $articleOrNo  = $this->articleDataService->getArticleOrNoByRefArticle($refArticle, $data['demande'], false);
-                $json = [];
+
                 $json = [
                     'plusContent' => $this->renderView(
                         'reference_article/modalPlusDemandeContent.html.twig',

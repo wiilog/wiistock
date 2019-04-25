@@ -65,16 +65,16 @@ class ChampsLibreRepository extends ServiceEntityRepository
         return $query->getResult();
     }
 
-    //recup des champs libres selon CategorieType et CategorieChampslibre pour les columns dynamique
-    public function getLabelByCategory($category, $categorieCL)
+    // pour les colonnes dynamiques
+    public function getByCategoryTypeAndCategoryCL($category, $categorieCL)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-            "SELECT c.label, c.id, c.typage
-            FROM App\Entity\ChampsLibre c 
-            JOIN c.type t
-            JOIN t.category z
-            WHERE z.label = :category AND c.categorieCL = :categorie
+            "SELECT cl.label, cl.id, cl.typage
+            FROM App\Entity\ChampsLibre cl 
+            JOIN cl.type t
+            JOIN t.category cat
+            WHERE cat.label = :category AND cl.categorieCL = :categorie
             "
         )->setParameters(
             [

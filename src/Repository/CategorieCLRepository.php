@@ -19,7 +19,7 @@ class CategorieCLRepository extends ServiceEntityRepository
         parent::__construct($registry, CategorieCL::class);
     }
 
-    public function findByLabel($label)
+    public function findOneByLabel($label)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
@@ -32,33 +32,4 @@ class CategorieCLRepository extends ServiceEntityRepository
         return $query->getOneOrNullResult();
     }
 
-
-    // /**
-    //  * @return CategorieCL[] Returns an array of CategorieCL objects
-    //  */
-    /*
-    public function findByExampleField($value)
-    {
-        return $this->createQueryBuilder('c')
-            ->andWhere('c.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('c.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
-
-    /*
-    public function findOneBySomeField($value): ?CategorieCL
-    {
-        return $this->createQueryBuilder('c')
-            ->andWhere('c.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
-    }
-    */
 }

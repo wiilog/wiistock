@@ -132,11 +132,10 @@ function ajaxGetCollecteArticle(select) {
             data = JSON.parse(this.responseText);
             $('#selection').html(data.selection);
             $('#editNewArticle').html(data.modif);
-            $('#modalNewArticle').find('div').find('div').find('.modal-footer').removeClass('d-none');
+            $('#modalNewArticle').find('.modal-footer').removeClass('d-none');
             displayRequireChamp($('#typeEdit'), 'edit');
         }
     }
-    console.log('hellll');
     path = Routing.generate('get_collecte_article_by_refArticle', true)
     let data = {};
     data['referenceArticle'] = $(select).val();
@@ -248,7 +247,6 @@ let ajaxEditArticle = function (select) {
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
             dataReponse = JSON.parse(this.responseText);
-            console.log(dataReponse);
             if (dataReponse) {
                 $('#editNewArticle').html(dataReponse);
                 // displayRequireChamp($('#typeEditArticle'), 'edit');

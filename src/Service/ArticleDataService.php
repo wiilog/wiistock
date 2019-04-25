@@ -264,7 +264,7 @@ class ArticleDataService
     {
         $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
         $typeArticle = $refArticle->getType()->getLabel();
-        $categorieCL = $this->categorieCLRepository->findByLabel(CategorieCL::ARTICLE);
+        $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::ARTICLE);
         
         $champsLibresComplet = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($typeArticle, $categorieCL);
         $champsLibres = [];

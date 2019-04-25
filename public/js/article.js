@@ -180,18 +180,18 @@ function loadAndDisplayInfos(select) {
 let getArticleFournisseur = function () {
     xhttp = new XMLHttpRequest();
     let $articleFourn = $('#newContent');
-    let modalfooter =  $('#modalNewArticle').find('div').find('div').find('.modal-footer');
+    let modalfooter =  $('#modalNewArticle').find('.modal-footer');
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
             data = JSON.parse(this.responseText);
-            console.log(data);
+
             if (data.content) {
                 modalfooter.removeClass('d-none')
                 $articleFourn.parent('div').addClass('d-block');
                 $articleFourn.html(data.content);
                 $('.error-msg').html('')
                 ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'));
-                initNewArticleEditor("#modalNewArticle")
+                initNewArticleEditor("#modalNewArticle");
             } else if (data.error) {
                 $('.error-msg').html(data.error)
             }
@@ -209,4 +209,3 @@ let getArticleFournisseur = function () {
         xhttp.send(json);
     }
 }
-
