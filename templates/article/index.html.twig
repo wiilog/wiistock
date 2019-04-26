@@ -5,6 +5,7 @@
 {% block page_content %}
 
 <h1>Articles</h1>
+<button class="btn" id="cannotDeleteArticle" data-target='#modalCannotDeleteArticle' data-toggle='modal' hidden></button>
 <div class='d-flex justify-content-end'>
     <div data-toggle="modal" data-target="#modalNewArticle" class="btn btn-action btn-primary"
         onclick="ajaxAutoRefArticleInit($('.ajax-autocomplete')), clearNewContent($('#submitNewArticle'))">
@@ -27,12 +28,13 @@
 {% include "article/modalModifyArticle.html.twig" %}
 {% include "article/modalNewArticle.html.twig" %}
 {% include "article/modalDeleteArticle.html.twig" %}
+{% include "article/modalCantDeleteArticle.html.twig" %}
 
 
 {% endblock %}
 
 {% block javascript %}
 
-<script src="{{ asset('js/article.js') }}"></script>
+<script src="{{ asset('js/article.js') }}?{{ date().timestamp }}"></script>
 
 {% endblock %}

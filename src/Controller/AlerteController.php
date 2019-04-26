@@ -120,7 +120,7 @@ class AlerteController extends AbstractController
             $alerte = new Alerte();
             $date = new \DateTime('now');
             $alerte
-                ->setAlerteNumero('P-'.$date->format('YmdHis'))
+                ->setAlerteNumero('P-' . $date->format('YmdHis'))
                 ->setAlerteSeuil($data['AlerteSeuil'])
                 ->setAlerteUtilisateur($this->utilisateurRepository->find($data['utilisateur']))
                 ->setAlerteRefArticle($refArticle);
@@ -143,7 +143,7 @@ class AlerteController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $alerte = $this->alerteRepository->find($data);
+            $alerte = $this->alerteRepository->find($data['id']);
             $json = $this->renderView('alerte/modalEditAlerteContent.html.twig', [
                 'alerte' => $alerte,
             ]);

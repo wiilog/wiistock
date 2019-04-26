@@ -64,12 +64,15 @@
                     <label for="">
                         {{champLibre.label | capitalize}}
                     </label>
+
                     {% if champLibre.typage == 'booleen' %}
                     <input type="checkbox" class="form-control data checkbox" value="" name="{{ champLibre.id}}" id="">
+
 
                     {% elseif  champLibre.typage == 'number' %}
                     <input type="number" class="form-control data {{ champLibre.requiredCreate ? 'needed' : ''}}"
                         value="" name="{{ champLibre.id}}" id="">
+
 
                     {% elseif  champLibre.typage == 'list' %}
                     <select class="form-control unTruc data {{ champLibre.requiredCreate ? 'needed' : ''}} "
@@ -79,9 +82,21 @@
                         <option value="{{elem}}">{{elem}}</option>
                         {% endfor %}
                     </select>
+
+                    {% elseif champLibre.typage == 'text'  %}
+                    <input type="text" id="{{ champLibre.label ~ 'edit'}}"
+                        class="form-control data {{ champLibre.requiredCreate ? 'needed' : ''}}"
+                        value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}"
+                        name="{{  champLibre.id }}" id="input">
+
+                    {% elseif champLibre.typage == 'date' %}
+                    <input type="date" name="{{ champLibre.id }}" id="{{champLibre.label ~ 'edit'}}"
+                        class="form-control data {{ champLibre.requiredCreate ? 'needed' : ''}}"
+                        value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}">
+
                     {% else %}
-                    <input type="text" class="form-control data {{ champLibre.requiredCreate ? 'needed' : ''}}" value=""
-                        name="{{ champLibre.id }}" id="">
+                    <input disabled>
+                    
                     {% endif %}
                 </div>
                 {% endfor %}

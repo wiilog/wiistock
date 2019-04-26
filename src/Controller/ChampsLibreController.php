@@ -48,7 +48,7 @@ class ChampsLibreController extends AbstractController
      */
     private $categorieCLRepository;
 
-    public function __construct(CategorieCLRepository $categorieCLRepository,CategoryTypeRepository $categoryTypeRepository, ChampsLibreRepository $champsLibreRepository, TypeRepository $typeRepository, ReferenceArticleRepository $refArticleRepository)
+    public function __construct(CategorieCLRepository $categorieCLRepository, CategoryTypeRepository $categoryTypeRepository, ChampsLibreRepository $champsLibreRepository, TypeRepository $typeRepository, ReferenceArticleRepository $refArticleRepository)
     {
         $this->champsLibreRepository = $champsLibreRepository;
         $this->typeRepository = $typeRepository;
@@ -64,7 +64,7 @@ class ChampsLibreController extends AbstractController
     {
         return $this->render('champ_libre/index.html.twig', [
             'category' => $this->categoryTypeRepository->findAll(),
-            
+
         ]);
     }
 
@@ -77,12 +77,27 @@ class ChampsLibreController extends AbstractController
             $champsLibres = $this->champsLibreRepository->getByType($this->typeRepository->find($id));
             $rows = [];
             foreach ($champsLibres as $champsLibre) {
+
+                if ($champsLibre->getTypage() === ChampsLibre::TYPE_BOOL) {
+                    $typageCLFr = 'Oui/Non';
+                } elseif ($champsLibre->getTypage() === ChampsLibre::TYPE_NUMBER) {
+                    $typageCLFr = 'Nombre';
+                } elseif ($champsLibre->getTypage() === ChampsLibre::TYPE_TEXT) {
+                    $typageCLFr = 'Texte';
+                } elseif ($champsLibre->getTypage() === ChampsLibre::TYPE_LIST) {
+                    $typageCLFr = 'Liste';
+                } elseif ($champsLibre->getTypage() === ChampsLibre::TYPE_DATE) {
+                    $typageCLFr = 'Date';
+                } else {
+                    $typageCLFr = '';
+                }
+
                 $rows[] =
                     [
                         'id' => ($champsLibre->getId() ? $champsLibre->getId() : 'Non défini'),
                         'Label' => ($champsLibre->getLabel() ? $champsLibre->getLabel() : 'Non défini'),
-                        'Liaison'=> ($champsLibre->getCategorieCL() ? $champsLibre->getCategorieCL()->getLabel() : ''),
-                        'Typage' => ($champsLibre->getTypage() ? $champsLibre->getTypage() : 'Non défini'),
+                        'Liaison' => ($champsLibre->getCategorieCL() ? $champsLibre->getCategorieCL()->getLabel() : ''),
+                        'Typage' => $typageCLFr,
                         'Obligatoire à la création' => ($champsLibre->getRequiredCreate() ? "oui" : "non"),
                         'Obligatoire à la modification' => ($champsLibre->getRequiredEdit() ? "oui" : "non"),
                         'Valeur par défaut' => ($champsLibre->getDefaultValue() ? $champsLibre->getDefaultValue() : 'Non défini'),
@@ -102,9 +117,11 @@ class ChampsLibreController extends AbstractController
      */
     public function show(Request $request, $id): Response
     {
+        $typages = ChampsLibre::TYPAGE;
         return $this->render('champ_libre/show.html.twig', [
             'type' => $this->typeRepository->find($id),
-            'categoriesCL'=> $this->categorieCLRepository->findAll(),
+            'categoriesCL' => $this->categorieCLRepository->findAll(),
+            'typages' => $typages,
         ]);
     }
 
@@ -118,6 +135,7 @@ class ChampsLibreController extends AbstractController
             // on vérifie que le nom du champ libre n'est pas déjà utilisé
             $champLibreExist = $this->champsLibreRepository->countByLabel($data['label']);
 
+            dump($data);
             if (!$champLibreExist) {
                 $type = $this->typeRepository->find($data['type']);
                 $categorieCL = $this->categorieCLRepository->find($data['categorieCL']);
@@ -156,10 +174,12 @@ class ChampsLibreController extends AbstractController
     public function editApi(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $champLibre = $this->champsLibreRepository->find($data);
+            $champLibre = $this->champsLibreRepository->find($data['id']);
+            $typages = ChampsLibre::TYPAGE;
             $json = $this->renderView('champ_libre/modalEditChampLibreContent.html.twig', [
                 'champLibre' => $champLibre,
-                'categoriesCL'=> $this->categorieCLRepository->findAll(),
+                'categoriesCL' => $this->categorieCLRepository->findAll(),
+                'typages' => $typages,
             ]);
 
             return new JsonResponse($json);

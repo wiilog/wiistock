@@ -28,6 +28,8 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function () 
                 checkboxes.each(function () {
                     $(this).prop('checked', false);
                 })
+            } else if (this.readyState == 4 && this.status == 250) {
+                $('#cannotDeleteArticle').click();
             }
         };
 
@@ -183,7 +185,7 @@ $(document).ready(function () {
             length: 10,
             columns: columns,
             language: {
-                "search": "Rechercher libellé :"
+                url: "/js/i18n/dataTableLanguageRefArticle.json",
             },
         });
     })
@@ -192,7 +194,7 @@ $(document).ready(function () {
 //COLUMN VISIBLE
 let tableColumnVisible = $('#tableColumnVisible_id').DataTable({
     language: {
-        url: "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
+        url: "/js/i18n/dataTableLanguage.json",
     },
     "paging": false,
     "info": false
@@ -370,10 +372,10 @@ let ajaxEditArticle = function (select) {
             }
         }
     }
-    let json = select.val();
+    let json = { id :select.val(), isADemand:0};
     let path = Routing.generate('article_api_edit', true);
     xhttp.open("POST", path, true);
-    xhttp.send(json);
+    xhttp.send(JSON.stringify(json));
 }
 
 //initialisation editeur de texte une seule fois

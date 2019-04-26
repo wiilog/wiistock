@@ -5,7 +5,7 @@ var path = Routing.generate('reception_api', true);
 var table = $('#tableReception_id').DataTable({
     order: [[1, "desc"]],
     language: {
-        "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
+        url: "/js/i18n/dataTableLanguage.json",
     },
     ajax: {
         "url": path,
@@ -40,7 +40,7 @@ InitialiserModal(modalModifyReception, submitModifyReception, urlModifyReception
 let pathAddArticle = Routing.generate('reception_article_api', { 'id': id }, true);
 let tableArticle = $('#tableArticle_id').DataTable({
     language: {
-        "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
+        url: "/js/i18n/dataTableLanguage.json",
     },
     ajax: {
         "url": pathAddArticle,

@@ -7,7 +7,7 @@ use App\Entity\Collecte;
 use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
 use App\Entity\CollecteReference;
-use App\Entity\Article;
+use App\Service\ArticleDataService;
 use App\Service\RefArticleDataService;
 use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -16,6 +16,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use App\Repository\OrdreCollecteRepository;
 use App\Repository\CollecteRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\EmplacementRepository;
@@ -38,6 +39,11 @@ class CollecteController extends AbstractController
      * @var EmplacementRepository
      */
     private $emplacementRepository;
+
+    /**
+     * @var OrdreCollecteRepository
+     */
+    private $ordrecollecteRepository;
 
     /**
      * @var CollecteReferenceRepository
@@ -74,8 +80,16 @@ class CollecteController extends AbstractController
      */
     private $userService;
 
-    public function __construct(RefArticleDataService $refArticleDataService, CollecteReferenceRepository $collecteReferenceRepository, ReferenceArticleRepository $referenceArticleRepository, StatutRepository $statutRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UtilisateurRepository $utilisateurRepository, UserService $userService)
+
+    /**
+     * @var ArticleDataService
+     */
+    private $articleDataService;
+
+
+    public function __construct(OrdreCollecteRepository $ordreCollecteRepository, RefArticleDataService $refArticleDataService, CollecteReferenceRepository $collecteReferenceRepository, ReferenceArticleRepository $referenceArticleRepository, StatutRepository $statutRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArticleDataService $articleDataService)
     {
+        $this->ordreCollecteRepository = $ordreCollecteRepository;
         $this->statutRepository = $statutRepository;
         $this->emplacementRepository = $emplacementRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
@@ -85,6 +99,7 @@ class CollecteController extends AbstractController
         $this->collecteReferenceRepository = $collecteReferenceRepository;
         $this->refArticleDataService = $refArticleDataService;
         $this->userService = $userService;
+        $this->articleDataService = $articleDataService;
     }
 
     /**
@@ -111,11 +126,12 @@ class CollecteController extends AbstractController
         if (!$this->userService->hasRightFunction(Menu::DEM_COLLECTE, Action::LIST)) {
             return $this->redirectToRoute('access_denied');
         }
-
+        $ordreCollecte = $this->ordreCollecteRepository->findOneByDemandeCollecte($collecte);
         return $this->render('collecte/show.html.twig', [
             'refCollecte' => $this->collecteReferenceRepository->getByCollecte($collecte),
             'collecte' => $collecte,
             'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUS_BROUILLON),
+            'ordreCollecte' => $ordreCollecte,
         ]);
     }
 
@@ -133,10 +149,19 @@ class CollecteController extends AbstractController
 
             $rows = [];
             foreach ($collectes as $collecte) {
+
+                $ordreCollecteDate = "";
+                if ($this->ordreCollecteRepository->findOneByDemandeCollecte($collecte) == null) {
+                    $ordreCollecteDate = null;
+                } else {
+                    $ordreCollecteDate = $this->ordreCollecteRepository->findOneByDemandeCollecte($collecte)->getDate()->format('d/m/Y H:i');
+                }
+
                 $url = $this->generateUrl('collecte_show', ['id' => $collecte->getId()]);
                 $rows[] = [
                     'id' => ($collecte->getId() ? $collecte->getId() : 'Non défini'),
-                    'Date' => ($collecte->getDate() ? $collecte->getDate()->format('d/m/Y') : null),
+                    'Création' => ($collecte->getDate() ? $collecte->getDate()->format('d/m/Y') : null),
+                    'Validation' => $ordreCollecteDate,
                     'Demandeur' => ($collecte->getDemandeur() ? $collecte->getDemandeur()->getUserName() : null),
                     'Objet' => ($collecte->getObjet() ? $collecte->getObjet() : null),
                     'Statut' => ($collecte->getStatut()->getNom() ? ucfirst($collecte->getStatut()->getNom()) : null),
@@ -145,6 +170,7 @@ class CollecteController extends AbstractController
                     ]),
                 ];
             }
+
             $data['data'] = $rows;
 
             return new JsonResponse($data);
@@ -268,10 +294,12 @@ class CollecteController extends AbstractController
 
                     $em->persist($collecteReference);
                 }
-                $response = $this->refArticleDataService->editRefArticle($refArticle, $data);
+                $this->refArticleDataService->editRefArticle($refArticle, $data);
             } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
                 $article = $this->articleRepository->find($data['article']);
                 $collecte->addArticle($article);
+
+                $this->articleDataService->editArticle($data);
             }
             $em->flush();
 
@@ -310,7 +338,7 @@ class CollecteController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
             $json = $this->renderView('collecte/modalEditArticleContent.html.twig', [
-                'collecteRef' => $this->collecteReferenceRepository->find($data),
+                'collecteRef' => $this->collecteReferenceRepository->find($data['id']),
             ]);
 
             return new JsonResponse($json);
@@ -334,10 +362,10 @@ class CollecteController extends AbstractController
                 $collecteReference = $this->collecteReferenceRepository->find($data[ReferenceArticle::TYPE_QUANTITE_REFERENCE]);
                 $entityManager->remove($collecteReference);
             } elseif (array_key_exists(ReferenceArticle::TYPE_QUANTITE_ARTICLE, $data)) {
-                $article = $this->articleRepository->find($data[ReferenceArticle::TYPE_QUANTITE_ARTICLE]);
-                $collecte = $this->collecteRepository->find($data['collecte']);
-
-                $article->removeCollecte($collecte);
+                $collecteReference = $this->collecteReferenceRepository->find($data[ReferenceArticle::TYPE_QUANTITE_ARTICLE]);
+                $articleRef = $collecteReference->getReferenceArticle();
+                $articleRef->removeCollecteReference($collecteReference);
+                $entityManager->remove($collecteReference);
             }
             $entityManager->flush();
 
@@ -357,7 +385,7 @@ class CollecteController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $collecte = $this->collecteRepository->find($data);
+            $collecte = $this->collecteRepository->find($data['id']);
 
             $json = $this->renderView('collecte/modalEditCollecteContent.html.twig', [
                 'collecte' => $collecte,
@@ -380,21 +408,28 @@ class CollecteController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
+
+
             $collecte = $this->collecteRepository->find($data['collecte']);
             $pointCollecte = $this->emplacementRepository->find($data['Pcollecte']);
             $destination = ($data['destination'] == 0) ? false : true;
+
+            $ordreCollecte = $this->ordreCollecteRepository->findOneByDemandeCollecte($collecte);
+
             $collecte
                 ->setDate(new \DateTime($data['date-collecte']))
                 ->setCommentaire($data['commentaire'])
                 ->setObjet($data['objet'])
                 ->setPointCollecte($pointCollecte)
                 ->setstockOrDestruct($destination);
+
             $em = $this->getDoctrine()->getManager();
             $em->flush();
             $json = [
                 'entete' => $this->renderView('collecte/enteteCollecte.html.twig', [
                     'collecte' => $collecte,
                     'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUS_BROUILLON),
+                    'ordreCollecte' => $ordreCollecte,
                 ]),
             ];
 
@@ -435,7 +470,6 @@ class CollecteController extends AbstractController
     public function hasArticles(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-
             $articles = $this->articleRepository->getByCollecte($data['id']);
             $referenceCollectes = $this->collecteReferenceRepository->getByCollecte($data['id']);
             $count = count($articles) + count($referenceCollectes);

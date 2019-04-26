@@ -447,10 +447,10 @@ class ReferenceArticleController extends Controller
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $refArticle = $this->referenceArticleRepository->find($data);
+            $refArticle = $this->referenceArticleRepository->find((int)$data['id']);
 
             if ($refArticle) {
-                $json = $this->refArticleDataService->getViewEditRefArticle($refArticle);
+                $json = $this->refArticleDataService->getViewEditRefArticle($refArticle, $data['isADemand']);
             } else {
                 $json = false;
             }
@@ -491,8 +491,10 @@ class ReferenceArticleController extends Controller
 
             $refArticle = $this->referenceArticleRepository->find($data['refArticle']);
             $rows = $refArticle->getId();
-
             $entityManager = $this->getDoctrine()->getManager();
+            if (count($refArticle->getCollecteReferences()) > 0 || count($refArticle->getLigneArticles()) > 0) {
+                return new JsonResponse(false, 250);
+            }
             $entityManager->remove($refArticle);
             $entityManager->flush();
 
@@ -654,7 +656,7 @@ class ReferenceArticleController extends Controller
 
                 if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                     if ($refArticle) {
-                        $editChampLibre  = $this->refArticleDataService->getViewEditRefArticle($refArticle);
+                        $editChampLibre  = $this->refArticleDataService->getViewEditRefArticle($refArticle, true);
                     } else {
                         $editChampLibre = false;
                     }
@@ -701,7 +703,7 @@ class ReferenceArticleController extends Controller
                     $json = false;
                 }
             } else {
-                $json = false; 
+                $json = false;
             }
             return new JsonResponse($json);
         }
@@ -736,25 +738,13 @@ class ReferenceArticleController extends Controller
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
             }
-
             $articleRef  = $this->referenceArticleRepository->find($data);
-
             if ($articleRef) {
-                $data  = $this->refArticleDataService->getDataEditForRefArticle($articleRef);
-
-                $json  = $this->renderView(
-                    'reference_article/modalShowRefArticleContent.html.twig',
-                    [
-                        'articleRef' => $articleRef,
-                        'statut' => ($articleRef->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF),
-                        'valeurChampsLibre' => isset($data['valeurChampLibre'])  ? $data['valeurChampLibre'] : null,
-                        'articlesFournisseur' => $data['listArticlesFournisseur'],
-                        'totalQuantity' => $data['totalQuantity']
-                    ]
-                );
-
-                return new JsonResponse($json);
+                $json = $this->refArticleDataService->getViewEditRefArticle($articleRef);
+            } else {
+                return $json = false;
             }
+            return new JsonResponse($json);
         }
         throw new NotFoundHttpException('404');
     }

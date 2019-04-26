@@ -1,7 +1,7 @@
 var pathArticle = Routing.generate('article_api', true);
 var tableArticle = $('#tableArticle_id').DataTable({
     "language": {
-        "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
+        url: "/js/i18n/dataTableLanguage.json",
     },
     ajax: {
         "url": pathArticle,
@@ -69,6 +69,8 @@ function InitialiserModalArticle(modal, submit, path, callback = function () { }
                 checkboxes.each(function () {
                     $(this).prop('checked', false);
                 })
+            } else if (this.readyState == 4 && this.status == 250) {
+                $('#cannotDeleteArticle').click();
             }
         };
 
