@@ -207,10 +207,11 @@ class SecuriteController extends Controller
         if ($request->isXmlHttpRequest() && $email = json_decode($request->getContent())) {
             $user = $this->utilisateurRepository->getByMail($email);
             if ($user) {
-                if ($user->getStatus() === true)
+                if ($user->getStatus() === true) {
                     $this->psservice->sendNewPassword($email);
-                else
+                } else {
                     return new JsonResponse('inactiv');
+                }
                 return new JsonResponse(false);
             }
             return new JsonResponse(true);
