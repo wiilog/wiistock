@@ -265,8 +265,8 @@ class OrdreCollecteController extends AbstractController
 
         $entityManager->flush();
 
-        return $this->redirectToRoute('ordre_collecte_show', [
-            'id' => $ordreCollecte->getId(),
+        return $this->redirectToRoute('collecte_show', [
+            'id' => $demandeCollecte->getId(),
         ]);
 
     }

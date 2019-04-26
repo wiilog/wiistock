@@ -22,5 +22,5 @@
 {% block javascript %}
 <script>let id = 0; 
 </script>
-<script src="{{ asset('js/preparation.js') }}"></script>
+<script src="{{ asset('js/preparation.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

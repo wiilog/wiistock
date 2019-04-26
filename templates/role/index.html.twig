@@ -30,6 +30,6 @@
 
 {% block javascript %}
 
-<script src="{{ asset('js/role.js') }}"></script>
+<script src="{{ asset('js/role.js') }}?{{ date().timestamp }}"></script>
 
 {% endblock %}

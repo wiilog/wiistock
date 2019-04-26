@@ -1,7 +1,10 @@
+{% set editable = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE')) %}
+{% set disabled = editable ? '' : 'disabled' %}
+
 <div class="row">
     <div class="form-group col-6">
         <label for="libelle">Libellé</label>
-        <input type="text" class="form-control data" name="label" id='label' value="{{article.label}}" placeholder="">
+        <input {{ disabled }} type="text" class="form-control data" name="label" id='label' value="{{article.label}}" placeholder="">
     </div>
     <div class="form-group col-6">
         <label for="libelle">Type</label>
@@ -9,12 +12,12 @@
     </div>
     <div class="form-group col-6">
         <label for="quantité">Quantité</label>
-        <input class="form-control data needed" type="number" min="0" name="quantite" id="quantité"
+        <input {{ disabled }} class="form-control data needed" type="number" min="0" name="quantite" id="quantité"
             value="{{article.quantite}}">
     </div>
     <div class="form-group col-6 w-100">
         <label for="emplacement">Emplacement</label>
-        <select class="ajax-autocompleteEmplacement-edit data form-control" name="emplacement">
+        <select {{ disabled }} class="ajax-autocompleteEmplacement-edit data form-control" name="emplacement">
             {% if article.emplacement != null %}
             <option value="{{article.emplacement.id}}">{{article.emplacement.label}}</option>
             {% endif %}
@@ -23,27 +26,29 @@
     <div class="form-group col-2">
         <label>Anomalie</label>
         <label class="switch">
-            <input class="checkbox" type="checkbox" name="conform" {{article.conform ? '' : 'checked'}}>
+            <input {{ disabled }} class="checkbox" type="checkbox" name="conform" {{article.conform ? '' : 'checked'}}>
             <span class="slider round"></span>
         </label>
     </div>
     <div class="form-group col-4">
-        <div class="input-group radio-btn">
-            <label for="statut" class="mtb-auto mr-2">Statut</label>
-            <div>
-                <span class="btn active" data-toggle="statut" data-title="active"
-                    onclick="toggleRadioButton($(this))">Actif</span><span class="btn not-active" data-toggle="statut"
-                    data-title="inactive" onclick="toggleRadioButton($(this))">Inactif</span>
+        {% if editable and not isADemand %}
+            <div class="input-group radio-btn">
+                <label for="statut" class="mtb-auto mr-2">Statut</label>
+                <div>
+                    <span class="btn active" data-toggle="statut" data-title="active"
+                        {% if editable %}onclick="toggleRadioButton($(this))"{% endif %}>Actif</span><span class="btn not-active" data-toggle="statut"
+                        data-title="inactive" {% if editable %}onclick="toggleRadioButton($(this))"{% endif %}>Inactif</span>
+                </div>
+                <input type="hidden" name="statut" id="statut" class="data" value="active">
             </div>
-            <input type="hidden" name="statut" id="statut" class="data" value="active">
-        </div>
+        {% endif %}
     </div>
     <div class="form-group col-12">
         <div>
             <label for="commentaire">Commentaire</label>
-            <input id="commentaireID" class="form-control data" type="hidden" name="commentaire"
+            <input {{ disabled }} id="commentaireID" class="form-control data" type="hidden" name="commentaire"
                 value="{{article.commentaire}}">
-            <div class="editor-container">{{article.commentaire|raw}}</div>
+            <div class="editor-container form-control comment">{{article.commentaire|raw}}</div>
         </div>
     </div>
 
@@ -61,18 +66,21 @@
                 {% for champLibre in typeChampsLibres.champsLibres %}
                 <div class="form-group col-6">
                     <label for="input">{{ champLibre.label | capitalize}}</label>
+
                     {% if champLibre.typage == 'booleen' %}
                     {% set checked = ((champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : 0) == 1) ? 'checked' : '' %}
                     <label class="switch">
-                        <input type="checkbox" class="data checkbox" { checked } name="{{ champLibre.id}}">
+                        <input {{ disabled }} type="checkbox" class="data checkbox" { checked } name="{{ champLibre.id}}">
                         <span class="slider round"></span>
                     </label>
+
                     {% elseif  champLibre.typage == 'number' %}
-                    <input type="number" id="{{ champLibre.label ~ 'edit'}}" class="form-control data"
+                    <input {{ disabled }} type="number" id="{{ champLibre.label ~ 'edit'}}" class="form-control data"
                         value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}"
                         name="{{ champLibre.id}}" id="input">
+
                     {% elseif  champLibre.typage == 'list' %}
-                    <select class="form-control data" id="{{ champLibre.label ~ 'edit'}}" name="{{ champLibre.id}}"
+                    <select {{ disabled }} class="form-control data" id="{{ champLibre.label ~ 'edit'}}" name="{{ champLibre.id}}"
                         id="input">
                         <option value="">aucune sélection...</option>
                         {% for elem in  champLibre.elements %}
@@ -80,11 +88,21 @@
                         <option value="{{elem}}" {{ selected }}>{{elem}}</option>
                         {% endfor %}
                     </select>
-                    {% else %}
-                    <input type="text" id="{{ champLibre.label ~ 'edit'}}" class="form-control data"
+
+                    {% elseif champLibre.typage == 'text'  %}
+                    <input {{ disabled }}type="text" id="{{ champLibre.label ~ 'edit'}}" class="form-control data"
                         value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}"
                         name="{{  champLibre.id }}" id="input">
+
+                    {% elseif champLibre.typage == 'date' %}
+                    <input type="date" name="{{ champLibre.id }}" id="{{champLibre.label ~ 'edit'}}"
+                        class="form-control data"
+                        value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}">
+
+                    {% else %}
+                    <input disabled>
                     {% endif %}
+
                 </div>
                 {% endfor %}
             </div>

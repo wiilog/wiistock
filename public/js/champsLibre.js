@@ -5,7 +5,7 @@ $('.select2').select2();
 const urlApiType = Routing.generate('type_api', true);
 let tableType = $('#tableType_id').DataTable({
     "language": {
-        "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
+        url: "/js/i18n/dataTableLanguage.json",
     },
     ajax: {
         "url": urlApiType,
@@ -39,7 +39,7 @@ InitialiserModal(dataModalEditType, ButtonSubmitEditType, urlEditType, tableType
 const urlApiChampsLibre = Routing.generate('champ_libre_api', { 'id': id }, true);
 let tableChampsLibre = $('#tableChampslibre_id').DataTable({
     "language": {
-        "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
+        url: "/js/i18n/dataTableLanguage.json",
     },
     ajax: {
         "url": urlApiChampsLibre,
@@ -92,6 +92,17 @@ function askForDeleteConfirmation(data) {
     }
 }
 
+let defaultValueForTypage = function (select, cible) {
+    let valueDefault =  $('#valueDefault'+cible);
+    valueDefault.find('.form-group').addClass('d-none');
+    valueDefault.find('input').removeClass('data');
+
+    let typage = select.val();
+    let defaultBloc = $('#'+typage+cible);
+    defaultBloc.removeClass('d-none');
+    defaultBloc.find('input').addClass('data');
+}
+
 $(document).ready(function () {
     $('#typage').change(function () {
         if ($(this).val() === 'list') {
@@ -127,6 +138,4 @@ function displayErrorType(data) {
     let msg = 'Ce nom de type existe déjà. Veuillez en choisir un autre.';
     displayError(modal, msg, data);
 }
-
-
 

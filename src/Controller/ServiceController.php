@@ -157,8 +157,7 @@ class ServiceController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::MANUT, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
-
-            $service = $this->serviceRepository->find($data);
+            $service = $this->serviceRepository->find($data['id']);
             $statut = 2;
             if ($service->getStatut()->getNom() === Service::STATUT_A_TRAITER) {
                 $statut = 1;
@@ -187,8 +186,6 @@ class ServiceController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::MANUT, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
-                 dump($data);
-
             $service = $this->serviceRepository->find($data['id']);
             $statutLabel = Service::STATUT_BROUILLON;
             if (intval($data['statut']) === 1) {
@@ -211,7 +208,8 @@ class ServiceController extends AbstractController
                 $this->mailerService->sendMail(
                     'FOLLOW GT // Manutention effectuée',
                     $this->renderView('mails/mailManutentionDone.html.twig', ['manut' => $service]),
-                    $service->getDemandeur()->getEmail());
+                    $service->getDemandeur()->getEmail()
+                );
             }
 
             return new JsonResponse();
@@ -240,7 +238,7 @@ class ServiceController extends AbstractController
             $entityManager->flush();
             return new JsonResponse();
         }
-     
+
         throw new NotFoundHttpException("404");
     }
 }
