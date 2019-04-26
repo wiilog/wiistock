@@ -145,7 +145,7 @@
                     {% elseif  champLibre.typage == 'list' %}
                     <select disabled class="form-control data" id="{{ champLibre.label ~ 'edit'}}"
                         name="{{ champLibre.id}}" id="input">
-                        <option value="">aucune selection...</option>
+                        <option value="">aucune sélection...</option>
                         {% for elem in  champLibre.elements %}
                         {% set selected = elem ==( champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' )? 'selected' : '' %}
                         <option value="{{elem}}" {{ selected }}>{{elem}}</option>

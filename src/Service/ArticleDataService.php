@@ -325,42 +325,50 @@ class ArticleDataService
 
     public function editArticle($data)
     {
-        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE)) {
-            return new RedirectResponse($this->router->generate('access_denied'));
-        }
+        // spécifique CEA : accès pour tous au champ libre 'Code projet'
+//        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE)) {
+//            return new RedirectResponse($this->router->generate('access_denied'));
+//        }
 
         $entityManager = $this->em;
         $article = $this->articleRepository->find($data['article']);
         if ($article) {
 
-            $article
-                ->setLabel($data['label'])
-                ->setConform(!$data['conform'])
-                ->setQuantite($data['quantite'] ? $data['quantite'] : 0)
-                ->setCommentaire($data['commentaire']);
+            if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE)) {
+                $article
+                    ->setLabel($data['label'])
+                    ->setConform(!$data['conform'])
+                    ->setQuantite($data['quantite'] ? $data['quantite'] : 0)
+                    ->setCommentaire($data['commentaire']);
 
-            if (isset($data['statut'])) { // si on est dans une demande (livraison ou collecte), pas de champ statut
-                $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $data['statut'] === Article::STATUT_ACTIF ? Article::STATUT_ACTIF : Article::STATUT_INACTIF);
-                $article->setStatut($statut);
-            }
-            if ($data['emplacement']) {
-                $article->setEmplacement($this->emplacementRepository->find($data['emplacement']));
+                if (isset($data['statut'])) { // si on est dans une demande (livraison ou collecte), pas de champ statut
+                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $data['statut'] === Article::STATUT_ACTIF ? Article::STATUT_ACTIF : Article::STATUT_INACTIF);
+                    $article->setStatut($statut);
+                }
+                if ($data['emplacement']) {
+                    $article->setEmplacement($this->emplacementRepository->find($data['emplacement']));
+                }
             }
 
             $champsLibreKey = array_keys($data);
             foreach ($champsLibreKey as $champ) {
 
                 if (gettype($champ) === 'integer') {
-                    $valeurChampLibre = $this->valeurChampsLibreRepository->findOneByArticleANDChampsLibre($article->getId(), $champ);
-                    if (!$valeurChampLibre) {
-                        $valeurChampLibre = new ValeurChampsLibre();
-                        $valeurChampLibre
-                            ->addArticle($article)
-                            ->setChampLibre($this->champsLibreRepository->find($champ));
+                    // spécifique CEA : accès pour tous au champ libre 'Code projet'
+                    $champLibre = $this->champsLibreRepository->find($champ);
+                    if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE) || $champLibre->getLabel() == 'Code projet') {
+
+                        $valeurChampLibre = $this->valeurChampsLibreRepository->findOneByArticleANDChampsLibre($article->getId(), $champ);
+                        if (!$valeurChampLibre) {
+                            $valeurChampLibre = new ValeurChampsLibre();
+                            $valeurChampLibre
+                                ->addArticle($article)
+                                ->setChampLibre($champLibre);
+                        }
+                        $valeurChampLibre->setValeur($data[$champ]);
+                        $entityManager->persist($valeurChampLibre);
+                        $entityManager->flush();
                     }
-                    $valeurChampLibre->setValeur($data[$champ]);
-                    $entityManager->persist($valeurChampLibre);
-                    $entityManager->flush();
                 }
             }
             $entityManager->flush();
