@@ -18,6 +18,7 @@ use App\Entity\CategorieCL;
 use App\Repository\ArticleRepository;
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\ChampsLibreRepository;
+use App\Repository\EmplacementRepository;
 use App\Repository\FilterRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\StatutRepository;
@@ -89,6 +90,11 @@ class ArticleDataService
     private $categorieCLRepository;
 
     /**
+     * @var EmplacementRepository
+     */
+    private $emplacementRepository;
+
+    /**
      * @var UserService
      */
     private $userService;
@@ -105,7 +111,7 @@ class ArticleDataService
 
     private $em;
 
-    public function __construct(RouterInterface $router, UserService $userService, CategorieCLRepository $categorieCLRepository, RefArticleDataService $refArticleDataService, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, TypeRepository  $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampsLibreRepository $champsLibreRepository, FilterRepository $filterRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
+    public function __construct(EmplacementRepository $emplacementRepository, RouterInterface $router, UserService $userService, CategorieCLRepository $categorieCLRepository, RefArticleDataService $refArticleDataService, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, TypeRepository  $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampsLibreRepository $champsLibreRepository, FilterRepository $filterRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
     {
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->articleRepository = $articleRepository;
@@ -122,6 +128,7 @@ class ArticleDataService
         $this->categorieCLRepository = $categorieCLRepository;
         $this->userService = $userService;
         $this->router = $router;
+        $this->emplacementRepository = $emplacementRepository;
     }
 
     /**
@@ -191,7 +198,7 @@ class ArticleDataService
         $articleFournisseur = $this->articleFournisseurRepository->getByRefArticle($refArticle);
         if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
             $data = [
-                'modif' => $this->refArticleDataService->getViewEditRefArticle($refArticle),
+                'modif' => $this->refArticleDataService->getViewEditRefArticle($refArticle, true),
                 'selection' => $this->templating->render('collecte/newRefArticleByQuantiteRefContent.html.twig'),
             ];
         } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
@@ -230,7 +237,7 @@ class ArticleDataService
         $articleFournisseur = $this->articleFournisseurRepository->getByRefArticle($refArticle);
         if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
             $data = [
-                'modif' => $this->refArticleDataService->getViewEditRefArticle($refArticle),
+                'modif' => $this->refArticleDataService->getViewEditRefArticle($refArticle, true),
                 'selection' => $this->templating->render('demande/newRefArticleByQuantiteRefContent.html.twig'),
             ];
         } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
@@ -276,7 +283,7 @@ class ArticleDataService
         ];
     }
 
-    public function getViewEditArticle($article)
+    public function getViewEditArticle($article, $isADemand = false)
     {
         $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
         $typeArticle = $refArticle->getType()->getLabel();
@@ -309,6 +316,7 @@ class ArticleDataService
             'typeArticle' => $typeArticle,
             'article' => $article,
             'statut' => ($article->getStatut()->getNom() === Article::STATUT_ACTIF ? true : false),
+            'isADemand' => $isADemand
         ]);
         return $view;
     }
@@ -324,14 +332,17 @@ class ArticleDataService
         $entityManager = $this->em;
         $article = $this->articleRepository->find($data['article']);
         if ($article) {
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $data['statut'] === Article::STATUT_ACTIF ? Article::STATUT_ACTIF : Article::STATUT_INACTIF);
+
             $article
                 ->setLabel($data['label'])
                 ->setConform(!$data['conform'])
-                ->setStatut($statut)
                 ->setQuantite($data['quantite'] ? $data['quantite'] : 0)
                 ->setCommentaire($data['commentaire']);
 
+            if (isset($data['statut'])) { // si on est dans une demande (livraison ou collecte), pas de champ statut
+                $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $data['statut'] === Article::STATUT_ACTIF ? Article::STATUT_ACTIF : Article::STATUT_INACTIF);
+                $article->setStatut($statut);
+            }
             if ($data['emplacement']) {
                 $article->setEmplacement($this->emplacementRepository->find($data['emplacement']));
             }

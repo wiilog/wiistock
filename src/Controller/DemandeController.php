@@ -112,7 +112,7 @@ class DemandeController extends AbstractController
                 $stock = $articleRef->getQuantiteStock();
                 $quantiteReservee = $ligne->getQuantite();
 
-                $listLigneArticleByRefArticle = $this->ligneArticleRepository->findByRefArticle($articleRef);
+                $listLigneArticleByRefArticle = $this->ligneArticleRepository->findOneByRefArticle($articleRef);
 
                 foreach ($listLigneArticleByRefArticle as $ligneArticle) {
                     /** @var LigneArticle $ligneArticle */
@@ -441,7 +441,7 @@ class DemandeController extends AbstractController
                         ->setReference($referenceArticle);
                     $em->persist($ligneArticle);
                 } else {
-                    $ligneArticle = $this->ligneArticleRepository->findByRefArticle($referenceArticle);
+                    $ligneArticle = $this->ligneArticleRepository->findOneByRefArticleAndDemande($referenceArticle, $demande);
                     $ligneArticle
                         ->setQuantite($ligneArticle->getQuantite() + $data["quantitie"]);
                 }

@@ -187,7 +187,7 @@ class RefArticleDataService
         ];
     }
 
-    public function getViewEditRefArticle($refArticle)
+    public function getViewEditRefArticle($refArticle, $isADemand = false)
     {
         $data = $this->getDataEditForRefArticle($refArticle);
         $articlesFournisseur = $this->articleFournisseurRepository->getByRefArticle($refArticle->getId());
@@ -206,7 +206,7 @@ class RefArticleDataService
                     'typage' => $champLibre->getTypage(),
                     'elements' => ($champLibre->getElements() ? $champLibre->getElements() : ''),
                     'defaultValue' => $champLibre->getDefaultValue(),
-                    'valeurChampLibre' => $valeurChampRefArticle
+                    'valeurChampLibre' => $valeurChampRefArticle,
                 ];
             }
             $typeChampLibre[] = [
@@ -223,7 +223,8 @@ class RefArticleDataService
             'typeChampsLibres' => $typeChampLibre,
             'articlesFournisseur' => ($data['listArticlesFournisseur']),
             'totalQuantity' => $data['totalQuantity'],
-            'articles' => $articlesFournisseur
+            'articles' => $articlesFournisseur,
+            'isADemand' => $isADemand
         ]);
         return $view;
     }
