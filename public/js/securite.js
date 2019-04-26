@@ -2,11 +2,11 @@ function checkIfUserExists() {
     email = JSON.stringify($('#inputEmail').val());
     $.post(Routing.generate('check_email'), email, function (data) {
         if (data === 'inactiv') {
-            $('#noUserActiv').click();
+            $('.error-msg').html('Votre compte est inactif, veuillez contacter l\'administrateur de votre application.');
         } else if (data === true) {
-            $('#noUser').click();
+            $('.error-msg').html('Il n\'existe pas de compte associé à cette adresse mail.');
         } else {
-            $('#isUser').click();
+            $('.error-msg').html('Votre nouveau mot de passe vous a été envoyé par mail.');
         }
     });
 
