@@ -12,7 +12,7 @@ $('#utilisateur').select2({
 let pathArticle = Routing.generate('demande_article_api', { id: id }, true);
 let tableArticle = $('#table-lignes').DataTable({
     "language": {
-        "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
+        url: "/js/i18n/dataTableLanguage.json",
     },
     "processing": true,
     "order": [[0, "desc"]],
@@ -50,7 +50,7 @@ let pathDemande = Routing.generate('demande_api', true);
 let tableDemande = $('#table_demande').DataTable({
     order: [[0, "desc"]],
     language: {
-        "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json",
+        url: "/js/i18n/dataTableLanguage.json",
     },
     ajax: {
         "url": pathDemande,

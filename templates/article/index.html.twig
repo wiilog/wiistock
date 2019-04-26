@@ -33,6 +33,6 @@
 
 {% block javascript %}
 
-<script src="{{ asset('js/article.js') }}"></script>
+<script src="{{ asset('js/article.js') }}?{{ date().timestamp }}"></script>
 
 {% endblock %}
