@@ -18,13 +18,20 @@
         </p>
         <p><strong>Commentaire:</strong>{{ collecte.demandeCollecte.commentaire|raw }} </p>
     </div>
+    <div class="col-4">
+
+        <p><strong> Emplacement : </strong> {{collecte.demandeCollecte.pointCollecte.label}}
+        </p>
+        <p><strong>Destination:</strong>{{ collecte.demandeCollecte.stockOrDestruct ? ' Mise en stock' : ' Destruction' }} </p>
+    </div>
     {% if collecte.statut.nom == constant('App\\Entity\\OrdreCollecte::STATUT_A_TRAITER') %}
-        
+
     <div class="col-2 offset-2">
         {% if not finished %}
-            {% if hasRight(constant('App\\Entity\\Menu::COLLECTE'), constant('App\\Entity\\Action::CREATE')) %}
-                <p><a class="btn btn-primary btn-action" href={{path('ordre_collecte_finish', {'id': collecte.id})}}>Finir la collecte</a></p>
-            {% endif %}
+        {% if hasRight(constant('App\\Entity\\Menu::COLLECTE'), constant('App\\Entity\\Action::CREATE')) %}
+        <p><a class="btn btn-primary btn-action" href={{path('ordre_collecte_finish', {'id': collecte.id})}}>Finir la
+                collecte</a></p>
+        {% endif %}
         {% endif %}
     </div>
     {% endif %}
@@ -36,7 +43,7 @@
 <a href="{{ path('ordre_collecte_index') }}" class='btn'>Retour à la liste</a>
 <input id="collecte-id" hidden value="{{ collecte.id }}">
 
-    {% include 'ordre_collecte/modalEditArticle.html.twig' %}
+{% include 'ordre_collecte/modalEditArticle.html.twig' %}
 
 {% endblock %}
 {% block javascript %}
