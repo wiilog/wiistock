@@ -25,19 +25,38 @@
     <div class="input-group radio-btn">
         <label for="statut" class="mtb-auto mr-2">Statut</label>
         <div>
+            {% if hasRight(constant('App\\Entity\\Menu::MANUT'), constant('App\\Entity\\Action::LIST')) %}
             {% if statut == 1 or statut == 2 %}
             <span class="btn {{ statut == 2 ? 'active' : 'not-active'}}" data-toggle="statut" data-title="brouillon"
-                onclick="changeStatus(this)" data-value="2">Brouillon</span><span 
+                onclick="changeStatus(this)" data-value="2">Brouillon</span><span
                 class="btn {{ statut == 1 ? 'active' : 'not-active'}}" data-toggle="statut" data-title="active"
-                onclick="changeStatus(this)" data-value="1">A Traiter</span><span 
+                onclick="changeStatus(this)" data-value="1">A Traiter</span>
+            {% else %}
+            <span class="btn {{ statut == 2 ? 'active' : 'not-active'}}" data-toggle="statut" data-title="brouillon"
+                style="pointer-events:none;">Brouillon</span><span
+                class="btn {{ statut == 1 ? 'active' : 'not-active'}}" data-toggle="statut" data-title="active"
+                style="pointer-events:none;">A Traiter</span>
+
+            {% endif %}
+            
+            {% else %}
+
+            {% if statut == 1 or statut == 2 %}
+            <span class="btn {{ statut == 2 ? 'active' : 'not-active'}}" data-toggle="statut" data-title="brouillon"
+                onclick="changeStatus(this)" data-value="2">Brouillon</span><span
+                class="btn {{ statut == 1 ? 'active' : 'not-active'}}" data-toggle="statut" data-title="active"
+                onclick="changeStatus(this)" data-value="1">A Traiter</span><span
                 class="btn {{ statut == 0 ? 'active' : 'not-active'}}" data-toggle="statut" data-title="inactive"
                 onclick="changeStatus(this)" data-value="0">Traité</span>
             {% else %}
             <span class="btn {{ statut == 2 ? 'active' : 'not-active'}}" data-toggle="statut" data-title="brouillon"
-                style="pointer-events:none;">Brouillon</span><span class="btn {{ statut == 1 ? 'active' : 'not-active'}}" data-toggle="statut" data-title="active"
+                style="pointer-events:none;">Brouillon</span><span
+                class="btn {{ statut == 1 ? 'active' : 'not-active'}}" data-toggle="statut" data-title="active"
                 style="pointer-events:none;">A Traiter</span><span
                 class="btn {{ statut == 0 ? 'active' : 'not-active'}}" data-toggle="statut" data-title="inactive"
                 style="pointer-events:none;">Traité</span>
+            {% endif %}
+            
             {% endif %}
         </div>
         <input id="s" type="hidden" value="{{statut}}" name="statut" class="data">
