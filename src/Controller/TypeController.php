@@ -64,8 +64,8 @@ class TypeController extends AbstractController
     {
         if ($request->isXmlHttpRequest()) {
 
-            $types = $this->typeRepository->getByCategoryLabel(ReferenceArticle::CATEGORIE);
-
+            $types = $this->typeRepository->getByCategoryLabel(ReferenceArticle::CATEGORIE_TYPE); //TODO 
+            dump($types);
             $view = $this->renderView('type/inputSelectTypes.html.twig', [
                 'types' => $types
             ]);
@@ -80,25 +80,25 @@ class TypeController extends AbstractController
     public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
-        {
-            $types = $this->typeRepository->findAll();
-            $rows = [];
-            foreach ($types as $type) {
-                $url = $this->generateUrl('champs_libre_show', ['id' => $type->getId()]);
-                $rows[] =
-                    [
-                        'id' => ($type->getId() ? $type->getId() : "Non défini"),
-                        'Label' => ($type->getLabel() ? $type->getLabel() : "Non défini"),
-                        'Catégorie' => ($type->getCategory() ? $type->getCategory()->getLabel() : 'Non défini'),
-                        'Actions' =>  $this->renderView('champ_libre/datatableTypeRow.html.twig', [
-                            'urlChampsLibre' => $url,
-                            'idType' => $type->getId()
-                        ]),
-                    ];
+            {
+                $types = $this->typeRepository->findAll();
+                $rows = [];
+                foreach ($types as $type) {
+                    $url = $this->generateUrl('champs_libre_show', ['id' => $type->getId()]);
+                    $rows[] =
+                        [
+                            'id' => ($type->getId() ? $type->getId() : "Non défini"),
+                            'Label' => ($type->getLabel() ? $type->getLabel() : "Non défini"),
+                            'Catégorie' => ($type->getCategory() ? $type->getCategory()->getLabel() : 'Non défini'),
+                            'Actions' =>  $this->renderView('champ_libre/datatableTypeRow.html.twig', [
+                                'urlChampsLibre' => $url,
+                                'idType' => $type->getId()
+                            ]),
+                        ];
+                }
+                $data['data'] = $rows;
+                return new JsonResponse($data);
             }
-            $data['data'] = $rows;
-            return new JsonResponse($data);
-        }
         throw new NotFoundHttpException("404");
     }
 
@@ -201,5 +201,4 @@ class TypeController extends AbstractController
         }
         throw new NotFoundHttpException("404");
     }
-
 }
