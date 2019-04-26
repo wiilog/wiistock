@@ -509,7 +509,7 @@ class DemandeController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $ligneArticle = $this->ligneArticleRepository->getQuantity($data);
+            $ligneArticle = $this->ligneArticleRepository->getQuantity($data['id']);
             $json = $this->renderView('demande/modalEditArticleContent.html.twig', [
                 'ligneArticle' => $ligneArticle,
             ]);
