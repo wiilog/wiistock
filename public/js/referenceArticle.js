@@ -18,10 +18,15 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function () 
                 callback(data);
                 initRemove();
 
-                let inputs = modal.find('.modal-body').find(".data");
                 // on vide tous les inputs
+                let inputs = modal.find('.modal-body').find(".data, .newContent>input");
                 inputs.each(function () {
                     $(this).val("");
+                });
+                // on vide tous les select2
+                let selects = modal.find('.modal-body').find('.select2, .ajax-autocompleteFournisseur');
+                selects.each(function () {
+                    $(this).val(null).trigger('change');
                 });
                 // on remet toutes les checkboxes sur off
                 let checkboxes = modal.find('.checkbox');
@@ -365,14 +370,15 @@ let ajaxEditArticle = function (select) {
             dataReponse = JSON.parse(this.responseText);
             if (dataReponse) {
                 $('.editChampLibre').html(dataReponse);
-                // displayRequireChamp($('#typeEditArticle'), 'edit');
+                ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
+                displayRequireChamp($('#typeEditArticle'), 'edit');
                 initEditor('.editor-container');
             } else {
                 //TODO gérer erreur
             }
         }
     }
-    let json = { id :select.val(), isADemand:0};
+    let json = { id :select.val(), isADemand:1};
     let path = Routing.generate('article_api_edit', true);
     xhttp.open("POST", path, true);
     xhttp.send(JSON.stringify(json));
