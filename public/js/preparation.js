@@ -3,7 +3,7 @@ $('.select2').select2();
 var path = Routing.generate('preparation_api');
 var table = $('#table_id').DataTable({
     "language": {
-        "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
+        url: "/js/i18n/dataTableLanguage.json",
     },
     "order": [[ 1, "desc" ]],
     ajax: path,
@@ -18,7 +18,7 @@ var table = $('#table_id').DataTable({
 var pathArticle = Routing.generate('preparation_article_api', {'id': id});
 var tableArticle = $('#tableArticle_id').DataTable({
     "language": {
-        "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
+        url: "/js/i18n/dataTableLanguage.json",
     },
     ajax: pathArticle,
     columns: [
