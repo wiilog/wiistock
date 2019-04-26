@@ -738,25 +738,13 @@ class ReferenceArticleController extends Controller
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
             }
-
             $articleRef  = $this->referenceArticleRepository->find($data);
-
             if ($articleRef) {
-                $data  = $this->refArticleDataService->getDataEditForRefArticle($articleRef);
-
-                $json  = $this->renderView(
-                    'reference_article/modalShowRefArticleContent.html.twig',
-                    [
-                        'articleRef' => $articleRef,
-                        'statut' => ($articleRef->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF),
-                        'valeurChampsLibre' => isset($data['valeurChampLibre'])  ? $data['valeurChampLibre'] : null,
-                        'articlesFournisseur' => $data['listArticlesFournisseur'],
-                        'totalQuantity' => $data['totalQuantity']
-                    ]
-                );
-
-                return new JsonResponse($json);
+               $json = $this->refArticleDataService->getViewEditRefArticle($articleRef);
+            }else{
+                return $json = false; 
             }
+            return new JsonResponse($json);
         }
         throw new NotFoundHttpException('404');
     }
