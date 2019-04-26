@@ -63,5 +63,5 @@
 <script>
     let id = {{ reception.id }};
 </script>
-<script src="{{asset('js/reception.js')}}"></script>
+<script src="{{asset('js/reception.js')}}?{{ date().timestamp }}"></script>
 {% endblock javascript %}

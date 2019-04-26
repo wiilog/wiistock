@@ -49,6 +49,6 @@
     let id = {{ livraison.id }};
 </script>
 
-<script src="{{asset('js/livraison.js')}}"></script>
+<script src="{{asset('js/livraison.js')}}?{{ date().timestamp }}"></script>
 
 {% endblock %}

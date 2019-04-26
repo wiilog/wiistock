@@ -36,5 +36,5 @@
 {% endblock %}
 
 {% block javascript %}
-<script src="{{asset('js/article-fournisseur.js')}}"> </script>
+<script src="{{asset('js/article-fournisseur.js')}}?{{ date().timestamp }}"> </script>
 {% endblock %}

@@ -65,7 +65,7 @@ class TypeController extends AbstractController
         if ($request->isXmlHttpRequest()) {
 
             $types = $this->typeRepository->getByCategoryLabel(ReferenceArticle::CATEGORIE_TYPE); //TODO 
-            dump($types);
+           
             $view = $this->renderView('type/inputSelectTypes.html.twig', [
                 'types' => $types
             ]);
