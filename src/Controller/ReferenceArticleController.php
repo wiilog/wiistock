@@ -740,9 +740,9 @@ class ReferenceArticleController extends Controller
             }
             $articleRef  = $this->referenceArticleRepository->find($data);
             if ($articleRef) {
-               $json = $this->refArticleDataService->getViewEditRefArticle($articleRef);
-            }else{
-                return $json = false; 
+                $json = $this->refArticleDataService->getViewEditRefArticle($articleRef);
+            } else {
+                return $json = false;
             }
             return new JsonResponse($json);
         }

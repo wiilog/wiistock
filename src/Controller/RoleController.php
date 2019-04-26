@@ -48,7 +48,7 @@ class RoleController extends AbstractController
     private $userService;
 
 
-    public function __construct(RoleRepository $roleRepository, ActionRepository $actionRepository, MenuRepository $menuRepository, UtilisateurRepository $utilisateurRepository, UserService$userService)
+    public function __construct(RoleRepository $roleRepository, ActionRepository $actionRepository, MenuRepository $menuRepository, UtilisateurRepository $utilisateurRepository, UserService $userService)
     {
         $this->roleRepository = $roleRepository;
         $this->actionRepository = $actionRepository;
@@ -76,31 +76,30 @@ class RoleController extends AbstractController
      */
     public function api(Request $request): Response
     {
-        if ($request->isXmlHttpRequest())
-        {
-            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
-                return $this->redirectToRoute('access_denied');
-            }
+        if ($request->isXmlHttpRequest()) {
+                if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+                    return $this->redirectToRoute('access_denied');
+                }
 
-            $roles = $this->roleRepository->findAll();
-            $rows = [];
-            foreach ($roles as $role) {
-                $url['edit'] = $this->generateUrl('role_api_edit', ['id' => $role->getId()]);
+                $roles = $this->roleRepository->findAll();
+                $rows = [];
+                foreach ($roles as $role) {
+                    $url['edit'] = $this->generateUrl('role_api_edit', ['id' => $role->getId()]);
 
-                $rows[] =
-                    [
-                        'id' => $role->getId() ? $role->getId() : "Non défini",
-                        'Nom' => $role->getLabel() ? $role->getLabel() : "Non défini",
-                        'Actif' => $role->getActive() ? 'oui' : 'non',
-                        'Actions' => $this->renderView('role/datatableRoleRow.html.twig', [
-                            'url' => $url,
-                            'roleId' => $role->getId(),
-                        ]),
-                    ];
+                    $rows[] =
+                        [
+                            'id' => $role->getId() ? $role->getId() : "Non défini",
+                            'Nom' => $role->getLabel() ? $role->getLabel() : "Non défini",
+                            'Actif' => $role->getActive() ? 'oui' : 'non',
+                            'Actions' => $this->renderView('role/datatableRoleRow.html.twig', [
+                                'url' => $url,
+                                'roleId' => $role->getId(),
+                            ]),
+                        ];
+                }
+                $data['data'] = $rows;
+                return new JsonResponse($data);
             }
-            $data['data'] = $rows;
-            return new JsonResponse($data);
-        }
         throw new NotFoundHttpException("404");
     }
 
@@ -161,7 +160,7 @@ class RoleController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $role = $this->roleRepository->find($data);
+            $role = $this->roleRepository->find($data['id']);
             $menus = $this->menuRepository->findAll();
 
             // on liste les id des actions que possède le rôle

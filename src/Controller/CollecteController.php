@@ -41,8 +41,8 @@ class CollecteController extends AbstractController
     private $emplacementRepository;
 
     /**
-      * @var OrdreCollecteRepository
-      */
+     * @var OrdreCollecteRepository
+     */
     private $ordrecollecteRepository;
 
     /**
@@ -80,7 +80,7 @@ class CollecteController extends AbstractController
      */
     private $userService;
 
-   
+
     /**
      * @var ArticleDataService
      */
@@ -146,22 +146,21 @@ class CollecteController extends AbstractController
             }
 
             $collectes = $this->collecteRepository->findAll();
-           
+
             $rows = [];
             foreach ($collectes as $collecte) {
-              
-              $ordreCollecteDate = "";
-              if ($this->ordreCollecteRepository->findOneByDemandeCollecte($collecte)==null){
-                  $ordreCollecteDate = null;
 
-              }else{
-                $ordreCollecteDate=$this->ordreCollecteRepository->findOneByDemandeCollecte($collecte) -> getDate() ->format('d/m/Y H:i');
-              }
+                $ordreCollecteDate = "";
+                if ($this->ordreCollecteRepository->findOneByDemandeCollecte($collecte) == null) {
+                    $ordreCollecteDate = null;
+                } else {
+                    $ordreCollecteDate = $this->ordreCollecteRepository->findOneByDemandeCollecte($collecte)->getDate()->format('d/m/Y H:i');
+                }
 
-                    $url = $this->generateUrl('collecte_show', ['id' => $collecte->getId()]);
-                    $rows[] = [
+                $url = $this->generateUrl('collecte_show', ['id' => $collecte->getId()]);
+                $rows[] = [
                     'id' => ($collecte->getId() ? $collecte->getId() : 'Non défini'),
-                    'Création' => ($collecte->getDate() ? $collecte->getDate()->format('d/m/Y') : null),                  
+                    'Création' => ($collecte->getDate() ? $collecte->getDate()->format('d/m/Y') : null),
                     'Validation' => $ordreCollecteDate,
                     'Demandeur' => ($collecte->getDemandeur() ? $collecte->getDemandeur()->getUserName() : null),
                     'Objet' => ($collecte->getObjet() ? $collecte->getObjet() : null),
@@ -170,8 +169,8 @@ class CollecteController extends AbstractController
                         'url' => $url,
                     ]),
                 ];
-                }
-            
+            }
+
             $data['data'] = $rows;
 
             return new JsonResponse($data);
@@ -339,7 +338,7 @@ class CollecteController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
             $json = $this->renderView('collecte/modalEditArticleContent.html.twig', [
-                'collecteRef' => $this->collecteReferenceRepository->find($data),
+                'collecteRef' => $this->collecteReferenceRepository->find($data['id']),
             ]);
 
             return new JsonResponse($json);
@@ -423,7 +422,7 @@ class CollecteController extends AbstractController
                 ->setObjet($data['objet'])
                 ->setPointCollecte($pointCollecte)
                 ->setstockOrDestruct($destination);
-                
+
             $em = $this->getDoctrine()->getManager();
             $em->flush();
             $json = [

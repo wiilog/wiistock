@@ -222,7 +222,7 @@ class ReceptionController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $reception =  $this->receptionRepository->find($data);
+            $reception =  $this->receptionRepository->find($data['id']);
             $json =  $this->renderView('reception/modalEditReceptionContent.html.twig', [
                 'reception' =>  $reception,
                 'fournisseurs' =>  $this->fournisseurRepository->getNoOne($reception->getFournisseur()->getId()),
@@ -441,7 +441,7 @@ class ReceptionController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $ligneArticle = $this->receptionReferenceArticleRepository->find($data);
+            $ligneArticle = $this->receptionReferenceArticleRepository->find($data['id']);
 
             $json =  $this->renderView(
                 'reception/modalModifyLigneArticleContent.html.twig',
