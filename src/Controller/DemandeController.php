@@ -17,6 +17,8 @@ use App\Repository\EmplacementRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\ArticleRepository;
 
+use App\Service\ArticleDataService;
+use App\Service\RefArticleDataService;
 use App\Service\UserService;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -71,8 +73,18 @@ class DemandeController extends AbstractController
      */
     private $userService;
 
+    /**
+     * @var RefArticleDataService
+     */
+    private $refArticleDataService;
 
-    public function __construct(ArticleRepository $articleRepository, LigneArticleRepository $ligneArticleRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, UserService $userService)
+    /**
+     * @var ArticleDataService
+     */
+    private $articleDataService;
+
+
+    public function __construct(ArticleRepository $articleRepository, LigneArticleRepository $ligneArticleRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, UserService $userService, RefArticleDataService $refArticleDataService, ArticleDataService $articleDataService)
     {
         $this->statutRepository = $statutRepository;
         $this->emplacementRepository = $emplacementRepository;
@@ -82,6 +94,8 @@ class DemandeController extends AbstractController
         $this->articleRepository = $articleRepository;
         $this->ligneArticleRepository = $ligneArticleRepository;
         $this->userService = $userService;
+        $this->refArticleDataService = $refArticleDataService;
+        $this->articleDataService = $articleDataService;
     }
     /**
      * @Route("/compareStock", name="compare_stock", options={"expose"=true}, methods="GET|POST")
@@ -98,7 +112,7 @@ class DemandeController extends AbstractController
                 $stock = $articleRef->getQuantiteStock();
                 $quantiteReservee = $ligne->getQuantite();
 
-                $listLigneArticleByRefArticle = $this->ligneArticleRepository->findByRefArticle($articleRef);
+                $listLigneArticleByRefArticle = $this->ligneArticleRepository->findOneByRefArticle($articleRef);
 
                 foreach ($listLigneArticleByRefArticle as $ligneArticle) {
                     /** @var LigneArticle $ligneArticle */
@@ -416,6 +430,9 @@ class DemandeController extends AbstractController
             if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
                 $article = $this->articleRepository->find($data['article']);
                 $demande->addArticle($article);
+
+                $this->articleDataService->editArticle($data);
+
             } elseif ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                 if ($this->ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
                     $ligneArticle = new LigneArticle();
@@ -424,12 +441,13 @@ class DemandeController extends AbstractController
                         ->setReference($referenceArticle);
                     $em->persist($ligneArticle);
                 } else {
-                    $ligneArticle = $this->ligneArticleRepository->findByRefArticle($referenceArticle);
+                    $ligneArticle = $this->ligneArticleRepository->findOneByRefArticleAndDemande($referenceArticle, $demande);
                     $ligneArticle
                         ->setQuantite($ligneArticle->getQuantite() + $data["quantitie"]);
                 }
                 $demande
                     ->addLigneArticle($ligneArticle);
+                $this->refArticleDataService->editRefArticle($referenceArticle, $data);
             }
 
             $em->flush();

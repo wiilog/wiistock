@@ -372,10 +372,10 @@ let ajaxEditArticle = function (select) {
             }
         }
     }
-    let json = select.val();
+    let json = { id :select.val(), isADemand:0};
     let path = Routing.generate('article_api_edit', true);
     xhttp.open("POST", path, true);
-    xhttp.send(json);
+    xhttp.send(JSON.stringify(json));
 }
 
 //initialisation editeur de texte une seule fois

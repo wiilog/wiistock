@@ -225,11 +225,12 @@ function editRow(button, path, modal, submit, editorToInit = false) {
             if (editorToInit) initEditor('#' + modal.attr('id'));
         }
     }
-    let json = button.data('id');
+    let json = { id :button.data('id'), isADemand:0};
+
     modal.find(submit).attr('value', json);
     modal.find('#inputId').attr('value', json);
     xhttp.open("POST", path, true);
-    xhttp.send(json);
+    xhttp.send(JSON.stringify(json));
 }
 
 function toggleRadioButton(button) {

@@ -447,10 +447,10 @@ class ReferenceArticleController extends Controller
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $refArticle = $this->referenceArticleRepository->find($data);
+            $refArticle = $this->referenceArticleRepository->find((int)$data['id']);
 
             if ($refArticle) {
-                $json = $this->refArticleDataService->getViewEditRefArticle($refArticle);
+                $json = $this->refArticleDataService->getViewEditRefArticle($refArticle, $data['isADemand']);
             } else {
                 $json = false;
             }
@@ -656,7 +656,7 @@ class ReferenceArticleController extends Controller
 
                 if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                     if ($refArticle) {
-                        $editChampLibre  = $this->refArticleDataService->getViewEditRefArticle($refArticle);
+                        $editChampLibre  = $this->refArticleDataService->getViewEditRefArticle($refArticle, true);
                     } else {
                         $editChampLibre = false;
                     }
