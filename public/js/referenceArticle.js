@@ -18,10 +18,15 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function () 
                 callback(data);
                 initRemove();
 
-                let inputs = modal.find('.modal-body').find(".data");
                 // on vide tous les inputs
+                let inputs = modal.find('.modal-body').find(".data, .newContent>input");
                 inputs.each(function () {
                     $(this).val("");
+                });
+                // on vide tous les select2
+                let selects = modal.find('.modal-body').find('.select2, .ajax-autocompleteFournisseur');
+                selects.each(function () {
+                    $(this).val(null).trigger('change');
                 });
                 // on remet toutes les checkboxes sur off
                 let checkboxes = modal.find('.checkbox');
