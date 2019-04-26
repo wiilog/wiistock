@@ -18,6 +18,10 @@ use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use App\Service\PasswordService;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use App\Repository\UtilisateurRepository;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class SecuriteController extends Controller
 {
@@ -31,9 +35,15 @@ class SecuriteController extends Controller
      */
     private $roleRepository;
 
+    /**
+     * @var UtilisateurRepository
+     */
+    private $utilisateurRepository;
 
-    public function __construct(PasswordService $psservice, RoleRepository $roleRepository)
+
+    public function __construct(UtilisateurRepository $utilisateurRepository, PasswordService $psservice, RoleRepository $roleRepository)
     {
+        $this->utilisateurRepository = $utilisateurRepository;
         $this->psservice = $psservice;
         $this->roleRepository = $roleRepository;
     }
@@ -111,7 +121,6 @@ class SecuriteController extends Controller
         $em->flush();
 
         return $this->redirectToRoute('accueil');
-
     }
 
     /**
@@ -120,7 +129,7 @@ class SecuriteController extends Controller
     public function attente_validation()
     {
         return $this->render('securite/attente_validation.html.twig', [
-//            'controller_name' => 'SecuriteController',
+            //            'controller_name' => 'SecuriteController',
         ]);
     }
 
@@ -130,7 +139,6 @@ class SecuriteController extends Controller
     public function access_denied()
     {
         return $this->render('securite/access_denied.html.twig');
-
     }
 
     /**
@@ -186,26 +194,28 @@ class SecuriteController extends Controller
     /**
      * @Route("/oubli", name="forgotten")
      */
-    public function forgot(Request $request, UserPasswordEncoderInterface $passwordEncoder, EntityManagerInterface $em)
+    public function forgot()
     {
-        $session = $request->getSession();
-        $form = $this->createFormBuilder()
-            ->add('email', EmailType::class, array(
-                'label' => 'Votre adresse email',
-            ))
-            ->getForm();
+        return $this->render('securite/resetPassword.html.twig');
+    }
 
-        $form->handleRequest($request);
-        if ($form->isSubmitted() && $form->isValid()) {
-            $data = $form->getData();
-            $this->psservice->sendNewPassword($data['email']);
-            $session->getFlashBag()->add('success', 'Félicitations ! Nous vous avons envoyé votre nouveau mot de passe par email !');
-
-            return $this->redirectToRoute('login');
+    /**
+     * @Route("/verifier-email", name="check_email", options={"expose"=true}, methods="GET|POST")
+     */
+    public function checkEmail(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $email = json_decode($request->getContent())) {
+            $user = $this->utilisateurRepository->getByMail($email);
+            if ($user) {
+                if ($user->getStatus() === true) {
+                    $this->psservice->sendNewPassword($email);
+                } else {
+                    return new JsonResponse('inactiv');
+                }
+                return new JsonResponse(false);
+            }
+            return new JsonResponse(true);
         }
-
-        return $this->render('securite/resetPassword.html.twig', [
-            'form' => $form->createView(),
-        ]);
+        throw new NotFoundHttpException('404');
     }
 }
