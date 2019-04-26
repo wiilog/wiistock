@@ -33,6 +33,20 @@ class TypeRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
+    public function getIdAndLabelByCategoryLabel($category)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT t.id, t.label
+            FROM App\Entity\Type t
+            JOIN t.category c
+            WHERE c.label = :category"
+        );
+        $query->setParameter("category", $category);
+
+        return $query->execute();
+    }
+
     public function findOneByCategoryLabel($category)
     {
         $em = $this->getEntityManager();
@@ -46,5 +60,18 @@ class TypeRepository extends ServiceEntityRepository
         $result = $query->execute();
 
         return $result ? $result[0] : null;
+    }
+
+    public function countByLabel($label)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT COUNT(t)
+            FROM App\Entity\Type t
+            WHERE LOWER(t.label) = :label
+           "
+        )->setParameter('label', strtolower($label));
+
+        return $query->getSingleScalarResult();
     }
 }

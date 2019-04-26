@@ -3,7 +3,7 @@ $('.select2').select2();
 let urlUtilisateur = Routing.generate('user_api', true);
 let tableUser = $('#tableUser_id').DataTable({
     "language": {
-        "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
+        url: "/js/i18n/dataTableLanguage.json",
     },
     ajax: {
         "url": urlUtilisateur,

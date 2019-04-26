@@ -15,6 +15,7 @@
         <thead>
         <tr>
             <th>Label</th>
+            <th>Liaison</th>
             <th>Typage</th>
             <th>Valeur par défaut</th>
             <th>Elements</th>
@@ -39,5 +40,5 @@
     <script>
         let id = {{type.id}}
     </script>
-    <script src={{asset('js/champsLibre.js')}}></script>
+    <script src="{{asset('js/champsLibre.js')}}?{{ date().timestamp }}"></script>
     {% endblock javascript %}

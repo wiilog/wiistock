@@ -40,7 +40,7 @@
         Chercher une référence</a>
     {% if hasRight(constant('App\\Entity\\Menu::DEM_COLLECTE'), constant('App\\Entity\\Action::CREATE')) %}
     <a href="" data-toggle="modal" data-target="#modalNewArticle"
-        onclick="clearNewContent($('#submitNewArticle')), ajaxAutoRefArticleInit($('#reference'))"
+        onclick="clearDiv(), ajaxAutoRefArticleInit($('#reference'))"
         class="btn btn-primary btn-action ml-auto">
         <span class="fa fa-plus mr-2"></span>Ajouter article
     </a>
@@ -81,6 +81,6 @@
 <script>
     let id = {{ collecte.id }};
 </script>
-<script src="{{asset('js/collecte.js')}}"></script>
+<script src="{{asset('js/collecte.js')}}?{{ date().timestamp }}"></script>
 
 {% endblock %}

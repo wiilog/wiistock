@@ -36,5 +36,5 @@
 
 {% endblock %}
 {% block javascript %}
-<script src="{{ asset('js/mailerServer.js') }}"></script>
+<script src="{{ asset('js/mailerServer.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

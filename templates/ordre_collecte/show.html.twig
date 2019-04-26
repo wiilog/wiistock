@@ -16,6 +16,7 @@
 
         <p><strong> Date de collecte : </strong> {{ collecte.date ? collecte.date|date('d/m/Y') : '' }}
         </p>
+        <p><strong>Commentaire:</strong>{{ collecte.demandeCollecte.commentaire|raw }} </p>
     </div>
     {% if collecte.statut.nom == constant('App\\Entity\\OrdreCollecte::STATUT_A_TRAITER') %}
         
@@ -40,6 +41,6 @@
 {% endblock %}
 {% block javascript %}
 
-<script src="{{ asset('js/ordre-collecte-show.js') }}"></script>
+<script src="{{ asset('js/ordre-collecte-show.js') }}?{{ date().timestamp }}"></script>
 
 {% endblock %}

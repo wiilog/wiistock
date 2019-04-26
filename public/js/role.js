@@ -1,7 +1,7 @@
 let pathRoles = Routing.generate('role_api', true);
 let tableRoles = $('#tableRoles').DataTable({
     "language": {
-        "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
+        url: "/js/i18n/dataTableLanguage.json",
     },
     ajax:{ 
         "url": pathRoles,
@@ -17,7 +17,7 @@ let tableRoles = $('#tableRoles').DataTable({
 let modalNewRole = $("#modalNewRole");
 let submitNewRole = $("#submitNewRole");
 let urlNewRole = Routing.generate('role_new', true);
-InitialiserModal(modalNewRole, submitNewRole, urlNewRole, tableRoles, displayError, false);
+InitialiserModal(modalNewRole, submitNewRole, urlNewRole, tableRoles, displayErrorRole, false);
 
 let modalEditRole = $('#modalEditRole');
 let submitEditRole = $('#submitEditRole');
@@ -29,12 +29,8 @@ let SubmitDeleteRole = $("#submitDeleteRole");
 let urlDeleteRole = Routing.generate('role_delete', true)
 InitialiserModal(ModalDeleteRole, SubmitDeleteRole, urlDeleteRole, tableRoles);
 
-function displayError(data) {
+function displayErrorRole(data) {
     let modal = $("#modalNewRole");
-    if (data === false) {
-        let msg = 'Ce nom de rôle existe déjà. Veuillez en choisir un autre.';
-        modal.find('.error-msg').html(msg);
-    } else {
-        modal.find('.close').click();
-    }
+    let msg = 'Ce nom de rôle existe déjà. Veuillez en choisir un autre.';
+    displayError(modal, msg, data);
 }

@@ -12,7 +12,7 @@ $('#utilisateur').select2({
 let pathArticle = Routing.generate('demande_article_api', { id: id }, true);
 let tableArticle = $('#table-lignes').DataTable({
     "language": {
-        "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
+        url: "/js/i18n/dataTableLanguage.json",
     },
     "processing": true,
     "order": [[0, "desc"]],
@@ -50,7 +50,7 @@ let pathDemande = Routing.generate('demande_api', true);
 let tableDemande = $('#table_demande').DataTable({
     order: [[0, "desc"]],
     language: {
-        "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json",
+        url: "/js/i18n/dataTableLanguage.json",
     },
     ajax: {
         "url": pathDemande,
@@ -245,7 +245,8 @@ function ajaxGetAndFillArticle(select) {
         let params = JSON.stringify(refArticle);
         
         $.post(path, params, function (data) {
-            $('#newContent').html(data);
+            $('#selection').html(data.selection);
+            $('#editNewArticle').html(data.modif);
             $('#modalNewArticle').find('div').find('div').find('.modal-footer').removeClass('d-none');
             displayRequireChamp($('#typeEdit'), 'edit');
         })
@@ -269,4 +270,24 @@ function validateLivraison(livraisonId, elem) {
             $('#cannotValidate').click();
         }
     });
+}
+
+let ajaxEditArticle = function (select) {
+    xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            dataReponse = JSON.parse(this.responseText);
+            if (dataReponse) {
+                $('#editNewArticle').html(dataReponse);
+                // displayRequireChamp($('#typeEditArticle'), 'edit');
+                initEditor('.editor-container');
+            } else {
+                //TODO gérer erreur
+            }
+        }
+    }
+    let json = select.val();
+    let path = Routing.generate('article_api_edit', true);
+    xhttp.open("POST", path, true);
+    xhttp.send(json);
 }
