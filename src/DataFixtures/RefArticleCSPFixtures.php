@@ -141,14 +141,14 @@ class RefArticleCSPFixtures extends Fixture implements FixtureGroupInterface
             $listFields = [
                 ['label' => 'adresse', 'col' => 2, 'type' => ChampsLibre::TYPE_TEXT],
                 ['label' => 'famille produit', 'col' => 4, 'type' => ChampsLibre::TYPE_LIST, 'elements' => 'CONSOMMABLES;PAD;POMPE;POMPE_41;PIECES DETACHEES;PDT GENERIQUE;DCOS TEST ELECTRIQUE;SILICIUM;SIL_EXTERNE;SIL_INTERNE;MOBILIER SB;MOBILIER TERTIAIRE;CIBLE / SLUGS'],
-                ['label' => 'zone', 'col' => 5, 'type' => ChampsLibre::TYPE_TEXT],
-                ['label' => 'équipementier', 'col' => 6, 'type' => ChampsLibre::TYPE_TEXT],
-                ['label' => "R+H1:I9505ef équipementier", 'col' => 7, 'type' => ChampsLibre::TYPE_TEXT],
-                ['label' => "machine", 'col' => 8, 'type' => ChampsLibre::TYPE_TEXT],
                 ['label' => "stock mini", 'col' => 7, 'type' => ChampsLibre::TYPE_NUMBER],
                 ['label' => "stock alerte", 'col' => 8, 'type' => ChampsLibre::TYPE_NUMBER],
-                ['label' => "n° lot", 'col' => 13, 'type' => ChampsLibre::TYPE_TEXT],
-                ['label' => "date entrée", 'col' => 14, 'type' => ChampsLibre::TYPE_TEXT],
+                ['label' => "prix unitaire", 'col' => 9, 'type' => ChampsLibre::TYPE_TEXT],
+                ['label' => "date entrée", 'col' => 10, 'type' => ChampsLibre::TYPE_DATE],
+                ['label' => "prix du stock final", 'col' => 11, 'type' => ChampsLibre::TYPE_DATE],
+                ['label' => "alerte mini", 'col' => 12, 'type' => ChampsLibre::TYPE_LIST, 'elements' => 'besoin'],
+                ['label' => "alerte prévision", 'col' => 13, 'type' => ChampsLibre::TYPE_NUMBER],
+                ['label' => "péremption", 'col' => 14, 'type' => ChampsLibre::TYPE_DATE],
             ];
 
             foreach($listFields as $field) {
@@ -161,6 +161,10 @@ class RefArticleCSPFixtures extends Fixture implements FixtureGroupInterface
                         ->setTypage($field['type'])
                         ->setCategorieCL($this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE))
                         ->setType($typeCsp);
+
+                    if ($field['type'] == ChampsLibre::TYPE_LIST) {
+                        $cl->setElements($field['elements']);
+                    }
                     $manager->persist($cl);
                 }
                 $vcl
@@ -177,7 +181,7 @@ class RefArticleCSPFixtures extends Fixture implements FixtureGroupInterface
     }
 
     public static function getGroups():array {
-        return ['articlePDT'];
+        return ['articles'];
     }
 
 }
