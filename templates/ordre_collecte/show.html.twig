@@ -10,12 +10,13 @@
     <div class="col-4">
         <p><strong> Statut : </strong> {{ collecte.statut ? collecte.statut.nom : '' }}</p>
         <p><strong> Numéro : </strong> {{ collecte.numero }}</p>
-        <p><strong> Opérateur : </strong> {{ collecte.demandeCollecte.demandeur.username }}</p>
+        <p><strong> Demandeur : </strong> {{ collecte.demandeCollecte.demandeur.username }}</p>
+        <p><strong> Opérateur : </strong> {{ collecte.utilisateur.username }}</p>
     </div>
     <div class="col-4">
 
         <p><strong> Date de collecte : </strong> {{ collecte.date ? collecte.date|date('d/m/Y') : '' }}</p>
-        <p><strong> Emplacement : </strong> {{collecte.demandeCollecte.pointCollecte.label}}</p>
+        <p><strong> Point de collecte : </strong> {{collecte.demandeCollecte.pointCollecte.label}}</p>
         <p><strong>Destination:</strong>{{ collecte.demandeCollecte.stockOrDestruct ? ' Mise en stock' : ' Destruction' }}
         </p>
     </div>
@@ -35,7 +36,6 @@
         <p><strong>Commentaire:</strong>{{ collecte.demandeCollecte.commentaire|raw }} </p>
     </div>
 </div>
-
 <table id="tableArticle" class="table table-striped table-bordered w-100">
 </table>
 

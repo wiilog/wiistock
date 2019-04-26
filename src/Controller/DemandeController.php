@@ -147,8 +147,7 @@ class DemandeController extends AbstractController
             $date = new \DateTime('now');
             $preparation
                 ->setNumero('P-' . $date->format('YmdHis'))
-                ->setDate($date)
-                ->setUtilisateur($this->getUser());
+                ->setDate($date);
 
             $statutP = $this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
             $preparation->setStatut($statutP);
