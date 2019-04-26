@@ -415,4 +415,33 @@ class ArticleController extends AbstractController
         }
         throw new NotFoundHttpException('404');
     }
+
+    /**
+     * @Route("/ajax-fournisseur-by-refarticle", name="ajax_fournisseur_by_refarticle", options={"expose"=true})
+     */
+    public function ajaxFournisseurByRefArticle(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $refArticle = $this->referenceArticleRepository->find($data['refArticle']);
+            if ($refArticle) {
+                // $fournisseurs = $this->fournisseurRepository->findByRefArticle($refArticle);
+                $articleFournisseurs = $refArticle->getArticlesFournisseur();
+                $fournisseurs = [];
+                foreach ($articleFournisseurs as $articleFournisseur) {
+                    $fournisseurs[] = $articleFournisseur->getFournisseur();
+                }
+                $fournisseursUnique =array_unique($fournisseurs);
+                $json = $this->renderView(
+                    'article/optionFournisseurNewArticle.html.twig',
+                    [
+                        'fournisseurs' => $fournisseursUnique
+                    ]
+                );
+            } else {
+                $json = false; //TODO gérer erreur retour
+            }
+            return new JsonResponse($json);
+        }
+        throw new NotFoundHttpException('404');
+    }
 }
