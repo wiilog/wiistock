@@ -1,7 +1,7 @@
 let pathLivraison = Routing.generate('livraison_api');
 let tableLivraison = $('#tableLivraison_id').DataTable({
     "language": {
-        "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
+        url: "/js/i18n/dataTableLanguage.json",
     },
     "order": [[ 2, "desc" ]],
     ajax: {
@@ -21,7 +21,7 @@ let tableLivraison = $('#tableLivraison_id').DataTable({
 let pathArticle = Routing.generate('livraison_article_api', {'id': id });
 let tableArticle = $('#tableArticle_id').DataTable({
     "language": {
-        "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
+        url: "/js/i18n/dataTableLanguage.json",
     },
     ajax: {
         'url': pathArticle,

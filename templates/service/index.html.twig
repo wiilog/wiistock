@@ -44,5 +44,5 @@
 {% endblock %}
 
 {% block javascript %}
-<script src="{{ asset('js/service.js') }}"></script>
+<script src="{{ asset('js/service.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}
