@@ -208,9 +208,9 @@ class ArticleController extends AbstractController
     public function editApi(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $article = $this->articleRepository->find($data);
+            $article = $this->articleRepository->find((int)$data['id']);
             if ($article) {
-                $json = $this->articleDataService->getViewEditArticle($article);
+                $json = $this->articleDataService->getViewEditArticle($article, $data['isADemand']);
             } else {
                 $json = false;
             }

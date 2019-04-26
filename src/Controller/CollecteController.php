@@ -7,7 +7,7 @@ use App\Entity\Collecte;
 use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
 use App\Entity\CollecteReference;
-use App\Entity\Article;
+use App\Service\ArticleDataService;
 use App\Service\RefArticleDataService;
 use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -74,7 +74,13 @@ class CollecteController extends AbstractController
      */
     private $userService;
 
-    public function __construct(RefArticleDataService $refArticleDataService, CollecteReferenceRepository $collecteReferenceRepository, ReferenceArticleRepository $referenceArticleRepository, StatutRepository $statutRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UtilisateurRepository $utilisateurRepository, UserService $userService)
+    /**
+     * @var ArticleDataService
+     */
+    private $articleDataService;
+
+
+    public function __construct(RefArticleDataService $refArticleDataService, CollecteReferenceRepository $collecteReferenceRepository, ReferenceArticleRepository $referenceArticleRepository, StatutRepository $statutRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArticleDataService $articleDataService)
     {
         $this->statutRepository = $statutRepository;
         $this->emplacementRepository = $emplacementRepository;
@@ -85,6 +91,7 @@ class CollecteController extends AbstractController
         $this->collecteReferenceRepository = $collecteReferenceRepository;
         $this->refArticleDataService = $refArticleDataService;
         $this->userService = $userService;
+        $this->articleDataService = $articleDataService;
     }
 
     /**
@@ -268,10 +275,12 @@ class CollecteController extends AbstractController
 
                     $em->persist($collecteReference);
                 }
-                $response = $this->refArticleDataService->editRefArticle($refArticle, $data);
+                $this->refArticleDataService->editRefArticle($refArticle, $data);
             } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
                 $article = $this->articleRepository->find($data['article']);
                 $collecte->addArticle($article);
+
+                $this->articleDataService->editArticle($data);
             }
             $em->flush();
 
