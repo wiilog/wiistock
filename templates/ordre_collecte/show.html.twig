@@ -3,7 +3,7 @@
 {% block title %}Collecte{% endblock %}
 
 {% block page_content %}
-<h1>Collecte n°{{ collecte.numero }}</h1>
+<h1>Ordre de collecte n°{{ collecte.numero }}</h1>
 
 
 <div class="row">
@@ -14,15 +14,10 @@
     </div>
     <div class="col-4">
 
-        <p><strong> Date de collecte : </strong> {{ collecte.date ? collecte.date|date('d/m/Y') : '' }}
+        <p><strong> Date de collecte : </strong> {{ collecte.date ? collecte.date|date('d/m/Y') : '' }}</p>
+        <p><strong> Emplacement : </strong> {{collecte.demandeCollecte.pointCollecte.label}}</p>
+        <p><strong>Destination:</strong>{{ collecte.demandeCollecte.stockOrDestruct ? ' Mise en stock' : ' Destruction' }}
         </p>
-        <p><strong>Commentaire:</strong>{{ collecte.demandeCollecte.commentaire|raw }} </p>
-    </div>
-    <div class="col-4">
-
-        <p><strong> Emplacement : </strong> {{collecte.demandeCollecte.pointCollecte.label}}
-        </p>
-        <p><strong>Destination:</strong>{{ collecte.demandeCollecte.stockOrDestruct ? ' Mise en stock' : ' Destruction' }} </p>
     </div>
     {% if collecte.statut.nom == constant('App\\Entity\\OrdreCollecte::STATUT_A_TRAITER') %}
 
@@ -35,6 +30,10 @@
         {% endif %}
     </div>
     {% endif %}
+    <div class="col-12">
+
+        <p><strong>Commentaire:</strong>{{ collecte.demandeCollecte.commentaire|raw }} </p>
+    </div>
 </div>
 
 <table id="tableArticle" class="table table-striped table-bordered w-100">
