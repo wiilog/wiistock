@@ -218,6 +218,9 @@ function editRow(button, path, modal, submit, editorToInit = false) {
             ajaxAutoRefArticleInit($('.ajax-autocomplete-edit'));
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
             ajaxAutoUserInit($('.ajax-autocomplete-user-edit'));
+            if ($('#typageModif').val() !== undefined) {   //TODO Moche
+                defaultValueForTypage($('#typageModif'), '-edit');
+            }
 
             displayRequireChamp( $('#typeEdit'), 'edit');
             
