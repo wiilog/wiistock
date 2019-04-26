@@ -14,7 +14,6 @@
  * 
  */
 
-
 function InitialiserModal(modal, submit, path, table, callback = null, close = true) {
     submit.click(function () {
         xhttp = new XMLHttpRequest();
@@ -78,7 +77,6 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
             Data[name] = val;
             // validation données obligatoires
             if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
-                console.log(name);
                 let label = $(this).closest('.form-group').find('label').text();
                 missingInputs.push(label);
                 $(this).addClass('is-invalid');
@@ -220,6 +218,9 @@ function editRow(button, path, modal, submit, editorToInit = false) {
             ajaxAutoRefArticleInit($('.ajax-autocomplete-edit'));
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
             ajaxAutoUserInit($('.ajax-autocomplete-user-edit'));
+
+            displayRequireChamp( $('#typeEdit'), 'edit');
+            
             if (typeof setMaxQuantityEdit === 'function') setMaxQuantityEdit($('#referenceEdit'));
             if (editorToInit) initEditor('#' + modal.attr('id'));
         }
@@ -299,7 +300,7 @@ function setCommentaireID(button) {
 
 //Cache/affiche les bloc des modal edit/new
 function visibleBlockModal(bloc) {
-    let blocContent = bloc.siblings().filter('.col-12');
+    let blocContent = bloc.siblings().filter('.blocVisible');
     let sortUp = bloc.find('h3').find('.fa-sort-up');
     let sortDown = bloc.find('h3').find('.fa-sort-down');
 
@@ -435,35 +436,53 @@ let displayRequireChamp = function (select, require) {
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
             data = JSON.parse(this.responseText);
-            data.forEach(function (element) {
-                $('#' + element + require).addClass('needed');
-            });
+            if (data) {
+                data.forEach(function (element) {
+                    $('#' + element + require).addClass('needed');
+                });
+            }
         }
     }
     let path = Routing.generate('display_require_champ', true);
     let json = {};
-    json[require] = select.val();
-    let Json = JSON.stringify(json);
+    if (select.val()) {
+        json[require] = select.val();
+    } else {
+        json['error'] = null;
+    }
+    let Json = JSON.stringify(json)
     $('#typeContentEdit').find('.data').removeClass('needed');
     xhttp.open("POST", path, true);
     xhttp.send(Json);
 }
 
-function ajaxFournisseurArticle(select) {
-    select.select2({
-        ajax: {
-            url: Routing.generate('get_articleRef_fournisseur'),
-            dataType: 'json',
-            delay: 250,
-        },
-        language: {
-            inputTooShort: function () {
-                return 'Veuillez entrer au moins 1 caractère.';
-            },
-            searching: function () {
-                return 'Recherche en cours...';
-            }
-        },
-        minimumInputLength: 1,
-    });
+// function ajaxFournisseurArticle(select) {
+//     select.select2({
+//         ajax: {
+//             url: Routing.generate('get_articleRef_fournisseur'),
+//             dataType: 'json',
+//             delay: 250,
+//         },
+//         language: {
+//             inputTooShort: function () {
+//                 return 'Veuillez entrer au moins 1 caractère.';
+//             },
+//             searching: function () {
+//                 return 'Recherche en cours...';
+//             }
+//         },
+//         minimumInputLength: 1,
+//     });
+// }
+
+function clearDiv() {
+    $('.clear').html('');
+}
+
+function displayError(modal, msg, data) {
+    if (data === false) {
+        modal.find('.error-msg').html(msg);
+    } else {
+        modal.find('.close').click();
+    }
 }

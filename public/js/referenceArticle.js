@@ -53,7 +53,6 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function () 
             let val = $(this).val();
             let name = $(this).attr("name");
             if (!Data[name] || parseInt(Data[name], 10) === 0) {
-                console.log(name + " " + val);
                 Data[name] = val;
             }
             // validation données obligatoires
@@ -130,7 +129,7 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function () 
 let ModalRefArticleNew = $("#modalNewRefArticle");
 let ButtonSubmitRefArticleNew = $("#submitNewRefArticle");
 let urlRefArticleNew = Routing.generate('reference_article_new', true);
-InitialiserModalRefArticle(ModalRefArticleNew, ButtonSubmitRefArticleNew, urlRefArticleNew, displayError, false);
+InitialiserModalRefArticle(ModalRefArticleNew, ButtonSubmitRefArticleNew, urlRefArticleNew, displayErrorRA, false);
 
 let ModalDeleteRefArticle = $("#modalDeleteRefArticle");
 let SubmitDeleteRefArticle = $("#submitDeleteRefArticle");
@@ -315,14 +314,10 @@ function displayFilterValue(elem) {
     elem.closest('.modal-body').find('.valueLabel').text(label);
 }
 
-function displayError(data) {
+function displayErrorRA(data) {
     let modal = $("#modalNewRefArticle");
-    if (data === false) {
-        let msg = 'Ce nom de référence existe déjà. Vous ne pouvez pas le recréer.';
-        modal.find('.error-msg').html(msg);
-    } else {
-        modal.find('.close').click();
-    }
+    let msg = 'Ce nom de référence existe déjà. Vous ne pouvez pas le recréer.';
+    displayError(modal, msg, data);
 }
 
 let recupIdRefArticle = function (div) {
@@ -360,27 +355,26 @@ function ajaxPlusDemandeContent(button, demande) {
     xhttp.send(Json);
 }
 
+//TODO optimisation plus tard
 let ajaxEditArticle = function (select) {
     xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
             dataReponse = JSON.parse(this.responseText);
-            if (dataReponse.editChampLibre) {
-                $('.editChampLibre').html(dataReponse.editChampLibre);
-                displayRequireChamp($('#typeEditArticle'), 'edit');
-                // initEditor('.editor-container');
+            if (dataReponse) {
+                $('.editChampLibre').html(dataReponse);
+                // displayRequireChamp($('#typeEditArticle'), 'edit');
+                initEditor('.editor-container');
             } else {
                 //TODO gérer erreur
             }
         }
     }
     let json = select.val();
-    let path = Routing.generate('ajax_edit_article', true);
+    let path = Routing.generate('article_api_edit', true);
     xhttp.open("POST", path, true);
     xhttp.send(json);
 }
-
-
 
 //initialisation editeur de texte une seule fois
 var editorNewReferenceArticleAlreadyDone = false;
