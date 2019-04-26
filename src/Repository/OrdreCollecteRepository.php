@@ -47,4 +47,14 @@ class OrdreCollecteRepository extends ServiceEntityRepository
         ;
     }
     */
+    public function findOneByLivraison($collecte)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            'SELECT a
+            FROM App\Entity\OrdreCollecte a
+            WHERE a.collecte = :collecte'
+        )->setParameter('collecte', $collecte);
+        return $query->getOneOrNullResult();
+    }
 }

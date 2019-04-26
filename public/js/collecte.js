@@ -17,7 +17,8 @@ let table = $('#tableCollecte_id').DataTable({
         "type": "POST"
     },
     columns: [
-        { "data": 'Date', 'name': 'Date' },
+        { "data": 'Création', 'name': 'Création' },
+        { "data": 'Validation', 'name': 'Validation'},
         { "data": 'Demandeur', 'name': 'Demandeur'},
         { "data": 'Objet', 'name' : 'Objet' },
         { "data": 'Statut', 'name': 'Statut' },

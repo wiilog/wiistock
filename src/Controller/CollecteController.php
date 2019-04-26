@@ -40,9 +40,9 @@ class CollecteController extends AbstractController
      */
     private $emplacementRepository;
 
-   /**
-     * @var OrdreCollecteRepository
-     */
+    /**
+      * @var OrdreCollecteRepository
+      */
     private $ordrecollecteRepository;
 
     /**
@@ -118,9 +118,7 @@ class CollecteController extends AbstractController
         if (!$this->userService->hasRightFunction(Menu::DEM_COLLECTE, Action::LIST)) {
             return $this->redirectToRoute('access_denied');
         }
-        dump($collecte);
         $ordreCollecte = $this->ordreCollecteRepository->findOneByDemandeCollecte($collecte);
-dump($ordreCollecte);
         return $this->render('collecte/show.html.twig', [
             'refCollecte' => $this->collecteReferenceRepository->getByCollecte($collecte),
             'collecte' => $collecte,
@@ -140,13 +138,23 @@ dump($ordreCollecte);
             }
 
             $collectes = $this->collecteRepository->findAll();
-
+           
             $rows = [];
             foreach ($collectes as $collecte) {
-                $url = $this->generateUrl('collecte_show', ['id' => $collecte->getId()]);
-                $rows[] = [
+              
+              $ordreCollecteDate = "";
+              if ($this->ordreCollecteRepository->findOneByDemandeCollecte($collecte)==null){
+                  $ordreCollecteDate = null;
+
+              }else{
+                $ordreCollecteDate=$this->ordreCollecteRepository->findOneByDemandeCollecte($collecte) -> getDate() ->format('d/m/Y H:i');
+              }
+
+                    $url = $this->generateUrl('collecte_show', ['id' => $collecte->getId()]);
+                    $rows[] = [
                     'id' => ($collecte->getId() ? $collecte->getId() : 'Non défini'),
-                    'Date' => ($collecte->getDate() ? $collecte->getDate()->format('d/m/Y') : null),
+                    'Création' => ($collecte->getDate() ? $collecte->getDate()->format('d/m/Y') : null),                  
+                    'Validation' => $ordreCollecteDate,
                     'Demandeur' => ($collecte->getDemandeur() ? $collecte->getDemandeur()->getUserName() : null),
                     'Objet' => ($collecte->getObjet() ? $collecte->getObjet() : null),
                     'Statut' => ($collecte->getStatut()->getNom() ? ucfirst($collecte->getStatut()->getNom()) : null),
@@ -154,7 +162,8 @@ dump($ordreCollecte);
                         'url' => $url,
                     ]),
                 ];
-            }
+                }
+            
             $data['data'] = $rows;
 
             return new JsonResponse($data);
@@ -396,9 +405,7 @@ dump($ordreCollecte);
             $pointCollecte = $this->emplacementRepository->find($data['Pcollecte']);
             $destination = ($data['destination'] == 0) ? false : true;
 
-            dump($collecte);
             $ordreCollecte = $this->ordreCollecteRepository->findOneByDemandeCollecte($collecte);
-dump($ordreCollecte);
 
             $collecte
                 ->setDate(new \DateTime($data['date-collecte']))
@@ -454,7 +461,6 @@ dump($ordreCollecte);
     public function hasArticles(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-
             $articles = $this->articleRepository->getByCollecte($data['id']);
             $referenceCollectes = $this->collecteReferenceRepository->getByCollecte($data['id']);
             $count = count($articles) + count($referenceCollectes);
