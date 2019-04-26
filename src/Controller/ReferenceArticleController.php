@@ -491,8 +491,10 @@ class ReferenceArticleController extends Controller
 
             $refArticle = $this->referenceArticleRepository->find($data['refArticle']);
             $rows = $refArticle->getId();
-
             $entityManager = $this->getDoctrine()->getManager();
+            if (count($refArticle->getCollecteReferences()) > 0 || count($refArticle->getLigneArticles()) > 0) {
+                return new JsonResponse(false, 250);
+            }
             $entityManager->remove($refArticle);
             $entityManager->flush();
 
@@ -701,7 +703,7 @@ class ReferenceArticleController extends Controller
                     $json = false;
                 }
             } else {
-                $json = false; 
+                $json = false;
             }
             return new JsonResponse($json);
         }

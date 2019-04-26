@@ -28,6 +28,8 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function () 
                 checkboxes.each(function () {
                     $(this).prop('checked', false);
                 })
+            } else if (this.readyState == 4 && this.status == 250) {
+                $('#cannotDeleteArticle').click();
             }
         };
 

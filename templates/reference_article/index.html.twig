@@ -4,6 +4,7 @@
 
 {% block page_content %}
 <h1>Articles de référence</h1>
+<button class="btn" id="cannotDeleteArticle" data-target='#modalCannotDeleteArticle' data-toggle='modal' hidden></button>
 <div class='d-flex justify-content-end'>
     <div data-toggle="modal" data-target="#modalColumnVisible" class="btn btn-action btn-primary">
         <i class="fas fa-cog mr-2"></i>Modifier colonnes
@@ -52,6 +53,7 @@
 {% include "reference_article/modalColumnVisible.html.twig" %}
 {% include "reference_article/modalPlusDemande.html.twig" %}
 {% include "reference_article/modalConfirmDeleteBox.html.twig" %}
+{% include "reference_article/modalCantDeleteArticle.html.twig" %}
 
 {% endblock %}
 {% block javascript %}
