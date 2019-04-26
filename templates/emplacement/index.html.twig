@@ -29,5 +29,5 @@
 {% endblock %}
 
 {% block javascript %}
-<script src="{{ asset('js/emplacement.js') }}"></script>
+<script src="{{ asset('js/emplacement.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

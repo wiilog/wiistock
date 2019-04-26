@@ -9,6 +9,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\EquatableInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+
 /**
  * @ORM\Entity(repositoryClass="App\Repository\UtilisateurRepository")
  * @UniqueEntity(fields="email", message="Cette adresse email est déjà utilisée.")
@@ -130,34 +131,34 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->filters = new ArrayCollection();
         $this->ordreCollectes = new ArrayCollection();
     }
-    
+
     public function getId()
     {
         return $this->id;
     }
-    public function getUsername() : ? string
+    public function getUsername(): ?string
     {
         return $this->username;
     }
-    public function setUsername(string $username) : self
+    public function setUsername(string $username): self
     {
         $this->username = $username;
         return $this;
     }
-    public function getEmail() : ? string
+    public function getEmail(): ?string
     {
         return $this->email;
     }
-    public function setEmail(string $email) : self
+    public function setEmail(string $email): self
     {
         $this->email = $email;
         return $this;
     }
-    public function getPassword() : ? string
+    public function getPassword(): ?string
     {
         return $this->password;
     }
-    public function setPassword(string $password) : self
+    public function setPassword(string $password): self
     {
         $this->password = $password;
         return $this;
@@ -180,14 +181,13 @@ class Utilisateur implements UserInterface, EquatableInterface
     {
         return $this->roles;
     }
-    public function setRoles(array $roles) : self
+    public function setRoles(array $roles): self
     {
         $this->roles = $roles;
         return $this;
     }
     public function eraseCredentials()
-    {
-    }
+    { }
     public function isEqualTo(UserInterface $user)
     {
         if (!$user instanceof Utilisateur) {
@@ -201,11 +201,11 @@ class Utilisateur implements UserInterface, EquatableInterface
         }
         return true;
     }
-    public function getLastLogin() : ? \DateTimeInterface
+    public function getLastLogin(): ?\DateTimeInterface
     {
         return $this->lastLogin;
     }
-    public function setLastLogin(? \DateTimeInterface $lastLogin) : self
+    public function setLastLogin(?\DateTimeInterface $lastLogin): self
     {
         $this->lastLogin = $lastLogin;
         return $this;
@@ -213,11 +213,11 @@ class Utilisateur implements UserInterface, EquatableInterface
     /**
      * @return Collection|Reception[]
      */
-    public function getReceptions() : Collection
+    public function getReceptions(): Collection
     {
         return $this->receptions;
     }
-    public function addReception(Reception $reception) : self
+    public function addReception(Reception $reception): self
     {
         if (!$this->receptions->contains($reception)) {
             $this->receptions[] = $reception;
@@ -225,7 +225,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         }
         return $this;
     }
-    public function removeReception(Reception $reception) : self
+    public function removeReception(Reception $reception): self
     {
         if ($this->receptions->contains($reception)) {
             $this->receptions->removeElement($reception);
@@ -243,11 +243,11 @@ class Utilisateur implements UserInterface, EquatableInterface
     /**
      * @return Collection|Demande[]
      */
-    public function getDemandes() : Collection
+    public function getDemandes(): Collection
     {
         return $this->demandes;
     }
-    public function addDemande(Demande $demande) : self
+    public function addDemande(Demande $demande): self
     {
         if (!$this->demandes->contains($demande)) {
             $this->demandes[] = $demande;
@@ -255,7 +255,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         }
         return $this;
     }
-    public function removeDemande(Demande $demande) : self
+    public function removeDemande(Demande $demande): self
     {
         if ($this->demandes->contains($demande)) {
             $this->demandes->removeElement($demande);
@@ -269,11 +269,11 @@ class Utilisateur implements UserInterface, EquatableInterface
     /**
      * @return Collection|Alerte[]
      */
-    public function getUtilisateurAlertes() : Collection
+    public function getUtilisateurAlertes(): Collection
     {
         return $this->UtilisateurAlertes;
     }
-    public function addUtilisateurAlerte(Alerte $utilisateurAlerte) : self
+    public function addUtilisateurAlerte(Alerte $utilisateurAlerte): self
     {
         if (!$this->UtilisateurAlertes->contains($utilisateurAlerte)) {
             $this->UtilisateurAlertes[] = $utilisateurAlerte;
@@ -281,7 +281,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         }
         return $this;
     }
-    public function removeUtilisateurAlerte(Alerte $utilisateurAlerte) : self
+    public function removeUtilisateurAlerte(Alerte $utilisateurAlerte): self
     {
         if ($this->UtilisateurAlertes->contains($utilisateurAlerte)) {
             $this->UtilisateurAlertes->removeElement($utilisateurAlerte);
@@ -295,11 +295,11 @@ class Utilisateur implements UserInterface, EquatableInterface
     /**
      * @return Collection|Collecte[]
      */
-    public function getCollectes() : Collection
+    public function getCollectes(): Collection
     {
         return $this->collectes;
     }
-    public function addCollecte(Collecte $collecte) : self
+    public function addCollecte(Collecte $collecte): self
     {
         if (!$this->collectes->contains($collecte)) {
             $this->collectes[] = $collecte;
@@ -307,7 +307,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         }
         return $this;
     }
-    public function removeCollecte(Collecte $collecte) : self
+    public function removeCollecte(Collecte $collecte): self
     {
         if ($this->collectes->contains($collecte)) {
             $this->collectes->removeElement($collecte);
@@ -321,11 +321,11 @@ class Utilisateur implements UserInterface, EquatableInterface
     /**
      * @return Collection|Preparation[]
      */
-    public function getPreparations() : Collection
+    public function getPreparations(): Collection
     {
         return $this->preparations;
     }
-    public function addPreparation(Preparation $preparation) : self
+    public function addPreparation(Preparation $preparation): self
     {
         if (!$this->preparations->contains($preparation)) {
             $this->preparations[] = $preparation;
@@ -333,7 +333,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         }
         return $this;
     }
-    public function removePreparation(Preparation $preparation) : self
+    public function removePreparation(Preparation $preparation): self
     {
         if ($this->preparations->contains($preparation)) {
             $this->preparations->removeElement($preparation);

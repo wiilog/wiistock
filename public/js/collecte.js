@@ -9,7 +9,7 @@ $('#utilisateur').select2({
 let pathCollecte = Routing.generate('collecte_api', true);
 let table = $('#tableCollecte_id').DataTable({
     "language": {
-        "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
+        url: "/js/i18n/dataTableLanguage.json",
     },
     "order": [[0, "desc"]],
     ajax: {
@@ -58,7 +58,7 @@ InitialiserModal(modalModifyCollecte, submitModifyCollecte, urlModifyCollecte, t
 let pathAddArticle = Routing.generate('collecte_article_api', { 'id': id }, true);
 let tableArticle = $('#tableArticle_id').DataTable({
     language: {
-        "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
+        url: "/js/i18n/dataTableLanguage.json",
     },
     ajax: {
         "url": pathAddArticle,
@@ -257,8 +257,8 @@ let ajaxEditArticle = function (select) {
             }
         }
     }
-    let json = select.val();
+    let json = { id :select.val(), isADemand:1};
     let path = Routing.generate('article_api_edit', true);
     xhttp.open("POST", path, true);
-    xhttp.send(json);
+    xhttp.send(JSON.stringify(json));
 }

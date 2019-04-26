@@ -9,7 +9,7 @@ $('#utilisateur').select2({
 let pathService = Routing.generate('service_api', true);
 let tableService = $('#tableService_id').DataTable({
     "language": {
-        "url": "//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/French.json"
+        url: "/js/i18n/dataTableLanguage.json",
     },
     "order": [[0, "desc"]],
     ajax: {
