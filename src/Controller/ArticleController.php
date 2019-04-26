@@ -292,9 +292,8 @@ class ArticleController extends AbstractController
             }
             $article = $this->articleRepository->find($data['article']);
             $rows = $article->getId();
-            if (count($article->getCollectes()) > 0 || $article->getDemande() !== null) {
+            if (count($article->getCollectes()) > 0 || $article->getDemande() !== null)
                 return new JsonResponse(false, 250);
-            }
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($article);
             $entityManager->flush();
