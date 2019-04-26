@@ -736,51 +736,13 @@ class ReferenceArticleController extends Controller
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
             }
-
             $articleRef  = $this->referenceArticleRepository->find($data);
-
             if ($articleRef) {
-                $data  = $this->refArticleDataService->getDataEditForRefArticle($articleRef);
-                $type = $this->typeRepository->getIdAndLabelByCategoryLabel(ReferenceArticle::CATEGORIE_TYPE);
-                $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
-                $typeChampLibre =  [];
-                foreach ($type as $label) {
-                    $champsLibresComplet = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($label['label'], $categorieCL);
-                    $champsLibres = [];
-                    //création array edit pour vue
-                    foreach ($champsLibresComplet as $champLibre) {
-                        $valeurChampRefArticle = $this->valeurChampsLibreRepository->findOneByRefArticleANDChampsLibre($articleRef->getId(), $champLibre);
-                        $champsLibres[] = [
-                            'id' => $champLibre->getId(),
-                            'label' => $champLibre->getLabel(),
-                            'typage' => $champLibre->getTypage(),
-                            'elements' => ($champLibre->getElements() ? $champLibre->getElements() : ''),
-                            'defaultValue' => $champLibre->getDefaultValue(),
-                            'valeurChampLibre' => $valeurChampRefArticle
-                        ];
-                    }
-                    $typeChampLibre[] = [
-                        'typeLabel' =>  $label['label'],
-                        'typeId' => $label['id'],
-                        'champsLibres' => $champsLibres,
-                    ];
-                }
-                $json  = $this->renderView(
-                    'reference_article/modalShowRefArticleContent.html.twig',
-                    [
-                        'articleRef' => $articleRef,
-                        'statut' => ($articleRef->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF),
-                        'valeurChampsLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
-                        'typeChampsLibres' => $typeChampLibre,
-                        'valeurChampsLibre' => isset($data['valeurChampLibre'])  ? $data['valeurChampLibre'] : null,
-                        'articlesFournisseur' => $data['listArticlesFournisseur'],
-                        'totalQuantity' => $data['totalQuantity'],
-                        'articles' => $this->articleFournisseurRepository->getByRefArticle($articleRef->getId())
-                    ]
-                );
-
-                return new JsonResponse($json);
+               $json = $this->refArticleDataService->getViewEditRefArticle($articleRef);
+            }else{
+                return $json = false; 
             }
+            return new JsonResponse($json);
         }
         throw new NotFoundHttpException('404');
     }
