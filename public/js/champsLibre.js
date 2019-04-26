@@ -92,6 +92,17 @@ function askForDeleteConfirmation(data) {
     }
 }
 
+let defaultValueForTypage = function (select, cible) {
+    let valueDefault =  $('#valueDefault'+cible);
+    valueDefault.find('.form-group').addClass('d-none');
+    valueDefault.find('input').removeClass('data');
+
+    let typage = select.val();
+    let defaultBloc = $('#'+typage+cible);
+    defaultBloc.removeClass('d-none');
+    defaultBloc.find('input').addClass('data');
+}
+
 $(document).ready(function () {
     $('#typage').change(function () {
         if ($(this).val() === 'list') {
@@ -127,6 +138,4 @@ function displayErrorType(data) {
     let msg = 'Ce nom de type existe déjà. Veuillez en choisir un autre.';
     displayError(modal, msg, data);
 }
-
-
 

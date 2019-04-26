@@ -286,8 +286,8 @@ let ajaxEditArticle = function (select) {
             }
         }
     }
-    let json = select.val();
+    let json = { id :select.val(), isADemand:1};
     let path = Routing.generate('article_api_edit', true);
     xhttp.open("POST", path, true);
-    xhttp.send(json);
+    xhttp.send(JSON.stringify(json));
 }

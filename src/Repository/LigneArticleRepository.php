@@ -75,7 +75,7 @@ class LigneArticleRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
-    public function findByRefArticle($refArticle)
+    public function findOneByRefArticle($refArticle)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
@@ -84,7 +84,7 @@ class LigneArticleRepository extends ServiceEntityRepository
             WHERE la.reference = :refArticle"
         )->setParameter('refArticle', $refArticle);
 
-        return $query->getOneOrNullResult();
+        return $query->getResult();
     }
 
     //    public function countByArticle($referenceArticle)
