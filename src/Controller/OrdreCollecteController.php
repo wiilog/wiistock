@@ -91,27 +91,27 @@ class OrdreCollecteController extends AbstractController
     public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-                if (!$this->userService->hasRightFunction(Menu::COLLECTE, Action::LIST)) {
-                    return $this->redirectToRoute('access_denied');
-                }
-
-                $collectes = $this->ordreCollecteRepository->findAll();
-                $rows = [];
-                foreach ($collectes as $collecte) {
-                    $url['show'] = $this->generateUrl('ordre_collecte_show', ['id' => $collecte->getId()]);
-                    $rows[] = [
-                        'id' => ($collecte->getId() ? $collecte->getId() : ''),
-                        'Numéro' => ($collecte->getNumero() ? $collecte->getNumero() : ''),
-                        'Date' => ($collecte->getDate() ? $collecte->getDate()->format('d-m-Y') : ''),
-                        'Statut' => ($collecte->getStatut() ? $collecte->getStatut()->getNom() : ''),
-                        'Opérateur' => ($collecte->getUtilisateur() ? $collecte->getUtilisateur()->getUsername() : ''),
-                        'Actions' => $this->renderView('ordre_collecte/datatableCollecteRow.html.twig', ['url' => $url])
-                    ];
-                }
-
-                $data['data'] = $rows;
-                return new JsonResponse($data);
+            if (!$this->userService->hasRightFunction(Menu::COLLECTE, Action::LIST)) {
+                return $this->redirectToRoute('access_denied');
             }
+
+            $collectes = $this->ordreCollecteRepository->findAll();
+            $rows = [];
+            foreach ($collectes as $collecte) {
+                $url['show'] = $this->generateUrl('ordre_collecte_show', ['id' => $collecte->getId()]);
+                $rows[] = [
+                    'id' => ($collecte->getId() ? $collecte->getId() : ''),
+                    'Numéro' => ($collecte->getNumero() ? $collecte->getNumero() : ''),
+                    'Date' => ($collecte->getDate() ? $collecte->getDate()->format('d-m-Y') : ''),
+                    'Statut' => ($collecte->getStatut() ? $collecte->getStatut()->getNom() : ''),
+                    'Opérateur' => ($collecte->getUtilisateur() ? $collecte->getUtilisateur()->getUsername() : ''),
+                    'Actions' => $this->renderView('ordre_collecte/datatableCollecteRow.html.twig', ['url' => $url])
+                ];
+            }
+
+            $data['data'] = $rows;
+            return new JsonResponse($data);
+        }
         throw new NotFoundHttpException("404");
     }
 
@@ -143,6 +143,7 @@ class OrdreCollecteController extends AbstractController
 
             // on modifie le statut de l'ordre de collecte
             $collecte
+                ->setUtilisateur($this->getUser())
                 ->setStatut($this->statutRepository->findOneByCategorieAndStatut(OrdreCollecte::CATEGORIE, OrdreCollecte::STATUT_TRAITE))
                 ->setDate(new \DateTime('now'));
 
@@ -192,51 +193,51 @@ class OrdreCollecteController extends AbstractController
     public function apiArticle(Request $request, OrdreCollecte $collecte): Response
     {
         if ($request->isXmlHttpRequest()) {
-                if (!$this->userService->hasRightFunction(Menu::COLLECTE, Action::LIST)) {
-                    return $this->redirectToRoute('access_denied');
-                }
-
-                $demande = $collecte->getDemandeCollecte();
-
-                if ($demande) {
-
-                    $rows = [];
-
-                    $ligneArticle = $this->collecteReferenceRepository->getByCollecte($demande->getId());
-                    foreach ($ligneArticle as $ligneArticle) {
-                        /** @var CollecteReference $ligneArticle */
-                        $referenceArticle = $ligneArticle->getReferenceArticle();
-                        $rows[] = [
-                            "Référence CEA" => $referenceArticle ? $referenceArticle->getReference() : ' ',
-                            "Libellé" => $referenceArticle ? $referenceArticle->getLibelle() : ' ',
-                            "Quantité" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ' '),
-                            "Actions" => $this->renderView('ordre_collecte/datatableOrdreCollecteRow.html.twig', [
-                                'id' => $ligneArticle->getId(),
-                                'modifiable' => $collecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER,
-                            ])
-                        ];
-                    }
-
-                    $articles = $this->articleRepository->getByCollecte($demande->getId());
-                    foreach ($articles as $article) {
-                        /** @var Article $article */
-                        $rows[] = [
-                            'Référence CEA' => $article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
-                            'Libellé' => $article->getLabel(),
-                            'Quantité' => $article->getQuantite(),
-                            "Actions" => $this->renderView('ordre_collecte/datatableOrdreCollecteRow.html.twig', [
-                                'id' => $article->getId(),
-                                'modifiable' => $collecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER,
-                            ])
-                        ];
-                    }
-
-                    $data['data'] = $rows;
-                } else {
-                    $data = false; //TODO gérer retour message erreur
-                }
-                return new JsonResponse($data);
+            if (!$this->userService->hasRightFunction(Menu::COLLECTE, Action::LIST)) {
+                return $this->redirectToRoute('access_denied');
             }
+
+            $demande = $collecte->getDemandeCollecte();
+
+            if ($demande) {
+
+                $rows = [];
+
+                $ligneArticle = $this->collecteReferenceRepository->getByCollecte($demande->getId());
+                foreach ($ligneArticle as $ligneArticle) {
+                    /** @var CollecteReference $ligneArticle */
+                    $referenceArticle = $ligneArticle->getReferenceArticle();
+                    $rows[] = [
+                        "Référence CEA" => $referenceArticle ? $referenceArticle->getReference() : ' ',
+                        "Libellé" => $referenceArticle ? $referenceArticle->getLibelle() : ' ',
+                        "Quantité" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ' '),
+                        "Actions" => $this->renderView('ordre_collecte/datatableOrdreCollecteRow.html.twig', [
+                            'id' => $ligneArticle->getId(),
+                            'modifiable' => $collecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER,
+                        ])
+                    ];
+                }
+
+                $articles = $this->articleRepository->getByCollecte($demande->getId());
+                foreach ($articles as $article) {
+                    /** @var Article $article */
+                    $rows[] = [
+                        'Référence CEA' => $article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
+                        'Libellé' => $article->getLabel(),
+                        'Quantité' => $article->getQuantite(),
+                        "Actions" => $this->renderView('ordre_collecte/datatableOrdreCollecteRow.html.twig', [
+                            'id' => $article->getId(),
+                            'modifiable' => $collecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER,
+                        ])
+                    ];
+                }
+
+                $data['data'] = $rows;
+            } else {
+                $data = false; //TODO gérer retour message erreur
+            }
+            return new JsonResponse($data);
+        }
         throw new NotFoundHttpException("404");
     }
 
@@ -257,7 +258,6 @@ class OrdreCollecteController extends AbstractController
             ->setDate($date)
             ->setNumero('C-' . $date->format('YmdHis'))
             ->setStatut($statut)
-            ->setUtilisateur($this->getUser())
             ->setDemandeCollecte($demandeCollecte);
         $entityManager = $this->getDoctrine()->getManager();
         $entityManager->persist($ordreCollecte);
