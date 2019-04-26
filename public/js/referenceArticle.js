@@ -370,14 +370,15 @@ let ajaxEditArticle = function (select) {
             dataReponse = JSON.parse(this.responseText);
             if (dataReponse) {
                 $('.editChampLibre').html(dataReponse);
-                // displayRequireChamp($('#typeEditArticle'), 'edit');
+                ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
+                displayRequireChamp($('#typeEditArticle'), 'edit');
                 initEditor('.editor-container');
             } else {
                 //TODO gérer erreur
             }
         }
     }
-    let json = { id :select.val(), isADemand:0};
+    let json = { id :select.val(), isADemand:1};
     let path = Routing.generate('article_api_edit', true);
     xhttp.open("POST", path, true);
     xhttp.send(JSON.stringify(json));
