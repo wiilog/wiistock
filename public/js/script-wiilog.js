@@ -478,3 +478,11 @@ let displayRequireChamp = function (select, require) {
 function clearDiv() {
     $('.clear').html('');
 }
+
+function displayError(modal, msg, data) {
+    if (data === false) {
+        modal.find('.error-msg').html(msg);
+    } else {
+        modal.find('.close').click();
+    }
+}

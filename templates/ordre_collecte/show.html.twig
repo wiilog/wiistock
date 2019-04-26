@@ -41,6 +41,6 @@
 {% endblock %}
 {% block javascript %}
 
-<script src="{{ asset('js/ordre-collecte-show.js') }}"></script>
+<script src="{{ asset('js/ordre-collecte-show.js') }}?{{ date().timestamp }}"></script>
 
 {% endblock %}

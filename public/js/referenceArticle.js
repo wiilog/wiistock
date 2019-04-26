@@ -129,7 +129,7 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function () 
 let ModalRefArticleNew = $("#modalNewRefArticle");
 let ButtonSubmitRefArticleNew = $("#submitNewRefArticle");
 let urlRefArticleNew = Routing.generate('reference_article_new', true);
-InitialiserModalRefArticle(ModalRefArticleNew, ButtonSubmitRefArticleNew, urlRefArticleNew, displayError, false);
+InitialiserModalRefArticle(ModalRefArticleNew, ButtonSubmitRefArticleNew, urlRefArticleNew, displayErrorRA, false);
 
 let ModalDeleteRefArticle = $("#modalDeleteRefArticle");
 let SubmitDeleteRefArticle = $("#submitDeleteRefArticle");
@@ -314,14 +314,10 @@ function displayFilterValue(elem) {
     elem.closest('.modal-body').find('.valueLabel').text(label);
 }
 
-function displayError(data) {
+function displayErrorRA(data) {
     let modal = $("#modalNewRefArticle");
-    if (data === false) {
-        let msg = 'Ce nom de référence existe déjà. Vous ne pouvez pas le recréer.';
-        modal.find('.error-msg').html(msg);
-    } else {
-        modal.find('.close').click();
-    }
+    let msg = 'Ce nom de référence existe déjà. Vous ne pouvez pas le recréer.';
+    displayError(modal, msg, data);
 }
 
 let recupIdRefArticle = function (div) {
