@@ -334,10 +334,10 @@ class CollecteController extends AbstractController
                 $collecteReference = $this->collecteReferenceRepository->find($data[ReferenceArticle::TYPE_QUANTITE_REFERENCE]);
                 $entityManager->remove($collecteReference);
             } elseif (array_key_exists(ReferenceArticle::TYPE_QUANTITE_ARTICLE, $data)) {
-                $article = $this->articleRepository->find($data[ReferenceArticle::TYPE_QUANTITE_ARTICLE]);
-                $collecte = $this->collecteRepository->find($data['collecte']);
-
-                $article->removeCollecte($collecte);
+                $collecteReference = $this->collecteReferenceRepository->find($data[ReferenceArticle::TYPE_QUANTITE_ARTICLE]);
+                $articleRef = $collecteReference->getReferenceArticle();
+                $articleRef->removeCollecteReference($collecteReference);
+                $entityManager->remove($collecteReference);
             }
             $entityManager->flush();
 

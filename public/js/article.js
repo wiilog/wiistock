@@ -69,6 +69,8 @@ function InitialiserModalArticle(modal, submit, path, callback = function () { }
                 checkboxes.each(function () {
                     $(this).prop('checked', false);
                 })
+            } else if (this.readyState == 4 && this.status == 250) {
+                $('#cannotDeleteArticle').click();
             }
         };
 
@@ -180,7 +182,7 @@ function loadAndDisplayInfos(select) {
 let getArticleFournisseur = function () {
     xhttp = new XMLHttpRequest();
     let $articleFourn = $('#newContent');
-    let modalfooter =  $('#modalNewArticle').find('.modal-footer');
+    let modalfooter = $('#modalNewArticle').find('.modal-footer');
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
             data = JSON.parse(this.responseText);

@@ -270,10 +270,10 @@ class ArticleController extends AbstractController
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
-            if ($data['article']){
+            if ($data['article']) {
                 $this->articleDataService->editArticle($data);
                 $json = true;
-            }else {
+            } else {
                 $json = false;
             }
             return new JsonResponse($json);
@@ -292,7 +292,9 @@ class ArticleController extends AbstractController
             }
             $article = $this->articleRepository->find($data['article']);
             $rows = $article->getId();
-
+            if (count($article->getCollectes()) > 0 || $article->getDemande() !== null) {
+                return new JsonResponse(false, 250);
+            }
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($article);
             $entityManager->flush();
