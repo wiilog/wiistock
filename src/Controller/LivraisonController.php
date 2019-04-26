@@ -40,8 +40,8 @@ class LivraisonController extends AbstractController
     private $emplacementRepository;
 
     /**
-    * @var ReferenceArticleRepository
-    */
+     * @var ReferenceArticleRepository
+     */
     private $referenceArticleRepository;
 
     /**
@@ -100,8 +100,8 @@ class LivraisonController extends AbstractController
     }
 
     /**
-    *  @Route("/creer/{id}", name="livraison_new", methods={"GET","POST"} )
-    */
+     *  @Route("/creer/{id}", name="livraison_new", methods={"GET","POST"} )
+     */
     public function new($id): Response
     {
         if (!$this->userService->hasRightFunction(Menu::LIVRAISON, Action::CREATE)) {
@@ -118,12 +118,13 @@ class LivraisonController extends AbstractController
         $livraison
             ->setDate($date)
             ->setNumero('L-' . $date->format('YmdHis'))
-            ->setStatut($statut)
-            ->setUtilisateur($this->getUser());
+            ->setStatut($statut);
         $entityManager = $this->getDoctrine()->getManager();
         $entityManager->persist($livraison);
-        $preparation->addLivraison($livraison);
-        $preparation->setStatut($this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_PREPARE));
+        $preparation
+            ->addLivraison($livraison)
+            ->setUtilisateur($this->getUser())
+            ->setStatut($this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_PREPARE));
 
         $demande
             ->setStatut($this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_PREPARE))
@@ -160,16 +161,19 @@ class LivraisonController extends AbstractController
         if ($livraison->getStatut()->getnom() ===  Livraison::STATUT_A_TRAITER) {
             $livraison
                 ->setStatut($this->statutRepository->findOneByCategorieAndStatut(Livraison::CATEGORIE, Livraison::STATUT_LIVRE))
+                ->setUtilisateur($this->getUser())
                 ->setDateFin(new \DateTime('now'));
 
-            $demande = $this->demandeRepository->getByLivraison($livraison->getId()); /** @var Demande $demande */
+            $demande = $this->demandeRepository->getByLivraison($livraison->getId());
+            /** @var Demande $demande */
             $statutLivre = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_LIVRE);
             $demande->setStatut($statutLivre);
 
             $this->mailerService->sendMail(
                 'FOLLOW GT // Livraison effectuée',
                 $this->renderView('mails/mailLivraisonDone.html.twig', ['livraison' => $demande]),
-                $demande->getUtilisateur()->getEmail());
+                $demande->getUtilisateur()->getEmail()
+            );
 
             $ligneArticles = $this->ligneArticleRepository->getByDemande($demande);
 
@@ -205,13 +209,13 @@ class LivraisonController extends AbstractController
             foreach ($livraisons as $livraison) {
                 $url['show'] = $this->generateUrl('livraison_show', ['id' => $livraison->getId()]);
                 $rows[] = [
-                        'id' => ($livraison->getId() ? $livraison->getId() : ''),
-                        'Numéro' => ($livraison->getNumero() ? $livraison->getNumero() : ''),
-                        'Date' => ($livraison->getDate() ? $livraison->getDate()->format('d-m-Y') : ''),
-                        'Statut' => ($livraison->getStatut() ? $livraison->getStatut()->getNom() : ''),
-                        'Opérateur' => ($livraison->getUtilisateur() ? $livraison->getUtilisateur()->getUsername() : ''),
-                        'Actions' => $this->renderView('livraison/datatableLivraisonRow.html.twig', ['url' => $url])
-                    ];
+                    'id' => ($livraison->getId() ? $livraison->getId() : ''),
+                    'Numéro' => ($livraison->getNumero() ? $livraison->getNumero() : ''),
+                    'Date' => ($livraison->getDate() ? $livraison->getDate()->format('d-m-Y') : ''),
+                    'Statut' => ($livraison->getStatut() ? $livraison->getStatut()->getNom() : ''),
+                    'Opérateur' => ($livraison->getUtilisateur() ? $livraison->getUtilisateur()->getUsername() : ''),
+                    'Actions' => $this->renderView('livraison/datatableLivraisonRow.html.twig', ['url' => $url])
+                ];
             }
 
             $data['data'] = $rows;
@@ -225,8 +229,7 @@ class LivraisonController extends AbstractController
      */
     public function apiArticle(Request $request, Livraison $livraison): Response
     {
-        if ($request->isXmlHttpRequest())
-            {
+        if ($request->isXmlHttpRequest()) {
                 if (!$this->userService->hasRightFunction(Menu::LIVRAISON, Action::LIST)) {
                     return $this->redirectToRoute('access_denied');
                 }
@@ -246,9 +249,10 @@ class LivraisonController extends AbstractController
                     }
 
                     $articles = $this->articleRepository->getByDemande($demande);
-                    foreach ($articles as $article) { /** @var Article $article */
+                    foreach ($articles as $article) {
+                        /** @var Article $article */
                         $rows[] = [
-                            "Référence CEA" => $article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference(): '',
+                            "Référence CEA" => $article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
                             "Libellé" => $article->getLabel() ? $article->getLabel() : '',
                             "Quantité" => '',
                         ];
@@ -273,7 +277,7 @@ class LivraisonController extends AbstractController
         }
 
         return $this->render('livraison/show.html.twig', [
-            'comLivraison'=> $this->demandeRepository->findOneByLivraison($livraison),
+            'demande' => $this->demandeRepository->findOneByLivraison($livraison),
             'livraison' => $livraison,
             'preparation' => $this->preparationRepository->find($livraison->getPreparation()->getId()),
             'finished' => ($livraison->getStatut()->getNom() === Livraison::STATUT_LIVRE)
@@ -308,7 +312,8 @@ class LivraisonController extends AbstractController
             $entityManager->flush();
             $data = [
                 'redirect' => $this->generateUrl('preparation_show', [
-                    'id' => $livraison->getPreparation()->getId()]),
+                    'id' => $livraison->getPreparation()->getId()
+                ]),
             ];
 
             return new JsonResponse($data);

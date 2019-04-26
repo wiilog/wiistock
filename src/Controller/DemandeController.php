@@ -147,8 +147,7 @@ class DemandeController extends AbstractController
             $date = new \DateTime('now');
             $preparation
                 ->setNumero('P-' . $date->format('YmdHis'))
-                ->setDate($date)
-                ->setUtilisateur($this->getUser());
+                ->setDate($date);
 
             $statutP = $this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
             $preparation->setStatut($statutP);
@@ -509,7 +508,7 @@ class DemandeController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $ligneArticle = $this->ligneArticleRepository->getQuantity($data);
+            $ligneArticle = $this->ligneArticleRepository->getQuantity($data['id']);
             $json = $this->renderView('demande/modalEditArticleContent.html.twig', [
                 'ligneArticle' => $ligneArticle,
             ]);
