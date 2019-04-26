@@ -1,0 +1,8 @@
+{% if fournisseurs | length > 0 %}
+    <option value="">Choisir un fournisseur...</option>
+    {% for fournisseur in fournisseurs %}
+    <option value="{{fournisseur.id}}">{{fournisseur.nom}}</option>
+    {% endfor %}
+{% else %}
+    <option value="">aucun fournisseur trouvé</option>
+{% endif %}

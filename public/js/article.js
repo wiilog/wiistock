@@ -180,7 +180,7 @@ function loadAndDisplayInfos(select) {
 let getArticleFournisseur = function () {
     xhttp = new XMLHttpRequest();
     let $articleFourn = $('#newContent');
-    let modalfooter =  $('#modalNewArticle').find('.modal-footer');
+    let modalfooter = $('#modalNewArticle').find('.modal-footer');
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
             data = JSON.parse(this.responseText);
@@ -199,8 +199,9 @@ let getArticleFournisseur = function () {
     }
     path = Routing.generate('ajax_article_new_content', true)
     let data = {};
+    $('#newContent').html('');
     data['referenceArticle'] = $('#referenceCEA').val();
-    data['fournisseur'] = $('#fournisseur').val();
+    data['fournisseur'] = $('#fournisseurID').val();
     $articleFourn.html('')
     modalfooter.addClass('d-none')
     if (data['referenceArticle'] && data['fournisseur']) {
@@ -208,4 +209,27 @@ let getArticleFournisseur = function () {
         xhttp.open("POST", path, true);
         xhttp.send(json);
     }
+}
+
+let ajaxGetFournisseurByRefArticle = function (select) {
+    let fournisseur = $('#fournisseur'); 
+    let modalfooter = $('#modalNewArticle').find('.modal-footer');
+    xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            data = JSON.parse(this.responseText);
+            fournisseur.removeClass('d-none');
+            fournisseur.find('select').html(data);
+        }
+    }
+    path = Routing.generate('ajax_fournisseur_by_refarticle', true)
+    $('#newContent').html('');
+    fournisseur.addClass('d-none');
+    modalfooter.addClass('d-none')
+    let refArticleId = select.val();
+    let json = {};
+    json['refArticle'] = refArticleId;
+    Json = JSON.stringify(json);
+    xhttp.open("POST", path, true);
+    xhttp.send(Json);
 }
