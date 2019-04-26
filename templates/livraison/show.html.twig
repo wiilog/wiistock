@@ -17,6 +17,8 @@
 
         <p><strong> Date de livraison : </strong> {{ livraison.dateFin ? livraison.dateFin|date('d/m/Y') : '' }}
         </p>
+        <p><strong> Commentaire : </strong> {{ (comLivraison.commentaire|raw) }}
+        </p>
     </div>
     {% if livraison.statut.nom == 'à traiter' %}
     <div class="col-4 d-flex">

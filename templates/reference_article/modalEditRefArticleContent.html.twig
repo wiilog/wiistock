@@ -158,9 +158,9 @@
                         value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}">
 
                     {% else %}
-
                     <input disabled>
                     {% endif %}
+                    
                 </div>
                 {% endfor %}
             </div>
@@ -168,6 +168,7 @@
         {% endfor %}
     </div>
 </div>
+<!-- Reference Fournisseur -->
 <div class="row mt-4">
     <div class='col-12 mb-2' onclick="visibleBlockModal($(this))">
         <h3 class='d-flex pointer'>
@@ -176,7 +177,7 @@
             Articles Fournisseurs
         </h3>
     </div>
-    <div class="form-group col-12 d-block">
+    <div class="form-group blocVisible col-12 d-none">
         <div class="form-group col-1">
             <span class="btn btn-primary" onclick="addFournisseurEdit($(this))"><i class="fa fa-plus"></i></span>
         </div>

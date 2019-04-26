@@ -273,6 +273,7 @@ class PreparationController extends AbstractController
         }
 
         return $this->render('preparation/show.html.twig', [
+            'demande'=> $this->demandeRepository->findOneByPreparation($preparation),
             'preparation' => $preparation,
             'finished' => ($preparation->getStatut()->getNom() === Preparation::STATUT_A_TRAITER),
             'articles' => $this->articleRepository->getArticleByRefId(),

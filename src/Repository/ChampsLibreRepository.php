@@ -116,9 +116,9 @@ class ChampsLibreRepository extends ServiceEntityRepository
         $query = $entityManager->createQuery(
             "SELECT COUNT(cl)
             FROM App\Entity\ChampsLibre cl
-            WHERE cl.label = :label
+            WHERE LOWER(cl.label) = :label
            "
-        )->setParameter('label', $label);
+        )->setParameter('label', strtolower($label));
 
         return $query->getSingleScalarResult();
     }

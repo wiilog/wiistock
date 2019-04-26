@@ -21,7 +21,7 @@ let tableType = $('#tableType_id').DataTable({
 let dataModalTypeNew = $("#modalNewType");
 let ButtonSubmitTypeNew = $("#submitTypeNew");
 let urlTypeNew = Routing.generate('type_new', true);
-InitialiserModal(dataModalTypeNew, ButtonSubmitTypeNew, urlTypeNew, tableType);
+InitialiserModal(dataModalTypeNew, ButtonSubmitTypeNew, urlTypeNew, tableType, displayErrorType, false);
 
 let dataModalTypeDelete = $("#modalDeleteType");
 let ButtonSubmitTypeDelete = $("#submitDeleteType");
@@ -60,7 +60,7 @@ let tableChampsLibre = $('#tableChampslibre_id').DataTable({
 let dataModalChampsLibreNew = $("#modalNewChampsLibre");
 let ButtonSubmitChampsLibreNew = $("#submitChampsLibreNew");
 let urlChampsLibreNew = Routing.generate('champ_libre_new', true);
-InitialiserModal(dataModalChampsLibreNew, ButtonSubmitChampsLibreNew, urlChampsLibreNew, tableChampsLibre, displayError, false);
+InitialiserModal(dataModalChampsLibreNew, ButtonSubmitChampsLibreNew, urlChampsLibreNew, tableChampsLibre, displayErrorCL, false);
 
 let dataModalChampsLibreDelete = $("#modalDeleteChampsLibre");
 let ButtonSubmitChampsLibreDelete = $("#submitChampsLibreDelete");
@@ -92,6 +92,17 @@ function askForDeleteConfirmation(data) {
     }
 }
 
+let defaultValueForTypage = function (select, cible) {
+    let valueDefault =  $('#valueDefault'+cible);
+    valueDefault.find('.form-group').addClass('d-none');
+    valueDefault.find('input').removeClass('data');
+
+    let typage = select.val();
+    let defaultBloc = $('#'+typage+cible);
+    defaultBloc.removeClass('d-none');
+    defaultBloc.find('input').addClass('data');
+}
+
 $(document).ready(function () {
     $('#typage').change(function () {
         if ($(this).val() === 'list') {
@@ -116,12 +127,15 @@ function changeType(select) {
     }
 }
 
-function displayError(data) {
+function displayErrorCL(data) {
     let modal = $("#modalNewChampsLibre");
-    if (data === false) {
-        let msg = 'Ce nom de champ libre existe déjà. Veuillez en choisir un autre.';
-        modal.find('.error-msg').html(msg);
-    } else {
-        modal.find('.close').click();
-    }
+    let msg = 'Ce nom de champ libre existe déjà. Veuillez en choisir un autre.';
+    displayError(modal, msg, data);
 }
+
+function displayErrorType(data) {
+    let modal = $("#modalNewType");
+    let msg = 'Ce nom de type existe déjà. Veuillez en choisir un autre.';
+    displayError(modal, msg, data);
+}
+

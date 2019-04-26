@@ -77,7 +77,6 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
             Data[name] = val;
             // validation données obligatoires
             if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
-                console.log(name);
                 let label = $(this).closest('.form-group').find('label').text();
                 missingInputs.push(label);
                 $(this).addClass('is-invalid');
@@ -219,8 +218,11 @@ function editRow(button, path, modal, submit, editorToInit = false) {
             ajaxAutoRefArticleInit($('.ajax-autocomplete-edit'));
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
             ajaxAutoUserInit($('.ajax-autocomplete-user-edit'));
+            if ($('#typageModif').val() !== undefined) {   //TODO Moche
+                defaultValueForTypage($('#typageModif'), '-edit');
+            }
 
-            displayRequireChamp( $('#typeEdit'), 'edit')//TODOO error si
+            displayRequireChamp( $('#typeEdit'), 'edit');
             
             if (typeof setMaxQuantityEdit === 'function') setMaxQuantityEdit($('#referenceEdit'));
             if (editorToInit) initEditor('#' + modal.attr('id'));
@@ -478,4 +480,12 @@ let displayRequireChamp = function (select, require) {
 
 function clearDiv() {
     $('.clear').html('');
+}
+
+function displayError(modal, msg, data) {
+    if (data === false) {
+        modal.find('.error-msg').html(msg);
+    } else {
+        modal.find('.close').click();
+    }
 }

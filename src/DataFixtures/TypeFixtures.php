@@ -20,7 +20,7 @@ class TypeFixtures extends Fixture implements DependentFixtureInterface, Fixture
 
     public function load(ObjectManager $manager)
     {
-        //        categorie referenceArticle
+        // categorie typeArticle
         $typesNames = [
             'PDT',
             'PSS',
@@ -32,14 +32,10 @@ class TypeFixtures extends Fixture implements DependentFixtureInterface, Fixture
 
         foreach ($typesNames as $typeName) {
             $type = new Type();
-            $type->setCategory($this->getReference('typeArticle'));
+            $type->setCategory($this->getReference('type-typeArticle'));
             $type->setLabel($typeName);
-
-
             $manager->persist($type);
         }
-
-
 
         $manager->flush();
     }
