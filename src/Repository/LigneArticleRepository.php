@@ -84,7 +84,7 @@ class LigneArticleRepository extends ServiceEntityRepository
             WHERE la.reference = :refArticle"
         )->setParameter('refArticle', $refArticle);
 
-        return $query->getOneOrNullResult();
+        return $query->getResult();
     }
 
     //    public function countByArticle($referenceArticle)

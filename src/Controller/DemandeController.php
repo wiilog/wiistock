@@ -154,7 +154,6 @@ class DemandeController extends AbstractController
             $preparation->setStatut($statutP);
 
             $demande->setPreparation($preparation);
-
             $statutD = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
             $demande->setStatut($statutD);
 
@@ -432,7 +431,6 @@ class DemandeController extends AbstractController
                 $demande->addArticle($article);
 
                 $this->articleDataService->editArticle($data);
-
             } elseif ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                 if ($this->ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
                     $ligneArticle = new LigneArticle();
