@@ -8,7 +8,9 @@
 
 namespace App\Service;
 
+use App\Entity\Action;
 use App\Entity\Article;
+use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
 use App\Entity\ValeurChampsLibre;
 use App\Entity\CategorieCL;
@@ -24,6 +26,8 @@ use App\Repository\ValeurChampsLibreRepository;
 use App\Repository\CategorieCLRepository;
 
 
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -85,13 +89,23 @@ class ArticleDataService
     private $categorieCLRepository;
 
     /**
+     * @var UserService
+     */
+    private $userService;
+
+    /**
      * @var object|string
      */
     private $user;
 
+    /**
+     * @var RouterInterface
+     */
+    private $router;
+
     private $em;
 
-    public function __construct(CategorieCLRepository $categorieCLRepository, RefArticleDataService $refArticleDataService, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, TypeRepository  $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampsLibreRepository $champsLibreRepository, FilterRepository $filterRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
+    public function __construct(RouterInterface $router, UserService $userService, CategorieCLRepository $categorieCLRepository, RefArticleDataService $refArticleDataService, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, TypeRepository  $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampsLibreRepository $champsLibreRepository, FilterRepository $filterRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
     {
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->articleRepository = $articleRepository;
@@ -106,6 +120,8 @@ class ArticleDataService
         $this->user = $tokenStorage->getToken()->getUser();
         $this->em = $em;
         $this->categorieCLRepository = $categorieCLRepository;
+        $this->userService = $userService;
+        $this->router = $router;
     }
 
     /**
@@ -301,6 +317,10 @@ class ArticleDataService
 
     public function editArticle($data)
     {
+        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE)) {
+            return new RedirectResponse($this->router->generate('access_denied'));
+        }
+
         $entityManager = $this->em;
         $article = $this->articleRepository->find($data['article']);
         if ($article) {

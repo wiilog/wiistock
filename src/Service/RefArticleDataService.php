@@ -9,6 +9,8 @@
 namespace App\Service;
 
 
+use App\Entity\Action;
+use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
 use App\Entity\ValeurChampsLibre;
 use App\Entity\CategorieCL;
@@ -24,6 +26,8 @@ use App\Repository\ValeurChampsLibreRepository;
 use App\Repository\CategorieCLRepository;
 use App\Repository\FournisseurRepository;
 
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -80,14 +84,24 @@ class RefArticleDataService
     private $templating;
 
     /**
+     * @var UserService
+     */
+    private $userService;
+
+    /**
      * @var object|string
      */
     private $user;
 
     private $em;
 
+    /**
+     * @var RouterInterface
+     */
+    private $router;
 
-    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository,FournisseurRepository $fournisseurRepository, CategorieCLRepository $categorieCLRepository, TypeRepository  $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampsLibreRepository $champsLibreRepository, FilterRepository $filterRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
+
+    public function __construct(RouterInterface $router, UserService $userService, ArticleFournisseurRepository $articleFournisseurRepository,FournisseurRepository $fournisseurRepository, CategorieCLRepository $categorieCLRepository, TypeRepository  $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampsLibreRepository $champsLibreRepository, FilterRepository $filterRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
     {
         $this->fournisseurRepository = $fournisseurRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
@@ -101,6 +115,8 @@ class RefArticleDataService
         $this->articleFournisseurRepository = $articleFournisseurRepository;
         $this->user = $tokenStorage->getToken()->getUser();
         $this->em = $em;
+        $this->userService = $userService;
+        $this->router = $router;
     }
 
     public function getDataForDatatable($params = null)
@@ -216,12 +232,13 @@ class RefArticleDataService
      * @param ReferenceArticle $refArticle
      * @param string[] $data
      * @return array|bool
-     * @throws \Twig_Error_Loader
-     * @throws \Twig_Error_Runtime
-     * @throws \Twig_Error_Syntax
      */
     public function editRefArticle($refArticle, $data)
     {
+        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE)) {
+            return new RedirectResponse($this->router->generate('access_denied'));
+        }
+
         //vérification des champsLibres obligatoires
         $requiredEdit = true;
         $type =  $this->typeRepository->find(intval($data['type']));
