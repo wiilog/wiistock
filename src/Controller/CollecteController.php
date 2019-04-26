@@ -366,7 +366,7 @@ class CollecteController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $collecte = $this->collecteRepository->find($data);
+            $collecte = $this->collecteRepository->find($data['id']);
 
             $json = $this->renderView('collecte/modalEditCollecteContent.html.twig', [
                 'collecte' => $collecte,

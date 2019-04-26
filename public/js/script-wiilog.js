@@ -228,10 +228,10 @@ function editRow(button, path, modal, submit, editorToInit = false) {
             if (editorToInit) initEditor('#' + modal.attr('id'));
         }
     }
-    let json = { id :button.data('id'), isADemand:0};
-
-    modal.find(submit).attr('value', json);
-    modal.find('#inputId').attr('value', json);
+    let id = button.data('id');
+    let json = { id :id, isADemand:0};
+    modal.find(submit).attr('value', id);
+    modal.find('#inputId').attr('value', id);
     xhttp.open("POST", path, true);
     xhttp.send(JSON.stringify(json));
 }
