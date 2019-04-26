@@ -100,16 +100,18 @@
                                     <label>
                                         {{champ.label}}
                                     </label>
-                                    {{ dump(champ) }}
+
                                     {% if champ.typage == 'booleen' %}
                                     {% set checked = (champ.defaultValue == 1) ? 'checked' : '' %}
                                     <label class="switch">
                                         <input type="checkbox" class="data checkbox" {{ checked }} name="{{champ.id}}">
                                         <span class="slider round"></span>
                                     </label>
+
                                     {% elseif champ.typage == 'number' %}
                                     <input type="number" id="{{champ.label ~ 'create'}}" class="form-control data"
                                         value="{{champ.defaultValue}}" name="{{champ.id}}">
+
                                     {% elseif champ.typage == 'list' %}
                                     <select id="{{champ.label ~ 'create'}}" class="form-control data"
                                         name="{{champ.id}}" id="input">
@@ -124,14 +126,18 @@
                                         <option value=""></option>
                                         {% endif %}
                                     </select>
+
                                     {% elseif champ.typage == 'text'  %}
                                     <input id="{{champ.label ~ 'create'}}" class="form-control data" type="text"
                                         value="{{champ.defaultValue}}" name='{{ champ.id }}'>
+
                                     {% elseif champ.typage == 'date' %}
                                     <input type="date" name="{{ champ.id }}" id="{{champ.label ~ 'create'}}"
                                         class="form-control data" value="{{champ.defaultValue}}">
+
                                     {% else %}
                                     <input disabled>
+                                    
                                     {% endif %}
                                 </div>
                                 {% endfor %}
