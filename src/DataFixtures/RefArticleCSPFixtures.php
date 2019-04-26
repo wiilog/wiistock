@@ -21,7 +21,7 @@ use App\Entity\ValeurChampsLibre;
 use App\Repository\TypeRepository;
 use App\Repository\ChampsLibreRepository;
 
-class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
+class RefArticleCSPFixtures extends Fixture implements FixtureGroupInterface
 {
     private $encoder;
 
@@ -70,7 +70,7 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
 
     public function load(ObjectManager $manager)
     {
-        $path = "public/csv/pdt.csv";
+        $path = "public/csv/csp.csv";
         $file = fopen($path, "r");
 
         $rows = [];
@@ -88,7 +88,7 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
             if (empty($row[0])) continue;
             dump($i);
             $i++;
-            $typePdt = $this->typeRepository->findOneBy(['label' => Type::LABEL_PDT]);
+            $typeCsp = $this->typeRepository->findOneBy(['label' => Type::LABEL_CSP]);
 
             // protection contre doublons
             $refArt = $this->refArticleRepository->findOneBy(['reference' => $row[0]]);
@@ -97,7 +97,7 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
             // champs fixes
             $referenceArticle = new ReferenceArticle();
             $referenceArticle
-                ->setType($typePdt)
+                ->setType($typeCsp)
                 ->setStatut($this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF))
                 ->setReference($row[0])
                 ->setLibelle($row[1])
@@ -108,9 +108,9 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
 
 
             // champ fournisseur
-            $fournisseurLabel = $row[9];
+            $fournisseurLabel = $row[5];
             if (!empty($fournisseurLabel)) {
-                $fournisseurRef = $row[10];
+                $fournisseurRef = $row[6];
                 if (in_array($fournisseurRef, ['nc', 'nd', 'NC', 'ND', '*', '.', ''])) {
                     $fournisseurRef = $fournisseurLabel;
                 }
@@ -143,18 +143,12 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
                 ['label' => 'famille produit', 'col' => 4, 'type' => ChampsLibre::TYPE_LIST, 'elements' => 'CONSOMMABLES;PAD;POMPE;POMPE_41;PIECES DETACHEES;PDT GENERIQUE;DCOS TEST ELECTRIQUE;SILICIUM;SIL_EXTERNE;SIL_INTERNE;MOBILIER SB;MOBILIER TERTIAIRE;CIBLE / SLUGS'],
                 ['label' => 'zone', 'col' => 5, 'type' => ChampsLibre::TYPE_TEXT],
                 ['label' => 'équipementier', 'col' => 6, 'type' => ChampsLibre::TYPE_TEXT],
-                ['label' => "réf équipementier", 'col' => 7, 'type' => ChampsLibre::TYPE_TEXT],
+                ['label' => "R+H1:I9505ef équipementier", 'col' => 7, 'type' => ChampsLibre::TYPE_TEXT],
                 ['label' => "machine", 'col' => 8, 'type' => ChampsLibre::TYPE_TEXT],
-                ['label' => "stock mini", 'col' => 11, 'type' => ChampsLibre::TYPE_NUMBER],
-                ['label' => "stock alerte", 'col' => 12, 'type' => ChampsLibre::TYPE_NUMBER],
-//                ['label' => "n° de lot", 'col' => 13, 'type' => ChampsLibre::TYPE_TEXT],
-                ['label' => "prix unitaire", 'col' => 14, 'type' => ChampsLibre::TYPE_TEXT],
-                ['label' => "date entrée", 'col' => 15, 'type' => ChampsLibre::TYPE_DATE],
-                ['label' => "prix du stock final", 'col' => 16, 'type' => ChampsLibre::TYPE_TEXT],
-                ['label' => "alerte mini", 'col' => 17, 'type' => ChampsLibre::TYPE_LIST, 'elements' => 'besoin'],
-                ['label' => "alerte prévision", 'col' => 18, 'type' => ChampsLibre::TYPE_NUMBER],
-//                ['label' => "péremption", 'col' => 19, 'type' => ChampsLibre::TYPE_TEXT],
-
+                ['label' => "stock mini", 'col' => 7, 'type' => ChampsLibre::TYPE_NUMBER],
+                ['label' => "stock alerte", 'col' => 8, 'type' => ChampsLibre::TYPE_NUMBER],
+                ['label' => "n° lot", 'col' => 13, 'type' => ChampsLibre::TYPE_TEXT],
+                ['label' => "date entrée", 'col' => 14, 'type' => ChampsLibre::TYPE_TEXT],
             ];
 
             foreach($listFields as $field) {
@@ -166,11 +160,7 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
                         ->setLabel($field['label'])
                         ->setTypage($field['type'])
                         ->setCategorieCL($this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE))
-                        ->setType($typePdt);
-
-                    if ($field['type'] == ChampsLibre::TYPE_LIST) {
-                        $cl->setElements($field['elements']);
-                    }
+                        ->setType($typeCsp);
                     $manager->persist($cl);
                 }
                 $vcl
