@@ -354,6 +354,7 @@ function ajaxPlusDemandeContent(button, demande) {
                 //TODO gérer erreur
             }
             showDemande(button)
+            initEditor2();
         }
     }
     let json = {
