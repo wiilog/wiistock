@@ -160,7 +160,6 @@ class RefArticleCSPFixtures extends Fixture implements FixtureGroupInterface
 
                 // champs libres
                 $listFields = [
-                    ['label' => 'adresse', 'col' => 2, 'type' => ChampsLibre::TYPE_TEXT],
                     ['label' => 'famille produit', 'col' => 4, 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['CONSOMMABLES', 'PAD', 'POMPE', 'POMPE_41', 'PIECES DETACHEES', 'PDT GENERIQUE', 'DCOS TEST ELECTRIQUE', 'SILICIUM', 'SIL_EXTERNE', 'SIL_INTERNE', 'MOBILIER SB', 'MOBILIER TERTIAIRE', 'CIBLE / SLUGS']],
                     ['label' => "stock mini", 'col' => 7, 'type' => ChampsLibre::TYPE_NUMBER],
                     ['label' => "stock alerte", 'col' => 8, 'type' => ChampsLibre::TYPE_NUMBER],
@@ -276,7 +275,7 @@ class RefArticleCSPFixtures extends Fixture implements FixtureGroupInterface
                         ->setLabel($field['label'])
                         ->setTypage($field['type'])
                         ->setCategorieCL($this->categorieCLRepository->findOneByLabel(CategorieCL::ARTICLE))
-                        ->setType($typeCsp);
+                        ->setType($typeArticle);
 
                     if ($field['type'] == ChampsLibre::TYPE_LIST) {
                         $cl->setElements($field['elements']);
