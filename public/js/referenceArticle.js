@@ -213,11 +213,11 @@ function visibleColumn(check) {
     let columnNumber = check.data('column')
     let column = tableRefArticle.column(columnNumber);
     column.visible(!column.visible());
-    let columnClass = $('#tableRefArticle_id').find('thead').find('th');
-    columnClass.each(function () {
-        $(this).removeClass('libre');
-        $(this).addClass('fixe');
-    })
+    
+    let tableRefArticleColumn = $('#tableRefArticle_id_wrapper');
+    tableRefArticleColumn.find('th').removeClass('libre');
+    tableRefArticleColumn.find('th').addClass('fixe');
+    
     if (check.hasClass('data')) {
         check.removeClass('data');
     } else {
