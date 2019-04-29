@@ -64,7 +64,7 @@ class RefArticleSLUGCIBLEFixtures extends Fixture implements FixtureGroupInterfa
 
     public function load(ObjectManager $manager)
     {
-        $path = "public/csv/slugcible.csv";
+        $path = "src/DataFixtures/Csv/slugcible.csv";
         $file = fopen($path, "r");
 
         $rows = [];
@@ -77,6 +77,7 @@ class RefArticleSLUGCIBLEFixtures extends Fixture implements FixtureGroupInterfa
         $i = 1;
         foreach ($rows as $row) {
             if (empty($row[0])) continue;
+            dump($i);
             $i++;
 
             $typeSlugcible = $this->typeRepository->findOneBy(['label' => Type::LABEL_SLUGCIBLE]);
@@ -101,7 +102,7 @@ class RefArticleSLUGCIBLEFixtures extends Fixture implements FixtureGroupInterfa
                 if (in_array($fournisseurRef, ['nc', 'nd', 'NC', 'ND', '*', '.', ''])) {
                     $fournisseurRef = $fournisseurLabel;
                 }
-                $fournisseur = $this->fournisseurRepository->findOneBy(['nom' => $fournisseurLabel]);
+                $fournisseur = $this->fournisseurRepository->findOneBy(['codeReference' => $fournisseurRef]);
 
                 // si le fournisseur n'existe pas, on le crée
                 if (empty($fournisseur)) {
@@ -116,7 +117,7 @@ class RefArticleSLUGCIBLEFixtures extends Fixture implements FixtureGroupInterfa
                 $articleFournisseur = new ArticleFournisseur();
                 $articleFournisseur
                     ->setLabel($row[0])
-                    ->setReference(time()) // code aléatoire
+                    ->setReference(time() . '-' . $i)// code aléatoire unique
                     ->setFournisseur($fournisseur)
                     ->setReferenceArticle($referenceArticle);
 

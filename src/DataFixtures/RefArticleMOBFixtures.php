@@ -3,8 +3,12 @@
 namespace App\DataFixtures;
 
 use App\Entity\ArticleFournisseur;
+use App\Entity\CategorieCL;
+use App\Entity\ChampsLibre;
 use App\Entity\Fournisseur;
 use App\Entity\Type;
+use App\Entity\ValeurChampsLibre;
+use App\Repository\CategorieCLRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\StatutRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
@@ -42,12 +46,17 @@ class RefArticleMOBFixtures extends Fixture implements FixtureGroupInterface
     private $fournisseurRepository;
 
     /**
+     * @var CategorieCLRepository
+     */
+    private $categorieCLRepository;
+
+    /**
      * @var Packages
      */
     private $assetsManager;
 
 
-    public function __construct(UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampsLibreRepository $champsLibreRepository, StatutRepository $statutRepository, FournisseurRepository $fournisseurRepository, Packages $assetsManager)
+    public function __construct(CategorieCLRepository $categorieCLRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampsLibreRepository $champsLibreRepository, StatutRepository $statutRepository, FournisseurRepository $fournisseurRepository, Packages $assetsManager)
     {
         $this->typeRepository = $typeRepository;
         $this->champsLibreRepository = $champsLibreRepository;
@@ -55,11 +64,12 @@ class RefArticleMOBFixtures extends Fixture implements FixtureGroupInterface
         $this->statutRepository = $statutRepository;
         $this->fournisseurRepository = $fournisseurRepository;
         $this->assetsManager = $assetsManager;
+        $this->categorieCLRepository = $categorieCLRepository;
     }
 
     public function load(ObjectManager $manager)
     {
-        $path = "public/csv/mob.csv";
+        $path = "src/DataFixtures/Csv/mob.csv";
         $file = fopen($path, "r");
 
         $rows = [];
@@ -112,9 +122,9 @@ class RefArticleMOBFixtures extends Fixture implements FixtureGroupInterface
                 $articleFournisseur = new ArticleFournisseur();
                 $articleFournisseur
                     ->setLabel($data[0])
-                    ->setReference(time())
+                    ->setReference(time() . '-' . $i)// code aléatoire unique
                     ->setFournisseur($fournisseur)
-                    ->setReferenceArticle($referenceArticle); // code aléatoire
+                    ->setReferenceArticle($referenceArticle);
 
                 $manager->persist($articleFournisseur);
             }

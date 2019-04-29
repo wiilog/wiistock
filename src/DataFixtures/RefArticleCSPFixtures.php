@@ -93,7 +93,7 @@ class RefArticleCSPFixtures extends Fixture implements FixtureGroupInterface
 
     public function load(ObjectManager $manager)
     {
-        $path = "public/csv/csp.csv";
+        $path = "src/DataFixtures/Csv/csp.csv";
         $file = fopen($path, "r");
 
         $rows = [];
@@ -150,7 +150,7 @@ class RefArticleCSPFixtures extends Fixture implements FixtureGroupInterface
                     $articleFournisseur = new ArticleFournisseur();
                     $articleFournisseur
                         ->setLabel($row[1])
-                        ->setReference(time())// code aléatoire
+                        ->setReference(time() . '-' . $i)// code aléatoire unique
                         ->setFournisseur($fournisseur)
                         ->setReferenceArticle($referenceArticle);
 
@@ -228,7 +228,7 @@ class RefArticleCSPFixtures extends Fixture implements FixtureGroupInterface
                 $artFourn = new ArticleFournisseur();
                 $artFourn
                     ->setLabel($row[1])
-                    ->setReference(time())// code aléatoire
+                    ->setReference(time() . '-' . $i)// code aléatoire unique
                     ->setFournisseur($fournisseur)
                     ->setReferenceArticle($referenceArticle);
                 $manager->persist($artFourn);

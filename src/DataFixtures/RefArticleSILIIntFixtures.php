@@ -2,8 +2,11 @@
 
 namespace App\DataFixtures;
 
+use App\Entity\CategorieCL;
 use App\Entity\ChampsLibre;
 use App\Entity\Type;
+use App\Entity\ValeurChampsLibre;
+use App\Repository\CategorieCLRepository;
 use App\Repository\StatutRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
@@ -33,17 +36,23 @@ class RefArticleSILIIntFixtures extends Fixture implements FixtureGroupInterface
      */
     private $statutRepository;
 
-    public function __construct(UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampsLibreRepository $champsLibreRepository, StatutRepository $statutRepository)
+    /**
+     * @var CategorieCLRepository
+     */
+    private $categorieCLRepository;
+
+    public function __construct(CategorieCLRepository $categorieCLRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampsLibreRepository $champsLibreRepository, StatutRepository $statutRepository)
     {
         $this->typeRepository = $typeRepository;
         $this->champsLibreRepository = $champsLibreRepository;
         $this->encoder = $encoder;
         $this->statutRepository = $statutRepository;
+        $this->categorieCLRepository = $categorieCLRepository;
     }
 
     public function load(ObjectManager $manager)
     {
-        $path = "public/csv/sili-int.csv";
+        $path = "src/DataFixtures/Csv/sili-int.csv";
         $file = fopen($path, "r");
 
         $rows = [];
@@ -55,7 +64,7 @@ class RefArticleSILIIntFixtures extends Fixture implements FixtureGroupInterface
 
         $i = 1;
         foreach ($rows as $row) {
-            if (empty($row[0])) continue;
+//            if (empty($row[0])) continue;
             dump($i);
             $i++;
             $typeSili = $this->typeRepository->findOneBy(['label' => Type::LABEL_SILI]);
@@ -109,7 +118,7 @@ class RefArticleSILIIntFixtures extends Fixture implements FixtureGroupInterface
                 $vcl
                     ->setChampLibre($cl)
                     ->addArticleReference($referenceArticle)
-                    ->setValeur($data[$field['col']]);
+                    ->setValeur($row[$field['col']]);
                 $manager->persist($vcl);
             }
 

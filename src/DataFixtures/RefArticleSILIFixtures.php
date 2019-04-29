@@ -3,12 +3,15 @@
 namespace App\DataFixtures;
 
 use App\Entity\Article;
+use App\Entity\ArticleFournisseur;
 use App\Entity\ChampsLibre;
 use App\Entity\Emplacement;
+use App\Entity\Fournisseur;
 use App\Entity\Type;
 use App\Entity\ValeurChampsLibre;
 use App\Repository\CategorieCLRepository;
 use App\Repository\EmplacementRepository;
+use App\Repository\FournisseurRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\StatutRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
@@ -54,7 +57,12 @@ class RefArticleSILIFixtures extends Fixture implements FixtureGroupInterface
      */
     private $emplacementRepository;
 
-    public function __construct(EmplacementRepository $emplacementRepository, CategorieCLRepository $categorieCLRepository, ReferenceArticleRepository $refArticleRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampsLibreRepository $champsLibreRepository, StatutRepository $statutRepository)
+    /**
+     * @var FournisseurRepository
+     */
+    private $fournisseurRepository;
+
+    public function __construct(FournisseurRepository $fournisseurRepository, EmplacementRepository $emplacementRepository, CategorieCLRepository $categorieCLRepository, ReferenceArticleRepository $refArticleRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampsLibreRepository $champsLibreRepository, StatutRepository $statutRepository)
     {
         $this->typeRepository = $typeRepository;
         $this->champsLibreRepository = $champsLibreRepository;
@@ -63,11 +71,12 @@ class RefArticleSILIFixtures extends Fixture implements FixtureGroupInterface
         $this->refArticleRepository = $refArticleRepository;
         $this->categorieCLRepository = $categorieCLRepository;
         $this->emplacementRepository = $emplacementRepository;
+        $this->fournisseurRepository = $fournisseurRepository;
     }
 
     public function load(ObjectManager $manager)
     {
-        $path = "public/csv/sili.csv";
+        $path = "src/DataFixtures/Csv/sili.csv";
         $file = fopen($path, "r");
 
         $rows = [];
@@ -75,8 +84,9 @@ class RefArticleSILIFixtures extends Fixture implements FixtureGroupInterface
             $rows[] = array_map('utf8_encode', $data);
         }
 
-        array_shift($rows); // supprime la 1è ligne d'en-têtes
+        $fournisseur = $this->initFournisseur($manager);
 
+        array_shift($rows); // supprime la 1è ligne d'en-têtes
         $i = 1;
         foreach ($rows as $row) {
             if (empty($row[0])) continue;
@@ -98,6 +108,16 @@ class RefArticleSILIFixtures extends Fixture implements FixtureGroupInterface
                     ->setTypeQuantite(ReferenceArticle::TYPE_QUANTITE_ARTICLE);
                 $manager->persist($referenceArticle);
                 $manager->flush();
+
+                // on crée l'article fournisseur, on le lie au fournisseur et à l'article de référence
+                $articleFournisseur = new ArticleFournisseur();
+                $articleFournisseur
+                    ->setLabel($row[1])
+                    ->setReference(time() . '-' . $i)// code aléatoire unique
+                    ->setFournisseur($fournisseur)
+                    ->setReferenceArticle($referenceArticle);
+
+                $manager->persist($articleFournisseur);
 
 
                 // champs libres
@@ -142,6 +162,19 @@ class RefArticleSILIFixtures extends Fixture implements FixtureGroupInterface
                 ->setType($typeArticle)
                 ->setConform(true)
                 ->setQuantite(intval($row[3]));
+
+            // on crée l'article fournisseur, on le lie au fournisseur et à l'article de référence
+            $artFourn = new ArticleFournisseur();
+            $artFourn
+                ->setLabel($row[1])
+                ->setReference(time() . '-' . $i)// code aléatoire unique
+                ->setFournisseur($fournisseur)
+                ->setReferenceArticle($referenceArticle);
+            $manager->persist($artFourn);
+
+            // on lie l'article à l'article fournisseur
+            $article->setArticleFournisseur($artFourn);
+
 
             // champ emplacement
             $emplacementLabel = $row[2];
@@ -196,6 +229,28 @@ class RefArticleSILIFixtures extends Fixture implements FixtureGroupInterface
 
     public static function getGroups():array {
         return ['articlesSILI'];
+    }
+
+    /**
+     * @param ObjectManager $manager
+     * @return Fournisseur
+     */
+    public function initFournisseur(ObjectManager $manager): Fournisseur
+    {
+        $fournisseurLabel = 'A DETERMINER';
+        $fournisseurRef = 'A_DETERMINER';
+        $fournisseur = $this->fournisseurRepository->findOneBy(['nom' => $fournisseurLabel]);
+
+        // si le fournisseur n'existe pas, on le crée
+        if (empty($fournisseur)) {
+            $fournisseur = new Fournisseur();
+            $fournisseur
+                ->setNom($fournisseurLabel)
+                ->setCodeReference($fournisseurRef);
+            $manager->persist($fournisseur);
+            $manager->flush();
+        }
+        return $fournisseur;
     }
 
 }

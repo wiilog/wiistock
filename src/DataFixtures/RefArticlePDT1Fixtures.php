@@ -24,7 +24,7 @@ use App\Entity\ValeurChampsLibre;
 use App\Repository\TypeRepository;
 use App\Repository\ChampsLibreRepository;
 
-class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
+class RefArticlePDT1Fixtures extends Fixture implements FixtureGroupInterface
 {
     private $encoder;
 
@@ -289,7 +289,7 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
     }
 
     public static function getGroups():array {
-        return ['articlesPDT0'];
+        return ['articlesPDT'];
     }
 
 }

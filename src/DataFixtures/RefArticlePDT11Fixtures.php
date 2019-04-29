@@ -24,7 +24,7 @@ use App\Entity\ValeurChampsLibre;
 use App\Repository\TypeRepository;
 use App\Repository\ChampsLibreRepository;
 
-class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
+class RefArticlePDT11Fixtures extends Fixture implements FixtureGroupInterface
 {
     private $encoder;
 
@@ -90,7 +90,7 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
         array_shift($rows); // supprime la 1è ligne d'en-têtes
 
         // à modifier pour faire imports successifs
-        $rows = array_slice($rows, 0, 1000);
+        $rows = array_slice($rows, 10000, 1000);
 
         $i = 1;
         foreach($rows as $row) {
@@ -289,7 +289,7 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
     }
 
     public static function getGroups():array {
-        return ['articlesPDT0'];
+        return ['articlesPDT'];
     }
 
 }
