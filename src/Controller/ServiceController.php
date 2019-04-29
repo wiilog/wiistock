@@ -143,7 +143,7 @@ class ServiceController extends AbstractController
 
             $status = $this->statutRepository->findOneByCategorieAndStatut(Service::CATEGORIE, Service::STATUT_BROUILLON);
             $service = new Service();
-            $date = new \DateTime('now');
+            $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
 
             $service
                 ->setDate($date)

@@ -117,7 +117,7 @@ class SecuriteController extends Controller
                 sprintf('L\'utilisateur n\'existe pas.')
             );
         }
-        $user->setLastLogin(new \Datetime());
+        $user->setLastLogin(new \Datetime ('', new \DateTimeZone('Europe/Paris')));
         $em->flush();
 
         return $this->redirectToRoute('accueil');
