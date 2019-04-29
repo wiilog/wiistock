@@ -25,7 +25,7 @@
     <div class="input-group radio-btn">
         <label for="statut" class="mtb-auto mr-2">Statut</label>
         <div>
-            {% if hasRight(constant('App\\Entity\\Menu::MANUT'), constant('App\\Entity\\Action::DELETE') ) %}
+            {% if hasRight(constant('App\\Entity\\Menu::MANUT'), constant('App\\Entity\\Action::EDIT_DELETE') ) %}
             <span class="btn {{ statut == 1 ? 'active' : 'not-active'}}" data-toggle="statut" data-title="active"
                 onclick="changeStatus(this)" data-value="1">A Traiter</span><span
                 class="btn {{ statut == 0 ? 'active' : 'not-active'}}" data-toggle="statut" data-title="inactive"
