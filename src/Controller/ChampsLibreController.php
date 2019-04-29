@@ -134,8 +134,6 @@ class ChampsLibreController extends AbstractController
 
             // on vérifie que le nom du champ libre n'est pas déjà utilisé
             $champLibreExist = $this->champsLibreRepository->countByLabel($data['label']);
-
-            dump($data);
             if (!$champLibreExist) {
                 $type = $this->typeRepository->find($data['type']);
                 $categorieCL = $this->categorieCLRepository->find($data['categorieCL']);
@@ -253,7 +251,7 @@ class ChampsLibreController extends AbstractController
             }
             $json = [];
             foreach ($champsLibres as $champLibre) {
-                $json[] = $champLibre['label'];
+                $json[] = $champLibre['id'];
             }
             return new JsonResponse($json);
         }
