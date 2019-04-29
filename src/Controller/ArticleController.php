@@ -31,9 +31,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Proxies\__CG__\App\Entity\ReferenceArticle;
-use Proxies\__CG__\App\Entity\CategorieCL;
-use App\Entity\ReferenceArticle as AppReferenceArticle;
+use App\Entity\ReferenceArticle;
+use App\Entity\CategorieCL;
 
 /**
  * @Route("/article")
@@ -424,8 +423,7 @@ class ArticleController extends AbstractController
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $refArticle = $this->referenceArticleRepository->find($data['refArticle']);
-            if ($refArticle && $refArticle->getTypeQuantite() === AppReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-                // $fournisseurs = $this->fournisseurRepository->findByRefArticle($refArticle);
+            if ($refArticle && $refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
                 $articleFournisseurs = $refArticle->getArticlesFournisseur();
                 $fournisseurs = [];
                 foreach ($articleFournisseurs as $articleFournisseur) {
