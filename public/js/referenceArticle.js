@@ -376,7 +376,7 @@ let ajaxEditArticle = function (select) {
                 $('.editChampLibre').html(dataReponse);
                 ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
                 displayRequireChamp($('#typeEditArticle'), 'edit');
-                initEditor('.editor-container');
+                initEditor2();
             } else {
                 //TODO gérer erreur
             }
