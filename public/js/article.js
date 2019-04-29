@@ -220,8 +220,12 @@ let ajaxGetFournisseurByRefArticle = function (select) {
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
             data = JSON.parse(this.responseText);
-            fournisseur.removeClass('d-none');
-            fournisseur.find('select').html(data);
+            if (data === false) {
+                $('.error-msg').html('Vous ne pouvez par créer d\'article quand la référence CEA est gérée à la référence.');
+            } else {
+                fournisseur.removeClass('d-none');
+                fournisseur.find('select').html(data);
+            }
         }
     }
     path = Routing.generate('ajax_fournisseur_by_refarticle', true)
