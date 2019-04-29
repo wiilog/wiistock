@@ -12,8 +12,10 @@ use Doctrine\ORM\Mapping as ORM;
 class Action
 {
     const LIST = 'lister';
+    const CREATE_EDIT = 'créer+modifier';
     const CREATE = 'créer';
     const DELETE = 'supprimer';
+    const EDIT_DELETE = 'modifier+supprimer';
     const YES = 'oui';
 
     /**

@@ -12,7 +12,6 @@ class Service
     const CATEGORIE = 'manutention';
     const STATUT_A_TRAITER = 'à traiter';
     const STATUT_TRAITE = 'traité';
-    const STATUT_BROUILLON = 'brouillon';
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()

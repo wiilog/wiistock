@@ -25,10 +25,9 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface
             'DEMLIVR',
             'DEMCOL',
             'STOCK',
-            'MANUT'
         ];
 
-        $actionLabels = ['lister', 'créer', 'supprimer'];
+        $actionLabels = ['lister', 'créer+modifier', 'supprimer'];
 
         foreach ($menus as $menu) {
             foreach ($actionLabels as $actionLabel) {
@@ -41,6 +40,21 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface
             }
         }
 
+
+
+        // Menu manutention cas spécial.
+        $action = new Action();
+        $action->setLabel('modifier+supprimer')->setMenu($this->getReference('menu-MANUT'));
+        $manager->persist($action);
+        $action = new Action();
+        $action->setLabel('créer')->setMenu($this->getReference('menu-MANUT'));
+        $manager->persist($action);
+        $action = new Action();
+        $action->setLabel('lister')->setMenu($this->getReference('menu-MANUT'));
+        $manager->persist($action);
+
+
+
         // actions de type lister/créer
         $menus = [
             'PREPA',
@@ -48,7 +62,7 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface
             'COL'
         ];
 
-        $actionLabels = ['lister', 'créer'];
+        $actionLabels = ['lister', 'créer+modifier'];
 
         foreach ($menus as $menu) {
             foreach ($actionLabels as $actionLabel) {
@@ -64,7 +78,7 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface
 
         // actions de type oui
         $menus = [
-//            'NOMAD',
+            //            'NOMAD',
             'PARAM',
         ];
 
@@ -84,5 +98,4 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface
     {
         return [MenusFixtures::class];
     }
-
 }

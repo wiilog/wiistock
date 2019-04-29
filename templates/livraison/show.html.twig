@@ -27,7 +27,7 @@
                 onclick="deleteRow($(this), $('#modalDeleteLivraison'), $('#submitDeleteLivraison'))"
                 data-id='{{livraison.id}}' data-target='#modalDeleteLivraison' data-toggle='modal'>Supprimer</a></p>
         {% endif %}
-        {% if hasRight(constant('App\\Entity\\Menu::LIVRAISON'), constant('App\\Entity\\Action::CREATE')) %}
+        {% if hasRight(constant('App\\Entity\\Menu::LIVRAISON'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
         <p><a class="btn btn-primary btn-action" href={{path('livraison_finish', {'id': livraison.id})}}>Finir la
                 livraison</a></p>
         {% endif %}
