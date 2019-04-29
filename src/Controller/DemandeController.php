@@ -16,6 +16,7 @@ use App\Repository\StatutRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\ArticleRepository;
+use App\Repository\PreparationRepository;
 
 use App\Service\ArticleDataService;
 use App\Service\RefArticleDataService;
@@ -69,6 +70,11 @@ class DemandeController extends AbstractController
     private $articleRepository;
 
     /**
+     * @var PreparationRepository
+     */
+    private $preparationRepository;
+
+    /**
      * @var UserService
      */
     private $userService;
@@ -84,7 +90,7 @@ class DemandeController extends AbstractController
     private $articleDataService;
 
 
-    public function __construct(ArticleRepository $articleRepository, LigneArticleRepository $ligneArticleRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, UserService $userService, RefArticleDataService $refArticleDataService, ArticleDataService $articleDataService)
+    public function __construct(PreparationRepository $preparationRepository, ArticleRepository $articleRepository, LigneArticleRepository $ligneArticleRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, UserService $userService, RefArticleDataService $refArticleDataService, ArticleDataService $articleDataService)
     {
         $this->statutRepository = $statutRepository;
         $this->emplacementRepository = $emplacementRepository;
@@ -96,6 +102,7 @@ class DemandeController extends AbstractController
         $this->userService = $userService;
         $this->refArticleDataService = $refArticleDataService;
         $this->articleDataService = $articleDataService;
+        $this->preparationRepository = $preparationRepository;
     }
     /**
      * @Route("/compareStock", name="compare_stock", options={"expose"=true}, methods="GET|POST")
@@ -345,7 +352,9 @@ class DemandeController extends AbstractController
         }
 
         return $this->render('demande/show.html.twig', [
+            
             'demande' => $demande,
+            // 'preparation' => $this->preparationRepository->findOneByPreparation($demande),
             'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
             'statuts' => $this->statutRepository->findByCategorieName(Demande::CATEGORIE),
             'references' => $this->referenceArticleRepository->getIdAndLibelle(),
