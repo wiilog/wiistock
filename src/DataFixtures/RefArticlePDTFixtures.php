@@ -140,7 +140,7 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
             // champs libres
             $listFields = [
                 ['label' => 'adresse', 'col' => 2, 'type' => ChampsLibre::TYPE_TEXT],
-                ['label' => 'famille produit', 'col' => 4, 'type' => ChampsLibre::TYPE_LIST, 'elements' => 'CONSOMMABLES;PAD;POMPE;POMPE_41;PIECES DETACHEES;PDT GENERIQUE;DCOS TEST ELECTRIQUE;SILICIUM;SIL_EXTERNE;SIL_INTERNE;MOBILIER SB;MOBILIER TERTIAIRE;CIBLE / SLUGS'],
+                ['label' => 'famille produit', 'col' => 4, 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['CONSOMMABLES','PAD','POMPE','POMPE_41', 'PIECES DETACHEES', 'PDT GENERIQUE', 'DCOS TEST ELECTRIQUE', 'SILICIUM', 'SIL_EXTERNE', 'SIL_INTERNE', 'MOBILIER SB', 'MOBILIER TERTIAIRE', 'CIBLE / SLUGS']],
                 ['label' => 'zone', 'col' => 5, 'type' => ChampsLibre::TYPE_TEXT],
                 ['label' => 'équipementier', 'col' => 6, 'type' => ChampsLibre::TYPE_TEXT],
                 ['label' => "réf équipementier", 'col' => 7, 'type' => ChampsLibre::TYPE_TEXT],
@@ -151,10 +151,9 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
                 ['label' => "prix unitaire", 'col' => 14, 'type' => ChampsLibre::TYPE_TEXT],
                 ['label' => "date entrée", 'col' => 15, 'type' => ChampsLibre::TYPE_DATE],
                 ['label' => "prix du stock final", 'col' => 16, 'type' => ChampsLibre::TYPE_TEXT],
-                ['label' => "alerte mini", 'col' => 17, 'type' => ChampsLibre::TYPE_LIST, 'elements' => 'besoin'],
+                ['label' => "alerte mini", 'col' => 17, 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['besoin', '']],
                 ['label' => "alerte prévision", 'col' => 18, 'type' => ChampsLibre::TYPE_NUMBER],
 //                ['label' => "péremption", 'col' => 19, 'type' => ChampsLibre::TYPE_TEXT],
-
             ];
 
             foreach($listFields as $field) {
@@ -187,7 +186,7 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
     }
 
     public static function getGroups():array {
-        return ['articlePDT'];
+        return ['articlesPDT'];
     }
 
 }

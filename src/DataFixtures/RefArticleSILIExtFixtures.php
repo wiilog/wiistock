@@ -78,7 +78,7 @@ class RefArticleSILIExtFixtures extends Fixture implements FixtureGroupInterface
             // champs libres
             $listFields = [
                 ['label' => 'adresse', 'col' => 0, 'type' => ChampsLibre::TYPE_TEXT],
-                ['label' => 'famille produit', 'col' => 1, 'type' => ChampsLibre::TYPE_LIST, 'elements' => 'CONSOMMABLES;PAD;POMPE;POMPE_41;PIECES DETACHEES;PDT GENERIQUE;DCOS TEST ELECTRIQUE;SILICIUM;SIL_EXTERNE;SIL_INTERNE;MOBILIER SB;MOBILIER TERTIAIRE;CIBLE / SLUGS'],
+                ['label' => 'famille produit', 'col' => 1, 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['CONSOMMABLES','PAD','POMPE','POMPE_41', 'PIECES DETACHEES', 'PDT GENERIQUE', 'DCOS TEST ELECTRIQUE', 'SILICIUM', 'SIL_EXTERNE', 'SIL_INTERNE', 'MOBILIER SB', 'MOBILIER TERTIAIRE', 'CIBLE / SLUGS']],
                 ['label' => 'date', 'col' => 2, 'type' => ChampsLibre::TYPE_DATE],
                 ['label' => "projet", 'col' => 3, 'type' => ChampsLibre::TYPE_TEXT],
                 ['label' => "demandeur", 'col' => 4, 'type' => ChampsLibre::TYPE_TEXT],
@@ -118,7 +118,7 @@ class RefArticleSILIExtFixtures extends Fixture implements FixtureGroupInterface
     }
 
     public static function getGroups():array {
-        return ['articles'];
+        return ['articlesSILIext'];
     }
 
 }

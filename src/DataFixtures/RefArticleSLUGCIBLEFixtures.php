@@ -158,7 +158,7 @@ class RefArticleSLUGCIBLEFixtures extends Fixture implements FixtureGroupInterfa
     }
 
     public static function getGroups():array {
-        return ['articles'];
+        return ['articlesSLUGCIBLE'];
     }
 
 }
