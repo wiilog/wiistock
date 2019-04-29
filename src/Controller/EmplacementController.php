@@ -137,21 +137,21 @@ class EmplacementController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
-//    /**
-//     * @Route("/voir", name="emplacement_show", options={"expose"=true},  methods="GET|POST")
-//     */
-//    public function show(Request $request): Response
-//    {
-//        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-//            $emplacement = $this->emplacementRepository->find($data);
-//
-//            $json = $this->renderView('emplacement/modalShowEmplacementContent.html.twig', [
-//                'emplacement' => $emplacement,
-//            ]);
-//            return new JsonResponse($json);
-//        }
-//        throw new NotFoundHttpException("404");
-//    }
+    //    /**
+    //     * @Route("/voir", name="emplacement_show", options={"expose"=true},  methods="GET|POST")
+    //     */
+    //    public function show(Request $request): Response
+    //    {
+    //        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+    //            $emplacement = $this->emplacementRepository->find($data);
+    //
+    //            $json = $this->renderView('emplacement/modalShowEmplacementContent.html.twig', [
+    //                'emplacement' => $emplacement,
+    //            ]);
+    //            return new JsonResponse($json);
+    //        }
+    //        throw new NotFoundHttpException("404");
+    //    }
 
     /**
      * @Route("/api-modifier", name="emplacement_api_edit", options={"expose"=true}, methods="GET|POST")
@@ -163,7 +163,7 @@ class EmplacementController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $emplacement = $this->emplacementRepository->find($data);
+            $emplacement = $this->emplacementRepository->find($data['id']);
             $json = $this->renderView('emplacement/modalEditEmplacementContent.html.twig', [
                 'emplacement' => $emplacement,
             ]);
@@ -269,11 +269,10 @@ class EmplacementController extends AbstractController
             }
 
             $search = $request->query->get('term');
-            
+
             $emplacement = $this->emplacementRepository->getIdAndLibelleBySearch($search);
             return new JsonResponse(['results' => $emplacement]);
         }
         throw new NotFoundHttpException("404");
     }
-
 }

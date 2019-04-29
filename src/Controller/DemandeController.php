@@ -147,14 +147,12 @@ class DemandeController extends AbstractController
             $date = new \DateTime('now');
             $preparation
                 ->setNumero('P-' . $date->format('YmdHis'))
-                ->setDate($date)
-                ->setUtilisateur($this->getUser());
+                ->setDate($date);
 
             $statutP = $this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
             $preparation->setStatut($statutP);
 
             $demande->setPreparation($preparation);
-
             $statutD = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
             $demande->setStatut($statutD);
 
@@ -183,7 +181,7 @@ class DemandeController extends AbstractController
     public function editApi(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $demande = $this->demandeRepository->find($data);
+            $demande = $this->demandeRepository->find($data['id']);
             $json = $this->renderView('demande/modalEditDemandeContent.html.twig', [
                 'demande' => $demande,
             ]);
@@ -432,7 +430,6 @@ class DemandeController extends AbstractController
                 $demande->addArticle($article);
 
                 $this->articleDataService->editArticle($data);
-
             } elseif ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                 if ($this->ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
                     $ligneArticle = new LigneArticle();
@@ -511,7 +508,7 @@ class DemandeController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $ligneArticle = $this->ligneArticleRepository->getQuantity($data);
+            $ligneArticle = $this->ligneArticleRepository->getQuantity($data['id']);
             $json = $this->renderView('demande/modalEditArticleContent.html.twig', [
                 'ligneArticle' => $ligneArticle,
             ]);

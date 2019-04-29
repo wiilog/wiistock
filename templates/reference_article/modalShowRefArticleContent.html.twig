@@ -14,8 +14,7 @@
             <label for="statut" class="mtb-auto mr-2">Statut</label>
             <div>
                 <span class="btn {{ statut == 1 ? 'active' : 'not-active'}}" data-title="active">
-                    Actif</span><span
-                        class="btn {{ statut == 0 ? 'active' : 'not-active'}}" data-title="inactive">
+                    Actif</span><span class="btn {{ statut == 0 ? 'active' : 'not-active'}}" data-title="inactive">
                     Inactif</span>
             </div>
         </div>
@@ -56,9 +55,11 @@
         <div class="input-group radio-btn">
             <label for="statut" class="mtb-auto mr-2">Gestion quantité</label>
             <div onclick="updateQuantityDisplay($(this))">
-                <span class="btn {{ (articleRef.typeQuantite == 'reference') ? 'active' : 'not-active'}}" data-title="reference">
-                    Par référence</span><span class="btn {{ (articleRef.typeQuantite == 'article') ? 'active' : 'not-active'}}"
-                        data-title="article" >
+                <span class="btn {{ (articleRef.typeQuantite == 'reference') ? 'active' : 'not-active'}}"
+                    data-title="reference">
+                    Par référence</span><span
+                    class="btn {{ (articleRef.typeQuantite == 'article') ? 'active' : 'not-active'}}"
+                    data-title="article">
                     Par article</span>
             </div>
         </div>
@@ -87,31 +88,31 @@
 
 <!-- ARTICLES FOURNISSEURS -->
 {% if articleRef.typeQuantite == 'reference' %}
-    <div class="row">
-        <div class='col-12 article mb-2' onclick="visibleBlockModal($(this))">
-            <h3 class='d-flex pointer'><i class="fas fa-sort-up d-none mr-2"></i>
-                <i class="fas fa-sort-down d-block mr-2"></i>
-                Quantité par articles fournisseurs </h3>
-        </div>
-        <div class="form-group col-12 d-none">
-            <table class="table table-striped table-bordered w-auto m-auto">
-                <tr>
-                    <th>Ref fournisseur</th>
-                    <th>Libellé</th>
-                    <th>Fournisseur</th>
-                    <th>Quantité</th>
-                </tr>
-                {% for articleFournisseur in articlesFournisseur %}
-                    <tr>
-                        <td>{{ articleFournisseur.fournisseurRef }}</td>
-                        <td>{{ articleFournisseur.label }}</td>
-                        <td>{{ articleFournisseur.fournisseurName }}</td>
-                        <td>{{ articleFournisseur.quantity }}</td>
-                    </tr>
-                {% endfor %}
-            </table>
-        </div>
+<div class="row">
+    <div class='col-12 article mb-2' onclick="visibleBlockModal($(this))">
+        <h3 class='d-flex pointer'><i class="fas fa-sort-up d-none mr-2"></i>
+            <i class="fas fa-sort-down d-block mr-2"></i>
+            Quantité par articles fournisseurs </h3>
     </div>
+    <div class="form-group col-12 d-none">
+        <table class="table table-striped table-bordered w-auto m-auto">
+            <tr>
+                <th>Ref fournisseur</th>
+                <th>Libellé</th>
+                <th>Fournisseur</th>
+                <th>Quantité</th>
+            </tr>
+            {% for articleFournisseur in articlesFournisseur %}
+            <tr>
+                <td>{{ articleFournisseur.fournisseurRef }}</td>
+                <td>{{ articleFournisseur.label }}</td>
+                <td>{{ articleFournisseur.fournisseurName }}</td>
+                <td>{{ articleFournisseur.quantity }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+</div>
 {% endif %}
 
 <!-- CHAMPS LIBRES -->
@@ -123,36 +124,58 @@
             Champs libres
         </h3>
     </div>
-    <div class="form-group col-12 d-none">
-        {% set type = articleRef.type %}
-        <div class='d-block' id="{{ type.id }}-edit">
+    <div class="form-group col-12 blocVisible d-block" id='typeContentEdit'>
+        {% for typeChampLibre in typeChampsLibres %}
+        <div {{ articleRef.type is defined and typeChampLibre.typeId == articleRef.type.id ? "class='d-block'" : "class='d-none'"}}
+            id="{{typeChampLibre.typeId}}-edit">
             <div class="row mt-2">
-                {% for champ in type.champsLibres %}
-
-                {% set value = '' %}
-                {% for row in valeurChampsLibre %}
-                    {% if (row.idCL == champ.id) %}{% set value = row.valeur %}{% endif %}
-                {% endfor %}
-
+                {% for champLibre in typeChampLibre.champsLibres %}
                 <div class="form-group col-6">
-                    <div class="input-group">
-                        <div class="input-group-prepend">
-                            <label class="input-group-text" for="input">
-                                {{champ.label | capitalize}}
-                            </label>
-                        </div>
-                        {% if champ.typage == 'booleen' %}
-                            {% set checked = (value == 1) ? 'checked' : '' %}
-                            <input type="checkbox" class="form-control" {{ checked }} disabled id="input">
-                        {% else %}
-                            <div class="form-control" id="input">
-                                {{ value }}
-                            </div>
-                        {% endif %}
-                    </div>
+                    <label for="input">{{ champLibre.label | capitalize}}</label>
+                    {% if champLibre.typage == 'booleen' %}
+                    {% set checked = ((champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : 0) == 1) ? 'checked' : '' %}
+                    <label class="switch">
+                        <input type="checkbox" class="data checkbox" { checked } disabled name="{{ champLibre.id}}">
+                        <span class="slider round"></span>
+                    </label>
+                    {% elseif  champLibre.typage == 'number' %}
+                    <input disabled type="number" id="{{ champLibre.label ~ 'edit'}}" class="form-control data"
+                        value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}"
+                        name="{{ champLibre.id}}" id="input">
+                    {% elseif  champLibre.typage == 'list' %}
+                    <select disabled class="form-control data" id="{{ champLibre.label ~ 'edit'}}"
+                        name="{{ champLibre.id}}" id="input">
+                        <option value="">aucune sélection...</option>
+                        {% for elem in  champLibre.elements %}
+                        {% set selected = elem ==( champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' )? 'selected' : '' %}
+                        <option value="{{elem}}" {{ selected }}>{{elem}}</option>
+                        {% endfor %}
+                    </select>
+                    {% else %}
+                    <input disabled type="text" id="{{ champLibre.label ~ 'edit'}}" class="form-control data"
+                        value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}"
+                        name="{{  champLibre.id }}" id="input">
+                    {% endif %}
                 </div>
-            {% endfor %}
+                {% endfor %}
             </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+<!-- Reference Fournisseur -->
+<div class="row mt-4">
+    <div class='col-12 mb-2' onclick="visibleBlockModal($(this))">
+        <h3 class='d-flex pointer'>
+            <i class="fas fa-sort-up d-none mr-2"></i>
+            <i class="fas fa-sort-down d-block mr-2"></i>
+            Articles Fournisseurs
+        </h3>
+    </div>
+    <div class="form-group blocVisible col-12 d-none">
+        <div class="form-group col-12 d-block" id='articleFournisseursEdit'>
+            {% include 'reference_article/fournisseurArticleShowContent.html.twig' %}
         </div>
     </div>
 </div>
+<div class="error-msg"></div>

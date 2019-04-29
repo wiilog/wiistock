@@ -89,7 +89,7 @@ class ServiceController extends AbstractController
                     'Actions' => $this->renderView('service/datatableServiceRow.html.twig', [
                         'url' => $url,
                         'service' => $service,
-                        'serviceId' => $service->getId(),
+                        'idService' => $service->getId(),
                     ]),
                 ];
             }
@@ -112,8 +112,24 @@ class ServiceController extends AbstractController
         return $this->render('service/index.html.twig', [
             'utilisateurs' => $this->utilisateurRepository->findAll(),
             'statuts' => $this->statutRepository->findByCategorieName(Service::CATEGORIE),
+           
         ]);
     }
+    /**
+     * @Route("/voir", name="service_show", options={"expose"=true},  methods="GET|POST")
+     */
+    public function show(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $service = $this->serviceRepository->find($data);
+            $json = $this->renderView('service/modalShowServiceContent.html.twig', [
+                'service' => $service,
+            ]);
+            return new JsonResponse($json);
+        }
+        throw new NotFoundHttpException('404');
+    }
+
 
     /**
      * @Route("/creer", name="service_new", options={"expose"=true}, methods={"GET", "POST"})
@@ -154,11 +170,10 @@ class ServiceController extends AbstractController
     public function editApi(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::MANUT, Action::CREATE)) {
+            if (!$this->userService->hasRightFunction(Menu::MANUT, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
             }
-
-            $service = $this->serviceRepository->find($data);
+            $service = $this->serviceRepository->find($data['id']);
             $statut = 2;
             if ($service->getStatut()->getNom() === Service::STATUT_A_TRAITER) {
                 $statut = 1;
@@ -184,11 +199,9 @@ class ServiceController extends AbstractController
     public function edit(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::MANUT, Action::CREATE)) {
+            if (!$this->userService->hasRightFunction(Menu::MANUT, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
             }
-                 dump($data);
-
             $service = $this->serviceRepository->find($data['id']);
             $statutLabel = Service::STATUT_BROUILLON;
             if (intval($data['statut']) === 1) {
@@ -211,7 +224,8 @@ class ServiceController extends AbstractController
                 $this->mailerService->sendMail(
                     'FOLLOW GT // Manutention effectuée',
                     $this->renderView('mails/mailManutentionDone.html.twig', ['manut' => $service]),
-                    $service->getDemandeur()->getEmail());
+                    $service->getDemandeur()->getEmail()
+                );
             }
 
             return new JsonResponse();
@@ -226,12 +240,16 @@ class ServiceController extends AbstractController
     public function delete(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::MANUT, Action::DELETE)) {
+            $service = $this->serviceRepository->find($data['service']);
+        
+            if ($service->getStatut()->getNom() == Service::STATUT_TRAITE) {
                 return $this->redirectToRoute('access_denied');
             }
-            $service = $this->serviceRepository->find($data['service']);
 
-            if ($service->getStatut()->getNom() == Service::STATUT_TRAITE) {
+        
+            if (!$this->userService->hasRightFunction(Menu::MANUT, Action::LIST)
+            &&  ($service->getStatuy()->getNom() === Service::STATUT_BROUILLON)
+              ) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -240,7 +258,7 @@ class ServiceController extends AbstractController
             $entityManager->flush();
             return new JsonResponse();
         }
-     
+
         throw new NotFoundHttpException("404");
     }
 }

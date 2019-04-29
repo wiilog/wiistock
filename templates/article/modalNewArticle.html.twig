@@ -12,17 +12,17 @@
                 <form class="row ">
                     <div class="col-12">
                         <div class="form-group w-100">
-                            <label for="fournisseur">Fournisseur</label>
-                            <select class="ajax-autocompleteFournisseur data form-control needed"
-                                onchange="getArticleFournisseur()" id="fournisseur" name="fournisseur">
+                            <label for="reference">Référence CEA</label>
+                            <select class="ajax-autocomplete data form-control needed"
+                                onchange="ajaxGetFournisseurByRefArticle($(this))" id="referenceCEA" name="refArticle">
                             </select>
                         </div>
                     </div>
-                    <div class="col-12">
+                    <div class="col-12 d-none" id="fournisseur">
                         <div class="form-group w-100">
-                            <label for="reference">Référence CEA</label>
-                            <select class="ajax-autocomplete data form-control needed"
-                                onchange="getArticleFournisseur()" id="referenceCEA" name="fournisseur">
+                            <label for="fournisseur">Fournisseur</label>
+                            <select class="data form-control needed" onchange="getArticleFournisseur()" id="fournisseurID"
+                                name="fournisseur">
                             </select>
                         </div>
                     </div>

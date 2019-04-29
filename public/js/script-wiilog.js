@@ -189,10 +189,10 @@ function deleteRow(button, modal, submit) {
 function showRow(button, path, modal) {
     let id = button.data('id');
     let params = JSON.stringify(id);
-
     $.post(path, params, function(data) {
         modal.find('.modal-body').html(data);
     }, 'json');
+    
 }
 
 
@@ -228,10 +228,10 @@ function editRow(button, path, modal, submit, editorToInit = false) {
             if (editorToInit) initEditor('#' + modal.attr('id'));
         }
     }
-    let json = { id :button.data('id'), isADemand:0};
-
-    modal.find(submit).attr('value', json);
-    modal.find('#inputId').attr('value', json);
+    let id = button.data('id');
+    let json = { id :id, isADemand:0};
+    modal.find(submit).attr('value', id);
+    modal.find('#inputId').attr('value', id);
     xhttp.open("POST", path, true);
     xhttp.send(JSON.stringify(json));
 }
@@ -489,4 +489,35 @@ function displayError(modal, msg, data) {
     } else {
         modal.find('.close').click();
     }
+}
+
+function clearModal(modal) {
+    $modal = $(modal);
+    let inputs = $modal.find('.modal-body').find(".data");
+    // on vide tous les inputs (sauf les disabled)
+    inputs.each(function () {
+        if ($(this).attr('disabled') !== 'disabled') {
+            $(this).val("");
+        }
+        // on enlève les classes is-invalid
+        $(this).removeClass('is-invalid');
+    });
+    // on vide tous les select2
+    let selects = $modal.find('.modal-body').find('.ajax-autocomplete,.ajax-autocompleteEmplacement,.select2');
+    selects.each(function () {
+        console.log($(this));
+        $(this).val(null).trigger('change');
+    });
+    // on vide les messages d'erreur
+    $modal.find('.error-msg, .password-error-msg').html('');
+    // on remet toutes les checkboxes sur off
+    let checkboxes = $modal.find('.checkbox');
+    checkboxes.each(function () {
+        console.log($(this));
+        $(this).prop('checked', false);
+        $(this).removeClass('active');
+        $(this).addClass('not-active');
+    });
+    // on vide les éditeurs de text
+    $('.ql-editor').text('')
 }

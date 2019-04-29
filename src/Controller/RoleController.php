@@ -48,7 +48,7 @@ class RoleController extends AbstractController
     private $userService;
 
 
-    public function __construct(RoleRepository $roleRepository, ActionRepository $actionRepository, MenuRepository $menuRepository, UtilisateurRepository $utilisateurRepository, UserService$userService)
+    public function __construct(RoleRepository $roleRepository, ActionRepository $actionRepository, MenuRepository $menuRepository, UtilisateurRepository $utilisateurRepository, UserService $userService)
     {
         $this->roleRepository = $roleRepository;
         $this->actionRepository = $actionRepository;
@@ -76,8 +76,7 @@ class RoleController extends AbstractController
      */
     public function api(Request $request): Response
     {
-        if ($request->isXmlHttpRequest())
-        {
+        if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::PARAM)) {
                 return $this->redirectToRoute('access_denied');
             }
@@ -161,7 +160,7 @@ class RoleController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $role = $this->roleRepository->find($data);
+            $role = $this->roleRepository->find($data['id']);
             $menus = $this->menuRepository->findAll();
 
             // on liste les id des actions que possède le rôle

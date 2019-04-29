@@ -65,7 +65,7 @@ class TypeController extends AbstractController
         if ($request->isXmlHttpRequest()) {
 
             $types = $this->typeRepository->getByCategoryLabel(ReferenceArticle::CATEGORIE_TYPE); //TODO 
-           
+
             $view = $this->renderView('type/inputSelectTypes.html.twig', [
                 'types' => $types
             ]);
@@ -174,7 +174,7 @@ class TypeController extends AbstractController
     public function editApi(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $type = $this->typeRepository->find($data);
+            $type = $this->typeRepository->find($data['id']);
             $json = $this->renderView('champ_libre/modalEditTypeContent.html.twig', [
                 'type' => $type,
                 'category' => $this->categoryTypeRepository->getNoOne($type->getCategory()->getId())

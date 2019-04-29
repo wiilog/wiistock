@@ -140,7 +140,7 @@ class UtilisateurController extends Controller
                 return $this->redirectToRoute('access_denied');
             }
 
-            $user = $this->utilisateurRepository->find($data);
+            $user = $this->utilisateurRepository->find($data['id']);
             $json = $this->renderView('utilisateur/modalEditUserContent.html.twig', [
                 'user' => $user,
             ]);

@@ -133,7 +133,7 @@ class FournisseurController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $fournisseur = $this->fournisseurRepository->find($data);
+            $fournisseur = $this->fournisseurRepository->find($data['id']);
             $json = $this->renderView('fournisseur/modalEditFournisseurContent.html.twig', [
                 'fournisseur' => $fournisseur,
             ]);

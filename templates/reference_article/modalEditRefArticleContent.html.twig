@@ -158,7 +158,6 @@
                     <input {{ disabled }} type="text" id="{{ champLibre.label ~ 'edit'}}" class="form-control data"
                         value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}"
                         name="{{  champLibre.id }}" id="input">
-                    {% endif %}
 
                     {% elseif champLibre.typage == 'date' %}
                     <input {{ disabled }} type="date" name="{{ champLibre.id }}" id="{{champLibre.label ~ 'edit'}}" class="form-control data"
