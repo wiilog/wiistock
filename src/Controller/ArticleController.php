@@ -228,7 +228,7 @@ class ArticleController extends AbstractController
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $toInsert = new Article();
             $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $data['statut'] === Article::STATUT_ACTIF ? Article::STATUT_ACTIF : Article::STATUT_INACTIF);
-            $date = new \DateTime('now');
+            $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
             $ref = $date->format('YmdHis');
             $toInsert
                 ->setLabel($data['libelle'])

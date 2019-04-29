@@ -144,7 +144,7 @@ class DemandeController extends AbstractController
             // Creation d'une nouvelle preparation basée sur une selection de demandes
             $demande = $this->demandeRepository->find($data['demande']);
             $preparation = new Preparation();
-            $date = new \DateTime('now');
+            $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
             $preparation
                 ->setNumero('P-' . $date->format('YmdHis'))
                 ->setDate($date);
@@ -235,7 +235,7 @@ class DemandeController extends AbstractController
 
             $em = $this->getDoctrine()->getManager();
             $utilisateur = $this->utilisateurRepository->find($data['demandeur']);
-            $date = new \DateTime('now');
+            $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
             $statut = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
             $destination = $this->emplacementRepository->find($data['destination']);
             $demande = new Demande();
