@@ -2,6 +2,7 @@
 
 namespace App\DataFixtures;
 
+use App\Entity\ChampsLibre;
 use App\Entity\Type;
 use App\Repository\StatutRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
@@ -13,7 +14,7 @@ use App\Entity\ReferenceArticle;
 use App\Repository\TypeRepository;
 use App\Repository\ChampsLibreRepository;
 
-class RefArticleSILIFixtures extends Fixture implements FixtureGroupInterface
+class RefArticleSILIExtFixtures extends Fixture implements FixtureGroupInterface
 {
     private $encoder;
 
@@ -42,7 +43,7 @@ class RefArticleSILIFixtures extends Fixture implements FixtureGroupInterface
 
     public function load(ObjectManager $manager)
     {
-        $path = "public/csv/sili.csv";
+        $path = "public/csv/sili-ext.csv";
         $file = fopen($path, "r");
 
         $rows = [];
@@ -59,13 +60,15 @@ class RefArticleSILIFixtures extends Fixture implements FixtureGroupInterface
             $i++;
             $typeSili = $this->typeRepository->findOneBy(['label' => Type::LABEL_SILI]);
 
+            // contruction référence
+            $referenceNum = str_pad($i, 5, '0', STR_PAD_LEFT);
+
             // champs fixes
             $referenceArticle = new ReferenceArticle();
             $referenceArticle
                 ->setType($typeSili)
-                ->setReference($row[0])
-                ->setLibelle($row[1])
-                ->setQuantiteStock(intval($row[3]))
+                ->setReference('SILI_EXT_' . $referenceNum)
+                ->setLibelle('SILI_EXT_' . $referenceNum)
                 ->setTypeQuantite('reference')
                 ->setStatut($this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF));
             $manager->persist($referenceArticle);
@@ -74,10 +77,16 @@ class RefArticleSILIFixtures extends Fixture implements FixtureGroupInterface
 
             // champs libres
             $listFields = [
-                ['label' => 'adresse', 'col' => 2, 'type' => ChampsLibre::TYPE_TEXT],
-                ['label' => 'famille produit', 'col' => 4, 'type' => ChampsLibre::TYPE_LIST, 'elements' => 'CONSOMMABLES;PAD;POMPE;POMPE_41;PIECES DETACHEES;PDT GENERIQUE;DCOS TEST ELECTRIQUE;SILICIUM;SIL_EXTERNE;SIL_INTERNE;MOBILIER SB;MOBILIER TERTIAIRE;CIBLE / SLUGS'],
-                ['label' => "alerte mini", 'col' => 13, 'type' => ChampsLibre::TYPE_LIST, 'elements' => 'besoin'],
-                ['label' => "alerte prévision", 'col' => 14, 'type' => ChampsLibre::TYPE_NUMBER],
+                ['label' => 'adresse', 'col' => 0, 'type' => ChampsLibre::TYPE_TEXT],
+                ['label' => 'famille produit', 'col' => 1, 'type' => ChampsLibre::TYPE_LIST, 'elements' => 'CONSOMMABLES;PAD;POMPE;POMPE_41;PIECES DETACHEES;PDT GENERIQUE;DCOS TEST ELECTRIQUE;SILICIUM;SIL_EXTERNE;SIL_INTERNE;MOBILIER SB;MOBILIER TERTIAIRE;CIBLE / SLUGS'],
+                ['label' => 'date', 'col' => 2, 'type' => ChampsLibre::TYPE_DATE],
+                ['label' => "projet", 'col' => 3, 'type' => ChampsLibre::TYPE_TEXT],
+                ['label' => "demandeur", 'col' => 4, 'type' => ChampsLibre::TYPE_TEXT],
+                ['label' => "date fin de projet", 'col' => 5, 'type' => ChampsLibre::TYPE_DATE],
+                ['label' => "lot", 'col' => 6, 'type' => ChampsLibre::TYPE_TEXT],
+                ['label' => "sortie", 'col' => 7, 'type' => ChampsLibre::TYPE_NUMBER],
+                ['label' => "commentaire", 'col' => 8, 'type' => ChampsLibre::TYPE_TEXT],
+                ['label' => "jours de péremption", 'col' => 9, 'type' => ChampsLibre::TYPE_NUMBER],
             ];
 
             foreach($listFields as $field) {
