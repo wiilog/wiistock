@@ -249,6 +249,7 @@ function ajaxGetAndFillArticle(select) {
             $('#editNewArticle').html(data.modif);
             $('#modalNewArticle').find('div').find('div').find('.modal-footer').removeClass('d-none');
             displayRequireChamp($('#typeEdit'), 'edit');
+            initEditor2();
         })
     }
 }
@@ -280,7 +281,7 @@ let ajaxEditArticle = function (select) {
             if (dataReponse) {
                 $('#editNewArticle').html(dataReponse);
                 // displayRequireChamp($('#typeEditArticle'), 'edit');
-                initEditor('.editor-container');
+                initEditor2();
             } else {
                 //TODO gérer erreur
             }

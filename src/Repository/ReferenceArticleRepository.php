@@ -26,9 +26,9 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             "SELECT r.id, r.libelle 
             FROM App\Entity\ReferenceArticle r
             "
-             );
+        );
 
-        return $query->execute(); 
+        return $query->execute();
     }
 
     public function getChampFixeById($id)
@@ -39,18 +39,18 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             FROM App\Entity\ReferenceArticle r
             WHERE r.id = :id 
             "
-             )->setParameter('id', $id);
+        )->setParameter('id', $id);
 
-        return $query->execute(); 
+        return $query->execute();
     }
 
     public function getIdAndLibelleBySearch($search)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
-          "SELECT r.id, r.libelle as text
+            "SELECT r.id, r.reference as text
           FROM App\Entity\ReferenceArticle r
-          WHERE r.libelle LIKE :search"
+          WHERE r.reference LIKE :search"
         )->setParameter('search', '%' . $search . '%');
 
         return $query->execute();
@@ -64,8 +64,8 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             FROM App\Entity\ReferenceArticle r
             WHERE r.id = $id
            "
-            );
-        return $query->getSingleScalarResult(); 
+        );
+        return $query->getSingleScalarResult();
     }
 
     public function findByFiltersAndParams($filters, $params = null)
@@ -92,8 +92,8 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             ->from('App\Entity\ReferenceArticle', 'ra')
             ->leftJoin('ra.valeurChampsLibres', 'vcl');
 
-        foreach($filters as $filter) {
-            $index ++;
+        foreach ($filters as $filter) {
+            $index++;
 
             // cas champ fixe
             if ($label = $filter['champFixe']) {
@@ -111,7 +111,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                         $qb->andWhere("ra." . $field . " = " . $filter['value']);
                         break;
                     case 'list':
-                    // cas particulier du type (pas besoin de généraliser pour l'instant, voir selon besoins)
+                        // cas particulier du type (pas besoin de généraliser pour l'instant, voir selon besoins)
                         $qb
                             ->leftJoin('ra.type', 't')
                             ->andWhere('t.label = :typeLabel')
@@ -119,7 +119,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                         break;
                 }
 
-            // cas champ libre
+                // cas champ libre
             } else if ($filter['champLibre']) {
                 $qbSub = $em->createQueryBuilder();
                 $qbSub
@@ -127,7 +127,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                     ->from('App\Entity\ReferenceArticle', 'ra' . $index)
                     ->leftJoin('ra' . $index . '.valeurChampsLibres', 'vcl' . $index);
 
-                switch($filter['typage']) {
+                switch ($filter['typage']) {
                     case 'booleen':
                         $value = $filter['value'] == 1 ? '1' : '0';
                         $qbSub
@@ -152,9 +152,9 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             }
         }
 
-        foreach($subQueries as $subQuery) {
+        foreach ($subQueries as $subQuery) {
             $ids = [];
-            foreach($subQuery as $idArray) {
+            foreach ($subQuery as $idArray) {
                 $ids[] = $idArray['id'];
             }
             if (empty($ids)) $ids = 0;
@@ -233,5 +233,4 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
         return $query->getSingleScalarResult();
     }
-
 }
