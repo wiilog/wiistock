@@ -91,4 +91,5 @@ class ArticleFournisseurRepository extends ServiceEntityRepository
 
         return $query->getResult();
     }
+
 }

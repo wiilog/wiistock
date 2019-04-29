@@ -50,7 +50,7 @@
     </div>
 </div>
 <div class="row mt-4 mb-4">
-    {% if editable and not isADemand%}
+    {% if editable and not isADemand %}
         <div class="form-group col-6">
             <div class="input-group radio-btn">
                 <label for="statut" class="mtb-auto mr-2">Gestion quantité</label>
@@ -90,12 +90,13 @@
 <!-- ARTICLES FOURNISSEURS -->
 <div class="row">
     {% set dnone = (articleRef.typeQuantite == 'article') ? '' : 'd-none' %}
+
     <div class='col-12 article {{ dnone }} mb-2' onclick="visibleBlockModal($(this))">
         <h3 class='d-flex pointer'><i class="fas fa-sort-up d-none mr-2"></i>
             <i class="fas fa-sort-down d-block mr-2"></i>
             Quantité par articles fournisseurs </h3>
     </div>
-    <div class="form-group col-12 d-none">
+    <div class="form-group col-12 blocVisible d-none">
         <table class="table table-striped table-bordered w-auto m-auto">
             <tr>
                 <th>Ref fournisseur</th>
@@ -104,6 +105,7 @@
                 <th>Quantité</th>
             </tr>
             {% for articleFournisseur in articlesFournisseur %}
+          
             <tr>
                 <td>{{ articleFournisseur.fournisseurRef }}</td>
                 <td>{{ articleFournisseur.label }}</td>
@@ -191,4 +193,3 @@
         </div>
     </div>
 </div>
-<div class="error-msg"></div>
