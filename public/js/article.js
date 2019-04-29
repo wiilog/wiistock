@@ -225,6 +225,7 @@ let ajaxGetFournisseurByRefArticle = function (select) {
             } else {
                 fournisseur.removeClass('d-none');
                 fournisseur.find('select').html(data);
+                $('.error-msg').html('');
             }
         }
     }
