@@ -23,6 +23,7 @@ class TypeFixtures extends Fixture implements DependentFixtureInterface, Fixture
         // categorie typeArticle
         $typesNames = [
             'PDT',
+            'CSP',
             'PSS',
             'SILI',
             'MOB',
