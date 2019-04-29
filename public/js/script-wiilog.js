@@ -304,6 +304,7 @@ function setCommentaireID(button) {
 
 //Cache/affiche les bloc des modal edit/new
 function visibleBlockModal(bloc) {
+    
     let blocContent = bloc.siblings().filter('.blocVisible');
     let sortUp = bloc.find('h3').find('.fa-sort-up');
     let sortDown = bloc.find('h3').find('.fa-sort-down');
