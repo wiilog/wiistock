@@ -131,9 +131,6 @@ class ServiceController extends AbstractController
     }
 
 
-
-
-
     /**
      * @Route("/creer", name="service_new", options={"expose"=true}, methods={"GET", "POST"})
      */
@@ -146,7 +143,7 @@ class ServiceController extends AbstractController
 
             $status = $this->statutRepository->findOneByCategorieAndStatut(Service::CATEGORIE, Service::STATUT_BROUILLON);
             $service = new Service();
-            $date = new \DateTime('now');
+            $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
 
             $service
                 ->setDate($date)
@@ -244,17 +241,15 @@ class ServiceController extends AbstractController
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $service = $this->serviceRepository->find($data['service']);
-            // if (!$this->userService->hasRightFunction(Menu::MANUT, Action::DELETE)) {
-            //     return $this->redirectToRoute('access_denied');
-            // }
-            // if (!$this->userService->hasRightFunction(Menu::MANUT, Action::LIST)
-            // &&  ($service->getStatus()->getNom() === Service::STATUT_BROUILLON)
-            //   ) {
-            //     return $this->redirectToRoute('access_denied');
-            // }
-           
-
+        
             if ($service->getStatut()->getNom() == Service::STATUT_TRAITE) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+        
+            if (!$this->userService->hasRightFunction(Menu::MANUT, Action::LIST)
+            &&  ($service->getStatuy()->getNom() === Service::STATUT_BROUILLON)
+              ) {
                 return $this->redirectToRoute('access_denied');
             }
 

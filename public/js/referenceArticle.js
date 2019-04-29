@@ -38,6 +38,10 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function () 
             }
         };
 
+        if (path ===  Routing.generate('save_column_visible', true)) {
+            tableColumnVisible.search( '' ).draw()
+        }
+
         // On récupère toutes les données qui nous intéressent
         // dans les inputs...
         let Data = {};
