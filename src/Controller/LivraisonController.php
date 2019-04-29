@@ -114,7 +114,7 @@ class LivraisonController extends AbstractController
         $demande = $demande1[0];
         $statut = $this->statutRepository->findOneByCategorieAndStatut(Livraison::CATEGORIE, Livraison::STATUT_A_TRAITER);
         $livraison = new Livraison();
-        $date = new \DateTime('now');
+        $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
         $livraison
             ->setDate($date)
             ->setNumero('L-' . $date->format('YmdHis'))
@@ -162,7 +162,7 @@ class LivraisonController extends AbstractController
             $livraison
                 ->setStatut($this->statutRepository->findOneByCategorieAndStatut(Livraison::CATEGORIE, Livraison::STATUT_LIVRE))
                 ->setUtilisateur($this->getUser())
-                ->setDateFin(new \DateTime('now'));
+                ->setDateFin(new \DateTime('now', new \DateTimeZone('Europe/Paris')));
 
             $demande = $this->demandeRepository->getByLivraison($livraison->getId());
             /** @var Demande $demande */

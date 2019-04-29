@@ -118,7 +118,7 @@ class AlerteController extends AbstractController
             $refArticle = $this->referenceArticleRepository->find($data['AlerteArticleReference']);
 
             $alerte = new Alerte();
-            $date = new \DateTime('now');
+            $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
             $alerte
                 ->setAlerteNumero('P-' . $date->format('YmdHis'))
                 ->setAlerteSeuil($data['AlerteSeuil'])

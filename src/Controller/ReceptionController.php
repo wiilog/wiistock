@@ -150,7 +150,7 @@ class ReceptionController extends AbstractController
                 $statut = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_EN_ATTENTE);
             }
 
-            $date = new \DateTime('now');
+            $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
             $numeroReception = 'R' . $date->format('ymd-His'); //TODO CG ajouter numéro
 
             $reception
@@ -539,7 +539,7 @@ class ReceptionController extends AbstractController
                 $referenceArticle->setQuantiteStock($referenceArticle->getQuantiteStock() + $receptionRA->getQuantite());
             } elseif ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
                 for ($i = 0; $i < $receptionRA->getQuantite(); $i++) {
-                    $date = new \DateTime('now');
+                    $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
                     $ref = $date->format('YmdHis');
                     $article = new Article();
                     $article
