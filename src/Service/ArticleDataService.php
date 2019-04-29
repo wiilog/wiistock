@@ -328,9 +328,9 @@ class ArticleDataService
     public function editArticle($data)
     {
         // spécifique CEA : accès pour tous au champ libre 'Code projet'
-//        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE)) {
-//            return new RedirectResponse($this->router->generate('access_denied'));
-//        }
+        //        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE)) {
+        //            return new RedirectResponse($this->router->generate('access_denied'));
+        //        }
 
         $entityManager = $this->em;
         $article = $this->articleRepository->find($data['article']);
