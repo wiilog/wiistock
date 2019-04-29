@@ -33,6 +33,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Proxies\__CG__\App\Entity\ReferenceArticle;
 use Proxies\__CG__\App\Entity\CategorieCL;
+use App\Entity\ReferenceArticle as AppReferenceArticle;
 
 /**
  * @Route("/article")
@@ -423,14 +424,14 @@ class ArticleController extends AbstractController
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $refArticle = $this->referenceArticleRepository->find($data['refArticle']);
-            if ($refArticle) {
+            if ($refArticle && $refArticle->getTypeQuantite() === AppReferenceArticle::TYPE_QUANTITE_ARTICLE) {
                 // $fournisseurs = $this->fournisseurRepository->findByRefArticle($refArticle);
                 $articleFournisseurs = $refArticle->getArticlesFournisseur();
                 $fournisseurs = [];
                 foreach ($articleFournisseurs as $articleFournisseur) {
                     $fournisseurs[] = $articleFournisseur->getFournisseur();
                 }
-                $fournisseursUnique =array_unique($fournisseurs);
+                $fournisseursUnique = array_unique($fournisseurs);
                 $json = $this->renderView(
                     'article/optionFournisseurNewArticle.html.twig',
                     [
