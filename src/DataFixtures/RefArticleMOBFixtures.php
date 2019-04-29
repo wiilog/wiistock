@@ -75,12 +75,14 @@ class RefArticleMOBFixtures extends Fixture implements FixtureGroupInterface
             dump($i);
             $i++;
             $typeMob = $this->typeRepository->findOneBy(['label' => Type::LABEL_MOB]);
+            // contruction référence
+            $referenceNum = str_pad($i, 5, '0', STR_PAD_LEFT);
 
             // champs fixes
             $referenceArticle = new ReferenceArticle();
             $referenceArticle
                 ->setType($typeMob)
-                ->setReference($row[0])
+                ->setReference($row[0] . '-' . $referenceNum)
                 ->setLibelle($row[1])
                 ->setQuantiteStock(intval($row[3]))
                 ->setTypeQuantite('reference')

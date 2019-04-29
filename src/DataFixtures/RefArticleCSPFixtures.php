@@ -15,6 +15,7 @@ use App\Repository\EmplacementRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\StatutRepository;
+use App\Repository\ValeurChampsLibreRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
@@ -70,8 +71,13 @@ class RefArticleCSPFixtures extends Fixture implements FixtureGroupInterface
      */
     private $articleFournisseurRepository;
 
+    /**
+     * @var ValeurChampsLibreRepository
+     */
+    private $valeurCLRepository;
 
-    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository, EmplacementRepository $emplacementRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampsLibreRepository $champsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $refArticleRepository, CategorieCLRepository $categorieCLRepository)
+
+    public function __construct(ValeurChampsLibreRepository $valeurChampsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, EmplacementRepository $emplacementRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampsLibreRepository $champsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $refArticleRepository, CategorieCLRepository $categorieCLRepository)
     {
         $this->typeRepository = $typeRepository;
         $this->champsLibreRepository = $champsLibreRepository;
@@ -82,6 +88,7 @@ class RefArticleCSPFixtures extends Fixture implements FixtureGroupInterface
         $this->categorieCLRepository = $categorieCLRepository;
         $this->emplacementRepository = $emplacementRepository;
         $this->articleFournisseurRepository = $articleFournisseurRepository;
+        $this->valeurCLRepository = $valeurChampsLibreRepository;
     }
 
     public function load(ObjectManager $manager)
@@ -107,71 +114,9 @@ class RefArticleCSPFixtures extends Fixture implements FixtureGroupInterface
             $typeCsp = $this->typeRepository->findOneBy(['label' => Type::LABEL_CSP]);
             $typeArticle = $this->typeRepository->findOneBy(['label' => Type::LABEL_ARTICLE]);
 
-            // si l'article de référence existe déjà, on crée un article
-            $refArt = $this->refArticleRepository->findOneBy(['reference' => $row[0]]);
-            if (!empty($refArt)) {
-                $refArt->setTypeQuantite(ReferenceArticle::TYPE_QUANTITE_ARTICLE);
-
-                $article = new Article();
-                $article
-                    ->setLabel($row[1])
-                    ->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF))
-                    ->setType($typeArticle)
-                    ->setConform(true)
-                    ->setReference($row[0] . '-' . $i)
-                    ->setQuantite(intval($row[3]));
-
-                // champ fournisseur
-                $fournisseurLabel = $row[5];
-                if (!empty($fournisseurLabel)) {
-                    $fournisseurRef = $row[6];
-                    if (in_array($fournisseurRef, ['nc', 'nd', 'NC', 'ND', '*', '.', ''])) {
-                        $fournisseurRef = $fournisseurLabel;
-                    }
-                    $fournisseur = $this->fournisseurRepository->findOneBy(['nom' => $fournisseurLabel]);
-
-                    // si le fournisseur n'existe pas, on le crée
-                    if (empty($fournisseur)) {
-                        $fournisseur = new Fournisseur();
-                        $fournisseur
-                            ->setNom($fournisseurLabel)
-                            ->setCodeReference($fournisseurRef);
-                        $manager->persist($fournisseur);
-                    }
-
-                    // on crée l'article fournisseur, on le lie au fournisseur et à l'article de référence
-                    $artFourn = new ArticleFournisseur();
-                    $artFourn
-                        ->setLabel($row[1])
-                        ->setReference(time())// code aléatoire
-                        ->setFournisseur($fournisseur)
-                        ->setReferenceArticle($refArt);
-                    $manager->persist($artFourn);
-
-                    // on lie l'article à l'article fournisseur
-                    $article->setArticleFournisseur($artFourn);
-                }
-
-                // champ emplacement
-                $emplacementLabel = $row[2];
-                if (!empty($emplacementLabel)) {
-                    $emplacement = $this->emplacementRepository->findOneBy(['label' => $emplacementLabel]);
-
-                    // si l'emplacement n'existe pas, on le crée
-                    if (empty($emplacement)) {
-                        $emplacement = new Emplacement();
-                        $emplacement->setLabel($emplacementLabel);
-                        $manager->persist($emplacement);
-                    }
-
-                    $article->setEmplacement($emplacement);
-                }
-
-                $manager->persist($article);
-
-            } else {
-            // si l'article de référence n'existe pas, on le crée
-
+            // si l'article de référence n'existe pas déjà, on le crée
+            $referenceArticle = $this->refArticleRepository->findOneBy(['reference' => $row[0]]);
+            if (empty($referenceArticle)) {
                 // champs fixes
                 $referenceArticle = new ReferenceArticle();
                 $referenceArticle
@@ -179,11 +124,9 @@ class RefArticleCSPFixtures extends Fixture implements FixtureGroupInterface
                     ->setStatut($this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF))
                     ->setReference($row[0])
                     ->setLibelle($row[1])
-                    ->setTypeQuantite('reference')
-                    ->setQuantiteStock(intval($row[3]));
+                    ->setTypeQuantite(ReferenceArticle::TYPE_QUANTITE_ARTICLE);
                 $manager->persist($referenceArticle);
                 $manager->flush();
-
 
                 // champ fournisseur
                 $fournisseurLabel = $row[5];
@@ -218,7 +161,7 @@ class RefArticleCSPFixtures extends Fixture implements FixtureGroupInterface
                 // champs libres
                 $listFields = [
                     ['label' => 'adresse', 'col' => 2, 'type' => ChampsLibre::TYPE_TEXT],
-                    ['label' => 'famille produit', 'col' => 4, 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['CONSOMMABLES','PAD','POMPE','POMPE_41', 'PIECES DETACHEES', 'PDT GENERIQUE', 'DCOS TEST ELECTRIQUE', 'SILICIUM', 'SIL_EXTERNE', 'SIL_INTERNE', 'MOBILIER SB', 'MOBILIER TERTIAIRE', 'CIBLE / SLUGS']],
+                    ['label' => 'famille produit', 'col' => 4, 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['CONSOMMABLES', 'PAD', 'POMPE', 'POMPE_41', 'PIECES DETACHEES', 'PDT GENERIQUE', 'DCOS TEST ELECTRIQUE', 'SILICIUM', 'SIL_EXTERNE', 'SIL_INTERNE', 'MOBILIER SB', 'MOBILIER TERTIAIRE', 'CIBLE / SLUGS']],
                     ['label' => "stock mini", 'col' => 7, 'type' => ChampsLibre::TYPE_NUMBER],
                     ['label' => "stock alerte", 'col' => 8, 'type' => ChampsLibre::TYPE_NUMBER],
                     ['label' => "prix unitaire", 'col' => 9, 'type' => ChampsLibre::TYPE_TEXT],
@@ -251,7 +194,65 @@ class RefArticleCSPFixtures extends Fixture implements FixtureGroupInterface
                         ->setValeur($row[$field['col']]);
                     $manager->persist($vcl);
                 }
+                $manager->flush();
             }
+
+            // on crée l'article
+            $article = new Article();
+            $article
+                ->setReference($row[0] . '-' . $i)
+                ->setLabel($row[1])
+                ->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF))
+                ->setType($typeArticle)
+                ->setConform(true)
+                ->setQuantite(intval($row[3]));
+
+            // champ fournisseur
+            $fournisseurLabel = $row[5];
+            if (!empty($fournisseurLabel)) {
+                $fournisseurRef = $row[6];
+                if (in_array($fournisseurRef, ['nc', 'nd', 'NC', 'ND', '*', '.', ''])) {
+                    $fournisseurRef = $fournisseurLabel;
+                }
+                $fournisseur = $this->fournisseurRepository->findOneBy(['nom' => $fournisseurLabel]);
+
+                // si le fournisseur n'existe pas, on le crée
+                if (empty($fournisseur)) {
+                    $fournisseur = new Fournisseur();
+                    $fournisseur
+                        ->setNom($fournisseurLabel)
+                        ->setCodeReference($fournisseurRef);
+                    $manager->persist($fournisseur);
+                }
+
+                // on crée l'article fournisseur, on le lie au fournisseur et à l'article de référence
+                $artFourn = new ArticleFournisseur();
+                $artFourn
+                    ->setLabel($row[1])
+                    ->setReference(time())// code aléatoire
+                    ->setFournisseur($fournisseur)
+                    ->setReferenceArticle($referenceArticle);
+                $manager->persist($artFourn);
+
+                // on lie l'article à l'article fournisseur
+                $article->setArticleFournisseur($artFourn);
+            }
+
+            // champ emplacement
+            $emplacementLabel = $row[2];
+            if (!empty($emplacementLabel)) {
+                $emplacement = $this->emplacementRepository->findOneBy(['label' => $emplacementLabel]);
+
+                // si l'emplacement n'existe pas, on le crée
+                if (empty($emplacement)) {
+                    $emplacement = new Emplacement();
+                    $emplacement->setLabel($emplacementLabel);
+                    $manager->persist($emplacement);
+                }
+
+                $article->setEmplacement($emplacement);
+            }
+            $manager->persist($article);
 
             $manager->flush();
         }
