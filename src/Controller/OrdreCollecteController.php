@@ -145,7 +145,7 @@ class OrdreCollecteController extends AbstractController
             $collecte
                 ->setUtilisateur($this->getUser())
                 ->setStatut($this->statutRepository->findOneByCategorieAndStatut(OrdreCollecte::CATEGORIE, OrdreCollecte::STATUT_TRAITE))
-                ->setDate(new \DateTime('now'));
+                ->setDate(new \DateTime('now', new \DateTimeZone('Europe/Paris')));
 
             // on modifie le statut de la demande de collecte
             $demande = $collecte->getDemandeCollecte();
@@ -253,7 +253,7 @@ class OrdreCollecteController extends AbstractController
         // on crée l'ordre de collecte
         $statut = $this->statutRepository->findOneByCategorieAndStatut(OrdreCollecte::CATEGORIE, OrdreCollecte::STATUT_A_TRAITER);
         $ordreCollecte = new OrdreCollecte();
-        $date = new \DateTime('now');
+        $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
         $ordreCollecte
             ->setDate($date)
             ->setNumero('C-' . $date->format('YmdHis'))

@@ -65,7 +65,7 @@ class ArticleFournisseurController extends AbstractController
     /**
      * @Route("/api", name="article_fournisseur_api", options={"expose"=true}, methods="POST")
      */
-    public function api(Request $request) : Response
+    public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
@@ -84,7 +84,7 @@ class ArticleFournisseurController extends AbstractController
                     'Article de référence' => $articleFournisseur->getReferenceArticle()->getLibelle(),
                     'Actions' => $this->renderView('article_fournisseur/datatableRowActions.html.twig', [
                         'url' => $url,
-                        'id'=>$articleFournisseurId
+                        'id' => $articleFournisseurId
                     ]),
                 ];
             }
@@ -98,7 +98,7 @@ class ArticleFournisseurController extends AbstractController
     /**
      * @Route("/creer", name="article_fournisseur_new", options={"expose"=true}, methods="GET|POST")
      */
-    public function new(Request $request) : Response
+    public function new(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE)) {
@@ -132,9 +132,7 @@ class ArticleFournisseurController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
-
-            $articleFournisseur = $this->articleFournisseurRepository->find(intval($data));
-
+            $articleFournisseur = $this->articleFournisseurRepository->find(intval($data['id']));
             $json = $this->renderView('article_fournisseur/modalEditArticleFournisseurContent.html.twig', [
                 'articleFournisseur' => $articleFournisseur,
             ]);
@@ -172,14 +170,14 @@ class ArticleFournisseurController extends AbstractController
     /**
      * @Route("/supprimer", name="article_fournisseur_delete",  options={"expose"=true}, methods={"GET", "POST"})
      */
-    public function delete(Request $request) : Response
+    public function delete(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
-           
-            $articleFournisseur= $this->articleFournisseurRepository->find(intval($data['article-fournisseur']));
+
+            $articleFournisseur = $this->articleFournisseurRepository->find(intval($data['article-fournisseur']));
 
             $em = $this->getDoctrine()->getManager();
             $em->remove($articleFournisseur);
@@ -188,5 +186,4 @@ class ArticleFournisseurController extends AbstractController
         }
         throw new NotFoundHttpException("404");
     }
-
 }

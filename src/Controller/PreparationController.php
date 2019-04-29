@@ -101,7 +101,7 @@ class PreparationController extends AbstractController
                 $preparation = new Preparation();
 
                 //declaration de la date pour remplir Date et Numero
-                $date = new \DateTime('now');
+                $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
                 $preparation->setNumero('P-' . $date->format('YmdHis'));
                 $preparation->setDate($date);
                 $statut = $this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
