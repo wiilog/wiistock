@@ -90,7 +90,7 @@ class RefArticlePDT2Fixtures extends Fixture implements FixtureGroupInterface
         array_shift($rows); // supprime la 1è ligne d'en-têtes
 
         // à modifier pour faire imports successifs
-        $rows = array_slice($rows, 1000, 1000);
+        $rows = array_slice($rows, 100, 100);
 
         $i = 1;
         foreach($rows as $row) {
