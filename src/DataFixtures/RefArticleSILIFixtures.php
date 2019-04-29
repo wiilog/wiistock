@@ -228,7 +228,7 @@ class RefArticleSILIFixtures extends Fixture implements FixtureGroupInterface
     }
 
     public static function getGroups():array {
-        return ['articlesSILI'];
+        return ['articlesSILI', 'articles'];
     }
 
     /**
