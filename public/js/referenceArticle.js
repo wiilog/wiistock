@@ -474,3 +474,13 @@ function addFournisseurEdit(button) {
     xhttp.open("POST", path, true);
     xhttp.send();
 };
+
+function setMaxQuantityByArtRef(input) {
+    let params = {
+        refArticleId: ($('#submitPlusDemande').val()),
+    };
+    $.post(Routing.generate('get_quantity_ref_article'), params, function (data) {
+        let modalBody = input.closest(".form-group");
+        modalBody.find('#quantity').attr('max', data);
+    }, 'json');
+}
