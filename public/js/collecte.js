@@ -20,7 +20,7 @@ let table = $('#tableCollecte_id').DataTable({
         { "data": 'Création', 'name': 'Création' },
         { "data": 'Validation', 'name': 'Validation' },
         { "data": 'Demandeur', 'name': 'Demandeur' },
-        { "data": 'Objet', 'name' : 'Objet' },
+        { "data": 'Objet', 'name': 'Objet' },
         { "data": 'Statut', 'name': 'Statut' },
         { "data": 'Actions', 'name': 'Actions' }
     ],
@@ -127,17 +127,22 @@ InitialiserModal(modalDeleteArticle, submitDeleteArticle, urlDeleteArticle, tabl
 // }
 
 function ajaxGetCollecteArticle(select) {
+    let selection = $('#selection');
+    let editNewArticle = $('#editNewArticle');
     xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
             data = JSON.parse(this.responseText);
-            $('#selection').html(data.selection);
-            $('#editNewArticle').html(data.modif);
+            selection.html(data.selection);
+            editNewArticle.html(data.modif);
             $('#modalNewArticle').find('.modal-footer').removeClass('d-none');
             displayRequireChamp($('#typeEdit'), 'edit');
+            initEditor2();
         }
     }
     path = Routing.generate('get_collecte_article_by_refArticle', true)
+    selection.html('');
+    editNewArticle.html('');
     let data = {};
     data['referenceArticle'] = $(select).val();
     json = JSON.stringify(data);
@@ -251,13 +256,13 @@ let ajaxEditArticle = function (select) {
             if (dataReponse) {
                 $('#editNewArticle').html(dataReponse);
                 // displayRequireChamp($('#typeEditArticle'), 'edit');
-                initEditor('.editor-container');
+                initEditor2();
             } else {
                 //TODO gérer erreur
             }
         }
     }
-    let json = { id :select.val(), isADemand:1};
+    let json = { id: select.val(), isADemand: 1 };
     let path = Routing.generate('article_api_edit', true);
     xhttp.open("POST", path, true);
     xhttp.send(JSON.stringify(json));
