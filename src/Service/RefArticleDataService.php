@@ -163,7 +163,6 @@ class RefArticleDataService
         }
         // construction du tableau des articles fournisseurs
         $listArticlesFournisseur = [];
-        dump( $articleRef->getArticlesFournisseur());
         $articlesFournisseurs = $articleRef->getArticlesFournisseur();
         $totalQuantity = 0;
         foreach ($articlesFournisseurs as $articleFournisseur) {
@@ -191,7 +190,6 @@ class RefArticleDataService
     public function getViewEditRefArticle($refArticle, $isADemand = false)
     {
         $data = $this->getDataEditForRefArticle($refArticle);
-        dump($data);
         $articlesFournisseur = $this->articleFournisseurRepository->getByRefArticle($refArticle->getId());
         $type = $this->typeRepository->getIdAndLabelByCategoryLabel(ReferenceArticle::CATEGORIE_TYPE);
         $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
