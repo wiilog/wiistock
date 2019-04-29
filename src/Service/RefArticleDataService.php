@@ -249,55 +249,56 @@ class RefArticleDataService
                 $requiredEdit = false;
             }
         }
+
         if ($requiredEdit) {
-            //modification champsFixes
+                //modification champsFixes
             $entityManager = $this->em;
-            if (isset($data['reference'])) $refArticle->setReference($data['reference']);
-            if (isset($data['frl'])) {
-                foreach ($data['frl'] as $frl) {
-                    $fournisseurId = explode(';', $frl)[0];
-                    $ref = explode(';', $frl)[1];
-                    $label = explode(';', $frl)[2];
-                    $fournisseur = $this->fournisseurRepository->find(intval($fournisseurId));
-                    $articleFournisseur = new ArticleFournisseur();
-                    $articleFournisseur
-                        ->setReferenceArticle($refArticle)
-                        ->setFournisseur($fournisseur)
-                        ->setReference($ref)
-                        ->setLabel($label);
-                    $entityManager->persist($articleFournisseur);
+                if (isset($data['reference'])) $refArticle->setReference($data['reference']);
+                if (isset($data['frl'])) {
+                    foreach ($data['frl'] as $frl) {
+                        $fournisseurId = explode(';', $frl)[0];
+                        $ref = explode(';', $frl)[1];
+                        $label = explode(';', $frl)[2];
+                        $fournisseur = $this->fournisseurRepository->find(intval($fournisseurId));
+                        $articleFournisseur = new ArticleFournisseur();
+                        $articleFournisseur
+                            ->setReferenceArticle($refArticle)
+                            ->setFournisseur($fournisseur)
+                            ->setReference($ref)
+                            ->setLabel($label);
+                        $entityManager->persist($articleFournisseur);
+                    }
                 }
-            }
-            if (isset($data['libelle'])) $refArticle->setLibelle($data['libelle']);
-            if (isset($data['commentaire'])) $refArticle->setCommentaire($data['commentaire']);
-            if (isset($data['quantite'])) $refArticle->setQuantiteStock(intval($data['quantite']));
-            if (isset($data['statut'])) {
-                $statutLabel = ($data['statut'] == 1) ? ReferenceArticle::STATUT_ACTIF : ReferenceArticle::STATUT_INACTIF;
-                $statut = $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, $statutLabel);
-                $refArticle->setStatut($statut);
-            }
-            if (isset($data['type'])) {
-                $type = $this->typeRepository->find(intval($data['type']));
-                if ($type) $refArticle->setType($type);
-            }
-            if (isset($data['type_quantite'])) $refArticle->setTypeQuantite($data['type_quantite']);
-            $entityManager->flush();
+                if (isset($data['libelle'])) $refArticle->setLibelle($data['libelle']);
+                if (isset($data['commentaire'])) $refArticle->setCommentaire($data['commentaire']);
+                if (isset($data['quantite'])) $refArticle->setQuantiteStock(intval($data['quantite']));
+                if (isset($data['statut'])) {
+                    $statutLabel = ($data['statut'] == 1) ? ReferenceArticle::STATUT_ACTIF : ReferenceArticle::STATUT_INACTIF;
+                    $statut = $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, $statutLabel);
+                    $refArticle->setStatut($statut);
+                }
+                if (isset($data['type'])) {
+                    $type = $this->typeRepository->find(intval($data['type']));
+                    if ($type) $refArticle->setType($type);
+                }
+                if (isset($data['type_quantite'])) $refArticle->setTypeQuantite($data['type_quantite']);
+                $entityManager->flush();
             //modification ou création des champsLibres
             $champsLibreKey = array_keys($data);
             foreach ($champsLibreKey as $champ) {
                 if (gettype($champ) === 'integer') {
                     $champLibre = $this->champsLibreRepository->find($champ);
-                    $valeurChampLibre = $this->valeurChampsLibreRepository->findOneByRefArticleANDChampsLibre($refArticle->getId(), $champLibre);
-                    // si la valeur n'existe pas, on la crée
-                    if (!$valeurChampLibre) {
-                        $valeurChampLibre = new ValeurChampsLibre();
-                        $valeurChampLibre
-                            ->addArticleReference($refArticle)
-                            ->setChampLibre($this->champsLibreRepository->find($champ));
-                        $entityManager->persist($valeurChampLibre);
-                    }
-                    $valeurChampLibre->setValeur($data[$champ]);
-                    $entityManager->flush();
+                        $valeurChampLibre = $this->valeurChampsLibreRepository->findOneByRefArticleANDChampsLibre($refArticle->getId(), $champLibre);
+                        // si la valeur n'existe pas, on la crée
+                        if (!$valeurChampLibre) {
+                            $valeurChampLibre = new ValeurChampsLibre();
+                            $valeurChampLibre
+                                ->addArticleReference($refArticle)
+                                ->setChampLibre($this->champsLibreRepository->find($champ));
+                            $entityManager->persist($valeurChampLibre);
+                        }
+                        $valeurChampLibre->setValeur($data[$champ]);
+                        $entityManager->flush();
                 }
             }
             //recup de la row pour insert datatable

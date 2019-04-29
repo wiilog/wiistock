@@ -77,29 +77,29 @@ class RoleController extends AbstractController
     public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-                if (!$this->userService->hasRightFunction(Menu::PARAM)) {
-                    return $this->redirectToRoute('access_denied');
-                }
-
-                $roles = $this->roleRepository->findAll();
-                $rows = [];
-                foreach ($roles as $role) {
-                    $url['edit'] = $this->generateUrl('role_api_edit', ['id' => $role->getId()]);
-
-                    $rows[] =
-                        [
-                            'id' => $role->getId() ? $role->getId() : "Non défini",
-                            'Nom' => $role->getLabel() ? $role->getLabel() : "Non défini",
-                            'Actif' => $role->getActive() ? 'oui' : 'non',
-                            'Actions' => $this->renderView('role/datatableRoleRow.html.twig', [
-                                'url' => $url,
-                                'roleId' => $role->getId(),
-                            ]),
-                        ];
-                }
-                $data['data'] = $rows;
-                return new JsonResponse($data);
+            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+                return $this->redirectToRoute('access_denied');
             }
+
+            $roles = $this->roleRepository->findAll();
+            $rows = [];
+            foreach ($roles as $role) {
+                $url['edit'] = $this->generateUrl('role_api_edit', ['id' => $role->getId()]);
+
+                $rows[] =
+                    [
+                        'id' => $role->getId() ? $role->getId() : "Non défini",
+                        'Nom' => $role->getLabel() ? $role->getLabel() : "Non défini",
+                        'Actif' => $role->getActive() ? 'oui' : 'non',
+                        'Actions' => $this->renderView('role/datatableRoleRow.html.twig', [
+                            'url' => $url,
+                            'roleId' => $role->getId(),
+                        ]),
+                    ];
+            }
+            $data['data'] = $rows;
+            return new JsonResponse($data);
+        }
         throw new NotFoundHttpException("404");
     }
 
