@@ -137,7 +137,7 @@ class ServiceController extends AbstractController
     public function new(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::MANUT, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::MANUT, Action::CREATE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -158,7 +158,7 @@ class ServiceController extends AbstractController
             $em->persist($service);
 
             $em->flush();
-
+            dump($data);
             return new JsonResponse($data);
         }
         throw new XmlHttpException('404 not found');
