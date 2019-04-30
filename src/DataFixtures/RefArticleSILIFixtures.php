@@ -242,7 +242,7 @@ class RefArticleSILIFixtures extends Fixture implements FixtureGroupInterface
     {
         $fournisseurLabel = 'A DETERMINER';
         $fournisseurRef = 'A_DETERMINER';
-        $fournisseur = $this->fournisseurRepository->findOneBy(['nom' => $fournisseurLabel]);
+        $fournisseur = $this->fournisseurRepository->findOneBy(['codeReference' => $fournisseurRef]);
 
         // si le fournisseur n'existe pas, on le crée
         if (empty($fournisseur)) {

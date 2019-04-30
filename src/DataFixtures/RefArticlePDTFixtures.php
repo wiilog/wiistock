@@ -121,7 +121,7 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
                     if (in_array($fournisseurRef, ['nc', 'nd', 'NC', 'ND', '*', '.', ''])) {
                         $fournisseurRef = $fournisseurLabel;
                     }
-                    $fournisseur = $this->fournisseurRepository->findOneBy(['nom' => $fournisseurLabel]);
+                    $fournisseur = $this->fournisseurRepository->findOneBy(['codeReference' => $fournisseurRef]);
 
                     // si le fournisseur n'existe pas, on le crée
                     if (empty($fournisseur)) {
@@ -202,7 +202,7 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
                 if (in_array($fournisseurRef, ['nc', 'nd', 'NC', 'ND', '*', '.', ''])) {
                     $fournisseurRef = $fournisseurLabel;
                 }
-                $fournisseur = $this->fournisseurRepository->findOneBy(['nom' => $fournisseurLabel]);
+                $fournisseur = $this->fournisseurRepository->findOneBy(['codeReference' => $fournisseurRef]);
 
                 // si le fournisseur n'existe pas, on le crée
                 if (empty($fournisseur)) {
