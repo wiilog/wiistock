@@ -10,11 +10,11 @@
     <div class="col-4">
         <p><strong> Statut : </strong> {{ livraison.statut ? livraison.statut.nom : '' }}</p>
         <p><strong> Numéro : </strong> {{livraison.numero}}</p>
-        <p><strong> Opérateur : </strong>{{ livraison.preparation.utilisateur.username }} </p>
+        <p><strong> Opérateur : </strong>{{livraison.preparation.utilisateur ?  livraison.preparation.utilisateur.username : '' }} </p>
         {# TODO mettre le nom de l'utilisateur lié à la préparation liée à la livraison #}
     </div>
     <div class="col-4">
-            <p><strong>Demandeur : </strong>{{ demande.utilisateur.username }} </p>
+            <p><strong>Demandeur : </strong>{{ demande.utilisateur ? demande.utilisateur.username : '' }} </p>
             <p><strong> Point de livraison:</strong> {{ demande.destination.label }}</p>
         <p><strong> Date de livraison : </strong> {{ livraison.dateFin ? livraison.dateFin|date('d/m/Y') : '' }}
         </p>
