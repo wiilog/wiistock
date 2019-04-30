@@ -224,7 +224,10 @@ function editRow(button, path, modal, submit, editorToInit = false) {
 
             displayRequireChamp($('#typeEdit'), 'edit');
 
-            if (typeof setMaxQuantityEdit === 'function') setMaxQuantityEdit($('#referenceEdit'));
+            if ($('#referenceEdit').val() !== undefined) {   //TODO Moche
+                setMaxQuantityEdit($('#referenceEdit'));
+            }
+
             if (editorToInit) initEditor('#' + modal.attr('id'));
         }
     }

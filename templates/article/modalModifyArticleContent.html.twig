@@ -81,7 +81,7 @@
 
                     {% elseif  champLibre.typage == 'list' %}
                         {#TODO spécifique CEA : accès pour tous au champ libre 'Code projet' #}
-                        {% if champLibre.label == 'Code projet' %}{% set disabled = '' %}{% endif %}
+                        {% if champLibre.label|lower == 'code projet' %}{% set disabled = '' %}{% endif %}
 
                         <select {{ disabled }} class="form-control data" id="{{ champLibre.label ~ 'edit'}}" name="{{ champLibre.id}}"
                         id="input">
