@@ -197,7 +197,7 @@ class ServiceController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
             $service = $this->serviceRepository->find($data['id']);
-            $statutLabel = ($data['statut'] === 1) ? Service::STATUT_A_TRAITER : Service::STATUT_TRAITE;
+            $statutLabel = (intval($data['statut']) === 1) ? Service::STATUT_A_TRAITER : Service::STATUT_TRAITE;
             $statut = $this->statutRepository->findOneByCategorieAndStatut(Service::CATEGORIE, $statutLabel);
             $service->setStatut($statut);
             $service
