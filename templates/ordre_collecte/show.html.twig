@@ -10,8 +10,8 @@
     <div class="col-4">
         <p><strong> Statut : </strong> {{ collecte.statut ? collecte.statut.nom : '' }}</p>
         <p><strong> Numéro : </strong> {{ collecte.numero }}</p>
-        <p><strong> Demandeur : </strong> {{ collecte.demandeCollecte.demandeur.username }}</p>
-        <p><strong> Opérateur : </strong> {{ collecte.utilisateur.username }}</p>
+        <p><strong> Demandeur : </strong> {{collecte.demandeCollecte.demandeur ? collecte.demandeCollecte.demandeur.username :'' }}</p>
+        <p><strong> Opérateur : </strong> {{collecte.utilisateur ? collecte.utilisateur.username : '' }}</p>
     </div>
     <div class="col-4">
 

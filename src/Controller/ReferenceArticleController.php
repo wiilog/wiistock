@@ -550,8 +550,8 @@ class ReferenceArticleController extends Controller
             if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
-
             $refArticleId = $request->request->get('refArticleId');
+
             $refArticle = $this->referenceArticleRepository->find($refArticleId);
 
             $quantity = $refArticle ? ($refArticle->getQuantiteStock() ? $refArticle->getQuantiteStock() : 0) : 0;

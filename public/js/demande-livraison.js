@@ -243,11 +243,18 @@ function ajaxGetAndFillArticle(select) {
         let path = Routing.generate('demande_article_by_refArticle', true)
         let refArticle = $(select).val();
         let params = JSON.stringify(refArticle);
-        
+        let selection = $('#selection');
+        let editNewArticle = $('#editNewArticle');
+        let modalFooter = $('#modalNewArticle').find('div').find('div').find('.modal-footer')
+
+        selection.html('');
+        editNewArticle.html('');
+        modalFooter.addClass('d-none');
+
         $.post(path, params, function (data) {
-            $('#selection').html(data.selection);
-            $('#editNewArticle').html(data.modif);
-            $('#modalNewArticle').find('div').find('div').find('.modal-footer').removeClass('d-none');
+            selection.html(data.selection);
+            editNewArticle.html(data.modif);
+            modalFooter.removeClass('d-none');
             displayRequireChamp($('#typeEdit'), 'edit');
             initEditor2();
         })
@@ -264,7 +271,7 @@ function deleteRowDemande(button, modal, submit) {
 function validateLivraison(livraisonId, elem) {
     let params = JSON.stringify({ id: livraisonId });
 
-    $.post(Routing.generate('demande_livraison_has_articles'), params, function(resp) {
+    $.post(Routing.generate('demande_livraison_has_articles'), params, function (resp) {
         if (resp === true) {
             getCompareStock(elem);
         } else {
@@ -280,14 +287,15 @@ let ajaxEditArticle = function (select) {
             dataReponse = JSON.parse(this.responseText);
             if (dataReponse) {
                 $('#editNewArticle').html(dataReponse);
-                // displayRequireChamp($('#typeEditArticle'), 'edit');
+                displayRequireChamp($('#typeEditArticle'), 'edit');
+                ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
                 initEditor2();
             } else {
                 //TODO gérer erreur
             }
         }
     }
-    let json = { id :select.val(), isADemand:1};
+    let json = { id: select.val(), isADemand: 1 };
     let path = Routing.generate('article_api_edit', true);
     xhttp.open("POST", path, true);
     xhttp.send(JSON.stringify(json));
