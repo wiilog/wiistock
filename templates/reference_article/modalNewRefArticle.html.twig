@@ -109,11 +109,11 @@
                                     </label>
 
                                     {% elseif champ.typage == 'number' %}
-                                    <input type="number" id="{{champ.label ~ 'create'}}" class="form-control data"
+                                    <input type="number" id="{{champ.id ~ 'create'}}" class="form-control data"
                                         value="{{champ.defaultValue}}" name="{{champ.id}}">
 
                                     {% elseif champ.typage == 'list' %}
-                                    <select id="{{champ.label ~ 'create'}}" class="form-control data"
+                                    <select id="{{champ.id ~ 'create'}}" class="form-control data"
                                         name="{{champ.id}}" id="input">
                                         <option value="{{champ.defaultValue}}">{{champ.defaultValue}}
                                         </option>
@@ -128,11 +128,11 @@
                                     </select>
 
                                     {% elseif champ.typage == 'text'  %}
-                                    <input id="{{champ.label ~ 'create'}}" class="form-control data" type="text"
+                                    <input id="{{champ.id ~ 'create'}}" class="form-control data" type="text"
                                         value="{{champ.defaultValue}}" name='{{ champ.id }}'>
 
                                     {% elseif champ.typage == 'date' %}
-                                    <input type="date" name="{{ champ.id }}" id="{{champ.label ~ 'create'}}"
+                                    <input type="date" name="{{ champ.id }}" id="{{champ.id ~ 'create'}}"
                                         class="form-control data" value="{{champ.defaultValue}}">
 
                                     {% else %}
