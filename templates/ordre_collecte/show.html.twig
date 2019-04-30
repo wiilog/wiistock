@@ -24,7 +24,7 @@
 
     <div class="col-2 offset-2">
         {% if not finished %}
-        {% if hasRight(constant('App\\Entity\\Menu::COLLECTE'), constant('App\\Entity\\Action::CREATE')) %}
+        {% if hasRight(constant('App\\Entity\\Menu::COLLECTE'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
         <p><a class="btn btn-primary btn-action" href={{path('ordre_collecte_finish', {'id': collecte.id})}}>Finir la
                 collecte</a></p>
         {% endif %}

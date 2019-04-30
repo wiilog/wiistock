@@ -104,7 +104,7 @@ class LivraisonController extends AbstractController
      */
     public function new($id): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::LIVRAISON, Action::CREATE)) {
+        if (!$this->userService->hasRightFunction(Menu::LIVRAISON, Action::CREATE_EDIT)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -154,7 +154,7 @@ class LivraisonController extends AbstractController
      */
     public function finish(Livraison $livraison): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::LIVRAISON, Action::CREATE)) {
+        if (!$this->userService->hasRightFunction(Menu::LIVRAISON, Action::CREATE_EDIT)) {
             return $this->redirectToRoute('access_denied');
         }
 

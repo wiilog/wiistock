@@ -93,7 +93,7 @@ class PreparationController extends AbstractController
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) //Si la requête est de type Xml et que data est attribuée
             {
-                if (!$this->userService->hasRightFunction(Menu::PREPA, Action::CREATE)) {
+                if (!$this->userService->hasRightFunction(Menu::PREPA, Action::CREATE_EDIT)) {
                     return $this->redirectToRoute('access_denied');
                 }
 

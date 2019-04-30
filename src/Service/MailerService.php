@@ -35,12 +35,15 @@ class MailerService
     {
         $mailerServer = $this->mailerServerRepository->getOneMailerServer();
         /** @var MailerServer $mailerServer */
-
-        $from = $mailerServer->getUser();
-        $password = $mailerServer->getPassword();
-        $host = $mailerServer->getSmtp();
-        $port = $mailerServer->getPort();
-        $protocole = $mailerServer->getProtocol();
+        if ($mailerServer) {
+            $from = $mailerServer->getUser();
+            $password = $mailerServer->getPassword();
+            $host = $mailerServer->getSmtp();
+            $port = $mailerServer->getPort();
+            $protocole = $mailerServer->getProtocol();
+        } else {
+            return false;
+        }
 
         if (empty($from) || empty($password) || empty($host) || empty($port) || empty($protocole)) {
             return false;

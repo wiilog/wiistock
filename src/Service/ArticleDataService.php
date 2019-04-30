@@ -328,7 +328,7 @@ class ArticleDataService
     public function editArticle($data)
     {
         // spécifique CEA : accès pour tous au champ libre 'Code projet'
-        //        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE)) {
+        //        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
         //            return new RedirectResponse($this->router->generate('access_denied'));
         //        }
 
@@ -336,7 +336,7 @@ class ArticleDataService
         $article = $this->articleRepository->find($data['article']);
         if ($article) {
 
-            if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE)) {
+            if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
                 $article
                     ->setLabel($data['label'])
                     ->setConform(!$data['conform'])
@@ -358,7 +358,7 @@ class ArticleDataService
                 if (gettype($champ) === 'integer') {
                     // spécifique CEA : accès pour tous au champ libre 'Code projet'
                     $champLibre = $this->champsLibreRepository->find($champ);
-                    if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE) || $champLibre->getLabel() == 'Code projet') {
+                    if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT) || $champLibre->getLabel() == 'Code projet') {
 
                         $valeurChampLibre = $this->valeurChampsLibreRepository->findOneByArticleANDChampsLibre($article->getId(), $champ);
                         if (!$valeurChampLibre) {
