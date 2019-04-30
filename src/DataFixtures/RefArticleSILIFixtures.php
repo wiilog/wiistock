@@ -93,7 +93,6 @@ class RefArticleSILIFixtures extends Fixture implements FixtureGroupInterface
             dump($i);
             $i++;
             $typeSili = $this->typeRepository->findOneBy(['label' => Type::LABEL_SILI]);
-            $typeArticle = $this->typeRepository->findOneBy(['label' => Type::LABEL_ARTICLE]);
 
             // si l'article de référence n'existe pas déjà, on le crée
             $referenceArticle = $this->refArticleRepository->findOneBy(['reference' => $row[0]]);
@@ -159,7 +158,7 @@ class RefArticleSILIFixtures extends Fixture implements FixtureGroupInterface
                 ->setReference($row[0] . '-' . $i)
                 ->setLabel($row[1])
                 ->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF))
-                ->setType($typeArticle)
+                ->setType($typeSili)
                 ->setConform(true)
                 ->setQuantite(intval($row[3]));
 
@@ -208,7 +207,7 @@ class RefArticleSILIFixtures extends Fixture implements FixtureGroupInterface
                         ->setLabel($field['label'])
                         ->setTypage($field['type'])
                         ->setCategorieCL($this->categorieCLRepository->findOneByLabel(CategorieCL::ARTICLE))
-                        ->setType($typeArticle);
+                        ->setType($typeSili);
 
                     if ($field['type'] == ChampsLibre::TYPE_LIST) {
                         $cl->setElements($field['elements']);
