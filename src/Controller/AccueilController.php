@@ -41,11 +41,13 @@ class AccueilController extends AbstractController
      */
     public function index(): Response
     {
-        $nbAlerte = $this->seuilAlerteService->thresholdReaches();
+        return $this->render('securite/maintenance.html.twig');
 
-        return $this->render('accueil/index.html.twig', [
-            'nbAlerte' => $nbAlerte,
-            'emplacements' => $this->emplacementRepository->findAll(),
-        ]);
+//        $nbAlerte = $this->seuilAlerteService->thresholdReaches();
+
+//        return $this->render('accueil/index.html.twig', [
+//            'nbAlerte' => $nbAlerte,
+//            'emplacements' => $this->emplacementRepository->findAll(),
+//        ]);
     }
 }

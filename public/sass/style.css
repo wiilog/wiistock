@@ -282,6 +282,11 @@ a:hover {
   font-weight: bold;
 }
 
+.alert-danger {
+  padding: 10px;
+  text-align: center;
+}
+
 .btn {
   text-decoration: none;
   background-color: #c6c6c6;
