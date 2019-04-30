@@ -158,7 +158,7 @@ class ServiceController extends AbstractController
             $em->persist($service);
 
             $em->flush();
-            dump($data);
+
             return new JsonResponse($data);
         }
         throw new XmlHttpException('404 not found');
