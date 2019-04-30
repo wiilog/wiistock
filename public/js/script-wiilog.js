@@ -189,10 +189,10 @@ function deleteRow(button, modal, submit) {
 function showRow(button, path, modal) {
     let id = button.data('id');
     let params = JSON.stringify(id);
-    $.post(path, params, function(data) {
+    $.post(path, params, function (data) {
         modal.find('.modal-body').html(data);
     }, 'json');
-    
+
 }
 
 
@@ -222,14 +222,14 @@ function editRow(button, path, modal, submit, editorToInit = false) {
                 defaultValueForTypage($('#typageModif'), '-edit');
             }
 
-            displayRequireChamp( $('#typeEdit'), 'edit');
-            
+            displayRequireChamp($('#typeEdit'), 'edit');
+
             if (typeof setMaxQuantityEdit === 'function') setMaxQuantityEdit($('#referenceEdit'));
             if (editorToInit) initEditor('#' + modal.attr('id'));
         }
     }
     let id = button.data('id');
-    let json = { id :id, isADemand:0};
+    let json = { id: id, isADemand: 0 };
     modal.find(submit).attr('value', id);
     modal.find('#inputId').attr('value', id);
     xhttp.open("POST", path, true);
@@ -252,6 +252,35 @@ function toggleRadioButton(button) {
 function initEditor(modal) {
 
     var quill = new Quill(modal + ' .editor-container', {
+        modules: {
+            //     toolbar: [
+            //         [{ header: [1, 2, 3, false] }],
+            //         ['bold', 'italic', 'underline'],
+            //         [{'list': 'ordered'}, {'list': 'bullet'}]
+            //         ['image', 'code-block']
+            //     ]
+            // },
+            toolbar: [
+                [{ header: [1, 2, 3, false] }],
+                ['bold', 'italic', 'underline', 'image'],
+
+                [{ 'list': 'ordered' }, { 'list': 'bullet' }]
+            ]
+        },
+        formats: [
+            'header',
+            'bold', 'italic', 'underline', 'strike', 'blockquote',
+            'list', 'bullet', 'indent',
+            'link', 'image'
+        ],
+
+        theme: 'snow'
+    });
+};
+
+function initEditor2() {
+
+    var quill = new Quill(' .editor-container', {
         modules: {
             //     toolbar: [
             //         [{ header: [1, 2, 3, false] }],
@@ -304,6 +333,7 @@ function setCommentaireID(button) {
 
 //Cache/affiche les bloc des modal edit/new
 function visibleBlockModal(bloc) {
+
     let blocContent = bloc.siblings().filter('.blocVisible');
     let sortUp = bloc.find('h3').find('.fa-sort-up');
     let sortDown = bloc.find('h3').find('.fa-sort-down');
@@ -340,7 +370,7 @@ function updateQuantityDisplay(elem) {
     let typeQuantite = $('#type_quantite').val();
     let modalBody = elem.closest('.modal-body');
 
-    if (typeQuantite == 'reference') { 
+    if (typeQuantite == 'reference') {
         modalBody.find('.article').addClass('d-none');
         modalBody.find('.reference').removeClass('d-none');
 
@@ -505,7 +535,6 @@ function clearModal(modal) {
     // on vide tous les select2
     let selects = $modal.find('.modal-body').find('.ajax-autocomplete,.ajax-autocompleteEmplacement,.select2');
     selects.each(function () {
-        console.log($(this));
         $(this).val(null).trigger('change');
     });
     // on vide les messages d'erreur
@@ -513,7 +542,6 @@ function clearModal(modal) {
     // on remet toutes les checkboxes sur off
     let checkboxes = $modal.find('.checkbox');
     checkboxes.each(function () {
-        console.log($(this));
         $(this).prop('checked', false);
         $(this).removeClass('active');
         $(this).addClass('not-active');
