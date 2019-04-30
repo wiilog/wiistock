@@ -5,7 +5,7 @@
         onclick="editRow($(this), Routing.generate('service_edit_api', true), $('#modalEditService'), $('#submitEditService'), true)">
         <i class='fas fa-pencil-alt'></i>
     </div>
-    {% if service.statut.nom != 'traité' %}
+    {% if service.statut.nom != constant('App\\Entity\\Service::STATUT_TRAITE') %}
     <div data-id='{{ idService }}' data-target='#modalDeleteService' data-toggle='modal' class='service-delete col-3'
         onclick="deleteRow($(this), $('#modalDeleteService'), $('#submitDeleteService'))">
         <i class='fas fa-trash'></i>
