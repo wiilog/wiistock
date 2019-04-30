@@ -147,7 +147,7 @@
                         value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}" name="{{ champLibre.id}}" id="input">
 
                     {% elseif  champLibre.typage == 'list' %}
-                    <select class="form-control data" id="{{ champLibre.id ~ 'edit'}}" name="{{ champLibre.id}}"
+                    <select {{ disabled }} class="form-control data" id="{{ champLibre.id ~ 'edit'}}" name="{{ champLibre.id}}"
                         id="input">
                         <option value="">aucune selection...</option>
                         {% for elem in  champLibre.elements %}

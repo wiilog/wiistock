@@ -477,11 +477,11 @@ function addFournisseurEdit(button) {
 };
 
 function setMaxQuantityByArtRef(input) {
-    let params = {
-        refArticleId: ($('#submitPlusDemande').val()),
-    };
-    $.post(Routing.generate('get_quantity_ref_article'), params, function (data) {
-        let modalBody = input.closest(".form-group");
-        modalBody.find('#quantity').attr('max', data);
-    }, 'json');
+    let val = 0;
+    $('input[name="quantite"]').each(function() {
+        if ($(this).val() !== '' && $(this).val()) {
+            val = $(this).val();
+        }
+    });
+    input.attr('max', val);
 }
