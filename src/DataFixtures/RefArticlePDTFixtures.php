@@ -150,41 +150,30 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
 
                 // champs libres
                 $listFields = [
-                    ['label' => 'famille produit', 'col' => 4, 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['CONSOMMABLES', 'PAD', 'POMPE', 'POMPE_41', 'PIECES DETACHEES', 'PDT GENERIQUE', 'DCOS TEST ELECTRIQUE', 'SILICIUM', 'SIL_EXTERNE', 'SIL_INTERNE', 'MOBILIER SB', 'MOBILIER TERTIAIRE', 'CIBLE / SLUGS']],
-                    ['label' => 'zone', 'col' => 5, 'type' => ChampsLibre::TYPE_TEXT],
-                    ['label' => 'équipementier', 'col' => 6, 'type' => ChampsLibre::TYPE_TEXT],
-                    ['label' => "réf équipementier", 'col' => 7, 'type' => ChampsLibre::TYPE_TEXT],
-                    ['label' => "machine", 'col' => 8, 'type' => ChampsLibre::TYPE_TEXT],
-                    ['label' => "stock mini", 'col' => 11, 'type' => ChampsLibre::TYPE_NUMBER],
-                    ['label' => "stock alerte", 'col' => 12, 'type' => ChampsLibre::TYPE_NUMBER],
-                    ['label' => "prix unitaire", 'col' => 14, 'type' => ChampsLibre::TYPE_TEXT],
-                    ['label' => "date entrée", 'col' => 15, 'type' => ChampsLibre::TYPE_DATE],
-                    ['label' => "prix du stock final", 'col' => 16, 'type' => ChampsLibre::TYPE_TEXT],
-                    ['label' => "alerte mini", 'col' => 17, 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['besoin', '']],
-                    ['label' => "alerte prévision", 'col' => 18, 'type' => ChampsLibre::TYPE_NUMBER],
+                    ['label' => 'famille produit', 'col' => 4],
+                    ['label' => 'zone', 'col' => 5],
+                    ['label' => 'équipementier', 'col' => 6],
+                    ['label' => "réf équipementier", 'col' => 7],
+                    ['label' => "machine", 'col' => 8],
+                    ['label' => "stock mini", 'col' => 11],
+                    ['label' => "stock alerte", 'col' => 12],
+                    ['label' => "prix du stock final", 'col' => 16],
+                    ['label' => "alerte mini", 'col' => 17],
+                    ['label' => "alerte prévision", 'col' => 18],
                 ];
 
                 foreach ($listFields as $field) {
                     $vcl = new ValeurChampsLibre();
                     $cl = $this->champsLibreRepository->findOneBy(['label' => $field['label']]);
                     if (empty($cl)) {
-                        $cl = new ChampsLibre();
-                        $cl
-                            ->setLabel($field['label'])
-                            ->setTypage($field['type'])
-                            ->setCategorieCL($this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE))
-                            ->setType($typePdt);
-
-                        if ($field['type'] == ChampsLibre::TYPE_LIST) {
-                            $cl->setElements($field['elements']);
-                        }
-                        $manager->persist($cl);
+                        dump('il manque le champ libre de label' . $field['label']);
+                    } else {
+                        $vcl
+                            ->setChampLibre($cl)
+                            ->addArticleReference($referenceArticle)
+                            ->setValeur($row[$field['col']]);
+                        $manager->persist($vcl);
                     }
-                    $vcl
-                        ->setChampLibre($cl)
-                        ->addArticleReference($referenceArticle)
-                        ->setValeur($row[$field['col']]);
-                    $manager->persist($vcl);
                 }
                 $manager->flush();
             }
@@ -253,41 +242,22 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
 
             // champs libres
             $listFields = [
-                ['label' => 'famille produit', 'col' => 4, 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['CONSOMMABLES', 'PAD', 'POMPE', 'POMPE_41', 'PIECES DETACHEES', 'PDT GENERIQUE', 'DCOS TEST ELECTRIQUE', 'SILICIUM', 'SIL_EXTERNE', 'SIL_INTERNE', 'MOBILIER SB', 'MOBILIER TERTIAIRE', 'CIBLE / SLUGS']],
-                ['label' => 'zone', 'col' => 5, 'type' => ChampsLibre::TYPE_TEXT],
-                ['label' => 'équipementier', 'col' => 6, 'type' => ChampsLibre::TYPE_TEXT],
-                ['label' => "réf équipementier", 'col' => 7, 'type' => ChampsLibre::TYPE_TEXT],
-                ['label' => "machine", 'col' => 8, 'type' => ChampsLibre::TYPE_TEXT],
-                ['label' => "stock mini", 'col' => 11, 'type' => ChampsLibre::TYPE_NUMBER],
-                ['label' => "stock alerte", 'col' => 12, 'type' => ChampsLibre::TYPE_NUMBER],
-                ['label' => "prix unitaire", 'col' => 14, 'type' => ChampsLibre::TYPE_TEXT],
-                ['label' => "date entrée", 'col' => 15, 'type' => ChampsLibre::TYPE_DATE],
-                ['label' => "prix du stock final", 'col' => 16, 'type' => ChampsLibre::TYPE_TEXT],
-                ['label' => "alerte mini", 'col' => 17, 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['besoin', '']],
-                ['label' => "alerte prévision", 'col' => 18, 'type' => ChampsLibre::TYPE_NUMBER],
+                ['label' => "prix unitaire", 'col' => 14],
+                ['label' => "date entrée", 'col' => 15],
             ];
 
             foreach ($listFields as $field) {
                 $vcl = new ValeurChampsLibre();
                 $cl = $this->champsLibreRepository->findOneBy(['label' => $field['label']]);
                 if (empty($cl)) {
-                    $cl = new ChampsLibre();
-                    $cl
-                        ->setLabel($field['label'])
-                        ->setTypage($field['type'])
-                        ->setCategorieCL($this->categorieCLRepository->findOneByLabel(CategorieCL::ARTICLE))
-                        ->setType($typePdt);
-
-                    if ($field['type'] == ChampsLibre::TYPE_LIST) {
-                        $cl->setElements($field['elements']);
-                    }
-                    $manager->persist($cl);
+                    dump('il manque le champ libre de label' . $field['label']);
+                } else {
+                    $vcl
+                        ->setChampLibre($cl)
+                        ->addArticle($article)
+                        ->setValeur($row[$field['col']]);
+                    $manager->persist($vcl);
                 }
-                $vcl
-                    ->setChampLibre($cl)
-                    ->addArticle($article)
-                    ->setValeur($row[$field['col']]);
-                $manager->persist($vcl);
             }
 
             $manager->flush();

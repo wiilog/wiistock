@@ -127,31 +127,25 @@ class RefArticleSLUGCIBLEFixtures extends Fixture implements FixtureGroupInterfa
 
             // champs libres
             $listFields = [
-                ['label' => 'bénéficiaire ou n° commande', 'col' => 7, 'type' => ChampsLibre::TYPE_TEXT],
-                ['label' => 'machine', 'col' => 9, 'type' => ChampsLibre::TYPE_TEXT],
-                ['label' => 'stock mini', 'col' => 13, 'type' => ChampsLibre::TYPE_NUMBER],
-                ['label' => 'date entrée', 'col' => 15, 'type' => ChampsLibre::TYPE_TEXT],
+                ['label' => 'bénéficiaire ou n° commande', 'col' => 7],
+                ['label' => 'machine', 'col' => 9],
+                ['label' => 'stock mini', 'col' => 13],
+                ['label' => 'date entrée', 'col' => 15],
             ];
 
             foreach($listFields as $field) {
                 $vcl = new ValeurChampsLibre();
                 $cl = $this->champsLibreRepository->findOneBy(['label' => $field['label']]);
                 if (empty($cl)) {
-                    $cl = new ChampsLibre();
-                    $cl
-                        ->setLabel($field['label'])
-                        ->setTypage($field['type'])
-                        ->setCategorieCL($this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE))
-                        ->setType($typeSlugcible);
-                    $manager->persist($cl);
+                    dump('il manque le champ libre de label' . $field['label']);
+                } else {
+                    $vcl
+                        ->setChampLibre($cl)
+                        ->addArticleReference($referenceArticle)
+                        ->setValeur($row[$field['col']]);
+                    $manager->persist($vcl);
                 }
-                $vcl
-                    ->setChampLibre($cl)
-                    ->addArticleReference($referenceArticle)
-                    ->setValeur($row[$field['col']]);
-                $manager->persist($vcl);
             }
-
             $manager->flush();
 
         }
