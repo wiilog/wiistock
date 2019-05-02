@@ -249,6 +249,7 @@ class RefArticleDataService
         //vérification des champsLibres obligatoires
         $requiredEdit = true;
         $type =  $this->typeRepository->find(intval($data['type']));
+        $emplacement =  $this->emplacementRepository->find(intval($data['emplacement']));
         $CLRequired = $this->champsLibreRepository->getByTypeAndRequiredCreate($type);
         foreach ($CLRequired as $CL) {
             if (array_key_exists($CL['id'], $data) and $data[$CL['id']] === "") {
@@ -275,6 +276,7 @@ class RefArticleDataService
                         $entityManager->persist($articleFournisseur);
                     }
                 }
+                if (isset($data['emplacement'])) $refArticle->setEmplacement($emplacement);
                 if (isset($data['libelle'])) $refArticle->setLibelle($data['libelle']);
                 if (isset($data['commentaire'])) $refArticle->setCommentaire($data['commentaire']);
                 if (isset($data['quantite'])) $refArticle->setQuantiteStock(intval($data['quantite']));
