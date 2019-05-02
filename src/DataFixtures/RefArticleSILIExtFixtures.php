@@ -103,7 +103,8 @@ class RefArticleSILIExtFixtures extends Fixture implements FixtureGroupInterface
 
             foreach($listFields as $field) {
                 $vcl = new ValeurChampsLibre();
-                $cl = $this->champsLibreRepository->findOneBy(['label' => $field['label']]);
+                $label = $field['label'] . '(' . $typeSili->getLabel() . ')';
+                $cl = $this->champsLibreRepository->findOneBy(['label' => $label]);
                 if (empty($cl)) {
                     $cl = new ChampsLibre();
                     $cl

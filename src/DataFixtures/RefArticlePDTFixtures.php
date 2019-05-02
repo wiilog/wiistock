@@ -164,7 +164,8 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
 
                 foreach ($listFields as $field) {
                     $vcl = new ValeurChampsLibre();
-                    $cl = $this->champsLibreRepository->findOneBy(['label' => $field['label'] . '(' . $typePdt . ')']);
+                    $label = $field['label'] . '(' . $typePdt->getLabel() . ')';
+                    $cl = $this->champsLibreRepository->findOneBy(['label' => $label]);
                     if (empty($cl)) {
                         dump('il manque le champ libre de label' . $field['label']);
                     } else {
@@ -248,7 +249,8 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
 
             foreach ($listFields as $field) {
                 $vcl = new ValeurChampsLibre();
-                $cl = $this->champsLibreRepository->findOneBy(['label' => $field['label'] . '(' . $typePdt . ')']);
+                $label = $field['label'] . '(' . $typePdt->getLabel() . ')';
+                $cl = $this->champsLibreRepository->findOneBy(['label' => $label]);
                 if (empty($cl)) {
                     dump('il manque le champ libre de label' . $field['label']);
                 } else {
