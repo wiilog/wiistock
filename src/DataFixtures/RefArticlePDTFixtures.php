@@ -144,19 +144,15 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
                     $manager->persist($fournisseur);
                 }
 
-                // article fournisseur
-                $articleFournisseur = $this->articleFournisseurRepository->findByRefArticleAndFournisseur($referenceArticle, $fournisseur);
-                // si l'article fournisseur n'existe pas déjà, on le crée et on le lie au fournisseur et à l'article de référence
-                if (empty($articleFournisseur)) {
-                    $articleFournisseur = new ArticleFournisseur();
-                    $articleFournisseur
-                        ->setLabel($row[1])
-                        ->setReference(time() . '-' . $i)// code aléatoire unique
-                        ->setFournisseur($fournisseur)
-                        ->setReferenceArticle($referenceArticle);
+                // on crée l'article fournisseur et on le lie au fournisseur et à l'article de référence
+                $articleFournisseur = new ArticleFournisseur();
+                $articleFournisseur
+                    ->setLabel($row[1])
+                    ->setReference(time() . '-' . $i)// code aléatoire unique
+                    ->setFournisseur($fournisseur)
+                    ->setReferenceArticle($referenceArticle);
 
-                    $manager->persist($articleFournisseur);
-                }
+                $manager->persist($articleFournisseur);
 
 
                 // champs libres
@@ -188,6 +184,8 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
                     }
                 }
                 $manager->flush();
+            } else {
+                $articleFournisseur = $referenceArticle->getArticlesFournisseur();
             }
 
             // on crée l'article
@@ -223,19 +221,6 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
                 $manager->persist($fournisseur);
             }
 
-            // article fournisseur
-            $articleFournisseur = $this->articleFournisseurRepository->findByRefArticleAndFournisseur($referenceArticle, $fournisseur);
-            // si l'article fournisseur n'existe pas déjà, on le crée et on le lie au fournisseur et à l'article de référence
-            if (empty($articleFournisseur)) {
-                $articleFournisseur = new ArticleFournisseur();
-                $articleFournisseur
-                    ->setLabel($row[1])
-                    ->setReference(time() . '-' . $i)// code aléatoire unique
-                    ->setFournisseur($fournisseur)
-                    ->setReferenceArticle($referenceArticle);
-
-                $manager->persist($articleFournisseur);
-            }
             // on lie l'article à l'article fournisseur
             $article->setArticleFournisseur($articleFournisseur);
 

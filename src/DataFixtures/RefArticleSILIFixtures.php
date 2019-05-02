@@ -116,19 +116,16 @@ class RefArticleSILIFixtures extends Fixture implements FixtureGroupInterface
             $manager->persist($referenceArticle);
             $manager->flush();
 
-            // article fournisseur
-            $articleFournisseur = $this->articleFournisseurRepository->findByRefArticleAndFournisseur($referenceArticle, $fournisseur);
-            // si l'article fournisseur n'existe pas déjà, on le crée et on le lie au fournisseur et à l'article de référence
-            if (empty($articleFournisseur)) {
-                $articleFournisseur = new ArticleFournisseur();
-                $articleFournisseur
-                    ->setLabel($row[1])
-                    ->setReference(time() . '-' . $i)// code aléatoire unique
-                    ->setFournisseur($fournisseur)
-                    ->setReferenceArticle($referenceArticle);
 
-                $manager->persist($articleFournisseur);
-            }
+            // article fournisseur
+            $articleFournisseur = new ArticleFournisseur();
+            $articleFournisseur
+                ->setLabel($row[1])
+                ->setReference(time() . '-' . $i)// code aléatoire unique
+                ->setFournisseur($fournisseur)
+                ->setReferenceArticle($referenceArticle);
+
+            $manager->persist($articleFournisseur);
 
 
             // champs libres
