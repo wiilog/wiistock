@@ -92,35 +92,26 @@ class RefArticleSILIIntFixtures extends Fixture implements FixtureGroupInterface
                 ['label' => 'diamètre', 'col' => 3, 'type' => ChampsLibre::TYPE_NUMBER],
                 ['label' => 'n° lot autre', 'col' => 4, 'type' => ChampsLibre::TYPE_TEXT],
                 ['label' => 'n° lot Léti', 'col' => 5, 'type' => ChampsLibre::TYPE_TEXT],
-                ['label' => "demandeurs", 'col' => 6, 'type' => ChampsLibre::TYPE_TEXT],
+                ['label' => "demandeur", 'col' => 6, 'type' => ChampsLibre::TYPE_TEXT],
                 ['label' => "projet 3", 'col' => 7, 'type' => ChampsLibre::TYPE_TEXT],
                 ['label' => "date de retour en salle ou d'envoi à Crolles ou autre", 'col' => 8, 'type' => ChampsLibre::TYPE_DATE],
-                ['label' => "commentaires", 'col' => 9, 'type' => ChampsLibre::TYPE_TEXT],
+                ['label' => "commentaire", 'col' => 9, 'type' => ChampsLibre::TYPE_TEXT],
                 ['label' => "mois de stock", 'col' => 10, 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['0','1','2','3','4','5','6','7','8','9','10','11','12']],
             ];
 
             foreach($listFields as $field) {
                 $vcl = new ValeurChampsLibre();
-                $label = $field['label'] . '(' . $typeSili->getLabel() . ')';
+                $label = $field['label'] . ' (' . $typeSili->getLabel() . ')';
                 $cl = $this->champsLibreRepository->findOneBy(['label' => $label]);
                 if (empty($cl)) {
-                    $cl = new ChampsLibre();
-                    $cl
-                        ->setLabel($field['label'])
-                        ->setTypage($field['type'])
-                        ->setCategorieCL($this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE))
-                        ->setType($typeSili);
-
-                    if ($field['type'] == ChampsLibre::TYPE_LIST) {
-                        $cl->setElements($field['elements']);
-                    }
-                    $manager->persist($cl);
+                    dump('il manque le champ libre de label ' . $label);
+                } else {
+                    $vcl
+                        ->setChampLibre($cl)
+                        ->addArticleReference($referenceArticle)
+                        ->setValeur($row[$field['col']]);
+                    $manager->persist($vcl);
                 }
-                $vcl
-                    ->setChampLibre($cl)
-                    ->addArticleReference($referenceArticle)
-                    ->setValeur($row[$field['col']]);
-                $manager->persist($vcl);
             }
 
             $manager->flush();

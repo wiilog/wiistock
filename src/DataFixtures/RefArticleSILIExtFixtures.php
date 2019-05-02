@@ -103,26 +103,17 @@ class RefArticleSILIExtFixtures extends Fixture implements FixtureGroupInterface
 
             foreach($listFields as $field) {
                 $vcl = new ValeurChampsLibre();
-                $label = $field['label'] . '(' . $typeSili->getLabel() . ')';
+                $label = $field['label'] . ' (' . $typeSili->getLabel() . ')';
                 $cl = $this->champsLibreRepository->findOneBy(['label' => $label]);
                 if (empty($cl)) {
-                    $cl = new ChampsLibre();
-                    $cl
-                        ->setLabel($field['label'])
-                        ->setTypage($field['type'])
-                        ->setCategorieCL($this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE))
-                        ->setType($typeSili);
-
-                    if ($field['type'] == ChampsLibre::TYPE_LIST) {
-                        $cl->setElements($field['elements']);
-                    }
-                    $manager->persist($cl);
+                    dump('il manque le champ libre de label ' . $label);
+                } else {
+                    $vcl
+                        ->setChampLibre($cl)
+                        ->addArticleReference($referenceArticle)
+                        ->setValeur($row[$field['col']]);
+                    $manager->persist($vcl);
                 }
-                $vcl
-                    ->setChampLibre($cl)
-                    ->addArticleReference($referenceArticle)
-                    ->setValeur($row[$field['col']]);
-                $manager->persist($vcl);
             }
 
             $manager->flush();
