@@ -89,16 +89,16 @@ class RefArticleSILIExtFixtures extends Fixture implements FixtureGroupInterface
 
             // champs libres
             $listFields = [
-                ['label' => 'adresse', 'col' => 0, 'type' => ChampsLibre::TYPE_TEXT],
-                ['label' => 'famille produit', 'col' => 1, 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['CONSOMMABLES','PAD','POMPE','POMPE_41', 'PIECES DETACHEES', 'PDT GENERIQUE', 'DCOS TEST ELECTRIQUE', 'SILICIUM', 'SIL_EXTERNE', 'SIL_INTERNE', 'MOBILIER SB', 'MOBILIER TERTIAIRE', 'CIBLE / SLUGS']],
-                ['label' => 'date', 'col' => 2, 'type' => ChampsLibre::TYPE_DATE],
-                ['label' => "projet", 'col' => 3, 'type' => ChampsLibre::TYPE_TEXT],
-                ['label' => "demandeur", 'col' => 4, 'type' => ChampsLibre::TYPE_TEXT],
-                ['label' => "date fin de projet", 'col' => 5, 'type' => ChampsLibre::TYPE_DATE],
-                ['label' => "lot", 'col' => 6, 'type' => ChampsLibre::TYPE_TEXT],
-                ['label' => "sortie", 'col' => 7, 'type' => ChampsLibre::TYPE_NUMBER],
-                ['label' => "commentaire", 'col' => 8, 'type' => ChampsLibre::TYPE_TEXT],
-                ['label' => "jours de péremption", 'col' => 9, 'type' => ChampsLibre::TYPE_NUMBER],
+                ['label' => 'adresse', 'col' => 0],
+                ['label' => 'famille produit', 'col' => 1],
+                ['label' => 'date', 'col' => 2],
+                ['label' => "projet", 'col' => 3],
+                ['label' => "demandeur", 'col' => 4],
+                ['label' => "date fin de projet", 'col' => 5],
+                ['label' => "lot", 'col' => 6],
+                ['label' => "sortie", 'col' => 7],
+                ['label' => "commentaire", 'col' => 8],
+                ['label' => "jours de péremption", 'col' => 9],
             ];
 
             foreach($listFields as $field) {

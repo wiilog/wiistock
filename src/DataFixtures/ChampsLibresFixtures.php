@@ -104,7 +104,7 @@ class ChampsLibresFixtures extends Fixture implements FixtureGroupInterface
         ];
         $listFieldsSILI = [
             ['label' => 'adresse', 'type' => ChampsLibre::TYPE_TEXT],
-            ['label' => 'famille produit', 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['SILICIUM', 'SIL_EXTERNE', 'SIL_INTERNE']],
+            ['label' => 'famille produit', 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['SILICIUM']],
             ['label' => "alerte mini", 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['besoin', '']],
             ['label' => "alerte prévision", 'type' => ChampsLibre::TYPE_NUMBER],
             ['label' => 'date', 'type' => ChampsLibre::TYPE_DATE],
@@ -122,8 +122,31 @@ class ChampsLibresFixtures extends Fixture implements FixtureGroupInterface
             ['label' => "date de retour en salle ou d'envoi à Crolles ou autre", 'type' => ChampsLibre::TYPE_DATE],
             ['label' => "mois de stock", 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['0','1','2','3','4','5','6','7','8','9','10','11','12']],
         ];
-        $listFieldsSILIInt = [];
-        $listFieldsSILIExt = [];
+        $listFieldsSILIInt = [
+            ['label' => 'adresse', 'type' => ChampsLibre::TYPE_TEXT],
+            ['label' => 'famille produit', 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['SIL_INTERNE']],
+            ['label' => 'date', 'type' => ChampsLibre::TYPE_DATE],
+            ['label' => 'diamètre', 'type' => ChampsLibre::TYPE_NUMBER],
+            ['label' => 'n° lot autre', 'type' => ChampsLibre::TYPE_TEXT],
+            ['label' => 'n° lot Léti', 'type' => ChampsLibre::TYPE_TEXT],
+            ['label' => "demandeur", 'type' => ChampsLibre::TYPE_TEXT],
+            ['label' => "projet 3", 'type' => ChampsLibre::TYPE_TEXT],
+            ['label' => "date de retour en salle ou d'envoi à Crolles ou autre", 'type' => ChampsLibre::TYPE_DATE],
+            ['label' => "commentaire", 'type' => ChampsLibre::TYPE_TEXT],
+            ['label' => "mois de stock", 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['0','1','2','3','4','5','6','7','8','9','10','11','12']],
+        ];
+        $listFieldsSILIExt = [
+            ['label' => 'adresse', 'type' => ChampsLibre::TYPE_TEXT],
+            ['label' => 'famille produit', 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['SIL_EXTERNE']],
+            ['label' => 'date', 'type' => ChampsLibre::TYPE_DATE],
+            ['label' => "projet", 'type' => ChampsLibre::TYPE_TEXT],
+            ['label' => "demandeur", 'type' => ChampsLibre::TYPE_TEXT],
+            ['label' => 'date fin de projet', 'type' => ChampsLibre::TYPE_DATE],
+            ['label' => 'lot', 'type' => ChampsLibre::TYPE_TEXT],
+            ['label' => 'sortie', 'type' => ChampsLibre::TYPE_TEXT],
+            ['label' => "commentaire", 'type' => ChampsLibre::TYPE_TEXT],
+            ['label' => "jours de péremption", 'type' => ChampsLibre::TYPE_NUMBER],
+        ];
         $listFieldsMOB = [
             ['label' => 'adresse', 'col' => 2, 'type' => ChampsLibre::TYPE_TEXT],
             ['label' => 'famille produit', 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['MOBILIER SB', 'MOBILIER TERTIAIRE']],
@@ -167,6 +190,14 @@ class ChampsLibresFixtures extends Fixture implements FixtureGroupInterface
         // SILI
         foreach ($listFieldsSILI as $field) {
             $this->createCL($manager, $field, Type::LABEL_SILI, CategorieCL::REFERENCE_ARTICLE);
+        }
+        // SILI ext
+        foreach ($listFieldsSILIExt as $field) {
+            $this->createCL($manager, $field, Type::LABEL_SILI_EXT, CategorieCL::REFERENCE_ARTICLE);
+        }
+        // SILI int
+        foreach ($listFieldsSILIInt as $field) {
+            $this->createCL($manager, $field, Type::LABEL_SILI_INT, CategorieCL::REFERENCE_ARTICLE);
         }
         // MOB
         foreach ($listFieldsMOB as $field) {

@@ -86,18 +86,19 @@ class RefArticleSILIIntFixtures extends Fixture implements FixtureGroupInterface
 
             // champs libres
             $listFields = [
-                ['label' => 'adresse', 'col' => 0, 'type' => ChampsLibre::TYPE_TEXT],
-                ['label' => 'famille produit', 'col' => 1, 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['CONSOMMABLES','PAD','POMPE','POMPE_41', 'PIECES DETACHEES', 'PDT GENERIQUE', 'DCOS TEST ELECTRIQUE', 'SILICIUM', 'SIL_EXTERNE', 'SIL_INTERNE', 'MOBILIER SB', 'MOBILIER TERTIAIRE', 'CIBLE / SLUGS']],
-                ['label' => 'date', 'col' => 2, 'type' => ChampsLibre::TYPE_DATE],
-                ['label' => 'diamètre', 'col' => 3, 'type' => ChampsLibre::TYPE_NUMBER],
-                ['label' => 'n° lot autre', 'col' => 4, 'type' => ChampsLibre::TYPE_TEXT],
-                ['label' => 'n° lot Léti', 'col' => 5, 'type' => ChampsLibre::TYPE_TEXT],
-                ['label' => "demandeur", 'col' => 6, 'type' => ChampsLibre::TYPE_TEXT],
-                ['label' => "projet 3", 'col' => 7, 'type' => ChampsLibre::TYPE_TEXT],
-                ['label' => "date de retour en salle ou d'envoi à Crolles ou autre", 'col' => 8, 'type' => ChampsLibre::TYPE_DATE],
-                ['label' => "commentaire", 'col' => 9, 'type' => ChampsLibre::TYPE_TEXT],
-                ['label' => "mois de stock", 'col' => 10, 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['0','1','2','3','4','5','6','7','8','9','10','11','12']],
+                ['label' => 'adresse', 'col' => 0],
+                ['label' => 'famille produit', 'col' => 1],
+                ['label' => 'date', 'col' => 2],
+                ['label' => 'diamètre', 'col' => 3],
+                ['label' => 'n° lot autre', 'col' => 4],
+                ['label' => 'n° lot Léti', 'col' => 5],
+                ['label' => "demandeur", 'col' => 6],
+                ['label' => "projet 3", 'col' => 7],
+                ['label' => "date de retour en salle ou d'envoi à Crolles ou autre", 'col' => 8],
+                ['label' => "commentaire", 'col' => 9],
+                ['label' => "mois de stock", 'col' => 10],
             ];
+
 
             foreach($listFields as $field) {
                 $vcl = new ValeurChampsLibre();
