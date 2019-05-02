@@ -119,74 +119,72 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
                     ->setTypeQuantite(ReferenceArticle::TYPE_QUANTITE_ARTICLE);
                 $manager->persist($referenceArticle);
                 $manager->flush();
-
-
-                // champ fournisseur
-                $fournisseurLabel = $row[9];
-                if (empty($fournisseurLabel)) {
-                    $fournisseurLabel = 'A DETERMINER';
-                    $fournisseurRef = 'A_DETERMINER';
-                } else {
-                    $fournisseurRef = $row[10];
-                }
-
-                if (in_array($fournisseurRef, ['nc', 'nd', 'NC', 'ND', '*', '.', ''])) {
-                    $fournisseurRef = $fournisseurLabel;
-                }
-                $fournisseur = $this->fournisseurRepository->findOneBy(['codeReference' => $fournisseurRef]);
-
-                // si le fournisseur n'existe pas, on le crée
-                if (empty($fournisseur)) {
-                    $fournisseur = new Fournisseur();
-                    $fournisseur
-                        ->setNom($fournisseurLabel)
-                        ->setCodeReference($fournisseurRef);
-                    $manager->persist($fournisseur);
-                }
-
-                // on crée l'article fournisseur et on le lie au fournisseur et à l'article de référence
-                $articleFournisseur = new ArticleFournisseur();
-                $articleFournisseur
-                    ->setLabel($row[1])
-                    ->setReference(time() . '-' . $i)// code aléatoire unique
-                    ->setFournisseur($fournisseur)
-                    ->setReferenceArticle($referenceArticle);
-
-                $manager->persist($articleFournisseur);
-
-
-                // champs libres
-                $listFields = [
-                    ['label' => 'famille produit', 'col' => 4],
-                    ['label' => 'zone', 'col' => 5],
-                    ['label' => 'équipementier', 'col' => 6],
-                    ['label' => "réf équipementier", 'col' => 7],
-                    ['label' => "machine", 'col' => 8],
-                    ['label' => "stock mini", 'col' => 11],
-                    ['label' => "stock alerte", 'col' => 12],
-                    ['label' => "prix du stock final", 'col' => 16],
-                    ['label' => "alerte mini", 'col' => 17],
-                    ['label' => "alerte prévision", 'col' => 18],
-                ];
-
-                foreach ($listFields as $field) {
-                    $vcl = new ValeurChampsLibre();
-                    $label = $field['label'] . ' (' . $typePdt->getLabel() . ')';
-                    $cl = $this->champsLibreRepository->findOneBy(['label' => $label]);
-                    if (empty($cl)) {
-                        dump('il manque le champ libre de label ' . $label);
-                    } else {
-                        $vcl
-                            ->setChampLibre($cl)
-                            ->addArticleReference($referenceArticle)
-                            ->setValeur($row[$field['col']]);
-                        $manager->persist($vcl);
-                    }
-                }
-                $manager->flush();
-            } else {
-                $articleFournisseur = $referenceArticle->getArticlesFournisseur();
             }
+
+            // champ fournisseur
+            $fournisseurLabel = $row[9];
+            if (empty($fournisseurLabel)) {
+                $fournisseurLabel = 'A DETERMINER';
+                $fournisseurRef = 'A_DETERMINER';
+            } else {
+                $fournisseurRef = $row[10];
+            }
+
+            if (in_array($fournisseurRef, ['nc', 'nd', 'NC', 'ND', '*', '.', ''])) {
+                $fournisseurRef = $fournisseurLabel;
+            }
+            $fournisseur = $this->fournisseurRepository->findOneBy(['codeReference' => $fournisseurRef]);
+
+            // si le fournisseur n'existe pas, on le crée
+            if (empty($fournisseur)) {
+                $fournisseur = new Fournisseur();
+                $fournisseur
+                    ->setNom($fournisseurLabel)
+                    ->setCodeReference($fournisseurRef);
+                $manager->persist($fournisseur);
+            }
+
+            // on crée l'article fournisseur et on le lie au fournisseur et à l'article de référence
+            $articleFournisseur = new ArticleFournisseur();
+            $articleFournisseur
+                ->setLabel($row[1])
+                ->setReference(time() . '-' . $i)// code aléatoire unique
+                ->setFournisseur($fournisseur)
+                ->setReferenceArticle($referenceArticle);
+
+            $manager->persist($articleFournisseur);
+
+
+            // champs libres
+            $listFields = [
+                ['label' => 'famille produit', 'col' => 4],
+                ['label' => 'zone', 'col' => 5],
+                ['label' => 'équipementier', 'col' => 6],
+                ['label' => "réf équipementier", 'col' => 7],
+                ['label' => "machine", 'col' => 8],
+                ['label' => "stock mini", 'col' => 11],
+                ['label' => "stock alerte", 'col' => 12],
+                ['label' => "prix du stock final", 'col' => 16],
+                ['label' => "alerte mini", 'col' => 17],
+                ['label' => "alerte prévision", 'col' => 18],
+            ];
+
+            foreach ($listFields as $field) {
+                $vcl = new ValeurChampsLibre();
+                $label = $field['label'] . ' (' . $typePdt->getLabel() . ')';
+                $cl = $this->champsLibreRepository->findOneBy(['label' => $label]);
+                if (empty($cl)) {
+                    dump('il manque le champ libre de label ' . $label);
+                } else {
+                    $vcl
+                        ->setChampLibre($cl)
+                        ->addArticleReference($referenceArticle)
+                        ->setValeur($row[$field['col']]);
+                    $manager->persist($vcl);
+                }
+            }
+            $manager->flush();
+
 
             // on crée l'article
             $article = new Article();
