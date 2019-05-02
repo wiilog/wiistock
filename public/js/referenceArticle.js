@@ -38,8 +38,8 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function () 
             }
         };
 
-        if (path ===  Routing.generate('save_column_visible', true)) {
-            tableColumnVisible.search( '' ).draw()
+        if (path === Routing.generate('save_column_visible', true)) {
+            tableColumnVisible.search('').draw()
         }
 
         // On récupère toutes les données qui nous intéressent
@@ -213,11 +213,11 @@ function visibleColumn(check) {
     let columnNumber = check.data('column')
     let column = tableRefArticle.column(columnNumber);
     column.visible(!column.visible());
-    
+
     let tableRefArticleColumn = $('#tableRefArticle_id_wrapper');
     tableRefArticleColumn.find('th').removeClass('libre');
     tableRefArticleColumn.find('th').addClass('fixe');
-    
+
     if (check.hasClass('data')) {
         check.removeClass('data');
     } else {
@@ -383,7 +383,7 @@ let ajaxEditArticle = function (select) {
             }
         }
     }
-    let json = { id :select.val(), isADemand:1};
+    let json = { id: select.val(), isADemand: 1 };
     let path = Routing.generate('article_api_edit', true);
     xhttp.open("POST", path, true);
     xhttp.send(JSON.stringify(json));
@@ -479,10 +479,20 @@ function addFournisseurEdit(button) {
 
 function setMaxQuantityByArtRef(input) {
     let val = 0;
-    $('input[name="quantite"]').each(function() {
+    $('input[name="quantite"]').each(function () {
         if ($(this).val() !== '' && $(this).val()) {
             val = $(this).val();
         }
     });
     input.attr('max', val);
+}
+
+
+function toggleRadioButtonNeeded(button) {
+    if ($('#quantite').hasClass('needed')) {
+        $('#quantite').removeClass('needed');
+    }
+    else {
+        $('#quantite').addClass('needed');
+    }
 }

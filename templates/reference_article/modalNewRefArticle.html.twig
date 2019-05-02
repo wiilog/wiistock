@@ -63,9 +63,9 @@
                             <label for="statut" class="mtb-auto mr-2">Gestion quantité</label>
                             <div onclick="updateQuantityDisplay($(this))">
                                 <span class="btn active" data-toggle="type_quantite" data-title="reference"
-                                    onclick="toggleRadioButton($(this))">Par référence</span><span
+                                    onclick="toggleRadioButtonNeeded($(this)), toggleRadioButton($(this)) ">Par référence</span><span
                                     class="btn not-active" data-toggle="type_quantite" data-title="article"
-                                    onclick="toggleRadioButton($(this))">Par article</span>
+                                    onclick="toggleRadioButtonNeeded($(this)), toggleRadioButton($(this))">Par article</span>
                             </div>
                             <input type="hidden" name="type_quantite" class="data" value="" id="type_quantite">
 
