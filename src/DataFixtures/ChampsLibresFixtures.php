@@ -74,7 +74,7 @@ class ChampsLibresFixtures extends Fixture implements FixtureGroupInterface
     public function load(ObjectManager $manager)
     {
         $listFieldsRefArticlePDT = [
-            ['label' => 'famille produit', 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['CONSOMMABLES', 'PAD', 'POMPE', 'POMPE_41', 'PIECES DETACHEES', 'PDT GENERIQUE', 'DCOS TEST ELECTRIQUE', 'SILICIUM', 'SIL_EXTERNE', 'SIL_INTERNE', 'MOBILIER SB', 'MOBILIER TERTIAIRE', 'CIBLE / SLUGS']],
+            ['label' => 'famille produit', 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['POMPE', 'POMPE_41', 'PIECES DETACHEES', 'PDT GENERIQUE', 'DCOS TEST ELECTRIQUE']],
             ['label' => 'zone', 'type' => ChampsLibre::TYPE_TEXT],
             ['label' => 'équipementier', 'type' => ChampsLibre::TYPE_TEXT],
             ['label' => "réf équipementier", 'type' => ChampsLibre::TYPE_TEXT],
@@ -90,7 +90,7 @@ class ChampsLibresFixtures extends Fixture implements FixtureGroupInterface
             ['label' => "date entrée", 'type' => ChampsLibre::TYPE_DATE],
         ];
         $listFieldsRefArticleCSP = [
-            ['label' => 'famille produit', 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['CONSOMMABLES', 'PAD', 'POMPE', 'POMPE_41', 'PIECES DETACHEES', 'PDT GENERIQUE', 'DCOS TEST ELECTRIQUE', 'SILICIUM', 'SIL_EXTERNE', 'SIL_INTERNE', 'MOBILIER SB', 'MOBILIER TERTIAIRE', 'CIBLE / SLUGS']],
+            ['label' => 'famille produit', 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['CONSOMMABLES', 'PAD']],
             ['label' => "stock mini", 'type' => ChampsLibre::TYPE_NUMBER],
             ['label' => "stock alerte", 'type' => ChampsLibre::TYPE_NUMBER],
             ['label' => "prix du stock final", 'type' => ChampsLibre::TYPE_DATE],
@@ -104,7 +104,7 @@ class ChampsLibresFixtures extends Fixture implements FixtureGroupInterface
         ];
         $listFieldsSILI = [
             ['label' => 'adresse', 'type' => ChampsLibre::TYPE_TEXT],
-            ['label' => 'famille produit', 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['CONSOMMABLES','PAD','POMPE','POMPE_41', 'PIECES DETACHEES', 'PDT GENERIQUE', 'DCOS TEST ELECTRIQUE', 'SILICIUM', 'SIL_EXTERNE', 'SIL_INTERNE', 'MOBILIER SB', 'MOBILIER TERTIAIRE', 'CIBLE / SLUGS']],
+            ['label' => 'famille produit', 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['SILICIUM', 'SIL_EXTERNE', 'SIL_INTERNE']],
             ['label' => "alerte mini", 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['besoin', '']],
             ['label' => "alerte prévision", 'type' => ChampsLibre::TYPE_NUMBER],
             ['label' => 'date', 'type' => ChampsLibre::TYPE_DATE],
@@ -124,7 +124,7 @@ class ChampsLibresFixtures extends Fixture implements FixtureGroupInterface
         ];
         $listFieldsMOB = [
             ['label' => 'adresse', 'col' => 2, 'type' => ChampsLibre::TYPE_TEXT],
-            ['label' => 'famille produit', 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['CONSOMMABLES','PAD','POMPE','POMPE_41', 'PIECES DETACHEES', 'PDT GENERIQUE', 'DCOS TEST ELECTRIQUE', 'SILICIUM', 'SIL_EXTERNE', 'SIL_INTERNE', 'MOBILIER SB', 'MOBILIER TERTIAIRE', 'CIBLE / SLUGS']],
+            ['label' => 'famille produit', 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['MOBILIER SB', 'MOBILIER TERTIAIRE']],
             ['label' => "stock mini", 'type' => ChampsLibre::TYPE_NUMBER],
             ['label' => "stock alerte", 'type' => ChampsLibre::TYPE_NUMBER],
             ['label' => "prix unitaire", 'col' => 9, 'type' => ChampsLibre::TYPE_TEXT],
