@@ -336,6 +336,7 @@ class RefArticleDataService
             "Libellé" => $refArticle->getLibelle(),
             "Référence" => $refArticle->getReference(),
             "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
+            "Emplacement" => ($refArticle->getEmplacement() ? $refArticle->getEmplacement()->getLabel() : ""),
             "Quantité" => $refArticle->getQuantiteStock(),
             "Actions" => $this->templating->render('reference_article/datatableReferenceArticleRow.html.twig', [
                 'idRefArticle' => $refArticle->getId(),

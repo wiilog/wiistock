@@ -89,14 +89,14 @@
             <label class="mtb-auto mr-2">Quantité</label>
             <input class="form-control rounded" disabled value="{{ totalQuantity }}">
         </div>
-
+        {% if  (articleRef.emplacement.id) is defined %}
         <div class="input-group article {{ dnone }}">
             <label class="mtb-auto mr-2">Emplacement</label>
             <select name="emplacement" class="form-control ajax-autocompleteEmplacement-edit data ">
                 <option value="{{ articleRef.emplacement.id }}">"{{ articleRef.emplacement.label }}"</option>>
             </select>
         </div>
-
+        {% endif %}
     </div>
 </div>
 

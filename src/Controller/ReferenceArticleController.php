@@ -198,9 +198,9 @@ class ReferenceArticleController extends Controller
                         "class" => (in_array('Type', $colonmVisible) ? 'fixe' : 'libre')
                     ],
                     [
-                        "title" => 'Quantité',
-                        "data" => 'Quantité',
-                        "class" => (in_array('Quantité', $colonmVisible) ? 'fixe' : 'libre')
+                        "title" => 'Emplacement',
+                        "data" => 'Emplacement',
+                        "class" => (in_array('Emplacement', $colonmVisible) ? 'fixe' : 'libre')
                     ],
 
                 ];
@@ -236,6 +236,11 @@ class ReferenceArticleController extends Controller
                     [
                         "title" => 'Quantité',
                         "data" => 'Quantité',
+                        "class" => 'fixe'
+                    ],
+                    [
+                        "title" => 'Emplacement',
+                        "data" => 'Emplacement',
                         "class" => 'fixe'
                     ],
                 ];
