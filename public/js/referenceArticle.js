@@ -397,6 +397,7 @@ function initNewReferenceArticleEditor(modal) {
         editorNewReferenceArticleAlreadyDone = true;
     }
     ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseur'));
+    ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'))
 };
 
 var editorEditRefArticleAlreadyDone = false;

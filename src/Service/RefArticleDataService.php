@@ -25,6 +25,7 @@ use App\Repository\TypeRepository;
 use App\Repository\ValeurChampsLibreRepository;
 use App\Repository\CategorieCLRepository;
 use App\Repository\FournisseurRepository;
+use App\Repository\EmplacementRepository;
 
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
@@ -77,6 +78,10 @@ class RefArticleDataService
      * @var FilterRepository
      */
     private $filterRepository;
+    /**
+     * @var EmplacementRepository
+     */
+    private $emplacementRepository;
 
     /**
      * @var \Twig_Environment
@@ -101,8 +106,9 @@ class RefArticleDataService
     private $router;
 
 
-    public function __construct(RouterInterface $router, UserService $userService, ArticleFournisseurRepository $articleFournisseurRepository,FournisseurRepository $fournisseurRepository, CategorieCLRepository $categorieCLRepository, TypeRepository  $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampsLibreRepository $champsLibreRepository, FilterRepository $filterRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
+    public function __construct(EmplacementRepository $emplacementRepository, RouterInterface $router, UserService $userService, ArticleFournisseurRepository $articleFournisseurRepository,FournisseurRepository $fournisseurRepository, CategorieCLRepository $categorieCLRepository, TypeRepository  $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampsLibreRepository $champsLibreRepository, FilterRepository $filterRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
     {
+        $this->emplacementRepository = $emplacementRepository;
         $this->fournisseurRepository = $fournisseurRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->champsLibreRepository = $champsLibreRepository;
