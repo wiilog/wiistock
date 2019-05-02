@@ -39,9 +39,6 @@ class MaintenanceListener
      */
     public function onKernelRequest(GetResponseEvent $event)
     {
-        //TODO modifier ici pour mise en maintenance
-        // return;
-
         $maintenanceView = $this->templating->render(
             'securite/maintenance.html.twig'
         );

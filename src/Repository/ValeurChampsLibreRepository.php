@@ -52,7 +52,9 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
             "champLibre" => $champLibre
         ]);
 
-        return $query->getOneOrNullResult();
+//        return $query->getOneOrNullResult();
+        $result = $query->execute();
+        return $result ? $result[0] : null;
     }
 
     public function getByRefArticle($idArticle)

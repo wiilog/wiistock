@@ -39,7 +39,8 @@ services:
             - { name: doctrine.event_listener, event: prePersist }
             - { name: doctrine.event_listener, event: preUpdate }
 
-    # maintenance_listener:
-    #     class: App\Security\MaintenanceListener
-    #     tags:
-    #         - { name: 'kernel.event_listener', event: 'kernel.request', method: 'onKernelRequest'}
+#TODO à décommenter pour mettre en maintenance
+#    maintenance_listener:
+#        class: App\Security\MaintenanceListener
+#        tags:
+#            - { name: 'kernel.event_listener', event: 'kernel.request', method: 'onKernelRequest'}

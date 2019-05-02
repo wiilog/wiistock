@@ -34,7 +34,7 @@ class ValeurChampsLibre
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\ChampsLibre", inversedBy="valeurChampsLibres")
-     * @ORM\Joincolumn(name="champ_libre_id", referencedColumnName="id", onDelete="CASCADE")
+     * @ORM\JoinColumn(name="champ_libre_id", referencedColumnName="id", onDelete="CASCADE")
      */
     private $champLibre;
 

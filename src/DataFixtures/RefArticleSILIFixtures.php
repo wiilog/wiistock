@@ -4,6 +4,7 @@ namespace App\DataFixtures;
 
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
+use App\Entity\CategorieCL;
 use App\Entity\ChampsLibre;
 use App\Entity\Emplacement;
 use App\Entity\Fournisseur;
@@ -94,102 +95,34 @@ class RefArticleSILIFixtures extends Fixture implements FixtureGroupInterface
             $i++;
             $typeSili = $this->typeRepository->findOneBy(['label' => Type::LABEL_SILI]);
 
-            // si l'article de référence n'existe pas déjà, on le crée
+            // si l'article de référence existe déjà on le dédoublonne
             $referenceArticle = $this->refArticleRepository->findOneBy(['reference' => $row[0]]);
-            if (empty($referenceArticle)) {
-                // champs fixes
-                $referenceArticle = new ReferenceArticle();
-                $referenceArticle
-                    ->setType($typeSili)
-                    ->setStatut($this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF))
-                    ->setReference($row[0])
-                    ->setLibelle($row[1])
-                    ->setTypeQuantite(ReferenceArticle::TYPE_QUANTITE_ARTICLE);
-                $manager->persist($referenceArticle);
-                $manager->flush();
-
-                // on crée l'article fournisseur, on le lie au fournisseur et à l'article de référence
-                $articleFournisseur = new ArticleFournisseur();
-                $articleFournisseur
-                    ->setLabel($row[1])
-                    ->setReference(time() . '-' . $i)// code aléatoire unique
-                    ->setFournisseur($fournisseur)
-                    ->setReferenceArticle($referenceArticle);
-
-                $manager->persist($articleFournisseur);
-
-
-                // champs libres
-                $listFields = [
-                    ['label' => 'famille produit', 'col' => 4, 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['CONSOMMABLES','PAD','POMPE','POMPE_41', 'PIECES DETACHEES', 'PDT GENERIQUE', 'DCOS TEST ELECTRIQUE', 'SILICIUM', 'SIL_EXTERNE', 'SIL_INTERNE', 'MOBILIER SB', 'MOBILIER TERTIAIRE', 'CIBLE / SLUGS']],
-                    ['label' => "alerte mini", 'col' => 13, 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['besoin', '']],
-                    ['label' => "alerte prévision", 'col' => 14, 'type' => ChampsLibre::TYPE_NUMBER],
-                ];
-
-
-                foreach ($listFields as $field) {
-                    $vcl = new ValeurChampsLibre();
-                    $cl = $this->champsLibreRepository->findOneBy(['label' => $field['label']]);
-                    if (empty($cl)) {
-                        $cl = new ChampsLibre();
-                        $cl
-                            ->setLabel($field['label'])
-                            ->setTypage($field['type'])
-                            ->setCategorieCL($this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE))
-                            ->setType($typeSili);
-
-                        if ($field['type'] == ChampsLibre::TYPE_LIST) {
-                            $cl->setElements($field['elements']);
-                        }
-                        $manager->persist($cl);
-                    }
-                    $vcl
-                        ->setChampLibre($cl)
-                        ->addArticleReference($referenceArticle)
-                        ->setValeur($row[$field['col']]);
-                    $manager->persist($vcl);
-                }
-                $manager->flush();
+            if (!empty($referenceArticle)) {
+                $row[0] = $row[0] . '-' . $i;
             }
 
-            // on crée l'article
-            $article = new Article();
-            $article
-                ->setReference($row[0] . '-' . $i)
-                ->setLabel($row[1])
-                ->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF))
+            // champs fixes
+            $referenceArticle = new ReferenceArticle();
+            $referenceArticle
                 ->setType($typeSili)
-                ->setConform(true)
-                ->setQuantite(intval($row[3]));
+                ->setStatut($this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF))
+                ->setReference($row[0])
+                ->setQuantiteStock($row[3])
+                ->setLibelle($row[1])
+                ->setTypeQuantite(ReferenceArticle::TYPE_QUANTITE_REFERENCE);
+            $manager->persist($referenceArticle);
+            $manager->flush();
 
             // on crée l'article fournisseur, on le lie au fournisseur et à l'article de référence
-            $artFourn = new ArticleFournisseur();
-            $artFourn
+            $articleFournisseur = new ArticleFournisseur();
+            $articleFournisseur
                 ->setLabel($row[1])
                 ->setReference(time() . '-' . $i)// code aléatoire unique
                 ->setFournisseur($fournisseur)
                 ->setReferenceArticle($referenceArticle);
-            $manager->persist($artFourn);
 
-            // on lie l'article à l'article fournisseur
-            $article->setArticleFournisseur($artFourn);
+            $manager->persist($articleFournisseur);
 
-
-            // champ emplacement
-            $emplacementLabel = $row[2];
-            if (!empty($emplacementLabel)) {
-                $emplacement = $this->emplacementRepository->findOneBy(['label' => $emplacementLabel]);
-
-                // si l'emplacement n'existe pas, on le crée
-                if (empty($emplacement)) {
-                    $emplacement = new Emplacement();
-                    $emplacement->setLabel($emplacementLabel);
-                    $manager->persist($emplacement);
-                }
-
-                $article->setEmplacement($emplacement);
-            }
-            $manager->persist($article);
 
             // champs libres
             $listFields = [
@@ -197,6 +130,7 @@ class RefArticleSILIFixtures extends Fixture implements FixtureGroupInterface
                 ['label' => "alerte mini", 'col' => 13, 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['besoin', '']],
                 ['label' => "alerte prévision", 'col' => 14, 'type' => ChampsLibre::TYPE_NUMBER],
             ];
+
 
             foreach ($listFields as $field) {
                 $vcl = new ValeurChampsLibre();
@@ -206,7 +140,7 @@ class RefArticleSILIFixtures extends Fixture implements FixtureGroupInterface
                     $cl
                         ->setLabel($field['label'])
                         ->setTypage($field['type'])
-                        ->setCategorieCL($this->categorieCLRepository->findOneByLabel(CategorieCL::ARTICLE))
+                        ->setCategorieCL($this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE))
                         ->setType($typeSili);
 
                     if ($field['type'] == ChampsLibre::TYPE_LIST) {
@@ -216,10 +150,80 @@ class RefArticleSILIFixtures extends Fixture implements FixtureGroupInterface
                 }
                 $vcl
                     ->setChampLibre($cl)
-                    ->addArticle($article)
+                    ->addArticleReference($referenceArticle)
                     ->setValeur($row[$field['col']]);
                 $manager->persist($vcl);
             }
+            $manager->flush();
+
+//            // on crée l'article
+//            $article = new Article();
+//            $article
+//                ->setReference($row[0] . '-' . $i)
+//                ->setLabel($row[1])
+//                ->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF))
+//                ->setType($typeSili)
+//                ->setConform(true)
+//                ->setQuantite(intval($row[3]));
+//
+//            // on crée l'article fournisseur, on le lie au fournisseur et à l'article de référence
+//            $artFourn = new ArticleFournisseur();
+//            $artFourn
+//                ->setLabel($row[1])
+//                ->setReference(time() . '-' . $i)// code aléatoire unique
+//                ->setFournisseur($fournisseur)
+//                ->setReferenceArticle($referenceArticle);
+//            $manager->persist($artFourn);
+//
+//            // on lie l'article à l'article fournisseur
+//            $article->setArticleFournisseur($artFourn);
+
+
+//            // champ emplacement
+//            $emplacementLabel = $row[2];
+//            if (!empty($emplacementLabel)) {
+//                $emplacement = $this->emplacementRepository->findOneBy(['label' => $emplacementLabel]);
+//
+//                // si l'emplacement n'existe pas, on le crée
+//                if (empty($emplacement)) {
+//                    $emplacement = new Emplacement();
+//                    $emplacement->setLabel($emplacementLabel);
+//                    $manager->persist($emplacement);
+//                }
+//
+//                $article->setEmplacement($emplacement);
+//            }
+//            $manager->persist($article);
+
+//            // champs libres
+//            $listFields = [
+//                ['label' => 'famille produit', 'col' => 4, 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['CONSOMMABLES','PAD','POMPE','POMPE_41', 'PIECES DETACHEES', 'PDT GENERIQUE', 'DCOS TEST ELECTRIQUE', 'SILICIUM', 'SIL_EXTERNE', 'SIL_INTERNE', 'MOBILIER SB', 'MOBILIER TERTIAIRE', 'CIBLE / SLUGS']],
+//                ['label' => "alerte mini", 'col' => 13, 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['besoin', '']],
+//                ['label' => "alerte prévision", 'col' => 14, 'type' => ChampsLibre::TYPE_NUMBER],
+//            ];
+//
+//            foreach ($listFields as $field) {
+//                $vcl = new ValeurChampsLibre();
+//                $cl = $this->champsLibreRepository->findOneBy(['label' => $field['label']]);
+//                if (empty($cl)) {
+//                    $cl = new ChampsLibre();
+//                    $cl
+//                        ->setLabel($field['label'])
+//                        ->setTypage($field['type'])
+//                        ->setCategorieCL($this->categorieCLRepository->findOneByLabel(CategorieCL::ARTICLE))
+//                        ->setType($typeSili);
+//
+//                    if ($field['type'] == ChampsLibre::TYPE_LIST) {
+//                        $cl->setElements($field['elements']);
+//                    }
+//                    $manager->persist($cl);
+//                }
+//                $vcl
+//                    ->setChampLibre($cl)
+//                    ->addArticle($article)
+//                    ->setValeur($row[$field['col']]);
+//                $manager->persist($vcl);
+//            }
 
             $manager->flush();
         }
@@ -238,7 +242,7 @@ class RefArticleSILIFixtures extends Fixture implements FixtureGroupInterface
     {
         $fournisseurLabel = 'A DETERMINER';
         $fournisseurRef = 'A_DETERMINER';
-        $fournisseur = $this->fournisseurRepository->findOneBy(['nom' => $fournisseurLabel]);
+        $fournisseur = $this->fournisseurRepository->findOneBy(['codeReference' => $fournisseurRef]);
 
         // si le fournisseur n'existe pas, on le crée
         if (empty($fournisseur)) {
