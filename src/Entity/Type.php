@@ -15,6 +15,8 @@ class Type
     const LABEL_CSP = 'CSP';
     const LABEL_PDT = 'PDT';
     const LABEL_SILI = 'SILI';
+    const LABEL_SILI_EXT = 'SILI-ext';
+    const LABEL_SILI_INT = 'SILI-int';
     const LABEL_MOB = 'MOB';
     const LABEL_SLUGCIBLE = 'SLUGCIBLE';
 

@@ -122,6 +122,8 @@ class ChampsLibresFixtures extends Fixture implements FixtureGroupInterface
             ['label' => "date de retour en salle ou d'envoi à Crolles ou autre", 'type' => ChampsLibre::TYPE_DATE],
             ['label' => "mois de stock", 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['0','1','2','3','4','5','6','7','8','9','10','11','12']],
         ];
+        $listFieldsSILIInt = [];
+        $listFieldsSILIExt = [];
         $listFieldsMOB = [
             ['label' => 'adresse', 'col' => 2, 'type' => ChampsLibre::TYPE_TEXT],
             ['label' => 'famille produit', 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['MOBILIER SB', 'MOBILIER TERTIAIRE']],

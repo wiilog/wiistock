@@ -70,7 +70,7 @@ class RefArticleSILIExtFixtures extends Fixture implements FixtureGroupInterface
 //            if (empty($row[0])) continue;
             dump($i);
             $i++;
-            $typeSili = $this->typeRepository->findOneBy(['label' => Type::LABEL_SILI]);
+            $typeSiliExt = $this->typeRepository->findOneBy(['label' => Type::LABEL_SILI_EXT]);
 
             // contruction référence
             $referenceNum = str_pad($i, 5, '0', STR_PAD_LEFT);
@@ -78,7 +78,7 @@ class RefArticleSILIExtFixtures extends Fixture implements FixtureGroupInterface
             // champs fixes
             $referenceArticle = new ReferenceArticle();
             $referenceArticle
-                ->setType($typeSili)
+                ->setType($typeSiliExt)
                 ->setReference('SILI_EXT_' . $referenceNum)
                 ->setLibelle('SILI_EXT_' . $referenceNum)
                 ->setTypeQuantite('reference')
@@ -103,7 +103,7 @@ class RefArticleSILIExtFixtures extends Fixture implements FixtureGroupInterface
 
             foreach($listFields as $field) {
                 $vcl = new ValeurChampsLibre();
-                $label = $field['label'] . ' (' . $typeSili->getLabel() . ')';
+                $label = $field['label'] . ' (' . $typeSiliExt->getLabel() . ')';
                 $cl = $this->champsLibreRepository->findOneBy(['label' => $label]);
                 if (empty($cl)) {
                     dump('il manque le champ libre de label ' . $label);

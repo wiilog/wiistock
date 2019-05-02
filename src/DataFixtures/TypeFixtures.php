@@ -26,6 +26,8 @@ class TypeFixtures extends Fixture implements DependentFixtureInterface, Fixture
             'CSP',
             'PSS',
             'SILI',
+            'SILI-int',
+            'SILI-ext',
             'MOB',
             'SLUGCIBLE'
         ];
