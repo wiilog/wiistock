@@ -164,7 +164,7 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
 
                 foreach ($listFields as $field) {
                     $vcl = new ValeurChampsLibre();
-                    $label = $field['label'] . '(' . $typePdt->getLabel() . ')';
+                    $label = $field['label'] . ' (' . $typePdt->getLabel() . ')';
                     $cl = $this->champsLibreRepository->findOneBy(['label' => $label]);
                     if (empty($cl)) {
                         dump('il manque le champ libre de label ' . $label);
@@ -270,7 +270,7 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
 
 
     public static function getGroups():array {
-        return ['articlesPDT0'];
+        return ['articlesPDT'];
     }
 
 }
