@@ -328,7 +328,7 @@ let generateCSV = function () {
         xhttp.open("POST", Routing.generate('get_livraisons_for_csv'), true);
         xhttp.send(json);
     } else {
-        $('.error-msg').html('<p>Saisissez une date de départ, une date de fin et un utilisateur </p>');
+        $('.error-msg').html('<p>Saisissez une date de départ, une date de fin et un utilisateur dans le filtre en entete de page.</p>');
     }
 }
 
