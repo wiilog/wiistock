@@ -191,8 +191,10 @@ class ChampsLibresFixtures extends Fixture implements FixtureGroupInterface
      */
     public function createCL(ObjectManager $manager, $field, $typeLabel, $categorieCLLabel)
     {
-        $cl = $this->champsLibreRepository->findOneBy(['label' => $field['label']]);
         $type = $this->typeRepository->findOneBy(['label' => $typeLabel]);
+        $label = $field['label'] . ' (' . $type->getLabel() . ') ';
+
+        $cl = $this->champsLibreRepository->findOneBy(['label' => $label]);
 
         if (empty($cl)) {
             $cl = new ChampsLibre();
