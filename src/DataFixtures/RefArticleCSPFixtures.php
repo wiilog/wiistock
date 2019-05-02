@@ -174,7 +174,7 @@ class RefArticleCSPFixtures extends Fixture implements FixtureGroupInterface
 
                 foreach ($listFields as $field) {
                     $vcl = new ValeurChampsLibre();
-                    $label = $field['label'] . '(' . $typeCsp->getLabel() . ')';
+                    $label = $field['label'] . ' (' . $typeCsp->getLabel() . ')';
                     $cl = $this->champsLibreRepository->findOneBy(['label' => $label]);
                     if (empty($cl)) {
                         dump('il manque le champ libre de label ' . $label);
