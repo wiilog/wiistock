@@ -81,6 +81,7 @@ class RefArticleSILIExtFixtures extends Fixture implements FixtureGroupInterface
                 ->setType($typeSiliExt)
                 ->setReference('SILI_EXT_' . $referenceNum)
                 ->setLibelle('SILI_EXT_' . $referenceNum)
+                ->setQuantiteStock(1)
                 ->setTypeQuantite('reference')
                 ->setStatut($this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF));
             $manager->persist($referenceArticle);

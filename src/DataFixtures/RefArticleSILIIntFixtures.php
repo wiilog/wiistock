@@ -78,6 +78,7 @@ class RefArticleSILIIntFixtures extends Fixture implements FixtureGroupInterface
                 ->setType($typeSiliInt)
                 ->setReference('SILI_INT_' . $referenceNum)
                 ->setLibelle('SILI_INT_' . $referenceNum)
+                ->setQuantiteStock(1)
                 ->setTypeQuantite('reference')
                 ->setStatut($this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF));
             $manager->persist($referenceArticle);
