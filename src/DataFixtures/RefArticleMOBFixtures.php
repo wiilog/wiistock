@@ -8,6 +8,7 @@ use App\Entity\ChampsLibre;
 use App\Entity\Fournisseur;
 use App\Entity\Type;
 use App\Entity\ValeurChampsLibre;
+use App\Repository\ArticleFournisseurRepository;
 use App\Repository\CategorieCLRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\StatutRepository;
@@ -55,8 +56,13 @@ class RefArticleMOBFixtures extends Fixture implements FixtureGroupInterface
      */
     private $assetsManager;
 
+    /**
+     * @var ArticleFournisseurRepository
+     */
+    private $articleFournisseurRepository;
 
-    public function __construct(CategorieCLRepository $categorieCLRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampsLibreRepository $champsLibreRepository, StatutRepository $statutRepository, FournisseurRepository $fournisseurRepository, Packages $assetsManager)
+
+    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository, CategorieCLRepository $categorieCLRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampsLibreRepository $champsLibreRepository, StatutRepository $statutRepository, FournisseurRepository $fournisseurRepository, Packages $assetsManager)
     {
         $this->typeRepository = $typeRepository;
         $this->champsLibreRepository = $champsLibreRepository;
@@ -65,6 +71,7 @@ class RefArticleMOBFixtures extends Fixture implements FixtureGroupInterface
         $this->fournisseurRepository = $fournisseurRepository;
         $this->assetsManager = $assetsManager;
         $this->categorieCLRepository = $categorieCLRepository;
+        $this->articleFournisseurRepository = $articleFournisseurRepository;
     }
 
     public function load(ObjectManager $manager)
@@ -118,15 +125,21 @@ class RefArticleMOBFixtures extends Fixture implements FixtureGroupInterface
                         ->setCodeReference($fournisseurRef);
                     $manager->persist($fournisseur);
                 }
-                // on crée l'article fournisseur, on le lie au fournisseur et à l'article de référence
-                $articleFournisseur = new ArticleFournisseur();
-                $articleFournisseur
-                    ->setLabel($data[0])
-                    ->setReference(time() . '-' . $i)// code aléatoire unique
-                    ->setFournisseur($fournisseur)
-                    ->setReferenceArticle($referenceArticle);
 
-                $manager->persist($articleFournisseur);
+
+                // article fournisseur
+                $articleFournisseur = $this->articleFournisseurRepository->findByRefArticleAndFournisseur($referenceArticle, $fournisseur);
+                // si l'article fournisseur n'existe pas déjà, on le crée et on le lie au fournisseur et à l'article de référence
+                if (empty($articleFournisseur)) {
+                    $articleFournisseur = new ArticleFournisseur();
+                    $articleFournisseur
+                        ->setLabel($row[1])
+                        ->setReference(time() . '-' . $i)// code aléatoire unique
+                        ->setFournisseur($fournisseur)
+                        ->setReferenceArticle($referenceArticle);
+
+                    $manager->persist($articleFournisseur);
+                }
             }
 
 

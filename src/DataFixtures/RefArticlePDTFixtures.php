@@ -9,6 +9,7 @@ use App\Entity\ChampsLibre;
 use App\Entity\Emplacement;
 use App\Entity\Fournisseur;
 use App\Entity\Type;
+use App\Repository\ArticleFournisseurRepository;
 use App\Repository\CategorieCLRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\FournisseurRepository;
@@ -64,8 +65,13 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
      */
     private $emplacementRepository;
 
+    /**
+     * @var ArticleFournisseurRepository
+     */
+    private  $articleFournisseurRepository;
 
-    public function __construct(EmplacementRepository $emplacementRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampsLibreRepository $champsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $refArticleRepository, CategorieCLRepository $categorieCLRepository)
+
+    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository, EmplacementRepository $emplacementRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampsLibreRepository $champsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $refArticleRepository, CategorieCLRepository $categorieCLRepository)
     {
         $this->typeRepository = $typeRepository;
         $this->champsLibreRepository = $champsLibreRepository;
@@ -75,6 +81,7 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
         $this->refArticleRepository = $refArticleRepository;
         $this->categorieCLRepository = $categorieCLRepository;
         $this->emplacementRepository = $emplacementRepository;
+        $this->articleFournisseurRepository = $articleFournisseurRepository;
     }
 
     public function load(ObjectManager $manager)
@@ -137,15 +144,19 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
                     $manager->persist($fournisseur);
                 }
 
-                // on crée l'article fournisseur, on le lie au fournisseur et à l'article de référence
-                $articleFournisseur = new ArticleFournisseur();
-                $articleFournisseur
-                    ->setLabel($row[1])
-                    ->setReference(time() . '-' . $i)// code aléatoire unique
-                    ->setFournisseur($fournisseur)
-                    ->setReferenceArticle($referenceArticle);
+                // article fournisseur
+                $articleFournisseur = $this->articleFournisseurRepository->findByRefArticleAndFournisseur($referenceArticle, $fournisseur);
+                // si l'article fournisseur n'existe pas déjà, on le crée et on le lie au fournisseur et à l'article de référence
+                if (empty($articleFournisseur)) {
+                    $articleFournisseur = new ArticleFournisseur();
+                    $articleFournisseur
+                        ->setLabel($row[1])
+                        ->setReference(time() . '-' . $i)// code aléatoire unique
+                        ->setFournisseur($fournisseur)
+                        ->setReferenceArticle($referenceArticle);
 
-                $manager->persist($articleFournisseur);
+                    $manager->persist($articleFournisseur);
+                }
 
 
                 // champs libres
@@ -212,18 +223,21 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
                 $manager->persist($fournisseur);
             }
 
-            // on crée l'article fournisseur, on le lie au fournisseur et à l'article de référence
-            $artFourn = new ArticleFournisseur();
-            $artFourn
-                ->setLabel($row[1])
-                ->setReference(time() . '-' . $i)// code aléatoire unique
-                ->setFournisseur($fournisseur)
-                ->setReferenceArticle($referenceArticle);
-            $manager->persist($artFourn);
+            // article fournisseur
+            $articleFournisseur = $this->articleFournisseurRepository->findByRefArticleAndFournisseur($referenceArticle, $fournisseur);
+            // si l'article fournisseur n'existe pas déjà, on le crée et on le lie au fournisseur et à l'article de référence
+            if (empty($articleFournisseur)) {
+                $articleFournisseur = new ArticleFournisseur();
+                $articleFournisseur
+                    ->setLabel($row[1])
+                    ->setReference(time() . '-' . $i)// code aléatoire unique
+                    ->setFournisseur($fournisseur)
+                    ->setReferenceArticle($referenceArticle);
 
+                $manager->persist($articleFournisseur);
+            }
             // on lie l'article à l'article fournisseur
-            $article->setArticleFournisseur($artFourn);
-
+            $article->setArticleFournisseur($articleFournisseur);
 
             // champ emplacement
             $emplacementLabel = $row[2];

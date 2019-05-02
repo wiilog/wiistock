@@ -2,14 +2,11 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
-use App\Entity\CategorieCL;
-use App\Entity\ChampsLibre;
-use App\Entity\Emplacement;
 use App\Entity\Fournisseur;
 use App\Entity\Type;
 use App\Entity\ValeurChampsLibre;
+use App\Repository\ArticleFournisseurRepository;
 use App\Repository\CategorieCLRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\FournisseurRepository;
@@ -63,7 +60,12 @@ class RefArticleSILIFixtures extends Fixture implements FixtureGroupInterface
      */
     private $fournisseurRepository;
 
-    public function __construct(FournisseurRepository $fournisseurRepository, EmplacementRepository $emplacementRepository, CategorieCLRepository $categorieCLRepository, ReferenceArticleRepository $refArticleRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampsLibreRepository $champsLibreRepository, StatutRepository $statutRepository)
+    /**
+     * @var ArticleFournisseurRepository
+     */
+    private $articleFournisseurRepository;
+
+    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository, FournisseurRepository $fournisseurRepository, EmplacementRepository $emplacementRepository, CategorieCLRepository $categorieCLRepository, ReferenceArticleRepository $refArticleRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampsLibreRepository $champsLibreRepository, StatutRepository $statutRepository)
     {
         $this->typeRepository = $typeRepository;
         $this->champsLibreRepository = $champsLibreRepository;
@@ -73,6 +75,7 @@ class RefArticleSILIFixtures extends Fixture implements FixtureGroupInterface
         $this->categorieCLRepository = $categorieCLRepository;
         $this->emplacementRepository = $emplacementRepository;
         $this->fournisseurRepository = $fournisseurRepository;
+        $this->articleFournisseurRepository = $articleFournisseurRepository;
     }
 
     public function load(ObjectManager $manager)
@@ -113,15 +116,19 @@ class RefArticleSILIFixtures extends Fixture implements FixtureGroupInterface
             $manager->persist($referenceArticle);
             $manager->flush();
 
-            // on crée l'article fournisseur, on le lie au fournisseur et à l'article de référence
-            $articleFournisseur = new ArticleFournisseur();
-            $articleFournisseur
-                ->setLabel($row[1])
-                ->setReference(time() . '-' . $i)// code aléatoire unique
-                ->setFournisseur($fournisseur)
-                ->setReferenceArticle($referenceArticle);
+            // article fournisseur
+            $articleFournisseur = $this->articleFournisseurRepository->findByRefArticleAndFournisseur($referenceArticle, $fournisseur);
+            // si l'article fournisseur n'existe pas déjà, on le crée et on le lie au fournisseur et à l'article de référence
+            if (empty($articleFournisseur)) {
+                $articleFournisseur = new ArticleFournisseur();
+                $articleFournisseur
+                    ->setLabel($row[1])
+                    ->setReference(time() . '-' . $i)// code aléatoire unique
+                    ->setFournisseur($fournisseur)
+                    ->setReferenceArticle($referenceArticle);
 
-            $manager->persist($articleFournisseur);
+                $manager->persist($articleFournisseur);
+            }
 
 
             // champs libres
