@@ -67,7 +67,7 @@ class RefArticleSILIIntFixtures extends Fixture implements FixtureGroupInterface
 //            if (empty($row[0])) continue;
             dump($i);
             $i++;
-            $typeSili = $this->typeRepository->findOneBy(['label' => Type::LABEL_SILI]);
+            $typeSiliInt = $this->typeRepository->findOneBy(['label' => Type::LABEL_SILI_INT]);
 
             // contruction référence
             $referenceNum = str_pad($i, 5, '0', STR_PAD_LEFT);
@@ -75,9 +75,10 @@ class RefArticleSILIIntFixtures extends Fixture implements FixtureGroupInterface
             // champs fixes
             $referenceArticle = new ReferenceArticle();
             $referenceArticle
-                ->setType($typeSili)
+                ->setType($typeSiliInt)
                 ->setReference('SILI_INT_' . $referenceNum)
                 ->setLibelle('SILI_INT_' . $referenceNum)
+                ->setQuantiteStock(1)
                 ->setTypeQuantite('reference')
                 ->setStatut($this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF));
             $manager->persist($referenceArticle);
@@ -86,40 +87,33 @@ class RefArticleSILIIntFixtures extends Fixture implements FixtureGroupInterface
 
             // champs libres
             $listFields = [
-                ['label' => 'adresse', 'col' => 0, 'type' => ChampsLibre::TYPE_TEXT],
-                ['label' => 'famille produit', 'col' => 1, 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['CONSOMMABLES','PAD','POMPE','POMPE_41', 'PIECES DETACHEES', 'PDT GENERIQUE', 'DCOS TEST ELECTRIQUE', 'SILICIUM', 'SIL_EXTERNE', 'SIL_INTERNE', 'MOBILIER SB', 'MOBILIER TERTIAIRE', 'CIBLE / SLUGS']],
-                ['label' => 'date', 'col' => 2, 'type' => ChampsLibre::TYPE_DATE],
-                ['label' => 'diamètre', 'col' => 3, 'type' => ChampsLibre::TYPE_NUMBER],
-                ['label' => 'n° lot autre', 'col' => 4, 'type' => ChampsLibre::TYPE_TEXT],
-                ['label' => 'n° lot Léti', 'col' => 5, 'type' => ChampsLibre::TYPE_TEXT],
-                ['label' => "demandeurs", 'col' => 6, 'type' => ChampsLibre::TYPE_TEXT],
-                ['label' => "projet 3", 'col' => 7, 'type' => ChampsLibre::TYPE_TEXT],
-                ['label' => "date de retour en salle ou d'envoi à Crolles ou autre", 'col' => 8, 'type' => ChampsLibre::TYPE_DATE],
-                ['label' => "commentaires", 'col' => 9, 'type' => ChampsLibre::TYPE_TEXT],
-                ['label' => "mois de stock", 'col' => 10, 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['0','1','2','3','4','5','6','7','8','9','10','11','12']],
+                ['label' => 'adresse', 'col' => 0],
+                ['label' => 'famille produit', 'col' => 1],
+                ['label' => 'date', 'col' => 2],
+                ['label' => 'diamètre', 'col' => 3],
+                ['label' => 'n° lot autre', 'col' => 4],
+                ['label' => 'n° lot Léti', 'col' => 5],
+                ['label' => "demandeur", 'col' => 6],
+                ['label' => "projet 3", 'col' => 7],
+                ['label' => "date de retour en salle ou d'envoi à Crolles ou autre", 'col' => 8],
+                ['label' => "commentaire", 'col' => 9],
+                ['label' => "mois de stock", 'col' => 10],
             ];
+
 
             foreach($listFields as $field) {
                 $vcl = new ValeurChampsLibre();
-                $cl = $this->champsLibreRepository->findOneBy(['label' => $field['label']]);
+                $label = $field['label'] . ' (' . $typeSiliInt->getLabel() . ')';
+                $cl = $this->champsLibreRepository->findOneBy(['label' => $label]);
                 if (empty($cl)) {
-                    $cl = new ChampsLibre();
-                    $cl
-                        ->setLabel($field['label'])
-                        ->setTypage($field['type'])
-                        ->setCategorieCL($this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE))
-                        ->setType($typeSili);
-
-                    if ($field['type'] == ChampsLibre::TYPE_LIST) {
-                        $cl->setElements($field['elements']);
-                    }
-                    $manager->persist($cl);
+                    dump('il manque le champ libre de label ' . $label);
+                } else {
+                    $vcl
+                        ->setChampLibre($cl)
+                        ->addArticleReference($referenceArticle)
+                        ->setValeur($row[$field['col']]);
+                    $manager->persist($vcl);
                 }
-                $vcl
-                    ->setChampLibre($cl)
-                    ->addArticleReference($referenceArticle)
-                    ->setValeur($row[$field['col']]);
-                $manager->persist($vcl);
             }
 
             $manager->flush();
