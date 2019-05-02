@@ -72,10 +72,22 @@ class UtilisateurRepository extends ServiceEntityRepository
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
-          "SELECT u.id, u.username as text
+            "SELECT u.id, u.username as text
           FROM App\Entity\Utilisateur u
           WHERE u.username LIKE :search"
-        )->setParameter('search', '%'.$search.'%');
+        )->setParameter('search', '%' . $search . '%');
+
+        return $query->execute();
+    }
+
+    public function getByUsername($search)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT u
+          FROM App\Entity\Utilisateur u
+          WHERE u.username = :search"
+        )->setParameter('search', $search);
 
         return $query->execute();
     }
@@ -88,8 +100,7 @@ class UtilisateurRepository extends ServiceEntityRepository
             FROM App\Entity\Utilisateur u
             JOIN u.role r
             WHERE r.id = :roleId"
-        )->setParameter('roleId', $roleId);
-        ;
+        )->setParameter('roleId', $roleId);;
         return $query->getSingleScalarResult();
     }
 

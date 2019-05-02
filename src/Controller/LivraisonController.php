@@ -28,6 +28,14 @@ use App\Repository\ReferenceArticleRepository;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\Validator\Constraints\DateTime;
+use App\Repository\UtilisateurRepository;
+use App\Repository\ChampsLibreRepository;
+use Proxies\__CG__\App\Entity\CategorieCL;
+use App\Repository\ValeurChampsLibreRepository;
+use App\Repository\CategorieCLRepository;
+use App\Repository\TypeRepository;
+use App\Entity\ReferenceArticle;
 
 /**
  * @Route("/livraison")
@@ -38,6 +46,26 @@ class LivraisonController extends AbstractController
      * @var EmplacementRepository
      */
     private $emplacementRepository;
+
+    /**
+     * @var TypeRepository
+     */
+    private $typeRepository;
+
+    /**
+     * @var CategorieCLRepository
+     */
+    private $categorieCLRepository;
+
+    /**
+     * @var ChampsLibreRepository
+     */
+    private $champsLibreRepository;
+
+    /**
+     * @var ValeurChampsLibreRepository
+     */
+    private $valeurChampsLibreRepository;
 
     /**
      * @var ReferenceArticleRepository
@@ -53,6 +81,11 @@ class LivraisonController extends AbstractController
      * @var DemandeRepository
      */
     private $demandeRepository;
+
+    /**
+     * @var UtilisateurRepository
+     */
+    private $utilisateurRepository;
 
     /**
      * @var LivraisonRepository
@@ -85,8 +118,13 @@ class LivraisonController extends AbstractController
     private $mailerService;
 
 
-    public function __construct(ReferenceArticleRepository $referenceArticleRepository, PreparationRepository $preparationRepository, LigneArticleRepository $ligneArticleRepository, EmplacementRepository $emplacementRepository, DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, StatutRepository $statutRepository, UserService $userService, MailerService $mailerService, ArticleRepository $articleRepository)
+    public function __construct(CategorieCLRepository $categorieCLRepository, TypeRepository $typeRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ChampsLibreRepository $champsLibreRepository, UtilisateurRepository $utilisateurRepository, ReferenceArticleRepository $referenceArticleRepository, PreparationRepository $preparationRepository, LigneArticleRepository $ligneArticleRepository, EmplacementRepository $emplacementRepository, DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, StatutRepository $statutRepository, UserService $userService, MailerService $mailerService, ArticleRepository $articleRepository)
     {
+        $this->typeRepository = $typeRepository;
+        $this->categorieCLRepository = $categorieCLRepository;
+        $this->valeurChampsLibreRepository = $valeurChampsLibreRepository;
+        $this->champsLibreRepository = $champsLibreRepository;
+        $this->utilisateurRepository = $utilisateurRepository;
         $this->emplacementRepository = $emplacementRepository;
         $this->demandeRepository = $demandeRepository;
         $this->livraisonRepository = $livraisonRepository;
@@ -230,40 +268,40 @@ class LivraisonController extends AbstractController
     public function apiArticle(Request $request, Livraison $livraison): Response
     {
         if ($request->isXmlHttpRequest()) {
-                if (!$this->userService->hasRightFunction(Menu::LIVRAISON, Action::LIST)) {
-                    return $this->redirectToRoute('access_denied');
-                }
-
-                $demande = $this->demandeRepository->getByLivraison($livraison->getId());
-                if ($demande) {
-
-                    $rows = [];
-
-                    $ligneArticle = $this->ligneArticleRepository->getByDemande($demande->getId());
-                    foreach ($ligneArticle as $article) {
-                        $rows[] = [
-                            "Référence CEA" => ($article->getReference() ? $article->getReference()->getReference() : ' '),
-                            "Libellé" => ($article->getReference() ? $article->getReference()->getLibelle() : ' '),
-                            "Quantité" => ($article->getQuantite() ? $article->getQuantite() : ' '),
-                        ];
-                    }
-
-                    $articles = $this->articleRepository->getByDemande($demande);
-                    foreach ($articles as $article) {
-                        /** @var Article $article */
-                        $rows[] = [
-                            "Référence CEA" => $article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
-                            "Libellé" => $article->getLabel() ? $article->getLabel() : '',
-                            "Quantité" => '',
-                        ];
-                    }
-
-                    $data['data'] = $rows;
-                } else {
-                    $data = false; //TODO gérer retour message erreur
-                }
-                return new JsonResponse($data);
+            if (!$this->userService->hasRightFunction(Menu::LIVRAISON, Action::LIST)) {
+                return $this->redirectToRoute('access_denied');
             }
+
+            $demande = $this->demandeRepository->getByLivraison($livraison->getId());
+            if ($demande) {
+
+                $rows = [];
+
+                $ligneArticle = $this->ligneArticleRepository->getByDemande($demande->getId());
+                foreach ($ligneArticle as $article) {
+                    $rows[] = [
+                        "Référence CEA" => ($article->getReference() ? $article->getReference()->getReference() : ' '),
+                        "Libellé" => ($article->getReference() ? $article->getReference()->getLibelle() : ' '),
+                        "Quantité" => ($article->getQuantite() ? $article->getQuantite() : ' '),
+                    ];
+                }
+
+                $articles = $this->articleRepository->getByDemande($demande);
+                foreach ($articles as $article) {
+                    /** @var Article $article */
+                    $rows[] = [
+                        "Référence CEA" => $article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
+                        "Libellé" => $article->getLabel() ? $article->getLabel() : '',
+                        "Quantité" => '',
+                    ];
+                }
+
+                $data['data'] = $rows;
+            } else {
+                $data = false; //TODO gérer retour message erreur
+            }
+            return new JsonResponse($data);
+        }
         throw new NotFoundHttpException("404");
     }
 
@@ -319,5 +357,60 @@ class LivraisonController extends AbstractController
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/livraison-infos", name="get_livraisons_for_csv", options={"expose"=true}, methods={"GET","POST"})
+     */
+    public function getLivraisonIntels(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $dateMin = $data['dateMin'] . ' 00:00:00';
+            $dateMax = $data['dateMax'] . ' 23:59:59';
+            $user = $this->utilisateurRepository->getByUsername($data['username'])[0];
+            $livraisons = $this->demandeRepository->getByDatesAndUsername($dateMin, $dateMax, $user);
+            $data = [];
+            $headers = ['demandeur', 'statut', 'destination', 'commentaire', 'dateDemande', 'dateValidation', 'reference', 'referenceArticle', 'libelleArticle', 'quantite'];
+            foreach ($this->champsLibreRepository->findAll() as $champLibre) {
+                $headers[] = $champLibre->getLabel();
+            }
+            $data[] = $headers;
+            $type = $this->typeRepository->getIdAndLabelByCategoryLabel(ReferenceArticle::CATEGORIE_TYPE);
+            foreach ($livraisons as $livraison) {
+                foreach ($livraison->getLigneArticle() as $ligneArticle) {
+                    $livraisonData = [];
+                    $livraisonData[] = $livraison->getUtilisateur()->getUsername();
+                    $livraisonData[] = $livraison->getStatut()->getNom();
+                    $livraisonData[] = $livraison->getDestination()->getLabel();
+                    $livraisonData[] = $livraison->getCommentaire();
+                    $livraisonData[] = $livraison->getDate()->format('YmdHis');
+                    $livraisonData[] = $livraison->getPreparation() ? $livraison->getPreparation()->getDate()->format('YmdHis') : '';
+                    $livraisonData[] = $livraison->getNumero();
+                    $livraisonData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getReference() : '';
+                    $livraisonData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getLibelle() : '';
+                    $livraisonData[] = $ligneArticle->getQuantite();
+                    $categorieCL = $this->categorieCLRepository->findOneByLabel(($ligneArticle->getReference()->getTypeQuantite() === 'reference') ? 'referenceArticle' : 'article');
+                    $champsLibres = [];
+                    foreach ($type as $label) {
+                        $champsLibresComplet = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($label['label'], $categorieCL);
+                        foreach ($champsLibresComplet as $champLibre) {
+                            $valeurChampRefArticle = $this->valeurChampsLibreRepository->findOneByRefArticleANDChampsLibre($ligneArticle->getReference()->getId(), $champLibre);
+                            $champsLibres[$champLibre->getLabel()] = $valeurChampRefArticle->getValeur();
+                        }
+                    }
+                    foreach ($headers as $label) {
+                        if (array_key_exists($label, $champsLibres)) {
+                            $livraisonData[] = $champsLibres[$label];
+                        } else {
+                            $livraisonData[] = '';
+                        }
+                    }
+                    $data[] = $livraisonData;
+                }
+            }
+            return new JsonResponse($data);
+        } else {
+            throw new NotFoundHttpException('404');
+        }
     }
 }

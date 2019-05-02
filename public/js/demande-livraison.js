@@ -300,3 +300,55 @@ let ajaxEditArticle = function (select) {
     xhttp.open("POST", path, true);
     xhttp.send(JSON.stringify(json));
 }
+
+let generateCSV = function () {
+    xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            response = JSON.parse(this.responseText);
+            if (response) {
+                $('.error-msg').empty();
+                let csv = "";
+                $.each(response, function (index, value) {
+                    csv += value.join();
+                    csv += '\n';
+                });
+                dlFile(csv);
+            }
+        }
+    }
+    Data = {};
+    $('.filterService, select').first().find('input').each(function () {
+        if ($(this).attr('name') !== undefined) {
+            Data[$(this).attr('name')] = $(this).val();
+        }
+    });
+    if (Data['dateMin'] && Data['dateMax'] && Data['username']) {
+        json = JSON.stringify(Data);
+        xhttp.open("POST", Routing.generate('get_livraisons_for_csv'), true);
+        xhttp.send(json);
+    } else {
+        $('.error-msg').html('<p>Saisissez une date de départ, une date de fin et un utilisateur </p>');
+    }
+}
+
+let dlFile = function (csv) {
+    var exportedFilenmae = 'export.csv';
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    if (navigator.msSaveBlob) { // IE 10+
+        navigator.msSaveBlob(blob, exportedFilenmae);
+    } else {
+        var link = document.createElement("a");
+        if (link.download !== undefined) {
+            var url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", exportedFilenmae);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    }
+}
+
+

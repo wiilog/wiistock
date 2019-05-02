@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Demande;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
+use Symfony\Component\Validator\Constraints\DateTime;
 
 /**
  * @method Demande|null find($id, $lockMode = null, $lockVersion = null)
@@ -19,18 +20,18 @@ class DemandeRepository extends ServiceEntityRepository
         parent::__construct($registry, Demande::class);
     }
 
-   public function getByLivraison($id)
-   {
-       $entityManager = $this->getEntityManager();
-       $query = $entityManager->createQuery(
-           "SELECT d
+    public function getByLivraison($id)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT d
            FROM App\Entity\Demande d
             JOIN d.livraison l
            WHERE l.id = :id "
-       )->setParameter('id', $id);
+        )->setParameter('id', $id);
 
-       return $query->getOneOrNullResult();
-   }
+        return $query->getOneOrNullResult();
+    }
 
     public function findByUserAndNotStatus($user, $status)
     {
@@ -42,7 +43,7 @@ class DemandeRepository extends ServiceEntityRepository
             WHERE s.nom <> :status AND d.utilisateur = :user"
         )->setParameters(['user' => $user, 'status' => $status]);
 
-        return $query->execute(); 
+        return $query->execute();
     }
 
     public function getByStatutAndUser($statut, $user)
@@ -53,9 +54,9 @@ class DemandeRepository extends ServiceEntityRepository
             FROM App\Entity\Demande d
             WHERE d.statut = :Statut AND d.utilisateur = :user"
         )->setParameters([
-            'Statut'=> $statut,
-            'user'=> $user
-            ]);
+            'Statut' => $statut,
+            'user' => $user
+        ]);
         return $query->execute();
     }
 
@@ -92,5 +93,19 @@ class DemandeRepository extends ServiceEntityRepository
         )->setParameter('livraison', $livraison);
         return $query->getOneOrNullResult();
     }
-    
+
+    public function getByDatesAndUsername($dateMin, $dateMax, $user)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            'SELECT d
+            FROM App\Entity\Demande d
+            WHERE d.utilisateur = :user AND d.date BETWEEN :dateMin AND :dateMax'
+        )->setParameters([
+            'dateMin' => $dateMin,
+            'dateMax' => $dateMax,
+            'user' => $user
+        ]);
+        return $query->execute();
+    }
 }
