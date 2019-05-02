@@ -124,20 +124,28 @@ class ChampsLibresFixtures extends Fixture implements FixtureGroupInterface
         ];
         $listFieldsMOB = [
             ['label' => 'adresse', 'col' => 2, 'type' => ChampsLibre::TYPE_TEXT],
-            ['label' => 'famille produit', 'col' => 4, 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['CONSOMMABLES','PAD','POMPE','POMPE_41', 'PIECES DETACHEES', 'PDT GENERIQUE', 'DCOS TEST ELECTRIQUE', 'SILICIUM', 'SIL_EXTERNE', 'SIL_INTERNE', 'MOBILIER SB', 'MOBILIER TERTIAIRE', 'CIBLE / SLUGS']],
-            ['label' => "stock mini", 'col' => 7, 'type' => ChampsLibre::TYPE_NUMBER],
-            ['label' => "stock alerte", 'col' => 8, 'type' => ChampsLibre::TYPE_NUMBER],
+            ['label' => 'famille produit', 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['CONSOMMABLES','PAD','POMPE','POMPE_41', 'PIECES DETACHEES', 'PDT GENERIQUE', 'DCOS TEST ELECTRIQUE', 'SILICIUM', 'SIL_EXTERNE', 'SIL_INTERNE', 'MOBILIER SB', 'MOBILIER TERTIAIRE', 'CIBLE / SLUGS']],
+            ['label' => "stock mini", 'type' => ChampsLibre::TYPE_NUMBER],
+            ['label' => "stock alerte", 'type' => ChampsLibre::TYPE_NUMBER],
             ['label' => "prix unitaire", 'col' => 9, 'type' => ChampsLibre::TYPE_TEXT],
-            ['label' => "date entrée", 'col' => 10, 'type' => ChampsLibre::TYPE_DATE],
+            ['label' => "date entrée", 'type' => ChampsLibre::TYPE_DATE],
             ['label' => "prix du stock final", 'col' => 11, 'type' => ChampsLibre::TYPE_DATE],
-            ['label' => "alerte mini", 'col' => 12, 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['besoin', '']],
-            ['label' => "alerte prévision", 'col' => 13, 'type' => ChampsLibre::TYPE_NUMBER],
+            ['label' => "alerte mini", 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['besoin', '']],
+            ['label' => "alerte prévision", 'type' => ChampsLibre::TYPE_NUMBER],
         ];
         $listFieldsSLUGCIBLE = [
-            ['label' => 'bénéficiaire ou n° commande', 'col' => 7, 'type' => ChampsLibre::TYPE_TEXT],
-            ['label' => 'machine', 'col' => 9, 'type' => ChampsLibre::TYPE_TEXT],
-            ['label' => 'stock mini', 'col' => 13, 'type' => ChampsLibre::TYPE_NUMBER],
-            ['label' => 'date entrée', 'col' => 15, 'type' => ChampsLibre::TYPE_TEXT],
+            ['label' => 'famille produit', 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['CIBLE / SLUGS']],
+            ['label' => 'zone', 'col' => 5, 'type' => ChampsLibre::TYPE_TEXT],
+            ['label' => 'équipementier', 'col' => 6, 'type' => ChampsLibre::TYPE_TEXT],
+            ['label' => 'réf équipementier', 'col' => 7, 'type' => ChampsLibre::TYPE_TEXT],
+            ['label' => 'machine', 'col' => 8, 'type' => ChampsLibre::TYPE_TEXT],
+            ['label' => "stock mini", 'type' => ChampsLibre::TYPE_NUMBER],
+            ['label' => "stock alerte", 'type' => ChampsLibre::TYPE_NUMBER],
+            ['label' => 'prix unitaire', 'type' => ChampsLibre::TYPE_TEXT],
+            ['label' => "date entrée", 'type' => ChampsLibre::TYPE_DATE],
+            ['label' => 'prix du stock final', 'type' => ChampsLibre::TYPE_TEXT],
+            ['label' => "alerte mini", 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['besoin', '']],
+            ['label' => "alerte prévision", 'type' => ChampsLibre::TYPE_NUMBER],
         ];
 
         // PDT

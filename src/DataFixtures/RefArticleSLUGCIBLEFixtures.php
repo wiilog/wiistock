@@ -96,16 +96,16 @@ class RefArticleSLUGCIBLEFixtures extends Fixture implements FixtureGroupInterfa
                 ->setType($typeSlugcible)
                 ->setReference($row[0])
                 ->setLibelle($row[1])
-                ->setQuantiteStock(intval($row[2]))
+                ->setQuantiteStock(intval($row[3]))
                 ->setTypeQuantite('reference')
                 ->setStatut($statutActif);
             $manager->persist($referenceArticle);
 
 
             // champ fournisseur
-            $fournisseurLabel = $row[10];
+            $fournisseurLabel = $row[9];
             if (!empty($fournisseurLabel)) {
-                $fournisseurRef = $row[11];
+                $fournisseurRef = $row[10];
                 if (in_array($fournisseurRef, ['nc', 'nd', 'NC', 'ND', '*', '.', ''])) {
                     $fournisseurRef = $fournisseurLabel;
                 }
@@ -134,10 +134,18 @@ class RefArticleSLUGCIBLEFixtures extends Fixture implements FixtureGroupInterfa
 
             // champs libres
             $listFields = [
-                ['label' => 'bénéficiaire ou n° commande', 'col' => 7],
-                ['label' => 'machine', 'col' => 9],
-                ['label' => 'stock mini', 'col' => 13],
+                ['label' => 'famille produit', 'col' => 4],
+                ['label' => 'zone', 'col' => 5],
+                ['label' => 'équipementier', 'col' => 6],
+                ['label' => 'réf équipementier', 'col' => 7],
+                ['label' => 'machine', 'col' => 8],
+                ['label' => 'stock mini', 'col' => 11],
+                ['label' => 'stock alerte', 'col' => 12],
+                ['label' => 'prix unitaire', 'col' => 14],
                 ['label' => 'date entrée', 'col' => 15],
+                ['label' => 'prix du stock final', 'col' => 16],
+                ['label' => 'alerte mini', 'col' => 17],
+                ['label' => 'alerte prévision', 'col' => 18],
             ];
 
             foreach($listFields as $field) {
