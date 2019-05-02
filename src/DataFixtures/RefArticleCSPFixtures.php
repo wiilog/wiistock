@@ -129,32 +129,36 @@ class RefArticleCSPFixtures extends Fixture implements FixtureGroupInterface
 
                 // champ fournisseur
                 $fournisseurLabel = $row[5];
-                if (!empty($fournisseurLabel)) {
+                if (empty($fournisseurLabel)) {
+                    $fournisseurLabel = 'A DETERMINER';
+                    $fournisseurRef = 'A_DETERMINER';
+                } else {
                     $fournisseurRef = $row[6];
-                    if (in_array($fournisseurRef, ['nc', 'nd', 'NC', 'ND', '*', '.', ''])) {
-                        $fournisseurRef = $fournisseurLabel;
-                    }
-                    $fournisseur = $this->fournisseurRepository->findOneBy(['codeReference' => $fournisseurRef]);
-
-                    // si le fournisseur n'existe pas, on le crée
-                    if (empty($fournisseur)) {
-                        $fournisseur = new Fournisseur();
-                        $fournisseur
-                            ->setNom($fournisseurLabel)
-                            ->setCodeReference($fournisseurRef);
-                        $manager->persist($fournisseur);
-                    }
-
-                    // on crée l'article fournisseur, on le lie au fournisseur et à l'article de référence
-                    $articleFournisseur = new ArticleFournisseur();
-                    $articleFournisseur
-                        ->setLabel($row[1])
-                        ->setReference(time() . '-' . $i)// code aléatoire unique
-                        ->setFournisseur($fournisseur)
-                        ->setReferenceArticle($referenceArticle);
-
-                    $manager->persist($articleFournisseur);
                 }
+
+                if (in_array($fournisseurRef, ['nc', 'nd', 'NC', 'ND', '*', '.', ''])) {
+                    $fournisseurRef = $fournisseurLabel;
+                }
+                $fournisseur = $this->fournisseurRepository->findOneBy(['codeReference' => $fournisseurRef]);
+
+                // si le fournisseur n'existe pas, on le crée
+                if (empty($fournisseur)) {
+                    $fournisseur = new Fournisseur();
+                    $fournisseur
+                        ->setNom($fournisseurLabel)
+                        ->setCodeReference($fournisseurRef);
+                    $manager->persist($fournisseur);
+                }
+
+                // on crée l'article fournisseur, on le lie au fournisseur et à l'article de référence
+                $articleFournisseur = new ArticleFournisseur();
+                $articleFournisseur
+                    ->setLabel($row[1])
+                    ->setReference(time() . '-' . $i)// code aléatoire unique
+                    ->setFournisseur($fournisseur)
+                    ->setReferenceArticle($referenceArticle);
+
+                $manager->persist($articleFournisseur);
 
 
                 // champs libres
@@ -207,34 +211,39 @@ class RefArticleCSPFixtures extends Fixture implements FixtureGroupInterface
 
             // champ fournisseur
             $fournisseurLabel = $row[5];
-            if (!empty($fournisseurLabel)) {
+            if (empty($fournisseurLabel)) {
+                $fournisseurLabel = 'A DETERMINER';
+                $fournisseurRef = 'A_DETERMINER';
+            } else {
                 $fournisseurRef = $row[6];
-                if (in_array($fournisseurRef, ['nc', 'nd', 'NC', 'ND', '*', '.', ''])) {
-                    $fournisseurRef = $fournisseurLabel;
-                }
-                $fournisseur = $this->fournisseurRepository->findOneBy(['codeReference' => $fournisseurRef]);
-
-                // si le fournisseur n'existe pas, on le crée
-                if (empty($fournisseur)) {
-                    $fournisseur = new Fournisseur();
-                    $fournisseur
-                        ->setNom($fournisseurLabel)
-                        ->setCodeReference($fournisseurRef);
-                    $manager->persist($fournisseur);
-                }
-
-                // on crée l'article fournisseur, on le lie au fournisseur et à l'article de référence
-                $artFourn = new ArticleFournisseur();
-                $artFourn
-                    ->setLabel($row[1])
-                    ->setReference(time() . '-' . $i)// code aléatoire unique
-                    ->setFournisseur($fournisseur)
-                    ->setReferenceArticle($referenceArticle);
-                $manager->persist($artFourn);
-
-                // on lie l'article à l'article fournisseur
-                $article->setArticleFournisseur($artFourn);
             }
+
+            if (in_array($fournisseurRef, ['nc', 'nd', 'NC', 'ND', '*', '.', ''])) {
+                $fournisseurRef = $fournisseurLabel;
+            }
+            $fournisseur = $this->fournisseurRepository->findOneBy(['codeReference' => $fournisseurRef]);
+
+            // si le fournisseur n'existe pas, on le crée
+            if (empty($fournisseur)) {
+                $fournisseur = new Fournisseur();
+                $fournisseur
+                    ->setNom($fournisseurLabel)
+                    ->setCodeReference($fournisseurRef);
+                $manager->persist($fournisseur);
+            }
+
+            // on crée l'article fournisseur, on le lie au fournisseur et à l'article de référence
+            $artFourn = new ArticleFournisseur();
+            $artFourn
+                ->setLabel($row[1])
+                ->setReference(time() . '-' . $i)// code aléatoire unique
+                ->setFournisseur($fournisseur)
+                ->setReferenceArticle($referenceArticle);
+            $manager->persist($artFourn);
+
+            // on lie l'article à l'article fournisseur
+            $article->setArticleFournisseur($artFourn);
+
 
             // champ emplacement
             $emplacementLabel = $row[2];

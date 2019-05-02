@@ -123,7 +123,6 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
                     $fournisseurRef = $row[10];
                 }
 
-//                if (!empty($fournisseurLabel)) {
                 if (in_array($fournisseurRef, ['nc', 'nd', 'NC', 'ND', '*', '.', ''])) {
                     $fournisseurRef = $fournisseurLabel;
                 }
@@ -147,7 +146,6 @@ class RefArticlePDTFixtures extends Fixture implements FixtureGroupInterface
                     ->setReferenceArticle($referenceArticle);
 
                 $manager->persist($articleFournisseur);
-//                }
 
 
                 // champs libres
