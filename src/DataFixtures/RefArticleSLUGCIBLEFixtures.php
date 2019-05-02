@@ -126,7 +126,7 @@ class RefArticleSLUGCIBLEFixtures extends Fixture implements FixtureGroupInterfa
                 if (empty($articleFournisseur)) {
                     $articleFournisseur = new ArticleFournisseur();
                     $articleFournisseur
-                        ->setLabel($row[1])
+                        ->setLabel($row[0])
                         ->setReference(time() . '-' . $i)// code aléatoire unique
                         ->setFournisseur($fournisseur)
                         ->setReferenceArticle($referenceArticle);
