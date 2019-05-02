@@ -173,7 +173,7 @@ class RefArticleCSPFixtures extends Fixture implements FixtureGroupInterface
 
                 foreach ($listFields as $field) {
                     $vcl = new ValeurChampsLibre();
-                    $cl = $this->champsLibreRepository->findOneBy(['label' => $field['label']]);
+                    $cl = $this->champsLibreRepository->findOneBy(['label' => $field['label'] . '(' . $typeCsp . ')']);
                     if (empty($cl)) {
                         dump('il manque le champ libre de label' . $field['label']);
                     } else {
@@ -258,9 +258,9 @@ class RefArticleCSPFixtures extends Fixture implements FixtureGroupInterface
 
             foreach ($listFields as $field) {
                 $vcl = new ValeurChampsLibre();
-                $cl = $this->champsLibreRepository->findOneBy(['label' => $field['label']]);
+                $cl = $this->champsLibreRepository->findOneBy(['label' => $field['label'] . '(' . $typeCsp . ')']);
                 if (empty($cl)) {
-                    dump('il manque le champ libre de label' . $field['label']);
+                    dump('il manque le champ libre de label ' . $field['label']);
                 } else {
                     $vcl
                         ->setChampLibre($cl)

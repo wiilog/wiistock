@@ -133,7 +133,7 @@ class RefArticleSILIFixtures extends Fixture implements FixtureGroupInterface
 
             foreach ($listFields as $field) {
                 $vcl = new ValeurChampsLibre();
-                $cl = $this->champsLibreRepository->findOneBy(['label' => $field['label']]);
+                $cl = $this->champsLibreRepository->findOneBy(['label' => $field['label'] . '(' . $typeSili . ')']);
                 if (empty($cl)) {
                     dump('il manque le champ libre de label' . $field['label']);
                 } else {
