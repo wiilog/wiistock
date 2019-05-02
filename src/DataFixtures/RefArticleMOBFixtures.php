@@ -145,10 +145,10 @@ class RefArticleMOBFixtures extends Fixture implements FixtureGroupInterface
 
             foreach($listFields as $field) {
                 $vcl = new ValeurChampsLibre();
-                $label = $field['label'] . '(' . $typeMob->getLabel() . ')';
+                $label = $field['label'] . ' (' . $typeMob->getLabel() . ')';
                 $cl = $this->champsLibreRepository->findOneBy(['label' => $label]);
                 if (empty($cl)) {
-                    dump('il manque le champ libre de label' . $field['label']);
+                    dump('il manque le champ libre de label ' . $label);
                 } else {
                     $vcl
                         ->setChampLibre($cl)
