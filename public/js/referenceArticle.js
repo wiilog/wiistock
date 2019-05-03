@@ -404,7 +404,7 @@ function initNewReferenceArticleEditor(modal) {
 
 var editorEditRefArticleAlreadyDone = false;
 function initEditRefArticleEditor(modal) {
-    console.log(editorEditRefArticleAlreadyDone)
+   
     if (!editorEditRefArticleAlreadyDone) {
         initEditor(modal);
         editorEditRefArticleAlreadyDone = true;

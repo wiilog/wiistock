@@ -49,9 +49,9 @@ use App\Repository\FournisseurRepository;
  */
 class ReferenceArticleController extends Controller
 {
-/**
-     * @var EmplacementRepository
-     */
+    /**
+         * @var EmplacementRepository
+         */
     private $emplacementRepository;
     /**
      * @var ArticleRepository
@@ -285,6 +285,8 @@ class ReferenceArticleController extends Controller
     public function new(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            
+       
            
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
@@ -298,13 +300,19 @@ class ReferenceArticleController extends Controller
             } else {
                 $requiredCreate = true;
                 $type = $this->typeRepository->find($data['type']);
-                $emplacement = $this->emplacementRepository->find($data['emplacement']);
+                
+                if ($data['emplacement'] !== NULL) {
+                    $emplacement = $this->emplacementRepository->find($data['emplacement']);
+                } else {
+                    $emplacement = NULL;
+                };
                 $CLRequired = $this->champsLibreRepository->getByTypeAndRequiredCreate($type);
                 foreach ($CLRequired as $CL) {
                     if (array_key_exists($CL['id'], $data) and $data[$CL['id']] === "") {
                         $requiredCreate = false;
                     }
                 }
+                
                 if ($requiredCreate) {
                     $em = $this->getDoctrine()->getManager();
                     $statut = ($data['statut'] === 'active' ? $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF) : $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_INACTIF));
@@ -365,6 +373,7 @@ class ReferenceArticleController extends Controller
                         "Référence" => $refArticle->getReference(),
                         "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
                         "Quantité" => $refArticle->getQuantiteStock(),
+                        "Emplacement" => $emplacement,
                         'Actions' => $this->renderView('reference_article/datatableReferenceArticleRow.html.twig', [
                             'idRefArticle' => $refArticle->getId(),
                         ]),
@@ -612,7 +621,6 @@ class ReferenceArticleController extends Controller
             $refArticle = (isset($data['refArticle']) ? $this->referenceArticleRepository->find($data['refArticle']) : '');
             //ajout demande
             if (array_key_exists('livraison', $data) && $data['livraison']) {
-
                 $demande = $this->demandeRepository->find($data['livraison']);
                 if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                     $response = $this->refArticleDataService->editRefArticle($refArticle, $data);
@@ -666,7 +674,6 @@ class ReferenceArticleController extends Controller
     public function ajaxPlusDemandeContent(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-
             $refArticle = $this->referenceArticleRepository->find($data['id']);
 
             if ($refArticle) {
@@ -734,7 +741,7 @@ class ReferenceArticleController extends Controller
         throw new NotFoundHttpException("404");
     }
 
-    /** 
+    /**
      * @Route("/colonne-visible", name="save_column_visible", options={"expose"=true}, methods="GET|POST")
      */
     public function saveColumnVisible(Request $request): Response

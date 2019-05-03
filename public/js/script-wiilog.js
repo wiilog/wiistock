@@ -228,7 +228,7 @@ function editRow(button, path, modal, submit, editorToInit = false) {
                 setMaxQuantityEdit($('#referenceEdit'));
             }
 
-            if (editorToInit) initEditor('#' + modal.attr('id'));
+            if (editorToInit) initEditor2('#editor-container');
         }
     }
     let id = button.data('id');
@@ -282,8 +282,6 @@ function initEditor(modal) {
 };
 
 function initEditor2(div) {
-   console.log('hello');
-
     var quill = new Quill(div, {
         modules: {
             //     toolbar: [
