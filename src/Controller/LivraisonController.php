@@ -395,7 +395,7 @@ class LivraisonController extends AbstractController
                         $champsLibresComplet = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($label['label'], $categorieCL);
                         foreach ($champsLibresComplet as $champLibre) {
                             $valeurChampRefArticle = $this->valeurChampsLibreRepository->findOneByRefArticleANDChampsLibre($ligneArticle->getReference()->getId(), $champLibre);
-                            $champsLibres[$champLibre->getLabel()] = $valeurChampRefArticle->getValeur();
+                            if ($valeurChampRefArticle) $champsLibres[$champLibre->getLabel()] = $valeurChampRefArticle->getValeur();
                         }
                     }
                     foreach ($headers as $label) {
