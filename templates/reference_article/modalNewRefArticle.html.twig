@@ -63,9 +63,11 @@
                             <label for="statut" class="mtb-auto mr-2">Gestion quantité</label>
                             <div onclick="updateQuantityDisplay($(this))">
                                 <span class="btn active" data-toggle="type_quantite" data-title="reference"
-                                    onclick="toggleRadioButtonNeeded($(this)), toggleRadioButton($(this)) ">Par référence</span><span
-                                    class="btn not-active" data-toggle="type_quantite" data-title="article"
-                                    onclick="toggleRadioButtonNeeded($(this)), toggleRadioButton($(this))">Par article</span>
+                                    onclick="toggleRadioButtonNeeded($(this)), toggleRadioButton($(this)) ">Par
+                                    référence</span><span class="btn not-active" data-toggle="type_quantite"
+                                    data-title="article"
+                                    onclick="toggleRadioButtonNeeded($(this)), toggleRadioButton($(this))">Par
+                                    article</span>
                             </div>
                             <input type="hidden" name="type_quantite" class="data" value="" id="type_quantite">
 
@@ -73,20 +75,33 @@
                     </div>
                     <div class="form-group col-6">
                         <label for="quantite">Quantité</label>
+
                         <div class="reference">
                             <input class="form-control data needed" type="number" min="1" name="quantite" id="quantite">
+
+
+
                         </div>
                         <div class="article d-none">
                             <input disabled class="form-control" type="number">
-                       
-                            <div class="form-group w-100">
+                        </div>
+
+                    </div>
+
+
+                    <div class="form-group col-4">
+                        <div class="form-group w-100">
+                            <div class="reference">
                                 <label for="emplacement">Emplacement</label>
-                                <select name="emplacement" class="form-control data ajax-autocompleteEmplacement d-block needed">
-                                    
+                                <select name="emplacement" id="emplacement"
+                                    class="form-control data ajax-autocompleteEmplacement d-block needed">
                                 </select>
                             </div>
                         </div>
+
                     </div>
+
+
                 </div>
 
                 <!-- CHAMPS LIBRES -->
@@ -120,8 +135,8 @@
                                         value="{{champ.defaultValue}}" name="{{champ.id}}">
 
                                     {% elseif champ.typage == 'list' %}
-                                    <select id="{{champ.id ~ 'create'}}" class="form-control data"
-                                        name="{{champ.id}}" id="input">
+                                    <select id="{{champ.id ~ 'create'}}" class="form-control data" name="{{champ.id}}"
+                                        id="input">
                                         <option value="{{champ.defaultValue}}">{{champ.defaultValue}}
                                         </option>
                                         {% for elem in champ.elements %}
@@ -144,7 +159,7 @@
 
                                     {% else %}
                                     <input disabled>
-                                    
+
                                     {% endif %}
                                 </div>
                                 {% endfor %}

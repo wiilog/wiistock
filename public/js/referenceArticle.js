@@ -495,4 +495,10 @@ function toggleRadioButtonNeeded(button) {
     else {
         $('#quantite').addClass('needed');
     }
+    if ($('#emplacement').hasClass('needed')) {
+        $('#emplacement').removeClass('needed');
+    }
+    else {
+        $('#emplacement').addClass('needed');
+    }
 }
