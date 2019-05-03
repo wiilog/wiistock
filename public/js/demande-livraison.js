@@ -333,7 +333,10 @@ let generateCSV = function () {
 }
 
 let dlFile = function (csv) {
-    var exportedFilenmae = 'export.csv';
+    let d = new Date();
+    let date = checkZero(d.getDate() +'') + '-' + checkZero(d.getMonth() + 1 +'') + '-' + checkZero(d.getFullYear()+'');
+    date+= ' ' + checkZero(d.getHours() +'') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');  
+    var exportedFilenmae = 'export-demandes-' + date + '.csv';
     var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     if (navigator.msSaveBlob) { // IE 10+
         navigator.msSaveBlob(blob, exportedFilenmae);
@@ -350,5 +353,12 @@ let dlFile = function (csv) {
         }
     }
 }
+
+function checkZero(data){
+    if(data.length == 1){
+      data = "0" + data;
+    }
+    return data;
+  }
 
 
