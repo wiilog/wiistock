@@ -355,6 +355,7 @@ function ajaxPlusDemandeContent(button, demande) {
             }
             showDemande(button)
             initEditor2();
+            
         }
     }
     let json = {
