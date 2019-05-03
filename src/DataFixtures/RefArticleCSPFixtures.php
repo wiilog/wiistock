@@ -129,32 +129,37 @@ class RefArticleCSPFixtures extends Fixture implements FixtureGroupInterface
 
                 // champ fournisseur
                 $fournisseurLabel = $row[5];
-                if (!empty($fournisseurLabel)) {
+                if (empty($fournisseurLabel)) {
+                    $fournisseurLabel = 'A DETERMINER';
+                    $fournisseurRef = 'A_DETERMINER';
+                } else {
                     $fournisseurRef = $row[6];
-                    if (in_array($fournisseurRef, ['nc', 'nd', 'NC', 'ND', '*', '.', ''])) {
-                        $fournisseurRef = $fournisseurLabel;
-                    }
-                    $fournisseur = $this->fournisseurRepository->findOneBy(['codeReference' => $fournisseurRef]);
-
-                    // si le fournisseur n'existe pas, on le crée
-                    if (empty($fournisseur)) {
-                        $fournisseur = new Fournisseur();
-                        $fournisseur
-                            ->setNom($fournisseurLabel)
-                            ->setCodeReference($fournisseurRef);
-                        $manager->persist($fournisseur);
-                    }
-
-                    // on crée l'article fournisseur, on le lie au fournisseur et à l'article de référence
-                    $articleFournisseur = new ArticleFournisseur();
-                    $articleFournisseur
-                        ->setLabel($row[1])
-                        ->setReference(time() . '-' . $i)// code aléatoire unique
-                        ->setFournisseur($fournisseur)
-                        ->setReferenceArticle($referenceArticle);
-
-                    $manager->persist($articleFournisseur);
                 }
+
+                if (in_array($fournisseurRef, ['nc', 'nd', 'NC', 'ND', '*', '.', ''])) {
+                    $fournisseurRef = $fournisseurLabel;
+                }
+                $fournisseur = $this->fournisseurRepository->findOneBy(['codeReference' => $fournisseurRef]);
+
+                // si le fournisseur n'existe pas, on le crée
+                if (empty($fournisseur)) {
+                    $fournisseur = new Fournisseur();
+                    $fournisseur
+                        ->setNom($fournisseurLabel)
+                        ->setCodeReference($fournisseurRef);
+                    $manager->persist($fournisseur);
+                }
+
+
+                // on crée l'article fournisseur et on le lie au fournisseur et à l'article de référence
+                $articleFournisseur = new ArticleFournisseur();
+                $articleFournisseur
+                    ->setLabel($row[1])
+                    ->setReference(time() . '-' . $i)// code aléatoire unique
+                    ->setFournisseur($fournisseur)
+                    ->setReferenceArticle($referenceArticle);
+
+                $manager->persist($articleFournisseur);
 
 
                 // champs libres
@@ -162,35 +167,24 @@ class RefArticleCSPFixtures extends Fixture implements FixtureGroupInterface
                     ['label' => 'famille produit', 'col' => 4, 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['CONSOMMABLES', 'PAD', 'POMPE', 'POMPE_41', 'PIECES DETACHEES', 'PDT GENERIQUE', 'DCOS TEST ELECTRIQUE', 'SILICIUM', 'SIL_EXTERNE', 'SIL_INTERNE', 'MOBILIER SB', 'MOBILIER TERTIAIRE', 'CIBLE / SLUGS']],
                     ['label' => "stock mini", 'col' => 7, 'type' => ChampsLibre::TYPE_NUMBER],
                     ['label' => "stock alerte", 'col' => 8, 'type' => ChampsLibre::TYPE_NUMBER],
-                    ['label' => "prix unitaire", 'col' => 9, 'type' => ChampsLibre::TYPE_TEXT],
-                    ['label' => "date entrée", 'col' => 10, 'type' => ChampsLibre::TYPE_DATE],
                     ['label' => "prix du stock final", 'col' => 11, 'type' => ChampsLibre::TYPE_DATE],
                     ['label' => "alerte mini", 'col' => 12, 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['besoin', '']],
                     ['label' => "alerte prévision", 'col' => 13, 'type' => ChampsLibre::TYPE_NUMBER],
-                    ['label' => "péremption", 'col' => 14, 'type' => ChampsLibre::TYPE_DATE],
                 ];
 
                 foreach ($listFields as $field) {
                     $vcl = new ValeurChampsLibre();
-                    $cl = $this->champsLibreRepository->findOneBy(['label' => $field['label']]);
+                    $label = $field['label'] . ' (' . $typeCsp->getLabel() . ')';
+                    $cl = $this->champsLibreRepository->findOneBy(['label' => $label]);
                     if (empty($cl)) {
-                        $cl = new ChampsLibre();
-                        $cl
-                            ->setLabel($field['label'])
-                            ->setTypage($field['type'])
-                            ->setCategorieCL($this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE))
-                            ->setType($typeCsp);
-
-                        if ($field['type'] == ChampsLibre::TYPE_LIST) {
-                            $cl->setElements($field['elements']);
-                        }
-                        $manager->persist($cl);
+                        dump('il manque le champ libre de label ' . $label);
+                    } else {
+                        $vcl
+                            ->setChampLibre($cl)
+                            ->addArticleReference($referenceArticle)
+                            ->setValeur($row[$field['col']]);
+                        $manager->persist($vcl);
                     }
-                    $vcl
-                        ->setChampLibre($cl)
-                        ->addArticleReference($referenceArticle)
-                        ->setValeur($row[$field['col']]);
-                    $manager->persist($vcl);
                 }
                 $manager->flush();
             }
@@ -207,34 +201,31 @@ class RefArticleCSPFixtures extends Fixture implements FixtureGroupInterface
 
             // champ fournisseur
             $fournisseurLabel = $row[5];
-            if (!empty($fournisseurLabel)) {
+            if (empty($fournisseurLabel)) {
+                $fournisseurLabel = 'A DETERMINER';
+                $fournisseurRef = 'A_DETERMINER';
+            } else {
                 $fournisseurRef = $row[6];
-                if (in_array($fournisseurRef, ['nc', 'nd', 'NC', 'ND', '*', '.', ''])) {
-                    $fournisseurRef = $fournisseurLabel;
-                }
-                $fournisseur = $this->fournisseurRepository->findOneBy(['codeReference' => $fournisseurRef]);
-
-                // si le fournisseur n'existe pas, on le crée
-                if (empty($fournisseur)) {
-                    $fournisseur = new Fournisseur();
-                    $fournisseur
-                        ->setNom($fournisseurLabel)
-                        ->setCodeReference($fournisseurRef);
-                    $manager->persist($fournisseur);
-                }
-
-                // on crée l'article fournisseur, on le lie au fournisseur et à l'article de référence
-                $artFourn = new ArticleFournisseur();
-                $artFourn
-                    ->setLabel($row[1])
-                    ->setReference(time() . '-' . $i)// code aléatoire unique
-                    ->setFournisseur($fournisseur)
-                    ->setReferenceArticle($referenceArticle);
-                $manager->persist($artFourn);
-
-                // on lie l'article à l'article fournisseur
-                $article->setArticleFournisseur($artFourn);
             }
+
+            if (in_array($fournisseurRef, ['nc', 'nd', 'NC', 'ND', '*', '.', ''])) {
+                $fournisseurRef = $fournisseurLabel;
+            }
+            $fournisseur = $this->fournisseurRepository->findOneBy(['codeReference' => $fournisseurRef]);
+
+            // si le fournisseur n'existe pas, on le crée
+            if (empty($fournisseur)) {
+                $fournisseur = new Fournisseur();
+                $fournisseur
+                    ->setNom($fournisseurLabel)
+                    ->setCodeReference($fournisseurRef);
+                $manager->persist($fournisseur);
+            }
+
+
+            // on lie l'article à l'article fournisseur
+            $article->setArticleFournisseur($articleFournisseur);
+
 
             // champ emplacement
             $emplacementLabel = $row[2];
@@ -254,40 +245,25 @@ class RefArticleCSPFixtures extends Fixture implements FixtureGroupInterface
 
             // champs libres
             $listFields = [
-                ['label' => 'famille produit', 'col' => 4, 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['CONSOMMABLES', 'PAD', 'POMPE', 'POMPE_41', 'PIECES DETACHEES', 'PDT GENERIQUE', 'DCOS TEST ELECTRIQUE', 'SILICIUM', 'SIL_EXTERNE', 'SIL_INTERNE', 'MOBILIER SB', 'MOBILIER TERTIAIRE', 'CIBLE / SLUGS']],
-                ['label' => "stock mini", 'col' => 7, 'type' => ChampsLibre::TYPE_NUMBER],
-                ['label' => "stock alerte", 'col' => 8, 'type' => ChampsLibre::TYPE_NUMBER],
                 ['label' => "prix unitaire", 'col' => 9, 'type' => ChampsLibre::TYPE_TEXT],
                 ['label' => "date entrée", 'col' => 10, 'type' => ChampsLibre::TYPE_DATE],
-                ['label' => "prix du stock final", 'col' => 11, 'type' => ChampsLibre::TYPE_DATE],
-                ['label' => "alerte mini", 'col' => 12, 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['besoin', '']],
-                ['label' => "alerte prévision", 'col' => 13, 'type' => ChampsLibre::TYPE_NUMBER],
-                ['label' => "péremption", 'col' => 14, 'type' => ChampsLibre::TYPE_DATE],
+                ['label' => "péremptions", 'col' => 14, 'type' => ChampsLibre::TYPE_DATE],
             ];
 
             foreach ($listFields as $field) {
                 $vcl = new ValeurChampsLibre();
-                $cl = $this->champsLibreRepository->findOneBy(['label' => $field['label']]);
+                $label = $field['label'] . ' (' . $typeCsp->getLabel() . ')';
+                $cl = $this->champsLibreRepository->findOneBy(['label' => $label]);
                 if (empty($cl)) {
-                    $cl = new ChampsLibre();
-                    $cl
-                        ->setLabel($field['label'])
-                        ->setTypage($field['type'])
-                        ->setCategorieCL($this->categorieCLRepository->findOneByLabel(CategorieCL::ARTICLE))
-                        ->setType($typeCsp);
-
-                    if ($field['type'] == ChampsLibre::TYPE_LIST) {
-                        $cl->setElements($field['elements']);
-                    }
-                    $manager->persist($cl);
+                    dump('il manque le champ libre de label ' . $label);
+                } else {
+                    $vcl
+                        ->setChampLibre($cl)
+                        ->addArticle($article)
+                        ->setValeur($row[$field['col']]);
+                    $manager->persist($vcl);
                 }
-                $vcl
-                    ->setChampLibre($cl)
-                    ->addArticle($article)
-                    ->setValeur($row[$field['col']]);
-                $manager->persist($vcl);
             }
-
             $manager->flush();
         }
 

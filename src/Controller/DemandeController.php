@@ -343,7 +343,7 @@ class DemandeController extends AbstractController
     }
 
     /**
-     * @Route("/voir/{id}", name="demande_show", methods={"GET", "POST"})
+     * @Route("/voir/{id}", name="demande_show", options={"expose"=true}, methods={"GET", "POST"})
      */
     public function show(Demande $demande): Response
     {

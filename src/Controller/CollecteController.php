@@ -43,7 +43,7 @@ class CollecteController extends AbstractController
     /**
      * @var OrdreCollecteRepository
      */
-    private $ordrecollecteRepository;
+    private $ordreCollecteRepository;
 
     /**
      * @var CollecteReferenceRepository
@@ -119,7 +119,7 @@ class CollecteController extends AbstractController
     }
 
     /**
-     * @Route("/voir/{id}", name="collecte_show", methods={"GET", "POST"})
+     * @Route("/voir/{id}", name="collecte_show", options={"expose"=true}, methods={"GET", "POST"})
      */
     public function show(Collecte $collecte): Response
     {
