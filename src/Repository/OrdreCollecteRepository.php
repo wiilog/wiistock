@@ -19,35 +19,7 @@ class OrdreCollecteRepository extends ServiceEntityRepository
         parent::__construct($registry, OrdreCollecte::class);
     }
 
-    // /**
-    //  * @return OrdreCollecte[] Returns an array of OrdreCollecte objects
-    //  */
-    /*
-    public function findByExampleField($value)
-    {
-        return $this->createQueryBuilder('o')
-            ->andWhere('o.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('o.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
-
-    /*
-    public function findOneBySomeField($value): ?OrdreCollecte
-    {
-        return $this->createQueryBuilder('o')
-            ->andWhere('o.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
-    }
-    */
-    public function findOneByLivraison($collecte)
+    public function findOneByDemandeCollecte($collecte)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
