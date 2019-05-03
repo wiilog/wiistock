@@ -25,7 +25,7 @@ class OrdreCollecteRepository extends ServiceEntityRepository
         $query = $entityManager->createQuery(
             'SELECT a
             FROM App\Entity\OrdreCollecte a
-            WHERE a.collecte = :collecte'
+            WHERE a.demandeCollecte = :collecte'
         )->setParameter('collecte', $collecte);
         return $query->getOneOrNullResult();
     }
