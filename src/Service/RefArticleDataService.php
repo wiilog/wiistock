@@ -324,20 +324,30 @@ class RefArticleDataService
         $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
         $category = ReferenceArticle::CATEGORIE_TYPE;
         $champsLibres = $this->champsLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
-
         $rowCL = [];
         foreach ($champsLibres as $champLibre) {
-            $champ = $this->champsLibreRepository->find($champLibre['id']); 
+            $champ = $this->champsLibreRepository->find($champLibre['id']);
             $valeur = $this->valeurChampsLibreRepository->findOneByRefArticleANDChampsLibre($refArticle->getId(), $champ);
             $rowCL[$champLibre['label']] = ($valeur ? $valeur->getValeur() : "");
         }
+        $totalQuantity = 0;
+        if ($refArticle->getTypeQuantite() === 'article') {
+            foreach ($refArticle->getArticlesFournisseur() as $articleFournisseur) {
+                $quantity = 0;
+                foreach ($articleFournisseur->getArticles() as $article) {
+                    $quantity += $article->getQuantite();
+                }
+                $totalQuantity += $quantity;
+            }
+        }
+        $quantity = ($refArticle->getTypeQuantite() === 'reference') ? $refArticle->getQuantiteStock() : $totalQuantity;
         $rowCF = [
             "id" => $refArticle->getId(),
             "Libellé" => $refArticle->getLibelle(),
             "Référence" => $refArticle->getReference(),
             "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
             "Emplacement" => ($refArticle->getEmplacement() ? $refArticle->getEmplacement()->getLabel() : ""),
-            "Quantité" => $refArticle->getQuantiteStock(),
+            "Quantité" => $quantity,
             "Actions" => $this->templating->render('reference_article/datatableReferenceArticleRow.html.twig', [
                 'idRefArticle' => $refArticle->getId(),
             ]),
