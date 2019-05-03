@@ -63,7 +63,7 @@ class ArticleFournisseurController extends AbstractController
     }
 
     /**
-     * @Route("/api", name="article_fournisseur_api", options={"expose"=true}, methods="POST")
+     * @Route("/api", name="article_fournisseur_api", options={"expose"=true})
      */
     public function api(Request $request): Response
     {
@@ -72,24 +72,15 @@ class ArticleFournisseurController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $articleFournisseurs = $this->articleFournisseurRepository->findAll();
+            $articlesFournisseurs = $this->articleFournisseurRepository->findByParams($request->request);
             $rows = [];
-            foreach ($articleFournisseurs as $articleFournisseur) {
-                $articleFournisseurId = $articleFournisseur->getId();
-                $url['edit'] = $this->generateUrl('article_fournisseur_edit', ['id' => $articleFournisseurId]);
-                $url['delete'] = $this->generateUrl('article_fournisseur_delete', ['id' => $articleFournisseurId]);
-                $rows[] = [
-                    'Fournisseur' => $articleFournisseur->getFournisseur()->getNom(),
-                    'Référence' => $articleFournisseur->getReference(),
-                    'Article de référence' => $articleFournisseur->getReferenceArticle()->getLibelle(),
-                    'Actions' => $this->renderView('article_fournisseur/datatableRowActions.html.twig', [
-                        'url' => $url,
-                        'id' => $articleFournisseurId
-                    ]),
-                ];
+            foreach ($articlesFournisseurs as $articleFournisseur) {
+                $rows[] = $this->dataRowArticleFournisseur($articleFournisseur);
             }
 
             $data['data'] = $rows;
+            $data['recordsTotal'] = (int)$this->articleFournisseurRepository->countAll();
+
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
@@ -185,5 +176,29 @@ class ArticleFournisseurController extends AbstractController
             return new JsonResponse();
         }
         throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @param ArticleFournisseur $articleFournisseur
+     * @return array
+     */
+    public function dataRowArticleFournisseur(ArticleFournisseur $articleFournisseur): array
+    {
+        $articleFournisseurId = $articleFournisseur->getId();
+
+        $url['edit'] = $this->generateUrl('article_fournisseur_edit', ['id' => $articleFournisseurId]);
+        $url['delete'] = $this->generateUrl('article_fournisseur_delete', ['id' => $articleFournisseurId]);
+
+        $row = [
+            'Fournisseur' => $articleFournisseur->getFournisseur()->getNom(),
+            'Référence' => $articleFournisseur->getReference(),
+            'Article de référence' => $articleFournisseur->getReferenceArticle()->getLibelle(),
+            'Actions' => $this->renderView('article_fournisseur/datatableRowActions.html.twig', [
+                'url' => $url,
+                'id' => $articleFournisseurId
+            ]),
+        ];
+
+        return $row;
     }
 }
