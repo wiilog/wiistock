@@ -379,4 +379,58 @@ class ArticleDataService
             return false;
         }
     }
+
+    public function getDataForDatatable($params = null)
+    {
+        $data = $this->getArticleDataByParams($params);
+        $data['recordsTotal'] = (int)$this->articleRepository->countAll();
+        return $data;
+    }
+
+    /**
+     * @param null $params
+     * @return array
+     * @throws \Twig_Error_Loader
+     * @throws \Twig_Error_Runtime
+     * @throws \Twig_Error_Syntax
+     */
+    public function getArticleDataByParams($params = null)
+    {
+        $articles = $this->articleRepository->findByParams($params);
+
+        $rows = [];
+        foreach ($articles as $article) {
+            $rows[] = $this->dataRowRefArticle($article);
+        }
+        return ['data' => $rows];
+    }
+
+    /**
+     * @param Article $article
+     * @return array
+     * @throws \Twig_Error_Loader
+     * @throws \Twig_Error_Runtime
+     * @throws \Twig_Error_Syntax
+     */
+    public function dataRowRefArticle($article)
+    {
+        $url['edit'] = $this->router->generate('demande_article_edit', ['id' => $article->getId()]);
+
+        $row =
+            [
+                'id' => ($article->getId() ? $article->getId() : 'Non défini'),
+                'Référence' => ($article->getReference() ? $article->getReference() : 'Non défini'),
+                'Statut' => ($article->getStatut() ? $article->getStatut()->getNom() : 'Non défini'),
+                'Libellé' => ($article->getLabel() ? $article->getLabel() : 'Non défini'),
+                'Référence article' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : 'Non défini'),
+                'Quantité' => ($article->getQuantite() ? $article->getQuantite() : 0),
+                'Actions' => $this->templating->render('article/datatableArticleRow.html.twig', [
+                    'url' => $url,
+                    'articleId' => $article->getId(),
+                ]),
+            ];
+
+        return $row;
+    }
+
 }

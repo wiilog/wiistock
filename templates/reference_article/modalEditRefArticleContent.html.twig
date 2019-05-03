@@ -141,7 +141,7 @@
     </div>
     <div class="form-group col-12 blocVisible d-block" id='typeContentEdit'>
         {% for typeChampLibre in typeChampsLibres %}
-        <div {{ articleRef.type is defined and typeChampLibre.typeId == articleRef.type.id ? "class='d-block'" : "class='d-none'"}}
+        <div {{ articleRef.type is not empty and typeChampLibre.typeId == articleRef.type.id ? "class='d-block'" : "class='d-none'"}}
             id="{{typeChampLibre.typeId}}-edit">
             <div class="row mt-2">
                 {% for champLibre in typeChampLibre.champsLibres %}
