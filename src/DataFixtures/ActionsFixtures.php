@@ -40,7 +40,9 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface
             }
         }
 
-
+        $action = new Action();
+        $action->setLabel('exporter')->setMenu($this->getReference('menu-DEMLIVR'));
+        $manager->persist($action);
 
         // Menu manutention cas spécial.
         $action = new Action();

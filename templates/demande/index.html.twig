@@ -19,9 +19,11 @@
             <span class="fa fa-plus mr-2"></span>Nouvelle demande
         </div>
         {% endif %}
+        {% if hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::EXPORT')) %}
         <div class="btn btn-primary" onclick='generateCSV()'>
             <span class="fa fa-plus mr-2"></span>Générer CSV
         </div>
+        {% endif %}
     </div>
     <div class="row">
         <div class="error-msg">
