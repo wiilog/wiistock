@@ -106,11 +106,7 @@ class RefArticleDataService
     private $router;
 
 
-<<<<<<< HEAD
     public function __construct(EmplacementRepository $emplacementRepository, RouterInterface $router, UserService $userService, ArticleFournisseurRepository $articleFournisseurRepository,FournisseurRepository $fournisseurRepository, CategorieCLRepository $categorieCLRepository, TypeRepository  $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampsLibreRepository $champsLibreRepository, FilterRepository $filterRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
-=======
-    public function __construct(RouterInterface $router, UserService $userService, ArticleFournisseurRepository $articleFournisseurRepository, FournisseurRepository $fournisseurRepository, CategorieCLRepository $categorieCLRepository, TypeRepository  $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampsLibreRepository $champsLibreRepository, FilterRepository $filterRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
->>>>>>> dev
     {
         $this->emplacementRepository = $emplacementRepository;
         $this->fournisseurRepository = $fournisseurRepository;
@@ -262,7 +258,7 @@ class RefArticleDataService
         }
 
         if ($requiredEdit) {
-            //modification champsFixes
+                //modification champsFixes
             $entityManager = $this->em;
                 if (isset($data['reference'])) $refArticle->setReference($data['reference']);
                 if (isset($data['frl'])) {
@@ -293,37 +289,24 @@ class RefArticleDataService
                     $type = $this->typeRepository->find(intval($data['type']));
                     if ($type) $refArticle->setType($type);
                 }
-            }
-            if (isset($data['libelle'])) $refArticle->setLibelle($data['libelle']);
-            if (isset($data['commentaire'])) $refArticle->setCommentaire($data['commentaire']);
-            if (isset($data['quantite'])) $refArticle->setQuantiteStock(intval($data['quantite']));
-            if (isset($data['statut'])) {
-                $statutLabel = ($data['statut'] == 1) ? ReferenceArticle::STATUT_ACTIF : ReferenceArticle::STATUT_INACTIF;
-                $statut = $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, $statutLabel);
-                $refArticle->setStatut($statut);
-            }
-            if (isset($data['type'])) {
-                $type = $this->typeRepository->find(intval($data['type']));
-                if ($type) $refArticle->setType($type);
-            }
-            if (isset($data['type_quantite'])) $refArticle->setTypeQuantite($data['type_quantite']);
-            $entityManager->flush();
+                if (isset($data['type_quantite'])) $refArticle->setTypeQuantite($data['type_quantite']);
+                $entityManager->flush();
             //modification ou création des champsLibres
             $champsLibreKey = array_keys($data);
             foreach ($champsLibreKey as $champ) {
                 if (gettype($champ) === 'integer') {
                     $champLibre = $this->champsLibreRepository->find($champ);
-                    $valeurChampLibre = $this->valeurChampsLibreRepository->findOneByRefArticleANDChampsLibre($refArticle->getId(), $champLibre);
-                    // si la valeur n'existe pas, on la crée
-                    if (!$valeurChampLibre) {
-                        $valeurChampLibre = new ValeurChampsLibre();
-                        $valeurChampLibre
-                            ->addArticleReference($refArticle)
-                            ->setChampLibre($this->champsLibreRepository->find($champ));
-                        $entityManager->persist($valeurChampLibre);
-                    }
-                    $valeurChampLibre->setValeur($data[$champ]);
-                    $entityManager->flush();
+                        $valeurChampLibre = $this->valeurChampsLibreRepository->findOneByRefArticleANDChampsLibre($refArticle->getId(), $champLibre);
+                        // si la valeur n'existe pas, on la crée
+                        if (!$valeurChampLibre) {
+                            $valeurChampLibre = new ValeurChampsLibre();
+                            $valeurChampLibre
+                                ->addArticleReference($refArticle)
+                                ->setChampLibre($this->champsLibreRepository->find($champ));
+                            $entityManager->persist($valeurChampLibre);
+                        }
+                        $valeurChampLibre->setValeur($data[$champ]);
+                        $entityManager->flush();
                 }
             }
             //recup de la row pour insert datatable
@@ -344,32 +327,17 @@ class RefArticleDataService
 
         $rowCL = [];
         foreach ($champsLibres as $champLibre) {
-            $champ = $this->champsLibreRepository->find($champLibre['id']);
+            $champ = $this->champsLibreRepository->find($champLibre['id']); 
             $valeur = $this->valeurChampsLibreRepository->findOneByRefArticleANDChampsLibre($refArticle->getId(), $champ);
             $rowCL[$champLibre['label']] = ($valeur ? $valeur->getValeur() : "");
         }
-        $totalQuantity = 0;
-        if ($refArticle->getTypeQuantite() === 'article') {
-            foreach ($refArticle->getArticlesFournisseur() as $articleFournisseur) {
-                $quantity = 0;
-                foreach ($articleFournisseur->getArticles() as $article) {
-                    $quantity += $article->getQuantite();
-                }
-                $totalQuantity += $quantity;
-            }
-        }
-        $quantity = ($refArticle->getTypeQuantite() === 'reference') ? $refArticle->getQuantiteStock() : $totalQuantity;
         $rowCF = [
             "id" => $refArticle->getId(),
             "Libellé" => $refArticle->getLibelle(),
             "Référence" => $refArticle->getReference(),
             "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
-<<<<<<< HEAD
             "Emplacement" => ($refArticle->getEmplacement() ? $refArticle->getEmplacement()->getLabel() : ""),
             "Quantité" => $refArticle->getQuantiteStock(),
-=======
-            "Quantité" => $quantity,
->>>>>>> dev
             "Actions" => $this->templating->render('reference_article/datatableReferenceArticleRow.html.twig', [
                 'idRefArticle' => $refArticle->getId(),
             ]),
