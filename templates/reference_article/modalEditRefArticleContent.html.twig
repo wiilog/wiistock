@@ -84,16 +84,7 @@
 
         </div>
 
-        {% if  (articleRef.emplacement.id) is not null %}
-      
-            <div class="input-group reference {{ dnone }}">
-                <label class="mtb-auto mr-2">Emplacement</label>
-                <select name="emplacement" class="form-control ajax-autocompleteEmplacement-edit data">
-                    <option value="{{ articleRef.emplacement.id }}">"{{ articleRef.emplacement.label }}"</option>>
-                </select>
-            </div>
-       
-        {% endif %}
+
 
         {% set dnone = (articleRef.typeQuantite == 'article') ? '' : 'd-none' %}
 
@@ -103,6 +94,30 @@
         </div>
 
     </div>
+    <div class="form-group col-6">
+        {% set dnone = (articleRef.typeQuantite == 'reference') ? '' : 'd-none' %}
+
+        {% if  (articleRef.emplacement) is not null %}
+
+        <div class="input-group reference {{ dnone }}">
+            <label class="mtb-auto mr-2">Emplacement</label>
+            <select name="emplacement" class="form-control ajax-autocompleteEmplacement-edit data">
+                <option value="{{ articleRef.emplacement.id }}">"{{ articleRef.emplacement.label }}"</option>>
+            </select>
+        </div>
+        {% else %}
+        <div class="input-group reference {{ dnone }}">
+            <label class="mtb-auto mr-2">Emplacement</label>
+            <select name="emplacement" class="form-control ajax-autocompleteEmplacement-edit data">
+                <option value=" "></option>>
+            </select>
+        </div>
+        {% endif %}
+    </div>
+
+
+
+
 </div>
 
 <!-- ARTICLES FOURNISSEURS -->
