@@ -337,6 +337,7 @@ let recupIdRefArticle = function (div) {
 }
 
 function ajaxPlusDemandeContent(button, demande) {
+  
     $('.plusDemandeContent').html('');
     $('.editChampLibre').html('');
     xhttp = new XMLHttpRequest();
@@ -354,8 +355,8 @@ function ajaxPlusDemandeContent(button, demande) {
                 //TODO gérer erreur
             }
             showDemande(button)
-            initEditor2();
-            
+            ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
+           initEditor2('#editor-container');
         }
     }
     let json = {
@@ -403,9 +404,11 @@ function initNewReferenceArticleEditor(modal) {
 
 var editorEditRefArticleAlreadyDone = false;
 function initEditRefArticleEditor(modal) {
+    console.log(editorEditRefArticleAlreadyDone)
     if (!editorEditRefArticleAlreadyDone) {
         initEditor(modal);
         editorEditRefArticleAlreadyDone = true;
+        
     }
 };
 

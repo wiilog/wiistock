@@ -256,7 +256,7 @@ function ajaxGetAndFillArticle(select) {
             editNewArticle.html(data.modif);
             modalFooter.removeClass('d-none');
             displayRequireChamp($('#typeEdit'), 'edit');
-            initEditor2();
+            initEditor2('#editor-container');
         })
     }
 }

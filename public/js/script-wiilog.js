@@ -281,9 +281,10 @@ function initEditor(modal) {
     });
 };
 
-function initEditor2() {
+function initEditor2(div) {
+   console.log('hello');
 
-    var quill = new Quill(' .editor-container', {
+    var quill = new Quill(div, {
         modules: {
             //     toolbar: [
             //         [{ header: [1, 2, 3, false] }],

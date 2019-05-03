@@ -137,7 +137,7 @@ function ajaxGetCollecteArticle(select) {
             editNewArticle.html(data.modif);
             $('#modalNewArticle').find('.modal-footer').removeClass('d-none');
             displayRequireChamp($('#typeEdit'), 'edit');
-            initEditor2();
+            initEditor2('#editor-container');
         }
     }
     path = Routing.generate('get_collecte_article_by_refArticle', true)
