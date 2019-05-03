@@ -15,7 +15,7 @@
                     Supprimer</a>
             {% endif %}
 
-            {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::CREATE')) %}
+            {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
                 <a href="" data-id='{{ id }}' data-target='#modalEditReception' data-toggle='modal'
                     class="btn btn-primary btn-action ml-auto" onclick='initEditReceptionEditor("#modalEditReception")'>
                     Modifier</a>
@@ -33,7 +33,7 @@
 
 <div class="col text-right">
     {% if modifiable %}
-        {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::CREATE')) %}
+        {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
             <a href="" data-toggle="modal" data-target="#modalAddArticle" class="btn btn-primary btn-action ml-auto"
                 onclick="initNewArticleEditor('#modalAddArticle'),  ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'))">
                 <span class="fa fa-plus mr-2"></span>Ajouter article

@@ -75,7 +75,7 @@
 
 
                     {% elseif  champLibre.typage == 'list' %}
-                    <select class="form-control unTruc data {{ champLibre.requiredCreate ? 'needed' : ''}} "
+                    <select class="form-control data {{ champLibre.requiredCreate ? 'needed' : ''}} "
                         name="{{ champLibre.id}}" id="">
                         <option value=""></option>
                         {% for elem in  champLibre.elements %}

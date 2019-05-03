@@ -93,7 +93,7 @@ class PreparationController extends AbstractController
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) //Si la requête est de type Xml et que data est attribuée
             {
-                if (!$this->userService->hasRightFunction(Menu::PREPA, Action::CREATE)) {
+                if (!$this->userService->hasRightFunction(Menu::PREPA, Action::CREATE_EDIT)) {
                     return $this->redirectToRoute('access_denied');
                 }
 
@@ -250,7 +250,7 @@ class PreparationController extends AbstractController
                         $rows[] = [
                             "Référence CEA" => $article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference(): '',
                             "Libellé" => $article->getLabel() ? $article->getLabel() : '',
-                            "Quantité" => '',
+                            "Quantité" => $article->getQuantite() ? $article->getQuantite() : '',
                         ];
                     }
 

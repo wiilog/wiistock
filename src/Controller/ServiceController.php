@@ -112,7 +112,7 @@ class ServiceController extends AbstractController
         return $this->render('service/index.html.twig', [
             'utilisateurs' => $this->utilisateurRepository->findAll(),
             'statuts' => $this->statutRepository->findByCategorieName(Service::CATEGORIE),
-           
+
         ]);
     }
     /**
@@ -141,7 +141,7 @@ class ServiceController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $status = $this->statutRepository->findOneByCategorieAndStatut(Service::CATEGORIE, Service::STATUT_BROUILLON);
+            $status = $this->statutRepository->findOneByCategorieAndStatut(Service::CATEGORIE, Service::STATUT_A_TRAITER);
             $service = new Service();
             $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
 
@@ -174,17 +174,11 @@ class ServiceController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
             $service = $this->serviceRepository->find($data['id']);
-            $statut = 2;
-            if ($service->getStatut()->getNom() === Service::STATUT_A_TRAITER) {
-                $statut = 1;
-            } elseif ($service->getStatut()->getNom() === Service::STATUT_TRAITE) {
-                $statut = 0;
-            }
             $json = $this->renderView('service/modalEditServiceContent.html.twig', [
                 'service' => $service,
                 'utilisateurs' => $this->utilisateurRepository->findAll(),
                 'emplacements' => $this->emplacementRepository->findAll(),
-                'statut' => $statut,
+                'statut' => (($service->getStatut()->getNom() === Service::STATUT_A_TRAITER) ? 1 : 0),
                 'statuts' => $this->statutRepository->findByCategorieName(Service::CATEGORIE),
             ]);
 
@@ -203,12 +197,7 @@ class ServiceController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
             $service = $this->serviceRepository->find($data['id']);
-            $statutLabel = Service::STATUT_BROUILLON;
-            if (intval($data['statut']) === 1) {
-                $statutLabel = Service::STATUT_A_TRAITER;
-            } elseif (intval($data['statut']) === 0) {
-                $statutLabel = Service::STATUT_TRAITE;
-            }
+            $statutLabel = (intval($data['statut']) === 1) ? Service::STATUT_A_TRAITER : Service::STATUT_TRAITE;
             $statut = $this->statutRepository->findOneByCategorieAndStatut(Service::CATEGORIE, $statutLabel);
             $service->setStatut($statut);
             $service
@@ -241,15 +230,16 @@ class ServiceController extends AbstractController
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $service = $this->serviceRepository->find($data['service']);
-        
+
             if ($service->getStatut()->getNom() == Service::STATUT_TRAITE) {
                 return $this->redirectToRoute('access_denied');
             }
 
-        
-            if (!$this->userService->hasRightFunction(Menu::MANUT, Action::LIST)
-            &&  ($service->getStatuy()->getNom() === Service::STATUT_BROUILLON)
-              ) {
+
+            if (
+                !$this->userService->hasRightFunction(Menu::MANUT, Action::LIST)
+                && ($service->getStatuy()->getNom() === Service::STATUT_BROUILLON)
+            ) {
                 return $this->redirectToRoute('access_denied');
             }
 

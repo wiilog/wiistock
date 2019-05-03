@@ -13,10 +13,9 @@
 </div>
 <div class="form-group">
     <label for="typage">Typage</label>
-    <select class="form-control select2 data" name="typage" id='typageModif' onchange="defaultValueForTypage($(this), '-edit'), changeType(this)">
+    <select class="form-control select2 data" name="typage" id='typageModif' onchange="defaultValueForTypage($(this), '-edit'), changeType(this)" disabled>
         {% for typage in typages %}
-        {% set selected = typage.value == champLibre.typage ? 'selected' : '' %}
-            <option value="{{ typage.value }}" {{ selected }}>{{ typage.label }}</option>
+                <option value="{{ typage.value }}" >{{ typage.label }}</option>
         {% endfor %}
     </select>
 </div>
@@ -39,7 +38,8 @@
         <div class="form-group" id="booleen-edit">
             <label for="">Valeur par défaut</label>
             <label class="switch">
-                <input type="checkbox" class="data checkbox" value="{{champLibre.typage == 'booleen' ? champLibre.defaultValue : ''}}" name="valeur">
+                <input type="checkbox" class="data checkbox" value="{{champLibre.typage == 'booleen' ? champLibre.defaultValue : ''}}" name="valeur"
+                {{ champLibre.defaultValue == 1 ? 'checked' : ''  }}>
                 <span class="slider round"></span>
             </label>
         </div>

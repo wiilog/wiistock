@@ -213,11 +213,11 @@ function visibleColumn(check) {
     let columnNumber = check.data('column')
     let column = tableRefArticle.column(columnNumber);
     column.visible(!column.visible());
-    let columnClass = $('#tableRefArticle_id').find('thead').find('th');
-    columnClass.each(function () {
-        $(this).removeClass('libre');
-        $(this).addClass('fixe');
-    })
+    
+    let tableRefArticleColumn = $('#tableRefArticle_id_wrapper');
+    tableRefArticleColumn.find('th').removeClass('libre');
+    tableRefArticleColumn.find('th').addClass('fixe');
+    
     if (check.hasClass('data')) {
         check.removeClass('data');
     } else {
@@ -477,11 +477,11 @@ function addFournisseurEdit(button) {
 };
 
 function setMaxQuantityByArtRef(input) {
-    let params = {
-        refArticleId: ($('#submitPlusDemande').val()),
-    };
-    $.post(Routing.generate('get_quantity_ref_article'), params, function (data) {
-        let modalBody = input.closest(".form-group");
-        modalBody.find('#quantity').attr('max', data);
-    }, 'json');
+    let val = 0;
+    $('input[name="quantite"]').each(function() {
+        if ($(this).val() !== '' && $(this).val()) {
+            val = $(this).val();
+        }
+    });
+    input.attr('max', val);
 }

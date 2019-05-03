@@ -328,7 +328,7 @@ class ArticleDataService
     public function editArticle($data)
     {
         // spécifique CEA : accès pour tous au champ libre 'Code projet'
-        //        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE)) {
+        //        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
         //            return new RedirectResponse($this->router->generate('access_denied'));
         //        }
 
@@ -336,7 +336,7 @@ class ArticleDataService
         $article = $this->articleRepository->find($data['article']);
         if ($article) {
 
-            if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE)) {
+            if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
                 $article
                     ->setLabel($data['label'])
                     ->setConform(!$data['conform'])
@@ -358,7 +358,7 @@ class ArticleDataService
                 if (gettype($champ) === 'integer') {
                     // spécifique CEA : accès pour tous au champ libre 'Code projet'
                     $champLibre = $this->champsLibreRepository->find($champ);
-                    if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE) || $champLibre->getLabel() == 'Code projet') {
+                    if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT) || $champLibre->getLabel() == 'Code projet') {
 
                         $valeurChampLibre = $this->valeurChampsLibreRepository->findOneByArticleANDChampsLibre($article->getId(), $champ);
                         if (!$valeurChampLibre) {
@@ -379,4 +379,58 @@ class ArticleDataService
             return false;
         }
     }
+
+    public function getDataForDatatable($params = null)
+    {
+        $data = $this->getArticleDataByParams($params);
+        $data['recordsTotal'] = (int)$this->articleRepository->countAll();
+        return $data;
+    }
+
+    /**
+     * @param null $params
+     * @return array
+     * @throws \Twig_Error_Loader
+     * @throws \Twig_Error_Runtime
+     * @throws \Twig_Error_Syntax
+     */
+    public function getArticleDataByParams($params = null)
+    {
+        $articles = $this->articleRepository->findByParams($params);
+
+        $rows = [];
+        foreach ($articles as $article) {
+            $rows[] = $this->dataRowRefArticle($article);
+        }
+        return ['data' => $rows];
+    }
+
+    /**
+     * @param Article $article
+     * @return array
+     * @throws \Twig_Error_Loader
+     * @throws \Twig_Error_Runtime
+     * @throws \Twig_Error_Syntax
+     */
+    public function dataRowRefArticle($article)
+    {
+        $url['edit'] = $this->router->generate('demande_article_edit', ['id' => $article->getId()]);
+
+        $row =
+            [
+                'id' => ($article->getId() ? $article->getId() : 'Non défini'),
+                'Référence' => ($article->getReference() ? $article->getReference() : 'Non défini'),
+                'Statut' => ($article->getStatut() ? $article->getStatut()->getNom() : 'Non défini'),
+                'Libellé' => ($article->getLabel() ? $article->getLabel() : 'Non défini'),
+                'Référence article' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : 'Non défini'),
+                'Quantité' => ($article->getQuantite() ? $article->getQuantite() : 0),
+                'Actions' => $this->templating->render('article/datatableArticleRow.html.twig', [
+                    'url' => $url,
+                    'articleId' => $article->getId(),
+                ]),
+            ];
+
+        return $row;
+    }
+
 }

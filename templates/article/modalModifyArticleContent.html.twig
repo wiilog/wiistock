@@ -1,4 +1,4 @@
-{% set editable = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE')) %}
+{% set editable = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
 {% set disabled = editable ? '' : 'disabled' %}
 
 <div class="row">
@@ -64,42 +64,45 @@
         <div class='d-block' id="{{typeArticle}}-edit">
             <div class="row mt-2">
                 {% for champLibre in typeChampsLibres.champsLibres %}
-                <div class="form-group col-6">
+                    {% set needed = champLibre.requiredEdit ? 'needed' : '' %}
+                    <div class="form-group col-6">
+                    {#TODO spécifique CEA : accès pour tous au champ libre 'Code projet' #}
+                    {% if champLibre.label|lower == 'code projet' %}
+                        {% set disabled = '' %}
+                    {% endif %}
+
                     <label for="input">{{ champLibre.label | capitalize}}</label>
 
                     {% if champLibre.typage == 'booleen' %}
                     {% set checked = ((champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : 0) == 1) ? 'checked' : '' %}
                     <label class="switch">
-                        <input {{ disabled }} type="checkbox" class="data checkbox" { checked } name="{{ champLibre.id}}">
+                        <input {{ disabled }} type="checkbox" class="data checkbox" {{ checked }} name="{{ champLibre.id}}">
                         <span class="slider round"></span>
                     </label>
 
                     {% elseif  champLibre.typage == 'number' %}
-                    <input {{ disabled }} type="number" id="{{ champLibre.label ~ 'edit'}}" class="form-control data"
+                    <input {{ disabled }} type="number" id="{{ champLibre.label ~ 'edit'}}" class="form-control data {{ needed }}"
                         value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}"
                         name="{{ champLibre.id}}" id="input">
 
                     {% elseif  champLibre.typage == 'list' %}
-                        {#TODO spécifique CEA : accès pour tous au champ libre 'Code projet' #}
-                        {% if champLibre.label == 'Code projet' %}{% set disabled = '' %}{% endif %}
-
-                        <select {{ disabled }} class="form-control data" id="{{ champLibre.label ~ 'edit'}}" name="{{ champLibre.id}}"
+                        <select {{ disabled }} class="form-control data {{ needed }}" id="{{ champLibre.label ~ 'edit'}}" name="{{ champLibre.id}}"
                         id="input">
                         <option value="">aucune sélection...</option>
-                        {% for elem in  champLibre.elements %}
+                        {% for elem in champLibre.elements %}
                         {% set selected = elem ==( champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' )? 'selected' : '' %}
                         <option value="{{elem}}" {{ selected }}>{{elem}}</option>
                         {% endfor %}
                     </select>
 
                     {% elseif champLibre.typage == 'text'  %}
-                    <input {{ disabled }}type="text" id="{{ champLibre.label ~ 'edit'}}" class="form-control data"
+                    <input {{ disabled }}type="text" id="{{ champLibre.label ~ 'edit'}}" class="form-control data {{ needed }}"
                         value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}"
                         name="{{  champLibre.id }}" id="input">
 
                     {% elseif champLibre.typage == 'date' %}
                     <input type="date" name="{{ champLibre.id }}" id="{{champLibre.label ~ 'edit'}}"
-                        class="form-control data"
+                        class="form-control data {{ needed }}"
                         value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}">
 
                     {% else %}

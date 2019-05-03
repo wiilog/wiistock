@@ -1,36 +1,17 @@
 <div class="d-flex">
-    {% if hasRight(constant('App\\Entity\\Menu::MANUT'), constant('App\\Entity\\Action::CREATE')) and service.statut.nom != constant('App\\Entity\\Service::STATUT_TRAITE')%}
+    {% if hasRight(constant('App\\Entity\\Menu::MANUT'), constant('App\\Entity\\Action::EDIT_DELETE'))%}
     <div data-id='{{ idService }}' data-target='#modalEditService' data-toggle='modal'
         class='btn-xs btn-default command-edit'
         onclick="editRow($(this), Routing.generate('service_edit_api', true), $('#modalEditService'), $('#submitEditService'), true)">
         <i class='fas fa-pencil-alt'></i>
     </div>
+    {% if service.statut.nom != constant('App\\Entity\\Service::STATUT_TRAITE') %}
     <div data-id='{{ idService }}' data-target='#modalDeleteService' data-toggle='modal' class='service-delete col-3'
         onclick="deleteRow($(this), $('#modalDeleteService'), $('#submitDeleteService'))">
         <i class='fas fa-trash'></i>
     </div>
-
-    {% elseif hasRight(constant('App\\Entity\\Menu::MANUT'), constant('App\\Entity\\Action::DELETE')) and service.statut.nom != constant('App\\Entity\\Service::STATUT_TRAITE')%}
-    <div data-id='{{ idService }}' data-target='#modalEditService' data-toggle='modal'
-        class='btn-xs btn-default command-edit'
-        onclick="editRow($(this), Routing.generate('service_edit_api', true), $('#modalEditService'), $('#submitEditService'), true)">
-        <i class='fas fa-pencil-alt'></i>
-    </div>
-     
-
-    {% elseif service.statut.nom == constant('App\\Entity\\Service::STATUT_BROUILLON')%}
-    <div data-id='{{ idService }}' data-target='#modalEditService' data-toggle='modal'
-        class='btn-xs btn-default command-edit'
-        onclick="editRow($(this), Routing.generate('service_edit_api', true), $('#modalEditService'), $('#submitEditService'), true)">
-        <i class='fas fa-pencil-alt'></i>
-    </div>
-    <div data-id='{{ idService }}' data-target='#modalDeleteService' data-toggle='modal' class='service-delete col-3'
-        onclick="deleteRow($(this), $('#modalDeleteService'), $('#submitDeleteService'))">
-        <i class='fas fa-trash'></i>
-    </div>
-   
-
-    {% elseif hasRight(constant('App\\Entity\\Menu::MANUT'), constant('App\\Entity\\Action::LIST')) and service.statut.nom != constant('App\\Entity\\Service::STATUT_BROUILLON')%}
+    {% endif %}
+    {% else %}
     <div data-id='{{ idService }}' data-target='#modalShowService' data-toggle='modal' class='btn-xs btn-default '
         onclick="showRow($(this), Routing.generate('service_show', true), $('#modalShowService'))">
         <i class='fas fa-eye'></i>

@@ -1,4 +1,4 @@
-{% set editable = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE')) %}
+{% set editable = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
 {% set disabled = editable ? '' : 'disabled' %}
 
 <div class="row">
@@ -128,7 +128,7 @@
     </div>
     <div class="form-group col-12 blocVisible d-block" id='typeContentEdit'>
         {% for typeChampLibre in typeChampsLibres %}
-        <div {{ articleRef.type is defined and typeChampLibre.typeId == articleRef.type.id ? "class='d-block'" : "class='d-none'"}}
+        <div {{ articleRef.type is not empty and typeChampLibre.typeId == articleRef.type.id ? "class='d-block'" : "class='d-none'"}}
             id="{{typeChampLibre.typeId}}-edit">
             <div class="row mt-2">
                 {% for champLibre in typeChampLibre.champsLibres %}
@@ -147,7 +147,7 @@
                         value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}" name="{{ champLibre.id}}" id="input">
 
                     {% elseif  champLibre.typage == 'list' %}
-                    <select class="form-control data" id="{{ champLibre.id ~ 'edit'}}" name="{{ champLibre.id}}"
+                    <select {{ disabled }} class="form-control data" id="{{ champLibre.id ~ 'edit'}}" name="{{ champLibre.id}}"
                         id="input">
                         <option value="">aucune selection...</option>
                         {% for elem in  champLibre.elements %}
