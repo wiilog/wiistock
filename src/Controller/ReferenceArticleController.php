@@ -661,7 +661,7 @@ class ReferenceArticleController extends Controller
                         $editChampLibre = false;
                     }
                 } else {
-                    # code...
+                    $editChampLibre = false;
                 }
 
                 $articleOrNo  = $this->articleDataService->getArticleOrNoByRefArticle($refArticle, $data['demande'], false);

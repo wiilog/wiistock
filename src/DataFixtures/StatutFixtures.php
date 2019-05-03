@@ -115,6 +115,7 @@ class StatutFixtures extends Fixture implements DependentFixtureInterface, Fixtu
          // catégorie préparation
          $statutsNames = [
              'à traiter',
+             'en cours de préparation',
              'préparé',
          ];
 

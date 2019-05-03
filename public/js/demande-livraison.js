@@ -24,6 +24,7 @@ let tableArticle = $('#table-lignes').DataTable({
         { "data": 'Référence CEA' },
         { "data": 'Libellé' },
         { "data": 'Quantité' },
+        { "data": 'Quantité à prélever' },
         { "data": 'Actions' }
     ],
 });
@@ -287,6 +288,11 @@ let ajaxEditArticle = function (select) {
             dataReponse = JSON.parse(this.responseText);
             if (dataReponse) {
                 $('#editNewArticle').html(dataReponse);
+                console.log($('#quantite').val())
+                let withdrawQuantity = $('#withdrawQuantity');
+                let valMax = $('#quantite').val();
+                withdrawQuantity.find('input').attr('max', valMax);
+                withdrawQuantity.removeClass('d-none');
                 displayRequireChamp($('#typeEditArticle'), 'edit');
                 ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
                 initEditor2();

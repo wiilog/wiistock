@@ -254,7 +254,7 @@ class LivraisonController extends AbstractController
                         $rows[] = [
                             "Référence CEA" => $article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
                             "Libellé" => $article->getLabel() ? $article->getLabel() : '',
-                            "Quantité" => '',
+                            "Quantité" => $article->getQuantite(),
                         ];
                     }
 

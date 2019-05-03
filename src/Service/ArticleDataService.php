@@ -178,7 +178,7 @@ class ArticleDataService
                     'reference' => 'aucun article disponible',
                 ];
             }
-            $json = $this->templating->render('collecte/newRefArticleByQuantiteArticleContent.html.twig', [
+            $json = $this->templating->render('demande/newRefArticleByQuantiteArticleContent.html.twig', [
                 'articles' => $articles,
             ]);
         } else {
@@ -187,6 +187,9 @@ class ArticleDataService
 
         return $json;
     }
+
+
+    //TODOO les méthode getCollecteArticleOrNoByRefArticle() et getLivraisonArticleOrNoByRefArticle() ont le même fonctionnement la seul différence et le statut de l'article (actif/ inactif)
 
     /**
      * @return array
@@ -323,8 +326,6 @@ class ArticleDataService
         return $view;
     }
 
-
-
     public function editArticle($data)
     {
         // spécifique CEA : accès pour tous au champ libre 'Code projet'
@@ -378,5 +379,46 @@ class ArticleDataService
         } else {
             return false;
         }
+    }
+
+    public function newArticle($data)
+    {
+        dump($data);
+        $entityManager = $this->em;
+        $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $data['statut'] === Article::STATUT_ACTIF ? Article::STATUT_ACTIF : Article::STATUT_INACTIF);
+        $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $ref = $date->format('YmdHis');
+
+        $toInsert = new Article();
+        $toInsert
+            ->setLabel($data['libelle'])
+            ->setConform(!$data['conform'])
+            ->setStatut($statut)
+            ->setCommentaire($data['commentaire'])
+            ->setReference($ref . '-0')
+            ->setQuantite((int)$data['quantite'])
+            ->setEmplacement($this->emplacementRepository->find($data['emplacement']))
+            ->setArticleFournisseur($this->articleFournisseurRepository->find($data['articleFournisseur']))
+            ->setType($this->typeRepository->findOneByCategoryLabel(Article::CATEGORIE));
+        $entityManager->persist($toInsert);
+
+        $champsLibreKey = array_keys($data);
+        foreach ($champsLibreKey as $champ) {
+            if (gettype($champ) === 'integer') {
+                $valeurChampLibre = $this->valeurChampsLibreRepository->findOneByArticleANDChampsLibre($toInsert->getId(), $champ);
+                if (!$valeurChampLibre) {
+                    $valeurChampLibre = new ValeurChampsLibre();
+                    $valeurChampLibre
+                        ->addArticle($toInsert)
+                        ->setChampLibre($this->champsLibreRepository->find($champ));
+                    $entityManager->persist($valeurChampLibre);
+                }
+                $valeurChampLibre->setValeur($data[$champ]);
+                // $entityManager->flush();
+            }
+        }
+        // $entityManager->flush();
+
+        return true;
     }
 }

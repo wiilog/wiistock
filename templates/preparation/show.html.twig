@@ -25,8 +25,15 @@
         {% if hasRight(constant('App\\Entity\\Menu::LIVRAISON'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
         <a href="#" class="btn btn-danger btn-action ml-auto" data-target='#modalDeletePreparation'
             data-toggle='modal'>Supprimer</a>
-        <a href="{{path('livraison_new', {'id': preparation.id}) }}"
-            class="btn btn-primary btn-action ml-auto">Valider</a>
+            {% if statut %}
+            <button onclick="startPreparation($(this))" id="startPreparation" value="{{demande.id}}" class="btn btn-primary btn-action ml-auto">Commencer
+                la préparation</button>
+                <a id='finishPreparation' href="{{path('livraison_new', {'id': preparation.id}) }}"
+                class="btn btn-primary btn-action ml-auto d-none">Valider</a>
+            {% else %}
+            <a href="{{path('livraison_new', {'id': preparation.id}) }}"
+                class="btn btn-primary btn-action ml-auto">Valider</a>
+            {% endif %}
         {% endif %}
         {% elseif preparation.livraisons is not empty %}
         <a href="{{path('livraison_show', {'id': preparation.livraisons.0.id})}}"
@@ -34,7 +41,8 @@
         {% endif %}
     </div>
 </div>
-<div class="row">
+<div id="msg" class="row">
+
     {#{% for refArticle in preparation.demandes.0.ligneArticle %}
     <div class="col-2">
         <p>{{refArticle.reference.libelle}}: {{refArticle.quantite}}</p>

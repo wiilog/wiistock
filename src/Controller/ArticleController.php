@@ -226,39 +226,10 @@ class ArticleController extends AbstractController
     public function new(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $toInsert = new Article();
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $data['statut'] === Article::STATUT_ACTIF ? Article::STATUT_ACTIF : Article::STATUT_INACTIF);
-            $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
-            $ref = $date->format('YmdHis');
-            $toInsert
-                ->setLabel($data['libelle'])
-                ->setConform(!$data['conform'])
-                ->setStatut($statut)
-                ->setCommentaire($data['commentaire'])
-                ->setReference($ref . '-0')
-                ->setQuantite((int)$data['quantite'])
-                ->setEmplacement($this->emplacementRepository->find($data['emplacement']))
-                ->setArticleFournisseur($this->articleFournisseurRepository->find($data['articleFournisseur']))
-                ->setType($this->typeRepository->findOneByCategoryLabel(Article::CATEGORIE));
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($toInsert);
-            $champsLibreKey = array_keys($data);
-            foreach ($champsLibreKey as $champ) {
-                if (gettype($champ) === 'integer') {
-                    $valeurChampLibre = $this->valeurChampsLibreRepository->findOneByArticleANDChampsLibre($toInsert->getId(), $champ);
-                    if (!$valeurChampLibre) {
-                        $valeurChampLibre = new ValeurChampsLibre();
-                        $valeurChampLibre
-                            ->addArticle($toInsert)
-                            ->setChampLibre($this->champsLibreRepository->find($champ));
-                        $em->persist($valeurChampLibre);
-                    }
-                    $valeurChampLibre->setValeur($data[$champ]);
-                    $em->flush();
-                }
-            }
-            $em->flush();
-            return new JsonResponse();
+
+            $responce = $this->articleDataService->newArticle($data);
+
+            return new JsonResponse($responce);
         }
         throw new NotFoundHttpException('404');
     }

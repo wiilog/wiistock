@@ -97,6 +97,11 @@ class Article
      */
     private $demande;
 
+    /**
+     * @ORM\Column(type="integer", nullable=true)
+     */
+    private $withdrawQuantity;
+
 
     public function __construct()
     {
@@ -340,5 +345,17 @@ class Article
     {
         $this->demande =  $demande;
         return  $this;
+    }
+
+    public function getWithdrawQuantity(): ?int
+    {
+        return $this->withdrawQuantity;
+    }
+
+    public function setWithdrawQuantity(?int $withdrawQuantity): self
+    {
+        $this->withdrawQuantity = $withdrawQuantity;
+
+        return $this;
     }
 }
