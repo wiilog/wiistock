@@ -159,26 +159,7 @@ class ArticleController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $articles = $this->articleRepository->findAll();
-            $rows = [];
-            foreach ($articles as $article) {
-                $url['edit'] = $this->generateUrl('demande_article_edit', ['id' => $article->getId()]);
-
-                $rows[] =
-                    [
-                        'id' => ($article->getId() ? $article->getId() : 'Non défini'),
-                        'Référence' => ($article->getReference() ? $article->getReference() : 'Non défini'),
-                        'Statut' => ($article->getStatut() ? $article->getStatut()->getNom() : 'Non défini'),
-                        'Libellé' => ($article->getLabel() ? $article->getLabel() : 'Non défini'),
-                        'Référence article' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : 'Non défini'),
-                        'Quantité' => ($article->getQuantite() ? $article->getQuantite() : 0),
-                        'Actions' => $this->renderView('article/datatableArticleRow.html.twig', [
-                            'url' => $url,
-                            'articleId' => $article->getId(),
-                        ]),
-                    ];
-            }
-            $data['data'] = $rows;
+            $data = $this->articleDataService->getDataForDatatable($request->request);
 
             return new JsonResponse($data);
         }

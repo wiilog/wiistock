@@ -8,6 +8,7 @@ use App\Entity\ChampsLibre;
 use App\Entity\Fournisseur;
 use App\Entity\Type;
 use App\Entity\ValeurChampsLibre;
+use App\Repository\ArticleFournisseurRepository;
 use App\Repository\CategorieCLRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\StatutRepository;
@@ -55,8 +56,13 @@ class RefArticleMOBFixtures extends Fixture implements FixtureGroupInterface
      */
     private $assetsManager;
 
+    /**
+     * @var ArticleFournisseurRepository
+     */
+    private $articleFournisseurRepository;
 
-    public function __construct(CategorieCLRepository $categorieCLRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampsLibreRepository $champsLibreRepository, StatutRepository $statutRepository, FournisseurRepository $fournisseurRepository, Packages $assetsManager)
+
+    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository, CategorieCLRepository $categorieCLRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampsLibreRepository $champsLibreRepository, StatutRepository $statutRepository, FournisseurRepository $fournisseurRepository, Packages $assetsManager)
     {
         $this->typeRepository = $typeRepository;
         $this->champsLibreRepository = $champsLibreRepository;
@@ -65,6 +71,7 @@ class RefArticleMOBFixtures extends Fixture implements FixtureGroupInterface
         $this->fournisseurRepository = $fournisseurRepository;
         $this->assetsManager = $assetsManager;
         $this->categorieCLRepository = $categorieCLRepository;
+        $this->articleFournisseurRepository = $articleFournisseurRepository;
     }
 
     public function load(ObjectManager $manager)
@@ -118,10 +125,12 @@ class RefArticleMOBFixtures extends Fixture implements FixtureGroupInterface
                         ->setCodeReference($fournisseurRef);
                     $manager->persist($fournisseur);
                 }
-                // on crée l'article fournisseur, on le lie au fournisseur et à l'article de référence
+
+
+                // article fournisseur
                 $articleFournisseur = new ArticleFournisseur();
                 $articleFournisseur
-                    ->setLabel($data[0])
+                    ->setLabel($row[0])
                     ->setReference(time() . '-' . $i)// code aléatoire unique
                     ->setFournisseur($fournisseur)
                     ->setReferenceArticle($referenceArticle);
@@ -132,38 +141,30 @@ class RefArticleMOBFixtures extends Fixture implements FixtureGroupInterface
 
             // champs libres
             $listFields = [
-                ['label' => 'adresse', 'col' => 2, 'type' => ChampsLibre::TYPE_TEXT],
-                ['label' => 'famille produit', 'col' => 4, 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['CONSOMMABLES','PAD','POMPE','POMPE_41', 'PIECES DETACHEES', 'PDT GENERIQUE', 'DCOS TEST ELECTRIQUE', 'SILICIUM', 'SIL_EXTERNE', 'SIL_INTERNE', 'MOBILIER SB', 'MOBILIER TERTIAIRE', 'CIBLE / SLUGS']],
-                ['label' => "stock mini", 'col' => 7, 'type' => ChampsLibre::TYPE_NUMBER],
-                ['label' => "stock alerte", 'col' => 8, 'type' => ChampsLibre::TYPE_NUMBER],
-                ['label' => "prix unitaire", 'col' => 9, 'type' => ChampsLibre::TYPE_TEXT],
-                ['label' => "date entrée", 'col' => 10, 'type' => ChampsLibre::TYPE_DATE],
-                ['label' => "prix du stock final", 'col' => 11, 'type' => ChampsLibre::TYPE_DATE],
-                ['label' => "alerte mini", 'col' => 12, 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['besoin', '']],
-                ['label' => "alerte prévision", 'col' => 13, 'type' => ChampsLibre::TYPE_NUMBER],
+                ['label' => 'adresse', 'col' => 2],
+                ['label' => 'famille produit', 'col' => 4],
+                ['label' => "stock mini", 'col' => 7],
+                ['label' => "stock alerte", 'col' => 8],
+                ['label' => "prix unitaire", 'col' => 9],
+                ['label' => "date entrée", 'col' => 10],
+                ['label' => "prix du stock final", 'col' => 11],
+                ['label' => "alerte mini", 'col' => 12],
+                ['label' => "alerte prévision", 'col' => 13],
             ];
 
             foreach($listFields as $field) {
                 $vcl = new ValeurChampsLibre();
-                $cl = $this->champsLibreRepository->findOneBy(['label' => $field['label']]);
+                $label = $field['label'] . ' (' . $typeMob->getLabel() . ')';
+                $cl = $this->champsLibreRepository->findOneBy(['label' => $label]);
                 if (empty($cl)) {
-                    $cl = new ChampsLibre();
-                    $cl
-                        ->setLabel($field['label'])
-                        ->setTypage($field['type'])
-                        ->setCategorieCL($this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE))
-                        ->setType($typeMob);
-
-                    if ($field['type'] == ChampsLibre::TYPE_LIST) {
-                        $cl->setElements($field['elements']);
-                    }
-                    $manager->persist($cl);
+                    dump('il manque le champ libre de label ' . $label);
+                } else {
+                    $vcl
+                        ->setChampLibre($cl)
+                        ->addArticleReference($referenceArticle)
+                        ->setValeur($row[$field['col']]);
+                    $manager->persist($vcl);
                 }
-                $vcl
-                    ->setChampLibre($cl)
-                    ->addArticleReference($referenceArticle)
-                    ->setValeur($data[$field['col']]);
-                $manager->persist($vcl);
             }
 
             $manager->flush();

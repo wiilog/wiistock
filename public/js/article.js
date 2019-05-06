@@ -1,7 +1,9 @@
 var pathArticle = Routing.generate('article_api', true);
 var tableArticle = $('#tableArticle_id').DataTable({
+    processing: true,
+    serverSide: true,
     "language": {
-        url: "/js/i18n/dataTableLanguage.json",
+        url: "/js/i18n/dataTableLanguageRefArticle.json",
     },
     ajax: {
         "url": pathArticle,

@@ -601,7 +601,7 @@ class ReferenceArticleController extends Controller
 
                         $em->persist($ligneArticle);
                     } else {
-                        $ligneArticle = $this->ligneArticleRepository->findOneByRefArticleAndDemande($refArticle, $demande);
+                        $ligneArticle = $this->ligneArticleRepository->findOneByRefArticleAndDemande($refArticle, $demande); /** @var LigneArticle $ligneArticle */
                         $ligneArticle
                             ->setQuantite($ligneArticle->getQuantite() + $data["quantitie"]);
                     }
@@ -631,6 +631,7 @@ class ReferenceArticleController extends Controller
                 $json = false;
             }
             $em->flush();
+
             return new JsonResponse();
         }
         throw new NotFoundHttpException("404");
