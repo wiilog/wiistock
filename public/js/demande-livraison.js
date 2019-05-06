@@ -200,8 +200,7 @@ $('#submitSearchDemandeLivraison').on('click', function () {
     let utilisateur = [];
     utilisateur = $('#utilisateur').val()
     utilisateurString = utilisateur.toString();
-    utilisateurPiped = utilisateurString.split(',').join('|')
-
+    utilisateurPiped = utilisateurString.split(',').join('|');
     tableDemande
         .columns('Statut:name')
         .search(statut)
@@ -323,7 +322,9 @@ let generateCSV = function () {
             Data[$(this).attr('name')] = $(this).val();
         }
     });
-    if (Data['dateMin'] && Data['dateMax'] && Data['username']) {
+    let utilisateurs = $('#utilisateur').val().toString().split(',');
+    Data['users'] = utilisateurs;
+    if (Data['dateMin'] && Data['dateMax'] && Data['users']) {
         json = JSON.stringify(Data);
         xhttp.open("POST", Routing.generate('get_livraisons_for_csv'), true);
         xhttp.send(json);

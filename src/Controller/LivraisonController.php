@@ -367,8 +367,12 @@ class LivraisonController extends AbstractController
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $dateMin = $data['dateMin'] . ' 00:00:00';
             $dateMax = $data['dateMax'] . ' 23:59:59';
-            $user = $this->utilisateurRepository->getByUsername($data['username'])[0];
-            $livraisons = $this->demandeRepository->getByDatesAndUsername($dateMin, $dateMax, $user);
+            $livraisons = [];
+            foreach ($data['users'] as $username) {
+                $user = $this->utilisateurRepository->getByUsername($username)[0];
+                $livraisonsUser = $this->demandeRepository->getByDatesAndUsername($dateMin, $dateMax, $user);
+                $livraisons = array_merge($livraisons, $livraisonsUser);
+            }
             $data = [];
             $headers = ['demandeur', 'statut', 'destination', 'commentaire', 'dateDemande', 'dateValidation', 'reference', 'referenceArticle', 'libelleArticle', 'quantite'];
             foreach ($this->champsLibreRepository->findAll() as $champLibre) {
@@ -395,6 +399,36 @@ class LivraisonController extends AbstractController
                         $champsLibresComplet = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($label['label'], $categorieCL);
                         foreach ($champsLibresComplet as $champLibre) {
                             $valeurChampRefArticle = $this->valeurChampsLibreRepository->findOneByRefArticleANDChampsLibre($ligneArticle->getReference()->getId(), $champLibre);
+                            if ($valeurChampRefArticle) $champsLibres[$champLibre->getLabel()] = $valeurChampRefArticle->getValeur();
+                        }
+                    }
+                    foreach ($headers as $label) {
+                        if (array_key_exists($label, $champsLibres)) {
+                            $livraisonData[] = $champsLibres[$label];
+                        } else {
+                            $livraisonData[] = '';
+                        }
+                    }
+                    $data[] = $livraisonData;
+                }
+                foreach ($this->articleRepository->getByDemande($livraison) as $article) {
+                    $livraisonData = [];
+                    $livraisonData[] = $livraison->getUtilisateur()->getUsername();
+                    $livraisonData[] = $livraison->getStatut()->getNom();
+                    $livraisonData[] = $livraison->getDestination()->getLabel();
+                    $livraisonData[] = $livraison->getCommentaire();
+                    $livraisonData[] = $livraison->getDate()->format('YmdHis');
+                    $livraisonData[] = $livraison->getPreparation() ? $livraison->getPreparation()->getDate()->format('YmdHis') : '';
+                    $livraisonData[] = $livraison->getNumero();
+                    $livraisonData[] = $article->getArticleFournisseur()->getReferenceArticle()->getReference();
+                    $livraisonData[] = $article->getLabel();
+                    $livraisonData[] = $article->getQuantite();
+                    $categorieCL = $this->categorieCLRepository->findOneByLabel('article');
+                    $champsLibres = [];
+                    foreach ($type as $label) {
+                        $champsLibresComplet = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($label['label'], $categorieCL);
+                        foreach ($champsLibresComplet as $champLibre) {
+                            $valeurChampRefArticle = $this->valeurChampsLibreRepository->findOneByArticleANDChampsLibre($article, $champLibre);
                             if ($valeurChampRefArticle) $champsLibres[$champLibre->getLabel()] = $valeurChampRefArticle->getValeur();
                         }
                     }

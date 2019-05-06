@@ -162,7 +162,6 @@ class DemandeController extends AbstractController
             $demande->setPreparation($preparation);
             $statutD = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
             $demande->setStatut($statutD);
-
             $em = $this->getDoctrine()->getManager();
             $em->persist($preparation);
             $em->flush();
@@ -352,7 +351,7 @@ class DemandeController extends AbstractController
         }
 
         return $this->render('demande/show.html.twig', [
-            
+
             'demande' => $demande,
             // 'preparation' => $this->preparationRepository->findOneByPreparation($demande),
             'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
@@ -400,7 +399,7 @@ class DemandeController extends AbstractController
                 $rowsCA[] = [
                     "Référence CEA" => ($article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : ''),
                     "Libellé" => ($article->getLabel() ? $article->getLabel() : ''),
-                    "Quantité" =>  ($article->getQuantite() ? $article->getQuantite() : ''),
+                    "Quantité" => ($article->getQuantite() ? $article->getQuantite() : ''),
                     "Actions" => $this->renderView(
                         'demande/datatableLigneArticleRow.html.twig',
                         [
