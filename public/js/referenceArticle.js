@@ -2,94 +2,38 @@ $('.select2').select2();
 
 function InitialiserModalRefArticle(modal, submit, path, callback = function () { }, close = true) {
     submit.click(function () {
-        xhttp = new XMLHttpRequest();
-        xhttp.onreadystatechange = function () {
-            if (this.readyState == 4 && this.status == 200) {
-                $('.errorMessage').html(JSON.parse(this.responseText))
-                data = JSON.parse(this.responseText);
-                if (data.new) {
-                    tableRefArticle.row.add(data.new).draw(false);
-                } else if (data.delete) {
-                    tableRefArticle.row($('#delete' + data.delete).parents('div').parents('td').parents('tr')).remove().draw(false);
-                } else if (data.edit) {
-                    tableRefArticle.row($('#edit' + data.id).parents('div').parents('td').parents('tr')).remove().draw(false);
-                    tableRefArticle.row.add(data.edit).draw(false);
-                }
-                callback(data);
-                initRemove();
+        submitActionRefArticle(modal, path, callback, close, callback = function () { }, close = true);
+    });
+}
 
-                // on vide tous les inputs
-                let inputs = modal.find('.modal-body').find(".data, .newContent>input");
-                inputs.each(function () {
-                    $(this).val("");
-                });
-                // on vide tous les select2
-                let selects = modal.find('.modal-body').find('.select2, .ajax-autocompleteFournisseur');
-                selects.each(function () {
-                    $(this).val(null).trigger('change');
-                });
-                // on remet toutes les checkboxes sur off
-                let checkboxes = modal.find('.checkbox');
-                checkboxes.each(function () {
-                    $(this).prop('checked', false);
-                })
+function submitActionRefArticle(modal, path, callback = function () { }, close = true) {
+    xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            $('.errorMessage').html(JSON.parse(this.responseText))
+            data = JSON.parse(this.responseText);
+            if (data.new) {
+                tableRefArticle.row.add(data.new).draw(false);
+            } else if (data.delete) {
+                tableRefArticle.row($('#delete' + data.delete).parents('div').parents('td').parents('tr')).remove().draw(false);
+            } else if (data.edit) {
+                tableRefArticle.row($('#edit' + data.id).parents('div').parents('td').parents('tr')).remove().draw(false);
+                tableRefArticle.row.add(data.edit).draw(false);
+            }
+            callback(data);
+            initRemove();
+            clearModalRefArticle(modal);
+
+            if (path === Routing.generate('save_column_visible', true)) {
+                tableColumnVisible.search('').draw()
             } else if (this.readyState == 4 && this.status == 250) {
                 $('#cannotDeleteArticle').click();
             }
         };
 
-        if (path === Routing.generate('save_column_visible', true)) {
-            tableColumnVisible.search('').draw()
-        }
 
-        // On récupère toutes les données qui nous intéressent
-        // dans les inputs...
-        let Data = {};
-        let inputs = modal.find(".data");
-        // Trouver les champs correspondants aux infos fournisseurs...
-        let fournisseursWithRefAndLabel = [];
-        let fournisseurReferences = modal.find('input[name="referenceFournisseur"]');
-        let labelFournisseur = modal.find('input[name="labelFournisseur"]');
-        let missingInputs = [];
-        modal.find('select[name="fournisseur"]').each(function (index) {
-            if ($(this).val()) {
-                if (fournisseurReferences.eq(index).val() && labelFournisseur.eq(index).val()) {
-                    fournisseursWithRefAndLabel.push($(this).val() + ';' + fournisseurReferences.eq(index).val() + ';' + labelFournisseur.eq(index).val());
-                }
-            }
-        });
-        Data['frl'] = fournisseursWithRefAndLabel;
-        let wrongInputs = [];
-        inputs.each(function () {
-            let val = $(this).val();
-            let name = $(this).attr("name");
-            if (!Data[name] || parseInt(Data[name], 10) === 0) {
-                Data[name] = val;
-            }
-            // validation données obligatoires
-            if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
-                let label = $(this).closest('.form-group').find('label').text();
-                missingInputs.push(label);
-                $(this).addClass('is-invalid');
-            }
-            // validation valeur des inputs de type number
-            // protection pour les cas où il y a des champs cachés
-            if ($(this).attr('type') === 'number' && $(this).hasClass('needed')) {
-                let val = parseInt($(this).val());
-                let min = parseInt($(this).attr('min'));
-                let max = parseInt($(this).attr('max'));
-                if (val > max || val < min) {
-                    wrongInputs.push($(this));
-                    $(this).addClass('is-invalid');
-                }
-            }
-        });
+        let { Data, missingInputs, wrongInputs } = getDataFromModal(modal);
 
-        // ... et dans les checkboxes
-        let checkboxes = modal.find('.checkbox');
-        checkboxes.each(function () {
-            Data[$(this).attr("name")] = $(this).is(':checked');
-        });
         // si tout va bien on envoie la requête ajax...
         if (missingInputs.length == 0 && wrongInputs.length == 0) {
             if (close == true) modal.find('.close').click();
@@ -99,42 +43,116 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function () 
             xhttp.open("POST", path, true);
             xhttp.send(Json);
         } else {
-
             // ... sinon on construit les messages d'erreur
-            let msg = '';
-
-            // cas où il manque des champs obligatoires
-            if (missingInputs.length > 0) {
-                if (missingInputs.length == 1) {
-                    msg += 'Veuillez renseigner le champ ' + missingInputs[0] + ".<br>";
-                } else {
-                    msg += 'Veuillez renseigner les champs : ' + missingInputs.join(', ') + ".<br>";
-                }
-            }
-            // cas où les champs number ne respectent pas les valeurs imposées (min et max)
-            if (wrongInputs.length > 0) {
-                wrongInputs.forEach(function (elem) {
-                    let label = elem.closest('.form-group').find('label').text();
-
-                    msg += 'La valeur du champ ' + label;
-
-                    let min = elem.attr('min');
-                    let max = elem.attr('max');
-
-                    if (typeof (min) !== 'undefined' && typeof (max) !== 'undefined') {
-                        msg += ' doit être comprise entre ' + min + ' et ' + max + ".<br>";
-                    } else if (typeof (min) == 'undefined') {
-                        msg += ' doit être inférieure à ' + max + ".<br>";
-                    } else if (typeof (max) == 'undefined') {
-                        msg += ' doit être supérieure à ' + min + ".<br>";
-                    }
-                })
-            }
-
+            let msg = buildErrorMsg(missingInputs, wrongInputs);
             modal.find('.error-msg').html(msg);
         }
-    });
+    }
 }
+
+function buildErrorMsg(missingInputs, wrongInputs) {
+    let msg = '';
+
+    // cas où il manque des champs obligatoires
+    if (missingInputs.length > 0) {
+        if (missingInputs.length == 1) {
+            msg += 'Veuillez renseigner le champ ' + missingInputs[0] + ".<br>";
+        } else {
+            msg += 'Veuillez renseigner les champs : ' + missingInputs.join(', ') + ".<br>";
+        }
+    }
+    // cas où les champs number ne respectent pas les valeurs imposées (min et max)
+    if (wrongInputs.length > 0) {
+        wrongInputs.forEach(function (elem) {
+            let label = elem.closest('.form-group').find('label').text();
+
+            msg += 'La valeur du champ ' + label;
+
+            let min = elem.attr('min');
+            let max = elem.attr('max');
+
+            if (typeof (min) !== 'undefined' && typeof (max) !== 'undefined') {
+                msg += ' doit être comprise entre ' + min + ' et ' + max + ".<br>";
+            } else if (typeof (min) == 'undefined') {
+                msg += ' doit être inférieure à ' + max + ".<br>";
+            } else if (typeof (max) == 'undefined') {
+                msg += ' doit être supérieure à ' + min + ".<br>";
+            }
+        })
+    }
+    return msg;
+}
+
+function getDataFromModal(modal) {
+    // On récupère toutes les données qui nous intéressent
+    // dans les inputs...
+    let Data = {};
+    let inputs = modal.find(".data");
+    // Trouver les champs correspondants aux infos fournisseurs...
+    let fournisseursWithRefAndLabel = [];
+    let fournisseurReferences = modal.find('input[name="referenceFournisseur"]');
+    let labelFournisseur = modal.find('input[name="labelFournisseur"]');
+    let missingInputs = [];
+    modal.find('select[name="fournisseur"]').each(function (index) {
+        if ($(this).val()) {
+            if (fournisseurReferences.eq(index).val() && labelFournisseur.eq(index).val()) {
+                fournisseursWithRefAndLabel.push($(this).val() + ';' + fournisseurReferences.eq(index).val() + ';' + labelFournisseur.eq(index).val());
+            }
+        }
+    });
+    Data['frl'] = fournisseursWithRefAndLabel;
+    let wrongInputs = [];
+    inputs.each(function () {
+        let val = $(this).val();
+        let name = $(this).attr("name");
+        if (!Data[name] || parseInt(Data[name], 10) === 0) {
+            Data[name] = val;
+        }
+        // validation données obligatoires
+        if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
+            let label = $(this).closest('.form-group').find('label').text();
+            missingInputs.push(label);
+            $(this).addClass('is-invalid');
+        }
+        // validation valeur des inputs de type number
+        // protection pour les cas où il y a des champs cachés
+        if ($(this).attr('type') === 'number' && $(this).hasClass('needed')) {
+            let val = parseInt($(this).val());
+            let min = parseInt($(this).attr('min'));
+            let max = parseInt($(this).attr('max'));
+            if (val > max || val < min) {
+                wrongInputs.push($(this));
+                $(this).addClass('is-invalid');
+            }
+        }
+    });
+
+    // ... et dans les checkboxes
+    let checkboxes = modal.find('.checkbox');
+    checkboxes.each(function () {
+        Data[$(this).attr("name")] = $(this).is(':checked');
+    });
+    return { Data, missingInputs, wrongInputs };
+}
+
+function clearModalRefArticle(modal) {
+    // on vide tous les inputs
+    let inputs = modal.find('.modal-body').find(".data, .newContent>input");
+    inputs.each(function () {
+        $(this).val("");
+    });
+    // on vide tous les select2
+    let selects = modal.find('.modal-body').find('.select2, .ajax-autocompleteFournisseur');
+    selects.each(function () {
+        $(this).val(null).trigger('change');
+    });
+    // on remet toutes les checkboxes sur off
+    let checkboxes = modal.find('.checkbox');
+    checkboxes.each(function () {
+        $(this).prop('checked', false);
+    })
+}
+
 
 
 let ModalRefArticleNew = $("#modalNewRefArticle");
@@ -337,7 +355,7 @@ let recupIdRefArticle = function (div) {
 }
 
 function ajaxPlusDemandeContent(button, demande) {
-  
+
     $('.plusDemandeContent').html('');
     $('.editChampLibre').html('');
     xhttp = new XMLHttpRequest();
@@ -356,7 +374,7 @@ function ajaxPlusDemandeContent(button, demande) {
             }
             showDemande(button)
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
-           initEditor2('#editor-container');
+            initEditor2('#editor-container');
         }
     }
     let json = {
@@ -404,11 +422,11 @@ function initNewReferenceArticleEditor(modal) {
 
 var editorEditRefArticleAlreadyDone = false;
 function initEditRefArticleEditor(modal) {
-   
+
     if (!editorEditRefArticleAlreadyDone) {
         initEditor(modal);
         editorEditRefArticleAlreadyDone = true;
-        
+
     }
 };
 
@@ -505,4 +523,29 @@ function toggleRadioButtonNeeded(button) {
     else {
         $('#emplacement').addClass('needed');
     }
+
+}
+
+function submitPlusAndGoToDemande(button) {
+    let modal = button.closest('.modal');
+    let path = Routing.generate('plus_demande');
+
+    submitActionRefArticle(modal, path, redirectToDemande);
+}
+
+function redirectToDemande() {
+    let livraisonId = $('.data[name="livraison"]').val();
+    let collecteId = $('.data[name="collecte"]').val();
+
+    let demandeId = null;
+    let demandeType = null;
+    if (typeof (collecteId) !== 'undefined') {
+        demandeId = collecteId;
+        demandeType = 'collecte';
+    } else if (typeof (livraisonId) !== 'undefined') {
+        demandeId = livraisonId;
+        demandeType = 'demande';
+    }
+
+    window.location.href = Routing.generate(demandeType + '_show', { 'id': demandeId });
 }
