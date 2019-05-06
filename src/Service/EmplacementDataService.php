@@ -8,101 +8,24 @@
 
 namespace App\Service;
 
-use App\Entity\Action;
-use App\Entity\Article;
-use App\Entity\Menu;
-use App\Entity\ReferenceArticle;
-use App\Entity\ValeurChampsLibre;
-use App\Entity\CategorieCL;
-
-use App\Repository\ArticleRepository;
-use App\Repository\ArticleFournisseurRepository;
-use App\Repository\ChampsLibreRepository;
 use App\Repository\EmplacementRepository;
-use App\Repository\FilterRepository;
-use App\Repository\ReferenceArticleRepository;
-use App\Repository\StatutRepository;
-use App\Repository\TypeRepository;
-use App\Repository\ValeurChampsLibreRepository;
-use App\Repository\CategorieCLRepository;
 
-
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Doctrine\ORM\EntityManagerInterface;
 
 class EmplacementDataService
 {
-    /**
-     * @var ReferenceArticleRepository
-     */
-    private $referenceArticleRepository;
-
-    /**
-     * @var ArticleFournisseurRepository
-     */
-    private $articleFournisseurRepository;
-
-    /*
-     * @var ChampsLibreRepository
-     */
-    private $champsLibreRepository;
-
-    /**
-     * @var TypeRepository
-     */
-    private $typeRepository;
-
-    /**
-     * @var StatutRepository
-     */
-    private $statutRepository;
-
-    /**
-     * @var ValeurChampsLibreRepository
-     */
-    private $valeurChampsLibreRepository;
-
-    /**
-     * @var FilterRepository
-     */
-    private $filterRepository;
-
+    
     /**
      * @var \Twig_Environment
      */
     private $templating;
 
     /**
-     * @var ArticleRepository
-     */
-    private $articleRepository;
-
-    /**
-     * @var RefArticleDataService
-     */
-    private $refArticleDataService;
-
-    /**
-     * @var CategorieCLRepository
-     */
-    private $categorieCLRepository;
-
-    /**
      * @var EmplacementRepository
      */
     private $emplacementRepository;
-
-    /**
-     * @var UserService
-     */
-    private $userService;
-
-    /**
-     * @var object|string
-     */
-    private $user;
 
     /**
      * @var RouterInterface
@@ -111,22 +34,12 @@ class EmplacementDataService
 
     private $em;
 
-    public function __construct(EmplacementRepository $emplacementRepository, RouterInterface $router, UserService $userService, CategorieCLRepository $categorieCLRepository, RefArticleDataService $refArticleDataService, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, TypeRepository  $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampsLibreRepository $champsLibreRepository, FilterRepository $filterRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
+    public function __construct(EmplacementRepository $emplacementRepository, RouterInterface $router, EntityManagerInterface $em, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
     {
-        $this->referenceArticleRepository = $referenceArticleRepository;
-        $this->articleRepository = $articleRepository;
-        $this->champsLibreRepository = $champsLibreRepository;
-        $this->statutRepository = $statutRepository;
-        $this->valeurChampsLibreRepository = $valeurChampsLibreRepository;
-        $this->filterRepository = $filterRepository;
-        $this->articleFournisseurRepository = $articleFournisseurRepository;
-        $this->refArticleDataService = $refArticleDataService;
-        $this->typeRepository = $typeRepository;
+    
         $this->templating = $templating;
         $this->user = $tokenStorage->getToken()->getUser();
         $this->em = $em;
-        $this->categorieCLRepository = $categorieCLRepository;
-        $this->userService = $userService;
         $this->router = $router;
         $this->emplacementRepository = $emplacementRepository;
     }
