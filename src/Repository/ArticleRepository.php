@@ -145,14 +145,13 @@ class ArticleRepository extends ServiceEntityRepository
 
     public function getByAFAndActifAndDemandeNullOrStatus($articleFournisseur, $statut, $demandeStatus)
     {
-        dump($articleFournisseur);
-        dump($statut);
         $em = $this->getEntityManager();
         $query = $em->createQuery(
             "SELECT a.id, a.reference
           FROM App\Entity\Article a
           JOIN App\Entity\Demande d
-          WHERE a.Statut = :statut AND a.articleFournisseur = :articleFournisseur AND (a.demande IS NULL OR d.statut = :demandeStatut)"
+          JOIN a.articleFournisseur af
+          WHERE a.Statut = :statut AND af.id IN(:articleFournisseur) AND (a.demande IS NULL OR d.statut = :demandeStatut)"
         )->setParameters([
             'articleFournisseur' => $articleFournisseur,
             'statut' => $statut,
