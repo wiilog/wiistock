@@ -312,10 +312,10 @@ function initEditor2(div) {
 //passe de l'éditeur à l'imput pour insertion en BDD par la class editor-container
 function setCommentaire(button) {
     let modal = button.closest('.modal');
-    let container = '#' + modal.attr('id') + ' .editor-container';
+    let container = '#editor-container';
     var quill = new Quill(container);
     // let commentaire = modal.find('input[id=commentaire]');
-    com = quill.container.firstChild.innerHTML;
+    com = quill.container.innerHTML;
     $('#commentaire').val(com);
 
 };
