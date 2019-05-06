@@ -81,23 +81,23 @@ class EmplacementController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
             }
-
-            $emplacements = $this->emplacementRepository->findAll();
-            $rows = [];
-            foreach ($emplacements as $emplacement) {
-                $emplacementId = $emplacement->getId();
-                $url['edit'] = $this->generateUrl('emplacement_edit', ['id' => $emplacementId]);
-                $rows[] = [
-                    'id' => $emplacement->getId(),
-                    'Nom' => $emplacement->getLabel(),
-                    'Description' => $emplacement->getDescription(),
-                    'Actions' => $this->renderView('emplacement/datatableEmplacementRow.html.twig', [
-                        'url' => $url,
-                        'emplacementId' => $emplacementId
-                    ]),
-                ];
-            }
-            $data['data'] = $rows;
+            $data = $this->emplacementDataService->getDataForDatatable($request->request);
+            // $emplacements = $this->emplacementRepository->findAll();
+            // $rows = [];
+            // foreach ($emplacements as $emplacement) {
+            //     $emplacementId = $emplacement->getId();
+            //     $url['edit'] = $this->generateUrl('emplacement_edit', ['id' => $emplacementId]);
+            //     $rows[] = [
+            //         'id' => $emplacement->getId(),
+            //         'Nom' => $emplacement->getLabel(),
+            //         'Description' => $emplacement->getDescription(),
+            //         'Actions' => $this->renderView('emplacement/datatableEmplacementRow.html.twig', [
+            //             'url' => $url,
+            //             'emplacementId' => $emplacementId
+            //         ]),
+            //     ];
+            // }
+            // $data['data'] = $rows;
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
