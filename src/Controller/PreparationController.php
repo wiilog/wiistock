@@ -287,7 +287,7 @@ class PreparationController extends AbstractController
             'demande' => $this->demandeRepository->findOneByPreparation($preparation),
             'preparation' => $preparation,
             'statut' => $preparation->getStatut() === $this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER) ? true : false,
-            'finished' => ($preparation->getStatut()->getNom() === Preparation::STATUT_A_TRAITER),
+            'finished' => ($preparation->getStatut()->getNom() !== Preparation::STATUT_PREPARE ? true : false),
             'articles' => $this->articleRepository->getArticleByRefId(),
         ]);
     }
@@ -320,29 +320,25 @@ class PreparationController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
             $em = $this->getDoctrine()->getManager();
-            
+
+            //modification des articles  de la demande 
             $demande = $this->demandeRepository->find($data);
             $articles = $demande->getArticles();
             foreach ($articles as $article) {
                 if ($article->getQuantite() !== $article->getWithdrawQuantity()) {
-                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_INACTIF);
                     $article
-                        ->setQuantite($article->getWithdrawQuantity())
-                        // ->setWithdrawQuantity()
-                        ->setStatut($statut);
-                    $em->flush();
+                        ->setQuantite($article->getWithdrawQuantity());
                 }
-                return new JsonResponse('le message est bon');
             }
-            throw new NotFoundHttpException('404');
+
+            //modif du statut de la preparation
+            $preparation = $demande->getPreparation();
+            $statutEDP = $this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_EN_COURS_DE_PREPARATION);
+            $preparation->setStatut($statutEDP);
+            $em->flush();
+
+            return new JsonResponse($statutEDP->getLabel());
         }
-
-
-        // return new Response(
-        //     '<html><body>'. var_dump($article). ' </body></html>'
-        // );
-        return $this->redirectToRoute('livraison_new', [
-            'id' => $demande->getPreparation()->getId(),
-        ]);
+        throw new NotFoundHttpException('404');
     }
 }

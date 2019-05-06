@@ -18,6 +18,7 @@ class Article
     const CATEGORIE = 'article';
     const STATUT_ACTIF = 'actif';
     const STATUT_INACTIF = 'inactif';
+    const STATUT_EN_TRANSIT = 'en transit';
     const CONFORM = 1;
     const NOT_CONFORM = 0;
 

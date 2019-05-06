@@ -27,7 +27,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-
+use App\Entity\Article;
 
 /**
  * @Route("/demande")
@@ -167,11 +167,12 @@ class DemandeController extends AbstractController
 
             $em->persist($preparation);
 
-            // Scission des articles dont la quantité prélever n'est pas total
+            // Scission des articles dont la quantité prélever n'est pas total  
             $articles = $demande->getArticles();
+
             foreach ($articles as $article) {
                 if ($article->getQuantite() !== $article->getWithdrawQuantity()) {
-
+                    
                     $newArticle = [
                         'articleFournisseur' => $article->getArticleFournisseur()->getId(),
                         'libelle' => $article->getLabel(),
@@ -187,21 +188,15 @@ class DemandeController extends AbstractController
                             $valeurChampLibre->getChampLibre()->getId() => $valeurChampLibre->getValeur(),
                         ];
                     }
-
                     $dateArticle = array_merge($newArticle, $newArticleVCL);
                     $this->articleDataService->newArticle($dateArticle);
-
-                    // $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_INACTIF);
-                    // $article
-                    //     ->setQuantite($article->getWithdrawQuantity())
-                    //     // ->setWithdrawQuantity()
-                    //     ->setStatut($statut);
                 }
+                //modification du statut article =>en transit
+                $article->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
             }
-
-
             $em->flush();
-
+            
+            //renvoie de l'entete avec modification
             $data = [
                 'entete' => $this->renderView(
                     'demande/enteteDemandeLivraison.html.twig',

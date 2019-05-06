@@ -37,7 +37,7 @@ let startPreparation = function (value) {
             $('#startPreparation').addClass('d-none');
             $('#finishPreparation').removeClass('d-none');
             tableArticle.ajax.reload();
-            $('#msg').html(data);
+            $('#statutPreparation').html(data);
         }
     }
     path = Routing.generate('preparation_withdraw_articles', true);

@@ -20,52 +20,53 @@ class StatutFixtures extends Fixture implements DependentFixtureInterface, Fixtu
 
     public function load(ObjectManager $manager)
     {
-//        categorie referenceArticle
-          $statutsNames = [
-             'actif',
-             'inactif'
-         ];
+        //        categorie referenceArticle
+        $statutsNames = [
+            'actif',
+            'inactif'
+        ];
 
-         foreach ($statutsNames as $statutName) {
-             $statut = new Statut();
-             $statut
-                 ->setNom($statutName)
-                 ->setCategorie($this->getReference('statut-referenceArticle'));
-             $manager->persist($statut);
-         }
+        foreach ($statutsNames as $statutName) {
+            $statut = new Statut();
+            $statut
+                ->setNom($statutName)
+                ->setCategorie($this->getReference('statut-referenceArticle'));
+            $manager->persist($statut);
+        }
 
-         // catégorie article
-         $statutsNames = [
-             'actif',
-             'inactif'
-         ];
+        // catégorie article
+        $statutsNames = [
+            'actif',
+            'inactif',
+            'en transit'
+        ];
 
-         foreach ($statutsNames as $statutName) {
-             $statut = new Statut();
-             $statut
-                 ->setNom($statutName)
-                 ->setCategorie($this->getReference('statut-article'));
-             $manager->persist($statut);
-         }
-
-
-         // catégorie demande de collecte
-         $statutsNames = [
-             'brouillon',
-             'à traiter',
-             'collecté',
-         ];
-
-         foreach ($statutsNames as $statutName) {
-             $statut = new Statut();
-             $statut
-                 ->setNom($statutName)
-                 ->setCategorie($this->getReference('statut-collecte'));
-             $manager->persist($statut);
-         }
+        foreach ($statutsNames as $statutName) {
+            $statut = new Statut();
+            $statut
+                ->setNom($statutName)
+                ->setCategorie($this->getReference('statut-article'));
+            $manager->persist($statut);
+        }
 
 
-         // catégorie ordre de collecte
+        // catégorie demande de collecte
+        $statutsNames = [
+            'brouillon',
+            'à traiter',
+            'collecté',
+        ];
+
+        foreach ($statutsNames as $statutName) {
+            $statut = new Statut();
+            $statut
+                ->setNom($statutName)
+                ->setCategorie($this->getReference('statut-collecte'));
+            $manager->persist($statut);
+        }
+
+
+        // catégorie ordre de collecte
         $statutsNames = [
             'à traiter',
             'traité',
@@ -164,8 +165,6 @@ class StatutFixtures extends Fixture implements DependentFixtureInterface, Fixtu
         }
 
         $manager->flush();
-
-
     }
 
     public function getDependencies()
@@ -173,8 +172,8 @@ class StatutFixtures extends Fixture implements DependentFixtureInterface, Fixtu
         return [CategorieStatutFixtures::class];
     }
 
-    public static function getGroups():array {
+    public static function getGroups(): array
+    {
         return ['status'];
     }
-
 }

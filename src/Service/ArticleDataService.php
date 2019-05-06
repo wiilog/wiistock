@@ -31,6 +31,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use App\Entity\Demande;
 
 class ArticleDataService
 {
@@ -246,9 +247,10 @@ class ArticleDataService
                 'selection' => $this->templating->render('demande/newRefArticleByQuantiteRefContent.html.twig'),
             ];
         } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-
             $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
-            $articles = $this->articleRepository->getByAFAndInactif($articleFournisseur, $statut);
+            $demandeStatut = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_LIVRE);
+      
+            $articles = $this->articleRepository->getByAFAndActifAndDemandeNullOrStatus($articleFournisseur, $statut, $demandeStatut);
             if (count($articles) < 1) {
                 $articles[] = [
                     'id' => '',
@@ -473,5 +475,4 @@ class ArticleDataService
 
         return $row;
     }
-
 }

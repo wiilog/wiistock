@@ -7,7 +7,7 @@
 <div class="row">
     <div class="col-4">
         <p><strong> Numéro : </strong> {{ preparation.numero }}</p>
-        <p><strong> Statut :</strong> {{ preparation.statut.nom }}</p>
+        <p id="statutPreparation"><strong> Statut :</strong> {{ preparation.statut.nom }}</p>
         <p><strong> Point de livraison :</strong> {{ demande.destination.label }}</p>
     </div>
     <div class="col-4">
@@ -22,19 +22,22 @@
         <!-- <a href="" data-toggle="modal" data-target="#modalNewArticle" class="btn btn-primary ml-auto">
             Ajouter un article</a> -->
         {% if finished %}
-        {% if hasRight(constant('App\\Entity\\Menu::LIVRAISON'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+            {% if hasRight(constant('App\\Entity\\Menu::LIVRAISON'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
         <a href="#" class="btn btn-danger btn-action ml-auto" data-target='#modalDeletePreparation'
             data-toggle='modal'>Supprimer</a>
-            {% if statut %}
-            <button onclick="startPreparation($(this))" id="startPreparation" value="{{demande.id}}" class="btn btn-primary btn-action ml-auto">Commencer
-                la préparation</button>
+
+                {% if statut %}
+                <button onclick="startPreparation($(this))" id="startPreparation" value="{{demande.id}}"
+                        class="btn btn-primary btn-action ml-auto">Commencerla préparation</button>
+
                 <a id='finishPreparation' href="{{path('livraison_new', {'id': preparation.id}) }}"
-                class="btn btn-primary btn-action ml-auto d-none">Valider</a>
-            {% else %}
-            <a href="{{path('livraison_new', {'id': preparation.id}) }}"
-                class="btn btn-primary btn-action ml-auto">Valider</a>
+                         class="btn btn-primary btn-action ml-auto d-none">Valider</a>
+                {% else %}
+                <a href="{{path('livraison_new', {'id': preparation.id}) }}"
+                        class="btn btn-primary btn-action ml-auto">Valider</a>
+                {% endif %}
+
             {% endif %}
-        {% endif %}
         {% elseif preparation.livraisons is not empty %}
         <a href="{{path('livraison_show', {'id': preparation.livraisons.0.id})}}"
             class="btn btn-primary btn-action ml-auto">Aller vers la livraison</a>
