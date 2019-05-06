@@ -32,7 +32,7 @@ use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Doctrine\ORM\EntityManagerInterface;
 
-class ArticleDataService
+class EmplacementDataService
 {
     /**
      * @var ReferenceArticleRepository
@@ -168,11 +168,11 @@ class ArticleDataService
     {
         $url['edit'] = $this->router->generate('emplacement_edit', ['id' => $emplacement->getId()]);
 
-        $row[] = [
-                    'id' => $emplacement->getId(),
-                    'Nom' => $emplacement->getLabel(),
-                    'Description' => $emplacement->getDescription(),
-                    'Actions' => $this->renderView('emplacement/datatableEmplacementRow.html.twig', [
+        $row = [
+                    'id' => ($emplacement->getId() ? $emplacement->getId() : 'Non défini'),
+                    'Nom' => ($emplacement->getLabel() ? $emplacement->getLabel() : 'Non défini'),
+                    'Description' => ($emplacement->getDescription() ? $emplacement->getDescription() : 'Non défini'),
+                    'Actions' => $this->templating->render('emplacement/datatableEmplacementRow.html.twig', [
                         'url' => $url,
                         'emplacementId' => $emplacement->getId(),
                     ]),

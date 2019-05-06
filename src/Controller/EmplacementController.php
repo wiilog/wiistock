@@ -11,6 +11,7 @@ use App\Repository\EmplacementRepository;
 use App\Repository\LivraisonRepository;
 use App\Repository\MouvementRepository;
 use App\Service\UserService;
+use App\Service\EmplacementDataService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -24,6 +25,11 @@ use App\Repository\ArticleRepository;
  */
 class EmplacementController extends AbstractController
 {
+
+    /**
+     * @var EmplacementDataService
+     */
+    private $EmplacementDataService;
 
     /**
      * @var EmplacementRepository
@@ -61,8 +67,9 @@ class EmplacementController extends AbstractController
     private $userService;
 
 
-    public function __construct(ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, UserService $userService, DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, CollecteRepository $collecteRepository, MouvementRepository $mouvementRepository)
+    public function __construct(EmplacementDataService $emplacementDataService, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, UserService $userService, DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, CollecteRepository $collecteRepository, MouvementRepository $mouvementRepository)
     {
+        $this->emplacementDataService = $emplacementDataService;
         $this->emplacementRepository = $emplacementRepository;
         $this->articleRepository = $articleRepository;
         $this->userService = $userService;
