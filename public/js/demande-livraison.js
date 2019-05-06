@@ -187,7 +187,7 @@ function initNewLivraisonEditor(modal) {
 
     if (!editorNewLivraisonAlreadyDone) {
 
-        initEditor(modal);
+        initEditor2('.editor-container-new');
         editorNewLivraisonAlreadyDone = true;
 
     }
@@ -257,6 +257,7 @@ function ajaxGetAndFillArticle(select) {
             modalFooter.removeClass('d-none');
             displayRequireChamp($('#typeEdit'), 'edit');
             initEditor2('#editor-container');
+            ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
         })
     }
 }

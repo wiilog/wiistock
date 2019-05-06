@@ -228,7 +228,7 @@ function editRow(button, path, modal, submit, editorToInit = false) {
                 setMaxQuantityEdit($('#referenceEdit'));
             }
 
-            if (editorToInit) initEditor2('#editor-container');
+            if (editorToInit) initEditor2('#editor-container-edit');
         }
     }
     let id = button.data('id');
@@ -310,25 +310,25 @@ function initEditor2(div) {
 };
 
 //passe de l'éditeur à l'imput pour insertion en BDD par la class editor-container
-function setCommentaire(button) {
-    let modal = button.closest('.modal');
-    let container = '#editor-container';
-    var quill = new Quill(container);
+function setCommentaire(div) {
     // let commentaire = modal.find('input[id=commentaire]');
-    com = quill.container.innerHTML;
+    let container = div;
+    var quill = new Quill(container);
+    com = quill.container.firstChild.innerHTML;
+    
     $('#commentaire').val(com);
 
 };
 
 //passe de l'éditeur à l'imput pour insertion en BDD par l'id commentaireID (cas de conflit avec la class)
-function setCommentaireID(button) {
-    let modal = button.closest('.modal');
-    let container = '#' + modal.attr('id') + ' .editor-container';
-    var quill = new Quill(container);
-    // let commentaire = modal.find('input[id=commentaireID]');
-    com = quill.container.firstChild.innerHTML;
-    $('#commentaireID').val(com);
-};
+// function setCommentaireID(button) {
+//     let modal = button.closest('.modal');
+//     let container = '#' + modal.attr('id') + ' .editor-container';
+//     var quill = new Quill(container);
+//     // let commentaire = modal.find('input[id=commentaireID]');
+//     com = quill.container.firstChild.innerHTML;
+//     $('#commentaireID').val(com);
+// };
 
 
 //FONCTION REFARTICLE

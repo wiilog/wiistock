@@ -395,7 +395,7 @@ let ajaxEditArticle = function (select) {
 var editorNewReferenceArticleAlreadyDone = false;
 function initNewReferenceArticleEditor(modal) {
     if (!editorNewReferenceArticleAlreadyDone) {
-        initEditor(modal);
+        initEditor2('.editor-container-new');
         editorNewReferenceArticleAlreadyDone = true;
     }
     ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseur'));

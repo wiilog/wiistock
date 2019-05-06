@@ -13,7 +13,7 @@
         {% if hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
         <a href="" data-id='{{ demande.id }}' data-target='#modalEditDemande'
             onclick="editRow($(this), Routing.generate('demandeLivraison_api_edit', true), $('#modalEditDemande'), $('#submitEditdemande'), true)"
-            data-toggle='modal' class="btn btn-primary btn-action ml-auto" onclick=>
+            data-toggle='modal' class="btn btn-primary btn-action ml-auto" >
             Modifier</a>
         {% endif %}
         {% if hasRight(constant('App\\Entity\\Menu::PREPA'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
