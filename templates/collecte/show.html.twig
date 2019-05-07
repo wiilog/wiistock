@@ -18,7 +18,7 @@
             {% endif %}
             {% if hasRight(constant('App\\Entity\\Menu::DEM_COLLECTE'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
                 <a href="#" data-id='{{collecte.id}}' data-target='#modalEditCollecte' data-toggle='modal'
-                   onclick="editRow($(this), Routing.generate('collecte_api_edit', true), $('#modalEditCollecte'), $('#submitEditCollecte'), true)"
+                   onclick="editRow($(this), Routing.generate('collecte_api_edit', true), $('#modalEditCollecte'), $('#submitEditCollecte'), true) "
                    class="btn btn-primary btn-action ml-auto">
                     Modifier</a>
             {% endif %}

@@ -23,6 +23,7 @@ use App\Repository\LivraisonRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\LigneArticleRepository;
 use App\Repository\CategorieCLRepository;
+use App\Repository\EmplacementRepository;
 
 use App\Service\RefArticleDataService;
 use App\Service\ArticleDataService;
@@ -48,7 +49,10 @@ use App\Repository\FournisseurRepository;
  */
 class ReferenceArticleController extends Controller
 {
-
+    /**
+         * @var EmplacementRepository
+         */
+    private $emplacementRepository;
     /**
      * @var ArticleRepository
      */
@@ -135,8 +139,9 @@ class ReferenceArticleController extends Controller
     private $categorieCLRepository;
 
 
-    public function __construct(FournisseurRepository $fournisseurRepository, CategorieCLRepository $categorieCLRepository, LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, ArticleDataService $articleDataService, LivraisonRepository $livraisonRepository, DemandeRepository $demandeRepository, CollecteRepository $collecteRepository, StatutRepository $statutRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FilterRepository $filterRepository, RefArticleDataService $refArticleDataService, UserService $userService)
+    public function __construct(EmplacementRepository $emplacementRepository, FournisseurRepository $fournisseurRepository, CategorieCLRepository $categorieCLRepository, LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, ArticleDataService $articleDataService, LivraisonRepository $livraisonRepository, DemandeRepository $demandeRepository, CollecteRepository $collecteRepository, StatutRepository $statutRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FilterRepository $filterRepository, RefArticleDataService $refArticleDataService, UserService $userService)
     {
+        $this->emplacementRepository = $emplacementRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->champsLibreRepository = $champsLibreRepository;
         $this->valeurChampsLibreRepository = $valeurChampsLibreRepository;
@@ -197,6 +202,11 @@ class ReferenceArticleController extends Controller
                         "data" => 'Quantité',
                         "class" => (in_array('Quantité', $colonmVisible) ? 'fixe' : 'libre')
                     ],
+                    [
+                        "title" => 'Emplacement',
+                        "data" => 'Emplacement',
+                        "class" => (in_array('Emplacement', $colonmVisible) ? 'fixe' : 'libre')
+                    ],
 
                 ];
                 foreach ($champs as $champ) {
@@ -231,6 +241,11 @@ class ReferenceArticleController extends Controller
                     [
                         "title" => 'Quantité',
                         "data" => 'Quantité',
+                        "class" => 'fixe'
+                    ],
+                    [
+                        "title" => 'Emplacement',
+                        "data" => 'Emplacement',
                         "class" => 'fixe'
                     ],
                 ];
@@ -270,6 +285,9 @@ class ReferenceArticleController extends Controller
     public function new(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            
+       
+           
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
@@ -282,12 +300,19 @@ class ReferenceArticleController extends Controller
             } else {
                 $requiredCreate = true;
                 $type = $this->typeRepository->find($data['type']);
+                
+                if ($data['emplacement'] !== NULL) {
+                    $emplacement = $this->emplacementRepository->find($data['emplacement']);
+                } else {
+                    $emplacement = NULL;
+                };
                 $CLRequired = $this->champsLibreRepository->getByTypeAndRequiredCreate($type);
                 foreach ($CLRequired as $CL) {
                     if (array_key_exists($CL['id'], $data) and $data[$CL['id']] === "") {
                         $requiredCreate = false;
                     }
                 }
+                
                 if ($requiredCreate) {
                     $em = $this->getDoctrine()->getManager();
                     $statut = ($data['statut'] === 'active' ? $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF) : $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_INACTIF));
@@ -298,7 +323,8 @@ class ReferenceArticleController extends Controller
                         ->setCommentaire($data['commentaire'])
                         ->setStatut($statut)
                         ->setTypeQuantite($data['type_quantite'] ? ReferenceArticle::TYPE_QUANTITE_REFERENCE : ReferenceArticle::TYPE_QUANTITE_ARTICLE)
-                        ->setType($type);
+                        ->setType($type)
+                        ->setEmplacement($emplacement);
                     if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                         $refArticle->setQuantiteStock($data['quantite'] ? $data['quantite'] : 0);
                     }
@@ -347,6 +373,7 @@ class ReferenceArticleController extends Controller
                         "Référence" => $refArticle->getReference(),
                         "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
                         "Quantité" => $refArticle->getQuantiteStock(),
+                        "Emplacement" => $emplacement,
                         'Actions' => $this->renderView('reference_article/datatableReferenceArticleRow.html.twig', [
                             'idRefArticle' => $refArticle->getId(),
                         ]),
@@ -412,12 +439,17 @@ class ReferenceArticleController extends Controller
             'id' => 0,
             'typage' => 'number'
         ];
+        $champ[] = [
+            'label' => 'Emplacement',
+            'id' => 0,
+            'typage' => 'text'
+        ];
         $champs = array_merge($champ, $champL);
 
-        $champsVisibleDefault = ['Actions', 'Libellé', 'Référence', 'Type', 'Quantité'];
+        $champsVisibleDefault = ['Actions', 'Libellé', 'Référence', 'Type', 'Quantité', 'Emplacement'];
 
         $types = $this->typeRepository->getIdAndLabelByCategoryLabel(ReferenceArticle::CATEGORIE_TYPE);
-
+        $emplacements = $this->emplacementRepository->findAll();
         $typeChampLibre =  [];
 
         foreach ($types as $type) {
@@ -433,6 +465,7 @@ class ReferenceArticleController extends Controller
             'champsVisible' => ($this->getUser()->getColumnVisible() !== null ? $this->getUser()->getColumnVisible() : $champsVisibleDefault),
             'typeChampsLibres' => $typeChampLibre,
             'types' => $types,
+            'emplacements' => $emplacements,
             'typeQuantite' => $typeQuantite,
             'filters' => $this->filterRepository->findBy(['utilisateur' => $this->getUser()]),
         ]);
@@ -588,7 +621,6 @@ class ReferenceArticleController extends Controller
             $refArticle = (isset($data['refArticle']) ? $this->referenceArticleRepository->find($data['refArticle']) : '');
             //ajout demande
             if (array_key_exists('livraison', $data) && $data['livraison']) {
-
                 $demande = $this->demandeRepository->find($data['livraison']);
                 if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                     $response = $this->refArticleDataService->editRefArticle($refArticle, $data);
@@ -643,7 +675,6 @@ class ReferenceArticleController extends Controller
     public function ajaxPlusDemandeContent(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-
             $refArticle = $this->referenceArticleRepository->find($data['id']);
 
             if ($refArticle) {
@@ -711,7 +742,7 @@ class ReferenceArticleController extends Controller
         throw new NotFoundHttpException("404");
     }
 
-    /** 
+    /**
      * @Route("/colonne-visible", name="save_column_visible", options={"expose"=true}, methods="GET|POST")
      */
     public function saveColumnVisible(Request $request): Response

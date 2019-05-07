@@ -34,13 +34,13 @@ let submitDeleteArticle = $("#submitDeleteArticle");
 let urlDeleteArticle = Routing.generate('article_delete', true);
 InitialiserModalArticle(modalDeleteArticle, submitDeleteArticle, urlDeleteArticle);
 
-var editorEditArticleAlreadyDone = false;
-function initEditArticleEditor(modal) {
-    if (!editorEditArticleAlreadyDone) {
-        initEditor(modal);
-        editorEditArticleAlreadyDone = true;
-    }
-};
+// var editorEditArticleAlreadyDone = false;
+// function initEditArticleEditor(modal) {
+//     if (!editorEditArticleAlreadyDone) {
+//         initEditor(modal);
+//         editorEditArticleAlreadyDone = true;
+//     }
+// };
 
 let resetNewArticle = function (element) {
     element.removeClass('d-block');
@@ -163,7 +163,7 @@ function init() {
     ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseur'));
 }
 function initNewArticleEditor(modal) {
-    initEditor(modal);
+    initEditor2('.editor-container-new');
 };
 
 function loadAndDisplayInfos(select) {
