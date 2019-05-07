@@ -125,7 +125,7 @@ class UserService
     {
         $idUser = $utilisateur->getId();
         $roles = $this->roleRepository->findAll();
-        // $url['edit'] = $this->router->generate('fournisseur_edit', ['id' => $fournisseurId]);
+        
         $row = [
             
                 'id' => ($utilisateur->getId() ? $utilisateur->getId() : 'Non défini'),
@@ -140,18 +140,7 @@ class UserService
                                 ]
                             ),
                         ];
-
-
-
-
-
-            //    "Nom" => $fournisseur->getNom(),
-            //    "Code de référence" => $fournisseur->getCodeReference(),
-            //    'Actions' => $this->templating->render('fournisseur/datatableFournisseurRow.html.twig', [
-            //                  'url' => $url,
-            //                  'fournisseurId' => $fournisseurId
-            //         ]),
-            //         ];
+           
         return $row;
     }
 }
