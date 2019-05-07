@@ -369,8 +369,8 @@ class LivraisonController extends AbstractController
             $dateMax = $data['dateMax'] . ' 23:59:59';
             $livraisons = [];
             foreach ($data['users'] as $username) {
-                $user = $this->utilisateurRepository->getByUsername($username)[0];
-                $livraisonsUser = $this->demandeRepository->getByDatesAndUsername($dateMin, $dateMax, $user);
+                $user = $this->utilisateurRepository->findOneByUsername($username);
+                $livraisonsUser = $this->demandeRepository->findByDatesAndUsername($dateMin, $dateMax, $user);
                 $livraisons = array_merge($livraisons, $livraisonsUser);
             }
             $data = [];

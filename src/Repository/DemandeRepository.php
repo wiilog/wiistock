@@ -5,7 +5,6 @@ namespace App\Repository;
 use App\Entity\Demande;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
-use Symfony\Component\Validator\Constraints\DateTime;
 
 /**
  * @method Demande|null find($id, $lockMode = null, $lockVersion = null)
@@ -94,7 +93,7 @@ class DemandeRepository extends ServiceEntityRepository
         return $query->getOneOrNullResult();
     }
 
-    public function getByDatesAndUsername($dateMin, $dateMax, $user)
+    public function findByDatesAndUsername($dateMin, $dateMax, $user)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(

@@ -6,19 +6,26 @@
 {% for menu in menus %}
     <div class="form-group">
         <div class="row">
-            <div style="width: 18%; margin-left: 1em;">
+            <div class="col-3">
                 <label>{{ menu.label }}</label>
             </div>
 
             {% for action in menu.actions %}
                 {% set checked = (action.id in actionsIdOfRole) ? 'checked' : '' %}
-                <div style="width: 20%">
-                    <label class="switch">
-                        <input class="checkbox" type="checkbox" {{ checked }} name="{{ menu.code~'/'~action.label }}">
-                        <span class="slider round"></span>
-                    </label>
-                    {{ action.label }}
-                </div>
+                {% if(loop.index % 3 == 1 and loop.index != 1) %}
+        </div>
+        <div class="row mt-3">
+                    {% set offset = 'offset-3' %}
+                {% else %}
+                    {% set offset = '' %}
+                {% endif %}
+                <div class="col-3 {{ offset }}">
+                        <label class="switch">
+                            <input class="checkbox" type="checkbox" {{ checked }} name="{{ menu.code~'/'~action.label }}">
+                            <span class="slider round"></span>
+                        </label>
+                        {{ action.label }}
+                    </div>
             {% endfor %}
         </div>
     </div>

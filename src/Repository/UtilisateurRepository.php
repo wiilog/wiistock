@@ -80,7 +80,7 @@ class UtilisateurRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function getByUsername($search)
+    public function findOneByUsername($search)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
@@ -89,7 +89,7 @@ class UtilisateurRepository extends ServiceEntityRepository
           WHERE u.username = :search"
         )->setParameter('search', $search);
 
-        return $query->execute();
+        return $query->getOneOrNullResult();
     }
 
     public function countByRoleId($roleId)

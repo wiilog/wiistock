@@ -197,10 +197,9 @@ function initNewLivraisonEditor(modal) {
 $('#submitSearchDemandeLivraison').on('click', function () {
 
     let statut = $('#statut').val();
-    let utilisateur = [];
-    utilisateur = $('#utilisateur').val()
-    utilisateurString = utilisateur.toString();
-    utilisateurPiped = utilisateurString.split(',').join('|');
+    let utilisateur = $('#utilisateur').val()
+    let utilisateurString = utilisateur.toString();
+    let utilisateurPiped = utilisateurString.split(',').join('|');
     tableDemande
         .columns('Statut:name')
         .search(statut)
@@ -309,7 +308,7 @@ let generateCSV = function () {
                 $('.error-msg').empty();
                 let csv = "";
                 $.each(response, function (index, value) {
-                    csv += value.join();
+                    csv += value.join(';');
                     csv += '\n';
                 });
                 dlFile(csv);
@@ -329,7 +328,7 @@ let generateCSV = function () {
         xhttp.open("POST", Routing.generate('get_livraisons_for_csv'), true);
         xhttp.send(json);
     } else {
-        $('.error-msg').html('<p>Saisissez une date de départ, une date de fin et un utilisateur dans le filtre en entete de page.</p>');
+        $('.error-msg').html('<p>Saisissez une date de départ, une date de fin et un utilisateur dans le filtre en en-tête de page.</p>');
     }
 }
 
