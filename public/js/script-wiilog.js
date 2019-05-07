@@ -211,7 +211,7 @@ function editRow(button, path, modal, submit, editorToInit = false) {
                 setMaxQuantityEdit($('#referenceEdit'));
             }
 
-            if (editorToInit) initEditor2('#editor-container-edit');
+            if (editorToInit) initEditor2('.editor-container-edit');
         }
     }
     let id = button.data('id');

@@ -7,6 +7,7 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function () 
 }
 
 function submitActionRefArticle(modal, path, callback = function () { }, close = true) {
+    console.log('hell');
     xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
@@ -23,14 +24,15 @@ function submitActionRefArticle(modal, path, callback = function () { }, close =
             callback(data);
             initRemove();
             clearModalRefArticle(modal);
-
+            
             if (path === Routing.generate('save_column_visible', true)) {
                 tableColumnVisible.search('').draw()
             } else if (this.readyState == 4 && this.status == 250) {
                 $('#cannotDeleteArticle').click();
             }
         };
-
+        
+        console.log('hellazezae');
 
         let { Data, missingInputs, wrongInputs } = getDataFromModal(modal);
 
@@ -163,27 +165,27 @@ InitialiserModalRefArticle(ModalRefArticleNew, ButtonSubmitRefArticleNew, urlRef
 let ModalDeleteRefArticle = $("#modalDeleteRefArticle");
 let SubmitDeleteRefArticle = $("#submitDeleteRefArticle");
 let urlDeleteRefArticle = Routing.generate('reference_article_delete', true);
-InitialiserModalRefArticle(ModalDeleteRefArticle, SubmitDeleteRefArticle, urlDeleteRefArticle);
+InitialiserModalRefArticle(ModalDeleteRefArticle, SubmitDeleteRefArticle, urlDeleteRefArticle, displayErrorRA, true);
 
 let modalModifyRefArticle = $('#modalEditRefArticle');
 let submitModifyRefArticle = $('#submitEditRefArticle');
 let urlModifyRefArticle = Routing.generate('reference_article_edit', true);
-InitialiserModalRefArticle(modalModifyRefArticle, submitModifyRefArticle, urlModifyRefArticle);
+InitialiserModalRefArticle(modalModifyRefArticle, submitModifyRefArticle, urlModifyRefArticle, displayErrorRA, true);
 
 let modalPlusDemande = $('#modalPlusDemande');
 let submitPlusDemande = $('#submitPlusDemande');
 let urlPlusDemande = Routing.generate('plus_demande', true);
-InitialiserModalRefArticle(modalPlusDemande, submitPlusDemande, urlPlusDemande);
+InitialiserModalRefArticle(modalPlusDemande, submitPlusDemande, urlPlusDemande, displayErrorRA, true);
 
 let modalColumnVisible = $('#modalColumnVisible');
 let submitColumnVisible = $('#submitColumnVisible');
 let urlColumnVisible = Routing.generate('save_column_visible', true);
-InitialiserModalRefArticle(modalColumnVisible, submitColumnVisible, urlColumnVisible);
+InitialiserModalRefArticle(modalColumnVisible, submitColumnVisible, urlColumnVisible, displayErrorRA, true);
 
 let modalNewFilter = $('#modalNewFilter');
 let submitNewFilter = $('#submitNewFilter');
 let urlNewFilter = Routing.generate('filter_new', true);
-InitialiserModalRefArticle(modalNewFilter, submitNewFilter, urlNewFilter, displayNewFilter);
+InitialiserModalRefArticle(modalNewFilter, submitNewFilter, urlNewFilter, displayNewFilter, displayErrorRA, true);
 
 let url = Routing.generate('ref_article_api', true);
 
