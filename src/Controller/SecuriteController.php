@@ -67,6 +67,9 @@ class SecuriteController extends Controller
         // last username entered by the user
         $lastUsername = $authenticationUtils->getLastUsername();
 
+        dump('hello');
+
+
         return $this->render('securite/login.html.twig', [
             'controller_name' => 'SecuriteController',
             'last_username' => $lastUsername,
@@ -112,9 +115,15 @@ class SecuriteController extends Controller
     {
         $user = $this->getUser();
 
+dump($user);
+
         if (!$user) {
             throw new UsernameNotFoundException(
                 sprintf('L\'utilisateur n\'existe pas.')
+            );
+        }elseif ($user->getStatus() === false) {
+            throw new UsernameNotFoundException(
+                sprintf('Le compte est inactif')
             );
         }
         $user->setLastLogin(new \Datetime ('', new \DateTimeZone('Europe/Paris')));
