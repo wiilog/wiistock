@@ -11,16 +11,24 @@
             </div>
             <div class="modal-body modal-input container-fluid">
                 <form class="row">
-                    <div class="form-group col-12 d-flex w-100 mb-3">
-                        <label for="reference">Référence CEA</label>
-                        <select class="ajax-autocomplete data form-control needed"
-                            onchange="ajaxGetCollecteArticle(this)" id="reference" name="referenceArticle">
-                        </select>
+                    <div class="col-12">
+                        <div class="form-group col-12 d-flex w-100 mb-3">
+                            <label for="reference">Référence CEA</label>
+                            <select class="ajax-autocomplete data form-control needed"
+                                onchange="ajaxGetFournisseurByRefArticle($(this))" id="reference"
+                                name="refArticle">
+                            </select>
+                        </div>
                     </div>
-                    <div id='selection' class="col-12 clear p-0">
-
+                    <div class="col-12">
+                        <div class="form-group col-12 d-none mb-3" id="fournisseur">
+                            <label for="fournisseur">Fournisseur</label>
+                            <select class="data form-control needed" onchange="getArticleFournisseur()"
+                                id="fournisseurID" name="fournisseur">
+                            </select>
+                        </div>
                     </div>
-                    <div id='editNewArticle' class="col-12 clear">
+                    <div id='newContent' class="col-12 clear">
 
                     </div>
                 </form>

@@ -267,3 +267,65 @@ let ajaxEditArticle = function (select) {
     xhttp.open("POST", path, true);
     xhttp.send(JSON.stringify(json));
 }
+
+let ajaxGetFournisseurByRefArticle = function (select) {
+    let fournisseur = $('#fournisseur');
+    let modalfooter = $('#modalNewArticle').find('.modal-footer');
+    xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            data = JSON.parse(this.responseText);
+            if (data === false) {
+                $('.error-msg').html('Vous ne pouvez par créer d\'article quand la référence CEA est gérée à la référence.');
+            } else {
+                fournisseur.removeClass('d-none');
+                fournisseur.find('select').html(data);
+                $('.error-msg').html('');
+            }
+        }
+    }
+    if (select.val()) {
+        path = Routing.generate('ajax_fournisseur_by_refarticle', true)
+        $('#newContent').html('');
+        fournisseur.addClass('d-none');
+        modalfooter.addClass('d-none')
+        let refArticleId = select.val();
+        let json = {};
+        json['refArticle'] = refArticleId;
+        Json = JSON.stringify(json);
+        xhttp.open("POST", path, true);
+        xhttp.send(Json);
+    }
+}
+
+let getArticleFournisseur = function () {
+    xhttp = new XMLHttpRequest();
+    let $articleFourn = $('#newContent');
+    let modalfooter = $('#modalNewArticle').find('.modal-footer');
+    xhttp.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            data = JSON.parse(this.responseText);
+            if (data.content) {
+                modalfooter.removeClass('d-none')
+                $articleFourn.parent('div').addClass('d-block');
+                $articleFourn.html(data.content);
+                $('.error-msg').html('')
+            } else if (data.error) {
+                $('.error-msg').html(data.error)
+            }
+        }
+    }
+    path = Routing.generate('collecte_article_new_content', true)
+    let data = {};
+    $('#newContent').html('');
+    data['referenceArticle'] = $('#reference').val();
+    data['fournisseur'] = $('#fournisseurID').val();
+    $articleFourn.html('')
+    modalfooter.addClass('d-none')
+    if (data['referenceArticle'] && data['fournisseur']) {
+        json = JSON.stringify(data);
+        xhttp.open("POST", path, true);
+        xhttp.send(json);
+    }
+}
+
