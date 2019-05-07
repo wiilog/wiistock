@@ -106,6 +106,7 @@ class ArticleFournisseurRepository extends ServiceEntityRepository
         }
 
         $query = $qb->getQuery();
+        dump($query);
 
         return $query->getResult();
     }

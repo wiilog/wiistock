@@ -48,6 +48,7 @@ class FournisseurDataService
     {
         $data = $this->getFournisseurDataByParams($params);
         $data['recordsTotal'] = (int)$this->fournisseurRepository->countAll();
+        $data['recordsFiltered'] = (int)$this->fournisseurRepository->countAll();
         return $data;
     }
 

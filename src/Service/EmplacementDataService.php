@@ -49,6 +49,7 @@ class EmplacementDataService
     {
         $data = $this->getEmplacementDataByParams($params);
         $data['recordsTotal'] = (int)$this->emplacementRepository->countAll();
+        $data['recordsFiltered'] = (int)$this->emplacementRepository->countAll();
         return $data;
     }
 

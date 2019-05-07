@@ -139,6 +139,7 @@ class RefArticleDataService
         $userId = $this->user->getId();
         $filters = $this->filterRepository->getFieldsAndValuesByUser($userId);
         $queryResult = $this->referenceArticleRepository->findByFiltersAndParams($filters, $params);
+       
         $refs = $queryResult['data'];
         $count = $queryResult['count'];
 
