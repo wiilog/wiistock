@@ -168,7 +168,7 @@ class OrdreCollecteController extends AbstractController
                         'mails/mailCollecteDone.html.twig',
                         [
                             'collecte' => $demandeCollecte,
-                            '' => ''
+                            
                         ]
                     ),
                     $demandeCollecte->getDemandeur()->getEmail()
