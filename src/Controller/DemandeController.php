@@ -27,7 +27,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-
+use App\Entity\Article;
 
 /**
  * @Route("/demande")
@@ -150,6 +150,10 @@ class DemandeController extends AbstractController
 
             // Creation d'une nouvelle preparation basée sur une selection de demandes
             $demande = $this->demandeRepository->find($data['demande']);
+            $articles = $this->articleRepository->getByDemande($demande);
+            foreach ($articles as $article) {
+                $article->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
+            }
             $preparation = new Preparation();
             $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
             $preparation
@@ -342,7 +346,7 @@ class DemandeController extends AbstractController
     }
 
     /**
-     * @Route("/voir/{id}", name="demande_show", methods={"GET", "POST"})
+     * @Route("/voir/{id}", name="demande_show", options={"expose"=true}, methods={"GET", "POST"})
      */
     public function show(Demande $demande): Response
     {

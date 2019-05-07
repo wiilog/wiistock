@@ -130,6 +130,7 @@ class RefArticleSILIFixtures extends Fixture implements FixtureGroupInterface
 
             // champs libres
             $listFields = [
+                ['label' => 'adresse', 'col' => 2],
                 ['label' => 'famille produit', 'col' => 4],
                 ['label' => "alerte mini", 'col' => 13],
                 ['label' => "alerte prévision", 'col' => 14],
