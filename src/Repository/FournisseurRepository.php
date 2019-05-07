@@ -113,7 +113,7 @@ class FournisseurRepository extends ServiceEntityRepository
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
                     $qb
-                        ->andWhere('a.label LIKE :value OR a.reference LIKE :value')
+                        ->andWhere('a.nom LIKE :value OR a.codeReference LIKE :value')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }

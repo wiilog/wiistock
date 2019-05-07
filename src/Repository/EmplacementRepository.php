@@ -73,7 +73,7 @@ class EmplacementRepository extends ServiceEntityRepository
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
                     $qb
-                        ->andWhere('a.label LIKE :value OR a.reference LIKE :value')
+                        ->andWhere('a.label LIKE :value OR a.description LIKE :value')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }

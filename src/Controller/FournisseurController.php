@@ -76,21 +76,7 @@ class FournisseurController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
             $data = $this->fournisseurDataService->getDataForDatatable($request->request);
-            // $refs = $this->fournisseurRepository->findAll();
-            // $rows = [];
-            // foreach ($refs as $fournisseur) {
-            //     $fournisseurId = $fournisseur->getId();
-            //     $url['edit'] = $this->generateUrl('fournisseur_edit', ['id' => $fournisseurId]);
-            //     $rows[] = [
-            //         "Nom" => $fournisseur->getNom(),
-            //         "Code de référence" => $fournisseur->getCodeReference(),
-            //         'Actions' => $this->renderView('fournisseur/datatableFournisseurRow.html.twig', [
-            //             'url' => $url,
-            //             'fournisseurId' => $fournisseurId
-            //         ]),
-            //     ];
-            // }
-            // $data['data'] = $rows;
+     
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
