@@ -8,13 +8,17 @@ use App\Entity\Collecte;
 use App\Entity\CollecteReference;
 use App\Entity\Menu;
 use App\Entity\OrdreCollecte;
+
 use App\Repository\ArticleRepository;
 use App\Repository\CollecteReferenceRepository;
 use App\Repository\CollecteRepository;
 use App\Repository\OrdreCollecteRepository;
 use App\Repository\StatutRepository;
+use App\Repository\MailerServerRepository;
+
 use App\Service\MailerService;
 use App\Service\UserService;
+
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -61,8 +65,13 @@ class OrdreCollecteController extends AbstractController
      */
     private $mailerService;
 
+    /**
+     * @var MailerServerRepository
+     */
+    private $mailerServerRepository;
 
-    public function __construct(OrdreCollecteRepository $ordreCollecteRepository, StatutRepository $statutRepository, CollecteRepository $collecteRepository, CollecteReferenceRepository $collecteReferenceRepository, UserService $userService, MailerService $mailerService, ArticleRepository $articleRepository)
+
+    public function __construct(MailerServerRepository $mailerServerRepository, OrdreCollecteRepository $ordreCollecteRepository, StatutRepository $statutRepository, CollecteRepository $collecteRepository, CollecteReferenceRepository $collecteReferenceRepository, UserService $userService, MailerService $mailerService, ArticleRepository $articleRepository)
     {
         $this->ordreCollecteRepository = $ordreCollecteRepository;
         $this->statutRepository = $statutRepository;
@@ -71,6 +80,7 @@ class OrdreCollecteController extends AbstractController
         $this->articleRepository = $articleRepository;
         $this->userService = $userService;
         $this->mailerService = $mailerService;
+        $this->mailerServerRepository = $mailerServerRepository;
     }
 
     /**
@@ -148,19 +158,27 @@ class OrdreCollecteController extends AbstractController
                 ->setDate(new \DateTime('now', new \DateTimeZone('Europe/Paris')));
 
             // on modifie le statut de la demande de collecte
-            $demande = $collecte->getDemandeCollecte();
-            $demande->setStatut($this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, Collecte::STATUS_COLLECTE));
+            $demandeCollecte = $collecte->getDemandeCollecte();
+            $demandeCollecte->setStatut($this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, Collecte::STATUS_COLLECTE));
 
-            $this->mailerService->sendMail(
-                'FOLLOW GT // Collecte effectuée',
-                $this->renderView('mails/mailCollecteDone.html.twig', ['collecte' => $demande]),
-                $demande->getDemandeur()->getEmail()
-            );
+            if ($this->mailerServerRepository->findAll()) {
+                $this->mailerService->sendMail(
+                    'FOLLOW GT // Collecte effectuée',
+                    $this->renderView(
+                        'mails/mailCollecteDone.html.twig',
+                        [
+                            'collecte' => $demandeCollecte,
+                            '' => ''
+                        ]
+                    ),
+                    $demandeCollecte->getDemandeur()->getEmail()
+                );
+            }
 
             // on modifie la quantité des articles de référence liés à la collecte
             $ligneArticles = $this->collecteReferenceRepository->getByCollecte($collecte->getDemandeCollecte());
 
-            $addToStock = $demande->getStockOrDestruct();
+            $addToStock = $demandeCollecte->getStockOrDestruct();
 
             // cas de mise en stockage
             if ($addToStock) {
