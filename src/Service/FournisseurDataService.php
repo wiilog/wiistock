@@ -70,7 +70,7 @@ class FournisseurDataService
     }
 
     /**
-     * @param Emplacement $emplacement
+     * @param Fournisseur $fournisseur
      * @return array
      * @throws \Twig_Error_Loader
      * @throws \Twig_Error_Runtime

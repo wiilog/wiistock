@@ -136,12 +136,4 @@ class FournisseurRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
-
-
-
-
-
-
-
-
 }
