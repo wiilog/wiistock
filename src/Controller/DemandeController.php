@@ -27,7 +27,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-
+use App\Entity\Article;
 
 /**
  * @Route("/demande")
@@ -150,6 +150,10 @@ class DemandeController extends AbstractController
 
             // Creation d'une nouvelle preparation basée sur une selection de demandes
             $demande = $this->demandeRepository->find($data['demande']);
+            $articles = $this->articleRepository->getByDemande($demande);
+            foreach ($articles as $article) {
+                $article->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
+            }
             $preparation = new Preparation();
             $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
             $preparation
@@ -352,7 +356,7 @@ class DemandeController extends AbstractController
         }
 
         return $this->render('demande/show.html.twig', [
-            
+
             'demande' => $demande,
             // 'preparation' => $this->preparationRepository->findOneByPreparation($demande),
             'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
@@ -400,7 +404,7 @@ class DemandeController extends AbstractController
                 $rowsCA[] = [
                     "Référence CEA" => ($article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : ''),
                     "Libellé" => ($article->getLabel() ? $article->getLabel() : ''),
-                    "Quantité" =>  ($article->getQuantite() ? $article->getQuantite() : ''),
+                    "Quantité" => ($article->getQuantite() ? $article->getQuantite() : ''),
                     "Actions" => $this->renderView(
                         'demande/datatableLigneArticleRow.html.twig',
                         [
