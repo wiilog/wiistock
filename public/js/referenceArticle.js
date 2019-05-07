@@ -7,7 +7,6 @@ function InitialiserModalRefArticle(modal, submit, path, callback = function () 
 }
 
 function submitActionRefArticle(modal, path, callback = function () { }, close = true) {
-    console.log('hell');
     xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
@@ -24,31 +23,30 @@ function submitActionRefArticle(modal, path, callback = function () { }, close =
             callback(data);
             initRemove();
             clearModalRefArticle(modal);
-            
-            if (path === Routing.generate('save_column_visible', true)) {
-                tableColumnVisible.search('').draw()
-            } else if (this.readyState == 4 && this.status == 250) {
-                $('#cannotDeleteArticle').click();
-            }
-        };
-        
-        console.log('hellazezae');
 
-        let { Data, missingInputs, wrongInputs } = getDataFromModal(modal);
-
-        // si tout va bien on envoie la requête ajax...
-        if (missingInputs.length == 0 && wrongInputs.length == 0) {
-            if (close == true) modal.find('.close').click();
-            modal.find('.error-msg').html('');
-            Json = {};
-            Json = JSON.stringify(Data);
-            xhttp.open("POST", path, true);
-            xhttp.send(Json);
-        } else {
-            // ... sinon on construit les messages d'erreur
-            let msg = buildErrorMsg(missingInputs, wrongInputs);
-            modal.find('.error-msg').html(msg);
+        } else if (this.readyState == 4 && this.status == 250) {
+            $('#cannotDeleteArticle').click();
         }
+    };
+
+    if (path ===  Routing.generate('save_column_visible', true)) {
+        tableColumnVisible.search( '' ).draw()
+    }
+
+    let { Data, missingInputs, wrongInputs } = getDataFromModal(modal);
+
+    // si tout va bien on envoie la requête ajax...
+    if (missingInputs.length == 0 && wrongInputs.length == 0) {
+        if (close == true) modal.find('.close').click();
+        modal.find('.error-msg').html('');
+        Json = {};
+        Json = JSON.stringify(Data);
+        xhttp.open("POST", path, true);
+        xhttp.send(Json);
+    } else {
+        // ... sinon on construit les messages d'erreur
+        let msg = buildErrorMsg(missingInputs, wrongInputs);
+        modal.find('.error-msg').html(msg);
     }
 }
 
