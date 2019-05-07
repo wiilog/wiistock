@@ -28,6 +28,8 @@ use App\Repository\ArticleFournisseurRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\TypeRepository;
 use App\Entity\Article;
+use Proxies\__CG__\App\Entity\Fournisseur;
+use App\Entity\ArticleFournisseur;
 
 /**
  * @Route("/collecte")
@@ -303,7 +305,7 @@ class CollecteController extends AbstractController
             }
 
             $em = $this->getDoctrine()->getManager();
-            $refArticle = $this->referenceArticleRepository->find($data['refArticle']);
+            $refArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
             $collecte = $this->collecteRepository->find($data['collecte']);
             if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                 if ($this->collecteReferenceRepository->countByCollecteAndRA($collecte, $refArticle) > 0) {
@@ -320,19 +322,34 @@ class CollecteController extends AbstractController
                 }
                 $this->refArticleDataService->editRefArticle($refArticle, $data);
             } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+                $fournisseurTemp = $this->fournisseurRepository->findOneByCodeReference('A_DETERMINER');
+                if (!$fournisseurTemp) {
+                    $fournisseurTemp = new Fournisseur();
+                    $fournisseurTemp
+                        ->setCodeReference('A_DETERMINER')
+                        ->setNom('A DETERMINER');
+                    $em->persist($fournisseurTemp);
+                }
                 for ($i = 0; $i < $data['quantitie']; $i++) {
                     $toInsert = new Article();
                     $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_INACTIF);
                     $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
                     $ref = $date->format('YmdHis');
+                    $articleFournisseur = new ArticleFournisseur();
+                    $articleFournisseur
+                        ->setReferenceArticle($refArticle)
+                        ->setFournisseur($fournisseurTemp)
+                        ->setReference($refArticle->getReference())
+                        ->setLabel('A déterminer -' . $i);
+                    $em->persist($articleFournisseur);
                     $toInsert
-                        ->setLabel($data['label'])
+                        ->setLabel($refArticle->getLibelle() . '-' . $i)
                         ->setConform(true)
                         ->setStatut($statut)
                         ->setReference($ref . '-' . $i)
                         ->setQuantite(1)
                         ->setEmplacement($collecte->getPointCollecte())
-                        ->setArticleFournisseur($this->articleFournisseurRepository->find($data['articleFournisseur']))
+                        ->setArticleFournisseur($articleFournisseur)
                         ->setType($refArticle->getType());
                     $em->persist($toInsert);
                     $collecte->addArticle($toInsert);
