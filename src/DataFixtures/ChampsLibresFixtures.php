@@ -173,20 +173,35 @@ class ChampsLibresFixtures extends Fixture implements FixtureGroupInterface
             ['label' => "alerte prévision", 'type' => ChampsLibre::TYPE_NUMBER],
         ];
 
+        // patch pour champs libres articles -> articles de référence
+        $listFieldsRefArticlePDT = [
+            ['label' => "prix unitaire", 'type' => ChampsLibre::TYPE_TEXT],
+            ['label' => "date entrée", 'type' => ChampsLibre::TYPE_DATE],
+            ['label' => "adresse", 'type' => ChampsLibre::TYPE_TEXT],
+        ];
+
+        $listFieldsRefArticleCSP = [
+            ['label' => "adresse", 'type' => ChampsLibre::TYPE_TEXT],
+            ['label' => "prix unitaire", 'col' => 9, 'type' => ChampsLibre::TYPE_TEXT],
+            ['label' => "date entrée", 'col' => 10, 'type' => ChampsLibre::TYPE_DATE],
+            ['label' => "péremptions", 'col' => 14, 'type' => ChampsLibre::TYPE_DATE],
+        ];
+
+
         // PDT
         foreach ($listFieldsRefArticlePDT as $field) {
             $this->createCL($manager, $field, Type::LABEL_PDT, CategorieCL::REFERENCE_ARTICLE);
         }
-        foreach ($listFieldsArticlePDT as $field) {
-            $this->createCL($manager, $field, Type::LABEL_PDT, CategorieCL::ARTICLE);
-        }
-        // CSP
+//        foreach ($listFieldsArticlePDT as $field) {
+//            $this->createCL($manager, $field, Type::LABEL_PDT, CategorieCL::ARTICLE);
+//        }
+//        // CSP
         foreach ($listFieldsRefArticleCSP as $field) {
             $this->createCL($manager, $field, Type::LABEL_CSP, CategorieCL::REFERENCE_ARTICLE);
         }
-        foreach ($listFieldsArticleCSP as $field) {
-            $this->createCL($manager, $field, Type::LABEL_CSP, CategorieCL::ARTICLE);
-        }
+//        foreach ($listFieldsArticleCSP as $field) {
+//            $this->createCL($manager, $field, Type::LABEL_CSP, CategorieCL::ARTICLE);
+//        }
         // SILI
         foreach ($listFieldsSILI as $field) {
             $this->createCL($manager, $field, Type::LABEL_SILI, CategorieCL::REFERENCE_ARTICLE);

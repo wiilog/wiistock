@@ -21,4 +21,4 @@
 ###> lexik/jwt-authentication-bundle ###
 /config/jwt/*.pem
 
-/scr/DataFixtures/Csv
+# /scr/DataFixtures/Csv
