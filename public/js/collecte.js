@@ -269,6 +269,8 @@ let ajaxEditArticle = function (select) {
 }
 
 let ajaxGetFournisseurByRefArticle = function (select) {
+    let selection = $('#selection');
+    let editNewArticle = $('#editNewArticle');
     let fournisseur = $('#fournisseur');
     let modalfooter = $('#modalNewArticle').find('.modal-footer');
     xhttp = new XMLHttpRequest();
@@ -279,13 +281,21 @@ let ajaxGetFournisseurByRefArticle = function (select) {
                 $('.error-msg').html('Vous ne pouvez par créer d\'article quand la référence CEA est gérée à la référence.');
             } else {
                 fournisseur.removeClass('d-none');
+                fournisseur.addClass('needed');
                 fournisseur.find('select').html(data);
                 $('.error-msg').html('');
             }
+        } else if (this.readyState == 4 && this.status == 250) {
+            data = JSON.parse(this.responseText);
+            selection.html(data.selection);
+            editNewArticle.html(data.modif);
+            $('#modalNewArticle').find('.modal-footer').removeClass('d-none');
+            displayRequireChamp($('#typeEdit'), 'edit');
+            initEditor2();
         }
     }
     if (select.val()) {
-        path = Routing.generate('ajax_fournisseur_by_refarticle', true)
+        path = Routing.generate('ajax_fournisseur_by_refarticle_tmp', true)
         $('#newContent').html('');
         fournisseur.addClass('d-none');
         modalfooter.addClass('d-none')
