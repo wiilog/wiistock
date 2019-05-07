@@ -46,9 +46,9 @@
     <div class="form-group col-12">
         <div>
             <label for="commentaire">Commentaire</label>
-            <input {{ disabled }} id="commentaireID" class="form-control data" type="hidden" name="commentaire"
+            <input {{ disabled }} id="commentaire" class="form-control  data" type="hidden" name="commentaire"
                 value="{{article.commentaire}}">
-            <div class="editor-container form-control comment">{{article.commentaire|raw}}</div>
+            <div class="editor-container-edit form-control comment" id="editor-container-edit">{{article.commentaire|raw}}</div>
         </div>
     </div>
 

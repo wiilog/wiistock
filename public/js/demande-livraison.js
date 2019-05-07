@@ -187,7 +187,7 @@ function initNewLivraisonEditor(modal) {
 
     if (!editorNewLivraisonAlreadyDone) {
 
-        initEditor(modal);
+        initEditor2('.editor-container-new');
         editorNewLivraisonAlreadyDone = true;
 
     }
@@ -256,7 +256,8 @@ function ajaxGetAndFillArticle(select) {
             editNewArticle.html(data.modif);
             modalFooter.removeClass('d-none');
             displayRequireChamp($('#typeEdit'), 'edit');
-            initEditor2();
+            initEditor2('.editor-container-edit');
+            ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
         })
     }
 }
@@ -289,7 +290,7 @@ let ajaxEditArticle = function (select) {
                 $('#editNewArticle').html(dataReponse);
                 displayRequireChamp($('#typeEditArticle'), 'edit');
                 ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
-                initEditor2();
+                initEditor2('.editor-container-edit');
             } else {
                 //TODO gérer erreur
             }
