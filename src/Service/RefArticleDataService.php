@@ -31,6 +31,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Doctrine\ORM\EntityManagerInterface;
+use App\Entity\Article;
 
 class RefArticleDataService
 {
@@ -171,10 +172,11 @@ class RefArticleDataService
         $listArticlesFournisseur = [];
         $articlesFournisseurs = $articleRef->getArticlesFournisseur();
         $totalQuantity = 0;
+        $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_INACTIF);
         foreach ($articlesFournisseurs as $articleFournisseur) {
             $quantity = 0;
             foreach ($articleFournisseur->getArticles() as $article) {
-                $quantity += $article->getQuantite();
+                if ($article->getStatut() !== $statut) $quantity += $article->getQuantite();
             }
             $totalQuantity += $quantity;
 
@@ -331,11 +333,12 @@ class RefArticleDataService
             $rowCL[$champLibre['label']] = ($valeur ? $valeur->getValeur() : "");
         }
         $totalQuantity = 0;
+        $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_INACTIF);
         if ($refArticle->getTypeQuantite() === 'article') {
             foreach ($refArticle->getArticlesFournisseur() as $articleFournisseur) {
                 $quantity = 0;
                 foreach ($articleFournisseur->getArticles() as $article) {
-                    $quantity += $article->getQuantite();
+                    if ($article->getStatut() !== $statut) $quantity += $article->getQuantite();
                 }
                 $totalQuantity += $quantity;
             }
