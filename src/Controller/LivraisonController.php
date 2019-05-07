@@ -386,9 +386,9 @@ class LivraisonController extends AbstractController
                     $livraisonData[] = $livraison->getUtilisateur()->getUsername();
                     $livraisonData[] = $livraison->getStatut()->getNom();
                     $livraisonData[] = $livraison->getDestination()->getLabel();
-                    $livraisonData[] = $livraison->getCommentaire();
-                    $livraisonData[] = $livraison->getDate()->format('YmdHis');
-                    $livraisonData[] = $livraison->getPreparation() ? $livraison->getPreparation()->getDate()->format('YmdHis') : '';
+                    $livraisonData[] = strip_tags($livraison->getCommentaire());
+                    $livraisonData[] = $livraison->getDate()->format('Y/m/d-H:i:s');
+                    $livraisonData[] = $livraison->getPreparation() ? $livraison->getPreparation()->getDate()->format('Y/m/d-H:i:s') : '';
                     $livraisonData[] = $livraison->getNumero();
                     $livraisonData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getReference() : '';
                     $livraisonData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getLibelle() : '';
@@ -416,9 +416,9 @@ class LivraisonController extends AbstractController
                     $livraisonData[] = $livraison->getUtilisateur()->getUsername();
                     $livraisonData[] = $livraison->getStatut()->getNom();
                     $livraisonData[] = $livraison->getDestination()->getLabel();
-                    $livraisonData[] = $livraison->getCommentaire();
-                    $livraisonData[] = $livraison->getDate()->format('YmdHis');
-                    $livraisonData[] = $livraison->getPreparation() ? $livraison->getPreparation()->getDate()->format('YmdHis') : '';
+                    $livraisonData[] = strip_tags($livraison->getCommentaire());
+                    $livraisonData[] = $livraison->getDate()->format('Y/m/d-H:i:s');
+                    $livraisonData[] = $livraison->getPreparation() ? $livraison->getPreparation()->getDate()->format('Y/m/d-H:i:s') : '';
                     $livraisonData[] = $livraison->getNumero();
                     $livraisonData[] = $article->getArticleFournisseur()->getReferenceArticle()->getReference();
                     $livraisonData[] = $article->getLabel();
