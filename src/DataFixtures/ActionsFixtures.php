@@ -3,92 +3,147 @@
 namespace App\DataFixtures;
 
 use App\Entity\Action;
+use App\Entity\Menu;
+use App\Repository\ActionRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Common\Persistence\ObjectManager;
+use Symfony\Component\DependencyInjection\Tests\A;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
-class ActionsFixtures extends Fixture implements DependentFixtureInterface
+class ActionsFixtures extends Fixture implements DependentFixtureInterface, FixtureGroupInterface
 {
     private $encoder;
 
-    public function __construct(UserPasswordEncoderInterface $encoder)
+    /**
+     * @var ActionRepository
+     */
+    private $actionRepository;
+
+    public function __construct(ActionRepository $actionRepository, UserPasswordEncoderInterface $encoder)
     {
         $this->encoder = $encoder;
+        $this->actionRepository = $actionRepository;
     }
 
     public function load(ObjectManager $manager)
     {
-        // actions de type lister/créer/supprimer
+        // actions de type lister/créer-modifier/supprimer
         $menus = [
-            'REC',
-            'DEMLIVR',
-            'DEMCOL',
-            'STOCK',
+            Menu::RECEPTION,
+            Menu::DEM_LIVRAISON,
+            Menu::DEM_COLLECTE,
+            Menu::STOCK
         ];
 
-        $actionLabels = ['lister', 'créer+modifier', 'supprimer'];
+        $actionLabels = [Action::LIST, Action::CREATE_EDIT, Action::DELETE];
 
         foreach ($menus as $menu) {
             foreach ($actionLabels as $actionLabel) {
-                $action = new Action();
+                $action = $this->actionRepository->findOneByMenuCodeAndLabel($menu, $actionLabel);
 
-                $action
-                    ->setLabel($actionLabel)
-                    ->setMenu($this->getReference('menu-' . $menu));
-                $manager->persist($action);
+                if (empty($action)) {
+                    $action = new Action();
+
+                    $action
+                        ->setLabel($actionLabel)
+                        ->setMenu($this->getReference('menu-' . $menu));
+                    $manager->persist($action);
+                    dump("création de l'action " . $menu . " / " . $actionLabel);
+                }
             }
         }
 
 
-
-        // Menu manutention cas spécial.
-        $action = new Action();
-        $action->setLabel('modifier+supprimer')->setMenu($this->getReference('menu-MANUT'));
-        $manager->persist($action);
-        $action = new Action();
-        $action->setLabel('créer')->setMenu($this->getReference('menu-MANUT'));
-        $manager->persist($action);
-        $action = new Action();
-        $action->setLabel('lister')->setMenu($this->getReference('menu-MANUT'));
-        $manager->persist($action);
-
-
-
-        // actions de type lister/créer
+        // actions de type lister/créer/modifier-supprimer
         $menus = [
-            'PREPA',
-            'LIVR',
-            'COL'
+            Menu::MANUT
         ];
 
-        $actionLabels = ['lister', 'créer+modifier'];
+        $actionLabels = [Action::LIST, Action::CREATE, Action::EDIT_DELETE];
 
         foreach ($menus as $menu) {
             foreach ($actionLabels as $actionLabel) {
-                $action = new Action();
+                $action = $this->actionRepository->findOneByMenuCodeAndLabel($menu, $actionLabel);
 
-                $action
-                    ->setLabel($actionLabel)
-                    ->setMenu($this->getReference('menu-' . $menu));
-                $manager->persist($action);
+                if (empty($action)) {
+                    $action = new Action();
+                    $action
+                        ->setLabel($actionLabel)
+                        ->setMenu($this->getReference('menu-' . $menu));
+                    $manager->persist($action);
+                    dump("création de l'action " . $menu . " / " . $actionLabel);
+                }
             }
         }
 
 
-        // actions de type oui
+        // actions de type lister/créer-modifier
         $menus = [
-            //            'NOMAD',
-            'PARAM',
+            Menu::PREPA,
+            Menu::LIVRAISON,
+            Menu::COLLECTE
         ];
 
-        foreach ($menus as $menu) {
-            $action = new Action();
+        $actionLabels = [Action::LIST, Action::CREATE_EDIT];
 
-            $action
-                ->setLabel('oui')
-                ->setMenu($this->getReference('menu-' . $menu));
-            $manager->persist($action);
+        foreach ($menus as $menu) {
+            foreach ($actionLabels as $actionLabel) {
+                $action = $this->actionRepository->findOneByMenuCodeAndLabel($menu, $actionLabel);
+
+                if (empty($action)) {
+                    $action = new Action();
+
+                    $action
+                        ->setLabel($actionLabel)
+                        ->setMenu($this->getReference('menu-' . $menu));
+                    $manager->persist($action);
+                    dump("création de l'action " . $menu . " / " . $actionLabel);
+                }
+            }
+        }
+
+
+        // action exporter
+        $menus = [
+            Menu::DEM_LIVRAISON
+        ];
+
+        $actionLabel = Action::EXPORT;
+
+        foreach ($menus as $menu) {
+            $action = $this->actionRepository->findOneByMenuCodeAndLabel($menu, $actionLabel);
+
+            if (empty($action)) {
+                $action = new Action();
+                $action
+                    ->setLabel($actionLabel)
+                    ->setMenu($this->getReference('menu-' . $menu));
+                $manager->persist($action);
+                dump("création de l'action " . $menu . " / " . $actionLabel);
+            }
+        }
+
+
+        // action oui
+        $menus = [
+            Menu::PARAM
+        ];
+
+        $actionLabel = Action::YES;
+
+        foreach ($menus as $menu) {
+            $action = $this->actionRepository->findOneByMenuCodeAndLabel($menu, $actionLabel);
+
+            if (empty($action)) {
+                $action = new Action();
+                $action
+                    ->setLabel(Action::YES)
+                    ->setMenu($this->getReference('menu-' . $menu));
+                $manager->persist($action);
+                dump("création de l'action " . $menu . " / " . $actionLabel);
+            }
         }
 
         $manager->flush();
@@ -97,5 +152,9 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface
     public function getDependencies()
     {
         return [MenusFixtures::class];
+    }
+
+    public static function getGroups():array {
+        return ['actions'];
     }
 }
