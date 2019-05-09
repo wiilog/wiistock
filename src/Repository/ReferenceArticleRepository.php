@@ -141,9 +141,11 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                             ->setParameter('value', '%' . $filter['value'] . '%');
                         break;
                     case 'number':
+                    case 'list':
                         $qbSub
                             ->andWhere('vcl' . $index . '.champLibre = ' . $filter['champLibre'])
-                            ->andWhere('vcl' . $index . '.valeur = ' . $filter['value']);
+                            ->andWhere('vcl' . $index . '.valeur = :value')
+                            ->setParameter('value', $filter['value']);
                         break;
                     case 'date':
                         $date = explode('-', $filter['value']);
@@ -151,12 +153,6 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                         $qbSub
                             ->andWhere('vcl' . $index . '.champLibre = ' . $filter['champLibre'])
                             ->andWhere('vcl' . $index . ".valeur = '" . $formattedDated . "'");
-                        break;
-                    case 'list':
-                        $qbSub
-                            ->andWhere('vcl' . $index . '.champLibre = ' . $filter['champLibre'])
-                            ->andWhere('vcl' . $index . '.valeur LIKE :value')
-                            ->setParameter('value', $filter['value']);
                         break;
                 }
                 $subQueries[] = $qbSub->getQuery()->getResult();
