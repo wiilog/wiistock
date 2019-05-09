@@ -61,19 +61,20 @@ class SecuriteController extends Controller
      */
     public function login(Request $request, AuthenticationUtils $authenticationUtils)
     {
-        // get the login error if there is one
         $error = $authenticationUtils->getLastAuthenticationError();
-
+        $errorToDisplay = "";
         // last username entered by the user
         $lastUsername = $authenticationUtils->getLastUsername();
-
-        dump('hello');
-
-
+        $user = $this->utilisateurRepository->getByMail($lastUsername);
+        if ($user && $user->getStatus() === false) {
+            $errorToDisplay = 'Utilisateur inactif.';
+        } else if ($error) {
+            $errorToDisplay = 'Identifiants incorrects.';
+        }
         return $this->render('securite/login.html.twig', [
             'controller_name' => 'SecuriteController',
             'last_username' => $lastUsername,
-            'error' => $error,
+            'error' => $errorToDisplay,
         ]);
     }
 
@@ -115,18 +116,16 @@ class SecuriteController extends Controller
     {
         $user = $this->getUser();
 
-dump($user);
-
         if (!$user) {
             throw new UsernameNotFoundException(
                 sprintf('L\'utilisateur n\'existe pas.')
             );
-        }elseif ($user->getStatus() === false) {
+        } elseif ($user->getStatus() === false) {
             throw new UsernameNotFoundException(
                 sprintf('Le compte est inactif')
             );
         }
-        $user->setLastLogin(new \Datetime ('', new \DateTimeZone('Europe/Paris')));
+        $user->setLastLogin(new \Datetime('', new \DateTimeZone('Europe/Paris')));
         $em->flush();
 
         return $this->redirectToRoute('accueil');
