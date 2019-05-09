@@ -95,7 +95,7 @@ let printerAll = function () {
                 JsBarcode("#barcode", element, {
                     format: "CODE128",
                 });
-                console.log(element)
+                
                 printJS({
                     printable: 'barcode',
                     type: 'html',

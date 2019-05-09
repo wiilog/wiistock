@@ -132,7 +132,7 @@ function getDataFromModal(modal) {
     checkboxes.each(function () {
         Data[$(this).attr("name")] = $(this).is(':checked');
     });
-    return {Data, missingInputs, wrongInputs};
+    return { Data, missingInputs, wrongInputs };
 }
 
 function clearModalRefArticle(modal) {
@@ -163,27 +163,27 @@ InitialiserModalRefArticle(ModalRefArticleNew, ButtonSubmitRefArticleNew, urlRef
 let ModalDeleteRefArticle = $("#modalDeleteRefArticle");
 let SubmitDeleteRefArticle = $("#submitDeleteRefArticle");
 let urlDeleteRefArticle = Routing.generate('reference_article_delete', true);
-InitialiserModalRefArticle(ModalDeleteRefArticle, SubmitDeleteRefArticle, urlDeleteRefArticle);
+InitialiserModalRefArticle(ModalDeleteRefArticle, SubmitDeleteRefArticle, urlDeleteRefArticle, displayErrorRA, true);
 
 let modalModifyRefArticle = $('#modalEditRefArticle');
 let submitModifyRefArticle = $('#submitEditRefArticle');
 let urlModifyRefArticle = Routing.generate('reference_article_edit', true);
-InitialiserModalRefArticle(modalModifyRefArticle, submitModifyRefArticle, urlModifyRefArticle);
+InitialiserModalRefArticle(modalModifyRefArticle, submitModifyRefArticle, urlModifyRefArticle, displayErrorRA, true);
 
 let modalPlusDemande = $('#modalPlusDemande');
 let submitPlusDemande = $('#submitPlusDemande');
 let urlPlusDemande = Routing.generate('plus_demande', true);
-InitialiserModalRefArticle(modalPlusDemande, submitPlusDemande, urlPlusDemande);
+InitialiserModalRefArticle(modalPlusDemande, submitPlusDemande, urlPlusDemande, displayErrorRA, true);
 
 let modalColumnVisible = $('#modalColumnVisible');
 let submitColumnVisible = $('#submitColumnVisible');
 let urlColumnVisible = Routing.generate('save_column_visible', true);
-InitialiserModalRefArticle(modalColumnVisible, submitColumnVisible, urlColumnVisible);
+InitialiserModalRefArticle(modalColumnVisible, submitColumnVisible, urlColumnVisible, displayErrorRA, true);
 
 let modalNewFilter = $('#modalNewFilter');
 let submitNewFilter = $('#submitNewFilter');
 let urlNewFilter = Routing.generate('filter_new', true);
-InitialiserModalRefArticle(modalNewFilter, submitNewFilter, urlNewFilter, displayNewFilter);
+InitialiserModalRefArticle(modalNewFilter, submitNewFilter, urlNewFilter, displayNewFilter, displayErrorRA, true);
 
 let url = Routing.generate('ref_article_api', true);
 
@@ -231,11 +231,11 @@ function visibleColumn(check) {
     let columnNumber = check.data('column')
     let column = tableRefArticle.column(columnNumber);
     column.visible(!column.visible());
-    
+
     let tableRefArticleColumn = $('#tableRefArticle_id_wrapper');
     tableRefArticleColumn.find('th').removeClass('libre');
     tableRefArticleColumn.find('th').addClass('fixe');
-    
+
     if (check.hasClass('data')) {
         check.removeClass('data');
     } else {
@@ -355,6 +355,7 @@ let recupIdRefArticle = function (div) {
 }
 
 function ajaxPlusDemandeContent(button, demande) {
+
     $('.plusDemandeContent').html('');
     $('.editChampLibre').html('');
     xhttp = new XMLHttpRequest();
@@ -372,7 +373,8 @@ function ajaxPlusDemandeContent(button, demande) {
                 //TODO gérer erreur
             }
             showDemande(button)
-            initEditor2();
+            ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
+            initEditor2('#editor-container');
         }
     }
     let json = {
@@ -401,7 +403,7 @@ let ajaxEditArticle = function (select) {
             }
         }
     }
-    let json = { id :select.val(), isADemand:1};
+    let json = { id: select.val(), isADemand: 1 };
     let path = Routing.generate('article_api_edit', true);
     xhttp.open("POST", path, true);
     xhttp.send(JSON.stringify(json));
@@ -411,17 +413,20 @@ let ajaxEditArticle = function (select) {
 var editorNewReferenceArticleAlreadyDone = false;
 function initNewReferenceArticleEditor(modal) {
     if (!editorNewReferenceArticleAlreadyDone) {
-        initEditor(modal);
+        initEditor2('.editor-container-new');
         editorNewReferenceArticleAlreadyDone = true;
     }
     ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseur'));
+    ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'))
 };
 
 var editorEditRefArticleAlreadyDone = false;
 function initEditRefArticleEditor(modal) {
+
     if (!editorEditRefArticleAlreadyDone) {
         initEditor(modal);
         editorEditRefArticleAlreadyDone = true;
+
     }
 };
 
@@ -496,12 +501,29 @@ function addFournisseurEdit(button) {
 
 function setMaxQuantityByArtRef(input) {
     let val = 0;
-    $('input[name="quantite"]').each(function() {
+    $('input[name="quantite"]').each(function () {
         if ($(this).val() !== '' && $(this).val()) {
             val = $(this).val();
         }
     });
     input.attr('max', val);
+}
+
+
+function toggleRadioButtonNeeded(button) {
+    if ($('#quantite').hasClass('needed')) {
+        $('#quantite').removeClass('needed');
+    }
+    else {
+        $('#quantite').addClass('needed');
+    }
+    if ($('#emplacement').hasClass('needed')) {
+        $('#emplacement').removeClass('needed');
+    }
+    else {
+        $('#emplacement').addClass('needed');
+    }
+
 }
 
 function submitPlusAndGoToDemande(button) {
@@ -517,10 +539,10 @@ function redirectToDemande() {
 
     let demandeId = null;
     let demandeType = null;
-    if (typeof(collecteId) !== 'undefined') {
+    if (typeof (collecteId) !== 'undefined') {
         demandeId = collecteId;
         demandeType = 'collecte';
-    } else if (typeof(livraisonId) !== 'undefined') {
+    } else if (typeof (livraisonId) !== 'undefined') {
         demandeId = livraisonId;
         demandeType = 'demande';
     }

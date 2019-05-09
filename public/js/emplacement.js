@@ -2,6 +2,9 @@ $('.select2').select2();
 
 let pathEmplacement = Routing.generate("emplacement_api", true);
 let tableEmplacement = $('#tableEmplacement_id').DataTable({
+    processing: true,
+    serverSide: true,
+    
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
     },

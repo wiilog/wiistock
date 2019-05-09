@@ -2,10 +2,12 @@
 
 <div class="row">
     {% if hasRight(constant('App\\Entity\\Menu::DEM_COLLECTE'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+    {% if data.type == 'reference' %}
     <div data-id='{{ data.id }}' class='type-delete col-3' data-target='#modalEditArticle' data-toggle='modal'
         onclick="editRow($(this), Routing.generate('collecte_edit_api_article', true), $('#modalEditArticle'), $('#submitEditArticle'))">
         <i class='fas fa-pencil-alt'></i>
     </div>
+    {% endif %}
     <div class='col-3' onclick="deleteRowCollecte($(this), $('#modalDeleteArticle'), $('#submitDeleteArticle'))"
         data-target='#modalDeleteArticle' data-toggle='modal' data-id='{{ data.id }}' data-name='{{data.name}}'>
         <i class='fas fa-trash'></i>

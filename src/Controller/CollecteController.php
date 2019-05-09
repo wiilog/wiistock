@@ -200,6 +200,7 @@ class CollecteController extends AbstractController
                     'Quantité' => ($referenceCollecte->getQuantite() ? $referenceCollecte->getQuantite() : ''),
                     'Actions' => $this->renderView('collecte/datatableArticleRow.html.twig', [
                         'data' => [
+                            'type' => 'reference',
                             'id' => $referenceCollecte->getId(),
                             'name' => ($referenceCollecte->getReferenceArticle() ? $referenceCollecte->getReferenceArticle()->getTypeQuantite() : ReferenceArticle::TYPE_QUANTITE_REFERENCE),
                         ],
@@ -219,6 +220,7 @@ class CollecteController extends AbstractController
                         'data' => [
                             'id' => $article->getId(),
                             'name' => (ReferenceArticle::TYPE_QUANTITE_ARTICLE),
+                            'type' => 'article'
                         ],
                         'collecteId' => $collecte->getid(),
                         'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUS_BROUILLON ? true : false),
