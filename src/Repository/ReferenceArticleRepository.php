@@ -135,7 +135,6 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                             ->andWhere('vcl' . $index . '.valeur = ' . $value);
                         break;
                     case 'text':
-                    case 'list':
                         $qbSub
                             ->andWhere('vcl' . $index . '.champLibre = ' . $filter['champLibre'])
                             ->andWhere('vcl' . $index . '.valeur LIKE :value')
@@ -153,6 +152,11 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                             ->andWhere('vcl' . $index . '.champLibre = ' . $filter['champLibre'])
                             ->andWhere('vcl' . $index . '.valeur = :value')
                             ->setParameter('value', $formattedDated);
+                    case 'list':
+                        $qbSub
+                            ->andWhere('vcl' . $index . '.champLibre = ' . $filter['champLibre'])
+                            ->andWhere('vcl' . $index . '.valeur LIKE :value')
+                            ->setParameter('value', $filter['value']);
                 }
                 $subQueries[] = $qbSub->getQuery()->getResult();
             }

@@ -2,7 +2,7 @@ $('.select2').select2();
 
 function InitialiserModalRefArticle(modal, submit, path, callback = function () { }, close = true) {
     submit.click(function () {
-        submitActionRefArticle(modal, path, callback, close, callback = function () { }, close = true);
+        submitActionRefArticle(modal, path, callback, close);
     });
 }
 
@@ -37,7 +37,9 @@ function submitActionRefArticle(modal, path, callback = function () { }, close =
 
     // si tout va bien on envoie la requête ajax...
     if (missingInputs.length == 0 && wrongInputs.length == 0) {
-        if (close == true) modal.find('.close').click();
+        if (close == true) {
+            modal.find('.close').click();
+        }
         modal.find('.error-msg').html('');
         Json = {};
         Json = JSON.stringify(Data);
@@ -183,7 +185,7 @@ InitialiserModalRefArticle(modalColumnVisible, submitColumnVisible, urlColumnVis
 let modalNewFilter = $('#modalNewFilter');
 let submitNewFilter = $('#submitNewFilter');
 let urlNewFilter = Routing.generate('filter_new', true);
-InitialiserModalRefArticle(modalNewFilter, submitNewFilter, urlNewFilter, displayNewFilter, displayErrorRA, true);
+InitialiserModalRefArticle(modalNewFilter, submitNewFilter, urlNewFilter, displayNewFilter, true);
 
 let url = Routing.generate('ref_article_api', true);
 
