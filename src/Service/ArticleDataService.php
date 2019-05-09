@@ -33,8 +33,10 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Demande;
 
+
 class ArticleDataService
 {
+    
     /**
      * @var ReferenceArticleRepository
      */
@@ -399,8 +401,16 @@ class ArticleDataService
      */
     public function getArticleDataByParams($params = null)
     {
-        $articles = $this->articleRepository->findByParams($params);
-
+        if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
+            $articles = $this->articleRepository->findByParams($params);
+        }else{
+            $statut = $this->statutRepository->findByNom(Article::STATUT_ACTIF);
+            $statutId= $statut[1]->getId();
+            dump($statutId);
+            $articles = $this->articleRepository->findByParamsActifStatut($params, $statutId);
+            // dump($articles);
+        }
+// dump($articles);
         $rows = [];
         foreach ($articles as $article) {
             $rows[] = $this->dataRowRefArticle($article);
