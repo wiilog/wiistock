@@ -16,6 +16,7 @@ class Action
     const CREATE = 'créer';
     const DELETE = 'supprimer';
     const EDIT_DELETE = 'modifier+supprimer';
+    const EXPORT = 'exporter';
     const YES = 'oui';
 
     /**

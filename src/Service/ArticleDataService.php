@@ -427,6 +427,7 @@ class ArticleDataService
     {
         $data = $this->getArticleDataByParams($params);
         $data['recordsTotal'] = (int)$this->articleRepository->countAll();
+        $data['recordsFiltered'] = (int)$this->articleRepository->countAll();
         return $data;
     }
 

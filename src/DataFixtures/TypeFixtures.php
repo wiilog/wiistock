@@ -24,7 +24,7 @@ class TypeFixtures extends Fixture implements DependentFixtureInterface, Fixture
         $typesNames = [
             'PDT',
             'CSP',
-            'PSS',
+//            'PSS',
             'SILI',
             'SILI-int',
             'SILI-ext',

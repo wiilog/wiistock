@@ -53,6 +53,11 @@ class Emplacement
      */
     private $articles;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\ReferenceArticle", mappedBy="emplacement")
+     */
+    private $referenceArticles;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
@@ -61,6 +66,7 @@ class Emplacement
         $this->demandes = new ArrayCollection();
         $this->collectes = new ArrayCollection();
         $this->mouvements = new ArrayCollection();
+        $this->referenceArticles = new ArrayCollection();
     }
 
     public function getId(): ? int
@@ -246,6 +252,37 @@ class Emplacement
             // set the owning side to null (unless already changed)
             if ($article->getEmplacement() === $this) {
                 $article->setEmplacement(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|ReferenceArticle[]
+     */
+    public function getReferenceArticles(): Collection
+    {
+        return $this->referenceArticles;
+    }
+
+    public function addReferenceArticle(ReferenceArticle $referenceArticle): self
+    {
+        if (!$this->referenceArticles->contains($referenceArticle)) {
+            $this->referenceArticles[] = $referenceArticle;
+            $referenceArticle->setEmplacement($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReferenceArticle(ReferenceArticle $referenceArticle): self
+    {
+        if ($this->referenceArticles->contains($referenceArticle)) {
+            $this->referenceArticles->removeElement($referenceArticle);
+            // set the owning side to null (unless already changed)
+            if ($referenceArticle->getEmplacement() === $this) {
+                $referenceArticle->setEmplacement(null);
             }
         }
 

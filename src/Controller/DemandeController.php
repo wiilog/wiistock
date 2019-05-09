@@ -164,7 +164,6 @@ class DemandeController extends AbstractController
             $demande->setPreparation($preparation);
             $statutD = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
             $demande->setStatut($statutD);
-
             $em->persist($preparation);
 
             // Scission des articles dont la quantité prélever n'est pas total  

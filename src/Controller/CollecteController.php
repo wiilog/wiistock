@@ -200,6 +200,7 @@ class CollecteController extends AbstractController
                     'Quantité' => ($referenceCollecte->getQuantite() ? $referenceCollecte->getQuantite() : ''),
                     'Actions' => $this->renderView('collecte/datatableArticleRow.html.twig', [
                         'data' => [
+                            'type' => 'reference',
                             'id' => $referenceCollecte->getId(),
                             'name' => ($referenceCollecte->getReferenceArticle() ? $referenceCollecte->getReferenceArticle()->getTypeQuantite() : ReferenceArticle::TYPE_QUANTITE_REFERENCE),
                         ],
@@ -219,6 +220,7 @@ class CollecteController extends AbstractController
                         'data' => [
                             'id' => $article->getId(),
                             'name' => (ReferenceArticle::TYPE_QUANTITE_ARTICLE),
+                            'type' => 'article'
                         ],
                         'collecteId' => $collecte->getid(),
                         'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUS_BROUILLON ? true : false),
@@ -355,17 +357,15 @@ class CollecteController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::DEM_COLLECTE, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
-
             $entityManager = $this->getDoctrine()->getManager();
 
             if (array_key_exists(ReferenceArticle::TYPE_QUANTITE_REFERENCE, $data)) {
                 $collecteReference = $this->collecteReferenceRepository->find($data[ReferenceArticle::TYPE_QUANTITE_REFERENCE]);
                 $entityManager->remove($collecteReference);
             } elseif (array_key_exists(ReferenceArticle::TYPE_QUANTITE_ARTICLE, $data)) {
-                $collecteReference = $this->collecteReferenceRepository->find($data[ReferenceArticle::TYPE_QUANTITE_ARTICLE]);
-                $articleRef = $collecteReference->getReferenceArticle();
-                $articleRef->removeCollecteReference($collecteReference);
-                $entityManager->remove($collecteReference);
+                $article = $this->articleRepository->find($data[ReferenceArticle::TYPE_QUANTITE_ARTICLE]);
+                $collecte = $this->collecteRepository->find($data['collecte']);
+                $collecte->removeArticle($article);
             }
             $entityManager->flush();
 

@@ -102,6 +102,11 @@ class ReferenceArticle
      */
     private $receptionReferenceArticles;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="referenceArticles")
+     */
+    private $emplacement;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
@@ -432,6 +437,18 @@ class ReferenceArticle
                 $articlesFournisseur->setReferenceArticle(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getEmplacement(): ?Emplacement
+    {
+        return $this->emplacement;
+    }
+
+    public function setEmplacement(?Emplacement $emplacement): self
+    {
+        $this->emplacement = $emplacement;
 
         return $this;
     }
