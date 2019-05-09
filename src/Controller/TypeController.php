@@ -63,7 +63,7 @@ class TypeController extends AbstractController
     public function showSelectInput(Request $request)
     {
         if ($request->isXmlHttpRequest() && $value = json_decode($request->getContent(), true)) {
-            $options = [];
+
             $isType = true;
             if (is_numeric($value['value'])) {
                 $cl = $this->champLibreRepository->find(intval($value['value']));

@@ -342,6 +342,9 @@ function displayFilterValue(elem) {
         case 'list':
             label = 'Valeur';
             break;
+        case 'date':
+            label = 'Date';
+            break;
         default:
             label = 'Contient';
     }

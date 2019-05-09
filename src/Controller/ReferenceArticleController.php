@@ -446,6 +446,7 @@ class ReferenceArticleController extends Controller
             'typage' => 'text'
         ];
         $champs = array_merge($champ, $champL);
+        sort($champs);
 
         $champsVisibleDefault = ['Actions', 'Libellé', 'Référence', 'Type', 'Quantité', 'Emplacement'];
 

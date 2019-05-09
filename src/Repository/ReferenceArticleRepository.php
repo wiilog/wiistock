@@ -150,13 +150,14 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                         $formattedDated = $date[2] . '/' . $date[1] . '/' . $date[0];
                         $qbSub
                             ->andWhere('vcl' . $index . '.champLibre = ' . $filter['champLibre'])
-                            ->andWhere('vcl' . $index . '.valeur = :value')
-                            ->setParameter('value', $formattedDated);
+                            ->andWhere('vcl' . $index . ".valeur = '" . $formattedDated . "'");
+                        break;
                     case 'list':
                         $qbSub
                             ->andWhere('vcl' . $index . '.champLibre = ' . $filter['champLibre'])
                             ->andWhere('vcl' . $index . '.valeur LIKE :value')
                             ->setParameter('value', $filter['value']);
+                        break;
                 }
                 $subQueries[] = $qbSub->getQuery()->getResult();
             }
