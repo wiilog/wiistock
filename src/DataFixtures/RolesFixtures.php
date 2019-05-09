@@ -3,42 +3,46 @@
 namespace App\DataFixtures;
 
 use App\Entity\Role;
+use App\Repository\RoleRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
-use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
-use App\Entity\CategorieStatut;
 
 class RolesFixtures extends Fixture
 {
     private $encoder;
 
-    public function __construct(UserPasswordEncoderInterface $encoder)
+    /**
+     * @var RoleRepository
+     */
+    private $roleRepository;
+
+    public function __construct(RoleRepository $roleRepository, UserPasswordEncoderInterface $encoder)
     {
         $this->encoder = $encoder;
+        $this->roleRepository = $roleRepository;
     }
 
     public function load(ObjectManager $manager)
     {
         $rolesLabels = [
-            'super admin',
-            'administrateur GT',
-            'client consultation',
-            'client utilisation',
-            'utilisateur GT',
-            'utilisateur simple',
+            Role::NO_ACCESS_USER
         ];
 
         foreach ($rolesLabels as $roleLabel) {
-            $role = new Role();
-            $role
-                ->setLabel($roleLabel)
-                ->setActive(true);
+            $role = $this->roleRepository->findByLabel(Role::NO_ACCESS_USER);
 
-            $manager->persist($role);
+            if (empty($role)) {
+                $role = new Role();
+                $role
+                    ->setLabel($roleLabel)
+                    ->setActive(true);
+
+                $manager->persist($role);
+                dump("création du rôle " . $roleLabel);
+            }
         }
 
         $manager->flush();
     }
-
 }
