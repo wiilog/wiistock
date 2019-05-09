@@ -6,20 +6,35 @@ class='accueil-back'
 {% endblock %}
 
 {% block page_content %}
-<div class="row ">
-    {# <div class="col-3">
-        <div class='row'>
-            <div href="" data-toggle="modal" data-target="#modalNewDemande" class="btn btn-primary">
-                <span class="fa fa-plus mr-2"></span>Nouvelle demande
-            </div> #}
-        {#</div>#}
-    {#</div> #}
-    <div class="text-center offset-6 col-1 alerte">
-        <p>Alertes de seuil</p>
-        <a href="{{path('alerte_index')}}">
-            <span class="fa fa-warning fa-2x"></span><br>
-            <p class="alert-nb">{{nbAlerte}}</p>
-        </a>
+<div class="row justify-content-end">
+    <div class="col-6 ">
+        <div class="row justify-content-end">
+            <div class="col-7 mb-1 mt-1 alerte">
+                <a href={{path('collecte_index')}}>
+                    <p><strong> Demandes de collecte à traiter: </strong>{{nbDemandeCollecte}}</p>
+                </a>
+            </div>
+            <div class="col-7 mb-1 mt-1 alerte">
+                <a href={{path('demande_index')}}>
+                    <p><strong> Demandes de livraison à traiter: </strong>{{nbDemandeLivraisonAT}}</p>
+                </a>
+            </div>
+            <div class="col-7 mb-1 mt-1 alerte">
+                <a href={{path('demande_index')}}>
+                    <p><strong> Demandes de livraison préparées: </strong>{{nbDemandeLivraisonP}}</p>
+                </a>
+            </div>
+            <div class="col-7 mb-1 mt-1 alerte">
+                <a href={{path('service_index')}}>
+                    <p><strong> Demandes de manutentions à traiter: </strong>{{nbDemandeManutentionAT}}</p>
+                </a>
+            </div>
+            <div class="col-7 mb-1 mt-1 alerte">
+                <a href={{path('alerte_index')}}>
+                    <p><strong> Alerte de seuil: </strong>{{nbAlerte}}</p>
+                </a>
+            </div>
+        </div>
     </div>
 </div>
 
