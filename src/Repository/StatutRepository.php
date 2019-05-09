@@ -63,6 +63,6 @@ class StatutRepository extends ServiceEntityRepository
             'statutName' => $statutName
         ]);
 
-        return $query->getSingleResult();
+        return $query->getOneOrNullResult();
     }
 }
