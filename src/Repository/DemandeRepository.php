@@ -19,18 +19,18 @@ class DemandeRepository extends ServiceEntityRepository
         parent::__construct($registry, Demande::class);
     }
 
-   public function getByLivraison($id)
-   {
-       $entityManager = $this->getEntityManager();
-       $query = $entityManager->createQuery(
-           "SELECT d
+    public function getByLivraison($id)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT d
            FROM App\Entity\Demande d
             JOIN d.livraison l
            WHERE l.id = :id "
-       )->setParameter('id', $id);
+        )->setParameter('id', $id);
 
-       return $query->getOneOrNullResult();
-   }
+        return $query->getOneOrNullResult();
+    }
 
     public function findByUserAndNotStatus($user, $status)
     {
@@ -42,7 +42,7 @@ class DemandeRepository extends ServiceEntityRepository
             WHERE s.nom <> :status AND d.utilisateur = :user"
         )->setParameters(['user' => $user, 'status' => $status]);
 
-        return $query->execute(); 
+        return $query->execute();
     }
 
     public function getByStatutAndUser($statut, $user)
@@ -53,9 +53,9 @@ class DemandeRepository extends ServiceEntityRepository
             FROM App\Entity\Demande d
             WHERE d.statut = :Statut AND d.utilisateur = :user"
         )->setParameters([
-            'Statut'=> $statut,
-            'user'=> $user
-            ]);
+            'Statut' => $statut,
+            'user' => $user
+        ]);
         return $query->execute();
     }
 
@@ -68,6 +68,21 @@ class DemandeRepository extends ServiceEntityRepository
             JOIN d.destination dest
             WHERE dest.id = :emplacementId"
         )->setParameter('emplacementId', $emplacementId);
+
+        return $query->getSingleScalarResult();
+    }
+  
+    public function countByStatutAndUser($statut, $user)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT COUNT(d)
+            FROM App\Entity\Demande d
+            WHERE d.statut = :statut AND d.utilisateur = :user"
+        )->setParameters([
+            'statut'=> $statut,
+            'user' => $user,
+        ]);
 
         return $query->getSingleScalarResult();
     }
@@ -92,5 +107,19 @@ class DemandeRepository extends ServiceEntityRepository
         )->setParameter('livraison', $livraison);
         return $query->getOneOrNullResult();
     }
-    
+
+    public function findByDatesAndUsername($dateMin, $dateMax, $user)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            'SELECT d
+            FROM App\Entity\Demande d
+            WHERE d.utilisateur = :user AND d.date BETWEEN :dateMin AND :dateMax'
+        )->setParameters([
+            'dateMin' => $dateMin,
+            'dateMax' => $dateMax,
+            'user' => $user
+        ]);
+        return $query->execute();
+    }
 }

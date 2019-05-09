@@ -24,6 +24,12 @@ use App\Repository\StatutRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\CollecteReferenceRepository;
+use App\Repository\ArticleFournisseurRepository;
+use App\Repository\FournisseurRepository;
+use App\Repository\TypeRepository;
+use App\Entity\Article;
+use Proxies\__CG__\App\Entity\Fournisseur;
+use App\Entity\ArticleFournisseur;
 
 /**
  * @Route("/collecte")
@@ -34,6 +40,21 @@ class CollecteController extends AbstractController
      * @var StatutRepository
      */
     private $statutRepository;
+
+    /**
+     * @var TypeRepository
+     */
+    private $typeRepository;
+
+    /**
+     * @var ArticleFournisseurRepository
+     */
+    private $articleFournisseurRepository;
+
+    /**
+     * @var FournisseurRepository
+     */
+    private $fournisseurRepository;
 
     /**
      * @var EmplacementRepository
@@ -87,8 +108,11 @@ class CollecteController extends AbstractController
     private $articleDataService;
 
 
-    public function __construct(OrdreCollecteRepository $ordreCollecteRepository, RefArticleDataService $refArticleDataService, CollecteReferenceRepository $collecteReferenceRepository, ReferenceArticleRepository $referenceArticleRepository, StatutRepository $statutRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArticleDataService $articleDataService)
+    public function __construct(TypeRepository $typeRepository, FournisseurRepository $fournisseurRepository, ArticleFournisseurRepository $articleFournisseurRepository, OrdreCollecteRepository $ordreCollecteRepository, RefArticleDataService $refArticleDataService, CollecteReferenceRepository $collecteReferenceRepository, ReferenceArticleRepository $referenceArticleRepository, StatutRepository $statutRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArticleDataService $articleDataService)
     {
+        $this->typeRepository = $typeRepository;
+        $this->articleFournisseurRepository = $articleFournisseurRepository;
+        $this->fournisseurRepository = $fournisseurRepository;
         $this->ordreCollecteRepository = $ordreCollecteRepository;
         $this->statutRepository = $statutRepository;
         $this->emplacementRepository = $emplacementRepository;
@@ -298,10 +322,42 @@ class CollecteController extends AbstractController
                 }
                 $this->refArticleDataService->editRefArticle($refArticle, $data);
             } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-                $article = $this->articleRepository->find($data['article']);
-                $collecte->addArticle($article);
+                $fournisseurTemp = $this->fournisseurRepository->findOneByCodeReference('A_DETERMINER');
+                if (!$fournisseurTemp) {
+                    $fournisseurTemp = new Fournisseur();
+                    $fournisseurTemp
+                        ->setCodeReference('A_DETERMINER')
+                        ->setNom('A DETERMINER');
+                    $em->persist($fournisseurTemp);
+                }
+                for ($i = 0; $i < $data['quantitie']; $i++) {
+                    $toInsert = new Article();
+                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_INACTIF);
+                    $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+                    $ref = $date->format('YmdHis');
+                    $articleFournisseur = new ArticleFournisseur();
+                    $articleFournisseur
+                        ->setReferenceArticle($refArticle)
+                        ->setFournisseur($fournisseurTemp)
+                        ->setReference($refArticle->getReference())
+                        ->setLabel('A déterminer -' . $i);
+                    $em->persist($articleFournisseur);
+                    $toInsert
+                        ->setLabel($refArticle->getLibelle() . '-' . $i)
+                        ->setConform(true)
+                        ->setStatut($statut)
+                        ->setReference($ref . '-' . $i)
+                        ->setQuantite(1)
+                        ->setEmplacement($collecte->getPointCollecte())
+                        ->setArticleFournisseur($articleFournisseur)
+                        ->setType($refArticle->getType());
+                    $em->persist($toInsert);
+                    $collecte->addArticle($toInsert);
+                }
+                // $article = $this->articleRepository->find($data['article']);
+                // $collecte->addArticle($article);
 
-                $this->articleDataService->editArticle($data);
+                // $this->articleDataService->editArticle($data);
             }
             $em->flush();
 
@@ -343,6 +399,23 @@ class CollecteController extends AbstractController
                 'collecteRef' => $this->collecteReferenceRepository->find($data['id']),
             ]);
 
+            return new JsonResponse($json);
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/nouveau-api-article", name="collecte_article_new_content", options={"expose"=true}, methods={"GET", "POST"})
+     */
+    public function newArticle(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::DEM_COLLECTE, Action::CREATE_EDIT)) {
+                return $this->redirectToRoute('access_denied');
+            }
+            $json['content'] = $this->renderView('collecte/newRefArticleByQuantiteRefContentTemp.html.twig', [
+                'references' => $this->articleFournisseurRepository->getByFournisseur($this->fournisseurRepository->find($data['fournisseur']))
+            ]);
             return new JsonResponse($json);
         }
         throw new NotFoundHttpException('404');

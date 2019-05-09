@@ -11,6 +11,7 @@ use App\Repository\ArticleFournisseurRepository;
 use App\Repository\ReceptionRepository;
 use App\Repository\ReceptionReferenceArticleRepository;
 use App\Service\UserService;
+use App\Service\FournisseurDataService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -43,6 +44,11 @@ class FournisseurController extends AbstractController
      * @var FournisseurRepository
      */
     private $fournisseurRepository;
+    
+    /**
+     * @var FournisseurDataService
+     */
+    private $fournisseurDataService;
 
     /**
      * @var UserService
@@ -50,8 +56,9 @@ class FournisseurController extends AbstractController
     private $userService;
 
 
-    public function __construct(ReceptionReferenceArticleRepository $receptionReferenceArticleRepository, ReceptionRepository $receptionRepository, ArticleFournisseurRepository $articleFournisseurRepository, FournisseurRepository $fournisseurRepository, UserService $userService)
+    public function __construct(FournisseurDataService $fournisseurDataService,ReceptionReferenceArticleRepository $receptionReferenceArticleRepository, ReceptionRepository $receptionRepository, ArticleFournisseurRepository $articleFournisseurRepository, FournisseurRepository $fournisseurRepository, UserService $userService)
     {
+        $this->fournisseurDataService = $fournisseurDataService;
         $this->fournisseurRepository = $fournisseurRepository;
         $this->userService = $userService;
         $this->articleFournisseurRepository = $articleFournisseurRepository;
@@ -68,22 +75,8 @@ class FournisseurController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
             }
-
-            $refs = $this->fournisseurRepository->findAll();
-            $rows = [];
-            foreach ($refs as $fournisseur) {
-                $fournisseurId = $fournisseur->getId();
-                $url['edit'] = $this->generateUrl('fournisseur_edit', ['id' => $fournisseurId]);
-                $rows[] = [
-                    "Nom" => $fournisseur->getNom(),
-                    "Code de référence" => $fournisseur->getCodeReference(),
-                    'Actions' => $this->renderView('fournisseur/datatableFournisseurRow.html.twig', [
-                        'url' => $url,
-                        'fournisseurId' => $fournisseurId
-                    ]),
-                ];
-            }
-            $data['data'] = $rows;
+            $data = $this->fournisseurDataService->getDataForDatatable($request->request);
+     
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");

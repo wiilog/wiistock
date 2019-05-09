@@ -81,7 +81,7 @@ class RoleController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $roles = $this->roleRepository->findAll();
+            $roles = $this->roleRepository->findAllExceptNoAccess();
             $rows = [];
             foreach ($roles as $role) {
                 $url['edit'] = $this->generateUrl('role_api_edit', ['id' => $role->getId()]);

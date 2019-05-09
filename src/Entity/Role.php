@@ -14,7 +14,7 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Role
 {
-    const SIMPLE_USER = 'utilisateur simple';
+    const NO_ACCESS_USER = 'aucun accès';
 
     /**
      * @ORM\Id()

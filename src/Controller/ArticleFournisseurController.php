@@ -78,8 +78,10 @@ class ArticleFournisseurController extends AbstractController
                 $rows[] = $this->dataRowArticleFournisseur($articleFournisseur);
             }
 
+            
             $data['data'] = $rows;
             $data['recordsTotal'] = (int)$this->articleFournisseurRepository->countAll();
+            $data['recordsFiltered'] = (int)$this->articleFournisseurRepository->countAll();
 
             return new JsonResponse($data);
         }
