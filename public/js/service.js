@@ -111,7 +111,7 @@ function initEditServiceEditor(modal) {
 var editorNewServiceAlreadyDone = false;
 function initNewServiceEditor(modal) {
     if (!editorNewServiceAlreadyDone) {
-        initEditor(modal);
+        initEditor2('.editor-container-new');
         editorNewServiceAlreadyDone = true;
     }
     ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'))

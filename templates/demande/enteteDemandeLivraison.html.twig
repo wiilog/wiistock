@@ -13,11 +13,12 @@
         {% if hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
         <a href="" data-id='{{ demande.id }}' data-target='#modalEditDemande'
             onclick="editRow($(this), Routing.generate('demandeLivraison_api_edit', true), $('#modalEditDemande'), $('#submitEditdemande'), true)"
-            data-toggle='modal' class="btn btn-primary btn-action ml-auto" onclick=>
+            data-toggle='modal' class="btn btn-primary btn-action ml-auto">
             Modifier</a>
         {% endif %}
         {% if hasRight(constant('App\\Entity\\Menu::PREPA'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
-            <a href="#" onclick="validateLivraison({{ demande.id }}, $(this))" data-id='{{demande.id}}' class="btn btn-primary btn-action ml-auto">Valider</a>
+        <a href="#" onclick="validateLivraison({{ demande.id }}, $(this))" data-id='{{demande.id}}'
+            class="btn btn-primary btn-action ml-auto">Valider</a>
         {% endif %}
     </div>
 
@@ -44,7 +45,7 @@
             <p><strong>Date de validation :</strong>
                 {% if demande.preparation is not null %}
                 {{demande.preparation.date|date('d/m/Y H:i')}}</p>
-                {% endif %}
+            {% endif %}
             <p><strong>Référence :</strong> {{ demande.numero }}</p>
         </div>
         <div class="col-12">
@@ -61,7 +62,8 @@
     <a href="{{ path('reference_article_index') }}" data-toggle="modal" class="btn btn-primary btn-action ml-auto">
         Chercher une référence</a>
     {% if hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
-    <a href="" data-toggle="modal" data-target="#modalNewArticle" onclick="clearDiv()" class="btn btn-primary btn-action ml-auto">
+    <a href="" data-toggle="modal" data-target="#modalNewArticle" onclick="clearDiv()"
+        class="btn btn-primary btn-action ml-auto">
 
         <span class="fa fa-plus mr-2"></span>Ajouter article
     </a>

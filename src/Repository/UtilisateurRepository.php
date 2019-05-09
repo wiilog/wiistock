@@ -72,12 +72,24 @@ class UtilisateurRepository extends ServiceEntityRepository
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
-          "SELECT u.id, u.username as text
+            "SELECT u.id, u.username as text
           FROM App\Entity\Utilisateur u
           WHERE u.username LIKE :search"
-        )->setParameter('search', '%'.$search.'%');
+        )->setParameter('search', '%' . $search . '%');
 
         return $query->execute();
+    }
+
+    public function findOneByUsername($search)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT u
+          FROM App\Entity\Utilisateur u
+          WHERE u.username = :search"
+        )->setParameter('search', $search);
+
+        return $query->getOneOrNullResult();
     }
 
     public function countByRoleId($roleId)
@@ -88,8 +100,7 @@ class UtilisateurRepository extends ServiceEntityRepository
             FROM App\Entity\Utilisateur u
             JOIN u.role r
             WHERE r.id = :roleId"
-        )->setParameter('roleId', $roleId);
-        ;
+        )->setParameter('roleId', $roleId);;
         return $query->getSingleScalarResult();
     }
 
@@ -104,4 +115,45 @@ class UtilisateurRepository extends ServiceEntityRepository
 
         return $query->getOneOrNullResult();
     }
+    
+    public function findByParams($params = null)
+    {
+        $em = $this->getEntityManager();
+        $qb = $em->createQueryBuilder();
+
+        $qb
+            ->select('a')
+            ->from('App\Entity\Utilisateur', 'a');
+
+        // prise en compte des paramètres issus du datatable
+        if (!empty($params)) {
+            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
+            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+            if (!empty($params->get('search'))) {
+                $search = $params->get('search')['value'];
+                if (!empty($search)) {
+                    $qb
+                        ->andWhere('a.username LIKE :value OR a.email LIKE :value')
+                        ->setParameter('value', '%' . $search . '%');
+                }
+            }
+        }
+
+        $query = $qb->getQuery();
+
+        return $query->getResult();
+    }
+
+    public function countAll()
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT COUNT(a)
+            FROM App\Entity\Utilisateur a
+           "
+        );
+
+        return $query->getSingleScalarResult();
+    }
+
 }

@@ -137,7 +137,8 @@ function ajaxGetCollecteArticle(select) {
             if (data.modif) editNewArticle.html(data.modif);
             $('#modalNewArticle').find('.modal-footer').removeClass('d-none');
             displayRequireChamp($('#typeEdit'), 'edit');
-            initEditor2();
+            ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
+            initEditor2('.editor-container-edit');
         }
     }
     path = Routing.generate('get_collecte_article_by_refArticle', true)
@@ -256,7 +257,8 @@ let ajaxEditArticle = function (select) {
             if (dataReponse) {
                 $('#editNewArticle').html(dataReponse);
                 // displayRequireChamp($('#typeEditArticle'), 'edit');
-                initEditor2();
+                ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
+                initEditor2('.editor-container-edit');
             } else {
                 //TODO gérer erreur
             }

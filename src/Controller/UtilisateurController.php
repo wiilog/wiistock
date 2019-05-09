@@ -242,29 +242,7 @@ class UtilisateurController extends Controller
             if (!$this->userService->hasRightFunction(Menu::PARAM)) {
                 return $this->redirectToRoute('access_denied');
             }
-
-            $utilisateurs = $this->utilisateurRepository->findAll();
-            $roles = $this->roleRepository->findAll();
-
-            $rows = [];
-            foreach ($utilisateurs as $utilisateur) {
-                $idUser = $utilisateur->getId();
-                $rows[] =
-                    [
-                        'id' => ($utilisateur->getId() ? $utilisateur->getId() : 'Non défini'),
-                        "Nom d'utilisateur" => ($utilisateur->getUsername() ? $utilisateur->getUsername() : ''),
-                        'Email' => ($utilisateur->getEmail() ? $utilisateur->getEmail() : ''),
-                        'Dernière connexion' => ($utilisateur->getLastLogin() ? $utilisateur->getLastLogin()->format('d/m/Y') : ''),
-                        'Rôle' => $this->renderView('utilisateur/role.html.twig', ['utilisateur' => $utilisateur, 'roles' => $roles]),
-                        'Actions' => $this->renderView(
-                            'utilisateur/datatableUtilisateurRow.html.twig',
-                            [
-                                'idUser' => $idUser,
-                            ]
-                        ),
-                    ];
-            }
-            $data['data'] = $rows;
+            $data = $this->userService->getDataForDatatable($request->request);
 
             return new JsonResponse($data);
         }

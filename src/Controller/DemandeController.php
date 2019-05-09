@@ -166,7 +166,6 @@ class DemandeController extends AbstractController
             $demande->setPreparation($preparation);
             $statutD = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
             $demande->setStatut($statutD);
-
             $em = $this->getDoctrine()->getManager();
             $em->persist($preparation);
             $em->flush();
