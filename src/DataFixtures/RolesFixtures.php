@@ -21,12 +21,7 @@ class RolesFixtures extends Fixture
     public function load(ObjectManager $manager)
     {
         $rolesLabels = [
-            'super admin',
-            'administrateur GT',
-            'client consultation',
-            'client utilisation',
-            'utilisateur GT',
-            'utilisateur simple',
+            'aucun accès'
         ];
 
         foreach ($rolesLabels as $roleLabel) {
@@ -40,5 +35,4 @@ class RolesFixtures extends Fixture
 
         $manager->flush();
     }
-
 }
