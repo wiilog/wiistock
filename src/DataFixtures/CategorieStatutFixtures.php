@@ -48,17 +48,16 @@ class CategorieStatutFixtures extends Fixture implements FixtureGroupInterface
                 $categorie = new CategorieStatut();
                 $categorie->setNom($categorieName);
                 $manager->persist($categorie);
-                $this->addReference('statut-' . $categorieName, $categorie);
                 dump("création de la catégorie " . $categorieName);
             }
+            $this->addReference('statut-' . $categorieName, $categorie);
         }
 
         $manager->flush();
     }
 
-    public static function getGroups():array {
+    public static function getGroups(): array
+    {
         return ['status', 'fixtures'];
     }
-
-
 }
