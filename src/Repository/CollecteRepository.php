@@ -27,10 +27,21 @@ class CollecteRepository extends ServiceEntityRepository
             FROM App\Entity\Collecte c
             WHERE c.Statut = :Statut AND c.demandeur = :user "
         )->setParameters([
-            'Statut'=> $statut,
-            'user'=>$user,
-            ]);
+            'Statut' => $statut,
+            'user' => $user,
+        ]);
         return $query->execute();
+    }
+
+    public function countByStatut($statut)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT COUNT(c)
+            FROM App\Entity\Collecte c
+            WHERE c.Statut = :Statut "
+        )->setParameter('Statut', $statut);
+        return $query->getSingleScalarResult();
     }
 
     public function countByEmplacement($emplacementId)
@@ -45,5 +56,4 @@ class CollecteRepository extends ServiceEntityRepository
 
         return $query->getSingleScalarResult();
     }
-
 }

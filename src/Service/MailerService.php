@@ -36,11 +36,11 @@ class MailerService
         $mailerServer = $this->mailerServerRepository->getOneMailerServer();
         /** @var MailerServer $mailerServer */
         if ($mailerServer) {
-            $from = $mailerServer->getUser();
-            $password = $mailerServer->getPassword();
-            $host = $mailerServer->getSmtp();
-            $port = $mailerServer->getPort();
-            $protocole = $mailerServer->getProtocol();
+            $from = $mailerServer->getUser() ? $mailerServer->getUser() : '';
+            $password = $mailerServer->getPassword() ? $mailerServer->getPassword() : '';
+            $host = $mailerServer->getSmtp() ? $mailerServer->getSmtp() : '';
+            $port = $mailerServer->getPort() ?  $mailerServer->getPort() : '';
+            $protocole = $mailerServer->getProtocol() ? $mailerServer->getProtocol() : '';
         } else {
             return false;
         }
