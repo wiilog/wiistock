@@ -58,16 +58,24 @@ class TypeController extends AbstractController
     }
 
     /**
-     * @Route("/", name="type_show_select", options={"expose"=true})
+     * @Route("/", name="type_show_select", options={"expose"=true}, methods={"GET","POST"})
      */
     public function showSelectInput(Request $request)
     {
-        if ($request->isXmlHttpRequest()) {
+        if ($request->isXmlHttpRequest() && $value = json_decode($request->getContent(), true)) {
 
-            $types = $this->typeRepository->getByCategoryLabel(ReferenceArticle::CATEGORIE_TYPE); //TODO 
+            $isType = true;
+            if (is_numeric($value['value'])) {
+                $cl = $this->champLibreRepository->find(intval($value['value']));
+                $options = $cl->getElements();
+                $isType = false;
+            } else {
+                $options = $this->typeRepository->getByCategoryLabel(ReferenceArticle::CATEGORIE_TYPE); //TODO 
+            }
 
             $view = $this->renderView('type/inputSelectTypes.html.twig', [
-                'types' => $types
+                'options' => $options,
+                'isType' => $isType
             ]);
             return new JsonResponse($view);
         }
@@ -80,25 +88,25 @@ class TypeController extends AbstractController
     public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
-            {
-                $types = $this->typeRepository->findAll();
-                $rows = [];
-                foreach ($types as $type) {
-                    $url = $this->generateUrl('champs_libre_show', ['id' => $type->getId()]);
-                    $rows[] =
-                        [
-                            'id' => ($type->getId() ? $type->getId() : "Non défini"),
-                            'Label' => ($type->getLabel() ? $type->getLabel() : "Non défini"),
-                            'Catégorie' => ($type->getCategory() ? $type->getCategory()->getLabel() : 'Non défini'),
-                            'Actions' =>  $this->renderView('champ_libre/datatableTypeRow.html.twig', [
-                                'urlChampsLibre' => $url,
-                                'idType' => $type->getId()
-                            ]),
-                        ];
-                }
-                $data['data'] = $rows;
-                return new JsonResponse($data);
+        {
+            $types = $this->typeRepository->findAll();
+            $rows = [];
+            foreach ($types as $type) {
+                $url = $this->generateUrl('champs_libre_show', ['id' => $type->getId()]);
+                $rows[] =
+                    [
+                        'id' => ($type->getId() ? $type->getId() : "Non défini"),
+                        'Label' => ($type->getLabel() ? $type->getLabel() : "Non défini"),
+                        'Catégorie' => ($type->getCategory() ? $type->getCategory()->getLabel() : 'Non défini'),
+                        'Actions' =>  $this->renderView('champ_libre/datatableTypeRow.html.twig', [
+                            'urlChampsLibre' => $url,
+                            'idType' => $type->getId()
+                        ]),
+                    ];
             }
+            $data['data'] = $rows;
+            return new JsonResponse($data);
+        }
         throw new NotFoundHttpException("404");
     }
 
