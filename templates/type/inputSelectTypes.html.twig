@@ -1,6 +1,7 @@
 <select class="form-control data needed" id="value" name="value">
     <option disabled selected> </option>
-    {% for type in types %}
-        <option value="{{ type.label }}">{{ type.label }}</option>
+    {% for option in options %}
+        {% set label = isType ? option.label : option %}
+        <option value="{{ label }}">{{ label }}</option>
     {% endfor %}
 </select>

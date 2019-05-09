@@ -314,13 +314,17 @@ function removeFilter() {
 // modale ajout d'un filtre, affichage du champ "contient" en fonction du champ sélectionné
 function displayFilterValue(elem) {
     let type = elem.find(':selected').data('type');
+    let val = elem.find(':selected').val();
     let modalBody = elem.closest('.modal-body');
 
     // cas particulier de liste déroulante pour type
     if (type == 'list') {
-        $.getJSON(Routing.generate('type_show_select'), function (data) {
+        let params = { 
+            'value' : val 
+        };
+        $.post(Routing.generate('type_show_select'), JSON.stringify(params), function (data) {
             modalBody.find('.input').html(data);
-        })
+        }, 'json');
     } else {
         if (type == 'booleen') type = 'checkbox';
         modalBody.find('.input').html('<input type="' + type + '" class="form-control data ' + type + '" id="value" name="value">');
