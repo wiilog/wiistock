@@ -166,7 +166,7 @@ class DemandeController extends AbstractController
             $demande->setStatut($statutD);
             $em->persist($preparation);
 
-            // Scission des articles dont la quantité prélever n'est pas total  
+            // Scission des articles dont la quantité prélevée n'est pas totale
             $articles = $demande->getArticles();
 
             foreach ($articles as $article) {
@@ -195,7 +195,7 @@ class DemandeController extends AbstractController
             }
             $em->flush();
             
-            //renvoie de l'entete avec modification
+            //renvoi de l'en-tête avec modification
             $data = [
                 'entete' => $this->renderView(
                     'demande/enteteDemandeLivraison.html.twig',

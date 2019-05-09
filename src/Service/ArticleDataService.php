@@ -385,7 +385,6 @@ class ArticleDataService
 
     public function newArticle($data)
     {
-        dump($data);
         $entityManager = $this->em;
         $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $data['statut'] === Article::STATUT_ACTIF ? Article::STATUT_ACTIF : Article::STATUT_INACTIF);
         $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
@@ -416,10 +415,10 @@ class ArticleDataService
                     $entityManager->persist($valeurChampLibre);
                 }
                 $valeurChampLibre->setValeur($data[$champ]);
-                // $entityManager->flush();
+                $entityManager->flush();
             }
         }
-        // $entityManager->flush();
+        $entityManager->flush();
 
         return true;
     }

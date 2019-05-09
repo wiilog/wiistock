@@ -43,7 +43,6 @@ let startPreparation = function (value) {
     path = Routing.generate('preparation_withdraw_articles', true);
     let demandeID = value.val();
     Json = JSON.stringify(demandeID);
-    console.log(Json);
     xhttp.open("POST", path, true);
     xhttp.send(Json);
 }

@@ -208,9 +208,9 @@ class ArticleController extends AbstractController
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
-            $responce = $this->articleDataService->newArticle($data);
+            $response = $this->articleDataService->newArticle($data);
 
-            return new JsonResponse($responce);
+            return new JsonResponse($response);
         }
         throw new NotFoundHttpException('404');
     }

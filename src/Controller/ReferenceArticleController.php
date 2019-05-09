@@ -684,8 +684,6 @@ class ReferenceArticleController extends Controller
                 $statutD = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
                 $demandes = $this->demandeRepository->getByStatutAndUser($statutD, $this->getUser());
 
-                $editChampLibre = '';
-
                 if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                     if ($refArticle) {
                         $editChampLibre  = $this->refArticleDataService->getViewEditRefArticle($refArticle, true);

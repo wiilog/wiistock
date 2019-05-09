@@ -28,7 +28,7 @@
 
                 {% if statut %}
                 <button onclick="startPreparation($(this))" id="startPreparation" value="{{demande.id}}"
-                        class="btn btn-primary btn-action ml-auto">Commencerla préparation</button>
+                        class="btn btn-primary btn-action ml-auto">Commencer la préparation</button>
 
                 <a id='finishPreparation' href="{{path('livraison_new', {'id': preparation.id}) }}"
                          class="btn btn-primary btn-action ml-auto d-none">Valider</a>

@@ -4,14 +4,13 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\Article;
+use App\Entity\LigneArticle;
 use App\Entity\Menu;
 use App\Entity\Preparation;
-use App\Entity\ReferenceArticle;
 
 use App\Repository\PreparationRepository;
 use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\DependencyInjection\Tests\Compiler\D;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -34,7 +33,6 @@ use App\Repository\StatutRepository;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use App\Repository\LigneArticleRepository;
-use Proxies\__CG__\App\Entity\Preparation as ProxiesPreparation;
 
 /**
  * @Route("/preparation")
@@ -243,25 +241,25 @@ class PreparationController extends AbstractController
             if ($demande) {
                 $rows = [];
 
-                $ligneArticles = $this->ligneArticleRepository->getByDemande($demande->getId());
-                foreach ($ligneArticles as $article) {
+                $lignesArticles = $this->ligneArticleRepository->getByDemande($demande->getId());
+                foreach ($lignesArticles as $ligneArticle) { /** @var $ligneArticle LigneArticle */
                     $rows[] = [
-                        "Référence CEA" => ($article->getReference() ? $article->getReference()->getReference() : ' '),
-                        "Libellé" => ($article->getReference() ? $article->getReference()->getLibelle() : ' '),
-                        "Quantité" => ($article->getReference() ? $article->getReference()->getQuantiteStock() : ' '),
-                        "Quantité à prélever" => ($article->getQuantite() ? $article->getQuantite() : ' '),
+                        "Référence CEA" => ($ligneArticle->getReference() ? $ligneArticle->getReference()->getReference() : ' '),
+                        "Libellé" => ($ligneArticle->getReference() ? $ligneArticle->getReference()->getLibelle() : ' '),
+                        "Quantité" => ($ligneArticle->getReference() ? $ligneArticle->getReference()->getQuantiteStock() : ' '),
+                        "Quantité à prélever" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ' '),
 
                     ];
                 }
 
                 $articles = $this->articleRepository->getByDemande($demande);
-                foreach ($articles as $article) {
-                    /** @var Article $article */
+                foreach ($articles as $ligneArticle) {
+                    /** @var Article $ligneArticle */
                     $rows[] = [
-                        "Référence CEA" => $article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
-                        "Libellé" => $article->getLabel() ? $article->getLabel() : '',
-                        "Quantité" => $article->getQuantite() ? $article->getQuantite() : '',
-                        "Quantité à prélever" => $article->getWithdrawQuantity() ? $article->getWithdrawQuantity() : '',
+                        "Référence CEA" => $ligneArticle->getArticleFournisseur()->getReferenceArticle() ? $ligneArticle->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
+                        "Libellé" => $ligneArticle->getLabel() ? $ligneArticle->getLabel() : '',
+                        "Quantité" => $ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : '',
+                        "Quantité à prélever" => $ligneArticle->getWithdrawQuantity() ? $ligneArticle->getWithdrawQuantity() : '',
                     ];
                 }
 
@@ -286,8 +284,8 @@ class PreparationController extends AbstractController
         return $this->render('preparation/show.html.twig', [
             'demande' => $this->demandeRepository->findOneByPreparation($preparation),
             'preparation' => $preparation,
-            'statut' => $preparation->getStatut() === $this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER) ? true : false,
-            'finished' => ($preparation->getStatut()->getNom() !== Preparation::STATUT_PREPARE ? true : false),
+            'statut' => $preparation->getStatut() === $this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER),
+            'finished' => $preparation->getStatut()->getNom() !== Preparation::STATUT_PREPARE,
             'articles' => $this->articleRepository->getArticleByRefId(),
         ]);
     }
