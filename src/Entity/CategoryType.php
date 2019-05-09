@@ -11,6 +11,8 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class CategoryType
 {
+    const TYPE_ARTICLE = 'typeArticle';
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
