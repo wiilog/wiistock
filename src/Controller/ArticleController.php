@@ -143,9 +143,17 @@ class ArticleController extends AbstractController
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
             return $this->redirectToRoute('access_denied');
         }
+
+        if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
+            $statutVisible = 'true' ;
+        } else {
+            $statutVisible = 'false';
+        }
+
         return $this->render('article/index.html.twig', [
             'valeurChampsLibre' => null,
-            'type' => $this->typeRepository->findOneByCategoryLabel(Article::CATEGORIE)
+            'type' => $this->typeRepository->findOneByCategoryLabel(Article::CATEGORIE),
+            'statutVisible'=> $statutVisible
         ]);
     }
 

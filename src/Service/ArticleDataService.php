@@ -404,13 +404,15 @@ class ArticleDataService
         if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
             $articles = $this->articleRepository->findByParams($params);
         }else{
-            $statut = $this->statutRepository->findByNom(Article::STATUT_ACTIF);
-            $statutId= $statut[1]->getId();
-            dump($statutId);
+            $categorieName = 'article';
+            $statutName = 'actif';
+            $statut = $this->statutRepository->findOneByCategorieAndStatut($categorieName, $statutName);
+            $statutId= $statut->getId();
+            
             $articles = $this->articleRepository->findByParamsActifStatut($params, $statutId);
-            // dump($articles);
+           
         }
-// dump($articles);
+
         $rows = [];
         foreach ($articles as $article) {
             $rows[] = $this->dataRowRefArticle($article);
@@ -428,8 +430,8 @@ class ArticleDataService
     public function dataRowRefArticle($article)
     {
         $url['edit'] = $this->router->generate('demande_article_edit', ['id' => $article->getId()]);
-
-        $row =
+        if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
+            $row =
             [
                 'id' => ($article->getId() ? $article->getId() : 'Non défini'),
                 'Référence' => ($article->getReference() ? $article->getReference() : 'Non défini'),
@@ -442,6 +444,21 @@ class ArticleDataService
                     'articleId' => $article->getId(),
                 ]),
             ];
+        }else{
+            $row =
+            [
+                'id' => ($article->getId() ? $article->getId() : 'Non défini'),
+                'Référence' => ($article->getReference() ? $article->getReference() : 'Non défini'),
+                'Statut' => false,
+                'Libellé' => ($article->getLabel() ? $article->getLabel() : 'Non défini'),
+                'Référence article' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : 'Non défini'),
+                'Quantité' => ($article->getQuantite() ? $article->getQuantite() : 0),
+                'Actions' => $this->templating->render('article/datatableArticleRow.html.twig', [
+                    'url' => $url,
+                    'articleId' => $article->getId(),
+                ]),
+            ];
+        }
 
         return $row;
     }

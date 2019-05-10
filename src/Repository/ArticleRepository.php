@@ -273,7 +273,7 @@ class ArticleRepository extends ServiceEntityRepository
         }
 
         $query = $qb->getQuery();
-        dump($query);
+       
 
         return $query->getResult();
     }
