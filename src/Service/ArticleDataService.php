@@ -253,7 +253,11 @@ class ArticleDataService
             $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
             $demandeStatut = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_LIVRE);
 
-            $articles = $this->articleRepository->getByAFAndActifAndDemandeNullOrStatus($articleFournisseur, $statut, $demandeStatut);
+            $articlesNull = $this->articleRepository->getByAFAndActifAndDemandeNull($articleFournisseur, $statut);
+            $articleStatut = $this->articleRepository->getByAFAndActifAndDemandeStatus($articleFournisseur, $statut, $demandeStatut);
+
+            $articles = array_merge($articlesNull, $articleStatut);
+
             if (count($articles) < 1) {
                 $articles[] = [
                     'id' => '',
