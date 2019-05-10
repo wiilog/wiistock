@@ -181,7 +181,7 @@ class ArticleDataService
                     'reference' => 'aucun article disponible',
                 ];
             }
-            $json = $this->templating->render('collecte/newRefArticleByQuantiteArticleContent.html.twig', [
+            $json = $this->templating->render('demande/newRefArticleByQuantiteArticleContent.html.twig', [
                 'articles' => $articles,
             ]);
         } else {
@@ -190,6 +190,9 @@ class ArticleDataService
 
         return $json;
     }
+
+
+    //TODOO les méthode getCollecteArticleOrNoByRefArticle() et getLivraisonArticleOrNoByRefArticle() ont le même fonctionnement la seul différence et le statut de l'article (actif/ inactif)
 
     /**
      * @return array
@@ -207,22 +210,25 @@ class ArticleDataService
                 'selection' => $this->templating->render('collecte/newRefArticleByQuantiteRefContent.html.twig'),
             ];
         } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_INACTIF);
-            $articles = $this->articleRepository->getByAFAndInactif($articleFournisseur, $statut);
-            if (count($articles) < 1) {
-                $articles[] = [
-                    'id' => '',
-                    'reference' => 'aucun article disponible',
-                ];
-            }
             $data = [
-                'selection' => $this->templating->render(
-                    'collecte/newRefArticleByQuantiteArticleContent.html.twig',
-                    [
-                        'articles' => $articles,
-                    ]
-                )
+                'selection' => $this->templating->render('collecte/newRefArticleByQuantiteRefContentTemp.html.twig'),
             ];
+            // $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_INACTIF);
+            // $articles = $this->articleRepository->getByAFAndInactif($articleFournisseur, $statut);
+            // if (count($articles) < 1) {
+            //     $articles[] = [
+            //         'id' => '',
+            //         'reference' => 'aucun article disponible',
+            //     ];
+            // }
+            // $data = [
+            //     'selection' => $this->templating->render(
+            //         'collecte/newRefArticleByQuantiteArticleContent.html.twig',
+            //         [
+            //             'articles' => $articles,
+            //         ]
+            //     )
+            // ];
         } else {
             $data = false; //TODO gérer erreur retour
         }
@@ -248,8 +254,12 @@ class ArticleDataService
         } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
             $demandeStatut = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_LIVRE);
-      
-            $articles = $this->articleRepository->getByAFAndActifAndDemandeNullOrStatus($articleFournisseur, $statut, $demandeStatut);
+
+            $articlesNull = $this->articleRepository->getByAFAndActifAndDemandeNull($articleFournisseur, $statut);
+            $articleStatut = $this->articleRepository->getByAFAndActifAndDemandeStatus($articleFournisseur, $statut, $demandeStatut);
+
+            $articles = array_merge($articlesNull, $articleStatut);
+
             if (count($articles) < 1) {
                 $articles[] = [
                     'id' => '',
@@ -327,8 +337,6 @@ class ArticleDataService
         return $view;
     }
 
-
-
     public function editArticle($data)
     {
         // spécifique CEA : accès pour tous au champ libre 'Code projet'
@@ -384,6 +392,45 @@ class ArticleDataService
         }
     }
 
+    public function newArticle($data)
+    {
+        $entityManager = $this->em;
+        $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $data['statut'] === Article::STATUT_ACTIF ? Article::STATUT_ACTIF : Article::STATUT_INACTIF);
+        $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+        $ref = $date->format('YmdHis');
+
+        $toInsert = new Article();
+        $toInsert
+            ->setLabel($data['libelle'])
+            ->setConform(!$data['conform'])
+            ->setStatut($statut)
+            ->setCommentaire($data['commentaire'])
+            ->setReference($ref . '-0')
+            ->setQuantite((int)$data['quantite'])
+            ->setEmplacement($this->emplacementRepository->find($data['emplacement']))
+            ->setArticleFournisseur($this->articleFournisseurRepository->find($data['articleFournisseur']))
+            ->setType($this->typeRepository->findOneByCategoryLabel(Article::CATEGORIE));
+        $entityManager->persist($toInsert);
+
+        $champsLibreKey = array_keys($data);
+        foreach ($champsLibreKey as $champ) {
+            if (gettype($champ) === 'integer') {
+                $valeurChampLibre = $this->valeurChampsLibreRepository->findOneByArticleANDChampsLibre($toInsert->getId(), $champ);
+                if (!$valeurChampLibre) {
+                    $valeurChampLibre = new ValeurChampsLibre();
+                    $valeurChampLibre
+                        ->addArticle($toInsert)
+                        ->setChampLibre($this->champsLibreRepository->find($champ));
+                    $entityManager->persist($valeurChampLibre);
+                }
+                $valeurChampLibre->setValeur($data[$champ]);
+                $entityManager->flush();
+            }
+        }
+        $entityManager->flush();
+
+        return true;
+    }
     public function getDataForDatatable($params = null)
     {
         $data = $this->getArticleDataByParams($params);

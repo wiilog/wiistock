@@ -148,15 +148,29 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function getByAFAndActifAndDemandeNullOrStatus($articleFournisseur, $statut, $demandeStatus)
+    public function getByAFAndActifAndDemandeNull($articleFournisseur, $statut)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
             "SELECT a.id, a.reference
           FROM App\Entity\Article a
-          JOIN App\Entity\Demande d
-          JOIN a.articleFournisseur af
-          WHERE a.Statut = :statut AND af.id IN(:articleFournisseur) AND (a.demande IS NULL OR d.statut = :demandeStatut)"
+          WHERE a.Statut = :statut AND a.articleFournisseur IN(:articleFournisseur) AND (a.demande IS NULL )"
+        )->setParameters([
+            'articleFournisseur' => $articleFournisseur,
+            'statut' => $statut,
+        ]);
+
+        return $query->execute();
+    }
+
+    public function getByAFAndActifAndDemandeStatus($articleFournisseur, $statut, $demandeStatus)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT a.id, a.reference
+          FROM App\Entity\Article a
+          JOIN a.demande d
+          WHERE a.Statut = :statut AND a.articleFournisseur IN(:articleFournisseur) AND  d.statut = :demandeStatut"
         )->setParameters([
             'articleFournisseur' => $articleFournisseur,
             'statut' => $statut,
@@ -165,6 +179,8 @@ class ArticleRepository extends ServiceEntityRepository
 
         return $query->execute();
     }
+
+
 
     public function findByEtat($etat)
     {

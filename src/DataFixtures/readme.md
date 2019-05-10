@@ -1,4 +1,7 @@
-`pour lancer les fixtures :`
+`pour lancer toutes les fixtures étiquetées 'fixtures':`
+php bin/console doctrine:fixtures:load --append --group=fixtures
+
+`pour lancer les fixtures (ATTENTION efface les données en base) :`
 php bin/console doctrine:fixtures:load
 
 `sans effacer les données existantes en base`

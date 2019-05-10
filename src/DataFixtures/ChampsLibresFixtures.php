@@ -226,10 +226,6 @@ class ChampsLibresFixtures extends Fixture implements FixtureGroupInterface
         $manager->flush();
     }
 
-    public static function getGroups():array {
-        return ['champslibres'];
-    }
-
     /**
      * @param ObjectManager $manager
      * @param $field
@@ -258,6 +254,10 @@ class ChampsLibresFixtures extends Fixture implements FixtureGroupInterface
             $manager->persist($cl);
         }
         return $cl;
+    }
+
+    public static function getGroups():array {
+        return ['champslibres'];
     }
 
 }

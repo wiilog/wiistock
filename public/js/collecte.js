@@ -134,7 +134,7 @@ function ajaxGetCollecteArticle(select) {
         if (this.readyState == 4 && this.status == 200) {
             data = JSON.parse(this.responseText);
             selection.html(data.selection);
-            editNewArticle.html(data.modif);
+            if (data.modif) editNewArticle.html(data.modif);
             $('#modalNewArticle').find('.modal-footer').removeClass('d-none');
             displayRequireChamp($('#typeEdit'), 'edit');
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
@@ -269,3 +269,4 @@ let ajaxEditArticle = function (select) {
     xhttp.open("POST", path, true);
     xhttp.send(JSON.stringify(json));
 }
+

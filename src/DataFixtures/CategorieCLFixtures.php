@@ -2,6 +2,7 @@
 
 namespace App\DataFixtures;
 
+use App\Repository\CategorieCLRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
@@ -9,28 +10,44 @@ use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 use App\Entity\CategorieCL;
 
-class CategorieCLFixtures extends Fixture
+class CategorieCLFixtures extends Fixture implements FixtureGroupInterface
 {
     private $encoder;
 
-    public function __construct(UserPasswordEncoderInterface $encoder)
+    /**
+     * @var CategorieCLRepository
+     */
+    private $categorieCLRepository;
+
+    public function __construct(CategorieCLRepository $categorieCLRepository, UserPasswordEncoderInterface $encoder)
     {
         $this->encoder = $encoder;
+        $this->categorieCLRepository = $categorieCLRepository;
     }
     
     public function load(ObjectManager $manager)
     {
         $categoriesNames = [
-            'referenceArticle',
-            'article',
-            'aucune'
+            CategorieCL::REFERENCE_ARTICLE,
+            CategorieCL::ARTICLE,
+            CategorieCL::AUCUNE
         ];
         foreach ($categoriesNames as $categorieName) {
-            $categorie = new CategorieCL();
-            $categorie->setLabel($categorieName);
-            $manager->persist($categorie);
+            $categorie = $this->categorieCLRepository->findOneByLabel($categorieName);
+
+            if (empty($categorie)) {
+                $categorie = new CategorieCL();
+                $categorie->setLabel($categorieName);
+                $manager->persist($categorie);
+                dump("création de la catégorie " . $categorieName);
+            }
+
         }
         $manager->flush();
+    }
+
+    public static function getGroups():array {
+        return ['fixtures'];
     }
 
 }

@@ -215,39 +215,10 @@ class ArticleController extends AbstractController
     public function new(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $toInsert = new Article();
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $data['statut'] === Article::STATUT_ACTIF ? Article::STATUT_ACTIF : Article::STATUT_INACTIF);
-            $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
-            $ref = $date->format('YmdHis');
-            $toInsert
-                ->setLabel($data['libelle'])
-                ->setConform(!$data['conform'])
-                ->setStatut($statut)
-                ->setCommentaire($data['commentaire'])
-                ->setReference($ref . '-0')
-                ->setQuantite((int)$data['quantite'])
-                ->setEmplacement($this->emplacementRepository->find($data['emplacement']))
-                ->setArticleFournisseur($this->articleFournisseurRepository->find($data['articleFournisseur']))
-                ->setType($this->typeRepository->findOneByCategoryLabel(Article::CATEGORIE));
-            $em = $this->getDoctrine()->getManager();
-            $em->persist($toInsert);
-            $champsLibreKey = array_keys($data);
-            foreach ($champsLibreKey as $champ) {
-                if (gettype($champ) === 'integer') {
-                    $valeurChampLibre = $this->valeurChampsLibreRepository->findOneByArticleANDChampsLibre($toInsert->getId(), $champ);
-                    if (!$valeurChampLibre) {
-                        $valeurChampLibre = new ValeurChampsLibre();
-                        $valeurChampLibre
-                            ->addArticle($toInsert)
-                            ->setChampLibre($this->champsLibreRepository->find($champ));
-                        $em->persist($valeurChampLibre);
-                    }
-                    $valeurChampLibre->setValeur($data[$champ]);
-                    $em->flush();
-                }
-            }
-            $em->flush();
-            return new JsonResponse();
+
+            $response = $this->articleDataService->newArticle($data);
+
+            return new JsonResponse($response);
         }
         throw new NotFoundHttpException('404');
     }
@@ -427,6 +398,40 @@ class ArticleController extends AbstractController
                 );
             } else {
                 $json = false; //TODO gérer erreur retour
+            }
+            return new JsonResponse($json);
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/ajax-fournisseur-by-refarticl-temp", name="ajax_fournisseur_by_refarticle_tmp", options={"expose"=true})
+     */
+    public function ajaxFournisseurByRefArticleTemp(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $refArticle = $this->referenceArticleRepository->find($data['refArticle']);
+            if ($refArticle && $refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+                $articleFournisseurs = $refArticle->getArticlesFournisseur();
+                $fournisseurs = [];
+                foreach ($articleFournisseurs as $articleFournisseur) {
+                    $fournisseurs[] = $articleFournisseur->getFournisseur();
+                }
+                $fournisseursUnique = array_unique($fournisseurs);
+                $json = $this->renderView(
+                    'article/optionFournisseurNewArticle.html.twig',
+                    [
+                        'fournisseurs' => $fournisseursUnique
+                    ]
+                );
+            } else {
+                if ($refArticle) {
+                    $json = $this->articleDataService->getCollecteArticleOrNoByRefArticle($refArticle);
+                } else {
+                    $json = false; //TODO gérer erreur retour
+                }
+
+                return new JsonResponse($json, 250);
             }
             return new JsonResponse($json);
         }

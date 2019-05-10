@@ -26,8 +26,7 @@ class FournisseurRepository extends ServiceEntityRepository
             ->setParameter('value', '%' . $value . '%')
             ->orderBy('r.nom', 'ASC')
             ->getQuery()
-            ->getResult()
-        ;
+            ->getResult();
     }
     public function getNoOne($fournisseur)
     {
@@ -36,16 +35,27 @@ class FournisseurRepository extends ServiceEntityRepository
             "SELECT f
             FROM App\Entity\Fournisseur f
             WHERE f.id <> :fournisseur"
-             )->setParameter('fournisseur', $fournisseur);
-        ;
-        return $query->execute(); 
+        )->setParameter('fournisseur', $fournisseur);;
+        return $query->execute();
     }
-    
+
+    public function findOneByCodeReference($code)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT f
+          FROM App\Entity\Fournisseur f
+          WHERE f.codeReference LIKE :search"
+        )->setParameter('search', $code);
+
+        return $query->getOneOrNullResult();
+    }
+
     public function getIdAndLibelleBySearch($search)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
-          "SELECT f.id, f.nom as text
+            "SELECT f.id, f.nom as text
           FROM App\Entity\Fournisseur f
           WHERE f.nom LIKE :search"
         )->setParameter('search', '%' . $search . '%');
@@ -57,7 +67,7 @@ class FournisseurRepository extends ServiceEntityRepository
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
-          "SELECT f
+            "SELECT f
           FROM App\Entity\Fournisseur f
           WHERE f.refenceArticle = :refArticle
           "
@@ -65,11 +75,11 @@ class FournisseurRepository extends ServiceEntityRepository
 
         return $query->execute();
     }
-    
 
-//    /**
-//     * @return Fournisseur[] Returns an array of Fournisseur objects
-//     */
+
+    //    /**
+    //     * @return Fournisseur[] Returns an array of Fournisseur objects
+    //     */
     /*
     public function findByExampleField($value)
     {

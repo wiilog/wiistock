@@ -138,6 +138,7 @@ class DemandeController extends AbstractController
         }
         throw new NotFoundHttpException('404');
     }
+
     /**
      * @Route("/finir", name="finish_demande", options={"expose"=true}, methods="GET|POST")
      */
@@ -147,13 +148,10 @@ class DemandeController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::PREPA, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
+            $em = $this->getDoctrine()->getManager();
 
             // Creation d'une nouvelle preparation basée sur une selection de demandes
             $demande = $this->demandeRepository->find($data['demande']);
-            $articles = $this->articleRepository->getByDemande($demande);
-            foreach ($articles as $article) {
-                $article->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
-            }
             $preparation = new Preparation();
             $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
             $preparation
@@ -166,10 +164,38 @@ class DemandeController extends AbstractController
             $demande->setPreparation($preparation);
             $statutD = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
             $demande->setStatut($statutD);
-            $em = $this->getDoctrine()->getManager();
             $em->persist($preparation);
-            $em->flush();
 
+            // Scission des articles dont la quantité prélevée n'est pas totale
+            $articles = $demande->getArticles();
+
+            foreach ($articles as $article) {
+                if ($article->getQuantite() !== $article->getWithdrawQuantity()) {
+                    
+                    $newArticle = [
+                        'articleFournisseur' => $article->getArticleFournisseur()->getId(),
+                        'libelle' => $article->getLabel(),
+                        'conform' => !$article->getConform(),
+                        'commentaire' => $article->getcommentaire(),
+                        'quantite' => $article->getQuantite() - $article->getWithdrawQuantity(),
+                        'emplacement' => ($article->getEmplacement() ? $article->getEmplacement()->getId() : ''),
+                        'statut' => 'actif',
+                    ];
+                    $newArticleVCL = [];
+                    foreach ($article->getValeurChampsLibres() as $valeurChampLibre) {
+                        $newArticleVCL = [
+                            $valeurChampLibre->getChampLibre()->getId() => $valeurChampLibre->getValeur(),
+                        ];
+                    }
+                    $dateArticle = array_merge($newArticle, $newArticleVCL);
+                    $this->articleDataService->newArticle($dateArticle);
+                }
+                //modification du statut article =>en transit
+                $article->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
+            }
+            $em->flush();
+            
+            //renvoi de l'en-tête avec modification
             $data = [
                 'entete' => $this->renderView(
                     'demande/enteteDemandeLivraison.html.twig',
@@ -383,7 +409,8 @@ class DemandeController extends AbstractController
                 $rowsRC[] = [
                     "Référence CEA" => ($ligneArticle->getReference()->getReference() ? $ligneArticle->getReference()->getReference() : ''),
                     "Libellé" => ($ligneArticle->getReference()->getLibelle() ? $ligneArticle->getReference()->getLibelle() : ''),
-                    "Quantité" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ''),
+                    "Quantité" => ($ligneArticle->getReference() ? $ligneArticle->getReference()->getQuantiteStock() : ''),
+                    "Quantité à prélever" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ''),
                     "Actions" => $this->renderView(
                         'demande/datatableLigneArticleRow.html.twig',
                         [
@@ -404,6 +431,7 @@ class DemandeController extends AbstractController
                     "Référence CEA" => ($article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : ''),
                     "Libellé" => ($article->getLabel() ? $article->getLabel() : ''),
                     "Quantité" => ($article->getQuantite() ? $article->getQuantite() : ''),
+                    "Quantité à prélever" => ($article->getWithdrawQuantity() ? $article->getWithdrawQuantity() : ''),
                     "Actions" => $this->renderView(
                         'demande/datatableLigneArticleRow.html.twig',
                         [
@@ -440,6 +468,7 @@ class DemandeController extends AbstractController
             if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
                 $article = $this->articleRepository->find($data['article']);
                 $demande->addArticle($article);
+                $article->setWithdrawQuantity($data['quantitie']);
 
                 $this->articleDataService->editArticle($data);
             } elseif ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
