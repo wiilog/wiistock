@@ -14,6 +14,7 @@ class Preparation
     const CATEGORIE = 'preparation';
 
     const STATUT_A_TRAITER = 'à traiter';
+    const STATUT_EN_COURS_DE_PREPARATION = 'en cours de préparation';
     const STATUT_PREPARE = 'préparé';
 
     /**

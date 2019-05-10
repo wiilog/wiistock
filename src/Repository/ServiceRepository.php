@@ -29,6 +29,20 @@ class ServiceRepository extends ServiceEntityRepository
             );
         return $query->execute(); 
     }
+
+    public function countByStatut($statut){
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT COUNT(u)
+            FROM App\Entity\Service u
+            WHERE u.statut = :statut 
+           "
+            )->setParameter('statut', $statut);
+        return $query->getSingleScalarResult(); 
+    }
+
+
+    
     // public function findByDate($dateMin){
     //     $entityManager = $this->getEntityManager();
     //     $query = $entityManager->createQuery(

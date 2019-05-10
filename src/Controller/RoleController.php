@@ -81,7 +81,7 @@ class RoleController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $roles = $this->roleRepository->findAll();
+            $roles = $this->roleRepository->findAllExceptNoAccess();
             $rows = [];
             foreach ($roles as $role) {
                 $url['edit'] = $this->generateUrl('role_api_edit', ['id' => $role->getId()]);
@@ -201,8 +201,6 @@ class RoleController extends AbstractController
                 $menuActionArray = explode('/', $menuAction);
                 $menuCode = $menuActionArray[0];
                 $actionLabel = $menuActionArray[1];
-                dump($menuActionArray);
-
                 $action = $this->actionRepository->findOneByMenuCodeAndLabel($menuCode, $actionLabel);
 
                 if ($action) {

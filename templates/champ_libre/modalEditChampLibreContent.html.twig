@@ -14,9 +14,7 @@
 <div class="form-group">
     <label for="typage">Typage</label>
     <select class="form-control select2 data" name="typage" id='typageModif' onchange="defaultValueForTypage($(this), '-edit'), changeType(this)" disabled>
-        {% for typage in typages %}
-                <option value="{{ typage.value }}" >{{ typage.label }}</option>
-        {% endfor %}
+        <option value="{{ champLibre.typage }}">{{ champLibre.typage }}</option>
     </select>
 </div>
 <div class="form-group">

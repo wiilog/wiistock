@@ -11,7 +11,6 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Type
 {
-    const LABEL_PSS = 'PSS';
     const LABEL_CSP = 'CSP';
     const LABEL_PDT = 'PDT';
     const LABEL_SILI = 'SILI';

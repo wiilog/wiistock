@@ -2,7 +2,7 @@ $('.select2').select2();
 
 function InitialiserModalRefArticle(modal, submit, path, callback = function () { }, close = true) {
     submit.click(function () {
-        submitActionRefArticle(modal, path, callback, close, callback = function () { }, close = true);
+        submitActionRefArticle(modal, path, callback, close);
     });
 }
 
@@ -37,7 +37,9 @@ function submitActionRefArticle(modal, path, callback = function () { }, close =
 
     // si tout va bien on envoie la requête ajax...
     if (missingInputs.length == 0 && wrongInputs.length == 0) {
-        if (close == true) modal.find('.close').click();
+        if (close == true) {
+            modal.find('.close').click();
+        }
         modal.find('.error-msg').html('');
         Json = {};
         Json = JSON.stringify(Data);
@@ -183,7 +185,7 @@ InitialiserModalRefArticle(modalColumnVisible, submitColumnVisible, urlColumnVis
 let modalNewFilter = $('#modalNewFilter');
 let submitNewFilter = $('#submitNewFilter');
 let urlNewFilter = Routing.generate('filter_new', true);
-InitialiserModalRefArticle(modalNewFilter, submitNewFilter, urlNewFilter, displayNewFilter, displayErrorRA, true);
+InitialiserModalRefArticle(modalNewFilter, submitNewFilter, urlNewFilter, displayNewFilter, true);
 
 let url = Routing.generate('ref_article_api', true);
 
@@ -314,13 +316,17 @@ function removeFilter() {
 // modale ajout d'un filtre, affichage du champ "contient" en fonction du champ sélectionné
 function displayFilterValue(elem) {
     let type = elem.find(':selected').data('type');
+    let val = elem.find(':selected').val();
     let modalBody = elem.closest('.modal-body');
 
     // cas particulier de liste déroulante pour type
     if (type == 'list') {
-        $.getJSON(Routing.generate('type_show_select'), function (data) {
+        let params = { 
+            'value' : val 
+        };
+        $.post(Routing.generate('type_show_select'), JSON.stringify(params), function (data) {
             modalBody.find('.input').html(data);
-        })
+        }, 'json');
     } else {
         if (type == 'booleen') type = 'checkbox';
         modalBody.find('.input').html('<input type="' + type + '" class="form-control data ' + type + '" id="value" name="value">');
@@ -335,6 +341,9 @@ function displayFilterValue(elem) {
         case 'number':
         case 'list':
             label = 'Valeur';
+            break;
+        case 'date':
+            label = 'Date';
             break;
         default:
             label = 'Contient';
@@ -354,21 +363,26 @@ let recupIdRefArticle = function (div) {
     $('#submitPlusDemande').val(id);
 }
 
-function ajaxPlusDemandeContent(button, demande) {
+let  ajaxPlusDemandeContent = function(button, demande) {
+    let plusDemandeContent = $('.plusDemandeContent');
+    let editChampLibre = $('.editChampLibre');
+    let modalFooter = $('.modal-footer');
+    plusDemandeContent.html('');
+    editChampLibre.html('');
+    modalFooter.addClass('d-none');
 
-    $('.plusDemandeContent').html('');
-    $('.editChampLibre').html('');
     xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
             dataReponse = JSON.parse(this.responseText);
             if (dataReponse.plusContent) {
-                $('.plusDemandeContent').html(dataReponse.plusContent);
+                plusDemandeContent.html(dataReponse.plusContent);
             } else {
                 //TODO gérer erreur
             }
             if (dataReponse.editChampLibre) {
-                $('.editChampLibre').html(dataReponse.editChampLibre);
+                editChampLibre.html(dataReponse.editChampLibre);
+                modalFooter.removeClass('d-none');
             } else {
                 //TODO gérer erreur
             }
@@ -389,6 +403,7 @@ function ajaxPlusDemandeContent(button, demande) {
 
 //TODO optimisation plus tard
 let ajaxEditArticle = function (select) {
+    let modalFooter = select.closest('.modal').find('.modal-footer');
     xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
@@ -397,13 +412,16 @@ let ajaxEditArticle = function (select) {
                 $('.editChampLibre').html(dataReponse);
                 ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
                 displayRequireChamp($('#typeEditArticle'), 'edit');
+                $('#livraisonShow').find('#withdrawQuantity').removeClass('d-none').addClass('data');
                 initEditor2();
+                modalFooter.removeClass('d-none');
             } else {
                 //TODO gérer erreur
             }
         }
     }
-    let json = { id: select.val(), isADemand: 1 };
+    modalFooter.addClass('d-none');
+    let json = { id :select.val(), isADemand:1};
     let path = Routing.generate('article_api_edit', true);
     xhttp.open("POST", path, true);
     xhttp.send(JSON.stringify(json));
