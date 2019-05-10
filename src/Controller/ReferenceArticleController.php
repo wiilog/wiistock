@@ -703,8 +703,6 @@ class ReferenceArticleController extends Controller
                 $statutD = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
                 $demandes = $this->demandeRepository->getByStatutAndUser($statutD, $this->getUser());
 
-                $editChampLibre = '';
-
                 if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                     if ($refArticle) {
                         $editChampLibre  = $this->refArticleDataService->getViewEditRefArticle($refArticle, true);
@@ -712,7 +710,7 @@ class ReferenceArticleController extends Controller
                         $editChampLibre = false;
                     }
                 } else {
-                    # code...
+                    $editChampLibre = false;
                 }
 
                 $articleOrNo  = $this->articleDataService->getArticleOrNoByRefArticle($refArticle, $data['demande'], false);

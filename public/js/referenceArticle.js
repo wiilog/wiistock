@@ -351,21 +351,26 @@ let recupIdRefArticle = function (div) {
     $('#submitPlusDemande').val(id);
 }
 
-function ajaxPlusDemandeContent(button, demande) {
+let  ajaxPlusDemandeContent = function(button, demande) {
+    let plusDemandeContent = $('.plusDemandeContent');
+    let editChampLibre = $('.editChampLibre');
+    let modalFooter = $('.modal-footer');
+    plusDemandeContent.html('');
+    editChampLibre.html('');
+    modalFooter.addClass('d-none');
 
-    $('.plusDemandeContent').html('');
-    $('.editChampLibre').html('');
     xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
             dataReponse = JSON.parse(this.responseText);
             if (dataReponse.plusContent) {
-                $('.plusDemandeContent').html(dataReponse.plusContent);
+                plusDemandeContent.html(dataReponse.plusContent);
             } else {
                 //TODO gérer erreur
             }
             if (dataReponse.editChampLibre) {
-                $('.editChampLibre').html(dataReponse.editChampLibre);
+                editChampLibre.html(dataReponse.editChampLibre);
+                modalFooter.removeClass('d-none');
             } else {
                 //TODO gérer erreur
             }
@@ -386,6 +391,7 @@ function ajaxPlusDemandeContent(button, demande) {
 
 //TODO optimisation plus tard
 let ajaxEditArticle = function (select) {
+    let modalFooter = select.closest('.modal').find('.modal-footer');
     xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
@@ -394,13 +400,16 @@ let ajaxEditArticle = function (select) {
                 $('.editChampLibre').html(dataReponse);
                 ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
                 displayRequireChamp($('#typeEditArticle'), 'edit');
+                $('#livraisonShow').find('#withdrawQuantity').removeClass('d-none').addClass('data');
                 initEditor2();
+                modalFooter.removeClass('d-none');
             } else {
                 //TODO gérer erreur
             }
         }
     }
-    let json = { id: select.val(), isADemand: 1 };
+    modalFooter.addClass('d-none');
+    let json = { id :select.val(), isADemand:1};
     let path = Routing.generate('article_api_edit', true);
     xhttp.open("POST", path, true);
     xhttp.send(JSON.stringify(json));
