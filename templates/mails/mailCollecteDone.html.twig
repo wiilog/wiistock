@@ -42,8 +42,8 @@ Liste des articles :<br>
     <tbody>
     {% for article in collecte.articles %}
         <tr>
-            <td>{{ article.reference.reference }}</td>
-            <td>{{ article.reference.libelle }}</td>
+            <td>{{ article.articleFournisseur.referenceArticle.reference }}</td>
+            <td>{{ article.articleFournisseur.referenceArticle.libelle }}</td>
             <td>{{ article.quantite }}</td>
         </tr>
     {% endfor %}

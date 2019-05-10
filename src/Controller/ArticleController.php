@@ -395,4 +395,38 @@ class ArticleController extends AbstractController
         }
         throw new NotFoundHttpException('404');
     }
+
+    /**
+     * @Route("/ajax-fournisseur-by-refarticl-temp", name="ajax_fournisseur_by_refarticle_tmp", options={"expose"=true})
+     */
+    public function ajaxFournisseurByRefArticleTemp(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $refArticle = $this->referenceArticleRepository->find($data['refArticle']);
+            if ($refArticle && $refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+                $articleFournisseurs = $refArticle->getArticlesFournisseur();
+                $fournisseurs = [];
+                foreach ($articleFournisseurs as $articleFournisseur) {
+                    $fournisseurs[] = $articleFournisseur->getFournisseur();
+                }
+                $fournisseursUnique = array_unique($fournisseurs);
+                $json = $this->renderView(
+                    'article/optionFournisseurNewArticle.html.twig',
+                    [
+                        'fournisseurs' => $fournisseursUnique
+                    ]
+                );
+            } else {
+                if ($refArticle) {
+                    $json = $this->articleDataService->getCollecteArticleOrNoByRefArticle($refArticle);
+                } else {
+                    $json = false; //TODO gérer erreur retour
+                }
+
+                return new JsonResponse($json, 250);
+            }
+            return new JsonResponse($json);
+        }
+        throw new NotFoundHttpException('404');
+    }
 }

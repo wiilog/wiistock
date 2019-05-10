@@ -208,22 +208,25 @@ class ArticleDataService
                 'selection' => $this->templating->render('collecte/newRefArticleByQuantiteRefContent.html.twig'),
             ];
         } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_INACTIF);
-            $articles = $this->articleRepository->getByAFAndInactif($articleFournisseur, $statut);
-            if (count($articles) < 1) {
-                $articles[] = [
-                    'id' => '',
-                    'reference' => 'aucun article disponible',
-                ];
-            }
             $data = [
-                'selection' => $this->templating->render(
-                    'collecte/newRefArticleByQuantiteArticleContent.html.twig',
-                    [
-                        'articles' => $articles,
-                    ]
-                )
+                'selection' => $this->templating->render('collecte/newRefArticleByQuantiteRefContentTemp.html.twig'),
             ];
+            // $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_INACTIF);
+            // $articles = $this->articleRepository->getByAFAndInactif($articleFournisseur, $statut);
+            // if (count($articles) < 1) {
+            //     $articles[] = [
+            //         'id' => '',
+            //         'reference' => 'aucun article disponible',
+            //     ];
+            // }
+            // $data = [
+            //     'selection' => $this->templating->render(
+            //         'collecte/newRefArticleByQuantiteArticleContent.html.twig',
+            //         [
+            //             'articles' => $articles,
+            //         ]
+            //     )
+            // ];
         } else {
             $data = false; //TODO gérer erreur retour
         }
@@ -249,7 +252,7 @@ class ArticleDataService
         } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
             $demandeStatut = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_LIVRE);
-      
+
             $articles = $this->articleRepository->getByAFAndActifAndDemandeNullOrStatus($articleFournisseur, $statut, $demandeStatut);
             if (count($articles) < 1) {
                 $articles[] = [

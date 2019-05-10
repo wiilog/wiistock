@@ -71,6 +71,21 @@ class DemandeRepository extends ServiceEntityRepository
 
         return $query->getSingleScalarResult();
     }
+  
+    public function countByStatutAndUser($statut, $user)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT COUNT(d)
+            FROM App\Entity\Demande d
+            WHERE d.statut = :statut AND d.utilisateur = :user"
+        )->setParameters([
+            'statut'=> $statut,
+            'user' => $user,
+        ]);
+
+        return $query->getSingleScalarResult();
+    }
 
     public function findOneByPreparation($preparation)
     {

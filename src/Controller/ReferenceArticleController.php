@@ -50,8 +50,8 @@ use App\Repository\FournisseurRepository;
 class ReferenceArticleController extends Controller
 {
     /**
-         * @var EmplacementRepository
-         */
+     * @var EmplacementRepository
+     */
     private $emplacementRepository;
     /**
      * @var ArticleRepository
@@ -285,9 +285,9 @@ class ReferenceArticleController extends Controller
     public function new(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            
-       
-           
+
+
+
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
@@ -300,7 +300,7 @@ class ReferenceArticleController extends Controller
             } else {
                 $requiredCreate = true;
                 $type = $this->typeRepository->find($data['type']);
-                
+
                 if ($data['emplacement'] !== NULL) {
                     $emplacement = $this->emplacementRepository->find($data['emplacement']);
                 } else {
@@ -312,7 +312,7 @@ class ReferenceArticleController extends Controller
                         $requiredCreate = false;
                     }
                 }
-                
+
                 if ($requiredCreate) {
                     $em = $this->getDoctrine()->getManager();
                     $statut = ($data['statut'] === 'active' ? $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF) : $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_INACTIF));
@@ -379,6 +379,7 @@ class ReferenceArticleController extends Controller
                         ]),
                     ];
                     $rows = array_merge($rowCL, $rowDD);
+                    sort($champs);
                     $response['new'] = $rows;
                 } else {
                     $response = false;
@@ -445,6 +446,7 @@ class ReferenceArticleController extends Controller
             'typage' => 'text'
         ];
         $champs = array_merge($champ, $champL);
+        sort($champs);
 
         $champsVisibleDefault = ['Actions', 'Libellé', 'Référence', 'Type', 'Quantité', 'Emplacement'];
 
@@ -633,7 +635,8 @@ class ReferenceArticleController extends Controller
 
                         $em->persist($ligneArticle);
                     } else {
-                        $ligneArticle = $this->ligneArticleRepository->findOneByRefArticleAndDemande($refArticle, $demande); /** @var LigneArticle $ligneArticle */
+                        $ligneArticle = $this->ligneArticleRepository->findOneByRefArticleAndDemande($refArticle, $demande);
+                        /** @var LigneArticle $ligneArticle */
                         $ligneArticle
                             ->setQuantite($ligneArticle->getQuantite() + $data["quantitie"]);
                     }
