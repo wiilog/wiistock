@@ -6,6 +6,7 @@ class='accueil-back'
 {% endblock %}
 
 {% block page_content %}
+{% if hasRight(constant('App\\Entity\\Menu::INDICS_ACCUEIL'), constant('App\\Entity\\Action::YES')) %}
 <div class="row justify-content-end">
     <div class="col-6 ">
         <div class="row justify-content-end">
@@ -37,7 +38,7 @@ class='accueil-back'
         </div>
     </div>
 </div>
-
+{% endif %}
 {% include "demande/modalNewDemande.html.twig" %}
 
 {% endblock %}

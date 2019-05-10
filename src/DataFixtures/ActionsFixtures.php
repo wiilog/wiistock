@@ -128,7 +128,8 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
 
         // action oui
         $menus = [
-            Menu::PARAM
+            Menu::PARAM,
+            Menu::INDICS_ACCUEIL
         ];
 
         $actionLabel = Action::YES;
@@ -154,7 +155,8 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
         return [MenusFixtures::class];
     }
 
-    public static function getGroups():array {
+    public static function getGroups(): array
+    {
         return ['actions', 'fixtures'];
     }
 }

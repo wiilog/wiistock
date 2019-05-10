@@ -71,7 +71,7 @@ class DemandeRepository extends ServiceEntityRepository
 
         return $query->getSingleScalarResult();
     }
-  
+
     public function countByStatutAndUser($statut, $user)
     {
         $em = $this->getEntityManager();
@@ -80,10 +80,21 @@ class DemandeRepository extends ServiceEntityRepository
             FROM App\Entity\Demande d
             WHERE d.statut = :statut AND d.utilisateur = :user"
         )->setParameters([
-            'statut'=> $statut,
+            'statut' => $statut,
             'user' => $user,
         ]);
 
+        return $query->getSingleScalarResult();
+    }
+
+    public function countByStatut($statut)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT COUNT(d)
+            FROM App\Entity\Demande d
+            WHERE d.statut = :Statut "
+        )->setParameter('Statut', $statut);
         return $query->getSingleScalarResult();
     }
 

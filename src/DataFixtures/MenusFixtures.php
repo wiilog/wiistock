@@ -36,6 +36,7 @@ class MenusFixtures extends Fixture implements FixtureGroupInterface
             ['Manutention', 'MANUT'],
             ['Paramétrage', 'PARAM'],
             ['Stock', 'STOCK'],
+            ['Indicateurs accueil', 'INDICAC']
         ];
         foreach ($menusInfos as $menuInfos) {
             $menu = $this->menuRepository->findOneBy(['code' => $menuInfos[1]]);
@@ -55,8 +56,8 @@ class MenusFixtures extends Fixture implements FixtureGroupInterface
         $manager->flush();
     }
 
-    public static function getGroups():array {
+    public static function getGroups(): array
+    {
         return ['actions', 'fixtures'];
     }
-
 }
