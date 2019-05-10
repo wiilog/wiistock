@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
+use App\Entity\Utilisateur;
 use App\Entity\ValeurChampsLibre;
 use App\Entity\CollecteReference;
 use App\Entity\LigneArticle;
@@ -171,41 +172,47 @@ class ReferenceArticleController extends Controller
                 return $this->redirectToRoute('access_denied');
             }
 
-            $colonmVisible = $this->getUser()->getColumnVisible();
+            $columnsVisible = $this->getUser()->getColumnVisible();
             $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
             $category = ReferenceArticle::CATEGORIE_TYPE;
             $champs = $this->champsLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
-            if ($colonmVisible) {
+            if ($columnsVisible) {
                 $columns = [
                     [
                         "title" => 'Actions',
                         "data" => 'Actions',
-                        "class" => (in_array('Actions', $colonmVisible) ? 'fixe' : 'libre')
+                        'name' => 'Actions',
+                        "class" => (in_array('Actions', $columnsVisible) ? 'fixe' : 'libre'),
                     ],
                     [
                         "title" => 'Libellé',
                         "data" => 'Libellé',
-                        "class" => (in_array('Libellé', $colonmVisible) ? 'fixe' : 'libre')
+                        'name' => 'Libellé',
+                        "class" => (in_array('Libellé', $columnsVisible) ? 'fixe' : 'libre'),
                     ],
                     [
                         "title" => 'Référence',
                         "data" => 'Référence',
-                        "class" => (in_array('Référence', $colonmVisible) ? 'fixe' : 'libre')
+                        'name' => 'Référence',
+                        "class" => (in_array('Référence', $columnsVisible) ? 'fixe' : 'libre'),
                     ],
                     [
                         "title" => 'Type',
                         "data" => 'Type',
-                        "class" => (in_array('Type', $colonmVisible) ? 'fixe' : 'libre')
+                        'name' => 'Type',
+                        "class" => (in_array('Type', $columnsVisible) ? 'fixe' : 'libre'),
                     ],
                     [
                         "title" => 'Quantité',
                         "data" => 'Quantité',
-                        "class" => (in_array('Quantité', $colonmVisible) ? 'fixe' : 'libre')
+                        'name' => 'Quantité',
+                        "class" => (in_array('Quantité', $columnsVisible) ? 'fixe' : 'libre'),
                     ],
                     [
                         "title" => 'Emplacement',
                         "data" => 'Emplacement',
-                        "class" => (in_array('Emplacement', $colonmVisible) ? 'fixe' : 'libre')
+                        'name' => 'Emplacement',
+                        "class" => (in_array('Emplacement', $columnsVisible) ? 'fixe' : 'libre'),
                     ],
 
                 ];
@@ -213,7 +220,8 @@ class ReferenceArticleController extends Controller
                     $columns[] = [
                         "title" => ucfirst(mb_strtolower($champ['label'])),
                         "data" => $champ['label'],
-                        "class" => (in_array($champ['label'], $colonmVisible) ? 'fixe' : 'libre')
+                        'name' => $champ['label'],
+                        "class" => (in_array($champ['label'], $columnsVisible) ? 'fixe' : 'libre'),
                     ];
                 }
             } else {
@@ -221,38 +229,46 @@ class ReferenceArticleController extends Controller
                     [
                         "title" => 'Actions',
                         "data" => 'Actions',
-                        "class" => 'fixe'
+                        'name' => 'Actions',
+                        "class" => 'fixe',
                     ],
                     [
                         "title" => 'Libellé',
                         "data" => 'Libellé',
-                        "class" => 'fixe'
+                        'name' => 'Libellé',
+                        "class" => 'fixe',
                     ],
                     [
                         "title" => 'Référence',
                         "data" => 'Référence',
-                        "class" => 'fixe'
+                        'name' => 'Référence',
+                        "class" => 'fixe',
                     ],
                     [
                         "title" => 'Type',
                         "data" => 'Type',
-                        "class" => 'fixe'
+                        'name' => 'Type',
+                        "class" => 'fixe',
                     ],
                     [
                         "title" => 'Quantité',
                         "data" => 'Quantité',
-                        "class" => 'fixe'
+                        'name' => 'Quantité',
+                        "class" => 'fixe',
                     ],
                     [
                         "title" => 'Emplacement',
                         "data" => 'Emplacement',
-                        "class" => 'fixe'
+                        'name' => 'Emplacement',
+                        "class" => 'fixe',
                     ],
                 ];
+
                 foreach ($champs as $champ) {
                     $columns[] = [
                         "title" => ucfirst(mb_strtolower($champ['label'])),
                         "data" => $champ['label'],
+                        "name" => $champ['label'],
                         "class" => 'libre'
                     ];
                 }
@@ -391,7 +407,7 @@ class ReferenceArticleController extends Controller
     }
 
     /**
-     * @Route("/", name="reference_article_index",  methods="GET|POST")
+     * @Route("/", name="reference_article_index",  methods="GET|POST", options={"expose"=true})
      */
     public function index(): Response
     {
@@ -687,8 +703,6 @@ class ReferenceArticleController extends Controller
                 $statutD = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
                 $demandes = $this->demandeRepository->getByStatutAndUser($statutD, $this->getUser());
 
-                $editChampLibre = '';
-
                 if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                     if ($refArticle) {
                         $editChampLibre  = $this->refArticleDataService->getViewEditRefArticle($refArticle, true);
@@ -696,7 +710,7 @@ class ReferenceArticleController extends Controller
                         $editChampLibre = false;
                     }
                 } else {
-                    # code...
+                    $editChampLibre = false;
                 }
 
                 $articleOrNo  = $this->articleDataService->getArticleOrNoByRefArticle($refArticle, $data['demande'], false);
@@ -755,7 +769,7 @@ class ReferenceArticleController extends Controller
                 return $this->redirectToRoute('access_denied');
             }
             $champs = array_keys($data);
-            $user  = $this->getUser();
+            $user  = $this->getUser(); /** @var $user Utilisateur */
             $user->setColumnVisible($champs);
             $em  = $this->getDoctrine()->getManager();
             $em->flush();

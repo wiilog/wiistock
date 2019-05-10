@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Utilisateur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
+use Symfony\Bridge\Doctrine\Security\User\UserLoaderInterface;
 
 /**
  * @method Utilisateur|null find($id, $lockMode = null, $lockVersion = null)
@@ -12,7 +13,7 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  * @method Utilisateur[]    findAll()
  * @method Utilisateur[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class UtilisateurRepository extends ServiceEntityRepository
+class UtilisateurRepository extends ServiceEntityRepository implements UserLoaderInterface
 {
     public function __construct(RegistryInterface $registry)
     {
@@ -100,7 +101,7 @@ class UtilisateurRepository extends ServiceEntityRepository
             FROM App\Entity\Utilisateur u
             JOIN u.role r
             WHERE r.id = :roleId"
-        )->setParameter('roleId', $roleId);;
+        )->setParameter('roleId', $roleId);
         return $query->getSingleScalarResult();
     }
 
@@ -115,7 +116,16 @@ class UtilisateurRepository extends ServiceEntityRepository
 
         return $query->getOneOrNullResult();
     }
-    
+
+    public function loadUserByUsername($username)
+    {
+        return $this->createQueryBuilder('u')
+            ->where('u.email = :username AND u.status = 1')
+            ->setParameter('username', $username)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     public function findByParams($params = null)
     {
         $em = $this->getEntityManager();

@@ -163,6 +163,7 @@ class StatutFixtures extends Fixture implements DependentFixtureInterface, Fixtu
         // catégorie préparation
         $statutsNames = [
             Preparation::STATUT_A_TRAITER,
+            Preparation::STATUT_EN_COURS_DE_PREPARATION,
             Preparation::STATUT_PREPARE
         ];
 

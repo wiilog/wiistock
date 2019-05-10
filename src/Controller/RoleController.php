@@ -201,8 +201,6 @@ class RoleController extends AbstractController
                 $menuActionArray = explode('/', $menuAction);
                 $menuCode = $menuActionArray[0];
                 $actionLabel = $menuActionArray[1];
-                dump($menuActionArray);
-
                 $action = $this->actionRepository->findOneByMenuCodeAndLabel($menuCode, $actionLabel);
 
                 if ($action) {

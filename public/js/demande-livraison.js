@@ -21,10 +21,11 @@ let tableArticle = $('#table-lignes').DataTable({
         "type": "POST"
     },
     columns: [
-        { "data": 'Référence CEA' },
-        { "data": 'Libellé' },
-        { "data": 'Quantité' },
-        { "data": 'Actions' }
+        { "data": 'Référence CEA', 'title': 'Référence CEA' },
+        { "data": 'Libellé', 'title': 'Libellé' },
+        { "data": 'Quantité', 'title': 'Quantité' },
+        { "data": 'Quantité à prélever', 'title': 'Quantité à prélever' },
+        { "data": 'Actions', 'title': 'Actions' }
     ],
 });
 
@@ -286,6 +287,10 @@ let ajaxEditArticle = function (select) {
             dataReponse = JSON.parse(this.responseText);
             if (dataReponse) {
                 $('#editNewArticle').html(dataReponse);
+                let withdrawQuantity = $('#withdrawQuantity');
+                let valMax = $('#quantite').val();
+                withdrawQuantity.find('input').attr('max', valMax);
+                withdrawQuantity.removeClass('d-none');
                 displayRequireChamp($('#typeEditArticle'), 'edit');
                 ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
                 initEditor2('.editor-container-edit');

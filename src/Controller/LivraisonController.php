@@ -277,14 +277,15 @@ class LivraisonController extends AbstractController
 
                 $rows = [];
 
-                $ligneArticle = $this->ligneArticleRepository->getByDemande($demande->getId());
-                foreach ($ligneArticle as $article) {
-                    $rows[] = [
-                        "Référence CEA" => ($article->getReference() ? $article->getReference()->getReference() : ' '),
-                        "Libellé" => ($article->getReference() ? $article->getReference()->getLibelle() : ' '),
-                        "Quantité" => ($article->getQuantite() ? $article->getQuantite() : ' '),
-                    ];
-                }
+                    $articles = $this->articleRepository->getByDemande($demande);
+                    foreach ($articles as $article) {
+                        /** @var Article $article */
+                        $rows[] = [
+                            "Référence CEA" => $article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
+                            "Libellé" => $article->getLabel() ? $article->getLabel() : '',
+                            "Quantité" => $article->getQuantite(),
+                        ];
+                    }
 
                 $articles = $this->articleRepository->getByDemande($demande);
                 foreach ($articles as $article) {
