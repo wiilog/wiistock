@@ -26,8 +26,8 @@
                             <td>
                                 {% set checked = (champ.label in champsVisible ? 'checked' : '') %}
                                 <input class="form-check-input {{checked == 'checked' ? 'data' : '' }}" name="{{champ.label}}"
-                                    onclick="visibleColumn($(this))" type="checkbox" id="inlineCheckbox1" {{ checked }}
-                                    data-column="{{i}}">
+                                       onclick="showOrHideColumn($(this))" type="checkbox" id="inlineCheckbox1" {{ checked }}
+                                       data-column="{{i}}" data-name="{{ champ.label }}">
                             </td>
                         </tr>
                         {% set i = i + 1 %}
