@@ -165,5 +165,4 @@ class UtilisateurRepository extends ServiceEntityRepository implements UserLoade
 
         return $query->getSingleScalarResult();
     }
-
 }
