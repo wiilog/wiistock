@@ -1,4 +1,7 @@
 var pathArticle = Routing.generate('article_api', true);
+
+
+
 var tableArticle = $('#tableArticle_id').DataTable({
     processing: true,
     serverSide: true,
@@ -11,12 +14,21 @@ var tableArticle = $('#tableArticle_id').DataTable({
     },
     columns: [
         { "data": 'Référence' },
-        { "data": 'Statut' },
+        { "data": "Statut" },
         { "data": 'Libellé' },
         { "data": 'Référence article' },
         { "data": 'Quantité' },
         { "data": 'Actions' }
     ],
+});
+
+let columnStatutVisible = $( document ).ready(function () {
+    let statutVisible = $(".statutVisible").val();
+    
+    if (statutVisible === 'false') {
+        tableArticle.column( 1 ).visible( false );
+    }
+
 });
 
 let modalEditArticle = $("#modalEditArticle");
@@ -216,7 +228,7 @@ let getArticleFournisseur = function () {
 }
 
 let ajaxGetFournisseurByRefArticle = function (select) {
-    let fournisseur = $('#fournisseur'); 
+    let fournisseur = $('#fournisseur');
     let modalfooter = $('#modalNewArticle').find('.modal-footer');
     xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {

@@ -55,4 +55,16 @@ class RoleRepository extends ServiceEntityRepository
         return $query->getOneOrNullResult();
     }
 
+    public function findAllExceptNoAccess()
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            'SELECT r
+            FROM App\Entity\Role r
+            WHERE r.label <> :no_access
+            '
+        )->setParameter('no_access', Role::NO_ACCESS_USER);
+
+        return $query->execute();
+    }
 }

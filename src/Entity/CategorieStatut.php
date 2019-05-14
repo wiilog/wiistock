@@ -11,6 +11,16 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class CategorieStatut
 {
+    const REFERENCE_ARTICLE = 'referenceArticle';
+    const ARTICLE = 'article';
+    const COLLECTE = 'collecte';
+    const ORDRE_COLLECTE = 'ordreCollecte';
+    const DEMANDE = 'demande';
+    const LIVRAISON = 'livraison';
+    const PREPARATION = 'preparation';
+    const RECEPTION = 'reception';
+    const MANUTENTION = 'manutention';
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()

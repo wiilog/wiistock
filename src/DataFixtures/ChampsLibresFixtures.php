@@ -226,10 +226,6 @@ class ChampsLibresFixtures extends Fixture implements FixtureGroupInterface
         $manager->flush();
     }
 
-    public static function getGroups():array {
-        return ['champslibres'];
-    }
-
     /**
      * @param ObjectManager $manager
      * @param $field
@@ -240,14 +236,14 @@ class ChampsLibresFixtures extends Fixture implements FixtureGroupInterface
     public function createCL(ObjectManager $manager, $field, $typeLabel, $categorieCLLabel)
     {
         $type = $this->typeRepository->findOneBy(['label' => $typeLabel]);
-        $label = $field['label'] . ' (' . $type->getLabel() . ') ';
+        $label = $field['label'] . ' (' . $type->getLabel() . ')';
 
         $cl = $this->champsLibreRepository->findOneBy(['label' => $label]);
 
         if (empty($cl)) {
             $cl = new ChampsLibre();
             $cl
-                ->setLabel($field['label'] . ' (' . $type->getLabel() . ') ')
+                ->setLabel($label)
                 ->setTypage($field['type'])
                 ->setCategorieCL($this->categorieCLRepository->findOneByLabel($categorieCLLabel))
                 ->setType($type);
@@ -258,6 +254,10 @@ class ChampsLibresFixtures extends Fixture implements FixtureGroupInterface
             $manager->persist($cl);
         }
         return $cl;
+    }
+
+    public static function getGroups():array {
+        return ['champslibres'];
     }
 
 }

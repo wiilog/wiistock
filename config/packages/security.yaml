@@ -20,7 +20,6 @@ security:
         our_db_provider:
             entity:
                 class: App\Entity\Utilisateur
-                property: email
         in_memory: { memory: ~ }
 
     firewalls:

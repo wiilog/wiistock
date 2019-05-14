@@ -3,17 +3,25 @@
 namespace App\DataFixtures;
 
 use App\Entity\Menu;
+use App\Repository\MenuRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
-class MenusFixtures extends Fixture
+class MenusFixtures extends Fixture implements FixtureGroupInterface
 {
     private $encoder;
 
-    public function __construct(UserPasswordEncoderInterface $encoder)
+    /**
+     * @var MenuRepository
+     */
+    private $menuRepository;
+
+    public function __construct(MenuRepository $menuRepository, UserPasswordEncoderInterface $encoder)
     {
         $this->encoder = $encoder;
+        $this->menuRepository = $menuRepository;
     }
 
     public function load(ObjectManager $manager)
@@ -26,21 +34,30 @@ class MenusFixtures extends Fixture
             ['Demande de collecte', 'DEMCOL'],
             ['Collecte', 'COL'],
             ['Manutention', 'MANUT'],
-//            ['Utilisation Nomade', 'NOMAD'],
             ['Paramétrage', 'PARAM'],
             ['Stock', 'STOCK'],
+            ['Indicateurs accueil', 'INDICAC']
         ];
         foreach ($menusInfos as $menuInfos) {
-            $menu = new Menu();
-            $menu
-                ->setLabel($menuInfos[0])
-                ->setCode($menuInfos[1]);
+            $menu = $this->menuRepository->findOneBy(['code' => $menuInfos[1]]);
 
-            $manager->persist($menu);
+            if (empty($menu)) {
+                $menu = new Menu();
+                $menu
+                    ->setLabel($menuInfos[0])
+                    ->setCode($menuInfos[1]);
+
+                $manager->persist($menu);
+                dump("création du menu " . $menuInfos[1]);
+            }
             $this->addReference('menu-' . $menuInfos[1], $menu);
         }
 
         $manager->flush();
     }
 
+    public static function getGroups(): array
+    {
+        return ['actions', 'fixtures'];
+    }
 }

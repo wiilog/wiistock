@@ -1,5 +1,5 @@
 <div class="modal fade" id="modalColumnVisible" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-    aria-hidden="true">
+    aria-hidden="true" data-keyboard="false" data-backdrop="static">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -26,8 +26,8 @@
                             <td>
                                 {% set checked = (champ.label in champsVisible ? 'checked' : '') %}
                                 <input class="form-check-input {{checked == 'checked' ? 'data' : '' }}" name="{{champ.label}}"
-                                    onclick="visibleColumn($(this))" type="checkbox" id="inlineCheckbox1" {{ checked }}
-                                    data-column="{{i}}">
+                                       onclick="showOrHideColumn($(this))" type="checkbox" id="inlineCheckbox1" {{ checked }}
+                                       data-column="{{i}}" data-name="{{ champ.label }}">
                             </td>
                         </tr>
                         {% set i = i + 1 %}
