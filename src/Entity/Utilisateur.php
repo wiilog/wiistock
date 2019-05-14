@@ -56,6 +56,7 @@ class Utilisateur implements UserInterface, EquatableInterface
      * @ORM\ManyToOne(targetEntity="Role", inversedBy="users")
      */
     private $role;
+
     private $salt;
     /**
      * @ORM\Column(type="datetime", nullable=true)

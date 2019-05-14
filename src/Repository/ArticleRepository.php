@@ -6,6 +6,7 @@ use App\Entity\Article;
 use App\Entity\Statut;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
+use App\Service\UserService;
 
 /**
  * @method Article|null find($id, $lockMode = null, $lockVersion = null)
@@ -27,7 +28,8 @@ class ArticleRepository extends ServiceEntityRepository
             'SELECT a
             FROM App\Entity\Article a
             WHERE a.reception = :id'
-        )->setParameter('id', $id);;
+        )->setParameter('id', $id);
+        ;
         return $query->execute();
     }
 
@@ -64,7 +66,8 @@ class ArticleRepository extends ServiceEntityRepository
             'SELECT a
             FROM App\Entity\Article a
             WHERE a.emplacement = :empl'
-        )->setParameter('empl', $empl);;
+        )->setParameter('empl', $empl);
+        ;
         return $query->execute();
     }
 
@@ -75,7 +78,8 @@ class ArticleRepository extends ServiceEntityRepository
             "SELECT a
             FROM App\Entity\Article a
             WHERE a.Statut = :Statut "
-        )->setParameter('Statut', $statut);;
+        )->setParameter('Statut', $statut);
+        ;
         return $query->execute();
     }
 
@@ -87,7 +91,8 @@ class ArticleRepository extends ServiceEntityRepository
             FROM App\Entity\Article a
             JOIN a.reception r
             WHERE r.id = :id "
-        )->setParameter('id', $id);;
+        )->setParameter('id', $id);
+        ;
         return $query->execute();
     }
 
@@ -184,7 +189,8 @@ class ArticleRepository extends ServiceEntityRepository
             'SELECT a
             FROM App\Entity\Article a
             WHERE a.etat = :etat'
-        )->setParameter('etat', $etat);;
+        )->setParameter('etat', $etat);
+        ;
         return $query->execute();
     }
 
@@ -217,15 +223,19 @@ class ArticleRepository extends ServiceEntityRepository
     {
         $em = $this->getEntityManager();
         $qb = $em->createQueryBuilder();
-
+        
         $qb
-            ->select('a')
-            ->from('App\Entity\Article', 'a');
-
+        ->select('a')
+        ->from('App\Entity\Article', 'a');
+       
         // prise en compte des paramètres issus du datatable
         if (!empty($params)) {
-            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+            if (!empty($params->get('start'))) {
+                $qb->setFirstResult($params->get('start'));
+            }
+            if (!empty($params->get('length'))) {
+                $qb->setMaxResults($params->get('length'));
+            }
             if (!empty($params->get('search'))) {
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
@@ -240,6 +250,50 @@ class ArticleRepository extends ServiceEntityRepository
 
         return $query->getResult();
     }
+
+    public function findByParamsActifStatut($params = null, $statutId)
+    {
+        $em = $this->getEntityManager();
+        $qb = $em->createQueryBuilder();
+      
+        $qb
+        ->select('a')
+        ->from('App\Entity\Article', 'a')
+    //    ->join('a.Statut', 'App\Entity\Statut','s')
+        ->where('a.Statut ='. $statutId);
+    //    dump($qb);
+        // $qb = $em->createQuery(
+        //     "SELECT a
+        //     FROM App\Entity\Article a
+        //     JOIN a.Statut s
+        //     WHERE s.nom = :actif");
+      
+
+
+        // prise en compte des paramètres issus du datatable
+        if (!empty($params)) {
+            if (!empty($params->get('start'))) {
+                $qb->setFirstResult($params->get('start'));
+            }
+            if (!empty($params->get('length'))) {
+                $qb->setMaxResults($params->get('length'));
+            }
+            if (!empty($params->get('search'))) {
+                $search = $params->get('search')['value'];
+                if (!empty($search)) {
+                    $qb
+                        ->andWhere('a.label LIKE :value OR a.reference LIKE :value')
+                        ->setParameter('value', '%' . $search . '%');
+                }
+            }
+        }
+
+        $query = $qb->getQuery();
+       
+
+        return $query->getResult();
+    }
+
 
     public function countAll()
     {

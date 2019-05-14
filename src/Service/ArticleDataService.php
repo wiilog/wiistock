@@ -33,8 +33,10 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Demande;
 
+
 class ArticleDataService
 {
+    
     /**
      * @var ReferenceArticleRepository
      */
@@ -446,7 +448,17 @@ class ArticleDataService
      */
     public function getArticleDataByParams($params = null)
     {
-        $articles = $this->articleRepository->findByParams($params);
+        if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
+            $articles = $this->articleRepository->findByParams($params);
+        }else{
+            $categorieName = 'article';
+            $statutName = 'actif';
+            $statut = $this->statutRepository->findOneByCategorieAndStatut($categorieName, $statutName);
+            $statutId= $statut->getId();
+            
+            $articles = $this->articleRepository->findByParamsActifStatut($params, $statutId);
+           
+        }
 
         $rows = [];
         foreach ($articles as $article) {
@@ -465,8 +477,8 @@ class ArticleDataService
     public function dataRowRefArticle($article)
     {
         $url['edit'] = $this->router->generate('demande_article_edit', ['id' => $article->getId()]);
-
-        $row =
+        if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
+            $row =
             [
                 'id' => ($article->getId() ? $article->getId() : 'Non défini'),
                 'Référence' => ($article->getReference() ? $article->getReference() : 'Non défini'),
@@ -479,6 +491,21 @@ class ArticleDataService
                     'articleId' => $article->getId(),
                 ]),
             ];
+        }else{
+            $row =
+            [
+                'id' => ($article->getId() ? $article->getId() : 'Non défini'),
+                'Référence' => ($article->getReference() ? $article->getReference() : 'Non défini'),
+                'Statut' => false,
+                'Libellé' => ($article->getLabel() ? $article->getLabel() : 'Non défini'),
+                'Référence article' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : 'Non défini'),
+                'Quantité' => ($article->getQuantite() ? $article->getQuantite() : 0),
+                'Actions' => $this->templating->render('article/datatableArticleRow.html.twig', [
+                    'url' => $url,
+                    'articleId' => $article->getId(),
+                ]),
+            ];
+        }
 
         return $row;
     }

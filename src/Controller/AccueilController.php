@@ -59,7 +59,7 @@ class AccueilController extends AbstractController
      */
     private $serviceRepository;
 
-    public function __construct(ServiceRepository $serviceRepository,DemandeRepository $demandeRepository,StatutRepository $statutRepository,CollecteRepository $collecteRepository,SeuilAlerteService $seuilAlerteService, AlerteRepository $alerteRepository, EmplacementRepository $emplacementRepository)
+    public function __construct(ServiceRepository $serviceRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, CollecteRepository $collecteRepository, SeuilAlerteService $seuilAlerteService, AlerteRepository $alerteRepository, EmplacementRepository $emplacementRepository)
     {
         $this->alerteRepository = $alerteRepository;
         $this->emplacementRepository = $emplacementRepository;
@@ -81,10 +81,10 @@ class AccueilController extends AbstractController
         $nbrDemandeCollecte = $this->collecteRepository->countByStatut($statutCollecte);
 
         $statutDemandeAT = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
-        $nbrDemandeLivraisonAT = $this->demandeRepository->countByStatutAndUser($statutDemandeAT, $this->getUser());
-        
+        $nbrDemandeLivraisonAT = $this->demandeRepository->countByStatut($statutDemandeAT);
+
         $statutDemandeP = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_PREPARE);
-        $nbrDemandeLivraisonP = $this->demandeRepository->countByStatutAndUser($statutDemandeP, $this->getUser());
+        $nbrDemandeLivraisonP = $this->demandeRepository->countByStatut($statutDemandeP);
 
         $statutServiceAT = $this->statutRepository->findOneByCategorieAndStatut(Service::CATEGORIE, Service::STATUT_A_TRAITER);
         $nbrDemandeManutentionAT = $this->serviceRepository->countByStatut($statutServiceAT);

@@ -6,38 +6,39 @@ class='accueil-back'
 {% endblock %}
 
 {% block page_content %}
-<div class="row justify-content-end">
-    <div class="col-6 ">
-        <div class="row justify-content-end">
-            <div class="col-7 mb-1 mt-1 alerte">
-                <a href={{path('collecte_index')}}>
-                    <p><strong> Demandes de collecte à traiter: </strong>{{nbDemandeCollecte}}</p>
-                </a>
-            </div>
-            <div class="col-7 mb-1 mt-1 alerte">
-                <a href={{path('demande_index')}}>
-                    <p><strong> Demandes de livraison à traiter: </strong>{{nbDemandeLivraisonAT}}</p>
-                </a>
-            </div>
-            <div class="col-7 mb-1 mt-1 alerte">
-                <a href={{path('demande_index')}}>
-                    <p><strong> Demandes de livraison préparées: </strong>{{nbDemandeLivraisonP}}</p>
-                </a>
-            </div>
-            <div class="col-7 mb-1 mt-1 alerte">
-                <a href={{path('service_index')}}>
-                    <p><strong> Demandes de manutentions à traiter: </strong>{{nbDemandeManutentionAT}}</p>
-                </a>
-            </div>
-            <div class="col-7 mb-1 mt-1 alerte">
-                <a href={{path('alerte_index')}}>
-                    <p><strong> Alerte de seuil: </strong>{{nbAlerte}}</p>
-                </a>
+{% if hasRight(constant('App\\Entity\\Menu::INDICS_ACCUEIL'), constant('App\\Entity\\Action::YES')) %}
+    <div class="row justify-content-end">
+        <div class="col-6 ">
+            <div class="row justify-content-end">
+                <div class="col-7 mb-1 mt-1 alerte">
+                    <a href={{path('collecte_index')}}>
+                        <p><strong> Demandes de collecte à traiter : </strong>{{nbDemandeCollecte}}</p>
+                    </a>
+                </div>
+                <div class="col-7 mb-1 mt-1 alerte">
+                    <a href={{path('demande_index')}}>
+                        <p><strong> Demandes de livraison à traiter : </strong>{{nbDemandeLivraisonAT}}</p>
+                    </a>
+                </div>
+                <div class="col-7 mb-1 mt-1 alerte">
+                    <a href={{path('demande_index')}}>
+                        <p><strong> Demandes de livraison préparées : </strong>{{nbDemandeLivraisonP}}</p>
+                    </a>
+                </div>
+                <div class="col-7 mb-1 mt-1 alerte">
+                    <a href={{path('service_index')}}>
+                        <p><strong> Demandes de manutentions à traiter: </strong>{{nbDemandeManutentionAT}}</p>
+                    </a>
+                </div>
+                <div class="col-7 mb-1 mt-1 alerte">
+                    <a href={{path('alerte_index')}}>
+                        <p><strong> Alertes de seuil : </strong>{{nbAlerte}}</p>
+                    </a>
+                </div>
             </div>
         </div>
     </div>
-</div>
-
+{% endif %}
 {% include "demande/modalNewDemande.html.twig" %}
 
 {% endblock %}

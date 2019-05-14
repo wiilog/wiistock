@@ -21,7 +21,7 @@ class Menu
     const NOMAD = 'NOMAD';
     const PARAM = 'PARAM';
     const STOCK = 'STOCK';
-
+    const INDICS_ACCUEIL = 'INDICAC';
 
     /**
      * @ORM\Id()
