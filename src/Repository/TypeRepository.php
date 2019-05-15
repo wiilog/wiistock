@@ -74,4 +74,17 @@ class TypeRepository extends ServiceEntityRepository
 
         return $query->getSingleScalarResult();
     }
+
+    public function findOneByLabel($label)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT t
+            FROM App\Entity\Type t
+            WHERE LOWER(t.label) = :label
+           "
+        )->setParameter('label', strtolower($label));
+
+        return $query->getOneOrNullResult();
+    }
 }
