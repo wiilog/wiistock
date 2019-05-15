@@ -73,17 +73,30 @@ InitialiserModal(modalEditArticle, submitEditArticle, urlEditArticle, tableArtic
 
 //GENERATOR BARCODE
 
-// let printBarcode = function (button) {
-//     let barcode = button.data('ref')
-//     JsBarcode("#barcode", barcode, {
-//         format: "CODE128",
-//     });
-//     printJS({
-//         printable: 'barcode',
-//         type: 'html',
-//         maxWidth: 250
-//     });
-// }
+let printBarcode = function (button) {
+    let d = new Date();
+    let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
+    date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
+    let params = {
+        'reception': button.data('id')
+    }
+    $.post(Routing.generate('get_article_refs'), JSON.stringify(params), function (response) {
+        $("#barcodes").empty();
+        for (let i = 0; i < response.length; i++) {
+            $('#barcodes').append('<img id="barcode' + i + '">')
+            JsBarcode("#barcode" + i, response[i], {
+                format: "CODE128",
+            });
+        }
+        let doc = new jsPDF('l', 'mm', [100, 60]);
+        $("#barcodes").find('img').each(function () {
+            doc.addImage($(this).attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
+            doc.addPage();
+        });
+        doc.deletePage(doc.internal.getNumberOfPages())
+        doc.save('gfd.pdf');
+    });
+}
 
 let pathPrinterAll = Routing.generate('article_printer_all', { 'id': id }, true);
 let printerAll = function () {
@@ -95,7 +108,7 @@ let printerAll = function () {
                 JsBarcode("#barcode", element, {
                     format: "CODE128",
                 });
-                
+
                 printJS({
                     printable: 'barcode',
                     type: 'html',
@@ -197,7 +210,7 @@ let getArticleFournisseur = function () {
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
             data = JSON.parse(this.responseText);
-            if(data.option){
+            if (data.option) {
                 let $articleFourn = $('#articleFournisseur');
                 $articleFourn.parent('div').removeClass('d-none');
                 $articleFourn.parent('div').addClass('d-block');
@@ -217,6 +230,14 @@ let getArticleFournisseur = function () {
 }
 
 let resetNewArticle = function (element) {
-element.removeClass('d-block');
-element.addClass('d-none');
+    element.removeClass('d-block');
+    element.addClass('d-none');
+}
+
+
+function checkZero(data) {
+    if (data.length == 1) {
+        data = "0" + data;
+    }
+    return data;
 }
