@@ -167,6 +167,20 @@ class ReceptionController extends AbstractController
             $em->persist($reception);
             $em->flush();
 
+            $champsLibreKey = array_keys($data);
+          
+            foreach ($champsLibreKey as $champs) {
+                if (gettype($champs) === 'integer') {
+                    $valeurChampLibre = new ValeurChampsLibre();
+                    $valeurChampLibre
+                        ->setValeur($data[$champs])
+                        ->setChampLibre($this->champsLibreRepository->find($champs));
+                       
+                    $em->persist($valeurChampLibre);
+                    $em->flush();
+                }
+            }
+
             $data = [
                 "redirect" => $this->generateUrl('reception_show', ['id' => $reception->getId()])
             ];
@@ -272,18 +286,17 @@ class ReceptionController extends AbstractController
      */
     public function articleApi(Request $request, $id): Response
     {
-        if ($request->isXmlHttpRequest()) //Si la requête est de type Xml
-            {
-                if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::LIST)) {
-                    return $this->redirectToRoute('access_denied');
-                }
+        if ($request->isXmlHttpRequest()) { //Si la requête est de type Xml
+            if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::LIST)) {
+                return $this->redirectToRoute('access_denied');
+            }
 
-                $reception = $this->receptionRepository->find($id);
-                $ligneArticles = $this->receptionReferenceArticleRepository->getByReception($reception);
+            $reception = $this->receptionRepository->find($id);
+            $ligneArticles = $this->receptionReferenceArticleRepository->getByReception($reception);
 
-                $rows = [];
-                foreach ($ligneArticles as  $ligneArticle) {
-                    $rows[] =
+            $rows = [];
+            foreach ($ligneArticles as  $ligneArticle) {
+                $rows[] =
                         [
                             "Référence CEA" => ($ligneArticle->getReferenceArticle() ?  $ligneArticle->getReferenceArticle()->getReference() : ''),
                             "Fournisseur" => ($ligneArticle->getFournisseur() ?  $ligneArticle->getFournisseur()->getNom() : ''),
@@ -299,17 +312,17 @@ class ReceptionController extends AbstractController
 
                             ),
                         ];
-                }
-                $data['data'] =  $rows;
-                return new JsonResponse($data);
             }
+            $data['data'] =  $rows;
+            return new JsonResponse($data);
+        }
         throw new NotFoundHttpException("404");
     }
 
     /**
      * @Route("/article-printer/{id}", name="article_printer_all", options={"expose"=true}, methods={"GET", "POST"})
      */
-    public function printerAllApi(Request  $request,  $id): Response
+    public function printerAllApi(Request  $request, $id): Response
     {
         if (!$request->isXmlHttpRequest() &&  $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::LIST)) {
@@ -334,8 +347,24 @@ class ReceptionController extends AbstractController
         if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::LIST)) {
             return $this->redirectToRoute('access_denied');
         }
-
-        return $this->render('reception/index.html.twig');
+        
+        $types = $this->typeRepository->getIdAndLabelByCategoryLabel('Reception');
+       
+        $typeChampLibre =  [];
+        foreach ($types as $type) {
+            $champsLibres = $this->champsLibreRepository->findByTypeId($type['id']);
+            
+            $typeChampLibre[] = [
+                'typeLabel' =>  $type['label'],
+                'typeId' => $type['id'],
+                'champsLibres' => $champsLibres,
+            ];
+        }
+        return $this->render('reception/index.html.twig', [
+           'typeChampsLibres' => $typeChampLibre,
+            'types' => $types,
+            'champsLibres' => $champsLibres
+        ]);
     }
 
     /**
@@ -489,7 +518,7 @@ class ReceptionController extends AbstractController
 
             $nbArticleNotConform =  $this->receptionReferenceArticleRepository->countNotConformByReception($reception);
             $statutLabel =  $nbArticleNotConform > 0 ? Reception::STATUT_ANOMALIE : Reception::STATUT_RECEPTION_PARTIELLE;
-            $statut =  $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE,  $statutLabel);
+            $statut =  $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, $statutLabel);
             $reception->setStatut($statut);
 
             $em->flush();

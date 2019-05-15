@@ -74,11 +74,22 @@ class Reception
      * @ORM\OneToMany(targetEntity="App\Entity\ReceptionReferenceArticle", mappedBy="reception")
      */
     private $receptionReferenceArticles;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="receptions")
+     */
+    private $type;
+
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\ValeurChampsLibre", inversedBy="receptions")
+     */
+    private $valeurChampsLibre;
     
 
     public function __construct()
     {
         $this->receptionReferenceArticles = new ArrayCollection();
+        $this->valeurChampsLibre = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -226,6 +237,44 @@ class Reception
             if ($receptionReferenceArticle->getReception() === $this) {
                 $receptionReferenceArticle->setReception(null);
             }
+        }
+
+        return $this;
+    }
+
+    public function getType(): ?Type
+    {
+        return $this->type;
+    }
+
+    public function setType(?Type $type): self
+    {
+        $this->type = $type;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|valeurChampsLibre[]
+     */
+    public function getValeurChampsLibre(): Collection
+    {
+        return $this->valeurChampsLibre;
+    }
+
+    public function addValeurChampsLibre(valeurChampsLibre $valeurChampsLibre): self
+    {
+        if (!$this->valeurChampsLibre->contains($valeurChampsLibre)) {
+            $this->valeurChampsLibre[] = $valeurChampsLibre;
+        }
+
+        return $this;
+    }
+
+    public function removeValeurChampsLibre(valeurChampsLibre $valeurChampsLibre): self
+    {
+        if ($this->valeurChampsLibre->contains($valeurChampsLibre)) {
+            $this->valeurChampsLibre->removeElement($valeurChampsLibre);
         }
 
         return $this;
