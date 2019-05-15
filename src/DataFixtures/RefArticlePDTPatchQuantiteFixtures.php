@@ -106,8 +106,8 @@ class RefArticlePDTPatchQuantiteFixtures extends Fixture implements FixtureGroup
             } else {
                 $referenceArticle->setQuantiteStock(intval($row[3]));
             }
-            $manager->flush();
         }
+        $manager->flush();
 
         fclose($file);
     }
