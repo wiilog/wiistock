@@ -13,7 +13,7 @@ let tableType = $('#tableType_id').DataTable({
     },
     columns: [
         { "data": 'Label' },
-        { "data": 'Catégorie' },
+        { "data": 'S\'applique' },
         { "data": 'Actions' },
     ],
 });
@@ -47,7 +47,7 @@ let tableChampsLibre = $('#tableChampslibre_id').DataTable({
     },
     columns: [
         { "data": 'Label' },
-        { "data": 'Liaison' },
+        { "data": 'S\'applique' },
         { "data": 'Typage' },
         { "data": 'Valeur par défaut' },
         { "data": 'Elements' },
