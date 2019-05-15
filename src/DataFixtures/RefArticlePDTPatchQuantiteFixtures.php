@@ -92,7 +92,7 @@ class RefArticlePDTPatchQuantiteFixtures extends Fixture implements FixtureGroup
 
         array_shift($rows);
 
-        $rows = array_slice($rows, 0, 100);
+        //$rows = array_slice($rows, 0, 100);
 
         $i = 1;
         foreach ($rows as $row) {

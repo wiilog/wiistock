@@ -247,8 +247,8 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         $query = $em->createQuery(
             "UPDATE App\Entity\ReferenceArticle ra
             SET ra.quantiteStock = 0
-            WHERE ra.type = :typeId"
-        )->setParameter('typeId', $type);
+            WHERE ra.type = :type"
+        )->setParameter('type', $type);
 
         return $query->execute();
     }
