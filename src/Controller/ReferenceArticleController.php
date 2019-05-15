@@ -395,7 +395,6 @@ class ReferenceArticleController extends Controller
                         ]),
                     ];
                     $rows = array_merge($rowCL, $rowDD);
-                    sort($champs);
                     $response['new'] = $rows;
                 } else {
                     $response = false;
