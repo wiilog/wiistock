@@ -221,9 +221,20 @@ class ArticleRepository extends ServiceEntityRepository
         $query = $entityManager->createQuery(
             "SELECT COUNT(a)
             FROM App\Entity\Article a
-            JOIN a.Statut s
             WHERE a.refArticle = :refArticle AND a.etat = TRUE AND s.nom = :statut"
         )->setParameters(['refArticle' => $refArticle, 'statut' => $statut]);
+
+        return $query->getSingleScalarResult();
+    }
+
+    public function countByRefArticle($refArticle)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT COUNT(a)
+            FROM App\Entity\Article a
+            WHERE a.refArticle = :refArticle"
+        )->setParameter('refArticle', $refArticle);
 
         return $query->getSingleScalarResult();
     }
