@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\Article;
+use App\Entity\CategoryType;
 use App\Entity\Demande;
 use App\Entity\Livraison;
 use App\Entity\Menu;
@@ -35,7 +36,6 @@ use Proxies\__CG__\App\Entity\CategorieCL;
 use App\Repository\ValeurChampsLibreRepository;
 use App\Repository\CategorieCLRepository;
 use App\Repository\TypeRepository;
-use App\Entity\ReferenceArticle;
 
 /**
  * @Route("/livraison")
@@ -380,7 +380,7 @@ class LivraisonController extends AbstractController
                 $headers[] = $champLibre->getLabel();
             }
             $data[] = $headers;
-            $type = $this->typeRepository->getIdAndLabelByCategoryLabel(ReferenceArticle::CATEGORIE_TYPE);
+            $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::TYPE_ARTICLES_ET_REF_CEA);
             foreach ($livraisons as $livraison) {
                 foreach ($livraison->getLigneArticle() as $ligneArticle) {
                     $livraisonData = [];
@@ -396,16 +396,16 @@ class LivraisonController extends AbstractController
                     $livraisonData[] = $ligneArticle->getQuantite();
                     $categorieCL = $this->categorieCLRepository->findOneByLabel(($ligneArticle->getReference()->getTypeQuantite() === 'reference') ? 'referenceArticle' : 'article');
                     $champsLibres = [];
-                    foreach ($type as $label) {
-                        $champsLibresComplet = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($label['label'], $categorieCL);
-                        foreach ($champsLibresComplet as $champLibre) {
+                    foreach ($listTypes as $type) {
+                        $listChampsLibres = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($type['label'], $categorieCL);
+                        foreach ($listChampsLibres as $champLibre) {
                             $valeurChampRefArticle = $this->valeurChampsLibreRepository->findOneByRefArticleANDChampsLibre($ligneArticle->getReference()->getId(), $champLibre);
                             if ($valeurChampRefArticle) $champsLibres[$champLibre->getLabel()] = $valeurChampRefArticle->getValeur();
                         }
                     }
-                    foreach ($headers as $label) {
-                        if (array_key_exists($label, $champsLibres)) {
-                            $livraisonData[] = $champsLibres[$label];
+                    foreach ($headers as $type) {
+                        if (array_key_exists($type, $champsLibres)) {
+                            $livraisonData[] = $champsLibres[$type];
                         } else {
                             $livraisonData[] = '';
                         }
@@ -426,16 +426,16 @@ class LivraisonController extends AbstractController
                     $livraisonData[] = $article->getQuantite();
                     $categorieCL = $this->categorieCLRepository->findOneByLabel('article');
                     $champsLibres = [];
-                    foreach ($type as $label) {
-                        $champsLibresComplet = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($label['label'], $categorieCL);
-                        foreach ($champsLibresComplet as $champLibre) {
+                    foreach ($listTypes as $type) {
+                        $listChampsLibres = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($type['label'], $categorieCL);
+                        foreach ($listChampsLibres as $champLibre) {
                             $valeurChampRefArticle = $this->valeurChampsLibreRepository->findOneByArticleANDChampsLibre($article, $champLibre);
                             if ($valeurChampRefArticle) $champsLibres[$champLibre->getLabel()] = $valeurChampRefArticle->getValeur();
                         }
                     }
-                    foreach ($headers as $label) {
-                        if (array_key_exists($label, $champsLibres)) {
-                            $livraisonData[] = $champsLibres[$label];
+                    foreach ($headers as $type) {
+                        if (array_key_exists($type, $champsLibres)) {
+                            $livraisonData[] = $champsLibres[$type];
                         } else {
                             $livraisonData[] = '';
                         }

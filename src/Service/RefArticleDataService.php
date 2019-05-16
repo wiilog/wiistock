@@ -10,6 +10,7 @@ namespace App\Service;
 
 
 use App\Entity\Action;
+use App\Entity\CategoryType;
 use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
 use App\Entity\ValeurChampsLibre;
@@ -200,7 +201,7 @@ class RefArticleDataService
     {
         $data = $this->getDataEditForRefArticle($refArticle);
         $articlesFournisseur = $this->articleFournisseurRepository->getByRefArticle($refArticle->getId());
-        $type = $this->typeRepository->getIdAndLabelByCategoryLabel(ReferenceArticle::CATEGORIE_TYPE);
+        $type = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::TYPE_ARTICLES_ET_REF_CEA);
         $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_CEA);
         $typeChampLibre =  [];
         foreach ($type as $label) {
@@ -325,7 +326,7 @@ class RefArticleDataService
     public function dataRowRefArticle($refArticle)
     {
         $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_CEA);
-        $category = ReferenceArticle::CATEGORIE_TYPE;
+        $category = CategoryType::TYPE_ARTICLES_ET_REF_CEA;
         $champsLibres = $this->champsLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
         $rowCL = [];
         foreach ($champsLibres as $champLibre) {
