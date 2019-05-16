@@ -41,6 +41,7 @@ use App\Repository\StatutRepository;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\DependencyInjection\Reference;
+use App\Repository\DimensionsEtiquettesRepository;
 
 /**
  * @Route("/reception")
@@ -108,13 +109,19 @@ class ReceptionController extends AbstractController
     private $typeRepository;
 
     /**
+     * @var DimensionsEtiquettesRepository
+     */
+    private $dimensionsEtiquettesRepository;
+
+    /**
      * @var UserService
      */
     private $userService;
 
 
-    public function __construct(TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, UserService $userService, ReceptionReferenceArticleRepository $receptionReferenceArticleRepository)
+    public function __construct(DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChampsLibreRepository $champsLibreRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, UserService $userService, ReceptionReferenceArticleRepository $receptionReferenceArticleRepository)
     {
+        $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
         $this->statutRepository = $statutRepository;
         $this->emplacementRepository = $emplacementRepository;
         $this->receptionRepository = $receptionRepository;
@@ -626,9 +633,18 @@ class ReceptionController extends AbstractController
         if ($request->isXmlHttpRequest() && $dataContent = json_decode($request->getContent(), true)) {
 
             $data = [];
+            $data['refs'] = [];
             $reception = $this->receptionRepository->find($dataContent['reception']);
+            $dimension = $this->dimensionsEtiquettesRepository->getOneDimension();
+            if ($dimension) {
+                $data['height'] = $dimension->getHeight();
+                $data['width'] = $dimension->getWidth();
+                $data['exists'] = true;
+            } else {
+                $data['exists'] = false;
+            }
             foreach ($this->receptionReferenceArticleRepository->getByReception($reception) as $recepRef) {
-                $data[] = $recepRef->getReferenceArticle()->getReference();
+                array_push($data['refs'], $recepRef->getReferenceArticle()->getReference());
             }
             return new JsonResponse($data);
         }

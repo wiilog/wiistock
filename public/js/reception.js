@@ -81,20 +81,24 @@ let printBarcode = function (button) {
         'reception': button.data('id')
     }
     $.post(Routing.generate('get_article_refs'), JSON.stringify(params), function (response) {
-        $("#barcodes").empty();
-        for (let i = 0; i < response.length; i++) {
-            $('#barcodes').append('<img id="barcode' + i + '">')
-            JsBarcode("#barcode" + i, response[i], {
-                format: "CODE128",
+        if (response.exists) {
+            $("#barcodes").empty();
+            for (let i = 0; i < response.refs.length; i++) {
+                $('#barcodes').append('<img id="barcode' + i + '">')
+                JsBarcode("#barcode" + i, response.refs[i], {
+                    format: "CODE128",
+                });
+            }
+            let doc = new jsPDF('l', 'mm', [response.height, response.width]);
+            $("#barcodes").find('img').each(function () {
+                doc.addImage($(this).attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
+                doc.addPage();
             });
+            doc.deletePage(doc.internal.getNumberOfPages())
+            doc.save('Etiquettes du ' + date + '.pdf');
+        } else {
+            $('#cannotGenerate').click();
         }
-        let doc = new jsPDF('l', 'mm', [100, 60]);
-        $("#barcodes").find('img').each(function () {
-            doc.addImage($(this).attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
-            doc.addPage();
-        });
-        doc.deletePage(doc.internal.getNumberOfPages())
-        doc.save('gfd.pdf');
     });
 }
 
