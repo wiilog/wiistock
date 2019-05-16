@@ -33,18 +33,32 @@ class CategoryTypeFixtures extends Fixture implements FixtureGroupInterface
            CategoryType::RECEPTION
         ];
 
-        foreach ($categoriesNames as $categorieName) {
-            $categorie = $this->categoryTypeRepository->findOneBy(['label' => $categorieName]);
+//        foreach ($categoriesNames as $categorieName) {
+//            $categorie = $this->categoryTypeRepository->findOneBy(['label' => $categorieName]);
+//
+//            if (empty($categorie)) {
+//                $categorie = new CategoryType();
+//                $categorie->setLabel($categorieName);
+//                $manager->persist($categorie);
+//                $this->addReference('type-' . $categorieName, $categorie);
+//                dump("création de la catégorie " . $categorieName);
+//            }
+//        }
 
-            if (empty($categorie)) {
-                $categorie = new CategoryType();
-                $categorie->setLabel($categorieName);
-                $manager->persist($categorie);
-                $this->addReference('type-' . $categorieName, $categorie);
-                dump("création de la catégorie " . $categorieName);
-            }
 
+        // patch spécifique pour changement de nom de 'typeArticle' à 'artices et références CEA'
+        $categoryType = $this->categoryTypeRepository->findOneBy(['label' => 'typeArticle']);
+
+        if (empty($categoryType)) {
+            $categoryType = new CategoryType();
+            dump("création de la catégorie " . CategoryType::TYPE_ARTICLES_ET_REF_CEA);
+        } else {
+            dump("renommage de la catégorie typeArticle -> " . CategoryType::TYPE_ARTICLES_ET_REF_CEA);
         }
+
+        $categoryType->setLabel(CategoryType::TYPE_ARTICLES_ET_REF_CEA);
+        $this->addReference('typeArticle', $categoryType);
+
         $manager->flush();
     }
 

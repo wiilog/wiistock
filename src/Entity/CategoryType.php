@@ -13,6 +13,7 @@ class CategoryType
 {
     const TYPE_ARTICLE = 'typeArticle';
     const RECEPTION = 'Reception';
+    const TYPE_ARTICLES_ET_REF_CEA = 'articles et références CEA';
 
     /**
      * @ORM\Id()

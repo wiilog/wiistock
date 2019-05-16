@@ -137,7 +137,7 @@ function clearModalRefArticle(modal) {
     // on vide tous les inputs
     let inputs = modal.find('.modal-body').find(".data, .newContent>input");
     inputs.each(function () {
-        $(this).val("");
+        if ($(this).attr('id') !== 'type_quantite') $(this).val("");
     });
     // on vide tous les select2
     let selects = modal.find('.modal-body').find('.select2, .ajax-autocompleteFournisseur');
@@ -519,9 +519,11 @@ function setMaxQuantityByArtRef(input) {
 function toggleRadioButtonNeeded(button) {
     if ($('#quantite').hasClass('needed')) {
         $('#quantite').removeClass('needed');
+        $('#type_quantite').val('article');
     }
     else {
         $('#quantite').addClass('needed');
+        $('#type_quantite').val('reference');
     }
     if ($('#emplacement').hasClass('needed')) {
         $('#emplacement').removeClass('needed');

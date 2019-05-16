@@ -15,8 +15,8 @@
                     <input type="text" class="form-control data needed" name="label" value="" required="true">
                 </div>
                 <div class="form-group">
-                    <label for="categorieCL">Entité liée</label>
-                    <select name="categorieCL" class="form-control data " id="">
+                    <label for="categorieCL">S'applique sur</label>
+                    <select name="categorieCL" class="form-control data needed" id="">
                         {% for categorieCL in categoriesCL %}
                         <option value="{{categorieCL.id}}">{{categorieCL.label}}</option>
                         {% endfor %}
@@ -24,7 +24,7 @@
                 </div>
                 <div class="form-group">
                     <label for="typage">Typage</label>
-                    <select class="form-control data " onchange="defaultValueForTypage($(this), '-new')" name="typage"
+                    <select class="form-control data needed" onchange="defaultValueForTypage($(this), '-new')" name="typage"
                         id='typage'>
                         <option value="">choisir un typage...</option>
                         {% for typage in typages %}

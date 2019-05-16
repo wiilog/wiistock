@@ -240,4 +240,16 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
         return $query->getSingleScalarResult();
     }
+
+    public function setQuantiteZeroForType($type)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "UPDATE App\Entity\ReferenceArticle ra
+            SET ra.quantiteStock = 0
+            WHERE ra.type = :type"
+        )->setParameter('type', $type);
+
+        return $query->execute();
+    }
 }
