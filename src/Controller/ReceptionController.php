@@ -650,4 +650,25 @@ class ReceptionController extends AbstractController
         }
         throw new NotFoundHttpException("404");
     }
+
+    /**
+     * @Route("/obtenir-ligne", name="get_ligne_from_id", options={"expose"=true}, methods={"GET", "POST"})
+     */
+    public function getLignes(Request $request)
+    {
+        if ($request->isXmlHttpRequest() && $dataContent = json_decode($request->getContent(), true)) {
+            $data = [];
+            $data['ligneRef'] = $this->receptionReferenceArticleRepository->find(intval($dataContent['ligne']))->getReferenceArticle()->getReference();
+            $dimension = $this->dimensionsEtiquettesRepository->getOneDimension();
+            if ($dimension) {
+                $data['height'] = $dimension->getHeight();
+                $data['width'] = $dimension->getWidth();
+                $data['exists'] = true;
+            } else {
+                $data['exists'] = false;
+            }
+            return new JsonResponse($data);
+        }
+        throw new NotFoundHttpException("404");
+    }
 }

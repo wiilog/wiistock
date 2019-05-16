@@ -102,6 +102,26 @@ let printBarcode = function (button) {
     });
 }
 
+function printSingleBarcode(button) {
+    let params = {
+        'ligne': button.data('id')
+    }
+    $.post(Routing.generate('get_ligne_from_id'), JSON.stringify(params), function (response) {
+        if (response.exists) {
+            $('#barcodes').append('<img id="singleBarcode">')
+            JsBarcode("#singleBarcode", response.ligneRef, {
+                format: "CODE128",
+            });
+            let doc = new jsPDF('l', 'mm', [response.height, response.width]);
+            doc.addImage($("#singleBarcode").attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
+            doc.save('Etiquette concernant l\'article ' + response.ligneRef + '.pdf');
+            $("#singleBarcode").remove();
+        } else {
+            $('#cannotGenerate').click();
+        }
+    });
+}
+
 let pathPrinterAll = Routing.generate('article_printer_all', { 'id': id }, true);
 let printerAll = function () {
     xhttp = new XMLHttpRequest();
