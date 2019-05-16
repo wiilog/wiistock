@@ -282,7 +282,7 @@ function createArticleAndBarcodes(button) {
             doc.deletePage(doc.internal.getNumberOfPages())
             doc.save('Etiquettes du ' + date + '.pdf');
         } else {
-            $('#cannotGenerate').click();
+            $('#cannotGenerateStock').click();
         }
     });
 }

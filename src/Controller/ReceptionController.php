@@ -704,6 +704,15 @@ class ReceptionController extends AbstractController
             } else {
                 $response['exists'] = false;
             }
+            $qtt = 0;
+            for ($i = 0; $i < count($dataContent['quantiteLot']); $i++) {
+                for ($j = 0; $j < $dataContent['quantiteLot'][$i]; $j++) {
+                    $qtt += $dataContent['tailleLot'][$i];
+                }
+            }
+            if ($qtt - $this->receptionReferenceArticleRepository->find(intval($dataContent['ligne']))->getQuantite() > $this->receptionReferenceArticleRepository->find(intval($dataContent['ligne']))->getQuantiteAR()) {
+                $response['exists'] = false;
+            }
             $counter = 0;
             for ($i = 0; $i < count($dataContent['quantiteLot']); $i++) {
                 for ($j = 0; $j < $dataContent['quantiteLot'][$i]; $j++) {
