@@ -430,41 +430,44 @@ class ReferenceArticleController extends Controller
         $category = CategoryType::TYPE_ARTICLES_ET_REF_CEA;
         $champL = $this->champsLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
         $champ[] = [
-            'label' => 'Actions',
+            'label' => 'actions',
             'id' => 0,
             'typage' => ''
         ];
         $champ[] = [
-            'label' => 'Libellé',
+            'label' => 'libellé',
             'id' => 0,
             'typage' => 'text'
 
         ];
         $champ[] = [
-            'label' => 'Référence',
+            'label' => 'référence',
             'id' => 0,
             'typage' => 'text'
 
         ];
         $champ[] = [
-            'label' => 'Type',
+            'label' => 'type',
             'id' => 0,
             'typage' => 'list'
         ];
         $champ[] = [
-            'label' => 'Quantité',
+            'label' => 'quantité',
             'id' => 0,
             'typage' => 'number'
         ];
         $champ[] = [
-            'label' => 'Emplacement',
+            'label' => 'emplacement',
             'id' => 0,
             'typage' => 'text'
         ];
         $champs = array_merge($champ, $champL);
-        sort($champs);
 
-        $champsVisibleDefault = ['Actions', 'Libellé', 'Référence', 'Type', 'Quantité', 'Emplacement'];
+        usort($champs, function($a, $b) {
+            return strnatcmp($a['label'], $b['label']);
+        });
+
+        $champsVisibleDefault = ['actions', 'libellé', 'référence', 'type', 'quantité', 'emplacement'];
 
         $types = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::TYPE_ARTICLES_ET_REF_CEA);
         $emplacements = $this->emplacementRepository->findAll();
@@ -478,6 +481,7 @@ class ReferenceArticleController extends Controller
                 'champsLibres' => $champsLibres,
             ];
         }
+
         return $this->render('reference_article/index.html.twig', [
             'champs' => $champs,
             'champsVisible' => ($this->getUser()->getColumnVisible() !== null ? $this->getUser()->getColumnVisible() : $champsVisibleDefault),
