@@ -173,7 +173,7 @@ class ReferenceArticleController extends Controller
             }
 
             $columnsVisible = $this->getUser()->getColumnVisible();
-            $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
+            $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_CEA);
             $category = ReferenceArticle::CATEGORIE_TYPE;
             $champs = $this->champsLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
             if ($columnsVisible) {
@@ -373,7 +373,7 @@ class ReferenceArticleController extends Controller
                         }
                     }
 
-                    $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
+                    $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_CEA);
                     $category = ReferenceArticle::CATEGORIE_TYPE;
                     $champsLibres = $this->champsLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
 
@@ -425,7 +425,7 @@ class ReferenceArticleController extends Controller
             ]
         ];
 
-        $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
+        $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_CEA);
         $category = ReferenceArticle::CATEGORIE_TYPE;
         $champL = $this->champsLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
         $champ[] = [

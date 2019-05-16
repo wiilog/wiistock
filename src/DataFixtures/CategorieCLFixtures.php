@@ -28,7 +28,7 @@ class CategorieCLFixtures extends Fixture implements FixtureGroupInterface
     public function load(ObjectManager $manager)
     {
         $categoriesNames = [
-            CategorieCL::REFERENCE_ARTICLE,
+            CategorieCL::REFERENCE_CEA,
             CategorieCL::ARTICLE,
             CategorieCL::AUCUNE
         ];
