@@ -328,7 +328,6 @@ class ReferenceArticleController extends Controller
                         $requiredCreate = false;
                     }
                 }
-                dump($data['type_quantite']);
                 if ($requiredCreate) {
                     $em = $this->getDoctrine()->getManager();
                     $statut = ($data['statut'] === 'active' ? $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF) : $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_INACTIF));

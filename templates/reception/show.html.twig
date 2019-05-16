@@ -49,6 +49,7 @@
 </table>
 
 <button class="btn" id="cannotGenerate" data-target='#modalCannotGenerate' data-toggle='modal' hidden></button>
+<button class="btn" id="chooseConditionnement" data-target='#modalChoose' data-toggle='modal' hidden></button>
 <a href="{{ path('reception_index') }}" class='btn btn-action'>Retour à la liste</a>
 
 <div class="d-none" id="barcodes">
@@ -61,6 +62,7 @@
 {% include "reception/modalDeleteLigneArticle.html.twig" %}
 {% include "reception/modalAddLigneArticle.html.twig" %}
 {% include "reception/modalNoParamsEtiquettes.html.twig" %}
+{% include "reception/modalChooseConditionnement.html.twig" %}
 
 {% endblock %}
 {% block javascript %}

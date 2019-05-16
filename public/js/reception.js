@@ -102,26 +102,6 @@ let printBarcode = function (button) {
     });
 }
 
-function printSingleBarcode(button) {
-    let params = {
-        'ligne': button.data('id')
-    }
-    $.post(Routing.generate('get_ligne_from_id'), JSON.stringify(params), function (response) {
-        if (response.exists) {
-            $('#barcodes').append('<img id="singleBarcode">')
-            JsBarcode("#singleBarcode", response.ligneRef, {
-                format: "CODE128",
-            });
-            let doc = new jsPDF('l', 'mm', [response.height, response.width]);
-            doc.addImage($("#singleBarcode").attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
-            doc.save('Etiquette concernant l\'article ' + response.ligneRef + '.pdf');
-            $("#singleBarcode").remove();
-        } else {
-            $('#cannotGenerate').click();
-        }
-    });
-}
-
 let pathPrinterAll = Routing.generate('article_printer_all', { 'id': id }, true);
 let printerAll = function () {
     xhttp = new XMLHttpRequest();
@@ -264,4 +244,71 @@ function checkZero(data) {
         data = "0" + data;
     }
     return data;
+}
+
+function addLot(button) {
+    $.post(Routing.generate('add_lot'), function (response) {
+        button.parent().append(response);
+    });
+}
+
+function createArticleAndBarcodes(button) {
+    let data = {};
+    data.refArticle = button.attr('data-ref');
+    data.ligne = button.attr('data-id');
+    data.quantiteLot = [];
+    data.tailleLot = [];
+    $('#modalChoose').find('input').each(function () {
+        data[$(this).attr('name')].push($(this).val());
+    });
+    $.post(Routing.generate('validate_lot'), JSON.stringify(data), function (response) {
+        let d = new Date();
+        let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
+        date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
+        $('#modalChoose').find('.modal-body').first().html('<span class="btn btn-primary" onclick="addLot($(this))"><i class="fa fa-plus"></i></span>');
+        if (response.exists) {
+            $("#barcodes").empty();
+            for (let i = 0; i < response.refs.length; i++) {
+                $('#barcodes').append('<img id="barcode' + i + '">')
+                JsBarcode("#barcode" + i, response.refs[i], {
+                    format: "CODE128",
+                });
+            }
+            let doc = new jsPDF('l', 'mm', [response.height, response.width]);
+            $("#barcodes").find('img').each(function () {
+                doc.addImage($(this).attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
+                doc.addPage();
+            });
+            doc.deletePage(doc.internal.getNumberOfPages())
+            doc.save('Etiquettes du ' + date + '.pdf');
+        } else {
+            $('#cannotGenerate').click();
+        }
+    });
+}
+
+function printSingleBarcode(button) {
+    let params = {
+        'ligne': button.data('id')
+    }
+    $.post(Routing.generate('get_ligne_from_id'), JSON.stringify(params), function (response) {
+        if (!response.article) {
+            if (response.exists) {
+                $('#barcodes').append('<img id="singleBarcode">')
+                JsBarcode("#singleBarcode", response.ligneRef, {
+                    format: "CODE128",
+                });
+                let doc = new jsPDF('l', 'mm', [response.height, response.width]);
+                doc.addImage($("#singleBarcode").attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
+                doc.save('Etiquette concernant l\'article ' + response.ligneRef + '.pdf');
+                $("#singleBarcode").remove();
+            } else {
+                $('#cannotGenerate').click();
+            }
+        } else {
+            $('#chooseConditionnement').click();
+            $('#submitConditionnement').attr('data-ref', response.article)
+            $('#submitConditionnement').attr('data-id', button.data('id'))
+        }
+    });
 }

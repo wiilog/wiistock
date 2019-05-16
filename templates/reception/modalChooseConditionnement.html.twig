@@ -1,0 +1,20 @@
+<form method="" class="modal fade" id="modalChoose" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Conditionnement</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <span class="btn btn-primary" onclick="addLot($(this))"><i class="fa fa-plus"></i></span>
+            </div>
+            <div class="modal-footer">
+                <div class="btn" data-dismiss="modal">Fermer</div>
+                <div data-dismiss="modal" id="submitConditionnement" onclick="createArticleAndBarcodes($(this))" class="btn btn-success">
+                    Enregistrer</div>
+            </div>
+        </div>
+    </div>
+</form>

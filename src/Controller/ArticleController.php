@@ -451,7 +451,7 @@ class ArticleController extends AbstractController
     {
         if ($request->isXmlHttpRequest() && $dataContent = json_decode($request->getContent(), true)) {
             $data = [];
-            $data['articleRef'] = $this->articleRepository->find(intval($dataContent['article']))->getArticleFournisseur()->getReferenceArticle()->getReference();
+            $data['articleRef'] = $this->articleRepository->find(intval($dataContent['article']))->getReference();
             $dimension = $this->dimensionsEtiquettesRepository->getOneDimension();
             if ($dimension) {
                 $data['height'] = $dimension->getHeight();

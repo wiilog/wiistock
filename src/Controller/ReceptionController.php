@@ -42,6 +42,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\DependencyInjection\Reference;
 use App\Repository\DimensionsEtiquettesRepository;
+use Proxies\__CG__\App\Entity\ArticleFournisseur;
 
 /**
  * @Route("/reception")
@@ -403,8 +404,6 @@ class ReceptionController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
-
-            dump($contentData);
             $refArticle =  $this->referenceArticleRepository->find($contentData['referenceArticle']);
             $reception =  $this->receptionRepository->find($contentData['reception']);
             $fournisseur = $this->fournisseurRepository->find(intval($contentData['fournisseur']));
@@ -477,7 +476,6 @@ class ReceptionController extends AbstractController
         }
 
         if (!$request->isXmlHttpRequest() &&  $data = json_decode($request->getContent(), true)) { //Si la requête est de type Xml
-
             $receptionReferenceArticle =  $this->receptionReferenceArticleRepository->find($data['article']);
             $fournisseur = $this->fournisseurRepository->find($data['fournisseur']);
             $refArticle =  $this->referenceArticleRepository->find($data['referenceArticle']);
@@ -492,7 +490,7 @@ class ReceptionController extends AbstractController
                 ->setQuantiteAR($data['quantiteAR'])
                 ->setCommentaire($data['commentaire']);
 
-            if (array_key_exists('articleFournisseur', $data)) {
+            if (array_key_exists('articleFournisseur', $data) && $data['articleFournisseur']) {
                 $articleFournisseur = $this->articleFournisseurRepository->find($data['articleFournisseur']);
                 $receptionReferenceArticle
                     ->setArticleFournisseur($articleFournisseur);
@@ -657,17 +655,86 @@ class ReceptionController extends AbstractController
     public function getLignes(Request $request)
     {
         if ($request->isXmlHttpRequest() && $dataContent = json_decode($request->getContent(), true)) {
-            $data = [];
-            $data['ligneRef'] = $this->receptionReferenceArticleRepository->find(intval($dataContent['ligne']))->getReferenceArticle()->getReference();
+            if ($this->receptionReferenceArticleRepository->find(intval($dataContent['ligne']))->getReferenceArticle()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+                $data = [];
+                $data['ligneRef'] = $this->receptionReferenceArticleRepository->find(intval($dataContent['ligne']))->getReferenceArticle()->getReference();
+                $dimension = $this->dimensionsEtiquettesRepository->getOneDimension();
+                if ($dimension) {
+                    $data['height'] = $dimension->getHeight();
+                    $data['width'] = $dimension->getWidth();
+                    $data['exists'] = true;
+                } else {
+                    $data['exists'] = false;
+                }
+                return new JsonResponse($data);
+            } else {
+                $data = [];
+                $data['article'] = $this->receptionReferenceArticleRepository->find(intval($dataContent['ligne']))->getReferenceArticle()->getReference();
+                return new JsonResponse($data);
+            }
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/ajouter_lot", name="add_lot", options={"expose"=true}, methods={"GET", "POST"})
+     */
+    public function addLot(Request $request)
+    {
+        if ($request->isXmlHttpRequest()) {
+            return new JsonResponse($this->renderView('reception/modalConditionnementRow.html.twig'));
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/valider_lot", name="validate_lot", options={"expose"=true}, methods={"GET", "POST"})
+     */
+    public function validateLot(Request $request)
+    {
+        if ($request->isXmlHttpRequest() && $dataContent = json_decode($request->getContent(), true)) {
+            $em = $this->getDoctrine()->getManager();
+            $response = [];
+            $response['refs'] = [];
             $dimension = $this->dimensionsEtiquettesRepository->getOneDimension();
             if ($dimension) {
-                $data['height'] = $dimension->getHeight();
-                $data['width'] = $dimension->getWidth();
-                $data['exists'] = true;
+                $response['height'] = $dimension->getHeight();
+                $response['width'] = $dimension->getWidth();
+                $response['exists'] = true;
             } else {
-                $data['exists'] = false;
+                $response['exists'] = false;
             }
-            return new JsonResponse($data);
+            $counter = 0;
+            for ($i = 0; $i < count($dataContent['quantiteLot']); $i++) {
+                for ($j = 0; $j < $dataContent['quantiteLot'][$i]; $j++) {
+                    $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+                    $ref = $date->format('YmdHis');
+                    $refArticle = $this->referenceArticleRepository->getByReference($dataContent['refArticle']);
+                    $toInsert = new Article();
+                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
+                    $ligne = $this->receptionReferenceArticleRepository->find(intval($dataContent['ligne']));
+                    $articleFournisseur = new ArticleFournisseur();
+                    $articleFournisseur
+                        ->setReferenceArticle($refArticle)
+                        ->setFournisseur($ligne->getFournisseur())
+                        ->setReference($refArticle->getReference())
+                        ->setLabel($ligne->getLabel());
+                    $em->persist($articleFournisseur);
+                    $toInsert
+                        ->setLabel($ligne->getLabel())
+                        ->setConform($ligne->getAnomalie())
+                        ->setStatut($statut)
+                        ->setReference($ref . '-' . $counter)
+                        ->setQuantite(intval($dataContent['tailleLot'][$i]))
+                        ->setArticleFournisseur($articleFournisseur)
+                        ->setType($refArticle->getType());
+                    $em->persist($toInsert);
+                    array_push($response['refs'], $toInsert->getReference());
+                    $counter++;
+                }
+            }
+            $em->flush();
+            return new JsonResponse($response);
         }
         throw new NotFoundHttpException("404");
     }

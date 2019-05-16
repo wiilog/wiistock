@@ -44,6 +44,19 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
+    public function getByReference($reference)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT r
+            FROM App\Entity\ReferenceArticle r
+            WHERE r.reference = :reference
+            "
+        )->setParameter('reference', $reference);
+
+        return $query->getOneOrNullResult();
+    }
+
     public function getIdAndLibelleBySearch($search)
     {
         $em = $this->getEntityManager();
