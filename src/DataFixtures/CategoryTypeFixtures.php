@@ -50,6 +50,9 @@ class CategoryTypeFixtures extends Fixture implements FixtureGroupInterface
 
         if (empty($categoryType)) {
             $categoryType = new CategoryType();
+            dump("création de la catégorie " . CategoryType::TYPE_ARTICLES_ET_REF_CEA);
+        } else {
+            dump("renommage de la catégorie typeArticle -> " . CategoryType::TYPE_ARTICLES_ET_REF_CEA);
         }
 
         $categoryType->setLabel(CategoryType::TYPE_ARTICLES_ET_REF_CEA);

@@ -48,6 +48,9 @@ class CategorieCLFixtures extends Fixture implements FixtureGroupInterface
 
         if (empty($categorieCL)) {
             $categorieCL = new CategorieCL();
+            dump("création de la catégorie " . CategorieCL::REFERENCE_CEA);
+        } else {
+            dump("renommage de la catégorie referenceArticle -> " . CategorieCL::REFERENCE_CEA);
         }
 
         $categorieCL->setLabel(CategorieCL::REFERENCE_CEA);
