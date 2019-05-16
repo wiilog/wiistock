@@ -32,6 +32,23 @@ class ReceptionRepository extends ServiceEntityRepository
         return $query->execute(); 
     }
 
+
+
+    // public function findValeurChampsLibreByIdReception($id)
+    // {
+    //     $entityManager = $this->getEntityManager();
+    //     $query = $entityManager->createQuery(
+    //         "SELECT a
+    //          FROM App\Entity\Reception a
+    //          JOIN a.valeurChampsLibre c 
+    //          WHERE r.id =:id
+             
+    //         "
+    //     )->setParameter('id', $id);
+    //     dump($id);
+    //     return $query->getResult();
+    // }
+}
 //    /**
 //     * @return Reception[] Returns an array of Receptions objects
 //     */
@@ -60,4 +77,4 @@ class ReceptionRepository extends ServiceEntityRepository
         ;
     }
     */
-}
+
