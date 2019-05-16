@@ -242,7 +242,8 @@ class PreparationController extends AbstractController
                 $rows = [];
 
                 $lignesArticles = $this->ligneArticleRepository->getByDemande($demande->getId());
-                foreach ($lignesArticles as $ligneArticle) { /** @var $ligneArticle LigneArticle */
+                foreach ($lignesArticles as $ligneArticle) {
+                    /** @var $ligneArticle LigneArticle */
                     $rows[] = [
                         "Référence CEA" => ($ligneArticle->getReference() ? $ligneArticle->getReference()->getReference() : ' '),
                         "Libellé" => ($ligneArticle->getReference() ? $ligneArticle->getReference()->getLibelle() : ' '),
@@ -335,7 +336,7 @@ class PreparationController extends AbstractController
             $preparation->setStatut($statutEDP);
             $em->flush();
 
-            return new JsonResponse($statutEDP->getLabel());
+            return new JsonResponse($statutEDP->getNom());
         }
         throw new NotFoundHttpException('404');
     }
