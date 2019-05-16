@@ -409,14 +409,14 @@ class ReceptionController extends AbstractController
             $reception =  $this->receptionRepository->find($contentData['reception']);
             $fournisseur = $this->fournisseurRepository->find(intval($contentData['fournisseur']));
             $anomalie =  $contentData['anomalie'];
-            if ($anomalie) {
+            if ($anomalie && $reception->getStatut($this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_ANOMALIE))) {
                 $articleAnomalie =  $this->receptionReferenceArticleRepository->countNotConformByReception($reception);
                 if ($articleAnomalie < 1) {
-                    $statutRecep =  $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_RECEPTION_PARTIELLE);
+                    $statutRecep =  $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_ANOMALIE);
                     $reception->setStatut($statutRecep);
                 }
             } else {
-                $reception->setStatut($this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_ANOMALIE));
+                $reception->setStatut($this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_RECEPTION_PARTIELLE));
             }
 
             // $quantite =  $contentData['quantite'];
