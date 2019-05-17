@@ -92,7 +92,7 @@ class RefArticlePDTPatch2Fixtures extends Fixture implements FixtureGroupInterfa
         array_shift($rows); // supprime la 1è ligne d'en-têtes
 
         // à modifier pour faire imports successifs
-        $rows = array_slice($rows, 0, 50);
+        $rows = array_slice($rows, 0, 100);
 
         $i = 1;
         foreach($rows as $row) {
@@ -109,21 +109,16 @@ class RefArticlePDTPatch2Fixtures extends Fixture implements FixtureGroupInterfa
             }
 
             // champ fournisseur
-            if (empty($row[9])) {
-                $fournisseurLabel = 'A DETERMINER';
-                $fournisseurRef = 'A_DETERMINER';
-            } else {
-                $fournisseurLabel = $fournisseurRef = $row[9];
-            }
+            $fournisseurLabel = empty($row[9]) ? 'A DETERMINER' : $row[9];
 
-            $fournisseur = $this->fournisseurRepository->findOneBy(['codeReference' => $fournisseurRef]);
+            $fournisseur = $this->fournisseurRepository->findOneBy(['codeReference' => $fournisseurLabel]);
 
             // si le fournisseur n'existe pas, on le crée
             if (empty($fournisseur)) {
                 $fournisseur = new Fournisseur();
                 $fournisseur
                     ->setNom($fournisseurLabel)
-                    ->setCodeReference($fournisseurRef);
+                    ->setCodeReference($fournisseurLabel);
                 $manager->persist($fournisseur);
             }
 
