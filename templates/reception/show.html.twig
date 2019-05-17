@@ -34,13 +34,14 @@
 <div class="col text-right">
     {% if modifiable %}
     {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
-    <a href="" data-toggle="modal" data-target="#modalAddArticle" class="btn btn-primary btn-action ml-auto"
-        onclick="initNewArticleEditor('#modalAddArticle'),  ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'))">
+    <a href="" data-toggle="modal" data-target="#modalAddLigneArticle" class="btn btn-primary btn-action ml-auto"
+        onclick="initNewArticleEditor('#modalAddLigneArticle'),  ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'))">
         <span class="fa fa-plus mr-2"></span>Ajouter article
     </a>
     {% endif %}
     {% endif %}
-    <a href="#" onclick="printBarcode($(this))" data-id="{{ id }}" data-ref="{{ reception.numeroReception }}" class="btn btn-primary btn-action ml-auto">
+    <a href="#" onclick="printBarcode($(this))" data-id="{{ id }}" data-ref="{{ reception.numeroReception }}"
+        class="btn btn-primary btn-action ml-auto">
         <span class="fa"></span>Générer les étiquettes
     </a>
 </div>
@@ -49,8 +50,10 @@
 </table>
 
 <button class="btn" id="cannotGenerate" data-target='#modalCannotGenerate' data-toggle='modal' hidden></button>
-<button class="btn" id="cannotGenerateStock" data-target='#modalCannotGenerateStock' data-toggle='modal' hidden></button>
+<button class="btn" id="cannotGenerateStock" data-target='#modalCannotGenerateStock' data-toggle='modal'
+    hidden></button>
 <button class="btn" id="chooseConditionnement" data-target='#modalChoose' data-toggle='modal' hidden></button>
+<input type="number" id="ligneSelected" value="-1" hidden></button>
 <a href="{{ path('reception_index') }}" class='btn btn-action'>Retour à la liste</a>
 
 <div class="d-none" id="barcodes">
@@ -65,6 +68,9 @@
 {% include "reception/modalNoParamsEtiquettes.html.twig" %}
 {% include "reception/modalNoStock.html.twig" %}
 {% include "reception/modalChooseConditionnement.html.twig" %}
+{% include "article/modalModifyArticle.html.twig" %}
+{% include "article/modalDeleteArticle.html.twig" %}
+{% include "article/modalCantDeleteArticle.html.twig" %}
 
 {% endblock %}
 {% block javascript %}

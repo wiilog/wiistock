@@ -43,6 +43,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\DependencyInjection\Reference;
 use App\Repository\DimensionsEtiquettesRepository;
 use Proxies\__CG__\App\Entity\ArticleFournisseur;
+use App\Service\ArticleDataService;
 
 /**
  * @Route("/reception")
@@ -119,8 +120,13 @@ class ReceptionController extends AbstractController
      */
     private $userService;
 
+    /**
+     * @var ArticleDataService
+     */
+    private $articleDataService;
 
-    public function __construct(DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChampsLibreRepository $champsLibreRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, UserService $userService, ReceptionReferenceArticleRepository $receptionReferenceArticleRepository)
+
+    public function __construct(ArticleDataService $articleDataService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChampsLibreRepository $champsLibreRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, UserService $userService, ReceptionReferenceArticleRepository $receptionReferenceArticleRepository)
     {
         $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
         $this->statutRepository = $statutRepository;
@@ -136,6 +142,7 @@ class ReceptionController extends AbstractController
         $this->valeurChampsLibreRepository = $valeurChampsLibreRepository;
         $this->typeRepository = $typeRepository;
         $this->userService = $userService;
+        $this->articleDataService = $articleDataService;
     }
 
 
@@ -543,34 +550,17 @@ class ReceptionController extends AbstractController
 
         $statut =  $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_RECEPTION_TOTALE);
         $listReceptionReferenceArticle = $this->receptionReferenceArticleRepository->getByReception($reception);
-
+        $em = $this->getDoctrine()->getManager();
         foreach ($listReceptionReferenceArticle as $receptionRA) {
             /** @var ReceptionReferenceArticle $receptionRA */
             $referenceArticle = $receptionRA->getReferenceArticle();
-
             if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                 $referenceArticle->setQuantiteStock($referenceArticle->getQuantiteStock() + $receptionRA->getQuantite());
-            } elseif ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-                for ($i = 0; $i < $receptionRA->getQuantite(); $i++) {
-                    $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
-                    $ref = $date->format('YmdHis');
-                    $article = new Article();
-                    $article
-                        ->setlabel($receptionRA->getLabel())
-                        ->setReference($ref . '-' . strval($i))
-                        ->setArticleFournisseur($receptionRA->getArticleFournisseur())
-                        ->setConform(!$receptionRA->getAnomalie())
-                        ->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF))
-                        ->setType($this->typeRepository->findOneByCategoryLabel(Article::CATEGORIE));
-                    $em = $this->getDoctrine()->getManager();
-                    $em->persist($article);
-                    $em->flush();
-                }
             }
         }
         $reception->setStatut($statut);
         $reception->setDateReception(new \DateTime('now'));
-        $this->getDoctrine()->getManager()->flush();
+        $em->flush();
 
         return  $this->redirectToRoute('reception_index');
     }
@@ -710,41 +700,63 @@ class ReceptionController extends AbstractController
                     $qtt += $dataContent['tailleLot'][$i];
                 }
             }
-            if ($qtt - $this->receptionReferenceArticleRepository->find(intval($dataContent['ligne']))->getQuantite() > $this->receptionReferenceArticleRepository->find(intval($dataContent['ligne']))->getQuantiteAR()) {
+            $ligne = $this->receptionReferenceArticleRepository->find(intval($dataContent['ligne']));
+            if ($qtt + $ligne->getQuantite() > $ligne->getQuantiteAR()) {
                 $response['exists'] = false;
+            } else {
+                $ligne->setQuantite($ligne->getQuantite() + $qtt);
             }
             $counter = 0;
-            for ($i = 0; $i < count($dataContent['quantiteLot']); $i++) {
-                for ($j = 0; $j < $dataContent['quantiteLot'][$i]; $j++) {
-                    $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
-                    $ref = $date->format('YmdHis');
-                    $refArticle = $this->referenceArticleRepository->getByReference($dataContent['refArticle']);
-                    $toInsert = new Article();
-                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
-                    $ligne = $this->receptionReferenceArticleRepository->find(intval($dataContent['ligne']));
-                    $articleFournisseur = new ArticleFournisseur();
-                    $articleFournisseur
-                        ->setReferenceArticle($refArticle)
-                        ->setFournisseur($ligne->getFournisseur())
-                        ->setReference($refArticle->getReference())
-                        ->setLabel($ligne->getLabel());
-                    $em->persist($articleFournisseur);
-                    $toInsert
-                        ->setLabel($ligne->getLabel())
-                        ->setConform($ligne->getAnomalie())
-                        ->setStatut($statut)
-                        ->setReference($ref . '-' . $counter)
-                        ->setQuantite(intval($dataContent['tailleLot'][$i]))
-                        ->setArticleFournisseur($articleFournisseur)
-                        ->setType($refArticle->getType());
-                    $em->persist($toInsert);
-                    array_push($response['refs'], $toInsert->getReference());
-                    $counter++;
+            if ($response['exists'] === true) {
+                for ($i = 0; $i < count($dataContent['quantiteLot']); $i++) {
+                    for ($j = 0; $j < $dataContent['quantiteLot'][$i]; $j++) {
+                        $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+                        $ref = $date->format('YmdHis');
+                        $refArticle = $this->referenceArticleRepository->getByReference($dataContent['refArticle']);
+                        $toInsert = new Article();
+                        $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
+                        $ligne = $this->receptionReferenceArticleRepository->find(intval($dataContent['ligne']));
+                        $articleFournisseur = new ArticleFournisseur();
+                        $articleFournisseur
+                            ->setReferenceArticle($refArticle)
+                            ->setFournisseur($ligne->getFournisseur())
+                            ->setReference($refArticle->getReference())
+                            ->setLabel($ligne->getLabel());
+                        $em->persist($articleFournisseur);
+                        $toInsert
+                            ->setLabel($ligne->getLabel())
+                            ->setConform(true)
+                            ->setStatut($statut)
+                            ->setReference($ref . '-' . $counter)
+                            ->setQuantite(intval($dataContent['tailleLot'][$i]))
+                            ->setArticleFournisseur($articleFournisseur)
+                            ->setReception($ligne->getReception())
+                            ->setType($refArticle->getType());
+                        $em->persist($toInsert);
+                        array_push($response['refs'], $toInsert->getReference());
+                        $counter++;
+                    }
                 }
             }
             $em->flush();
             return new JsonResponse($response);
         }
         throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/apiArticle", name="article_by_reception_api", options={"expose"=true}, methods="GET|POST")
+     */
+    public function apiArticle(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $ligne = $request->request->get('ligne')) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+                return $this->redirectToRoute('access_denied');
+            }
+            $ligne = $this->receptionReferenceArticleRepository->find(intval($ligne));
+            $data = $this->articleDataService->getDataForDatatableByReceptionLigne($ligne);
+            return new JsonResponse($data);
+        }
+        throw new NotFoundHttpException('404');
     }
 }

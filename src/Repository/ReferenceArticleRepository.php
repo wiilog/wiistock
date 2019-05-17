@@ -44,6 +44,19 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
+    public function getByLigneReception($ligne)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT af
+            FROM App\Entity\ReferenceArticle af
+            JOIN App\Entity\ReceptionReferenceArticle lrf
+            WHERE lrf.referenceArticle = af AND lrf = :ligne 
+        "
+        )->setParameter('ligne', $ligne);
+        return $query->getOneOrNullResult();
+    }
+
     public function getByReference($reference)
     {
         $entityManager = $this->getEntityManager();

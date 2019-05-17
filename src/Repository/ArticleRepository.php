@@ -315,6 +315,20 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->getResult();
     }
 
+    public function getByAF($af)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT a
+          FROM App\Entity\Article a
+          JOIN a.articleFournisseur af
+          WHERE af.id IN(:articleFournisseur)"
+        )->setParameters([
+            'articleFournisseur' => $af,
+        ]);
+
+        return $query->execute();
+    }
 
     public function countAll()
     {

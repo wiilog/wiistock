@@ -255,7 +255,7 @@ let ajaxGetFournisseurByRefArticle = function (select) {
     xhttp.send(Json);
 }
 
-function printSingleBarcode(button) {
+function printSingleArticleBarcode(button) {
     let params = {
         'article': button.data('id')
     }

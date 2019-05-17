@@ -1,14 +1,14 @@
 <div class="row">
     {% if modifiable %}
     {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
-    <div data-id='{{ligneId}}' data-toggle='modal' data-target='#modalEditArticle' class='col-3 command-edit'
-        onclick="editRow($(this), Routing.generate('reception_article_edit_api', true), $('#modalEditArticle'), $('#submitEditArticle'), true)">
+    <div data-id='{{ligneId}}' data-toggle='modal' data-target='#modalEditLigneArticle' class='col-3 command-edit'
+        onclick="editRow($(this), Routing.generate('reception_article_edit_api', true), $('#modalEditLigneArticle'), $('#submitEditLigneArticle'), true)">
         <i class='fas fa-pencil-alt'></i>
     </div>
     {% endif %}
     {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
-    <div class='col-3 article-delete' onclick="deleteRow($(this), $('#modalDeleteArticle'), $('#submitDeleteArticle'))"
-        data-id='{{ligneId}}' data-target='#modalDeleteArticle' data-toggle='modal'>
+    <div class='col-3 article-delete' onclick="deleteRow($(this), $('#modalDeleteLigneArticle'), $('#submitDeleteLigneArticle'))"
+        data-id='{{ligneId}}' data-target='#modalDeleteLigneArticle' data-toggle='modal'>
         <i class='fas fa-trash'></i>
     </div>
     {% endif %}
