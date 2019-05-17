@@ -29,6 +29,10 @@ function submitActionRefArticle(modal, path, callback = function () { }, close =
         }
     };
 
+    if (path ===  Routing.generate('save_column_visible', true)) {
+        tableColumnVisible.search('').draw()
+    }
+
     let { Data, missingInputs, wrongInputs } = getDataFromModal(modal);
 
     // si tout va bien on envoie la requête ajax...
@@ -221,7 +225,7 @@ function initTableRefArticle() {
 }
 
 //COLUMN VISIBLE
-$('#tableColumnVisible_id').DataTable({
+let tableColumnVisible = $('#tableColumnVisible_id').DataTable({
     language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
