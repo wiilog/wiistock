@@ -291,7 +291,6 @@ let ajaxEditArticle = function (select) {
                 let valMax = $('#quantite').val();
                 withdrawQuantity.find('input').attr('max', valMax);
                 withdrawQuantity.removeClass('d-none');
-                displayRequireChamp($('#typeEditArticle'), 'edit');
                 ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
                 initEditor2('.editor-container-edit');
             } else {
@@ -329,7 +328,7 @@ let generateCSV = function () {
     });
     let utilisateurs = $('#utilisateur').val().toString().split(',');
     Data['users'] = utilisateurs;
-    if (Data['dateMin'] && Data['dateMax'] && Data['users']) {
+    if (Data['dateMin'] && Data['dateMax'] && $('#utilisateur').val().toString() !== '') {
         json = JSON.stringify(Data);
         xhttp.open("POST", Routing.generate('get_livraisons_for_csv'), true);
         xhttp.send(json);

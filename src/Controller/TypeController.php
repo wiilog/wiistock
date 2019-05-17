@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\CategoryType;
 use App\Entity\ReferenceArticle;
 use App\Entity\Type;
 
@@ -84,7 +85,7 @@ class TypeController extends AbstractController
                 $options = $cl->getElements();
                 $isType = false;
             } else {
-                $options = $this->typeRepository->getByCategoryLabel(ReferenceArticle::CATEGORIE_TYPE); //TODO 
+                $options = $this->typeRepository->getByCategoryLabel(CategoryType::TYPE_ARTICLES_ET_REF_CEA);
             }
 
             $view = $this->renderView('type/inputSelectTypes.html.twig', [

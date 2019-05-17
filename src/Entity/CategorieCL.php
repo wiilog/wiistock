@@ -12,7 +12,7 @@ use Doctrine\ORM\Mapping as ORM;
 class CategorieCL
 {
 
-    const REFERENCE_ARTICLE = 'reference CEA';
+    const REFERENCE_CEA = 'reference CEA';
     const ARTICLE = 'article';
     const AUCUNE = 'aucune';
 
