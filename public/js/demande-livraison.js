@@ -291,7 +291,6 @@ let ajaxEditArticle = function (select) {
                 let valMax = $('#quantite').val();
                 withdrawQuantity.find('input').attr('max', valMax);
                 withdrawQuantity.removeClass('d-none');
-                displayRequireChamp($('#typeEditArticle'), 'edit');
                 ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
                 initEditor2('.editor-container-edit');
             } else {
