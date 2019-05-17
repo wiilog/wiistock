@@ -28,7 +28,7 @@ class CategorieCLFixtures extends Fixture implements FixtureGroupInterface
     public function load(ObjectManager $manager)
     {
         $categoriesNames = [
-            CategorieCL::REFERENCE_ARTICLE,
+//            CategorieCL::REFERENCE_CEA,
             CategorieCL::ARTICLE,
             CategorieCL::AUCUNE
         ];
@@ -41,8 +41,20 @@ class CategorieCLFixtures extends Fixture implements FixtureGroupInterface
                 $manager->persist($categorie);
                 dump("création de la catégorie " . $categorieName);
             }
-
         }
+
+        // patch spécifique pour changement de nom de 'referenceArticle' à 'référence CEA'
+        $categorieCL = $this->categorieCLRepository->findOneBy(['label' => 'referenceArticle']);
+
+        if (empty($categorieCL)) {
+            $categorieCL = new CategorieCL();
+            dump("création de la catégorie " . CategorieCL::REFERENCE_CEA);
+        } else {
+            dump("renommage de la catégorie referenceArticle -> " . CategorieCL::REFERENCE_CEA);
+        }
+
+        $categorieCL->setLabel(CategorieCL::REFERENCE_CEA);
+
         $manager->flush();
     }
 

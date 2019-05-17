@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\CategoryType;
 use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
@@ -173,8 +174,8 @@ class ReferenceArticleController extends Controller
             }
 
             $columnsVisible = $this->getUser()->getColumnVisible();
-            $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
-            $category = ReferenceArticle::CATEGORIE_TYPE;
+            $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_CEA);
+            $category = CategoryType::TYPE_ARTICLES_ET_REF_CEA;
             $champs = $this->champsLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
             if ($columnsVisible) {
                 $columns = [
@@ -373,8 +374,8 @@ class ReferenceArticleController extends Controller
                         }
                     }
 
-                    $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
-                    $category = ReferenceArticle::CATEGORIE_TYPE;
+                    $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_CEA);
+                    $category = CategoryType::TYPE_ARTICLES_ET_REF_CEA;
                     $champsLibres = $this->champsLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
 
                     $rowCL = [];
@@ -425,8 +426,8 @@ class ReferenceArticleController extends Controller
             ]
         ];
 
-        $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
-        $category = ReferenceArticle::CATEGORIE_TYPE;
+        $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_CEA);
+        $category = CategoryType::TYPE_ARTICLES_ET_REF_CEA;
         $champL = $this->champsLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
         $champ[] = [
             'label' => 'Actions',
@@ -465,7 +466,7 @@ class ReferenceArticleController extends Controller
 
         $champsVisibleDefault = ['Actions', 'Libellé', 'Référence', 'Type', 'Quantité', 'Emplacement'];
 
-        $types = $this->typeRepository->getIdAndLabelByCategoryLabel(ReferenceArticle::CATEGORIE_TYPE);
+        $types = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::TYPE_ARTICLES_ET_REF_CEA);
         $emplacements = $this->emplacementRepository->findAll();
         $typeChampLibre =  [];
 

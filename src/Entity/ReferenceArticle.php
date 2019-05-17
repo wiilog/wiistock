@@ -13,7 +13,6 @@ class ReferenceArticle
 {
 
     const CATEGORIE = 'referenceArticle';
-    const CATEGORIE_TYPE = 'typeArticle';
     const STATUT_ACTIF = 'actif';
     const STATUT_INACTIF = 'inactif';
 
