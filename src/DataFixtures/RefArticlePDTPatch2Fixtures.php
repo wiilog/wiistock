@@ -110,6 +110,7 @@ class RefArticlePDTPatch2Fixtures extends Fixture implements FixtureGroupInterfa
 
             // champ fournisseur
             $fournisseurLabel = empty($row[9]) ? 'A DETERMINER' : $row[9];
+            $articleFournisseurRef = empty($row[10]) ? 'A DETERMINER' : $row[10];
 
             $fournisseur = $this->fournisseurRepository->findOneBy(['codeReference' => $fournisseurLabel]);
 
@@ -126,7 +127,7 @@ class RefArticlePDTPatch2Fixtures extends Fixture implements FixtureGroupInterfa
             $articleFournisseur = new ArticleFournisseur();
             $articleFournisseur
                 ->setLabel($row[1])
-                ->setReference($row[10])
+                ->setReference($articleFournisseurRef)
                 ->setFournisseur($fournisseur)
                 ->setReferenceArticle($referenceArticle);
 
