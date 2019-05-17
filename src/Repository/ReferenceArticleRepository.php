@@ -79,10 +79,10 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         // fait le lien entre intitulé champs dans datatable/filtres côté front
         // et le nom des attributs de l'entité ReferenceArticle (+ typage)
         $linkChampLibreLabelToField = [
-            'Libellé' => ['field' => 'libelle', 'typage' => 'text'],
-            'Référence' => ['field' => 'reference', 'typage' => 'text'],
-            'Type' => ['field' => 'type_id', 'typage' => 'list'],
-            'Quantité' => ['field' => 'quantiteStock', 'typage' => 'number'],
+            'libellé' => ['field' => 'libelle', 'typage' => 'text'],
+            'référence' => ['field' => 'reference', 'typage' => 'text'],
+            'type' => ['field' => 'type_id', 'typage' => 'list'],
+            'quantité' => ['field' => 'quantiteStock', 'typage' => 'number'],
         ];
         //TODO trouver + dynamique
 
@@ -93,10 +93,19 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             ->leftJoin('ra.valeurChampsLibres', 'vcl');
 
         foreach ($filters as $filter) {
+            dump($filter);
             $index++;
 
+            // cas particulier champ référence article fournisseur
+            if ($filter['champFixe'] === 'référence article fournisseur') {
+                $qb
+                    ->leftJoin('ra.articlesFournisseur', 'af')
+                    ->andWhere('af.reference LIKE :reference')
+                    ->setParameter('reference', '%' . $filter['value'] . '%');
+            }
+
             // cas champ fixe
-            if ($label = $filter['champFixe']) {
+            else if ($label = $filter['champFixe']) {
                 $array = $linkChampLibreLabelToField[$label];
                 $field = $array['field'];
                 $typage = $array['typage'];
@@ -118,9 +127,10 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                             ->setParameter('typeLabel', $filter['value']);
                         break;
                 }
+            }
 
-                // cas champ libre
-            } else if ($filter['champLibre']) {
+            // cas champ libre
+            else if ($filter['champLibre']) {
                 $qbSub = $em->createQueryBuilder();
                 $qbSub
                     ->select('ra' . $index . '.id')

@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\CategoryType;
+use App\Entity\Filter;
 use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
@@ -463,9 +464,9 @@ class ReferenceArticleController extends Controller
         ];
 
         $champ[] = [
-            'label' => 'référence article fournisseur',
+            'label' => Filter::CHAMP_FIXE_REF_ART_FOURN,
             'id' => 0,
-            'typage' => 'refart'
+            'typage' => 'text'
         ];
 
         $champs = array_merge($champ, $champL);
