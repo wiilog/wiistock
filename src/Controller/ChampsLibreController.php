@@ -96,7 +96,7 @@ class ChampsLibreController extends AbstractController
                     [
                         'id' => ($champsLibre->getId() ? $champsLibre->getId() : 'Non défini'),
                         'Label' => ($champsLibre->getLabel() ? $champsLibre->getLabel() : 'Non défini'),
-                        'Liaison' => ($champsLibre->getCategorieCL() ? $champsLibre->getCategorieCL()->getLabel() : ''),
+                        'S\'applique' => ($champsLibre->getCategorieCL() ? $champsLibre->getCategorieCL()->getLabel() : ''),
                         'Typage' => $typageCLFr,
                         'Obligatoire à la création' => ($champsLibre->getRequiredCreate() ? "oui" : "non"),
                         'Obligatoire à la modification' => ($champsLibre->getRequiredEdit() ? "oui" : "non"),
