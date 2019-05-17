@@ -29,6 +29,10 @@ function submitActionRefArticle(modal, path, callback = function () { }, close =
         }
     };
 
+    if (path ===  Routing.generate('save_column_visible', true)) {
+        tableColumnVisible.search('').draw()
+    }
+
     let { Data, missingInputs, wrongInputs } = getDataFromModal(modal);
 
     // si tout va bien on envoie la requête ajax...
@@ -137,7 +141,7 @@ function clearModalRefArticle(modal) {
     // on vide tous les inputs
     let inputs = modal.find('.modal-body').find(".data, .newContent>input");
     inputs.each(function () {
-        $(this).val("");
+        if ($(this).attr('id') !== 'type_quantite') $(this).val("");
     });
     // on vide tous les select2
     let selects = modal.find('.modal-body').find('.select2, .ajax-autocompleteFournisseur');
@@ -221,7 +225,7 @@ function initTableRefArticle() {
 }
 
 //COLUMN VISIBLE
-$('#tableColumnVisible_id').DataTable({
+let tableColumnVisible = $('#tableColumnVisible_id').DataTable({
     language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
@@ -519,9 +523,11 @@ function setMaxQuantityByArtRef(input) {
 function toggleRadioButtonNeeded(button) {
     if ($('#quantite').hasClass('needed')) {
         $('#quantite').removeClass('needed');
+        $('#type_quantite').val('article');
     }
     else {
         $('#quantite').addClass('needed');
+        $('#type_quantite').val('reference');
     }
     if ($('#emplacement').hasClass('needed')) {
         $('#emplacement').removeClass('needed');
