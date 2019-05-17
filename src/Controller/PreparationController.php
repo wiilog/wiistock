@@ -302,8 +302,18 @@ class PreparationController extends AbstractController
 
         $em = $this->getDoctrine()->getManager();
         foreach ($preparation->getDemandes() as $demande) {
-            $demande->setPreparation(null);
+            $demande
+                ->setPreparation(null)
+                ->setStatut($this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_BROUILLON));
+
+            foreach ($demande->getArticles() as $article) {
+                if ($article->getWithdrawQuantity()) {
+                    $article->setWithdrawQuantity($article->getQuantite());
+                    $article->setWithdrawQuantity(0);
+                }
+            }
         }
+
         $em->remove($preparation);
         $em->flush();
         return $this->redirectToRoute('preparation_index');
