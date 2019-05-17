@@ -202,7 +202,7 @@ class ReceptionController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
-        // dump($data);
+      
             $fournisseur =  $this->fournisseurRepository->find(intval($data['fournisseur']));
             $utilisateur =  $this->utilisateurRepository->find(intval($data['utilisateur']));
             $statut =  $this->statutRepository->find(intval($data['statut']));
@@ -224,9 +224,7 @@ class ReceptionController extends AbstractController
             foreach ($champsLibreKey as $champ) {
                 if (gettype($champ) === 'integer') {
                     $champLibre = $this->champsLibreRepository->find($champ);
-                        $valeurChampLibre = $this->valeurChampsLibreRepository->findOneByReceptionANDChampsLibre($reception, $champLibre);
-                        
-                        dump($valeurChampLibre);
+                        $valeurChampLibre = $this->valeurChampsLibreRepository->findOneByReceptionANDChampsLibre($reception, $champLibre);                   
                       
                         // si la valeur n'existe pas, on la crée
                         if (!$valeurChampLibre) {
@@ -241,10 +239,19 @@ class ReceptionController extends AbstractController
                         $em->flush();
                 }
             }
+            $type = $reception->getType();
+           
+            if ($type) {
+                $valeurChampLibreTab = $this->valeurChampsLibreRepository->getByReceptionAndType($reception->getId(), $type);
+            } else {
+                $valeurChampLibreTab = [];
+            }
 
+            
             $json = [
                 'entete' =>  $this->renderView('reception/enteteReception.html.twig', [
                     'reception' =>  $reception,
+                    'valeurChampLibreTab' => $valeurChampLibreTab,
                 ])
             ];
             return new JsonResponse($json);
@@ -284,7 +291,7 @@ class ReceptionController extends AbstractController
                         'valeurChampLibre' => $valeurChampReception,
                     ];
                 }
-                dump($label,$champsLibres);
+                
                 $typeChampLibre[] = [
                     'typeLabel' =>  $label['label'],
                     'typeId' => $label['id'],
@@ -603,14 +610,14 @@ class ReceptionController extends AbstractController
         $type = $reception->getType();
         // dump($type);
         if ($type) {
-            $valeurChampLibre []= $this->valeurChampsLibreRepository->getByReceptionAndType($reception->getId(), $type);
+            $valeurChampLibreTab = $this->valeurChampsLibreRepository->getByReceptionAndType($reception->getId(), $type);
         } else {
-            $valeurChampLibre = [];
+            $valeurChampLibreTab = [];
         }
         
 
         $data = [
-               'valeurChampLibre' => $valeurChampLibre
+               'valeurChampLibreTab' => $valeurChampLibreTab
         ];
    
       
@@ -630,6 +637,7 @@ class ReceptionController extends AbstractController
                     'elements' => ($champLibre->getElements() ? $champLibre->getElements() : ''),
                     'defaultValue' => $champLibre->getDefaultValue(),
                     'valeurChampLibre' => $valeurChampReception,
+                    'valeurChampLibreTab' => $valeurChampLibreTab,
                 ];
             }
             $typeChampLibre = [
@@ -648,7 +656,8 @@ class ReceptionController extends AbstractController
             'valeurChampsLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
             'typeChampsLibres' => $typeChampLibre,  
              'champsLibres' => $champsLibres,
-             'typeId' => $reception->getType()->getId()
+             'typeId' => $reception->getType()->getId(),
+             'valeurChampLibreTab' => $valeurChampLibreTab,
            
         ]);
     }

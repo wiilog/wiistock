@@ -168,7 +168,7 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
-            "SELECT v.id, v.valeur, c.label
+            "SELECT v.id, v.valeur, c.label, c.typage
             FROM App\Entity\ValeurChampsLibre v
             JOIN v.champLibre c
             JOIN v.receptions r
