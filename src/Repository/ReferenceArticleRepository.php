@@ -140,6 +140,10 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                             ->andWhere('vcl' . $index . '.valeur LIKE :value')
                             ->setParameter('value', '%' . $filter['value'] . '%');
                         break;
+                    case 'refart':
+                        dump($filter['champLibre']);
+                        dump($filter['value']);
+                        break;
                     case 'number':
                     case 'list':
                         $qbSub

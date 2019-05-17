@@ -461,6 +461,13 @@ class ReferenceArticleController extends Controller
             'id' => 0,
             'typage' => 'text'
         ];
+
+        $champ[] = [
+            'label' => 'référence article fournisseur',
+            'id' => 0,
+            'typage' => 'refart'
+        ];
+
         $champs = array_merge($champ, $champL);
 
         usort($champs, function($a, $b) {
