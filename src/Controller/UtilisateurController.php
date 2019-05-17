@@ -159,7 +159,7 @@ class UtilisateurController extends Controller
             if (!$this->userService->hasRightFunction(Menu::PARAM)) {
                 return $this->redirectToRoute('access_denied');
             }
-
+            
             $utilisateur = $this->utilisateurRepository->find($data['user']);
             $password = $data['password'];
             if ($password !== '') {
@@ -190,14 +190,22 @@ class UtilisateurController extends Controller
                 //TODO gérer retour erreur propre
             }
 
+            //vérification que l'user connecté ne se désactive pas
+            if (($data['user']) == $this->getUser()->getId() &&
+            $utilisateur->getStatus() == true &&
+            $data['status'] == 'inactive') {
+                return new JsonResponse('Un utilisateur connecté ne peut pas se désactiver lui-même.');
+            }
+                       
             $utilisateur
                 ->setStatus($data['status'] === 'active')
                 ->setUsername($data['username'])
                 ->setEmail($data['email']);
-            if ($password !== '') {
-                $password = $passwordEncoder->encodePassword($utilisateur, $data['password']);
-                $utilisateur->setPassword($password);
-            }
+                if ($password !== '') {
+                    $password = $passwordEncoder->encodePassword($utilisateur, $data['password']);
+                    $utilisateur->setPassword($password);
+                }
+            
             $em = $this->getDoctrine()->getManager();
             $em->persist($utilisateur);
             $em->flush();
