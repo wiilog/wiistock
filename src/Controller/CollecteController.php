@@ -330,35 +330,34 @@ class CollecteController extends AbstractController
                         ->setNom('A DETERMINER');
                     $em->persist($fournisseurTemp);
                 }
-                for ($i = 0; $i < $data['quantitie']; $i++) {
-                    $toInsert = new Article();
-                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_INACTIF);
-                    $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
-                    $ref = $date->format('YmdHis');
-                    $articleFournisseur = new ArticleFournisseur();
-                    $articleFournisseur
-                        ->setReferenceArticle($refArticle)
-                        ->setFournisseur($fournisseurTemp)
-                        ->setReference($refArticle->getReference())
-                        ->setLabel('A déterminer -' . $i);
-                    $em->persist($articleFournisseur);
-                    $toInsert
-                        ->setLabel($refArticle->getLibelle() . '-' . $i)
-                        ->setConform(true)
-                        ->setStatut($statut)
-                        ->setReference($ref . '-' . $i)
-                        ->setQuantite(1)
-                        ->setEmplacement($collecte->getPointCollecte())
-                        ->setArticleFournisseur($articleFournisseur)
-                        ->setType($refArticle->getType());
-                    $em->persist($toInsert);
-                    $collecte->addArticle($toInsert);
-                }
-                // $article = $this->articleRepository->find($data['article']);
-                // $collecte->addArticle($article);
-
-                // $this->articleDataService->editArticle($data);
+                $toInsert = new Article();
+                $index = $this->articleFournisseurRepository->countByRefArticle($refArticle);
+                $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_INACTIF);
+                $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+                $ref = $date->format('YmdHis');
+                $articleFournisseur = new ArticleFournisseur();
+                $articleFournisseur
+                    ->setReferenceArticle($refArticle)
+                    ->setFournisseur($fournisseurTemp)
+                    ->setReference($refArticle->getReference())
+                    ->setLabel('A déterminer -' . $index);
+                $em->persist($articleFournisseur);
+                $toInsert
+                    ->setLabel($refArticle->getLibelle() . '-' . $index)
+                    ->setConform(true)
+                    ->setStatut($statut)
+                    ->setReference($ref . '-' . $index)
+                    ->setQuantite($data['quantitie'])
+                    ->setEmplacement($collecte->getPointCollecte())
+                    ->setArticleFournisseur($articleFournisseur)
+                    ->setType($refArticle->getType());
+                $em->persist($toInsert);
+                $collecte->addArticle($toInsert);
             }
+            // $article = $this->articleRepository->find($data['article']);
+            // $collecte->addArticle($article);
+
+            // $this->articleDataService->editArticle($data);
             $em->flush();
 
             return new JsonResponse();

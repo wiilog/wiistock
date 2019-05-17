@@ -57,6 +57,18 @@ class ArticleFournisseurRepository extends ServiceEntityRepository
         return $query->getResult();
     }
 
+    public function countByRefArticle($id)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT COUNT(rf)
+            FROM App\Entity\ArticleFournisseur rf
+            WHERE rf.referenceArticle = :id"
+        )->setParameter('id', $id);
+
+        return $query->getSingleScalarResult();
+    }
+
     public function findByRefArticleAndFournisseur($refArticleId, $fournisseurId)
     {
         $em = $this->getEntityManager();
@@ -95,7 +107,7 @@ class ArticleFournisseurRepository extends ServiceEntityRepository
         }
 
         $query = $qb->getQuery();
-        
+
 
         return $query->getResult();
     }
@@ -111,5 +123,4 @@ class ArticleFournisseurRepository extends ServiceEntityRepository
 
         return $query->getSingleScalarResult();
     }
-
 }
