@@ -632,7 +632,17 @@ class ReceptionController extends AbstractController
                 $data['exists'] = false;
             }
             foreach ($this->receptionReferenceArticleRepository->getByReception($reception) as $recepRef) {
-                array_push($data['refs'], $recepRef->getReferenceArticle()->getReference());
+                if ($recepRef->getReferenceArticle()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+                    array_push($data['refs'], $recepRef->getReferenceArticle()->getReference());
+                } else {
+                    foreach ($this->articleFournisseurRepository->getByRefArticle($recepRef->getReferenceArticle()) as $af) {
+                        foreach ($this->articleRepository->getByAF($af) as $article) {
+                            if ($article->getReception() && $article->getReception() === $reception) {
+                                array_push($data['refs'], $article->getReference());
+                            }
+                        }
+                    }
+                }
             }
             return new JsonResponse($data);
         }
