@@ -311,7 +311,7 @@ class ReferenceArticleController extends Controller
             }
 
             // on vérifie que la référence n'existe pas déjà
-            $refAlreadyExist = $this->articleFournisseurRepository->countByReference($data['reference']);
+            $refAlreadyExist = $this->referenceArticleRepository->countByReference($data['reference']);
 
             if ($refAlreadyExist) {
                 return new JsonResponse(false);
@@ -330,7 +330,7 @@ class ReferenceArticleController extends Controller
                         $requiredCreate = false;
                     }
                 }
-                dump($data['type_quantite']);
+
                 if ($requiredCreate) {
                     $em = $this->getDoctrine()->getManager();
                     $statut = ($data['statut'] === 'active' ? $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF) : $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_INACTIF));

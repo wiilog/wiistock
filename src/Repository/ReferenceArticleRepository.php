@@ -266,4 +266,16 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
         return $query->execute();
     }
+
+    public function countByReference($reference)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT COUNT (ra)
+            FROM App\Entity\ReferenceArticle ra
+            WHERE ra.reference = :reference"
+        )->setParameter('reference', $reference);
+
+        return $query->getSingleScalarResult();
+    }
 }

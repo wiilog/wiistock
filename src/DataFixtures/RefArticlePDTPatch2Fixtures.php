@@ -109,18 +109,9 @@ class RefArticlePDTPatch2Fixtures extends Fixture implements FixtureGroupInterfa
             }
 
             // champ fournisseur
-            if (empty($row[9])) {
-                $fournisseurLabel = 'A DETERMINER';
-            } else {
-                $fournisseurLabel = $row[9];
-            }
-
-//            if (in_array($row[10], ['nc', 'nd', 'NC', 'ND', '*', '.', ''])) {
-//                $articleFournisseurRef = $fournisseurLabel;
-//            }
+            $fournisseurLabel = empty($row[9]) ? 'A DETERMINER' : $row[9];
 
             $fournisseur = $this->fournisseurRepository->findOneBy(['codeReference' => $fournisseurLabel]);
-            //TODO CG ref fourn = label fourn ?
 
             // si le fournisseur n'existe pas, on le crée
             if (empty($fournisseur)) {
