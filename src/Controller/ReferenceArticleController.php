@@ -646,6 +646,7 @@ class ReferenceArticleController extends Controller
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $em = $this->getDoctrine()->getManager();
+            $json = true;
 
             //edit Refrence Article
             $refArticle = (isset($data['refArticle']) ? $this->referenceArticleRepository->find($data['refArticle']) : '');
@@ -653,7 +654,7 @@ class ReferenceArticleController extends Controller
             if (array_key_exists('livraison', $data) && $data['livraison']) {
                 $demande = $this->demandeRepository->find($data['livraison']);
                 if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-                    $response = $this->refArticleDataService->editRefArticle($refArticle, $data);
+                    $this->refArticleDataService->editRefArticle($refArticle, $data);
                     if ($this->ligneArticleRepository->countByRefArticleDemande($refArticle, $demande) < 1) {
                         $ligneArticle = new LigneArticle;
                         $ligneArticle
@@ -669,11 +670,12 @@ class ReferenceArticleController extends Controller
                             ->setQuantite($ligneArticle->getQuantite() + $data["quantitie"]);
                     }
                 } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-                    $response = $this->articleDataService->editArticle($data);
+                    $this->articleDataService->editArticle($data);
                     $article = $this->articleRepository->find($data['article']);
+                    $article->setWithdrawQuantity($data['quantitie']);
                     $demande->addArticle($article);
                 } else {
-                    $json = false;
+                    $json = false; //TOOD gérer message erreur
                 }
             } elseif (array_key_exists('collecte', $data) && $data['collecte']) {
                 $collecte = $this->collecteRepository->find($data['collecte']);
@@ -688,14 +690,14 @@ class ReferenceArticleController extends Controller
                         ->setQuantite((int)$data['quantitie']);
                     $em->persist($collecteReference);
                 } else {
-                    $json = false;
+                    $json = false; //TOOD gérer message erreur
                 }
             } else {
-                $json = false;
+                $json = false; //TOOD gérer message erreur
             }
             $em->flush();
 
-            return new JsonResponse();
+            return new JsonResponse($json);
         }
         throw new NotFoundHttpException("404");
     }
