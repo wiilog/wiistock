@@ -41,6 +41,7 @@ use App\Repository\StatutRepository;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\DependencyInjection\Reference;
+use Proxies\__CG__\App\Entity\CategoryType;
 
 /**
  * @Route("/reception")
@@ -415,7 +416,7 @@ class ReceptionController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
         
-        $types = $this->typeRepository->getIdAndLabelByCategoryLabel('Reception');
+        $types = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
       
         $typeChampLibre =  [];
         foreach ($types as $type) {
@@ -427,10 +428,12 @@ class ReceptionController extends AbstractController
                 'champsLibres' => $champsLibres,
             ];
         }
+        dump($typeChampLibre);
+
         return $this->render('reception/index.html.twig', [
            'typeChampsLibres' => $typeChampLibre,
             'types' => $types,
-            'champsLibres' => $champsLibres
+            // 'champsLibres' => $champsLibres
   
         ]);
     }
@@ -637,7 +640,7 @@ class ReceptionController extends AbstractController
                     'elements' => ($champLibre->getElements() ? $champLibre->getElements() : ''),
                     'defaultValue' => $champLibre->getDefaultValue(),
                     'valeurChampLibre' => $valeurChampReception,
-                    'valeurChampLibreTab' => $valeurChampLibreTab,
+                    // 'valeurChampLibreTab' => $valeurChampLibreTab,
                 ];
             }
             $typeChampLibre = [

@@ -67,9 +67,9 @@
                     </div>
                     <div class="form-group col-12 blocVisible d-block" id='typeContentEdit'>
                         <div class="d-block">
+                            {% for typeChampLibre in typeChampsLibres %}
                             <div class="row mt-2">
-
-                                {% for champLibre in champsLibres %}
+                                {% for champLibre in typeChampLibre.champsLibres %}
                                 <div class="form-group col-6">
                                     <label for="">
                                         {{champLibre.label | capitalize}}
@@ -115,6 +115,7 @@
                                 </div>
                                 {% endfor %}
                             </div>
+                            {% endfor %}
                         </div>
                     </div>
                 </div>
