@@ -18,7 +18,7 @@ use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use App\Repository\TypeRepository;
 use App\Repository\ChampsLibreRepository;
 
-class RefArticlePDTPatch2Fixtures extends Fixture implements FixtureGroupInterface
+class RefArticlePatchFournisseursFixtures extends Fixture implements FixtureGroupInterface
 {
     private $encoder;
 
@@ -141,7 +141,7 @@ class RefArticlePDTPatch2Fixtures extends Fixture implements FixtureGroupInterfa
 
 
     public static function getGroups():array {
-        return ['patchPDTFournisseurs'];
+        return ['patchFournisseurs'];
     }
 
 }
