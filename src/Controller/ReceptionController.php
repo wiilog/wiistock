@@ -400,13 +400,13 @@ class ReceptionController extends AbstractController
             $entityManager->remove($ligneArticle);
             $entityManager->flush();
             $nbArticleNotConform =  $this->receptionReferenceArticleRepository->countNotConformByReception($reception);
-            dump($nbArticleNotConform);
             $statutLabel =  $nbArticleNotConform > 0 ? Reception::STATUT_ANOMALIE : Reception::STATUT_RECEPTION_PARTIELLE;
             $statut =  $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE,  $statutLabel);
             $reception->setStatut($statut);
             $json = [
                 'entete' =>  $this->renderView('reception/enteteReception.html.twig', ['reception' =>  $reception])
             ];
+            $entityManager->flush();
             return new JsonResponse($json);
         }
         throw new NotFoundHttpException("404");
