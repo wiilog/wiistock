@@ -247,6 +247,7 @@ class PreparationController extends AbstractController
                     $rows[] = [
                         "Référence CEA" => ($ligneArticle->getReference() ? $ligneArticle->getReference()->getReference() : ' '),
                         "Libellé" => ($ligneArticle->getReference() ? $ligneArticle->getReference()->getLibelle() : ' '),
+                        "Emplacement" => ($ligneArticle->getReference() ? $ligneArticle->getReference()->getEmplacement()->getLabel() : ' '),
                         "Quantité" => ($ligneArticle->getReference() ? $ligneArticle->getReference()->getQuantiteStock() : ' '),
                         "Quantité à prélever" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ' '),
 
