@@ -18,6 +18,7 @@ class Type
     const LABEL_SILI_INT = 'SILI-int';
     const LABEL_MOB = 'MOB';
     const LABEL_SLUGCIBLE = 'SLUGCIBLE';
+    
 
     /**
      * @ORM\Id()
@@ -52,11 +53,17 @@ class Type
      */
     private $category;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Reception", mappedBy="type")
+     */
+    private $receptions;
+
     public function __construct()
     {
         $this->champsLibres = new ArrayCollection();
         $this->referenceArticles = new ArrayCollection();
         $this->articles = new ArrayCollection();
+        $this->receptions = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -174,6 +181,37 @@ class Type
             // set the owning side to null (unless already changed)
             if ($article->getType() === $this) {
                 $article->setType(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Reception[]
+     */
+    public function getReceptions(): Collection
+    {
+        return $this->receptions;
+    }
+
+    public function addReception(Reception $reception): self
+    {
+        if (!$this->receptions->contains($reception)) {
+            $this->receptions[] = $reception;
+            $reception->setType($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReception(Reception $reception): self
+    {
+        if ($this->receptions->contains($reception)) {
+            $this->receptions->removeElement($reception);
+            // set the owning side to null (unless already changed)
+            if ($reception->getType() === $this) {
+                $reception->setType(null);
             }
         }
 

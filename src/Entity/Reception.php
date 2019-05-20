@@ -79,12 +79,22 @@ class Reception
      * @ORM\OneToMany(targetEntity="App\Entity\Article", mappedBy="reception")
      */
     private $articles;
-    
+    /** 
+     * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="receptions")
+     */
+    private $type;
+
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\ValeurChampsLibre", inversedBy="receptions")
+     */
+    private $valeurChampsLibre;
+
 
     public function __construct()
     {
         $this->receptionReferenceArticles = new ArrayCollection();
         $this->articles = new ArrayCollection();
+        $this->valeurChampsLibre = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -116,7 +126,7 @@ class Reception
         return $this;
     }
 
-  
+
     public function __toString()
     {
         return $this->commentaire;
@@ -251,6 +261,33 @@ class Reception
             $this->articles[] = $article;
             $article->setReception($this);
         }
+        return $this;
+    }
+    public function getType(): ?Type
+    {
+        return $this->type;
+    }
+
+    public function setType(?Type $type): self
+    {
+        $this->type = $type;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|valeurChampsLibre[]
+     */
+    public function getValeurChampsLibre(): Collection
+    {
+        return $this->valeurChampsLibre;
+    }
+
+    public function addValeurChampsLibre(valeurChampsLibre $valeurChampsLibre): self
+    {
+        if (!$this->valeurChampsLibre->contains($valeurChampsLibre)) {
+            $this->valeurChampsLibre[] = $valeurChampsLibre;
+        }
 
         return $this;
     }
@@ -263,6 +300,13 @@ class Reception
             if ($article->getReception() === $this) {
                 $article->setReception(null);
             }
+        }
+        return $this;
+    }
+    public function removeValeurChampsLibre(valeurChampsLibre $valeurChampsLibre): self
+    {
+        if ($this->valeurChampsLibre->contains($valeurChampsLibre)) {
+            $this->valeurChampsLibre->removeElement($valeurChampsLibre);
         }
 
         return $this;

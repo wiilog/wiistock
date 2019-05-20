@@ -174,7 +174,6 @@ class ArticleController extends AbstractController
             }
 
             $data = $this->articleDataService->getDataForDatatable($request->request);
-            // dump($data);
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException('404');

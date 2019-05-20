@@ -57,6 +57,31 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
         return $result ? $result[0] : null;
     }
 
+//     public function findOneByReceptionANDChampsLibre($receptionId, $champLibre)
+//     {
+//         $em = $this->getEntityManager();
+//         $query = $em->createQuery(
+//             "SELECT v
+//             FROM App\Entity\ValeurChampsLibre v
+//             JOIN v.reception a
+//             WHERE a.id = :reception AND v.champLibre = :champLibre"
+//         );
+//         $query->setParameters([
+//             "reception" => $receptionId,
+//             "champLibre" => $champLibre
+//         ]);
+
+// //        return $query->getOneOrNullResult();
+//         $result = $query->execute();
+//         return $result ? $result[0] : null;
+//     }
+
+
+
+
+
+
+
     public function getByRefArticle($idArticle)
     {
         $em = $this->getEntityManager();
@@ -138,6 +163,43 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
 
         return $query->getOneOrNullResult();
     }
+
+    public function getByReceptionAndType($reception, $type)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT v.id, v.valeur, c.label, c.typage
+            FROM App\Entity\ValeurChampsLibre v
+            JOIN v.champLibre c
+            JOIN v.receptions r
+            WHERE r.id = :reception AND c.type = :type"
+        );
+        $query->setParameters([
+            "reception" => $reception,
+            "type" => $type
+        ]);
+
+        return $query->execute();
+    }
+
+    public function findOneByReceptionANDChampsLibre($reception, $champLibre)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT v
+            FROM App\Entity\ValeurChampsLibre v
+            JOIN v.receptions r
+            WHERE r.id = :reception AND v.champLibre = :champLibre"
+        );
+        $query->setParameters([
+            "reception" => $reception,
+            "champLibre" => $champLibre
+        ]);
+
+        return $query->getOneOrNullResult();
+    }
+
+
 
     // /**
     //  * @return ValeurChampsLibre[] Returns an array of ValeurChampsLibre objects

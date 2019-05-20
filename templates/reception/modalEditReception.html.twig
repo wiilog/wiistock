@@ -1,6 +1,6 @@
 <form method="" class="modal fade" id="modalEditReception" role="dialog" aria-labelledby="dataModalCenterTitle"
 aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="exampleModalLongTitle">Modifier une réception</h5>
@@ -14,7 +14,7 @@ aria-hidden="true">
             <div class="modal-footer">
                 <input type="hidden" class="data" name="receptionId" value="{{ reception.id }}">
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>
-                <button id="submitEditReception" type="button" name="reception" data-dismiss="modal" class="btn btn-primary btn-success data" onclick='setCommentaire($(this))'>
+                <button id="submitEditReception" type="button" name="reception" data-dismiss="modal" class="btn btn-primary btn-success data" onclick="setCommentaire('.editor-container')">
                     Enregistrer
                 </button>
             </div>

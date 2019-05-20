@@ -28,9 +28,10 @@ class CategoryTypeFixtures extends Fixture implements FixtureGroupInterface
     
     public function load(ObjectManager $manager)
     {
-//        $categoriesNames = [
-//           CategoryType::TYPE_ARTICLE
-//        ];
+        $categoriesNames = [
+           CategoryType::TYPE_ARTICLE,
+           CategoryType::RECEPTION
+        ];
 
 //        foreach ($categoriesNames as $categorieName) {
 //            $categorie = $this->categoryTypeRepository->findOneBy(['label' => $categorieName]);
