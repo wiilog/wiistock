@@ -802,7 +802,9 @@ class ReferenceArticleController extends Controller
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
             }
+         
             $articleRef  = $this->referenceArticleRepository->find($data);
+         
             if ($articleRef) {
                 $json = $this->refArticleDataService->getViewEditRefArticle($articleRef);
             } else {

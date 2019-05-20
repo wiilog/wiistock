@@ -225,6 +225,7 @@ class OrdreCollecteController extends AbstractController
                 foreach ($ligneArticle as $ligneArticle) {
                     /** @var CollecteReference $ligneArticle */
                     $referenceArticle = $ligneArticle->getReferenceArticle();
+                    // dump($ligneArticle->getId()->getReference());
                     $rows[] = [
                         "Référence CEA" => $referenceArticle ? $referenceArticle->getReference() : ' ',
                         "Libellé" => $referenceArticle ? $referenceArticle->getLibelle() : ' ',
@@ -232,6 +233,7 @@ class OrdreCollecteController extends AbstractController
                         "Quantité" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ' '),
                         "Actions" => $this->renderView('ordre_collecte/datatableOrdreCollecteRow.html.twig', [
                             'id' => $ligneArticle->getId(),
+                            'refArticleId' => $ligneArticle->getReferenceArticle()->getId(),
                             'modifiable' => $collecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER,
                         ])
                     ];
