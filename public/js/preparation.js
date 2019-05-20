@@ -27,6 +27,7 @@ var tableArticle = $('#tableArticle_id').DataTable({
         { "data": 'Emplacement', 'title': 'Emplacement' },
         { "data": 'Quantité', 'title': 'Quantité' },
         { "data": 'Quantité à prélever', 'title': 'Quantité à prélever' },
+        { "data": 'Actions', 'title': 'Actions' },
     ],
 });
 

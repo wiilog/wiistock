@@ -285,6 +285,10 @@ class LivraisonController extends AbstractController
                             "Libellé" => $article->getLabel() ? $article->getLabel() : '',
                             "Emplacement" => $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
                             "Quantité" => $article->getQuantite(),
+                            "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
+                                'id' => $article->getId(),
+                            ])
+                           
                         ];
                 }
                 $lignes = $demande->getLigneArticle();
@@ -295,6 +299,9 @@ class LivraisonController extends AbstractController
                             "Libellé" => $ligne->getReference()->getLibelle(),
                             "Emplacement" => $ligne->getReference()->getEmplacement() ? $ligne->getReference()->getEmplacement()->getLabel() : '',
                             "Quantité" => $ligne->getQuantite(),
+                            "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
+                                'refArticleId' => $ligne->getReference()->getId(),
+                            ])
                         ];
                 }
 

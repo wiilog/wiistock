@@ -250,7 +250,9 @@ class PreparationController extends AbstractController
                         "Emplacement" => ($ligneArticle->getReference()->getEmplacement() ? $ligneArticle->getReference()->getEmplacement()->getLabel() : ''),
                         "Quantité" => ($ligneArticle->getReference() ? $ligneArticle->getReference()->getQuantiteStock() : ' '),
                         "Quantité à prélever" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ' '),
-
+                        "Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
+                                 'refArticleId' => $ligneArticle->getReference()->getId(),
+                        ])
                     ];
                 }
 
@@ -263,6 +265,9 @@ class PreparationController extends AbstractController
                         "Emplacement" => ($ligneArticle->getReference()->getEmplacement() ? $ligneArticle->getReference()->getEmplacement()->getLabel() : ''),
                         "Quantité" => $ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : '',
                         "Quantité à prélever" => $ligneArticle->getWithdrawQuantity() ? $ligneArticle->getWithdrawQuantity() : '',
+                        "Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
+                            'id' => $ligneArticle->getReference()->getId(),
+                   ])
                     ];
                 }
 
