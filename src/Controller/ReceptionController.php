@@ -395,10 +395,19 @@ class ReceptionController extends AbstractController
             }
 
             $ligneArticle =  $this->receptionReferenceArticleRepository->find($data['ligneArticle']);
+            $reception = $ligneArticle->getReception();
             $entityManager =  $this->getDoctrine()->getManager();
             $entityManager->remove($ligneArticle);
             $entityManager->flush();
-            return new JsonResponse();
+            $nbArticleNotConform =  $this->receptionReferenceArticleRepository->countNotConformByReception($reception);
+            dump($nbArticleNotConform);
+            $statutLabel =  $nbArticleNotConform > 0 ? Reception::STATUT_ANOMALIE : Reception::STATUT_RECEPTION_PARTIELLE;
+            $statut =  $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE,  $statutLabel);
+            $reception->setStatut($statut);
+            $json = [
+                'entete' =>  $this->renderView('reception/enteteReception.html.twig', ['reception' =>  $reception])
+            ];
+            return new JsonResponse($json);
         }
         throw new NotFoundHttpException("404");
     }
@@ -416,14 +425,9 @@ class ReceptionController extends AbstractController
             $reception =  $this->receptionRepository->find($contentData['reception']);
             $fournisseur = $this->fournisseurRepository->find(intval($contentData['fournisseur']));
             $anomalie =  $contentData['anomalie'];
-            if ($anomalie && $reception->getStatut($this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_ANOMALIE))) {
-                $articleAnomalie =  $this->receptionReferenceArticleRepository->countNotConformByReception($reception);
-                if ($articleAnomalie < 1) {
-                    $statutRecep =  $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_ANOMALIE);
-                    $reception->setStatut($statutRecep);
-                }
-            } else {
-                $reception->setStatut($this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_RECEPTION_PARTIELLE));
+            if ($anomalie) {
+                $statutRecep =  $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_ANOMALIE);
+                $reception->setStatut($statutRecep);
             }
 
             // $quantite =  $contentData['quantite'];
@@ -448,7 +452,10 @@ class ReceptionController extends AbstractController
             $em =  $this->getDoctrine()->getManager();
             $em->persist($receptionReferenceArticle);
             $em->flush();
-            return new JsonResponse();
+            $json = [
+                'entete' =>  $this->renderView('reception/enteteReception.html.twig', ['reception' =>  $reception])
+            ];
+            return new JsonResponse($json);
         }
         throw new NotFoundHttpException("404");
     }
