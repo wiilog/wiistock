@@ -205,6 +205,25 @@ function initEditReceptionEditor(modal) {
 
 var editorNewArticleAlreadyDone = false;
 function initNewArticleEditor(modal) {
+    $('.ajax-autocomplete').select2({
+        ajax: {
+            url: Routing.generate('get_ref_articles'),
+            dataType: 'json',
+            delay: 250,
+        },
+        language: {
+            inputTooShort: function () {
+                return 'Veuillez entrer au moins 1 caractère.';
+            },
+            searching: function () {
+                return 'Recherche en cours...';
+            },
+            noResults: function () {
+                return 'Aucun résultat.';
+            }
+        },
+        minimumInputLength: 1,
+    });
     if (!editorNewArticleAlreadyDone) {
         initEditor(modal);
         editorNewArticleAlreadyDone = true;

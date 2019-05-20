@@ -12,14 +12,12 @@
 </div>
 <div class="col-12"></div>
 {% for valeurChampLibreT in valeurChampLibreTab %}
-        {% if valeurChampLibreT.typage != 'booleen' %}
-        <p><strong>{{valeurChampLibreT.label}}</strong> : {{valeurChampLibreT.valeur}}
-            {% else %}
-                {% if valeurChampLibreT.typage == 'booleen' and valeurChampLibreT.valeur == 1 %}
-                <p><strong>{{valeurChampLibreT.label}}</strong> : oui
-                {% else %}
-                <p><strong>{{valeurChampLibreT.label}}</strong> : non
-                {% endif %}
-        {% endif %}
-{% endfor %}</p>
+{% if valeurChampLibreT.typage != 'booleen' %}
+<p><strong>{{valeurChampLibreT.label}}</strong> : {{valeurChampLibreT.valeur}}</p>
+{% elseif valeurChampLibreT.typage == 'booleen' and valeurChampLibreT.valeur == 1 %}
+<p><strong>{{valeurChampLibreT.label}}</strong> : oui</p>
+{% elseif valeurChampLibreT.typage == 'booleen' and valeurChampLibreT.valeur == 0 %}
+<p><strong>{{valeurChampLibreT.label}}</strong> : non</p>
+{% endif %}
+{% endfor %}
 </div>

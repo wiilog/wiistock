@@ -225,7 +225,6 @@ class ReceptionController extends AbstractController
             $fournisseur =  $this->fournisseurRepository->find(intval($data['fournisseur']));
             $utilisateur =  $this->utilisateurRepository->find(intval($data['utilisateur']));
             $statut =  $this->statutRepository->find(intval($data['statut']));
-
             $reception =  $this->receptionRepository->find($data['receptionId']);
             $reception
                 ->setNumeroReception($data['NumeroReception'])
@@ -290,13 +289,11 @@ class ReceptionController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
             $reception =  $this->receptionRepository->find($data['id']);
-            $data = $this->getDataEditForReception($reception);
 
-            $type = $this->typeRepository->getIdAndLabelByCategoryLabel(Reception::CATEGORIE_TYPE);
-
-            $typeChampLibre =  [];
+            $type = $this->typeRepository->getIdAndLabelByCategoryLabel(Reception::CATEGORIE);
+            $typeChampLibre = [];
             foreach ($type as $label) {
-                $champsLibresComplet = $this->champsLibreRepository->findByTypeId($type['id']);
+                $champsLibresComplet = $this->champsLibreRepository->findByTypeId($label['id']);
                 $champsLibres = [];
                 //création array edit pour vue
                 foreach ($champsLibresComplet as $champLibre) {
@@ -317,8 +314,6 @@ class ReceptionController extends AbstractController
                     'champsLibres' => $champsLibres,
                 ];
             }
-
-
             $json =  $this->renderView('reception/modalEditReceptionContent.html.twig', [
                 'reception' =>  $reception,
                 'fournisseurs' =>  $this->fournisseurRepository->getNoOne($reception->getFournisseur()->getId()),
@@ -503,8 +498,20 @@ class ReceptionController extends AbstractController
             $statutLabel =  $nbArticleNotConform > 0 ? Reception::STATUT_ANOMALIE : Reception::STATUT_RECEPTION_PARTIELLE;
             $statut =  $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE,  $statutLabel);
             $reception->setStatut($statut);
+            $type = $reception->getType();
+
+            if ($type) {
+                $valeurChampLibreTab = $this->valeurChampsLibreRepository->getByReceptionAndType($reception->getId(), $type);
+            } else {
+                $valeurChampLibreTab = [];
+            }
+
+
             $json = [
-                'entete' =>  $this->renderView('reception/enteteReception.html.twig', ['reception' =>  $reception])
+                'entete' =>  $this->renderView('reception/enteteReception.html.twig', [
+                    'reception' =>  $reception,
+                    'valeurChampLibreTab' => $valeurChampLibreTab,
+                ])
             ];
             $entityManager->flush();
             return new JsonResponse($json);
@@ -552,8 +559,20 @@ class ReceptionController extends AbstractController
             $em =  $this->getDoctrine()->getManager();
             $em->persist($receptionReferenceArticle);
             $em->flush();
+            $type = $reception->getType();
+
+            if ($type) {
+                $valeurChampLibreTab = $this->valeurChampsLibreRepository->getByReceptionAndType($reception->getId(), $type);
+            } else {
+                $valeurChampLibreTab = [];
+            }
+
+
             $json = [
-                'entete' =>  $this->renderView('reception/enteteReception.html.twig', ['reception' =>  $reception])
+                'entete' =>  $this->renderView('reception/enteteReception.html.twig', [
+                    'reception' =>  $reception,
+                    'valeurChampLibreTab' => $valeurChampLibreTab,
+                ])
             ];
             return new JsonResponse($json);
         }
@@ -621,8 +640,20 @@ class ReceptionController extends AbstractController
             $reception->setStatut($statut);
 
             $em->flush();
+            $type = $reception->getType();
+
+            if ($type) {
+                $valeurChampLibreTab = $this->valeurChampsLibreRepository->getByReceptionAndType($reception->getId(), $type);
+            } else {
+                $valeurChampLibreTab = [];
+            }
+
+
             $json = [
-                'entete' =>  $this->renderView('reception/enteteReception.html.twig', ['reception' =>  $reception])
+                'entete' =>  $this->renderView('reception/enteteReception.html.twig', [
+                    'reception' =>  $reception,
+                    'valeurChampLibreTab' => $valeurChampLibreTab,
+                ])
             ];
             return new JsonResponse($json);
         }
@@ -653,7 +684,6 @@ class ReceptionController extends AbstractController
 
 
         $type = $this->typeRepository->getIdAndLabelByCategoryLabel(Reception::CATEGORIE);
-
         $typeChampLibre =  [];
         foreach ($type as $label) {
             $champsLibresComplet = $this->champsLibreRepository->findByTypeId($label['id']);
