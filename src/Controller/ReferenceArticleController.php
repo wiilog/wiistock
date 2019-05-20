@@ -471,7 +471,7 @@ class ReferenceArticleController extends Controller
 
         $champs = array_merge($champ, $champL);
 
-        usort($champs, function($a, $b) {
+        usort($champs, function ($a, $b) {
             return strnatcmp($a['label'], $b['label']);
         });
 
@@ -811,5 +811,76 @@ class ReferenceArticleController extends Controller
             return new JsonResponse($json);
         }
         throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/exporter/{min}/{max}", name="reference_article_export", options={"expose"=true}, methods="GET|POST")
+     */
+    public function exportAll(Request $request, $max, $min): Response
+    {
+        if (!$request->isXmlHttpRequest()) {
+            $data = [];
+            $data['values'] = [];
+            $headers = ['demandeur', 'statut', 'destination', 'commentaire', 'dateDemande', 'dateValidation', 'reference', 'referenceArticle', 'libelleArticle', 'quantite'];
+            foreach ($this->champsLibreRepository->findAll() as $champLibre) {
+                $headers[] = $champLibre->getLabel();
+            }
+            $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::TYPE_ARTICLES_ET_REF_CEA);
+            $i = 0;
+            foreach ($this->referenceArticleRepository->findAll() as $ref) {
+                if ($i < $min) continue;
+                if ($i === intval($max)) break;
+                dump($i);
+                array_push($data['values'], $this->buildInfos($ref, $listTypes, $headers));
+                $i++;
+            }
+            return new JsonResponse($data);
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/total", name="get_total_and_headers", options={"expose"=true}, methods="GET|POST")
+     */
+    public function total(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest()) {
+            $data['total'] = $this->referenceArticleRepository->countAll();
+            $data['headers'] = ['demandeur', 'statut', 'destination', 'commentaire', 'dateDemande', 'dateValidation', 'reference', 'referenceArticle', 'libelleArticle', 'quantite'];
+            foreach ($this->champsLibreRepository->findAll() as $champLibre) {
+                array_push($data['headers'], $champLibre->getLabel());
+            }
+            return new JsonResponse($data);
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+    public function buildInfos(ReferenceArticle $ref, $listTypes, $headers)
+    {
+        $refData[] = $ref->getReference();
+        $refData[] = $ref->getLibelle();
+        $refData[] = $ref->getQuantiteStock();
+        $refData[] = $ref->getType()->getLabel();
+        $refData[] = $ref->getTypeQuantite();
+        $refData[] = $ref->getStatut()->getNom();
+        $refData[] = strip_tags($ref->getCommentaire());
+        $refData[] = $ref->getEmplacement() ? $ref->getEmplacement()->getLabel() : '';
+        $categorieCL = $this->categorieCLRepository->findOneByLabel(($ref->getTypeQuantite() === 'reference') ? 'referenceArticle' : 'article');
+        $champsLibres = [];
+        foreach ($listTypes as $type) {
+            $listChampsLibres = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($type['label'], $categorieCL);
+            foreach ($listChampsLibres as $champLibre) {
+                $valeurChampRefArticle = $this->valeurChampsLibreRepository->findOneByRefArticleANDChampsLibre($ref->getId(), $champLibre);
+                if ($valeurChampRefArticle) $champsLibres[$champLibre->getLabel()] = $valeurChampRefArticle->getValeur();
+            }
+        }
+        foreach ($headers as $type) {
+            if (array_key_exists($type, $champsLibres)) {
+                $refData[] = $champsLibres[$type];
+            } else {
+                $refData[] = '';
+            }
+        }
+        return implode(';', $refData);
     }
 }

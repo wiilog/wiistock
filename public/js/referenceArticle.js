@@ -29,7 +29,7 @@ function submitActionRefArticle(modal, path, callback = function () { }, close =
         }
     };
 
-    if (path ===  Routing.generate('save_column_visible', true)) {
+    if (path === Routing.generate('save_column_visible', true)) {
         tableColumnVisible.search('').draw()
     }
 
@@ -313,8 +313,8 @@ function displayFilterValue(elem) {
 
     // cas particulier de liste déroulante pour type
     if (type == 'list') {
-        let params = { 
-            'value' : val 
+        let params = {
+            'value': val
         };
         $.post(Routing.generate('type_show_select'), JSON.stringify(params), function (data) {
             modalBody.find('.input').html(data);
@@ -355,7 +355,7 @@ let recupIdRefArticle = function (div) {
     $('#submitPlusDemande').val(id);
 }
 
-let  ajaxPlusDemandeContent = function(button, demande) {
+let ajaxPlusDemandeContent = function (button, demande) {
     let plusDemandeContent = $('.plusDemandeContent');
     let editChampLibre = $('.editChampLibre');
     let modalFooter = $('.modal-footer');
@@ -413,7 +413,7 @@ let ajaxEditArticle = function (select) {
         }
     }
     modalFooter.addClass('d-none');
-    let json = { id :select.val(), isADemand:1};
+    let json = { id: select.val(), isADemand: 1 };
     let path = Routing.generate('article_api_edit', true);
     xhttp.open("POST", path, true);
     xhttp.send(JSON.stringify(json));
@@ -560,4 +560,75 @@ function redirectToDemande() {
     }
 
     window.location.href = Routing.generate(demandeType + '_show', { 'id': demandeId });
+}
+
+function initExport() {
+    $.post(Routing.generate('get_total_and_headers'), true, function (response) {
+        exportAll(response.total, response.headers.join(';'));
+    });
+}
+
+async function exportAll(total, headers) {
+    let csv = headers;
+    for (i = 0; i < total; i += 500) {
+        console.log('retrieving articles from ' + i + ' to ' + (i + 500));
+        var result = await exportWithBounds(i + 500, i);
+        console.log('retrieved articles from ' + i + ' to ' + (i + 500));
+        $.each(result, function (index, value) {
+            csv += value;
+            csv += '\n';
+        });
+    }
+    dlFile(csv);
+}
+
+function exportWithBounds(max, min) {
+    return new Promise(function (resolve, reject) {
+        xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                let response = JSON.parse(this.responseText);
+                if (response) {
+                    resolve(response.values);
+                } else {
+                    //TODO gérer erreur
+                }
+            }
+        }
+        let path = Routing.generate('reference_article_export', {
+            max: max,
+            min: min
+        });
+        xhttp.open("POST", path);
+        xhttp.send();
+    });
+}
+
+let dlFile = function (csv) {
+    let d = new Date();
+    let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
+    date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
+    var exportedFilenmae = 'export-articles-' + date + '.csv';
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    if (navigator.msSaveBlob) { // IE 10+
+        navigator.msSaveBlob(blob, exportedFilenmae);
+    } else {
+        var link = document.createElement("a");
+        if (link.download !== undefined) {
+            var url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", exportedFilenmae);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    }
+}
+
+function checkZero(data) {
+    if (data.length == 1) {
+        data = "0" + data;
+    }
+    return data;
 }
