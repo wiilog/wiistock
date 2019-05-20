@@ -73,7 +73,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         $this->articleRepository = $articleRepository;
         $this->utilisateurRepository = $utilisateurRepository;
         $this->passwordEncoder = $passwordEncoder;
-        $this->successData = ['success' => false, 'apiKey' => '', 'data' => ''];
+        $this->successData = ['success' => false, 'data' => []];
     }
 
     /**
@@ -101,10 +101,8 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                     $em->flush();
 
                     $this->successData['success'] = true;
-                    $this->successData['data'] = [
-                        'data' => $this->getData(),
-                        'apiKey' => $apiKey
-                    ];
+                    $this->successData['data'] = $this->getData();
+                    $this->successData['data']['apiKey'] = $apiKey;
                 }
             }
 
