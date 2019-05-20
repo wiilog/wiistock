@@ -303,9 +303,6 @@ class ReferenceArticleController extends Controller
     public function new(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-
-
-
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
@@ -330,7 +327,6 @@ class ReferenceArticleController extends Controller
                         $requiredCreate = false;
                     }
                 }
-
                 if ($requiredCreate) {
                     $em = $this->getDoctrine()->getManager();
                     $statut = ($data['statut'] === 'active' ? $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF) : $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_INACTIF));
@@ -471,7 +467,7 @@ class ReferenceArticleController extends Controller
 
         $champs = array_merge($champ, $champL);
 
-        usort($champs, function($a, $b) {
+        usort($champs, function ($a, $b) {
             return strnatcmp($a['label'], $b['label']);
         });
 

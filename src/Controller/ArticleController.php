@@ -33,6 +33,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use App\Entity\ReferenceArticle;
 use App\Entity\CategorieCL;
+use App\Repository\DimensionsEtiquettesRepository;
 
 /**
  * @Route("/article")
@@ -115,9 +116,14 @@ class ArticleController extends AbstractController
      */
     private $userService;
 
+    /**
+     * @var DimensionsEtiquettesRepository
+     */
+    private $dimensionsEtiquettesRepository;
 
-    public function __construct(CategorieCLRepository $categorieCLRepository, FournisseurRepository $fournisseurRepository, ChampsLibreRepository $champsLibreRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ArticleDataService $articleDataService, TypeRepository $typeRepository, RefArticleDataService $refArticleDataService, ArticleFournisseurRepository $articleFournisseurRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, StatutRepository $statutRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UserService $userService)
+    public function __construct(DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, CategorieCLRepository $categorieCLRepository, FournisseurRepository $fournisseurRepository, ChampsLibreRepository $champsLibreRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ArticleDataService $articleDataService, TypeRepository $typeRepository, RefArticleDataService $refArticleDataService, ArticleFournisseurRepository $articleFournisseurRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, StatutRepository $statutRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UserService $userService)
     {
+        $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
         $this->fournisseurRepository = $fournisseurRepository;
         $this->champsLibreRepository = $champsLibreRepository;
         $this->valeurChampsLibreRepository = $valeurChampsLibreRepository;
@@ -145,7 +151,7 @@ class ArticleController extends AbstractController
         }
 
         if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
-            $statutVisible = 'true' ;
+            $statutVisible = 'true';
         } else {
             $statutVisible = 'false';
         }
@@ -153,7 +159,7 @@ class ArticleController extends AbstractController
         return $this->render('article/index.html.twig', [
             'valeurChampsLibre' => null,
             'type' => $this->typeRepository->findOneByCategoryLabel(Article::CATEGORIE),
-            'statutVisible'=> $statutVisible
+            'statutVisible' => $statutVisible
         ]);
     }
 
@@ -168,7 +174,7 @@ class ArticleController extends AbstractController
             }
 
             $data = $this->articleDataService->getDataForDatatable($request->request);
-// dump($data);
+            // dump($data);
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException('404');
@@ -434,6 +440,27 @@ class ArticleController extends AbstractController
                 return new JsonResponse($json, 250);
             }
             return new JsonResponse($json);
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/ajax-article-depuis-id", name="get_article_from_id", options={"expose"=true}, methods="GET|POST")
+     */
+    public function getArticleRefFromId(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $dataContent = json_decode($request->getContent(), true)) {
+            $data = [];
+            $data['articleRef'] = $this->articleRepository->find(intval($dataContent['article']))->getReference();
+            $dimension = $this->dimensionsEtiquettesRepository->getOneDimension();
+            if ($dimension) {
+                $data['height'] = $dimension->getHeight();
+                $data['width'] = $dimension->getWidth();
+                $data['exists'] = true;
+            } else {
+                $data['exists'] = false;
+            }
+            return new JsonResponse($data);
         }
         throw new NotFoundHttpException('404');
     }

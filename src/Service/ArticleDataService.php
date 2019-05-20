@@ -36,7 +36,7 @@ use App\Entity\Demande;
 
 class ArticleDataService
 {
-    
+
     /**
      * @var ReferenceArticleRepository
      */
@@ -439,6 +439,42 @@ class ArticleDataService
         return $data;
     }
 
+    public function getDataForDatatableByReceptionLigne($ligne)
+    {
+        if ($ligne) {
+            $data = $this->getArticleDataByReceptionLigne($ligne);
+        } else {
+            $data = $this->getArticleDataByParams(null);
+        }
+        $data['recordsTotal'] = (int)$this->articleRepository->countAll();
+        $data['recordsFiltered'] = count($data['data']);
+        return $data;
+    }
+
+    /**
+     * @param null $params
+     * @return array
+     * @throws \Twig_Error_Loader
+     * @throws \Twig_Error_Runtime
+     * @throws \Twig_Error_Syntax
+     */
+    public function getArticleDataByReceptionLigne($ligne)
+    {
+        $articleRef = $this->referenceArticleRepository->getByLigneReception($ligne);
+        $articlesFournisseur = $this->articleFournisseurRepository->getByRefArticle($articleRef);
+        $articles = [];
+        foreach ($articlesFournisseur as $af) {
+            foreach ($this->articleRepository->getByAF($af) as $a) {
+                if ($a->getReception() && $ligne->getReception()) $articles[] = $a;
+            }
+        }
+        $rows = [];
+        foreach ($articles as $article) {
+            $rows[] = $this->dataRowRefArticle($article);
+        }
+        return ['data' => $rows];
+    }
+
     /**
      * @param null $params
      * @return array
@@ -450,14 +486,13 @@ class ArticleDataService
     {
         if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
             $articles = $this->articleRepository->findByParams($params);
-        }else{
+        } else {
             $categorieName = 'article';
             $statutName = 'actif';
             $statut = $this->statutRepository->findOneByCategorieAndStatut($categorieName, $statutName);
-            $statutId= $statut->getId();
-            
+            $statutId = $statut->getId();
+
             $articles = $this->articleRepository->findByParamsActifStatut($params, $statutId);
-           
         }
 
         $rows = [];
@@ -479,32 +514,32 @@ class ArticleDataService
         $url['edit'] = $this->router->generate('demande_article_edit', ['id' => $article->getId()]);
         if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
             $row =
-            [
-                'id' => ($article->getId() ? $article->getId() : 'Non défini'),
-                'Référence' => ($article->getReference() ? $article->getReference() : 'Non défini'),
-                'Statut' => ($article->getStatut() ? $article->getStatut()->getNom() : 'Non défini'),
-                'Libellé' => ($article->getLabel() ? $article->getLabel() : 'Non défini'),
-                'Référence article' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : 'Non défini'),
-                'Quantité' => ($article->getQuantite() ? $article->getQuantite() : 0),
-                'Actions' => $this->templating->render('article/datatableArticleRow.html.twig', [
-                    'url' => $url,
-                    'articleId' => $article->getId(),
-                ]),
-            ];
-        }else{
+                [
+                    'id' => ($article->getId() ? $article->getId() : 'Non défini'),
+                    'Référence' => ($article->getReference() ? $article->getReference() : 'Non défini'),
+                    'Statut' => ($article->getStatut() ? $article->getStatut()->getNom() : 'Non défini'),
+                    'Libellé' => ($article->getLabel() ? $article->getLabel() : 'Non défini'),
+                    'Référence article' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : 'Non défini'),
+                    'Quantité' => ($article->getQuantite() ? $article->getQuantite() : 0),
+                    'Actions' => $this->templating->render('article/datatableArticleRow.html.twig', [
+                        'url' => $url,
+                        'articleId' => $article->getId(),
+                    ]),
+                ];
+        } else {
             $row =
-            [
-                'id' => ($article->getId() ? $article->getId() : 'Non défini'),
-                'Référence' => ($article->getReference() ? $article->getReference() : 'Non défini'),
-                'Statut' => false,
-                'Libellé' => ($article->getLabel() ? $article->getLabel() : 'Non défini'),
-                'Référence article' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : 'Non défini'),
-                'Quantité' => ($article->getQuantite() ? $article->getQuantite() : 0),
-                'Actions' => $this->templating->render('article/datatableArticleRow.html.twig', [
-                    'url' => $url,
-                    'articleId' => $article->getId(),
-                ]),
-            ];
+                [
+                    'id' => ($article->getId() ? $article->getId() : 'Non défini'),
+                    'Référence' => ($article->getReference() ? $article->getReference() : 'Non défini'),
+                    'Statut' => false,
+                    'Libellé' => ($article->getLabel() ? $article->getLabel() : 'Non défini'),
+                    'Référence article' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : 'Non défini'),
+                    'Quantité' => ($article->getQuantite() ? $article->getQuantite() : 0),
+                    'Actions' => $this->templating->render('article/datatableArticleRow.html.twig', [
+                        'url' => $url,
+                        'articleId' => $article->getId(),
+                    ]),
+                ];
         }
 
         return $row;

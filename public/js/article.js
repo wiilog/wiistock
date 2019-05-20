@@ -254,3 +254,23 @@ let ajaxGetFournisseurByRefArticle = function (select) {
     xhttp.open("POST", path, true);
     xhttp.send(Json);
 }
+
+function printSingleArticleBarcode(button) {
+    let params = {
+        'article': button.data('id')
+    }
+    $.post(Routing.generate('get_article_from_id'), JSON.stringify(params), function (response) {
+        if (response.exists) {
+            $('#barcodes').append('<img id="singleBarcode">')
+            JsBarcode("#singleBarcode", response.articleRef, {
+                format: "CODE128",
+            });
+            let doc = new jsPDF('l', 'mm', [response.height, response.width]);
+            doc.addImage($("#singleBarcode").attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
+            doc.save('Etiquette concernant l\'article ' + response.articleRef + '.pdf');
+            $("#singleBarcode").remove();
+        } else {
+            $('#cannotGenerate').click();
+        }
+    });
+}

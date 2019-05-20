@@ -20,6 +20,55 @@ var table = $('#tableReception_id').DataTable({
     ],
 });
 
+let columnStatutVisible = $(document).ready(function () {
+    let statutVisible = $(".statutVisible").val();
+
+    if (statutVisible === 'false') {
+        tableArticle.column(1).visible(false);
+    }
+
+});
+
+var pathArticle = Routing.generate('article_by_reception_api', true);
+let params = {
+    'ligne': $('#ligneSelected').val()
+}
+var tableFromArticle = $('#tableArticleInner_id').DataTable({
+    pageLength: 5,
+    lengthMenu: [[5, 10, 20, -1], [5, 10, 20, 'Todos']],
+    "language": {
+        url: "/js/i18n/dataTableLanguageRefArticle.json",
+    },
+    ajax: {
+        "url": pathArticle,
+        "type": "POST",
+        "data": function () {
+            return {
+                'ligne': $('#ligneSelected').val()
+            }
+        },
+    },
+    columns: [
+        { "data": 'Référence' },
+        { "data": "Statut" },
+        { "data": 'Libellé' },
+        { "data": 'Référence article' },
+        { "data": 'Quantité' },
+        { "data": 'Actions' }
+    ],
+});
+
+
+let modalEditInnerArticle = $("#modalEditArticle");
+let submitEditInnerArticle = $("#submitEditArticle");
+let urlEditInnerArticle = Routing.generate('article_edit', true);
+InitialiserModalArticle(modalEditInnerArticle, submitEditInnerArticle, urlEditInnerArticle);
+
+let modalDeleteInnerArticle = $("#modalDeleteArticle");
+let submitDeleteInnerArticle = $("#submitDeleteArticle");
+let urlDeleteInnerArticle = Routing.generate('article_delete', true);
+InitialiserModalArticle(modalDeleteInnerArticle, submitDeleteInnerArticle, urlDeleteInnerArticle);
+
 let modalReceptionNew = $("#modalNewReception");
 let SubmitNewReception = $("#submitButton");
 let urlReceptionIndex = Routing.generate('reception_new', true)
@@ -56,34 +105,51 @@ let tableArticle = $('#tableArticle_id').DataTable({
     ],
 });
 
-let modal = $("#modalAddArticle");
-let submit = $("#addArticleSubmit");
+let modal = $("#modalAddLigneArticle");
+let submit = $("#addArticleLigneSubmit");
 let url = Routing.generate('reception_article_add', true);
 InitialiserModal(modal, submit, url, tableArticle);
 
-let modalDeleteArticle = $("#modalDeleteArticle");
-let submitDeleteArticle = $("#submitDeleteArticle");
+let modalDeleteArticle = $("#modalDeleteLigneArticle");
+let submitDeleteArticle = $("#submitDeleteLigneArticle");
 let urlDeleteArticle = Routing.generate('reception_article_delete', true);
 InitialiserModal(modalDeleteArticle, submitDeleteArticle, urlDeleteArticle, tableArticle);
 
-let modalEditArticle = $("#modalEditArticle");
-let submitEditArticle = $("#submitEditArticle");
+let modalEditArticle = $("#modalEditLigneArticle");
+let submitEditArticle = $("#submitEditLigneArticle");
 let urlEditArticle = Routing.generate('reception_article_edit', true);
 InitialiserModal(modalEditArticle, submitEditArticle, urlEditArticle, tableArticle);
 
 //GENERATOR BARCODE
 
-// let printBarcode = function (button) {
-//     let barcode = button.data('ref')
-//     JsBarcode("#barcode", barcode, {
-//         format: "CODE128",
-//     });
-//     printJS({
-//         printable: 'barcode',
-//         type: 'html',
-//         maxWidth: 250
-//     });
-// }
+let printBarcode = function (button) {
+    let d = new Date();
+    let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
+    date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
+    let params = {
+        'reception': button.data('id')
+    }
+    $.post(Routing.generate('get_article_refs'), JSON.stringify(params), function (response) {
+        if (response.exists) {
+            $("#barcodes").empty();
+            for (let i = 0; i < response.refs.length; i++) {
+                $('#barcodes').append('<img id="barcode' + i + '">')
+                JsBarcode("#barcode" + i, response.refs[i], {
+                    format: "CODE128",
+                });
+            }
+            let doc = new jsPDF('l', 'mm', [response.height, response.width]);
+            $("#barcodes").find('img').each(function () {
+                doc.addImage($(this).attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
+                doc.addPage();
+            });
+            doc.deletePage(doc.internal.getNumberOfPages())
+            doc.save('Etiquettes du ' + date + '.pdf');
+        } else {
+            $('#cannotGenerate').click();
+        }
+    });
+}
 
 let pathPrinterAll = Routing.generate('article_printer_all', { 'id': id }, true);
 let printerAll = function () {
@@ -95,7 +161,7 @@ let printerAll = function () {
                 JsBarcode("#barcode", element, {
                     format: "CODE128",
                 });
-                
+
                 printJS({
                     printable: 'barcode',
                     type: 'html',
@@ -197,7 +263,7 @@ let getArticleFournisseur = function () {
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
             data = JSON.parse(this.responseText);
-            if(data.option){
+            if (data.option) {
                 let $articleFourn = $('#articleFournisseur');
                 $articleFourn.parent('div').removeClass('d-none');
                 $articleFourn.parent('div').addClass('d-block');
@@ -217,6 +283,224 @@ let getArticleFournisseur = function () {
 }
 
 let resetNewArticle = function (element) {
-element.removeClass('d-block');
-element.addClass('d-none');
+    element.removeClass('d-block');
+    element.addClass('d-none');
+}
+
+
+function checkZero(data) {
+    if (data.length == 1) {
+        data = "0" + data;
+    }
+    return data;
+}
+
+function addLot(button) {
+    $.post(Routing.generate('add_lot'), function (response) {
+        button.parent().append(response);
+    });
+}
+
+function createArticleAndBarcodes(button) {
+    let data = {};
+    data.refArticle = button.attr('data-ref');
+    data.ligne = button.attr('data-id');
+    data.quantiteLot = [];
+    data.tailleLot = [];
+    $('#modalChoose').find('input.data').each(function () {
+        data[$(this).attr('name')].push($(this).val());
+    });
+    $.post(Routing.generate('validate_lot'), JSON.stringify(data), function (response) {
+        let d = new Date();
+        let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
+        date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
+        $('#modalChoose').find('.modal-choose').first().html('<span class="btn btn-primary" onclick="addLot($(this))"><i class="fa fa-plus"></i></span>');
+        if (response.exists) {
+            $("#barcodes").empty();
+            for (let i = 0; i < response.refs.length; i++) {
+                $('#barcodes').append('<img id="barcode' + i + '">')
+                JsBarcode("#barcode" + i, response.refs[i], {
+                    format: "CODE128",
+                });
+            }
+            let doc = new jsPDF('l', 'mm', [response.height, response.width]);
+            $("#barcodes").find('img').each(function () {
+                doc.addImage($(this).attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
+                doc.addPage();
+            });
+            doc.deletePage(doc.internal.getNumberOfPages())
+            doc.save('Etiquettes du ' + date + '.pdf');
+            tableArticle.ajax.reload(function (json) {
+                if (this.responseText !== undefined) {
+                    $('#myInput').val(json.lastInput);
+                }
+            });
+        } else {
+            $('#cannotGenerateStock').click();
+        }
+    });
+}
+
+function printSingleBarcode(button) {
+    let params = {
+        'ligne': button.data('id')
+    }
+    $.post(Routing.generate('get_ligne_from_id'), JSON.stringify(params), function (response) {
+        if (!response.article) {
+            if (response.exists) {
+                $('#barcodes').append('<img id="singleBarcode">')
+                JsBarcode("#singleBarcode", response.ligneRef, {
+                    format: "CODE128",
+                });
+                let doc = new jsPDF('l', 'mm', [response.height, response.width]);
+                doc.addImage($("#singleBarcode").attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
+                doc.save('Etiquette concernant l\'article ' + response.ligneRef + '.pdf');
+                $("#singleBarcode").remove();
+            } else {
+                $('#cannotGenerate').click();
+            }
+        } else {
+            $('#ligneSelected').val(button.data('id'));
+            tableFromArticle.ajax.reload(function (json) {
+                if (this.responseText !== undefined) {
+                    $('#myInput').val(json.lastInput);
+                }
+            });
+            $('#chooseConditionnement').click();
+            $('#submitConditionnement').attr('data-ref', response.article)
+            $('#submitConditionnement').attr('data-id', button.data('id'))
+        }
+    });
+}
+
+function InitialiserModalArticle(modal, submit, path, callback = function () { }, close = true) {
+    submit.click(function () {
+        xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                $('.errorMessage').html(JSON.parse(this.responseText))
+                data = JSON.parse(this.responseText);
+                tableArticle.ajax.reload(function (json) {
+                    if (this.responseText !== undefined) {
+                        $('#myInput').val(json.lastInput);
+                    }
+                });
+                callback(data);
+
+                let inputs = modal.find('.modal-body').find(".data");
+                // on vide tous les inputs
+                inputs.each(function () {
+                    $(this).val("");
+                });
+                // on remet toutes les checkboxes sur off
+                let checkboxes = modal.find('.checkbox');
+                checkboxes.each(function () {
+                    $(this).prop('checked', false);
+                })
+            } else if (this.readyState == 4 && this.status == 250) {
+                $('#cannotDeleteArticle').click();
+            }
+        };
+
+        // On récupère toutes les données qui nous intéressent
+        // dans les inputs...
+        let inputs = modal.find(".data");
+        let Data = {};
+        let missingInputs = [];
+        let wrongInputs = [];
+
+        inputs.each(function () {
+            let val = $(this).val();
+            let name = $(this).attr("name");
+            Data[name] = val;
+            // validation données obligatoires
+            if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
+                let label = $(this).closest('.form-group').find('label').text();
+                missingInputs.push(label);
+                $(this).addClass('is-invalid');
+            }
+            // validation valeur des inputs de type number
+            // if ($(this).attr('type') === 'number') {
+            //     let val = parseInt($(this).val());
+            //     console.log(val)
+            //     let min = parseInt($(this).attr('min'));
+            //     console.log(min)
+            //     let max = parseInt($(this).attr('max'));
+            //     console.log(max)
+            //     if (val > max || val < min) {
+            //         wrongInputs.push($(this));
+            //         $(this).addClass('is-invalid');
+            //     }
+            // }
+        });
+
+        // ... et dans les checkboxes
+        let checkboxes = modal.find('.checkbox');
+        checkboxes.each(function () {
+            Data[$(this).attr("name")] = $(this).is(':checked');
+        });
+        // si tout va bien on envoie la requête ajax...
+        if (missingInputs.length == 0 && wrongInputs.length == 0) {
+            if (close == true) modal.find('.close').click();
+            Json = {};
+            Json = JSON.stringify(Data);
+            xhttp.open("POST", path, true);
+            xhttp.send(Json);
+        } else {
+
+            // ... sinon on construit les messages d'erreur
+            let msg = '';
+
+            // cas où il manque des champs obligatoires
+            if (missingInputs.length > 0) {
+                if (missingInputs.length == 1) {
+                    msg += 'Veuillez renseigner le champ ' + missingInputs[0] + ".<br>";
+                } else {
+                    msg += 'Veuillez renseigner les champs : ' + missingInputs.join(', ') + ".<br>";
+                }
+            }
+            // cas où les champs number ne respectent pas les valeurs imposées (min et max)
+            if (wrongInputs.length > 0) {
+                wrongInputs.forEach(function (elem) {
+                    let label = elem.closest('.form-group').find('label').text();
+
+                    msg += 'La valeur du champ ' + label;
+
+                    let min = elem.attr('min');
+                    let max = elem.attr('max');
+
+                    if (typeof (min) !== 'undefined' && typeof (max) !== 'undefined') {
+                        msg += ' doit être comprise entre ' + min + ' et ' + max + ".<br>";
+                    } else if (typeof (min) == 'undefined') {
+                        msg += ' doit être inférieure à ' + max + ".<br>";
+                    } else if (typeof (max) == 'undefined') {
+                        msg += ' doit être supérieure à ' + min + ".<br>";
+                    }
+
+                })
+            }
+
+            modal.find('.error-msg').html(msg);
+        }
+    });
+}
+
+function printSingleArticleBarcode(button) {
+    let params = {
+        'article': button.data('id')
+    }
+    $.post(Routing.generate('get_article_from_id'), JSON.stringify(params), function (response) {
+        if (response.exists) {
+            $('#barcodes').append('<img id="singleBarcode">')
+            JsBarcode("#singleBarcode", response.articleRef, {
+                format: "CODE128",
+            });
+            let doc = new jsPDF('l', 'mm', [response.height, response.width]);
+            doc.addImage($("#singleBarcode").attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
+            doc.save('Etiquette concernant l\'article ' + response.articleRef + '.pdf');
+            $("#singleBarcode").remove();
+        } else {
+            $('#cannotGenerate').click();
+        }
+    });
 }

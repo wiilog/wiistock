@@ -31,11 +31,13 @@
     
 </table>
 <input type="hidden" class='statutVisible' name="statutVisible" value="{{statutVisible}}">
+<button class="btn" id="cannotGenerate" data-target='#modalCannotGenerate' data-toggle='modal' hidden></button>
 {% include "article/modalModifyArticle.html.twig" %}
 {% include "article/modalNewArticle.html.twig" %}
 {% include "article/modalDeleteArticle.html.twig" %}
 {% include "article/modalCantDeleteArticle.html.twig" %}
-
+{% include "reception/modalNoParamsEtiquettes.html.twig" %}
+<div class="d-none" id="barcodes"></div>
 
 {% endblock %}
 
