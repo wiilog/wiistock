@@ -247,7 +247,7 @@ class PreparationController extends AbstractController
                     $rows[] = [
                         "Référence CEA" => ($ligneArticle->getReference() ? $ligneArticle->getReference()->getReference() : ' '),
                         "Libellé" => ($ligneArticle->getReference() ? $ligneArticle->getReference()->getLibelle() : ' '),
-                        "Emplacement" => ($ligneArticle->getReference() ? $ligneArticle->getReference()->getEmplacement()->getLabel() : ' '),
+                        "Emplacement" => ($ligneArticle->getReference()->getEmplacement() ? $ligneArticle->getReference()->getEmplacement()->getLabel() : ''),
                         "Quantité" => ($ligneArticle->getReference() ? $ligneArticle->getReference()->getQuantiteStock() : ' '),
                         "Quantité à prélever" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ' '),
 
@@ -260,6 +260,7 @@ class PreparationController extends AbstractController
                     $rows[] = [
                         "Référence CEA" => $ligneArticle->getArticleFournisseur()->getReferenceArticle() ? $ligneArticle->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
                         "Libellé" => $ligneArticle->getLabel() ? $ligneArticle->getLabel() : '',
+                        "Emplacement" => ($ligneArticle->getReference()->getEmplacement() ? $ligneArticle->getReference()->getEmplacement()->getLabel() : ''),
                         "Quantité" => $ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : '',
                         "Quantité à prélever" => $ligneArticle->getWithdrawQuantity() ? $ligneArticle->getWithdrawQuantity() : '',
                     ];

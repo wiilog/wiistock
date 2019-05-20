@@ -228,6 +228,7 @@ class OrdreCollecteController extends AbstractController
                     $rows[] = [
                         "Référence CEA" => $referenceArticle ? $referenceArticle->getReference() : ' ',
                         "Libellé" => $referenceArticle ? $referenceArticle->getLibelle() : ' ',
+                        "Emplacement" => $referenceArticle ? $referenceArticle->getEmplacement()->getLabel() : '',
                         "Quantité" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ' '),
                         "Actions" => $this->renderView('ordre_collecte/datatableOrdreCollecteRow.html.twig', [
                             'id' => $ligneArticle->getId(),
@@ -242,6 +243,7 @@ class OrdreCollecteController extends AbstractController
                     $rows[] = [
                         'Référence CEA' => $article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
                         'Libellé' => $article->getLabel(),
+                        "Emplacement" => $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
                         'Quantité' => $article->getQuantite(),
                         "Actions" => $this->renderView('ordre_collecte/datatableOrdreCollecteRow.html.twig', [
                             'id' => $article->getId(),
