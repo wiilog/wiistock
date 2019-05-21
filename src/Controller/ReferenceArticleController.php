@@ -828,10 +828,12 @@ class ReferenceArticleController extends Controller
                 $headers[] = $champLibre->getLabel();
             }
             $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::TYPE_ARTICLES_ET_REF_CEA);
-            $refs = $this->referenceArticleRepository->findAll();
-            if ($max > count($refs)) $max = count($refs);
-            for ($i = $min; $i < $max; $i++) {
-                array_push($data['values'], $this->buildInfos($refs[$i], $listTypes, $headers));
+            $articles = $this->referenceArticleRepository->findAll();
+            $total = count($articles);
+            if ($max > $total) $max = $total;
+            $toIterate = array_slice($articles, $min, $max);
+            foreach ($toIterate as $article) {
+                $data['values'][] = $this->buildInfos($article, $listTypes, $headers);
             }
             return new JsonResponse($data);
         }
@@ -856,7 +858,7 @@ class ReferenceArticleController extends Controller
             $data['total'] = $this->referenceArticleRepository->countAll();
             $data['headers'] = ['demandeur', 'statut', 'destination', 'commentaire', 'dateDemande', 'dateValidation', 'reference', 'referenceArticle', 'libelleArticle', 'quantite'];
             foreach ($this->champsLibreRepository->findAll() as $champLibre) {
-                array_push($data['headers'], $champLibre->getLabel());
+                $data['headers'][] = $champLibre->getLabel();
             }
             return new JsonResponse($data);
         }
