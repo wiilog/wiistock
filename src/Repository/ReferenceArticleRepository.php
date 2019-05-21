@@ -278,4 +278,16 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
         return $query->getSingleScalarResult();
     }
+
+    public function getIdRefAndQuantityByTypeQuantite($typeQuantite)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT ra.id, ra.reference, ra.quantite_stock
+            FROM App\Entity\ReferenceArticle ra
+            WHERE ra.typeQuantite = :typeQuantite"
+        )->setParameter('typeQuantite', $typeQuantite);
+        return $query->execute();
+    }
+
 }

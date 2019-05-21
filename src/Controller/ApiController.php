@@ -9,6 +9,8 @@ namespace App\Controller;
 
 use App\Entity\Mouvement;
 
+use App\Entity\ReferenceArticle;
+use App\Repository\ReferenceArticleRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\EmplacementRepository;
@@ -62,17 +64,23 @@ class ApiController extends FOSRestController implements ClassResourceInterface
     private $emplacementRepository;
 
     /**
+     * @var ReferenceArticleRepository
+     */
+    private $referenceArticleRepository;
+
+    /**
      * @var array
      */
     private $successData;
 
 
-    public function __construct(UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
+    public function __construct(ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
     {
         $this->emplacementRepository = $emplacementRepository;
         $this->articleRepository = $articleRepository;
         $this->utilisateurRepository = $utilisateurRepository;
         $this->passwordEncoder = $passwordEncoder;
+        $this->referenceArticleRepository = $referenceArticleRepository;
         $this->successData = ['success' => false, 'data' => []];
     }
 
@@ -143,12 +151,14 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         }
     }
 
-    // TODO JV envoyer refarticles au lieu articles (id, label, reference)
     private function getData()
     {
+        $articles = $this->articleRepository->getIdRefAndQuantity();
+        $articlesRef = $this->referenceArticleRepository->getIdRefAndQuantityByTypeQuantite(ReferenceArticle::TYPE_QUANTITE_REFERENCE);
+
         $data = [
-            'emplacements' => $this->emplacementRepository->getIdAndNom(),
-            'articles' => $this->articleRepository->getArticleByRefId()
+            'emplacements' => array_slice($this->emplacementRepository->getIdAndNom(), 0, 5),
+            'articles' => array_slice(array_merge($articles, $articlesRef), 0, 5) //TODO CG provisoire pour éviter charger trop de données sur mobile en phase test
         ];
         return $data;
     }

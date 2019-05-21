@@ -118,7 +118,7 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function getArticleByRefId()
+    public function getIdRefAndQuantity()
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
