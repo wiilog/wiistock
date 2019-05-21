@@ -46,6 +46,7 @@ use App\Entity\Demande;
 use Symfony\Component\Serializer\Encoder\JsonEncode;
 use App\Entity\ArticleFournisseur;
 use App\Repository\FournisseurRepository;
+use Symfony\Component\HttpKernel\Profiler\Profiler;
 
 /**
  * @Route("/reference-article")
@@ -819,6 +820,7 @@ class ReferenceArticleController extends Controller
     public function exportAll(Request $request, $max, $min): Response
     {
         if (!$request->isXmlHttpRequest()) {
+            $this->get('profiler')->disable();
             $data = [];
             $data['values'] = [];
             $headers = ['demandeur', 'statut', 'destination', 'commentaire', 'dateDemande', 'dateValidation', 'reference', 'referenceArticle', 'libelleArticle', 'quantite'];
@@ -826,17 +828,23 @@ class ReferenceArticleController extends Controller
                 $headers[] = $champLibre->getLabel();
             }
             $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::TYPE_ARTICLES_ET_REF_CEA);
-            $i = 0;
-            foreach ($this->referenceArticleRepository->findAll() as $ref) {
-                if ($i < $min) continue;
-                if ($i === intval($max)) break;
-                dump($i);
-                array_push($data['values'], $this->buildInfos($ref, $listTypes, $headers));
-                $i++;
+            $refs = $this->referenceArticleRepository->findAll();
+            if ($max > count($refs)) $max = count($refs) - 1;
+            for ($i = $min; $i < $max; $i++) {
+                array_push($data['values'], $this->buildInfos($refs[$i], $listTypes, $headers));
             }
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException('404');
+    }
+
+
+    /**
+     * @Route("/export-donnees", name="exports_params")
+     */
+    public function renderParams()
+    {
+        return $this->render('exports/exportsMenu.html.twig');
     }
 
     /**
@@ -865,7 +873,7 @@ class ReferenceArticleController extends Controller
         $refData[] = $ref->getStatut()->getNom();
         $refData[] = strip_tags($ref->getCommentaire());
         $refData[] = $ref->getEmplacement() ? $ref->getEmplacement()->getLabel() : '';
-        $categorieCL = $this->categorieCLRepository->findOneByLabel(($ref->getTypeQuantite() === 'reference') ? 'referenceArticle' : 'article');
+        $categorieCL = $this->categorieCLRepository->findOneByLabel(($ref->getTypeQuantite() === 'reference') ? 'reference CEA' : 'article');
         $champsLibres = [];
         foreach ($listTypes as $type) {
             $listChampsLibres = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($type['label'], $categorieCL);

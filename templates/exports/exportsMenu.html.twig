@@ -1,0 +1,27 @@
+{% extends 'layout.html.twig' %}
+
+{% block title %}Exports de données{% endblock %}
+
+{% block page_content %}
+
+<h1>Exports de données</h1>
+<div class='row justify-content-center'>
+    <form action="" class="col-6" id="mailerServerForm">
+        <div class="form-group">
+            <label for="">References CEA (Tâche très gourmande en ressources serveurs et en temps) : </label>
+            <div class="btn btn-primary" onclick='initExport($(this))'>
+                <i class="fa fa-print mr-2"></i>Exporter au format CSV
+            </div>
+        </div>
+    </form>
+</div>
+
+<button hidden id="buttonModalMailerSet" data-target="#modalMailerSet" data-toggle="modal"></button>
+{% include 'mailer_server/modalMailerSet.html.twig' %}
+
+{% endblock %}
+{% block javascript %}
+
+<script src="{{ asset('js/exports.js') }}?{{ date().timestamp }}"></script>
+
+{% endblock %}
