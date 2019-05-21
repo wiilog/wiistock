@@ -68,7 +68,7 @@ let dlFile = function (csv, type) {
     date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
     var exportedFilenmae = type === "ref" ? 'export-referencesCEA-' + date + '.csv' 
                                             : type === "art" ? 'export-articles-' + date + '.csv' 
-                                            : 'other_articles-' + data + '.csv';
+                                            : 'export-others-' + data + '.csv';
     var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     if (navigator.msSaveBlob) { // IE 10+
         navigator.msSaveBlob(blob, exportedFilenmae);
