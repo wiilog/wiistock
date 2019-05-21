@@ -153,8 +153,8 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 
     private function getData()
     {
-        $articles = $this->articleRepository->getIdRefAndQuantity();
-        $articlesRef = $this->referenceArticleRepository->getIdRefAndQuantityByTypeQuantite(ReferenceArticle::TYPE_QUANTITE_REFERENCE);
+        $articles = $this->articleRepository->getIdRefLabelAndQuantity();
+        $articlesRef = $this->referenceArticleRepository->getIdRefLabelAndQuantityByTypeQuantite(ReferenceArticle::TYPE_QUANTITE_REFERENCE);
 
         $data = [
             'emplacements' => array_slice($this->emplacementRepository->getIdAndNom(), 0, 5),

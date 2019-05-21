@@ -287,7 +287,7 @@ class PreparationController extends AbstractController
             'preparation' => $preparation,
             'statut' => $preparation->getStatut() === $this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER),
             'finished' => $preparation->getStatut()->getNom() !== Preparation::STATUT_PREPARE,
-            'articles' => $this->articleRepository->getIdRefAndQuantity(),
+            'articles' => $this->articleRepository->getIdRefLabelAndQuantity(),
         ]);
     }
 
