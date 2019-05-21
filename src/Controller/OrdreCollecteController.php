@@ -8,8 +8,10 @@ use App\Entity\Collecte;
 use App\Entity\CollecteReference;
 use App\Entity\Menu;
 use App\Entity\OrdreCollecte;
+// use App\Entity\Emplacement;
 
 use App\Repository\ArticleRepository;
+// use App\Repository\EmplacementRepository;
 use App\Repository\CollecteReferenceRepository;
 use App\Repository\CollecteRepository;
 use App\Repository\OrdreCollecteRepository;
@@ -225,11 +227,11 @@ class OrdreCollecteController extends AbstractController
                 foreach ($ligneArticle as $ligneArticle) {
                     /** @var CollecteReference $ligneArticle */
                     $referenceArticle = $ligneArticle->getReferenceArticle();
-                    // dump($ligneArticle->getId()->getReference());
+                    
                     $rows[] = [
                         "Référence CEA" => $referenceArticle ? $referenceArticle->getReference() : ' ',
                         "Libellé" => $referenceArticle ? $referenceArticle->getLibelle() : ' ',
-                        "Emplacement" => $referenceArticle ? $referenceArticle->getEmplacement()->getLabel() : '',
+                        "Emplacement" => $referenceArticle->getEmplacement() ? $referenceArticle->getEmplacement()->getLabel() : '',
                         "Quantité" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ' '),
                         "Actions" => $this->renderView('ordre_collecte/datatableOrdreCollecteRow.html.twig', [
                             'id' => $ligneArticle->getId(),

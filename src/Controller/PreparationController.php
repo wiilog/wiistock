@@ -262,11 +262,11 @@ class PreparationController extends AbstractController
                     $rows[] = [
                         "Référence CEA" => $ligneArticle->getArticleFournisseur()->getReferenceArticle() ? $ligneArticle->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
                         "Libellé" => $ligneArticle->getLabel() ? $ligneArticle->getLabel() : '',
-                        "Emplacement" => ($ligneArticle->getReference()->getEmplacement() ? $ligneArticle->getReference()->getEmplacement()->getLabel() : ''),
+                        "Emplacement" => $ligneArticle->getEmplacement() ? $ligneArticle->getEmplacement()->getLabel() : '',
                         "Quantité" => $ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : '',
                         "Quantité à prélever" => $ligneArticle->getWithdrawQuantity() ? $ligneArticle->getWithdrawQuantity() : '',
                         "Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
-                            'id' => $ligneArticle->getReference()->getId(),
+                            'id' => $ligneArticle->getId()
                    ])
                     ];
                 }
