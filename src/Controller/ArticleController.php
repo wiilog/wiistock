@@ -34,10 +34,14 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use App\Entity\ReferenceArticle;
 use App\Entity\CategorieCL;
 
+use Symfony\Component\HttpKernel\Profiler\Profiler;
+use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Proxies\__CG__\App\Entity\CategoryType;
+
 /**
  * @Route("/article")
  */
-class ArticleController extends AbstractController
+class ArticleController extends Controller
 {
 
     /**
@@ -145,7 +149,7 @@ class ArticleController extends AbstractController
         }
 
         if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
-            $statutVisible = 'true' ;
+            $statutVisible = 'true';
         } else {
             $statutVisible = 'false';
         }
@@ -153,7 +157,7 @@ class ArticleController extends AbstractController
         return $this->render('article/index.html.twig', [
             'valeurChampsLibre' => null,
             'type' => $this->typeRepository->findOneByCategoryLabel(Article::CATEGORIE),
-            'statutVisible'=> $statutVisible
+            'statutVisible' => $statutVisible
         ]);
     }
 
@@ -168,7 +172,7 @@ class ArticleController extends AbstractController
             }
 
             $data = $this->articleDataService->getDataForDatatable($request->request);
-// dump($data);
+            // dump($data);
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException('404');
@@ -436,5 +440,74 @@ class ArticleController extends AbstractController
             return new JsonResponse($json);
         }
         throw new NotFoundHttpException('404');
+    }
+
+
+    /**
+     * @Route("/exporter/{min}/{max}", name="article_export", options={"expose"=true}, methods="GET|POST")
+     */
+    public function exportAll(Request $request, $max, $min): Response
+    {
+        if (!$request->isXmlHttpRequest()) {
+            //$this->get('profiler')->disable();
+            $data = [];
+            $data['values'] = [];
+            $headers = ['demandeur', 'statut', 'destination', 'commentaire', 'dateDemande', 'dateValidation', 'reference', 'referenceArticle', 'libelleArticle', 'quantite'];
+            foreach ($this->champsLibreRepository->findAll() as $champLibre) {
+                $headers[] = $champLibre->getLabel();
+            }
+            $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::TYPE_ARTICLES_ET_REF_CEA);
+            $refs = $this->articleRepository->findAll();
+            if ($max > count($refs)) $max = count($refs);
+            for ($i = $min; $i < $max; $i++) {
+                array_push($data['values'], $this->buildInfos($refs[$i], $listTypes, $headers));
+            }
+            return new JsonResponse($data);
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/total", name="get_total_and_headers_art", options={"expose"=true}, methods="GET|POST")
+     */
+    public function total(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest()) {
+            $data['total'] = $this->articleRepository->countAll();
+            $data['headers'] = ['demandeur', 'statut', 'destination', 'commentaire', 'dateDemande', 'dateValidation', 'reference', 'referenceArticle', 'libelleArticle', 'quantite'];
+            foreach ($this->champsLibreRepository->findAll() as $champLibre) {
+                array_push($data['headers'], $champLibre->getLabel());
+            }
+            return new JsonResponse($data);
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+    public function buildInfos(Article $ref, $listTypes, $headers)
+    {
+        $refData[] = $ref->getReference();
+        $refData[] = $ref->getLabel();
+        $refData[] = $ref->getQuantite();
+        $refData[] = $ref->getType()->getLabel();
+        $refData[] = $ref->getStatut()->getNom();
+        $refData[] = strip_tags($ref->getCommentaire());
+        $refData[] = $ref->getEmplacement() ? $ref->getEmplacement()->getLabel() : '';
+        $categorieCL = $this->categorieCLRepository->findOneByLabel('article');
+        $champsLibres = [];
+        foreach ($listTypes as $type) {
+            $listChampsLibres = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($type['label'], $categorieCL);
+            foreach ($listChampsLibres as $champLibre) {
+                $valeurChampRefArticle = $this->valeurChampsLibreRepository->findOneByArticleANDChampsLibre($ref->getId(), $champLibre);
+                if ($valeurChampRefArticle) $champsLibres[$champLibre->getLabel()] = $valeurChampRefArticle->getValeur();
+            }
+        }
+        foreach ($headers as $type) {
+            if (array_key_exists($type, $champsLibres)) {
+                $refData[] = $champsLibres[$type];
+            } else {
+                $refData[] = '';
+            }
+        }
+        return implode(';', $refData);
     }
 }

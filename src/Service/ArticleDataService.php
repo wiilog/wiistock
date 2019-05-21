@@ -36,7 +36,7 @@ use App\Entity\Demande;
 
 class ArticleDataService
 {
-    
+
     /**
      * @var ReferenceArticleRepository
      */
@@ -400,6 +400,7 @@ class ArticleDataService
         $ref = $date->format('YmdHis');
 
         $toInsert = new Article();
+        $type = $this->articleFournisseurRepository->find($data['articleFournisseur'])->getReferenceArticle()->getType();
         $toInsert
             ->setLabel($data['libelle'])
             ->setConform(!$data['conform'])
@@ -409,7 +410,7 @@ class ArticleDataService
             ->setQuantite((int)$data['quantite'])
             ->setEmplacement($this->emplacementRepository->find($data['emplacement']))
             ->setArticleFournisseur($this->articleFournisseurRepository->find($data['articleFournisseur']))
-            ->setType($this->typeRepository->findOneByCategoryLabel(Article::CATEGORIE));
+            ->setType($type);
         $entityManager->persist($toInsert);
 
         $champsLibreKey = array_keys($data);
@@ -450,14 +451,13 @@ class ArticleDataService
     {
         if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
             $articles = $this->articleRepository->findByParams($params);
-        }else{
+        } else {
             $categorieName = 'article';
             $statutName = 'actif';
             $statut = $this->statutRepository->findOneByCategorieAndStatut($categorieName, $statutName);
-            $statutId= $statut->getId();
-            
+            $statutId = $statut->getId();
+
             $articles = $this->articleRepository->findByParamsActifStatut($params, $statutId);
-           
         }
 
         $rows = [];
@@ -479,32 +479,32 @@ class ArticleDataService
         $url['edit'] = $this->router->generate('demande_article_edit', ['id' => $article->getId()]);
         if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
             $row =
-            [
-                'id' => ($article->getId() ? $article->getId() : 'Non défini'),
-                'Référence' => ($article->getReference() ? $article->getReference() : 'Non défini'),
-                'Statut' => ($article->getStatut() ? $article->getStatut()->getNom() : 'Non défini'),
-                'Libellé' => ($article->getLabel() ? $article->getLabel() : 'Non défini'),
-                'Référence article' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : 'Non défini'),
-                'Quantité' => ($article->getQuantite() ? $article->getQuantite() : 0),
-                'Actions' => $this->templating->render('article/datatableArticleRow.html.twig', [
-                    'url' => $url,
-                    'articleId' => $article->getId(),
-                ]),
-            ];
-        }else{
+                [
+                    'id' => ($article->getId() ? $article->getId() : 'Non défini'),
+                    'Référence' => ($article->getReference() ? $article->getReference() : 'Non défini'),
+                    'Statut' => ($article->getStatut() ? $article->getStatut()->getNom() : 'Non défini'),
+                    'Libellé' => ($article->getLabel() ? $article->getLabel() : 'Non défini'),
+                    'Référence article' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : 'Non défini'),
+                    'Quantité' => ($article->getQuantite() ? $article->getQuantite() : 0),
+                    'Actions' => $this->templating->render('article/datatableArticleRow.html.twig', [
+                        'url' => $url,
+                        'articleId' => $article->getId(),
+                    ]),
+                ];
+        } else {
             $row =
-            [
-                'id' => ($article->getId() ? $article->getId() : 'Non défini'),
-                'Référence' => ($article->getReference() ? $article->getReference() : 'Non défini'),
-                'Statut' => false,
-                'Libellé' => ($article->getLabel() ? $article->getLabel() : 'Non défini'),
-                'Référence article' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : 'Non défini'),
-                'Quantité' => ($article->getQuantite() ? $article->getQuantite() : 0),
-                'Actions' => $this->templating->render('article/datatableArticleRow.html.twig', [
-                    'url' => $url,
-                    'articleId' => $article->getId(),
-                ]),
-            ];
+                [
+                    'id' => ($article->getId() ? $article->getId() : 'Non défini'),
+                    'Référence' => ($article->getReference() ? $article->getReference() : 'Non défini'),
+                    'Statut' => false,
+                    'Libellé' => ($article->getLabel() ? $article->getLabel() : 'Non défini'),
+                    'Référence article' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : 'Non défini'),
+                    'Quantité' => ($article->getQuantite() ? $article->getQuantite() : 0),
+                    'Actions' => $this->templating->render('article/datatableArticleRow.html.twig', [
+                        'url' => $url,
+                        'articleId' => $article->getId(),
+                    ]),
+                ];
         }
 
         return $row;

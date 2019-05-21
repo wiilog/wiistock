@@ -1,27 +1,35 @@
-function initExport(button) {
+function initExport(button, type) {
     if (!button.attr('data-clicked') || button.attr('data-clicked') === false) {
         button.attr('data-clicked', true);
         button.css('pointer-events', 'none');
         button.removeClass('btn-primary');
         button.addClass('btn-light');
         button.css('background', 'linear-gradient(to right, #00b31e 1%, grey 1%');
-        button.html('Export CSV des articles en cours d\'initialisation...');
-        $.post(Routing.generate('get_total_and_headers'), true, function (response) {
-            exportAll(response.total, response.headers.join(';'), button);
+        button.html('Export CSV en cours d\'initialisation...');
+        let route = type === "ref" ? Routing.generate('get_total_and_headers_ref', true)
+                    : type === "art" ? Routing.generate('get_total_and_headers_art', true) 
+                    : Routing.generate('get_total_and_headers_other', true);
+        $.post(route, function (response) {
+            exportAll(type, response.total, response.headers.join(';'), button);
         });
     }
 }
 
-async function exportAll(total, headers, button) {
+async function exportAll(type, total, headers, button) {
     let increment = 100;
     let csv = headers + '\n';
     for (i = 0; i < total; i += increment) {
-        console.log('retrieving articles from ' + i + ' to ' + (i + increment));
-        var result = await exportWithBounds(i + increment, i);
-        console.log('retrieved articles from ' + i + ' to ' + (i + increment));
+        let path = type === "ref" ? 'reference_article_export'
+                    : type === "art" ? 'article_export'
+                    : 'other_export';
+        let route = Routing.generate(path, {
+            max: i+increment,
+            min: i
+        });
+        var result = await exportWithBounds(route);
         let percent = i+increment > total ? 100 : Math.floor(((i+increment)/total)*100);
         button.css('background', 'linear-gradient(to right, #00b31e ' + percent + '%, grey ' + percent + '%');
-        button.html('Export CSV des articles en cours... ' + percent + '%');
+        button.html('Export CSV en cours... ' + percent + '%');
         $.each(result, function (index, value) {
             csv += value;
             csv += '\n';
@@ -33,10 +41,10 @@ async function exportAll(total, headers, button) {
     button.css('pointer-events', '');
     button.attr('data-clicked', false);
     button.html('<i class="fa fa-print mr-2"></i>Exporter au format CSV')
-    dlFile(csv);
+    dlFile(csv, type);
 }
 
-function exportWithBounds(max, min) {
+function exportWithBounds(path) {
     return new Promise(function (resolve, reject) {
         xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function () {
@@ -49,20 +57,18 @@ function exportWithBounds(max, min) {
                 }
             }
         }
-        let path = Routing.generate('reference_article_export', {
-            max: max,
-            min: min
-        });
         xhttp.open("POST", path);
         xhttp.send();
     });
 }
 
-let dlFile = function (csv) {
+let dlFile = function (csv, type) {
     let d = new Date();
     let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
     date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
-    var exportedFilenmae = 'export-articles-' + date + '.csv';
+    var exportedFilenmae = type === "ref" ? 'export-referencesCEA-' + date + '.csv' 
+                                            : type === "art" ? 'export-articles-' + date + '.csv' 
+                                            : 'other_articles-' + data + '.csv';
     var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     if (navigator.msSaveBlob) { // IE 10+
         navigator.msSaveBlob(blob, exportedFilenmae);

@@ -829,7 +829,7 @@ class ReferenceArticleController extends Controller
             }
             $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::TYPE_ARTICLES_ET_REF_CEA);
             $refs = $this->referenceArticleRepository->findAll();
-            if ($max > count($refs)) $max = count($refs) - 1;
+            if ($max > count($refs)) $max = count($refs);
             for ($i = $min; $i < $max; $i++) {
                 array_push($data['values'], $this->buildInfos($refs[$i], $listTypes, $headers));
             }
@@ -848,7 +848,7 @@ class ReferenceArticleController extends Controller
     }
 
     /**
-     * @Route("/total", name="get_total_and_headers", options={"expose"=true}, methods="GET|POST")
+     * @Route("/total", name="get_total_and_headers_ref", options={"expose"=true}, methods="GET|POST")
      */
     public function total(Request $request): Response
     {
@@ -873,7 +873,7 @@ class ReferenceArticleController extends Controller
         $refData[] = $ref->getStatut()->getNom();
         $refData[] = strip_tags($ref->getCommentaire());
         $refData[] = $ref->getEmplacement() ? $ref->getEmplacement()->getLabel() : '';
-        $categorieCL = $this->categorieCLRepository->findOneByLabel(($ref->getTypeQuantite() === 'reference') ? 'reference CEA' : 'article');
+        $categorieCL = $this->categorieCLRepository->findOneByLabel('reference CEA');
         $champsLibres = [];
         foreach ($listTypes as $type) {
             $listChampsLibres = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($type['label'], $categorieCL);
