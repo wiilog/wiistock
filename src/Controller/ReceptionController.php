@@ -212,7 +212,6 @@ class ReceptionController extends AbstractController
             $fournisseur =  $this->fournisseurRepository->find(intval($data['fournisseur']));
             $utilisateur =  $this->utilisateurRepository->find(intval($data['utilisateur']));
             $statut =  $this->statutRepository->find(intval($data['statut']));
-
             $reception =  $this->receptionRepository->find($data['receptionId']);
             $reception
                 ->setNumeroReception($data['NumeroReception'])
@@ -271,13 +270,13 @@ class ReceptionController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
             $reception =  $this->receptionRepository->find($data['id']);
-            $data = $this->getDataEditForReception($reception);
 
-            $type = $this->typeRepository->getIdAndLabelByCategoryLabel(Reception::CATEGORIE_TYPE);
+            $type = $this->typeRepository->getIdAndLabelByCategoryLabel(Reception::CATEGORIE_TYPE); //TODO CG vérif merge
+//            $type = $this->typeRepository->getIdAndLabelByCategoryLabel(Reception::CATEGORIE);
 
             $typeChampLibre =  [];
-            foreach ($type as $label) {
-                $champsLibresComplet = $this->champsLibreRepository->findByTypeId($type['id']);
+            foreach ($type as $label) { //TODO CG modif label
+                $champsLibresComplet = $this->champsLibreRepository->findByTypeId($label['id']);
                 $champsLibres = [];
                 //création array edit pour vue
                 foreach ($champsLibresComplet as $champLibre) {
@@ -298,8 +297,6 @@ class ReceptionController extends AbstractController
                     'champsLibres' => $champsLibres,
                 ];
             }
-
-
             $json =  $this->renderView('reception/modalEditReceptionContent.html.twig', [
                 'reception' =>  $reception,
                 'fournisseurs' =>  $this->fournisseurRepository->getNoOne($reception->getFournisseur()->getId()),
@@ -478,8 +475,16 @@ class ReceptionController extends AbstractController
             $statutLabel =  $nbArticleNotConform > 0 ? Reception::STATUT_ANOMALIE : Reception::STATUT_RECEPTION_PARTIELLE;
             $statut =  $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE,  $statutLabel);
             $reception->setStatut($statut);
+            $type = $reception->getType();
 
+//            if ($type) {
+//                $valeurChampLibreTab = $this->valeurChampsLibreRepository->getByReceptionAndType($reception->getId(), $type);
+//            } else {
+//                $valeurChampLibreTab = [];
+//            }
             $valeurChampLibreTab = empty($type) ? [] : $this->valeurChampsLibreRepository->getByReceptionAndType($reception->getId(), $type);
+
+//TODO CG vérif merge
 
             $json = [
                 'entete' =>  $this->renderView('reception/enteteReception.html.twig', [
@@ -604,6 +609,7 @@ class ReceptionController extends AbstractController
             $statut =  $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, $statutLabel);
             $reception->setStatut($statut);
             $em->flush();
+            $type = $reception->getType();
 
             $valeurChampLibreTab = empty($type) ? [] : $this->valeurChampsLibreRepository->getByReceptionAndType($reception->getId(), $type);
 

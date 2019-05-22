@@ -17,7 +17,8 @@
 
         {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
         <a href="" data-id='{{ reception.id }}' data-target='#modalEditReception' data-toggle='modal'
-            class="btn btn-primary btn-action ml-auto" onclick='initEditReceptionEditor("#modalEditReception")'>
+            class="btn btn-primary btn-action ml-auto"
+           onclick="editRow($(this), Routing.generate('api_reception_edit', true), $('#modalEditReception'), $('#submitEditReception'), true)">
             Modifier</a>
         <a href="{{path('reception_finish', {'id': reception.id})}}" class="btn btn-primary btn-action ml-auto">
             Fin réception</a>
