@@ -331,7 +331,7 @@ class ArticleDataService
             'typeChampsLibres' => $typeChampLibre,
             'typeArticle' => $typeArticle,
             'article' => $article,
-            'statut' => ($article->getStatut()->getNom() === Article::STATUT_ACTIF ? true : false),
+            'statut' => ($article->getStatut()->getNom() === Article::STATUT_ACTIF ? 1 : 0),
             'isADemand' => $isADemand
         ]);
         return $view;
@@ -356,8 +356,11 @@ class ArticleDataService
                     ->setCommentaire($data['commentaire']);
 
                 if (isset($data['statut'])) { // si on est dans une demande (livraison ou collecte), pas de champ statut
-                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $data['statut'] === Article::STATUT_ACTIF ? Article::STATUT_ACTIF : Article::STATUT_INACTIF);
+                    $statutLabel = (intval($data['statut']) === 1) ? Article::STATUT_ACTIF : Article::STATUT_INACTIF;
+                 
+                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $statutLabel);
                     $article->setStatut($statut);
+                    
                 }
                 if ($data['emplacement']) {
                     $article->setEmplacement($this->emplacementRepository->find($data['emplacement']));
