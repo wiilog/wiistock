@@ -2,6 +2,7 @@
 
 namespace App\DataFixtures;
 
+use App\Entity\CategoryType;
 use App\Entity\Type;
 use App\Repository\TypeRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
@@ -28,7 +29,7 @@ class TypeFixtures extends Fixture implements DependentFixtureInterface, Fixture
 
     public function load(ObjectManager $manager)
     {
-        // categorie typeArticle
+        // categorie articles et références CEA
         $typesNames = [
             Type::LABEL_PDT,
             Type::LABEL_CSP,
@@ -44,11 +45,24 @@ class TypeFixtures extends Fixture implements DependentFixtureInterface, Fixture
 
             if (empty($type)) {
                 $type = new Type();
-                $type->setCategory($this->getReference('type-typeArticle'));
-                $type->setLabel($typeName);
+                $type
+                    ->setCategory($this->getReference('type-' . CategoryType::TYPE_ARTICLES_ET_REF_CEA))
+                    ->setLabel($typeName);
                 $manager->persist($type);
                 dump("création du type " . $typeName);
             }
+        }
+
+        // catégorie réception
+        $type = $this->typeRepository->findOneBy(['label' => Type::LABEL_RECEPTION]);
+
+        if (empty($type)) {
+            $type = new Type();
+            $type
+                ->setCategory($this->getReference('type-' . CategoryType::TYPE_RECEPTION))
+                ->setLabel(Type::LABEL_RECEPTION);
+            $manager->persist($type);
+            dump("création du type " . CategoryType::TYPE_RECEPTION);
         }
 
         $manager->flush();

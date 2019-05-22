@@ -45,7 +45,7 @@ class ArticleFournisseurRepository extends ServiceEntityRepository
     }
 
 
-    public function getByRefArticle($id)
+    public function findByRefArticle($id)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(

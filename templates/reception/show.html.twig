@@ -10,16 +10,16 @@
     <div class="col text-right">
         {% if modifiable %}
         {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::DELETE')) %}
-        <a href="" data-id='{{ id }}' data-target='#modalDeleteReception' data-toggle='modal'
+        <a href="" data-id='{{ reception.id }}' data-target='#modalDeleteReception' data-toggle='modal'
             class="btn btn-danger btn-action ml-auto">
             Supprimer</a>
         {% endif %}
 
         {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
-        <a href="" data-id='{{ id }}' data-target='#modalEditReception' data-toggle='modal'
+        <a href="" data-id='{{ reception.id }}' data-target='#modalEditReception' data-toggle='modal'
             class="btn btn-primary btn-action ml-auto" onclick='initEditReceptionEditor("#modalEditReception")'>
             Modifier</a>
-        <a href="{{path('reception_finish', {'id': id})}}" class="btn btn-primary btn-action ml-auto">
+        <a href="{{path('reception_finish', {'id': reception.id})}}" class="btn btn-primary btn-action ml-auto">
             Fin réception</a>
         {% endif %}
         {% endif %}
@@ -40,7 +40,7 @@
     </a>
     {% endif %}
     {% endif %}
-    <a href="#" onclick="printBarcode($(this))" data-id="{{ id }}" data-ref="{{ reception.numeroReception }}"
+    <a href="#" onclick="printBarcode($(this))" data-id="{{ reception.id }}" data-ref="{{ reception.numeroReception }}"
         class="btn btn-primary btn-action ml-auto">
         <span class="fa"></span>Générer les étiquettes
     </a>

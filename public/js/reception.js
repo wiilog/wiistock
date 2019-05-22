@@ -20,24 +20,16 @@ var table = $('#tableReception_id').DataTable({
     ],
 });
 
-let columnStatutVisible = $(document).ready(function () {
-    let statutVisible = $(".statutVisible").val();
+let pathArticle = Routing.generate('article_by_reception_api', true);
+// let params = {
+//     'ligne': $('#ligneSelected').val()
+// } //TODO CG sert à quoi ? à quel moment est modifié ? tjs à -1 ?
 
-    if (statutVisible === 'false') {
-        tableArticle.column(1).visible(false);
-    }
-
-});
-
-var pathArticle = Routing.generate('article_by_reception_api', true);
-let params = {
-    'ligne': $('#ligneSelected').val()
-}
-var tableFromArticle = $('#tableArticleInner_id').DataTable({
+let tableFromArticle = $('#tableArticleInner_id').DataTable({
     pageLength: 5,
-    lengthMenu: [[5, 10, 20, -1], [5, 10, 20, 'Todos']],
+    lengthMenu: [[5, 10, 20, -1], [5, 10, 20, 'tous les']],
     "language": {
-        url: "/js/i18n/dataTableLanguageRefArticle.json",
+        url: "/js/i18n/dataTableLanguage.json",
     },
     ajax: {
         "url": pathArticle,
@@ -49,15 +41,21 @@ var tableFromArticle = $('#tableArticleInner_id').DataTable({
         },
     },
     columns: [
-        { "data": 'Référence' },
-        { "data": "Statut" },
-        { "data": 'Libellé' },
-        { "data": 'Référence article' },
-        { "data": 'Quantité' },
-        { "data": 'Actions' }
+        { "data": 'Référence', 'name': 'Référence', 'title': 'Référence' },
+        { "data": "Statut", 'name': 'Statut', 'title': 'Statut' },
+        { "data": 'Libellé', 'name': 'Libellé', 'title': 'Libellé' },
+        { "data": 'Référence article', 'name': 'Référence article', 'title': 'Référence article' },
+        { "data": 'Quantité', 'name': 'Quantité', 'title': 'Quantité' },
+        { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' }
     ],
 });
 
+$(document).ready(function () {
+    let statutVisible = $(".statutVisible").val();
+    if (!statutVisible) {
+        tableFromArticle.column('Statut:name').visible(false);
+    }
+});
 
 let modalEditInnerArticle = $("#modalEditArticle");
 let submitEditInnerArticle = $("#submitEditArticle");
@@ -112,7 +110,7 @@ InitialiserModal(modal, submit, url, tableArticle);
 
 let modalDeleteArticle = $("#modalDeleteLigneArticle");
 let submitDeleteArticle = $("#submitDeleteLigneArticle");
-let urlDeleteArticle = Routing.generate('reception_article_delete', true);
+let urlDeleteArticle = Routing.generate('reception_article_remove', true);
 InitialiserModal(modalDeleteArticle, submitDeleteArticle, urlDeleteArticle, tableArticle);
 
 let modalEditArticle = $("#modalEditLigneArticle");

@@ -18,7 +18,7 @@ class ReceptionRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Reception::class);
     }
-    
+
     public function findForIndex()
     {
         $entityManager = $this->getEntityManager();
@@ -27,54 +27,8 @@ class ReceptionRepository extends ServiceEntityRepository
             FROM App\Entity\Receptions r
             JOIN r.Statut s JOIN r.fournisseur f
            "
-        );
-        ;
-        return $query->execute(); 
+        );;
+        return $query->execute();
     }
 
-
-
-    // public function findValeurChampsLibreByIdReception($id)
-    // {
-    //     $entityManager = $this->getEntityManager();
-    //     $query = $entityManager->createQuery(
-    //         "SELECT a
-    //          FROM App\Entity\Reception a
-    //          JOIN a.valeurChampsLibre c 
-    //          WHERE r.id =:id
-             
-    //         "
-    //     )->setParameter('id', $id);
-    //     dump($id);
-    //     return $query->getResult();
-    // }
 }
-//    /**
-//     * @return Reception[] Returns an array of Receptions objects
-//     */
-    /*
-    public function findByExampleField($value)
-    {
-        return $this->createQueryBuilder('r')
-            ->andWhere('r.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('r.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
-
-    /*
-    public function findOneBySomeField($value): ?Reception
-    {
-        return $this->createQueryBuilder('r')
-            ->andWhere('r.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
-    }
-    */
-

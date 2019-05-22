@@ -79,6 +79,7 @@ class Reception
      * @ORM\OneToMany(targetEntity="App\Entity\Article", mappedBy="reception")
      */
     private $articles;
+
     /** 
      * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="receptions")
      */

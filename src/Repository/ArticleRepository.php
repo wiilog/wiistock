@@ -326,16 +326,16 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->getResult();
     }
 
-    public function getByAF($af)
+    public function findByListAF($listAf)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
             "SELECT a
           FROM App\Entity\Article a
           JOIN a.articleFournisseur af
-          WHERE af.id IN(:articleFournisseur)"
+          WHERE af IN(:articleFournisseur)"
         )->setParameters([
-            'articleFournisseur' => $af,
+            'articleFournisseur' => $listAf,
         ]);
 
         return $query->execute();

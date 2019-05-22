@@ -4,8 +4,9 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\Menu;
-use App\Entity\ValeurChampsLibre;
 use App\Entity\Article;
+use App\Entity\ReferenceArticle;
+use App\Entity\CategorieCL;
 
 use App\Repository\ArticleRepository;
 use App\Repository\StatutRepository;
@@ -19,7 +20,7 @@ use App\Repository\ValeurChampsLibreRepository;
 use App\Repository\ChampsLibreRepository;
 use App\Repository\TypeRepository;
 use App\Repository\CategorieCLRepository;
-
+use App\Repository\DimensionsEtiquettesRepository;
 
 use App\Service\RefArticleDataService;
 use App\Service\ArticleDataService;
@@ -31,9 +32,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use App\Entity\ReferenceArticle;
-use App\Entity\CategorieCL;
-use App\Repository\DimensionsEtiquettesRepository;
+
 
 /**
  * @Route("/article")
@@ -150,16 +149,9 @@ class ArticleController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
-        if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
-            $statutVisible = 'true';
-        } else {
-            $statutVisible = 'false';
-        }
-
         return $this->render('article/index.html.twig', [
             'valeurChampsLibre' => null,
             'type' => $this->typeRepository->findOneByCategoryLabel(Article::CATEGORIE),
-            'statutVisible' => $statutVisible
         ]);
     }
 
@@ -451,7 +443,7 @@ class ArticleController extends AbstractController
         if ($request->isXmlHttpRequest() && $dataContent = json_decode($request->getContent(), true)) {
             $data = [];
             $data['articleRef'] = $this->articleRepository->find(intval($dataContent['article']))->getReference();
-            $dimension = $this->dimensionsEtiquettesRepository->getOneDimension();
+            $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
             if ($dimension) {
                 $data['height'] = $dimension->getHeight();
                 $data['width'] = $dimension->getWidth();

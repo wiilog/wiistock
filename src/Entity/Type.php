@@ -18,6 +18,7 @@ class Type
     const LABEL_SILI_INT = 'SILI-int';
     const LABEL_MOB = 'MOB';
     const LABEL_SLUGCIBLE = 'SLUGCIBLE';
+    const LABEL_RECEPTION = 'RECEPTION';
     
 
     /**

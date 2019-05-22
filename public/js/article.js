@@ -13,22 +13,20 @@ var tableArticle = $('#tableArticle_id').DataTable({
         "type": "POST"
     },
     columns: [
-        { "data": 'Référence' },
-        { "data": "Statut" },
-        { "data": 'Libellé' },
-        { "data": 'Référence article' },
-        { "data": 'Quantité' },
-        { "data": 'Actions' }
+        { "data": 'Référence', 'name': 'Référence' },
+        { "data": "Statut", 'name': 'Statut' },
+        { "data": 'Libellé', 'name': 'Libellé' },
+        { "data": 'Référence article', 'name': 'Référence article' },
+        { "data": 'Quantité', 'name': 'Quantité' },
+        { "data": 'Actions', 'name': 'Actions' }
     ],
 });
 
-let columnStatutVisible = $( document ).ready(function () {
+$(document).ready(function () {
     let statutVisible = $(".statutVisible").val();
-    
-    if (statutVisible === 'false') {
-        tableArticle.column( 1 ).visible( false );
+    if (!statutVisible) {
+        tableArticle.column('Statut:name').visible(false);
     }
-
 });
 
 let modalEditArticle = $("#modalEditArticle");

@@ -146,12 +146,8 @@ class ChampsLibreRepository extends ServiceEntityRepository
             "SELECT c
             FROM App\Entity\ChampsLibre c 
             WHERE c.type = :typeId"
-        )->setParameters(
-            [
-                'typeId' => $typeId,
-                
-            ]
-        );;
+        )->setParameter('typeId', $typeId);
+
         return $query->execute();
     }
 

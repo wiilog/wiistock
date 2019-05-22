@@ -14,6 +14,9 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Repository\DimensionsEtiquettesRepository;
 use App\Entity\DimensionsEtiquettes;
 
+/**
+ * @Route("/etiquettes")
+*/
 class DimensionEtiquettesController extends AbstractController
 {
     /**
@@ -33,7 +36,7 @@ class DimensionEtiquettesController extends AbstractController
     }
 
     /**
-     * @Route("/etiquettes/parametrage", name="etiquettes_param")
+     * @Route("/parametrage", name="etiquettes_param")
      */
     public function index(): response
     {
@@ -41,7 +44,7 @@ class DimensionEtiquettesController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
-        $dimensions =  $this->dimensionsEtiquettesRepository->getOneDimension();
+        $dimensions =  $this->dimensionsEtiquettesRepository->findOneDimension();
         return $this->render('dimensions_etiquettes/index.html.twig', [
             'dimensions_etiquettes' => $dimensions
         ]);
@@ -49,7 +52,7 @@ class DimensionEtiquettesController extends AbstractController
 
 
     /**
-     * @Route("/etiquettes/ajax-etiquettes", name="ajax_dimensions_etiquettes",  options={"expose"=true},  methods="GET|POST")
+     * @Route("/ajax-etiquettes", name="ajax_dimensions_etiquettes",  options={"expose"=true},  methods="GET|POST")
      */
     public function ajaxMailerServer(Request $request): response
     {
@@ -58,18 +61,14 @@ class DimensionEtiquettesController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
             $em = $this->getDoctrine()->getEntityManager();
-            $dimensions =  $this->dimensionsEtiquettesRepository->getOneDimension();
+            $dimensions =  $this->dimensionsEtiquettesRepository->findOneDimension();
             if ($dimensions === null) {
                 $dimensions = new DimensionsEtiquettes();
-                $dimensions
-                    ->setHeight(intval($data['height']))
-                    ->setWidth(intval($data['width']));
                 $em->persist($dimensions);
-            } else {
-                $dimensions
-                    ->setHeight(intval($data['height']))
-                    ->setWidth(intval($data['width']));
             }
+            $dimensions
+                ->setHeight(intval($data['height']))
+                ->setWidth(intval($data['width']));
             $em->flush();
 
             return new JsonResponse($data);

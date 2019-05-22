@@ -11,6 +11,7 @@ namespace App\Service;
 use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\Menu;
+use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
 use App\Entity\ValeurChampsLibre;
 use App\Entity\CategorieCL;
@@ -150,7 +151,7 @@ class ArticleDataService
             $articleStatut = Article::STATUT_INACTIF;
         }
 
-        $articleFournisseur = $this->articleFournisseurRepository->getByRefArticle($refArticle);
+        $articleFournisseur = $this->articleFournisseurRepository->findByRefArticle($refArticle);
         if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
             if ($modifieRefArticle === true) {
                 $data = $this->refArticleDataService->getDataEditForRefArticle($refArticle);
@@ -163,7 +164,7 @@ class ArticleDataService
             if ($demande == 'livraison') $demande = 'demande';
             $json = $this->templating->render($demande . '/newRefArticleByQuantiteRefContent.html.twig', [
                 'articleRef' => $refArticle,
-                'articles' => $this->articleFournisseurRepository->getByRefArticle($refArticle->getId()),
+                'articles' => $this->articleFournisseurRepository->findByRefArticle($refArticle->getId()),
                 'statut' => ($refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF),
                 'types' => $this->typeRepository->getByCategoryLabel(ReferenceArticle::CATEGORIE),
                 'statuts' => $statuts,
@@ -203,7 +204,6 @@ class ArticleDataService
      */
     public function getCollecteArticleOrNoByRefArticle($refArticle)
     {
-        $articleFournisseur = $this->articleFournisseurRepository->getByRefArticle($refArticle);
         if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
             $data = [
                 'modif' => $this->refArticleDataService->getViewEditRefArticle($refArticle, true),
@@ -213,22 +213,6 @@ class ArticleDataService
             $data = [
                 'selection' => $this->templating->render('collecte/newRefArticleByQuantiteRefContentTemp.html.twig'),
             ];
-            // $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_INACTIF);
-            // $articles = $this->articleRepository->getByAFAndInactif($articleFournisseur, $statut);
-            // if (count($articles) < 1) {
-            //     $articles[] = [
-            //         'id' => '',
-            //         'reference' => 'aucun article disponible',
-            //     ];
-            // }
-            // $data = [
-            //     'selection' => $this->templating->render(
-            //         'collecte/newRefArticleByQuantiteArticleContent.html.twig',
-            //         [
-            //             'articles' => $articles,
-            //         ]
-            //     )
-            // ];
         } else {
             $data = false; //TODO gérer erreur retour
         }
@@ -245,7 +229,7 @@ class ArticleDataService
      */
     public function getLivraisonArticleOrNoByRefArticle($refArticle)
     {
-        $articleFournisseur = $this->articleFournisseurRepository->getByRefArticle($refArticle);
+        $articleFournisseur = $this->articleFournisseurRepository->findByRefArticle($refArticle);
         if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
             $data = [
                 'modif' => $this->refArticleDataService->getViewEditRefArticle($refArticle, true),
@@ -439,33 +423,34 @@ class ArticleDataService
         return $data;
     }
 
-    public function getDataForDatatableByReceptionLigne($ligne)
+    public function getDataForDatatableByReceptionLigne($ligne) //TODO CG
     {
         if ($ligne) {
             $data = $this->getArticleDataByReceptionLigne($ligne);
         } else {
-            $data = $this->getArticleDataByParams(null);
+            $data = $this->getArticleDataByParams();
         }
-        $data['recordsTotal'] = (int)$this->articleRepository->countAll();
-        $data['recordsFiltered'] = count($data['data']);
+//        $data['recordsTotal'] = (int)$this->articleRepository->countAll();
+//        $data['recordsFiltered'] = count($data['data']);
         return $data;
     }
 
     /**
-     * @param null $params
+     * @param ReceptionReferenceArticle $ligne
      * @return array
      * @throws \Twig_Error_Loader
      * @throws \Twig_Error_Runtime
      * @throws \Twig_Error_Syntax
      */
-    public function getArticleDataByReceptionLigne($ligne)
+    public function getArticleDataByReceptionLigne(ReceptionReferenceArticle $ligne)
     {
-        $articleRef = $this->referenceArticleRepository->getByLigneReception($ligne);
-        $articlesFournisseur = $this->articleFournisseurRepository->getByRefArticle($articleRef);
+        $articleRef = $this->referenceArticleRepository->findOneByLigneReception($ligne);
+
+        $listArticleFournisseur = $this->articleFournisseurRepository->findByRefArticle($articleRef);
         $articles = [];
-        foreach ($articlesFournisseur as $af) {
-            foreach ($this->articleRepository->getByAF($af) as $a) {
-                if ($a->getReception() && $ligne->getReception()) $articles[] = $a;
+        foreach ($listArticleFournisseur as $articleFournisseur) {
+            foreach ($this->articleRepository->findByListAF($articleFournisseur) as $article) {
+                if ($article->getReception() && $ligne->getReception()) $articles[] = $article;
             }
         }
         $rows = [];

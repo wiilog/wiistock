@@ -90,6 +90,7 @@ function getDataFromModal(modal) {
     // dans les inputs...
     let Data = {};
     let inputs = modal.find(".data");
+    console.log(inputs);
     // Trouver les champs correspondants aux infos fournisseurs...
     let fournisseursWithRefAndLabel = [];
     let fournisseurReferences = modal.find('input[name="referenceFournisseur"]');
@@ -128,7 +129,7 @@ function getDataFromModal(modal) {
             }
         }
     });
-
+console.log(Data);
     // ... et dans les checkboxes
     let checkboxes = modal.find('.checkbox');
     checkboxes.each(function () {

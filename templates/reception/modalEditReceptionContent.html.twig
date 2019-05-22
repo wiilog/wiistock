@@ -8,8 +8,8 @@
         <label for="statut">Statut</label>
         <select class="form-control data" name="statut">
             {% for statut in statuts %}
-            {% set selected = (statut.id == reception.statut.id ? 'selected' : '') %}
-            <option value="{{ statut.id }}" {{ selected }}>{{ statut.nom }}</option>
+                {% set selected = (statut.id == reception.statut.id ? 'selected' : '') %}
+                <option value="{{ statut.id }}" {{ selected }}>{{ statut.nom }}</option>
             {% endfor %}
         </select>
     </div>
@@ -67,7 +67,7 @@
 </div>
 <div class="form-group col-12 blocVisible d-block" id='typeContentEdit'>
 
-    <div {{ reception.type is not empty and typeId == reception.type.id ? "class='d-block'" : "class='d-none'"}}>
+    <div class="{{ reception.type is not empty and typeId == reception.type.id ? 'd-block' : 'd-none'}}">
         <div class="row mt-2">
             {% for champLibre in typeChampsLibres.champsLibres %}
             <div class="form-group col-6">

@@ -592,7 +592,7 @@ class ReferenceArticleController extends Controller
             $em->remove($this->articleFournisseurRepository->find($data['articleF']));
             $em->flush();
             $json =  $this->renderView('reference_article/fournisseurArticleContent.html.twig', [
-                'articles' => $this->articleFournisseurRepository->getByRefArticle($data['articleRef']),
+                'articles' => $this->articleFournisseurRepository->findByRefArticle($data['articleRef']),
                 'articleRef' => $this->referenceArticleRepository->find($data['articleRef'])
             ]);
             return new JsonResponse($json);
