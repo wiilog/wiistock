@@ -139,7 +139,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
             foreach ($mouvementsR as $mouvementR) {
                 $mouvement = new Mouvement;
                 $mouvement
-                ->setType($mouvementR['type'])
+                    ->setType($mouvementR['type'])
                     ->setDate(DateTime::createFromFormat('j-M-Y', $mouvementR['date']))
                     ->setEmplacement($this->emplacemnt->$mouvementR[''])
                     ->setUser($mouvementR['']);
@@ -158,7 +158,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 
         $data = [
             'emplacements' => array_slice($this->emplacementRepository->getIdAndNom(), 0, 5),
-            'articles' => array_slice(array_merge($articles, $articlesRef), 0, 5) //TODO CG provisoire pour éviter charger trop de données sur mobile en phase test
+            'articles' => $articles //TODO CG provisoire pour éviter charger trop de données sur mobile en phase test
         ];
         return $data;
     }
