@@ -307,6 +307,7 @@ class PreparationController extends AbstractController
                 ->setStatut($this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_BROUILLON));
 
             foreach ($demande->getArticles() as $article) {
+                 $article->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF));
                 if ($article->getWithdrawQuantity()) {
                     $article->setWithdrawQuantity($article->getQuantite());
                     $article->setWithdrawQuantity(0);
