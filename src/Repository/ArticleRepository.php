@@ -28,7 +28,8 @@ class ArticleRepository extends ServiceEntityRepository
             'SELECT a
             FROM App\Entity\Article a
             WHERE a.reception = :id'
-        )->setParameter('id', $id);;
+        )->setParameter('id', $id);
+        ;
         return $query->execute();
     }
 
@@ -65,7 +66,8 @@ class ArticleRepository extends ServiceEntityRepository
             'SELECT a
             FROM App\Entity\Article a
             WHERE a.emplacement = :empl'
-        )->setParameter('empl', $empl);;
+        )->setParameter('empl', $empl);
+        ;
         return $query->execute();
     }
 
@@ -76,7 +78,8 @@ class ArticleRepository extends ServiceEntityRepository
             "SELECT a
             FROM App\Entity\Article a
             WHERE a.Statut = :Statut "
-        )->setParameter('Statut', $statut);;
+        )->setParameter('Statut', $statut);
+        ;
         return $query->execute();
     }
 
@@ -114,7 +117,8 @@ class ArticleRepository extends ServiceEntityRepository
             FROM App\Entity\Article a
             JOIN a.reception r
             WHERE r.id = :id "
-        )->setParameter('id', $id);;
+        )->setParameter('id', $id);
+        ;
         return $query->execute();
     }
 
@@ -211,7 +215,8 @@ class ArticleRepository extends ServiceEntityRepository
             'SELECT a
             FROM App\Entity\Article a
             WHERE a.etat = :etat'
-        )->setParameter('etat', $etat);;
+        )->setParameter('etat', $etat);
+        ;
         return $query->execute();
     }
 
@@ -326,6 +331,20 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->getResult();
     }
 
+    public function findByListAF($listAf)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT a
+          FROM App\Entity\Article a
+          JOIN a.articleFournisseur af
+          WHERE af IN(:articleFournisseur)"
+        )->setParameters([
+            'articleFournisseur' => $listAf,
+        ]);
+
+        return $query->execute();
+    }
 
     public function countAll()
     {

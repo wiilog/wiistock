@@ -11,6 +11,8 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class CategoryType
 {
+//    const TYPE_ARTICLE = 'typeArticle';
+    const TYPE_RECEPTION = 'réception';
     const TYPE_ARTICLES_ET_REF_CEA = 'articles et références CEA';
 
     /**

@@ -6,6 +6,8 @@ use App\Entity\Action;
 use App\Entity\Menu;
 use App\Entity\ValeurChampsLibre;
 use App\Entity\Article;
+use App\Entity\ReferenceArticle;
+use App\Entity\CategorieCL;
 
 use App\Repository\ArticleRepository;
 use App\Repository\StatutRepository;
@@ -19,7 +21,7 @@ use App\Repository\ValeurChampsLibreRepository;
 use App\Repository\ChampsLibreRepository;
 use App\Repository\TypeRepository;
 use App\Repository\CategorieCLRepository;
-
+use App\Repository\DimensionsEtiquettesRepository;
 
 use App\Service\RefArticleDataService;
 use App\Service\ArticleDataService;
@@ -31,18 +33,17 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use App\Entity\ReferenceArticle;
-use App\Entity\CategorieCL;
 
 use Symfony\Component\HttpKernel\Profiler\Profiler;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Proxies\__CG__\App\Entity\CategoryType;
+//TODO CG 3 DESSUS ?
 
 /**
  * @Route("/article")
  */
-class ArticleController extends Controller
-{
+class ArticleController extends AbstractController
+{ //TODO CG controller au lieu abstracty controller ??
 
     /**
      * @var ValeurChampsLibreRepository
@@ -119,9 +120,19 @@ class ArticleController extends Controller
      */
     private $userService;
 
+    /**
+    * @var \Twig_Environment
+    */
+    private $templating;
 
-    public function __construct(CategorieCLRepository $categorieCLRepository, FournisseurRepository $fournisseurRepository, ChampsLibreRepository $champsLibreRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ArticleDataService $articleDataService, TypeRepository $typeRepository, RefArticleDataService $refArticleDataService, ArticleFournisseurRepository $articleFournisseurRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, StatutRepository $statutRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UserService $userService)
+    /**
+     * @var DimensionsEtiquettesRepository
+     */
+    private $dimensionsEtiquettesRepository;
+
+    public function __construct(\Twig_Environment $templating, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, CategorieCLRepository $categorieCLRepository, FournisseurRepository $fournisseurRepository, ChampsLibreRepository $champsLibreRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ArticleDataService $articleDataService, TypeRepository $typeRepository, RefArticleDataService $refArticleDataService, ArticleFournisseurRepository $articleFournisseurRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, StatutRepository $statutRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UserService $userService)
     {
+        $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
         $this->fournisseurRepository = $fournisseurRepository;
         $this->champsLibreRepository = $champsLibreRepository;
         $this->valeurChampsLibreRepository = $valeurChampsLibreRepository;
@@ -137,6 +148,7 @@ class ArticleController extends Controller
         $this->articleDataService = $articleDataService;
         $this->userService = $userService;
         $this->categorieCLRepository = $categorieCLRepository;
+        $this->templating = $templating;
     }
 
     /**
@@ -152,7 +164,7 @@ class ArticleController extends Controller
             $statutVisible = 'true';
         } else {
             $statutVisible = 'false';
-        }
+        } //TODO CG côté twig
 
         return $this->render('article/index.html.twig', [
             'valeurChampsLibre' => null,
@@ -172,7 +184,6 @@ class ArticleController extends Controller
             }
 
             $data = $this->articleDataService->getDataForDatatable($request->request);
-            // dump($data);
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException('404');
@@ -183,17 +194,57 @@ class ArticleController extends Controller
      */
     public function show(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
             $article = $this->articleRepository->find($data);
 
-            $json = $this->renderView('article/modalShowArticleContent.html.twig', [
-                'article' => $article,
-            ]);
+            $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
+            $typeArticle = $refArticle->getType()->getLabel();
+            $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::ARTICLE);
 
+            $champsLibresComplet = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($typeArticle, $categorieCL);
+            $champsLibres = [];
+            foreach ($champsLibresComplet as $champLibre) {
+                $valeurChampArticle = $this->valeurChampsLibreRepository->findOneByChampLibreAndArticle($champLibre->getId(), $article->getId());
+                $champsLibres[] = [
+                    'id' => $champLibre->getId(),
+                    'label' => $champLibre->getLabel(),
+                    'typage' => $champLibre->getTypage(),
+                    'requiredCreate' => $champLibre->getRequiredCreate(),
+                    'requiredEdit' => $champLibre->getRequiredEdit(),
+                    'elements' => ($champLibre->getElements() ? $champLibre->getElements() : ''),
+                    'defaultValue' => $champLibre->getDefaultValue(),
+                    'valeurChampLibre' => $valeurChampArticle
+                ];
+            }
+
+            $typeChampLibre =
+                [
+                    'type' => $typeArticle,
+                    'champsLibres' => $champsLibres,
+                ];
+            if ($article) {
+                $view = $this->templating->render('article/modalShowArticleContent.html.twig', [
+                'typeChampsLibres' => $typeChampLibre,
+                'typeArticle' => $typeArticle,
+                'article' => $article,
+                'statut' => ($article->getStatut()->getNom() === Article::STATUT_ACTIF ? true : false),
+                // 'isADemand' => $isADemand
+            ]);
+                $json = $view;
+            } else {
+                return $json = false;
+            }
             return new JsonResponse($json);
         }
         throw new NotFoundHttpException('404');
     }
+
+
+
 
     /**
      * @Route("/modifier", name="article_api_edit", options={"expose"=true},  methods="GET|POST")
@@ -201,6 +252,7 @@ class ArticleController extends Controller
     public function editApi(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+
             $article = $this->articleRepository->find((int)$data['id']);
             if ($article) {
                 $json = $this->articleDataService->getViewEditArticle($article, $data['isADemand']);
@@ -219,7 +271,6 @@ class ArticleController extends Controller
     public function new(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-
             $response = $this->articleDataService->newArticle($data);
 
             return new JsonResponse($response);
@@ -233,7 +284,6 @@ class ArticleController extends Controller
     public function edit(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-
             if ($data['article']) {
                 $this->articleDataService->editArticle($data);
                 $json = true;
@@ -254,10 +304,12 @@ class ArticleController extends Controller
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
+
             $article = $this->articleRepository->find($data['article']);
             $rows = $article->getId();
-            if (count($article->getCollectes()) > 0 || $article->getDemande() !== null)
+            if (count($article->getCollectes()) > 0 || $article->getDemande() !== null) {
                 return new JsonResponse(false, 250);
+            }
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($article);
             $entityManager->flush();
@@ -438,6 +490,27 @@ class ArticleController extends Controller
                 return new JsonResponse($json, 250);
             }
             return new JsonResponse($json);
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/ajax-article-depuis-id", name="get_article_from_id", options={"expose"=true}, methods="GET|POST")
+     */
+    public function getArticleRefFromId(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $dataContent = json_decode($request->getContent(), true)) {
+            $data = [];
+            $data['articleRef'] = $this->articleRepository->find(intval($dataContent['article']))->getReference();
+            $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
+            if ($dimension) {
+                $data['height'] = $dimension->getHeight();
+                $data['width'] = $dimension->getWidth();
+                $data['exists'] = true;
+            } else {
+                $data['exists'] = false;
+            }
+            return new JsonResponse($data);
         }
         throw new NotFoundHttpException('404');
     }

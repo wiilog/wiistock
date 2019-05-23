@@ -9,7 +9,7 @@
         <li>
             <div class="menu-header">
                 <img src="{{asset('img/Logo-FollowGTpetit.png')}}" class='logoGt'>
-                <div class="version"> V1.0.3</div>
+                <div class="version"> V1.0.4</div>
                 <h4 class="mt-2">{{ app.user.username }}</h4>
             </div>
         </li>
@@ -105,32 +105,35 @@
 
         <!-- PARAMETRAGE -->
         {% if (hasRight(constant('App\\Entity\\Menu::PARAM'))) %}
-        <li class="menu-item has-submenu">
-            <a href="#">
-                <i class="fas fa-gear"></i>
-                <h4>Paramétrage</h4>
-            </a>
-            <ul class="sidemenu-sub">
-                <li>
-                    <a href="{{ path('role_index') }}" class="sub-item">• Rôles</a>
-                </li>
-                <li>
-                    <a href="{{ path('user_index') }}" class="sub-item">• Utilisateurs</a>
-                </li>
-                <li>
-                    <a href="{{ path('champ_libre_index') }}" class="sub-item">• Champs libres</a>
-                </li>
-                <li>
-                    <a href="{{ path('alerte_index') }}" class="sub-item">• Alertes</a>
-                </li>
-                <li>
-                    <a href="{{ path('mailer_server') }}" class="sub-item">• Configuration email</a>
-                </li>
-                <li>
-                    <a href="{{ path('exports_params') }}" class="sub-item">• Export de données</a>
-                </li>
-            </ul>
-        </li>
+            <li class="menu-item has-submenu">
+                <a href="#">
+                    <i class="fas fa-gear"></i>
+                    <h4>Paramétrage</h4>
+                </a>
+                <ul class="sidemenu-sub">
+                    <li>
+                        <a href="{{ path('role_index') }}" class="sub-item">• Rôles</a>
+                    </li>
+                    <li>
+                        <a href="{{ path('user_index') }}" class="sub-item">• Utilisateurs</a>
+                    </li>
+                    <li>
+                        <a href="{{ path('champ_libre_index') }}" class="sub-item">• Champs libres</a>
+                    </li>
+                    <li>
+                        <a href="{{ path('alerte_index') }}" class="sub-item">• Alertes</a>
+                    </li>
+                    <li>
+                        <a href="{{ path('mailer_server') }}" class="sub-item">• Configuration email</a>
+                    </li>
+                    <li>
+                        <a href="{{ path('etiquettes_param') }}" class="sub-item">• Configuration étiquettes</a>
+                    </li>
+                    <li>
+                        <a href="{{ path('exports_params') }}" class="sub-item">• Export de données</a>
+                    </li>
+                </ul>
+            </li>
         {% endif %}
 
         <li class="menu-item">

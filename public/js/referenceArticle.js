@@ -128,7 +128,6 @@ function getDataFromModal(modal) {
             }
         }
     });
-
     // ... et dans les checkboxes
     let checkboxes = modal.find('.checkbox');
     checkboxes.each(function () {
