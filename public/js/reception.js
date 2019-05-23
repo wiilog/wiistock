@@ -21,9 +21,6 @@ let table = $('#tableReception_id').DataTable({
 });
 
 let pathArticle = Routing.generate('article_by_reception_api', true);
-// let params = {
-//     'ligne': $('#ligneSelected').val()
-// } //TODO CG sert à quoi ? à quel moment est modifié ? tjs à -1 ?
 
 let initDataTableDone = false;
 function initDatatableConditionnement() {

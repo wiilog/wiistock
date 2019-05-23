@@ -102,10 +102,6 @@
                 {% elseif champLibre.typage == 'date' %}
                 <input type="date" name="{{ champLibre.id }}" id="{{champLibre.id ~ 'edit'}}" class="form-control data"
                     value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}">
-
-                {% else %}
-                <input disabled>
-                    {#TODO CG sert à quoi ? #}
                 {% endif %}
             </div>
             {% endfor %}

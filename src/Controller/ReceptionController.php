@@ -766,7 +766,7 @@ class ReceptionController extends AbstractController
                     $listArticleFournisseur = $this->articleFournisseurRepository->findByRefArticle($recepRef->getReferenceArticle());
 //                    foreach ($listArticleFournisseur as $af) {
                         $listArticle = $this->articleRepository->findByListAF($listArticleFournisseur);
-                        dump($listArticle);
+
                         foreach ($listArticle as $article) { /** @var Article $article */
                             if ($article->getReception() && $article->getReception() === $reception) {
                                 array_push($data['refs'], $article->getReference());
@@ -775,7 +775,7 @@ class ReceptionController extends AbstractController
 //                    }
                 }
             }
-            dump($data);
+
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
