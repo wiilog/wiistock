@@ -1,5 +1,5 @@
 function initExport(button, type) {
-    if (!button.attr('data-clicked') || button.attr('data-clicked') === false) {
+    if (!button.attr('data-clicked') || button.attr('data-clicked') === "false") {
         button.attr('data-clicked', true);
         button.css('pointer-events', 'none');
         button.removeClass('btn-primary');
