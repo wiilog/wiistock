@@ -46,7 +46,6 @@ let startPreparation = function (value) {
     xhttp.open("POST", path, true);
     xhttp.send(Json);
 }
-let json = { id: select.val(), isADemand: 1 };
 
 // let modalNewArticle = $("#modalNewArticle");
 // let submitNewArticle = $("#submitNewArticle");
