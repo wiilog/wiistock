@@ -18,7 +18,7 @@ function initExport(button, type) {
 async function exportAll(type, total, headers, button) {
     let increment = 100;
     let csv = headers + '\n';
-    for (i = 0; i < total; i += increment) {
+    for (i = 0; i < 100; i += increment) {
         let path = type === "ref" ? 'reference_article_export'
                     : type === "art" ? 'article_export'
                     : 'other_export';

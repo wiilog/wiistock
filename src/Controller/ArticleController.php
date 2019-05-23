@@ -116,8 +116,8 @@ class ArticleController extends Controller
     private $userService;
 
     /**
-    * @var \Twig_Environment
-    */
+     * @var \Twig_Environment
+     */
     private $templating;
 
     /**
@@ -216,12 +216,12 @@ class ArticleController extends Controller
                 ];
             if ($article) {
                 $view = $this->templating->render('article/modalShowArticleContent.html.twig', [
-                'typeChampsLibres' => $typeChampLibre,
-                'typeArticle' => $typeArticle,
-                'article' => $article,
-                'statut' => ($article->getStatut()->getNom() === Article::STATUT_ACTIF ? true : false),
-                // 'isADemand' => $isADemand
-            ]);
+                    'typeChampsLibres' => $typeChampLibre,
+                    'typeArticle' => $typeArticle,
+                    'article' => $article,
+                    'statut' => ($article->getStatut()->getNom() === Article::STATUT_ACTIF ? true : false),
+                    // 'isADemand' => $isADemand
+                ]);
                 $json = $view;
             } else {
                 return $json = false;
@@ -512,15 +512,15 @@ class ArticleController extends Controller
         if (!$request->isXmlHttpRequest()) {
             $data = [];
             $data['values'] = [];
-            $headers = ['demandeur', 'statut', 'destination', 'commentaire', 'dateDemande', 'dateValidation', 'reference', 'referenceArticle', 'libelleArticle', 'quantite'];
+            $headersCL = [];
             foreach ($this->champsLibreRepository->findAll() as $champLibre) {
-                $headers[] = $champLibre->getLabel();
+                $headersCL[] = $champLibre->getLabel();
             }
             $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::TYPE_ARTICLES_ET_REF_CEA);
             $refs = $this->articleRepository->findAll();
             if ($max > count($refs)) $max = count($refs);
             for ($i = $min; $i < $max; $i++) {
-                array_push($data['values'], $this->buildInfos($refs[$i], $listTypes, $headers));
+                array_push($data['values'], $this->buildInfos($refs[$i], $listTypes, $headersCL));
             }
             return new JsonResponse($data);
         }
@@ -534,7 +534,7 @@ class ArticleController extends Controller
     {
         if ($request->isXmlHttpRequest()) {
             $data['total'] = $this->articleRepository->countAll();
-            $data['headers'] = ['demandeur', 'statut', 'destination', 'commentaire', 'dateDemande', 'dateValidation', 'reference', 'referenceArticle', 'libelleArticle', 'quantite'];
+            $data['headers'] = ['reference', 'libelle', 'quantitée', 'type', 'statut', 'commentaire', 'emplacement'];
             foreach ($this->champsLibreRepository->findAll() as $champLibre) {
                 array_push($data['headers'], $champLibre->getLabel());
             }
