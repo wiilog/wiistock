@@ -156,20 +156,20 @@ function clearModalRefArticle(modal) {
 
 
 
-let ModalRefArticleNew = $("#modalNewRefArticle");
-let ButtonSubmitRefArticleNew = $("#submitNewRefArticle");
+let modalRefArticleNew = $("#modalNewRefArticle");
+let submitNewRefArticle = $("#submitNewRefArticle");
 let urlRefArticleNew = Routing.generate('reference_article_new', true);
-InitialiserModalRefArticle(ModalRefArticleNew, ButtonSubmitRefArticleNew, urlRefArticleNew, displayErrorRA, false);
+InitialiserModalRefArticle(modalRefArticleNew, submitNewRefArticle, urlRefArticleNew, displayErrorRA, false);
 
-let ModalDeleteRefArticle = $("#modalDeleteRefArticle");
+let modalDeleteRefArticle = $("#modalDeleteRefArticle");
 let SubmitDeleteRefArticle = $("#submitDeleteRefArticle");
 let urlDeleteRefArticle = Routing.generate('reference_article_delete', true);
-InitialiserModalRefArticle(ModalDeleteRefArticle, SubmitDeleteRefArticle, urlDeleteRefArticle);
+InitialiserModalRefArticle(modalDeleteRefArticle, SubmitDeleteRefArticle, urlDeleteRefArticle);
 
 let modalModifyRefArticle = $('#modalEditRefArticle');
 let submitModifyRefArticle = $('#submitEditRefArticle');
 let urlModifyRefArticle = Routing.generate('reference_article_edit', true);
-InitialiserModalRefArticle(modalModifyRefArticle, submitModifyRefArticle, urlModifyRefArticle, displayErrorRA, true);
+InitialiserModalRefArticle(modalModifyRefArticle, submitModifyRefArticle, urlModifyRefArticle, displayErrorRA, false);
 
 let modalPlusDemande = $('#modalPlusDemande');
 let submitPlusDemande = $('#submitPlusDemande');
