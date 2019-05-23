@@ -13,6 +13,15 @@
         <i class='fas fa-trash'></i>
     </div>
     {% endif %}
+    {% if refArticleId is defined %}
+    <div data-id='{{ refArticleId }}' data-target='#modalShowRefArticle' data-toggle='modal' class='col-3'
+        onclick="showRow($(this), Routing.generate('reference_article_show', true), $('#modalShowRefArticle'))">
+        <i class='fas fa-eye'></i></div>
+    {% else %}
+    <div data-id='{{ id }}' data-target='#modalShowArticle' data-toggle='modal' class='col-3'
+        onclick="showRow($(this), Routing.generate('article_show', true), $('#modalShowArticle'))">
+        <i class='fas fa-eye'></i></div>
+    {% endif %}
 
 </div>
 {% endif %}

@@ -172,7 +172,7 @@ class DemandeController extends AbstractController
 
             foreach ($articles as $article) {
                 if ($article->getQuantite() !== $article->getWithdrawQuantity()) {
-                    
+
                     $newArticle = [
                         'articleFournisseur' => $article->getArticleFournisseur()->getId(),
                         'libelle' => $article->getLabel(),
@@ -195,7 +195,7 @@ class DemandeController extends AbstractController
                 $article->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
             }
             $em->flush();
-            
+
             //renvoi de l'en-tête avec modification
             $data = [
                 'entete' => $this->renderView(
@@ -420,6 +420,7 @@ class DemandeController extends AbstractController
                                 'id' => $ligneArticle->getId(),
                                 'name' => (ReferenceArticle::TYPE_QUANTITE_REFERENCE),
                             ],
+                            'refArticleId' => $ligneArticle->getReference()->getId(),
                             'reference' => ReferenceArticle::TYPE_QUANTITE_REFERENCE,
                             'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
                         ]

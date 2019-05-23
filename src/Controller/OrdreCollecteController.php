@@ -170,7 +170,7 @@ class OrdreCollecteController extends AbstractController
                         'mails/mailCollecteDone.html.twig',
                         [
                             'collecte' => $demandeCollecte,
-                            
+
                         ]
                     ),
                     $demandeCollecte->getDemandeur()->getEmail()
@@ -227,7 +227,7 @@ class OrdreCollecteController extends AbstractController
                 foreach ($ligneArticle as $ligneArticle) {
                     /** @var CollecteReference $ligneArticle */
                     $referenceArticle = $ligneArticle->getReferenceArticle();
-                    
+
                     $rows[] = [
                         "Référence CEA" => $referenceArticle ? $referenceArticle->getReference() : ' ',
                         "Libellé" => $referenceArticle ? $referenceArticle->getLibelle() : ' ',
