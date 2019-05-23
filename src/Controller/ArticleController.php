@@ -247,6 +247,7 @@ class ArticleController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
+
             $article = $this->articleRepository->find($data['article']);
             $rows = $article->getId();
             if (count($article->getCollectes()) > 0 || $article->getDemande() !== null)

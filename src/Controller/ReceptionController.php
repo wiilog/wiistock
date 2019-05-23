@@ -18,6 +18,7 @@ use App\Entity\Menu;
 use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\CategoryType;
+use App\Entity\ArticleFournisseur;
 
 use App\Repository\ArticleRepository;
 use App\Repository\EmplacementRepository;
@@ -271,12 +272,11 @@ class ReceptionController extends AbstractController
             }
             $reception =  $this->receptionRepository->find($data['id']);
 
-            $type = $this->typeRepository->getIdAndLabelByCategoryLabel(Reception::CATEGORIE_TYPE); //TODO CG vérif merge
-//            $type = $this->typeRepository->getIdAndLabelByCategoryLabel(Reception::CATEGORIE);
+            $listType = $this->typeRepository->getIdAndLabelByCategoryLabel(Reception::CATEGORIE);
 
             $typeChampLibre =  [];
-            foreach ($type as $label) { //TODO CG modif label
-                $champsLibresComplet = $this->champsLibreRepository->findByTypeId($label['id']);
+            foreach ($listType as $type) {
+                $champsLibresComplet = $this->champsLibreRepository->findByTypeId($type['id']);
                 $champsLibres = [];
                 //création array edit pour vue
                 foreach ($champsLibresComplet as $champLibre) {
@@ -292,8 +292,8 @@ class ReceptionController extends AbstractController
                 }
 
                 $typeChampLibre[] = [
-                    'typeLabel' =>  $label['label'],
-                    'typeId' => $label['id'],
+                    'typeLabel' =>  $type['label'],
+                    'typeId' => $type['id'],
                     'champsLibres' => $champsLibres,
                 ];
             }
@@ -477,14 +477,7 @@ class ReceptionController extends AbstractController
             $reception->setStatut($statut);
             $type = $reception->getType();
 
-//            if ($type) {
-//                $valeurChampLibreTab = $this->valeurChampsLibreRepository->getByReceptionAndType($reception->getId(), $type);
-//            } else {
-//                $valeurChampLibreTab = [];
-//            }
             $valeurChampLibreTab = empty($type) ? [] : $this->valeurChampsLibreRepository->getByReceptionAndType($reception->getId(), $type);
-
-//TODO CG vérif merge
 
             $json = [
                 'entete' =>  $this->renderView('reception/enteteReception.html.twig', [
@@ -560,10 +553,13 @@ class ReceptionController extends AbstractController
             }
 
             $ligneArticle = $this->receptionReferenceArticleRepository->find($data['id']);
+            $canUpdateQuantity = $ligneArticle->getReferenceArticle()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE;
 
             $json =  $this->renderView(
-                'reception/modalModifyLigneArticleContent.html.twig',
-                ['ligneArticle' => $ligneArticle]
+                'reception/modalModifyLigneArticleContent.html.twig', [
+                    'ligneArticle' => $ligneArticle,
+                    'canUpdateQuantity' => $canUpdateQuantity
+                ]
             );
             return new JsonResponse($json);
         }
@@ -641,12 +637,11 @@ class ReceptionController extends AbstractController
         }
 
         $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(Reception::CATEGORIE);
-        $typeChampLibre =  [];
-        $champsLibres = []; //TODO CG
+        $champsLibres = [];
         foreach ($listTypes as $type) {
-            $listChampLibre = $this->champsLibreRepository->findByTypeId($type['id']);
+            $listChampLibreReception = $this->champsLibreRepository->findByTypeId($type['id']);
 
-            foreach ($listChampLibre as $champLibre) {
+            foreach ($listChampLibreReception as $champLibre) {
                 $valeurChampLibre = $this->valeurChampsLibreRepository->findOneByReceptionAndChampLibre($reception->getId(), $champLibre);
 
                 $champsLibres[] = [
@@ -656,14 +651,8 @@ class ReceptionController extends AbstractController
                     'elements' => $champLibre->getElements() ? $champLibre->getElements() : '',
                     'defaultValue' => $champLibre->getDefaultValue(),
                     'valeurChampLibre' => $valeurChampLibre,
-//                    'valeurChampLibreTab' => $valeurChampLibreTab,
                 ];
             }
-            $typeChampLibre = [
-                'typeLabel' =>  $type['label'],
-                'typeId' => $type['id'],
-                'champsLibres' => $champsLibres,
-            ];
         }
 
         return  $this->render("reception/show.html.twig", [
@@ -671,9 +660,7 @@ class ReceptionController extends AbstractController
             'type' =>  $this->typeRepository->findOneByCategoryLabel(Reception::CATEGORIE),
             'modifiable' => ($reception->getStatut()->getNom() !== (Reception::STATUT_RECEPTION_TOTALE)),
             'statuts' =>  $this->statutRepository->findByCategorieName(Reception::CATEGORIE),
-            'valeurChampsLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
-            'typeChampsLibres' => $typeChampLibre,
-            'champsLibres' => $champsLibres,
+//            'champsLibres' => $champsLibres,
             'typeId' => $reception->getType() ? $reception->getType()->getId() : '',
             'valeurChampLibreTab' => $valeurChampLibreTab,
         ]);

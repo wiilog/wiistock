@@ -423,15 +423,13 @@ class ArticleDataService
         return $data;
     }
 
-    public function getDataForDatatableByReceptionLigne($ligne) //TODO CG
+    public function getDataForDatatableByReceptionLigne($ligne)
     {
         if ($ligne) {
             $data = $this->getArticleDataByReceptionLigne($ligne);
         } else {
             $data = $this->getArticleDataByParams();
         }
-//        $data['recordsTotal'] = (int)$this->articleRepository->countAll();
-//        $data['recordsFiltered'] = count($data['data']);
         return $data;
     }
 

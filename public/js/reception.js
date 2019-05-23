@@ -1,8 +1,8 @@
 $('.select2').select2();
 
 //RECEPTION
-var path = Routing.generate('reception_api', true);
-var table = $('#tableReception_id').DataTable({
+let path = Routing.generate('reception_api', true);
+let table = $('#tableReception_id').DataTable({
     order: [[1, "desc"]],
     language: {
         url: "/js/i18n/dataTableLanguage.json",
@@ -25,47 +25,57 @@ let pathArticle = Routing.generate('article_by_reception_api', true);
 //     'ligne': $('#ligneSelected').val()
 // } //TODO CG sert à quoi ? à quel moment est modifié ? tjs à -1 ?
 
-let tableFromArticle = $('#tableArticleInner_id').DataTable({
-    pageLength: 5,
-    lengthMenu: [[5, 10, 20, -1], [5, 10, 20, 'tous les']],
-    "language": {
-        url: "/js/i18n/dataTableLanguage.json",
-    },
-    ajax: {
-        "url": pathArticle,
-        "type": "POST",
-        "data": function () {
-            return {
-                'ligne': $('#ligneSelected').val()
-            }
-        },
-    },
-    columns: [
-        { "data": 'Référence', 'name': 'Référence', 'title': 'Référence' },
-        { "data": "Statut", 'name': 'Statut', 'title': 'Statut' },
-        { "data": 'Libellé', 'name': 'Libellé', 'title': 'Libellé' },
-        { "data": 'Référence article', 'name': 'Référence article', 'title': 'Référence article' },
-        { "data": 'Quantité', 'name': 'Quantité', 'title': 'Quantité' },
-        { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' }
-    ],
-});
+let initDataTableDone = false;
+function initDatatableConditionnement() {
+    if (!initDataTableDone) {
+        var tableFromArticle = $('#tableArticleInner_id').DataTable({
+            info: false,
+            paging: false,
+            "language": {
+                url: "/js/i18n/dataTableLanguage.json",
+            },
+            searching: false,
+            ajax: {
+                "url": pathArticle,
+                "type": "POST",
+                "data": function () {
+                    return {
+                        'ligne': $('#ligneSelected').val()
+                    }
+                },
+            },
+            columns: [
+                {"data": 'Référence', 'name': 'Référence', 'title': 'Référence'},
+                {"data": "Statut", 'name': 'Statut', 'title': 'Statut'},
+                {"data": 'Libellé', 'name': 'Libellé', 'title': 'Libellé'},
+                {"data": 'Référence article', 'name': 'Référence article', 'title': 'Référence article'},
+                {"data": 'Quantité', 'name': 'Quantité', 'title': 'Quantité'},
+                {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'}
+            ],
+        });
 
-$(document).ready(function () {
-    let statutVisible = $(".statutVisible").val();
-    if (!statutVisible) {
-        tableFromArticle.column('Statut:name').visible(false);
+        let statutVisible = $(".statutVisible").val();
+        if (!statutVisible) {
+            tableFromArticle.column('Statut:name').visible(false);
+        }
+        initDataTableDone = true;
+        initModalCondit(tableFromArticle);
+    } else {
+        $('#tableArticleInner_id').DataTable().ajax.reload();
     }
-});
+}
 
-let modalEditInnerArticle = $("#modalEditArticle");
-let submitEditInnerArticle = $("#submitEditArticle");
-let urlEditInnerArticle = Routing.generate('article_edit', true);
-InitialiserModalArticle(modalEditInnerArticle, submitEditInnerArticle, urlEditInnerArticle);
+function initModalCondit(tableFromArticle) {
+    let modalEditInnerArticle = $("#modalEditArticle");
+    let submitEditInnerArticle = $("#submitEditArticle");
+    let urlEditInnerArticle = Routing.generate('article_edit', true);
+    InitialiserModalArticle(modalEditInnerArticle, submitEditInnerArticle, urlEditInnerArticle, tableFromArticle);
 
-let modalDeleteInnerArticle = $("#modalDeleteArticle");
-let submitDeleteInnerArticle = $("#submitDeleteArticle");
-let urlDeleteInnerArticle = Routing.generate('article_delete', true);
-InitialiserModalArticle(modalDeleteInnerArticle, submitDeleteInnerArticle, urlDeleteInnerArticle);
+    let modalDeleteInnerArticle = $("#modalDeleteArticle");
+    let submitDeleteInnerArticle = $("#submitDeleteArticle");
+    let urlDeleteInnerArticle = Routing.generate('article_delete', true);
+    InitialiserModalArticle(modalDeleteInnerArticle, submitDeleteInnerArticle, urlDeleteInnerArticle, tableFromArticle);
+}
 
 let modalReceptionNew = $("#modalNewReception");
 let SubmitNewReception = $("#submitButton");
@@ -378,26 +388,28 @@ function printSingleBarcode(button) {
             }
         } else {
             $('#ligneSelected').val(button.data('id'));
-            tableFromArticle.ajax.reload(function (json) {
-                if (this.responseText !== undefined) {
-                    $('#myInput').val(json.lastInput);
-                }
-            });
+            initDatatableConditionnement();
+            // tableFromArticle.ajax.reload(function (json) {
+            //     if (this.responseText !== undefined) {
+            //         $('#myInput').val(json.lastInput);
+            //     }
+            // });
             $('#chooseConditionnement').click();
-            $('#submitConditionnement').attr('data-ref', response.article)
-            $('#submitConditionnement').attr('data-id', button.data('id'))
+            let $submit = $('#submitConditionnement');
+            $submit.attr('data-ref', response.article)
+            $submit.attr('data-id', button.data('id'))
         }
     });
 }
 
-function InitialiserModalArticle(modal, submit, path, callback = function () { }, close = true) {
+function InitialiserModalArticle(modal, submit, path, table, callback = function () { }, close = true) {
     submit.click(function () {
         xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function () {
             if (this.readyState == 4 && this.status == 200) {
                 $('.errorMessage').html(JSON.parse(this.responseText))
                 data = JSON.parse(this.responseText);
-                tableArticle.ajax.reload(function (json) {
+                table.ajax.reload(function (json) {
                     if (this.responseText !== undefined) {
                         $('#myInput').val(json.lastInput);
                     }
