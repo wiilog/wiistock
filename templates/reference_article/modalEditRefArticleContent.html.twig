@@ -1,4 +1,6 @@
+
 {% set editable = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+
 {% set disabled = editable ? '' : 'disabled' %}
 
 <div class="row">
@@ -100,13 +102,13 @@
         <div class="input-group reference {{ dnone }}">
             <label class="mtb-auto mr-2">Emplacement</label>
             <select name="emplacement" class="form-control ajax-autocompleteEmplacement-edit data">
-                <option value="{{ articleRef.emplacement.id }}">"{{ articleRef.emplacement.label }}"</option>>
+                <option value="{{ articleRef.emplacement.id }}">"{{ articleRef.emplacement.label }}"</option>
             </select>
         </div>
         {% else %}
         <div class="input-group reference {{ dnone }}">
             <label class="mtb-auto mr-2">Emplacement</label>
-            <select name="emplacement" class="form-control ajax-autocompleteEmplacement-edit data">
+            <select {{ disabled }} name="emplacement" class="form-control ajax-autocompleteEmplacement-edit data">
                 <option value=" "></option>>
             </select>
         </div>

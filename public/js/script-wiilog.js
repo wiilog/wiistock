@@ -170,6 +170,7 @@ function deleteRow(button, modal, submit) {
  * 
  */
 function showRow(button, path, modal) {
+    
     let id = button.data('id');
     let params = JSON.stringify(id);
     $.post(path, params, function (data) {
@@ -236,7 +237,6 @@ function toggleRadioButton(button) {
 //initialisation editeur de texte une seule fois
 
 function initEditor(modal) {
-
     var quill = new Quill(modal + ' .editor-container', {
         modules: {
             //     toolbar: [
@@ -304,14 +304,14 @@ function setCommentaire(div) {
 };
 
 //passe de l'éditeur à l'imput pour insertion en BDD par l'id commentaireID (cas de conflit avec la class)
-// function setCommentaireID(button) {
-//     let modal = button.closest('.modal');
-//     let container = '#' + modal.attr('id') + ' .editor-container';
-//     var quill = new Quill(container);
-//     // let commentaire = modal.find('input[id=commentaireID]');
-//     com = quill.container.firstChild.innerHTML;
-//     $('#commentaireID').val(com);
-// };
+function setCommentaireID(button) {
+    let modal = button.closest('.modal');
+    let container = '#' + modal.attr('id') + ' .editor-container';
+    var quill = new Quill(container);
+    // let commentaire = modal.find('input[id=commentaireID]');
+    com = quill.container.firstChild.innerHTML;
+    $('#commentaireID').val(com);
+};
 
 
 //FONCTION REFARTICLE

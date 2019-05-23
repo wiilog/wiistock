@@ -23,6 +23,7 @@ let tableArticle = $('#table-lignes').DataTable({
     columns: [
         { "data": 'Référence CEA', 'title': 'Référence CEA' },
         { "data": 'Libellé', 'title': 'Libellé' },
+        { "data": 'Emplacement', 'title': 'Emplacement' },
         { "data": 'Quantité', 'title': 'Quantité' },
         { "data": 'Quantité à prélever', 'title': 'Quantité à prélever' },
         { "data": 'Actions', 'title': 'Actions' }

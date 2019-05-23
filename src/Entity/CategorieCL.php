@@ -14,6 +14,7 @@ class CategorieCL
 
     const REFERENCE_CEA = 'reference CEA';
     const ARTICLE = 'article';
+    const RECEPTION = 'réception';
     const AUCUNE = 'aucune';
 
     /**

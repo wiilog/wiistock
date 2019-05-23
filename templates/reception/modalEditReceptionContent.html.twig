@@ -1,51 +1,111 @@
-<div class="form-group">
-    <label for="NumeroReception">Numéro Réception</label>
-    <input type="text" class="form-control data" name="NumeroReception" id='reference'
-        value="{{reception.numeroReception}}" placeholder="N°Reception">
+<div class="row">
+    <div class="form-group col-6">
+        <label for="NumeroReception">Numéro Réception</label>
+        <input type="text" class="form-control data" name="NumeroReception" id='reference'
+            value="{{reception.numeroReception}}" placeholder="N°Reception">
+    </div>
+    <div class="form-group col-6">
+        <label for="statut">Statut</label>
+        <select class="form-control data" name="statut">
+            {% for statut in statuts %}
+                {% set selected = (statut.id == reception.statut.id ? 'selected' : '') %}
+                <option value="{{ statut.id }}" {{ selected }}>{{ statut.nom }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
 </div>
 
-<div class="form-group">
-    <label for="date-commande">Date commande</label>
-    <input type="date" class="form-control data" name="date-commande" id="dateCommande"
-        value="{{reception.date | date('Y-m-d')}}" required="true" min="{{ 'now' | date('Y-m-d') }}"
-        max="{{ '+25year' | date('Y-m-d') }}">
+<div class="row">
+    <div class="form-group col-6">
+        <label for="date-commande">Date commande</label>
+        <input type="date" class="form-control data" name="date-commande" id="dateCommande"
+            value="{{reception.date | date('Y-m-d')}}" required="true" min="{{ 'now' | date('Y-m-d') }}"
+            max="{{ '+25year' | date('Y-m-d') }}">
+    </div>
+
+    <div class="form-group col-6">
+        <label for="date-attendu">Date attendue</label>
+        <input type="date" class="form-control data" name="date-attendu" id='dateAttendu'
+            value="{{reception.dateAttendu | date('Y-m-d')}}" required="true" min="{{ 'now' | date('Y-m-d') }}"
+            max="{{ '+25year' | date('Y-m-d') }}">
+    </div>
 </div>
 
-<div class="form-group">
-    <label for="date-attendu">Date attendue</label>
-    <input type="date" class="form-control data" name="date-attendu" id='dateAttendu'
-        value="{{reception.dateAttendu | date('Y-m-d')}}" required="true" min="{{ 'now' | date('Y-m-d') }}"
-        max="{{ '+25year' | date('Y-m-d') }}">
-</div>
-<div class="form-group">
-    <label for="statut">Statut</label>
-    <select class="form-control data" name="statut">
-        {% for statut in statuts %}
-            {% set selected = (statut.id == reception.statut.id ? 'selected' : '') %}
-            <option value="{{ statut.id }}" {{ selected }}>{{ statut.nom }}</option>
-        {% endfor %}
-    </select>
-</div>
-<div class="form-group w-100">
-    <label for="fournisseurs">Fournisseur</label>
-    <select class="form-control ajax-autocomplete-fournisseur-edit data" name="fournisseur" id='fournisseur'>
-        <option value="{{reception.fournisseur.id}}">{{ reception.fournisseur.nom }}</option>
-        
-    </select>
-</div>
-<div class="form-group w-100">
-    <label for="utilisateur">Utilisateur</label>
-    <select class="form-control ajax-autocomplete-user-edit data" name="utilisateur">
-        <option value="{{reception.utilisateur.id}}">{{ reception.utilisateur.username }}</option>
-        
-    </select>
-</div>
+<div class="row">
+    <div class="form-group w-100 col-6">
+        <label for="fournisseurs">Fournisseur</label>
+        <select class="form-control ajax-autocomplete-fournisseur-edit data" name="fournisseur" id='fournisseur'>
+            <option value="{{reception.fournisseur.id}}">{{ reception.fournisseur.nom }}</option>
 
+        </select>
+    </div>
+    <div class="form-group w-100 col-6">
+        <label for="utilisateur">Utilisateur</label>
+        <select class="form-control ajax-autocomplete-user-edit data" name="utilisateur">
+            <option value="{{reception.utilisateur.id}}">{{ reception.utilisateur.username }}</option>
+
+        </select>
+    </div>
+</div>
 <div class="form-group">
     <label for="Reception">Commentaire</label>
-    <input id='commentaire' class="form-control data" name="commentaire" type="hidden" value="{{reception.commentaire}}">
-        <div class="editor-container" value="{{reception.commentaire}}"> {{reception.commentaire|raw}}
-            </div>
+    <input id='commentaire' class="form-control data" name="commentaire" type="hidden"
+        value="{{reception.commentaire}}">
+    <div class="editor-container-edit" id="editor-container" value="{{reception.commentaire}}"> {{reception.commentaire|raw}}
+    </div>
 </div>
 
 
+<!-- CHAMPS LIBRES -->
+<div class='col-12 mb-2' onclick="visibleBlockModal($(this))">
+    <h3 class='d-flex pointer'>
+        <i class="fas fa-sort-up d-block mr-2"></i>
+        <i class="fas fa-sort-down  d-none mr-2"></i>
+        Champs libres
+    </h3>
+</div>
+<div class="form-group col-12 blocVisible d-block" id='typeContentEdit'>
+    {% for typeChampLibre in typeChampsLibres %}
+        <div class="{{ reception.type is not empty and typeChampLibre.typeId == reception.type.id ? 'd-block' : 'd-none'}}">
+        <div class="row mt-2">
+            {% for champLibre in typeChampLibre.champsLibres %}
+            <div class="form-group col-6">
+                <label for="input">{{ champLibre.label | capitalize}}</label>
+
+                {% if champLibre.typage == 'booleen' %}
+                {% set checked = ((champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : 0) == 1) ? 'checked' : '' %}
+                <label class="switch">
+                    <input type="checkbox" class="data checkbox" {{ checked }} name="{{ champLibre.id}}">
+                    <span class="slider round"></span>
+                </label>
+
+                {% elseif  champLibre.typage == 'number' %}
+                <input type="number" id="{{ champLibre.id ~ 'edit'}}" class="form-control data"
+                    value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}"
+                    name="{{ champLibre.id}}" id="input">
+
+                {% elseif  champLibre.typage == 'list' %}
+                <select class="form-control data" id="{{ champLibre.id ~ 'edit'}}" name="{{ champLibre.id}}" id="input">
+                    <option value="">aucune selection...</option>
+                    {% for elem in  champLibre.elements %}
+                    {% set selected = elem ==( champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' )? 'selected' : '' %}
+                    <option value="{{elem}}" {{ selected }}>{{elem}}</option>
+                    {% endfor %}
+                </select>
+
+                {% elseif champLibre.typage == 'text' %}
+                <input type="text" id="{{ champLibre.id ~ 'edit'}}" class="form-control data"
+                    value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}"
+                    name="{{  champLibre.id }}" id="input">
+
+                {% elseif champLibre.typage == 'date' %}
+                <input type="date" name="{{ champLibre.id }}" id="{{champLibre.id ~ 'edit'}}" class="form-control data"
+                    value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}">
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
