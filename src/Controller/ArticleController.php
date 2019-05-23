@@ -4,10 +4,10 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\Menu;
-use App\Entity\ValeurChampsLibre;
 use App\Entity\Article;
 use App\Entity\ReferenceArticle;
 use App\Entity\CategorieCL;
+use App\Entity\CategoryType;
 
 use App\Repository\ArticleRepository;
 use App\Repository\StatutRepository;
@@ -27,23 +27,18 @@ use App\Service\RefArticleDataService;
 use App\Service\ArticleDataService;
 use App\Service\UserService;
 
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-
-use Symfony\Component\HttpKernel\Profiler\Profiler;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
-use Proxies\__CG__\App\Entity\CategoryType;
-//TODO CG 3 DESSUS ?
 
 /**
  * @Route("/article")
  */
-class ArticleController extends AbstractController
-{ //TODO CG controller au lieu abstracty controller ??
+class ArticleController extends Controller
+{
 
     /**
      * @var ValeurChampsLibreRepository
@@ -160,16 +155,9 @@ class ArticleController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
-        if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
-            $statutVisible = 'true';
-        } else {
-            $statutVisible = 'false';
-        } //TODO CG côté twig
-
         return $this->render('article/index.html.twig', [
             'valeurChampsLibre' => null,
             'type' => $this->typeRepository->findOneByCategoryLabel(Article::CATEGORIE),
-            'statutVisible' => $statutVisible
         ]);
     }
 
@@ -522,7 +510,6 @@ class ArticleController extends AbstractController
     public function exportAll(Request $request, $max, $min): Response
     {
         if (!$request->isXmlHttpRequest()) {
-            //$this->get('profiler')->disable();
             $data = [];
             $data['values'] = [];
             $headers = ['demandeur', 'statut', 'destination', 'commentaire', 'dateDemande', 'dateValidation', 'reference', 'referenceArticle', 'libelleArticle', 'quantite'];
@@ -558,11 +545,11 @@ class ArticleController extends AbstractController
 
     public function buildInfos(Article $ref, $listTypes, $headers)
     {
-        $refData[] = $ref->getReference();
-        $refData[] = $ref->getLabel();
-        $refData[] = $ref->getQuantite();
-        $refData[] = $ref->getType()->getLabel();
-        $refData[] = $ref->getStatut()->getNom();
+        $refData[] = $ref->getReference() ? $ref->getReference() : '';
+        $refData[] = $ref->getLabel() ? $ref->getLabel() : '';
+        $refData[] = $ref->getQuantite() ? $ref->getQuantite() : '';
+        $refData[] = $ref->getType() ? ($ref->getType()->getLabel() ? $ref->getType()->getLabel() : '') : '';
+        $refData[] = $ref->getStatut() ? $ref->getStatut()->getNom() : '';
         $refData[] = strip_tags($ref->getCommentaire());
         $refData[] = $ref->getEmplacement() ? $ref->getEmplacement()->getLabel() : '';
         $categorieCL = $this->categorieCLRepository->findOneByLabel('article');

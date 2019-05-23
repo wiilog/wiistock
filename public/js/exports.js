@@ -5,7 +5,7 @@ function initExport(button, type) {
         button.removeClass('btn-primary');
         button.addClass('btn-light');
         button.css('background', 'linear-gradient(to right, #00b31e 1%, grey 1%');
-        button.html('Export CSV en cours d\'initialisation...');
+        button.html('Export CSV en cours ...');
         let route = type === "ref" ? Routing.generate('get_total_and_headers_ref', true)
                     : type === "art" ? Routing.generate('get_total_and_headers_art', true) 
                     : Routing.generate('get_total_and_headers_other', true);
@@ -66,16 +66,16 @@ let dlFile = function (csv, type) {
     let d = new Date();
     let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
     date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
-    var exportedFilenmae = type === "ref" ? 'export-referencesCEA-' + date + '.csv' 
+    let exportedFilenmae = type === "ref" ? 'export-referencesCEA-' + date + '.csv'
                                             : type === "art" ? 'export-articles-' + date + '.csv' 
                                             : 'export-others-' + data + '.csv';
-    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    let blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     if (navigator.msSaveBlob) { // IE 10+
         navigator.msSaveBlob(blob, exportedFilenmae);
     } else {
-        var link = document.createElement("a");
+        let link = document.createElement("a");
         if (link.download !== undefined) {
-            var url = URL.createObjectURL(blob);
+            let url = URL.createObjectURL(blob);
             link.setAttribute("href", url);
             link.setAttribute("download", exportedFilenmae);
             link.style.visibility = 'hidden';
