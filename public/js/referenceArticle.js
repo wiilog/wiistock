@@ -213,7 +213,7 @@ function initTableRefArticle() {
             'drawCallback': function () {
                 loadSpinnerAR($('#spinner'));
                 initRemove();
-                hideAndShowColumns();
+                // hideAndShowColumns();
             },
             length: 10,
             columns: columns,

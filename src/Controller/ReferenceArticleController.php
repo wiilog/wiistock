@@ -782,7 +782,10 @@ class ReferenceArticleController extends Controller
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
             }
+            $champsFixe = ["Action", "Libellé", "Référence", "Type", "Quantité", "Emplacement"];
             $champs = array_keys($data);
+            $champs= array_merge($champsFixe, $champs);
+    dump($champs);
             $user  = $this->getUser();
             /** @var $user Utilisateur */
             $user->setColumnVisible($champs);

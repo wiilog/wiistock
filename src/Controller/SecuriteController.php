@@ -95,11 +95,12 @@ class SecuriteController extends Controller
                 ->setStatus(true)
                 ->setPassword($password)
                 ->setRoles(['USER']) // évite bug -> champ roles ne doit pas être vide
-                ->setRole($this->roleRepository->findOneByLabel(Role::NO_ACCESS_USER));
+                ->setRole($this->roleRepository->findOneByLabel(Role::NO_ACCESS_USER))
+                ->setColumnVisible(["Action", "Libellé", "Référence", "Type", "Quantité", "Emplacement"]);
             $em->persist($user);
             $em->flush();
             $session->getFlashBag()->add('success', 'Félicitations ! Votre nouveau compte a été créé avec succès !');
-
+dump($user);
             return $this->redirectToRoute('login');
         }
 

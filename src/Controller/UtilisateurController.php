@@ -121,9 +121,11 @@ class UtilisateurController extends Controller
                 ->setStatus(true)
                 ->setRoles(['USER']) // évite bug -> champ roles ne doit pas être vide
                 ->setPassword($password);
+                
             $em = $this->getDoctrine()->getManager();
             $em->persist($utilisateur);
             $em->flush();
+            dump($utilisateur);
 
             return new JsonResponse(true);
         }
