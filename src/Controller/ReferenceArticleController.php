@@ -807,7 +807,7 @@ class ReferenceArticleController extends Controller
             $refArticle  = $this->referenceArticleRepository->find($data);
          
             $data = $this->refArticleDataService->getDataEditForRefArticle($refArticle);
-            $articlesFournisseur = $this->articleFournisseurRepository->getByRefArticle($refArticle->getId());
+            $articlesFournisseur = $this->articleFournisseurRepository->findByRefArticle($refArticle->getId());
             $type = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::TYPE_ARTICLES_ET_REF_CEA);
             $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_CEA);
             $typeChampLibre =  [];
