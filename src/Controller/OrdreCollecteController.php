@@ -8,8 +8,10 @@ use App\Entity\Collecte;
 use App\Entity\CollecteReference;
 use App\Entity\Menu;
 use App\Entity\OrdreCollecte;
+// use App\Entity\Emplacement;
 
 use App\Repository\ArticleRepository;
+// use App\Repository\EmplacementRepository;
 use App\Repository\CollecteReferenceRepository;
 use App\Repository\CollecteRepository;
 use App\Repository\OrdreCollecteRepository;
@@ -168,7 +170,7 @@ class OrdreCollecteController extends AbstractController
                         'mails/mailCollecteDone.html.twig',
                         [
                             'collecte' => $demandeCollecte,
-                            
+
                         ]
                     ),
                     $demandeCollecte->getDemandeur()->getEmail()
@@ -225,12 +227,15 @@ class OrdreCollecteController extends AbstractController
                 foreach ($ligneArticle as $ligneArticle) {
                     /** @var CollecteReference $ligneArticle */
                     $referenceArticle = $ligneArticle->getReferenceArticle();
+
                     $rows[] = [
                         "Référence CEA" => $referenceArticle ? $referenceArticle->getReference() : ' ',
                         "Libellé" => $referenceArticle ? $referenceArticle->getLibelle() : ' ',
+                        "Emplacement" => $referenceArticle->getEmplacement() ? $referenceArticle->getEmplacement()->getLabel() : '',
                         "Quantité" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ' '),
                         "Actions" => $this->renderView('ordre_collecte/datatableOrdreCollecteRow.html.twig', [
                             'id' => $ligneArticle->getId(),
+                            'refArticleId' => $ligneArticle->getReferenceArticle()->getId(),
                             'modifiable' => $collecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER,
                         ])
                     ];
@@ -242,6 +247,7 @@ class OrdreCollecteController extends AbstractController
                     $rows[] = [
                         'Référence CEA' => $article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
                         'Libellé' => $article->getLabel(),
+                        "Emplacement" => $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
                         'Quantité' => $article->getQuantite(),
                         "Actions" => $this->renderView('ordre_collecte/datatableOrdreCollecteRow.html.twig', [
                             'id' => $article->getId(),

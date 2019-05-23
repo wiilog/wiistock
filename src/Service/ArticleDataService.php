@@ -34,7 +34,6 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\Demande;
 
-
 class ArticleDataService
 {
 
@@ -144,7 +143,6 @@ class ArticleDataService
      */
     public function getArticleOrNoByRefArticle($refArticle, $demande, $modifieRefArticle)
     {
-
         if ($demande === 'livraison') {
             $articleStatut = Article::STATUT_ACTIF;
         } elseif ($demande === 'collecte') {
@@ -162,6 +160,7 @@ class ArticleDataService
             $statuts = $this->statutRepository->findByCategorieName(ReferenceArticle::CATEGORIE);
 
             if ($demande == 'livraison') $demande = 'demande';
+
             $json = $this->templating->render($demande . '/newRefArticleByQuantiteRefContent.html.twig', [
                 'articleRef' => $refArticle,
                 'articles' => $this->articleFournisseurRepository->findByRefArticle($refArticle->getId()),
@@ -311,11 +310,33 @@ class ArticleDataService
                 'champsLibres' => $champsLibres,
             ];
 
+
+        switch ($article->getStatut()->getNom()) {
+            case Article::STATUT_INACTIF:
+                $statut = 0;
+                break;
+            case Article::STATUT_ACTIF:
+                $statut = 1;
+                break;
+            case Article::STATUT_EN_TRANSIT:
+                $statut = 2;
+                break;
+        }
+//        if ($article->getStatut()->getNom() === Article::STATUT_INACTIF) {
+//            $statut = 0;
+//        }
+//        if ($article->getStatut()->getNom() === Article::STATUT_ACTIF) {
+//            $statut = 1;
+//        }
+//        if ($article->getStatut()->getNom() === Article::STATUT_EN_TRANSIT) {
+//            $statut = 2;
+//        }
+
         $view = $this->templating->render('article/modalModifyArticleContent.html.twig', [
             'typeChampsLibres' => $typeChampLibre,
             'typeArticle' => $typeArticle,
             'article' => $article,
-            'statut' => ($article->getStatut()->getNom() === Article::STATUT_ACTIF ? true : false),
+            'statut' => $statut,
             'isADemand' => $isADemand
         ]);
         return $view;
@@ -331,7 +352,6 @@ class ArticleDataService
         $entityManager = $this->em;
         $article = $this->articleRepository->find($data['article']);
         if ($article) {
-
             if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
                 $article
                     ->setLabel($data['label'])
@@ -340,7 +360,29 @@ class ArticleDataService
                     ->setCommentaire($data['commentaire']);
 
                 if (isset($data['statut'])) { // si on est dans une demande (livraison ou collecte), pas de champ statut
-                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $data['statut'] === Article::STATUT_ACTIF ? Article::STATUT_ACTIF : Article::STATUT_INACTIF);
+                    switch (intval($data['statut'])) {
+                        case 0:
+                            $statutLabel = Article::STATUT_INACTIF;
+                            break;
+                        case 1:
+                            $statutLabel = Article::STATUT_ACTIF;
+                            break;
+                        case 2:
+                            $statutLabel = Article::STATUT_EN_TRANSIT;
+                            break;
+                    }
+
+//                    if (intval($data['statut']) === 0) {
+//                        $statutLabel = Article::STATUT_INACTIF;
+//                    }
+//                    if (intval($data['statut']) === 1) {
+//                        $statutLabel = Article::STATUT_ACTIF;
+//                    }
+//                    if (intval($data['statut']) === 2) {
+//                        $statutLabel = Article::STATUT_EN_TRANSIT;
+//                    }
+
+                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $statutLabel);
                     $article->setStatut($statut);
                 }
                 if ($data['emplacement']) {
@@ -350,12 +392,10 @@ class ArticleDataService
 
             $champsLibreKey = array_keys($data);
             foreach ($champsLibreKey as $champ) {
-
                 if (gettype($champ) === 'integer') {
                     // spécifique CEA : accès pour tous au champ libre 'Code projet'
                     $champLibre = $this->champsLibreRepository->find($champ);
                     if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT) || $champLibre->getLabel() == 'Code projet') {
-
                         $valeurChampLibre = $this->valeurChampsLibreRepository->findOneByArticleANDChampsLibre($article->getId(), $champ);
                         if (!$valeurChampLibre) {
                             $valeurChampLibre = new ValeurChampsLibre();

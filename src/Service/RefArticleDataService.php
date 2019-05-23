@@ -223,6 +223,8 @@ class RefArticleDataService
             ];
         }
         //reponse Vue + data 
+
+        
         $view =  $this->templating->render('reference_article/modalEditRefArticleContent.html.twig', [
             'articleRef' => $refArticle,
             'statut' => ($refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF),
@@ -358,4 +360,5 @@ class RefArticleDataService
 
         return $rows;
     }
+    
 }

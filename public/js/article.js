@@ -272,3 +272,21 @@ function printSingleArticleBarcode(button) {
         }
     });
 }
+
+function changeStatus(button) {
+    let sel = $(button).data('title');
+    let tog = $(button).data('toggle');
+    if (sel == 'inactive'){
+        $("#s").val(0);
+    }
+    if (sel == 'active'){
+        $("#s").val(1);
+    }
+    if (sel == 'transit'){
+        $("#s").val(2);
+    }
+
+   $('span[data-toggle="' + tog + '"]').not('[data-title="' + sel + '"]').removeClass('active').addClass('not-active');
+   $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
+}
+

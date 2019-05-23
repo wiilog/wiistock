@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\Menu;
+use App\Entity\ValeurChampsLibre;
 use App\Entity\Article;
 use App\Entity\ReferenceArticle;
 use App\Entity\CategorieCL;
@@ -32,7 +33,6 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-
 
 /**
  * @Route("/article")
@@ -116,11 +116,16 @@ class ArticleController extends AbstractController
     private $userService;
 
     /**
+    * @var \Twig_Environment
+    */
+    private $templating;
+
+    /**
      * @var DimensionsEtiquettesRepository
      */
     private $dimensionsEtiquettesRepository;
 
-    public function __construct(DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, CategorieCLRepository $categorieCLRepository, FournisseurRepository $fournisseurRepository, ChampsLibreRepository $champsLibreRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ArticleDataService $articleDataService, TypeRepository $typeRepository, RefArticleDataService $refArticleDataService, ArticleFournisseurRepository $articleFournisseurRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, StatutRepository $statutRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UserService $userService)
+    public function __construct(\Twig_Environment $templating, CategorieCLRepository $categorieCLRepository, FournisseurRepository $fournisseurRepository, ChampsLibreRepository $champsLibreRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ArticleDataService $articleDataService, TypeRepository $typeRepository, RefArticleDataService $refArticleDataService, ArticleFournisseurRepository $articleFournisseurRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, StatutRepository $statutRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UserService $userService)
     {
         $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
         $this->fournisseurRepository = $fournisseurRepository;
@@ -138,6 +143,7 @@ class ArticleController extends AbstractController
         $this->articleDataService = $articleDataService;
         $this->userService = $userService;
         $this->categorieCLRepository = $categorieCLRepository;
+        $this->templating = $templating;
     }
 
     /**
@@ -176,17 +182,57 @@ class ArticleController extends AbstractController
      */
     public function show(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
             $article = $this->articleRepository->find($data);
 
-            $json = $this->renderView('article/modalShowArticleContent.html.twig', [
-                'article' => $article,
-            ]);
+            $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
+            $typeArticle = $refArticle->getType()->getLabel();
+            $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::ARTICLE);
 
+            $champsLibresComplet = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($typeArticle, $categorieCL);
+            $champsLibres = [];
+            foreach ($champsLibresComplet as $champLibre) {
+                $valeurChampArticle = $this->valeurChampsLibreRepository->findOneByChampLibreAndArticle($champLibre->getId(), $article->getId());
+                $champsLibres[] = [
+                    'id' => $champLibre->getId(),
+                    'label' => $champLibre->getLabel(),
+                    'typage' => $champLibre->getTypage(),
+                    'requiredCreate' => $champLibre->getRequiredCreate(),
+                    'requiredEdit' => $champLibre->getRequiredEdit(),
+                    'elements' => ($champLibre->getElements() ? $champLibre->getElements() : ''),
+                    'defaultValue' => $champLibre->getDefaultValue(),
+                    'valeurChampLibre' => $valeurChampArticle
+                ];
+            }
+
+            $typeChampLibre =
+                [
+                    'type' => $typeArticle,
+                    'champsLibres' => $champsLibres,
+                ];
+            if ($article) {
+                $view = $this->templating->render('article/modalShowArticleContent.html.twig', [
+                'typeChampsLibres' => $typeChampLibre,
+                'typeArticle' => $typeArticle,
+                'article' => $article,
+                'statut' => ($article->getStatut()->getNom() === Article::STATUT_ACTIF ? true : false),
+                // 'isADemand' => $isADemand
+            ]);
+                $json = $view;
+            } else {
+                return $json = false;
+            }
             return new JsonResponse($json);
         }
         throw new NotFoundHttpException('404');
     }
+
+
+
 
     /**
      * @Route("/modifier", name="article_api_edit", options={"expose"=true},  methods="GET|POST")
@@ -194,6 +240,7 @@ class ArticleController extends AbstractController
     public function editApi(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+
             $article = $this->articleRepository->find((int)$data['id']);
             if ($article) {
                 $json = $this->articleDataService->getViewEditArticle($article, $data['isADemand']);
@@ -212,7 +259,6 @@ class ArticleController extends AbstractController
     public function new(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-
             $response = $this->articleDataService->newArticle($data);
 
             return new JsonResponse($response);
@@ -226,7 +272,6 @@ class ArticleController extends AbstractController
     public function edit(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-
             if ($data['article']) {
                 $this->articleDataService->editArticle($data);
                 $json = true;
@@ -250,8 +295,9 @@ class ArticleController extends AbstractController
 
             $article = $this->articleRepository->find($data['article']);
             $rows = $article->getId();
-            if (count($article->getCollectes()) > 0 || $article->getDemande() !== null)
+            if (count($article->getCollectes()) > 0 || $article->getDemande() !== null) {
                 return new JsonResponse(false, 250);
+            }
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($article);
             $entityManager->flush();
