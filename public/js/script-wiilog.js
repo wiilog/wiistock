@@ -192,7 +192,7 @@ function showRow(button, path, modal) {
  *  
  */
 
-function editRow(button, path, modal, submit, editorToInit = false) {
+function editRow(button, path, modal, submit, editorToInit = false, editor = '.editor-container-edit') {
     xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
@@ -212,7 +212,7 @@ function editRow(button, path, modal, submit, editorToInit = false) {
                 setMaxQuantityEdit($('#referenceEdit'));
             }
 
-            if (editorToInit) initEditor2('.editor-container-edit');
+            if (editorToInit) initEditor2(editor);
         }
     }
     let id = button.data('id');
