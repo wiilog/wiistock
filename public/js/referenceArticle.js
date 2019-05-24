@@ -30,7 +30,7 @@ function submitActionRefArticle(modal, path, callback = function () { }, close =
     };
 
     if (path ===  Routing.generate('save_column_visible', true)) {
-        tableColumnVisible.search('').draw()
+         tableColumnVisible.search('').draw()
     }
 
     let { Data, missingInputs, wrongInputs } = getDataFromModal(modal);
@@ -213,7 +213,7 @@ function initTableRefArticle() {
             'drawCallback': function () {
                 loadSpinnerAR($('#spinner'));
                 initRemove();
-                // hideAndShowColumns();
+                hideAndShowColumns();
             },
             length: 10,
             columns: columns,
@@ -237,17 +237,17 @@ function showOrHideColumn(check) {
     let columnName = check.data('name');
 
     let column = tableRefArticle.column(columnName + ':name');
+
     column.visible(!column.visible());
     let tableRefArticleColumn = $('#tableRefArticle_id_wrapper');
-    tableRefArticleColumn.find('th').removeClass('libre');
-    tableRefArticleColumn.find('th').addClass('fixe');
-
+    tableRefArticleColumn.find('th').removeClass('hide');
+    tableRefArticleColumn.find('th').addClass('display');
     check.toggleClass('data');
 }
 
 function hideAndShowColumns() {
-    tableRefArticle.columns('.libre').visible(false);
-    tableRefArticle.columns('.fixe').visible(true);
+    tableRefArticle.columns('.hide').visible(false);
+    tableRefArticle.columns('.display').visible(true);
 }
 
 function showDemande(bloc) {
