@@ -52,7 +52,7 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
             "champLibre" => $champLibre
         ]);
 
-//        return $query->getOneOrNullResult();
+        //        return $query->getOneOrNullResult();
         $result = $query->execute();
         return $result ? $result[0] : null;
     }
@@ -146,11 +146,10 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
             "SELECT v.id, v.valeur, c.label, c.typage
             FROM App\Entity\ValeurChampsLibre v
             JOIN v.champLibre c
-            JOIN v.receptions r
-            WHERE r.id = :reception AND c.type = :type"
+            WHERE v.id IN (:receptions) AND c.type = :type"
         );
         $query->setParameters([
-            "reception" => $reception,
+            "receptions" => $reception->getValeurChampsLibre(),
             "type" => $type
         ]);
 
@@ -163,15 +162,12 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
         $query = $em->createQuery(
             "SELECT v
             FROM App\Entity\ValeurChampsLibre v
-            JOIN v.receptions r
-            WHERE r.id = :reception AND v.champLibre = :champLibre"
+            WHERE v.champLibre = :champLibre AND v.id IN (:receptionvcl)"
         );
         $query->setParameters([
-            "reception" => $reception,
+            'receptionvcl' => $reception->getValeurChampsLibre(),
             "champLibre" => $champLibre
         ]);
-
-        return $query->getOneOrNullResult();
+        return $query->execute();
     }
-
 }
