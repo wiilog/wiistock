@@ -29,8 +29,8 @@ function submitActionRefArticle(modal, path, callback = function () { }, close =
         }
     };
 
-    if (path ===  Routing.generate('save_column_visible', true)) {
-         tableColumnVisible.search('').draw()
+    if (path === Routing.generate('save_column_visible', true)) {
+        tableColumnVisible.search('').draw()
     }
 
     let { Data, missingInputs, wrongInputs } = getDataFromModal(modal);
@@ -128,7 +128,6 @@ function getDataFromModal(modal) {
             }
         }
     });
-
     // ... et dans les checkboxes
     let checkboxes = modal.find('.checkbox');
     checkboxes.each(function () {
@@ -319,8 +318,8 @@ function displayFilterValue(elem) {
 
     // cas particulier de liste déroulante pour type
     if (type == 'list') {
-        let params = { 
-            'value' : val 
+        let params = {
+            'value': val
         };
         $.post(Routing.generate('type_show_select'), JSON.stringify(params), function (data) {
             modalBody.find('.input').html(data);
@@ -361,7 +360,7 @@ let recupIdRefArticle = function (div) {
     $('#submitPlusDemande').val(id);
 }
 
-let  ajaxPlusDemandeContent = function(button, demande) {
+let ajaxPlusDemandeContent = function (button, demande) {
     let plusDemandeContent = $('.plusDemandeContent');
     let editChampLibre = $('.editChampLibre');
     let modalFooter = $('.modal-footer');
@@ -419,7 +418,7 @@ let ajaxEditArticle = function (select) {
         }
     }
     modalFooter.addClass('d-none');
-    let json = { id :select.val(), isADemand:1};
+    let json = { id: select.val(), isADemand: 1 };
     let path = Routing.generate('article_api_edit', true);
     xhttp.open("POST", path, true);
     xhttp.send(JSON.stringify(json));
@@ -567,3 +566,5 @@ function redirectToDemande() {
 
     window.location.href = Routing.generate(demandeType + '_show', { 'id': demandeId });
 }
+
+

@@ -139,32 +139,39 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
         return $query->getOneOrNullResult();
     }
 
-    // /**
-    //  * @return ValeurChampsLibre[] Returns an array of ValeurChampsLibre objects
-    //  */
-    /*
-    public function findByExampleField($value)
+    public function getByReceptionAndType($reception, $type)
     {
-        return $this->createQueryBuilder('v')
-            ->andWhere('v.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('v.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT v.id, v.valeur, c.label, c.typage
+            FROM App\Entity\ValeurChampsLibre v
+            JOIN v.champLibre c
+            JOIN v.receptions r
+            WHERE r.id = :reception AND c.type = :type"
+        );
+        $query->setParameters([
+            "reception" => $reception,
+            "type" => $type
+        ]);
 
-    /*
-    public function findOneBySomeField($value): ?ValeurChampsLibre
-    {
-        return $this->createQueryBuilder('v')
-            ->andWhere('v.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
+        return $query->execute();
     }
-    */
+
+    public function findOneByReceptionAndChampLibre($reception, $champLibre)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT v
+            FROM App\Entity\ValeurChampsLibre v
+            JOIN v.receptions r
+            WHERE r.id = :reception AND v.champLibre = :champLibre"
+        );
+        $query->setParameters([
+            "reception" => $reception,
+            "champLibre" => $champLibre
+        ]);
+
+        return $query->getOneOrNullResult();
+    }
+
 }

@@ -103,6 +103,11 @@ class Article
      */
     private $withdrawQuantity;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Reception", inversedBy="articles")
+     */
+    private $reception;
+
 
     public function __construct()
     {
@@ -356,6 +361,18 @@ class Article
     public function setWithdrawQuantity(?int $withdrawQuantity): self
     {
         $this->withdrawQuantity = $withdrawQuantity;
+
+        return $this;
+    }
+
+    public function getReception(): ?Reception
+    {
+        return $this->reception;
+    }
+
+    public function setReception(?Reception $reception): self
+    {
+        $this->reception = $reception;
 
         return $this;
     }

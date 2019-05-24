@@ -10,3 +10,15 @@
     <p><strong>Date réception :</strong>
         {{ reception.dateReception ? reception.dateReception | date('d/m/Y') : ' ' }}</p>
 </div>
+<div class="col-12">
+{% for valeurChampLibreT in valeurChampLibreTab %}
+    <p><strong>{{valeurChampLibreT.label}}</strong> :
+        {% if valeurChampLibreT.typage != 'booleen' %}
+            {{valeurChampLibreT.valeur}}
+        {% elseif valeurChampLibreT.valeur == 1 %}
+            oui
+        {% else %}
+            non
+        {% endif %}
+{% endfor %}</p>
+</div>

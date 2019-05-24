@@ -228,6 +228,7 @@ class CollecteController extends AbstractController
                             'id' => $referenceCollecte->getId(),
                             'name' => ($referenceCollecte->getReferenceArticle() ? $referenceCollecte->getReferenceArticle()->getTypeQuantite() : ReferenceArticle::TYPE_QUANTITE_REFERENCE),
                         ],
+                        'refArticleId' => $referenceCollecte->getReferenceArticle()->getId(),
                         'collecteId' => $collecte->getid(),
                         'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUS_BROUILLON),
                     ]),
