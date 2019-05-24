@@ -236,6 +236,7 @@ class CollecteController extends AbstractController
             }
             $rowsCA = [];
             foreach ($articles as $article) {
+                dump($article->getId());
                 $rowsCA[] = [
                     'Référence CEA' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : ''),
                     'Libellé' => $article->getLabel(),
@@ -247,6 +248,7 @@ class CollecteController extends AbstractController
                             'name' => (ReferenceArticle::TYPE_QUANTITE_ARTICLE),
                             'type' => 'article'
                         ],
+                        'id' => $article->getId(),
                         'collecteId' => $collecte->getid(),
                         'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUS_BROUILLON ? true : false),
                     ]),
