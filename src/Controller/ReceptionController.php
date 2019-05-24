@@ -446,6 +446,10 @@ class ReceptionController extends AbstractController
             $reception =  $this->receptionRepository->find($data['receptionId']);
 
             $entityManager =  $this->getDoctrine()->getManager();
+            foreach ($reception->getReceptionReferenceArticles() as $receptionArticle) {
+                $entityManager->remove($receptionArticle);
+            }
+            $this->articleRepository->setNullByReception($reception);
             $entityManager->remove($reception);
             $entityManager->flush();
             $data = [
@@ -535,7 +539,7 @@ class ReceptionController extends AbstractController
                 'entete' =>  $this->renderView('reception/enteteReception.html.twig', [
                     'reception' =>  $reception,
                     'valeurChampLibreTab' => $valeurChampLibreTab
-                    ])
+                ])
             ];
             return new JsonResponse($json);
         }
@@ -556,7 +560,8 @@ class ReceptionController extends AbstractController
             $canUpdateQuantity = $ligneArticle->getReferenceArticle()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE;
 
             $json =  $this->renderView(
-                'reception/modalModifyLigneArticleContent.html.twig', [
+                'reception/modalModifyLigneArticleContent.html.twig',
+                [
                     'ligneArticle' => $ligneArticle,
                     'canUpdateQuantity' => $canUpdateQuantity
                 ]
@@ -660,7 +665,7 @@ class ReceptionController extends AbstractController
             'type' =>  $this->typeRepository->findOneByCategoryLabel(Reception::CATEGORIE),
             'modifiable' => ($reception->getStatut()->getNom() !== (Reception::STATUT_RECEPTION_TOTALE)),
             'statuts' =>  $this->statutRepository->findByCategorieName(Reception::CATEGORIE),
-//            'champsLibres' => $champsLibres,
+            //            'champsLibres' => $champsLibres,
             'typeId' => $reception->getType() ? $reception->getType()->getId() : '',
             'valeurChampLibreTab' => $valeurChampLibreTab,
         ]);
@@ -759,20 +764,22 @@ class ReceptionController extends AbstractController
             }
 
             $listReceptionReferenceArticle = $this->receptionReferenceArticleRepository->getByReception($reception);
-            foreach ($listReceptionReferenceArticle as $recepRef) { /** @var ReceptionReferenceArticle $recepRef */
+            foreach ($listReceptionReferenceArticle as $recepRef) {
+                /** @var ReceptionReferenceArticle $recepRef */
                 if ($recepRef->getReferenceArticle()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                     array_push($data['refs'], $recepRef->getReferenceArticle()->getReference());
                 } else {
                     $listArticleFournisseur = $this->articleFournisseurRepository->findByRefArticle($recepRef->getReferenceArticle());
-//                    foreach ($listArticleFournisseur as $af) {
-                        $listArticle = $this->articleRepository->findByListAF($listArticleFournisseur);
+                    //                    foreach ($listArticleFournisseur as $af) {
+                    $listArticle = $this->articleRepository->findByListAF($listArticleFournisseur);
 
-                        foreach ($listArticle as $article) { /** @var Article $article */
-                            if ($article->getReception() && $article->getReception() === $reception) {
-                                array_push($data['refs'], $article->getReference());
-                            }
+                    foreach ($listArticle as $article) {
+                        /** @var Article $article */
+                        if ($article->getReception() && $article->getReception() === $reception) {
+                            array_push($data['refs'], $article->getReference());
                         }
-//                    }
+                    }
+                    //                    }
                 }
             }
 

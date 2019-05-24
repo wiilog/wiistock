@@ -29,7 +29,17 @@ class ArticleRepository extends ServiceEntityRepository
             FROM App\Entity\Article a
             WHERE a.reception = :id'
         )->setParameter('id', $id);
-        ;
+        return $query->execute();
+    }
+
+    public function setNullByReception($id)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            'UPDATE App\Entity\Article a
+            SET a.reception = null
+            WHERE a.reception = :id'
+        )->setParameter('id', $id);
         return $query->execute();
     }
 
@@ -66,8 +76,7 @@ class ArticleRepository extends ServiceEntityRepository
             'SELECT a
             FROM App\Entity\Article a
             WHERE a.emplacement = :empl'
-        )->setParameter('empl', $empl);
-        ;
+        )->setParameter('empl', $empl);;
         return $query->execute();
     }
 
@@ -78,8 +87,7 @@ class ArticleRepository extends ServiceEntityRepository
             "SELECT a
             FROM App\Entity\Article a
             WHERE a.Statut = :Statut "
-        )->setParameter('Statut', $statut);
-        ;
+        )->setParameter('Statut', $statut);;
         return $query->execute();
     }
 
@@ -117,8 +125,7 @@ class ArticleRepository extends ServiceEntityRepository
             FROM App\Entity\Article a
             JOIN a.reception r
             WHERE r.id = :id "
-        )->setParameter('id', $id);
-        ;
+        )->setParameter('id', $id);;
         return $query->execute();
     }
 
@@ -215,8 +222,7 @@ class ArticleRepository extends ServiceEntityRepository
             'SELECT a
             FROM App\Entity\Article a
             WHERE a.etat = :etat'
-        )->setParameter('etat', $etat);
-        ;
+        )->setParameter('etat', $etat);;
         return $query->execute();
     }
 
