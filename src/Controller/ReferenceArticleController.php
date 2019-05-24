@@ -219,6 +219,12 @@ class ReferenceArticleController extends Controller
                         'name' => 'Emplacement',
                         "class" => (in_array('Emplacement', $columnsVisible) ? 'display' : 'hide'),
                     ],
+                    [
+                        "title" => 'Commentaire',
+                        "data" => 'Commentaire',
+                        'name' => 'Commentaire',
+                        "class" => (in_array('Commentaire', $columnsVisible) ? 'display' : 'hide'),
+                    ],
 
                 ];
                 foreach ($champs as $champ) {
@@ -247,8 +253,7 @@ class ReferenceArticleController extends Controller
             }
             $data = $this->refArticleDataService->getDataForDatatable($request->request);
 
-            dump($data);
-            return new JsonResponse($data);
+           return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
     }
@@ -418,6 +423,11 @@ class ReferenceArticleController extends Controller
             'id' => 0,
             'typage' => 'text'
         ];
+        $champ[] = [
+            'label' => 'Commentaire',
+            'id' => 0,
+            'typage' => 'text'
+        ];
 
         $champ[] = [
             'label' => Filter::CHAMP_FIXE_REF_ART_FOURN,
@@ -436,7 +446,7 @@ class ReferenceArticleController extends Controller
         
         
 
-        $champsVisibleDefault = ['actions', 'libellé', 'référence', 'type', 'quantité', 'emplacement'];
+        // $champsVisibleDefault = ['actions', 'libellé', 'référence', 'type', 'quantité', 'emplacement'];
 
         $types = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::TYPE_ARTICLES_ET_REF_CEA);
         $emplacements = $this->emplacementRepository->findAll();

@@ -234,18 +234,24 @@ let tableColumnVisible = $('#tableColumnVisible_id').DataTable({
 });
 
 function showOrHideColumn(check) {
+    
     let columnName = check.data('name');
 
     let column = tableRefArticle.column(columnName + ':name');
-
+    
     column.visible(!column.visible());
+   
+    
     let tableRefArticleColumn = $('#tableRefArticle_id_wrapper');
     tableRefArticleColumn.find('th').removeClass('hide');
     tableRefArticleColumn.find('th').addClass('display');
+    tableRefArticleColumn.find('td').removeClass('hide');
+    tableRefArticleColumn.find('td').addClass('display');
     check.toggleClass('data');
 }
 
 function hideAndShowColumns() {
+  
     tableRefArticle.columns('.hide').visible(false);
     tableRefArticle.columns('.display').visible(true);
 }
