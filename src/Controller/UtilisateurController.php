@@ -125,7 +125,6 @@ class UtilisateurController extends Controller
             $em = $this->getDoctrine()->getManager();
             $em->persist($utilisateur);
             $em->flush();
-            dump($utilisateur);
 
             return new JsonResponse(true);
         }

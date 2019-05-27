@@ -467,9 +467,6 @@ class ReferenceArticleController extends Controller
         return $this->render('reference_article/index.html.twig', [
             'champs' => $champs,
             'columnsVisibles' => $this->getUser()->getColumnVisible(),
-            // 'champsVisible' => ($this->getUser()->getColumnVisible() !== null ? $this->getUser()->getColumnVisible() : $champsVisibleDefault),
-            // 'champsVisible' => ($this->getUser()->getColumnVisible()),
-            // 'champsVisibleDefault' => $champsVisibleDefault,
             'typeChampsLibres' => $typeChampLibre,
             'types' => $types,
             'emplacements' => $emplacements,
@@ -759,10 +756,7 @@ class ReferenceArticleController extends Controller
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
             }
-            // $champsFixe = ["Action", "Libellé", "Référence", "Type", "Quantité", "Emplacement"];
             $champs = array_keys($data);
-            // $champs= array_merge($champsFixe, $champs);
-    
             $user  = $this->getUser();
             /** @var $user Utilisateur */
             $user->setColumnVisible($champs);

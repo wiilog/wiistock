@@ -250,7 +250,6 @@ function showOrHideColumn(check) {
 }
 
 function hideAndShowColumns() {
-  
     tableRefArticle.columns('.hide').visible(false);
     tableRefArticle.columns('.display').visible(true);
 }
