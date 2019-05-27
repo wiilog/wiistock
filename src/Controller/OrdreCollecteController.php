@@ -252,6 +252,7 @@ class OrdreCollecteController extends AbstractController
                         "Actions" => $this->renderView('ordre_collecte/datatableOrdreCollecteRow.html.twig', [
                             'id' => $article->getId(),
                             'modifiable' => $collecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER,
+                            'isRef' => false
                         ])
                     ];
                 }
@@ -305,12 +306,19 @@ class OrdreCollecteController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::COLLECTE, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
-
+            if ($data['ref'] === 0) {
+                $modif = false;
+            } else {
+                $modif = true;
+            }
             $ligneArticle = $this->collecteReferenceRepository->find($data['id']);
 
             $json =  $this->renderView(
                 'ordre_collecte/modalEditArticleContent.html.twig',
-                ['ligneArticle' => $ligneArticle]
+                [
+                    'ligneArticle' => $ligneArticle,
+                    'modifiable' => $modif
+                ]
             );
             return new JsonResponse($json);
         }
@@ -329,8 +337,7 @@ class OrdreCollecteController extends AbstractController
         if (!$request->isXmlHttpRequest() &&  $data = json_decode($request->getContent(), true)) {
 
             $ligneArticle = $this->collecteReferenceRepository->find($data['ligneArticle']);
-
-            $ligneArticle->setQuantite($data['quantite']);
+            if (isset($data['quantite'])) $ligneArticle->setQuantite($data['quantite']);
 
             $this->getDoctrine()->getManager()->flush();
 
