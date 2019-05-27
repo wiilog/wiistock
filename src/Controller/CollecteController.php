@@ -491,7 +491,7 @@ class CollecteController extends AbstractController
             $collecte
                 ->setDate(new \DateTime($data['date-collecte']))
                 ->setCommentaire($data['commentaire'])
-                ->setObjet($data['objet'])
+                ->setObjet(substr($data['Objet'], 0, 255))
                 ->setPointCollecte($pointCollecte)
                 ->setstockOrDestruct($destination);
 
