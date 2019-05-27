@@ -52,7 +52,7 @@ function initDatatableConditionnement() {
         });
 
         let statutVisible = $("#statutVisible").val();
-        console.log(statutVisible);
+    
         if (!statutVisible) {
             tableFromArticle.column('Statut:name').visible(false);
         }
