@@ -222,11 +222,9 @@ class CollecteController extends AbstractController
                     'Emplacement' => $collecte->getPointCollecte()->getLabel(),
                     'Quantité' => ($referenceCollecte->getQuantite() ? $referenceCollecte->getQuantite() : ''),
                     'Actions' => $this->renderView('collecte/datatableArticleRow.html.twig', [
-                        'data' => [
-                            'type' => 'reference',
-                            'id' => $referenceCollecte->getId(),
-                            'name' => ($referenceCollecte->getReferenceArticle() ? $referenceCollecte->getReferenceArticle()->getTypeQuantite() : ReferenceArticle::TYPE_QUANTITE_REFERENCE),
-                        ],
+                        'type' => 'reference',
+                        'id' => $referenceCollecte->getId(),
+                        'name' => ($referenceCollecte->getReferenceArticle() ? $referenceCollecte->getReferenceArticle()->getTypeQuantite() : ReferenceArticle::TYPE_QUANTITE_REFERENCE),
                         'refArticleId' => $referenceCollecte->getReferenceArticle()->getId(),
                         'collecteId' => $collecte->getid(),
                         'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUS_BROUILLON),
@@ -235,18 +233,14 @@ class CollecteController extends AbstractController
             }
             $rowsCA = [];
             foreach ($articles as $article) {
-                dump($article->getId());
                 $rowsCA[] = [
                     'Référence CEA' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : ''),
                     'Libellé' => $article->getLabel(),
                     'Emplacement' => ($collecte->getPointCollecte() ? $collecte->getPointCollecte()->getLabel() : ''),
                     'Quantité' => $article->getQuantite(),
                     'Actions' => $this->renderView('collecte/datatableArticleRow.html.twig', [
-                        'data' => [
-                            'id' => $article->getId(),
-                            'name' => (ReferenceArticle::TYPE_QUANTITE_ARTICLE),
-                            'type' => 'article'
-                        ],
+                        'name' => ReferenceArticle::TYPE_QUANTITE_ARTICLE,
+                        'type' => 'article',
                         'id' => $article->getId(),
                         'collecteId' => $collecte->getid(),
                         'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUS_BROUILLON ? true : false),
