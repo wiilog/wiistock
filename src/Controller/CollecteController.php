@@ -174,7 +174,6 @@ class CollecteController extends AbstractController
             $rows = [];
             foreach ($collectes as $collecte) {
 
-                $ordreCollecteDate = "";
                 if ($this->ordreCollecteRepository->findOneByDemandeCollecte($collecte) == null) {
                     $ordreCollecteDate = null;
                 } else {
@@ -281,7 +280,7 @@ class CollecteController extends AbstractController
                 ->setDate($date)
                 ->setStatut($status)
                 ->setPointCollecte($this->emplacementRepository->find($data['emplacement']))
-                ->setObjet($data['Objet'])
+                ->setObjet(substr($data['Objet'], 0, 255))
                 ->setCommentaire($data['commentaire'])
                 ->setstockOrDestruct($destination);
             $em->persist($collecte);
