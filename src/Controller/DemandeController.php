@@ -172,7 +172,6 @@ class DemandeController extends AbstractController
 
             foreach ($articles as $article) {
                 if ($article->getQuantite() !== $article->getWithdrawQuantity()) {
-
                     $newArticle = [
                         'articleFournisseur' => $article->getArticleFournisseur()->getId(),
                         'libelle' => $article->getLabel(),
@@ -419,10 +418,8 @@ class DemandeController extends AbstractController
                     "Actions" => $this->renderView(
                         'demande/datatableLigneArticleRow.html.twig',
                         [
-                            'data' => [
-                                'id' => $ligneArticle->getId(),
-                                'name' => (ReferenceArticle::TYPE_QUANTITE_REFERENCE),
-                            ],
+                            'id' => $ligneArticle->getId(),
+                            'name' => (ReferenceArticle::TYPE_QUANTITE_REFERENCE),
                             'refArticleId' => $ligneArticle->getReference()->getId(),
                             'reference' => ReferenceArticle::TYPE_QUANTITE_REFERENCE,
                             'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
@@ -570,7 +567,6 @@ class DemandeController extends AbstractController
     public function hasArticles(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-
             $articles = $this->articleRepository->getByDemande($data['id']);
             $references = $this->ligneArticleRepository->getByDemande($data['id']);
             $count = count($articles) + count($references);
