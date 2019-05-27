@@ -1,4 +1,3 @@
-
 {% set editable = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
 {% set disabled = editable ? '' : 'disabled' %}
 
@@ -130,6 +129,20 @@
 
                 </div>
                 {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="row mt-4">
+        <div class='col-12 mb-2' onclick="visibleBlockModal($(this))">
+            <h3 class='d-flex pointer'>
+                <i class="fas fa-sort-up d-none mr-2"></i>
+                <i class="fas fa-sort-down d-block mr-2"></i>
+                Articles Fournisseurs
+            </h3>
+        </div>
+        <div class="form-group blocVisible col-12 d-none">
+            <div class="form-group col-12 d-block" id='articleFournisseursEdit'>
+                {% include 'article/fournisseurArticleShowContent.html.twig' %}
             </div>
         </div>
     </div>
