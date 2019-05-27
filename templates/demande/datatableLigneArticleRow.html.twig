@@ -3,13 +3,13 @@
 <div class="row">
 
     <div class='type-delete col-3'
-        onclick="deleteRowDemande($(this), $('#modalDeleteArticle'), $('#submitDeleteArticle'))" data-id='{{ data.id }}'
-        data-name='{{data.name}}' data-target='#modalDeleteArticle' data-toggle='modal'>
+        onclick="deleteRowDemande($(this), $('#modalDeleteArticle'), $('#submitDeleteArticle'))" data-id='{{ id }}'
+        data-name='{{name}}' data-target='#modalDeleteArticle' data-toggle='modal'>
         <i class='fas fa-trash '></i>
     </div>
-    {% if data.name == reference %}
+    {% if name == reference %}
 
-    <div data-id='{{ data.id }}' class='type-delete col-3' data-target='#modalEditArticle' data-toggle='modal'
+    <div data-id='{{ id }}' class='type-delete col-3' data-target='#modalEditArticle' data-toggle='modal'
         onclick="editRow($(this), Routing.generate('demande_article_api_edit', true), $('#modalEditArticle'), $('#submitEditArticle'))">
         <i class='fas fa-pencil-alt'></i>
     </div>

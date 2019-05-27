@@ -4,10 +4,10 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\Menu;
-use App\Entity\ValeurChampsLibre;
 use App\Entity\Article;
 use App\Entity\ReferenceArticle;
 use App\Entity\CategorieCL;
+use App\Entity\CategoryType;
 
 use App\Repository\ArticleRepository;
 use App\Repository\StatutRepository;
@@ -27,17 +27,17 @@ use App\Service\RefArticleDataService;
 use App\Service\ArticleDataService;
 use App\Service\UserService;
 
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 
 /**
  * @Route("/article")
  */
-class ArticleController extends AbstractController
+class ArticleController extends Controller
 {
 
     /**
@@ -116,8 +116,8 @@ class ArticleController extends AbstractController
     private $userService;
 
     /**
-    * @var \Twig_Environment
-    */
+     * @var \Twig_Environment
+     */
     private $templating;
 
     /**
@@ -216,12 +216,12 @@ class ArticleController extends AbstractController
                 ];
             if ($article) {
                 $view = $this->templating->render('article/modalShowArticleContent.html.twig', [
-                'typeChampsLibres' => $typeChampLibre,
-                'typeArticle' => $typeArticle,
-                'article' => $article,
-                'statut' => ($article->getStatut()->getNom() === Article::STATUT_ACTIF ? true : false),
-                // 'isADemand' => $isADemand
-            ]);
+                    'typeChampsLibres' => $typeChampLibre,
+                    'typeArticle' => $typeArticle,
+                    'article' => $article,
+                    'statut' => ($article->getStatut()->getNom() === Article::STATUT_ACTIF ? true : false),
+                    // 'isADemand' => $isADemand
+                ]);
                 $json = $view;
             } else {
                 return $json = false;
@@ -501,5 +501,73 @@ class ArticleController extends AbstractController
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException('404');
+    }
+
+
+    /**
+     * @Route("/exporter/{min}/{max}", name="article_export", options={"expose"=true}, methods="GET|POST")
+     */
+    public function exportAll(Request $request, $max, $min): Response
+    {
+        if (!$request->isXmlHttpRequest()) {
+            $data = [];
+            $data['values'] = [];
+            $headersCL = [];
+            foreach ($this->champsLibreRepository->findAll() as $champLibre) {
+                $headersCL[] = $champLibre->getLabel();
+            }
+            $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::TYPE_ARTICLES_ET_REF_CEA);
+            $refs = $this->articleRepository->findAll();
+            if ($max > count($refs)) $max = count($refs);
+            for ($i = $min; $i < $max; $i++) {
+                array_push($data['values'], $this->buildInfos($refs[$i], $listTypes, $headersCL));
+            }
+            return new JsonResponse($data);
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/total", name="get_total_and_headers_art", options={"expose"=true}, methods="GET|POST")
+     */
+    public function total(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest()) {
+            $data['total'] = $this->articleRepository->countAll();
+            $data['headers'] = ['reference', 'libelle', 'quantitée', 'type', 'statut', 'commentaire', 'emplacement'];
+            foreach ($this->champsLibreRepository->findAll() as $champLibre) {
+                array_push($data['headers'], $champLibre->getLabel());
+            }
+            return new JsonResponse($data);
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+    public function buildInfos(Article $ref, $listTypes, $headers)
+    {
+        $refData[] = $ref->getReference() ? $ref->getReference() : '';
+        $refData[] = $ref->getLabel() ? $ref->getLabel() : '';
+        $refData[] = $ref->getQuantite() ? $ref->getQuantite() : '';
+        $refData[] = $ref->getType() ? ($ref->getType()->getLabel() ? $ref->getType()->getLabel() : '') : '';
+        $refData[] = $ref->getStatut() ? $ref->getStatut()->getNom() : '';
+        $refData[] = strip_tags($ref->getCommentaire());
+        $refData[] = $ref->getEmplacement() ? $ref->getEmplacement()->getLabel() : '';
+        $categorieCL = $this->categorieCLRepository->findOneByLabel('article');
+        $champsLibres = [];
+        foreach ($listTypes as $type) {
+            $listChampsLibres = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($type['label'], $categorieCL);
+            foreach ($listChampsLibres as $champLibre) {
+                $valeurChampRefArticle = $this->valeurChampsLibreRepository->findOneByArticleANDChampsLibre($ref->getId(), $champLibre);
+                if ($valeurChampRefArticle) $champsLibres[$champLibre->getLabel()] = $valeurChampRefArticle->getValeur();
+            }
+        }
+        foreach ($headers as $type) {
+            if (array_key_exists($type, $champsLibres)) {
+                $refData[] = $champsLibres[$type];
+            } else {
+                $refData[] = '';
+            }
+        }
+        return implode(';', $refData);
     }
 }

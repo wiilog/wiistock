@@ -29,7 +29,7 @@ function submitActionRefArticle(modal, path, callback = function () { }, close =
         }
     };
 
-    if (path ===  Routing.generate('save_column_visible', true)) {
+    if (path === Routing.generate('save_column_visible', true)) {
         tableColumnVisible.search('').draw()
     }
 
@@ -233,20 +233,23 @@ let tableColumnVisible = $('#tableColumnVisible_id').DataTable({
 });
 
 function showOrHideColumn(check) {
+    
     let columnName = check.data('name');
 
     let column = tableRefArticle.column(columnName + ':name');
+    
     column.visible(!column.visible());
+   
+    
     let tableRefArticleColumn = $('#tableRefArticle_id_wrapper');
-    tableRefArticleColumn.find('th').removeClass('libre');
-    tableRefArticleColumn.find('th').addClass('fixe');
-
+    tableRefArticleColumn.find('th, td').removeClass('hide');
+    tableRefArticleColumn.find('th, td').addClass('display');
     check.toggleClass('data');
 }
 
 function hideAndShowColumns() {
-    tableRefArticle.columns('.libre').visible(false);
-    tableRefArticle.columns('.fixe').visible(true);
+    tableRefArticle.columns('.hide').visible(false);
+    tableRefArticle.columns('.display').visible(true);
 }
 
 function showDemande(bloc) {
@@ -312,8 +315,8 @@ function displayFilterValue(elem) {
 
     // cas particulier de liste déroulante pour type
     if (type == 'list') {
-        let params = { 
-            'value' : val 
+        let params = {
+            'value': val
         };
         $.post(Routing.generate('type_show_select'), JSON.stringify(params), function (data) {
             modalBody.find('.input').html(data);
@@ -354,7 +357,7 @@ let recupIdRefArticle = function (div) {
     $('#submitPlusDemande').val(id);
 }
 
-let  ajaxPlusDemandeContent = function(button, demande) {
+let ajaxPlusDemandeContent = function (button, demande) {
     let plusDemandeContent = $('.plusDemandeContent');
     let editChampLibre = $('.editChampLibre');
     let modalFooter = $('.modal-footer');
@@ -412,7 +415,7 @@ let ajaxEditArticle = function (select) {
         }
     }
     modalFooter.addClass('d-none');
-    let json = { id :select.val(), isADemand:1};
+    let json = { id: select.val(), isADemand: 1 };
     let path = Routing.generate('article_api_edit', true);
     xhttp.open("POST", path, true);
     xhttp.send(JSON.stringify(json));
@@ -560,3 +563,5 @@ function redirectToDemande() {
 
     window.location.href = Routing.generate(demandeType + '_show', { 'id': demandeId });
 }
+
+

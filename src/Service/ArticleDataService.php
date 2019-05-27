@@ -424,6 +424,7 @@ class ArticleDataService
         $ref = $date->format('YmdHis');
 
         $toInsert = new Article();
+        $type = $this->articleFournisseurRepository->find($data['articleFournisseur'])->getReferenceArticle()->getType();
         $toInsert
             ->setLabel($data['libelle'])
             ->setConform(!$data['conform'])
@@ -433,7 +434,7 @@ class ArticleDataService
             ->setQuantite((int)$data['quantite'])
             ->setEmplacement($this->emplacementRepository->find($data['emplacement']))
             ->setArticleFournisseur($this->articleFournisseurRepository->find($data['articleFournisseur']))
-            ->setType($this->typeRepository->findOneByCategoryLabel(Article::CATEGORIE));
+            ->setType($type);
         $entityManager->persist($toInsert);
 
         $champsLibreKey = array_keys($data);
