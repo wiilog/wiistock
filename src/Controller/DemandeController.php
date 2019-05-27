@@ -323,6 +323,9 @@ class DemandeController extends AbstractController
             }
 
             $demande = $this->demandeRepository->find($data['demandeId']);
+            foreach ($demande->getArticles() as $article) {
+                $article->setDemande(null);
+            }
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($demande);
             $entityManager->flush();
@@ -443,6 +446,7 @@ class DemandeController extends AbstractController
                                 'id' => $article->getId(),
                                 'name' => (ReferenceArticle::TYPE_QUANTITE_ARTICLE),
                             ],
+                            'id' => $article->getId(),
                             'reference' => ReferenceArticle::TYPE_QUANTITE_REFERENCE,
                             'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
                         ]
