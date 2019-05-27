@@ -35,7 +35,8 @@
 <div class="row">
     <div class="form-group col-6">
         <label for="libelle">Libellé</label>
-        <input disabled  type="text" class="form-control data" name="label" id='label' value="{{article.label}}" placeholder="">
+        <input disabled type="text" class="form-control data" name="label" id='label' value="{{article.label}}"
+            placeholder="">
     </div>
     <div class="form-group col-6">
         <label for="libelle">Type</label>
@@ -43,12 +44,12 @@
     </div>
     <div class="form-group col-6">
         <label for="quantité">Quantité</label>
-        <input  disabled  class="form-control data needed" type="number" min="0" name="quantite" id="quantite"
+        <input disabled class="form-control data needed" type="number" min="0" name="quantite" id="quantite"
             value="{{article.quantite}}">
     </div>
     <div class="form-group col-6 w-100">
         <label for="emplacement">Emplacement</label>
-        <select  disabled class="ajax-autocompleteEmplacement-edit data form-control" name="emplacement">
+        <select disabled class="ajax-autocompleteEmplacement-edit data form-control" name="emplacement">
             {% if article.emplacement != null %}
             <option value="{{article.emplacement.id}}">{{article.emplacement.label}}</option>
             {% endif %}
@@ -57,21 +58,25 @@
     <div class="form-group col-2">
         <label>Anomalie</label>
         <label class="switch">
-            <input  disabled  class="checkbox" type="checkbox" name="conform" {{article.conform ? '' : 'checked'}}>
+            <input disabled class="checkbox" type="checkbox" name="conform" {{article.conform ? '' : 'checked'}}>
             <span class="slider round"></span>
         </label>
     </div>
-    <div class="form-group col-4">
-    
-           
-    
+    <div class="form-group col-6 w-100">
+        <label for="emplacement">Emplacement</label>
+        <select class="ajax-autocompleteEmplacement-edit data form-control" name="emplacement" disabled>
+            {% if article.emplacement != null %}
+            <option value="{{article.emplacement.id}}">{{article.emplacement.label}}</option>
+            {% endif %}
+        </select>
     </div>
     <div class="form-group col-12">
         <div>
             <label for="commentaire">Commentaire</label>
-            <input  disabled  id="commentaire" class="form-control  data" type="hidden" name="commentaire"
+            <input disabled id="commentaire" class="form-control  data" type="hidden" name="commentaire"
                 value="{{article.commentaire}}">
-            <div class="editor-container-edit form-control comment" id="editor-container-edit">{{article.commentaire|raw}}</div>
+            <div class="editor-container-edit form-control comment" id="editor-container-edit">
+                {{article.commentaire|raw}}</div>
         </div>
     </div>
 
@@ -87,11 +92,11 @@
         <div class='d-block' id="{{typeArticle}}-edit">
             <div class="row mt-2">
                 {% for champLibre in typeChampsLibres.champsLibres %}
-                    {% set needed = champLibre.requiredEdit ? 'needed' : '' %}
-                    <div class="form-group col-6">
+                {% set needed = champLibre.requiredEdit ? 'needed' : '' %}
+                <div class="form-group col-6">
                     {#TODO spécifique CEA : accès pour tous au champ libre 'Code projet' #}
                     {% if champLibre.label|lower == 'code projet' %}
-                        {% set disabled = '' %}
+                    {% set disabled = '' %}
                     {% endif %}
 
                     <label for="input">{{ champLibre.label | capitalize}}</label>
@@ -104,13 +109,14 @@
                     </label>
 
                     {% elseif  champLibre.typage == 'number' %}
-                    <input disabled  type="number" id="{{ champLibre.label ~ 'edit'}}" class="form-control data {{ needed }}"
+                    <input disabled type="number" id="{{ champLibre.label ~ 'edit'}}"
+                        class="form-control data {{ needed }}"
                         value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}"
                         name="{{ champLibre.id}}" id="input">
 
                     {% elseif  champLibre.typage == 'list' %}
-                        <select  disabled  class="form-control data {{ needed }}" id="{{ champLibre.label ~ 'edit'}}" name="{{ champLibre.id}}"
-                        id="input">
+                    <select disabled class="form-control data {{ needed }}" id="{{ champLibre.label ~ 'edit'}}"
+                        name="{{ champLibre.id}}" id="input">
                         <option value="">aucune sélection...</option>
                         {% for elem in champLibre.elements %}
                         {% set selected = elem ==( champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' )? 'selected' : '' %}
@@ -119,7 +125,8 @@
                     </select>
 
                     {% elseif champLibre.typage == 'text'  %}
-                    <input disabled type="text" id="{{ champLibre.label ~ 'edit'}}" class="form-control data {{ needed }}"
+                    <input disabled type="text" id="{{ champLibre.label ~ 'edit'}}"
+                        class="form-control data {{ needed }}"
                         value="{{ champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : '' }}"
                         name="{{  champLibre.id }}" id="input">
 
@@ -138,4 +145,3 @@
         </div>
     </div>
 </div>
-
