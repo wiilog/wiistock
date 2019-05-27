@@ -322,15 +322,15 @@ class ArticleDataService
                 $statut = 2;
                 break;
         }
-//        if ($article->getStatut()->getNom() === Article::STATUT_INACTIF) {
-//            $statut = 0;
-//        }
-//        if ($article->getStatut()->getNom() === Article::STATUT_ACTIF) {
-//            $statut = 1;
-//        }
-//        if ($article->getStatut()->getNom() === Article::STATUT_EN_TRANSIT) {
-//            $statut = 2;
-//        }
+        //        if ($article->getStatut()->getNom() === Article::STATUT_INACTIF) {
+        //            $statut = 0;
+        //        }
+        //        if ($article->getStatut()->getNom() === Article::STATUT_ACTIF) {
+        //            $statut = 1;
+        //        }
+        //        if ($article->getStatut()->getNom() === Article::STATUT_EN_TRANSIT) {
+        //            $statut = 2;
+        //        }
 
         $view = $this->templating->render('article/modalModifyArticleContent.html.twig', [
             'typeChampsLibres' => $typeChampLibre,
@@ -372,15 +372,15 @@ class ArticleDataService
                             break;
                     }
 
-//                    if (intval($data['statut']) === 0) {
-//                        $statutLabel = Article::STATUT_INACTIF;
-//                    }
-//                    if (intval($data['statut']) === 1) {
-//                        $statutLabel = Article::STATUT_ACTIF;
-//                    }
-//                    if (intval($data['statut']) === 2) {
-//                        $statutLabel = Article::STATUT_EN_TRANSIT;
-//                    }
+                    //                    if (intval($data['statut']) === 0) {
+                    //                        $statutLabel = Article::STATUT_INACTIF;
+                    //                    }
+                    //                    if (intval($data['statut']) === 1) {
+                    //                        $statutLabel = Article::STATUT_ACTIF;
+                    //                    }
+                    //                    if (intval($data['statut']) === 2) {
+                    //                        $statutLabel = Article::STATUT_EN_TRANSIT;
+                    //                    }
 
                     $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $statutLabel);
                     $article->setStatut($statut);
@@ -489,7 +489,7 @@ class ArticleDataService
         $articles = [];
         foreach ($listArticleFournisseur as $articleFournisseur) {
             foreach ($this->articleRepository->findByListAF($articleFournisseur) as $article) {
-                if ($article->getReception() && $ligne->getReception()) $articles[] = $article;
+                if ($article->getReception() && $ligne->getReception() && $article->getReception() === $ligne->getReception()) $articles[] = $article;
             }
         }
         $rows = [];

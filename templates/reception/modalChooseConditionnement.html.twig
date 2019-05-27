@@ -14,7 +14,7 @@
                     <span class="btn btn-primary" onclick="addLot($(this))"><i class="fa fa-plus"></i></span>
                 </div>
                 {% set statutVisible = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
-                <input type="hidden" class='statutVisible' name="statutVisible" value="{{statutVisible}}">
+                <input type="hidden" id="statutVisible" name="statutVisible" value="{{statutVisible}}">
             </div>
             <div class="modal-footer">
                 <div class="btn" data-dismiss="modal">Fermer</div>

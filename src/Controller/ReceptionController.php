@@ -904,7 +904,7 @@ class ReceptionController extends AbstractController
 
             $ligne = $this->receptionReferenceArticleRepository->find(intval($ligne));
             $data = $this->articleDataService->getDataForDatatableByReceptionLigne($ligne);
-
+            dump($data);
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException('404');
