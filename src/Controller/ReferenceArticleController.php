@@ -194,14 +194,14 @@ class ReferenceArticleController extends Controller
                         "data" => 'Actions',
                         'name' => 'Actions',
                         "class" => (in_array('Actions', $columnsVisible) ? 'display' : 'hide'),
-                       
+
                     ],
                     [
                         "title" => 'Libellé',
                         "data" => 'Libellé',
                         'name' => 'Libellé',
                         "class" => (in_array('Libellé', $columnsVisible) ? 'display' : 'hide'),
-                        
+
                     ],
                     [
                         "title" => 'Référence',
@@ -243,8 +243,8 @@ class ReferenceArticleController extends Controller
                         "class" => (in_array($champ['label'], $columnsVisible) ? 'display' : 'hide'),
                     ];
                 }
-            } 
-         
+            }
+
             return new JsonResponse($columns);
         }
         throw new NotFoundHttpException("404");
@@ -261,7 +261,7 @@ class ReferenceArticleController extends Controller
             }
             $data = $this->refArticleDataService->getDataForDatatable($request->request);
 
-           return new JsonResponse($data);
+            return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
     }
@@ -357,6 +357,7 @@ class ReferenceArticleController extends Controller
                         "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
                         "Quantité" => $refArticle->getQuantiteStock(),
                         "Emplacement" => $emplacement,
+                        "Commentaire" => $refArticle->getCommentaire(),
                         'Actions' => $this->renderView('reference_article/datatableReferenceArticleRow.html.twig', [
                             'idRefArticle' => $refArticle->getId(),
                         ]),
@@ -440,8 +441,8 @@ class ReferenceArticleController extends Controller
         ];
 
         $champs = array_merge($champ, $champL);
-       
-        
+
+
 
         usort($champs, function ($a, $b) {
             return strnatcmp($a['label'], $b['label']);
@@ -718,30 +719,30 @@ class ReferenceArticleController extends Controller
         throw new NotFoundHttpException("404");
     }
 
-//    /**
-//     * @Route("/get-RefArticle", name="get_refArticle_in_reception", options={"expose"=true})
-//     */
-//    public function getRefArticleInReception(Request $request): Response
-//    {
-//        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-//            $refArticle  = $this->referenceArticleRepository->find($data['referenceArticle']);
-//            if ($refArticle) {
-//                if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-//                    $json  = $this->renderView('reference_article/newRefArticleByReference.html.twig');
-//                } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-//                    $json  = $this->renderView('reference_article/newRefArticleByArticle.html.twig', [
-//                        'articlesFournisseurs' => $this->articleFournisseurRepository->findALL(),
-//                    ]);
-//                } else {
-//                    $json = false;
-//                }
-//            } else {
-//                $json = false;
-//            }
-//            return new JsonResponse($json);
-//        }
-//        throw new NotFoundHttpException("404");
-//    }
+    //    /**
+    //     * @Route("/get-RefArticle", name="get_refArticle_in_reception", options={"expose"=true})
+    //     */
+    //    public function getRefArticleInReception(Request $request): Response
+    //    {
+    //        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+    //            $refArticle  = $this->referenceArticleRepository->find($data['referenceArticle']);
+    //            if ($refArticle) {
+    //                if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+    //                    $json  = $this->renderView('reference_article/newRefArticleByReference.html.twig');
+    //                } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+    //                    $json  = $this->renderView('reference_article/newRefArticleByArticle.html.twig', [
+    //                        'articlesFournisseurs' => $this->articleFournisseurRepository->findALL(),
+    //                    ]);
+    //                } else {
+    //                    $json = false;
+    //                }
+    //            } else {
+    //                $json = false;
+    //            }
+    //            return new JsonResponse($json);
+    //        }
+    //        throw new NotFoundHttpException("404");
+    //    }
 
     /**
      * @Route("/colonne-visible", name="save_column_visible", options={"expose"=true}, methods="GET|POST")
@@ -760,7 +761,6 @@ class ReferenceArticleController extends Controller
             $em->flush();
 
             return new JsonResponse();
-            
         }
         throw new NotFoundHttpException("404");
     }
