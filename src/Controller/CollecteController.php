@@ -174,7 +174,6 @@ class CollecteController extends AbstractController
             $rows = [];
             foreach ($collectes as $collecte) {
 
-                $ordreCollecteDate = "";
                 if ($this->ordreCollecteRepository->findOneByDemandeCollecte($collecte) == null) {
                     $ordreCollecteDate = null;
                 } else {
@@ -223,11 +222,9 @@ class CollecteController extends AbstractController
                     'Emplacement' => $collecte->getPointCollecte()->getLabel(),
                     'Quantité' => ($referenceCollecte->getQuantite() ? $referenceCollecte->getQuantite() : ''),
                     'Actions' => $this->renderView('collecte/datatableArticleRow.html.twig', [
-                        'data' => [
-                            'type' => 'reference',
-                            'id' => $referenceCollecte->getId(),
-                            'name' => ($referenceCollecte->getReferenceArticle() ? $referenceCollecte->getReferenceArticle()->getTypeQuantite() : ReferenceArticle::TYPE_QUANTITE_REFERENCE),
-                        ],
+                        'type' => 'reference',
+                        'id' => $referenceCollecte->getId(),
+                        'name' => ($referenceCollecte->getReferenceArticle() ? $referenceCollecte->getReferenceArticle()->getTypeQuantite() : ReferenceArticle::TYPE_QUANTITE_REFERENCE),
                         'refArticleId' => $referenceCollecte->getReferenceArticle()->getId(),
                         'collecteId' => $collecte->getid(),
                         'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUS_BROUILLON),
@@ -242,11 +239,9 @@ class CollecteController extends AbstractController
                     'Emplacement' => ($collecte->getPointCollecte() ? $collecte->getPointCollecte()->getLabel() : ''),
                     'Quantité' => $article->getQuantite(),
                     'Actions' => $this->renderView('collecte/datatableArticleRow.html.twig', [
-                        'data' => [
-                            'id' => $article->getId(),
-                            'name' => (ReferenceArticle::TYPE_QUANTITE_ARTICLE),
-                            'type' => 'article'
-                        ],
+                        'name' => ReferenceArticle::TYPE_QUANTITE_ARTICLE,
+                        'type' => 'article',
+                        'id' => $article->getId(),
                         'collecteId' => $collecte->getid(),
                         'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUS_BROUILLON ? true : false),
                     ]),
@@ -281,7 +276,7 @@ class CollecteController extends AbstractController
                 ->setDate($date)
                 ->setStatut($status)
                 ->setPointCollecte($this->emplacementRepository->find($data['emplacement']))
-                ->setObjet($data['Objet'])
+                ->setObjet(substr($data['Objet'], 0, 255))
                 ->setCommentaire($data['commentaire'])
                 ->setstockOrDestruct($destination);
             $em->persist($collecte);
@@ -481,8 +476,6 @@ class CollecteController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-
-
             $collecte = $this->collecteRepository->find($data['collecte']);
             $pointCollecte = $this->emplacementRepository->find($data['Pcollecte']);
             $destination = ($data['destination'] == 0) ? false : true;
@@ -492,7 +485,7 @@ class CollecteController extends AbstractController
             $collecte
                 ->setDate(new \DateTime($data['date-collecte']))
                 ->setCommentaire($data['commentaire'])
-                ->setObjet($data['objet'])
+                ->setObjet(substr($data['Objet'], 0, 255))
                 ->setPointCollecte($pointCollecte)
                 ->setstockOrDestruct($destination);
 

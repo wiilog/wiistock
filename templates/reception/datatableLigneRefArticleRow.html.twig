@@ -2,7 +2,7 @@
     {% if modifiable %}
     {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
     <div data-id='{{ligneId}}' data-toggle='modal' data-target='#modalEditLigneArticle' class='col-3 command-edit'
-        onclick="editRow($(this), Routing.generate('reception_article_edit_api', true), $('#modalEditLigneArticle'), $('#submitEditLigneArticle'), true)">
+        onclick="editRow($(this), Routing.generate('reception_article_edit_api', true), $('#modalEditLigneArticle'), $('#submitEditLigneArticle'), true, '.editor-container-article')">
         <i class='fas fa-pencil-alt'></i>
     </div>
     {% endif %}

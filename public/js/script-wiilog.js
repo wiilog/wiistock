@@ -192,7 +192,7 @@ function showRow(button, path, modal) {
  *  
  */
 
-function editRow(button, path, modal, submit, editorToInit = false) {
+function editRow(button, path, modal, submit, editorToInit = false, editor = '.editor-container-edit') {
     xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
@@ -212,7 +212,7 @@ function editRow(button, path, modal, submit, editorToInit = false) {
                 setMaxQuantityEdit($('#referenceEdit'));
             }
 
-            if (editorToInit) initEditor2('.editor-container-edit');
+            if (editorToInit) initEditor2(editor);
         }
     }
     let id = button.data('id');
@@ -298,20 +298,19 @@ function setCommentaire(div) {
     let container = div;
     var quill = new Quill(container);
     com = quill.container.firstChild.innerHTML;
-    
+
     $('#commentaire').val(com);
-
 };
 
-//passe de l'éditeur à l'imput pour insertion en BDD par l'id commentaireID (cas de conflit avec la class)
-function setCommentaireID(button) {
-    let modal = button.closest('.modal');
-    let container = '#' + modal.attr('id') + ' .editor-container';
-    var quill = new Quill(container);
-    // let commentaire = modal.find('input[id=commentaireID]');
-    com = quill.container.firstChild.innerHTML;
-    $('#commentaireID').val(com);
-};
+// //passe de l'éditeur à l'imput pour insertion en BDD par l'id commentaireID (cas de conflit avec la class)
+// function setCommentaireID(button) {
+//     let modal = button.closest('.modal');
+//     let container = '#' + modal.attr('id') + ' .editor-container';
+//     var quill = new Quill(container);
+//     // let commentaire = modal.find('input[id=commentaireID]');
+//     com = quill.container.firstChild.innerHTML;
+//     $('#commentaireID').val(com);
+// };
 
 
 //FONCTION REFARTICLE

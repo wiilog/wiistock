@@ -193,13 +193,14 @@ class ChampsLibreController extends AbstractController
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $categorieCL = $this->categorieCLRepository->find($data['categorieCL']);
             $champLibre = $this->champsLibreRepository->find($data['champLibre']);
+
             $champLibre
                 ->setLabel($data['label'])
                 ->setCategorieCL($categorieCL)
                 ->setRequiredCreate($data['requiredCreate'])
                 ->setRequiredEdit($data['requiredEdit'])
-                ->setDefaultValue($data['valeur'])
                 ->setTypage($data['typage']);
+
             if ($champLibre->getTypage() === 'list') {
                 $champLibre
                     ->setElements(array_filter(explode(';', $data['elem'])))

@@ -321,17 +321,10 @@ class ArticleDataService
             case Article::STATUT_EN_TRANSIT:
                 $statut = 2;
                 break;
+            default:
+                $statut = 0; //TODO plutôt gérer une erreur ?
+                break;
         }
-        //        if ($article->getStatut()->getNom() === Article::STATUT_INACTIF) {
-        //            $statut = 0;
-        //        }
-        //        if ($article->getStatut()->getNom() === Article::STATUT_ACTIF) {
-        //            $statut = 1;
-        //        }
-        //        if ($article->getStatut()->getNom() === Article::STATUT_EN_TRANSIT) {
-        //            $statut = 2;
-        //        }
-
         $view = $this->templating->render('article/modalModifyArticleContent.html.twig', [
             'typeChampsLibres' => $typeChampLibre,
             'typeArticle' => $typeArticle,

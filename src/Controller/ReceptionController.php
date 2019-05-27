@@ -231,7 +231,6 @@ class ReceptionController extends AbstractController
                 if (gettype($champ) === 'integer') {
                     $champLibre = $this->champsLibreRepository->find($champ);
                     $valeurChampLibre = $this->valeurChampsLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
-
                     // si la valeur n'existe pas, on la crée
                     if (!$valeurChampLibre) {
                         $valeurChampLibre = new ValeurChampsLibre();
@@ -246,7 +245,7 @@ class ReceptionController extends AbstractController
             }
             $type = $reception->getType();
 
-            $valeurChampLibreTab = empty($type) ? [] : $this->valeurChampsLibreRepository->getByReceptionAndType($reception->getId(), $type);
+            $valeurChampLibreTab = empty($type) ? [] : $this->valeurChampsLibreRepository->getByReceptionAndType($reception, $type);
 
             $json = [
                 'entete' =>  $this->renderView('reception/enteteReception.html.twig', [
@@ -280,7 +279,7 @@ class ReceptionController extends AbstractController
                 $champsLibres = [];
                 //création array edit pour vue
                 foreach ($champsLibresComplet as $champLibre) {
-                    $valeurChampReception = $this->valeurChampsLibreRepository->findOneByReceptionAndChampLibre($reception->getId(), $champLibre);
+                    $valeurChampReception = $this->valeurChampsLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
                     $champsLibres[] = [
                         'id' => $champLibre->getId(),
                         'label' => $champLibre->getLabel(),
@@ -481,7 +480,7 @@ class ReceptionController extends AbstractController
             $reception->setStatut($statut);
             $type = $reception->getType();
 
-            $valeurChampLibreTab = empty($type) ? [] : $this->valeurChampsLibreRepository->getByReceptionAndType($reception->getId(), $type);
+            $valeurChampLibreTab = empty($type) ? [] : $this->valeurChampsLibreRepository->getByReceptionAndType($reception, $type);
 
             $json = [
                 'entete' =>  $this->renderView('reception/enteteReception.html.twig', [
@@ -533,7 +532,7 @@ class ReceptionController extends AbstractController
             $em->flush();
 
             $type = $reception->getType();
-            $valeurChampLibreTab = empty($type) ? [] : $this->valeurChampsLibreRepository->getByReceptionAndType($reception->getId(), $type);
+            $valeurChampLibreTab = empty($type) ? [] : $this->valeurChampsLibreRepository->getByReceptionAndType($reception, $type);
 
             $json = [
                 'entete' =>  $this->renderView('reception/enteteReception.html.twig', [
@@ -574,9 +573,9 @@ class ReceptionController extends AbstractController
     /**
      * @Route("/modifier-article", name="reception_article_edit", options={"expose"=true}, methods={"GET", "POST"})
      */
-    public function editArticle(Request  $request): Response
+    public function editArticle(Request $request): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
+        if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::CREATE_EDIT)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -612,7 +611,7 @@ class ReceptionController extends AbstractController
             $em->flush();
             $type = $reception->getType();
 
-            $valeurChampLibreTab = empty($type) ? [] : $this->valeurChampsLibreRepository->getByReceptionAndType($reception->getId(), $type);
+            $valeurChampLibreTab = empty($type) ? [] : $this->valeurChampsLibreRepository->getByReceptionAndType($reception, $type);
 
             $json = [
                 'entete' =>  $this->renderView('reception/enteteReception.html.twig', [
@@ -636,7 +635,7 @@ class ReceptionController extends AbstractController
 
         $type = $reception->getType();
         if ($type) {
-            $valeurChampLibreTab = $this->valeurChampsLibreRepository->getByReceptionAndType($reception->getId(), $type);
+            $valeurChampLibreTab = $this->valeurChampsLibreRepository->getByReceptionAndType($reception, $type);
         } else {
             $valeurChampLibreTab = [];
         }
@@ -647,7 +646,7 @@ class ReceptionController extends AbstractController
             $listChampLibreReception = $this->champsLibreRepository->findByTypeId($type['id']);
 
             foreach ($listChampLibreReception as $champLibre) {
-                $valeurChampLibre = $this->valeurChampsLibreRepository->findOneByReceptionAndChampLibre($reception->getId(), $champLibre);
+                $valeurChampLibre = $this->valeurChampsLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
 
                 $champsLibres[] = [
                     'id' => $champLibre->getId(),
