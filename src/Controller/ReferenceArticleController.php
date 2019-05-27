@@ -185,43 +185,53 @@ class ReferenceArticleController extends Controller
             $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_CEA);
             $category = CategoryType::TYPE_ARTICLES_ET_REF_CEA;
             $champs = $this->champsLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
+
+            $columns = [];
             if ($columnsVisible) {
                 $columns = [
                     [
                         "title" => 'Actions',
                         "data" => 'Actions',
                         'name' => 'Actions',
-                        "class" => (in_array('Actions', $columnsVisible) ? 'fixe' : 'libre'),
+                        "class" => (in_array('Actions', $columnsVisible) ? 'display' : 'hide'),
+                       
                     ],
                     [
                         "title" => 'Libellé',
                         "data" => 'Libellé',
                         'name' => 'Libellé',
-                        "class" => (in_array('Libellé', $columnsVisible) ? 'fixe' : 'libre'),
+                        "class" => (in_array('Libellé', $columnsVisible) ? 'display' : 'hide'),
+                        
                     ],
                     [
                         "title" => 'Référence',
                         "data" => 'Référence',
                         'name' => 'Référence',
-                        "class" => (in_array('Référence', $columnsVisible) ? 'fixe' : 'libre'),
+                        "class" => (in_array('Référence', $columnsVisible) ? 'display' : 'hide'),
                     ],
                     [
                         "title" => 'Type',
                         "data" => 'Type',
                         'name' => 'Type',
-                        "class" => (in_array('Type', $columnsVisible) ? 'fixe' : 'libre'),
+                        "class" => (in_array('Type', $columnsVisible) ? 'display' : 'hide'),
                     ],
                     [
                         "title" => 'Quantité',
                         "data" => 'Quantité',
                         'name' => 'Quantité',
-                        "class" => (in_array('Quantité', $columnsVisible) ? 'fixe' : 'libre'),
+                        "class" => (in_array('Quantité', $columnsVisible) ? 'display' : 'hide'),
                     ],
                     [
                         "title" => 'Emplacement',
                         "data" => 'Emplacement',
                         'name' => 'Emplacement',
-                        "class" => (in_array('Emplacement', $columnsVisible) ? 'fixe' : 'libre'),
+                        "class" => (in_array('Emplacement', $columnsVisible) ? 'display' : 'hide'),
+                    ],
+                    [
+                        "title" => 'Commentaire',
+                        "data" => 'Commentaire',
+                        'name' => 'Commentaire',
+                        "class" => (in_array('Commentaire', $columnsVisible) ? 'display' : 'hide'),
                     ],
 
                 ];
@@ -230,59 +240,11 @@ class ReferenceArticleController extends Controller
                         "title" => ucfirst(mb_strtolower($champ['label'])),
                         "data" => $champ['label'],
                         'name' => $champ['label'],
-                        "class" => (in_array($champ['label'], $columnsVisible) ? 'fixe' : 'libre'),
+                        "class" => (in_array($champ['label'], $columnsVisible) ? 'display' : 'hide'),
                     ];
                 }
-            } else {
-                $columns = [
-                    [
-                        "title" => 'Actions',
-                        "data" => 'Actions',
-                        'name' => 'Actions',
-                        "class" => 'fixe',
-                    ],
-                    [
-                        "title" => 'Libellé',
-                        "data" => 'Libellé',
-                        'name' => 'Libellé',
-                        "class" => 'fixe',
-                    ],
-                    [
-                        "title" => 'Référence',
-                        "data" => 'Référence',
-                        'name' => 'Référence',
-                        "class" => 'fixe',
-                    ],
-                    [
-                        "title" => 'Type',
-                        "data" => 'Type',
-                        'name' => 'Type',
-                        "class" => 'fixe',
-                    ],
-                    [
-                        "title" => 'Quantité',
-                        "data" => 'Quantité',
-                        'name' => 'Quantité',
-                        "class" => 'fixe',
-                    ],
-                    [
-                        "title" => 'Emplacement',
-                        "data" => 'Emplacement',
-                        'name' => 'Emplacement',
-                        "class" => 'fixe',
-                    ],
-                ];
-
-                foreach ($champs as $champ) {
-                    $columns[] = [
-                        "title" => ucfirst(mb_strtolower($champ['label'])),
-                        "data" => $champ['label'],
-                        "name" => $champ['label'],
-                        "class" => 'libre'
-                    ];
-                }
-            }
-
+            } 
+         
             return new JsonResponse($columns);
         }
         throw new NotFoundHttpException("404");
@@ -299,7 +261,7 @@ class ReferenceArticleController extends Controller
             }
             $data = $this->refArticleDataService->getDataForDatatable($request->request);
 
-            return new JsonResponse($data);
+           return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
     }
@@ -434,34 +396,39 @@ class ReferenceArticleController extends Controller
         $category = CategoryType::TYPE_ARTICLES_ET_REF_CEA;
         $champL = $this->champsLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
         $champ[] = [
-            'label' => 'actions',
+            'label' => 'Actions',
             'id' => 0,
             'typage' => ''
         ];
         $champ[] = [
-            'label' => 'libellé',
+            'label' => 'Libellé',
             'id' => 0,
             'typage' => 'text'
 
         ];
         $champ[] = [
-            'label' => 'référence',
+            'label' => 'Référence',
             'id' => 0,
             'typage' => 'text'
 
         ];
         $champ[] = [
-            'label' => 'type',
+            'label' => 'Type',
             'id' => 0,
             'typage' => 'list'
         ];
         $champ[] = [
-            'label' => 'quantité',
+            'label' => 'Quantité',
             'id' => 0,
             'typage' => 'number'
         ];
         $champ[] = [
-            'label' => 'emplacement',
+            'label' => 'Emplacement',
+            'id' => 0,
+            'typage' => 'text'
+        ];
+        $champ[] = [
+            'label' => 'Commentaire',
             'id' => 0,
             'typage' => 'text'
         ];
@@ -473,12 +440,12 @@ class ReferenceArticleController extends Controller
         ];
 
         $champs = array_merge($champ, $champL);
+       
+        
 
         usort($champs, function ($a, $b) {
             return strnatcmp($a['label'], $b['label']);
         });
-
-        $champsVisibleDefault = ['actions', 'libellé', 'référence', 'type', 'quantité', 'emplacement'];
 
         $types = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::TYPE_ARTICLES_ET_REF_CEA);
         $emplacements = $this->emplacementRepository->findAll();
@@ -495,7 +462,7 @@ class ReferenceArticleController extends Controller
 
         return $this->render('reference_article/index.html.twig', [
             'champs' => $champs,
-            'champsVisible' => ($this->getUser()->getColumnVisible() !== null ? $this->getUser()->getColumnVisible() : $champsVisibleDefault),
+            'columnsVisibles' => $this->getUser()->getColumnVisible(),
             'typeChampsLibres' => $typeChampLibre,
             'types' => $types,
             'emplacements' => $emplacements,
@@ -791,7 +758,9 @@ class ReferenceArticleController extends Controller
             $user->setColumnVisible($champs);
             $em  = $this->getDoctrine()->getManager();
             $em->flush();
+
             return new JsonResponse();
+            
         }
         throw new NotFoundHttpException("404");
     }
