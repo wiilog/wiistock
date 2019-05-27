@@ -442,11 +442,8 @@ class DemandeController extends AbstractController
                     "Actions" => $this->renderView(
                         'demande/datatableLigneArticleRow.html.twig',
                         [
-                            'data' => [
-                                'id' => $article->getId(),
-                                'name' => (ReferenceArticle::TYPE_QUANTITE_ARTICLE),
-                            ],
                             'id' => $article->getId(),
+                            'name' => (ReferenceArticle::TYPE_QUANTITE_ARTICLE),
                             'reference' => ReferenceArticle::TYPE_QUANTITE_REFERENCE,
                             'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
                         ]

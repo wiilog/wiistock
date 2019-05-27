@@ -481,8 +481,6 @@ class CollecteController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-
-
             $collecte = $this->collecteRepository->find($data['collecte']);
             $pointCollecte = $this->emplacementRepository->find($data['Pcollecte']);
             $destination = ($data['destination'] == 0) ? false : true;
