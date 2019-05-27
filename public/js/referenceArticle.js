@@ -242,10 +242,8 @@ function showOrHideColumn(check) {
    
     
     let tableRefArticleColumn = $('#tableRefArticle_id_wrapper');
-    tableRefArticleColumn.find('th').removeClass('hide');
-    tableRefArticleColumn.find('th').addClass('display');
-    tableRefArticleColumn.find('td').removeClass('hide');
-    tableRefArticleColumn.find('td').addClass('display');
+    tableRefArticleColumn.find('th, td').removeClass('hide');
+    tableRefArticleColumn.find('th, td').addClass('display');
     check.toggleClass('data');
 }
 

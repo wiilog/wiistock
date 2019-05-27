@@ -185,7 +185,8 @@ class ReferenceArticleController extends Controller
             $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_CEA);
             $category = CategoryType::TYPE_ARTICLES_ET_REF_CEA;
             $champs = $this->champsLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
-           
+
+            $columns = [];
             if ($columnsVisible) {
                 $columns = [
                     [
@@ -444,12 +445,7 @@ class ReferenceArticleController extends Controller
 
         usort($champs, function ($a, $b) {
             return strnatcmp($a['label'], $b['label']);
-            
         });
-        
-        
-
-        // $champsVisibleDefault = ['actions', 'libellé', 'référence', 'type', 'quantité', 'emplacement'];
 
         $types = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::TYPE_ARTICLES_ET_REF_CEA);
         $emplacements = $this->emplacementRepository->findAll();
