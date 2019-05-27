@@ -106,10 +106,10 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         // fait le lien entre intitulé champs dans datatable/filtres côté front
         // et le nom des attributs de l'entité ReferenceArticle (+ typage)
         $linkChampLibreLabelToField = [
-            'libellé' => ['field' => 'libelle', 'typage' => 'text'],
-            'référence' => ['field' => 'reference', 'typage' => 'text'],
-            'type' => ['field' => 'type_id', 'typage' => 'list'],
-            'quantité' => ['field' => 'quantiteStock', 'typage' => 'number'],
+            'Libellé' => ['field' => 'libelle', 'typage' => 'text'],
+            'Référence' => ['field' => 'reference', 'typage' => 'text'],
+            'Type' => ['field' => 'type_id', 'typage' => 'list'],
+            'Quantité' => ['field' => 'quantiteStock', 'typage' => 'number'],
         ];
         //TODO trouver + dynamique
 
