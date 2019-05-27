@@ -569,9 +569,9 @@ class ReceptionController extends AbstractController
     /**
      * @Route("/modifier-article", name="reception_article_edit", options={"expose"=true}, methods={"GET", "POST"})
      */
-    public function editArticle(Request  $request): Response
+    public function editArticle(Request $request): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
+        if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::CREATE_EDIT)) {
             return $this->redirectToRoute('access_denied');
         }
 

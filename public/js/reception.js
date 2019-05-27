@@ -263,23 +263,23 @@ $('.ajax-autocomplete').select2({
     minimumInputLength: 1,
 });
 
-function ajaxGetArticle(select) {
-    xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function () {
-        if (this.readyState == 4 && this.status == 200) {
-            data = JSON.parse(this.responseText);
-            $('#newContent').html(data);
-            $('#modalAddArticle').find('div').find('div').find('.modal-footer').removeClass('d-none');
-
-        }
-    }
-    path = Routing.generate('get_refArticle_in_reception', true)
-    let data = {};
-    data['referenceArticle'] = select.val();
-    json = JSON.stringify(data);
-    xhttp.open("POST", path, true);
-    xhttp.send(json);
-}
+// function ajaxGetArticle(select) {
+//     xhttp = new XMLHttpRequest();
+//     xhttp.onreadystatechange = function () {
+//         if (this.readyState == 4 && this.status == 200) {
+//             data = JSON.parse(this.responseText);
+//             $('#newContent').html(data);
+//             $('#modalAddArticle').find('div').find('div').find('.modal-footer').removeClass('d-none');
+//
+//         }
+//     }
+//     path = Routing.generate('get_refArticle_in_reception', true)
+//     let data = {};
+//     data['referenceArticle'] = select.val();
+//     json = JSON.stringify(data);
+//     xhttp.open("POST", path, true);
+//     xhttp.send(json);
+// }
 
 
 let getArticleFournisseur = function () {
