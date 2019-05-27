@@ -17,14 +17,17 @@
                         </tr>
                     </thead>
                     <tbody>
+
+                          
                         {% set i = 0 %}
                         {% for champ in champs %}
+                       
                         <tr>
                             <td>
                                 {{champ.label | capitalize}}
                             </td>
                             <td>
-                                {% set checked = (champ.label in champsVisible ? 'checked' : '') %}
+                                {% set checked = (champ.label in columnsVisibles ? 'checked' : '') %}
                                 <input class="form-check-input {{checked == 'checked' ? 'data' : '' }}" name="{{champ.label}}"
                                        onclick="showOrHideColumn($(this))" type="checkbox" id="inlineCheckbox1" {{ checked }}
                                        data-column="{{i}}" data-name="{{ champ.label }}">

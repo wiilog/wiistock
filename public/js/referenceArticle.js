@@ -233,20 +233,23 @@ let tableColumnVisible = $('#tableColumnVisible_id').DataTable({
 });
 
 function showOrHideColumn(check) {
+    
     let columnName = check.data('name');
 
     let column = tableRefArticle.column(columnName + ':name');
+    
     column.visible(!column.visible());
+   
+    
     let tableRefArticleColumn = $('#tableRefArticle_id_wrapper');
-    tableRefArticleColumn.find('th').removeClass('libre');
-    tableRefArticleColumn.find('th').addClass('fixe');
-
+    tableRefArticleColumn.find('th, td').removeClass('hide');
+    tableRefArticleColumn.find('th, td').addClass('display');
     check.toggleClass('data');
 }
 
 function hideAndShowColumns() {
-    tableRefArticle.columns('.libre').visible(false);
-    tableRefArticle.columns('.fixe').visible(true);
+    tableRefArticle.columns('.hide').visible(false);
+    tableRefArticle.columns('.display').visible(true);
 }
 
 function showDemande(bloc) {
