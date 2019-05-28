@@ -422,13 +422,18 @@ let ajaxEditArticle = function (select) {
 
 //initialisation editeur de texte une seule fois
 let editorNewReferenceArticleAlreadyDone = false;
-function initNewReferenceArticleEditor() {
+function initNewReferenceArticleEditor(modal) {
     if (!editorNewReferenceArticleAlreadyDone) {
         initEditor2('.editor-container-new');
         editorNewReferenceArticleAlreadyDone = true;
     }
     ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseur'));
-    ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'))
+    ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'));
+    console.log(modal);
+    $(modal).find('.error-msg').empty();
+    $(modal).find('.is-invalid').each(function() {
+        $(this).removeClass('is-invalid');
+    });
 };
 
 // var editorEditRefArticleAlreadyDone = false;
