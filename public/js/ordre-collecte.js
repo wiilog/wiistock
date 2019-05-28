@@ -1,4 +1,5 @@
 let pathCollecte = Routing.generate('ordre_collecte_api');
+
 let tableCollecte = $('#tableCollecte').DataTable({
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
@@ -16,3 +17,4 @@ let tableCollecte = $('#tableCollecte').DataTable({
     { "data": 'Actions', 'title': 'Actions' },
     ],
 });
+
