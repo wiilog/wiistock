@@ -220,7 +220,6 @@ class OrdreCollecteController extends AbstractController
             $demande = $collecte->getDemandeCollecte();
 
             if ($demande) {
-
                 $rows = [];
 
                 $ligneArticle = $this->collecteReferenceRepository->getByCollecte($demande->getId());
@@ -260,6 +259,7 @@ class OrdreCollecteController extends AbstractController
             } else {
                 $data = false; //TODO gérer retour message erreur
             }
+
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
@@ -307,10 +307,14 @@ class OrdreCollecteController extends AbstractController
             }
 
             $ligneArticle = $this->collecteReferenceRepository->find($data['id']);
+            $modif = isset($data['ref']) && !($data['ref'] === 0);
 
             $json =  $this->renderView(
                 'ordre_collecte/modalEditArticleContent.html.twig',
-                ['ligneArticle' => $ligneArticle]
+                [
+                    'ligneArticle' => $ligneArticle,
+                    'modifiable' => $modif
+                ]
             );
             return new JsonResponse($json);
         }
@@ -327,15 +331,41 @@ class OrdreCollecteController extends AbstractController
         }
 
         if (!$request->isXmlHttpRequest() &&  $data = json_decode($request->getContent(), true)) {
-
             $ligneArticle = $this->collecteReferenceRepository->find($data['ligneArticle']);
-
-            $ligneArticle->setQuantite($data['quantite']);
+            if (isset($data['quantite'])) $ligneArticle->setQuantite($data['quantite']);
 
             $this->getDoctrine()->getManager()->flush();
 
             return new JsonResponse();
         }
         throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/supprimer/{id}", name="ordre_collecte_delete", options={"expose"=true},methods={"GET","POST"})
+     */
+
+    public function delete(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::COLLECTE, Action::CREATE_EDIT)) {
+                return $this->redirectToRoute('access_denied');
+            }
+            
+            $ordreCollecte = $this->ordreCollecteRepository->find($data['collecte']);
+            $collecte = $ordreCollecte->getDemandeCollecte();
+            
+            $collecte
+                ->setStatut($this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, Collecte::STATUS_BROUILLON));
+
+            $entityManager = $this->getDoctrine()->getManager();
+            $entityManager->remove($ordreCollecte);
+            $entityManager->flush();
+            $data = [
+                'redirect' => $this->generateUrl('ordre_collecte_index'),
+            ];
+            return new JsonResponse($data);
+        }
+        throw new NotFoundHttpException('404');
     }
 }

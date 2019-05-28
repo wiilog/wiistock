@@ -23,3 +23,8 @@ let urlEditArticle = Routing.generate('ordre_collecte_edit_article', true);
 let modalEditArticle = $("#modalEditArticle");
 let submitEditArticle = $("#submitEditArticle");
 InitialiserModal(modalEditArticle, submitEditArticle, urlEditArticle, tableArticle);
+
+let modalDeleteOrdreCollecte = $('#modalDeleteOrdreCollecte');
+let submitDeleteOrdreCollecte = $('#submitDeleteOrdreCollecte');
+let urlDeleteOrdreCollecte = Routing.generate('ordre_collecte_delete',{'id':id}, true);
+InitialiserModal(modalDeleteOrdreCollecte, submitDeleteOrdreCollecte, urlDeleteOrdreCollecte, tableArticle);
