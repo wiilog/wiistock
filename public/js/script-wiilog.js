@@ -539,3 +539,15 @@ function clearModal(modal) {
     // on vide les éditeurs de text
     $('.ql-editor').text('')
 }
+
+function adjustScalesForDoc(response) {
+    let format = response.width > response.height ? 'l' : 'p';
+    console.log('Wanted scales : \n-Width : ' + response.width + '\n-Height : ' + response.height);
+    let docTemp = new jsPDF(format, 'mm', [response.height, response.width]);
+    console.log('Document original scales : \n-Width : ' + docTemp.internal.pageSize.getWidth() + '\n-Height : ' + docTemp.internal.pageSize.getHeight())
+    let newWidth = response.width * (response.width / docTemp.internal.pageSize.getWidth());
+    let newHeight = response.height * (response.height / docTemp.internal.pageSize.getHeight());
+    let doc = new jsPDF(format, 'mm', [newHeight, newWidth]);
+    console.log('Document adjusted scales : \n-Width : ' + doc.internal.pageSize.getWidth() + '\n-Height : ' + doc.internal.pageSize.getHeight());
+    return doc;
+}
