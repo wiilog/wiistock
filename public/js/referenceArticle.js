@@ -20,7 +20,7 @@ function submitActionRefArticle(modal, path, callback = function () { }, close =
                 tableRefArticle.row($('#edit' + data.id).parents('div').parents('td').parents('tr')).remove().draw(false);
                 tableRefArticle.row.add(data.edit).draw(false);
             }
-            callback(data);
+            callback(data, modal);
             initRemove();
             clearModalRefArticle(modal);
 
@@ -346,8 +346,7 @@ function displayFilterValue(elem) {
     elem.closest('.modal-body').find('.valueLabel').text(label);
 }
 
-function displayErrorRA(data) {
-    let modal = $("#modalNewRefArticle");
+function displayErrorRA(data, modal) {
     let msg = 'Ce nom de référence existe déjà. Vous ne pouvez pas le recréer.';
     displayError(modal, msg, data);
 }
