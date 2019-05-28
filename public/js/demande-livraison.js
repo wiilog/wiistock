@@ -68,16 +68,16 @@ let tableDemande = $('#table_demande').DataTable({
 });
 
 // recherche par défaut demandeur = utilisateur courant
-let demandeur = $('.current-username').val();
-if (demandeur !== undefined) {
-    let demandeurPiped = demandeur.split(',').join('|')
-    tableDemande
-        .columns('Demandeur:name')
-        .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
-        .draw();
-    // affichage par défaut du filtre select2 demandeur = utilisateur courant
-    $('#utilisateur').val(demandeur).trigger('change');
-}
+// let demandeur = $('.current-username').val();
+// if (demandeur !== undefined) {
+//     let demandeurPiped = demandeur.split(',').join('|')
+//     tableDemande
+//         .columns('Demandeur:name')
+//         .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
+//         .draw();
+//     // affichage par défaut du filtre select2 demandeur = utilisateur courant
+//     $('#utilisateur').val(demandeur).trigger('change');
+// }
 
 let urlNewDemande = Routing.generate('demande_new', true);
 let modalNewDemande = $("#modalNewDemande");
