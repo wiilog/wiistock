@@ -27,6 +27,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
+
 /**
  * @Route("/ordre-collecte")
  */
@@ -128,7 +129,7 @@ class OrdreCollecteController extends AbstractController
     }
 
     /**
-     * @Route("/voir/{id}", name="ordre_collecte_show", methods={"GET","POST"})
+     * @Route("/voir/{id}", name="ordre_collecte_show",  methods={"GET","POST"})
      */
     public function show(OrdreCollecte $ordreCollecte): Response
     {

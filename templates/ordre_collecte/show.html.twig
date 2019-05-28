@@ -21,6 +21,7 @@
         <p><strong>Destination:</strong>{{ collecte.demandeCollecte.stockOrDestruct ? ' Mise en stock' : ' Destruction' }}
         </p>
     </div>
+    
     {% if not finished %}
         {% if hasRight(constant('App\\Entity\\Menu::COLLECTE'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
             <div class="col-2">
@@ -38,6 +39,14 @@
                 </p>
         </div>
         {% endif %}
+    {% endif %}
+    
+    {% if hasRight(constant('App\\Entity\\Menu::COLLECTE'), constant('App\\Entity\\Action::LIST')) %}
+    <div class="col text-right">
+            <a href={{path('collecte_show', {'id': collecte.demandeCollecte.id }) }} class="btn btn-primary btn-action">
+                Aller vers la demande de collecte
+            </a>
+        </div>
     {% endif %}
 
     <div class="col-12">
