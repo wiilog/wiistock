@@ -429,11 +429,7 @@ function initNewReferenceArticleEditor(modal) {
     }
     ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseur'));
     ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'));
-    console.log(modal);
-    $(modal).find('.error-msg').empty();
-    $(modal).find('.is-invalid').each(function() {
-        $(this).removeClass('is-invalid');
-    });
+    clearModal(modal);
 };
 
 // var editorEditRefArticleAlreadyDone = false;

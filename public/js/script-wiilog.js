@@ -523,7 +523,7 @@ function clearModal(modal) {
         $(this).removeClass('is-invalid');
     });
     // on vide tous les select2
-    let selects = $modal.find('.modal-body').find('.ajax-autocomplete,.ajax-autocompleteEmplacement,.select2');
+    let selects = $modal.find('.modal-body').find('.ajax-autocomplete,.ajax-autocompleteEmplacement, .ajax-autocompleteFournisseur, .select2');
     selects.each(function () {
         $(this).val(null).trigger('change');
     });
