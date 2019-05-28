@@ -269,6 +269,8 @@ function showDemande(bloc) {
         $livraisonShow.find('div').find('.quantite').addClass('data');
         $livraisonShow.find('.data').addClass('needed');
 
+        setMaxQuantityByArtRef($livraisonShow.find('#quantity-to-deliver'));
+
     } else if (bloc.data("title") == "collecte") {
         $collecteShow.removeClass('d-none');
         $collecteShow.addClass('d-block');
@@ -380,9 +382,9 @@ let ajaxPlusDemandeContent = function (button, demande) {
             } else {
                 //TODO gérer erreur
             }
-            showDemande(button)
+            showDemande(button);
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
-            initEditor2('#editor-container');
+            initEditor2('#editor-container-edit');
         }
     }
     let json = {

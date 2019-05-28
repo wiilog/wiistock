@@ -530,12 +530,17 @@ function clearModal(modal) {
     // on vide les messages d'erreur
     $modal.find('.error-msg, .password-error-msg').html('');
     // on remet toutes les checkboxes sur off
+    clearCheckboxes($modal);
+    // on vide les éditeurs de text
+    $('.ql-editor').text('')
+}
+
+function clearCheckboxes($modal) {
+    console.log($modal);
     let checkboxes = $modal.find('.checkbox');
     checkboxes.each(function () {
         $(this).prop('checked', false);
         $(this).removeClass('active');
         $(this).addClass('not-active');
     });
-    // on vide les éditeurs de text
-    $('.ql-editor').text('')
 }
