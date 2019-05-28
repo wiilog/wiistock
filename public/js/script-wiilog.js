@@ -156,12 +156,8 @@ function submitAction(modal, path, table, callback, close) {
 
 //DELETE
 function deleteRow(button, modal, submit) {
-    console.log('test');
     let id = button.data('id');
     modal.find(submit).attr('value', id);
-    console.log(id);
-    console.log(modal);
-    console.log(submit);
 }
 
 //SHOW
