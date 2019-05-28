@@ -62,10 +62,13 @@
             <span class="slider round"></span>
         </label>
     </div>
-    <div class="form-group col-4">
-
-
-
+    <div class="form-group col-6 w-100">
+        <label for="emplacement">Emplacement</label>
+        <select class="ajax-autocompleteEmplacement-edit data form-control" name="emplacement" disabled>
+            {% if article.emplacement != null %}
+            <option value="{{article.emplacement.id}}">{{article.emplacement.label}}</option>
+            {% endif %}
+        </select>
     </div>
     <div class="form-group col-12">
         <div>
@@ -141,6 +144,8 @@
             </div>
         </div>
     </div>
+<<<<<<< HEAD
+=======
     <div class="row mt-4">
         <div class='col-12 mb-2' onclick="visibleBlockModal($(this))">
             <h3 class='d-flex pointer'>
@@ -155,4 +160,5 @@
             </div>
         </div>
     </div>
+>>>>>>> dev
 </div>

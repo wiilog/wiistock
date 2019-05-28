@@ -445,6 +445,10 @@ class ReceptionController extends AbstractController
             $reception =  $this->receptionRepository->find($data['receptionId']);
 
             $entityManager =  $this->getDoctrine()->getManager();
+            foreach ($reception->getReceptionReferenceArticles() as $receptionArticle) {
+                $entityManager->remove($receptionArticle);
+            }
+            $this->articleRepository->setNullByReception($reception);
             $entityManager->remove($reception);
             $entityManager->flush();
             $data = [
@@ -899,7 +903,7 @@ class ReceptionController extends AbstractController
 
             $ligne = $this->receptionReferenceArticleRepository->find(intval($ligne));
             $data = $this->articleDataService->getDataForDatatableByReceptionLigne($ligne);
-
+            dump($data);
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException('404');
