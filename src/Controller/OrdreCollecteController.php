@@ -259,6 +259,7 @@ class OrdreCollecteController extends AbstractController
             } else {
                 $data = false; //TODO gérer retour message erreur
             }
+
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
@@ -306,10 +307,14 @@ class OrdreCollecteController extends AbstractController
             }
 
             $ligneArticle = $this->collecteReferenceRepository->find($data['id']);
+            $modif = isset($data['ref']) && !($data['ref'] === 0);
 
             $json =  $this->renderView(
                 'ordre_collecte/modalEditArticleContent.html.twig',
-                ['ligneArticle' => $ligneArticle]
+                [
+                    'ligneArticle' => $ligneArticle,
+                    'modifiable' => $modif
+                ]
             );
             return new JsonResponse($json);
         }
@@ -327,8 +332,7 @@ class OrdreCollecteController extends AbstractController
 
         if (!$request->isXmlHttpRequest() &&  $data = json_decode($request->getContent(), true)) {
             $ligneArticle = $this->collecteReferenceRepository->find($data['ligneArticle']);
-
-            $ligneArticle->setQuantite($data['quantite']);
+            if (isset($data['quantite'])) $ligneArticle->setQuantite($data['quantite']);
 
             $this->getDoctrine()->getManager()->flush();
 
