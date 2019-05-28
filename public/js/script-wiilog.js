@@ -217,12 +217,12 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
     }
     let id = button.data('id');
     let ref = button.data('ref');
-    let json = {};
-    if (ref !== false) {
-        json = { id: id, isADemand: 0, ref:ref };
-    } else {
-        json = { id: id, isADemand: 0};
+
+    let json = { id: id, isADemand: 0};
+    if (ref != false) {
+        json.ref = ref;
     }
+
     modal.find(submit).attr('value', id);
     modal.find('#inputId').attr('value', id);
     xhttp.open("POST", path, true);
