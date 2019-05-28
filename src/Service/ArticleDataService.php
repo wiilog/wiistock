@@ -325,7 +325,6 @@ class ArticleDataService
                 $statut = 0; //TODO plutôt gérer une erreur ?
                 break;
         }
-
         $view = $this->templating->render('article/modalModifyArticleContent.html.twig', [
             'typeChampsLibres' => $typeChampLibre,
             'typeArticle' => $typeArticle,
@@ -366,15 +365,15 @@ class ArticleDataService
                             break;
                     }
 
-//                    if (intval($data['statut']) === 0) {
-//                        $statutLabel = Article::STATUT_INACTIF;
-//                    }
-//                    if (intval($data['statut']) === 1) {
-//                        $statutLabel = Article::STATUT_ACTIF;
-//                    }
-//                    if (intval($data['statut']) === 2) {
-//                        $statutLabel = Article::STATUT_EN_TRANSIT;
-//                    }
+                    //                    if (intval($data['statut']) === 0) {
+                    //                        $statutLabel = Article::STATUT_INACTIF;
+                    //                    }
+                    //                    if (intval($data['statut']) === 1) {
+                    //                        $statutLabel = Article::STATUT_ACTIF;
+                    //                    }
+                    //                    if (intval($data['statut']) === 2) {
+                    //                        $statutLabel = Article::STATUT_EN_TRANSIT;
+                    //                    }
 
                     $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $statutLabel);
                     $article->setStatut($statut);
@@ -483,7 +482,7 @@ class ArticleDataService
         $articles = [];
         foreach ($listArticleFournisseur as $articleFournisseur) {
             foreach ($this->articleRepository->findByListAF($articleFournisseur) as $article) {
-                if ($article->getReception() && $ligne->getReception()) $articles[] = $article;
+                if ($article->getReception() && $ligne->getReception() && $article->getReception() === $ligne->getReception()) $articles[] = $article;
             }
         }
         $rows = [];

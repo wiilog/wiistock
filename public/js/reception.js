@@ -51,7 +51,8 @@ function initDatatableConditionnement() {
             ],
         });
 
-        let statutVisible = $(".statutVisible").val();
+        let statutVisible = $("#statutVisible").val();
+    
         if (!statutVisible) {
             tableFromArticle.column('Statut:name').visible(false);
         }
@@ -385,7 +386,6 @@ function printSingleBarcode(button) {
             }
         } else {
             $('#ligneSelected').val(button.data('id'));
-            initDatatableConditionnement();
             // tableFromArticle.ajax.reload(function (json) {
             //     if (this.responseText !== undefined) {
             //         $('#myInput').val(json.lastInput);
@@ -395,6 +395,7 @@ function printSingleBarcode(button) {
             let $submit = $('#submitConditionnement');
             $submit.attr('data-ref', response.article)
             $submit.attr('data-id', button.data('id'))
+            initDatatableConditionnement();
         }
     });
 }
