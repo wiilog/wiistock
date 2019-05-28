@@ -42,17 +42,17 @@ function initDatatableConditionnement() {
                 },
             },
             columns: [
-                {"data": 'Référence', 'name': 'Référence', 'title': 'Référence'},
-                {"data": "Statut", 'name': 'Statut', 'title': 'Statut'},
-                {"data": 'Libellé', 'name': 'Libellé', 'title': 'Libellé'},
-                {"data": 'Référence article', 'name': 'Référence article', 'title': 'Référence article'},
-                {"data": 'Quantité', 'name': 'Quantité', 'title': 'Quantité'},
-                {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'}
+                { "data": 'Référence', 'name': 'Référence', 'title': 'Référence' },
+                { "data": "Statut", 'name': 'Statut', 'title': 'Statut' },
+                { "data": 'Libellé', 'name': 'Libellé', 'title': 'Libellé' },
+                { "data": 'Référence article', 'name': 'Référence article', 'title': 'Référence article' },
+                { "data": 'Quantité', 'name': 'Quantité', 'title': 'Quantité' },
+                { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' }
             ],
         });
 
         let statutVisible = $("#statutVisible").val();
-    
+
         if (!statutVisible) {
             tableFromArticle.column('Statut:name').visible(false);
         }
@@ -144,7 +144,7 @@ let printBarcode = function (button) {
                     format: "CODE128",
                 });
             }
-            let doc = new jsPDF('l', 'mm', [response.height, response.width]);
+            let doc = adjustScalesForDoc(response);
             $("#barcodes").find('img').each(function () {
                 doc.addImage($(this).attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
                 doc.addPage();
@@ -348,7 +348,7 @@ function createArticleAndBarcodes(button) {
                     format: "CODE128",
                 });
             }
-            let doc = new jsPDF('l', 'mm', [response.height, response.width]);
+            let doc = adjustScalesForDoc(response);
             $("#barcodes").find('img').each(function () {
                 doc.addImage($(this).attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
                 doc.addPage();
@@ -377,7 +377,7 @@ function printSingleBarcode(button) {
                 JsBarcode("#singleBarcode", response.ligneRef, {
                     format: "CODE128",
                 });
-                let doc = new jsPDF('l', 'mm', [response.height, response.width]);
+                let doc = adjustScalesForDoc(response);
                 doc.addImage($("#singleBarcode").attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
                 doc.save('Etiquette concernant l\'article ' + response.ligneRef + '.pdf');
                 $("#singleBarcode").remove();
@@ -386,11 +386,6 @@ function printSingleBarcode(button) {
             }
         } else {
             $('#ligneSelected').val(button.data('id'));
-            // tableFromArticle.ajax.reload(function (json) {
-            //     if (this.responseText !== undefined) {
-            //         $('#myInput').val(json.lastInput);
-            //     }
-            // });
             $('#chooseConditionnement').click();
             let $submit = $('#submitConditionnement');
             $submit.attr('data-ref', response.article)
@@ -522,7 +517,7 @@ function printSingleArticleBarcode(button) {
             JsBarcode("#singleBarcode", response.articleRef, {
                 format: "CODE128",
             });
-            let doc = new jsPDF('l', 'mm', [response.height, response.width]);
+            let doc = adjustScalesForDoc(response);
             doc.addImage($("#singleBarcode").attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
             doc.save('Etiquette concernant l\'article ' + response.articleRef + '.pdf');
             $("#singleBarcode").remove();
