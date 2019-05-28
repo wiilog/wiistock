@@ -348,7 +348,7 @@ class CollecteController extends AbstractController
                     ->setArticleFournisseur($articleFournisseur)
                     ->setType($refArticle->getType());
                 $em->persist($toInsert);
-                $collecte->addArticle($toInsert);
+                $collecte->addArticle($toInsert); //TODO Spécifique CEA
             }
             // $article = $this->articleRepository->find($data['article']);
             // $collecte->addArticle($article);

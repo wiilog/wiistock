@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\Article;
 use App\Entity\CategoryType;
 use App\Entity\Filter;
 use App\Entity\Menu;
@@ -32,6 +33,7 @@ use App\Service\RefArticleDataService;
 use App\Service\ArticleDataService;
 
 use App\Service\UserService;
+use Proxies\__CG__\App\Entity\Fournisseur;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -651,8 +653,39 @@ class ReferenceArticleController extends Controller
             } elseif (array_key_exists('collecte', $data) && $data['collecte']) {
                 $collecte = $this->collecteRepository->find($data['collecte']);
                 if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-                    $article = $this->articleRepository->find($data['article']);
-                    $collecte->addArticle($article);
+                    $fournisseurTemp = $this->fournisseurRepository->findOneByCodeReference('A_DETERMINER');
+                    if (!$fournisseurTemp) {
+                        $fournisseurTemp = new Fournisseur();
+                        $fournisseurTemp
+                            ->setCodeReference('A_DETERMINER')
+                            ->setNom('A DETERMINER');
+                        $em->persist($fournisseurTemp);
+                    }
+                    $toInsert = new Article();
+                    $index = $this->articleFournisseurRepository->countByRefArticle($refArticle);
+                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_INACTIF);
+                    $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+                    $ref = $date->format('YmdHis');
+                    $articleFournisseur = new ArticleFournisseur();
+                    $articleFournisseur
+                        ->setReferenceArticle($refArticle)
+                        ->setFournisseur($fournisseurTemp)
+                        ->setReference($refArticle->getReference())
+                        ->setLabel('A déterminer -' . $index);
+                    $em->persist($articleFournisseur);
+                    $toInsert
+                        ->setLabel($refArticle->getLibelle() . '-' . $index)
+                        ->setConform(true)
+                        ->setStatut($statut)
+                        ->setReference($ref . '-' . $index)
+                        ->setQuantite($data['quantitie'])
+                        ->setEmplacement($collecte->getPointCollecte())
+                        ->setArticleFournisseur($articleFournisseur)
+                        ->setType($refArticle->getType());
+                    $em->persist($toInsert);
+                    $collecte->addArticle($toInsert); //TODO Spécifique CEA
+//                    $article = $this->articleRepository->find($data['article']);
+//                    $collecte->addArticle($article);
                 } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                     $collecteReference = new CollecteReference;
                     $collecteReference
@@ -680,7 +713,6 @@ class ReferenceArticleController extends Controller
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $refArticle = $this->referenceArticleRepository->find($data['id']);
-
             if ($refArticle) {
                 $statutC = $this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, Collecte::STATUS_BROUILLON);
                 $collectes = $this->collecteRepository->getByStatutAndUser($statutC, $this->getUser());
@@ -695,6 +727,15 @@ class ReferenceArticleController extends Controller
                         $editChampLibre = false;
                     }
                 } else {
+                    if ($refArticle->getStatut()->getNom() === ReferenceArticle::STATUT_INACTIF && $data['demande'] === 'collecte') { // TODO Spécifique CEA
+                        $response = [
+                            'plusContent' => $this->renderView('reference_article/modalPlusDemandeTemp.html.twig', [
+                                'collectes' => $collectes
+                            ]),
+                            'temp' => true
+                        ];
+                        return new JsonResponse($response);
+                    }
                     $editChampLibre = false;
                 }
 
