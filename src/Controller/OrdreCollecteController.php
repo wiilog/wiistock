@@ -252,7 +252,6 @@ class OrdreCollecteController extends AbstractController
                         "Actions" => $this->renderView('ordre_collecte/datatableOrdreCollecteRow.html.twig', [
                             'id' => $article->getId(),
                             'modifiable' => $collecte->getStatut()->getNom() === OrdreCollecte::STATUT_A_TRAITER,
-                            'isRef' => false
                         ])
                     ];
                 }
@@ -261,6 +260,7 @@ class OrdreCollecteController extends AbstractController
             } else {
                 $data = false; //TODO gérer retour message erreur
             }
+
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
@@ -306,12 +306,9 @@ class OrdreCollecteController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::COLLECTE, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
-            if ($data['ref'] === 0) {
-                $modif = false;
-            } else {
-                $modif = true;
-            }
+
             $ligneArticle = $this->collecteReferenceRepository->find($data['id']);
+            $modif = isset($data['ref']) && !($data['ref'] === 0);
 
             $json =  $this->renderView(
                 'ordre_collecte/modalEditArticleContent.html.twig',
