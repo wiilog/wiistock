@@ -301,13 +301,12 @@ class ReferenceArticleController extends Controller
                 if ($requiredCreate) {
                     $em = $this->getDoctrine()->getManager();
                     $statut = ($data['statut'] === 'active' ? $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF) : $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_INACTIF));
-                    $typeArticle = '';
                     switch($data['type_quantite']) {
                         case 'article':
-                            $typeArticle = 'article';
+                            $typeArticle = ReferenceArticle::TYPE_QUANTITE_ARTICLE;
                             break;
                         default:
-                            $typeArticle = 'reference';
+                            $typeArticle = ReferenceArticle::TYPE_QUANTITE_REFERENCE;
                             break;
                     }
                     $refArticle = new ReferenceArticle();
