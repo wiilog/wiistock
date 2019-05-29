@@ -12,7 +12,7 @@ use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 use App\Entity\CategoryType;
 
-class patchOneZeroFour extends Fixture implements FixtureGroupInterface
+class PatchOneZeroFour extends Fixture implements FixtureGroupInterface
 {
     private $encoder;
 
@@ -36,28 +36,23 @@ class patchOneZeroFour extends Fixture implements FixtureGroupInterface
 
     public function load(ObjectManager $manager)
     {
+        // patch spécifique pour changement de nom de 'typeArticle' à 'artices et références CEA'
         $categoryType = $this->categoryTypeRepository->findOneBy(['label' => 'typeArticle']);
 
-        if (empty($categoryType)) {
-            $categoryType = new CategoryType();
-            dump("création de la catégorie " . CategoryType::TYPE_ARTICLES_ET_REF_CEA);
-        } else {
+        if (!empty($categoryType)) {
+            $categoryType->setLabel(CategoryType::TYPE_ARTICLES_ET_REF_CEA);
             dump("renommage de la catégorie typeArticle -> " . CategoryType::TYPE_ARTICLES_ET_REF_CEA);
         }
 
-        $categoryType->setLabel(CategoryType::TYPE_ARTICLES_ET_REF_CEA);
 
-
+        // patch spécifique pour changement de nom de 'referenceArticle' à 'référence CEA'
         $categorieCL = $this->categorieCLRepository->findOneBy(['label' => 'referenceArticle']);
 
-        if (empty($categorieCL)) {
-            $categorieCL = new CategorieCL();
-            dump("création de la catégorie " . CategorieCL::REFERENCE_CEA);
-        } else {
+        if (!empty($categorieCL)) {
+            $categorieCL->setLabel(CategorieCL::REFERENCE_CEA);
             dump("renommage de la catégorie referenceArticle -> " . CategorieCL::REFERENCE_CEA);
         }
 
-        $categorieCL->setLabel(CategorieCL::REFERENCE_CEA);
 
         $manager->flush();
     }
