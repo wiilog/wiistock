@@ -13,6 +13,7 @@ use App\Entity\ValeurChampsLibre;
 use App\Entity\CollecteReference;
 use App\Entity\LigneArticle;
 use App\Entity\CategorieCL;
+use App\Entity\Fournisseur;
 
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\FilterRepository;
@@ -33,7 +34,6 @@ use App\Service\RefArticleDataService;
 use App\Service\ArticleDataService;
 
 use App\Service\UserService;
-use Proxies\__CG__\App\Entity\Fournisseur;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -662,6 +662,7 @@ class ReferenceArticleController extends Controller
             } elseif (array_key_exists('collecte', $data) && $data['collecte']) {
                 $collecte = $this->collecteRepository->find($data['collecte']);
                 if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+                    //TODO patch temporaire CEA
                     $fournisseurTemp = $this->fournisseurRepository->findOneByCodeReference('A_DETERMINER');
                     if (!$fournisseurTemp) {
                         $fournisseurTemp = new Fournisseur();
@@ -692,7 +693,8 @@ class ReferenceArticleController extends Controller
                         ->setArticleFournisseur($articleFournisseur)
                         ->setType($refArticle->getType());
                     $em->persist($toInsert);
-                    $collecte->addArticle($toInsert); //TODO Spécifique CEA
+                    $collecte->addArticle($toInsert);
+                    //TODO fin patch temporaire CEA (à remplacer par lignes suivantes)
 //                    $article = $this->articleRepository->find($data['article']);
 //                    $collecte->addArticle($article);
                 } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
@@ -736,7 +738,8 @@ class ReferenceArticleController extends Controller
                         $editChampLibre = false;
                     }
                 } else {
-                    if ($refArticle->getStatut()->getNom() === ReferenceArticle::STATUT_INACTIF && $data['demande'] === 'collecte') { // TODO Spécifique CEA
+                    //TODO patch temporaire CEA
+                    if ($refArticle->getStatut()->getNom() === ReferenceArticle::STATUT_INACTIF && $data['demande'] === 'collecte') {
                         $response = [
                             'plusContent' => $this->renderView('reference_article/modalPlusDemandeTemp.html.twig', [
                                 'collectes' => $collectes
@@ -745,6 +748,7 @@ class ReferenceArticleController extends Controller
                         ];
                         return new JsonResponse($response);
                     }
+                    //TODO fin de patch temporaire CEA
                     $editChampLibre = false;
                 }
 

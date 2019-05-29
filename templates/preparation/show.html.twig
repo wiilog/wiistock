@@ -7,7 +7,7 @@
 <div class="row">
     <div class="col-4">
         <p><strong> Numéro : </strong> {{ preparation.numero }}</p>
-        <p id="statutPreparation"><strong> Statut :</strong> {{ preparation.statut.nom }}</p>
+        <p><strong> Statut :</strong> <span id="statutPreparation">{{ preparation.statut.nom }}</span></p>
         <p><strong> Point de livraison :</strong> {{ demande.destination.label }}</p>
     </div>
     <div class="col-4">
@@ -18,6 +18,8 @@
         <p><strong> Commentaire : </strong>{{demande.commentaire|raw}}</p>
     </div>
 
+
+    
     <div class="col text-right">
         <!-- <a href="" data-toggle="modal" data-target="#modalNewArticle" class="btn btn-primary ml-auto">
             Ajouter un article</a> -->
@@ -40,7 +42,7 @@
             {% endif %}
         {% elseif preparation.livraisons is not empty %}
         <a href="{{path('livraison_show', {'id': preparation.livraisons.0.id})}}"
-            class="btn btn-primary btn-action ml-auto">Aller vers la livraison</a>
+            class="btn btn-primary btn-action ml-auto">Aller vers l'ordre de livraison</a>
         {% endif %}
     </div>
 </div>
