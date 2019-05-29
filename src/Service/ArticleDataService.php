@@ -325,6 +325,7 @@ class ArticleDataService
                 $statut = 0; //TODO plutôt gérer une erreur ?
                 break;
         }
+
         $view = $this->templating->render('article/modalModifyArticleContent.html.twig', [
             'typeChampsLibres' => $typeChampLibre,
             'typeArticle' => $typeArticle,
