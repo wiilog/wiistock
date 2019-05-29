@@ -64,7 +64,7 @@ class RefArticleSILIIntFixtures extends Fixture implements FixtureGroupInterface
 
         $i = 1;
         foreach ($rows as $row) {
-//            if (empty($row[0])) continue;
+            if (empty($row[0])) continue;
             dump($i);
             $i++;
             $typeSiliInt = $this->typeRepository->findOneBy(['label' => Type::LABEL_SILI_INT]);
@@ -77,7 +77,7 @@ class RefArticleSILIIntFixtures extends Fixture implements FixtureGroupInterface
             $referenceArticle
                 ->setType($typeSiliInt)
                 ->setReference('SILI_INT_' . $referenceNum)
-                ->setLibelle('SILI_INT_' . $referenceNum)
+                ->setLibelle($row[1])
                 ->setQuantiteStock(1)
                 ->setTypeQuantite('reference')
                 ->setStatut($this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF));
@@ -88,16 +88,16 @@ class RefArticleSILIIntFixtures extends Fixture implements FixtureGroupInterface
             // champs libres
             $listFields = [
                 ['label' => 'adresse', 'col' => 0],
-                ['label' => 'famille produit', 'col' => 1],
-                ['label' => 'date', 'col' => 2],
-                ['label' => 'diamètre', 'col' => 3],
-                ['label' => 'n° lot autre', 'col' => 4],
-                ['label' => 'n° lot Léti', 'col' => 5],
-                ['label' => "demandeur", 'col' => 6],
-                ['label' => "projet 3", 'col' => 7],
-                ['label' => "date de retour en salle ou d'envoi à Crolles ou autre", 'col' => 8],
-                ['label' => "commentaire", 'col' => 9],
-                ['label' => "mois de stock", 'col' => 10],
+                ['label' => 'famille produit', 'col' => 2],
+                ['label' => 'date', 'col' => 3],
+                ['label' => 'diamètre', 'col' => 4],
+                ['label' => 'n° lot autre', 'col' => 5],
+                ['label' => 'n° lot Léti', 'col' => 6],
+                ['label' => "demandeur", 'col' => 7],
+                ['label' => "projet 3", 'col' => 8],
+//                ['label' => "date de retour en salle ou d'envoi à Crolles ou autre", 'col' => 9],
+                ['label' => "commentaire", 'col' => 10],
+                ['label' => "mois de stock", 'col' => 11],
             ];
 
 
@@ -122,7 +122,7 @@ class RefArticleSILIIntFixtures extends Fixture implements FixtureGroupInterface
     }
 
     public static function getGroups():array {
-        return ['articlesSILIint', 'articles'];
+        return ['siliint'];
     }
 
 }
