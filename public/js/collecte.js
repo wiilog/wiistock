@@ -27,16 +27,16 @@ let table = $('#tableCollecte_id').DataTable({
 });
 
 // recherche par défaut demandeur = utilisateur courant
-let demandeur = $('.current-username').val();
-if (demandeur !== undefined) {
-    let demandeurPiped = demandeur.split(',').join('|')
-    table
-        .columns('Demandeur:name')
-        .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
-        .draw();
-    // affichage par défaut du filtre select2 demandeur = utilisateur courant
-    $('#utilisateur').val(demandeur).trigger('change');
-}
+// let demandeur = $('.current-username').val();
+// if (demandeur !== undefined) {
+//     let demandeurPiped = demandeur.split(',').join('|')
+//     table
+//         .columns('Demandeur:name')
+//         .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
+//         .draw();
+//     // affichage par défaut du filtre select2 demandeur = utilisateur courant
+//     $('#utilisateur').val(demandeur).trigger('change');
+// }
 
 let modalNewCollecte = $("#modalNewCollecte");
 let SubmitNewCollecte = $("#submitNewCollecte");
