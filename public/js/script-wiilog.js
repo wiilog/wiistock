@@ -30,6 +30,7 @@ function submitAction(modal, path, table, callback, close) {
 
             if (data.redirect) {
                 window.location.href = data.redirect;
+                return;
             }
             // pour mise à jour des données d'en-tête après modification
             if (data.entete) {

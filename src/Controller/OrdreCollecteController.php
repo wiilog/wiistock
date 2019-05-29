@@ -352,10 +352,10 @@ class OrdreCollecteController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::COLLECTE, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
-            
+
             $ordreCollecte = $this->ordreCollecteRepository->find($data['collecte']);
             $collecte = $ordreCollecte->getDemandeCollecte();
-            
+
             $collecte
                 ->setStatut($this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, Collecte::STATUS_BROUILLON));
 
@@ -365,6 +365,7 @@ class OrdreCollecteController extends AbstractController
             $data = [
                 'redirect' => $this->generateUrl('ordre_collecte_index'),
             ];
+
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException('404');
