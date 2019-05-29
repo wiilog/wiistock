@@ -12,7 +12,7 @@ use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 use App\Entity\CategoryType;
 
-class PatchOneZeroFour extends Fixture implements FixtureGroupInterface
+class PatchOneOneZero extends Fixture implements FixtureGroupInterface
 {
     private $encoder;
 
@@ -58,7 +58,7 @@ class PatchOneZeroFour extends Fixture implements FixtureGroupInterface
     }
 
     public static function getGroups():array {
-        return ['1.0.4'];
+        return ['1.1.0'];
     }
 
 }
