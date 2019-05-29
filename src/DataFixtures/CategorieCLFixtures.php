@@ -43,24 +43,11 @@ class CategorieCLFixtures extends Fixture implements FixtureGroupInterface
                 dump("création de la catégorie " . $categorieName);
             }
         }
-
-//        // patch spécifique pour changement de nom de 'referenceArticle' à 'référence CEA'
-        $categorieCL = $this->categorieCLRepository->findOneBy(['label' => 'referenceArticle']);
-
-        if (empty($categorieCL)) {
-            $categorieCL = new CategorieCL();
-            dump("création de la catégorie " . CategorieCL::REFERENCE_CEA);
-        } else {
-            dump("renommage de la catégorie referenceArticle -> " . CategorieCL::REFERENCE_CEA);
-        }
-
-        $categorieCL->setLabel(CategorieCL::REFERENCE_CEA);
-
         $manager->flush();
     }
 
     public static function getGroups():array {
-        return ['fixtures', '1.0.4'];
+        return ['fixtures'];
     }
 
 }
