@@ -1,8 +1,6 @@
-var pathArticle = Routing.generate('article_api', true);
+let pathArticle = Routing.generate('article_api', true);
 
-
-
-var tableArticle = $('#tableArticle_id').DataTable({
+let tableArticle = $('#tableArticle_id').DataTable({
     processing: true,
     serverSide: true,
     "language": {
@@ -263,7 +261,7 @@ function printSingleArticleBarcode(button) {
             JsBarcode("#singleBarcode", response.articleRef, {
                 format: "CODE128",
             });
-            let doc = new jsPDF('l', 'mm', [response.height, response.width]);
+            let doc = adjustScalesForDoc(response);
             doc.addImage($("#singleBarcode").attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
             doc.save('Etiquette concernant l\'article ' + response.articleRef + '.pdf');
             $("#singleBarcode").remove();
@@ -276,17 +274,17 @@ function printSingleArticleBarcode(button) {
 function changeStatus(button) {
     let sel = $(button).data('title');
     let tog = $(button).data('toggle');
-    if (sel == 'inactive'){
+    if (sel == 'inactive') {
         $("#s").val(0);
     }
-    if (sel == 'active'){
+    if (sel == 'active') {
         $("#s").val(1);
     }
-    if (sel == 'transit'){
+    if (sel == 'transit') {
         $("#s").val(2);
     }
 
-   $('span[data-toggle="' + tog + '"]').not('[data-title="' + sel + '"]').removeClass('active').addClass('not-active');
-   $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
+    $('span[data-toggle="' + tog + '"]').not('[data-title="' + sel + '"]').removeClass('active').addClass('not-active');
+    $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
 }
 
