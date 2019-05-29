@@ -147,7 +147,7 @@ class ServiceController extends AbstractController
 
             $service
                 ->setDate($date)
-                ->setLibelle($data['Libelle'])
+                ->setLibelle(substr($data['Libelle'], 0, 255))
                 ->setSource($data['source'])
                 ->setDestination($data['destination'])
                 ->setStatut($status)
