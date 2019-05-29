@@ -384,7 +384,8 @@ class LivraisonController extends AbstractController
             }
             $data = [];
             $headers = ['demandeur', 'statut', 'destination', 'commentaire', 'dateDemande', 'dateValidation', 'reference', 'referenceArticle', 'libelleArticle', 'quantite'];
-            foreach ($this->champsLibreRepository->findAll() as $champLibre) {
+            $cls = $this->champsLibreRepository->findAll();
+            foreach ($cls as $champLibre) {
                 $headers[] = $champLibre->getLabel();
             }
             $data[] = $headers;
@@ -402,7 +403,7 @@ class LivraisonController extends AbstractController
                     $livraisonData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getReference() : '';
                     $livraisonData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getLibelle() : '';
                     $livraisonData[] = $ligneArticle->getQuantite();
-                    $categorieCL = $this->categorieCLRepository->findOneByLabel(($ligneArticle->getReference()->getTypeQuantite() === 'reference') ? 'referenceArticle' : 'article');
+                    $categorieCL = $this->categorieCLRepository->findOneByLabel(($ligneArticle->getReference()->getTypeQuantite() === 'reference') ? 'reference CEA' : 'article');
                     $champsLibres = [];
                     foreach ($listTypes as $type) {
                         $listChampsLibres = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($type['label'], $categorieCL);
@@ -413,9 +414,9 @@ class LivraisonController extends AbstractController
                             }
                         }
                     }
-                    foreach ($headers as $type) {
-                        if (array_key_exists($type, $champsLibres)) {
-                            $livraisonData[] = $champsLibres[$type];
+                    foreach ($cls as $type) {
+                        if (array_key_exists($type->getLabel(), $champsLibres)) {
+                            $livraisonData[] = $champsLibres[$type->getLabel()];
                         } else {
                             $livraisonData[] = '';
                         }
@@ -445,9 +446,9 @@ class LivraisonController extends AbstractController
                             }
                         }
                     }
-                    foreach ($headers as $type) {
-                        if (array_key_exists($type, $champsLibres)) {
-                            $livraisonData[] = $champsLibres[$type];
+                    foreach ($cls as $type) {
+                        if (array_key_exists($type->getLabel(), $champsLibres)) {
+                            $livraisonData[] = $champsLibres[$type->getLabel()];
                         } else {
                             $livraisonData[] = '';
                         }
