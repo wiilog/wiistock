@@ -378,7 +378,10 @@ let ajaxPlusDemandeContent = function (button, demande) {
             if (dataReponse.editChampLibre) {
                 editChampLibre.html(dataReponse.editChampLibre);
                 modalFooter.removeClass('d-none');
-            } else {
+            } if (dataReponse.temp) {
+                modalFooter.removeClass('d-none');
+            } // TODO Spécifique CEA
+            else {
                 //TODO gérer erreur
             }
             showDemande(button);

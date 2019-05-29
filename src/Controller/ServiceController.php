@@ -147,7 +147,7 @@ class ServiceController extends AbstractController
 
             $service
                 ->setDate($date)
-                ->setLibelle($data['Libelle'])
+                ->setLibelle(substr($data['Libelle'], 0, 64))
                 ->setSource($data['source'])
                 ->setDestination($data['destination'])
                 ->setStatut($status)
@@ -201,7 +201,7 @@ class ServiceController extends AbstractController
             $statut = $this->statutRepository->findOneByCategorieAndStatut(Service::CATEGORIE, $statutLabel);
             $service->setStatut($statut);
             $service
-                ->setLibelle($data['Libelle'])
+                ->setLibelle(substr($data['Libelle'], 0, 64))
                 ->setSource($data['source'])
                 ->setDestination($data['destination'])
                 ->setDemandeur($this->utilisateurRepository->find($data['demandeur']))
