@@ -47,23 +47,23 @@ class CategoryTypeFixtures extends Fixture implements FixtureGroupInterface
 
 
         // patch spécifique pour changement de nom de 'typeArticle' à 'artices et références CEA'
-//        $categoryType = $this->categoryTypeRepository->findOneBy(['label' => 'typeArticle']);
-//
-//        if (empty($categoryType)) {
-//            $categoryType = new CategoryType();
-//            dump("création de la catégorie " . CategoryType::TYPE_ARTICLES_ET_REF_CEA);
-//        } else {
-//            dump("renommage de la catégorie typeArticle -> " . CategoryType::TYPE_ARTICLES_ET_REF_CEA);
-//        }
-//
-//        $categoryType->setLabel(CategoryType::TYPE_ARTICLES_ET_REF_CEA);
-//        $this->addReference('typeArticle', $categoryType);
+        $categoryType = $this->categoryTypeRepository->findOneBy(['label' => 'typeArticle']);
+
+        if (empty($categoryType)) {
+            $categoryType = new CategoryType();
+            dump("création de la catégorie " . CategoryType::TYPE_ARTICLES_ET_REF_CEA);
+        } else {
+            dump("renommage de la catégorie typeArticle -> " . CategoryType::TYPE_ARTICLES_ET_REF_CEA);
+        }
+
+        $categoryType->setLabel(CategoryType::TYPE_ARTICLES_ET_REF_CEA);
+        $this->addReference('typeArticle', $categoryType);
 
         $manager->flush();
     }
 
     public static function getGroups():array {
-        return ['types', 'fixtures'];
+        return ['types', 'fixtures', '1.0.4'];
     }
 
 }
