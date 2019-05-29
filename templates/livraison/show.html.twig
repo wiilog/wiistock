@@ -12,7 +12,6 @@
         <p><strong> Numéro : </strong> {{livraison.numero}}</p>
         <p><strong> Opérateur :
             </strong>{{livraison.preparation.utilisateur ?  livraison.preparation.utilisateur.username : '' }} </p>
-        {# TODO mettre le nom de l'utilisateur lié à la préparation liée à la livraison #}
     </div>
     <div class="col-4">
         <p><strong>Demandeur : </strong>{{ demande ? demande.utilisateur.username : '' }} </p>

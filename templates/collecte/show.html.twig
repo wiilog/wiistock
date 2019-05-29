@@ -28,7 +28,7 @@
         {% else %}
             {% if hasRight(constant('App\\Entity\\Menu::COLLECTE'), constant('App\\Entity\\Action::LIST')) %}
             <div class="col text-right">
-                    <a href={{path('ordre_collecte_show', {'id': ordreCollecte.id }) }} class="btn btn-primary btn-action">
+                    <a href="{{path('ordre_collecte_show', {'id': ordreCollecte.id }) }}" class="btn btn-primary btn-action">
                         Aller vers l'ordre de collecte
                     </a>
                 </div>

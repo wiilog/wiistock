@@ -15,10 +15,9 @@
         <p><strong> Opérateur : </strong> {{collecte.utilisateur ? collecte.utilisateur.username : '' }}</p>
     </div>
     <div class="col-4">
-
         <p><strong> Date de collecte : </strong> {{ collecte.date ? collecte.date|date('d/m/Y') : '' }}</p>
         <p><strong> Point de collecte : </strong> {{collecte.demandeCollecte.pointCollecte.label}}</p>
-        <p><strong>Destination:</strong>{{ collecte.demandeCollecte.stockOrDestruct ? ' Mise en stock' : ' Destruction' }}
+        <p><strong> Destination : </strong>{{ collecte.demandeCollecte.stockOrDestruct ? ' Mise en stock' : ' Destruction' }}
         </p>
     </div>
     
@@ -43,7 +42,7 @@
     
     {% if hasRight(constant('App\\Entity\\Menu::COLLECTE'), constant('App\\Entity\\Action::LIST')) %}
     <div class="col text-right">
-            <a href={{path('collecte_show', {'id': collecte.demandeCollecte.id }) }} class="btn btn-primary btn-action">
+            <a href="{{ path('collecte_show', {'id': collecte.demandeCollecte.id }) }}" class="btn btn-primary btn-action">
                 Aller vers la demande de collecte
             </a>
         </div>
