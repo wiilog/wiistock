@@ -3,8 +3,8 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\CategorieStatut;
 use App\Entity\Menu;
-use App\Entity\Service;
 use App\Repository\ArrivageRepository;
 use App\Repository\ChauffeurRepository;
 use App\Repository\FournisseurRepository;
@@ -80,7 +80,7 @@ class ArrivageController extends AbstractController
 
         return $this->render('arrivage/index.html.twig', [
             'utilisateurs' => $this->utilisateurRepository->findAll(),
-            'statuts' => $this->statutRepository->findByCategorieName(Service::CATEGORIE),
+            'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ARRIVAGE),
             'fournisseurs' => $this->fournisseurRepository->findAll(),
             'transporteurs' => $this->transporteurRepository->findAll(), //TODO CG affiner requete ?
             'chauffeurs' => $this->chauffeurRepository->findAll(),
