@@ -68,6 +68,11 @@ class Statut
      */
     private $services;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Arrivage", mappedBy="statut")
+     */
+    private $arrivages;
+
 
     public function __construct()
     {
@@ -80,6 +85,7 @@ class Statut
 //        $this->emplacements = new ArrayCollection();
         $this->referenceArticles = new ArrayCollection();
         $this->services = new ArrayCollection();
+        $this->arrivages = new ArrayCollection();
 //        $this->user = new ArrayCollection();
     }
 
@@ -359,6 +365,37 @@ class Statut
             // set the owning side to null (unless already changed)
             if ($service->getStatut() === $this) {
                 $service->setStatut(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Arrivage[]
+     */
+    public function getArrivages(): Collection
+    {
+        return $this->arrivages;
+    }
+
+    public function addArrivage(Arrivage $arrivage): self
+    {
+        if (!$this->arrivages->contains($arrivage)) {
+            $this->arrivages[] = $arrivage;
+            $arrivage->setStatut($this);
+        }
+
+        return $this;
+    }
+
+    public function removeArrivage(Arrivage $arrivage): self
+    {
+        if ($this->arrivages->contains($arrivage)) {
+            $this->arrivages->removeElement($arrivage);
+            // set the owning side to null (unless already changed)
+            if ($arrivage->getStatut() === $this) {
+                $arrivage->setStatut(null);
             }
         }
 
