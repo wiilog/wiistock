@@ -5,7 +5,12 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\Menu;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Validator\Tests\Fixtures\Countable;
 
 /**
  * @Route("/arrivage")
@@ -17,15 +22,46 @@ class ArrivageController extends AbstractController
      */
     public function index()
     {
-        if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST)) {
-            return $this->redirectToRoute('access_denied');
+//        if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST)) {
+//            return $this->redirectToRoute('access_denied');
+//        }
+
+        return $this->render('arrivage/depose.html.twig');
+//        return $this->render('arrivage/index.html.twig', [
+////            'utilisateurs' => $this->utilisateurRepository->findAll(),
+////            'statuts' => $this->statutRepository->findByCategorieName(Service::CATEGORIE),
+//
+//        ]);
+    }
+
+    /**
+     * @Route("/depose-pj", name="arrivage_depose", options={"expose"=true}, methods="GET|POST")
+     */
+    public function depose(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest()) {
+            $files = $request->files->get('file');
+            if ($files instanceof Countable) {
+                for ($i = 0; $i < count($files); $i++) {
+                    // If a file was uploaded
+                    $file = $files[$i];
+                    if ($file) {
+                        // generate a random name for the file but keep the extension
+                        $filename = uniqid() . "." . $file->getClientOriginalExtension();
+                        $path = "../public/uploads";
+                        $file->move($path, $filename); // move the file to a path
+                    }
+
+                }
+            } else {
+                $filename = uniqid() . "." . $files->getClientOriginalExtension();
+                $path = "../public/uploads";
+                $files->move($path, $filename); // move the file to a path
+            }
+            return new JsonResponse();
+        } else {
+            throw new NotFoundHttpException('404');
         }
-
-        return $this->render('arrivage/index.html.twig', [
-//            'utilisateurs' => $this->utilisateurRepository->findAll(),
-//            'statuts' => $this->statutRepository->findByCategorieName(Service::CATEGORIE),
-
-        ]);
     }
 
 //    /**
