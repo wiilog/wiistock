@@ -1,0 +1,70 @@
+<form method="" class="modal fade" id="modalNewArrivage" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Nouvelle demande d'arrivage</h5>
+
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <div class="modal-body modal-input container-fluid">
+
+                <div class="form-group">
+                    <label for="fournisseur">Fournisseur</label>
+                    <select class="form-control data needed" id="fournisseur" name="fournisseur">
+                        <option disabled selected> </option>
+                        {% for fournisseur in fournisseurs %}
+                            <option value="{{ fournisseur.id }}">{{ fournisseur.nom }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="transporteur">Transporteur</label>
+                    <select class="form-control data needed" id="transporteur" name="transporteur">
+                        {% for transporteur in transporteurs %}
+                            <option value="{{ transporteur.id }}">{{ transporteur.label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="chauffeur">Chauffeur</label>
+                    <select class="form-control data needed" id="chauffeur" name="chauffeur">
+                        {% for chauffeur in chauffeurs %}
+                            <option value="{{ chauffeur.id }}">{{ chauffeur.prenom|capitalize }} {{ chauffeur.nom|upper }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                {#<div class="form-group needed">#}
+                    {#<label for="Localité">Chargement</label>#}
+                    {#<input class="form-control data needed" name="source">#}
+                {#</div>#}
+                {##}
+                {#<div class="form-group needed">#}
+                    {#<label for="Localité">Déchargement</label>#}
+                    {#<input class="form-control data needed" name="destination">#}
+                {#</div>#}
+
+                {#<div class="form-group">#}
+                    {#<label for="commentaire">Commentaire</label>#}
+                    {#<input id="commentaire" class="commentaire form-control data" name="commentaire" type="hidden">#}
+                    {#<div class="editor-container-new">#}
+                    {#</div>#}
+                {#</div>#}
+                <div class="error-msg"></div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn" data-dismiss="modal">Annuler</button>
+                <button id="submitNewArrivage" type="button" class="btn btn-success"
+                    {#onclick="setCommentaire('.editor-container-new')"#}
+                >Enregistrer</button>
+            </div>
+        </div>
+    </div>
+</form>

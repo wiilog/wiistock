@@ -17,10 +17,10 @@ let tableService = $('#tableArrivages').DataTable({
         "type": "POST"
     },
     columns: [
-        { "data": "NumArrivage", 'name': 'NumArrivage', 'title': "N° d'arrivage" },
+        { "data": "NumeroArrivage", 'name': 'NumeroArrivage', 'title': "N° d'arrivage" },
         { "data": 'Transporteur', 'name': 'Transporteur', 'title': 'Transporteur' },
-        { "data": 'NoTrackingTransp', 'name': 'NoTrackingTransp', 'title': 'N° tracking transporteur' },
-        { "data": 'NumBL', 'name': 'NumBL', 'title': 'N° commande / BL' },
+        { "data": 'CodeTracageTransporteur', 'name': 'CodeTracageTransporteur', 'title': 'N° tracking transporteur' },
+        { "data": 'NumeroBL', 'name': 'NumeroBL', 'title': 'N° commande / BL' },
         { "data": 'Fournisseur', 'name': 'Fournisseur', 'title': 'Fournisseur' },
         { "data": 'Destinataire', 'name': 'Destinataire', 'title': 'Destinataire' },
         { "data": 'NbUM', 'name': 'NbUM', 'title': 'Nb UM' },
