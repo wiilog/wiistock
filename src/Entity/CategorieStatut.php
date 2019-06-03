@@ -20,6 +20,7 @@ class CategorieStatut
     const PREPARATION = 'preparation';
     const RECEPTION = 'reception';
     const MANUTENTION = 'manutention';
+    const ARRIVAGE = 'arrivage';
 
     /**
      * @ORM\Id()

@@ -20,6 +20,15 @@
             </a>
         </li>
 
+        <!-- ARRIVAGE   -->
+        {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::LIST')) %}
+            <li class="menu-item">
+                <a href="{{ path('arrivage_index') }}">
+                    <i class="fas fa-truck"></i>
+                    <h4>Arrivage</h4>
+                </a>
+            </li>
+        {% endif %}
         <!-- DEMANDE   -->
         <li class="menu-item has-submenu">
             <a href="#">

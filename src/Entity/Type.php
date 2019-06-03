@@ -11,6 +11,7 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Type
 {
+    // types de la catégorie articles et références CEA
     const LABEL_CSP = 'CSP';
     const LABEL_PDT = 'PDT';
     const LABEL_SILI = 'SILI';
@@ -18,8 +19,16 @@ class Type
     const LABEL_SILI_INT = 'SILI-int';
     const LABEL_MOB = 'MOB';
     const LABEL_SLUGCIBLE = 'SLUGCIBLE';
+    // type de la catégorie réception
     const LABEL_RECEPTION = 'RECEPTION';
-    
+    // types de la catégorie litige
+    const LABEL_MANQUE_BL = 'manque BL';
+    const LABEL_MANQUE_INFO_BL = 'manque info BL';
+    const LABEL_ECART_QTE = 'écart quantité + ou -';
+    const LABEL_ECART_QUALITE = 'écart qualité';
+    const LABEL_PB_COMMANDE = 'problème de commande';
+    const LABEL_DEST_NON_IDENT = 'destinataire non identifiable';
+
 
     /**
      * @ORM\Id()

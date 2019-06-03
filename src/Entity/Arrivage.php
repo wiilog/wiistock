@@ -5,6 +5,7 @@ namespace App\Entity;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints\DateTime;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\ArrivageRepository")
@@ -77,6 +78,17 @@ class Arrivage
      * @ORM\ManyToOne(targetEntity="App\Entity\Transporteur", inversedBy="arrivages")
      */
     private $transporteur;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     */
+    private $date;
+
+    /**
+     * @ORM\Column(type="string", length=32)
+     */
+    private $numeroArrivage;
+
 
     public function __construct()
     {
@@ -262,6 +274,30 @@ class Arrivage
     public function setTransporteur(?Transporteur $transporteur): self
     {
         $this->transporteur = $transporteur;
+
+        return $this;
+    }
+
+    public function getDate(): ?\DateTimeInterface
+    {
+        return $this->date;
+    }
+
+    public function setDate(?\DateTimeInterface $date): self
+    {
+        $this->date = $date;
+
+        return $this;
+    }
+
+    public function getNumeroArrivage(): ?string
+    {
+        return $this->numeroArrivage;
+    }
+
+    public function setNumeroArrivage(string $numeroArrivage): self
+    {
+        $this->numeroArrivage = $numeroArrivage;
 
         return $this;
     }

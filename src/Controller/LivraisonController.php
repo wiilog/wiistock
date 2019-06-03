@@ -388,7 +388,7 @@ class LivraisonController extends AbstractController
                 $headers[] = $champLibre->getLabel();
             }
             $data[] = $headers;
-            $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::TYPE_ARTICLES_ET_REF_CEA);
+            $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::ARTICLES_ET_REF_CEA);
             foreach ($livraisons as $livraison) {
                 foreach ($livraison->getLigneArticle() as $ligneArticle) {
                     $livraisonData = [];

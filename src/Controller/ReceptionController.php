@@ -413,7 +413,7 @@ class ReceptionController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
-        $types = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::TYPE_RECEPTION);
+        $types = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::RECEPTION);
 
         $typeChampLibre =  [];
         foreach ($types as $type) {

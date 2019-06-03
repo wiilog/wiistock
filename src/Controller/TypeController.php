@@ -85,7 +85,7 @@ class TypeController extends AbstractController
                 $options = $cl->getElements();
                 $isType = false;
             } else {
-                $options = $this->typeRepository->getByCategoryLabel(CategoryType::TYPE_ARTICLES_ET_REF_CEA);
+                $options = $this->typeRepository->getByCategoryLabel(CategoryType::ARTICLES_ET_REF_CEA);
             }
 
             $view = $this->renderView('type/inputSelectTypes.html.twig', [
