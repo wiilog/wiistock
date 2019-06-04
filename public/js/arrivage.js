@@ -60,10 +60,24 @@ InitialiserModal(modalDeleteArrivage, submitDeleteArrivage, urlDeleteArrivage, t
 function toggleLitige(select) {
     let bloc = select.closest('.modal').find('#litigeBloc');
     let status = select.val();
+    let litigeType = bloc.find('#litigeType');
 
     if (status === '1') {
+        litigeType.removeClass('needed');
         bloc.addClass('d-none');
+
     } else {
         bloc.removeClass('d-none');
+        litigeType.addClass('needed');
+    }
+}
+
+function deleteRowArrivage(button, modal, submit, hasLitige) {
+    deleteRow(button, modal, submit);
+    let hasLitigeText = modal.find('.hasLitige');
+    if (hasLitige) {
+        hasLitigeText.removeClass('d-none');
+    } else {
+        hasLitigeText.addClass('d-none');
     }
 }

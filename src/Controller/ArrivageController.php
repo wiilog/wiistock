@@ -151,7 +151,7 @@ class ArrivageController extends AbstractController
 
             $em = $this->getDoctrine()->getEntityManager();
 
-            $statutLabel = $data['statut'] === 1 ? Statut::CONFORME : Statut::ATTENTE_ACHETEUR;
+            $statutLabel = $data['statut'] === '1' ? Statut::CONFORME : Statut::ATTENTE_ACHETEUR;
             $statut = $this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::ARRIVAGE, $statutLabel);
             $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
             $numeroArrivage = $date->format('ymdHis');
