@@ -328,13 +328,12 @@ let generateCSV = function () {
         }
     });
     let utilisateurs = $('#utilisateur').val().toString().split(',');
-    Data['users'] = utilisateurs;
-    if (Data['dateMin'] && Data['dateMax'] && $('#utilisateur').val().toString() !== '') {
+    if (Data['dateMin'] && Data['dateMax']) {
         json = JSON.stringify(Data);
         xhttp.open("POST", Routing.generate('get_livraisons_for_csv'), true);
         xhttp.send(json);
     } else {
-        $('.error-msg').html('<p>Saisissez une date de départ, une date de fin et un utilisateur dans le filtre en en-tête de page.</p>');
+        $('.error-msg').html('<p>Saisissez une date de départ et une date de fin dans le filtre en en-tête de page.</p>');
     }
 }
 
