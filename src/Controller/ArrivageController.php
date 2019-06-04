@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\Arrivage;
 use App\Entity\Menu;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -37,16 +38,19 @@ class ArrivageController extends AbstractController
     /**
      * @Route("/depose-pj", name="arrivage_depose", options={"expose"=true}, methods="GET|POST")
      */
-    public function depose(Request $request): Response
+    public function depose(Request $request, Arrivage $arrivage): Response
     {
         if ($request->isXmlHttpRequest()) {
+            $em = $this->getDoctrine()->getManager();
             for ($i = 0; $i < count($request->files); $i++) {
                 $file = $request->files->get('file' . $i);
                 if ($file) {
                     // generate a random name for the file but keep the extension
                     $filename = uniqid() . "." . $file->getClientOriginalExtension();
-                    $path = "../public/uploads";
+                    $path = "../public/uploads/pieces-jointes";
                     $file->move($path, $filename); // move the file to a path
+                    $arrivage->addPiecesJointes($filename);
+                    $em->flush();
                 }
             }
             return new JsonResponse();
