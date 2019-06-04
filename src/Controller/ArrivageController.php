@@ -40,23 +40,14 @@ class ArrivageController extends AbstractController
     public function depose(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-            $files = $request->files->get('file');
-            if ($files instanceof Countable) {
-                for ($i = 0; $i < count($files); $i++) {
-                    // If a file was uploaded
-                    $file = $files[$i];
-                    if ($file) {
-                        // generate a random name for the file but keep the extension
-                        $filename = uniqid() . "." . $file->getClientOriginalExtension();
-                        $path = "../public/uploads";
-                        $file->move($path, $filename); // move the file to a path
-                    }
-
+            for ($i = 0; $i < count($request->files); $i++) {
+                $file = $request->files->get('file' . $i);
+                if ($file) {
+                    // generate a random name for the file but keep the extension
+                    $filename = uniqid() . "." . $file->getClientOriginalExtension();
+                    $path = "../public/uploads";
+                    $file->move($path, $filename); // move the file to a path
                 }
-            } else {
-                $filename = uniqid() . "." . $files->getClientOriginalExtension();
-                $path = "../public/uploads";
-                $files->move($path, $filename); // move the file to a path
             }
             return new JsonResponse();
         } else {

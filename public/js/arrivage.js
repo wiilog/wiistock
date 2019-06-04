@@ -69,7 +69,7 @@ function upload(files) {
 
     let formData = new FormData();
     $.each(files, function (index, file) {
-        formData.append('file', file);
+        formData.append('file' + index, file);
     });
     let path = Routing.generate('arrivage_depose', true);
     $.ajax({
