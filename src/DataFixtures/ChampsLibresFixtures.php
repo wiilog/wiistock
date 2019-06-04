@@ -131,9 +131,9 @@ class ChampsLibresFixtures extends Fixture implements FixtureGroupInterface
             ['label' => 'n° lot Léti', 'type' => ChampsLibre::TYPE_TEXT],
             ['label' => "demandeur", 'type' => ChampsLibre::TYPE_TEXT],
             ['label' => "projet 3", 'type' => ChampsLibre::TYPE_TEXT],
-            ['label' => "date de retour en salle ou d'envoi à Crolles ou autre", 'type' => ChampsLibre::TYPE_DATE],
+//            ['label' => "date de retour en salle ou d'envoi à Crolles ou autre", 'type' => ChampsLibre::TYPE_DATE],
             ['label' => "commentaire", 'type' => ChampsLibre::TYPE_TEXT],
-            ['label' => "mois de stock", 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['0','1','2','3','4','5','6','7','8','9','10','11','12']],
+            ['label' => "mois de stock", 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['0','1','2','3','4','5','6','7','8','9','10','11','12', '13']],
         ];
         $listFieldsSILIExt = [
             ['label' => 'adresse', 'type' => ChampsLibre::TYPE_TEXT],
@@ -143,9 +143,9 @@ class ChampsLibresFixtures extends Fixture implements FixtureGroupInterface
             ['label' => "demandeur", 'type' => ChampsLibre::TYPE_TEXT],
             ['label' => 'date fin de projet', 'type' => ChampsLibre::TYPE_DATE],
             ['label' => 'lot', 'type' => ChampsLibre::TYPE_TEXT],
-            ['label' => 'sortie', 'type' => ChampsLibre::TYPE_TEXT],
-            ['label' => "commentaire", 'type' => ChampsLibre::TYPE_TEXT],
-            ['label' => "jours de péremption", 'type' => ChampsLibre::TYPE_NUMBER],
+//            ['label' => 'sortie', 'type' => ChampsLibre::TYPE_TEXT],
+//            ['label' => "commentaire", 'type' => ChampsLibre::TYPE_TEXT],
+//            ['label' => "jours de péremption", 'type' => ChampsLibre::TYPE_NUMBER],
         ];
         $listFieldsMOB = [
             ['label' => 'adresse', 'col' => 2, 'type' => ChampsLibre::TYPE_TEXT],
@@ -189,23 +189,23 @@ class ChampsLibresFixtures extends Fixture implements FixtureGroupInterface
 
 
         // PDT
-        foreach ($listFieldsRefArticlePDT as $field) {
-            $this->createCL($manager, $field, Type::LABEL_PDT, CategorieCL::REFERENCE_CEA);
-        }
+//        foreach ($listFieldsRefArticlePDT as $field) {
+//            $this->createCL($manager, $field, Type::LABEL_PDT, CategorieCL::REFERENCE_CEA);
+//        }
 //        foreach ($listFieldsArticlePDT as $field) {
 //            $this->createCL($manager, $field, Type::LABEL_PDT, CategorieCL::ARTICLE);
 //        }
 //        // CSP
-        foreach ($listFieldsRefArticleCSP as $field) {
-            $this->createCL($manager, $field, Type::LABEL_CSP, CategorieCL::REFERENCE_CEA);
-        }
+//        foreach ($listFieldsRefArticleCSP as $field) {
+//            $this->createCL($manager, $field, Type::LABEL_CSP, CategorieCL::REFERENCE_CEA);
+//        }
 //        foreach ($listFieldsArticleCSP as $field) {
 //            $this->createCL($manager, $field, Type::LABEL_CSP, CategorieCL::ARTICLE);
 //        }
         // SILI
-        foreach ($listFieldsSILI as $field) {
-            $this->createCL($manager, $field, Type::LABEL_SILI, CategorieCL::REFERENCE_CEA);
-        }
+//        foreach ($listFieldsSILI as $field) {
+//            $this->createCL($manager, $field, Type::LABEL_SILI, CategorieCL::REFERENCE_CEA);
+//        }
         // SILI ext
         foreach ($listFieldsSILIExt as $field) {
             $this->createCL($manager, $field, Type::LABEL_SILI_EXT, CategorieCL::REFERENCE_CEA);
@@ -215,13 +215,13 @@ class ChampsLibresFixtures extends Fixture implements FixtureGroupInterface
             $this->createCL($manager, $field, Type::LABEL_SILI_INT, CategorieCL::REFERENCE_CEA);
         }
         // MOB
-        foreach ($listFieldsMOB as $field) {
-            $this->createCL($manager, $field, Type::LABEL_MOB, CategorieCL::REFERENCE_CEA);
-        }
+//        foreach ($listFieldsMOB as $field) {
+//            $this->createCL($manager, $field, Type::LABEL_MOB, CategorieCL::REFERENCE_CEA);
+//        }
         // SLUGCIBLE
-        foreach ($listFieldsSLUGCIBLE as $field) {
-            $this->createCL($manager, $field, Type::LABEL_SLUGCIBLE, CategorieCL::REFERENCE_CEA);
-        }
+//        foreach ($listFieldsSLUGCIBLE as $field) {
+//            $this->createCL($manager, $field, Type::LABEL_SLUGCIBLE, CategorieCL::REFERENCE_CEA);
+//        }
 
         $manager->flush();
     }
@@ -231,7 +231,6 @@ class ChampsLibresFixtures extends Fixture implements FixtureGroupInterface
      * @param $field
      * @param string $typeLabel
      * @param string $categorieCLLabel
-     * @return ChampsLibre|null
      */
     public function createCL(ObjectManager $manager, $field, $typeLabel, $categorieCLLabel)
     {
@@ -253,7 +252,6 @@ class ChampsLibresFixtures extends Fixture implements FixtureGroupInterface
             }
             $manager->persist($cl);
         }
-        return $cl;
     }
 
     public static function getGroups():array {

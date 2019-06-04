@@ -318,6 +318,7 @@ class CollecteController extends AbstractController
                 }
                 $this->refArticleDataService->editRefArticle($refArticle, $data);
             } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+                //TODO patch temporaire CEA
                 $fournisseurTemp = $this->fournisseurRepository->findOneByCodeReference('A_DETERMINER');
                 if (!$fournisseurTemp) {
                     $fournisseurTemp = new Fournisseur();
@@ -349,11 +350,12 @@ class CollecteController extends AbstractController
                     ->setType($refArticle->getType());
                 $em->persist($toInsert);
                 $collecte->addArticle($toInsert);
-            }
+                //TODO fin patch temporaire CEA (à remplacer par lignes suivantes)
             // $article = $this->articleRepository->find($data['article']);
             // $collecte->addArticle($article);
 
             // $this->articleDataService->editArticle($data);
+            }
             $em->flush();
 
             return new JsonResponse();

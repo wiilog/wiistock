@@ -30,6 +30,7 @@ function submitAction(modal, path, table, callback, close) {
 
             if (data.redirect) {
                 window.location.href = data.redirect;
+                return;
             }
             // pour mise à jour des données d'en-tête après modification
             if (data.entete) {
@@ -516,28 +517,33 @@ function clearModal(modal) {
     let inputs = $modal.find('.modal-body').find(".data");
     // on vide tous les inputs (sauf les disabled)
     inputs.each(function () {
-        if ($(this).attr('disabled') !== 'disabled') {
+        if ($(this).attr('disabled') !== 'disabled' && $(this).attr('type') !== 'hidden') {
             $(this).val("");
         }
         // on enlève les classes is-invalid
         $(this).removeClass('is-invalid');
     });
     // on vide tous les select2
-    let selects = $modal.find('.modal-body').find('.ajax-autocomplete,.ajax-autocompleteEmplacement,.select2');
+    let selects = $modal.find('.modal-body').find('.ajax-autocomplete,.ajax-autocompleteEmplacement, .ajax-autocompleteFournisseur, .select2');
     selects.each(function () {
         $(this).val(null).trigger('change');
     });
     // on vide les messages d'erreur
     $modal.find('.error-msg, .password-error-msg').html('');
     // on remet toutes les checkboxes sur off
+    clearCheckboxes($modal);
+    // on vide les éditeurs de text
+    $('.ql-editor').text('')
+}
+
+function clearCheckboxes($modal) {
+    console.log($modal);
     let checkboxes = $modal.find('.checkbox');
     checkboxes.each(function () {
         $(this).prop('checked', false);
         $(this).removeClass('active');
         $(this).addClass('not-active');
     });
-    // on vide les éditeurs de text
-    $('.ql-editor').text('')
 }
 
 function adjustScalesForDoc(response) {
