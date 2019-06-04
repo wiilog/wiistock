@@ -62,6 +62,8 @@ function submitAction(modal, path, table, callback, close) {
         // validation données obligatoires
         if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
             let label = $(this).closest('.form-group').find('label').text();
+            // on enlève l'éventuelle * du nom du label
+            label = label.replace(/\*/, '');
             missingInputs.push(label);
             $(this).addClass('is-invalid');
         }
@@ -308,17 +310,6 @@ function setCommentaire(div) {
 
     $('#commentaire').val(com);
 };
-
-// //passe de l'éditeur à l'imput pour insertion en BDD par l'id commentaireID (cas de conflit avec la class)
-// function setCommentaireID(button) {
-//     let modal = button.closest('.modal');
-//     let container = '#' + modal.attr('id') + ' .editor-container';
-//     var quill = new Quill(container);
-//     // let commentaire = modal.find('input[id=commentaireID]');
-//     com = quill.container.firstChild.innerHTML;
-//     $('#commentaireID').val(com);
-// };
-
 
 //FONCTION REFARTICLE
 

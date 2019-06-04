@@ -129,6 +129,11 @@ class Utilisateur implements UserInterface, EquatableInterface
      */
     private $arrivagesAcheteur;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Arrivage", mappedBy="utilisateur")
+     */
+    private $arrivagesUtilisateur;
+
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
@@ -143,6 +148,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->ordreCollectes = new ArrayCollection();
         $this->arrivagesDestinataire = new ArrayCollection();
         $this->arrivagesAcheteur = new ArrayCollection();
+        $this->arrivagesUtilisateur = new ArrayCollection();
     }
 
     public function getId()
@@ -637,6 +643,37 @@ class Utilisateur implements UserInterface, EquatableInterface
             // set the owning side to null (unless already changed)
             if ($arrivagesDestinataire->getDestinataire() === $this) {
                 $arrivagesDestinataire->setDestinataire(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Arrivage[]
+     */
+    public function getArrivagesUtilisateur(): Collection
+    {
+        return $this->arrivagesUtilisateur;
+    }
+
+    public function addArrivagesUtilisateur(Arrivage $arrivagesUtilisateur): self
+    {
+        if (!$this->arrivagesUtilisateur->contains($arrivagesUtilisateur)) {
+            $this->arrivagesUtilisateur[] = $arrivagesUtilisateur;
+            $arrivagesUtilisateur->setUtilisateurs($this);
+        }
+
+        return $this;
+    }
+
+    public function removeArrivagesUtilisateur(Arrivage $arrivagesUtilisateur): self
+    {
+        if ($this->arrivagesUtilisateur->contains($arrivagesUtilisateur)) {
+            $this->arrivagesUtilisateur->removeElement($arrivagesUtilisateur);
+            // set the owning side to null (unless already changed)
+            if ($arrivagesUtilisateur->getUtilisateurs() === $this) {
+                $arrivagesUtilisateur->setUtilisateurs(null);
             }
         }
 

@@ -19,32 +19,15 @@ class ChauffeurRepository extends ServiceEntityRepository
         parent::__construct($registry, Chauffeur::class);
     }
 
-    // /**
-    //  * @return Chauffeur[] Returns an array of Chauffeur objects
-    //  */
-    /*
-    public function findByExampleField($value)
+    public function findAllSorted()
     {
-        return $this->createQueryBuilder('c')
-            ->andWhere('c.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('c.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT c FROM App\Entity\Chauffeur c
+            ORDER BY c.nom
+            "
+        );
 
-    /*
-    public function findOneBySomeField($value): ?Chauffeur
-    {
-        return $this->createQueryBuilder('c')
-            ->andWhere('c.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
+        return $query->execute();
     }
-    */
 }

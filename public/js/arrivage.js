@@ -7,7 +7,7 @@ $('#utilisateur').select2({
 });
 
 let pathArrivage = Routing.generate('arrivage_api', true);
-let tableService = $('#tableArrivages').DataTable({
+let tableArrivage = $('#tableArrivages').DataTable({
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
     },
@@ -27,21 +27,43 @@ let tableService = $('#tableArrivages').DataTable({
         { "data": 'Statut', 'name': 'Statut', 'title': 'Statut' },
         { "data": 'Date', 'name': 'Date', 'title': 'Date' },
         { "data": 'Utilisateur', 'name': 'Utilisateur', 'title': 'Utilisateur' },
+        { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' },
     ],
 
 });
 
-// let modalNewService = $("#modalNewService");
-// let submitNewService = $("#submitNewService");
-// let urlNewService = Routing.generate('service_new', true);
-// InitialiserModal(modalNewService, submitNewService, urlNewService, tableService);
-//
-// let modalModifyService = $('#modalEditService');
-// let submitModifyService = $('#submitEditService');
-// let urlModifyService = Routing.generate('service_edit', true);
-// InitialiserModal(modalModifyService, submitModifyService, urlModifyService, tableService);
-//
-// let modalDeleteService = $('#modalDeleteService');
-// let submitDeleteService = $('#submitDeleteService');
-// let urlDeleteService = Routing.generate('service_delete', true);
-// InitialiserModal(modalDeleteService, submitDeleteService, urlDeleteService, tableService);
+//initialisation editeur de texte une seule fois
+let editorNewArrivageAlreadyDone = false;
+function initNewArrivageEditor(modal) {
+    if (!editorNewArrivageAlreadyDone) {
+        initEditor2('.editor-container-new');
+        editorNewArrivageAlreadyDone = true;
+    }
+    ajaxAutoCompleteEmplacementInit($('.ajax-autocomplete'))
+};
+
+let modalNewArrivage = $("#modalNewArrivage");
+let submitNewArrivage = $("#submitNewArrivage");
+let urlNewArrivage = Routing.generate('arrivage_new', true);
+InitialiserModal(modalNewArrivage, submitNewArrivage, urlNewArrivage, tableArrivage);
+
+let modalModifyArrivage = $('#modalEditArrivage');
+let submitModifyArrivage = $('#submitEditArrivage');
+let urlModifyArrivage = Routing.generate('arrivage_edit', true);
+InitialiserModal(modalModifyArrivage, submitModifyArrivage, urlModifyArrivage, tableArrivage);
+
+let modalDeleteArrivage = $('#modalDeleteArrivage');
+let submitDeleteArrivage = $('#submitDeleteArrivage');
+let urlDeleteArrivage = Routing.generate('arrivage_delete', true);
+InitialiserModal(modalDeleteArrivage, submitDeleteArrivage, urlDeleteArrivage, tableArrivage);
+
+function toggleLitige(select) {
+    let bloc = select.closest('.modal').find('#litigeBloc');
+    let status = select.val();
+
+    if (status === '1') {
+        bloc.addClass('d-none');
+    } else {
+        bloc.removeClass('d-none');
+    }
+}

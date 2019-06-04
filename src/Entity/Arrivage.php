@@ -85,9 +85,14 @@ class Arrivage
     private $date;
 
     /**
-     * @ORM\Column(type="string", length=32)
+     * @ORM\Column(type="string", length=32, nullable=true)
      */
     private $numeroArrivage;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="arrivagesUtilisateur")
+     */
+    private $utilisateur;
 
 
     public function __construct()
@@ -298,6 +303,18 @@ class Arrivage
     public function setNumeroArrivage(string $numeroArrivage): self
     {
         $this->numeroArrivage = $numeroArrivage;
+
+        return $this;
+    }
+
+    public function getUtilisateur(): ?Utilisateur
+    {
+        return $this->utilisateur;
+    }
+
+    public function setUtilisateur(?Utilisateur $utilisateur): self
+    {
+        $this->utilisateur = $utilisateur;
 
         return $this;
     }

@@ -41,7 +41,7 @@ class Litige
         return $this->arrivage;
     }
 
-    public function setArrivage(int $arrivage): self
+    public function setArrivage(?Arrivage $arrivage): self
     {
         $this->arrivage = $arrivage;
 
