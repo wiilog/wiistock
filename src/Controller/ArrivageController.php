@@ -50,9 +50,9 @@ class ArrivageController extends AbstractController
                     $path = "../public/uploads/pieces-jointes";
                     $file->move($path, $filename); // move the file to a path
                     $arrivage->addPiecesJointes($filename);
-                    $em->flush();
                 }
             }
+            $em->flush();
             return new JsonResponse();
         } else {
             throw new NotFoundHttpException('404');
