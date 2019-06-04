@@ -157,8 +157,8 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         $articlesRef = $this->referenceArticleRepository->getIdRefLabelAndQuantityByTypeQuantite(ReferenceArticle::TYPE_QUANTITE_REFERENCE);
 
         $data = [
-            'emplacements' => array_slice($this->emplacementRepository->getIdAndNom(), 0, 5),
-            'articles' => $articles //TODO CG provisoire pour éviter charger trop de données sur mobile en phase test
+            'emplacements' => $this->emplacementRepository->getIdAndNom(),
+            'articles' => array_merge($articles, $articlesRef) //TODO CG provisoire pour éviter charger trop de données sur mobile en phase test
         ];
         return $data;
     }
