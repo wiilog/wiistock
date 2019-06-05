@@ -327,10 +327,10 @@ let generateCSV = function () {
             Data[$(this).attr('name')] = $(this).val();
         }
     });
-    let utilisateurs = $('#utilisateur').val().toString().split(',');
+    // let utilisateurs = $('#utilisateur').val().toString().split(',');
     if (Data['dateMin'] && Data['dateMax']) {
         json = JSON.stringify(Data);
-        xhttp.open("POST", Routing.generate('get_livraisons_for_csv'), true);
+        xhttp.open("POST", Routing.generate('get_livraisons_for_csv', true));
         xhttp.send(json);
     } else {
         $('.error-msg').html('<p>Saisissez une date de départ et une date de fin dans le filtre en en-tête de page.</p>');
