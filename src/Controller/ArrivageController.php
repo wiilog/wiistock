@@ -118,7 +118,7 @@ class ArrivageController extends AbstractController
                     'id' => $arrivage->getId(),
                     'NumeroArrivage' => $arrivage->getNumeroArrivage() ? $arrivage->getNumeroArrivage() : '',
                     'Transporteur' => $arrivage->getTransporteur() ? $arrivage->getTransporteur()->getLabel() : '',
-                    'CodeTracageTransporteur' => $arrivage->getCodeTracageTransporteur() ? $arrivage->getCodeTracageTransporteur() : '',
+                    'NoTracking' => $arrivage->getNoTracking() ? $arrivage->getNoTracking() : '',
                     'NumeroBL' => $arrivage->getNumeroBL() ? $arrivage->getNumeroBL() : '',
                     'Fournisseur' => $arrivage->getFournisseur() ? $arrivage->getFournisseur()->getNom() : '',
                     'Destinataire' => $arrivage->getDestinataire() ? $arrivage->getDestinataire()->getUsername() : '',
@@ -160,15 +160,31 @@ class ArrivageController extends AbstractController
             $arrivage
                 ->setDate($date)
                 ->setUtilisateur($this->getUser())
-                ->setFournisseur($this->fournisseurRepository->find($data['fournisseur']))
-                ->setTransporteur($this->transporteurRepository->find($data['transporteur']))
-                ->setChauffeur($this->chauffeurRepository->find($data['chauffeur']))
-                ->setCodeTracageTransporteur(substr($data['noTracking'], 0, 64))
-                ->setNumeroBL(substr($data['noBL'], 0, 64))
-                ->setDestinataire($this->utilisateurRepository->find($data['destinataire']))
-                ->setNbUM($data['nbUM'] ? $data['nbUM'] : 0)
                 ->setStatut($statut)
                 ->setNumeroArrivage($numeroArrivage);
+
+            if (isset($data['fournisseur'])) {
+                $arrivage->setFournisseur($this->fournisseurRepository->find($data['fournisseur']));
+            }
+            if (isset($data['transporteur'])) {
+                $arrivage->setTransporteur($this->transporteurRepository->find($data['transporteur']));
+            }
+            if (isset($data['chauffeur'])) {
+                $arrivage->setChauffeur($this->chauffeurRepository->find($data['chauffeur']));
+            }
+            if (isset($data['noTracking'])) {
+                $arrivage->setNoTracking(substr($data['noTracking'], 0, 64));
+            }
+            if (isset($data['noBL'])) {
+                $arrivage->setNumeroBL(substr($data['noBL'], 0, 64));
+            }
+            if (isset($data['destinataire'])) {
+                $arrivage->setDestinataire($this->utilisateurRepository->find($data['destinataire']));
+            }
+            if (isset($data['nbUM'])) {
+                $arrivage->setNbUM($data['nbUM']);
+            }
+
             $em->persist($arrivage);
 
             if ($statutLabel == Statut::ATTENTE_ACHETEUR) {
@@ -193,22 +209,25 @@ class ArrivageController extends AbstractController
      */
     public function editApi(Request $request): Response
     {
-//        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-//            if (!$this->userService->hasRightFunction(Menu::MANUT, Action::LIST)) {
-//                return $this->redirectToRoute('access_denied');
-//            }
-//            $service = $this->serviceRepository->find($data['id']);
-//            $json = $this->renderView('service/modalEditServiceContent.html.twig', [
-//                'service' => $service,
-//                'utilisateurs' => $this->utilisateurRepository->findAll(),
-//                'emplacements' => $this->emplacementRepository->findAll(),
-//                'statut' => (($service->getStatut()->getNom() === Service::STATUT_A_TRAITER) ? 1 : 0),
-//                'statuts' => $this->statutRepository->findByCategorieName(Service::CATEGORIE),
-//            ]);
-//
-//            return new JsonResponse($json);
-//        }
-//        throw new NotFoundHttpException('404');
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST)) {
+                return $this->redirectToRoute('access_denied');
+            }
+            $arrivage = $this->arrivageRepository->find($data['id']);
+            $json = $this->renderView('arrivage/modalEditArrivageContent.html.twig', [
+                'arrivage' => $arrivage,
+                'conforme' => $arrivage->getStatut()->getNom() === Statut::CONFORME,
+                'utilisateurs' => $this->utilisateurRepository->findAllSorted(),
+                'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ARRIVAGE),
+                'fournisseurs' => $this->fournisseurRepository->findAllSorted(),
+                'transporteurs' => $this->transporteurRepository->findAllSorted(),
+                'chauffeurs' => $this->chauffeurRepository->findAllSorted(),
+                'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE)
+            ]);
+
+            return new JsonResponse($json);
+        }
+        throw new NotFoundHttpException('404');
     }
 
 
@@ -217,34 +236,54 @@ class ArrivageController extends AbstractController
      */
     public function edit(Request $request): Response
     {
-//        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-//            if (!$this->userService->hasRightFunction(Menu::MANUT, Action::LIST)) {
-//                return $this->redirectToRoute('access_denied');
-//            }
-//            $service = $this->serviceRepository->find($data['id']);
-//            $statutLabel = (intval($data['statut']) === 1) ? Service::STATUT_A_TRAITER : Service::STATUT_TRAITE;
-//            $statut = $this->statutRepository->findOneByCategorieAndStatut(Service::CATEGORIE, $statutLabel);
-//            $service->setStatut($statut);
-//            $service
-//                ->setLibelle(substr($data['Libelle'], 0, 64))
-//                ->setSource($data['source'])
-//                ->setDestination($data['destination'])
-//                ->setDemandeur($this->utilisateurRepository->find($data['demandeur']))
-//                ->setCommentaire($data['commentaire']);
-//            $em = $this->getDoctrine()->getManager();
-//            $em->flush();
-//
-//            if ($statutLabel == Service::STATUT_TRAITE) {
-//                $this->mailerService->sendMail(
-//                    'FOLLOW GT // Manutention effectuée',
-//                    $this->renderView('mails/mailManutentionDone.html.twig', ['manut' => $service]),
-//                    $service->getDemandeur()->getEmail()
-//                );
-//            }
-//
-//            return new JsonResponse();
-//        }
-//        throw new NotFoundHttpException('404');
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+            $em = $this->getDoctrine()->getManager();
+
+            $arrivage = $this->arrivageRepository->find($data['id']);
+
+            if (isset($data['statut'])) {
+                $statut = $this->statutRepository->find($data['statut']);
+                $arrivage->setStatut($statut);
+            }
+            if (isset($data['fournisseur'])) {
+                $arrivage->setFournisseur($this->fournisseurRepository->find($data['fournisseur']));
+            }
+            if (isset($data['transporteur'])) {
+                $arrivage->setTransporteur($this->transporteurRepository->find($data['transporteur']));
+            }
+            if (isset($data['chauffeur'])) {
+                $arrivage->setChauffeur($this->chauffeurRepository->find($data['chauffeur']));
+            }
+            if (isset($data['noTracking'])) {
+                $arrivage->setNoTracking(substr($data['noTracking'], 0, 64));
+            }
+            if (isset($data['noBL'])) {
+                $arrivage->setNumeroBL(substr($data['noBL'], 0, 64));
+            }
+            if (isset($data['destinataire'])) {
+                $arrivage->setDestinataire($this->utilisateurRepository->find($data['destinataire']));
+            }
+            if (isset($data['nbUM'])) {
+                $arrivage->setNbUM($data['nbUM']);
+            }
+
+            if (isset($data['litigeType'])) {
+                $litige = $arrivage->getLitige();
+                $litige->setType($this->typeRepository->find($data['litigeType']));
+                if (isset($data['commentaire'])) {
+                    $litige->setCommentaire($data['commentaire']);
+                }
+            }
+
+            $em->flush();
+
+            return new JsonResponse();
+        }
+        throw new NotFoundHttpException('404');
     }
 
     /**

@@ -9,7 +9,7 @@
         {#TODO CG quelles règles de gestion pour suppression arrivage#}
     {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::DELETE'))%}
         <div data-id='{{ arrivage.id }}' data-target='#modalDeleteArrivage' data-toggle='modal' class='service-delete col-3'
-        onclick="deleteRowArrivage($(this), $('#modalDeleteArrivage'), $('#submitDeleteArrivage'), {{ arrivage.litiges|length }})">
+        onclick="deleteRowArrivage($(this), $('#modalDeleteArrivage'), $('#submitDeleteArrivage'), {{ arrivage.litige|length }})">
         <i class='fas fa-trash'></i>
         </div>
     {% endif %}

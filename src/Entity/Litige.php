@@ -17,7 +17,7 @@ class Litige
     private $id;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Arrivage", inversedBy="litiges")
+     * @ORM\OneToOne(targetEntity="App\Entity\Arrivage", inversedBy="litige")
      * @ORM\JoinColumn(name="arrivage_id", referencedColumnName="id", onDelete="CASCADE")
      */
     private $arrivage;

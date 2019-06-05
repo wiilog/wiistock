@@ -33,8 +33,8 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="chauffeur">Chauffeur*</label>
-                    <select class="form-control data needed" id="chauffeur" name="chauffeur">
+                    <label for="chauffeur">Chauffeur</label>
+                    <select class="form-control data" id="chauffeur" name="chauffeur">
                         <option disabled selected> </option>
                         {% for chauffeur in chauffeurs %}
                             <option value="{{ chauffeur.id }}">{{ chauffeur.prenom|capitalize }} {{ chauffeur.nom|upper }}</option>
@@ -45,13 +45,13 @@
                 <hr>
 
                 <div class="form-group">
-                    <label for="noTracking">N° tracking transporteur*</label>
-                    <input type="text" id="noTracking" class="form-control data needed" name="noTracking" maxlength="64">
+                    <label for="noTracking">N° tracking transporteur</label>
+                    <input type="text" id="noTracking" class="form-control data" name="noTracking" maxlength="64">
                 </div>
 
                 <div class="form-group">
-                    <label for="noBL">N° commande / BL*</label>
-                    <input type="text" id="noBL" class="form-control data needed" name="noBL" maxlength="64">
+                    <label for="noBL">N° commande / BL</label>
+                    <input type="text" id="noBL" class="form-control data" name="noBL" maxlength="64">
                 </div>
 
                 <div class="form-group">

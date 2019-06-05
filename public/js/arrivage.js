@@ -19,7 +19,7 @@ let tableArrivage = $('#tableArrivages').DataTable({
     columns: [
         { "data": "NumeroArrivage", 'name': 'NumeroArrivage', 'title': "N° d'arrivage" },
         { "data": 'Transporteur', 'name': 'Transporteur', 'title': 'Transporteur' },
-        { "data": 'CodeTracageTransporteur', 'name': 'CodeTracageTransporteur', 'title': 'N° tracking transporteur' },
+        { "data": 'NoTracking', 'name': 'NoTracking', 'title': 'N° tracking transporteur' },
         { "data": 'NumeroBL', 'name': 'NumeroBL', 'title': 'N° commande / BL' },
         { "data": 'Fournisseur', 'name': 'Fournisseur', 'title': 'Fournisseur' },
         { "data": 'Destinataire', 'name': 'Destinataire', 'title': 'Destinataire' },
@@ -32,15 +32,15 @@ let tableArrivage = $('#tableArrivages').DataTable({
 
 });
 
-//initialisation editeur de texte une seule fois
 let editorNewArrivageAlreadyDone = false;
 function initNewArrivageEditor(modal) {
     if (!editorNewArrivageAlreadyDone) {
-        initEditor2('.editor-container-new');
+        initEditor2(modal + '.editor-container-new');
         editorNewArrivageAlreadyDone = true;
     }
-    ajaxAutoCompleteEmplacementInit($('.ajax-autocomplete'))
 };
+
+
 
 let modalNewArrivage = $("#modalNewArrivage");
 let submitNewArrivage = $("#submitNewArrivage");
