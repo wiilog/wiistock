@@ -9,6 +9,7 @@ namespace App\Controller;
 
 use App\Entity\Mouvement;
 
+use App\Entity\MouvementTraca;
 use App\Entity\ReferenceArticle;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\UtilisateurRepository;
@@ -114,6 +115,35 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                 }
             }
 
+            $response->setContent(json_encode($this->successData));
+            return $response;
+        }
+    }
+
+    /**
+     * @Rest\Post("/api/addMouvementTraca", name="api-add-mouvement-traca")
+     * @Rest\Get("/api/addMouvementTraca")
+     * @Rest\View()
+     */
+    public function addMouvementTraca(Request $request) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)){
+            $response = new Response();
+
+            $response->headers->set('Content-Type', 'application/json');
+            $response->headers->set('Access-Control-Allow-Origin', '*');
+            $response->headers->set('Access-Control-Allow-Methods', 'POST, GET');
+            foreach ($data['mouvements'] as $mvt) {
+                $toInsert = new MouvementTraca();
+                $toInsert->setRefArticle($mvt['ref_article']);
+                $toInsert->setRefEmplacement($mvt['ref_emplacement']);
+                $toInsert->setDate($mvt['date']);
+                $toInsert->setType($mvt['type']);
+                $em = $this->getDoctrine()->getManager();
+                $em->persist($toInsert);
+                $em->flush();
+            }
+            $this->successData['success'] = true;
+            $this->successData['data'] = [];
             $response->setContent(json_encode($this->successData));
             return $response;
         }
