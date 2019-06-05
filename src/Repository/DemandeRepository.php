@@ -119,17 +119,16 @@ class DemandeRepository extends ServiceEntityRepository
         return $query->getOneOrNullResult();
     }
 
-    public function findByDatesAndUsername($dateMin, $dateMax, $user)
+    public function findByDates($dateMin, $dateMax)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             'SELECT d
             FROM App\Entity\Demande d
-            WHERE d.utilisateur = :user AND d.date BETWEEN :dateMin AND :dateMax'
+            WHERE d.date BETWEEN :dateMin AND :dateMax'
         )->setParameters([
             'dateMin' => $dateMin,
-            'dateMax' => $dateMax,
-            'user' => $user
+            'dateMax' => $dateMax
         ]);
         return $query->execute();
     }
