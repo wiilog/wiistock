@@ -19,6 +19,7 @@ use App\Repository\EmplacementRepository;
 use FOS\RestBundle\Controller\FOSRestController;
 use FOS\RestBundle\Routing\ClassResourceInterface;
 use FOS\RestBundle\Controller\Annotations as Rest;
+use Symfony\Component\Config\Definition\Exception\Exception;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -140,8 +141,11 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                 $toInsert->setType($mvt['type']);
                 $em->persist($toInsert);
             }
-            $em->flush();
-            dump('yes');
+            try {
+                $em->flush();
+            } catch (Exception $e) {
+                dump($e);
+            }
             $this->successData['success'] = true;
             $this->successData['data'] = [];
             $response->setContent(json_encode($this->successData));
