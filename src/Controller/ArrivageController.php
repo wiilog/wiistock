@@ -104,7 +104,7 @@ class ArrivageController extends AbstractController
     /**
      * @Route("/depose"), name="arrivage_depose")
      */
-    public function depose()
+    public function deposeIndex()
     {
         return $this->render('arrivage/depose.html.twig');
     }
@@ -255,29 +255,6 @@ class ArrivageController extends AbstractController
 
             $arrivage = $this->arrivageRepository->find($data['id']);
 
-    /**
-     * @Route("/depose-pj", name="arrivage_depose", options={"expose"=true}, methods="GET|POST")
-     */
-    public function depose(Request $request, Arrivage $arrivage): Response
-    {
-        if ($request->isXmlHttpRequest()) {
-            $em = $this->getDoctrine()->getManager();
-            for ($i = 0; $i < count($request->files); $i++) {
-                $file = $request->files->get('file' . $i);
-                if ($file) {
-                    // generate a random name for the file but keep the extension
-                    $filename = uniqid() . "." . $file->getClientOriginalExtension();
-                    $path = "../public/uploads/pieces-jointes";
-                    $file->move($path, $filename); // move the file to a path
-                    $arrivage->addPiecesJointes($filename);
-                }
-            }
-            $em->flush();
-            return new JsonResponse();
-        } else {
-            throw new NotFoundHttpException('404');
-        }
-    }
             if (isset($data['statut'])) {
                 $statut = $this->statutRepository->find($data['statut']);
                 $arrivage->setStatut($statut);
@@ -339,4 +316,29 @@ class ArrivageController extends AbstractController
 
         throw new NotFoundHttpException("404");
     }
+
+    /**
+     * @Route("/depose-pj", name="arrivage_depose", options={"expose"=true}, methods="GET|POST")
+     */
+    public function depose(Request $request, Arrivage $arrivage): Response
+    {
+        if ($request->isXmlHttpRequest()) {
+            $em = $this->getDoctrine()->getManager();
+            for ($i = 0; $i < count($request->files); $i++) {
+                $file = $request->files->get('file' . $i);
+                if ($file) {
+                    // generate a random name for the file but keep the extension
+                    $filename = uniqid() . "." . $file->getClientOriginalExtension();
+                    $path = "../public/uploads/attachements";
+                    $file->move($path, $filename); // move the file to a path
+                    $arrivage->addAttachements($filename);
+                }
+            }
+            $em->flush();
+            return new JsonResponse();
+        } else {
+            throw new NotFoundHttpException('404');
+        }
+    }
+
 }

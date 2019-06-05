@@ -216,7 +216,7 @@ class Arrivage
         return $this;
     }
 
-    public function addPiecesJointes($pieceJointe) : self
+    public function addAttachements($pieceJointe) : self
     {
         $this->piecesJointes[] = $pieceJointe;
 

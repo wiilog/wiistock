@@ -131,7 +131,7 @@ function upload(files) {
         processData:false,
         cache:false,
         dataType:"json", // Change this according to your response from the server.
-        success:function(data){
+        success:function(){
             $('#dropfile').css('border', '3px dashed #BBBBBB');
         }
     });
