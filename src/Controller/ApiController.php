@@ -5,6 +5,7 @@
  * Date: 05/03/2019
  * Time: 14:31
  */
+
 namespace App\Controller;
 
 use App\Entity\Mouvement;
@@ -16,10 +17,10 @@ use App\Repository\UtilisateurRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\EmplacementRepository;
 
+use Doctrine\DBAL\DBALException;
 use FOS\RestBundle\Controller\FOSRestController;
 use FOS\RestBundle\Routing\ClassResourceInterface;
 use FOS\RestBundle\Controller\Annotations as Rest;
-use Symfony\Component\Config\Definition\Exception\Exception;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -126,24 +127,26 @@ class ApiController extends FOSRestController implements ClassResourceInterface
      * @Rest\Get("/api/addMouvementTraca")
      * @Rest\View()
      */
-    public function addMouvementTraca(Request $request) {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)){
+    public function addMouvementTraca(Request $request)
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $response = new Response();
             $response->headers->set('Content-Type', 'application/json');
             $response->headers->set('Access-Control-Allow-Origin', '*');
             $response->headers->set('Access-Control-Allow-Methods', 'POST, GET');
             $em = $this->getDoctrine()->getManager();
-            foreach ($data['mouvements'] as $mvt) {
-                $toInsert = new MouvementTraca();
-                $toInsert->setRefArticle($mvt['ref_article']);
-                $toInsert->setRefEmplacement($mvt['ref_emplacement']);
-                $toInsert->setDate($mvt['date']);
-                $toInsert->setType($mvt['type']);
-                $em->persist($toInsert);
-            }
             try {
+                foreach ($data['mouvements'] as $mvt) {
+                    $toInsert = new MouvementTraca();
+                    $toInsert->setRefArticle($mvt['ref_article']);
+                    $toInsert->setRefEmplacement($mvt['ref_emplacement']);
+                    $toInsert->setDate($mvt['date']);
+                    $toInsert->setType($mvt['type']);
+                    $em->persist($toInsert);
+                }
+                dump('yes');
                 $em->flush();
-            } catch (Exception $e) {
+            } catch (DBALException $e) {
                 dump($e);
             }
             $this->successData['success'] = true;
