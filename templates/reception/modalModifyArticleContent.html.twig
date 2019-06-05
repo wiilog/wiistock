@@ -16,9 +16,9 @@
 
 <div class="form-group">
     <label>Commentaire</label>
-    <input id='commentaireID' class="form-control data" name="commentaire" type="hidden"
+    <input id='commentaire' class="form-control data" name="commentaire" type="hidden"
         value='{{article.commentaire}}'>
-    <div class="editor-container" value="{{article.commentaire}}" onfocusout="setCommentaireID($(this))">
+    <div class="editor-container" value="{{article.commentaire}}" onfocusout="setCommentaire($(this))">
         {{article.commentaire|raw}}
     </div>
 </div>

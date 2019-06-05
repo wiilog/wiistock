@@ -38,11 +38,17 @@ class ValeurChampsLibre
      */
     private $champLibre;
 
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\Reception", mappedBy="valeurChampsLibre")
+     */
+    private $receptions;
+
     public function __construct()
     {
         $this->champLibre = new ArrayCollection();
         $this->articleReference = new ArrayCollection();
         $this->article = new ArrayCollection();
+        $this->receptions = new ArrayCollection();
     }
 
 
@@ -128,6 +134,34 @@ class ValeurChampsLibre
     {
         if ($this->article->contains($article)) {
             $this->article->removeElement($article);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Reception[]
+     */
+    public function getReceptions(): Collection
+    {
+        return $this->receptions;
+    }
+
+    public function addReception(Reception $reception): self
+    {
+        if (!$this->receptions->contains($reception)) {
+            $this->receptions[] = $reception;
+            $reception->addValeurChampsLibre($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReception(Reception $reception): self
+    {
+        if ($this->receptions->contains($reception)) {
+            $this->receptions->removeElement($reception);
+            $reception->removeValeurChampsLibre($this);
         }
 
         return $this;

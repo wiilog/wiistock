@@ -197,7 +197,7 @@ class RefArticleDataService
     public function getViewEditRefArticle($refArticle, $isADemand = false)
     {
         $data = $this->getDataEditForRefArticle($refArticle);
-        $articlesFournisseur = $this->articleFournisseurRepository->getByRefArticle($refArticle->getId());
+        $articlesFournisseur = $this->articleFournisseurRepository->findByRefArticle($refArticle->getId());
         $type = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::TYPE_ARTICLES_ET_REF_CEA);
         $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_CEA);
         $typeChampLibre =  [];
@@ -223,6 +223,8 @@ class RefArticleDataService
             ];
         }
         //reponse Vue + data 
+
+        
         $view =  $this->templating->render('reference_article/modalEditRefArticleContent.html.twig', [
             'articleRef' => $refArticle,
             'statut' => ($refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF),
@@ -350,12 +352,16 @@ class RefArticleDataService
             "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
             "Emplacement" => ($refArticle->getEmplacement() ? $refArticle->getEmplacement()->getLabel() : ""),
             "Quantité" => $quantity,
+            "Commentaire" => ($refArticle->getCommentaire() ? $refArticle->getCommentaire() : ""),
             "Actions" => $this->templating->render('reference_article/datatableReferenceArticleRow.html.twig', [
                 'idRefArticle' => $refArticle->getId(),
             ]),
         ];
         $rows = array_merge($rowCL, $rowCF);
 
+
         return $rows;
+        
     }
+    
 }

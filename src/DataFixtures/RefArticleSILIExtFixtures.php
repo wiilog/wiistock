@@ -67,7 +67,7 @@ class RefArticleSILIExtFixtures extends Fixture implements FixtureGroupInterface
 
         $i = 1;
         foreach ($rows as $row) {
-//            if (empty($row[0])) continue;
+            if (empty($row[0])) continue;
             dump($i);
             $i++;
             $typeSiliExt = $this->typeRepository->findOneBy(['label' => Type::LABEL_SILI_EXT]);
@@ -80,7 +80,7 @@ class RefArticleSILIExtFixtures extends Fixture implements FixtureGroupInterface
             $referenceArticle
                 ->setType($typeSiliExt)
                 ->setReference('SILI_EXT_' . $referenceNum)
-                ->setLibelle('SILI_EXT_' . $referenceNum)
+                ->setLibelle($row[1])
                 ->setQuantiteStock(1)
                 ->setTypeQuantite('reference')
                 ->setStatut($this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF));
@@ -91,15 +91,15 @@ class RefArticleSILIExtFixtures extends Fixture implements FixtureGroupInterface
             // champs libres
             $listFields = [
                 ['label' => 'adresse', 'col' => 0],
-                ['label' => 'famille produit', 'col' => 1],
-                ['label' => 'date', 'col' => 2],
-                ['label' => "projet", 'col' => 3],
-                ['label' => "demandeur", 'col' => 4],
-                ['label' => "date fin de projet", 'col' => 5],
-                ['label' => "lot", 'col' => 6],
-                ['label' => "sortie", 'col' => 7],
-                ['label' => "commentaire", 'col' => 8],
-                ['label' => "jours de péremption", 'col' => 9],
+                ['label' => 'famille produit', 'col' => 2],
+                ['label' => 'date', 'col' => 3],
+                ['label' => "projet", 'col' => 4],
+                ['label' => "demandeur", 'col' => 5],
+                ['label' => "date fin de projet", 'col' => 6],
+                ['label' => "lot", 'col' => 7],
+//                ['label' => "sortie", 'col' => 8],
+//                ['label' => "commentaire", 'col' => 9],
+//                ['label' => "jours de péremption", 'col' => 10],
             ];
 
             foreach($listFields as $field) {
@@ -123,7 +123,7 @@ class RefArticleSILIExtFixtures extends Fixture implements FixtureGroupInterface
     }
 
     public static function getGroups():array {
-        return ['articlesSILIext', 'articles'];
+        return ['siliext'];
     }
 
 }

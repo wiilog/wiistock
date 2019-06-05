@@ -45,6 +45,32 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
+    public function findOneByLigneReception($ligne)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT ra
+            FROM App\Entity\ReferenceArticle ra
+            JOIN App\Entity\ReceptionReferenceArticle rra
+            WHERE rra.referenceArticle = ra AND rra = :ligne 
+        "
+        )->setParameter('ligne', $ligne);
+        return $query->getOneOrNullResult();
+    }
+
+    public function findOneByReference($reference)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT r
+            FROM App\Entity\ReferenceArticle r
+            WHERE r.reference = :reference
+            "
+        )->setParameter('reference', $reference);
+
+        return $query->getOneOrNullResult();
+    }
+
     public function getIdAndLibelleBySearch($search)
     {
         $em = $this->getEntityManager();
@@ -80,10 +106,10 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         // fait le lien entre intitulé champs dans datatable/filtres côté front
         // et le nom des attributs de l'entité ReferenceArticle (+ typage)
         $linkChampLibreLabelToField = [
-            'libellé' => ['field' => 'libelle', 'typage' => 'text'],
-            'référence' => ['field' => 'reference', 'typage' => 'text'],
-            'type' => ['field' => 'type_id', 'typage' => 'list'],
-            'quantité' => ['field' => 'quantiteStock', 'typage' => 'number'],
+            'Libellé' => ['field' => 'libelle', 'typage' => 'text'],
+            'Référence' => ['field' => 'reference', 'typage' => 'text'],
+            'Type' => ['field' => 'type_id', 'typage' => 'list'],
+            'Quantité' => ['field' => 'quantiteStock', 'typage' => 'number'],
         ];
         //TODO trouver + dynamique
 
@@ -151,8 +177,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                             ->setParameter('value', '%' . $filter['value'] . '%');
                         break;
                     case 'refart':
-                        dump($filter['champLibre']);
-                        dump($filter['value']);
+                       
                         break;
                     case 'number':
                     case 'list':

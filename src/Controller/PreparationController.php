@@ -247,9 +247,12 @@ class PreparationController extends AbstractController
                     $rows[] = [
                         "Référence CEA" => ($ligneArticle->getReference() ? $ligneArticle->getReference()->getReference() : ' '),
                         "Libellé" => ($ligneArticle->getReference() ? $ligneArticle->getReference()->getLibelle() : ' '),
+                        "Emplacement" => ($ligneArticle->getReference()->getEmplacement() ? $ligneArticle->getReference()->getEmplacement()->getLabel() : ''),
                         "Quantité" => ($ligneArticle->getReference() ? $ligneArticle->getReference()->getQuantiteStock() : ' '),
                         "Quantité à prélever" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ' '),
-
+                        "Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
+                                 'refArticleId' => $ligneArticle->getReference()->getId(),
+                        ])
                     ];
                 }
 
@@ -259,8 +262,12 @@ class PreparationController extends AbstractController
                     $rows[] = [
                         "Référence CEA" => $ligneArticle->getArticleFournisseur()->getReferenceArticle() ? $ligneArticle->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
                         "Libellé" => $ligneArticle->getLabel() ? $ligneArticle->getLabel() : '',
+                        "Emplacement" => $ligneArticle->getEmplacement() ? $ligneArticle->getEmplacement()->getLabel() : '',
                         "Quantité" => $ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : '',
                         "Quantité à prélever" => $ligneArticle->getWithdrawQuantity() ? $ligneArticle->getWithdrawQuantity() : '',
+                        "Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
+                            'id' => $ligneArticle->getId()
+                   ])
                     ];
                 }
 
@@ -307,6 +314,7 @@ class PreparationController extends AbstractController
                 ->setStatut($this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_BROUILLON));
 
             foreach ($demande->getArticles() as $article) {
+                 $article->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF));
                 if ($article->getWithdrawQuantity()) {
                     $article->setWithdrawQuantity($article->getQuantite());
                     $article->setWithdrawQuantity(0);

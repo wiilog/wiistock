@@ -45,7 +45,7 @@ class ArticleFournisseurRepository extends ServiceEntityRepository
     }
 
 
-    public function getByRefArticle($id)
+    public function findByRefArticle($id)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
@@ -123,4 +123,17 @@ class ArticleFournisseurRepository extends ServiceEntityRepository
 
         return $query->getSingleScalarResult();
     }
+
+    public function getByRefArticleAndFournisseur($refArticleId, $fournisseurId)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT af
+            FROM App\Entity\ArticleFournisseur af
+            WHERE af.referenceArticle = :refArticleId AND af.fournisseur = :fournisseurId"
+        )->setParameters(['refArticleId' => $refArticleId, 'fournisseurId' => $fournisseurId]);
+
+        return $query->getResult();
+    }
+
 }

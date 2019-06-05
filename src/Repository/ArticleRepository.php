@@ -28,7 +28,18 @@ class ArticleRepository extends ServiceEntityRepository
             'SELECT a
             FROM App\Entity\Article a
             WHERE a.reception = :id'
-        )->setParameter('id', $id);;
+        )->setParameter('id', $id);
+        return $query->execute();
+    }
+
+    public function setNullByReception($id)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            'UPDATE App\Entity\Article a
+            SET a.reception = null
+            WHERE a.reception = :id'
+        )->setParameter('id', $id);
         return $query->execute();
     }
 
@@ -326,6 +337,20 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->getResult();
     }
 
+    public function findByListAF($listAf)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT a
+          FROM App\Entity\Article a
+          JOIN a.articleFournisseur af
+          WHERE af IN(:articleFournisseur)"
+        )->setParameters([
+            'articleFournisseur' => $listAf,
+        ]);
+
+        return $query->execute();
+    }
 
     public function countAll()
     {

@@ -1,8 +1,6 @@
-var pathArticle = Routing.generate('article_api', true);
+let pathArticle = Routing.generate('article_api', true);
 
-
-
-var tableArticle = $('#tableArticle_id').DataTable({
+let tableArticle = $('#tableArticle_id').DataTable({
     processing: true,
     serverSide: true,
     "language": {
@@ -13,22 +11,20 @@ var tableArticle = $('#tableArticle_id').DataTable({
         "type": "POST"
     },
     columns: [
-        { "data": 'Référence' },
-        { "data": "Statut" },
-        { "data": 'Libellé' },
-        { "data": 'Référence article' },
-        { "data": 'Quantité' },
-        { "data": 'Actions' }
+        { "data": 'Référence', 'name': 'Référence' },
+        { "data": "Statut", 'name': 'Statut' },
+        { "data": 'Libellé', 'name': 'Libellé' },
+        { "data": 'Référence article', 'name': 'Référence article' },
+        { "data": 'Quantité', 'name': 'Quantité' },
+        { "data": 'Actions', 'name': 'Actions' }
     ],
 });
 
-let columnStatutVisible = $( document ).ready(function () {
+$(document).ready(function () {
     let statutVisible = $(".statutVisible").val();
-    
-    if (statutVisible === 'false') {
-        tableArticle.column( 1 ).visible( false );
+    if (!statutVisible) {
+        tableArticle.column('Statut:name').visible(false);
     }
-
 });
 
 let modalEditArticle = $("#modalEditArticle");
@@ -254,3 +250,41 @@ let ajaxGetFournisseurByRefArticle = function (select) {
     xhttp.open("POST", path, true);
     xhttp.send(Json);
 }
+
+function printSingleArticleBarcode(button) {
+    let params = {
+        'article': button.data('id')
+    }
+    $.post(Routing.generate('get_article_from_id'), JSON.stringify(params), function (response) {
+        if (response.exists) {
+            $('#barcodes').append('<img id="singleBarcode">')
+            JsBarcode("#singleBarcode", response.articleRef, {
+                format: "CODE128",
+            });
+            let doc = adjustScalesForDoc(response);
+            doc.addImage($("#singleBarcode").attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
+            doc.save('Etiquette concernant l\'article ' + response.articleRef + '.pdf');
+            $("#singleBarcode").remove();
+        } else {
+            $('#cannotGenerate').click();
+        }
+    });
+}
+
+function changeStatus(button) {
+    let sel = $(button).data('title');
+    let tog = $(button).data('toggle');
+    if (sel == 'inactive') {
+        $("#s").val(0);
+    }
+    if (sel == 'active') {
+        $("#s").val(1);
+    }
+    if (sel == 'transit') {
+        $("#s").val(2);
+    }
+
+    $('span[data-toggle="' + tog + '"]').not('[data-title="' + sel + '"]').removeClass('active').addClass('not-active');
+    $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
+}
+

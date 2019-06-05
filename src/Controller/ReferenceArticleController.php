@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\Article;
 use App\Entity\CategoryType;
 use App\Entity\Filter;
 use App\Entity\Menu;
@@ -12,6 +13,7 @@ use App\Entity\ValeurChampsLibre;
 use App\Entity\CollecteReference;
 use App\Entity\LigneArticle;
 use App\Entity\CategorieCL;
+use App\Entity\Fournisseur;
 
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\FilterRepository;
@@ -46,6 +48,7 @@ use App\Entity\Demande;
 use Symfony\Component\Serializer\Encoder\JsonEncode;
 use App\Entity\ArticleFournisseur;
 use App\Repository\FournisseurRepository;
+use Symfony\Component\HttpKernel\Profiler\Profiler;
 
 /**
  * @Route("/reference-article")
@@ -141,8 +144,13 @@ class ReferenceArticleController extends Controller
      */
     private $categorieCLRepository;
 
+    /**
+     * @var \Twig_Environment
+     */
+    private $templating;
 
-    public function __construct(EmplacementRepository $emplacementRepository, FournisseurRepository $fournisseurRepository, CategorieCLRepository $categorieCLRepository, LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, ArticleDataService $articleDataService, LivraisonRepository $livraisonRepository, DemandeRepository $demandeRepository, CollecteRepository $collecteRepository, StatutRepository $statutRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FilterRepository $filterRepository, RefArticleDataService $refArticleDataService, UserService $userService)
+
+    public function __construct(\Twig_Environment $templating, EmplacementRepository $emplacementRepository, FournisseurRepository $fournisseurRepository, CategorieCLRepository $categorieCLRepository, LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, ArticleDataService $articleDataService, LivraisonRepository $livraisonRepository, DemandeRepository $demandeRepository, CollecteRepository $collecteRepository, StatutRepository $statutRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FilterRepository $filterRepository, RefArticleDataService $refArticleDataService, UserService $userService)
     {
         $this->emplacementRepository = $emplacementRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
@@ -162,6 +170,7 @@ class ReferenceArticleController extends Controller
         $this->ligneArticleRepository = $ligneArticleRepository;
         $this->categorieCLRepository = $categorieCLRepository;
         $this->fournisseurRepository = $fournisseurRepository;
+        $this->templating = $templating;
     }
 
     /**
@@ -178,43 +187,53 @@ class ReferenceArticleController extends Controller
             $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_CEA);
             $category = CategoryType::TYPE_ARTICLES_ET_REF_CEA;
             $champs = $this->champsLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
+
+            $columns = [];
             if ($columnsVisible) {
                 $columns = [
                     [
                         "title" => 'Actions',
                         "data" => 'Actions',
                         'name' => 'Actions',
-                        "class" => (in_array('Actions', $columnsVisible) ? 'fixe' : 'libre'),
+                        "class" => (in_array('Actions', $columnsVisible) ? 'display' : 'hide'),
+
                     ],
                     [
                         "title" => 'Libellé',
                         "data" => 'Libellé',
                         'name' => 'Libellé',
-                        "class" => (in_array('Libellé', $columnsVisible) ? 'fixe' : 'libre'),
+                        "class" => (in_array('Libellé', $columnsVisible) ? 'display' : 'hide'),
+
                     ],
                     [
                         "title" => 'Référence',
                         "data" => 'Référence',
                         'name' => 'Référence',
-                        "class" => (in_array('Référence', $columnsVisible) ? 'fixe' : 'libre'),
+                        "class" => (in_array('Référence', $columnsVisible) ? 'display' : 'hide'),
                     ],
                     [
                         "title" => 'Type',
                         "data" => 'Type',
                         'name' => 'Type',
-                        "class" => (in_array('Type', $columnsVisible) ? 'fixe' : 'libre'),
+                        "class" => (in_array('Type', $columnsVisible) ? 'display' : 'hide'),
                     ],
                     [
                         "title" => 'Quantité',
                         "data" => 'Quantité',
                         'name' => 'Quantité',
-                        "class" => (in_array('Quantité', $columnsVisible) ? 'fixe' : 'libre'),
+                        "class" => (in_array('Quantité', $columnsVisible) ? 'display' : 'hide'),
                     ],
                     [
                         "title" => 'Emplacement',
                         "data" => 'Emplacement',
                         'name' => 'Emplacement',
-                        "class" => (in_array('Emplacement', $columnsVisible) ? 'fixe' : 'libre'),
+                        "class" => (in_array('Emplacement', $columnsVisible) ? 'display' : 'hide'),
+                    ],
+                    [
+                        "title" => 'Commentaire',
+                        "data" => 'Commentaire',
+                        'name' => 'Commentaire',
+                        "class" => (in_array('Commentaire', $columnsVisible) ? 'display' : 'hide'),
                     ],
 
                 ];
@@ -223,55 +242,7 @@ class ReferenceArticleController extends Controller
                         "title" => ucfirst(mb_strtolower($champ['label'])),
                         "data" => $champ['label'],
                         'name' => $champ['label'],
-                        "class" => (in_array($champ['label'], $columnsVisible) ? 'fixe' : 'libre'),
-                    ];
-                }
-            } else {
-                $columns = [
-                    [
-                        "title" => 'Actions',
-                        "data" => 'Actions',
-                        'name' => 'Actions',
-                        "class" => 'fixe',
-                    ],
-                    [
-                        "title" => 'Libellé',
-                        "data" => 'Libellé',
-                        'name' => 'Libellé',
-                        "class" => 'fixe',
-                    ],
-                    [
-                        "title" => 'Référence',
-                        "data" => 'Référence',
-                        'name' => 'Référence',
-                        "class" => 'fixe',
-                    ],
-                    [
-                        "title" => 'Type',
-                        "data" => 'Type',
-                        'name' => 'Type',
-                        "class" => 'fixe',
-                    ],
-                    [
-                        "title" => 'Quantité',
-                        "data" => 'Quantité',
-                        'name' => 'Quantité',
-                        "class" => 'fixe',
-                    ],
-                    [
-                        "title" => 'Emplacement',
-                        "data" => 'Emplacement',
-                        'name' => 'Emplacement',
-                        "class" => 'fixe',
-                    ],
-                ];
-
-                foreach ($champs as $champ) {
-                    $columns[] = [
-                        "title" => ucfirst(mb_strtolower($champ['label'])),
-                        "data" => $champ['label'],
-                        "name" => $champ['label'],
-                        "class" => 'libre'
+                        "class" => (in_array($champ['label'], $columnsVisible) ? 'display' : 'hide'),
                     ];
                 }
             }
@@ -303,9 +274,6 @@ class ReferenceArticleController extends Controller
     public function new(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-
-
-
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
@@ -319,10 +287,10 @@ class ReferenceArticleController extends Controller
                 $requiredCreate = true;
                 $type = $this->typeRepository->find($data['type']);
 
-                if ($data['emplacement'] !== NULL) {
+                if ($data['emplacement'] !== null) {
                     $emplacement = $this->emplacementRepository->find($data['emplacement']);
                 } else {
-                    $emplacement = NULL;
+                    $emplacement = null; //TODO gérer message erreur (faire un return avec msg erreur adapté -> à ce jour un return false correspond forcément à une réf déjà utilisée)
                 };
                 $CLRequired = $this->champsLibreRepository->getByTypeAndRequiredCreate($type);
                 foreach ($CLRequired as $CL) {
@@ -330,17 +298,24 @@ class ReferenceArticleController extends Controller
                         $requiredCreate = false;
                     }
                 }
-
                 if ($requiredCreate) {
                     $em = $this->getDoctrine()->getManager();
                     $statut = ($data['statut'] === 'active' ? $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_ACTIF) : $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, ReferenceArticle::STATUT_INACTIF));
+                    switch($data['type_quantite']) {
+                        case 'article':
+                            $typeArticle = ReferenceArticle::TYPE_QUANTITE_ARTICLE;
+                            break;
+                        default:
+                            $typeArticle = ReferenceArticle::TYPE_QUANTITE_REFERENCE;
+                            break;
+                    }
                     $refArticle = new ReferenceArticle();
                     $refArticle
                         ->setLibelle($data['libelle'])
                         ->setReference($data['reference'])
                         ->setCommentaire($data['commentaire'])
                         ->setStatut($statut)
-                        ->setTypeQuantite($data['type_quantite'] ? ReferenceArticle::TYPE_QUANTITE_REFERENCE : ReferenceArticle::TYPE_QUANTITE_ARTICLE)
+                        ->setTypeQuantite($typeArticle)
                         ->setType($type)
                         ->setEmplacement($emplacement);
                     if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
@@ -392,6 +367,7 @@ class ReferenceArticleController extends Controller
                         "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
                         "Quantité" => $refArticle->getQuantiteStock(),
                         "Emplacement" => $emplacement,
+                        "Commentaire" => $refArticle->getCommentaire(),
                         'Actions' => $this->renderView('reference_article/datatableReferenceArticleRow.html.twig', [
                             'idRefArticle' => $refArticle->getId(),
                         ]),
@@ -431,34 +407,39 @@ class ReferenceArticleController extends Controller
         $category = CategoryType::TYPE_ARTICLES_ET_REF_CEA;
         $champL = $this->champsLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
         $champ[] = [
-            'label' => 'actions',
+            'label' => 'Actions',
             'id' => 0,
             'typage' => ''
         ];
         $champ[] = [
-            'label' => 'libellé',
+            'label' => 'Libellé',
             'id' => 0,
             'typage' => 'text'
 
         ];
         $champ[] = [
-            'label' => 'référence',
+            'label' => 'Référence',
             'id' => 0,
             'typage' => 'text'
 
         ];
         $champ[] = [
-            'label' => 'type',
+            'label' => 'Type',
             'id' => 0,
             'typage' => 'list'
         ];
         $champ[] = [
-            'label' => 'quantité',
+            'label' => 'Quantité',
             'id' => 0,
             'typage' => 'number'
         ];
         $champ[] = [
-            'label' => 'emplacement',
+            'label' => 'Emplacement',
+            'id' => 0,
+            'typage' => 'text'
+        ];
+        $champ[] = [
+            'label' => 'Commentaire',
             'id' => 0,
             'typage' => 'text'
         ];
@@ -471,11 +452,11 @@ class ReferenceArticleController extends Controller
 
         $champs = array_merge($champ, $champL);
 
-        usort($champs, function($a, $b) {
+
+
+        usort($champs, function ($a, $b) {
             return strnatcmp($a['label'], $b['label']);
         });
-
-        $champsVisibleDefault = ['actions', 'libellé', 'référence', 'type', 'quantité', 'emplacement'];
 
         $types = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::TYPE_ARTICLES_ET_REF_CEA);
         $emplacements = $this->emplacementRepository->findAll();
@@ -492,7 +473,7 @@ class ReferenceArticleController extends Controller
 
         return $this->render('reference_article/index.html.twig', [
             'champs' => $champs,
-            'champsVisible' => ($this->getUser()->getColumnVisible() !== null ? $this->getUser()->getColumnVisible() : $champsVisibleDefault),
+            'columnsVisibles' => $this->getUser()->getColumnVisible(),
             'typeChampsLibres' => $typeChampLibre,
             'types' => $types,
             'emplacements' => $emplacements,
@@ -596,7 +577,7 @@ class ReferenceArticleController extends Controller
             $em->remove($this->articleFournisseurRepository->find($data['articleF']));
             $em->flush();
             $json =  $this->renderView('reference_article/fournisseurArticleContent.html.twig', [
-                'articles' => $this->articleFournisseurRepository->getByRefArticle($data['articleRef']),
+                'articles' => $this->articleFournisseurRepository->findByRefArticle($data['articleRef']),
                 'articleRef' => $this->referenceArticleRepository->find($data['articleRef'])
             ]);
             return new JsonResponse($json);
@@ -680,8 +661,41 @@ class ReferenceArticleController extends Controller
             } elseif (array_key_exists('collecte', $data) && $data['collecte']) {
                 $collecte = $this->collecteRepository->find($data['collecte']);
                 if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-                    $article = $this->articleRepository->find($data['article']);
-                    $collecte->addArticle($article);
+                    //TODO patch temporaire CEA
+                    $fournisseurTemp = $this->fournisseurRepository->findOneByCodeReference('A_DETERMINER');
+                    if (!$fournisseurTemp) {
+                        $fournisseurTemp = new Fournisseur();
+                        $fournisseurTemp
+                            ->setCodeReference('A_DETERMINER')
+                            ->setNom('A DETERMINER');
+                        $em->persist($fournisseurTemp);
+                    }
+                    $toInsert = new Article();
+                    $index = $this->articleFournisseurRepository->countByRefArticle($refArticle);
+                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_INACTIF);
+                    $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+                    $ref = $date->format('YmdHis');
+                    $articleFournisseur = new ArticleFournisseur();
+                    $articleFournisseur
+                        ->setReferenceArticle($refArticle)
+                        ->setFournisseur($fournisseurTemp)
+                        ->setReference($refArticle->getReference())
+                        ->setLabel('A déterminer -' . $index);
+                    $em->persist($articleFournisseur);
+                    $toInsert
+                        ->setLabel($refArticle->getLibelle() . '-' . $index)
+                        ->setConform(true)
+                        ->setStatut($statut)
+                        ->setReference($ref . '-' . $index)
+                        ->setQuantite($data['quantitie'])
+                        ->setEmplacement($collecte->getPointCollecte())
+                        ->setArticleFournisseur($articleFournisseur)
+                        ->setType($refArticle->getType());
+                    $em->persist($toInsert);
+                    $collecte->addArticle($toInsert);
+                    //TODO fin patch temporaire CEA (à remplacer par lignes suivantes)
+//                    $article = $this->articleRepository->find($data['article']);
+//                    $collecte->addArticle($article);
                 } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                     $collecteReference = new CollecteReference;
                     $collecteReference
@@ -709,7 +723,6 @@ class ReferenceArticleController extends Controller
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $refArticle = $this->referenceArticleRepository->find($data['id']);
-
             if ($refArticle) {
                 $statutC = $this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, Collecte::STATUS_BROUILLON);
                 $collectes = $this->collecteRepository->getByStatutAndUser($statutC, $this->getUser());
@@ -724,6 +737,17 @@ class ReferenceArticleController extends Controller
                         $editChampLibre = false;
                     }
                 } else {
+                    //TODO patch temporaire CEA
+                    if ($refArticle->getStatut()->getNom() === ReferenceArticle::STATUT_INACTIF && $data['demande'] === 'collecte') {
+                        $response = [
+                            'plusContent' => $this->renderView('reference_article/modalPlusDemandeTemp.html.twig', [
+                                'collectes' => $collectes
+                            ]),
+                            'temp' => true
+                        ];
+                        return new JsonResponse($response);
+                    }
+                    //TODO fin de patch temporaire CEA
                     $editChampLibre = false;
                 }
 
@@ -748,30 +772,30 @@ class ReferenceArticleController extends Controller
         throw new NotFoundHttpException("404");
     }
 
-    /**
-     * @Route("/get-RefArticle", name="get_refArticle_in_reception", options={"expose"=true})
-     */
-    public function getRefArticleInReception(Request $request): Response
-    {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $refArticle  = $this->referenceArticleRepository->find($data['referenceArticle']);
-            if ($refArticle) {
-                if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-                    $json  = $this->renderView('reference_article/newRefArticleByReference.html.twig');
-                } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-                    $json  = $this->renderView('reference_article/newRefArticleByArticle.html.twig', [
-                        'articlesFournisseurs' => $this->articleFournisseurRepository->findALL(),
-                    ]);
-                } else {
-                    $json = false;
-                }
-            } else {
-                $json = false;
-            }
-            return new JsonResponse($json);
-        }
-        throw new NotFoundHttpException("404");
-    }
+    //    /**
+    //     * @Route("/get-RefArticle", name="get_refArticle_in_reception", options={"expose"=true})
+    //     */
+    //    public function getRefArticleInReception(Request $request): Response
+    //    {
+    //        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+    //            $refArticle  = $this->referenceArticleRepository->find($data['referenceArticle']);
+    //            if ($refArticle) {
+    //                if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+    //                    $json  = $this->renderView('reference_article/newRefArticleByReference.html.twig');
+    //                } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+    //                    $json  = $this->renderView('reference_article/newRefArticleByArticle.html.twig', [
+    //                        'articlesFournisseurs' => $this->articleFournisseurRepository->findALL(),
+    //                    ]);
+    //                } else {
+    //                    $json = false;
+    //                }
+    //            } else {
+    //                $json = false;
+    //            }
+    //            return new JsonResponse($json);
+    //        }
+    //        throw new NotFoundHttpException("404");
+    //    }
 
     /**
      * @Route("/colonne-visible", name="save_column_visible", options={"expose"=true}, methods="GET|POST")
@@ -788,6 +812,7 @@ class ReferenceArticleController extends Controller
             $user->setColumnVisible($champs);
             $em  = $this->getDoctrine()->getManager();
             $em->flush();
+
             return new JsonResponse();
         }
         throw new NotFoundHttpException("404");
@@ -802,14 +827,134 @@ class ReferenceArticleController extends Controller
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $articleRef  = $this->referenceArticleRepository->find($data);
-            if ($articleRef) {
-                $json = $this->refArticleDataService->getViewEditRefArticle($articleRef);
+            $refArticle  = $this->referenceArticleRepository->find($data);
+
+            $data = $this->refArticleDataService->getDataEditForRefArticle($refArticle);
+            $articlesFournisseur = $this->articleFournisseurRepository->findByRefArticle($refArticle->getId());
+            $type = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::TYPE_ARTICLES_ET_REF_CEA);
+            $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_CEA);
+            $typeChampLibre =  [];
+            foreach ($type as $label) {
+                $champsLibresComplet = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($label['label'], $categorieCL);
+                $champsLibres = [];
+                //création array edit pour vue
+                foreach ($champsLibresComplet as $champLibre) {
+                    $valeurChampRefArticle = $this->valeurChampsLibreRepository->findOneByRefArticleANDChampsLibre($refArticle->getId(), $champLibre);
+                    $champsLibres[] = [
+                        'id' => $champLibre->getId(),
+                        'label' => $champLibre->getLabel(),
+                        'typage' => $champLibre->getTypage(),
+                        'elements' => ($champLibre->getElements() ? $champLibre->getElements() : ''),
+                        'defaultValue' => $champLibre->getDefaultValue(),
+                        'valeurChampLibre' => $valeurChampRefArticle,
+                    ];
+                }
+                $typeChampLibre[] = [
+                    'typeLabel' =>  $label['label'],
+                    'typeId' => $label['id'],
+                    'champsLibres' => $champsLibres,
+                ];
+            }
+            //reponse Vue + data
+
+            if ($refArticle) {
+                $view =  $this->templating->render('reference_article/modalShowRefArticleContent.html.twig', [
+                    'articleRef' => $refArticle,
+                    'statut' => ($refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF),
+                    'valeurChampsLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
+                    'typeChampsLibres' => $typeChampLibre,
+                    'articlesFournisseur' => ($data['listArticlesFournisseur']),
+                    'totalQuantity' => $data['totalQuantity'],
+                    'articles' => $articlesFournisseur,
+
+                ]);
+
+                $json = $view;
             } else {
                 return $json = false;
             }
             return new JsonResponse($json);
         }
         throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/exporter/{min}/{max}", name="reference_article_export", options={"expose"=true}, methods="GET|POST")
+     */
+    public function exportAll(Request $request, $max, $min): Response
+    {
+        if (!$request->isXmlHttpRequest()) {
+            $this->get('profiler')->disable();
+            $data = [];
+            $data['values'] = [];
+            $headersCL = [];
+            foreach ($this->champsLibreRepository->findAll() as $champLibre) {
+                $headersCL[] = $champLibre->getLabel();
+            }
+            $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::TYPE_ARTICLES_ET_REF_CEA);
+            $articles = $this->referenceArticleRepository->findAll();
+            $total = count($articles);
+            if ($max > $total) $max = $total;
+            $toIterate = array_slice($articles, $min, $max);
+            foreach ($toIterate as $article) {
+                $data['values'][] = $this->buildInfos($article, $listTypes, $headersCL);
+            }
+            return new JsonResponse($data);
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+
+    /**
+     * @Route("/export-donnees", name="exports_params")
+     */
+    public function renderParams()
+    {
+        return $this->render('exports/exportsMenu.html.twig');
+    }
+
+    /**
+     * @Route("/total", name="get_total_and_headers_ref", options={"expose"=true}, methods="GET|POST")
+     */
+    public function total(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest()) {
+            $data['total'] = $this->referenceArticleRepository->countAll();
+            $data['headers'] = ['reference', 'libelle', 'quantitée', 'type', 'type_quantite', 'statut', 'commentaire', 'emplacement'];
+            foreach ($this->champsLibreRepository->findAll() as $champLibre) {
+                $data['headers'][] = $champLibre->getLabel();
+            }
+            return new JsonResponse($data);
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+    public function buildInfos(ReferenceArticle $ref, $listTypes, $headersCL)
+    {
+        $refData[] = $ref->getReference();
+        $refData[] = $ref->getLibelle();
+        $refData[] = $ref->getQuantiteStock();
+        $refData[] = $ref->getType()->getLabel();
+        $refData[] = $ref->getTypeQuantite();
+        $refData[] = $ref->getStatut()->getNom();
+        $refData[] = strip_tags($ref->getCommentaire());
+        $refData[] = $ref->getEmplacement() ? $ref->getEmplacement()->getLabel() : '';
+        $categorieCL = $this->categorieCLRepository->findOneByLabel('reference CEA');
+        $champsLibres = [];
+        foreach ($listTypes as $type) {
+            $listChampsLibres = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($type['label'], $categorieCL);
+            foreach ($listChampsLibres as $champLibre) {
+                $valeurChampRefArticle = $this->valeurChampsLibreRepository->findOneByRefArticleANDChampsLibre($ref->getId(), $champLibre);
+                if ($valeurChampRefArticle) $champsLibres[$champLibre->getLabel()] = $valeurChampRefArticle->getValeur();
+            }
+        }
+        foreach ($headersCL as $type) {
+            if (array_key_exists($type, $champsLibres)) {
+                $refData[] = $champsLibres[$type];
+            } else {
+                $refData[] = '';
+            }
+        }
+        return implode(';', $refData);
     }
 }

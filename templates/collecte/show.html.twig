@@ -25,9 +25,26 @@
             {% if hasRight(constant('App\\Entity\\Menu::COLLECTE'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
                 <a href="#" onclick="validateCollecte({{ collecte.id }})" class="btn btn-primary btn-action ml-auto">Valider</a>
             {% endif %}
+        {% else %}
+            {% if hasRight(constant('App\\Entity\\Menu::COLLECTE'), constant('App\\Entity\\Action::LIST')) %}
+            <div class="col text-right">
+                    <a href="{{path('ordre_collecte_show', {'id': ordreCollecte.id }) }}" class="btn btn-primary btn-action">
+                        Aller vers l'ordre de collecte
+                    </a>
+                </div>
+            {% endif %}
         {% endif %}
     </div>
 </div>
+
+
+
+ 
+    
+
+
+
+
 
 <div class="row">
     <div class="zone-entete col-6 row">
@@ -74,6 +91,8 @@
 {% include "collecte/modalDeleteCollecte.html.twig" %}
 {% include "collecte/modalEditCollecte.html.twig" %}
 {% include 'collecte/modalCannotValidate.html.twig' %}
+{% include 'reference_article/modalShowRefArticle.html.twig' %}
+{% include 'article/modalShowArticle.html.twig' %}
 
 {% endblock %}
 

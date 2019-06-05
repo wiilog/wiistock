@@ -9,7 +9,7 @@ $('#utilisateur').select2({
     }
 });
 //ARTICLE DEMANDE
-let pathArticle = Routing.generate('demande_article_api', { id: id }, true);
+let pathArticle = Routing.generate('demande_article_api', {id: id}, true);
 let tableArticle = $('#table-lignes').DataTable({
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
@@ -21,11 +21,12 @@ let tableArticle = $('#table-lignes').DataTable({
         "type": "POST"
     },
     columns: [
-        { "data": 'Référence CEA', 'title': 'Référence CEA' },
-        { "data": 'Libellé', 'title': 'Libellé' },
-        { "data": 'Quantité', 'title': 'Quantité' },
-        { "data": 'Quantité à prélever', 'title': 'Quantité à prélever' },
-        { "data": 'Actions', 'title': 'Actions' }
+        {"data": 'Référence CEA', 'title': 'Référence CEA'},
+        {"data": 'Libellé', 'title': 'Libellé'},
+        {"data": 'Emplacement', 'title': 'Emplacement'},
+        {"data": 'Quantité', 'title': 'Quantité'},
+        {"data": 'Quantité à prélever', 'title': 'Quantité à prélever'},
+        {"data": 'Actions', 'title': 'Actions'}
     ],
 });
 
@@ -44,12 +45,32 @@ let submitEditArticle = $("#submitEditArticle");
 let pathEditArticle = Routing.generate('demande_article_edit', true);
 InitialiserModal(modalEditArticle, submitEditArticle, pathEditArticle, tableArticle);
 
-
+$.extend($.fn.dataTableExt.oSort, {
+    "customDate-pre": function (a) {
+        let dateParts = a.split('/'),
+            year = parseInt(dateParts[2]) - 1900,
+            month = parseInt(dateParts[1]),
+            day = parseInt(dateParts[0]);
+        return Date.UTC(year, month, day, 0, 0, 0);
+    },
+    "customDate-asc": function (a, b) {
+        return ((a < b) ? -1 : ((a > b) ? 1 : 0));
+    },
+    "customDate-desc": function (a, b) {
+        return ((a < b) ? 1 : ((a > b) ? -1 : 0));
+    }
+});
 
 //DEMANDE
 let pathDemande = Routing.generate('demande_api', true);
 let tableDemande = $('#table_demande').DataTable({
-    order: [[0, "desc"]],
+    order: [[0, 'desc']],
+    "columnDefs": [
+        {
+            "type": "customDate",
+            "targets": 0
+        }
+    ],
     language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
@@ -58,25 +79,25 @@ let tableDemande = $('#table_demande').DataTable({
         "type": "POST",
     },
     columns: [
-        { "data": 'Date', 'name': 'Date' },
-        { "data": 'Demandeur', 'name': 'Demandeur' },
-        { "data": 'Numéro', 'name': 'Numéro' },
-        { "data": 'Statut', 'name': 'Statut' },
-        { "data": 'Actions', 'name': 'Actions' },
+        {"data": 'Date', 'name': 'Date'},
+        {"data": 'Demandeur', 'name': 'Demandeur'},
+        {"data": 'Numéro', 'name': 'Numéro'},
+        {"data": 'Statut', 'name': 'Statut'},
+        {"data": 'Actions', 'name': 'Actions'},
     ],
 });
 
 // recherche par défaut demandeur = utilisateur courant
-let demandeur = $('.current-username').val();
-if (demandeur !== undefined) {
-    let demandeurPiped = demandeur.split(',').join('|')
-    tableDemande
-        .columns('Demandeur:name')
-        .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
-        .draw();
-    // affichage par défaut du filtre select2 demandeur = utilisateur courant
-    $('#utilisateur').val(demandeur).trigger('change');
-}
+// let demandeur = $('.current-username').val();
+// if (demandeur !== undefined) {
+//     let demandeurPiped = demandeur.split(',').join('|')
+//     tableDemande
+//         .columns('Demandeur:name')
+//         .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
+//         .draw();
+//     // affichage par défaut du filtre select2 demandeur = utilisateur courant
+//     $('#utilisateur').val(demandeur).trigger('change');
+// }
 
 let urlNewDemande = Routing.generate('demande_new', true);
 let modalNewDemande = $("#modalNewDemande");
@@ -184,6 +205,7 @@ let ajaxAuto = function () {
 }
 
 var editorNewLivraisonAlreadyDone = false;
+
 function initNewLivraisonEditor(modal) {
 
     if (!editorNewLivraisonAlreadyDone) {
@@ -231,7 +253,6 @@ $('#submitSearchDemandeLivraison').on('click', function () {
             }
             return false;
         }
-
     );
     tableDemande
         .draw();
@@ -269,7 +290,7 @@ function deleteRowDemande(button, modal, submit) {
 }
 
 function validateLivraison(livraisonId, elem) {
-    let params = JSON.stringify({ id: livraisonId });
+    let params = JSON.stringify({id: livraisonId});
 
     $.post(Routing.generate('demande_livraison_has_articles'), params, function (resp) {
         if (resp === true) {
@@ -298,7 +319,7 @@ let ajaxEditArticle = function (select) {
             }
         }
     }
-    let json = { id: select.val(), isADemand: 1 };
+    let json = {id: select.val(), isADemand: 1};
     let path = Routing.generate('article_api_edit', true);
     xhttp.open("POST", path, true);
     xhttp.send(JSON.stringify(json));
@@ -326,23 +347,22 @@ let generateCSV = function () {
             Data[$(this).attr('name')] = $(this).val();
         }
     });
-    let utilisateurs = $('#utilisateur').val().toString().split(',');
-    Data['users'] = utilisateurs;
-    if (Data['dateMin'] && Data['dateMax'] && $('#utilisateur').val().toString() !== '') {
+    // let utilisateurs = $('#utilisateur').val().toString().split(',');
+    if (Data['dateMin'] && Data['dateMax']) {
         json = JSON.stringify(Data);
-        xhttp.open("POST", Routing.generate('get_livraisons_for_csv'), true);
+        xhttp.open("POST", Routing.generate('get_livraisons_for_csv', true));
         xhttp.send(json);
     } else {
-        $('.error-msg').html('<p>Saisissez une date de départ, une date de fin et un utilisateur dans le filtre en en-tête de page.</p>');
+        $('.error-msg').html('<p>Saisissez une date de départ et une date de fin dans le filtre en en-tête de page.</p>');
     }
 }
 
 let dlFile = function (csv) {
     let d = new Date();
-    let date = checkZero(d.getDate() +'') + '-' + checkZero(d.getMonth() + 1 +'') + '-' + checkZero(d.getFullYear()+'');
-    date+= ' ' + checkZero(d.getHours() +'') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');  
+    let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
+    date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
     var exportedFilenmae = 'export-demandes-' + date + '.csv';
-    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    var blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
     if (navigator.msSaveBlob) { // IE 10+
         navigator.msSaveBlob(blob, exportedFilenmae);
     } else {
@@ -359,11 +379,11 @@ let dlFile = function (csv) {
     }
 }
 
-function checkZero(data){
-    if(data.length == 1){
-      data = "0" + data;
+function checkZero(data) {
+    if (data.length == 1) {
+        data = "0" + data;
     }
     return data;
-  }
+}
 
 
