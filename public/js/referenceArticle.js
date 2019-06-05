@@ -528,7 +528,7 @@ function setMaxQuantityByArtRef(input) {
 
 
 function toggleRadioButtonNeeded(button) {
-    if ($('#quantite').hasClass('needed')) {
+    if (button.data('title') === 'article') {
         $('#quantite').removeClass('needed');
         $('#type_quantite').val('article');
     }
@@ -536,13 +536,6 @@ function toggleRadioButtonNeeded(button) {
         $('#quantite').addClass('needed');
         $('#type_quantite').val('reference');
     }
-    if ($('#emplacement').hasClass('needed')) {
-        $('#emplacement').removeClass('needed');
-    }
-    else {
-        $('#emplacement').addClass('needed');
-    }
-
 }
 
 function submitPlusAndGoToDemande(button) {

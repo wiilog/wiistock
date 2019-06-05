@@ -517,7 +517,7 @@ function clearModal(modal) {
     let inputs = $modal.find('.modal-body').find(".data");
     // on vide tous les inputs (sauf les disabled)
     inputs.each(function () {
-        if ($(this).attr('disabled') !== 'disabled') {
+        if ($(this).attr('disabled') !== 'disabled' && $(this).attr('type') !== 'hidden') {
             $(this).val("");
         }
         // on enlève les classes is-invalid
