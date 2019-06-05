@@ -126,8 +126,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
      * @Rest\View()
      */
     public function addMouvementTraca(Request $request) {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)){
-            dump('yes');
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)){
             $response = new Response();
             $response->headers->set('Content-Type', 'application/json');
             $response->headers->set('Access-Control-Allow-Origin', '*');
