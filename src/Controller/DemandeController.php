@@ -22,6 +22,7 @@ use App\Repository\PreparationRepository;
 use App\Service\ArticleDataService;
 use App\Service\RefArticleDataService;
 use App\Service\UserService;
+use Doctrine\Common\Collections\Criteria;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -347,7 +348,7 @@ class DemandeController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $demandes = $this->demandeRepository->findAll();
+            $demandes = $this->demandeRepository->findAllDESC();
             $rows = [];
             foreach ($demandes as $demande) {
                 $idDemande = $demande->getId();
