@@ -139,7 +139,7 @@ class LivraisonController extends AbstractController
     }
 
     /**
-     *  @Route("/creer/{id}", name="livraison_new", methods={"GET","POST"} )
+     * @Route("/creer/{id}", name="livraison_new", methods={"GET","POST"} )
      */
     public function new($id): Response
     {
@@ -197,7 +197,7 @@ class LivraisonController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
-        if ($livraison->getStatut()->getnom() ===  Livraison::STATUT_A_TRAITER) {
+        if ($livraison->getStatut()->getnom() === Livraison::STATUT_A_TRAITER) {
             $livraison
                 ->setStatut($this->statutRepository->findOneByCategorieAndStatut(Livraison::CATEGORIE, Livraison::STATUT_LIVRE))
                 ->setUtilisateur($this->getUser())
@@ -274,35 +274,35 @@ class LivraisonController extends AbstractController
             }
 
             $demande = $this->demandeRepository->getByLivraison($livraison->getId());
-            $data =[];
+            $data = [];
             if ($demande) {
                 $rows = [];
                 $articles = $this->articleRepository->getByDemande($demande);
                 foreach ($articles as $article) {
                     /** @var Article $article */
                     $rows[] = [
-                            "Référence CEA" => $article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
-                            "Libellé" => $article->getLabel() ? $article->getLabel() : '',
-                            "Emplacement" => $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
-                            "Quantité" => $article->getQuantite(),
-                            "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
-                                'id' => $article->getId(),
-                            ])
-                           
-                        ];
+                        "Référence CEA" => $article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
+                        "Libellé" => $article->getLabel() ? $article->getLabel() : '',
+                        "Emplacement" => $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
+                        "Quantité" => $article->getQuantite(),
+                        "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
+                            'id' => $article->getId(),
+                        ])
+
+                    ];
                 }
                 $lignes = $demande->getLigneArticle();
-            
+
                 foreach ($lignes as $ligne) {
                     $rows[] = [
-                            "Référence CEA" => $ligne->getReference()->getReference(),
-                            "Libellé" => $ligne->getReference()->getLibelle(),
-                            "Emplacement" => $ligne->getReference()->getEmplacement() ? $ligne->getReference()->getEmplacement()->getLabel() : '',
-                            "Quantité" => $ligne->getQuantite(),
-                            "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
-                                'refArticleId' => $ligne->getReference()->getId(),
-                            ])
-                        ];
+                        "Référence CEA" => $ligne->getReference()->getReference(),
+                        "Libellé" => $ligne->getReference()->getLibelle(),
+                        "Emplacement" => $ligne->getReference()->getEmplacement() ? $ligne->getReference()->getEmplacement()->getLabel() : '',
+                        "Quantité" => $ligne->getQuantite(),
+                        "Actions" => $this->renderView('livraison/datatableLivraisonListeRow.html.twig', [
+                            'refArticleId' => $ligne->getReference()->getId(),
+                        ])
+                    ];
                 }
 
                 $data['data'] = $rows;
@@ -341,7 +341,7 @@ class LivraisonController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::LIVRAISON, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
-           
+
             $livraison = $this->livraisonRepository->find($data['livraison']);
 
             $statutP = $this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
@@ -376,15 +376,11 @@ class LivraisonController extends AbstractController
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $dateMin = $data['dateMin'] . ' 00:00:00';
             $dateMax = $data['dateMax'] . ' 23:59:59';
-            $livraisons = [];
-            foreach ($data['users'] as $username) {
-                $user = $this->utilisateurRepository->findOneByUsername($username);
-                $livraisonsUser = $this->demandeRepository->findByDatesAndUsername($dateMin, $dateMax, $user);
-                $livraisons = array_merge($livraisons, $livraisonsUser);
-            }
+            $livraisons = $this->demandeRepository->findByDates($dateMin, $dateMax);
             $data = [];
             $headers = ['demandeur', 'statut', 'destination', 'commentaire', 'dateDemande', 'dateValidation', 'reference', 'referenceArticle', 'libelleArticle', 'quantite'];
-            foreach ($this->champsLibreRepository->findAll() as $champLibre) {
+            $cls = $this->champsLibreRepository->findAll();
+            foreach ($cls as $champLibre) {
                 $headers[] = $champLibre->getLabel();
             }
             $data[] = $headers;
@@ -402,7 +398,7 @@ class LivraisonController extends AbstractController
                     $livraisonData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getReference() : '';
                     $livraisonData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getLibelle() : '';
                     $livraisonData[] = $ligneArticle->getQuantite();
-                    $categorieCL = $this->categorieCLRepository->findOneByLabel(($ligneArticle->getReference()->getTypeQuantite() === 'reference') ? 'referenceArticle' : 'article');
+                    $categorieCL = $this->categorieCLRepository->findOneByLabel(($ligneArticle->getReference()->getTypeQuantite() === 'reference') ? 'reference CEA' : 'article');
                     $champsLibres = [];
                     foreach ($listTypes as $type) {
                         $listChampsLibres = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($type['label'], $categorieCL);
@@ -413,9 +409,9 @@ class LivraisonController extends AbstractController
                             }
                         }
                     }
-                    foreach ($headers as $type) {
-                        if (array_key_exists($type, $champsLibres)) {
-                            $livraisonData[] = $champsLibres[$type];
+                    foreach ($cls as $type) {
+                        if (array_key_exists($type->getLabel(), $champsLibres)) {
+                            $livraisonData[] = $champsLibres[$type->getLabel()];
                         } else {
                             $livraisonData[] = '';
                         }
@@ -445,9 +441,9 @@ class LivraisonController extends AbstractController
                             }
                         }
                     }
-                    foreach ($headers as $type) {
-                        if (array_key_exists($type, $champsLibres)) {
-                            $livraisonData[] = $champsLibres[$type];
+                    foreach ($cls as $type) {
+                        if (array_key_exists($type->getLabel(), $champsLibres)) {
+                            $livraisonData[] = $champsLibres[$type->getLabel()];
                         } else {
                             $livraisonData[] = '';
                         }

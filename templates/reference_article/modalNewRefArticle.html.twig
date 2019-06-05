@@ -11,8 +11,8 @@
             <div class="modal-body modal-input container-fluid">
                 <div class="row">
                     <div class="form-group col-6">
-                        <label for="reference">Référence</label>
-                        <input class="form-control data" type="text" name="reference" id="reference">
+                        <label for="reference">Référence*</label>
+                        <input class="form-control data needed" type="text" name="reference" id="reference">
                     </div>
                     <div class="form-group col-6">
                         <div class="input-group radio-btn">
@@ -27,7 +27,7 @@
                         </div>
                     </div>
                     <div class="form-group col-6">
-                        <label for="libelle">Nom</label>
+                        <label for="libelle">Nom*</label>
                         <input class="form-control data needed" type="text" name="libelle" id="libelle">
                     </div>
                     {% include 'reference_article/fournisseurArticle.html.twig' %}
@@ -37,7 +37,7 @@
                 </div>
                 <div class="row">
                     <div class="form-group col-6">
-                        <label for="type">Type</label>
+                        <label for="type">Type*</label>
                         <select name="type" onclick="typeChoice($(this), '-new', $('#typeContentNew'))"
                             onchange="displayRequireChamp($(this),'create')"
                             class="form-control data d-block type needed" id="">
@@ -74,15 +74,13 @@
                         </div>
                     </div>
                     <div class="form-group col-6">
-                        <label for="quantite">Quantité</label>
 
                         <div class="reference">
+                            <label for="quantite">Quantité*</label>
                             <input class="form-control data needed" type="number" min="1" name="quantite" id="quantite">
-
-
-
                         </div>
                         <div class="article d-none">
+                            <label for="quantite">Quantité</label>
                             <input disabled class="form-control" type="number">
                         </div>
 
@@ -91,7 +89,7 @@
                     <div class="form-group col-4">
                         <div class="form-group w-100">
                             <div class="input-group reference">
-                                <label for="emplacement">Emplacement</label>
+                                <label for="emplacement">Emplacement*</label>
                                 <select name="emplacement" 
                                     class="form-control data ajax-autocompleteEmplacement">
                                 </select>

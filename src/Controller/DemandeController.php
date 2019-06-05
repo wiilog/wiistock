@@ -8,7 +8,6 @@ use App\Entity\Menu;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\LigneArticle;
-use App\Entity\Emplacement;
 
 use App\Repository\DemandeRepository;
 use App\Repository\ReferenceArticleRepository;

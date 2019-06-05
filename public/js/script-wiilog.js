@@ -62,6 +62,8 @@ function submitAction(modal, path, table, callback, close) {
         // validation données obligatoires
         if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
             let label = $(this).closest('.form-group').find('label').text();
+            // on enlève l'éventuelle * du nom du label
+            label = label.replace(/\*/, '');
             missingInputs.push(label);
             $(this).addClass('is-invalid');
         }
