@@ -30,6 +30,11 @@
             </li>
         {% endif %}
         <!-- DEMANDE   -->
+        {% if
+            hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::LIST')) or
+            hasRight(constant('App\\Entity\\Menu::DEM_COLLECTE'), constant('App\\Entity\\Action::LIST')) or
+            hasRight(constant('App\\Entity\\Menu::MANUT'), constant('App\\Entity\\Action::LIST'))
+        %}
         <li class="menu-item has-submenu">
             <a href="#">
                 <i class="fas fa-shopping-cart"></i>
@@ -47,6 +52,7 @@
                 {% endif %}
             </ul>
         </li>
+        {% endif %}
 
         <!-- RECEPTION -->
         {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::LIST')) %}

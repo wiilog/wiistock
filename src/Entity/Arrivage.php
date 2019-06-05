@@ -25,9 +25,9 @@ class Arrivage
     private $fournisseur;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Litige", mappedBy="arrivage")
+     * @ORM\OneToOne(targetEntity="App\Entity\Litige", mappedBy="arrivage")
      */
-    private $litiges;
+    private $litige;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Chauffeur", inversedBy="arrivages")
@@ -37,7 +37,7 @@ class Arrivage
     /**
      * @ORM\Column(type="string", length=64, nullable=true)
      */
-    private $codeTracageTransporteur;
+    private $noTracking;
 
     /**
      * @ORM\Column(type="string", length=64, nullable=true)
@@ -85,15 +85,20 @@ class Arrivage
     private $date;
 
     /**
-     * @ORM\Column(type="string", length=32)
+     * @ORM\Column(type="string", length=32, nullable=true)
      */
     private $numeroArrivage;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="arrivagesUtilisateur")
+     */
+    private $utilisateur;
 
 
     public function __construct()
     {
         $this->acheteurs = new ArrayCollection();
-        $this->litiges = new ArrayCollection();
+        $this->litige = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -125,14 +130,14 @@ class Arrivage
         return $this;
     }
 
-    public function getCodeTracageTransporteur(): ?string
+    public function getNoTracking(): ?string
     {
-        return $this->codeTracageTransporteur;
+        return $this->noTracking;
     }
 
-    public function setCodeTracageTransporteur(?string $codeTracageTransporteur): self
+    public function setNoTracking(?string $noTracking): self
     {
-        $this->codeTracageTransporteur = $codeTracageTransporteur;
+        $this->noTracking = $noTracking;
 
         return $this;
     }
@@ -305,6 +310,36 @@ class Arrivage
     public function setNumeroArrivage(string $numeroArrivage): self
     {
         $this->numeroArrivage = $numeroArrivage;
+
+        return $this;
+    }
+
+    public function getUtilisateur(): ?Utilisateur
+    {
+        return $this->utilisateur;
+    }
+
+    public function setUtilisateur(?Utilisateur $utilisateur): self
+    {
+        $this->utilisateur = $utilisateur;
+
+        return $this;
+    }
+
+    public function getLitige(): ?Litige
+    {
+        return $this->litige;
+    }
+
+    public function setLitige(?Litige $litige): self
+    {
+        $this->litige = $litige;
+
+        // set (or unset) the owning side of the relation if necessary
+        $newArrivage = $litige === null ? null : $this;
+        if ($newArrivage !== $litige->getArrivage()) {
+            $litige->setArrivage($newArrivage);
+        }
 
         return $this;
     }

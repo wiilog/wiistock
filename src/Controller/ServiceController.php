@@ -78,7 +78,6 @@ class ServiceController extends AbstractController
 
             $rows = [];
             foreach ($services as $service) {
-                $url['edit'] = $this->generateUrl('service_edit', ['id' => $service->getId()]);
 
                 $rows[] = [
                     'id' => ($service->getId() ? $service->getId() : 'Non défini'),
@@ -87,9 +86,7 @@ class ServiceController extends AbstractController
                     'Libellé' => ($service->getlibelle() ? $service->getLibelle() : null),
                     'Statut' => ($service->getStatut()->getNom() ? $service->getStatut()->getNom() : null),
                     'Actions' => $this->renderView('service/datatableServiceRow.html.twig', [
-                        'url' => $url,
-                        'service' => $service,
-                        'idService' => $service->getId(),
+                        'service' => $service
                     ]),
                 ];
             }
@@ -112,7 +109,6 @@ class ServiceController extends AbstractController
         return $this->render('service/index.html.twig', [
             'utilisateurs' => $this->utilisateurRepository->findAll(),
             'statuts' => $this->statutRepository->findByCategorieName(Service::CATEGORIE),
-
         ]);
     }
     /**
@@ -225,7 +221,6 @@ class ServiceController extends AbstractController
     /**
      * @Route("/supprimer", name="service_delete", options={"expose"=true},methods={"GET","POST"})
      */
-
     public function delete(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
@@ -234,6 +229,7 @@ class ServiceController extends AbstractController
             if ($service->getStatut()->getNom() == Service::STATUT_TRAITE) {
                 return $this->redirectToRoute('access_denied');
             }
+            //TODO à modifier : pas pb de droits donc pas rediriger vers access denied, mais retour message erreur
 
 
             if (

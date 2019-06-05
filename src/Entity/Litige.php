@@ -17,7 +17,8 @@ class Litige
     private $id;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Arrivage", inversedBy="litiges")
+     * @ORM\OneToOne(targetEntity="App\Entity\Arrivage", inversedBy="litige")
+     * @ORM\JoinColumn(name="arrivage_id", referencedColumnName="id", onDelete="CASCADE")
      */
     private $arrivage;
 
@@ -41,7 +42,7 @@ class Litige
         return $this->arrivage;
     }
 
-    public function setArrivage(int $arrivage): self
+    public function setArrivage(?Arrivage $arrivage): self
     {
         $this->arrivage = $arrivage;
 

@@ -19,32 +19,15 @@ class TransporteurRepository extends ServiceEntityRepository
         parent::__construct($registry, Transporteur::class);
     }
 
-    // /**
-    //  * @return Transporteur[] Returns an array of Transporteur objects
-    //  */
-    /*
-    public function findByExampleField($value)
+    public function findAllSorted()
     {
-        return $this->createQueryBuilder('t')
-            ->andWhere('t.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('t.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT t FROM App\Entity\Transporteur t
+            ORDER BY t.label
+            "
+        );
 
-    /*
-    public function findOneBySomeField($value): ?Transporteur
-    {
-        return $this->createQueryBuilder('t')
-            ->andWhere('t.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
+        return $query->execute();
     }
-    */
 }

@@ -7,7 +7,7 @@ $('#utilisateur').select2({
 });
 
 let pathArrivage = Routing.generate('arrivage_api', true);
-let tableService = $('#tableArrivages').DataTable({
+let tableArrivage = $('#tableArrivages').DataTable({
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
     },
@@ -17,19 +17,70 @@ let tableService = $('#tableArrivages').DataTable({
         "type": "POST"
     },
     columns: [
-        {"data": "NumArrivage", 'name': 'NumArrivage', 'title': "N° d'arrivage"},
-        {"data": 'Transporteur', 'name': 'Transporteur', 'title': 'Transporteur'},
-        {"data": 'NoTrackingTransp', 'name': 'NoTrackingTransp', 'title': 'N° tracking transporteur'},
-        {"data": 'NumBL', 'name': 'NumBL', 'title': 'N° commande / BL'},
-        {"data": 'Fournisseur', 'name': 'Fournisseur', 'title': 'Fournisseur'},
-        {"data": 'Destinataire', 'name': 'Destinataire', 'title': 'Destinataire'},
-        {"data": 'NbUM', 'name': 'NbUM', 'title': 'Nb UM'},
-        {"data": 'Statut', 'name': 'Statut', 'title': 'Statut'},
-        {"data": 'Date', 'name': 'Date', 'title': 'Date'},
-        {"data": 'Utilisateur', 'name': 'Utilisateur', 'title': 'Utilisateur'},
+        { "data": "NumeroArrivage", 'name': 'NumeroArrivage', 'title': "N° d'arrivage" },
+        { "data": 'Transporteur', 'name': 'Transporteur', 'title': 'Transporteur' },
+        { "data": 'NoTracking', 'name': 'NoTracking', 'title': 'N° tracking transporteur' },
+        { "data": 'NumeroBL', 'name': 'NumeroBL', 'title': 'N° commande / BL' },
+        { "data": 'Fournisseur', 'name': 'Fournisseur', 'title': 'Fournisseur' },
+        { "data": 'Destinataire', 'name': 'Destinataire', 'title': 'Destinataire' },
+        { "data": 'NbUM', 'name': 'NbUM', 'title': 'Nb UM' },
+        { "data": 'Statut', 'name': 'Statut', 'title': 'Statut' },
+        { "data": 'Date', 'name': 'Date', 'title': 'Date' },
+        { "data": 'Utilisateur', 'name': 'Utilisateur', 'title': 'Utilisateur' },
+        { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' },
     ],
 
 });
+
+let editorNewArrivageAlreadyDone = false;
+function initNewArrivageEditor(modal) {
+    if (!editorNewArrivageAlreadyDone) {
+        initEditor2(modal + '.editor-container-new');
+        editorNewArrivageAlreadyDone = true;
+    }
+};
+
+
+
+let modalNewArrivage = $("#modalNewArrivage");
+let submitNewArrivage = $("#submitNewArrivage");
+let urlNewArrivage = Routing.generate('arrivage_new', true);
+InitialiserModal(modalNewArrivage, submitNewArrivage, urlNewArrivage, tableArrivage);
+
+let modalModifyArrivage = $('#modalEditArrivage');
+let submitModifyArrivage = $('#submitEditArrivage');
+let urlModifyArrivage = Routing.generate('arrivage_edit', true);
+InitialiserModal(modalModifyArrivage, submitModifyArrivage, urlModifyArrivage, tableArrivage);
+
+let modalDeleteArrivage = $('#modalDeleteArrivage');
+let submitDeleteArrivage = $('#submitDeleteArrivage');
+let urlDeleteArrivage = Routing.generate('arrivage_delete', true);
+InitialiserModal(modalDeleteArrivage, submitDeleteArrivage, urlDeleteArrivage, tableArrivage);
+
+function toggleLitige(select) {
+    let bloc = select.closest('.modal').find('#litigeBloc');
+    let status = select.val();
+    let litigeType = bloc.find('#litigeType');
+
+    if (status === '1') {
+        litigeType.removeClass('needed');
+        bloc.addClass('d-none');
+
+    } else {
+        bloc.removeClass('d-none');
+        litigeType.addClass('needed');
+    }
+}
+
+function deleteRowArrivage(button, modal, submit, hasLitige) {
+    deleteRow(button, modal, submit);
+    let hasLitigeText = modal.find('.hasLitige');
+    if (hasLitige) {
+        hasLitigeText.removeClass('d-none');
+    } else {
+        hasLitigeText.addClass('d-none');
+    }
+}
 
 function dragEnterDiv(event, div) {
     div.css('border', '3px dashed red');
@@ -85,18 +136,3 @@ function upload(files) {
         }
     });
 }
-
-// let modalNewService = $("#modalNewService");
-// let submitNewService = $("#submitNewService");
-// let urlNewService = Routing.generate('service_new', true);
-// InitialiserModal(modalNewService, submitNewService, urlNewService, tableService);
-//
-// let modalModifyService = $('#modalEditService');
-// let submitModifyService = $('#submitEditService');
-// let urlModifyService = Routing.generate('service_edit', true);
-// InitialiserModal(modalModifyService, submitModifyService, urlModifyService, tableService);
-//
-// let modalDeleteService = $('#modalDeleteService');
-// let submitDeleteService = $('#submitDeleteService');
-// let urlDeleteService = Routing.generate('service_delete', true);
-// InitialiserModal(modalDeleteService, submitDeleteService, urlDeleteService, tableService);
