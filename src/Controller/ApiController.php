@@ -126,24 +126,22 @@ class ApiController extends FOSRestController implements ClassResourceInterface
      * @Rest\View()
      */
     public function addMouvementTraca(Request $request) {
-        dump($data = json_decode($request->getContent(), true));
-        dump($request->isXmlHttpRequest());
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)){
-            dump('yes');
             $response = new Response();
             $response->headers->set('Content-Type', 'application/json');
             $response->headers->set('Access-Control-Allow-Origin', '*');
             $response->headers->set('Access-Control-Allow-Methods', 'POST, GET');
+            $em = $this->getDoctrine()->getManager();
             foreach ($data['mouvements'] as $mvt) {
                 $toInsert = new MouvementTraca();
                 $toInsert->setRefArticle($mvt['ref_article']);
                 $toInsert->setRefEmplacement($mvt['ref_emplacement']);
                 $toInsert->setDate($mvt['date']);
                 $toInsert->setType($mvt['type']);
-                $em = $this->getDoctrine()->getManager();
                 $em->persist($toInsert);
-                $em->flush();
             }
+            dump('yes');
+            $em->flush();
             $this->successData['success'] = true;
             $this->successData['data'] = [];
             $response->setContent(json_encode($this->successData));
