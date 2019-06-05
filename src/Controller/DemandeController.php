@@ -8,7 +8,6 @@ use App\Entity\Menu;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\LigneArticle;
-use App\Entity\Emplacement;
 
 use App\Repository\DemandeRepository;
 use App\Repository\ReferenceArticleRepository;
@@ -22,7 +21,6 @@ use App\Repository\PreparationRepository;
 use App\Service\ArticleDataService;
 use App\Service\RefArticleDataService;
 use App\Service\UserService;
-use Doctrine\Common\Collections\Criteria;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -348,7 +346,7 @@ class DemandeController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $demandes = $this->demandeRepository->findAllDESC();
+            $demandes = $this->demandeRepository->findAll();
             $rows = [];
             foreach ($demandes as $demande) {
                 $idDemande = $demande->getId();

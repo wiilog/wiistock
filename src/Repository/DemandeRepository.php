@@ -32,17 +32,6 @@ class DemandeRepository extends ServiceEntityRepository
         return $query->getOneOrNullResult();
     }
 
-    public function findAllDESC() {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT d
-            FROM App\Entity\Demande d
-            ORDER BY d.date DESC"
-        );
-
-        return $query->execute();
-    }
-
     public function findByUserAndNotStatus($user, $status)
     {
         $entityManager = $this->getEntityManager();
