@@ -141,10 +141,10 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                 $em->persist($toInsert);
             }
             $em->flush();
+            dump('yes');
             $this->successData['success'] = true;
             $this->successData['data'] = [];
             $response->setContent(json_encode($this->successData));
-            dump('yes');
             return $response;
         }
     }
