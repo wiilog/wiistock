@@ -102,14 +102,6 @@ class ArrivageController extends AbstractController
     }
 
     /**
-     * @Route("/depose"), name="arrivage_depose")
-     */
-    public function deposeIndex()
-    {
-        return $this->render('arrivage/depose.html.twig');
-    }
-
-    /**
      * @Route("/api", name="arrivage_api", options={"expose"=true}, methods="GET|POST")
      */
     public function api(Request $request): Response
@@ -192,7 +184,7 @@ class ArrivageController extends AbstractController
                 $arrivage->setDestinataire($this->utilisateurRepository->find($data['destinataire']));
             }
             if (isset($data['nbUM'])) {
-                $arrivage->setNbUM($data['nbUM']);
+                $arrivage->setNbUM((int)$data['nbUM']);
             }
 
             $em->persist($arrivage);
@@ -278,7 +270,7 @@ class ArrivageController extends AbstractController
                 $arrivage->setDestinataire($this->utilisateurRepository->find($data['destinataire']));
             }
             if (isset($data['nbUM'])) {
-                $arrivage->setNbUM($data['nbUM']);
+                $arrivage->setNbUM((int)$data['nbUM']);
             }
 
             if (isset($data['litigeType'])) {

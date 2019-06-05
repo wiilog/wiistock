@@ -1,18 +1,7 @@
-{% extends 'layout.html.twig' %}
-
-{% block title %}Arrivages{% endblock %}
-
-{% block page_content %}
-    {#fermeture de la div de layout pour fermer le container et ne pas avoir de bordure#}
-    </div>
-    <h1>Arrivages depose PJ</h1>
-    <div id="dropfile" style="width: 500px; height: 300px; border: 3px dashed #bbbbbb; line-height: 50px; text-align: center;"
+<label for="dropfile">Pièces jointes</label>
+<div id="dropfile" class="dropFrame" data-id="{{ arrivage. }}"
             ondragenter="dragEnterDiv(event, $(this))"
             ondragover="dragOverDiv(event, $(this))"
             ondragleave="dragLeaveDiv(event, $(this))"
-            ondrop="dropOnDiv(event, $(this))">Déposez une piece jointe.</div>
-{% endblock %}
-
-{% block javascript %}
-<script src="{{ asset('js/arrivage.js') }}?{{ date().timestamp }}"></script>
-{% endblock %}
+            ondrop="dropOnDiv(event, $(this))">Faites glisser votre pièce jointe ici.
+</div>

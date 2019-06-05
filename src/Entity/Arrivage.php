@@ -343,4 +343,5 @@ class Arrivage
 
         return $this;
     }
+
 }
