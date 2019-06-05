@@ -144,7 +144,6 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                     $toInsert->setType($mvt['type']);
                     $em->persist($toInsert);
                 }
-                dump('yes');
                 $em->flush();
             } catch (DBALException $e) {
                 dump($e);
