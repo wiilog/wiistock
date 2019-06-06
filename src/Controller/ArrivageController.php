@@ -232,6 +232,7 @@ class ArrivageController extends AbstractController
             foreach($arrivage->getAcheteurs() as $acheteur) {
                 $acheteursId[] = $acheteur->getId();
             }
+
             $json = $this->renderView('arrivage/modalEditArrivageContent.html.twig', [
                 'arrivage' => $arrivage,
                 'acheteursId' => $acheteursId,
@@ -358,22 +359,30 @@ class ArrivageController extends AbstractController
     /**
      * @Route("/depose-pj", name="arrivage_depose", options={"expose"=true}, methods="GET|POST")
      */
-    public function depose(Request $request, Arrivage $arrivage): Response
+    public function depose(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
             $em = $this->getDoctrine()->getManager();
+
+            $fileNames = [];
+            $path = "../public/uploads/attachements";
+
+            $id = (int)$request->request->get('id');
+            $arrivage = $this->arrivageRepository->find($id);
+
             for ($i = 0; $i < count($request->files); $i++) {
                 $file = $request->files->get('file' . $i);
                 if ($file) {
                     // generate a random name for the file but keep the extension
                     $filename = uniqid() . "." . $file->getClientOriginalExtension();
-                    $path = "../public/uploads/attachements";
                     $file->move($path, $filename); // move the file to a path
-                    $arrivage->addAttachements($filename);
+
+                  $arrivage->addAttachements($filename);
+                  $fileNames[] = $filename;
                 }
             }
             $em->flush();
-            return new JsonResponse();
+            return new JsonResponse($fileNames);
         } else {
             throw new NotFoundHttpException('404');
         }

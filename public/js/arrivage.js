@@ -35,7 +35,7 @@ let tableArrivage = $('#tableArrivages').DataTable({
 let editorNewArrivageAlreadyDone = false;
 function initNewArrivageEditor(modal) {
     if (!editorNewArrivageAlreadyDone) {
-        initEditor2(modal + '.editor-container-new');
+        initEditor2(modal + ' .editor-container-new');
         editorNewArrivageAlreadyDone = true;
     }
 };
@@ -123,16 +123,26 @@ function upload(files) {
         formData.append('file' + index, file);
     });
     let path = Routing.generate('arrivage_depose', true);
+
+    let arrivageId = $('#dropfile').data('arrivage-id');
+    formData.append('id', arrivageId);
+
+    let filepath = '/uploads/attachements/';
+
     $.ajax({
         url: path,
-        data: formData,// the formData function is available in almost all new browsers.
+        data: formData,
         type:"post",
         contentType:false,
         processData:false,
         cache:false,
-        dataType:"json", // Change this according to your response from the server.
-        success:function(){
-            $('#dropfile').css('border', '3px dashed #BBBBBB');
+        dataType:"json",
+        success:function(fileNames){
+            let dropfile = $('#dropfile');
+            dropfile.css('border', '3px dashed #BBBBBB');
+            fileNames.forEach(function(fileName) {
+                dropfile.after('<p><i class="fa fa-file mr-2"></i><a target="_blank" href="' + filepath + fileName + '">' + fileName + '</a></p>');
+            })
         }
     });
 }
