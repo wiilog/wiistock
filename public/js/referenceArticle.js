@@ -113,6 +113,8 @@ function getDataFromModal(modal) {
         // validation données obligatoires
         if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
             let label = $(this).closest('.form-group').find('label').text();
+            // on enlève l'éventuelle * du nom du label
+            label = label.replace(/\*/, '');
             missingInputs.push(label);
             $(this).addClass('is-invalid');
         }
@@ -530,10 +532,12 @@ function setMaxQuantityByArtRef(input) {
 function toggleRadioButtonNeeded(button) {
     if (button.data('title') === 'article') {
         $('#quantite').removeClass('needed');
+        $('#emplacement').removeClass('needed');
         $('#type_quantite').val('article');
     }
     else {
         $('#quantite').addClass('needed');
+        $('#emplacement').addClass('needed');
         $('#type_quantite').val('reference');
     }
 }

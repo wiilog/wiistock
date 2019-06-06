@@ -234,7 +234,7 @@ class ServiceController extends AbstractController
 
             if (
                 !$this->userService->hasRightFunction(Menu::MANUT, Action::LIST)
-                && ($service->getStatuy()->getNom() === Service::STATUT_BROUILLON)
+                && ($service->getStatut()->getNom() === Service::STATUT_BROUILLON)
             ) {
                 return $this->redirectToRoute('access_denied');
             }

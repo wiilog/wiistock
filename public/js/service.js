@@ -8,10 +8,16 @@ $('#utilisateur').select2({
 
 let pathService = Routing.generate('service_api', true);
 let tableService = $('#tableService_id').DataTable({
+    order: [[0, 'desc']],
+    "columnDefs": [
+        {
+            "type": "customDate",
+            "targets": 0
+        }
+    ],
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
     },
-    "order": [[0, "desc"]],
     ajax: {
         "url": pathService,
         "type": "POST"
@@ -23,7 +29,22 @@ let tableService = $('#tableService_id').DataTable({
         { "data": 'Statut', 'name': 'Statut' },
         { "data": 'Actions', 'name': 'Actions' },
     ],
+});
 
+$.extend($.fn.dataTableExt.oSort, {
+    "customDate-pre": function (a) {
+        let dateParts = a.split('/'),
+            year = parseInt(dateParts[2]) - 1900,
+            month = parseInt(dateParts[1]),
+            day = parseInt(dateParts[0]);
+        return Date.UTC(year, month, day, 0, 0, 0);
+    },
+    "customDate-asc": function (a, b) {
+        return ((a < b) ? -1 : ((a > b) ? 1 : 0));
+    },
+    "customDate-desc": function (a, b) {
+        return ((a < b) ? 1 : ((a > b) ? -1 : 0));
+    }
 });
 
 // recherche par défaut demandeur = utilisateur courant

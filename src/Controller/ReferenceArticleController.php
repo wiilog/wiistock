@@ -290,7 +290,7 @@ class ReferenceArticleController extends Controller
                 if ($data['emplacement'] !== null) {
                     $emplacement = $this->emplacementRepository->find($data['emplacement']);
                 } else {
-                    $emplacement = null;
+                    $emplacement = null; //TODO gérer message erreur (faire un return avec msg erreur adapté -> à ce jour un return false correspond forcément à une réf déjà utilisée)
                 };
                 $CLRequired = $this->champsLibreRepository->getByTypeAndRequiredCreate($type);
                 foreach ($CLRequired as $CL) {

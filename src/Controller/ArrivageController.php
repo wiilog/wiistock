@@ -22,7 +22,9 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Validator\Tests\Fixtures\Countable;
 
 /**
  * @Route("/arrivage")
@@ -352,4 +354,29 @@ class ArrivageController extends AbstractController
 
         throw new NotFoundHttpException("404");
     }
+
+    /**
+     * @Route("/depose-pj", name="arrivage_depose", options={"expose"=true}, methods="GET|POST")
+     */
+    public function depose(Request $request, Arrivage $arrivage): Response
+    {
+        if ($request->isXmlHttpRequest()) {
+            $em = $this->getDoctrine()->getManager();
+            for ($i = 0; $i < count($request->files); $i++) {
+                $file = $request->files->get('file' . $i);
+                if ($file) {
+                    // generate a random name for the file but keep the extension
+                    $filename = uniqid() . "." . $file->getClientOriginalExtension();
+                    $path = "../public/uploads/attachements";
+                    $file->move($path, $filename); // move the file to a path
+                    $arrivage->addAttachements($filename);
+                }
+            }
+            $em->flush();
+            return new JsonResponse();
+        } else {
+            throw new NotFoundHttpException('404');
+        }
+    }
+
 }
