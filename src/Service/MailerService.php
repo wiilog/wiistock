@@ -51,7 +51,7 @@ class MailerService
 
         //protection dev
         if (isset($_SERVER['APP_ENV']) && $_SERVER['APP_ENV'] == 'dev') {
-            $to = 'cecile.gazaniol@wiilog.fr';
+            $to = 'matteo.hevin@wiilog.fr';
         }
 
         $transport = (new \Swift_SmtpTransport($host, $port, $protocole))
