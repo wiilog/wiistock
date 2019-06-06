@@ -10,6 +10,7 @@ namespace App\Service;
 
 
 use App\Entity\Action;
+use App\Entity\CategoryType;
 use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
 use App\Entity\ValeurChampsLibre;
@@ -136,9 +137,6 @@ class RefArticleDataService
     /**
      * @param null $params
      * @return array
-     * @throws \Twig_Error_Loader
-     * @throws \Twig_Error_Runtime
-     * @throws \Twig_Error_Syntax
      */
     public function getRefArticleDataByParams($params = null)
     {
@@ -199,9 +197,9 @@ class RefArticleDataService
     public function getViewEditRefArticle($refArticle, $isADemand = false)
     {
         $data = $this->getDataEditForRefArticle($refArticle);
-        $articlesFournisseur = $this->articleFournisseurRepository->getByRefArticle($refArticle->getId());
-        $type = $this->typeRepository->getIdAndLabelByCategoryLabel(ReferenceArticle::CATEGORIE_TYPE);
-        $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
+        $articlesFournisseur = $this->articleFournisseurRepository->findByRefArticle($refArticle->getId());
+        $type = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::TYPE_ARTICLES_ET_REF_CEA);
+        $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_CEA);
         $typeChampLibre =  [];
         foreach ($type as $label) {
             $champsLibresComplet = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($label['label'], $categorieCL);
@@ -225,6 +223,8 @@ class RefArticleDataService
             ];
         }
         //reponse Vue + data 
+
+        
         $view =  $this->templating->render('reference_article/modalEditRefArticleContent.html.twig', [
             'articleRef' => $refArticle,
             'statut' => ($refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF),
@@ -324,8 +324,8 @@ class RefArticleDataService
 
     public function dataRowRefArticle($refArticle)
     {
-        $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
-        $category = ReferenceArticle::CATEGORIE_TYPE;
+        $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_CEA);
+        $category = CategoryType::TYPE_ARTICLES_ET_REF_CEA;
         $champsLibres = $this->champsLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
         $rowCL = [];
         foreach ($champsLibres as $champLibre) {
@@ -352,12 +352,16 @@ class RefArticleDataService
             "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
             "Emplacement" => ($refArticle->getEmplacement() ? $refArticle->getEmplacement()->getLabel() : ""),
             "Quantité" => $quantity,
+            "Commentaire" => ($refArticle->getCommentaire() ? $refArticle->getCommentaire() : ""),
             "Actions" => $this->templating->render('reference_article/datatableReferenceArticleRow.html.twig', [
                 'idRefArticle' => $refArticle->getId(),
             ]),
         ];
         $rows = array_merge($rowCL, $rowCF);
 
+
         return $rows;
+        
     }
+    
 }

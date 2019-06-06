@@ -29,7 +29,8 @@ class CategoryTypeFixtures extends Fixture implements FixtureGroupInterface
     public function load(ObjectManager $manager)
     {
         $categoriesNames = [
-           CategoryType::TYPE_ARTICLE
+           CategoryType::TYPE_ARTICLES_ET_REF_CEA,
+           CategoryType::TYPE_RECEPTION
         ];
 
         foreach ($categoriesNames as $categorieName) {
@@ -42,7 +43,6 @@ class CategoryTypeFixtures extends Fixture implements FixtureGroupInterface
                 $this->addReference('type-' . $categorieName, $categorie);
                 dump("création de la catégorie " . $categorieName);
             }
-
         }
         $manager->flush();
     }

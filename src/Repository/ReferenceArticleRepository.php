@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Filter;
 use App\Entity\ReferenceArticle;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
@@ -42,6 +43,32 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         )->setParameter('id', $id);
 
         return $query->execute();
+    }
+
+    public function findOneByLigneReception($ligne)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT ra
+            FROM App\Entity\ReferenceArticle ra
+            JOIN App\Entity\ReceptionReferenceArticle rra
+            WHERE rra.referenceArticle = ra AND rra = :ligne 
+        "
+        )->setParameter('ligne', $ligne);
+        return $query->getOneOrNullResult();
+    }
+
+    public function findOneByReference($reference)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT r
+            FROM App\Entity\ReferenceArticle r
+            WHERE r.reference = :reference
+            "
+        )->setParameter('reference', $reference);
+
+        return $query->getOneOrNullResult();
     }
 
     public function getIdAndLibelleBySearch($search)
@@ -95,8 +122,16 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         foreach ($filters as $filter) {
             $index++;
 
+            // cas particulier champ référence article fournisseur
+            if ($filter['champFixe'] === Filter::CHAMP_FIXE_REF_ART_FOURN) {
+                $qb
+                    ->leftJoin('ra.articlesFournisseur', 'af')
+                    ->andWhere('af.reference LIKE :reference')
+                    ->setParameter('reference', '%' . $filter['value'] . '%');
+            }
+
             // cas champ fixe
-            if ($label = $filter['champFixe']) {
+            else if ($label = $filter['champFixe']) {
                 $array = $linkChampLibreLabelToField[$label];
                 $field = $array['field'];
                 $typage = $array['typage'];
@@ -118,9 +153,10 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                             ->setParameter('typeLabel', $filter['value']);
                         break;
                 }
+            }
 
-                // cas champ libre
-            } else if ($filter['champLibre']) {
+            // cas champ libre
+            else if ($filter['champLibre']) {
                 $qbSub = $em->createQueryBuilder();
                 $qbSub
                     ->select('ra' . $index . '.id')
@@ -139,6 +175,9 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                             ->andWhere('vcl' . $index . '.champLibre = ' . $filter['champLibre'])
                             ->andWhere('vcl' . $index . '.valeur LIKE :value')
                             ->setParameter('value', '%' . $filter['value'] . '%');
+                        break;
+                    case 'refart':
+                       
                         break;
                     case 'number':
                     case 'list':
@@ -237,6 +276,30 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             FROM App\Entity\ReferenceArticle ra
            "
         );
+
+        return $query->getSingleScalarResult();
+    }
+
+    public function setQuantiteZeroForType($type)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "UPDATE App\Entity\ReferenceArticle ra
+            SET ra.quantiteStock = 0
+            WHERE ra.type = :type"
+        )->setParameter('type', $type);
+
+        return $query->execute();
+    }
+
+    public function countByReference($reference)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT COUNT (ra)
+            FROM App\Entity\ReferenceArticle ra
+            WHERE ra.reference = :reference"
+        )->setParameter('reference', $reference);
 
         return $query->getSingleScalarResult();
     }

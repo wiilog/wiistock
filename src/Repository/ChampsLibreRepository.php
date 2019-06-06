@@ -139,4 +139,18 @@ class ChampsLibreRepository extends ServiceEntityRepository
         );;
         return $query->execute();
     }
+    public function findByTypeId($typeId)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT c
+            FROM App\Entity\ChampsLibre c 
+            WHERE c.type = :typeId"
+        )->setParameter('typeId', $typeId);
+
+        return $query->execute();
+    }
+
+
+
 }

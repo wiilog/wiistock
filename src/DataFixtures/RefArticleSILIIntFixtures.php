@@ -119,6 +119,7 @@ class RefArticleSILIIntFixtures extends Fixture implements FixtureGroupInterface
             $manager->flush();
         }
         fclose($file);
+
     }
 
     public static function getGroups():array {

@@ -208,11 +208,11 @@ class ChampsLibresFixtures extends Fixture implements FixtureGroupInterface
 //        }
         // SILI ext
         foreach ($listFieldsSILIExt as $field) {
-            $this->createCL($manager, $field, Type::LABEL_SILI_EXT, CategorieCL::REFERENCE_ARTICLE);
+            $this->createCL($manager, $field, Type::LABEL_SILI_EXT, CategorieCL::REFERENCE_CEA);
         }
         // SILI int
         foreach ($listFieldsSILIInt as $field) {
-            $this->createCL($manager, $field, Type::LABEL_SILI_INT, CategorieCL::REFERENCE_ARTICLE);
+            $this->createCL($manager, $field, Type::LABEL_SILI_INT, CategorieCL::REFERENCE_CEA);
         }
         // MOB
 //        foreach ($listFieldsMOB as $field) {

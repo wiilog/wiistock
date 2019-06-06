@@ -74,11 +74,28 @@ class Reception
      * @ORM\OneToMany(targetEntity="App\Entity\ReceptionReferenceArticle", mappedBy="reception")
      */
     private $receptionReferenceArticles;
-    
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Article", mappedBy="reception")
+     */
+    private $articles;
+
+    /** 
+     * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="receptions")
+     */
+    private $type;
+
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\ValeurChampsLibre", inversedBy="receptions")
+     */
+    private $valeurChampsLibre;
+
 
     public function __construct()
     {
         $this->receptionReferenceArticles = new ArrayCollection();
+        $this->articles = new ArrayCollection();
+        $this->valeurChampsLibre = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -110,7 +127,7 @@ class Reception
         return $this;
     }
 
-  
+
     public function __toString()
     {
         return $this->commentaire;
@@ -226,6 +243,71 @@ class Reception
             if ($receptionReferenceArticle->getReception() === $this) {
                 $receptionReferenceArticle->setReception(null);
             }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Article[]
+     */
+    public function getArticles(): Collection
+    {
+        return $this->articles;
+    }
+
+    public function addArticle(Article $article): self
+    {
+        if (!$this->articles->contains($article)) {
+            $this->articles[] = $article;
+            $article->setReception($this);
+        }
+        return $this;
+    }
+    public function getType(): ?Type
+    {
+        return $this->type;
+    }
+
+    public function setType(?Type $type): self
+    {
+        $this->type = $type;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|valeurChampsLibre[]
+     */
+    public function getValeurChampsLibre(): Collection
+    {
+        return $this->valeurChampsLibre;
+    }
+
+    public function addValeurChampsLibre(valeurChampsLibre $valeurChampsLibre): self
+    {
+        if (!$this->valeurChampsLibre->contains($valeurChampsLibre)) {
+            $this->valeurChampsLibre[] = $valeurChampsLibre;
+        }
+
+        return $this;
+    }
+
+    public function removeArticle(Article $article): self
+    {
+        if ($this->articles->contains($article)) {
+            $this->articles->removeElement($article);
+            // set the owning side to null (unless already changed)
+            if ($article->getReception() === $this) {
+                $article->setReception(null);
+            }
+        }
+        return $this;
+    }
+    public function removeValeurChampsLibre(valeurChampsLibre $valeurChampsLibre): self
+    {
+        if ($this->valeurChampsLibre->contains($valeurChampsLibre)) {
+            $this->valeurChampsLibre->removeElement($valeurChampsLibre);
         }
 
         return $this;

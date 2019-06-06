@@ -174,7 +174,6 @@ class CollecteController extends AbstractController
             $rows = [];
             foreach ($collectes as $collecte) {
 
-                $ordreCollecteDate = "";
                 if ($this->ordreCollecteRepository->findOneByDemandeCollecte($collecte) == null) {
                     $ordreCollecteDate = null;
                 } else {
@@ -223,11 +222,10 @@ class CollecteController extends AbstractController
                     'Emplacement' => $collecte->getPointCollecte()->getLabel(),
                     'Quantité' => ($referenceCollecte->getQuantite() ? $referenceCollecte->getQuantite() : ''),
                     'Actions' => $this->renderView('collecte/datatableArticleRow.html.twig', [
-                        'data' => [
-                            'type' => 'reference',
-                            'id' => $referenceCollecte->getId(),
-                            'name' => ($referenceCollecte->getReferenceArticle() ? $referenceCollecte->getReferenceArticle()->getTypeQuantite() : ReferenceArticle::TYPE_QUANTITE_REFERENCE),
-                        ],
+                        'type' => 'reference',
+                        'id' => $referenceCollecte->getId(),
+                        'name' => ($referenceCollecte->getReferenceArticle() ? $referenceCollecte->getReferenceArticle()->getTypeQuantite() : ReferenceArticle::TYPE_QUANTITE_REFERENCE),
+                        'refArticleId' => $referenceCollecte->getReferenceArticle()->getId(),
                         'collecteId' => $collecte->getid(),
                         'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUS_BROUILLON),
                     ]),
@@ -241,11 +239,9 @@ class CollecteController extends AbstractController
                     'Emplacement' => ($collecte->getPointCollecte() ? $collecte->getPointCollecte()->getLabel() : ''),
                     'Quantité' => $article->getQuantite(),
                     'Actions' => $this->renderView('collecte/datatableArticleRow.html.twig', [
-                        'data' => [
-                            'id' => $article->getId(),
-                            'name' => (ReferenceArticle::TYPE_QUANTITE_ARTICLE),
-                            'type' => 'article'
-                        ],
+                        'name' => ReferenceArticle::TYPE_QUANTITE_ARTICLE,
+                        'type' => 'article',
+                        'id' => $article->getId(),
                         'collecteId' => $collecte->getid(),
                         'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUS_BROUILLON ? true : false),
                     ]),
@@ -280,7 +276,7 @@ class CollecteController extends AbstractController
                 ->setDate($date)
                 ->setStatut($status)
                 ->setPointCollecte($this->emplacementRepository->find($data['emplacement']))
-                ->setObjet($data['Objet'])
+                ->setObjet(substr($data['Objet'], 0, 255))
                 ->setCommentaire($data['commentaire'])
                 ->setstockOrDestruct($destination);
             $em->persist($collecte);
@@ -322,6 +318,7 @@ class CollecteController extends AbstractController
                 }
                 $this->refArticleDataService->editRefArticle($refArticle, $data);
             } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+                //TODO patch temporaire CEA
                 $fournisseurTemp = $this->fournisseurRepository->findOneByCodeReference('A_DETERMINER');
                 if (!$fournisseurTemp) {
                     $fournisseurTemp = new Fournisseur();
@@ -330,34 +327,34 @@ class CollecteController extends AbstractController
                         ->setNom('A DETERMINER');
                     $em->persist($fournisseurTemp);
                 }
-                for ($i = 0; $i < $data['quantitie']; $i++) {
-                    $toInsert = new Article();
-                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_INACTIF);
-                    $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
-                    $ref = $date->format('YmdHis');
-                    $articleFournisseur = new ArticleFournisseur();
-                    $articleFournisseur
-                        ->setReferenceArticle($refArticle)
-                        ->setFournisseur($fournisseurTemp)
-                        ->setReference($refArticle->getReference())
-                        ->setLabel('A déterminer -' . $i);
-                    $em->persist($articleFournisseur);
-                    $toInsert
-                        ->setLabel($refArticle->getLibelle() . '-' . $i)
-                        ->setConform(true)
-                        ->setStatut($statut)
-                        ->setReference($ref . '-' . $i)
-                        ->setQuantite(1)
-                        ->setEmplacement($collecte->getPointCollecte())
-                        ->setArticleFournisseur($articleFournisseur)
-                        ->setType($refArticle->getType());
-                    $em->persist($toInsert);
-                    $collecte->addArticle($toInsert);
-                }
-                // $article = $this->articleRepository->find($data['article']);
-                // $collecte->addArticle($article);
+                $toInsert = new Article();
+                $index = $this->articleFournisseurRepository->countByRefArticle($refArticle);
+                $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_INACTIF);
+                $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+                $ref = $date->format('YmdHis');
+                $articleFournisseur = new ArticleFournisseur();
+                $articleFournisseur
+                    ->setReferenceArticle($refArticle)
+                    ->setFournisseur($fournisseurTemp)
+                    ->setReference($refArticle->getReference())
+                    ->setLabel('A déterminer -' . $index);
+                $em->persist($articleFournisseur);
+                $toInsert
+                    ->setLabel($refArticle->getLibelle() . '-' . $index)
+                    ->setConform(true)
+                    ->setStatut($statut)
+                    ->setReference($ref . '-' . $index)
+                    ->setQuantite($data['quantitie'])
+                    ->setEmplacement($collecte->getPointCollecte())
+                    ->setArticleFournisseur($articleFournisseur)
+                    ->setType($refArticle->getType());
+                $em->persist($toInsert);
+                $collecte->addArticle($toInsert);
+                //TODO fin patch temporaire CEA (à remplacer par lignes suivantes)
+            // $article = $this->articleRepository->find($data['article']);
+            // $collecte->addArticle($article);
 
-                // $this->articleDataService->editArticle($data);
+            // $this->articleDataService->editArticle($data);
             }
             $em->flush();
 
@@ -481,8 +478,6 @@ class CollecteController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-
-
             $collecte = $this->collecteRepository->find($data['collecte']);
             $pointCollecte = $this->emplacementRepository->find($data['Pcollecte']);
             $destination = ($data['destination'] == 0) ? false : true;
@@ -492,7 +487,7 @@ class CollecteController extends AbstractController
             $collecte
                 ->setDate(new \DateTime($data['date-collecte']))
                 ->setCommentaire($data['commentaire'])
-                ->setObjet($data['objet'])
+                ->setObjet(substr($data['Objet'], 0, 255))
                 ->setPointCollecte($pointCollecte)
                 ->setstockOrDestruct($destination);
 

@@ -9,7 +9,7 @@
         <li>
             <div class="menu-header">
                 <img src="{{asset('img/Logo-FollowGTpetit.png')}}" class='logoGt'>
-                <div class="version"> V1.0.3</div>
+                <div class="version"> V1.1.1</div>
                 <h4 class="mt-2">{{ app.user.username }}</h4>
             </div>
         </li>
@@ -28,28 +28,28 @@
             </a>
             <ul class="sidemenu-sub">
                 {% if hasRight(constant('App\\Entity\\Menu::DEM_COLLECTE'), constant('App\\Entity\\Action::LIST')) %}
-                    <li><a href="{{path("collecte_index")}}" class="sub-item">• Collecte</a></li>
+                <li><a href="{{path("collecte_index")}}" class="sub-item">• Collecte</a></li>
                 {% endif %}
                 {% if hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::LIST')) %}
-                    <li><a href="{{ path('demande_index') }}" class="sub-item">• Livraison</a></li>
+                <li><a href="{{ path('demande_index') }}" class="sub-item">• Livraison</a></li>
                 {% endif %}
                 {% if hasRight(constant('App\\Entity\\Menu::MANUT'), constant('App\\Entity\\Action::LIST')) %}
-                    <li><a href="{{ path('service_index') }}" class="sub-item">• Manutention</a></li>
+                <li><a href="{{ path('service_index') }}" class="sub-item">• Manutention</a></li>
                 {% endif %}
             </ul>
         </li>
 
         <!-- RECEPTION -->
         {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::LIST')) %}
-            <li class="menu-item has-submenu">
-                <a href="#">
-                    <i class="fas fa-arrow-alt-circle-down "></i>
-                    <h4>Réception</h4>
-                </a>
-                <ul class="sidemenu-sub">
-                    <li><a href="{{path("reception_index")}}" class="sub-item">• Réception</a></li>
-                </ul>
-            </li>
+        <li class="menu-item has-submenu">
+            <a href="#">
+                <i class="fas fa-arrow-alt-circle-down "></i>
+                <h4>Réception</h4>
+            </a>
+            <ul class="sidemenu-sub">
+                <li><a href="{{path("reception_index")}}" class="sub-item">• Réception</a></li>
+            </ul>
+        </li>
         {% endif %}
 
         <!-- ORDRE -->
@@ -64,13 +64,13 @@
             </a>
             <ul class="sidemenu-sub">
                 {% if hasRight(constant('App\\Entity\\Menu::COLLECTE'), constant('App\\Entity\\Action::LIST')) %}
-                    <li><a href="{{ path("ordre_collecte_index") }}" class="sub-item">• Collecte</a></li>
+                <li><a href="{{ path("ordre_collecte_index") }}" class="sub-item">• Collecte</a></li>
                 {% endif %}
                 {% if hasRight(constant('App\\Entity\\Menu::LIVRAISON'), constant('App\\Entity\\Action::LIST')) %}
-                    <li><a href="{{ path("livraison_index") }}" class="sub-item">• Livraison</a></li>
+                <li><a href="{{ path("livraison_index") }}" class="sub-item">• Livraison</a></li>
                 {% endif %}
                 {% if hasRight(constant('App\\Entity\\Menu::PREPA'), constant('App\\Entity\\Action::LIST')) %}
-                    <li><a href="{{ path('preparation_index') }}" class="sub-item">• Préparation</a></li>
+                <li><a href="{{ path('preparation_index') }}" class="sub-item">• Préparation</a></li>
                 {% endif %}
             </ul>
         </li>
@@ -78,29 +78,29 @@
 
         <!-- STOCK -->
         {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::LIST')) %}
-            <li class="menu-item has-submenu">
-                <a href="#">
-                    <i class="fas fa-box"></i>
-                    <h4>Stock</h4>
-                </a>
-                <ul class="sidemenu-sub">
-                    <li>
-                        <a href="{{ path('article_index') }}" class="sub-item">• Article</a>
-                    </li>
-                    <li>
-                        <a href="{{path('emplacement_index')}}" class="sub-item">• Emplacement</a>
-                    </li>
-                    <li>
-                        <a href="{{ path('fournisseur_index') }}" class="sub-item">• Fournisseur</a>
-                    </li>
-                    <li>
-                        <a href="{{ path('reference_article_index') }}" class="sub-item">• Article référence</a>
-                    </li>
-                    <li>
-                        <a href="{{ path('article_fournisseur_index') }}" class="sub-item">• Article fournisseur</a>
-                    </li>
-                </ul>
-            </li>
+        <li class="menu-item has-submenu">
+            <a href="#">
+                <i class="fas fa-box"></i>
+                <h4>Stock</h4>
+            </a>
+            <ul class="sidemenu-sub">
+                <li>
+                    <a href="{{ path('article_index') }}" class="sub-item">• Article</a>
+                </li>
+                <li>
+                    <a href="{{path('emplacement_index')}}" class="sub-item">• Emplacement</a>
+                </li>
+                <li>
+                    <a href="{{ path('fournisseur_index') }}" class="sub-item">• Fournisseur</a>
+                </li>
+                <li>
+                    <a href="{{ path('reference_article_index') }}" class="sub-item">• Référence CEA</a>
+                </li>
+                <li>
+                    <a href="{{ path('article_fournisseur_index') }}" class="sub-item">• Article fournisseur</a>
+                </li>
+            </ul>
+        </li>
         {% endif %}
 
         <!-- PARAMETRAGE -->
@@ -126,6 +126,12 @@
                     <li>
                         <a href="{{ path('mailer_server') }}" class="sub-item">• Configuration email</a>
                     </li>
+                    <li>
+                        <a href="{{ path('etiquettes_param') }}" class="sub-item">• Configuration étiquettes</a>
+                    </li>
+                    <li>
+                        <a href="{{ path('exports_params') }}" class="sub-item">• Export de données</a>
+                    </li>
                 </ul>
             </li>
         {% endif %}
@@ -136,7 +142,7 @@
                 <h4>Déconnexion</h4>
             </a>
         </li>
-      
+
     </ul>
 
 </nav>

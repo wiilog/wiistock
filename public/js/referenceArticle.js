@@ -20,7 +20,7 @@ function submitActionRefArticle(modal, path, callback = function () { }, close =
                 tableRefArticle.row($('#edit' + data.id).parents('div').parents('td').parents('tr')).remove().draw(false);
                 tableRefArticle.row.add(data.edit).draw(false);
             }
-            callback(data);
+            callback(data, modal);
             initRemove();
             clearModalRefArticle(modal);
 
@@ -28,6 +28,10 @@ function submitActionRefArticle(modal, path, callback = function () { }, close =
             $('#cannotDeleteArticle').click();
         }
     };
+
+    if (path === Routing.generate('save_column_visible', true)) {
+        tableColumnVisible.search('').draw()
+    }
 
     let { Data, missingInputs, wrongInputs } = getDataFromModal(modal);
 
@@ -109,6 +113,8 @@ function getDataFromModal(modal) {
         // validation données obligatoires
         if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
             let label = $(this).closest('.form-group').find('label').text();
+            // on enlève l'éventuelle * du nom du label
+            label = label.replace(/\*/, '');
             missingInputs.push(label);
             $(this).addClass('is-invalid');
         }
@@ -124,7 +130,6 @@ function getDataFromModal(modal) {
             }
         }
     });
-
     // ... et dans les checkboxes
     let checkboxes = modal.find('.checkbox');
     checkboxes.each(function () {
@@ -137,7 +142,7 @@ function clearModalRefArticle(modal) {
     // on vide tous les inputs
     let inputs = modal.find('.modal-body').find(".data, .newContent>input");
     inputs.each(function () {
-        $(this).val("");
+        if ($(this).attr('id') !== 'type_quantite') $(this).val("");
     });
     // on vide tous les select2
     let selects = modal.find('.modal-body').find('.select2, .ajax-autocompleteFournisseur');
@@ -153,20 +158,20 @@ function clearModalRefArticle(modal) {
 
 
 
-let ModalRefArticleNew = $("#modalNewRefArticle");
-let ButtonSubmitRefArticleNew = $("#submitNewRefArticle");
+let modalRefArticleNew = $("#modalNewRefArticle");
+let submitNewRefArticle = $("#submitNewRefArticle");
 let urlRefArticleNew = Routing.generate('reference_article_new', true);
-InitialiserModalRefArticle(ModalRefArticleNew, ButtonSubmitRefArticleNew, urlRefArticleNew, displayErrorRA, false);
+InitialiserModalRefArticle(modalRefArticleNew, submitNewRefArticle, urlRefArticleNew, displayErrorRA, false);
 
-let ModalDeleteRefArticle = $("#modalDeleteRefArticle");
+let modalDeleteRefArticle = $("#modalDeleteRefArticle");
 let SubmitDeleteRefArticle = $("#submitDeleteRefArticle");
 let urlDeleteRefArticle = Routing.generate('reference_article_delete', true);
-InitialiserModalRefArticle(ModalDeleteRefArticle, SubmitDeleteRefArticle, urlDeleteRefArticle);
+InitialiserModalRefArticle(modalDeleteRefArticle, SubmitDeleteRefArticle, urlDeleteRefArticle);
 
 let modalModifyRefArticle = $('#modalEditRefArticle');
 let submitModifyRefArticle = $('#submitEditRefArticle');
 let urlModifyRefArticle = Routing.generate('reference_article_edit', true);
-InitialiserModalRefArticle(modalModifyRefArticle, submitModifyRefArticle, urlModifyRefArticle, displayErrorRA, true);
+InitialiserModalRefArticle(modalModifyRefArticle, submitModifyRefArticle, urlModifyRefArticle, displayErrorRA, false);
 
 let modalPlusDemande = $('#modalPlusDemande');
 let submitPlusDemande = $('#submitPlusDemande');
@@ -221,7 +226,7 @@ function initTableRefArticle() {
 }
 
 //COLUMN VISIBLE
-$('#tableColumnVisible_id').DataTable({
+let tableColumnVisible = $('#tableColumnVisible_id').DataTable({
     language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
@@ -230,20 +235,23 @@ $('#tableColumnVisible_id').DataTable({
 });
 
 function showOrHideColumn(check) {
+    
     let columnName = check.data('name');
 
     let column = tableRefArticle.column(columnName + ':name');
+    
     column.visible(!column.visible());
+   
+    
     let tableRefArticleColumn = $('#tableRefArticle_id_wrapper');
-    tableRefArticleColumn.find('th').removeClass('libre');
-    tableRefArticleColumn.find('th').addClass('fixe');
-
+    tableRefArticleColumn.find('th, td').removeClass('hide');
+    tableRefArticleColumn.find('th, td').addClass('display');
     check.toggleClass('data');
 }
 
 function hideAndShowColumns() {
-    tableRefArticle.columns('.libre').visible(false);
-    tableRefArticle.columns('.fixe').visible(true);
+    tableRefArticle.columns('.hide').visible(false);
+    tableRefArticle.columns('.display').visible(true);
 }
 
 function showDemande(bloc) {
@@ -262,6 +270,8 @@ function showDemande(bloc) {
         $livraisonShow.find('div').find('select').addClass('data');
         $livraisonShow.find('div').find('.quantite').addClass('data');
         $livraisonShow.find('.data').addClass('needed');
+
+        setMaxQuantityByArtRef($livraisonShow.find('#quantity-to-deliver'));
 
     } else if (bloc.data("title") == "collecte") {
         $collecteShow.removeClass('d-none');
@@ -309,8 +319,8 @@ function displayFilterValue(elem) {
 
     // cas particulier de liste déroulante pour type
     if (type == 'list') {
-        let params = { 
-            'value' : val 
+        let params = {
+            'value': val
         };
         $.post(Routing.generate('type_show_select'), JSON.stringify(params), function (data) {
             modalBody.find('.input').html(data);
@@ -340,8 +350,7 @@ function displayFilterValue(elem) {
     elem.closest('.modal-body').find('.valueLabel').text(label);
 }
 
-function displayErrorRA(data) {
-    let modal = $("#modalNewRefArticle");
+function displayErrorRA(data, modal) {
     let msg = 'Ce nom de référence existe déjà. Vous ne pouvez pas le recréer.';
     displayError(modal, msg, data);
 }
@@ -351,7 +360,7 @@ let recupIdRefArticle = function (div) {
     $('#submitPlusDemande').val(id);
 }
 
-let  ajaxPlusDemandeContent = function(button, demande) {
+let ajaxPlusDemandeContent = function (button, demande) {
     let plusDemandeContent = $('.plusDemandeContent');
     let editChampLibre = $('.editChampLibre');
     let modalFooter = $('.modal-footer');
@@ -371,12 +380,15 @@ let  ajaxPlusDemandeContent = function(button, demande) {
             if (dataReponse.editChampLibre) {
                 editChampLibre.html(dataReponse.editChampLibre);
                 modalFooter.removeClass('d-none');
-            } else {
+            } if (dataReponse.temp) {
+                modalFooter.removeClass('d-none');
+            } // TODO Spécifique CEA
+            else {
                 //TODO gérer erreur
             }
-            showDemande(button)
+            showDemande(button);
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
-            initEditor2('#editor-container');
+            initEditor2('#editor-container-edit');
         }
     }
     let json = {
@@ -409,7 +421,7 @@ let ajaxEditArticle = function (select) {
         }
     }
     modalFooter.addClass('d-none');
-    let json = { id :select.val(), isADemand:1};
+    let json = { id: select.val(), isADemand: 1 };
     let path = Routing.generate('article_api_edit', true);
     xhttp.open("POST", path, true);
     xhttp.send(JSON.stringify(json));
@@ -417,13 +429,14 @@ let ajaxEditArticle = function (select) {
 
 //initialisation editeur de texte une seule fois
 let editorNewReferenceArticleAlreadyDone = false;
-function initNewReferenceArticleEditor() {
+function initNewReferenceArticleEditor(modal) {
     if (!editorNewReferenceArticleAlreadyDone) {
         initEditor2('.editor-container-new');
         editorNewReferenceArticleAlreadyDone = true;
     }
     ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseur'));
-    ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'))
+    ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'));
+    clearModal(modal);
 };
 
 // var editorEditRefArticleAlreadyDone = false;
@@ -517,19 +530,16 @@ function setMaxQuantityByArtRef(input) {
 
 
 function toggleRadioButtonNeeded(button) {
-    if ($('#quantite').hasClass('needed')) {
+    if (button.data('title') === 'article') {
         $('#quantite').removeClass('needed');
+        $('#emplacement').removeClass('needed');
+        $('#type_quantite').val('article');
     }
     else {
         $('#quantite').addClass('needed');
-    }
-    if ($('#emplacement').hasClass('needed')) {
-        $('#emplacement').removeClass('needed');
-    }
-    else {
         $('#emplacement').addClass('needed');
+        $('#type_quantite').val('reference');
     }
-
 }
 
 function submitPlusAndGoToDemande(button) {
@@ -555,3 +565,5 @@ function redirectToDemande() {
 
     window.location.href = Routing.generate(demandeType + '_show', { 'id': demandeId });
 }
+
+

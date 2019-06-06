@@ -29,7 +29,17 @@ class ArticleRepository extends ServiceEntityRepository
             FROM App\Entity\Article a
             WHERE a.reception = :id'
         )->setParameter('id', $id);
-        ;
+        return $query->execute();
+    }
+
+    public function setNullByReception($id)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            'UPDATE App\Entity\Article a
+            SET a.reception = null
+            WHERE a.reception = :id'
+        )->setParameter('id', $id);
         return $query->execute();
     }
 
@@ -66,8 +76,7 @@ class ArticleRepository extends ServiceEntityRepository
             'SELECT a
             FROM App\Entity\Article a
             WHERE a.emplacement = :empl'
-        )->setParameter('empl', $empl);
-        ;
+        )->setParameter('empl', $empl);;
         return $query->execute();
     }
 
@@ -78,8 +87,33 @@ class ArticleRepository extends ServiceEntityRepository
             "SELECT a
             FROM App\Entity\Article a
             WHERE a.Statut = :Statut "
-        )->setParameter('Statut', $statut);
-        ;
+        )->setParameter('Statut', $statut);;
+        return $query->execute();
+    }
+
+    public function countByType($typeId)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT COUNT(a)
+            FROM App\Entity\Article a
+            WHERE a.type = :typeId
+           "
+        )->setParameter('typeId', $typeId);
+
+        return $query->getSingleScalarResult();
+    }
+
+    public function setTypeIdNull($typeId)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            /** @lang DQL */
+            "UPDATE App\Entity\Article a
+            SET a.type = null 
+            WHERE a.type = :typeId"
+        )->setParameter('typeId', $typeId);
+
         return $query->execute();
     }
 
@@ -91,8 +125,7 @@ class ArticleRepository extends ServiceEntityRepository
             FROM App\Entity\Article a
             JOIN a.reception r
             WHERE r.id = :id "
-        )->setParameter('id', $id);
-        ;
+        )->setParameter('id', $id);;
         return $query->execute();
     }
 
@@ -189,8 +222,7 @@ class ArticleRepository extends ServiceEntityRepository
             'SELECT a
             FROM App\Entity\Article a
             WHERE a.etat = :etat'
-        )->setParameter('etat', $etat);
-        ;
+        )->setParameter('etat', $etat);;
         return $query->execute();
     }
 
@@ -200,9 +232,20 @@ class ArticleRepository extends ServiceEntityRepository
         $query = $entityManager->createQuery(
             "SELECT COUNT(a)
             FROM App\Entity\Article a
-            JOIN a.Statut s
             WHERE a.refArticle = :refArticle AND a.etat = TRUE AND s.nom = :statut"
         )->setParameters(['refArticle' => $refArticle, 'statut' => $statut]);
+
+        return $query->getSingleScalarResult();
+    }
+
+    public function countByRefArticle($refArticle)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT COUNT(a)
+            FROM App\Entity\Article a
+            WHERE a.refArticle = :refArticle"
+        )->setParameter('refArticle', $refArticle);
 
         return $query->getSingleScalarResult();
     }
@@ -223,11 +266,11 @@ class ArticleRepository extends ServiceEntityRepository
     {
         $em = $this->getEntityManager();
         $qb = $em->createQueryBuilder();
-        
+
         $qb
-        ->select('a')
-        ->from('App\Entity\Article', 'a');
-       
+            ->select('a')
+            ->from('App\Entity\Article', 'a');
+
         // prise en compte des paramètres issus du datatable
         if (!empty($params)) {
             if (!empty($params->get('start'))) {
@@ -255,19 +298,19 @@ class ArticleRepository extends ServiceEntityRepository
     {
         $em = $this->getEntityManager();
         $qb = $em->createQueryBuilder();
-      
+
         $qb
-        ->select('a')
-        ->from('App\Entity\Article', 'a')
-    //    ->join('a.Statut', 'App\Entity\Statut','s')
-        ->where('a.Statut ='. $statutId);
-    //    dump($qb);
+            ->select('a')
+            ->from('App\Entity\Article', 'a')
+            //    ->join('a.Statut', 'App\Entity\Statut','s')
+            ->where('a.Statut =' . $statutId);
+        //    dump($qb);
         // $qb = $em->createQuery(
         //     "SELECT a
         //     FROM App\Entity\Article a
         //     JOIN a.Statut s
         //     WHERE s.nom = :actif");
-      
+
 
 
         // prise en compte des paramètres issus du datatable
@@ -289,11 +332,25 @@ class ArticleRepository extends ServiceEntityRepository
         }
 
         $query = $qb->getQuery();
-       
+
 
         return $query->getResult();
     }
 
+    public function findByListAF($listAf)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT a
+          FROM App\Entity\Article a
+          JOIN a.articleFournisseur af
+          WHERE af IN(:articleFournisseur)"
+        )->setParameters([
+            'articleFournisseur' => $listAf,
+        ]);
+
+        return $query->execute();
+    }
 
     public function countAll()
     {

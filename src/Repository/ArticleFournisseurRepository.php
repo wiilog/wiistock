@@ -44,19 +44,8 @@ class ArticleFournisseurRepository extends ServiceEntityRepository
         return $query->getResult();
     }
 
-    public function countByReference($reference)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT COUNT (ra)
-            FROM App\Entity\ReferenceArticle ra
-            WHERE ra.reference = :reference"
-        )->setParameter('reference', $reference);
 
-        return $query->getSingleScalarResult();
-    }
-
-    public function getByRefArticle($id)
+    public function findByRefArticle($id)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
@@ -66,6 +55,18 @@ class ArticleFournisseurRepository extends ServiceEntityRepository
         )->setParameter('id', $id);
 
         return $query->getResult();
+    }
+
+    public function countByRefArticle($id)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT COUNT(rf)
+            FROM App\Entity\ArticleFournisseur rf
+            WHERE rf.referenceArticle = :id"
+        )->setParameter('id', $id);
+
+        return $query->getSingleScalarResult();
     }
 
     public function findByRefArticleAndFournisseur($refArticleId, $fournisseurId)
@@ -106,7 +107,7 @@ class ArticleFournisseurRepository extends ServiceEntityRepository
         }
 
         $query = $qb->getQuery();
-        
+
 
         return $query->getResult();
     }
@@ -121,6 +122,18 @@ class ArticleFournisseurRepository extends ServiceEntityRepository
         );
 
         return $query->getSingleScalarResult();
+    }
+
+    public function getByRefArticleAndFournisseur($refArticleId, $fournisseurId)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT af
+            FROM App\Entity\ArticleFournisseur af
+            WHERE af.referenceArticle = :refArticleId AND af.fournisseur = :fournisseurId"
+        )->setParameters(['refArticleId' => $refArticleId, 'fournisseurId' => $fournisseurId]);
+
+        return $query->getResult();
     }
 
 }

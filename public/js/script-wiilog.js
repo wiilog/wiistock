@@ -30,6 +30,7 @@ function submitAction(modal, path, table, callback, close) {
 
             if (data.redirect) {
                 window.location.href = data.redirect;
+                return;
             }
             // pour mise à jour des données d'en-tête après modification
             if (data.entete) {
@@ -61,6 +62,8 @@ function submitAction(modal, path, table, callback, close) {
         // validation données obligatoires
         if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
             let label = $(this).closest('.form-group').find('label').text();
+            // on enlève l'éventuelle * du nom du label
+            label = label.replace(/\*/, '');
             missingInputs.push(label);
             $(this).addClass('is-invalid');
         }
@@ -170,6 +173,7 @@ function deleteRow(button, modal, submit) {
  * 
  */
 function showRow(button, path, modal) {
+    
     let id = button.data('id');
     let params = JSON.stringify(id);
     $.post(path, params, function (data) {
@@ -191,7 +195,7 @@ function showRow(button, path, modal) {
  *  
  */
 
-function editRow(button, path, modal, submit, editorToInit = false) {
+function editRow(button, path, modal, submit, editorToInit = false, editor = '.editor-container-edit') {
     xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
@@ -211,11 +215,17 @@ function editRow(button, path, modal, submit, editorToInit = false) {
                 setMaxQuantityEdit($('#referenceEdit'));
             }
 
-            if (editorToInit) initEditor2('.editor-container-edit');
+            if (editorToInit) initEditor2(editor);
         }
     }
     let id = button.data('id');
-    let json = { id: id, isADemand: 0 };
+    let ref = button.data('ref');
+
+    let json = { id: id, isADemand: 0};
+    if (ref != false) {
+        json.ref = ref;
+    }
+
     modal.find(submit).attr('value', id);
     modal.find('#inputId').attr('value', id);
     xhttp.open("POST", path, true);
@@ -236,7 +246,6 @@ function toggleRadioButton(button) {
 //initialisation editeur de texte une seule fois
 
 function initEditor(modal) {
-
     var quill = new Quill(modal + ' .editor-container', {
         modules: {
             //     toolbar: [
@@ -298,12 +307,11 @@ function setCommentaire(div) {
     let container = div;
     var quill = new Quill(container);
     com = quill.container.firstChild.innerHTML;
-    
-    $('#commentaire').val(com);
 
+    $('#commentaire').val(com);
 };
 
-//passe de l'éditeur à l'imput pour insertion en BDD par l'id commentaireID (cas de conflit avec la class)
+// //passe de l'éditeur à l'imput pour insertion en BDD par l'id commentaireID (cas de conflit avec la class)
 // function setCommentaireID(button) {
 //     let modal = button.closest('.modal');
 //     let container = '#' + modal.attr('id') + ' .editor-container';
@@ -511,26 +519,43 @@ function clearModal(modal) {
     let inputs = $modal.find('.modal-body').find(".data");
     // on vide tous les inputs (sauf les disabled)
     inputs.each(function () {
-        if ($(this).attr('disabled') !== 'disabled') {
+        if ($(this).attr('disabled') !== 'disabled' && $(this).attr('type') !== 'hidden') {
             $(this).val("");
         }
         // on enlève les classes is-invalid
         $(this).removeClass('is-invalid');
     });
     // on vide tous les select2
-    let selects = $modal.find('.modal-body').find('.ajax-autocomplete,.ajax-autocompleteEmplacement,.select2');
+    let selects = $modal.find('.modal-body').find('.ajax-autocomplete,.ajax-autocompleteEmplacement, .ajax-autocompleteFournisseur, .select2');
     selects.each(function () {
         $(this).val(null).trigger('change');
     });
     // on vide les messages d'erreur
     $modal.find('.error-msg, .password-error-msg').html('');
     // on remet toutes les checkboxes sur off
+    clearCheckboxes($modal);
+    // on vide les éditeurs de text
+    $('.ql-editor').text('')
+}
+
+function clearCheckboxes($modal) {
+    console.log($modal);
     let checkboxes = $modal.find('.checkbox');
     checkboxes.each(function () {
         $(this).prop('checked', false);
         $(this).removeClass('active');
         $(this).addClass('not-active');
     });
-    // on vide les éditeurs de text
-    $('.ql-editor').text('')
+}
+
+function adjustScalesForDoc(response) {
+    let format = response.width > response.height ? 'l' : 'p';
+    console.log('Wanted scales : \n-Width : ' + response.width + '\n-Height : ' + response.height);
+    let docTemp = new jsPDF(format, 'mm', [response.height, response.width]);
+    console.log('Document original scales : \n-Width : ' + docTemp.internal.pageSize.getWidth() + '\n-Height : ' + docTemp.internal.pageSize.getHeight())
+    let newWidth = response.width * (response.width / docTemp.internal.pageSize.getWidth());
+    let newHeight = response.height * (response.height / docTemp.internal.pageSize.getHeight());
+    let doc = new jsPDF(format, 'mm', [newHeight, newWidth]);
+    console.log('Document adjusted scales : \n-Width : ' + doc.internal.pageSize.getWidth() + '\n-Height : ' + doc.internal.pageSize.getHeight());
+    return doc;
 }

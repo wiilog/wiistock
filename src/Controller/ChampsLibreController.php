@@ -96,7 +96,7 @@ class ChampsLibreController extends AbstractController
                     [
                         'id' => ($champsLibre->getId() ? $champsLibre->getId() : 'Non défini'),
                         'Label' => ($champsLibre->getLabel() ? $champsLibre->getLabel() : 'Non défini'),
-                        'Liaison' => ($champsLibre->getCategorieCL() ? $champsLibre->getCategorieCL()->getLabel() : ''),
+                        'S\'applique' => ($champsLibre->getCategorieCL() ? $champsLibre->getCategorieCL()->getLabel() : ''),
                         'Typage' => $typageCLFr,
                         'Obligatoire à la création' => ($champsLibre->getRequiredCreate() ? "oui" : "non"),
                         'Obligatoire à la modification' => ($champsLibre->getRequiredEdit() ? "oui" : "non"),
@@ -193,13 +193,14 @@ class ChampsLibreController extends AbstractController
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $categorieCL = $this->categorieCLRepository->find($data['categorieCL']);
             $champLibre = $this->champsLibreRepository->find($data['champLibre']);
+
             $champLibre
                 ->setLabel($data['label'])
                 ->setCategorieCL($categorieCL)
                 ->setRequiredCreate($data['requiredCreate'])
                 ->setRequiredEdit($data['requiredEdit'])
-                ->setDefaultValue($data['valeur'])
                 ->setTypage($data['typage']);
+
             if ($champLibre->getTypage() === 'list') {
                 $champLibre
                     ->setElements(array_filter(explode(';', $data['elem'])))

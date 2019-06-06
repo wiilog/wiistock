@@ -14,11 +14,13 @@
 ###> symfony/web-server-bundle ###
 /.web-server-pid
 ###< symfony/web-server-bundle ###
-/.vs-code/
+
 
 # /public/sass/style.css
 /public/sass/style.css.map
 ###> lexik/jwt-authentication-bundle ###
 /config/jwt/*.pem
 
-# /scr/DataFixtures/Csv
+/.vs-code/
+/.idea/
+.idea

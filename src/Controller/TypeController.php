@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\CategoryType;
 use App\Entity\ReferenceArticle;
 use App\Entity\Type;
 
@@ -15,6 +16,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Repository\FilterRepository;
+use App\Repository\ArticleRepository;
 
 /**
  * Class TypeController
@@ -29,6 +32,11 @@ class TypeController extends AbstractController
     private $typeRepository;
 
     /**
+     * @var FilterRepository
+     */
+    private $filterRepository;
+
+    /**
      * @var CategoryTypeRepository
      */
     private $categoryTypeRepository;
@@ -37,6 +45,11 @@ class TypeController extends AbstractController
      * @var ReferenceArticleRepository
      */
     private $refArticleRepository;
+
+    /**
+     * @var ArticleRepository
+     */
+    private $articleRepository;
 
     /**
      * @var ChampsLibreRepository
@@ -49,8 +62,10 @@ class TypeController extends AbstractController
      * @param CategoryTypeRepository $categoryTypeRepository
      * @param ChampsLibreRepository $champLibreRepository
      */
-    public function __construct(TypeRepository $typeRepository, CategoryTypeRepository $categoryTypeRepository, ChampsLibreRepository $champLibreRepository, ReferenceArticleRepository $refArticleRepository)
+    public function __construct(ArticleRepository $articleRepository, FilterRepository $filterRepository, TypeRepository $typeRepository, CategoryTypeRepository $categoryTypeRepository, ChampsLibreRepository $champLibreRepository, ReferenceArticleRepository $refArticleRepository)
     {
+        $this->articleRepository = $articleRepository;
+        $this->filterRepository = $filterRepository;
         $this->typeRepository = $typeRepository;
         $this->categoryTypeRepository = $categoryTypeRepository;
         $this->refArticleRepository = $refArticleRepository;
@@ -70,7 +85,7 @@ class TypeController extends AbstractController
                 $options = $cl->getElements();
                 $isType = false;
             } else {
-                $options = $this->typeRepository->getByCategoryLabel(ReferenceArticle::CATEGORIE_TYPE); //TODO 
+                $options = $this->typeRepository->getByCategoryLabel(CategoryType::TYPE_ARTICLES_ET_REF_CEA);
             }
 
             $view = $this->renderView('type/inputSelectTypes.html.twig', [
@@ -97,7 +112,7 @@ class TypeController extends AbstractController
                     [
                         'id' => ($type->getId() ? $type->getId() : "Non défini"),
                         'Label' => ($type->getLabel() ? $type->getLabel() : "Non défini"),
-                        'Catégorie' => ($type->getCategory() ? $type->getCategory()->getLabel() : 'Non défini'),
+                        'S\'applique' => ($type->getCategory() ? $type->getCategory()->getLabel() : 'Non défini'),
                         'Actions' =>  $this->renderView('champ_libre/datatableTypeRow.html.twig', [
                             'urlChampsLibre' => $url,
                             'idType' => $type->getId()
@@ -148,26 +163,35 @@ class TypeController extends AbstractController
     public function delete(Request $request): Response
     {
         if ($data = json_decode($request->getContent(), true)) {
-            $type = $this->typeRepository->find($data['type']);
+            $type = $this->typeRepository->find(intval($data['type']));
             $entityManager = $this->getDoctrine()->getManager();
-
             // si on a confirmé la suppression, on supprime les enregistrements liés
             if (isset($data['force'])) {
                 $this->refArticleRepository->setTypeIdNull($type);
+                $this->articleRepository->setTypeIdNull($type);
+                foreach ($this->champLibreRepository->getByType($type) as $cl) {
+                    $this->filterRepository->deleteByChampLibre($cl);
+                }
                 $this->champLibreRepository->deleteByType($type);
                 $entityManager->flush();
             } else {
                 // sinon on vérifie qu'il n'est pas lié par des contraintes de clé étrangère
-                $articlesExist = $this->refArticleRepository->countByType($type);
+                $articlesRefExist = $this->refArticleRepository->countByType($type);
+                $articlesExist = $this->articleRepository->countByType($type);
                 $champsLibresExist = $this->champLibreRepository->countByType($type);
-
-                if ((int)$champsLibresExist + (int)$articlesExist > 0) {
-                    $result = $this->renderView('champ_libre/modalDeleteTypeConfirm.html.twig');
+                $filters = 0;
+                foreach ($this->champLibreRepository->getByType($type) as $cl) {
+                    $filters += $this->filterRepository->countByChampLibre($cl);
+                }
+                if ((int)$champsLibresExist + (int)$articlesExist + (int)$articlesRefExist > 0) {
+                    $result = $this->renderView('champ_libre/modalDeleteTypeConfirm.html.twig', [
+                        'champsLibreFilter' => $filters !== 0
+                    ]);
                     return new JsonResponse($result);
                 }
             }
 
-            $entityManager->remove($type);
+            if ($type !== null) $entityManager->remove($type);
             $entityManager->flush();
             $result = true;
 

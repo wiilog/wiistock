@@ -52,7 +52,7 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
             "champLibre" => $champLibre
         ]);
 
-//        return $query->getOneOrNullResult();
+        //        return $query->getOneOrNullResult();
         $result = $query->execute();
         return $result ? $result[0] : null;
     }
@@ -139,32 +139,35 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
         return $query->getOneOrNullResult();
     }
 
-    // /**
-    //  * @return ValeurChampsLibre[] Returns an array of ValeurChampsLibre objects
-    //  */
-    /*
-    public function findByExampleField($value)
+    public function getByReceptionAndType($reception, $type)
     {
-        return $this->createQueryBuilder('v')
-            ->andWhere('v.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('v.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT v.id, v.valeur, c.label, c.typage
+            FROM App\Entity\ValeurChampsLibre v
+            JOIN v.champLibre c
+            WHERE v.id IN (:receptions) AND c.type = :type"
+        );
+        $query->setParameters([
+            "receptions" => $reception->getValeurChampsLibre(),
+            "type" => $type
+        ]);
 
-    /*
-    public function findOneBySomeField($value): ?ValeurChampsLibre
-    {
-        return $this->createQueryBuilder('v')
-            ->andWhere('v.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
+        return $query->execute();
     }
-    */
+
+    public function findOneByReceptionAndChampLibre($reception, $champLibre)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT v
+            FROM App\Entity\ValeurChampsLibre v
+            WHERE v.champLibre = :champLibre AND v.id IN (:receptionvcl)"
+        );
+        $query->setParameters([
+            'receptionvcl' => $reception->getValeurChampsLibre(),
+            "champLibre" => $champLibre
+        ]);
+        return $query->execute();
+    }
 }

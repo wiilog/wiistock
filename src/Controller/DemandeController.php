@@ -171,7 +171,6 @@ class DemandeController extends AbstractController
 
             foreach ($articles as $article) {
                 if ($article->getQuantite() !== $article->getWithdrawQuantity()) {
-                    
                     $newArticle = [
                         'articleFournisseur' => $article->getArticleFournisseur()->getId(),
                         'libelle' => $article->getLabel(),
@@ -194,7 +193,7 @@ class DemandeController extends AbstractController
                 $article->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
             }
             $em->flush();
-            
+
             //renvoi de l'en-tête avec modification
             $data = [
                 'entete' => $this->renderView(
@@ -322,6 +321,9 @@ class DemandeController extends AbstractController
             }
 
             $demande = $this->demandeRepository->find($data['demandeId']);
+            foreach ($demande->getArticles() as $article) {
+                $article->setDemande(null);
+            }
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($demande);
             $entityManager->flush();
@@ -409,15 +411,15 @@ class DemandeController extends AbstractController
                 $rowsRC[] = [
                     "Référence CEA" => ($ligneArticle->getReference()->getReference() ? $ligneArticle->getReference()->getReference() : ''),
                     "Libellé" => ($ligneArticle->getReference()->getLibelle() ? $ligneArticle->getReference()->getLibelle() : ''),
+                    "Emplacement" => ($ligneArticle->getReference()->getEmplacement() ? $ligneArticle->getReference()->getEmplacement()->getLabel() : ' '),
                     "Quantité" => ($ligneArticle->getReference() ? $ligneArticle->getReference()->getQuantiteStock() : ''),
                     "Quantité à prélever" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ''),
                     "Actions" => $this->renderView(
                         'demande/datatableLigneArticleRow.html.twig',
                         [
-                            'data' => [
-                                'id' => $ligneArticle->getId(),
-                                'name' => (ReferenceArticle::TYPE_QUANTITE_REFERENCE),
-                            ],
+                            'id' => $ligneArticle->getId(),
+                            'name' => (ReferenceArticle::TYPE_QUANTITE_REFERENCE),
+                            'refArticleId' => $ligneArticle->getReference()->getId(),
                             'reference' => ReferenceArticle::TYPE_QUANTITE_REFERENCE,
                             'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
                         ]
@@ -430,15 +432,14 @@ class DemandeController extends AbstractController
                 $rowsCA[] = [
                     "Référence CEA" => ($article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : ''),
                     "Libellé" => ($article->getLabel() ? $article->getLabel() : ''),
+                    "Emplacement" => ($article->getEmplacement() ? $article->getEmplacement()->getLabel() : ' '),
                     "Quantité" => ($article->getQuantite() ? $article->getQuantite() : ''),
                     "Quantité à prélever" => ($article->getWithdrawQuantity() ? $article->getWithdrawQuantity() : ''),
                     "Actions" => $this->renderView(
                         'demande/datatableLigneArticleRow.html.twig',
                         [
-                            'data' => [
-                                'id' => $article->getId(),
-                                'name' => (ReferenceArticle::TYPE_QUANTITE_ARTICLE),
-                            ],
+                            'id' => $article->getId(),
+                            'name' => (ReferenceArticle::TYPE_QUANTITE_ARTICLE),
                             'reference' => ReferenceArticle::TYPE_QUANTITE_REFERENCE,
                             'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
                         ]
@@ -565,7 +566,6 @@ class DemandeController extends AbstractController
     public function hasArticles(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-
             $articles = $this->articleRepository->getByDemande($data['id']);
             $references = $this->ligneArticleRepository->getByDemande($data['id']);
             $count = count($articles) + count($references);

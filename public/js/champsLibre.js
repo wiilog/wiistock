@@ -13,7 +13,7 @@ let tableType = $('#tableType_id').DataTable({
     },
     columns: [
         { "data": 'Label' },
-        { "data": 'Catégorie' },
+        { "data": 'S\'applique' },
         { "data": 'Actions' },
     ],
 });
@@ -47,7 +47,7 @@ let tableChampsLibre = $('#tableChampslibre_id').DataTable({
     },
     columns: [
         { "data": 'Label' },
-        { "data": 'Liaison' },
+        { "data": 'S\'applique' },
         { "data": 'Typage' },
         { "data": 'Valeur par défaut' },
         { "data": 'Elements' },
@@ -248,7 +248,6 @@ function InitialiserCLModal(modal, submit, path, table, callback = null, close =
         if (missingInputs.length == 0 && wrongNumberInputs.length == 0 && passwordIsValid) {
             if (close == true) modal.find('.close').click();
             Json = JSON.stringify(Data);
-            console.log(Json);
             xhttp.open("POST", path, true);
             xhttp.send(Json);
         } else {
