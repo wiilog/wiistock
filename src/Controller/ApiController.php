@@ -142,6 +142,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
             $response->headers->set('Access-Control-Allow-Origin', '*');
             $response->headers->set('Access-Control-Allow-Methods', 'POST, GET');
             $em = $this->getDoctrine()->getManager();
+            $numberOfRowsInserted = 0;
             try {
                 foreach ($data['mouvements'] as $mvt) {
                     if (!$this->mouvementTracaRepository->getOneByDate($mvt['date'])) {
@@ -151,6 +152,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                         $toInsert->setDate($mvt['date']);
                         $toInsert->setType($mvt['type']);
                         $em->persist($toInsert);
+                        $numberOfRowsInserted++;
                     }
                 }
                 $em->flush();
@@ -158,7 +160,9 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                 dump($e);
             }
             $this->successData['success'] = true;
-            $this->successData['data'] = [];
+            $this->successData['data'] = $this->getData();
+            $this->successData['data']['status'] = ($numberOfRowsInserted === 0) ?
+                'Aucun changement à synchroniser' : $numberOfRowsInserted . ' mouvements synchronisés.';
             $response->setContent(json_encode($this->successData));
             return $response;
         }
