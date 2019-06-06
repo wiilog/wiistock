@@ -121,6 +121,7 @@ class EmplacementController extends AbstractController
             $emplacement = new Emplacement();
             $emplacement->setLabel($data["Label"]);
             $emplacement->setDescription($data["Description"]);
+            $emplacement->setIsDeliveryPoint($data["isDeliveryPoint"]);
             $em->persist($emplacement);
             $em->flush();
             return new JsonResponse($data);
@@ -179,6 +180,7 @@ class EmplacementController extends AbstractController
             $emplacement
                 ->setLabel($data["Label"])
                 ->setDescription($data["Description"]);
+            $emplacement->setIsDeliveryPoint($data["isDeliveryPoint"]);
             $em = $this->getDoctrine()->getManager();
             $em->flush();
             return new JsonResponse();

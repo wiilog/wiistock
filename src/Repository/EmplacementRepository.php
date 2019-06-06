@@ -30,6 +30,18 @@ class EmplacementRepository extends ServiceEntityRepository
         ;
         return $query->execute(); 
     }
+
+    public function getOneByLabel($label) {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT e
+            FROM App\Entity\Emplacement e
+            WHERE e.label = :label
+            "
+        )->setParameter('label', $label);
+        ;
+        return $query->getOneOrNullResult();
+    }
    
     public function getNoOne($id)
     {

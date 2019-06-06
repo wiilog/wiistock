@@ -1,9 +1,10 @@
+{% set checked = emplacement.isDeliveryPoint ? 'checked' : '' %}
 <div class="form-group col-6">
     <div class="input-group">
         <div class="input-group-prepend">
             <label class="input-group-text" for="inputGroupSelect01">Nom</label>
         </div>
-        <input class="form-control data needed" type="text" value='{{emplacement.label}}' name="Label" id="Label">
+        <input class="form-control data needed" type="text" value='{{ emplacement.label }}' name="Label" id="Label">
     </div>
     <div class="error-msg"></div>
 </div>
@@ -12,9 +13,15 @@
         <div class="input-group-prepend">
             <label class="input-group-text" for="inputGroupSelect01">Description</label>
         </div>
-        <input class="form-control data" type="text" value='{{emplacement.description}}' name="Description"
-            id="Description">
+        <input class="form-control data" type="text" value='{{ emplacement.description }}' name="Description"
+               id="Description">
     </div>
-    
+</div>
+<div class="form-group">
+    <label for="Description">Point de livraison ? </label>
+    <label class="switch">
+        <input class="checkbox form-control data needed" type="checkbox" {{ checked }} name="isDeliveryPoint">
+        <span class="slider round"></span>
+    </label>
 </div>
 
