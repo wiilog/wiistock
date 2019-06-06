@@ -36,6 +36,11 @@ class MouvementTraca
      */
     private $type;
 
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $operateur;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -85,6 +90,18 @@ class MouvementTraca
     public function setType(?string $type): self
     {
         $this->type = $type;
+
+        return $this;
+    }
+
+    public function getOperateur(): ?string
+    {
+        return $this->operateur;
+    }
+
+    public function setOperateur(?string $operateur): self
+    {
+        $this->operateur = $operateur;
 
         return $this;
     }
