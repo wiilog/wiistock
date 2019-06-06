@@ -84,7 +84,7 @@ class ArrivageFixtures extends Fixture implements FixtureGroupInterface
 
 
         // actions liées au menu arrivage
-        $actionLabels = [Action::LIST, Action::CREATE_EDIT, Action::DELETE];
+        $actionLabels = [Action::LIST, Action::LIST_ALL, Action::CREATE_EDIT, Action::DELETE];
 
         foreach ($actionLabels as $actionLabel) {
             $action = $this->actionRepository->findOneByMenuCodeAndLabel(Menu::ARRIVAGE, $actionLabel);

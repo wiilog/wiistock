@@ -9,6 +9,7 @@ use App\Entity\CategoryType;
 use App\Entity\Litige;
 use App\Entity\Menu;
 use App\Entity\Statut;
+use App\Entity\Utilisateur;
 use App\Repository\ArrivageRepository;
 use App\Repository\ChauffeurRepository;
 use App\Repository\FournisseurRepository;
@@ -109,7 +110,12 @@ class ArrivageController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $arrivages = $this->arrivageRepository->findAll();
+            if ($this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST_ALL)) {
+                $arrivages = $this->arrivageRepository->findAll();
+            } else {
+                $currentUser = $this->getUser(); /** @var Utilisateur $currentUser */
+                $arrivages = $currentUser->getArrivagesAcheteur();
+            }
 
             $rows = [];
             foreach ($arrivages as $arrivage) {
@@ -182,7 +188,7 @@ class ArrivageController extends AbstractController
                 $arrivage->setDestinataire($this->utilisateurRepository->find($data['destinataire']));
             }
             if (isset($data['nbUM'])) {
-                $arrivage->setNbUM($data['nbUM']);
+                $arrivage->setNbUM((int)$data['nbUM']);
             }
 
             $em->persist($arrivage);
@@ -268,7 +274,7 @@ class ArrivageController extends AbstractController
                 $arrivage->setDestinataire($this->utilisateurRepository->find($data['destinataire']));
             }
             if (isset($data['nbUM'])) {
-                $arrivage->setNbUM($data['nbUM']);
+                $arrivage->setNbUM((int)$data['nbUM']);
             }
 
             if (isset($data['litigeType'])) {

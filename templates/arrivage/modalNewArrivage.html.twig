@@ -64,6 +64,16 @@
                     </select>
                 </div>
 
+                <div class="form-group">
+                    <label for="acheteur">Utilisateur acheteur</label>
+                    <select class="form-control data needed" id="acheteur" name="acheteur">
+                        <option disabled selected> </option>
+                        {% for utilisateur in utilisateurs %}
+                            <option value="{{ utilisateur.id }}">{{ utilisateur.username }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
                 <hr>
 
                 <div class="form-group">
