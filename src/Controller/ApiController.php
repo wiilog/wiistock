@@ -191,7 +191,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                                 $arrivage = $colis->getArrivage();
                                 $destinataire = $arrivage->getDestinataire();
                                 if ($this->mailerServerRepository->findAll()) {
-                                    $date = 'le ' . DateTime::createFromFormat('Y-m-d\TH:i:s+', $mvt['date'])->format('Y/m/d à H:i:s');
+                                    $date = 'le ' . \DateTime::createFromFormat('Y-m-d\TH:i:s+', $mvt['date'])->format('Y/m/d à H:i:s');
                                     $this->mailerService->sendMail(
                                         'FOLLOW GT // Dépose effectuée',
                                         $this->renderView(
