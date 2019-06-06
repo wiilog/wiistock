@@ -12,12 +12,14 @@ use App\Entity\Mouvement;
 
 use App\Entity\MouvementTraca;
 use App\Entity\ReferenceArticle;
+use App\Repository\ColisRepository;
 use App\Repository\MouvementTracaRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\EmplacementRepository;
 
+use App\Service\MailerService;
 use Doctrine\DBAL\DBALException;
 use FOS\RestBundle\Controller\FOSRestController;
 use FOS\RestBundle\Routing\ClassResourceInterface;
@@ -78,13 +80,34 @@ class ApiController extends FOSRestController implements ClassResourceInterface
     private $mouvementTracaRepository;
 
     /**
+     * @var ColisRepository
+     */
+    private $colisRepository;
+
+    /**
      * @var array
      */
     private $successData;
 
+    /**
+     * @var MailerService
+     */
+    private $mailerService;
 
-    public function __construct(MouvementTracaRepository $mouvementTracaRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
+    /**
+     * ApiController constructor.
+     * @param ColisRepository $colisRepository
+     * @param MouvementTracaRepository $mouvementTracaRepository
+     * @param ReferenceArticleRepository $referenceArticleRepository
+     * @param UtilisateurRepository $utilisateurRepository
+     * @param UserPasswordEncoderInterface $passwordEncoder
+     * @param ArticleRepository $articleRepository
+     * @param EmplacementRepository $emplacementRepository
+     */
+    public function __construct(MailerService $mailerService, ColisRepository $colisRepository, MouvementTracaRepository $mouvementTracaRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
     {
+        $this->mailerService = $mailerService;
+        $this->colisRepository = $colisRepository;
         $this->mouvementTracaRepository = $mouvementTracaRepository;
         $this->emplacementRepository = $emplacementRepository;
         $this->articleRepository = $articleRepository;
@@ -154,6 +177,29 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                         $toInsert->setType($mvt['type']);
                         $em->persist($toInsert);
                         $numberOfRowsInserted++;
+                        if ($this->emplacementRepository->getOneByLabel($mvt['ref_emplacement']) && $mvt['type'] === 'depose') {
+                            $colis = $this->colisRepository->getOneByCode($mvt['ref_article']);
+                            if ($colis) {
+                                $arrivage = $colis->getArrivage();
+                                $destinataire = $arrivage->getDestinataire();
+                                if ($this->mailerServerRepository->findAll()) {
+                                    $this->mailerService->sendMail(
+                                        'FOLLOW GT // Dépose effectuée',
+                                        $this->renderView(
+                                            'mails/mailDeposeTraca.html.twig',
+                                            [
+                                                'colis' => $colis->getCode(),
+                                                'emplacement' => $mvt['ref_emplacement'],
+                                                'arrivage' => $arrivage->getNumeroArrivage(),
+                                                'date' => $mvt['date'],
+                                                'operateur' => $mvt['operateur']
+                                            ]
+                                        ),
+                                        $destinataire->getEmail()
+                                    );
+                                }
+                            }
+                        }
                     }
                 }
                 $em->flush();
