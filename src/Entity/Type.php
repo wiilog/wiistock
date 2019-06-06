@@ -11,6 +11,7 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Type
 {
+    // types de la catégorie articles et références CEA
     const LABEL_CSP = 'CSP';
     const LABEL_PDT = 'PDT';
     const LABEL_SILI = 'SILI';
@@ -18,8 +19,16 @@ class Type
     const LABEL_SILI_INT = 'SILI-int';
     const LABEL_MOB = 'MOB';
     const LABEL_SLUGCIBLE = 'SLUGCIBLE';
+    // type de la catégorie réception
     const LABEL_RECEPTION = 'RECEPTION';
-    
+    // types de la catégorie litige
+    const LABEL_MANQUE_BL = 'manque BL';
+    const LABEL_MANQUE_INFO_BL = 'manque info BL';
+    const LABEL_ECART_QTE = 'écart quantité + ou -';
+    const LABEL_ECART_QUALITE = 'écart qualité';
+    const LABEL_PB_COMMANDE = 'problème de commande';
+    const LABEL_DEST_NON_IDENT = 'destinataire non identifiable';
+
 
     /**
      * @ORM\Id()
@@ -59,12 +68,18 @@ class Type
      */
     private $receptions;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Litige", mappedBy="type")
+     */
+    private $litiges;
+
     public function __construct()
     {
         $this->champsLibres = new ArrayCollection();
         $this->referenceArticles = new ArrayCollection();
         $this->articles = new ArrayCollection();
         $this->receptions = new ArrayCollection();
+        $this->litiges = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -213,6 +228,60 @@ class Type
             // set the owning side to null (unless already changed)
             if ($reception->getType() === $this) {
                 $reception->setType(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Litige[]
+     */
+    public function getLitiges(): Collection
+    {
+        return $this->litiges;
+    }
+
+    public function addCommentaire(Litige $commentaire): self
+    {
+        if (!$this->litiges->contains($commentaire)) {
+            $this->litiges[] = $commentaire;
+            $commentaire->setType($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCommentaire(Litige $commentaire): self
+    {
+        if ($this->litiges->contains($commentaire)) {
+            $this->litiges->removeElement($commentaire);
+            // set the owning side to null (unless already changed)
+            if ($commentaire->getType() === $this) {
+                $commentaire->setType(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function addLitige(Litige $litige): self
+    {
+        if (!$this->litiges->contains($litige)) {
+            $this->litiges[] = $litige;
+            $litige->setType($this);
+        }
+
+        return $this;
+    }
+
+    public function removeLitige(Litige $litige): self
+    {
+        if ($this->litiges->contains($litige)) {
+            $this->litiges->removeElement($litige);
+            // set the owning side to null (unless already changed)
+            if ($litige->getType() === $this) {
+                $litige->setType(null);
             }
         }
 

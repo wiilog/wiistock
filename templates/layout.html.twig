@@ -20,7 +20,21 @@
             </a>
         </li>
 
+        <!-- ARRIVAGE   -->
+        {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::LIST')) %}
+            <li class="menu-item">
+                <a href="{{ path('arrivage_index') }}">
+                    <i class="fas fa-truck"></i>
+                    <h4>Arrivage</h4>
+                </a>
+            </li>
+        {% endif %}
         <!-- DEMANDE   -->
+        {% if
+            hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::LIST')) or
+            hasRight(constant('App\\Entity\\Menu::DEM_COLLECTE'), constant('App\\Entity\\Action::LIST')) or
+            hasRight(constant('App\\Entity\\Menu::MANUT'), constant('App\\Entity\\Action::LIST'))
+        %}
         <li class="menu-item has-submenu">
             <a href="#">
                 <i class="fas fa-shopping-cart"></i>
@@ -38,6 +52,7 @@
                 {% endif %}
             </ul>
         </li>
+        {% endif %}
 
         <!-- RECEPTION -->
         {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::LIST')) %}
