@@ -183,6 +183,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                                 $arrivage = $colis->getArrivage();
                                 $destinataire = $arrivage->getDestinataire();
                                 if ($this->mailerServerRepository->findAll()) {
+                                    dump('send mail to ' . $destinataire->getEmail());
                                     $this->mailerService->sendMail(
                                         'FOLLOW GT // Dépose effectuée',
                                         $this->renderView(
