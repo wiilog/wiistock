@@ -103,7 +103,6 @@ class Arrivage
     public function __construct()
     {
         $this->acheteurs = new ArrayCollection();
-        $this->litige = new ArrayCollection();
         $this->colis = new ArrayCollection();
     }
 
