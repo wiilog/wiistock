@@ -22,4 +22,5 @@
 /config/jwt/*.pem
 
 /.vs-code/
+/.idea/
 .idea
