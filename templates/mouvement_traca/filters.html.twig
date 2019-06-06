@@ -1,6 +1,6 @@
 <div class="row filterService align-items-center pl-2">
 
-    <div class='col-5'>
+    <div class='col-3'>
         <div class="input-group">
             <div class="input-group-prepend">
                 <div class="input-group-text">De</div>
@@ -13,7 +13,7 @@
         </div>
     </div>
 
-    <div class='col-2'>
+    <div class='col-1'>
         <div class="input-group">
             <select class="form-control data" name="statut" id="statut" placeholder='{{  statut is defined  ? statut : 'statut'}}'>
                 <option value>{{  statut is defined  ? statut : 'Statut'}}</option>
@@ -24,7 +24,7 @@
         </div>
     </div>
 
-    <div class='col-3'>
+    <div class='col-2'>
         <div class="input-group">
             <select type="text" class="form-control data select2 " name="utilisateur" multiple="multiple"
                     id="utilisateur">
@@ -36,6 +36,18 @@
             </select>
         </div>
         <input class="current-username" hidden value="{{ app.user.username }}">
+    </div>
+
+    <div class='col-2'>
+        <div class="input-group">
+            <input type="text" class="form-control data" name="emplacement" id="emplacement" placeholder="Emplacement">
+        </div>
+    </div>
+
+    <div class='col-2'>
+        <div class="input-group">
+            <input type="text" class="form-control data" name="colis" id="colis" placeholder="Colis">
+        </div>
     </div>
 
     <div class='col-2'>

@@ -38,7 +38,8 @@ class CategorieStatutFixtures extends Fixture implements FixtureGroupInterface
             CategorieStatut::LIVRAISON,
             CategorieStatut::PREPARATION,
             CategorieStatut::RECEPTION,
-            CategorieStatut::MANUTENTION
+            CategorieStatut::MANUTENTION,
+            CategorieStatut::MVT_TRACA
         ];
 
         foreach ($categoriesNames as $categorieName) {
