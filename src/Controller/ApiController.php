@@ -160,7 +160,6 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                 dump($e);
             }
             $this->successData['success'] = true;
-            $this->successData['data'] = $this->getData();
             $this->successData['data']['status'] = ($numberOfRowsInserted === 0) ?
                 'Aucun changement à synchroniser' : $numberOfRowsInserted . ' mouvements synchronisés.';
             $response->setContent(json_encode($this->successData));
