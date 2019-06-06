@@ -19,6 +19,16 @@ class MouvementTracaRepository extends ServiceEntityRepository
         parent::__construct($registry, MouvementTraca::class);
     }
 
+    public function getOneByDate($date) {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            'SELECT mvt
+                FROM App\Entity\MouvementTraca mvt
+                WHERE mvt.date = :date'
+        )->setParameter('date', $date);
+        return $query->getOneOrNullResult();
+    }
+
     // /**
     //  * @return MouvementTraca[] Returns an array of MouvementTraca objects
     //  */

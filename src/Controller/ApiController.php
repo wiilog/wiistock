@@ -12,6 +12,7 @@ use App\Entity\Mouvement;
 
 use App\Entity\MouvementTraca;
 use App\Entity\ReferenceArticle;
+use App\Repository\MouvementTracaRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\ArticleRepository;
@@ -72,13 +73,19 @@ class ApiController extends FOSRestController implements ClassResourceInterface
     private $referenceArticleRepository;
 
     /**
+     * @var MouvementTracaRepository
+     */
+    private $mouvementTracaRepository;
+
+    /**
      * @var array
      */
     private $successData;
 
 
-    public function __construct(ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
+    public function __construct(MouvementTracaRepository $mouvementTracaRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
     {
+        $this->mouvementTracaRepository = $mouvementTracaRepository;
         $this->emplacementRepository = $emplacementRepository;
         $this->articleRepository = $articleRepository;
         $this->utilisateurRepository = $utilisateurRepository;
@@ -137,12 +144,14 @@ class ApiController extends FOSRestController implements ClassResourceInterface
             $em = $this->getDoctrine()->getManager();
             try {
                 foreach ($data['mouvements'] as $mvt) {
-                    $toInsert = new MouvementTraca();
-                    $toInsert->setRefArticle($mvt['ref_article']);
-                    $toInsert->setRefEmplacement($mvt['ref_emplacement']);
-                    $toInsert->setDate($mvt['date']);
-                    $toInsert->setType($mvt['type']);
-                    $em->persist($toInsert);
+                    if (!$this->mouvementTracaRepository->getOneByDate($mvt['date'])) {
+                        $toInsert = new MouvementTraca();
+                        $toInsert->setRefArticle($mvt['ref_article']);
+                        $toInsert->setRefEmplacement($mvt['ref_emplacement']);
+                        $toInsert->setDate($mvt['date']);
+                        $toInsert->setType($mvt['type']);
+                        $em->persist($toInsert);
+                    }
                 }
                 $em->flush();
             } catch (DBALException $e) {
