@@ -13,6 +13,7 @@ use App\Entity\Mouvement;
 use App\Entity\MouvementTraca;
 use App\Entity\ReferenceArticle;
 use App\Repository\ColisRepository;
+use App\Repository\MailerServerRepository;
 use App\Repository\MouvementTracaRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\UtilisateurRepository;
@@ -95,6 +96,11 @@ class ApiController extends FOSRestController implements ClassResourceInterface
     private $mailerService;
 
     /**
+     * @var MailerServerRepository
+     */
+    private $mailerServerRepository;
+
+    /**
      * ApiController constructor.
      * @param ColisRepository $colisRepository
      * @param MouvementTracaRepository $mouvementTracaRepository
@@ -104,8 +110,9 @@ class ApiController extends FOSRestController implements ClassResourceInterface
      * @param ArticleRepository $articleRepository
      * @param EmplacementRepository $emplacementRepository
      */
-    public function __construct(MailerService $mailerService, ColisRepository $colisRepository, MouvementTracaRepository $mouvementTracaRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
+    public function __construct(MailerServerRepository $mailerServerRepository, MailerService $mailerService, ColisRepository $colisRepository, MouvementTracaRepository $mouvementTracaRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
     {
+        $this->mailerServerRepository = $mailerServerRepository;
         $this->mailerService = $mailerService;
         $this->colisRepository = $colisRepository;
         $this->mouvementTracaRepository = $mouvementTracaRepository;
@@ -179,13 +186,10 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                         $numberOfRowsInserted++;
                         if ($this->emplacementRepository->getOneByLabel($mvt['ref_emplacement']) && $mvt['type'] === 'depose') {
                             $colis = $this->colisRepository->getOneByCode($mvt['ref_article']);
-                            dump('enter1');
                             if ($colis && $this->emplacementRepository->getOneByLabel($mvt['ref_emplacement'])->getIsDeliveryPoint()) {
-                                dump('enter2');
                                 $arrivage = $colis->getArrivage();
                                 $destinataire = $arrivage->getDestinataire();
                                 if ($this->mailerServerRepository->findAll()) {
-                                    dump('enter3');
                                     $this->mailerService->sendMail(
                                         'FOLLOW GT // Dépose effectuée',
                                         $this->renderView(
