@@ -40,8 +40,6 @@ function initNewArrivageEditor(modal) {
     }
 };
 
-
-
 let modalNewArrivage = $("#modalNewArrivage");
 let submitNewArrivage = $("#submitNewArrivage");
 let urlNewArrivage = Routing.generate('arrivage_new', true);
@@ -59,10 +57,12 @@ InitialiserModal(modalDeleteArrivage, submitDeleteArrivage, urlDeleteArrivage, t
 
 function toggleLitige(select) {
     let bloc = select.closest('.modal').find('#litigeBloc');
-    let status = select.val();
-    let litigeType = bloc.find('#litigeType');
+    let status = select.find('option:selected').text();
 
-    if (status === '1') {
+    let litigeType = bloc.find('#litigeType');
+    let constantConform = $('#constantConforme').val();
+
+    if (status === constantConform) {
         litigeType.removeClass('needed');
         bloc.addClass('d-none');
 

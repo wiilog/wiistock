@@ -64,12 +64,14 @@
                     </select>
                 </div>
 
-                <div class="form-group">
-                    <label for="acheteur">Utilisateur acheteur</label>
-                    <select class="form-control data needed" id="acheteur" name="acheteur">
-                        <option disabled selected> </option>
+                <div class="form-group w-100">
+                    <label for="acheteurs">Acheteur(s)</label>
+                    <select type="text" class="form-control data select2" name="acheteurs" multiple="multiple"
+                            id="acheteurs">
                         {% for utilisateur in utilisateurs %}
-                            <option value="{{ utilisateur.id }}">{{ utilisateur.username }}</option>
+                            <option value="{{ utilisateur.username }}">
+                                {{ utilisateur.username }}
+                            </option>
                         {% endfor %}
                     </select>
                 </div>
@@ -107,6 +109,9 @@
                         <option value="0">litige</option>
                     </select>
                 </div>
+
+                {# utilisé côté js pour gérer affichage conditionnel bloc litige #}
+                <input id="constantConforme" hidden value="{{ constant('App\\Entity\\Statut::CONFORME') }}">
 
                 {# bloc litige à afficher si statut litige sélectionné #}
                 <div id="litigeBloc" class="d-none">

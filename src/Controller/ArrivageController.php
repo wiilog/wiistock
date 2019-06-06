@@ -187,6 +187,11 @@ class ArrivageController extends AbstractController
             if (isset($data['destinataire'])) {
                 $arrivage->setDestinataire($this->utilisateurRepository->find($data['destinataire']));
             }
+            if (isset($data['acheteurs'])) {
+                foreach($data['acheteurs'] as $acheteur) {
+                    $arrivage->addAcheteur($this->utilisateurRepository->findOneByUsername($acheteur));
+                }
+            }
             if (isset($data['nbUM'])) {
                 $arrivage->setNbUM((int)$data['nbUM']);
             }
@@ -220,8 +225,14 @@ class ArrivageController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
             $arrivage = $this->arrivageRepository->find($data['id']);
+
+            $acheteursId = [];
+            foreach($arrivage->getAcheteurs() as $acheteur) {
+                $acheteursId[] = $acheteur->getId();
+            }
             $json = $this->renderView('arrivage/modalEditArrivageContent.html.twig', [
                 'arrivage' => $arrivage,
+                'acheteursId' => $acheteursId,
                 'conforme' => $arrivage->getStatut()->getNom() === Statut::CONFORME,
                 'utilisateurs' => $this->utilisateurRepository->findAllSorted(),
                 'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ARRIVAGE),
@@ -273,15 +284,44 @@ class ArrivageController extends AbstractController
             if (isset($data['destinataire'])) {
                 $arrivage->setDestinataire($this->utilisateurRepository->find($data['destinataire']));
             }
+            if (isset($data['acheteurs'])) {
+              // on détache les acheteurs existants...
+              $existingAcheteurs = $arrivage->getAcheteurs();
+              foreach ($existingAcheteurs as $acheteur) {
+                $arrivage->removeAcheteur($acheteur);
+              }
+              // ... et on ajoute ceux sélectionnés
+              foreach($data['acheteurs'] as $acheteur) {
+                  $arrivage->addAcheteur($this->utilisateurRepository->findOneByUsername($acheteur));
+              }
+            }
             if (isset($data['nbUM'])) {
                 $arrivage->setNbUM((int)$data['nbUM']);
             }
 
-            if (isset($data['litigeType'])) {
-                $litige = $arrivage->getLitige();
-                $litige->setType($this->typeRepository->find($data['litigeType']));
+
+            // traitement de l'éventuel litige
+            $litige = $arrivage->getLitige();
+
+            // conforme : on enregistre le litige et/ou on le modifie
+            if ($arrivage->getStatut() != Statut::CONFORME) {
+                if (empty($litige)) {
+                    $litige = new Litige();
+                    $litige->setArrivage($arrivage);
+                    $em->persist($litige);
+                }
+
+                if (isset($data['litigeType'])) {
+                    $litige->setType($this->typeRepository->find($data['litigeType']));
+                }
                 if (isset($data['commentaire'])) {
                     $litige->setCommentaire($data['commentaire']);
+                }
+
+            // non conforme : on supprime l'éventuel litige
+            } else {
+                if (!empty($litige)) {
+                    $em->remove($litige);
                 }
             }
 
