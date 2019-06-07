@@ -8,6 +8,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Emplacement;
 use App\Entity\Mouvement;
 
 use App\Entity\MouvementTraca;
@@ -208,6 +209,11 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                                     );
                                 }
                             }
+                        } else if (!$this->emplacementRepository->getOneByLabel($mvt['ref_emplacement'])) {
+                            $emplacement = new Emplacement();
+                            $emplacement->setLabel($mvt['ref_emplacement']);
+                            $em->persist($emplacement);
+                            $em->flush();
                         }
                     }
                 }
