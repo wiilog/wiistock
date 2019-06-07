@@ -40,7 +40,12 @@
 
     <div class='col-2'>
         <div class="input-group">
-            <input type="text" class="form-control data" name="emplacement" id="emplacement" placeholder="Emplacement">
+            <select class="form-control data select2" name="emplacement" id="emplacement">
+                <option></option>
+                {% for emplacement in emplacements %}
+                    <option value="{{ emplacement.label }}">{{ emplacement.label }}</option>
+                {% endfor %}
+            </select>
         </div>
     </div>
 

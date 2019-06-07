@@ -6,6 +6,13 @@ $('#utilisateur').select2({
     }
 });
 
+$('#emplacement').select2({
+    placeholder: {
+        id: 0,
+        text: 'Emplacement',
+    }
+});
+
 let pathMvt = Routing.generate('mvt_traca_api', true);
 let tableMvt = $('#tableMvts').DataTable({
     "language": {
@@ -17,12 +24,12 @@ let tableMvt = $('#tableMvts').DataTable({
         "type": "POST"
     },
     columns: [
-        { "data": 'date', 'name': 'date', 'title': 'Date' },
-        { "data": "refArticle", 'name': 'refArticle', 'title': "Colis" },
-        { "data": 'refEmplacement', 'name': 'refEmplacement', 'title': 'Emplacement' },
-        { "data": 'type', 'name': 'type', 'title': 'Type' },
-        { "data": 'operateur', 'name': 'operateur', 'title': 'Operateur' },
-        { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' },
+        {"data": 'date', 'name': 'date', 'title': 'Date'},
+        {"data": "refArticle", 'name': 'refArticle', 'title': "Colis"},
+        {"data": 'refEmplacement', 'name': 'refEmplacement', 'title': 'Emplacement'},
+        {"data": 'type', 'name': 'type', 'title': 'Type'},
+        {"data": 'operateur', 'name': 'operateur', 'title': 'Operateur'},
+        {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'},
     ],
 
 });
@@ -79,7 +86,6 @@ $('#submitSearchMvt').on('click', function () {
             }
             return false;
         }
-
     );
     tableMvt
         .draw();

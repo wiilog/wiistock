@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\Menu;
+use App\Repository\EmplacementRepository;
 use App\Repository\MouvementTracaRepository;
 use App\Repository\StatutRepository;
 use App\Repository\UtilisateurRepository;
@@ -40,13 +41,20 @@ class MouvementTracaController extends AbstractController
      */
     private $utilisateurRepository;
 
+
+    /**
+     * @var EmplacementRepository
+     */
+    private $emplacementRepository;
+
     /**
      * ArrivageController constructor.
      * @param $
      */
 
-    public function __construct(UtilisateurRepository $utilisateurRepository, StatutRepository $statutRepository, UserService $userService, MouvementTracaRepository $mouvementTracaRepository)
+    public function __construct(EmplacementRepository $emplacementRepository, UtilisateurRepository $utilisateurRepository, StatutRepository $statutRepository, UserService $userService, MouvementTracaRepository $mouvementTracaRepository)
     {
+        $this->emplacementRepository = $emplacementRepository;
         $this->utilisateurRepository = $utilisateurRepository;
         $this->statutRepository = $statutRepository;
         $this->userService = $userService;
@@ -65,6 +73,7 @@ class MouvementTracaController extends AbstractController
         return $this->render('mouvement_traca/index.html.twig', [
             'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::MVT_TRACA),
             'utilisateurs' => $this->utilisateurRepository->findAllSorted(),
+            'emplacements' => $this->emplacementRepository->findAll(),
         ]);
     }
 
