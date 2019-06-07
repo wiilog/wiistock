@@ -35,12 +35,10 @@ let tableArrivage = $('#tableArrivages').DataTable({
 let editorNewArrivageAlreadyDone = false;
 function initNewArrivageEditor(modal) {
     if (!editorNewArrivageAlreadyDone) {
-        initEditor2(modal + '.editor-container-new');
+        initEditor2(modal + ' .editor-container-new');
         editorNewArrivageAlreadyDone = true;
     }
 };
-
-
 
 let modalNewArrivage = $("#modalNewArrivage");
 let submitNewArrivage = $("#submitNewArrivage");
@@ -59,10 +57,12 @@ InitialiserModal(modalDeleteArrivage, submitDeleteArrivage, urlDeleteArrivage, t
 
 function toggleLitige(select) {
     let bloc = select.closest('.modal').find('#litigeBloc');
-    let status = select.val();
-    let litigeType = bloc.find('#litigeType');
+    let status = select.find('option:selected').text();
 
-    if (status === '1') {
+    let litigeType = bloc.find('#litigeType');
+    let constantConform = $('#constantConforme').val();
+
+    if (status === constantConform) {
         litigeType.removeClass('needed');
         bloc.addClass('d-none');
 
@@ -81,3 +81,88 @@ function deleteRowArrivage(button, modal, submit, hasLitige) {
         hasLitigeText.addClass('d-none');
     }
 }
+
+function dragEnterDiv(event, div) {
+    div.css('border', '3px dashed red');
+}
+
+function dragOverDiv(event, div) {
+    event.preventDefault();
+    event.stopPropagation();
+    div.css('border', '3px dashed red');
+    return false;
+};
+
+function dragLeaveDiv(event, div) {
+    event.preventDefault();
+    event.stopPropagation();
+    div.css('border', '3px dashed #BBBBBB');
+    return false;
+}
+
+function dropOnDiv(event, div) {
+    if (event.dataTransfer) {
+        if (event.dataTransfer.files.length) {
+            // Stop the propagation of the event
+            event.preventDefault();
+            event.stopPropagation();
+            div.css('border', '3px dashed green');
+            // Main function to upload
+            upload(event.dataTransfer.files);
+        }
+    } else {
+        div.css('border', '3px dashed #BBBBBB');
+    }
+    return false;
+}
+
+function upload(files) {
+
+    let formData = new FormData();
+    $.each(files, function (index, file) {
+        formData.append('file' + index, file);
+    });
+    let path = Routing.generate('arrivage_depose', true);
+
+    let arrivageId = $('#dropfile').data('arrivage-id');
+    formData.append('id', arrivageId);
+
+    let filepath = '/uploads/attachements/';
+
+    $.ajax({
+        url: path,
+        data: formData,
+        type:"post",
+        contentType:false,
+        processData:false,
+        cache:false,
+        dataType:"json",
+        success:function(fileNames){
+            let dropfile = $('#dropfile');
+            dropfile.css('border', '3px dashed #BBBBBB');
+            fileNames.forEach(function(fileName) {
+                dropfile.after('<p><i class="fa fa-file mr-2"></i><a target="_blank" href="' + filepath + fileName + '">' + fileName + '</a></p>');
+            })
+        }
+    });
+}
+
+function editRowArrivage(button) {
+    let path = Routing.generate('arrivage_edit_api', true);
+    let modal = $('#modalEditArrivage');
+    let submit = $('#submitEditArrivage');
+    let id = button.data('id');
+    let params = { id: id };
+
+    $.post(path, JSON.stringify(params), function(data) {
+        modal.find('.modal-body').html(data.html);
+        initEditor2('.editor-container-edit');
+        $('#modalEditArrivage').find('#acheteurs').select2('val', data.acheteurs); //TODO CG 1 seul fonctionne... ???
+    }, 'json');
+
+    modal.find(submit).attr('value', id);
+}
+
+// function deleteAttachement() {
+//
+// }

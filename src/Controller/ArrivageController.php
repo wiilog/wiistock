@@ -9,6 +9,7 @@ use App\Entity\CategoryType;
 use App\Entity\Litige;
 use App\Entity\Menu;
 use App\Entity\Statut;
+use App\Entity\Utilisateur;
 use App\Repository\ArrivageRepository;
 use App\Repository\ChauffeurRepository;
 use App\Repository\FournisseurRepository;
@@ -21,7 +22,9 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Validator\Tests\Fixtures\Countable;
 
 /**
  * @Route("/arrivage")
@@ -109,7 +112,12 @@ class ArrivageController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $arrivages = $this->arrivageRepository->findAll();
+            if ($this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST_ALL)) {
+                $arrivages = $this->arrivageRepository->findAll();
+            } else {
+                $currentUser = $this->getUser(); /** @var Utilisateur $currentUser */
+                $arrivages = $currentUser->getArrivagesAcheteur();
+            }
 
             $rows = [];
             foreach ($arrivages as $arrivage) {
@@ -181,8 +189,13 @@ class ArrivageController extends AbstractController
             if (isset($data['destinataire'])) {
                 $arrivage->setDestinataire($this->utilisateurRepository->find($data['destinataire']));
             }
+            if (isset($data['acheteurs'])) {
+                foreach($data['acheteurs'] as $acheteur) {
+                    $arrivage->addAcheteur($this->utilisateurRepository->findOneByUsername($acheteur));
+                }
+            }
             if (isset($data['nbUM'])) {
-                $arrivage->setNbUM($data['nbUM']);
+                $arrivage->setNbUM((int)$data['nbUM']);
             }
 
             $em->persist($arrivage);
@@ -209,12 +222,21 @@ class ArrivageController extends AbstractController
      */
     public function editApi(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
             }
             $arrivage = $this->arrivageRepository->find($data['id']);
-            $json = $this->renderView('arrivage/modalEditArrivageContent.html.twig', [
+
+            // construction de la chaîne de caractères pour alimenter le select2
+            $acheteursUsernames = [];
+            foreach($arrivage->getAcheteurs() as $acheteur) {
+              $acheteursUsernames[] = $acheteur->getUsername();
+            }
+
+            //            TODO CG afficher si litige et si pas droit modif (confirmer gestion droits)
+            if($this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
+              $html = $this->renderView('arrivage/modalEditArrivageContent.html.twig', [
                 'arrivage' => $arrivage,
                 'conforme' => $arrivage->getStatut()->getNom() === Statut::CONFORME,
                 'utilisateurs' => $this->utilisateurRepository->findAllSorted(),
@@ -224,8 +246,13 @@ class ArrivageController extends AbstractController
                 'chauffeurs' => $this->chauffeurRepository->findAllSorted(),
                 'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE)
             ]);
+          } else {
+            $html = $this->renderView('arrivage/modalEditArrivageContentLitige.html.twig', [
+              'arrivage' => $arrivage,
+            ]);
+          }
 
-            return new JsonResponse($json);
+          return new JsonResponse(['html' => $html, 'acheteurs' => $acheteursUsernames]);
         }
         throw new NotFoundHttpException('404');
     }
@@ -267,15 +294,47 @@ class ArrivageController extends AbstractController
             if (isset($data['destinataire'])) {
                 $arrivage->setDestinataire($this->utilisateurRepository->find($data['destinataire']));
             }
+            if (isset($data['acheteurs'])) {
+              // on détache les acheteurs existants...
+              $existingAcheteurs = $arrivage->getAcheteurs();
+              foreach ($existingAcheteurs as $acheteur) {
+                $arrivage->removeAcheteur($acheteur);
+              }
+              // ... et on ajoute ceux sélectionnés
+              foreach($data['acheteurs'] as $acheteur) {
+                  $arrivage->addAcheteur($this->utilisateurRepository->findOneByUsername($acheteur));
+              }
+            }
             if (isset($data['nbUM'])) {
-                $arrivage->setNbUM($data['nbUM']);
+                $arrivage->setNbUM((int)$data['nbUM']);
+            }
+            if (isset($data['statutAcheteur'])) {
+              $statutName = $data['statutAcheteur'] ? Statut::TRAITE_ACHETEUR : Statut::ATTENTE_ACHETEUR;
+              $arrivage->setStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::ARRIVAGE, $statutName));
             }
 
-            if (isset($data['litigeType'])) {
-                $litige = $arrivage->getLitige();
-                $litige->setType($this->typeRepository->find($data['litigeType']));
+            // traitement de l'éventuel litige
+            $litige = $arrivage->getLitige();
+
+            // non conforme : on enregistre le litige et/ou on le modifie
+            if ($arrivage->getStatut() != Statut::CONFORME) {
+                if (empty($litige)) {
+                    $litige = new Litige();
+                    $litige->setArrivage($arrivage);
+                    $em->persist($litige);
+                }
+
+                if (isset($data['litigeType'])) {
+                    $litige->setType($this->typeRepository->find($data['litigeType']));
+                }
                 if (isset($data['commentaire'])) {
                     $litige->setCommentaire($data['commentaire']);
+                }
+
+            // conforme : on supprime l'éventuel litige
+            } else {
+                if (!empty($litige)) {
+                    $em->remove($litige);
                 }
             }
 
@@ -306,4 +365,37 @@ class ArrivageController extends AbstractController
 
         throw new NotFoundHttpException("404");
     }
+
+    /**
+     * @Route("/depose-pj", name="arrivage_depose", options={"expose"=true}, methods="GET|POST")
+     */
+    public function depose(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest()) {
+            $em = $this->getDoctrine()->getManager();
+
+            $fileNames = [];
+            $path = "../public/uploads/attachements";
+
+            $id = (int)$request->request->get('id');
+            $arrivage = $this->arrivageRepository->find($id);
+
+            for ($i = 0; $i < count($request->files); $i++) {
+                $file = $request->files->get('file' . $i);
+                if ($file) {
+                    // generate a random name for the file but keep the extension
+                    $filename = uniqid() . "." . $file->getClientOriginalExtension();
+                    $file->move($path, $filename); // move the file to a path
+
+                  $arrivage->addAttachements($filename);
+                  $fileNames[] = $filename;
+                }
+            }
+            $em->flush();
+            return new JsonResponse($fileNames);
+        } else {
+            throw new NotFoundHttpException('404');
+        }
+    }
+
 }

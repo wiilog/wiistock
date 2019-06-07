@@ -514,7 +514,6 @@ function clearModal(modal) {
 }
 
 function clearCheckboxes($modal) {
-    console.log($modal);
     let checkboxes = $modal.find('.checkbox');
     checkboxes.each(function () {
         $(this).prop('checked', false);

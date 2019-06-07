@@ -1,0 +1,17 @@
+<label for="dropfile">Pièces jointes</label>
+<div id="dropfile" class="dropFrame" data-arrivage-id="{{ arrivage.id }}"
+            ondragenter="dragEnterDiv(event, $(this))"
+            ondragover="dragOverDiv(event, $(this))"
+            ondragleave="dragLeaveDiv(event, $(this))"
+            ondrop="dropOnDiv(event, $(this))">Faites glisser vos pièces jointes ici.
+</div>
+
+{% for pj in arrivage.piecesJointes %}
+    <p class="attachement">
+        <a target="_blank" href="/uploads/attachements/{{ pj }}">
+            <i class="fa fa-file mr-2"></i>
+            {{ pj }}
+        </a>
+        {#<i class="fa fa-times red pointer" onclick="deleteAttachement()"></i>#}
+    </p>
+{% endfor %}

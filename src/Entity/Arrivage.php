@@ -215,6 +215,13 @@ class Arrivage
         return $this;
     }
 
+    public function addAttachements($pieceJointe) : self
+    {
+        $this->piecesJointes[] = $pieceJointe;
+
+        return $this;
+    }
+
     public function getNumeroReception(): ?string
     {
         return $this->numeroReception;
@@ -335,4 +342,5 @@ class Arrivage
 
         return $this;
     }
+
 }
