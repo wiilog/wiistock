@@ -63,16 +63,16 @@ $('#submitSearchMvt').on('click', function () {
         function (settings, data, dataIndex) {
             let dateMin = $('#dateMin').val();
             let dateMax = $('#dateMax').val();
-            let dateInit = (data[0]).split('/').reverse().join('-') || 0;
+            let dateInit = (data[0]).split(' ')[0].split('/').reverse().join('-') || 0;
 
             if (
                 (dateMin == "" && dateMax == "")
                 ||
-                (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
+                (dateMin == "" && moment(dateInit, 'DD-MM-YYYY').isSameOrBefore(dateMax))
                 ||
-                (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
+                (moment(dateInit, 'DD-MM-YYYY').isSameOrAfter(dateMin) && dateMax == "")
                 ||
-                (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
+                (moment(dateInit, 'DD-MM-YYYY').isSameOrAfter(dateMin) && moment(dateInit, 'DD-MM-YYYY').isSameOrBefore(dateMax))
 
             ) {
                 return true;
