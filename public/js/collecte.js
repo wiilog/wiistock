@@ -8,10 +8,16 @@ $('#utilisateur').select2({
 
 let pathCollecte = Routing.generate('collecte_api', true);
 let table = $('#tableCollecte_id').DataTable({
+    order: [[0, 'desc']],
+    "columnDefs": [
+        {
+            "type": "customDate",
+            "targets": 0
+        }
+    ],
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
     },
-    "order": [[0, "desc"]],
     ajax: {
         "url": pathCollecte,
         "type": "POST"
@@ -53,6 +59,21 @@ let submitModifyCollecte = $('#submitEditCollecte');
 let urlModifyCollecte = Routing.generate('collecte_edit', true);
 InitialiserModal(modalModifyCollecte, submitModifyCollecte, urlModifyCollecte, table);
 
+$.extend($.fn.dataTableExt.oSort, {
+    "customDate-pre": function (a) {
+        let dateParts = a.split('/'),
+            year = parseInt(dateParts[2]) - 1900,
+            month = parseInt(dateParts[1]),
+            day = parseInt(dateParts[0]);
+        return Date.UTC(year, month, day, 0, 0, 0);
+    },
+    "customDate-asc": function (a, b) {
+        return ((a < b) ? -1 : ((a > b) ? 1 : 0));
+    },
+    "customDate-desc": function (a, b) {
+        return ((a < b) ? 1 : ((a > b) ? -1 : 0));
+    }
+});
 
 //AJOUTE_ARTICLE
 let pathAddArticle = Routing.generate('collecte_article_api', { 'id': id }, true);
