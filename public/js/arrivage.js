@@ -163,6 +163,6 @@ function editRowArrivage(button) {
     modal.find(submit).attr('value', id);
 }
 
-function deleteAttachement() {
-
-}
+// function deleteAttachement() {
+//
+// }
