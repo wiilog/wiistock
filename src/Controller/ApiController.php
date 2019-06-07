@@ -218,6 +218,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                             $em->flush();
                         }
                     }
+                    dump($mvt['id'] . ' gfd');
                 }
                 $em->flush();
             } catch (DBALException $e) {
