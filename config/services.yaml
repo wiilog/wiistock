@@ -40,7 +40,7 @@ services:
             - { name: doctrine.event_listener, event: preUpdate }
 
 #TODO à décommenter pour mettre en maintenance
-    maintenance_listener:
-        class: App\Security\MaintenanceListener
-        tags:
-            - { name: 'kernel.event_listener', event: 'kernel.request', method: 'onKernelRequest'}
+#    maintenance_listener:
+#        class: App\Security\MaintenanceListener
+#        tags:
+#            - { name: 'kernel.event_listener', event: 'kernel.request', method: 'onKernelRequest'}
