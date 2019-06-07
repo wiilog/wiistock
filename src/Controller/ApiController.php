@@ -178,7 +178,6 @@ class ApiController extends FOSRestController implements ClassResourceInterface
             try {
                 foreach ($data['mouvements'] as $mvt) {
                     if (!$this->mouvementTracaRepository->getOneByDate($mvt['date'])) {
-                        dump($mvt);
                         $toInsert = new MouvementTraca();
                         $toInsert->setRefArticle($mvt['ref_article']);
                         $toInsert->setRefEmplacement($mvt['ref_emplacement']);
@@ -222,6 +221,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
             } catch (DBALException $e) {
                 dump($e);
             }
+            dump('yes');
             $this->successData['success'] = true;
             $this->successData['data']['status'] = ($numberOfRowsInserted === 0) ?
                 'Aucun changement à synchroniser' : $numberOfRowsInserted . ' mouvements synchronisés.';
