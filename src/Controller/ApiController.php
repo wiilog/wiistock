@@ -217,11 +217,11 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                         }
                     }
                 }
+                dump('yes');
                 $em->flush();
             } catch (DBALException $e) {
                 dump($e);
             }
-            dump('yes');
             $this->successData['success'] = true;
             $this->successData['data']['status'] = ($numberOfRowsInserted === 0) ?
                 'Aucun changement à synchroniser' : $numberOfRowsInserted . ' mouvements synchronisés.';
