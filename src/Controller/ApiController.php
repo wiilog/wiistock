@@ -23,6 +23,7 @@ use App\Repository\EmplacementRepository;
 
 use App\Service\MailerService;
 use Doctrine\DBAL\DBALException;
+use Doctrine\ORM\ORMException;
 use FOS\RestBundle\Controller\FOSRestController;
 use FOS\RestBundle\Routing\ClassResourceInterface;
 use FOS\RestBundle\Controller\Annotations as Rest;
@@ -178,7 +179,11 @@ class ApiController extends FOSRestController implements ClassResourceInterface
             try {
                 dump($data['mouvements']);
                 foreach ($data['mouvements'] as $mvt) {
-                    dump(empty($this->mouvementTracaRepository->getOneByDate($mvt['date'])));
+                    try {
+                        dump(empty($this->mouvementTracaRepository->getOneByDate($mvt['date'])));
+                    } catch (ORMException $e) {
+                        dump($e);
+                    }
                     if (!$this->mouvementTracaRepository->getOneByDate($mvt['date'])) {
                         dump('okok');
                         $toInsert = new MouvementTraca();
