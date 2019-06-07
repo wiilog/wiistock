@@ -9,14 +9,7 @@
 
 <div class="form-group">
     {% include 'arrivage/depose.html.twig' %}
-    {% for pj in arrivage.piecesJointes %}
-        <p>
-            <i class="fa fa-file mr-2"></i>
-            <a target="_blank" href="/uploads/attachements/{{ pj }}">
-                {{ pj }}
-            </a>
-        </p>
-    {% endfor %}
+
 </div>
 
 {% set checked = (arrivage.statut.nom == 'traité par acheteur') ? 'checked' : '' %}
