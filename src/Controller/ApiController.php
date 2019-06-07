@@ -176,10 +176,9 @@ class ApiController extends FOSRestController implements ClassResourceInterface
             $em = $this->getDoctrine()->getManager();
             $numberOfRowsInserted = 0;
             try {
+                dump($data['mouvements']);
                 foreach ($data['mouvements'] as $mvt) {
-                    dump($mvt['date']);
                     if (!$this->mouvementTracaRepository->getOneByDate($mvt['date'])) {
-                        dump('yes0');
                         $toInsert = new MouvementTraca();
                         $toInsert->setRefArticle($mvt['ref_article']);
                         $toInsert->setRefEmplacement($mvt['ref_emplacement']);
@@ -189,10 +188,8 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                         $em->persist($toInsert);
                         $numberOfRowsInserted++;
                         if ($this->emplacementRepository->getOneByLabel($mvt['ref_emplacement']) && $mvt['type'] === 'depose') {
-                            dump('yes');
                             $colis = $this->colisRepository->getOneByCode($mvt['ref_article']);
                             if ($colis && $this->emplacementRepository->getOneByLabel($mvt['ref_emplacement'])->getIsDeliveryPoint()) {
-                                dump('yes2');
                                 $arrivage = $colis->getArrivage();
                                 $destinataire = $arrivage->getDestinataire();
                                 if ($this->mailerServerRepository->findAll()) {
