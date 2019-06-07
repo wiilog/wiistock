@@ -25,7 +25,7 @@ class MouvementTracaRepository extends ServiceEntityRepository
             'SELECT mvt
                 FROM App\Entity\MouvementTraca mvt
                 WHERE mvt.date = :date'
-        )->setParameter('date', $date);
+        )->setParameter('date', $date)->setMaxResults(1);
         return $query->getOneOrNullResult();
     }
 
