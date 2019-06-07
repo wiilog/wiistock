@@ -178,6 +178,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
             try {
                 foreach ($data['mouvements'] as $mvt) {
                     if (!$this->mouvementTracaRepository->getOneByDate($mvt['date'])) {
+                        dump('yes0');
                         $toInsert = new MouvementTraca();
                         $toInsert->setRefArticle($mvt['ref_article']);
                         $toInsert->setRefEmplacement($mvt['ref_emplacement']);
