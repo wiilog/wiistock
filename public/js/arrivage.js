@@ -146,3 +146,19 @@ function upload(files) {
         }
     });
 }
+
+function editRowArrivage(button) {
+    let path = Routing.generate('arrivage_edit_api', true);
+    let modal = $('#modalEditArrivage');
+    let submit = $('#submitEditArrivage');
+    let id = button.data('id');
+    let params = { id: id };
+
+    $.post(path, JSON.stringify(params), function(data) {
+        modal.find('.modal-body').html(data.html);
+        initEditor2('.editor-container-edit');
+        $('#modalEditArrivage').find('#acheteurs').select2('val', data.acheteurs); //TODO CG 1 seul fonctionne... ???
+    }, 'json');
+
+    modal.find(submit).attr('value', id);
+}

@@ -59,8 +59,6 @@
     <select type="text" class="form-control data select2" name="acheteurs" multiple="multiple"
             id="acheteurs">
         {% for utilisateur in utilisateurs %}
-            {% set selected = (utilisateur.id in acheteursId ? 'selected' : '') %}
-            {# TODO CG reste à mettre dans select2 acheteur en base#}
             <option value="{{ utilisateur.username }}">
                 {{ utilisateur.username }}
             </option>
@@ -123,5 +121,6 @@
 </div>
 
 <div class="error-msg"></div>
-
-<script>$('.select2').select2();</script>
+<script>
+    $('.select2').select2();
+</script>

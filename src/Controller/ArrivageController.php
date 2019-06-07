@@ -222,20 +222,22 @@ class ArrivageController extends AbstractController
      */
     public function editApi(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
             }
             $arrivage = $this->arrivageRepository->find($data['id']);
 
-            $acheteursId = [];
+            // construction de la chaîne de caractères pour alimenter le select2
+            $acheteursUsernames = [];
             foreach($arrivage->getAcheteurs() as $acheteur) {
-                $acheteursId[] = $acheteur->getId();
+              $acheteursUsernames[] = $acheteur->getUsername();
             }
 
-            $json = $this->renderView('arrivage/modalEditArrivageContent.html.twig', [
+            //            TODO CG afficher si litige et si pas droit modif (confirmer gestion droits)
+            if($this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
+              $html = $this->renderView('arrivage/modalEditArrivageContent.html.twig', [
                 'arrivage' => $arrivage,
-                'acheteursId' => $acheteursId,
                 'conforme' => $arrivage->getStatut()->getNom() === Statut::CONFORME,
                 'utilisateurs' => $this->utilisateurRepository->findAllSorted(),
                 'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ARRIVAGE),
@@ -244,8 +246,13 @@ class ArrivageController extends AbstractController
                 'chauffeurs' => $this->chauffeurRepository->findAllSorted(),
                 'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE)
             ]);
+          } else {
+            $html = $this->renderView('arrivage/modalEditArrivageContentLitige.html.twig', [
+              'arrivage' => $arrivage,
+            ]);
+          }
 
-            return new JsonResponse($json);
+          return new JsonResponse(['html' => $html, 'acheteurs' => $acheteursUsernames]);
         }
         throw new NotFoundHttpException('404');
     }
@@ -301,12 +308,15 @@ class ArrivageController extends AbstractController
             if (isset($data['nbUM'])) {
                 $arrivage->setNbUM((int)$data['nbUM']);
             }
-
+            if (isset($data['statutAcheteur'])) {
+              $statutName = $data['statutAcheteur'] ? Statut::TRAITE_ACHETEUR : Statut::ATTENTE_ACHETEUR;
+              $arrivage->setStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::ARRIVAGE, $statutName));
+            }
 
             // traitement de l'éventuel litige
             $litige = $arrivage->getLitige();
 
-            // conforme : on enregistre le litige et/ou on le modifie
+            // non conforme : on enregistre le litige et/ou on le modifie
             if ($arrivage->getStatut() != Statut::CONFORME) {
                 if (empty($litige)) {
                     $litige = new Litige();
@@ -321,7 +331,7 @@ class ArrivageController extends AbstractController
                     $litige->setCommentaire($data['commentaire']);
                 }
 
-            // non conforme : on supprime l'éventuel litige
+            // conforme : on supprime l'éventuel litige
             } else {
                 if (!empty($litige)) {
                     $em->remove($litige);
