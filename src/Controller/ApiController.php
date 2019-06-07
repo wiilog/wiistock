@@ -177,6 +177,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
             $numberOfRowsInserted = 0;
             try {
                 foreach ($data['mouvements'] as $mvt) {
+                    dump($mvt);
                     if (!$this->mouvementTracaRepository->getOneByDate($mvt['date'])) {
                         $toInsert = new MouvementTraca();
                         $toInsert->setRefArticle($mvt['ref_article']);
@@ -217,7 +218,6 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                         }
                     }
                 }
-                dump('yes');
                 $em->flush();
             } catch (DBALException $e) {
                 dump($e);
