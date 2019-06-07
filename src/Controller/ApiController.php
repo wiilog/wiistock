@@ -187,8 +187,10 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                         $em->persist($toInsert);
                         $numberOfRowsInserted++;
                         if ($this->emplacementRepository->getOneByLabel($mvt['ref_emplacement']) && $mvt['type'] === 'depose') {
+                            dump('yes');
                             $colis = $this->colisRepository->getOneByCode($mvt['ref_article']);
                             if ($colis && $this->emplacementRepository->getOneByLabel($mvt['ref_emplacement'])->getIsDeliveryPoint()) {
+                                dump('yes2');
                                 $arrivage = $colis->getArrivage();
                                 $destinataire = $arrivage->getDestinataire();
                                 if ($this->mailerServerRepository->findAll()) {
