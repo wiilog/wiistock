@@ -1,0 +1,73 @@
+<html>
+<style>
+    body {
+        font-family: 'Source Sans Pro', sans-serif;
+    }
+    th, td {
+        border: 1px solid black;
+        padding: 6px;
+        text-align: center;
+    }
+    table {
+        border-collapse: collapse;
+    }
+</style>
+<body>
+
+{% set s = litiges|length > 1 ? 's' : '' %}
+{% set nt = litiges|length > 1 ? 'ent' : '' %}
+<h2>{{ litiges|length }}</span> litige{{ s }} vous concerne{{ nt }} :</h2>
+
+{% for litige in litiges %}
+    {% set arrivage = litige.arrivage %}
+    <table style="border: 1px solid black;">
+        <thead>
+        <tr>
+            <th>N° d'arrivage</th>
+            <th>Transporteur</th>
+            <th>Chauffeur</th>
+            <th>N° tracking transporteur</th>
+            <th>N° commande / BL</th>
+            <th>Fournisseur</th>
+            <th>Destinataire</th>
+            <th>Nb UM</th>
+            <th>Date</th>
+            <th>Utilisateur</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>{{ arrivage.numeroArrivage }}</td>
+            <td>{{ arrivage.transporteur.label|capitalize }}</td>
+            <td>{{ arrivage.chauffeur.prenom|capitalize }} {{ arrivage.chauffeur.nom|upper }}</td>
+            <td>{{ arrivage.noTracking }}</td>
+            <td>{{ arrivage.numeroBL }}</td>
+            <td>{{ arrivage.fournisseur.nom }}</td>
+            <td>{{ arrivage.destinataire.username }}</td>
+            <td>{{ arrivage.nbUM }}</td>
+            <td>{{ arrivage.date|date('d/m/Y H:i') }}</td>
+            <td>{{ arrivage.utilisateur.username}}</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <p style="font-weight:bold;">Type de litige : {{ litige.type.label }}</p>
+    <p style="font-style:italic;">{{ litige.commentaire|raw }}</p>
+{% endfor %}
+
+<br>
+<br>
+
+Veuillez vous connecter pour régler le{{ s }} litige{{ s }} :<br><br>
+<table width="160" class="button" style="margin: 0px 0px 10px 30px;">
+    <tr>
+        <td class="btn-read-online" style="text-align: center; background-color: #4DB24C; padding: 10px; border-radius: 5px;">
+            <a href="{{ path('arrivage_index') }}" style="color: #fff; font-size: 18px; letter-spacing: 1px; text-decoration: none; text-shadow: 0px 2px 2px #4db24c; font-family: Arial, Helvetica, sans-serif;">
+                Aller vers Follow GT
+            </a>
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>

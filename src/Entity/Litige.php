@@ -37,7 +37,7 @@ class Litige
         return $this->id;
     }
 
-    public function getArrivage(): ?int
+    public function getArrivage(): ?Arrivage
     {
         return $this->arrivage;
     }
