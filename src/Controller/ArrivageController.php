@@ -397,7 +397,7 @@ class ArrivageController extends AbstractController
                     $filename = uniqid() . "." . $file->getClientOriginalExtension();
                     $file->move($path, $filename); // move the file to a path
 
-                  $arrivage->addAttachements($filename);
+                  $arrivage->addPiecesJointes($filename);
                   $fileNames[] = $filename;
                 }
             }
