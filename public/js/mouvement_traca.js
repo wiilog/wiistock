@@ -70,7 +70,8 @@ $('#submitSearchMvt').on('click', function () {
         function (settings, data, dataIndex) {
             let dateMin = $('#dateMin').val();
             let dateMax = $('#dateMax').val();
-            let dateInit = (data[0]).split(' ')[0].split('/').reverse().join('-') || 0;
+            let indexDate = tableMvt.column('Date:name').index();
+            let dateInit = (data[indexDate]).split(' ')[0].split('/').reverse().join('-') || 0;
 
             if (
                 (dateMin == "" && dateMax == "")

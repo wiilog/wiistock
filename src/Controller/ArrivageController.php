@@ -202,20 +202,19 @@ class ArrivageController extends AbstractController
                     $arrivage->addAcheteur($this->utilisateurRepository->findOneByUsername($acheteur));
                 }
             }
-            if (isset($data['nbUM'])) {
-                $arrivage->setNbUM((int)$data['nbUM']);
-            }
+			if (isset($data['nbUM'])) {
+				$arrivage->setNbUM((int)$data['nbUM']);
+
+				for ($i = 0; $i < $data['nbUM']; $i++) {
+					$colis = new Colis();
+					$colis
+						->setCode($numeroArrivage . '-' . $i)
+						->setArrivage($arrivage);
+					$em->persist($colis);
+				}
+			}
 
             $em->persist($arrivage);
-
-            if (isset($data['nbUM'])) {
-                for ($i = 0; $i < $data['nbUM']; $i++) {
-                    $c = new Colis();
-                    $c->setCode($numeroArrivage . '-' . $i);
-                    $c->setArrivage($arrivage);
-                    $em->persist($c);
-                }
-            }
 
             if ($statutLabel == Statut::ATTENTE_ACHETEUR) {
                 $litige = new Litige();
