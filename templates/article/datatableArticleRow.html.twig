@@ -1,21 +1,33 @@
 <div class="row">
     {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
-    <div data-id='{{ articleId }}' data-toggle='modal' data-target='#modalEditArticle' class='col-3 command-edit'
-        onclick="editRow($(this), Routing.generate('article_api_edit', true), $('#modalEditArticle'), $('#submitEditArticle'), true)">
-        <i class='fas fa-pencil-alt'></i>
-    </div>
-    <div class='col-3' id='delete{{articleId}}'
-        onclick="deleteRow($(this), $('#modalDeleteArticle'), $('#submitDeleteArticle'))" data-id='{{ articleId }}'
-        data-target='#modalDeleteArticle' data-toggle='modal'>
-        <i class='fas fa-trash'></i>
+    <div data-id='{{ articleId }}' data-toggle='modal' data-target='#modalEditArticle' class='col-4 btn-col-action'>
+        <button type="button" class="btn btn-block"
+            onclick="editRow($(this), Routing.generate('article_api_edit', true), $('#modalEditArticle'),
+            $('#submitEditArticle'), true)">
+            <i class='fas fa-pencil-alt'></i>
+        </button>
+   </div>
+
+    <div class='col-4 btn-col-action' id='delete{{articleId}}'>
+        <button type="button" class="btn btn-block"
+            onclick="deleteRow($(this), $('#modalDeleteArticle'), $('#submitDeleteArticle'))" data-id='{{ articleId }}'
+            data-target='#modalDeleteArticle' data-toggle='modal'>
+            <i class='fas fa-trash'></i>
+        </button>
+
     </div>
     {% else %}
-    <div data-id='{{ articleId }}' data-target='#modalShowArticle' data-toggle='modal' class='col-3'
-        onclick="showRow($(this), Routing.generate('article_show', true), $('#modalShowArticle'))">
-        <i class='fas fa-eye'></i>
+    <div data-id='{{ articleId }}' data-target='#modalShowArticle' data-toggle='modal' class='col-4 btn-col-action'>
+        <button type="button" class="btn btn-block"
+            onclick="showRow($(this), Routing.generate('article_show', true), $('#modalShowArticle'))">
+            <i class='fas fa-eye'></i>
+        </button>
     </div>
     {% endif %}
-    <div data-id='{{articleId}}' class='col-3' onclick='printSingleArticleBarcode($(this))'>
-        <i class="fas fa-print"></i>
+    <div data-id='{{articleId}}' class='col-4 btn-col-action'>
+        <button type="button" class="btn btn-block"
+            onclick='printSingleArticleBarcode($(this))'>
+            <i class="fas fa-print"></i>
+        </button>
     </div>
 </div>

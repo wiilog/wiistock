@@ -38,19 +38,16 @@ table {
   font-family: "Montserrat";
   src: url("../font/Montserrat-Regular.ttf");
 }
-
 @font-face {
   font-family: "Montserrat";
   src: url("../font/Montserrat-Bold.ttf");
   font-weight: bold;
 }
-
 @font-face {
   font-family: "Montserrat";
   src: url("../font/Montserrat-Italic.ttf");
   font-style: italic;
 }
-
 *, *::after, *::before {
   -webkit-box-sizing: border-box;
           box-sizing: border-box;
@@ -114,7 +111,7 @@ button:focus {
 
 input:-webkit-autofill {
   -webkit-box-shadow: 0 0 0 30px white inset !important;
-          box-shadow: 0 0 0 30px white inset !important;
+  box-shadow: 0 0 0 30px white inset !important;
 }
 
 .wrapper {
@@ -138,7 +135,6 @@ input:-webkit-autofill {
 a {
   color: unset;
 }
-
 a:hover {
   color: white;
 }
@@ -155,6 +151,11 @@ a:hover {
 .mtb-auto {
   margin-top: auto;
   margin-bottom: auto;
+}
+
+.btn-col-action {
+  padding-left: 0px;
+  padding-right: 0px;
 }
 
 .backDarkRed {
@@ -276,7 +277,6 @@ a:hover {
   background-color: rgba(255, 255, 255, 0.7);
   border-radius: 10px;
 }
-
 .alerte .alert-nb {
   font-size: 1.5rem;
   font-weight: bold;
@@ -294,23 +294,20 @@ a:hover {
   border-radius: 50px;
   margin: .5rem;
 }
-
 .btn:hover {
   background-color: #fcfcfc;
   color: #c6c6c6;
   border-color: #c6c6c6;
 }
-
 .btn:focus {
   -webkit-box-shadow: none;
-          box-shadow: none;
+  box-shadow: none;
 }
 
 .btn-primary {
   background-color: #130078;
   border-color: #130078;
 }
-
 .btn-primary:hover {
   background-color: #fcfcfc;
   color: #130078;
@@ -321,7 +318,6 @@ a:hover {
   background-color: #130078;
   border-color: #130078;
 }
-
 .btn-success:hover {
   background-color: #fcfcfc;
   color: #130078;
@@ -332,11 +328,25 @@ a:hover {
   background-color: #cc0000;
   border-color: #cc0000;
 }
-
 .btn-danger:hover {
   background-color: #fcfcfc;
   color: #cc0000;
   border-color: #cc0000;
+}
+
+.btn-block {
+  background-color: #424242;
+  border-color: #424242;
+  min-width: 30px;
+  max-width: 35px;
+  margin: 0px;
+  margin-margin-left: auto;
+  margin-margin-right: auto;
+}
+.btn-block:hover {
+  background-color: #fcfcfc;
+  color: #424242;
+  border-color: #424242;
 }
 
 .btn-action {
@@ -369,40 +379,32 @@ a:hover {
   width: 130px;
   color: #fcfcfc;
 }
-
 .sidemenu .menu-header {
   color: #fcfcfc;
   text-align: center;
 }
-
 .sidemenu .menu-header .version {
-  font-size: .8rem;
+  font-size: 0.8rem;
 }
-
 .sidemenu .menu-item {
   display: table-row;
   padding: 10px 18px;
 }
-
 .sidemenu .menu-item:hover {
   background-color: #cc0000;
 }
-
 .sidemenu .menu-item.active {
   background-color: #cc0000;
 }
-
 .sidemenu .menu-item.active .sidemenu-sub {
   display: table-cell;
 }
-
 .sidemenu .menu-item > a {
   display: table-cell;
   vertical-align: middle;
   color: #fcfcfc;
   text-align: center;
 }
-
 .sidemenu .menu-item .sidemenu-sub {
   display: none;
   list-style-type: none;
@@ -414,19 +416,16 @@ a:hover {
   bottom: 0;
   z-index: 101;
 }
-
 .sidemenu .menu-item .sidemenu-sub .sub-item {
   display: block;
-  font-size: .9rem;
+  font-size: 0.9rem;
   font-weight: 700;
   padding: 10px 18px;
 }
-
 .sidemenu .menu-item .sidemenu-sub .sub-item:hover {
   color: #424242;
   background-color: #c6c6c6;
 }
-
 .sidemenu h4 {
   font-size: 16px;
   font-weight: 700;
@@ -488,7 +487,6 @@ a:hover {
   font-size: 25px;
   vertical-align: sub;
   cursor: pointer;
-  -webkit-transition: 0.2s;
   transition: 0.2s;
 }
 
@@ -512,18 +510,11 @@ a:hover {
   width: 100%;
 }
 
-.table.mw-100 {
-  min-width: 100vw;
-}
-
 .table .fas {
-  font-size: 1.2rem;
+  font-size: 0.8rem;
   cursor: pointer;
-  margin: auto .4em;
-}
-
-.table .fas:hover {
-  color: black;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .switch {
@@ -532,27 +523,22 @@ a:hover {
   width: 50px;
   height: 25px;
 }
-
 .switch input {
   opacity: 0;
   width: 0;
   height: 0;
 }
-
 .switch input:checked + .slider {
   background-color: #970000;
 }
-
 .switch input:focus + .slider {
-  -webkit-box-shadow: 0 0 1px #970000;
-          box-shadow: 0 0 1px #970000;
+  box-shadow: 0 0 1px #970000;
 }
-
 .switch input:checked + .slider:before {
   -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
   transform: translateX(26px);
 }
-
 .switch .slider {
   position: absolute;
   cursor: pointer;
@@ -561,10 +547,9 @@ a:hover {
   right: 0;
   bottom: 0;
   background-color: #c6c6c6;
-  -webkit-transition: .4s;
-  transition: .4s;
+  -webkit-transition: 0.4s;
+  transition: 0.4s;
 }
-
 .switch .slider:before {
   position: absolute;
   content: "";
@@ -573,14 +558,12 @@ a:hover {
   left: 4px;
   bottom: 4px;
   background-color: white;
-  -webkit-transition: .4s;
-  transition: .4s;
+  -webkit-transition: 0.4s;
+  transition: 0.4s;
 }
-
 .switch .slider.round {
   border-radius: 34px;
 }
-
 .switch .slider.round:before {
   border-radius: 50%;
 }
@@ -592,22 +575,18 @@ a:hover {
   margin: 0;
   border: 1px solid #130078;
 }
-
 .radio-btn .btn:first-child {
-  border-bottom-left-radius: .25rem;
-  border-top-left-radius: .25rem;
+  border-bottom-left-radius: 0.25rem;
+  border-top-left-radius: 0.25rem;
 }
-
 .radio-btn .btn:last-child {
-  border-bottom-right-radius: .25rem;
-  border-top-right-radius: .25rem;
+  border-bottom-right-radius: 0.25rem;
+  border-top-right-radius: 0.25rem;
 }
-
 .radio-btn .btn:hover {
   background-color: #130078;
   color: white;
 }
-
 .radio-btn .not-active {
   color: #130078;
   background-color: white;
@@ -620,12 +599,10 @@ a:hover {
   color: #424242;
   border-color: #424242;
 }
-
 .filter:hover {
   color: #cc0000;
   border-color: #cc0000;
 }
-
 .filter span {
   overflow-wrap: anywhere;
 }
@@ -652,4 +629,5 @@ strong {
 em {
   font-style: italic !important;
 }
+
 /*# sourceMappingURL=style.css.map */
