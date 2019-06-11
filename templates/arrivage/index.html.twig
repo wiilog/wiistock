@@ -3,36 +3,39 @@
 {% block title %}Arrivages{% endblock %}
 
 {% block page_content %}
-{#fermeture de la div de layout pour fermer le container et ne pas avoir de bordure#}
-</div>
-
-{% include 'filters/filters.html.twig' with {'btnName' : 'submitSearchService'} %}
-
-<div class="container-fluid">
-
-    <h1>Arrivages</h1>
-
-    <div class="row">
-        {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
-        <a href="" data-toggle="modal" data-target="#modalNewArrivage" class="btn btn-primary"
-            onclick='initNewArrivageEditor("#modalNewArrivage")'>
-            <span class="fa fa-plus mr-2"></span>Nouvel arrivage
-        </a>
-        {% endif %}
+    {#fermeture de la div de layout pour fermer le container et ne pas avoir de bordure#}
     </div>
 
-    <div>
-        <table id="tableArrivages" class="table table-striped table-bordered w-100">
-        </table>
+    {% include 'filters/filters.html.twig' with {'btnName' : 'submitSearchService'} %}
+
+    <div class="container-fluid">
+
+        <h1>Arrivages</h1>
+
+        <div class="row">
+            {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+                <a href="" data-toggle="modal" data-target="#modalNewArrivage" class="btn btn-primary"
+                   onclick='initNewArrivageEditor("#modalNewArrivage")'>
+                    <span class="fa fa-plus mr-2"></span>Nouvel arrivage
+                </a>
+            {% endif %}
+        </div>
+
+        <div>
+            <table id="tableArrivages" class="table table-striped table-bordered w-100">
+            </table>
+        </div>
     </div>
-</div>
 
-{% include "arrivage/modalNewArrivage.html.twig" %}
-{% include "arrivage/modalEditArrivage.html.twig" %}
-{% include "arrivage/modalDeleteArrivage.html.twig" %}
+    <div hidden id="barcodes"></div>
+    <button class="btn" id="cannotGenerate" data-target='#modalCannotGenerate' data-toggle='modal' hidden></button>
 
+    {% include "arrivage/modalNewArrivage.html.twig" %}
+    {% include "arrivage/modalEditArrivage.html.twig" %}
+    {% include "arrivage/modalDeleteArrivage.html.twig" %}
+    {% include "arrivage/modalNoParamsEtiquettes.html.twig" %}
 {% endblock %}
 
 {% block javascript %}
-<script src="{{ asset('js/arrivage.js') }}?{{ date().timestamp }}"></script>
+<script src = "{{ asset('js/arrivage.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

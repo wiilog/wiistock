@@ -13,6 +13,7 @@ use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Repository\ArrivageRepository;
 use App\Repository\ChauffeurRepository;
+use App\Repository\DimensionsEtiquettesRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\StatutRepository;
 use App\Repository\TransporteurRepository;
@@ -63,17 +64,23 @@ class ArrivageController extends AbstractController
     private $chauffeurRepository;
 
     /**
-     * @var TransporteurRepository
-     */
+ * @var TransporteurRepository
+ */
     private $transporteurRepository;
+
+    /**
+     * @var DimensionsEtiquettesRepository
+     */
+    private $dimensionsEtiquettesRepository;
 
     /**
      * @var TypeRepository
      */
     private $typeRepository;
 
-    public function __construct(TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
+    public function __construct(DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
     {
+        $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
         $this->userService = $userService;
         $this->arrivageRepository = $arrivageRepository;
         $this->utilisateurRepository = $utilisateurRepository;
@@ -220,8 +227,21 @@ class ArrivageController extends AbstractController
             }
 
             $em->flush();
-
-            return new JsonResponse($data);
+            $response = [];
+            $response['refs'] = [];
+            $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
+            if ($dimension) {
+                $response['height'] = $dimension->getHeight();
+                $response['width'] = $dimension->getWidth();
+                $response['arrivage'] = $numeroArrivage;
+                $response['exists'] = true;
+                $response['nbUm'] = $data['nbUM'];
+                $response['printUm'] = $data['printUM'];
+                $response['printArrivage'] = $data['printArrivage'];
+            } else {
+                $response['exists'] = false;
+            }
+            return new JsonResponse($response);
         }
         throw new XmlHttpException('404 not found');
     }
@@ -366,8 +386,10 @@ class ArrivageController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
-
             $entityManager = $this->getDoctrine()->getManager();
+            foreach ($arrivage->getColis() as $colis) {
+                $entityManager->remove($colis);
+            }
             $entityManager->remove($arrivage);
             $entityManager->flush();
             return new JsonResponse();
