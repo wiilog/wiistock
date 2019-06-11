@@ -6,7 +6,7 @@
              onclick="editRowArrivage($(this), Routing.generate('arrivage_edit_api', true), $('#modalEditArrivage'), $('#submitEditArrivage'), true)">
             <i class='fas fa-pencil-alt'></i>
         </div>
-    {% elseif arrivage.litige is defined %}
+    {% elseif arrivage.litige is defined and app.user.username in arrivage.acheteurs %}
         <div data-id='{{ arrivage.id }}' data-target='#modalEditArrivage' data-toggle='modal'
              class='btn-xs btn-default'
              onclick="editRowArrivage($(this), Routing.generate('arrivage_edit_api', true), $('#modalEditArrivage'), $('#submitEditArrivage'), true)">

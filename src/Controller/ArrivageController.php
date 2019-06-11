@@ -245,22 +245,23 @@ class ArrivageController extends AbstractController
               $acheteursUsernames[] = $acheteur->getUsername();
             }
 
-            //            TODO CG afficher si litige et si pas droit modif (confirmer gestion droits)
-            if($this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
-              $html = $this->renderView('arrivage/modalEditArrivageContent.html.twig', [
-                'arrivage' => $arrivage,
-                'conforme' => $arrivage->getStatut()->getNom() === Statut::CONFORME,
-                'utilisateurs' => $this->utilisateurRepository->findAllSorted(),
-                'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ARRIVAGE),
-                'fournisseurs' => $this->fournisseurRepository->findAllSorted(),
-                'transporteurs' => $this->transporteurRepository->findAllSorted(),
-                'chauffeurs' => $this->chauffeurRepository->findAllSorted(),
-                'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE)
+          if($this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
+            $html = $this->renderView('arrivage/modalEditArrivageContent.html.twig', [
+              'arrivage' => $arrivage,
+              'conforme' => $arrivage->getStatut()->getNom() === Statut::CONFORME,
+              'utilisateurs' => $this->utilisateurRepository->findAllSorted(),
+              'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ARRIVAGE),
+              'fournisseurs' => $this->fournisseurRepository->findAllSorted(),
+              'transporteurs' => $this->transporteurRepository->findAllSorted(),
+              'chauffeurs' => $this->chauffeurRepository->findAllSorted(),
+              'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE)
             ]);
-          } else {
+          } elseif (in_array($this->getUser()->getUsername(), $acheteursUsernames)) {
             $html = $this->renderView('arrivage/modalEditArrivageContentLitige.html.twig', [
               'arrivage' => $arrivage,
             ]);
+          } else {
+            $html = '';
           }
 
           return new JsonResponse(['html' => $html, 'acheteurs' => $acheteursUsernames]);
