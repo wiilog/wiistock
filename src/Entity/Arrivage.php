@@ -94,10 +94,16 @@ class Arrivage
      */
     private $utilisateur;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Colis", mappedBy="arrivage")
+     */
+    private $colis;
+
 
     public function __construct()
     {
         $this->acheteurs = new ArrayCollection();
+        $this->colis = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -211,13 +217,6 @@ class Arrivage
     public function setPiecesJointes(?array $piecesJointes): self
     {
         $this->piecesJointes = $piecesJointes;
-
-        return $this;
-    }
-
-    public function addAttachements($pieceJointe) : self
-    {
-        $this->piecesJointes[] = $pieceJointe;
 
         return $this;
     }
@@ -343,4 +342,34 @@ class Arrivage
         return $this;
     }
 
+    /**
+     * @return Collection|Colis[]
+     */
+    public function getColis(): Collection
+    {
+        return $this->colis;
+    }
+
+    public function addColi(Colis $coli): self
+    {
+        if (!$this->colis->contains($coli)) {
+            $this->colis[] = $coli;
+            $coli->setArrivage($this);
+        }
+
+        return $this;
+    }
+
+    public function removeColi(Colis $coli): self
+    {
+        if ($this->colis->contains($coli)) {
+            $this->colis->removeElement($coli);
+            // set the owning side to null (unless already changed)
+            if ($coli->getArrivage() === $this) {
+                $coli->setArrivage(null);
+            }
+        }
+
+        return $this;
+    }
 }
