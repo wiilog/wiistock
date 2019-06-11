@@ -276,7 +276,7 @@ function ajaxGetAndFillArticle(select) {
             editNewArticle.html(data.modif);
             modalFooter.removeClass('d-none');
             displayRequireChamp($('#typeEdit'), 'edit');
-            initEditor2('.editor-container-edit');
+            // initEditor2('.editor-container-edit');
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
         })
     }

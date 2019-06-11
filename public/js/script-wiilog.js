@@ -209,7 +209,7 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
                 defaultValueForTypage($('#typageModif'), '-edit');
             }
 
-            displayRequireChamp($('#typeEdit'), 'edit');
+            displayRequireChamp(modal.find('#typeEdit'), 'edit');
 
             if ($('#referenceEdit').val() !== undefined) {   //TODO Moche
                 setMaxQuantityEdit($('#referenceEdit'));
