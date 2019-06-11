@@ -76,7 +76,6 @@
 {# bloc litige à afficher si statut litige sélectionné #}
 <div id="litigeBloc" class="{{ conforme ? 'd-none' : ''}}">
     <div class="form-group">
-        {% if arrivage.litige.type.id is defined %}
         <label for="litigeType">Type de litige</label>
         <select class="form-control data" id="litigeType" name="litigeType">
             <option disabled selected> </option>
@@ -92,7 +91,6 @@
         <input id="commentaire" class="commentaire form-control data" name="commentaire" type="hidden" value="{{ arrivage.litige.commentaire }}">
         <div class="editor-container-edit" value="{{ arrivage.litige.commentaire }}">{{ arrivage.litige.commentaire|raw }}</div>
     </div>
-    {% endif %}
 </div>
 
 <div class="error-msg"></div>
