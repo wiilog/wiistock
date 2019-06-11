@@ -2,10 +2,12 @@
 
 namespace App\DataFixtures;
 
+use App\Controller\MouvementTracaController;
 use App\Entity\Article;
 use App\Entity\Collecte;
 use App\Entity\Demande;
 use App\Entity\Livraison;
+use App\Entity\MouvementTraca;
 use App\Entity\OrdreCollecte;
 use App\Entity\Preparation;
 use App\Entity\Reception;
@@ -220,6 +222,27 @@ class StatutFixtures extends Fixture implements DependentFixtureInterface, Fixtu
                 $statut
                     ->setNom($statutName)
                     ->setCategorie($this->getReference('statut-manutention'));
+                $manager->persist($statut);
+                dump("création du statut " . $statutName);
+            }
+        }
+
+        $manager->flush();
+
+        // catégorie mouvement
+        $statutsNames = [
+            MouvementTraca::PRISE,
+            MouvementTraca::DEPOSE,
+        ];
+
+        foreach ($statutsNames as $statutName) {
+            $statut = $this->statutRepository->findOneByCategorieAndStatut(MouvementTraca::CATEGORIE, $statutName);
+
+            if (empty($statut)) {
+                $statut = new Statut();
+                $statut
+                    ->setNom($statutName)
+                    ->setCategorie($this->getReference('statut-mouvement_traca'));
                 $manager->persist($statut);
                 dump("création du statut " . $statutName);
             }

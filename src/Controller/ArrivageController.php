@@ -6,6 +6,7 @@ use App\Entity\Action;
 use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\Colis;
 use App\Entity\Litige;
 use App\Entity\Menu;
 use App\Entity\Statut;
@@ -201,6 +202,15 @@ class ArrivageController extends AbstractController
 
             $em->persist($arrivage);
 
+            if (isset($data['nbUM'])) {
+                for ($i = 0; $i < $data['nbUM']; $i++) {
+                    $c = new Colis();
+                    $c->setCode($numeroArrivage . '-' . $i);
+                    $c->setArrivage($arrivage);
+                    $em->persist($c);
+                }
+            }
+
             if ($statutLabel == Statut::ATTENTE_ACHETEUR) {
                 $litige = new Litige();
                 $litige
@@ -388,7 +398,7 @@ class ArrivageController extends AbstractController
                     $filename = uniqid() . "." . $file->getClientOriginalExtension();
                     $file->move($path, $filename); // move the file to a path
 
-                  $arrivage->addAttachements($filename);
+                  $arrivage->addPiecesJointes($filename);
                   $fileNames[] = $filename;
                 }
             }

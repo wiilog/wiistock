@@ -2,172 +2,175 @@
 
 {% block body %}
 
-{% block menu %}
-<nav>
-    <div id="sidemenu-bg" class="sidemenu-bg hide"></div>
-    <ul id="sidemenu" class="sidemenu">
-        <li>
-            <div class="menu-header">
-                <img src="{{asset('img/Logo-FollowGTpetit.png')}}" class='logoGt'>
-                <div class="version"> V1.1.1</div>
-                <h4 class="mt-2">{{ app.user.username }}</h4>
-            </div>
-        </li>
-        <li class="menu-item">
-            <a href="{{ path('check_last_login') }}">
-                <i class="fas fa-home"></i>
-                <h4>Accueil</h4>
-            </a>
-        </li>
+    {% block menu %}
+        <nav>
+            <div id="sidemenu-bg" class="sidemenu-bg hide"></div>
+            <ul id="sidemenu" class="sidemenu">
+                <li>
+                    <div class="menu-header">
+                        <img src="{{ asset('img/Logo-FollowGTpetit.png') }}" class='logoGt'>
+                        <div class="version"> V1.1.1</div>
+                        <h4 class="mt-2">{{ app.user.username }}</h4>
+                    </div>
+                </li>
+                <li class="menu-item">
+                    <a href="{{ path('check_last_login') }}">
+                        <i class="fas fa-home"></i>
+                        <h4>Accueil</h4>
+                    </a>
+                </li>
 
-        <!-- ARRIVAGE   -->
-        {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::LIST')) %}
-            <li class="menu-item">
-                <a href="{{ path('arrivage_index') }}">
-                    <i class="fas fa-truck"></i>
-                    <h4>Arrivage</h4>
-                </a>
-            </li>
-        {% endif %}
-        <!-- DEMANDE   -->
-        {% if
-            hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::LIST')) or
-            hasRight(constant('App\\Entity\\Menu::DEM_COLLECTE'), constant('App\\Entity\\Action::LIST')) or
-            hasRight(constant('App\\Entity\\Menu::MANUT'), constant('App\\Entity\\Action::LIST'))
-        %}
-        <li class="menu-item has-submenu">
-            <a href="#">
-                <i class="fas fa-shopping-cart"></i>
-                <h4>Demande</h4>
-            </a>
-            <ul class="sidemenu-sub">
-                {% if hasRight(constant('App\\Entity\\Menu::DEM_COLLECTE'), constant('App\\Entity\\Action::LIST')) %}
-                <li><a href="{{path("collecte_index")}}" class="sub-item">• Collecte</a></li>
+                <!-- ARRIVAGE   -->
+                {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::LIST')) %}
+                    <li class="menu-item has-submenu">
+                        <a href="#">
+                            <i class="fas fa-truck"></i>
+                            <h4>Arrivage</h4>
+                        </a>
+                        <ul class="sidemenu-sub">
+                            <li><a href="{{ path("arrivage_index") }}" class="sub-item">• Arrivage</a></li>
+                            <li><a href="{{ path('mvt_traca_index') }}" class="sub-item">• Mouvement</a></li>
+                        </ul>
+                    </li>
                 {% endif %}
-                {% if hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::LIST')) %}
-                <li><a href="{{ path('demande_index') }}" class="sub-item">• Livraison</a></li>
+                <!-- DEMANDE   -->
+                {% if
+                    hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::LIST')) or
+                    hasRight(constant('App\\Entity\\Menu::DEM_COLLECTE'), constant('App\\Entity\\Action::LIST')) or
+                    hasRight(constant('App\\Entity\\Menu::MANUT'), constant('App\\Entity\\Action::LIST')) %}
+                    <li class="menu-item has-submenu">
+                        <a href="#">
+                            <i class="fas fa-shopping-cart"></i>
+                            <h4>Demande</h4>
+                        </a>
+                        <ul class="sidemenu-sub">
+                            {% if hasRight(constant('App\\Entity\\Menu::DEM_COLLECTE'), constant('App\\Entity\\Action::LIST')) %}
+                                <li><a href="{{ path("collecte_index") }}" class="sub-item">• Collecte</a></li>
+                            {% endif %}
+                            {% if hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::LIST')) %}
+                                <li><a href="{{ path('demande_index') }}" class="sub-item">• Livraison</a></li>
+                            {% endif %}
+                            {% if hasRight(constant('App\\Entity\\Menu::MANUT'), constant('App\\Entity\\Action::LIST')) %}
+                                <li><a href="{{ path('service_index') }}" class="sub-item">• Manutention</a></li>
+                            {% endif %}
+                        </ul>
+                    </li>
                 {% endif %}
-                {% if hasRight(constant('App\\Entity\\Menu::MANUT'), constant('App\\Entity\\Action::LIST')) %}
-                <li><a href="{{ path('service_index') }}" class="sub-item">• Manutention</a></li>
+
+                <!-- RECEPTION -->
+                {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::LIST')) %}
+                    <li class="menu-item has-submenu">
+                        <a href="#">
+                            <i class="fas fa-arrow-alt-circle-down "></i>
+                            <h4>Réception</h4>
+                        </a>
+                        <ul class="sidemenu-sub">
+                            <li><a href="{{ path("reception_index") }}" class="sub-item">• Réception</a></li>
+                        </ul>
+                    </li>
                 {% endif %}
+
+                <!-- ORDRE -->
+                {% if
+                    hasRight(constant('App\\Entity\\Menu::PREPA'), constant('App\\Entity\\Action::LIST')) or
+                    hasRight(constant('App\\Entity\\Menu::LIVRAISON'), constant('App\\Entity\\Action::LIST')) %}
+                    <li class="menu-item has-submenu">
+                        <a href="#">
+                            <i class="fas fa-network-wired"></i>
+                            <h4>Ordre</h4>
+                        </a>
+                        <ul class="sidemenu-sub">
+                            {% if hasRight(constant('App\\Entity\\Menu::COLLECTE'), constant('App\\Entity\\Action::LIST')) %}
+                                <li><a href="{{ path("ordre_collecte_index") }}" class="sub-item">• Collecte</a></li>
+                            {% endif %}
+                            {% if hasRight(constant('App\\Entity\\Menu::LIVRAISON'), constant('App\\Entity\\Action::LIST')) %}
+                                <li><a href="{{ path("livraison_index") }}" class="sub-item">• Livraison</a></li>
+                            {% endif %}
+                            {% if hasRight(constant('App\\Entity\\Menu::PREPA'), constant('App\\Entity\\Action::LIST')) %}
+                                <li><a href="{{ path('preparation_index') }}" class="sub-item">• Préparation</a></li>
+                            {% endif %}
+                        </ul>
+                    </li>
+                {% endif %}
+
+                <!-- STOCK -->
+                {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::LIST')) %}
+                    <li class="menu-item has-submenu">
+                        <a href="#">
+                            <i class="fas fa-box"></i>
+                            <h4>Stock</h4>
+                        </a>
+                        <ul class="sidemenu-sub">
+                            <li>
+                                <a href="{{ path('article_index') }}" class="sub-item">• Article</a>
+                            </li>
+                            <li>
+                                <a href="{{ path('emplacement_index') }}" class="sub-item">• Emplacement</a>
+                            </li>
+                            <li>
+                                <a href="{{ path('fournisseur_index') }}" class="sub-item">• Fournisseur</a>
+                            </li>
+                            <li>
+                                <a href="{{ path('reference_article_index') }}" class="sub-item">• Référence CEA</a>
+                            </li>
+                            <li>
+                                <a href="{{ path('article_fournisseur_index') }}" class="sub-item">• Article
+                                    fournisseur</a>
+                            </li>
+                        </ul>
+                    </li>
+                {% endif %}
+
+                <!-- PARAMETRAGE -->
+                {% if (hasRight(constant('App\\Entity\\Menu::PARAM'))) %}
+                    <li class="menu-item has-submenu">
+                        <a href="#">
+                            <i class="fas fa-gear"></i>
+                            <h4>Paramétrage</h4>
+                        </a>
+                        <ul class="sidemenu-sub">
+                            <li>
+                                <a href="{{ path('role_index') }}" class="sub-item">• Rôles</a>
+                            </li>
+                            <li>
+                                <a href="{{ path('user_index') }}" class="sub-item">• Utilisateurs</a>
+                            </li>
+                            <li>
+                                <a href="{{ path('champ_libre_index') }}" class="sub-item">• Champs libres</a>
+                            </li>
+                            <li>
+                                <a href="{{ path('alerte_index') }}" class="sub-item">• Alertes</a>
+                            </li>
+                            <li>
+                                <a href="{{ path('mailer_server') }}" class="sub-item">• Configuration email</a>
+                            </li>
+                            <li>
+                                <a href="{{ path('etiquettes_param') }}" class="sub-item">• Configuration étiquettes</a>
+                            </li>
+                            <li>
+                                <a href="{{ path('exports_params') }}" class="sub-item">• Export de données</a>
+                            </li>
+                        </ul>
+                    </li>
+                {% endif %}
+
+                <li class="menu-item">
+                    <a href="{{ path('logout') }}">
+                        <i class="fas fa-power-off"></i>
+                        <h4>Déconnexion</h4>
+                    </a>
+                </li>
+
             </ul>
-        </li>
-        {% endif %}
 
-        <!-- RECEPTION -->
-        {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::LIST')) %}
-        <li class="menu-item has-submenu">
-            <a href="#">
-                <i class="fas fa-arrow-alt-circle-down "></i>
-                <h4>Réception</h4>
-            </a>
-            <ul class="sidemenu-sub">
-                <li><a href="{{path("reception_index")}}" class="sub-item">• Réception</a></li>
-            </ul>
-        </li>
-        {% endif %}
+        </nav>
+    {% endblock %}
+    <div class="wrapper" class="accueil-back">
+        <div class="container-fluid">
+            {% block page_content %}
 
-        <!-- ORDRE -->
-        {% if
-            hasRight(constant('App\\Entity\\Menu::PREPA'), constant('App\\Entity\\Action::LIST')) or
-            hasRight(constant('App\\Entity\\Menu::LIVRAISON'), constant('App\\Entity\\Action::LIST'))
-        %}
-        <li class="menu-item has-submenu">
-            <a href="#">
-                <i class="fas fa-network-wired"></i>
-                <h4>Ordre</h4>
-            </a>
-            <ul class="sidemenu-sub">
-                {% if hasRight(constant('App\\Entity\\Menu::COLLECTE'), constant('App\\Entity\\Action::LIST')) %}
-                <li><a href="{{ path("ordre_collecte_index") }}" class="sub-item">• Collecte</a></li>
-                {% endif %}
-                {% if hasRight(constant('App\\Entity\\Menu::LIVRAISON'), constant('App\\Entity\\Action::LIST')) %}
-                <li><a href="{{ path("livraison_index") }}" class="sub-item">• Livraison</a></li>
-                {% endif %}
-                {% if hasRight(constant('App\\Entity\\Menu::PREPA'), constant('App\\Entity\\Action::LIST')) %}
-                <li><a href="{{ path('preparation_index') }}" class="sub-item">• Préparation</a></li>
-                {% endif %}
-            </ul>
-        </li>
-        {% endif %}
-
-        <!-- STOCK -->
-        {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::LIST')) %}
-        <li class="menu-item has-submenu">
-            <a href="#">
-                <i class="fas fa-box"></i>
-                <h4>Stock</h4>
-            </a>
-            <ul class="sidemenu-sub">
-                <li>
-                    <a href="{{ path('article_index') }}" class="sub-item">• Article</a>
-                </li>
-                <li>
-                    <a href="{{path('emplacement_index')}}" class="sub-item">• Emplacement</a>
-                </li>
-                <li>
-                    <a href="{{ path('fournisseur_index') }}" class="sub-item">• Fournisseur</a>
-                </li>
-                <li>
-                    <a href="{{ path('reference_article_index') }}" class="sub-item">• Référence CEA</a>
-                </li>
-                <li>
-                    <a href="{{ path('article_fournisseur_index') }}" class="sub-item">• Article fournisseur</a>
-                </li>
-            </ul>
-        </li>
-        {% endif %}
-
-        <!-- PARAMETRAGE -->
-        {% if (hasRight(constant('App\\Entity\\Menu::PARAM'))) %}
-            <li class="menu-item has-submenu">
-                <a href="#">
-                    <i class="fas fa-gear"></i>
-                    <h4>Paramétrage</h4>
-                </a>
-                <ul class="sidemenu-sub">
-                    <li>
-                        <a href="{{ path('role_index') }}" class="sub-item">• Rôles</a>
-                    </li>
-                    <li>
-                        <a href="{{ path('user_index') }}" class="sub-item">• Utilisateurs</a>
-                    </li>
-                    <li>
-                        <a href="{{ path('champ_libre_index') }}" class="sub-item">• Champs libres</a>
-                    </li>
-                    <li>
-                        <a href="{{ path('alerte_index') }}" class="sub-item">• Alertes</a>
-                    </li>
-                    <li>
-                        <a href="{{ path('mailer_server') }}" class="sub-item">• Configuration email</a>
-                    </li>
-                    <li>
-                        <a href="{{ path('etiquettes_param') }}" class="sub-item">• Configuration étiquettes</a>
-                    </li>
-                    <li>
-                        <a href="{{ path('exports_params') }}" class="sub-item">• Export de données</a>
-                    </li>
-                </ul>
-            </li>
-        {% endif %}
-
-        <li class="menu-item">
-            <a href="{{ path('logout') }}">
-                <i class="fas fa-power-off"></i>
-                <h4>Déconnexion</h4>
-            </a>
-        </li>
-
-    </ul>
-
-</nav>
-{% endblock %}
-<div class="wrapper" class="accueil-back">
-    <div class="container-fluid">
-        {% block page_content %}
-
-        {% endblock %}
+            {% endblock %}
+        </div>
     </div>
-</div>
 
 {% endblock %}
