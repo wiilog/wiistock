@@ -388,7 +388,6 @@ let ajaxPlusDemandeContent = function (button, demande) {
             }
             showDemande(button);
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
-            initEditor2('#editor-container-edit');
         }
     }
     let json = {
@@ -411,9 +410,9 @@ let ajaxEditArticle = function (select) {
             if (dataReponse) {
                 $('.editChampLibre').html(dataReponse);
                 ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
-                displayRequireChamp($('#typeEditArticle'), 'edit');
+                displayRequireChamp(select.closest('.modal').find('#type'), 'edit'); //TODO CG à bien tester
                 $('#livraisonShow').find('#withdrawQuantity').removeClass('d-none').addClass('data');
-                initEditor2();
+                initEditor2('.editor-container-edit');
                 modalFooter.removeClass('d-none');
             } else {
                 //TODO gérer erreur
