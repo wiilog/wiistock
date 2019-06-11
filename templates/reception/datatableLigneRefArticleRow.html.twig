@@ -1,9 +1,9 @@
 <div class="row">
     {% if modifiable %}
     {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
-    <div data-id='{{ligneId}}' data-toggle='modal' data-target='#modalEditLigneArticle' class='col-4 btn-col-action'>
-        <button type="button" class="btn btn-block"
-        onclick="editRow($(this), Routing.generate('reception_article_edit_api', true), $('#modalEditLigneArticle'), $('#submitEditLigneArticle'), true, '.editor-container-article')">
+    <div data-toggle='modal' data-target='#modalEditLigneArticle' class='col-4 btn-col-action'>
+        <button type="button" class="btn btn-block" data-id='{{ligneId}}'
+            onclick="editRow($(this), Routing.generate('reception_article_edit_api', true), $('#modalEditLigneArticle'), $('#submitEditLigneArticle'), true, '.editor-container-article')">
             <i class='fas fa-pencil-alt'></i>
         </button>
     </div>
@@ -19,8 +19,8 @@
     {% endif %}
     {% endif %}
 
-    <div data-id='{{ligneId}}' class='col-4 btn-col-action'>
-        <button type="button" class="btn btn-block" onclick='printSingleBarcode($(this))'>
+    <div class='col-4 btn-col-action'>
+        <button type="button" class="btn btn-block" data-id='{{ligneId}}'  onclick='printSingleBarcode($(this))'>
             <i class="fas fa-{{type}}"></i>
         </button>
     </div>

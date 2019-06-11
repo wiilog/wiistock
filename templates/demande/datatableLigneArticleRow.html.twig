@@ -2,7 +2,6 @@
 {%  if modifiable %}
 
 <div class="row">
-
    <div class='col-4 btn-col-action'>
        <button type="button" class="btn btn-block"
         onclick="deleteRowDemande($(this), $('#modalDeleteArticle'), $('#submitDeleteArticle'))" data-id='{{ id }}'
@@ -12,24 +11,24 @@
    </div>
     {% if name == reference %}
 
-    <div data-id='{{ id }}' class='col-4 btn-col-action' data-target='#modalEditArticle' data-toggle='modal'>
-        <button type="button" class="btn btn-block"
+    <div class='col-4 btn-col-action' data-target='#modalEditArticle' data-toggle='modal'>
+        <button type="button" class="btn btn-block" data-id='{{ id }}'
         onclick="editRow($(this), Routing.generate('demande_article_api_edit', true), $('#modalEditArticle'), $('#submitEditArticle'))">
             <i class='fas fa-pencil-alt'></i>
         </button>
     </div>
     {% endif %}
     {% if refArticleId is defined %}
-    <div data-id='{{ refArticleId }}' data-target='#modalShowRefArticle' data-toggle='modal' class='col-4 btn-col-action'>
-        <button type="button" class="btn btn-block"
+    <div data-target='#modalShowRefArticle' data-toggle='modal' class='col-4 btn-col-action'>
+        <button type="button" class="btn btn-block" data-id='{{ refArticleId }}'
         onclick="showRow($(this), Routing.generate('reference_article_show', true), $('#modalShowRefArticle'))">
             <i class='fas fa-eye'></i>
         </button>
     </div>
     {% else %}
-    <div data-id='{{ id }}' data-target='#modalShowArticle' data-toggle='modal' class='col-4 btn-col-action'>
-        <button type="button" class="btn btn-block"
-        onclick="showRow($(this), Routing.generate('article_show', true), $('#modalShowArticle'))">
+    <div data-target='#modalShowArticle' data-toggle='modal' class='col-4 btn-col-action'>
+        <button type="button" class="btn btn-block" data-id='{{ id }}'
+                onclick="showRow($(this), Routing.generate('article_show', true), $('#modalShowArticle'))">
             <i class='fas fa-eye'></i>
         </button>
     </div>

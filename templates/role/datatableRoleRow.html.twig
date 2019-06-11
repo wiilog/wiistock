@@ -2,14 +2,14 @@
     {#<a href='{{ url.show }}' class="col-3">#}
         {#<i class='fas fa-eye'></i>#}
     {#</a>#}
-    <div data-id='{{ roleId }}' class='col-4 btn-col-action' data-toggle='modal' data-target='#modalEditRole'>
-        <button type="button" class="btn btn-block"
+    <div  class='col-4 btn-col-action' data-toggle='modal' data-target='#modalEditRole'>
+        <button type="button" class="btn btn-block" data-id='{{ roleId }}'
          onclick="editRow($(this), Routing.generate('role_api_edit', true), $('#modalEditRole'), $('#submitEditRole'))">
             <i class='fas fa-pencil-alt'></i>
         </button>
     </div>
-    <div data-id='{{ roleId }}' class='col-4 btn-col-action'  data-toggle='modal' data-target='#modalDeleteRole'>
-        <button type="button" class="btn btn-block"
+    <div class='col-4 btn-col-action'  data-toggle='modal' data-target='#modalDeleteRole'>
+        <button type="button" class="btn btn-block" data-id='{{ roleId }}'
          onclick="deleteRow($(this), $('#modalDeleteRole'), $('#submitDeleteRole'))">
             <i class='fas fa-trash'></i>
         </button>

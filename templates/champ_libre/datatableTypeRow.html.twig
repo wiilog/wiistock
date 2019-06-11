@@ -1,6 +1,6 @@
 <div class="d-flex">
-    <div data-id='{{ idType }}' data-toggle='modal' data-target='#modalEditType' class='col-4 btn-col-action'>
-        <button type="button" class="btn btn-block"
+    <div  data-toggle='modal' data-target='#modalEditType' class='col-4 btn-col-action'>
+        <button type="button" class="btn btn-block" data-id='{{ idType }}'
         onclick="editRow($(this),  Routing.generate('type_api_edit', true), $('#modalEditType'), $('#submitEditType'))">
             <i class='fas fa-pencil-alt '></i>
         </button>

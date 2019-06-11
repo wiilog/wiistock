@@ -1,6 +1,6 @@
 <div class="row">
-    <div class='col-4 btn-col-action' data-id='{{ alerteId }}' data-target='#modalEditAlerte' data-toggle='modal'>
-        <button type="button" class="btn btn-block"
+    <div class='col-4 btn-col-action'  data-target='#modalEditAlerte' data-toggle='modal'>
+        <button type="button" class="btn btn-block" data-id='{{ alerteId }}'
         onclick="editRow($(this), Routing.generate('alerte_api_edit', true), $('#modalEditAlerte'), $('#submitEditAlerte'))">
             <i class='fas fa-pencil-alt'></i>
         </button>

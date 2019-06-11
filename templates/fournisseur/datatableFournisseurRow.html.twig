@@ -1,7 +1,7 @@
 <div class="row">
     {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
-        <div data-id='{{ fournisseurId }}' data-target='#modalEditFournisseur' data-toggle='modal' class='col-4 btn-col-action'>
-            <button type="button" class="btn btn-block"
+        <div  data-target='#modalEditFournisseur' data-toggle='modal' class='col-4 btn-col-action'>
+            <button type="button" class="btn btn-block" data-id='{{ fournisseurId }}'
             onclick="editRow($(this), Routing.generate('fournisseur_api_edit', true), $('#modalEditFournisseur'), $('#submitEditFournisseur'))">
                 <i class='fas fa-pencil-alt '></i>
             </button>

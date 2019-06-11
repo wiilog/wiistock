@@ -1,13 +1,13 @@
 <div class="row">
-    <div data-id='{{ idUser }}' data-toggle='modal' data-target='#modalEditUser' class='col-4 btn-col-action'>
-        <button type="button" class="btn btn-block"
+    <div  data-toggle='modal' data-target='#modalEditUser' class='col-4 btn-col-action'>
+        <button type="button" class="btn btn-block" data-id='{{ idUser }}'
         onclick="editRow($(this),  Routing.generate('user_api_edit', true), $('#modalEditUser'), $('#submitEditUser'))">
             <i class='fas fa-pencil-alt'></i>
         </button>
     </div>
     <div class='col-4 btn-col-action' onclick="deleteRow($(this), $('#modalDeleteUser'), $('#submitDeleteUser'))"
-        data-id='{{ idUser }}' data-target='#modalDeleteUser' data-toggle='modal'>
-        <button type="button" class="btn btn-block">
+         data-target='#modalDeleteUser' data-toggle='modal'>
+        <button type="button" class="btn btn-block" data-id='{{ idUser }}'>
             <i class='fas fa-trash '></i>
         </button>
     </div>
