@@ -2,7 +2,7 @@ $('.select2').select2();
 
 $('#utilisateur').select2({
     placeholder: {
-        text: 'Demandeur',
+        text: 'Destinataire',
     }
 });
 
@@ -346,6 +346,47 @@ function checkZero(data) {
     }
     return data;
 }
+
+$('#submitSearchArrivage').on('click', function () {
+
+    let statut = $('#statut').val();
+    let utilisateur = $('#utilisateur').val();
+    let utilisateurString = utilisateur.toString();
+    let utilisateurPiped = utilisateurString.split(',').join('|');
+    tableArrivage
+        .columns('Statut:name')
+        .search(statut)
+        .draw();
+
+    tableArrivage
+        .columns('Destinataire:name')
+        .search(utilisateurPiped ? '^' + utilisateurPiped + '$' : '', true, false)
+        .draw();
+
+    $.fn.dataTable.ext.search.push(
+        function (settings, data, dataIndex) {
+            let dateMin = $('#dateMin').val();
+            let dateMax = $('#dateMax').val();
+            let dateInit = (data[0]).split('/').reverse().join('-') || 0;
+
+            if (
+                (dateMin == "" && dateMax == "")
+                ||
+                (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
+                ||
+                (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
+                ||
+                (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
+
+            ) {
+                return true;
+            }
+            return false;
+        }
+    );
+    tableArrivage
+        .draw();
+});
 // function deleteAttachement() {
 //
 // }
