@@ -253,7 +253,7 @@ class RefArticleDataService
         $requiredEdit = true;
         $type =  $this->typeRepository->find(intval($data['type']));
         $emplacement =  $this->emplacementRepository->find(intval($data['emplacement']));
-        $CLRequired = $this->champsLibreRepository->getByTypeAndRequiredCreate($type);
+        $CLRequired = $this->champsLibreRepository->getByTypeAndRequiredEdit($type);
         foreach ($CLRequired as $CL) {
             if (array_key_exists($CL['id'], $data) and $data[$CL['id']] === "") {
                 $requiredEdit = false;
