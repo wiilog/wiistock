@@ -39,7 +39,7 @@
         <tr>
             <td>{{ arrivage.numeroArrivage }}</td>
             <td>{{ arrivage.transporteur.label|capitalize }}</td>
-            <td>{{ arrivage.chauffeur is not empty ? arrivage.chauffeur.prenom|capitalize }} {{ arrivage.chauffeur.nom|upper }} : ''</td>
+            <td>{{ arrivage.chauffeur is not empty ? arrivage.chauffeur.prenom|capitalize ~ ' ' ~ arrivage.chauffeur.nom|upper }} : ''</td>
             <td>{{ arrivage.noTracking }}</td>
             <td>{{ arrivage.numeroBL }}</td>
             <td>{{ arrivage.fournisseur.nom }}</td>
