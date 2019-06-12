@@ -90,7 +90,7 @@ class MouvementTracaController extends AbstractController
 
             $rows = [];
             foreach ($mvts as $mvt) {
-                $date = \DateTime::createFromFormat('Y-m-d H:i:s+', $mvt->getDate())->format('Y/m/d H:i:s');
+                $date = \DateTime::createFromFormat('Y-m-d H:i:s+', $mvt->getDate())->format('d/m/Y H:i:s');
                 $rows[] = [
                     'id' => $mvt->getId(),
                     'date' => $date,
