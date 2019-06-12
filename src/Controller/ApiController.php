@@ -188,7 +188,6 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 			$em = $this->getDoctrine()->getManager();
 			$numberOfRowsInserted = 0;
 
-			//            try {
 			foreach ($data['mouvements'] as $mvt) {
 				if (!$this->mouvementTracaRepository->getOneByDate($mvt['date'])) {
 					$refEmplacement = $mvt['ref_emplacement'];
@@ -247,9 +246,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 				}
 			}
 			$em->flush();
-//            } catch (DBALException $e) {
-//                dump($e);
-//		}
+
 			$s = $numberOfRowsInserted > 0 ? 's' : '';
 			$this->successData['success'] = true;
 			$this->successData['data']['status'] = ($numberOfRowsInserted === 0) ?
