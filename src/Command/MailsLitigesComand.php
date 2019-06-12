@@ -9,6 +9,7 @@
 namespace App\Command;
 
 
+use App\Entity\Statut;
 use App\Repository\LitigeRepository;
 use App\Service\MailerService;
 use Psr\Log\LoggerInterface;
@@ -53,14 +54,14 @@ class MailsLitigesComand extends Command
   {
     $this->setName('app:mails-litiges');
 
-    $this->setDescription('envoi de mails aux acheteurs avec les infos sur leurs arrivages avec litiges');
+    $this->setDescription('envoi de mails aux acheteurs pour les litiges non soldés');
 
 //    $this->addArgument('arg', InputArgument::OPTIONAL, 'question');
   }
 
   public function execute(InputInterface $input, OutputInterface $output)
   {
-    $litiges = $this->litigeRepository->findAll();
+    $litiges = $this->litigeRepository->findByArrivageStatutLabel(Statut::ATTENTE_ACHETEUR);
 
     $litigesByAcheteur = [];
     foreach($litiges as $litige) {

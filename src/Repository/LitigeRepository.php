@@ -19,32 +19,18 @@ class LitigeRepository extends ServiceEntityRepository
         parent::__construct($registry, Litige::class);
     }
 
-    // /**
-    //  * @return Litige[] Returns an array of Litige objects
-    //  */
-    /*
-    public function findByExampleField($value)
-    {
-        return $this->createQueryBuilder('l')
-            ->andWhere('l.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('l.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
+    public function findByArrivageStatutLabel($statutLabel)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			"SELECT l
+			FROM App\Entity\Litige
+			JOIN l.arrivage a
+			JOIN a.statut s
+			WHERE s.nom = :statutLabel"
+		)->setParameter('statutLabel', $statutLabel);
 
-    /*
-    public function findOneBySomeField($value): ?Litige
-    {
-        return $this->createQueryBuilder('l')
-            ->andWhere('l.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
-    }
-    */
+		$query->execute();
+	}
+
 }
