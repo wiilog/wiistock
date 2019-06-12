@@ -8,11 +8,11 @@
         <h1>Chauffeurs</h1>
 
             <div class="row">
-{#                {% if hasRight(constant('App\\Entity\\Menu::MANUT'), constant('App\\Entity\\Action::CREATE')) %}#}
+                {% if hasRight(constant('App\\Entity\\Menu::CHAUFFEUR'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
                     <a href="" data-toggle="modal" data-target="#modalNewChauffeur" class="btn btn-primary" >
                         <span class="fa fa-plus mr-2"></span>Nouveau chauffeur
                     </a>
-{#                {% endif %}#}
+                {% endif %}
             </div>
         <div>
             <table id="tableChauffeur_id" class="table table-striped table-bordered w-100">

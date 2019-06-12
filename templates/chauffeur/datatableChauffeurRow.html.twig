@@ -1,22 +1,17 @@
 <div class="d-flex">
-{#    {% if hasRight(constant('App\\Entity\\Menu::MANUT'), constant('App\\Entity\\Action::EDIT_DELETE'))%}#}
+    {% if hasRight(constant('App\\Entity\\Menu::CHAUFFEUR'), constant('App\\Entity\\Action::CREATE_EDIT'))%}
         <div data-id='{{ chauffeur.id }}' data-target='#modalEditChauffeur' data-toggle='modal'
              class='btn-xs btn-default command-edit'
              onclick="editRow($(this), Routing.generate('chauffeur_edit_api', true), $('#modalEditChauffeur'), $('#submitEditChauffeur'))">
             <i class='fas fa-pencil-alt'></i>
         </div>
-{#        {% if service.statut.nom != constant('App\\Entity\\Service::STATUT_TRAITE') %}#}
+    {% endif %}
+         {% if hasRight(constant('App\\Entity\\Menu::CHAUFFEUR'), constant('App\\Entity\\Action::DELETE'))%}
             <div data-id='{{ chauffeur.id }}' data-target='#modalDeleteChauffeur' data-toggle='modal'
                  onclick="deleteRow($(this), $('#modalDeleteChauffeur'), $('#submitDeleteChauffeur'))">
                 <i class='fas fa-trash'></i>
             </div>
-{#        {% endif %}#}
-{#    {% else %}#}
-{#        <div data-id='{{ chauffeur.id }}' data-target='#modalShowChauffeur' data-toggle='modal' class='btn-xs btn-default '#}
-{#             onclick="showRow($(this), Routing.generate('chauffeur_show', true), $('#modalShowChauffeur'))">#}
-{#            <i class='fas fa-eye'></i>#}
-{#        </div>#}
+        {% endif %}
 
-{#    {% endif %}#}
 
 </div>

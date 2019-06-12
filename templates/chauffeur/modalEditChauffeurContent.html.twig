@@ -17,12 +17,11 @@
 
 <div class="form-group">
     <label for="transporteur">Transporteur</label>
-    <select type="text" class="form-control data needed" name="transporteur">
+    <select class="form-control ajax-autocompleteTransporteur-edit data" name="transporteur" onclick="iniTransporteurEdit()" >
         <option value="{{ transporteur.id}}" >{{ transporteur.label}}</option>
-        {% for transporteur in transporteurs %}
-            <option value="{{ transporteur.id }}">{{ transporteur.label}}</option>
-        {% endfor %}
     </select>
 </div>
 
 <div class="error-msg"></div>
+
+

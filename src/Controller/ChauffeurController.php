@@ -87,9 +87,9 @@ class ChauffeurController extends AbstractController
     public function new(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-//            if (!$this->userService->hasRightFunction(Menu::MANUT, Action::CREATE)) {
-//                return $this->redirectToRoute('access_denied');
-//            }
+            if (!$this->userService->hasRightFunction(Menu::CHAUFFEUR, Action::CREATE_EDIT)) {
+                return $this->redirectToRoute('access_denied');
+            }
 
             $chauffeur = new Chauffeur();
 
@@ -139,9 +139,9 @@ class ChauffeurController extends AbstractController
     public function edit(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-//            if (!$this->userService->hasRightFunction(Menu::MANUT, Action::LIST)) {
-//                return $this->redirectToRoute('access_denied');
-//            }
+            if (!$this->userService->hasRightFunction(Menu::CHAUFFEUR, Action::CREATE_EDIT)) {
+                return $this->redirectToRoute('access_denied');
+            }
             $chauffeur = $this->chauffeurRepository->find($data['id']);
 
             $chauffeur
@@ -166,12 +166,12 @@ class ChauffeurController extends AbstractController
             $chauffeur = $this->chauffeurRepository->find($data['chauffeur']);
 
 
-//            if (
-//                !$this->userService->hasRightFunction(Menu::MANUT, Action::LIST)
-//
-//            ) {
-//                return $this->redirectToRoute('access_denied');
-//            }
+            if (
+                !$this->userService->hasRightFunction(Menu::CHAUFFEUR, Action::LIST)
+
+            ) {
+                return $this->redirectToRoute('access_denied');
+            }
 
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($chauffeur);

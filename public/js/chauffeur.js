@@ -37,3 +37,7 @@ function iniTransporteur() {
 
     ajaxAutoCompleteTransporteurInit($('.ajax-autocompleteTransporteur'))
 };
+function iniTransporteurEdit() {
+
+    ajaxAutoCompleteTransporteurInit($('.ajax-autocompleteTransporteur-edit'))
+};
