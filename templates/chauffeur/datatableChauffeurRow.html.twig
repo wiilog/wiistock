@@ -2,7 +2,7 @@
 {#    {% if hasRight(constant('App\\Entity\\Menu::MANUT'), constant('App\\Entity\\Action::EDIT_DELETE'))%}#}
         <div data-id='{{ chauffeur.id }}' data-target='#modalEditChauffeur' data-toggle='modal'
              class='btn-xs btn-default command-edit'
-             onclick="editRow($(this), Routing.generate('chauffeur_edit_api', true), $('#modalEditChauffeur'), $('#submitEditChauffeur'), true)">
+             onclick="editRow($(this), Routing.generate('chauffeur_edit_api', true), $('#modalEditChauffeur'), $('#submitEditChauffeur'))">
             <i class='fas fa-pencil-alt'></i>
         </div>
 {#        {% if service.statut.nom != constant('App\\Entity\\Service::STATUT_TRAITE') %}#}

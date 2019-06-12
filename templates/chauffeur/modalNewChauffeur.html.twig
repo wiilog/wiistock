@@ -27,10 +27,21 @@
                     <label for="documentID">DocumentID</label>
                     <input id="document" class="form-control data needed" name="documentID" maxlength="64">
                 </div>
+
+                <div class="form-group">
+                    <label for="transporteur">Transporteur</label>
+                    <select type="text" class="form-control data ajax-autocompleteTransporteur d-block needed" name="transporteur"
+                     onclick="iniTransporteur()">
+{#                        <option value="" >Choisir un transporteur</option>#}
+{#                        {% for transporteur in transporteurs %}#}
+{#                        <option value="{{ transporteur.id }}">{{ transporteur.label}}</option>#}
+{#                        {% endfor %}#}
+                    </select>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>
-                <button id="submitNewService" type="button" class="btn btn-success">Enregistrer</button>
+                <button id="submitNewChauffeur" type="button" class="btn btn-success">Enregistrer</button>
             </div>
         </div>
     </div>

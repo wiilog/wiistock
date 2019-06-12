@@ -121,6 +121,30 @@
                     </li>
                 {% endif %}
 
+                <!-- REFERENCE -->
+{#                {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::LIST')) %}#}
+                    <li class="menu-item has-submenu">
+                        <a href="#">
+                            <i class="fas fa-file"></i>
+                            <h4>Référence</h4>
+                        </a>
+                        <ul class="sidemenu-sub">
+                            <li>
+                                <a href="{{ path('fournisseur_index') }}" class="sub-item">• Fournisseur</a>
+                            </li>
+                            <li>
+                                <a href="{{ path('emplacement_index') }}" class="sub-item">• Emplacement</a>
+                            </li>
+                            <li>
+                                <a href="{{ path('chauffeur_index') }}" class="sub-item">• Chauffeur</a>
+                            </li>
+                            <li>
+                                <a href="{{ path('transporteur_index') }}" class="sub-item">• Transporteur</a>
+                            </li>
+                        </ul>
+                    </li>
+{#                {% endif %}#}
+
                 <!-- PARAMETRAGE -->
                 {% if (hasRight(constant('App\\Entity\\Menu::PARAM'))) %}
                     <li class="menu-item has-submenu">

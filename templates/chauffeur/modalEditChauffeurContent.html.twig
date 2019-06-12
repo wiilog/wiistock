@@ -15,4 +15,14 @@
     <input class="form-control data needed input" value="{{chauffeur.documentID}}" name="documentID" placeholder="DocumentID" maxlength="64">
 </div>
 
+<div class="form-group">
+    <label for="transporteur">Transporteur</label>
+    <select type="text" class="form-control data needed" name="transporteur">
+        <option value="{{ transporteur.id}}" >{{ transporteur.label}}</option>
+        {% for transporteur in transporteurs %}
+            <option value="{{ transporteur.id }}">{{ transporteur.label}}</option>
+        {% endfor %}
+    </select>
+</div>
+
 <div class="error-msg"></div>

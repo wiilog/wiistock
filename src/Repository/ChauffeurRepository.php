@@ -19,6 +19,7 @@ class ChauffeurRepository extends ServiceEntityRepository
         parent::__construct($registry, Chauffeur::class);
     }
 
+
     public function findAllSorted()
     {
         $em = $this->getEntityManager();
