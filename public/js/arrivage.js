@@ -195,7 +195,6 @@ function submitActionArrivage(modal, path, table, callback, close) {
             let nbUm = data.nbUm;
             let printUm = data.printUm;
             let printArrivage = data.printArrivage;
-            console.log(data.arrivage);
             let d = new Date();
             let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
             date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
@@ -204,7 +203,6 @@ function submitActionArrivage(modal, path, table, callback, close) {
                 $("#barcodes").empty();
                 if (printUm) {
                     for (let i = 0; i < nbUm; i++) {
-                        console.log('colis ' + i);
                         $('#barcodes').append('<img id="barcode' + i + '">');
                         JsBarcode("#barcode" + i, data.arrivage + '-' + i, {
                             format: "CODE128",
@@ -212,13 +210,11 @@ function submitActionArrivage(modal, path, table, callback, close) {
                     }
 
                 } if (printArrivage) {
-                    console.log('arrivage');
                     $('#barcodes').append('<img id="barcodeArrivage">');
                     JsBarcode("#barcodeArrivage", data.arrivage, {
                         format: "CODE128",
                     });
                 } if (printArrivage || printUm) {
-                    console.log('arrivage or colis');
                     $("#barcodes").find('img').each(function () {
                         doc.addImage($(this).attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
                         doc.addPage();

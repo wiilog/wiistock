@@ -357,23 +357,23 @@ class Arrivage
         return $this->colis;
     }
 
-    public function addColi(Colis $coli): self
+    public function addColis(Colis $colis): self
     {
-        if (!$this->colis->contains($coli)) {
-            $this->colis[] = $coli;
-            $coli->setArrivage($this);
+        if (!$this->colis->contains($colis)) {
+            $this->colis[] = $colis;
+            $colis->setArrivage($this);
         }
 
         return $this;
     }
 
-    public function removeColi(Colis $coli): self
+    public function removeColis(Colis $colis): self
     {
-        if ($this->colis->contains($coli)) {
-            $this->colis->removeElement($coli);
+        if ($this->colis->contains($colis)) {
+            $this->colis->removeElement($colis);
             // set the owning side to null (unless already changed)
-            if ($coli->getArrivage() === $this) {
-                $coli->setArrivage(null);
+            if ($colis->getArrivage() === $this) {
+                $colis->setArrivage(null);
             }
         }
 
