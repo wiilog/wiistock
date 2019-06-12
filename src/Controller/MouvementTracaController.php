@@ -49,7 +49,6 @@ class MouvementTracaController extends AbstractController
 
     /**
      * ArrivageController constructor.
-     * @param $
      */
 
     public function __construct(EmplacementRepository $emplacementRepository, UtilisateurRepository $utilisateurRepository, StatutRepository $statutRepository, UserService $userService, MouvementTracaRepository $mouvementTracaRepository)

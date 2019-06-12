@@ -4,6 +4,7 @@ namespace App\DataFixtures;
 
 use App\Controller\MouvementTracaController;
 use App\Entity\Article;
+use App\Entity\CategorieStatut;
 use App\Entity\Collecte;
 use App\Entity\Demande;
 use App\Entity\Livraison;
@@ -208,6 +209,7 @@ class StatutFixtures extends Fixture implements DependentFixtureInterface, Fixtu
 
         $manager->flush();
 
+
         // catégorie service
         $statutsNames = [
             Service::STATUT_A_TRAITER,
@@ -229,14 +231,15 @@ class StatutFixtures extends Fixture implements DependentFixtureInterface, Fixtu
 
         $manager->flush();
 
-        // catégorie mouvement
+
+        // catégorie mouvement traça
         $statutsNames = [
             MouvementTraca::PRISE,
             MouvementTraca::DEPOSE,
         ];
 
         foreach ($statutsNames as $statutName) {
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(MouvementTraca::CATEGORIE, $statutName);
+            $statut = $this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::MVT_TRACA, $statutName);
 
             if (empty($statut)) {
                 $statut = new Statut();
