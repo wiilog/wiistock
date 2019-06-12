@@ -24,13 +24,13 @@ class LitigeRepository extends ServiceEntityRepository
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
 			"SELECT l
-			FROM App\Entity\Litige
+			FROM App\Entity\Litige l
 			JOIN l.arrivage a
 			JOIN a.statut s
 			WHERE s.nom = :statutLabel"
 		)->setParameter('statutLabel', $statutLabel);
 
-		$query->execute();
+		return $query->execute();
 	}
 
 }
