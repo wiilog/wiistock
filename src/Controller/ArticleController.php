@@ -491,7 +491,7 @@ class ArticleController extends Controller
             $data = [];
             $data['articleRef'] = $this->articleRepository->find(intval($dataContent['article']))->getReference();
             $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
-            if ($dimension) {
+            if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth())) {
                 $data['height'] = $dimension->getHeight();
                 $data['width'] = $dimension->getWidth();
                 $data['exists'] = true;

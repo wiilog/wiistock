@@ -8,6 +8,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Colis;
 use App\Entity\Emplacement;
 use App\Entity\Mouvement;
 
@@ -180,15 +181,16 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                 foreach ($data['mouvements'] as $mvt) {
                     if (!$this->mouvementTracaRepository->getOneByDate($mvt['date'])) {
                         $toInsert = new MouvementTraca();
-                        $toInsert->setRefArticle($mvt['ref_article']);
-                        $toInsert->setRefEmplacement($mvt['ref_emplacement']);
-                        $toInsert->setOperateur($mvt['operateur']);
-                        $toInsert->setDate($mvt['date']);
-                        $toInsert->setType($mvt['type']);
+                        $toInsert
+							->setRefArticle($mvt['ref_article'])
+							->setRefEmplacement($mvt['ref_emplacement'])
+							->setOperateur($mvt['operateur'])
+							->setDate($mvt['date'])
+							->setType($mvt['type']);
                         $em->persist($toInsert);
                         $numberOfRowsInserted++;
                         if ($this->emplacementRepository->getOneByLabel($mvt['ref_emplacement']) && $mvt['type'] === 'depose') {
-                            $colis = $this->colisRepository->getOneByCode($mvt['ref_article']);
+                            $colis = $this->colisRepository->getOneByCode($mvt['ref_article']); /**@var Colis $colis */
                             if ($colis && $this->emplacementRepository->getOneByLabel($mvt['ref_emplacement'])->getIsDeliveryPoint()) {
                                 $arrivage = $colis->getArrivage();
                                 $destinataire = $arrivage->getDestinataire();
