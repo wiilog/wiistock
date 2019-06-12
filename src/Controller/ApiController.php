@@ -187,8 +187,8 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 			$response->headers->set('Access-Control-Allow-Methods', 'POST, GET');
 			$em = $this->getDoctrine()->getManager();
 			$numberOfRowsInserted = 0;
-			dump($data['mouvements']);
-//            try {
+
+			//            try {
 			foreach ($data['mouvements'] as $mvt) {
 				if (!$this->mouvementTracaRepository->getOneByDate($mvt['date'])) {
 					$refEmplacement = $mvt['ref_emplacement'];
@@ -211,16 +211,14 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 
 						$isDepose = $type === MouvementTraca::DEPOSE;
 						$colis = $this->colisRepository->getOneByCode($mvt['ref_article']); /**@var Colis $colis */
-						dump($emplacement);
-						dump($isDepose);
-						dump($colis);
+
 						if ($isDepose && $colis && $emplacement->getIsDeliveryPoint()) {
 							$arrivage = $colis->getArrivage();
-							dump($arrivage);
 							$destinataire = $arrivage->getDestinataire();
 
 							if ($this->mailerServerRepository->getOneMailerServer()) {
-								$date = 'le ' . \DateTime::createFromFormat('Y-m-d\TH:i:s+', $mvt['date'])->format('Y/m/d à H:i:s');
+								dump($mvt['date']);
+								$date = 'le ' . \DateTime::createFromFormat('Y-m-d\TH:i:s+', $mvt['date']);
 								$this->mailerService->sendMail(
 									'FOLLOW GT // Dépose effectuée',
 									$this->renderView(
@@ -235,7 +233,6 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 									),
 									$destinataire->getEmail()
 								);
-								dump('mail envoyé');
 							} else {
 								$this->logger->critical('Parametrage mail non defini.');
 							}

@@ -1,7 +1,7 @@
-<html>
+ <html>
 <style>
     body {
-        font-family: Montserrat, Helvetica, Arial, sans-serif;
+        font-family: 'Source Sans Pro', sans-serif;
     }
 </style>
 <body>
@@ -12,9 +12,9 @@
 
 Arrivage : {{ arrivage }}<br>
 Colis : {{ colis }} <br>
-Date de dépose : {{ date }}<br>
+Date de dépose : {{ date|date('d/m/Y à H:i:s') }}<br>
 Emplacement : {{ emplacement }}<br>
-Operateur : {{ operateur }}<br>
+Opérateur : {{ operateur }}<br>
 <br>
 <br>
 
