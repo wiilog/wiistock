@@ -104,7 +104,7 @@ class EmplacementController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
-        return $this->render('emplacement/index.html.twig', ['emplacement' => $this->emplacementRepository->findAll()]);
+		return $this->render('emplacement/index.html.twig', ['emplacement' => $this->emplacementRepository->findAll()]);
     }
 
     /**

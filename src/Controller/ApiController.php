@@ -28,6 +28,7 @@ use Doctrine\ORM\ORMException;
 use FOS\RestBundle\Controller\FOSRestController;
 use FOS\RestBundle\Routing\ClassResourceInterface;
 use FOS\RestBundle\Controller\Annotations as Rest;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -104,17 +105,25 @@ class ApiController extends FOSRestController implements ClassResourceInterface
      */
     private $mailerServerRepository;
 
-    /**
-     * ApiController constructor.
-     * @param ColisRepository $colisRepository
-     * @param MouvementTracaRepository $mouvementTracaRepository
-     * @param ReferenceArticleRepository $referenceArticleRepository
-     * @param UtilisateurRepository $utilisateurRepository
-     * @param UserPasswordEncoderInterface $passwordEncoder
-     * @param ArticleRepository $articleRepository
-     * @param EmplacementRepository $emplacementRepository
-     */
-    public function __construct(MailerServerRepository $mailerServerRepository, MailerService $mailerService, ColisRepository $colisRepository, MouvementTracaRepository $mouvementTracaRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
+	/**
+	 * @var LoggerInterface
+	 */
+    private $logger;
+
+	/**
+	 * ApiController constructor.
+	 * @param LoggerInterface $logger
+	 * @param MailerServerRepository $mailerServerRepository
+	 * @param MailerService $mailerService
+	 * @param ColisRepository $colisRepository
+	 * @param MouvementTracaRepository $mouvementTracaRepository
+	 * @param ReferenceArticleRepository $referenceArticleRepository
+	 * @param UtilisateurRepository $utilisateurRepository
+	 * @param UserPasswordEncoderInterface $passwordEncoder
+	 * @param ArticleRepository $articleRepository
+	 * @param EmplacementRepository $emplacementRepository
+	 */
+    public function __construct(LoggerInterface $logger, MailerServerRepository $mailerServerRepository, MailerService $mailerService, ColisRepository $colisRepository, MouvementTracaRepository $mouvementTracaRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
     {
         $this->mailerServerRepository = $mailerServerRepository;
         $this->mailerService = $mailerService;
@@ -126,6 +135,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         $this->passwordEncoder = $passwordEncoder;
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->successData = ['success' => false, 'data' => []];
+        $this->logger = $logger;
     }
 
     /**
@@ -168,69 +178,83 @@ class ApiController extends FOSRestController implements ClassResourceInterface
      * @Rest\Get("/api/addMouvementTraca")
      * @Rest\View()
      */
-    public function addMouvementTraca(Request $request)
-    {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $response = new Response();
-            $response->headers->set('Content-Type', 'application/json');
-            $response->headers->set('Access-Control-Allow-Origin', '*');
-            $response->headers->set('Access-Control-Allow-Methods', 'POST, GET');
-            $em = $this->getDoctrine()->getManager();
-            $numberOfRowsInserted = 0;
-            try {
-                foreach ($data['mouvements'] as $mvt) {
-                    if (!$this->mouvementTracaRepository->getOneByDate($mvt['date'])) {
-                        $toInsert = new MouvementTraca();
-                        $toInsert
-							->setRefArticle($mvt['ref_article'])
-							->setRefEmplacement($mvt['ref_emplacement'])
-							->setOperateur($mvt['operateur'])
-							->setDate($mvt['date'])
-							->setType($mvt['type']);
-                        $em->persist($toInsert);
-                        $numberOfRowsInserted++;
-                        if ($this->emplacementRepository->getOneByLabel($mvt['ref_emplacement']) && $mvt['type'] === 'depose') {
-                            $colis = $this->colisRepository->getOneByCode($mvt['ref_article']); /**@var Colis $colis */
-                            if ($colis && $this->emplacementRepository->getOneByLabel($mvt['ref_emplacement'])->getIsDeliveryPoint()) {
-                                $arrivage = $colis->getArrivage();
-                                $destinataire = $arrivage->getDestinataire();
-                                if ($this->mailerServerRepository->findAll()) {
-                                    $date = 'le ' . \DateTime::createFromFormat('Y-m-d\TH:i:s+', $mvt['date'])->format('Y/m/d à H:i:s');
-                                    $this->mailerService->sendMail(
-                                        'FOLLOW GT // Dépose effectuée',
-                                        $this->renderView(
-                                            'mails/mailDeposeTraca.html.twig',
-                                            [
-                                                'colis' => $colis->getCode(),
-                                                'emplacement' => $mvt['ref_emplacement'],
-                                                'arrivage' => $arrivage->getNumeroArrivage(),
-                                                'date' => $date,
-                                                'operateur' => $mvt['operateur']
-                                            ]
-                                        ),
-                                        $destinataire->getEmail()
-                                    );
-                                }
-                            }
-                        } else if (!$this->emplacementRepository->getOneByLabel($mvt['ref_emplacement'])) {
-                            $emplacement = new Emplacement();
-                            $emplacement->setLabel($mvt['ref_emplacement']);
-                            $em->persist($emplacement);
-                            $em->flush();
-                        }
-                    }
-                }
-                $em->flush();
-            } catch (DBALException $e) {
-                dump($e);
-            }
-            $this->successData['success'] = true;
-            $this->successData['data']['status'] = ($numberOfRowsInserted === 0) ?
-                'Aucun changement à synchroniser' : $numberOfRowsInserted . ' mouvements synchronisés.';
-            $response->setContent(json_encode($this->successData));
-            return $response;
-        }
-    }
+	public function addMouvementTraca(Request $request)
+	{
+		if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			$response = new Response();
+			$response->headers->set('Content-Type', 'application/json');
+			$response->headers->set('Access-Control-Allow-Origin', '*');
+			$response->headers->set('Access-Control-Allow-Methods', 'POST, GET');
+			$em = $this->getDoctrine()->getManager();
+			$numberOfRowsInserted = 0;
+//            try {
+			foreach ($data['mouvements'] as $mvt) {
+				if (!$this->mouvementTracaRepository->getOneByDate($mvt['date'])) {
+					$refEmplacement = $mvt['ref_emplacement'];
+					$refArticle = $mvt['ref_article'];
+					$type = $mvt['type'];
+
+					$toInsert = new MouvementTraca();
+					$toInsert
+						->setRefArticle($refArticle)
+						->setRefEmplacement($refEmplacement)
+						->setOperateur($mvt['operateur'])
+						->setDate($mvt['date'])
+						->setType($type);
+					$em->persist($toInsert);
+					$numberOfRowsInserted++;
+
+					$emplacement = $this->emplacementRepository->getOneByLabel($refEmplacement); /** @var Emplacement $emplacement */
+
+					if ($emplacement) {
+
+						$isDepose = $type === MouvementTraca::DEPOSE;
+						$colis = $this->colisRepository->getOneByCode($mvt['ref_article']); /**@var Colis $colis */
+
+						if ($isDepose && $colis && $emplacement->getIsDeliveryPoint()) {
+							$arrivage = $colis->getArrivage();
+							$destinataire = $arrivage->getDestinataire();
+
+							if ($this->mailerServerRepository->getOneMailerServer()) {
+								$date = 'le ' . \DateTime::createFromFormat('Y-m-d\TH:i:s+', $mvt['date'])->format('Y/m/d à H:i:s');
+								$this->mailerService->sendMail(
+									'FOLLOW GT // Dépose effectuée',
+									$this->renderView(
+										'mails/mailDeposeTraca.html.twig',
+										[
+											'colis' => $colis->getCode(),
+											'emplacement' => $refEmplacement,
+											'arrivage' => $arrivage->getNumeroArrivage(),
+											'date' => $date,
+											'operateur' => $mvt['operateur']
+										]
+									),
+									$destinataire->getEmail()
+								);
+							} else {
+								$this->logger->critical('Parametrage mail non defini.');
+							}
+						}
+					} else {
+						$emplacement = new Emplacement();
+						$emplacement->setLabel($refEmplacement);
+//                            TODO CG isDeliveryPoint à true ?
+						$em->persist($emplacement);
+						$em->flush();
+					}
+				}
+			}
+			$em->flush();
+//            } catch (DBALException $e) {
+//                dump($e);
+//		}
+			$this->successData['success'] = true;
+			$this->successData['data']['status'] = ($numberOfRowsInserted === 0) ?
+				'Aucun changement à synchroniser' : $numberOfRowsInserted . ' mouvements synchronisés.';
+			$response->setContent(json_encode($this->successData));
+			return $response;
+		}
+	}
 
     /**
      * @Rest\Post("/api/setmouvement", name= "api-set-mouvement")
