@@ -25,7 +25,7 @@
     <select class="form-control data" id="chauffeur" name="chauffeur">
         <option disabled selected> </option>
         {% for chauffeur in chauffeurs %}
-            {% set selected = (chauffeur.id == arrivage.chauffeur.id ? 'selected' : '') %}
+            {% set selected = (arrivage.chauffeur is not empty and chauffeur.id == arrivage.chauffeur.id ? 'selected' : '') %}
             <option value="{{ chauffeur.id }}" {{ selected }}>{{ chauffeur.prenom|capitalize }} {{ chauffeur.nom|upper }}</option>
         {% endfor %}
     </select>
