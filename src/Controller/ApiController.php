@@ -211,9 +211,12 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 
 						$isDepose = $type === MouvementTraca::DEPOSE;
 						$colis = $this->colisRepository->getOneByCode($mvt['ref_article']); /**@var Colis $colis */
-
+						dump($emplacement);
+						dump($isDepose);
+						dump($colis);
 						if ($isDepose && $colis && $emplacement->getIsDeliveryPoint()) {
 							$arrivage = $colis->getArrivage();
+							dump($arrivage);
 							$destinataire = $arrivage->getDestinataire();
 
 							if ($this->mailerServerRepository->getOneMailerServer()) {
@@ -232,6 +235,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 									),
 									$destinataire->getEmail()
 								);
+								dump('mail envoyé');
 							} else {
 								$this->logger->critical('Parametrage mail non defini.');
 							}
