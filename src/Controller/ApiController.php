@@ -187,6 +187,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 			$response->headers->set('Access-Control-Allow-Methods', 'POST, GET');
 			$em = $this->getDoctrine()->getManager();
 			$numberOfRowsInserted = 0;
+			dump($data['mouvements']);
 //            try {
 			foreach ($data['mouvements'] as $mvt) {
 				if (!$this->mouvementTracaRepository->getOneByDate($mvt['date'])) {
@@ -238,7 +239,6 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 					} else {
 						$emplacement = new Emplacement();
 						$emplacement->setLabel($refEmplacement);
-//                            TODO CG isDeliveryPoint à true ?
 						$em->persist($emplacement);
 						$em->flush();
 					}
@@ -248,9 +248,10 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 //            } catch (DBALException $e) {
 //                dump($e);
 //		}
+			$s = $numberOfRowsInserted > 0 ? 's' : '';
 			$this->successData['success'] = true;
 			$this->successData['data']['status'] = ($numberOfRowsInserted === 0) ?
-				'Aucun changement à synchroniser' : $numberOfRowsInserted . ' mouvements synchronisés.';
+				'Aucun mouvement à synchroniser.' : $numberOfRowsInserted . ' mouvement' . $s . ' synchronisé' . $s;
 			$response->setContent(json_encode($this->successData));
 			return $response;
 		}
