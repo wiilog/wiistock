@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 
+use App\Entity\DimensionsEtiquettes;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -753,8 +754,8 @@ class ReceptionController extends AbstractController
             $data = [];
             $data['refs'] = [];
             $reception = $this->receptionRepository->find($dataContent['reception']);
-            $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
-            if ($dimension) {
+            $dimension = $this->dimensionsEtiquettesRepository->findOneDimension(); /**  @var $dimension DimensionsEtiquettes */
+            if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth())) {
                 $data['height'] = $dimension->getHeight();
                 $data['width'] = $dimension->getWidth();
                 $data['exists'] = true;
@@ -797,7 +798,7 @@ class ReceptionController extends AbstractController
                 $data = [];
                 $data['ligneRef'] = $this->receptionReferenceArticleRepository->find(intval($dataContent['ligne']))->getReferenceArticle()->getReference();
                 $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
-                if ($dimension) {
+                if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth())) {
                     $data['height'] = $dimension->getHeight();
                     $data['width'] = $dimension->getWidth();
                     $data['exists'] = true;

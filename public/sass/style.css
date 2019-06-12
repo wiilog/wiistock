@@ -179,6 +179,14 @@ a:hover {
   padding: 0 !important;
 }
 
+.minw-105px {
+  min-width: 105px;
+}
+
+.maxw-250px {
+  max-width: 250px;
+}
+
 /* Login    
  * *================= 
  * */
@@ -594,6 +602,19 @@ a:hover {
 }
 .filter span {
   overflow-wrap: anywhere;
+}
+
+.filters {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-left: 6px;
+}
+.filters > div {
+  margin: auto 12px;
+}
+.filters > div .select2-selection {
+  height: 38px;
 }
 
 .filterService {
