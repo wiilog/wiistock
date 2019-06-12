@@ -46,7 +46,7 @@ use Symfony\Component\Security\Core\Encoder\UserPasswordEncoder;
 use Symfony\Component\Serializer\SerializerInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Symfony\Component\Security\Core\User\UserInterface;
-use Symfony\Component\Validator\Constraints\DateTime;
+use DateTime;
 
 /**
  * Class ApiController
@@ -217,7 +217,8 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 							$destinataire = $arrivage->getDestinataire();
 
 							if ($this->mailerServerRepository->getOneMailerServer()) {
-								$date = 'le ' . \DateTime::createFromFormat('Y-m-d H:i:s+', $mvt['date']);
+								$dateArray = explode('/', $mvt['date']);
+								$date = 'le ' . DateTime::createFromFormat('c', $dateArray[0]);
 								$this->mailerService->sendMail(
 									'FOLLOW GT // Dépose effectuée',
 									$this->renderView(

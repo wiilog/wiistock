@@ -15,6 +15,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use DateTime;
 
 /**
  * @Route("/mouvement-traca")
@@ -90,7 +91,8 @@ class MouvementTracaController extends AbstractController
 
             $rows = [];
             foreach ($mvts as $mvt) {
-                $date = \DateTime::createFromFormat('Y-m-d H:i:s+', $mvt->getDate())->format('d/m/Y H:i:s');
+				$dateArray = explode('/', $mvt['date']);
+				$date = 'le ' . DateTime::createFromFormat('c', $dateArray[0]);
                 $rows[] = [
                     'id' => $mvt->getId(),
                     'date' => $date,
