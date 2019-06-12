@@ -11,8 +11,9 @@ namespace App\Command;
 
 use App\Repository\LitigeRepository;
 use App\Service\MailerService;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputArgument;
+//use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -33,13 +34,19 @@ class MailsLitigesComand extends Command
    */
   private $templating;
 
+	/**
+	 * @var LoggerInterface
+	 */
+  private $logger;
 
-  public function __construct(LitigeRepository $litigeRepository, MailerService $mailerService, \Twig_Environment $templating)
+
+  public function __construct(LoggerInterface $logger, LitigeRepository $litigeRepository, MailerService $mailerService, \Twig_Environment $templating)
   {
     parent::__construct();
     $this->litigeRepository = $litigeRepository;
     $this->mailerService = $mailerService;
     $this->templating = $templating;
+    $this->logger = $logger;
   }
 
   protected function configure()
@@ -55,7 +62,6 @@ class MailsLitigesComand extends Command
   {
     $litiges = $this->litigeRepository->findAll();
 
-
     $litigesByAcheteur = [];
     foreach($litiges as $litige) {
       $arrivage = $litige->getArrivage();
@@ -66,17 +72,21 @@ class MailsLitigesComand extends Command
       }
     }
 
+    $listEmails = '';
+
     foreach ($litigesByAcheteur as $email => $litiges) {
       $this->mailerService->sendMail(
         'FOLLOW GT // Récapitulatif de vos litiges',
         $this->templating->render('mails/mailLitiges.html.twig', ['litiges' => $litiges]),
         $email
       );
+      $listEmails .= $email . ', ';
     }
 
-    $output->writeln(count($litigesByAcheteur) . ' mails ont été envoyés');
-    //TODO enregistrer dans fichier de log
+    $nbMails = count($litigesByAcheteur);
 
+    $output->writeln($nbMails . ' mails ont été envoyés');
+    $this->logger->info('ENVOI DE ' . $nbMails . ' MAILS RECAP LITIGES : ' . $listEmails);
   }
 
 }
