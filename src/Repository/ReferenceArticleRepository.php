@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Filter;
 use App\Entity\ReferenceArticle;
+use App\Entity\Utilisateur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
@@ -15,6 +16,13 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class ReferenceArticleRepository extends ServiceEntityRepository
 {
+
+    private $unwanted_array = ['Š' => 'S', 'š' => 's', 'Ž' => 'Z', 'ž' => 'z', 'À' => 'A', 'Á' => 'A', 'Â' => 'A', 'Ã' => 'A', 'Ä' => 'A', 'Å' => 'A', 'Æ' => 'A', 'Ç' => 'C', 'È' => 'E', 'É' => 'E',
+        'Ê' => 'E', 'Ë' => 'E', 'Ì' => 'I', 'Í' => 'I', 'Î' => 'I', 'Ï' => 'I', 'Ñ' => 'N', 'Ò' => 'O', 'Ó' => 'O', 'Ô' => 'O', 'Õ' => 'O', 'Ö' => 'O', 'Ø' => 'O', 'Ù' => 'U',
+        'Ú' => 'U', 'Û' => 'U', 'Ü' => 'U', 'Ý' => 'Y', 'Þ' => 'B', 'ß' => 'Ss', 'à' => 'a', 'á' => 'a', 'â' => 'a', 'ã' => 'a', 'ä' => 'a', 'å' => 'a', 'æ' => 'a', 'ç' => 'c',
+        'è' => 'e', 'é' => 'e', 'ê' => 'e', 'ë' => 'e', 'ì' => 'i', 'í' => 'i', 'î' => 'i', 'ï' => 'i', 'ð' => 'o', 'ñ' => 'n', 'ò' => 'o', 'ó' => 'o', 'ô' => 'o', 'õ' => 'o',
+        'ö' => 'o', 'ø' => 'o', 'ù' => 'u', 'ú' => 'u', 'û' => 'u', 'ý' => 'y', 'þ' => 'b', 'ÿ' => 'y'];
+
     public function __construct(RegistryInterface $registry)
     {
         parent::__construct($registry, ReferenceArticle::class);
@@ -95,7 +103,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
-    public function findByFiltersAndParams($filters, $params = null)
+    public function findByFiltersAndParams($filters, $params = null, $user)
     {
         $em = $this->getEntityManager();
         $qb = $em->createQueryBuilder();
@@ -128,9 +136,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                     ->leftJoin('ra.articlesFournisseur', 'af')
                     ->andWhere('af.reference LIKE :reference')
                     ->setParameter('reference', '%' . $filter['value'] . '%');
-            }
-
-            // cas champ fixe
+            } // cas champ fixe
             else if ($label = $filter['champFixe']) {
                 $array = $linkChampLibreLabelToField[$label];
                 $field = $array['field'];
@@ -153,9 +159,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                             ->setParameter('typeLabel', $filter['value']);
                         break;
                 }
-            }
-
-            // cas champ libre
+            } // cas champ libre
             else if ($filter['champLibre']) {
                 $qbSub = $em->createQueryBuilder();
                 $qbSub
@@ -177,7 +181,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                             ->setParameter('value', '%' . $filter['value'] . '%');
                         break;
                     case 'refart':
-                       
+
                         break;
                     case 'number':
                     case 'list':
@@ -216,9 +220,38 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             if (!empty($params->get('search'))) {
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
-                    $qb
-                        ->andWhere('ra.libelle LIKE :value OR ra.reference LIKE :value')
-                        ->setParameter('value', '%' . $search . '%');
+                    foreach ($user->getRecherche() as $key => $recherche) {
+                        $metadatas = $em->getClassMetadata(ReferenceArticle::class);
+                        if (in_array(strtolower(strtr($recherche, $this->unwanted_array)), $metadatas->getFieldNames())) {
+                            $field = strtr($recherche, $this->unwanted_array);
+                            $field = strtolower($field);
+                            $qb
+                                ->orWhere('ra.' . $field . ' LIKE :value')
+                                ->setParameter('value', '%' . $search . '%');
+                        } else {
+                            $subqb = $em->createQueryBuilder();
+                            $subqb
+                                ->select('ra.id')
+                                ->from('App\Entity\ReferenceArticle', 'ra');
+                            $subqb
+                                ->leftJoin('ra.valeurChampsLibres', 'vclra')
+                                ->leftJoin('vclra.champLibre', 'clra')
+                                ->andWhere('clra.label = :search')
+                                ->andWhere('vclra.valeur LIKE :value')
+                                ->setParameters([
+                                    'value' => '%' . $search . '%',
+                                    'search' => $recherche
+                                ]);
+                            $ids = [];
+                            foreach ($subqb->getQuery()->execute() as $idArray) {
+                                $ids[] = $idArray['id'];
+                            }
+                            foreach ($ids as $id) {
+                                $qb
+                                    ->orWhere('ra.id = ' .$id);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -245,7 +278,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
-            /** @lang DQL */
+        /** @lang DQL */
             "UPDATE App\Entity\ReferenceArticle ra
             SET ra.type = null 
             WHERE ra.type = :typeId"

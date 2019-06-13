@@ -566,4 +566,43 @@ function redirectToDemande() {
     window.location.href = Routing.generate(demandeType + '_show', { 'id': demandeId });
 }
 
+// let tableRapidSearchColumn = $('#rapidSearchColumns').DataTable({
+//     language: {
+//         url: "/js/i18n/dataTableLanguage.json",
+//     },
+//     "paging": false,
+//     "info": false
+// });
+
+function addToRapidSearch(checkbox) {
+    let alreadySearched = [];
+    $('#rapidSearch tbody td').each(function() {
+        alreadySearched.push($(this).html());
+    });
+    if (!alreadySearched.includes(checkbox.data('name'))) {
+        let tr = '<tr><td>' + checkbox.data('name') + '</td></tr>';
+        $('#rapidSearch tbody').append(tr);
+    } else {
+        $('#rapidSearch tbody tr').each(function() {
+            if ($(this).find('td').html() === checkbox.data('name')) $(this).remove();
+        });
+    }
+}
+
+function saveRapidSearch() {
+    let searchesWanted = [];
+    $('#rapidSearch tbody td').each(function() {
+        searchesWanted.push($(this).html());
+    });
+    let params = {
+        recherches: searchesWanted
+    };
+    let json = JSON.stringify(params);
+    $.post(Routing.generate('update_user_searches', true), json, function() {
+        $("#modalRapidSearch").find('.close').click();
+    });
+
+}
+
+
 

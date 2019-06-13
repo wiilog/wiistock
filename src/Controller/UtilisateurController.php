@@ -300,4 +300,17 @@ class UtilisateurController extends Controller
         }
         throw new NotFoundHttpException("404");
     }
+
+    /**
+     * @Route("/recherches", name="update_user_searches", options={"expose"=true}, methods="GET|POST")
+     */
+    public function updateSearches(Request $request) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $this->getUser()->setRecherche($data['recherches']);
+            $em  = $this->getDoctrine()->getManager();
+            $em->flush();
+        }
+        return new JsonResponse();
+    }
+
 }

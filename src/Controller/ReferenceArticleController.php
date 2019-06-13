@@ -406,6 +406,7 @@ class ReferenceArticleController extends Controller
         $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_CEA);
         $category = CategoryType::ARTICLES_ET_REF_CEA;
         $champL = $this->champsLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
+        $champsLTexte = $this->champsLibreRepository->getByCategoryTypeAndCategoryCLAndText($category, $categorieCL);
         $champ[] = [
             'label' => 'Actions',
             'id' => 0,
@@ -449,8 +450,26 @@ class ReferenceArticleController extends Controller
             'id' => 0,
             'typage' => 'text'
         ];
+        $champS[] = [
+            'label' => 'Libellé',
+            'id' => 0,
+            'typage' => 'text'
+
+        ];
+        $champS[] = [
+            'label' => 'Référence',
+            'id' => 0,
+            'typage' => 'text'
+
+        ];
+        $champS[] = [
+            'label' => 'Commentaire',
+            'id' => 0,
+            'typage' => 'text'
+        ];
 
         $champs = array_merge($champ, $champL);
+        $champsSearch = array_merge($champS, $champsLTexte);
 
 
 
@@ -461,7 +480,7 @@ class ReferenceArticleController extends Controller
         $types = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::ARTICLES_ET_REF_CEA);
         $emplacements = $this->emplacementRepository->findAll();
         $typeChampLibre =  [];
-
+        $recherche = $this->getUser()->getRecherche();
         foreach ($types as $type) {
             $champsLibres = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($type['label'], $categorieCL);
             $typeChampLibre[] = [
@@ -470,9 +489,10 @@ class ReferenceArticleController extends Controller
                 'champsLibres' => $champsLibres,
             ];
         }
-
         return $this->render('reference_article/index.html.twig', [
             'champs' => $champs,
+            'champsSearch' => $champsSearch,
+            'recherches' => $recherche,
             'columnsVisibles' => $this->getUser()->getColumnVisible(),
             'typeChampsLibres' => $typeChampLibre,
             'types' => $types,
@@ -957,4 +977,5 @@ class ReferenceArticleController extends Controller
         }
         return implode(';', $refData);
     }
+
 }

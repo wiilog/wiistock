@@ -1,0 +1,67 @@
+<div class="modal fade" id="modalRapidSearch" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Modifier la recherche rapide</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-striped" id="rapidSearchColumns" style="width:49%; float: left">
+                    <thead>
+                    <tr>
+                        <th>
+                            Champs
+                        </th>
+                        <th>
+                            Actions
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% set i = 0 %}
+                    {% for champ in champsSearch %}
+
+                        <tr>
+                            <td>
+                                {{ champ.label | capitalize }}
+                            </td>
+                            <td>
+                                {% set checked = (champ.label in recherches ? 'checked' : '') %}
+                                <input class="form-check-input {{ checked == 'checked' ? 'data' : '' }}"
+                                       name="{{ champ.label }}"
+                                       type="checkbox" id="inlineCheckbox1" {{ checked }}
+                                       data-column="{{ i }}" data-name="{{ champ.label }}"
+                                       onclick="addToRapidSearch($(this))">
+                            </td>
+                        </tr>
+                        {% set i = i + 1 %}
+                    {% endfor %}
+                    </tbody>
+                </table>
+                <table class="table table-striped" id="rapidSearch" style="width: 49%; float: right">
+                    <thead>
+                    <tr>
+                        <th>
+                            Recherche rapide
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for champ in recherches %}
+                        <tr>
+                            <td>{{ champ | capitalize }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <div class="btn" data-dismiss="modal">Fermer</div>
+                <div class="btn btn-primary" onclick="saveRapidSearch()">Enregistrer</div>
+            </div>
+        </div>
+    </div>
+</div>
