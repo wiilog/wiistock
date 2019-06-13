@@ -24,6 +24,7 @@ let tableArrivage = $('#tableArrivages').DataTable({
         { "data": 'NumeroBL', 'name': 'NumeroBL', 'title': 'N° commande / BL' },
         { "data": 'Fournisseur', 'name': 'Fournisseur', 'title': 'Fournisseur' },
         { "data": 'Destinataire', 'name': 'Destinataire', 'title': 'Destinataire' },
+        { "data": 'Acheteurs', 'name': 'Acheteurs', 'title': 'Acheteurs' },
         { "data": 'NbUM', 'name': 'NbUM', 'title': 'Nb UM' },
         { "data": 'Statut', 'name': 'Statut', 'title': 'Statut' },
         { "data": 'Date', 'name': 'Date', 'title': 'Date' },
@@ -138,12 +139,10 @@ function upload(files) {
         processData:false,
         cache:false,
         dataType:"json",
-        success:function(fileNames){
+        success:function(html){
             let dropfile = $('#dropfile');
             dropfile.css('border', '3px dashed #BBBBBB');
-            fileNames.forEach(function(fileName) {
-                dropfile.after('<p><i class="fa fa-file mr-2"></i><a target="_blank" href="' + filepath + fileName + '">' + fileName + '</a></p>');
-            })
+            dropfile.after(html);
         }
     });
 }
@@ -158,7 +157,7 @@ function editRowArrivage(button) {
     $.post(path, JSON.stringify(params), function(data) {
         modal.find('.modal-body').html(data.html);
         initEditor2('.editor-container-edit');
-        $('#modalEditArrivage').find('#acheteurs').select2('val', data.acheteurs); //TODO CG 1 seul fonctionne... ???
+        $('#modalEditArrivage').find('#acheteurs').val(data.acheteurs).select2();
     }, 'json');
 
     modal.find(submit).attr('value', id);
@@ -385,6 +384,19 @@ $('#submitSearchArrivage').on('click', function () {
     tableArrivage
         .draw();
 });
-// function deleteAttachement() {
-//
-// }
+
+function deleteAttachement(arrivageId, pj, pjWithoutExtension) {
+
+    let path = Routing.generate('arrivage_delete_attachement');
+    let params = {
+        arrivageId: arrivageId,
+        pj: pj
+    };
+
+    $.post(path, JSON.stringify(params), function(data) {
+
+        if(data === true) {
+            $('#' + pjWithoutExtension).remove();
+        }
+    });
+}

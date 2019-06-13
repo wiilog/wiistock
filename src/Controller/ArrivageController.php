@@ -129,6 +129,10 @@ class ArrivageController extends AbstractController
 
             $rows = [];
             foreach ($arrivages as $arrivage) {
+				$acheteursUsernames = [];
+				foreach($arrivage->getAcheteurs() as $acheteur) {
+					$acheteursUsernames[] = $acheteur->getUsername();
+				}
 
                 $rows[] = [
                     'id' => $arrivage->getId(),
@@ -140,7 +144,8 @@ class ArrivageController extends AbstractController
                     'Fournisseur' => $arrivage->getFournisseur() ? $arrivage->getFournisseur()->getNom() : '',
                     'Destinataire' => $arrivage->getDestinataire() ? $arrivage->getDestinataire()->getUsername() : '',
                     'NbUM' => $arrivage->getNbUM() ? $arrivage->getNbUM() : '',
-                    'Statut' => $arrivage->getStatut() ? $arrivage->getStatut()->getNom() : '',
+					'Acheteurs' => implode(', ', $acheteursUsernames),
+					'Statut' => $arrivage->getStatut() ? $arrivage->getStatut()->getNom() : '',
                     'Date' => $arrivage->getDate() ? $arrivage->getDate()->format('d/m/Y') : '',
                     'Utilisateur' => $arrivage->getUtilisateur() ? $arrivage->getUtilisateur()->getUsername() : '',
                     'Actions' => $this->renderView('arrivage/datatableArrivageRow.html.twig', [
@@ -425,10 +430,40 @@ class ArrivageController extends AbstractController
                 }
             }
             $em->flush();
-            return new JsonResponse($fileNames);
+
+            $html = '';
+            foreach ($fileNames as $fileName) {
+            	$html .= $this->renderView('arrivage/attachementLine.html.twig', ['arrivage' => $arrivage, 'pj' => $fileName]);
+			}
+
+            return new JsonResponse($html);
         } else {
             throw new NotFoundHttpException('404');
         }
     }
+
+	/**
+	 * @Route("/supprime-pj", name="arrivage_delete_attachement", options={"expose"=true}, methods="GET|POST")
+	 */
+    public function deleteAttachement(Request $request)
+	{
+		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+
+			$arrivageId = (int)$data['arrivageId'];
+
+			$arrivage = $this->arrivageRepository->find($arrivageId);
+			if ($arrivage) {
+				$arrivage->removePieceJointe($data['pj']);
+				$this->getDoctrine()->getManager()->flush();
+				$response = true;
+			} else {
+				$response = false;
+			}
+
+			return new JsonResponse($response);
+		} else {
+			throw new NotFoundHttpException('404');
+		}
+	}
 
 }

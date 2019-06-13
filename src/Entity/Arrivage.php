@@ -228,6 +228,18 @@ class Arrivage
         return $this;
     }
 
+    public function removePieceJointe($filename): self
+	{
+		$piecesJointes = $this->getPiecesJointes();
+
+		if (($key = array_search($filename, $piecesJointes)) !== false) {
+			unset($piecesJointes[$key]);
+		}
+		$this->setPiecesJointes($piecesJointes);
+
+		return $this;
+	}
+
     public function getNumeroReception(): ?string
     {
         return $this->numeroReception;
@@ -379,4 +391,5 @@ class Arrivage
 
         return $this;
     }
+
 }
