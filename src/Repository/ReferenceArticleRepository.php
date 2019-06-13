@@ -221,34 +221,71 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
                     foreach ($user->getRecherche() as $key => $recherche) {
-                        $metadatas = $em->getClassMetadata(ReferenceArticle::class);
-                        if (in_array(strtolower(strtr($recherche, $this->unwanted_array)), $metadatas->getFieldNames())) {
-                            $field = strtr($recherche, $this->unwanted_array);
-                            $field = strtolower($field);
-                            $qb
-                                ->orWhere('ra.' . $field . ' LIKE :value')
-                                ->setParameter('value', '%' . $search . '%');
-                        } else {
+                        if ($recherche !== 'Fournisseur' && $recherche !== 'Référence article fournisseur') {
+                            $metadatas = $em->getClassMetadata(ReferenceArticle::class);
+                            if (in_array(strtolower(strtr($recherche, $this->unwanted_array)), $metadatas->getFieldNames())) {
+                                $field = strtr($recherche, $this->unwanted_array);
+                                $field = strtolower($field);
+                                $qb
+                                    ->orWhere('ra.' . $field . ' LIKE :value')
+                                    ->setParameter('value', '%' . $search . '%');
+                            } else {
+                                $subqb = $em->createQueryBuilder();
+                                $subqb
+                                    ->select('ra.id')
+                                    ->from('App\Entity\ReferenceArticle', 'ra');
+                                $subqb
+                                    ->leftJoin('ra.valeurChampsLibres', 'vclra')
+                                    ->leftJoin('vclra.champLibre', 'clra')
+                                    ->andWhere('clra.label = :search')
+                                    ->andWhere('vclra.valeur LIKE :value')
+                                    ->setParameters([
+                                        'value' => '%' . $search . '%',
+                                        'search' => $recherche
+                                    ]);
+                                $ids = [];
+                                foreach ($subqb->getQuery()->execute() as $idArray) {
+                                    $ids[] = $idArray['id'];
+                                }
+                                foreach ($ids as $id) {
+                                    $qb
+                                        ->orWhere('ra.id = ' . $id);
+                                }
+                            }
+                        } else if ($recherche === 'Fournisseur') {
                             $subqb = $em->createQueryBuilder();
                             $subqb
                                 ->select('ra.id')
                                 ->from('App\Entity\ReferenceArticle', 'ra');
                             $subqb
-                                ->leftJoin('ra.valeurChampsLibres', 'vclra')
-                                ->leftJoin('vclra.champLibre', 'clra')
-                                ->andWhere('clra.label = :search')
-                                ->andWhere('vclra.valeur LIKE :value')
-                                ->setParameters([
-                                    'value' => '%' . $search . '%',
-                                    'search' => $recherche
-                                ]);
+                                ->leftJoin('ra.articlesFournisseur', 'afra')
+                                ->leftJoin('afra.fournisseur', 'fra')
+                                ->andWhere('fra.nom LIKE :value')
+                                ->setParameter('value','%' . $search . '%');
                             $ids = [];
                             foreach ($subqb->getQuery()->execute() as $idArray) {
                                 $ids[] = $idArray['id'];
                             }
                             foreach ($ids as $id) {
                                 $qb
-                                    ->orWhere('ra.id = ' .$id);
+                                    ->orWhere('ra.id = ' . $id);
+                            }
+                        } else if ($recherche === 'Référence article fournisseur') {
+                            $subqb = $em->createQueryBuilder();
+                            $subqb
+                                ->select('ra.id')
+                                ->from('App\Entity\ReferenceArticle', 'ra');
+                            $subqb
+                                ->leftJoin('ra.articlesFournisseur', 'afra')
+                                ->andWhere('afra.reference LIKE :value')
+                                ->setParameter('value','%' . $search . '%');
+                            $ids = [];
+                            foreach ($subqb->getQuery()->execute() as $idArray) {
+                                $ids[] = $idArray['id'];
+                            }
+                            foreach ($ids as $id) {
+                                $qb
+                                    ->orWhere('ra.id = ' . $id);
                             }
                         }
                     }

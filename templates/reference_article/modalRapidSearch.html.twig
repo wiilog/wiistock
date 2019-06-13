@@ -25,15 +25,13 @@
                     {% for champ in champsSearch %}
 
                         <tr>
+                            <td>{{ champ.label | capitalize }}</td>
                             <td>
-                                {{ champ.label | capitalize }}
-                            </td>
-                            <td>
-                                {% set checked = (champ.label in recherches ? 'checked' : '') %}
+                                {% set checked = (champ.label | capitalize in recherches ? 'checked' : '') %}
                                 <input class="form-check-input {{ checked == 'checked' ? 'data' : '' }}"
                                        name="{{ champ.label }}"
                                        type="checkbox" id="inlineCheckbox1" {{ checked }}
-                                       data-column="{{ i }}" data-name="{{ champ.label }}"
+                                       data-column="{{ i }}" data-name="{{ champ.label  | capitalize}}"
                                        onclick="addToRapidSearch($(this))">
                             </td>
                         </tr>

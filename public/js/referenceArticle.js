@@ -584,7 +584,13 @@ function addToRapidSearch(checkbox) {
         $('#rapidSearch tbody').append(tr);
     } else {
         $('#rapidSearch tbody tr').each(function() {
-            if ($(this).find('td').html() === checkbox.data('name')) $(this).remove();
+            if ($(this).find('td').html() === checkbox.data('name')) {
+                if ($('#rapidSearch tbody tr').length > 1) {
+                    $(this).remove();
+                } else {
+                    checkbox.prop( "checked", true );
+                }
+            }
         });
     }
 }
@@ -598,8 +604,9 @@ function saveRapidSearch() {
         recherches: searchesWanted
     };
     let json = JSON.stringify(params);
-    $.post(Routing.generate('update_user_searches', true), json, function() {
+    $.post(Routing.generate('update_user_searches', true), json, function(data) {
         $("#modalRapidSearch").find('.close').click();
+        tableRefArticle.search(tableRefArticle.search()).draw();
     });
 
 }

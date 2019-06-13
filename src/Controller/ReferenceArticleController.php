@@ -406,7 +406,8 @@ class ReferenceArticleController extends Controller
         $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_CEA);
         $category = CategoryType::ARTICLES_ET_REF_CEA;
         $champL = $this->champsLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
-        $champsLTexte = $this->champsLibreRepository->getByCategoryTypeAndCategoryCLAndText($category, $categorieCL);
+        $ceaCL = ['équipementier (PDT)', 'réf équipementier (PDT)', 'machine (PDT)'];
+        $champsLTexte = $this->champsLibreRepository->getByCategoryTypeAndCategoryCLAndTextAndCEA($category, $categorieCL, $ceaCL);
         $champ[] = [
             'label' => 'Actions',
             'id' => 0,
@@ -450,8 +451,21 @@ class ReferenceArticleController extends Controller
             'id' => 0,
             'typage' => 'text'
         ];
+
         $champS[] = [
             'label' => 'Libellé',
+            'id' => 0,
+            'typage' => 'text'
+
+        ];
+        $champS[] = [
+            'label' => 'Fournisseur',
+            'id' => 0,
+            'typage' => 'text'
+
+        ];
+        $champS[] = [
+            'label' => 'Référence Article Fournisseur',
             'id' => 0,
             'typage' => 'text'
 
@@ -461,11 +475,6 @@ class ReferenceArticleController extends Controller
             'id' => 0,
             'typage' => 'text'
 
-        ];
-        $champS[] = [
-            'label' => 'Commentaire',
-            'id' => 0,
-            'typage' => 'text'
         ];
 
         $champs = array_merge($champ, $champL);
