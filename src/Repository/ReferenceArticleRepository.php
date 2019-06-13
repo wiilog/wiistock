@@ -147,11 +147,20 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                         $qb->andWhere("ra." . $field . " = " . $filter['value']);
                         break;
                     case 'list':
-                        // cas particulier du type (pas besoin de généraliser pour l'instant, voir selon besoins)
-                        $qb
-                            ->leftJoin('ra.type', 't')
-                            ->andWhere('t.label = :typeLabel')
-                            ->setParameter('typeLabel', $filter['value']);
+                    	switch ($field) {
+							case 'type_id':
+								$qb
+									->leftJoin('ra.type', 't')
+									->andWhere('t.label = :typeLabel')
+									->setParameter('typeLabel', $filter['value']);
+								break;
+							case 'emplacement_id':
+								$qb
+									->leftJoin('ra.emplacement', 'e')
+									->andWhere('e.label = :emplacementLabel')
+									->setParameter('emplacementLabel', $filter['value']);
+								break;
+						}
                         break;
                 }
             }
