@@ -583,7 +583,11 @@ a:hover {
   border-color: #cc0000;
 }
 .filter span {
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+}
+
+.filter-operator {
+  margin-left: 8px;
 }
 
 .filterService {
