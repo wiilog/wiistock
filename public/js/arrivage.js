@@ -159,7 +159,7 @@ function editRowArrivage(button) {
     $.post(path, JSON.stringify(params), function(data) {
         modal.find('.modal-body').html(data.html);
         initEditor2('.editor-container-edit');
-        $('#modalEditArrivage').find('#acheteurs').select2('val', data.acheteurs); //TODO CG 1 seul fonctionne... ???
+        $('#modalEditArrivage').find('#acheteurs').val(data.acheteurs).select2();//TODO CG 1 seul fonctionne... ???
     }, 'json');
 
     modal.find(submit).attr('value', id);
