@@ -40,10 +40,11 @@ class Filter
      */
     private $utilisateur;
 
-	/**
-	 * @ORM\Column(type="string", length=8, nullable=true)
-	 */
-    private $operator;
+	//TODO CG filtres et/ou
+//	/**
+//	 * @ORM\Column(type="string", length=8, nullable=true)
+//	 */
+//    private $operator;
 
 
     public function getId(): ?int
@@ -95,18 +96,6 @@ class Filter
     public function setChampFixe(?string $champFixe): self
     {
         $this->champFixe = $champFixe;
-
-        return $this;
-    }
-
-    public function getOperator(): ?string
-    {
-        return $this->operator;
-    }
-
-    public function setOperator(string $operator): self
-    {
-        $this->operator = $operator;
 
         return $this;
     }
