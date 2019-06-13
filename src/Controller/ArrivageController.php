@@ -129,6 +129,10 @@ class ArrivageController extends AbstractController
 
             $rows = [];
             foreach ($arrivages as $arrivage) {
+				$acheteursUsernames = [];
+				foreach($arrivage->getAcheteurs() as $acheteur) {
+					$acheteursUsernames[] = $acheteur->getUsername();
+				}
 
                 $rows[] = [
                     'id' => $arrivage->getId(),
@@ -140,7 +144,8 @@ class ArrivageController extends AbstractController
                     'Fournisseur' => $arrivage->getFournisseur() ? $arrivage->getFournisseur()->getNom() : '',
                     'Destinataire' => $arrivage->getDestinataire() ? $arrivage->getDestinataire()->getUsername() : '',
                     'NbUM' => $arrivage->getNbUM() ? $arrivage->getNbUM() : '',
-                    'Statut' => $arrivage->getStatut() ? $arrivage->getStatut()->getNom() : '',
+					'Acheteurs' => implode(', ', $acheteursUsernames),
+					'Statut' => $arrivage->getStatut() ? $arrivage->getStatut()->getNom() : '',
                     'Date' => $arrivage->getDate() ? $arrivage->getDate()->format('d/m/Y') : '',
                     'Utilisateur' => $arrivage->getUtilisateur() ? $arrivage->getUtilisateur()->getUsername() : '',
                     'Actions' => $this->renderView('arrivage/datatableArrivageRow.html.twig', [
