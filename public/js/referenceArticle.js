@@ -298,6 +298,7 @@ function displayNewFilter(data) {
 
 // suppression du filtre au clic dessus
 function initRemove() {
+    // $('.filter-bloc').on('click', removeFilter); //TODO CG filtres et/ou
     $('.filter').on('click', removeFilter);
 }
 

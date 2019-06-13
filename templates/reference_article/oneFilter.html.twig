@@ -1,3 +1,6 @@
+{#TODO CG filtres et/ou#}
+{#<div class="filter-bloc">#}
+{#    <div class="bold text-center filter-operator">{{ filter.operator|upper }}</div>#}
 <div class="btn filter">
     <input hidden value="{{ filter.id }}" class="filter-id">
     {% if filter.champFixe is not null %}
@@ -11,3 +14,4 @@
         <span class="italic">"{{ value }}"</span>
     {% endif %}
 </div>
+{#</div>#}

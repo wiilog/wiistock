@@ -36,6 +36,7 @@ class FilterRepository extends ServiceEntityRepository
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
+//            "SELECT f.champFixe, cl.id champLibre, f.value, cl.typage, f.operator
             "SELECT f.champFixe, cl.id champLibre, f.value, cl.typage
             FROM App\Entity\Filter f
             LEFT JOIN f.champLibre cl

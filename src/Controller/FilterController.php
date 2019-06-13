@@ -83,7 +83,9 @@ class FilterController extends AbstractController
                 $filter = new Filter();
 
                 // opérateur
-//				if ($data['operator'])
+//				$operator = isset($data['operator']) ? $data['operator'] : 'and';
+//				$filter->setOperator($operator);
+
 				// champ Champ Libre
                 if (isset($data['field'])) {
                     $field = $data['field'];
@@ -114,7 +116,8 @@ class FilterController extends AbstractController
                     'id' => $filter->getId(),
                     'champLibre' => $filter->getChampLibre(),
                     'champFixe' => $filter->getChampFixe(),
-                    'value' => $filter->getValue()
+                    'value' => $filter->getValue(),
+//					'operator' => $filter->getOperator()
                 ];
 
                 $result = [
@@ -177,7 +180,7 @@ class FilterController extends AbstractController
 				$options = $cl->getElements();
 			}
 
-			$view = $this->renderView('type/inputSelectTypes.html.twig', [
+			$view = $this->renderView('reference_article/selectInFilter.html.twig', [
 				'options' => $options,
 			]);
 			return new JsonResponse($view);

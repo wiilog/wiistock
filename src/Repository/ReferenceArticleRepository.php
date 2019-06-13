@@ -122,6 +122,9 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
         foreach ($filters as $filter) {
             $index++;
+//
+//            $operatorOR = $filter['operator'] == 'or';
+			//TODO CG filtres et/ou
 
             // cas particulier champ référence article fournisseur
             if ($filter['champFixe'] === Filter::CHAMP_FIXE_REF_ART_FOURN) {
@@ -139,13 +142,17 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
                 switch ($typage) {
                     case 'text':
-                        $qb
-                            ->andWhere("ra." . $field . " LIKE :value")
-                            ->setParameter('value', '%' . $filter['value'] . '%');
+						$qb
+							->andWhere("ra." . $field . " LIKE :value" . $index)
+							->setParameter('value' . $index, '%' . $filter['value'] . '%');
+//                    	$where = "ra." . $field . " LIKE :value" . $index;
+//                    	$operatorOR ? $qb->orWhere($where) : $qb->andWhere($where);
+//                        $qb->setParameter('value' . $index, '%' . $filter['value'] . '%');
+						//TODO CG filtres et/ou
                         break;
                     case 'number':
                         $qb->andWhere("ra." . $field . " = " . $filter['value']);
-                        break;
+						break;
                     case 'list':
                     	switch ($field) {
 							case 'type_id':
@@ -183,18 +190,18 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                     case 'text':
                         $qbSub
                             ->andWhere('vcl' . $index . '.champLibre = ' . $filter['champLibre'])
-                            ->andWhere('vcl' . $index . '.valeur LIKE :value')
-                            ->setParameter('value', '%' . $filter['value'] . '%');
+                            ->andWhere('vcl' . $index . '.valeur LIKE :value' . $index)
+                            ->setParameter('value' . $index, '%' . $filter['value'] . '%');
                         break;
                     case 'refart':
-                       
+
                         break;
                     case 'number':
                     case 'list':
                         $qbSub
                             ->andWhere('vcl' . $index . '.champLibre = ' . $filter['champLibre'])
-                            ->andWhere('vcl' . $index . '.valeur = :value')
-                            ->setParameter('value', $filter['value']);
+                            ->andWhere('vcl' . $index . '.valeur = :value' . $index)
+                            ->setParameter('value' . $index, $filter['value']);
                         break;
                     case 'date':
                         $date = explode('-', $filter['value']);
@@ -227,8 +234,8 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
                     $qb
-                        ->andWhere('ra.libelle LIKE :value OR ra.reference LIKE :value')
-                        ->setParameter('value', '%' . $search . '%');
+                        ->andWhere('ra.libelle LIKE :value OR ra.reference LIKE :search')
+                        ->setParameter('search', '%' . $search . '%');
                 }
             }
         }
