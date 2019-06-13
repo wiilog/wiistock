@@ -406,8 +406,7 @@ class ReferenceArticleController extends Controller
         $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_CEA);
         $category = CategoryType::ARTICLES_ET_REF_CEA;
         $champL = $this->champsLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
-        $ceaCL = ['équipementier (PDT)', 'réf équipementier (PDT)', 'machine (PDT)'];
-        $champsLTexte = $this->champsLibreRepository->getByCategoryTypeAndCategoryCLAndTextAndCEA($category, $categorieCL, $ceaCL);
+        $champsLTexte = $this->champsLibreRepository->getByCategoryTypeAndCategoryCLAndText($category, $categorieCL);
         $champ[] = [
             'label' => 'Actions',
             'id' => 0,

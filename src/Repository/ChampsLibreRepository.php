@@ -86,7 +86,7 @@ class ChampsLibreRepository extends ServiceEntityRepository
     }
 
     // pour les colonnes dynamiques
-    public function getByCategoryTypeAndCategoryCLAndTextAndCEA($category, $categorieCL, $ceaCL)
+    public function getByCategoryTypeAndCategoryCLAndText($category, $categorieCL)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
@@ -94,14 +94,13 @@ class ChampsLibreRepository extends ServiceEntityRepository
             FROM App\Entity\ChampsLibre cl 
             JOIN cl.type t
             JOIN t.category cat
-            WHERE cat.label = :category AND cl.categorieCL = :categorie AND cl.typage = :text AND cl.label IN (:cea)
+            WHERE cat.label = :category AND cl.categorieCL = :categorie AND cl.typage = :text
             "
         )->setParameters(
             [
                 'category' => $category,
                 'categorie' => $categorieCL,
-                'text' => 'text',
-                'cea' => $ceaCL
+                'text' => 'text'
             ]
         );
         return $query->getResult();
