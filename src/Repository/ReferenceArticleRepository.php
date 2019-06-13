@@ -193,9 +193,6 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                             ->andWhere('vcl' . $index . '.valeur LIKE :value' . $index)
                             ->setParameter('value' . $index, '%' . $filter['value'] . '%');
                         break;
-                    case 'refart':
-
-                        break;
                     case 'number':
                     case 'list':
                         $qbSub
@@ -234,7 +231,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
                     $qb
-                        ->andWhere('ra.libelle LIKE :value OR ra.reference LIKE :search')
+                        ->andWhere('ra.libelle LIKE :search OR ra.reference LIKE :search')
                         ->setParameter('search', '%' . $search . '%');
                 }
             }
