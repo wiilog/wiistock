@@ -322,7 +322,7 @@ function displayFilterValue(elem) {
         let params = {
             'value': val
         };
-        $.post(Routing.generate('type_show_select'), JSON.stringify(params), function (data) {
+        $.post(Routing.generate('display_field_elements'), JSON.stringify(params), function (data) {
             modalBody.find('.input').html(data);
         }, 'json');
     } else {

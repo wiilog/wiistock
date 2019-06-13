@@ -2,9 +2,14 @@
 
 namespace App\Controller;
 
+use App\Entity\CategoryType;
+use App\Entity\ChampsLibre;
 use App\Entity\Filter;
+use App\Entity\Type;
 use App\Repository\ChampsLibreRepository;
+use App\Repository\EmplacementRepository;
 use App\Repository\FilterRepository;
+use App\Repository\TypeRepository;
 use App\Service\RefArticleDataService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -23,7 +28,7 @@ class FilterController extends AbstractController
     /**
      * @var ChampsLibreRepository
      */
-    private $champsLibreRepository;
+    private $champLibreRepository;
 
     /**
      * @var FilterRepository
@@ -35,17 +40,31 @@ class FilterController extends AbstractController
      */
     private $refArticleDataService;
 
-    /**
-     * FilterController constructor.
-     * @param ChampsLibreRepository $champsLibreRepository
-     * @param FilterRepository $filterRepository
-     * @param RefArticleDataService $refArticleDataService
-     */
-    public function __construct(ChampsLibreRepository $champsLibreRepository, FilterRepository $filterRepository, RefArticleDataService $refArticleDataService)
+	/**
+	 * @var TypeRepository
+	 */
+    private $typeRepository;
+
+	/**
+	 * @var EmplacementRepository
+	 */
+    private $emplacementRepository;
+
+	/**
+	 * FilterController constructor.
+	 * @param TypeRepository $typeRepository
+	 * @param EmplacementRepository $emplacementRepository
+	 * @param ChampsLibreRepository $champsLibreRepository
+	 * @param FilterRepository $filterRepository
+	 * @param RefArticleDataService $refArticleDataService
+	 */
+    public function __construct(TypeRepository $typeRepository, EmplacementRepository $emplacementRepository, ChampsLibreRepository $champsLibreRepository, FilterRepository $filterRepository, RefArticleDataService $refArticleDataService)
     {
-        $this->champsLibreRepository = $champsLibreRepository;
+        $this->champLibreRepository = $champsLibreRepository;
         $this->filterRepository = $filterRepository;
         $this->refArticleDataService = $refArticleDataService;
+        $this->typeRepository = $typeRepository;
+        $this->emplacementRepository = $emplacementRepository;
     }
 
     /**
@@ -63,12 +82,14 @@ class FilterController extends AbstractController
             if($existingFilter == 0) {
                 $filter = new Filter();
 
-                // champ Champ Libre
+                // opérateur
+//				if ($data['operator'])
+				// champ Champ Libre
                 if (isset($data['field'])) {
                     $field = $data['field'];
 
                     if (intval($field) != 0) {
-                        $champLibre = $this->champsLibreRepository->find(intval($field));
+                        $champLibre = $this->champLibreRepository->find(intval($field));
                         $filter->setChampLibre($champLibre);
                     } else {
                         $filter->setChampFixe($data['field']);
@@ -129,4 +150,38 @@ class FilterController extends AbstractController
         }
         throw new NotFoundHttpException("404");
     }
+
+	/**
+	 * @Route("/affiche-liste", name="display_field_elements", options={"expose"=true}, methods={"GET","POST"})
+	 */
+	public function displayFieldElements(Request $request)
+	{
+		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+
+			$value = $data['value'];
+
+			if ($value === 'Emplacement') {
+				$emplacements = $this->emplacementRepository->findAll();
+				$options = [];
+				foreach ($emplacements as $emplacement) {
+					$options[] = $emplacement->getLabel();
+				}
+			} else if ($value === 'Type') {
+				$types = $this->typeRepository->findByCategoryLabel(CategoryType::TYPE_ARTICLES_ET_REF_CEA); /** @var Type[] $types */
+				$options = [];
+				foreach ($types as $type) {
+					$options[] = $type->getLabel();
+				}
+			} else {
+				$cl = $this->champLibreRepository->find(intval($value)); /** @var $cl ChampsLibre */
+				$options = $cl->getElements();
+			}
+
+			$view = $this->renderView('type/inputSelectTypes.html.twig', [
+				'options' => $options,
+			]);
+			return new JsonResponse($view);
+		}
+		throw new NotFoundHttpException("404");
+	}
 }

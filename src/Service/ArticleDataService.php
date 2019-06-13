@@ -165,7 +165,7 @@ class ArticleDataService
                 'articleRef' => $refArticle,
                 'articles' => $this->articleFournisseurRepository->findByRefArticle($refArticle->getId()),
                 'statut' => ($refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF),
-                'types' => $this->typeRepository->getByCategoryLabel(ReferenceArticle::CATEGORIE),
+                'types' => $this->typeRepository->findByCategoryLabel(ReferenceArticle::CATEGORIE),
                 'statuts' => $statuts,
                 'modifieRefArticle' => $modifieRefArticle,
                 'valeurChampsLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,

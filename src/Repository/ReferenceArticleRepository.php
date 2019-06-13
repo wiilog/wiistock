@@ -110,6 +110,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             'Référence' => ['field' => 'reference', 'typage' => 'text'],
             'Type' => ['field' => 'type_id', 'typage' => 'list'],
             'Quantité' => ['field' => 'quantiteStock', 'typage' => 'number'],
+			'Emplacement' => ['field' => 'emplacement_id', 'typage' => 'list']
         ];
         //TODO trouver + dynamique
 
