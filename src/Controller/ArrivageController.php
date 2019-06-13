@@ -425,10 +425,40 @@ class ArrivageController extends AbstractController
                 }
             }
             $em->flush();
-            return new JsonResponse($fileNames);
+
+            $html = '';
+            foreach ($fileNames as $fileName) {
+            	$html .= $this->renderView('arrivage/attachementLine.html.twig', ['arrivage' => $arrivage, 'pj' => $fileName]);
+			}
+
+            return new JsonResponse($html);
         } else {
             throw new NotFoundHttpException('404');
         }
     }
+
+	/**
+	 * @Route("/supprime-pj", name="arrivage_delete_attachement", options={"expose"=true}, methods="GET|POST")
+	 */
+    public function deleteAttachement(Request $request)
+	{
+		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+
+			$arrivageId = (int)$data['arrivageId'];
+
+			$arrivage = $this->arrivageRepository->find($arrivageId);
+			if ($arrivage) {
+				$arrivage->removePieceJointe($data['pj']);
+				$this->getDoctrine()->getManager()->flush();
+				$response = true;
+			} else {
+				$response = false;
+			}
+
+			return new JsonResponse($response);
+		} else {
+			throw new NotFoundHttpException('404');
+		}
+	}
 
 }
