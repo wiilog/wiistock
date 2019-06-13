@@ -458,6 +458,14 @@ class ReferenceArticleController extends Controller
             'typage' => 'text'
 
         ];
+
+        $champS[] = [
+            'label' => 'Référence',
+            'id' => 0,
+            'typage' => 'text'
+
+        ];
+
         $champS[] = [
             'label' => 'Fournisseur',
             'id' => 0,
@@ -470,16 +478,9 @@ class ReferenceArticleController extends Controller
             'typage' => 'text'
 
         ];
-        $champS[] = [
-            'label' => 'Référence',
-            'id' => 0,
-            'typage' => 'text'
-
-        ];
 
         $champs = array_merge($champ, $champL);
         $champsSearch = array_merge($champS, $champsLTexte);
-
 
 
         usort($champs, function ($a, $b) {
