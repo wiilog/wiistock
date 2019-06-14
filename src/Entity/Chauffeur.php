@@ -35,7 +35,7 @@ class Chauffeur
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Transporteur", inversedBy="chauffeurs")
-     * @ORM\JoinColumn(nullable=false)
+     * @ORM\JoinColumn(name="transporteur_id", referencedColumnName="id", onDelete="SET NULL", nullable=true)
      */
     private $transporteur;
 

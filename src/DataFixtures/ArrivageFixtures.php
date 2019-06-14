@@ -70,7 +70,7 @@ class ArrivageFixtures extends Fixture implements FixtureGroupInterface
     {
         $menusInfos = [
             ['Arrivage', 'ARRIVAGE'],
-            ['Chauffeur', 'CHAUFFEUR'],
+            ['Référence', 'REFERENCE'],
         ];
         foreach ($menusInfos as $menuInfos) {
             $menu = $this->menuRepository->findOneBy(['code' => $menuInfos[1]]);
@@ -147,7 +147,7 @@ class ArrivageFixtures extends Fixture implements FixtureGroupInterface
         }
 
         $menus = [
-            Menu::CHAUFFEUR,
+            Menu::REFERENCE,
 
         ];
 
@@ -168,8 +168,6 @@ class ArrivageFixtures extends Fixture implements FixtureGroupInterface
                 }
             }
         }
-
-
 
         // catégorie type litige
         $categorie = $this->categoryTypeRepository->findOneBy(['label' => CategoryType::LITIGE]);

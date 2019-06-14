@@ -1,39 +1,40 @@
-{% extends 'base.html.twig' %}
+{% extends 'layout.html.twig' %}
 
-{% block title %}Transporteur index{% endblock %}
+{% block title %}Transporteurs{% endblock %}
 
-{% block body %}
-    <h1>Transporteur index</h1>
+{% block page_content %}
 
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Label</th>
-                <th>Code</th>
-                <th>NombreChauffeurs</th>
-                <th>actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for transporteur in transporteurs %}
-            <tr>
-                <td>{{ transporteur.id }}</td>
-                <td>{{ transporteur.label }}</td>
-                <td>{{ transporteur.code }}</td>
-                <td>{{ transporteur.nombreChauffeurs }}</td>
-                <td>
-                    <a href="{{ path('transporteur_show', {'id': transporteur.id}) }}">show</a>
-                    <a href="{{ path('transporteur_edit', {'id': transporteur.id}) }}">edit</a>
-                </td>
-            </tr>
-        {% else %}
-            <tr>
-                <td colspan="5">no records found</td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+    <div class="container-fluid">
+        <h1>Transporteurs</h1>
 
-    <a href="{{ path('transporteur_new') }}">Create new</a>
+        <div class="row">
+            {% if hasRight(constant('App\\Entity\\Menu::REFERENCE'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+                <a href="" data-toggle="modal" data-target="#modalNewTransporteur" class="btn btn-primary" >
+                    <span class="fa fa-plus mr-2"></span>Nouveau transporteur
+                </a>
+            {% endif %}
+        </div>
+        <div>
+            <table id="tableTransporteur_id" class="table table-striped table-bordered w-100">
+                <thead>
+                <tr>
+                    <th>Label</th>
+                    <th>Code</th>
+                    <th>Nombre de chauffeurs</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+    {% include "transporteur/modalDeleteTransporteur.html.twig" %}
+    {% include "transporteur/modalEditTransporteur.html.twig" %}
+
+    {% include "transporteur/modalNewTransporteur.html.twig" %}
+{#    {% include "transporteur/modalShowTransporteur.html.twig" %}#}
+
+{% endblock %}
+
+{% block javascript %}
+<script src="{{ asset('js/transporteur.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

@@ -31,12 +31,3 @@ let modalDeleteTransporteur = $('#modalDeleteTransporteur');
 let submitDeleteTransporteur = $('#submitDeleteTransporteur');
 let urlDeleteTransporteur = Routing.generate('transporteur_delete', true);
 InitialiserModal(modalDeleteTransporteur, submitDeleteTransporteur, urlDeleteTransporteur, tableTransporteur);
-
-// function iniTransporteur() {
-// //
-// //     ajaxAutoCompleteTransporteurInit($('.ajax-autocompleteTransporteur'))
-// // };
-// // function iniTransporteurEdit() {
-// //
-// //     ajaxAutoCompleteTransporteurInit($('.ajax-autocompleteTransporteur-edit'))
-// // };

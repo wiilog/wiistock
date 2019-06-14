@@ -34,10 +34,8 @@ let urlDeleteChauffeur = Routing.generate('chauffeur_delete', true);
 InitialiserModal(modalDeleteChauffeur, submitDeleteChauffeur, urlDeleteChauffeur, tableChauffeur);
 
 function iniTransporteur() {
-
     ajaxAutoCompleteTransporteurInit($('.ajax-autocompleteTransporteur'))
 };
 function iniTransporteurEdit() {
-
     ajaxAutoCompleteTransporteurInit($('.ajax-autocompleteTransporteur-edit'))
 };

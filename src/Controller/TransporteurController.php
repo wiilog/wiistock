@@ -2,12 +2,19 @@
 
 namespace App\Controller;
 
+use App\Entity\Action;
 use App\Entity\Transporteur;
+use App\Entity\Chauffeur;
+use App\Entity\Menu;
+use App\Service\UserService;
 use App\Form\TransporteurType;
 use App\Repository\TransporteurRepository;
+use App\Repository\ChauffeurRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
@@ -16,37 +23,154 @@ use Symfony\Component\Routing\Annotation\Route;
 class TransporteurController extends AbstractController
 {
     /**
+     * @var TranspoteurRepository
+     */
+    private $transporteurRepository;
+
+    /**
+     * @var ChauffeurRepository
+     */
+    private $chauffeurRepository;
+
+    public function __construct(TransporteurRepository $transporteurRepository, ChauffeurRepository $chauffeurRepository, UserService $userService)
+    {
+        $this->transporteurRepository = $transporteurRepository;
+        $this->chauffeurRepository = $chauffeurRepository;
+        $this->userService = $userService;
+    }
+
+    /**
+     * @Route("/api", name="transporteur_api", options={"expose"=true}, methods="GET|POST")
+     */
+    public function api(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest()) {
+            if (!$this->userService->hasRightFunction(Menu::REFERENCE, Action::LIST)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+            $transporteurs = $this->transporteurRepository->findAll();
+
+            $rows = [];
+            foreach ($transporteurs as $transporteur) {
+
+                $rows[] = [
+                    'Label' => ($transporteur->getLabel() ? $transporteur->getLabel() : null),
+                    'Code' => ($transporteur->getCode() ? $transporteur->getCode(): null),
+                    'Nombre_chauffeurs' => $this->chauffeurRepository->countByTransporteur($transporteur) ,
+                    'Actions' => $this->renderView('transporteur/datatableTransporteurRow.html.twig', [
+                        'transporteur' => $transporteur
+                    ]),
+                ];
+            }
+            $data['data'] = $rows;
+
+            return new JsonResponse($data);
+        }
+        throw new NotFoundHttpException('404');
+    }
+    /**
      * @Route("/", name="transporteur_index", methods={"GET"})
      */
-    public function index(TransporteurRepository $transporteurRepository): Response
+    public function index(): Response
     {
         return $this->render('transporteur/index.html.twig', [
-            'transporteurs' => $transporteurRepository->findAll(),
+            'transporteurs' => $this->transporteurRepository->findAll(),
         ]);
     }
 
-
     /**
-     * @Route("/new", name="transporteur_new", methods={"GET","POST"})
+     * @Route("/creer", name="transporteur_new", options={"expose"=true}, methods={"GET","POST"})
      */
     public function new(Request $request): Response
     {
-        $transporteur = new Transporteur();
-        $form = $this->createForm(TransporteurType::class, $transporteur);
-        $form->handleRequest($request);
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::REFERENCE, Action::CREATE_EDIT)) {
+                return $this->redirectToRoute('access_denied');
+            }
 
-        if ($form->isSubmitted() && $form->isValid()) {
+            $transporteur = new Transporteur();
+
+            $transporteur
+                ->setLabel($data['label'])
+                ->setCode($data['code']);
+
+            $em = $this->getDoctrine()->getEntityManager();
+            $em->persist($transporteur);
+
+            $em->flush();
+
+            return new JsonResponse($data);
+        }
+        throw new XmlHttpException('404 not found');
+    }
+
+    /**
+     * @Route("/api-modifier", name="transporteur_edit_api", options={"expose"=true}, methods="GET|POST")
+     */
+    public function editApi(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::REFERENCE, Action::LIST)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+            $transporteur = $this->transporteurRepository->find($data['id']);
+            $chauffeur = $this->chauffeurRepository->countByTransporteur($transporteur);
+            $json = $this->renderView('transporteur/modalEditTransporteurContent.html.twig', [
+                'chauffeur' => $chauffeur,
+                'transporteur' => $transporteur,
+            ]);
+
+            return new JsonResponse($json);
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/modifier", name="transporteur_edit", options={"expose"=true}, methods={"GET","POST"})
+     */
+    public function edit(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::REFERENCE, Action::CREATE_EDIT)) {
+                return $this->redirectToRoute('access_denied');
+            }
+            $transporteur = $this->transporteurRepository->find($data['id']);
+
+            $transporteur
+                ->setLabel($data['label'])
+                ->setCode($data['code']);
+            $em = $this->getDoctrine()->getManager();
+            $em->flush();
+
+            return new JsonResponse();
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/supprimer", name="transporteur_delete", options={"expose"=true}, methods={"GET","POST"})
+     */
+    public function delete(Request $request): Response
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $transporteur = $this->transporteurRepository->find($data['transporteur']);
+
+            if (
+            !$this->userService->hasRightFunction(Menu::REFERENCE, Action::LIST)
+
+            ) {
+                return $this->redirectToRoute('access_denied');
+            }
+
             $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->persist($transporteur);
+            $entityManager->remove($transporteur);
             $entityManager->flush();
-
-            return $this->redirectToRoute('transporteur_index');
+            return new JsonResponse();
         }
 
-        return $this->render('transporteur/new.html.twig', [
-            'transporteur' => $transporteur,
-            'form' => $form->createView(),
-        ]);
+        throw new NotFoundHttpException("404");
     }
 
     /**
@@ -57,41 +181,5 @@ class TransporteurController extends AbstractController
         return $this->render('transporteur/show.html.twig', [
             'transporteur' => $transporteur,
         ]);
-    }
-
-    /**
-     * @Route("/{id}/edit", name="transporteur_edit", methods={"GET","POST"})
-     */
-    public function edit(Request $request, Transporteur $transporteur): Response
-    {
-        $form = $this->createForm(TransporteurType::class, $transporteur);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $this->getDoctrine()->getManager()->flush();
-
-            return $this->redirectToRoute('transporteur_index', [
-                'id' => $transporteur->getId(),
-            ]);
-        }
-
-        return $this->render('transporteur/edit.html.twig', [
-            'transporteur' => $transporteur,
-            'form' => $form->createView(),
-        ]);
-    }
-
-    /**
-     * @Route("/{id}", name="transporteur_delete", methods={"DELETE"})
-     */
-    public function delete(Request $request, Transporteur $transporteur): Response
-    {
-        if ($this->isCsrfTokenValid('delete'.$transporteur->getId(), $request->request->get('_token'))) {
-            $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->remove($transporteur);
-            $entityManager->flush();
-        }
-
-        return $this->redirectToRoute('transporteur_index');
     }
 }
