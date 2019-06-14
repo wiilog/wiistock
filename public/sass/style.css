@@ -151,11 +151,6 @@ a:hover {
   margin-bottom: auto;
 }
 
-.btn-col-action {
-  padding-left: 0px;
-  padding-right: 0px;
-}
-
 .backDarkRed {
   background-color: #970000 !important;
 }
@@ -178,6 +173,26 @@ a:hover {
 
 .green {
   color: #00b31e;
+}
+
+.no-padding p {
+  padding: 0 !important;
+}
+
+.minw-105px {
+  min-width: 105px;
+}
+
+.maxw-250px {
+  max-width: 250px;
+}
+
+.w-49 {
+  width: 49%;
+}
+
+.border-radius-light {
+  border-radius: 10px;
 }
 
 /* Login    
@@ -336,9 +351,7 @@ a:hover {
   border-color: #424242;
   min-width: 30px;
   max-width: 35px;
-  margin: 0px;
-  margin-margin-left: auto;
-  margin-margin-right: auto;
+  margin: 0 auto;
 }
 .btn-block:hover {
   background-color: #fcfcfc;
@@ -350,8 +363,15 @@ a:hover {
   min-width: 172px;
 }
 
-.border-radius-light {
-  border-radius: 10px;
+.btn-col-action {
+  padding-left: 0px;
+  padding-right: 0px;
+}
+
+.btn-icon {
+  width: 50px;
+  padding: 4px !important;
+  margin: 0 !important;
 }
 
 .sidemenu-bg {
@@ -601,7 +621,20 @@ a:hover {
   border-color: #cc0000;
 }
 .filter span {
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+}
+
+.filters {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-left: 6px;
+}
+.filters > div {
+  margin: auto 12px;
+}
+.filters > div .select2-selection {
+  height: 38px;
 }
 
 .filterService {
@@ -625,6 +658,12 @@ strong {
 
 em {
   font-style: italic !important;
+}
+
+.dropFrame {
+  border: 3px dashed #b2b2b2;
+  line-height: 50px;
+  text-align: center;
 }
 
 /*# sourceMappingURL=style.css.map */
