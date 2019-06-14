@@ -58,6 +58,11 @@ class Emplacement
      */
     private $referenceArticles;
 
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $isDeliveryPoint;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
@@ -285,6 +290,18 @@ class Emplacement
                 $referenceArticle->setEmplacement(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getIsDeliveryPoint(): ?bool
+    {
+        return $this->isDeliveryPoint;
+    }
+
+    public function setIsDeliveryPoint(?bool $isDeliveryPoint): self
+    {
+        $this->isDeliveryPoint = $isDeliveryPoint;
 
         return $this;
     }

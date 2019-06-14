@@ -246,43 +246,31 @@ function toggleRadioButton(button) {
 //initialisation editeur de texte une seule fois
 
 function initEditor(modal) {
-    var quill = new Quill(modal + ' .editor-container', {
-        modules: {
-            //     toolbar: [
-            //         [{ header: [1, 2, 3, false] }],
-            //         ['bold', 'italic', 'underline'],
-            //         [{'list': 'ordered'}, {'list': 'bullet'}]
-            //         ['image', 'code-block']
-            //     ]
-            // },
-            toolbar: [
-                [{ header: [1, 2, 3, false] }],
-                ['bold', 'italic', 'underline', 'image'],
+    // var quill = new Quill(modal + ' .editor-container', {
+    //     modules: {
+    //         toolbar: [
+    //             [{ header: [1, 2, 3, false] }],
+    //             ['bold', 'italic', 'underline', 'image'],
+    //
+    //             [{ 'list': 'ordered' }, { 'list': 'bullet' }]
+    //         ]
+    //     },
+    //     formats: [
+    //         'header',
+    //         'bold', 'italic', 'underline', 'strike', 'blockquote',
+    //         'list', 'bullet', 'indent',
+    //         'link', 'image'
+    //     ],
+    //
+    //     theme: 'snow'
+    // });
 
-                [{ 'list': 'ordered' }, { 'list': 'bullet' }]
-            ]
-        },
-        formats: [
-            'header',
-            'bold', 'italic', 'underline', 'strike', 'blockquote',
-            'list', 'bullet', 'indent',
-            'link', 'image'
-        ],
-
-        theme: 'snow'
-    });
+    initEditor2(modal + ' .editor-container');
 };
 
 function initEditor2(div) {
-    var quill = new Quill(div, {
+    new Quill(div, {
         modules: {
-            //     toolbar: [
-            //         [{ header: [1, 2, 3, false] }],
-            //         ['bold', 'italic', 'underline'],
-            //         [{'list': 'ordered'}, {'list': 'bullet'}]
-            //         ['image', 'code-block']
-            //     ]
-            // },
             toolbar: [
                 [{ header: [1, 2, 3, false] }],
                 ['bold', 'italic', 'underline', 'image'],
@@ -301,26 +289,13 @@ function initEditor2(div) {
     });
 };
 
-//passe de l'éditeur à l'imput pour insertion en BDD par la class editor-container
+//passe de l'éditeur à l'input pour insertion en BDD par la classe editor-container
 function setCommentaire(div) {
-    // let commentaire = modal.find('input[id=commentaire]');
     let container = div;
-    var quill = new Quill(container);
-    com = quill.container.firstChild.innerHTML;
-
-    $('#commentaire').val(com);
+    let quill = new Quill(container);
+    let com = quill.container.firstChild.innerHTML;
+    $(div).closest('.modal').find('#commentaire').val(com);
 };
-
-// //passe de l'éditeur à l'imput pour insertion en BDD par l'id commentaireID (cas de conflit avec la class)
-// function setCommentaireID(button) {
-//     let modal = button.closest('.modal');
-//     let container = '#' + modal.attr('id') + ' .editor-container';
-//     var quill = new Quill(container);
-//     // let commentaire = modal.find('input[id=commentaireID]');
-//     com = quill.container.firstChild.innerHTML;
-//     $('#commentaireID').val(com);
-// };
-
 
 //FONCTION REFARTICLE
 
@@ -539,7 +514,6 @@ function clearModal(modal) {
 }
 
 function clearCheckboxes($modal) {
-    console.log($modal);
     let checkboxes = $modal.find('.checkbox');
     checkboxes.each(function () {
         $(this).prop('checked', false);

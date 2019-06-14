@@ -129,11 +129,11 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function getArticleByRefId()
+    public function getIdRefLabelAndQuantity()
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-            "SELECT a.id, a.reference, a.quantite
+            "SELECT a.id, a.reference, a.label, a.quantite
             FROM App\Entity\Article a
             "
         );
