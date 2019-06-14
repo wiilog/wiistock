@@ -120,7 +120,6 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             'Quantité' => ['field' => 'quantiteStock', 'typage' => 'number'],
         ];
         //TODO trouver + dynamique
-
         $qb
             ->select('ra')
             ->distinct()
@@ -211,8 +210,6 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             $qb->andWhere($qb->expr()->in('ra.id', $ids));
         }
 
-        $countQuery = count($qb->getQuery()->getResult());
-
         // prise en compte des paramètres issus du datatable
         if (!empty($params)) {
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
@@ -220,15 +217,15 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             if (!empty($params->get('search'))) {
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
+                    $ids = [];
+                    $query = [];
                     foreach ($user->getRecherche() as $key => $recherche) {
                         if ($recherche !== 'Fournisseur' && $recherche !== 'Référence article fournisseur') {
                             $metadatas = $em->getClassMetadata(ReferenceArticle::class);
                             if (in_array(strtolower(strtr($recherche, $this->unwanted_array)), $metadatas->getFieldNames())) {
                                 $field = strtr($recherche, $this->unwanted_array);
                                 $field = strtolower($field);
-                                $qb
-                                    ->orWhere('ra.' . $field . ' LIKE :value')
-                                    ->setParameter('value', '%' . $search . '%');
+                                $query[] = 'ra.' . $field . ' LIKE :valueSearch';
                             } else {
                                 $subqb = $em->createQueryBuilder();
                                 $subqb
@@ -238,18 +235,13 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                                     ->leftJoin('ra.valeurChampsLibres', 'vclra')
                                     ->leftJoin('vclra.champLibre', 'clra')
                                     ->andWhere('clra.label = :search')
-                                    ->andWhere('vclra.valeur LIKE :value')
+                                    ->andWhere('vclra.valeur LIKE :valueSearch')
                                     ->setParameters([
-                                        'value' => '%' . $search . '%',
+                                        'valueSearch' => '%' . $search . '%',
                                         'search' => $recherche
                                     ]);
-                                $ids = [];
                                 foreach ($subqb->getQuery()->execute() as $idArray) {
                                     $ids[] = $idArray['id'];
-                                }
-                                foreach ($ids as $id) {
-                                    $qb
-                                        ->orWhere('ra.id = ' . $id);
                                 }
                             }
                         } else if ($recherche === 'Fournisseur') {
@@ -260,15 +252,11 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                             $subqb
                                 ->leftJoin('ra.articlesFournisseur', 'afra')
                                 ->leftJoin('afra.fournisseur', 'fra')
-                                ->andWhere('fra.nom LIKE :value')
-                                ->setParameter('value','%' . $search . '%');
+                                ->andWhere('fra.nom LIKE :valueSearch')
+                                ->setParameter('valueSearch', '%' . $search . '%');
                             $ids = [];
                             foreach ($subqb->getQuery()->execute() as $idArray) {
                                 $ids[] = $idArray['id'];
-                            }
-                            foreach ($ids as $id) {
-                                $qb
-                                    ->orWhere('ra.id = ' . $id);
                             }
                         } else if ($recherche === 'Référence article fournisseur') {
                             $subqb = $em->createQueryBuilder();
@@ -277,25 +265,26 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                                 ->from('App\Entity\ReferenceArticle', 'ra');
                             $subqb
                                 ->leftJoin('ra.articlesFournisseur', 'afra')
-                                ->andWhere('afra.reference LIKE :value')
-                                ->setParameter('value','%' . $search . '%');
+                                ->andWhere('afra.reference LIKE :valueSearch')
+                                ->setParameter('valueSearch', '%' . $search . '%');
                             $ids = [];
                             foreach ($subqb->getQuery()->execute() as $idArray) {
                                 $ids[] = $idArray['id'];
                             }
-                            foreach ($ids as $id) {
-                                $qb
-                                    ->orWhere('ra.id = ' . $id);
-                            }
                         }
                     }
+                    foreach ($ids as $id) {
+                        $query[] = 'ra.id  = ' . $id;
+                    }
+                    $qb
+                        ->andWhere(implode(' OR ', $query))
+                        ->setParameter('valueSearch', $search);
                 }
             }
         }
-
-        $query = $qb->getQuery();
-
-        return ['data' => $query->getResult(), 'count' => $countQuery];
+        $queryResult = $qb->getQuery();
+        dump($queryResult);
+        return ['data' => $queryResult->getResult(), 'count' => count($queryResult->getResult())];
     }
 
     public function countByType($typeId)
