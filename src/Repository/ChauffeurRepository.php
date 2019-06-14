@@ -19,6 +19,7 @@ class ChauffeurRepository extends ServiceEntityRepository
         parent::__construct($registry, Chauffeur::class);
     }
 
+
     public function findAllSorted()
     {
         $em = $this->getEntityManager();
@@ -29,5 +30,19 @@ class ChauffeurRepository extends ServiceEntityRepository
         );
 
         return $query->execute();
+    }
+
+    public function countByTransporteur($transporteur)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT COUNT(c)
+            FROM App\Entity\Chauffeur c
+            WHERE c.transporteur = :transporteur
+            ")
+        ->setParameter('transporteur',$transporteur);
+
+        return $query->getSingleScalarResult();
+
     }
 }

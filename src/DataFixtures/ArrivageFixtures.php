@@ -68,35 +68,104 @@ class ArrivageFixtures extends Fixture implements FixtureGroupInterface
 
     public function load(ObjectManager $manager)
     {
-        // menu arrivage
-        $menu = $this->menuRepository->findOneBy(['code' => Menu::ARRIVAGE]);
+        $menusInfos = [
+            ['Arrivage', 'ARRIVAGE'],
+            ['Référence', 'REFERENCE'],
+        ];
+        foreach ($menusInfos as $menuInfos) {
+            $menu = $this->menuRepository->findOneBy(['code' => $menuInfos[1]]);
 
-        if (empty($menu)) {
-            $menu = new Menu();
-            $menu
-                ->setLabel('Arrivage')
-                ->setCode(Menu::ARRIVAGE);
+            if (empty($menu)) {
+                $menu = new Menu();
+                $menu
+                    ->setLabel($menuInfos[0])
+                    ->setCode($menuInfos[1]);
 
-            $manager->persist($menu);
-            dump("création du menu Arrivage");
+                $manager->persist($menu);
+                dump("création du menu " . $menuInfos[1]);
+            }
+            $this->addReference('menu-' . $menuInfos[1], $menu);
         }
-        $this->addReference('menu-arrivage', $menu);
+
+        $manager->flush();
+
+
+        // menu arrivage
+//        $menu = $this->menuRepository->findOneBy(['code' => Menu::ARRIVAGE]);
+//
+//        if (empty($menu)) {
+//            $menu = new Menu();
+//            $menu
+//                ->setLabel('Arrivage')
+//                ->setCode(Menu::ARRIVAGE);
+//
+//            $manager->persist($menu);
+//            dump("création du menu Arrivage");
+//        }
+//        $this->addReference('menu-arrivage', $menu);
 
 
         // actions liées au menu arrivage
+//               $actionLabels = [Action::LIST, Action::LIST_ALL, Action::CREATE_EDIT, Action::DELETE];
+//
+//        foreach ($actionLabels as $actionLabel) {
+//            $action = $this->actionRepository->findOneByMenuCodeAndLabel(Menu::ARRIVAGE, $actionLabel);
+//
+//            if (empty($action)) {
+//                $action = new Action();
+//
+//                $action
+//                    ->setLabel($actionLabel)
+//                    ->setMenu($this->getReference('menu-arrivage'));
+//                $manager->persist($action);
+//                dump("création de l'action arrivage / " . $actionLabel);
+//            }
+//        }
+
+
+        $menus = [
+            Menu::ARRIVAGE,
+
+        ];
+
         $actionLabels = [Action::LIST, Action::LIST_ALL, Action::CREATE_EDIT, Action::DELETE];
 
-        foreach ($actionLabels as $actionLabel) {
-            $action = $this->actionRepository->findOneByMenuCodeAndLabel(Menu::ARRIVAGE, $actionLabel);
+        foreach ($menus as $menu) {
+            foreach ($actionLabels as $actionLabel) {
+                $action = $this->actionRepository->findOneByMenuCodeAndLabel($menu, $actionLabel);
 
-            if (empty($action)) {
-                $action = new Action();
+                if (empty($action)) {
+                    $action = new Action();
 
-                $action
-                    ->setLabel($actionLabel)
-                    ->setMenu($this->getReference('menu-arrivage'));
-                $manager->persist($action);
-                dump("création de l'action arrivage / " . $actionLabel);
+                    $action
+                        ->setLabel($actionLabel)
+                        ->setMenu($this->getReference('menu-' . $menu));
+                    $manager->persist($action);
+                    dump("création de l'action " . $menu . " / " . $actionLabel);
+                }
+            }
+        }
+
+        $menus = [
+            Menu::REFERENCE,
+
+        ];
+
+        $actionLabels = [Action::LIST, Action::CREATE_EDIT, Action::DELETE];
+
+        foreach ($menus as $menu) {
+            foreach ($actionLabels as $actionLabel) {
+                $action = $this->actionRepository->findOneByMenuCodeAndLabel($menu, $actionLabel);
+
+                if (empty($action)) {
+                    $action = new Action();
+
+                    $action
+                        ->setLabel($actionLabel)
+                        ->setMenu($this->getReference('menu-' . $menu));
+                    $manager->persist($action);
+                    dump("création de l'action " . $menu . " / " . $actionLabel);
+                }
             }
         }
 

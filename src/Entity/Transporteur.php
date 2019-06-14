@@ -28,14 +28,9 @@ class Transporteur
      */
     private $code;
 
-    /**
-     * @ORM\Column(type="integer", nullable=true)
-     */
-    private $nombreChauffeurs;
-
-    /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Chauffeur", mappedBy="transporteur")
-     */
+     /**
+      *@ORM\OneToMany(targetEntity="App\Entity\Chauffeur", mappedBy="transporteur")
+      */
     private $chauffeurs;
 
     /**
@@ -78,19 +73,7 @@ class Transporteur
         return $this;
     }
 
-    public function getNombreChauffeurs(): ?int
-    {
-        return $this->nombreChauffeurs;
-    }
-
-    public function setNombreChauffeurs(?int $nombreChauffeurs): self
-    {
-        $this->nombreChauffeurs = $nombreChauffeurs;
-
-        return $this;
-    }
-
-    /**
+     /**
      * @return Collection|Chauffeur[]
      */
     public function getChauffeurs(): Collection

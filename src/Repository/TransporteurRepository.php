@@ -30,4 +30,19 @@ class TransporteurRepository extends ServiceEntityRepository
 
         return $query->execute();
     }
+
+    public function getIdAndLibelleBySearch($search)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT e.id, e.label as text
+          FROM App\Entity\Transporteur e
+          WHERE e.label LIKE :search"
+        )->setParameter('search', '%' . $search . '%');
+
+        return $query->execute();
+    }
+
+
+
 }
