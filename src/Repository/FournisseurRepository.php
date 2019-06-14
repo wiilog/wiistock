@@ -76,36 +76,6 @@ class FournisseurRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-
-    //    /**
-    //     * @return Fournisseur[] Returns an array of Fournisseur objects
-    //     */
-    /*
-    public function findByExampleField($value)
-    {
-        return $this->createQueryBuilder('f')
-            ->andWhere('f.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('f.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
-
-    /*
-    public function findOneBySomeField($value): ?Fournisseur
-    {
-        return $this->createQueryBuilder('f')
-            ->andWhere('f.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
-    }
-    */
-
     public function findByParams($params = null)
     {
         $em = $this->getEntityManager();
@@ -144,6 +114,18 @@ class FournisseurRepository extends ServiceEntityRepository
         );
 
         return $query->getSingleScalarResult();
+    }
+
+    public function findAllSorted()
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT f FROM App\Entity\Fournisseur f
+            ORDER BY f.nom
+            "
+        );
+
+        return $query->execute();
     }
 
 }

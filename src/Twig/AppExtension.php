@@ -12,6 +12,7 @@ use App\Entity\Action;
 use App\Repository\ActionRepository;
 use App\Repository\RoleRepository;
 use App\Service\UserService;
+use Twig\TwigFilter;
 use Twig\TwigFunction;
 use Twig\Extension\AbstractExtension;
 
@@ -47,7 +48,14 @@ class AppExtension extends AbstractExtension
         ];
     }
 
-    public function hasRightFunction(string $menuCode, string $actionLabel = Action::YES)
+    public function getFilters()
+	{
+		return [
+			new TwigFilter('withoutExtension', [$this, 'withoutExtensionFilter'])
+		];
+	}
+
+	public function hasRightFunction(string $menuCode, string $actionLabel = Action::YES)
     {
         $role = $this->userService->getCurrentUserRole();
         $actions = $role->getActions();
@@ -62,4 +70,10 @@ class AppExtension extends AbstractExtension
 
         return false;
     }
+
+    public function withoutExtensionFilter(string $filename)
+	{
+		$array = explode('.', $filename);
+		return $array[0];
+	}
 }

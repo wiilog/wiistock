@@ -1,10 +1,14 @@
-<div class="row">
-    <div data-id='{{ idUser }}' data-toggle='modal' data-target='#modalEditUser' class='utilisateurs-edit col-3'
-        onclick="editRow($(this),  Routing.generate('user_api_edit', true), $('#modalEditUser'), $('#submitEditUser'))">
-        <i class='fas fa-pencil-alt'></i>
+<div class="d-flex">
+    <div data-toggle='modal' data-target='#modalEditUser'>
+        <div class="btn btn-col-action" data-id='{{ idUser }}'
+        onclick="editRow($(this), Routing.generate('user_api_edit', true), $('#modalEditUser'), $('#submitEditUser'))">
+            <i class='fas fa-pencil-alt'></i>
+        </div>
     </div>
-    <div class='col-3 type-delete' onclick="deleteRow($(this), $('#modalDeleteUser'), $('#submitDeleteUser'))"
-        data-id='{{ idUser }}' data-target='#modalDeleteUser' data-toggle='modal'>
-        <i class='fas fa-trash '></i>
+    <div onclick="deleteRow($(this), $('#modalDeleteUser'), $('#submitDeleteUser'))"
+         data-target='#modalDeleteUser' data-toggle='modal' data-id='{{ idUser }}'>
+        <div class="btn btn-col-action">
+            <i class='fas fa-trash'></i>
+        </div>
     </div>
 </div>

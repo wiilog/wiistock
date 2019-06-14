@@ -239,7 +239,7 @@ class ChampsLibreController extends AbstractController
      */
     public function displayRequireChamp(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (array_key_exists('create', $data)) {
                 $type = $this->typeRepository->find($data['create']);
                 $champsLibres = $this->champsLibreRepository->getByTypeAndRequiredCreate($type);

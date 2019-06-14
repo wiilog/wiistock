@@ -298,6 +298,7 @@ function displayNewFilter(data) {
 
 // suppression du filtre au clic dessus
 function initRemove() {
+    // $('.filter-bloc').on('click', removeFilter); //TODO CG filtres et/ou
     $('.filter').on('click', removeFilter);
 }
 
@@ -322,7 +323,7 @@ function displayFilterValue(elem) {
         let params = {
             'value': val
         };
-        $.post(Routing.generate('type_show_select'), JSON.stringify(params), function (data) {
+        $.post(Routing.generate('display_field_elements'), JSON.stringify(params), function (data) {
             modalBody.find('.input').html(data);
         }, 'json');
     } else {
@@ -363,7 +364,7 @@ let recupIdRefArticle = function (div) {
 let ajaxPlusDemandeContent = function (button, demande) {
     let plusDemandeContent = $('.plusDemandeContent');
     let editChampLibre = $('.editChampLibre');
-    let modalFooter = $('.modal-footer');
+    let modalFooter = button.closest('.modal').find('.modal-footer');
     plusDemandeContent.html('');
     editChampLibre.html('');
     modalFooter.addClass('d-none');
@@ -388,7 +389,6 @@ let ajaxPlusDemandeContent = function (button, demande) {
             }
             showDemande(button);
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
-            initEditor2('#editor-container-edit');
         }
     }
     let json = {
@@ -411,9 +411,9 @@ let ajaxEditArticle = function (select) {
             if (dataReponse) {
                 $('.editChampLibre').html(dataReponse);
                 ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
-                displayRequireChamp($('#typeEditArticle'), 'edit');
+                displayRequireChamp(select.closest('.modal').find('#type'), 'edit'); //TODO CG à bien tester
                 $('#livraisonShow').find('#withdrawQuantity').removeClass('d-none').addClass('data');
-                initEditor2();
+                initEditor2('.editor-container-edit');
                 modalFooter.removeClass('d-none');
             } else {
                 //TODO gérer erreur
@@ -565,5 +565,43 @@ function redirectToDemande() {
 
     window.location.href = Routing.generate(demandeType + '_show', { 'id': demandeId });
 }
+
+function addToRapidSearch(checkbox) {
+    let alreadySearched = [];
+    $('#rapidSearch tbody td').each(function() {
+        alreadySearched.push($(this).html());
+    });
+    if (!alreadySearched.includes(checkbox.data('name'))) {
+        let tr = '<tr><td>' + checkbox.data('name') + '</td></tr>';
+        $('#rapidSearch tbody').append(tr);
+    } else {
+        $('#rapidSearch tbody tr').each(function() {
+            if ($(this).find('td').html() === checkbox.data('name')) {
+                if ($('#rapidSearch tbody tr').length > 1) {
+                    $(this).remove();
+                } else {
+                    checkbox.prop( "checked", true );
+                }
+            }
+        });
+    }
+}
+
+function saveRapidSearch() {
+    let searchesWanted = [];
+    $('#rapidSearch tbody td').each(function() {
+        searchesWanted.push($(this).html());
+    });
+    let params = {
+        recherches: searchesWanted
+    };
+    let json = JSON.stringify(params);
+    $.post(Routing.generate('update_user_searches', true), json, function(data) {
+        $("#modalRapidSearch").find('.close').click();
+        tableRefArticle.search(tableRefArticle.search()).draw();
+    });
+
+}
+
 
 
