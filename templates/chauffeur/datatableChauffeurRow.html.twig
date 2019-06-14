@@ -1,14 +1,15 @@
 <div class="d-flex">
     {% if hasRight(constant('App\\Entity\\Menu::REFERENCE'), constant('App\\Entity\\Action::CREATE_EDIT'))%}
         <div data-id='{{ chauffeur.id }}' data-target='#modalEditChauffeur' data-toggle='modal'
-             class='btn-xs btn-default command-edit'
+             class='btn btn-col-action'
              onclick="editRow($(this), Routing.generate('chauffeur_edit_api', true), $('#modalEditChauffeur'), $('#submitEditChauffeur'))">
             <i class='fas fa-pencil-alt'></i>
         </div>
     {% endif %}
     {% if hasRight(constant('App\\Entity\\Menu::REFERENCE'), constant('App\\Entity\\Action::DELETE'))%}
         <div data-id='{{ chauffeur.id }}' data-target='#modalDeleteChauffeur' data-toggle='modal'
-             onclick="deleteRow($(this), $('#modalDeleteChauffeur'), $('#submitDeleteChauffeur'))">
+             onclick="deleteRow($(this), $('#modalDeleteChauffeur'), $('#submitDeleteChauffeur'))"
+             class="btn btn-col-action">
             <i class='fas fa-trash'></i>
         </div>
     {% endif %}

@@ -9,10 +9,10 @@ let tableTransporteur = $('#tableTransporteur_id').DataTable({
         "type": "POST"
     },
     columns: [
-        { "data": 'Label', 'name': 'Label' },
-        { "data": 'Code', 'name': 'Code' },
-        { "data": 'Nombre_chauffeurs', 'name': 'Nombre_chauffeurs' },
-        { "data": 'Actions', 'name': 'Actions' },
+        { "data": 'Label', 'name': 'Label', 'title': 'Nom' },
+        { "data": 'Code', 'name': 'Code', 'title': 'Code' },
+        { "data": 'Nombre_chauffeurs', 'name': 'Nombre_chauffeurs', 'title': 'Nombre de chauffeurs' },
+        { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' },
     ],
 });
 
