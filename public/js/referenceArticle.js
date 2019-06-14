@@ -298,6 +298,7 @@ function displayNewFilter(data) {
 
 // suppression du filtre au clic dessus
 function initRemove() {
+    // $('.filter-bloc').on('click', removeFilter); //TODO CG filtres et/ou
     $('.filter').on('click', removeFilter);
 }
 
@@ -322,7 +323,7 @@ function displayFilterValue(elem) {
         let params = {
             'value': val
         };
-        $.post(Routing.generate('type_show_select'), JSON.stringify(params), function (data) {
+        $.post(Routing.generate('display_field_elements'), JSON.stringify(params), function (data) {
             modalBody.find('.input').html(data);
         }, 'json');
     } else {

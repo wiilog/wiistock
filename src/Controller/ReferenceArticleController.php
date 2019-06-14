@@ -436,7 +436,7 @@ class ReferenceArticleController extends Controller
         $champF[] = [
             'label' => 'Emplacement',
             'id' => 0,
-            'typage' => 'text'
+            'typage' => 'list'
         ];
         $champF[] = [
             'label' => 'Commentaire',
