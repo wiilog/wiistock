@@ -346,26 +346,15 @@ a:hover {
   border-color: #cc0000;
 }
 
-.btn-block {
-  background-color: #424242;
-  border-color: #424242;
-  min-width: 30px;
-  max-width: 35px;
-  margin: 0 auto;
-}
-.btn-block:hover {
-  background-color: #fcfcfc;
-  color: #424242;
-  border-color: #424242;
-}
-
 .btn-action {
   min-width: 172px;
 }
 
 .btn-col-action {
-  padding-left: 0px;
-  padding-right: 0px;
+  background-color: #424242;
+}
+.btn-col-action:hover {
+  color: #424242;
 }
 
 .btn-icon {
