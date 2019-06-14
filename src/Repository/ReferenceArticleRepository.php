@@ -232,9 +232,10 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                     foreach ($user->getRecherche() as $key => $recherche) {
                         if ($recherche !== 'Fournisseur' && $recherche !== 'Référence article fournisseur') {
                             $metadatas = $em->getClassMetadata(ReferenceArticle::class);
-							$field = $linkChampLibreLabelToField[$recherche]['field'];
+                            $field = '';
+							if (!empty($linkChampLibreLabelToField[$recherche])) $field = $linkChampLibreLabelToField[$recherche]['field'];
 							// champs fixes
-							if (in_array($field, $metadatas->getFieldNames())) {
+							if ($field !== '' && in_array($field, $metadatas->getFieldNames())) {
                                 $query[] = 'ra.' . $field . ' LIKE :valueSearch';
 
 							// champs libres
