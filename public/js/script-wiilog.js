@@ -209,7 +209,7 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
                 defaultValueForTypage($('#typageModif'), '-edit');
             }
 
-            displayRequireChamp($('#typeEdit'), 'edit');
+            displayRequireChamp(modal.find('#typeEdit'), 'edit');
 
             if ($('#referenceEdit').val() !== undefined) {   //TODO Moche
                 setMaxQuantityEdit($('#referenceEdit'));
@@ -456,48 +456,23 @@ function clearNewContent(button) {
 }
 
 let displayRequireChamp = function (select, require) {
-    xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function () {
-        if (this.readyState == 4 && this.status == 200) {
-            data = JSON.parse(this.responseText);
+    let bloc = $('#typeContentEdit');
+    bloc.find('.data').removeClass('needed');
+
+    let params = {};
+    if (select.val()) {
+        params[require] = select.val();
+        let path = Routing.generate('display_require_champ', true);
+
+        $.post(path, JSON.stringify(params), function (data) {
             if (data) {
                 data.forEach(function (element) {
-                    $('#' + element + require).addClass('needed');
+                    bloc.find('#' + element + require).addClass('needed');
                 });
             }
-        }
+        }, 'json');
     }
-    let path = Routing.generate('display_require_champ', true);
-    let json = {};
-    if (select.val()) {
-        json[require] = select.val();
-    } else {
-        json['error'] = null;
-    }
-    let Json = JSON.stringify(json)
-    $('#typeContentEdit').find('.data').removeClass('needed');
-    xhttp.open("POST", path, true);
-    xhttp.send(Json);
 }
-
-// function ajaxFournisseurArticle(select) {
-//     select.select2({
-//         ajax: {
-//             url: Routing.generate('get_articleRef_fournisseur'),
-//             dataType: 'json',
-//             delay: 250,
-//         },
-//         language: {
-//             inputTooShort: function () {
-//                 return 'Veuillez entrer au moins 1 caractère.';
-//             },
-//             searching: function () {
-//                 return 'Recherche en cours...';
-//             }
-//         },
-//         minimumInputLength: 1,
-//     });
-// }
 
 function clearDiv() {
     $('.clear').html('');

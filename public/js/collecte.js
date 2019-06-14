@@ -157,7 +157,7 @@ function ajaxGetCollecteArticle(select) {
             selection.html(data.selection);
             if (data.modif) editNewArticle.html(data.modif);
             $('#modalNewArticle').find('.modal-footer').removeClass('d-none');
-            displayRequireChamp($('#typeEdit'), 'edit');
+            displayRequireChamp(select.closest('.modal').find('#type'), 'edit');
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
             initEditor2('.editor-container-edit');
         }

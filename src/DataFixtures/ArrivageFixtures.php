@@ -68,6 +68,7 @@ class ArrivageFixtures extends Fixture implements FixtureGroupInterface
 
     public function load(ObjectManager $manager)
     {
+    	// création des menus
         $menusInfos = [
             ['Arrivage', 'ARRIVAGE'],
             ['Référence', 'REFERENCE'],
@@ -90,45 +91,13 @@ class ArrivageFixtures extends Fixture implements FixtureGroupInterface
         $manager->flush();
 
 
-        // menu arrivage
-//        $menu = $this->menuRepository->findOneBy(['code' => Menu::ARRIVAGE]);
-//
-//        if (empty($menu)) {
-//            $menu = new Menu();
-//            $menu
-//                ->setLabel('Arrivage')
-//                ->setCode(Menu::ARRIVAGE);
-//
-//            $manager->persist($menu);
-//            dump("création du menu Arrivage");
-//        }
-//        $this->addReference('menu-arrivage', $menu);
-
-
-        // actions liées au menu arrivage
-//               $actionLabels = [Action::LIST, Action::LIST_ALL, Action::CREATE_EDIT, Action::DELETE];
-//
-//        foreach ($actionLabels as $actionLabel) {
-//            $action = $this->actionRepository->findOneByMenuCodeAndLabel(Menu::ARRIVAGE, $actionLabel);
-//
-//            if (empty($action)) {
-//                $action = new Action();
-//
-//                $action
-//                    ->setLabel($actionLabel)
-//                    ->setMenu($this->getReference('menu-arrivage'));
-//                $manager->persist($action);
-//                dump("création de l'action arrivage / " . $actionLabel);
-//            }
-//        }
-
-
+        // création des actions
         $menus = [
             Menu::ARRIVAGE,
-
+			Menu::REFERENCE
         ];
 
-        $actionLabels = [Action::LIST, Action::LIST_ALL, Action::CREATE_EDIT, Action::DELETE];
+        $actionLabels = [Action::LIST, Action::CREATE_EDIT, Action::DELETE];
 
         foreach ($menus as $menu) {
             foreach ($actionLabels as $actionLabel) {
@@ -146,12 +115,12 @@ class ArrivageFixtures extends Fixture implements FixtureGroupInterface
             }
         }
 
+        // création de l'action LIST_ALL
         $menus = [
-            Menu::REFERENCE,
-
+			Menu::ARRIVAGE
         ];
 
-        $actionLabels = [Action::LIST, Action::CREATE_EDIT, Action::DELETE];
+        $actionLabels = [Action::LIST_ALL];
 
         foreach ($menus as $menu) {
             foreach ($actionLabels as $actionLabel) {
@@ -176,9 +145,9 @@ class ArrivageFixtures extends Fixture implements FixtureGroupInterface
             $categorie = new CategoryType();
             $categorie->setLabel(CategoryType::LITIGE);
             $manager->persist($categorie);
-            $this->addReference('type-litige', $categorie);
             dump("création de la catégorie de type litige");
         }
+        $this->addReference('type-litige', $categorie);
 
         // types liés à la catégorie arrivage
         $typesNames = [

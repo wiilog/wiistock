@@ -4,10 +4,8 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\Transporteur;
-use App\Entity\Chauffeur;
 use App\Entity\Menu;
 use App\Service\UserService;
-use App\Form\TransporteurType;
 use App\Repository\TransporteurRepository;
 use App\Repository\ChauffeurRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -32,6 +30,11 @@ class TransporteurController extends AbstractController
      */
     private $chauffeurRepository;
 
+	/**
+	 * @var UserService
+	 */
+    private $userService;
+
     public function __construct(TransporteurRepository $transporteurRepository, ChauffeurRepository $chauffeurRepository, UserService $userService)
     {
         $this->transporteurRepository = $transporteurRepository;
@@ -55,8 +58,8 @@ class TransporteurController extends AbstractController
             foreach ($transporteurs as $transporteur) {
 
                 $rows[] = [
-                    'Label' => ($transporteur->getLabel() ? $transporteur->getLabel() : null),
-                    'Code' => ($transporteur->getCode() ? $transporteur->getCode(): null),
+                    'Label' => $transporteur->getLabel() ? $transporteur->getLabel() : null,
+                    'Code' => $transporteur->getCode() ? $transporteur->getCode(): null,
                     'Nombre_chauffeurs' => $this->chauffeurRepository->countByTransporteur($transporteur) ,
                     'Actions' => $this->renderView('transporteur/datatableTransporteurRow.html.twig', [
                         'transporteur' => $transporteur
@@ -111,14 +114,12 @@ class TransporteurController extends AbstractController
     public function editApi(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::REFERENCE, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::REFERENCE, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
             $transporteur = $this->transporteurRepository->find($data['id']);
-            $chauffeur = $this->chauffeurRepository->countByTransporteur($transporteur);
             $json = $this->renderView('transporteur/modalEditTransporteurContent.html.twig', [
-                'chauffeur' => $chauffeur,
                 'transporteur' => $transporteur,
             ]);
 
@@ -155,14 +156,11 @@ class TransporteurController extends AbstractController
     public function delete(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $transporteur = $this->transporteurRepository->find($data['transporteur']);
-
-            if (
-            !$this->userService->hasRightFunction(Menu::REFERENCE, Action::LIST)
-
-            ) {
+            if (!$this->userService->hasRightFunction(Menu::REFERENCE, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
             }
+
+            $transporteur = $this->transporteurRepository->find($data['transporteur']);
 
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($transporteur);
