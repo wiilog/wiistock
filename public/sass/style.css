@@ -605,7 +605,7 @@ a:hover {
   border-color: #cc0000;
 }
 .filter span {
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 
 .filters {
