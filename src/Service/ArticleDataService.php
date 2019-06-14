@@ -10,6 +10,7 @@ namespace App\Service;
 
 use App\Entity\Action;
 use App\Entity\Article;
+use App\Entity\CategoryType;
 use App\Entity\Menu;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
@@ -165,7 +166,7 @@ class ArticleDataService
                 'articleRef' => $refArticle,
                 'articles' => $this->articleFournisseurRepository->findByRefArticle($refArticle->getId()),
                 'statut' => ($refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF),
-                'types' => $this->typeRepository->findByCategoryLabel(ReferenceArticle::CATEGORIE),
+                'types' => $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLES_ET_REF_CEA),
                 'statuts' => $statuts,
                 'modifieRefArticle' => $modifieRefArticle,
                 'valeurChampsLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,

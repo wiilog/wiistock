@@ -73,6 +73,31 @@ class TypeController extends AbstractController
     }
 
     /**
+     * @Route("/", name="type_show_select", options={"expose"=true}, methods={"GET","POST"})
+     */
+    public function showSelectInput(Request $request)
+    {
+        if ($request->isXmlHttpRequest() && $value = json_decode($request->getContent(), true)) {
+
+            $isType = true;
+            if (is_numeric($value['value'])) {
+                $cl = $this->champLibreRepository->find(intval($value['value']));
+                $options = $cl->getElements();
+                $isType = false;
+            } else {
+                $options = $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLES_ET_REF_CEA);
+            }
+
+            $view = $this->renderView('type/inputSelectTypes.html.twig', [
+                'options' => $options,
+                'isType' => $isType
+            ]);
+            return new JsonResponse($view);
+        }
+        throw new NotFoundHttpException("404");
+    }
+
+    /**
      * @Route("/api", name="type_api", options={"expose"=true}, methods={"POST"})
      */
     public function api(Request $request): Response
@@ -112,7 +137,7 @@ class TypeController extends AbstractController
 
             if (!$typeExist) {
                 if ($data['category'] === null) {
-                    $category = $this->categoryTypeRepository->findoneBy(['label' => ReferenceArticle::CATEGORIE]);
+                    $category = $this->categoryTypeRepository->findoneBy(['label' => CategoryType::ARTICLES_ET_REF_CEA]);
                 } else {
                     $category = $this->categoryTypeRepository->find($data['category']);
                 }

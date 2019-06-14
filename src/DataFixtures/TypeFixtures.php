@@ -46,7 +46,7 @@ class TypeFixtures extends Fixture implements DependentFixtureInterface, Fixture
             if (empty($type)) {
                 $type = new Type();
                 $type
-                    ->setCategory($this->getReference('type-' . CategoryType::TYPE_ARTICLES_ET_REF_CEA))
+                    ->setCategory($this->getReference('type-' . CategoryType::ARTICLES_ET_REF_CEA))
                     ->setLabel($typeName);
                 $manager->persist($type);
                 dump("création du type " . $typeName);
@@ -59,10 +59,10 @@ class TypeFixtures extends Fixture implements DependentFixtureInterface, Fixture
         if (empty($type)) {
             $type = new Type();
             $type
-                ->setCategory($this->getReference('type-' . CategoryType::TYPE_RECEPTION))
+                ->setCategory($this->getReference('type-' . CategoryType::RECEPTION))
                 ->setLabel(Type::LABEL_RECEPTION);
             $manager->persist($type);
-            dump("création du type " . CategoryType::TYPE_RECEPTION);
+            dump("création du type " . CategoryType::RECEPTION);
         }
 
         $manager->flush();
