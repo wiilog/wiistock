@@ -1,15 +1,15 @@
-<div class="row">
-    <div class='col-4 btn-col-action'  data-target='#modalEditAlerte' data-toggle='modal'>
-        <button type="button" class="btn btn-block" data-id='{{ alerteId }}'
+<div class="d-flex">
+    <div data-target='#modalEditAlerte' data-toggle='modal'>
+        <div class="btn btn-col-action" data-id='{{ alerteId }}'
         onclick="editRow($(this), Routing.generate('alerte_api_edit', true), $('#modalEditAlerte'), $('#submitEditAlerte'))">
             <i class='fas fa-pencil-alt'></i>
-        </button>
+        </div>
     </div>
-    <div class='col-4 btn-col-action'>
-        <button type="button" class="btn btn-block"
+    <div>
+        <div class="btn btn-col-action"
         onclick="deleteRow($(this), $('#modalDeleteAlerte'), $('#submitDeleteAlerte'))"
         data-id='{{ alerteId }}' data-target='#modalDeleteAlerte' data-toggle='modal'>
             <i class='fas fa-trash'></i>
-        </button>
+        </div>
     </div>
 </div>

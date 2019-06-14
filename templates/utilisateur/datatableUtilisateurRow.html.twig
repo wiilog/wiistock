@@ -1,14 +1,14 @@
-<div class="row">
-    <div  data-toggle='modal' data-target='#modalEditUser' class='col-4 btn-col-action'>
-        <button type="button" class="btn btn-block" data-id='{{ idUser }}'
-        onclick="editRow($(this),  Routing.generate('user_api_edit', true), $('#modalEditUser'), $('#submitEditUser'))">
+<div class="d-flex">
+    <div data-toggle='modal' data-target='#modalEditUser'>
+        <div class="btn btn-col-action" data-id='{{ idUser }}'
+        onclick="editRow($(this), Routing.generate('user_api_edit', true), $('#modalEditUser'), $('#submitEditUser'))">
             <i class='fas fa-pencil-alt'></i>
-        </button>
+        </div>
     </div>
-    <div class='col-4 btn-col-action' onclick="deleteRow($(this), $('#modalDeleteUser'), $('#submitDeleteUser'))"
-         data-target='#modalDeleteUser' data-toggle='modal'>
-        <button type="button" class="btn btn-block" data-id='{{ idUser }}'>
-            <i class='fas fa-trash '></i>
-        </button>
+    <div onclick="deleteRow($(this), $('#modalDeleteUser'), $('#submitDeleteUser'))"
+         data-target='#modalDeleteUser' data-toggle='modal' data-id='{{ idUser }}'>
+        <div class="btn btn-col-action">
+            <i class='fas fa-trash'></i>
+        </div>
     </div>
 </div>

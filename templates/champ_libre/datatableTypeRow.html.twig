@@ -1,22 +1,22 @@
 <div class="d-flex">
-    <div  data-toggle='modal' data-target='#modalEditType' class='col-4 btn-col-action'>
-        <button type="button" class="btn btn-block" data-id='{{ idType }}'
+    <div data-toggle='modal' data-target='#modalEditType'>
+        <div class="btn btn-col-action" data-id='{{ idType }}'
         onclick="editRow($(this),  Routing.generate('type_api_edit', true), $('#modalEditType'), $('#submitEditType'))">
             <i class='fas fa-pencil-alt '></i>
-        </button>
+        </div>
     </div>
-    <div class='col-4 btn-col-action'>
-        <button type="button" class="btn btn-block"
+    <div>
+        <div class="btn btn-col-action"
         onclick="deleteRow($(this), $('#modalDeleteType'), $('#submitDeleteType'))"
         data-id='{{ idType }}' data-target='#modalDeleteType' data-toggle='modal'>
             <i class='fas fa-trash '></i>
-        </button>
+        </div>
     </div>
-    <div class='col-4 btn-col-action'>
+    <div>
         <a href={{urlChampsLibre}}>
-            <button type="button" class="btn btn-block">
+            <div class="btn btn-col-action">
                 <i class='fas fa-eye'></i>
-            </button>
+            </div>
         </a>
     </div>
 </div>

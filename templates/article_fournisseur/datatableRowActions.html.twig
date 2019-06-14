@@ -1,18 +1,18 @@
-<div class="row">
+<div class="d-flex">
     {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
-        <div  class='col-4 btn-col-action' data-target='#modalEditArticleFournisseur' data-toggle='modal'>
-            <button type="button" class="btn btn-block" data-id='{{ id }}'
-            onclick="editRow($(this), Routing.generate('article_fournisseur_api_edit', true), $('#modalEditArticleFournisseur'), $('#submitEditArticleFournisseur'))">
+        <div data-target='#modalEditArticleFournisseur' data-toggle='modal'>
+            <div class="btn btn-col-action" data-id='{{ id }}'
+                 onclick="editRow($(this), Routing.generate('article_fournisseur_api_edit', true), $('#modalEditArticleFournisseur'), $('#submitEditArticleFournisseur'))">
                 <i class='fas fa-pencil-alt'></i>
-            </button>
+            </div>
         </div>
     {% endif %}
     {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::DELETE')) %}
-        <div class='col-4 btn-col-action' data-target='#modalDeleteArticleFournisseur' data-toggle='modal'>
-            <button type="button" class="btn btn-block" data-id="{{ id }}"
-                onclick="deleteRow($(this), $('#modalDeleteArticleFournisseur'), $('#submitDeleteArticleFournisseur'))">
+        <div data-target='#modalDeleteArticleFournisseur' data-toggle='modal'>
+            <div class="btn btn-col-action" data-id="{{ id }}"
+                 onclick="deleteRow($(this), $('#modalDeleteArticleFournisseur'), $('#submitDeleteArticleFournisseur'))">
                 <i class='fas fa-trash'></i>
-            </button>
+            </div>
         </div>
     {% endif %}
 </div>
