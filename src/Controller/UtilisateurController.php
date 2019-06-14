@@ -119,9 +119,11 @@ class UtilisateurController extends Controller
                 ->setEmail($data['email'])
                 ->setRole($role)
                 ->setStatus(true)
-                ->setRoles(['USER']) // évite bug -> champ roles ne doit pas être vide
-                ->setPassword($password);
-                
+                ->setRoles(['USER'])// évite bug -> champ roles ne doit pas être vide
+                ->setPassword($password)
+                ->setColumnVisible(["Actions", "Libellé", "Référence", "Type", "Quantité", "Emplacement"])
+                ->setRecherche(["Libellé", "Référence"]);
+
             $em = $this->getDoctrine()->getManager();
             $em->persist($utilisateur);
             $em->flush();
@@ -160,7 +162,7 @@ class UtilisateurController extends Controller
             if (!$this->userService->hasRightFunction(Menu::PARAM)) {
                 return $this->redirectToRoute('access_denied');
             }
-            
+
             $utilisateur = $this->utilisateurRepository->find($data['user']);
             $password = $data['password'];
             if ($password !== '') {
@@ -193,20 +195,20 @@ class UtilisateurController extends Controller
 
             //vérification que l'user connecté ne se désactive pas
             if (($data['user']) == $this->getUser()->getId() &&
-            $utilisateur->getStatus() == true &&
-            $data['status'] == 'inactive') {
+                $utilisateur->getStatus() == true &&
+                $data['status'] == 'inactive') {
                 return new JsonResponse('Un utilisateur connecté ne peut pas se désactiver lui-même.');
             }
-                       
+
             $utilisateur
                 ->setStatus($data['status'] === 'active')
                 ->setUsername($data['username'])
                 ->setEmail($data['email']);
-                if ($password !== '') {
-                    $password = $passwordEncoder->encodePassword($utilisateur, $data['password']);
-                    $utilisateur->setPassword($password);
-                }
-            
+            if ($password !== '') {
+                $password = $passwordEncoder->encodePassword($utilisateur, $data['password']);
+                $utilisateur->setPassword($password);
+            }
+
             $em = $this->getDoctrine()->getManager();
             $em->persist($utilisateur);
             $em->flush();
@@ -300,4 +302,18 @@ class UtilisateurController extends Controller
         }
         throw new NotFoundHttpException("404");
     }
+
+    /**
+     * @Route("/recherches", name="update_user_searches", options={"expose"=true}, methods="GET|POST")
+     */
+    public function updateSearches(Request $request)
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $this->getUser()->setRecherche($data['recherches']);
+            $em = $this->getDoctrine()->getManager();
+            $em->flush();
+        }
+        return new JsonResponse();
+    }
+
 }

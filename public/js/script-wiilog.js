@@ -289,26 +289,13 @@ function initEditor2(div) {
     });
 };
 
-//passe de l'éditeur à l'imput pour insertion en BDD par la class editor-container
+//passe de l'éditeur à l'input pour insertion en BDD par la classe editor-container
 function setCommentaire(div) {
-    // let commentaire = modal.find('input[id=commentaire]');
     let container = div;
-    var quill = new Quill(container);
-    com = quill.container.firstChild.innerHTML;
-
-    $('#commentaire').val(com);
+    let quill = new Quill(container);
+    let com = quill.container.firstChild.innerHTML;
+    $(div).closest('.modal').find('#commentaire').val(com);
 };
-
-// //passe de l'éditeur à l'imput pour insertion en BDD par l'id commentaireID (cas de conflit avec la class)
-// function setCommentaireID(button) {
-//     let modal = button.closest('.modal');
-//     let container = '#' + modal.attr('id') + ' .editor-container';
-//     var quill = new Quill(container);
-//     // let commentaire = modal.find('input[id=commentaireID]');
-//     com = quill.container.firstChild.innerHTML;
-//     $('#commentaireID').val(com);
-// };
-
 
 //FONCTION REFARTICLE
 
