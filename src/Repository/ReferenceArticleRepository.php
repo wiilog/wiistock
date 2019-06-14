@@ -4,7 +4,6 @@ namespace App\Repository;
 
 use App\Entity\Filter;
 use App\Entity\ReferenceArticle;
-use App\Entity\Utilisateur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
@@ -16,12 +15,6 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class ReferenceArticleRepository extends ServiceEntityRepository
 {
-
-    private $unwanted_array = ['Š' => 'S', 'š' => 's', 'Ž' => 'Z', 'ž' => 'z', 'À' => 'A', 'Á' => 'A', 'Â' => 'A', 'Ã' => 'A', 'Ä' => 'A', 'Å' => 'A', 'Æ' => 'A', 'Ç' => 'C', 'È' => 'E', 'É' => 'E',
-        'Ê' => 'E', 'Ë' => 'E', 'Ì' => 'I', 'Í' => 'I', 'Î' => 'I', 'Ï' => 'I', 'Ñ' => 'N', 'Ò' => 'O', 'Ó' => 'O', 'Ô' => 'O', 'Õ' => 'O', 'Ö' => 'O', 'Ø' => 'O', 'Ù' => 'U',
-        'Ú' => 'U', 'Û' => 'U', 'Ü' => 'U', 'Ý' => 'Y', 'Þ' => 'B', 'ß' => 'Ss', 'à' => 'a', 'á' => 'a', 'â' => 'a', 'ã' => 'a', 'ä' => 'a', 'å' => 'a', 'æ' => 'a', 'ç' => 'c',
-        'è' => 'e', 'é' => 'e', 'ê' => 'e', 'ë' => 'e', 'ì' => 'i', 'í' => 'i', 'î' => 'i', 'ï' => 'i', 'ð' => 'o', 'ñ' => 'n', 'ò' => 'o', 'ó' => 'o', 'ô' => 'o', 'õ' => 'o',
-        'ö' => 'o', 'ø' => 'o', 'ù' => 'u', 'ú' => 'u', 'û' => 'u', 'ý' => 'y', 'þ' => 'b', 'ÿ' => 'y'];
 
     public function __construct(RegistryInterface $registry)
     {
@@ -103,7 +96,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
-    public function findByFiltersAndParams($filters, $params = null, $user)
+    public function findByFiltersAndParams($filters, $params, $user)
     {
         $em = $this->getEntityManager();
         $qb = $em->createQueryBuilder();
@@ -210,10 +203,11 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             $qb->andWhere($qb->expr()->in('ra.id', $ids));
         }
 
+        $countQuery = count($qb->getQuery()->getResult());
+
         // prise en compte des paramètres issus du datatable
         if (!empty($params)) {
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
             if (!empty($params->get('search'))) {
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
@@ -222,10 +216,12 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                     foreach ($user->getRecherche() as $key => $recherche) {
                         if ($recherche !== 'Fournisseur' && $recherche !== 'Référence article fournisseur') {
                             $metadatas = $em->getClassMetadata(ReferenceArticle::class);
-                            if (in_array(strtolower(strtr($recherche, $this->unwanted_array)), $metadatas->getFieldNames())) {
-                                $field = strtr($recherche, $this->unwanted_array);
-                                $field = strtolower($field);
+							$field = $linkChampLibreLabelToField[$recherche]['field'];
+							// champs fixes
+							if (in_array($field, $metadatas->getFieldNames())) {
                                 $query[] = 'ra.' . $field . ' LIKE :valueSearch';
+
+							// champs libres
                             } else {
                                 $subqb = $em->createQueryBuilder();
                                 $subqb
@@ -254,7 +250,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                                 ->leftJoin('afra.fournisseur', 'fra')
                                 ->andWhere('fra.nom LIKE :valueSearch')
                                 ->setParameter('valueSearch', '%' . $search . '%');
-                            $ids = [];
+
                             foreach ($subqb->getQuery()->execute() as $idArray) {
                                 $ids[] = $idArray['id'];
                             }
@@ -267,7 +263,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                                 ->leftJoin('ra.articlesFournisseur', 'afra')
                                 ->andWhere('afra.reference LIKE :valueSearch')
                                 ->setParameter('valueSearch', '%' . $search . '%');
-                            $ids = [];
+
                             foreach ($subqb->getQuery()->execute() as $idArray) {
                                 $ids[] = $idArray['id'];
                             }
@@ -278,13 +274,15 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                     }
                     $qb
                         ->andWhere(implode(' OR ', $query))
-                        ->setParameter('valueSearch', $search);
-                }
-            }
-        }
+                        ->setParameter('valueSearch', '%' . $search . '%');
+				}
+				$countQuery = count($qb->getQuery()->getResult());
+			}
+			if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+		}
         $queryResult = $qb->getQuery();
-        dump($queryResult);
-        return ['data' => $queryResult->getResult(), 'count' => count($queryResult->getResult())];
+
+        return ['data' => $queryResult->getResult(), 'count' => $countQuery];
     }
 
     public function countByType($typeId)

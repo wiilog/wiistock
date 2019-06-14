@@ -566,14 +566,6 @@ function redirectToDemande() {
     window.location.href = Routing.generate(demandeType + '_show', { 'id': demandeId });
 }
 
-// let tableRapidSearchColumn = $('#rapidSearchColumns').DataTable({
-//     language: {
-//         url: "/js/i18n/dataTableLanguage.json",
-//     },
-//     "paging": false,
-//     "info": false
-// });
-
 function addToRapidSearch(checkbox) {
     let alreadySearched = [];
     $('#rapidSearch tbody td').each(function() {
