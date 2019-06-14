@@ -40,6 +40,12 @@ class Filter
      */
     private $utilisateur;
 
+	//TODO CG filtres et/ou
+//	/**
+//	 * @ORM\Column(type="string", length=8, nullable=true)
+//	 */
+//    private $operator;
+
 
     public function getId(): ?int
     {

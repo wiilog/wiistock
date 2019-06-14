@@ -1,22 +1,37 @@
-<html>
+ <html>
 <style>
     body {
-        font-family: Montserrat, Helvetica, Arial, sans-serif;
+        font-family: 'Source Sans Pro', sans-serif;
     }
 </style>
 <body>
 
 <h2>Une dépose a été effectuée.</h2>
 
-<p>Détails de la dépose :</p>
-
-Arrivage : {{ arrivage }}<br>
-Colis : {{ colis }} <br>
-Date de dépose : {{ date }}<br>
-Emplacement : {{ emplacement }}<br>
-Operateur : {{ operateur }}<br>
-<br>
-<br>
+<table style="border: 1px solid black;">
+    <tbody>
+    <tr>
+        <td style="font-weight:bold;">Arrivage</td>
+        <td>{{ arrivage }}</td>
+    </tr>
+    <tr>
+        <td style="font-weight:bold;">Colis</td>
+        <td>{{ colis }}</td>
+    </tr>
+    <tr>
+        <td style="font-weight:bold;">Date de dépose</td>
+        <td>{{ date|date('le d/m/Y à H:i:s') }}</td>
+    </tr>
+    <tr>
+        <td style="font-weight:bold;">Emplacement</td>
+        <td>{{ emplacement }}</td>
+    </tr>
+    <tr>
+        <td style="font-weight:bold;">Opérateur</td>
+        <td>{{ operateur }}</td>
+    </tr>
+    </tbody>
+</table>
 
 </body>
 </html>

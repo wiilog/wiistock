@@ -15,6 +15,7 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class ReferenceArticleRepository extends ServiceEntityRepository
 {
+
     public function __construct(RegistryInterface $registry)
     {
         parent::__construct($registry, ReferenceArticle::class);
@@ -95,7 +96,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
-    public function findByFiltersAndParams($filters, $params = null)
+    public function findByFiltersAndParams($filters, $params, $user)
     {
         $em = $this->getEntityManager();
         $qb = $em->createQueryBuilder();
@@ -110,9 +111,9 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             'Référence' => ['field' => 'reference', 'typage' => 'text'],
             'Type' => ['field' => 'type_id', 'typage' => 'list'],
             'Quantité' => ['field' => 'quantiteStock', 'typage' => 'number'],
+			'Emplacement' => ['field' => 'emplacement_id', 'typage' => 'list']
         ];
         //TODO trouver + dynamique
-
         $qb
             ->select('ra')
             ->distinct()
@@ -121,6 +122,9 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
         foreach ($filters as $filter) {
             $index++;
+//
+//            $operatorOR = $filter['operator'] == 'or';
+			//TODO CG filtres et/ou
 
             // cas particulier champ référence article fournisseur
             if ($filter['champFixe'] === Filter::CHAMP_FIXE_REF_ART_FOURN) {
@@ -128,9 +132,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                     ->leftJoin('ra.articlesFournisseur', 'af')
                     ->andWhere('af.reference LIKE :reference')
                     ->setParameter('reference', '%' . $filter['value'] . '%');
-            }
-
-            // cas champ fixe
+            } // cas champ fixe
             else if ($label = $filter['champFixe']) {
                 $array = $linkChampLibreLabelToField[$label];
                 $field = $array['field'];
@@ -139,18 +141,31 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                 switch ($typage) {
                     case 'text':
                         $qb
-                            ->andWhere("ra." . $field . " LIKE :value")
-                            ->setParameter('value', '%' . $filter['value'] . '%');
+							->andWhere("ra." . $field . " LIKE :value" . $index)
+							->setParameter('value' . $index, '%' . $filter['value'] . '%');
+//                    	$where = "ra." . $field . " LIKE :value" . $index;
+//                    	$operatorOR ? $qb->orWhere($where) : $qb->andWhere($where);
+//                        $qb->setParameter('value' . $index, '%' . $filter['value'] . '%');
+						//TODO CG filtres et/ou
                         break;
                     case 'number':
                         $qb->andWhere("ra." . $field . " = " . $filter['value']);
                         break;
                     case 'list':
-                        // cas particulier du type (pas besoin de généraliser pour l'instant, voir selon besoins)
+                    	switch ($field) {
+							case 'type_id':
                         $qb
                             ->leftJoin('ra.type', 't')
                             ->andWhere('t.label = :typeLabel')
                             ->setParameter('typeLabel', $filter['value']);
+                        break;
+							case 'emplacement_id':
+								$qb
+									->leftJoin('ra.emplacement', 'e')
+									->andWhere('e.label = :emplacementLabel')
+									->setParameter('emplacementLabel', $filter['value']);
+								break;
+                }
                         break;
                 }
             }
@@ -173,18 +188,15 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                     case 'text':
                         $qbSub
                             ->andWhere('vcl' . $index . '.champLibre = ' . $filter['champLibre'])
-                            ->andWhere('vcl' . $index . '.valeur LIKE :value')
-                            ->setParameter('value', '%' . $filter['value'] . '%');
-                        break;
-                    case 'refart':
-                       
+                            ->andWhere('vcl' . $index . '.valeur LIKE :value' . $index)
+                            ->setParameter('value' . $index, '%' . $filter['value'] . '%');
                         break;
                     case 'number':
                     case 'list':
                         $qbSub
                             ->andWhere('vcl' . $index . '.champLibre = ' . $filter['champLibre'])
-                            ->andWhere('vcl' . $index . '.valeur = :value')
-                            ->setParameter('value', $filter['value']);
+                            ->andWhere('vcl' . $index . '.valeur = :value' . $index)
+                            ->setParameter('value' . $index, $filter['value']);
                         break;
                     case 'date':
                         $date = explode('-', $filter['value']);
@@ -212,20 +224,82 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         // prise en compte des paramètres issus du datatable
         if (!empty($params)) {
             if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
             if (!empty($params->get('search'))) {
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
+                    $ids = [];
+                    $query = [];
+                    foreach ($user->getRecherche() as $key => $recherche) {
+                        if ($recherche !== 'Fournisseur' && $recherche !== 'Référence article fournisseur') {
+                            $metadatas = $em->getClassMetadata(ReferenceArticle::class);
+                            $field = '';
+							if (!empty($linkChampLibreLabelToField[$recherche])) $field = $linkChampLibreLabelToField[$recherche]['field'];
+							// champs fixes
+							if ($field !== '' && in_array($field, $metadatas->getFieldNames())) {
+                                $query[] = 'ra.' . $field . ' LIKE :valueSearch';
+
+							// champs libres
+                            } else {
+                                $subqb = $em->createQueryBuilder();
+                                $subqb
+                                    ->select('ra.id')
+                                    ->from('App\Entity\ReferenceArticle', 'ra');
+                                $subqb
+                                    ->leftJoin('ra.valeurChampsLibres', 'vclra')
+                                    ->leftJoin('vclra.champLibre', 'clra')
+                                    ->andWhere('clra.label = :search')
+                                    ->andWhere('vclra.valeur LIKE :valueSearch')
+                                    ->setParameters([
+                                        'valueSearch' => '%' . $search . '%',
+                                        'search' => $recherche
+                                    ]);
+                                foreach ($subqb->getQuery()->execute() as $idArray) {
+                                    $ids[] = $idArray['id'];
+                                }
+                            }
+                        } else if ($recherche === 'Fournisseur') {
+                            $subqb = $em->createQueryBuilder();
+                            $subqb
+                                ->select('ra.id')
+                                ->from('App\Entity\ReferenceArticle', 'ra');
+                            $subqb
+                                ->leftJoin('ra.articlesFournisseur', 'afra')
+                                ->leftJoin('afra.fournisseur', 'fra')
+                                ->andWhere('fra.nom LIKE :valueSearch')
+                                ->setParameter('valueSearch', '%' . $search . '%');
+
+                            foreach ($subqb->getQuery()->execute() as $idArray) {
+                                $ids[] = $idArray['id'];
+                            }
+                        } else if ($recherche === 'Référence article fournisseur') {
+                            $subqb = $em->createQueryBuilder();
+                            $subqb
+                                ->select('ra.id')
+                                ->from('App\Entity\ReferenceArticle', 'ra');
+                            $subqb
+                                ->leftJoin('ra.articlesFournisseur', 'afra')
+                                ->andWhere('afra.reference LIKE :valueSearch')
+                                ->setParameter('valueSearch', '%' . $search . '%');
+
+                            foreach ($subqb->getQuery()->execute() as $idArray) {
+                                $ids[] = $idArray['id'];
+                            }
+                        }
+                    }
+                    foreach ($ids as $id) {
+                        $query[] = 'ra.id  = ' . $id;
+                    }
                     $qb
-                        ->andWhere('ra.libelle LIKE :value OR ra.reference LIKE :value')
-                        ->setParameter('value', '%' . $search . '%');
-                }
-            }
-        }
+                        ->andWhere(implode(' OR ', $query))
+                        ->setParameter('valueSearch', '%' . $search . '%');
+				}
+				$countQuery = count($qb->getQuery()->getResult());
+			}
+			if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
+		}
+        $queryResult = $qb->getQuery();
 
-        $query = $qb->getQuery();
-
-        return ['data' => $query->getResult(), 'count' => $countQuery];
+        return ['data' => $queryResult->getResult(), 'count' => $countQuery];
     }
 
     public function countByType($typeId)
@@ -245,7 +319,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
-            /** @lang DQL */
+        /** @lang DQL */
             "UPDATE App\Entity\ReferenceArticle ra
             SET ra.type = null 
             WHERE ra.type = :typeId"

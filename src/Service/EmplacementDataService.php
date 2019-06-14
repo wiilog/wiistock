@@ -38,7 +38,7 @@ class EmplacementDataService
     {
     
         $this->templating = $templating;
-        $this->user = $tokenStorage->getToken()->getUser();
+//        $this->user = $tokenStorage->getToken()->getUser();
         $this->em = $em;
         $this->router = $router;
         $this->emplacementRepository = $emplacementRepository;
