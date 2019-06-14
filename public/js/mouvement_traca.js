@@ -69,18 +69,17 @@ $('#submitSearchMvt').on('click', function () {
         function (settings, data) {
             let dateMin = $('#dateMin').val();
             let dateMax = $('#dateMax').val();
-            let indexDate = tableMvt.column('Date:name').index();
+            let indexDate = tableMvt.column('date:name').index();
             let dateInit = (data[indexDate]).split(' ')[0].split('/').reverse().join('-') || 0;
 
             if (
                 (dateMin == "" && dateMax == "")
                 ||
-                (dateMin == "" && moment(dateInit, 'DD-MM-YYYY').isSameOrBefore(dateMax))
+                (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
                 ||
-                (moment(dateInit, 'DD-MM-YYYY').isSameOrAfter(dateMin) && dateMax == "")
+                (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
                 ||
-                (moment(dateInit, 'DD-MM-YYYY').isSameOrAfter(dateMin) && moment(dateInit, 'DD-MM-YYYY').isSameOrBefore(dateMax))
-
+                (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
             ) {
                 return true;
             }
