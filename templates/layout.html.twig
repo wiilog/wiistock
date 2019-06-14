@@ -135,14 +135,14 @@
                             <li>
                                 <a href="{{ path('emplacement_index') }}" class="sub-item">• Emplacement</a>
                             </li>
-                            {% if hasRight(constant('App\\Entity\\Menu::CHAUFFEUR'), constant('App\\Entity\\Action::LIST')) %}
+                            {% if hasRight(constant('App\\Entity\\Menu::REFERENCE'), constant('App\\Entity\\Action::LIST')) %}
                             <li>
                                 <a href="{{ path('chauffeur_index') }}" class="sub-item">• Chauffeur</a>
                             </li>
-                            {% endif %}
                             <li>
                                 <a href="{{ path('transporteur_index') }}" class="sub-item">• Transporteur</a>
                             </li>
+                            {% endif %}
                         </ul>
                     </li>
 

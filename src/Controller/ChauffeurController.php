@@ -6,6 +6,7 @@ use App\Entity\Action;
 use App\Entity\Chauffeur;
 use App\Entity\Transporteur;
 use App\Entity\Menu;
+use App\Service\UserService;
 use App\Repository\ChauffeurRepository;
 use App\Repository\TransporteurRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -31,10 +32,16 @@ class ChauffeurController extends AbstractController
      */
     private $transporteurRepository;
 
-    public function __construct(ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository)
+    /**
+     * @var UserService
+     */
+    private $userService;
+
+    public function __construct(ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, UserService $userService)
     {
         $this->chauffeurRepository = $chauffeurRepository;
         $this->transporteurRepository = $transporteurRepository;
+        $this->userService = $userService;
     }
 
     /**
@@ -43,9 +50,9 @@ class ChauffeurController extends AbstractController
     public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-//            if (!$this->userService->hasRightFunction(Menu::MANUT, Action::LIST)) {
-//                return $this->redirectToRoute('access_denied');
-//            }
+            if (!$this->userService->hasRightFunction(Menu::REFERENCE, Action::LIST)) {
+                return $this->redirectToRoute('access_denied');
+            }
 
             $chauffeurs = $this->chauffeurRepository->findAll();
 
@@ -53,7 +60,6 @@ class ChauffeurController extends AbstractController
             foreach ($chauffeurs as $chauffeur) {
 
                 $rows[] = [
-//                    'id' => ($chauffeur->getId() ? $chauffeur->getId() : 'Non défini'),
                     'Nom' => ($chauffeur->getNom() ? $chauffeur->getNom() : null),
                     'Prénom' => ($chauffeur->getPrenom() ? $chauffeur->getPrenom(): null),
                     'DocumentID' => ($chauffeur->getDocumentID() ? $chauffeur->getDocumentID() : null),
@@ -74,7 +80,6 @@ class ChauffeurController extends AbstractController
      */
     public function index(): Response
     {
-
         return $this->render('chauffeur/index.html.twig', [
             'chauffeurs' => $this->chauffeurRepository->findAll(),
             'transporteurs' => $this->transporteurRepository->findAll(),
@@ -87,7 +92,7 @@ class ChauffeurController extends AbstractController
     public function new(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::CHAUFFEUR, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::REFERENCE, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -115,16 +120,16 @@ class ChauffeurController extends AbstractController
     public function editApi(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-//            if (!$this->userService->hasRightFunction(Menu::MANUT, Action::LIST)) {
-//                return $this->redirectToRoute('access_denied');
-//            }
+            if (!$this->userService->hasRightFunction(Menu::REFERENCE, Action::LIST)) {
+                return $this->redirectToRoute('access_denied');
+            }
 
-            $transporteurs = $this->transporteurRepository->findAll();
             $chauffeur = $this->chauffeurRepository->find($data['id']);
+            $transporteurs = $this->transporteurRepository->findAll();
             $json = $this->renderView('chauffeur/modalEditChauffeurContent.html.twig', [
                 'chauffeur' => $chauffeur,
                 'transporteurs' => $transporteurs,
-                'transporteur' => ($chauffeur->getTransporteur()),
+                'transporteur' => $chauffeur->getTransporteur() ? $chauffeur->getTransporteur() : null,
 
             ]);
 
@@ -139,7 +144,7 @@ class ChauffeurController extends AbstractController
     public function edit(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::CHAUFFEUR, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::REFERENCE, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
             $chauffeur = $this->chauffeurRepository->find($data['id']);
@@ -165,9 +170,8 @@ class ChauffeurController extends AbstractController
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $chauffeur = $this->chauffeurRepository->find($data['chauffeur']);
 
-
             if (
-                !$this->userService->hasRightFunction(Menu::CHAUFFEUR, Action::LIST)
+                !$this->userService->hasRightFunction(Menu::REFERENCE, Action::LIST)
 
             ) {
                 return $this->redirectToRoute('access_denied');
@@ -188,9 +192,9 @@ class ChauffeurController extends AbstractController
     public function getTransporteur(Request $request)
     {
         if ($request->isXmlHttpRequest()) {
-//            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
-//                return new JsonResponse(['results' => []]);
-//            }
+            if (!$this->userService->hasRightFunction(Menu::REFERENCE, Action::LIST)) {
+                return new JsonResponse(['results' => []]);
+            }
 
             $search = $request->query->get('term');
 
