@@ -68,35 +68,73 @@ class ArrivageFixtures extends Fixture implements FixtureGroupInterface
 
     public function load(ObjectManager $manager)
     {
-        // menu arrivage
-        $menu = $this->menuRepository->findOneBy(['code' => Menu::ARRIVAGE]);
+    	// création des menus
+        $menusInfos = [
+            ['Arrivage', 'ARRIVAGE'],
+            ['Référence', 'REFERENCE'],
+        ];
+        foreach ($menusInfos as $menuInfos) {
+            $menu = $this->menuRepository->findOneBy(['code' => $menuInfos[1]]);
 
-        if (empty($menu)) {
-            $menu = new Menu();
-            $menu
-                ->setLabel('Arrivage')
-                ->setCode(Menu::ARRIVAGE);
+            if (empty($menu)) {
+                $menu = new Menu();
+                $menu
+                    ->setLabel($menuInfos[0])
+                    ->setCode($menuInfos[1]);
 
-            $manager->persist($menu);
-            dump("création du menu Arrivage");
+                $manager->persist($menu);
+                dump("création du menu " . $menuInfos[1]);
+            }
+            $this->addReference('menu-' . $menuInfos[1], $menu);
         }
-        $this->addReference('menu-arrivage', $menu);
+
+        $manager->flush();
 
 
-        // actions liées au menu arrivage
-        $actionLabels = [Action::LIST, Action::LIST_ALL, Action::CREATE_EDIT, Action::DELETE];
+        // création des actions
+        $menus = [
+            Menu::ARRIVAGE,
+			Menu::REFERENCE
+        ];
 
-        foreach ($actionLabels as $actionLabel) {
-            $action = $this->actionRepository->findOneByMenuCodeAndLabel(Menu::ARRIVAGE, $actionLabel);
+        $actionLabels = [Action::LIST, Action::CREATE_EDIT, Action::DELETE];
 
-            if (empty($action)) {
-                $action = new Action();
+        foreach ($menus as $menu) {
+            foreach ($actionLabels as $actionLabel) {
+                $action = $this->actionRepository->findOneByMenuCodeAndLabel($menu, $actionLabel);
 
-                $action
-                    ->setLabel($actionLabel)
-                    ->setMenu($this->getReference('menu-arrivage'));
-                $manager->persist($action);
-                dump("création de l'action arrivage / " . $actionLabel);
+                if (empty($action)) {
+                    $action = new Action();
+
+                    $action
+                        ->setLabel($actionLabel)
+                        ->setMenu($this->getReference('menu-' . $menu));
+                    $manager->persist($action);
+                    dump("création de l'action " . $menu . " / " . $actionLabel);
+                }
+            }
+        }
+
+        // création de l'action LIST_ALL
+        $menus = [
+			Menu::ARRIVAGE
+        ];
+
+        $actionLabels = [Action::LIST_ALL];
+
+        foreach ($menus as $menu) {
+            foreach ($actionLabels as $actionLabel) {
+                $action = $this->actionRepository->findOneByMenuCodeAndLabel($menu, $actionLabel);
+
+                if (empty($action)) {
+                    $action = new Action();
+
+                    $action
+                        ->setLabel($actionLabel)
+                        ->setMenu($this->getReference('menu-' . $menu));
+                    $manager->persist($action);
+                    dump("création de l'action " . $menu . " / " . $actionLabel);
+                }
             }
         }
 
@@ -107,9 +145,9 @@ class ArrivageFixtures extends Fixture implements FixtureGroupInterface
             $categorie = new CategoryType();
             $categorie->setLabel(CategoryType::LITIGE);
             $manager->persist($categorie);
-            $this->addReference('type-litige', $categorie);
             dump("création de la catégorie de type litige");
         }
+        $this->addReference('type-litige', $categorie);
 
         // types liés à la catégorie arrivage
         $typesNames = [

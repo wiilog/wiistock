@@ -23,6 +23,7 @@ class Menu
     const STOCK = 'STOCK';
     const INDICS_ACCUEIL = 'INDICAC';
     const ARRIVAGE = 'ARRIVAGE';
+    const REFERENCE = 'REFERENCE';
 
     /**
      * @ORM\Id()
