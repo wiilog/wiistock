@@ -104,7 +104,7 @@ class EmplacementController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
-        return $this->render('emplacement/index.html.twig', ['emplacement' => $this->emplacementRepository->findAll()]);
+		return $this->render('emplacement/index.html.twig', ['emplacement' => $this->emplacementRepository->findAll()]);
     }
 
     /**
@@ -119,9 +119,10 @@ class EmplacementController extends AbstractController
 
             $em = $this->getDoctrine()->getEntityManager();
             $emplacement = new Emplacement();
-            $emplacement->setLabel($data["Label"]);
-            $emplacement->setDescription($data["Description"]);
-            $emplacement->setIsDeliveryPoint($data["isDeliveryPoint"]);
+            $emplacement
+				->setLabel($data["Label"])
+				->setDescription($data["Description"])
+				->setIsDeliveryPoint($data["isDeliveryPoint"]);
             $em->persist($emplacement);
             $em->flush();
             return new JsonResponse($data);

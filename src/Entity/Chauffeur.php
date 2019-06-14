@@ -132,4 +132,19 @@ class Chauffeur
 
         return $this;
     }
+
+
+  public function getPrenomNom(): string
+  {
+    $string = '';
+
+    if (!empty($this->getPrenom())) {
+      $string .= $this->getPrenom() . ' ';
+    }
+    if (!empty($this->getNom())) {
+      $string .= $this->getNom();
+    }
+
+    return $string;
+  }
 }

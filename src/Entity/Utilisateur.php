@@ -134,6 +134,11 @@ class Utilisateur implements UserInterface, EquatableInterface
      */
     private $arrivagesUtilisateur;
 
+    /**
+     * @ORM\Column(type="json_array", nullable=true)
+     */
+    private $recherche;
+
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
@@ -676,6 +681,18 @@ class Utilisateur implements UserInterface, EquatableInterface
                 $arrivagesUtilisateur->setUtilisateurs(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getRecherche()
+    {
+        return $this->recherche;
+    }
+
+    public function setRecherche($recherche): self
+    {
+        $this->recherche = $recherche;
 
         return $this;
     }

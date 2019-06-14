@@ -286,10 +286,11 @@ class ArticleDataService
     public function getViewEditArticle($article, $isADemand = false)
     {
         $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
-        $typeArticle = $refArticle->getType()->getLabel();
+        $typeArticle = $refArticle->getType();
+        $typeArticleLabel = $typeArticle->getLabel();
         $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::ARTICLE);
 
-        $champsLibresComplet = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($typeArticle, $categorieCL);
+        $champsLibresComplet = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($typeArticleLabel, $categorieCL);
         $champsLibres = [];
         foreach ($champsLibresComplet as $champLibre) {
             $valeurChampArticle = $this->valeurChampsLibreRepository->findOneByChampLibreAndArticle($champLibre->getId(), $article->getId());
@@ -307,7 +308,7 @@ class ArticleDataService
 
         $typeChampLibre =
             [
-                'type' => $typeArticle,
+                'type' => $typeArticleLabel,
                 'champsLibres' => $champsLibres,
             ];
 
@@ -329,7 +330,8 @@ class ArticleDataService
 
         $view = $this->templating->render('article/modalModifyArticleContent.html.twig', [
             'typeChampsLibres' => $typeChampLibre,
-            'typeArticle' => $typeArticle,
+            'typeArticle' => $typeArticleLabel,
+            'typeArticleId' => $typeArticle->getId(),
             'article' => $article,
             'statut' => $statut,
             'isADemand' => $isADemand

@@ -157,7 +157,7 @@ function ajaxGetCollecteArticle(select) {
             selection.html(data.selection);
             if (data.modif) editNewArticle.html(data.modif);
             $('#modalNewArticle').find('.modal-footer').removeClass('d-none');
-            displayRequireChamp($('#typeEdit'), 'edit');
+            displayRequireChamp(select.closest('.modal').find('#type'), 'edit');
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
             initEditor2('.editor-container-edit');
         }
@@ -221,7 +221,8 @@ $('#submitSearchCollecte').on('click', function () {
         function (settings, data, dataIndex) {
             let dateMin = $('#dateMin').val();
             let dateMax = $('#dateMax').val();
-            let dateInit = (data[0]).split('/').reverse().join('-') || 0;
+            let indexDate = table.column('Création:name').index();
+            let dateInit = (data[indexDate]).split('/').reverse().join('-') || 0;
 
             if (
                 (dateMin == "" && dateMax == "")

@@ -1,28 +1,36 @@
-<div class="row">
+<div class="d-flex">
 
     {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
-    <div data-id='{{ idRefArticle }}' id='edit{{idRefArticle}}' data-target='#modalEditRefArticle' data-toggle='modal'
-        class='col-3'
-        onclick="editRow($(this), Routing.generate('reference_article_edit_api', true), $('#modalEditRefArticle'), $('#submitEditRefArticle'), true), 
-                clearDiv(), displayRequireChamp($(this), 'edit')">
-        <i class='fas fa-pencil-alt'></i>
+    <div  id='edit{{idRefArticle}}' data-target='#modalEditRefArticle' data-toggle='modal'>
+        <div class="btn btn-col-action" data-id='{{ idRefArticle }}'
+        onclick="editRow($(this), Routing.generate('reference_article_edit_api', true), $('#modalEditRefArticle'), $('#submitEditRefArticle'), true),
+        clearDiv(), displayRequireChamp($(this), 'edit')">
+            <i class='fas fa-pencil-alt'></i>
+        </div>
     </div>
     {% else %}
-    <div data-id='{{ idRefArticle }}' data-target='#modalShowRefArticle' data-toggle='modal' class='col-3'
+    <div  data-target='#modalShowRefArticle' data-toggle='modal'>
+        <div class="btn btn-col-action" data-id='{{ idRefArticle }}'
         onclick="showRow($(this), Routing.generate('reference_article_show', true), $('#modalShowRefArticle'))">
-        <i class='fas fa-eye'></i>
+            <i class='fas fa-eye'></i>
+        </div>
     </div>
     {% endif %}
 
     {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::DELETE')) %}
-    <div class='col-3' id='delete{{idRefArticle}}'
+    <div>
+        <div class="btn btn-col-action" id='delete{{idRefArticle}}'
         onclick="deleteRow($(this), $('#modalDeleteRefArticle'), $('#submitDeleteRefArticle'))"
         data-id='{{ idRefArticle }}' data-target='#modalDeleteRefArticle' data-toggle='modal'>
-        <i class='fas fa-trash'></i>
+            <i class='fas fa-trash'></i>
+        </div>
     </div>
     {% endif %}
-    <div class="col-2" id='' onclick="recupIdRefArticle($(this)), clearDiv(), clearCheckboxes($('#modalPlusDemande'))" data-id='{{ idRefArticle }}'
+    <div>
+        <div class="btn btn-col-action"
+        onclick="recupIdRefArticle($(this)), clearDiv(), clearCheckboxes($('#modalPlusDemande'))" data-id='{{ idRefArticle }}'
         data-target='#modalPlusDemande' data-toggle='modal'>
-        <i class="fas fa-plus"></i>
+            <i class="fas fa-plus"></i>
+        </div>
     </div>
 </div>

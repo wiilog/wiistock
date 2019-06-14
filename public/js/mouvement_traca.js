@@ -2,7 +2,7 @@ $('.select2').select2();
 
 $('#utilisateur').select2({
     placeholder: {
-        text: 'Operateur',
+        text: 'Opérateur',
     }
 });
 
@@ -43,9 +43,8 @@ $('#submitSearchMvt').on('click', function () {
     let statut = $('#statut').val();
     let emplacement = $('#emplacement').val();
     let article = $('#colis').val();
-    let demandeur = [];
-    demandeur = $('#utilisateur').val()
-    demandeurString = demandeur.toString();
+    let demandeur = $('#utilisateur').val()
+    let demandeurString = demandeur.toString();
     demandeurPiped = demandeurString.split(',').join('|')
 
     tableMvt
@@ -67,20 +66,20 @@ $('#submitSearchMvt').on('click', function () {
         .draw();
 
     $.fn.dataTable.ext.search.push(
-        function (settings, data, dataIndex) {
+        function (settings, data) {
             let dateMin = $('#dateMin').val();
             let dateMax = $('#dateMax').val();
-            let dateInit = (data[0]).split(' ')[0].split('/').reverse().join('-') || 0;
+            let indexDate = tableMvt.column('date:name').index();
+            let dateInit = (data[indexDate]).split(' ')[0].split('/').reverse().join('-') || 0;
 
             if (
                 (dateMin == "" && dateMax == "")
                 ||
-                (dateMin == "" && moment(dateInit, 'DD-MM-YYYY').isSameOrBefore(dateMax))
+                (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
                 ||
-                (moment(dateInit, 'DD-MM-YYYY').isSameOrAfter(dateMin) && dateMax == "")
+                (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
                 ||
-                (moment(dateInit, 'DD-MM-YYYY').isSameOrAfter(dateMin) && moment(dateInit, 'DD-MM-YYYY').isSameOrBefore(dateMax))
-
+                (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
             ) {
                 return true;
             }

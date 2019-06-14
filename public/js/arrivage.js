@@ -19,10 +19,12 @@ let tableArrivage = $('#tableArrivages').DataTable({
     columns: [
         { "data": "NumeroArrivage", 'name': 'NumeroArrivage', 'title': "N° d'arrivage" },
         { "data": 'Transporteur', 'name': 'Transporteur', 'title': 'Transporteur' },
+        { "data": 'Chauffeur', 'name': 'Chauffeur', 'title': 'Chauffeur' },
         { "data": 'NoTracking', 'name': 'NoTracking', 'title': 'N° tracking transporteur' },
         { "data": 'NumeroBL', 'name': 'NumeroBL', 'title': 'N° commande / BL' },
         { "data": 'Fournisseur', 'name': 'Fournisseur', 'title': 'Fournisseur' },
         { "data": 'Destinataire', 'name': 'Destinataire', 'title': 'Destinataire' },
+        { "data": 'Acheteurs', 'name': 'Acheteurs', 'title': 'Acheteurs' },
         { "data": 'NbUM', 'name': 'NbUM', 'title': 'Nb UM' },
         { "data": 'Statut', 'name': 'Statut', 'title': 'Statut' },
         { "data": 'Date', 'name': 'Date', 'title': 'Date' },
@@ -137,12 +139,10 @@ function upload(files) {
         processData:false,
         cache:false,
         dataType:"json",
-        success:function(fileNames){
+        success:function(html){
             let dropfile = $('#dropfile');
             dropfile.css('border', '3px dashed #BBBBBB');
-            fileNames.forEach(function(fileName) {
-                dropfile.after('<p><i class="fa fa-file mr-2"></i><a target="_blank" href="' + filepath + fileName + '">' + fileName + '</a></p>');
-            })
+            dropfile.after(html);
         }
     });
 }
@@ -157,7 +157,7 @@ function editRowArrivage(button) {
     $.post(path, JSON.stringify(params), function(data) {
         modal.find('.modal-body').html(data.html);
         initEditor2('.editor-container-edit');
-        $('#modalEditArrivage').find('#acheteurs').select2('val', data.acheteurs); //TODO CG 1 seul fonctionne... ???
+        $('#modalEditArrivage').find('#acheteurs').val(data.acheteurs).select2();
     }, 'json');
 
     modal.find(submit).attr('value', id);
@@ -195,7 +195,6 @@ function submitActionArrivage(modal, path, table, callback, close) {
             let nbUm = data.nbUm;
             let printUm = data.printUm;
             let printArrivage = data.printArrivage;
-            console.log(data.arrivage);
             let d = new Date();
             let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
             date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
@@ -204,7 +203,6 @@ function submitActionArrivage(modal, path, table, callback, close) {
                 $("#barcodes").empty();
                 if (printUm) {
                     for (let i = 0; i < nbUm; i++) {
-                        console.log('colis ' + i);
                         $('#barcodes').append('<img id="barcode' + i + '">');
                         JsBarcode("#barcode" + i, data.arrivage + '-' + i, {
                             format: "CODE128",
@@ -212,13 +210,11 @@ function submitActionArrivage(modal, path, table, callback, close) {
                     }
 
                 } if (printArrivage) {
-                    console.log('arrivage');
                     $('#barcodes').append('<img id="barcodeArrivage">');
                     JsBarcode("#barcodeArrivage", data.arrivage, {
                         format: "CODE128",
                     });
                 } if (printArrivage || printUm) {
-                    console.log('arrivage or colis');
                     $("#barcodes").find('img').each(function () {
                         doc.addImage($(this).attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
                         doc.addPage();
@@ -367,7 +363,8 @@ $('#submitSearchArrivage').on('click', function () {
         function (settings, data, dataIndex) {
             let dateMin = $('#dateMin').val();
             let dateMax = $('#dateMax').val();
-            let dateInit = (data[0]).split('/').reverse().join('-') || 0;
+            let indexDate = tableArrivage.column('Date:name').index();
+            let dateInit = (data[indexDate]).split('/').reverse().join('-') || 0;
 
             if (
                 (dateMin == "" && dateMax == "")
@@ -387,6 +384,19 @@ $('#submitSearchArrivage').on('click', function () {
     tableArrivage
         .draw();
 });
-// function deleteAttachement() {
-//
-// }
+
+function deleteAttachement(arrivageId, pj, pjWithoutExtension) {
+
+    let path = Routing.generate('arrivage_delete_attachement');
+    let params = {
+        arrivageId: arrivageId,
+        pj: pj
+    };
+
+    $.post(path, JSON.stringify(params), function(data) {
+
+        if(data === true) {
+            $('#' + pjWithoutExtension).remove();
+        }
+    });
+}

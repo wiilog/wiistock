@@ -179,6 +179,22 @@ a:hover {
   padding: 0 !important;
 }
 
+.minw-105px {
+  min-width: 105px;
+}
+
+.maxw-250px {
+  max-width: 250px;
+}
+
+.w-49 {
+  width: 49%;
+}
+
+.border-radius-light {
+  border-radius: 10px !important;
+}
+
 /* Login    
  * *================= 
  * */
@@ -334,8 +350,11 @@ a:hover {
   min-width: 172px;
 }
 
-.border-radius-light {
-  border-radius: 10px;
+.btn-col-action {
+  background-color: #424242;
+}
+.btn-col-action:hover {
+  color: #424242;
 }
 
 .btn-icon {
@@ -498,12 +517,10 @@ a:hover {
 }
 
 .table .fas {
-  font-size: 1.2rem;
+  font-size: 0.8rem;
   cursor: pointer;
-  margin: auto 0.4em;
-}
-.table .fas:hover {
-  color: black;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .switch {
@@ -593,7 +610,20 @@ a:hover {
   border-color: #cc0000;
 }
 .filter span {
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+}
+
+.filters {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-left: 6px;
+}
+.filters > div {
+  margin: auto 12px;
+}
+.filters > div .select2-selection {
+  height: 38px;
 }
 
 .filterService {
