@@ -191,6 +191,10 @@ a:hover {
   width: 49%;
 }
 
+.border-radius-light {
+  border-radius: 10px !important;
+}
+
 /* Login    
  * *================= 
  * */
@@ -346,8 +350,11 @@ a:hover {
   min-width: 172px;
 }
 
-.border-radius-light {
-  border-radius: 10px;
+.btn-col-action {
+  background-color: #424242;
+}
+.btn-col-action:hover {
+  color: #424242;
 }
 
 .btn-icon {
@@ -510,12 +517,10 @@ a:hover {
 }
 
 .table .fas {
-  font-size: 1.2rem;
+  font-size: 0.8rem;
   cursor: pointer;
-  margin: auto 0.4em;
-}
-.table .fas:hover {
-  color: black;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .switch {

@@ -364,7 +364,7 @@ let recupIdRefArticle = function (div) {
 let ajaxPlusDemandeContent = function (button, demande) {
     let plusDemandeContent = $('.plusDemandeContent');
     let editChampLibre = $('.editChampLibre');
-    let modalFooter = $('.modal-footer');
+    let modalFooter = button.closest('.modal').find('.modal-footer');
     plusDemandeContent.html('');
     editChampLibre.html('');
     modalFooter.addClass('d-none');
