@@ -485,8 +485,12 @@ class ReferenceArticleController extends Controller
 
 
         usort($champs, function ($a, $b) {
-            return strnatcmp($a['label'], $b['label']);
+			return strcasecmp($a['label'], $b['label']);
         });
+
+		usort($champsSearch, function ($a, $b) {
+			return strcasecmp($a['label'], $b['label']);
+		});
 
         $types = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::ARTICLES_ET_REF_CEA);
         $emplacements = $this->emplacementRepository->findAll();
