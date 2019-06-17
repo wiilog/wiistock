@@ -7,6 +7,7 @@ use App\Entity\Article;
 use App\Entity\LigneArticle;
 use App\Entity\Menu;
 use App\Entity\Preparation;
+use App\Entity\Livraison;
 
 use App\Repository\PreparationRepository;
 use App\Service\UserService;
@@ -25,7 +26,7 @@ use App\Repository\ArticleRepository;
 
 use App\Entity\Demande;
 use App\Repository\DemandeRepository;
-
+use App\Repository\LivraisonRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Knp\Component\Pager\PaginatorInterface;
 use App\Repository\StatutRepository;
@@ -60,6 +61,11 @@ class PreparationController extends AbstractController
     private $articleRepository;
 
     /**
+     * @var LivraisonRepository
+     */
+    private $livraisonRepository;
+
+    /**
      * @var DemandeRepository
      */
     private $demandeRepository;
@@ -79,8 +85,9 @@ class PreparationController extends AbstractController
      */
     private $articleDataService;
 
-    public function __construct(ArticleDataService $articleDataService, PreparationRepository $preparationRepository, LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, StatutRepository $statutRepository, DemandeRepository $demandeRepository, ReferenceArticleRepository $referenceArticleRepository, UserService $userService)
+    public function __construct(LivraisonRepository $livraisonRepository, ArticleDataService $articleDataService, PreparationRepository $preparationRepository, LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, StatutRepository $statutRepository, DemandeRepository $demandeRepository, ReferenceArticleRepository $referenceArticleRepository, UserService $userService)
     {
+        $this->livraisonRepository = $livraisonRepository;
         $this->statutRepository = $statutRepository;
         $this->preparationRepository = $preparationRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
@@ -291,6 +298,7 @@ class PreparationController extends AbstractController
 
         return $this->render('preparation/show.html.twig', [
             'demande' => $this->demandeRepository->findOneByPreparation($preparation),
+            'livraison' => $this->livraisonRepository->findOneByPreparation($preparation),
             'preparation' => $preparation,
             'statut' => $preparation->getStatut() === $this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER),
             'finished' => $preparation->getStatut()->getNom() !== Preparation::STATUT_PREPARE,
