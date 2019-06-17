@@ -302,16 +302,7 @@ class ArticleRepository extends ServiceEntityRepository
         $qb
             ->select('a')
             ->from('App\Entity\Article', 'a')
-            //    ->join('a.Statut', 'App\Entity\Statut','s')
             ->where('a.Statut =' . $statutId);
-        //    dump($qb);
-        // $qb = $em->createQuery(
-        //     "SELECT a
-        //     FROM App\Entity\Article a
-        //     JOIN a.Statut s
-        //     WHERE s.nom = :actif");
-
-
 
         // prise en compte des paramètres issus du datatable
         if (!empty($params)) {
