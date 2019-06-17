@@ -23,6 +23,7 @@ use App\Repository\UtilisateurRepository;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
+
 class SecuriteController extends Controller
 {
     /**
@@ -152,16 +153,16 @@ class SecuriteController extends Controller
     }
 
     /**
-     * @Route("/change_password", name="change_password")
+     * @Route("/change-password", name="change_password?token=", options={"expose"=true}, methods="GET|POST")
      */
     public function change_password(EntityManagerInterface $em, Request $request, UserPasswordEncoderInterface $passwordEncoder)
     {
         $session = $request->getSession();
         $user = $this->getUser();
         $form = $this->createFormBuilder()
-            ->add('password', PasswordType::class, array(
-                'label' => 'Mot de Passe actuel',
-            ))
+//            ->add('password', PasswordType::class, array(
+//                'label' => 'Mot de Passe actuel',
+//            ))
             ->add('plainPassword', RepeatedType::class, array(
                 'type' => PasswordType::class,
                 'first_options' => array('label' => 'Nouveau Mot de Passe'),
@@ -218,7 +219,7 @@ class SecuriteController extends Controller
             $user = $this->utilisateurRepository->getByMail($email);
             if ($user) {
                 if ($user->getStatus() === true) {
-                    $this->psservice->sendNewPassword($email);
+                    $this->psservice->sendToken();
                 } else {
                     return new JsonResponse('inactiv');
                 }

@@ -53,18 +53,21 @@ class PasswordService
         $this->templating = $templating;
     }
 
-    public function sendNewPassword($to)
+    public function sendToken()
     {
-        $newPass = $this->generatePassword(10);
-        if ($this->updateUser($to, $newPass) === 1) {
-            $this->mailerService->sendMail(
-                'FOLLOW GT // Mot de passe oublié',
-                $this->templating->render('mails/mailForgotPassword.html.twig', ['password' => $newPass]),
-                $to);
-        }
+        $token = $this->generateToken(30);
+//        if ($this->updateUser($to, $newPass) === 1) {
+    $this->mailerService->sendMail(
+        'FOLLOW GT // Mot de passe oublié',
+        $this->templating->render('mails/mailForgotPassword.html.twig')
+//                ['password' => $newPass]), $to
+    );
+        return $token;
+//        }
     }
 
-    private function generatePassword($length)
+
+    private function generateToken($length)
     {
         $generated_string = '';
         do {
@@ -80,18 +83,18 @@ class PasswordService
         return $generated_string;
     }
 
-    private function updateUser($mail, $newPass)
-    {
-        $user = $this->utilisateurRepository->getByMail($mail);
-        if ($user !== null) {
-            $password = $this->passwordEncoder->encodePassword($user, $newPass);
-            $user->setPassword($password);
-            $this->entityManager->persist($user);
-            $this->entityManager->flush();
-
-            return 1;
-        } else {
-            return new JsonResponse('Adresse email inconnue.');
-        }
-    }
+//    private function updateUser($mail)
+//    {
+//        $user = $this->utilisateurRepository->getByMail($mail);
+//        if ($user !== null) {
+////            $password = $this->passwordEncoder->encodePassword($user);
+////            $user->setPassword($password);
+//            $this->entityManager->persist($user);
+//            $this->entityManager->flush();
+//
+//            return 1;
+//        } else {
+//            return new JsonResponse('Adresse email inconnue.');
+//        }
+//    }
 }
