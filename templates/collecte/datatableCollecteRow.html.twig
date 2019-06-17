@@ -1,7 +1,9 @@
-<div class="row">
+<div class="d-flex">
     {% if hasRight(constant('App\\Entity\\Menu::DEM_COLLECTE'), constant('App\\Entity\\Action::LIST')) %}
-        <a href="{{url}}" class="col-3">
-            <i class='fas fa-eye'></i>
+        <a href="{{url}}">
+            <div class="btn btn-col-action">
+                <i class='fas fa-eye'></i>
+            </div>
         </a>
     {% endif %}
 </div>

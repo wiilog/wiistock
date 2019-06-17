@@ -165,4 +165,16 @@ class UtilisateurRepository extends ServiceEntityRepository implements UserLoade
 
         return $query->getSingleScalarResult();
     }
+
+    public function findAllSorted()
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT u FROM App\Entity\Utilisateur u
+            ORDER BY u.username
+            "
+        );
+
+        return $query->execute();
+    }
 }

@@ -209,7 +209,7 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
                 defaultValueForTypage($('#typageModif'), '-edit');
             }
 
-            displayRequireChamp($('#typeEdit'), 'edit');
+            displayRequireChamp(modal.find('#typeEdit'), 'edit');
 
             if ($('#referenceEdit').val() !== undefined) {   //TODO Moche
                 setMaxQuantityEdit($('#referenceEdit'));
@@ -246,43 +246,31 @@ function toggleRadioButton(button) {
 //initialisation editeur de texte une seule fois
 
 function initEditor(modal) {
-    var quill = new Quill(modal + ' .editor-container', {
-        modules: {
-            //     toolbar: [
-            //         [{ header: [1, 2, 3, false] }],
-            //         ['bold', 'italic', 'underline'],
-            //         [{'list': 'ordered'}, {'list': 'bullet'}]
-            //         ['image', 'code-block']
-            //     ]
-            // },
-            toolbar: [
-                [{ header: [1, 2, 3, false] }],
-                ['bold', 'italic', 'underline', 'image'],
+    // var quill = new Quill(modal + ' .editor-container', {
+    //     modules: {
+    //         toolbar: [
+    //             [{ header: [1, 2, 3, false] }],
+    //             ['bold', 'italic', 'underline', 'image'],
+    //
+    //             [{ 'list': 'ordered' }, { 'list': 'bullet' }]
+    //         ]
+    //     },
+    //     formats: [
+    //         'header',
+    //         'bold', 'italic', 'underline', 'strike', 'blockquote',
+    //         'list', 'bullet', 'indent',
+    //         'link', 'image'
+    //     ],
+    //
+    //     theme: 'snow'
+    // });
 
-                [{ 'list': 'ordered' }, { 'list': 'bullet' }]
-            ]
-        },
-        formats: [
-            'header',
-            'bold', 'italic', 'underline', 'strike', 'blockquote',
-            'list', 'bullet', 'indent',
-            'link', 'image'
-        ],
-
-        theme: 'snow'
-    });
+    initEditor2(modal + ' .editor-container');
 };
 
 function initEditor2(div) {
-    var quill = new Quill(div, {
+    new Quill(div, {
         modules: {
-            //     toolbar: [
-            //         [{ header: [1, 2, 3, false] }],
-            //         ['bold', 'italic', 'underline'],
-            //         [{'list': 'ordered'}, {'list': 'bullet'}]
-            //         ['image', 'code-block']
-            //     ]
-            // },
             toolbar: [
                 [{ header: [1, 2, 3, false] }],
                 ['bold', 'italic', 'underline', 'image'],
@@ -301,26 +289,13 @@ function initEditor2(div) {
     });
 };
 
-//passe de l'éditeur à l'imput pour insertion en BDD par la class editor-container
+//passe de l'éditeur à l'input pour insertion en BDD par la classe editor-container
 function setCommentaire(div) {
-    // let commentaire = modal.find('input[id=commentaire]');
     let container = div;
-    var quill = new Quill(container);
-    com = quill.container.firstChild.innerHTML;
-
-    $('#commentaire').val(com);
+    let quill = new Quill(container);
+    let com = quill.container.firstChild.innerHTML;
+    $(div).closest('.modal').find('#commentaire').val(com);
 };
-
-// //passe de l'éditeur à l'imput pour insertion en BDD par l'id commentaireID (cas de conflit avec la class)
-// function setCommentaireID(button) {
-//     let modal = button.closest('.modal');
-//     let container = '#' + modal.attr('id') + ' .editor-container';
-//     var quill = new Quill(container);
-//     // let commentaire = modal.find('input[id=commentaireID]');
-//     com = quill.container.firstChild.innerHTML;
-//     $('#commentaireID').val(com);
-// };
-
 
 //FONCTION REFARTICLE
 
@@ -377,6 +352,28 @@ function ajaxAutoCompleteEmplacementInit(select) {
     select.select2({
         ajax: {
             url: Routing.generate('get_emplacement'),
+            dataType: 'json',
+            delay: 250,
+        },
+        language: {
+            inputTooShort: function () {
+                return 'Veuillez entrer au moins 1 caractère.';
+            },
+            searching: function () {
+                return 'Recherche en cours...';
+            },
+            noResults: function () {
+                return 'Aucun résultat.';
+            }
+        },
+        minimumInputLength: 1,
+    });
+}
+
+function ajaxAutoCompleteTransporteurInit(select) {
+    select.select2({
+        ajax: {
+            url: Routing.generate('get_Transporteur'),
             dataType: 'json',
             delay: 250,
         },
@@ -459,48 +456,23 @@ function clearNewContent(button) {
 }
 
 let displayRequireChamp = function (select, require) {
-    xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function () {
-        if (this.readyState == 4 && this.status == 200) {
-            data = JSON.parse(this.responseText);
+    let bloc = $('#typeContentEdit');
+    bloc.find('.data').removeClass('needed');
+
+    let params = {};
+    if (select.val()) {
+        params[require] = select.val();
+        let path = Routing.generate('display_require_champ', true);
+
+        $.post(path, JSON.stringify(params), function (data) {
             if (data) {
                 data.forEach(function (element) {
-                    $('#' + element + require).addClass('needed');
+                    bloc.find('#' + element + require).addClass('needed');
                 });
             }
-        }
+        }, 'json');
     }
-    let path = Routing.generate('display_require_champ', true);
-    let json = {};
-    if (select.val()) {
-        json[require] = select.val();
-    } else {
-        json['error'] = null;
-    }
-    let Json = JSON.stringify(json)
-    $('#typeContentEdit').find('.data').removeClass('needed');
-    xhttp.open("POST", path, true);
-    xhttp.send(Json);
 }
-
-// function ajaxFournisseurArticle(select) {
-//     select.select2({
-//         ajax: {
-//             url: Routing.generate('get_articleRef_fournisseur'),
-//             dataType: 'json',
-//             delay: 250,
-//         },
-//         language: {
-//             inputTooShort: function () {
-//                 return 'Veuillez entrer au moins 1 caractère.';
-//             },
-//             searching: function () {
-//                 return 'Recherche en cours...';
-//             }
-//         },
-//         minimumInputLength: 1,
-//     });
-// }
 
 function clearDiv() {
     $('.clear').html('');
@@ -539,7 +511,6 @@ function clearModal(modal) {
 }
 
 function clearCheckboxes($modal) {
-    console.log($modal);
     let checkboxes = $modal.find('.checkbox');
     checkboxes.each(function () {
         $(this).prop('checked', false);

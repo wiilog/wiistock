@@ -10,6 +10,7 @@ namespace App\Service;
 
 use App\Entity\Action;
 use App\Entity\Article;
+use App\Entity\CategoryType;
 use App\Entity\Menu;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
@@ -165,7 +166,7 @@ class ArticleDataService
                 'articleRef' => $refArticle,
                 'articles' => $this->articleFournisseurRepository->findByRefArticle($refArticle->getId()),
                 'statut' => ($refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF),
-                'types' => $this->typeRepository->getByCategoryLabel(ReferenceArticle::CATEGORIE),
+                'types' => $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLES_ET_REF_CEA),
                 'statuts' => $statuts,
                 'modifieRefArticle' => $modifieRefArticle,
                 'valeurChampsLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
@@ -285,10 +286,11 @@ class ArticleDataService
     public function getViewEditArticle($article, $isADemand = false)
     {
         $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
-        $typeArticle = $refArticle->getType()->getLabel();
+        $typeArticle = $refArticle->getType();
+        $typeArticleLabel = $typeArticle->getLabel();
         $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::ARTICLE);
 
-        $champsLibresComplet = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($typeArticle, $categorieCL);
+        $champsLibresComplet = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($typeArticleLabel, $categorieCL);
         $champsLibres = [];
         foreach ($champsLibresComplet as $champLibre) {
             $valeurChampArticle = $this->valeurChampsLibreRepository->findOneByChampLibreAndArticle($champLibre->getId(), $article->getId());
@@ -306,7 +308,7 @@ class ArticleDataService
 
         $typeChampLibre =
             [
-                'type' => $typeArticle,
+                'type' => $typeArticleLabel,
                 'champsLibres' => $champsLibres,
             ];
 
@@ -328,7 +330,8 @@ class ArticleDataService
 
         $view = $this->templating->render('article/modalModifyArticleContent.html.twig', [
             'typeChampsLibres' => $typeChampLibre,
-            'typeArticle' => $typeArticle,
+            'typeArticle' => $typeArticleLabel,
+            'typeArticleId' => $typeArticle->getId(),
             'article' => $article,
             'statut' => $statut,
             'isADemand' => $isADemand

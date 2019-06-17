@@ -19,7 +19,7 @@ class TypeRepository extends ServiceEntityRepository
         parent::__construct($registry, Type::class);
     }
 
-    public function getByCategoryLabel($category)
+    public function findByCategoryLabel($categoryLabel)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
@@ -28,7 +28,7 @@ class TypeRepository extends ServiceEntityRepository
             JOIN t.category c
             WHERE c.label = :category"
         );
-        $query->setParameter("category", $category);
+        $query->setParameter("category", $categoryLabel);
 
         return $query->execute();
     }

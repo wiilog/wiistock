@@ -5,7 +5,6 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\Fournisseur;
 use App\Entity\Menu;
-use App\Form\FournisseurType;
 use App\Repository\FournisseurRepository;
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\ReceptionRepository;
