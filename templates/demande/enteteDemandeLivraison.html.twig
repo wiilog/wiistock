@@ -4,7 +4,7 @@
     </div>
     <button class="btn" id="negativStock" data-target='#modalNegativStock' data-toggle='modal' hidden></button>
     {% if modifiable %}
-    <div class="col text-right id='boutonCollecteSup'">
+         <div class="col" id='boutonCollecteSup'>
         {% if hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::DELETE')) %}
         <a href="" data-id='{{ demande.id }}' data-target='#modalDeleteDemande' data-toggle='modal'
             class="btn btn-danger btn-action ml-auto">
@@ -20,15 +20,24 @@
         <a href="#" onclick="validateLivraison({{ demande.id }}, $(this))" data-id='{{demande.id}}'
             class="btn btn-primary btn-action ml-auto">Valider</a>
         {% endif %}
-    </div>
 
-    {% elseif demande.preparation is not empty %}
-    <div class="col text-right">
-        <a href="{{path('preparation_show', {'id': demande.preparation.id }) }}" class="btn btn-primary btn-action">
-            Aller vers la préparation
-        </a>
+                {% elseif demande.preparation is not empty %}
+                    {% if hasRight(constant('App\\Entity\\Menu::PREPA'), constant('App\\Entity\\Action::LIST')) %}
+                    <div class=" text-right">
+                        <a href="{{path('preparation_show', {'id': demande.preparation.id }) }}"
+                   class="btn btn-primary btn-action ml-auto"> Aller vers la préparation</a>
+    </div>
+                    {% endif %}
+             {% if demande.livraison is not empty %}
+                 {% if hasRight(constant('App\\Entity\\Menu::LIVRAISON'), constant('App\\Entity\\Action::LIST')) %}
+                 <div class=" text-right">
+                     <a href="{{path('livraison_show', {'id': demande.livraison.id }) }}"
+                        class="btn btn-primary btn-action ml-auto"> Aller vers l'ordre de livraison</a>
     </div>
     {% endif %}
+             {% endif %}
+             {% endif %}
+         </div>
 </div>
 <div class="row">
     <div class="col-6 row">
