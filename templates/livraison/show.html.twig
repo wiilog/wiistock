@@ -3,9 +3,21 @@
 {% block title %}Livraison{% endblock %}
 
 {% block page_content %}
+    <div class="row">
+        <div class="col">
 <h1>Livraison n°{{ livraison.numero }}</h1>
+        </div>
+        <div class="col text-right">
 
-
+            <a href="{{path('demande_show', {'id': demande.id})}}"
+           class="btn btn-primary btn-action ml-auto">Retourner à la demande de livraison</a>
+            </div>
+        <div>
+        <a href="{{path('preparation_show', {'id': preparation.id})}}"
+           class="btn btn-primary btn-action ml-auto">Retourner à la préparation</a>
+        </div>
+        </div>
+    </div>
 <div class="row">
     <div class="col-4">
         <p><strong> Statut : </strong> {{ livraison.statut ? livraison.statut.nom : '' }}</p>

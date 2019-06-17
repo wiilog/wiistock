@@ -3,75 +3,83 @@
 {% block title %}Préparation{% endblock %}
 
 {% block page_content %}
-<h1>Préparation</h1>
-<div class="row">
-    <div class="col-4">
-        <p><strong> Numéro : </strong> {{ preparation.numero }}</p>
-        <p><strong> Statut :</strong> <span id="statutPreparation">{{ preparation.statut.nom }}</span></p>
-        <p><strong> Point de livraison :</strong> {{ demande.destination.label }}</p>
-    </div>
-    <div class="col-4">
-        <p><strong> Opérateur : </strong> {{preparation.utilisateur ? preparation.utilisateur.username : ''}}</p>
-        <p><strong> Demandeur : </strong> {{demande.utilisateur ? demande.utilisateur.username : ''}}</p>
-    </div>
-    <div class="col-12">
-        <p><strong> Commentaire : </strong>{{demande.commentaire|raw}}</p>
-    </div>
-
-
-    
-    <div class="col text-right">
-        <!-- <a href="" data-toggle="modal" data-target="#modalNewArticle" class="btn btn-primary ml-auto">
-            Ajouter un article</a> -->
-        {% if finished %}
-            {% if hasRight(constant('App\\Entity\\Menu::LIVRAISON'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
-        <a href="#" class="btn btn-danger btn-action ml-auto" data-target='#modalDeletePreparation'
-            data-toggle='modal'>Supprimer</a>
-
-                {% if statut %}
-                <button onclick="startPreparation($(this))" id="startPreparation" value="{{demande.id}}"
-                        class="btn btn-primary btn-action ml-auto">Commencer la préparation</button>
-
-                <a id='finishPreparation' href="{{path('livraison_new', {'id': preparation.id}) }}"
-                         class="btn btn-primary btn-action ml-auto d-none">Valider</a>
-                {% else %}
-                <a href="{{path('livraison_new', {'id': preparation.id}) }}"
-                        class="btn btn-primary btn-action ml-auto">Valider</a>
-                {% endif %}
-
+    <div class="row">
+        <div class="col">
+            <h1>Préparation</h1>
+        </div>
+        <div class="col text-right">
+            {% if hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::LIST')) %}
+                <a href="{{path('demande_show', {'id': demande.id})}}"
+                   class="btn btn-primary btn-action ml-auto">Retourner à la demande de livraison</a>
             {% endif %}
-        {% elseif preparation.livraisons is not empty %}
-        <a href="{{path('livraison_show', {'id': preparation.livraisons.0.id})}}"
-            class="btn btn-primary btn-action ml-auto">Aller vers l'ordre de livraison</a>
-        {% endif %}
+            {% if hasRight(constant('App\\Entity\\Menu::LIVRAISON'), constant('App\\Entity\\Action::LIST')) %}
+                {% if livraison is not empty %}
+                    <a href="{{path('livraison_show', {'id': livraison.id})}}"
+                       class="btn btn-primary btn-action ml-auto">Aller vers l'ordre de livraison</a>
+                {% endif %}
+            {% endif%}
+        </div>
+
     </div>
-</div>
-<div id="msg" class="row">
-
-    {#{% for refArticle in preparation.demandes.0.ligneArticle %}
-    <div class="col-2">
-        <p>{{refArticle.reference.libelle}}: {{refArticle.quantite}}</p>
+    <div class="row">
+        <div class="col-4">
+            <p><strong> Numéro : </strong> {{ preparation.numero }}</p>
+            <p id="statutPreparation"><strong> Statut :</strong> {{ preparation.statut.nom }}</p>
+            <p><strong> Point de livraison :</strong> {{ demande.destination.label }}</p>
+        </div>
+        <div class="col-4">
+            <p><strong> Opérateur : </strong> {{preparation.utilisateur ? preparation.utilisateur.username : ''}}</p>
+            <p><strong> Demandeur : </strong> {{demande.utilisateur ? demande.utilisateur.username : ''}}</p>
+        </div>
+        <div class="col-12">
+            <p><strong> Commentaire : </strong>{{demande.commentaire|raw}}</p>
+        </div>
     </div>
-    {% endfor %}#}
-</div>
 
-<table id="tableArticle_id" class="table table-striped table-bordered w-100">
-</table>
+    <div class="row">
+        <div class="col text-right">
+            <!-- <a href="" data-toggle="modal" data-target="#modalNewArticle" class="btn btn-primary ml-auto">
+                Ajouter un article</a> -->
+            {% if finished %}
+                {% if hasRight(constant('App\\Entity\\Menu::LIVRAISON'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+                    <a href="#" class="btn btn-danger btn-action ml-auto" data-target='#modalDeletePreparation'
+                       data-toggle='modal'>Supprimer</a>
 
-<a href="{{ path('preparation_index') }}" class="btn">Retour à la liste</a>
+                    {% if statut %}
+                        <button onclick="startPreparation($(this))" id="startPreparation" value="{{demande.id}}"
+                                class="btn btn-primary btn-action ml-auto">Commencer la préparation</button>
 
-{% include 'preparation/modalDeleteArticle.html.twig' %}
-{% include 'preparation/modalNewArticle.html.twig' %}
-{% include 'preparation/modalDeletePreparation.html.twig' %}
-{% include 'reference_article/modalShowRefArticle.html.twig' %}
-{% include 'article/modalShowArticle.html.twig' %}
+                        <a id='finishPreparation' href="{{path('livraison_new', {'id': preparation.id}) }}"
+                           class="btn btn-primary btn-action ml-auto d-none">Valider</a>
+                    {% else %}
+                        <a href="{{path('livraison_new', {'id': preparation.id}) }}"
+                           class="btn btn-primary btn-action ml-auto">Valider</a>
+                    {% endif %}
+
+                {% endif %}
+            {% endif %}
+        </div>
+        <div id="msg" class="row">
+        </div>
+    </div>
+
+    <table id="tableArticle_id" class="table table-striped table-bordered w-100">
+    </table>
+
+    <a href="{{ path('preparation_index') }}" class="btn">Retour à la liste</a>
+
+    {% include 'preparation/modalDeleteArticle.html.twig' %}
+    {% include 'preparation/modalNewArticle.html.twig' %}
+    {% include 'preparation/modalDeletePreparation.html.twig' %}
+    {% include 'reference_article/modalShowRefArticle.html.twig' %}
+    {% include 'article/modalShowArticle.html.twig' %}
 
 
 {% endblock %}
 
 {% block javascript %}
 <script>
-    let id = {{ preparation.demandes is not empty ?preparation.demandes.0.id: 0 }};
+let id = {{ preparation.demandes is not empty ?preparation.demandes.0.id: 0 }};
 </script>
 <script src="{{asset('js/preparation.js')}}?{{ date().timestamp }}"></script>
 

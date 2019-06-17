@@ -295,12 +295,18 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 								break;
 						}
                     }
-                    foreach ($ids as $id) {
-                        $query[] = 'ra.id  = ' . $id;
-                    }
 
-                    $qb->andWhere(implode(' OR ', $query));
+					// si le résultat de la recherche est vide on renvoie []
+					if (empty($ids)) {
+						$ids = [0];
+					}
+
+					foreach ($ids as $id) {
+						$query[] = 'ra.id  = ' . $id;
+					}
+					$qb->andWhere(implode(' OR ', $query));
 				}
+
 				$countQuery = count($qb->getQuery()->getResult());
 			}
 			if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
