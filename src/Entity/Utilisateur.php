@@ -38,6 +38,12 @@ class Utilisateur implements UserInterface, EquatableInterface
      * @ORM\Column(type="string", length=255)
      */
     private $password;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $token;
+
     /**
      * @Assert\NotBlank()
      * @Assert\Length(min=8, max=4096)
@@ -139,6 +145,8 @@ class Utilisateur implements UserInterface, EquatableInterface
      */
     private $recherche;
 
+
+
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
@@ -179,12 +187,21 @@ class Utilisateur implements UserInterface, EquatableInterface
         return $this;
     }
     public function getPassword(): ?string
-    {
-        return $this->password;
-    }
+{
+    return $this->password;
+}
     public function setPassword(string $password): self
     {
         $this->password = $password;
+        return $this;
+    }
+    public function getToken(): ?string
+    {
+        return $this->token;
+    }
+    public function setToken(string $token): self
+    {
+        $this->password = $token;
         return $this;
     }
     public function getPlainPassword()

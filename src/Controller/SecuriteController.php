@@ -29,7 +29,7 @@ class SecuriteController extends Controller
     /**
      * @var PasswordService
      */
-    private $psservice;
+    private $passwordService;
 
     /**
      * @var RoleRepository
@@ -45,7 +45,7 @@ class SecuriteController extends Controller
     public function __construct(UtilisateurRepository $utilisateurRepository, PasswordService $psservice, RoleRepository $roleRepository)
     {
         $this->utilisateurRepository = $utilisateurRepository;
-        $this->psservice = $psservice;
+        $this->passwordService = $psservice;
         $this->roleRepository = $roleRepository;
     }
 
@@ -153,7 +153,7 @@ class SecuriteController extends Controller
     }
 
     /**
-     * @Route("/change-password", name="change_password?token=", options={"expose"=true}, methods="GET|POST")
+     * @Route("/change-password", name="change_password", options={"expose"=true}, methods="GET|POST")
      */
     public function change_password(EntityManagerInterface $em, Request $request, UserPasswordEncoderInterface $passwordEncoder)
     {
@@ -219,8 +219,10 @@ class SecuriteController extends Controller
             $user = $this->utilisateurRepository->getByMail($email);
             if ($user) {
                 if ($user->getStatus() === true) {
-                    $this->psservice->sendToken();
-                } else {
+                    $token = $this->passwordService->generateToken(80);
+                    $this->passwordService->sendToken($token, $email);
+                }
+                else {
                     return new JsonResponse('inactiv');
                 }
                 return new JsonResponse(false);
