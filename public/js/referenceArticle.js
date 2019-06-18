@@ -1,4 +1,5 @@
 $('.select2').select2();
+// $('[data-toggle="tooltip"]').tooltip();
 
 function InitialiserModalRefArticle(modal, submit, path, callback = function () { }, close = true) {
     submit.click(function () {
@@ -234,6 +235,8 @@ function overrideSearch() {
             tableRefArticle.search(this.value).draw();
         }
     });
+
+    $input.attr('placeholder', 'entrée pour valider');
 }
 
 //COLUMN VISIBLE
