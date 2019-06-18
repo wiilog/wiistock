@@ -87,20 +87,10 @@ class UtilisateurController extends Controller
             }
 
             $password = $data['password'];
+            $password2 = $data['password2'];
 
             // validation du mot de passe
-            if ($password !== $data['password2']) {
-                return new JsonResponse('Les mots de passe ne correspondent pas.');
-                //TODO gérer retour erreur propre
-            }
-            if (strlen($password) < 8) {
-                return new JsonResponse('Le mot de passe doit faire au moins 8 caractères.');
-                //TODO gérer retour erreur propre
-            }
-            if (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/', $password)) {
-                return new JsonResponse('Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial.');
-                //TODO gérer retour erreur propre
-            }
+            $password->checkPassword($data['password'],$data['password2']);
 
             // validation de l'email
             $emailAlreadyUsed = intval($this->utilisateurRepository->countByEmail($data['email']));
@@ -167,18 +157,7 @@ class UtilisateurController extends Controller
             $password = $data['password'];
             if ($password !== '') {
                 // validation du mot de passe
-                if ($password !== $data['password2']) {
-                    return new JsonResponse('Les mots de passe ne correspondent pas.');
-                    //TODO gérer retour erreur propre
-                }
-                if (strlen($password) < 8) {
-                    return new JsonResponse('Le mot de passe doit faire au moins 8 caractères.');
-                    //TODO gérer retour erreur propre
-                }
-                if (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/', $password)) {
-                    return new JsonResponse('Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial.');
-                    //TODO gérer retour erreur propre
-                }
+                $password->checkPassword($data['password2']);
             } else {
                 if ($data['password2'] !== '') {
                     return new JsonResponse('Les mots de passe ne correspondent pas.');

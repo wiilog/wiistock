@@ -17,6 +17,8 @@ use App\Repository\ActionRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\RoleRepository;
 use Symfony\Component\Security\Core\Security;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 
 class UserService
@@ -44,6 +46,7 @@ class UserService
      * @var UtilisateurRepository
      */
     private $utilisateurRepository;
+
 
 
     public function __construct( \Twig_Environment $templating, RoleRepository $roleRepository, UtilisateurRepository $utilisateurRepository, Security $security, ActionRepository $actionRepository)
@@ -144,10 +147,23 @@ class UserService
            
         return $row;
     }
+
+    public function checkPassword($password2): Response
+    {
+        if ($this !== $password2) {
+            return new JsonResponse('Les mots de passe ne correspondent pas.');
+            //TODO gérer retour erreur propre
+        }
+        if (strlen($this) < 8) {
+            return new JsonResponse('Le mot de passe doit faire au moins 8 caractères.');
+            //TODO gérer retour erreur propre
+        }
+        if (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/', $this)) {
+            return new JsonResponse('Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial.');
+            //TODO gérer retour erreur propre
+        }
+    }
 }
-
-
-
 // $utilisateurs = $this->utilisateurRepository->findAll();
             // $roles = $this->roleRepository->findAll();
 
