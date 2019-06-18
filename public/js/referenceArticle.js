@@ -215,6 +215,7 @@ function initTableRefArticle() {
                 loadSpinnerAR($('#spinner'));
                 initRemove();
                 hideAndShowColumns();
+                overrideSearch();
             },
             length: 10,
             columns: columns,
@@ -222,6 +223,16 @@ function initTableRefArticle() {
                 url: "/js/i18n/dataTableLanguage.json",
             },
         });
+    });
+}
+
+function overrideSearch() {
+    let $input = $('#tableRefArticle_id_filter input');
+    $input.off();
+    $input.on('keyup', function(e) {
+        if (e.key === 'Enter') {
+            tableRefArticle.search(this.value).draw();
+        }
     });
 }
 
