@@ -18,9 +18,9 @@ use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use App\Service\PasswordService;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Repository\UtilisateurRepository;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 
@@ -157,7 +157,28 @@ class SecuriteController extends Controller
      */
     public function change_password()
     {
-dump('hello');
+        return $this->render('securite/change_password.html.twig');
+    }
+
+    /**
+     * @Route("/change-password-in-bdd", name="change_password_in_bdd", options={"expose"=true}, methods="GET|POST")
+     */
+    public function change_password_in_bdd(Request $request) : Response
+    {
+        dump($request->request->get('email'));
+
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $mail = $data['email'];
+            $user = $this->utilisateurRepository->getByMail($mail);
+            if ($user && $user->getStatus() === true){
+                $password = $data['password'];
+                $password->checkPassword($data['passsword2']);
+                $password = $this->passwordEncoder->encodePassword($password);
+            }
+            return $this->render('securite/login.html.twig');
+        }
+        return $this->render('securite/login.html.twig');
+
 
 //        if ($request->isXmlHttpRequest() && $mail = json_decode($request->getContent()) {
 //            $user = $this->utilisateurRepository->getByMail($mail);

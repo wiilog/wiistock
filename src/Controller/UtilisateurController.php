@@ -87,10 +87,9 @@ class UtilisateurController extends Controller
             }
 
             $password = $data['password'];
-            $password2 = $data['password2'];
 
             // validation du mot de passe
-            $password->checkPassword($data['password'],$data['password2']);
+            $password->checkPassword($data['password2']);
 
             // validation de l'email
             $emailAlreadyUsed = intval($this->utilisateurRepository->countByEmail($data['email']));
