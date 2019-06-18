@@ -219,7 +219,7 @@ function initTableRefArticle() {
             length: 10,
             columns: columns,
             language: {
-                url: "/js/i18n/dataTableLanguageRefArticle.json",
+                url: "/js/i18n/dataTableLanguage.json",
             },
         });
     });

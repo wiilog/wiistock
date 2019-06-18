@@ -117,6 +117,10 @@ class ServiceController extends AbstractController
     public function show(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			if (!$this->userService->hasRightFunction(Menu::MANUT, Action::LIST)) {
+				return $this->redirectToRoute('access_denied');
+			}
+
             $service = $this->serviceRepository->find($data);
             $json = $this->renderView('service/modalShowServiceContent.html.twig', [
                 'service' => $service,
@@ -166,7 +170,7 @@ class ServiceController extends AbstractController
     public function editApi(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::MANUT, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::MANUT, Action::EDIT_DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
             $service = $this->serviceRepository->find($data['id']);
@@ -189,7 +193,7 @@ class ServiceController extends AbstractController
     public function edit(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::MANUT, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::MANUT, Action::EDIT_DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
             $service = $this->serviceRepository->find($data['id']);
@@ -224,25 +228,23 @@ class ServiceController extends AbstractController
     public function delete(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			if (!$this->userService->hasRightFunction(Menu::MANUT, Action::DELETE)) {
+				return $this->redirectToRoute('access_denied');
+			}
+
             $service = $this->serviceRepository->find($data['service']);
 
-            if ($service->getStatut()->getNom() == Service::STATUT_TRAITE) {
-                return $this->redirectToRoute('access_denied');
-            }
-            //TODO à modifier : pas pb de droits donc pas rediriger vers access denied, mais retour message erreur
+            if (!$service->getStatut()->getNom() == Service::STATUT_TRAITE) {
+				$entityManager = $this->getDoctrine()->getManager();
+				$entityManager->remove($service);
+				$entityManager->flush();
+				$response = true;
+            } else {
+            	$response = false;
+			}
+            //TODO gérer retour message erreur
 
-
-            if (
-                !$this->userService->hasRightFunction(Menu::MANUT, Action::LIST)
-                && ($service->getStatut()->getNom() === Service::STATUT_BROUILLON)
-            ) {
-                return $this->redirectToRoute('access_denied');
-            }
-
-            $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->remove($service);
-            $entityManager->flush();
-            return new JsonResponse();
+            return new JsonResponse($response);
         }
 
         throw new NotFoundHttpException("404");
