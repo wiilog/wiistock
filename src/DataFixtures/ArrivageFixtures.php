@@ -94,7 +94,7 @@ class ArrivageFixtures extends Fixture implements FixtureGroupInterface
         // création des actions
         $menus = [
             Menu::ARRIVAGE,
-			Menu::REFERENCE
+			Menu::REFERENTIEL
         ];
 
         $actionLabels = [Action::LIST, Action::CREATE_EDIT, Action::DELETE];

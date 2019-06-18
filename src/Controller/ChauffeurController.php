@@ -49,7 +49,7 @@ class ChauffeurController extends AbstractController
     public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::REFERENCE, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -79,7 +79,7 @@ class ChauffeurController extends AbstractController
      */
     public function index(): Response
     {
-		if (!$this->userService->hasRightFunction(Menu::REFERENCE, Action::LIST)) {
+		if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::LIST)) {
 			return $this->redirectToRoute('access_denied');
 		}
 
@@ -95,7 +95,7 @@ class ChauffeurController extends AbstractController
     public function new(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::REFERENCE, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -123,7 +123,7 @@ class ChauffeurController extends AbstractController
     public function editApi(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::REFERENCE, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -147,7 +147,7 @@ class ChauffeurController extends AbstractController
     public function edit(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::REFERENCE, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -175,7 +175,7 @@ class ChauffeurController extends AbstractController
     public function delete(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-			if (!$this->userService->hasRightFunction(Menu::REFERENCE, Action::DELETE)) {
+			if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::DELETE)) {
 				return $this->redirectToRoute('access_denied');
 			}
 
@@ -196,7 +196,7 @@ class ChauffeurController extends AbstractController
     public function getTransporteur(Request $request)
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::REFERENCE, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::LIST)) {
                 return new JsonResponse(['results' => []]);
             }
 
