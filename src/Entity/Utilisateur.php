@@ -199,9 +199,9 @@ class Utilisateur implements UserInterface, EquatableInterface
     {
         return $this->token;
     }
-    public function setToken(string $token): self
+    public function setToken(?string $token): self
     {
-        $this->password = $token;
+        $this->token = $token;
         return $this;
     }
     public function getPlainPassword()
