@@ -155,43 +155,68 @@ class SecuriteController extends Controller
     /**
      * @Route("/change-password", name="change_password", options={"expose"=true}, methods="GET|POST")
      */
-    public function change_password(EntityManagerInterface $em, Request $request, UserPasswordEncoderInterface $passwordEncoder)
+    public function change_password()
     {
-        $session = $request->getSession();
-        $user = $this->getUser();
-        $form = $this->createFormBuilder()
+dump('hello');
+
+//        if ($request->isXmlHttpRequest() && $mail = json_decode($request->getContent()) {
+//            $user = $this->utilisateurRepository->getByMail($mail);
+//            if ($user) {
+//                if ($user->getStatus() === true) {
+//                    $this->passwordService->updatePasswordUser($mail, $passwordEncoder);
+//                    $user->setToken('null');
+//                    $this->entityManager->flush();
+//                }
+//                else {
+//                    return new JsonResponse('inactiv');
+//                }
+//                return new JsonResponse(false);
+//            }
+//            return new JsonResponse(true);
+////        }
+
+//        throw new NotFoundHttpException('404');
+
+
+
+
+
+
+//        $session = $request->getSession();
+//        $user = $this->getUser();
+//        $form = $this->createFormBuilder()
 //            ->add('password', PasswordType::class, array(
-//                'label' => 'Mot de Passe actuel',
+//                'label' => 'Adresse email',
 //            ))
-            ->add('plainPassword', RepeatedType::class, array(
-                'type' => PasswordType::class,
-                'first_options' => array('label' => 'Nouveau Mot de Passe'),
-                'second_options' => array('label' => 'Confirmer Nouveau Mot de Passe'),
-            ))
-            ->add('modifier', SubmitType::class)
-            ->getForm();
-
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $data = $form->getData();
-            if ($passwordEncoder->isPasswordValid($user, $data['password'])) {
-                $new_password = $passwordEncoder->encodePassword($user, $data['plainPassword']);
-                $user->setPassword($new_password);
-                $em->persist($user);
-                $em->flush();
-                $session->getFlashBag()->add('success', 'Le mot de passe a bien été modifié');
-
-                return $this->redirectToRoute('check_last_login');
-            } else {
-                $session->getFlashBag()->add('danger', 'Mot de passe invalide');
-            }
-        }
-
-        return $this->render('securite/change_password.html.twig', [
-            'controller_name' => 'SecuriteController',
-            'form' => $form->createView(),
-        ]);
+//            ->add('plainPassword', RepeatedType::class, array(
+//                'type' => PasswordType::class,
+//                'first_options' => array('label' => 'Nouveau Mot de Passe'),
+//                'second_options' => array('label' => 'Confirmer Nouveau Mot de Passe'),
+//            ))
+//            ->add('modifier', SubmitType::class)
+//            ->getForm();
+//
+//        $form->handleRequest($request);
+//
+//        if ($form->isSubmitted() && $form->isValid()) {
+//            $data = $form->getData();
+//            if ($passwordEncoder->isPasswordValid($user, $data['password'])) {
+//                $new_password = $passwordEncoder->encodePassword($user, $data['plainPassword']);
+//                $user->setPassword($new_password);
+//                $em->persist($user);
+//                $em->flush();
+//                $session->getFlashBag()->add('success', 'Le mot de passe a bien été modifié');
+//
+//                return $this->redirectToRoute('check_last_login');
+//            } else {
+//                $session->getFlashBag()->add('danger', 'Mot de passe invalide');
+//            }
+//        }
+//
+//        return $this->render('securite/change_password.html.twig', [
+//            'controller_name' => 'SecuriteController',
+//            'form' => $form->createView(),
+//        ]);
     }
 
     /**

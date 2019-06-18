@@ -53,24 +53,18 @@ class PasswordService
         $this->templating = $templating;
     }
 
-    /**
-     * @Route("/oubli", name="forgotten", options={"expose"=true}, methods={"GET","POST"})
-     */
+
     public function sendToken($token, $to)
     {
-        dump($token);
         $this->mailerService->sendMail(
         'FOLLOW GT // Mot de passe oublié',
             $this->templating->render('mails/mailForgotPassword.html.twig',
             ['token' => $token]),
         $to);
-        $user = $this->utilisateurRepository->findByEmail($to);
-        dump($user);
-        $user
-            ->setToken($token);
-        $em = $this->getDoctrine()->getManager();
-        $em->flush();
-        return new JsonResponse();
+        $user = $this->utilisateurRepository->getByMail($to);
+        $user->setToken($token);
+        $this->entityManager->flush();
+//        return new JsonResponse();
     }
 
     public function generateToken($length)
@@ -88,7 +82,7 @@ class PasswordService
         return $generated_string;
     }
 
-    private function updatePasswordUser($mail, $password)
+    public function updatePasswordUser($mail, $password)
     {
         $user = $this->utilisateurRepository->getByMail($mail);
         if ($user) {
