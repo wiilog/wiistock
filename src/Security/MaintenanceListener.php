@@ -39,15 +39,17 @@ class MaintenanceListener
      */
     public function onKernelRequest(GetResponseEvent $event)
     {
-        $maintenanceView = $this->templating->render(
-            'securite/maintenance.html.twig'
-        );
-        $response = new Response(
-            $maintenanceView,
-            Response::HTTP_OK,
-            array('content-type' => 'text/html')
-        );
-        $event->setResponse(new Response($response->getContent()));
-        $event->stopPropagation();
+    	if (($_SERVER['APP_MAINTENANCE']) == 'on') {
+			$maintenanceView = $this->templating->render(
+				'securite/maintenance.html.twig'
+			);
+			$response = new Response(
+				$maintenanceView,
+				Response::HTTP_OK,
+				array('content-type' => 'text/html')
+			);
+			$event->setResponse(new Response($response->getContent()));
+			$event->stopPropagation();
+		}
     }
 }
