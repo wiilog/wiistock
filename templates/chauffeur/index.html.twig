@@ -8,7 +8,7 @@
         <h1>Chauffeurs</h1>
 
             <div class="row">
-                {% if hasRight(constant('App\\Entity\\Menu::REFERENCE'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+                {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
                     <a href="" data-toggle="modal" data-target="#modalNewChauffeur" class="btn btn-primary" >
                         <span class="fa fa-plus mr-2"></span>Nouveau chauffeur
                     </a>

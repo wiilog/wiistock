@@ -1,4 +1,5 @@
 $('.select2').select2();
+// $('[data-toggle="tooltip"]').tooltip();
 
 function InitialiserModalRefArticle(modal, submit, path, callback = function () { }, close = true) {
     submit.click(function () {
@@ -215,6 +216,7 @@ function initTableRefArticle() {
                 loadSpinnerAR($('#spinner'));
                 initRemove();
                 hideAndShowColumns();
+                overrideSearch();
             },
             length: 10,
             columns: columns,
@@ -223,6 +225,18 @@ function initTableRefArticle() {
             },
         });
     });
+}
+
+function overrideSearch() {
+    let $input = $('#tableRefArticle_id_filter input');
+    $input.off();
+    $input.on('keyup', function(e) {
+        if (e.key === 'Enter') {
+            tableRefArticle.search(this.value).draw();
+        }
+    });
+
+    $input.attr('placeholder', 'entrée pour valider');
 }
 
 //COLUMN VISIBLE
