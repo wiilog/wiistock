@@ -70,8 +70,8 @@ class ArrivageFixtures extends Fixture implements FixtureGroupInterface
     {
     	// création des menus
         $menusInfos = [
-            ['Arrivage', 'ARRIVAGE'],
-            ['Référence', 'REFERENCE'],
+            ['Arrivage', Menu::ARRIVAGE],
+            ['Référentiel', Menu::REFERENTIEL],
         ];
         foreach ($menusInfos as $menuInfos) {
             $menu = $this->menuRepository->findOneBy(['code' => $menuInfos[1]]);
