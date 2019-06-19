@@ -23,23 +23,24 @@ class MaintenanceListener
      */
     private $templating;
 
-    /**
-     * MaintenanceListener constructor.
-     */
+	/**
+	 * MaintenanceListener constructor.
+	 * @param \Twig_Environment $templating
+	 */
     public function __construct(\Twig_Environment $templating)
     {
         $this->templating = $templating;
     }
 
-    /**
-     * @param GetResponseEvent $event
-     * @throws \Twig_Error_Loader
-     * @throws \Twig_Error_Runtime
-     * @throws \Twig_Error_Syntax
-     */
+	/**
+	 * @param GetResponseEvent $event
+	 * @throws \Twig_Error_Loader
+	 * @throws \Twig_Error_Runtime
+	 * @throws \Twig_Error_Syntax
+	 */
     public function onKernelRequest(GetResponseEvent $event)
     {
-    	if (isset($_SERVER['APP_MAINTENANCE']) && $_SERVER['APP_MAINTENANCE'] == 'on') {
+//    	if (isset($_SERVER['APP_MAINTENANCE']) && $_SERVER['APP_MAINTENANCE'] == 'on') {
 			$maintenanceView = $this->templating->render(
 				'securite/maintenance.html.twig'
 			);
@@ -50,6 +51,8 @@ class MaintenanceListener
 			);
 			$event->setResponse(new Response($response->getContent()));
 			$event->stopPropagation();
-		}
+//		} else {
+//    		return;
+//		}
     }
 }
