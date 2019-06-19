@@ -61,7 +61,7 @@ class PasswordService
             $this->templating->render('mails/mailForgotPassword.html.twig',
             ['token' => $token]),
         $to);
-        $user = $this->utilisateurRepository->getByMail($to);
+        $user = $this->utilisateurRepository->findOneByMail($to);
         $user->setToken($token);
         $this->entityManager->flush();
 //        return new JsonResponse();
@@ -84,7 +84,7 @@ class PasswordService
 
     public function updatePasswordUser($mail, $password)
     {
-        $user = $this->utilisateurRepository->getByMail($mail);
+        $user = $this->utilisateurRepository->findOneByMail($mail);
         if ($user) {
             $password = $this->passwordEncoder->encodePassword($user, $password);
             $user->setPassword($password);

@@ -22,14 +22,20 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Repository\UtilisateurRepository;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use App\Service\UserService;
 
 
 class SecuriteController extends Controller
 {
     /**
-     * @var PasswordService
+     * @var UserPasswordEncoderInterface
      */
     private $passwordService;
+
+    /**
+     * @var PasswordService
+     */
+    private $passwordEncoder;
 
     /**
      * @var RoleRepository
@@ -41,12 +47,18 @@ class SecuriteController extends Controller
      */
     private $utilisateurRepository;
 
+    /**
+     * @var UserService
+     */
+    private $userService;
 
-    public function __construct(UtilisateurRepository $utilisateurRepository, PasswordService $psservice, RoleRepository $roleRepository)
+    public function __construct(UtilisateurRepository $utilisateurRepository, PasswordService $passwordService, RoleRepository $roleRepository, UserService $userService, UserPasswordEncoderInterface $passwordEncoder)
     {
         $this->utilisateurRepository = $utilisateurRepository;
-        $this->passwordService = $psservice;
+        $this->passwordService = $passwordService;
         $this->roleRepository = $roleRepository;
+        $this->userService = $userService;
+        $this->passwordEncoder = $passwordEncoder;
     }
 
     /**
@@ -66,7 +78,7 @@ class SecuriteController extends Controller
         $errorToDisplay = "";
         // last username entered by the user
         $lastUsername = $authenticationUtils->getLastUsername();
-        $user = $this->utilisateurRepository->getByMail($lastUsername);
+        $user = $this->utilisateurRepository->findOneByMail($lastUsername);
         if ($user && $user->getStatus() === false) {
             $errorToDisplay = 'Utilisateur inactif.';
         } else if ($error) {
@@ -163,21 +175,42 @@ class SecuriteController extends Controller
     /**
      * @Route("/change-password-in-bdd", name="change_password_in_bdd", options={"expose"=true}, methods="GET|POST")
      */
-    public function change_password_in_bdd(Request $request) : Response
+    public function change_password_in_bdd(Request $request,  UserPasswordEncoderInterface $passwordEncoder, UserService $userService) : Response
     {
-        dump($request->request->get('email'));
+        dump('t0');
 
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $mail = $data['email'];
-            $user = $this->utilisateurRepository->getByMail($mail);
-            if ($user && $user->getStatus() === true){
-                $password = $data['password'];
-                $password->checkPassword($data['passsword2']);
-                $password = $this->passwordEncoder->encodePassword($password);
-            }
-            return $this->render('securite/login.html.twig');
+//        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        $data = json_decode($request->getContent(), true);
+            dump('t1');
+//dump($data);
+        echo $_GET['token'];
+$token='&AnKC1KjbMm1BoXAUfJlumUlA15cPlkslYHzVVNWqxaZoG3mEWUAiwNVZkhk0TX0RrQcfnfFqmYWSRglD' ;
+//dump($token);
+            $user = $this->utilisateurRepository->findOneByToken($token); //c'est OK, on récupe l'utilisateur
+            if ($user) {
+                dump('t2');
+                if($user->getStatus() === true){
+                    $password = $data['password'];
+//dump($password);
+
+                    $userService->checkPassword($password , $data['passsword2']);
+                    if($password !== ''){
+                        $password = $passwordEncoder->encodePassword($user, $data['password']);
+                        $user->setPassword($password);
+                        $user->setToken('null');
+
+                        $em = $this->getDoctrine()->getManager();
+                        $em->persist($user);
+                        $em->flush();
+                        return $this->render('securite/login.html.twig');
+                    }
+                }
+                else{ return new JsonResponse('access_denied');}
+//            }
+            return new JsonResponse('Cet utilisateur n\'existe pas');
         }
-        return $this->render('securite/login.html.twig');
+        throw new NotFoundHttpException('404');
+
 
 
 //        if ($request->isXmlHttpRequest() && $mail = json_decode($request->getContent()) {
@@ -197,11 +230,6 @@ class SecuriteController extends Controller
 ////        }
 
 //        throw new NotFoundHttpException('404');
-
-
-
-
-
 
 //        $session = $request->getSession();
 //        $user = $this->getUser();
@@ -262,7 +290,7 @@ class SecuriteController extends Controller
     public function checkEmail(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $email = json_decode($request->getContent())) {
-            $user = $this->utilisateurRepository->getByMail($email);
+            $user = $this->utilisateurRepository->findOneByMail($email);
             if ($user) {
                 if ($user->getStatus() === true) {
                     $token = $this->passwordService->generateToken(80);

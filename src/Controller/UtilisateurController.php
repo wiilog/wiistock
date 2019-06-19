@@ -79,17 +79,15 @@ class UtilisateurController extends Controller
     /**
      * @Route("/creer", name="user_new",  options={"expose"=true}, methods="GET|POST")
      */
-    public function newUser(Request $request, UserPasswordEncoderInterface $passwordEncoder): Response
+    public function newUser(Request $request, UserPasswordEncoderInterface $passwordEncoder, UserService $userService): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::PARAM)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $password = $data['password'];
-
             // validation du mot de passe
-            $password->checkPassword($data['password2']);
+            $userService->checkPassword($data['password'], $data['password2']);
 
             // validation de l'email
             $emailAlreadyUsed = intval($this->utilisateurRepository->countByEmail($data['email']));
@@ -145,7 +143,7 @@ class UtilisateurController extends Controller
     /**
      * @Route("/modifier", name="user_edit",  options={"expose"=true}, methods="GET|POST")
      */
-    public function edit(Request $request, UserPasswordEncoderInterface $passwordEncoder): Response
+    public function edit(Request $request, UserPasswordEncoderInterface $passwordEncoder, UserService $userService): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::PARAM)) {
@@ -156,7 +154,7 @@ class UtilisateurController extends Controller
             $password = $data['password'];
             if ($password !== '') {
                 // validation du mot de passe
-                $password->checkPassword($data['password2']);
+                $userService->checkPassword($password,$data['password2']);
             } else {
                 if ($data['password2'] !== '') {
                     return new JsonResponse('Les mots de passe ne correspondent pas.');
