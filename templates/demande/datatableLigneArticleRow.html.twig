@@ -20,7 +20,7 @@
     {% if name == reference %}
         <div data-target='#modalEditArticle' data-toggle='modal'>
             <div class="btn btn-col-action" data-id='{{ id }}'
-                 onclick="editRow($(this), Routing.generate('demande_article_api_edit', true), $('#modalEditArticle'), $('#submitEditArticle'))">
+                 onclick="editRow($(this), Routing.generate('demande_article_api_edit', true), $('#modalEditArticle'), $('#submitEditArticle'), false, false, true)">
                 <i class='fas fa-pencil-alt'></i>
             </div>
         </div>
