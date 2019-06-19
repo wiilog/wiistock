@@ -46,9 +46,9 @@ class UserService
     private $utilisateurRepository;
 
 
-    public function __construct( \Twig_Environment $templating, RoleRepository $roleRepository, UtilisateurRepository $utilisateurRepository, Security $security, ActionRepository $actionRepository)
+    public function __construct(\Twig_Environment $templating, RoleRepository $roleRepository, UtilisateurRepository $utilisateurRepository, Security $security, ActionRepository $actionRepository)
     {
-        $this->user= $security->getUser();
+        $this->user = $security->getUser();
         $this->actionRepository = $actionRepository;
         $this->utilisateurRepository = $utilisateurRepository;
         $this->roleRepository = $roleRepository;
@@ -63,12 +63,9 @@ class UserService
 
     public function getCurrentUserRole()
     {
-        $role = null;
-
         $user = $this->user;
-        if ($user) {
-            $role = $user->getRole();
-        }
+
+        $role = $user ? $user->getRole() : null;
 
         return $role;
     }
@@ -76,7 +73,7 @@ class UserService
     public function hasRightFunction(string $menuCode, string $actionLabel = Action::YES)
     {
         $role = $this->getCurrentUserRole();
-        $actions = $role->getActions();
+		$actions = $role ? $role->getActions() : [];
 
         $thisAction = $this->actionRepository->findOneByMenuCodeAndLabel($menuCode, $actionLabel);
 
@@ -145,28 +142,3 @@ class UserService
         return $row;
     }
 }
-
-
-
-// $utilisateurs = $this->utilisateurRepository->findAll();
-            // $roles = $this->roleRepository->findAll();
-
-            // $rows = [];
-            // foreach ($utilisateurs as $utilisateur) {
-            //     $idUser = $utilisateur->getId();
-            //     $rows[] =
-            //         [
-            //             'id' => ($utilisateur->getId() ? $utilisateur->getId() : 'Non défini'),
-            //             "Nom d'utilisateur" => ($utilisateur->getUsername() ? $utilisateur->getUsername() : ''),
-            //             'Email' => ($utilisateur->getEmail() ? $utilisateur->getEmail() : ''),
-            //             'Dernière connexion' => ($utilisateur->getLastLogin() ? $utilisateur->getLastLogin()->format('d/m/Y') : ''),
-            //             'Rôle' => $this->renderView('utilisateur/role.html.twig', ['utilisateur' => $utilisateur, 'roles' => $roles]),
-            //             'Actions' => $this->renderView(
-            //                 'utilisateur/datatableUtilisateurRow.html.twig',
-            //                 [
-            //                     'idUser' => $idUser,
-            //                 ]
-            //             ),
-            //         ];
-            // }
-            // $data['data'] = $rows;

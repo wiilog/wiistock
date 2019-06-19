@@ -9,7 +9,7 @@
                 <li>
                     <div class="menu-header">
                         <img src="{{ asset('img/Logo-FollowGTpetit.png') }}" class='logoGt'>
-                        <div class="version"> V1.1.2</div>
+                        <div class="version"> V1.2.0</div>
                         <h4 class="mt-2">{{ app.user.username }}</h4>
                     </div>
                 </li>
@@ -112,12 +112,6 @@
                                 <a href="{{ path('article_index') }}" class="sub-item">• Article</a>
                             </li>
                             <li>
-                                <a href="{{ path('emplacement_index') }}" class="sub-item">• Emplacement</a>
-                            </li>
-                            <li>
-                                <a href="{{ path('fournisseur_index') }}" class="sub-item">• Fournisseur</a>
-                            </li>
-                            <li>
                                 <a href="{{ path('reference_article_index') }}" class="sub-item">• Référence CEA</a>
                             </li>
                             <li>
@@ -128,12 +122,12 @@
                     </li>
                 {% endif %}
 
-                <!-- REFERENCE -->
-                {% if hasRight(constant('App\\Entity\\Menu::REFERENCE'), constant('App\\Entity\\Action::LIST')) %}
+                <!-- REFERENTIEL -->
+                {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::LIST')) %}
                     <li class="menu-item has-submenu">
                         <a href="#">
                             <i class="fas fa-file"></i>
-                            <h4>Référence</h4>
+                            <h4>Référentiel</h4>
                         </a>
                         <ul class="sidemenu-sub">
                             <li>
