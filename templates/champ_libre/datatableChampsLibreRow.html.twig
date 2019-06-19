@@ -1,11 +1,15 @@
-<div class="row">
-    <div data-id='{{ idChampsLibre }}' data-toggle='modal' data-target='#modalEditChampLibre' class='champs-libre-edit col-3'
-        onclick="editRow($(this),  Routing.generate('champ_libre_api_edit', true), $('#modalEditChampLibre'), $('#submitEditChampsLibre'))">
-        <i class='fas fa-pencil-alt'></i>
+<div class="d-flex">
+    <div data-toggle='modal' data-target='#modalEditChampLibre'>
+        <div class="btn btn-col-action" data-id='{{ idChampsLibre }}'
+             onclick="editRow($(this),  Routing.generate('champ_libre_api_edit', true), $('#modalEditChampLibre'), $('#submitEditChampsLibre'))">
+            <i class='fas fa-pencil-alt'></i>
+        </div>
     </div>
-    <div class='champs-libre-delete col-3'
-        onclick="deleteRow($(this), $('#modalDeleteChampsLibre'), $('#submitChampsLibreDelete'))"
-        data-id={{ idChampsLibre }} data-target='#modalDeleteChampsLibre' data-toggle='modal'>
-        <i class='fas fa-trash'></i>
+    <div>
+        <div class="btn btn-col-action"
+             onclick="deleteRow($(this), $('#modalDeleteChampsLibre'), $('#submitChampsLibreDelete'))"
+             data-id={{ idChampsLibre }} data-target='#modalDeleteChampsLibre' data-toggle='modal'>
+            <i class='fas fa-trash'></i>
+        </div>
     </div>
 </div>

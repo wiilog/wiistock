@@ -4,7 +4,7 @@ let tableArticle = $('#tableArticle_id').DataTable({
     processing: true,
     serverSide: true,
     "language": {
-        url: "/js/i18n/dataTableLanguageRefArticle.json",
+        url: "/js/i18n/dataTableLanguage.json",
     },
     ajax: {
         "url": pathArticle,

@@ -237,7 +237,8 @@ $('#submitSearchDemandeLivraison').on('click', function () {
         function (settings, data, dataIndex) {
             let dateMin = $('#dateMin').val();
             let dateMax = $('#dateMax').val();
-            let dateInit = (data[0]).split('/').reverse().join('-') || 0;
+            let indexDate = tableDemande.column('Date:name').index();
+            let dateInit = (data[indexDate]).split('/').reverse().join('-') || 0;
 
             if (
                 (dateMin == "" && dateMax == "")
@@ -276,7 +277,7 @@ function ajaxGetAndFillArticle(select) {
             editNewArticle.html(data.modif);
             modalFooter.removeClass('d-none');
             displayRequireChamp($('#typeEdit'), 'edit');
-            initEditor2('.editor-container-edit');
+            // initEditor2('.editor-container-edit');
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
         })
     }

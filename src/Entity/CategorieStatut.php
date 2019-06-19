@@ -20,6 +20,8 @@ class CategorieStatut
     const PREPARATION = 'preparation';
     const RECEPTION = 'reception';
     const MANUTENTION = 'manutention';
+    const ARRIVAGE = 'arrivage';
+    const MVT_TRACA = 'mouvement_traca';
 
     /**
      * @ORM\Id()

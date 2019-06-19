@@ -129,11 +129,11 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function getArticleByRefId()
+    public function getIdRefLabelAndQuantity()
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-            "SELECT a.id, a.reference, a.quantite
+            "SELECT a.id, a.reference, a.label, a.quantite
             FROM App\Entity\Article a
             "
         );
@@ -302,16 +302,7 @@ class ArticleRepository extends ServiceEntityRepository
         $qb
             ->select('a')
             ->from('App\Entity\Article', 'a')
-            //    ->join('a.Statut', 'App\Entity\Statut','s')
             ->where('a.Statut =' . $statutId);
-        //    dump($qb);
-        // $qb = $em->createQuery(
-        //     "SELECT a
-        //     FROM App\Entity\Article a
-        //     JOIN a.Statut s
-        //     WHERE s.nom = :actif");
-
-
 
         // prise en compte des paramètres issus du datatable
         if (!empty($params)) {

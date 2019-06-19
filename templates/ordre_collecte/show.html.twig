@@ -3,9 +3,17 @@
 {% block title %}Collecte{% endblock %}
 
 {% block page_content %}
+    <div class="row">
 <h1>Ordre de collecte n°{{ collecte.numero }}</h1>
 
-
+    {% if hasRight(constant('App\\Entity\\Menu::COLLECTE'), constant('App\\Entity\\Action::LIST')) %}
+        <div class="col text-right">
+            <a href="{{path('collecte_show', {'id': collecte.demandeCollecte.id }) }}" class="btn btn-primary btn-action">
+            Aller vers la demande de collecte
+            </a>
+        </div>
+    {% endif %}
+    </div>
 <div class="row">
     <div class="col-4">
         <p><strong> Statut : </strong> {{ collecte.statut ? collecte.statut.nom : '' }}</p>
@@ -38,14 +46,6 @@
                 </p>
         </div>
         {% endif %}
-    {% endif %}
-    
-    {% if hasRight(constant('App\\Entity\\Menu::COLLECTE'), constant('App\\Entity\\Action::LIST')) %}
-    <div class="col text-right">
-            <a href="{{ path('collecte_show', {'id': collecte.demandeCollecte.id }) }}" class="btn btn-primary btn-action">
-                Aller vers la demande de collecte
-            </a>
-        </div>
     {% endif %}
 
     <div class="col-12">

@@ -185,7 +185,7 @@ class ReferenceArticleController extends Controller
 
             $columnsVisible = $this->getUser()->getColumnVisible();
             $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_CEA);
-            $category = CategoryType::TYPE_ARTICLES_ET_REF_CEA;
+            $category = CategoryType::ARTICLES_ET_REF_CEA;
             $champs = $this->champsLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
 
             $columns = [];
@@ -351,7 +351,7 @@ class ReferenceArticleController extends Controller
                     }
 
                     $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_CEA);
-                    $category = CategoryType::TYPE_ARTICLES_ET_REF_CEA;
+                    $category = CategoryType::ARTICLES_ET_REF_CEA;
                     $champsLibres = $this->champsLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
 
                     $rowCL = [];
@@ -404,64 +404,98 @@ class ReferenceArticleController extends Controller
         ];
 
         $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_CEA);
-        $category = CategoryType::TYPE_ARTICLES_ET_REF_CEA;
+        $category = CategoryType::ARTICLES_ET_REF_CEA;
         $champL = $this->champsLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
-        $champ[] = [
+        $champF[] = [
             'label' => 'Actions',
             'id' => 0,
             'typage' => ''
         ];
-        $champ[] = [
+        $champF[] = [
             'label' => 'Libellé',
             'id' => 0,
             'typage' => 'text'
 
         ];
-        $champ[] = [
+        $champF[] = [
             'label' => 'Référence',
             'id' => 0,
             'typage' => 'text'
 
         ];
-        $champ[] = [
+        $champF[] = [
             'label' => 'Type',
             'id' => 0,
             'typage' => 'list'
         ];
-        $champ[] = [
+        $champF[] = [
             'label' => 'Quantité',
             'id' => 0,
             'typage' => 'number'
         ];
-        $champ[] = [
+        $champF[] = [
             'label' => 'Emplacement',
             'id' => 0,
-            'typage' => 'text'
+            'typage' => 'list'
         ];
-        $champ[] = [
+        $champF[] = [
             'label' => 'Commentaire',
             'id' => 0,
             'typage' => 'text'
         ];
 
-        $champ[] = [
+        $champF[] = [
             'label' => Filter::CHAMP_FIXE_REF_ART_FOURN,
             'id' => 0,
             'typage' => 'text'
         ];
 
-        $champs = array_merge($champ, $champL);
+        // champs pour recherche personnalisée (uniquement de type texte)
+		$champsLText = $this->champsLibreRepository->getByCategoryTypeAndCategoryCLAndText($category, $categorieCL);
 
+		$champsFText[] = [
+            'label' => 'Libellé',
+            'id' => 0,
+            'typage' => 'text'
+
+        ];
+
+        $champsFText[] = [
+            'label' => 'Référence',
+            'id' => 0,
+            'typage' => 'text'
+
+        ];
+
+        $champsFText[] = [
+            'label' => 'Fournisseur',
+            'id' => 0,
+            'typage' => 'text'
+
+        ];
+        $champsFText[] = [
+            'label' => 'Référence Article Fournisseur',
+            'id' => 0,
+            'typage' => 'text'
+
+        ];
+
+        $champs = array_merge($champF, $champL);
+        $champsSearch = array_merge($champsFText, $champsLText);
 
 
         usort($champs, function ($a, $b) {
-            return strnatcmp($a['label'], $b['label']);
+			return strcasecmp($a['label'], $b['label']);
         });
 
-        $types = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::TYPE_ARTICLES_ET_REF_CEA);
+		usort($champsSearch, function ($a, $b) {
+			return strcasecmp($a['label'], $b['label']);
+		});
+
+        $types = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::ARTICLES_ET_REF_CEA);
         $emplacements = $this->emplacementRepository->findAll();
         $typeChampLibre =  [];
-
+        $search = $this->getUser()->getRecherche();
         foreach ($types as $type) {
             $champsLibres = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($type['label'], $categorieCL);
             $typeChampLibre[] = [
@@ -470,9 +504,10 @@ class ReferenceArticleController extends Controller
                 'champsLibres' => $champsLibres,
             ];
         }
-
         return $this->render('reference_article/index.html.twig', [
             'champs' => $champs,
+            'champsSearch' => $champsSearch,
+            'recherches' => $search,
             'columnsVisibles' => $this->getUser()->getColumnVisible(),
             'typeChampsLibres' => $typeChampLibre,
             'types' => $types,
@@ -831,7 +866,7 @@ class ReferenceArticleController extends Controller
 
             $data = $this->refArticleDataService->getDataEditForRefArticle($refArticle);
             $articlesFournisseur = $this->articleFournisseurRepository->findByRefArticle($refArticle->getId());
-            $type = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::TYPE_ARTICLES_ET_REF_CEA);
+            $type = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::ARTICLES_ET_REF_CEA);
             $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_CEA);
             $typeChampLibre =  [];
             foreach ($type as $label) {
@@ -891,7 +926,7 @@ class ReferenceArticleController extends Controller
             foreach ($this->champsLibreRepository->findAll() as $champLibre) {
                 $headersCL[] = $champLibre->getLabel();
             }
-            $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::TYPE_ARTICLES_ET_REF_CEA);
+            $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::ARTICLES_ET_REF_CEA);
             $articles = $this->referenceArticleRepository->findAll();
             $total = count($articles);
             if ($max > $total) $max = $total;
@@ -957,4 +992,5 @@ class ReferenceArticleController extends Controller
         }
         return implode(';', $refData);
     }
+
 }

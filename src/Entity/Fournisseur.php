@@ -43,11 +43,17 @@ class Fournisseur
      */
     private $receptionReferenceArticles;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Arrivage", mappedBy="fournisseur")
+     */
+    private $arrivages;
+
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
         $this->articlesFournisseur = new ArrayCollection();
         $this->receptionReferenceArticles = new ArrayCollection();
+        $this->arrivages = new ArrayCollection();
     }
 
     public function getId() : ? int
@@ -194,6 +200,37 @@ class Fournisseur
             // set the owning side to null (unless already changed)
             if ($receptionReferenceArticle->getFournisseur() === $this) {
                 $receptionReferenceArticle->setFournisseur(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Arrivage[]
+     */
+    public function getArrivages(): Collection
+    {
+        return $this->arrivages;
+    }
+
+    public function addArrivage(Arrivage $arrivage): self
+    {
+        if (!$this->arrivages->contains($arrivage)) {
+            $this->arrivages[] = $arrivage;
+            $arrivage->setFournisseur($this);
+        }
+
+        return $this;
+    }
+
+    public function removeArrivage(Arrivage $arrivage): self
+    {
+        if ($this->arrivages->contains($arrivage)) {
+            $this->arrivages->removeElement($arrivage);
+            // set the owning side to null (unless already changed)
+            if ($arrivage->getFournisseur() === $this) {
+                $arrivage->setFournisseur(null);
             }
         }
 

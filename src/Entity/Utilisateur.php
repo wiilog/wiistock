@@ -119,6 +119,26 @@ class Utilisateur implements UserInterface, EquatableInterface
      */
     private $ordreCollectes;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Arrivage", mappedBy="destinataire")
+     */
+    private $arrivagesDestinataire;
+
+    /**
+     * @ORM\ManyToMany(targetEntity="App\Entity\Arrivage", mappedBy="acheteurs")
+     */
+    private $arrivagesAcheteur;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Arrivage", mappedBy="utilisateur")
+     */
+    private $arrivagesUtilisateur;
+
+    /**
+     * @ORM\Column(type="json_array", nullable=true)
+     */
+    private $recherche;
+
     public function __construct()
     {
         $this->receptions = new ArrayCollection();
@@ -131,6 +151,9 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->services = new ArrayCollection();
         $this->filters = new ArrayCollection();
         $this->ordreCollectes = new ArrayCollection();
+        $this->arrivagesDestinataire = new ArrayCollection();
+        $this->arrivagesAcheteur = new ArrayCollection();
+        $this->arrivagesUtilisateur = new ArrayCollection();
     }
 
     public function getId()
@@ -545,6 +568,131 @@ class Utilisateur implements UserInterface, EquatableInterface
                 $ordreCollecte->setUtilisateur(null);
             }
         }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Arrivage[]
+     */
+    public function getArrivagesDestinataire(): Collection
+    {
+        return $this->arrivagesDestinataire;
+    }
+
+    public function addArrivage(Arrivage $arrivage): self
+    {
+        if (!$this->arrivagesDestinataire->contains($arrivage)) {
+            $this->arrivagesDestinataire[] = $arrivage;
+            $arrivage->setDestinataire($this);
+        }
+
+        return $this;
+    }
+
+    public function removeArrivage(Arrivage $arrivage): self
+    {
+        if ($this->arrivagesDestinataire->contains($arrivage)) {
+            $this->arrivagesDestinataire->removeElement($arrivage);
+            // set the owning side to null (unless already changed)
+            if ($arrivage->getDestinataire() === $this) {
+                $arrivage->setDestinataire(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Arrivage[]
+     */
+    public function getArrivagesAcheteur(): Collection
+    {
+        return $this->arrivagesAcheteur;
+    }
+
+    public function addArrivagesAcheteur(Arrivage $arrivagesAcheteur): self
+    {
+        if (!$this->arrivagesAcheteur->contains($arrivagesAcheteur)) {
+            $this->arrivagesAcheteur[] = $arrivagesAcheteur;
+            $arrivagesAcheteur->addAcheteur($this);
+        }
+
+        return $this;
+    }
+
+    public function removeArrivagesAcheteur(Arrivage $arrivagesAcheteur): self
+    {
+        if ($this->arrivagesAcheteur->contains($arrivagesAcheteur)) {
+            $this->arrivagesAcheteur->removeElement($arrivagesAcheteur);
+            $arrivagesAcheteur->removeAcheteur($this);
+        }
+
+        return $this;
+    }
+
+    public function addArrivagesDestinataire(Arrivage $arrivagesDestinataire): self
+    {
+        if (!$this->arrivagesDestinataire->contains($arrivagesDestinataire)) {
+            $this->arrivagesDestinataire[] = $arrivagesDestinataire;
+            $arrivagesDestinataire->setDestinataire($this);
+        }
+
+        return $this;
+    }
+
+    public function removeArrivagesDestinataire(Arrivage $arrivagesDestinataire): self
+    {
+        if ($this->arrivagesDestinataire->contains($arrivagesDestinataire)) {
+            $this->arrivagesDestinataire->removeElement($arrivagesDestinataire);
+            // set the owning side to null (unless already changed)
+            if ($arrivagesDestinataire->getDestinataire() === $this) {
+                $arrivagesDestinataire->setDestinataire(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Arrivage[]
+     */
+    public function getArrivagesUtilisateur(): Collection
+    {
+        return $this->arrivagesUtilisateur;
+    }
+
+    public function addArrivagesUtilisateur(Arrivage $arrivagesUtilisateur): self
+    {
+        if (!$this->arrivagesUtilisateur->contains($arrivagesUtilisateur)) {
+            $this->arrivagesUtilisateur[] = $arrivagesUtilisateur;
+            $arrivagesUtilisateur->setUtilisateurs($this);
+        }
+
+        return $this;
+    }
+
+    public function removeArrivagesUtilisateur(Arrivage $arrivagesUtilisateur): self
+    {
+        if ($this->arrivagesUtilisateur->contains($arrivagesUtilisateur)) {
+            $this->arrivagesUtilisateur->removeElement($arrivagesUtilisateur);
+            // set the owning side to null (unless already changed)
+            if ($arrivagesUtilisateur->getUtilisateurs() === $this) {
+                $arrivagesUtilisateur->setUtilisateurs(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getRecherche()
+    {
+        return $this->recherche;
+    }
+
+    public function setRecherche($recherche): self
+    {
+        $this->recherche = $recherche;
 
         return $this;
     }

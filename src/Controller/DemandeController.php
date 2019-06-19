@@ -385,7 +385,7 @@ class DemandeController extends AbstractController
         return $this->render('demande/show.html.twig', [
 
             'demande' => $demande,
-            // 'preparation' => $this->preparationRepository->findOneByPreparation($demande),
+           //'preparation' => $this->preparationRepository->findOneByPreparation($demande),
             'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
             'statuts' => $this->statutRepository->findByCategorieName(Demande::CATEGORIE),
             'references' => $this->referenceArticleRepository->getIdAndLibelle(),
