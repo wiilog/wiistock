@@ -39,7 +39,7 @@ class MaintenanceListener
      */
     public function onKernelRequest(GetResponseEvent $event)
     {
-    	if (($_SERVER['APP_MAINTENANCE']) == 'on') {
+    	if (isset($_SERVER['APP_MAINTENANCE']) && $_SERVER['APP_MAINTENANCE'] == 'on') {
 			$maintenanceView = $this->templating->render(
 				'securite/maintenance.html.twig'
 			);
