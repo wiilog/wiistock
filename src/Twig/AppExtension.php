@@ -10,6 +10,7 @@ namespace App\Twig;
 
 use App\Entity\Action;
 use App\Repository\ActionRepository;
+use App\Repository\ParamClientRepository;
 use App\Repository\RoleRepository;
 use App\Service\UserService;
 use Twig\TwigFilter;
@@ -33,18 +34,25 @@ class AppExtension extends AbstractExtension
      */
     private $roleRepository;
 
+	/**
+	 * @var ParamClientRepository
+	 */
+    private $paramClientRepository;
 
-    public function __construct(UserService $userService, ActionRepository $actionRepository, RoleRepository $roleRepository)
+
+    public function __construct(ParamClientRepository $paramClientRepository, UserService $userService, ActionRepository $actionRepository, RoleRepository $roleRepository)
     {
         $this->userService = $userService;
         $this->actionRepository = $actionRepository;
         $this->roleRepository = $roleRepository;
+        $this->paramClientRepository = $paramClientRepository;
     }
 
     public function getFunctions()
     {
         return [
-            new TwigFunction('hasRight', [$this, 'hasRightFunction'])
+            new TwigFunction('hasRight', [$this, 'hasRightFunction']),
+            new TwigFunction('isCurrentClient', [$this, 'isCurrentClientNameFunction'])
         ];
     }
 
@@ -59,6 +67,12 @@ class AppExtension extends AbstractExtension
     {
 		return $this->userService->hasRightFunction($menuCode, $actionLabel);
     }
+
+    public function isCurrentClientNameFunction(string $clientName)
+	{
+		$currentClient = $this->paramClientRepository->findOne();
+		return $currentClient->getClient() == $clientName;
+	}
 
     public function withoutExtensionFilter(string $filename)
 	{

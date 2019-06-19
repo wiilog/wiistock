@@ -27,7 +27,7 @@ class='accueil-back'
                 </div>
                 <div class="col-7 mb-1 mt-1 alerte">
                     <a href={{path('service_index')}}>
-                        <p><strong> Demandes de manutentions à traiter: </strong>{{nbDemandeManutentionAT}}</p>
+                        <p><strong> Demandes de manutentions à traiter : </strong>{{nbDemandeManutentionAT}}</p>
                     </a>
                 </div>
                 <div class="col-7 mb-1 mt-1 alerte">
@@ -39,7 +39,10 @@ class='accueil-back'
         </div>
     </div>
 {% endif %}
-{% include "demande/modalNewDemande.html.twig" %}
+
+{% if isCurrentClient(constant('App\\Entity\\ParamClient::CEA_LETI')) %}
+    {% include "accueil/linkToAddArticleForm.html.twig" %}
+{% endif %}
 
 {% endblock %}
 {% block javascript %}

@@ -53,13 +53,6 @@
                             {% if hasRight(constant('App\\Entity\\Menu::MANUT'), constant('App\\Entity\\Action::LIST')) %}
                                 <li><a href="{{ path('service_index') }}" class="sub-item">• Manutention</a></li>
                             {% endif %}
-
-                            {# TODO spécifique CEA #}
-                            {% if constant('App\\Entity\\Menu::DEM_ARTICLE') is defined %}
-                                {% if hasRight(constant('App\\Entity\\Menu::DEM_ARTICLE'), constant('App\\Entity\\Action::LIST')) %}
-                                    <li><a href="https://forms.office.com/Pages/ResponsePage.aspx?id=NhgDLW_TpECPU10VG8Uz0ORO07yh8_dHp_ZRkVcMgQJURjJHVzA5RjNHSEFXTkM4T1lWSllSSkFZVy4u" class="sub-item">• Création d'article</a></li>
-                                {% endif %}
-                            {% endif %}
                         </ul>
                     </li>
                 {% endif %}
