@@ -1,10 +1,71 @@
 {% extends 'layout.html.twig' %}
-{% block title %}Demande{% endblock %}
+
+{% block title %}Demande de livraison{% endblock %}
+
 {% block page_content %}
 
-<div class="zone-entete">
-    {% include "demande/enteteDemandeLivraison.html.twig" %}
+<div class="row">
+    <div class="col">
+        <h1>Demande de livraison n° {{ demande.numero }}</h1>
+    </div>
+    <button class="btn" id="negativStock" data-target='#modalNegativStock' data-toggle='modal' hidden></button>
+
+    <div class="col text-right" id='boutonCollecteSup'>
+        {% if modifiable %}
+            {% if hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::DELETE')) %}
+                <a href="" data-id='{{ demande.id }}' data-target='#modalDeleteDemande' data-toggle='modal'
+                   class="btn btn-danger btn-action ml-auto">
+                    Supprimer</a>
+            {% endif %}
+            {% if hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+                <a href="" data-id='{{ demande.id }}' data-target='#modalEditDemande'
+                   onclick="editRow($(this), Routing.generate('demandeLivraison_api_edit', true), $('#modalEditDemande'), $('#submitEditdemande'), true)"
+                   data-toggle='modal' class="btn btn-primary btn-action ml-auto">
+                    Modifier</a>
+            {% endif %}
+            {% if hasRight(constant('App\\Entity\\Menu::PREPA'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+                <a href="#" onclick="validateLivraison({{ demande.id }}, $(this))" data-id='{{demande.id}}'
+                   class="btn btn-primary btn-action ml-auto">Valider</a>
+            {% endif %}
+
+        {% elseif demande.preparation is not empty %}
+            {% if hasRight(constant('App\\Entity\\Menu::PREPA'), constant('App\\Entity\\Action::LIST')) %}
+                <div class=" text-right">
+                    <a href="{{path('preparation_show', {'id': demande.preparation.id }) }}"
+                       class="btn btn-primary btn-action ml-auto"> Aller vers la préparation</a>
+                </div>
+            {% endif %}
+            {% if demande.livraison is not empty %}
+                {% if hasRight(constant('App\\Entity\\Menu::LIVRAISON'), constant('App\\Entity\\Action::LIST')) %}
+                    <div class=" text-right">
+                        <a href="{{path('livraison_show', {'id': demande.livraison.id }) }}"
+                           class="btn btn-primary btn-action ml-auto"> Aller vers l'ordre de livraison</a>
+                    </div>
+                {% endif %}
+            {% endif %}
+        {% endif %}
+    </div>
 </div>
+
+<div class="row">
+    <div class="zone-entete col-6 row">
+        {% include "demande/enteteDemandeLivraison.html.twig" %}
+    </div>
+</div>
+
+{% if modifiable %}
+    <div class="col text-right" id="boutonCollecteInf">
+        <a href="{{ path('reference_article_index') }}" data-toggle="modal" class="btn btn-primary btn-action ml-auto">
+            Chercher une référence</a>
+        {% if hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+            <a href="" data-toggle="modal" data-target="#modalNewArticle" onclick="clearDiv()"
+               class="btn btn-primary btn-action ml-auto">
+
+                <span class="fa fa-plus mr-2"></span>Ajouter article
+            </a>
+        {% endif %}
+    </div>
+{% endif %}
 
 <span id="demande-id" data-id="{{ demande.id }}"></span>
 
