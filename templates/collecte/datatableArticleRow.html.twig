@@ -5,7 +5,7 @@
     {% if type == 'reference' %}
     <div data-target='#modalEditArticle' data-toggle='modal'>
         <div class="btn btn-col-action" data-id='{{ id }}'
-        onclick="editRow($(this), Routing.generate('collecte_edit_api_article', true), $('#modalEditArticle'), $('#submitEditArticle'))">
+        onclick="editRow($(this), Routing.generate('collecte_edit_api_article', true), $('#modalEditArticle'), $('#submitEditArticle'), false, false, true)">
             <i class='fas fa-pencil-alt'></i>
         </div>
     </div>

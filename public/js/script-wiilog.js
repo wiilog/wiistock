@@ -195,7 +195,7 @@ function showRow(button, path, modal) {
  *  
  */
 
-function editRow(button, path, modal, submit, editorToInit = false, editor = '.editor-container-edit') {
+function editRow(button, path, modal, submit, editorToInit = false, editor = '.editor-container-edit', setMaxQuantity = false) {
     xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
@@ -211,9 +211,7 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
 
             displayRequireChamp(modal.find('#typeEdit'), 'edit');
 
-            if ($('#referenceEdit').val() !== undefined) {   //TODO Moche
-                setMaxQuantityEdit($('#referenceEdit'));
-            }
+            if (setMaxQuantity) setMaxQuantityEdit($('#referenceEdit'));
 
             if (editorToInit) initEditor2(editor);
         }
@@ -232,6 +230,16 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
     xhttp.send(JSON.stringify(json));
 }
 
+function setMaxQuantityEdit(select) {
+    let params = {
+        refArticleId: select.val(),
+    };
+    $.post(Routing.generate('get_quantity_ref_article'), params, function (data) {
+        let modalBody = select.closest(".modal-body");
+        modalBody.find('#quantite').attr('max', data);
+    }, 'json');
+}
+
 function toggleRadioButton(button) {
     let sel = button.data('title');
     let tog = button.data('toggle');
@@ -246,25 +254,6 @@ function toggleRadioButton(button) {
 //initialisation editeur de texte une seule fois
 
 function initEditor(modal) {
-    // var quill = new Quill(modal + ' .editor-container', {
-    //     modules: {
-    //         toolbar: [
-    //             [{ header: [1, 2, 3, false] }],
-    //             ['bold', 'italic', 'underline', 'image'],
-    //
-    //             [{ 'list': 'ordered' }, { 'list': 'bullet' }]
-    //         ]
-    //     },
-    //     formats: [
-    //         'header',
-    //         'bold', 'italic', 'underline', 'strike', 'blockquote',
-    //         'list', 'bullet', 'indent',
-    //         'link', 'image'
-    //     ],
-    //
-    //     theme: 'snow'
-    // });
-
     initEditor2(modal + ' .editor-container');
 };
 

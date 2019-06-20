@@ -23,12 +23,12 @@ let table = $('#tableCollecte_id').DataTable({
         "type": "POST"
     },
     columns: [
-        { "data": 'Création', 'name': 'Création' },
-        { "data": 'Validation', 'name': 'Validation' },
-        { "data": 'Demandeur', 'name': 'Demandeur' },
-        { "data": 'Objet', 'name': 'Objet' },
-        { "data": 'Statut', 'name': 'Statut' },
-        { "data": 'Actions', 'name': 'Actions' }
+        { "data": 'Création', 'name': 'Création', 'title': 'Création' },
+        { "data": 'Validation', 'name': 'Validation', 'title': 'Validation' },
+        { "data": 'Demandeur', 'name': 'Demandeur', 'title': 'Demandeur' },
+        { "data": 'Objet', 'name': 'Objet', 'title': 'Objet' },
+        { "data": 'Statut', 'name': 'Statut', 'title': 'Statut' },
+        { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' }
     ],
 });
 
@@ -86,11 +86,11 @@ let tableArticle = $('#tableArticle_id').DataTable({
         "type": "POST"
     },
     columns: [
-        { "data": 'Référence CEA' },
-        { "data": 'Libellé' },
-        { "data": 'Emplacement' },
-        { "data": 'Quantité' },
-        { "data": 'Actions' }
+        { "data": 'Référence CEA', 'title': 'Référence CEA' },
+        { "data": 'Libellé', 'title': 'Libellé' },
+        { "data": 'Emplacement', 'title': 'Emplacement' },
+        { "data": 'Quantité', 'title': 'Quantité' },
+        { "data": 'Actions', 'title': 'Actions' }
     ],
 
 });
