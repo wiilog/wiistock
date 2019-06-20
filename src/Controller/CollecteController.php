@@ -452,8 +452,8 @@ class CollecteController extends AbstractController
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::DEM_COLLECTE, Action::CREATE_EDIT)) {
-                return $this->redirectToRoute('access_denied');
-            }
+				return $this->redirectToRoute('access_denied');
+			}
 
             $collecte = $this->collecteRepository->find($data['id']);
 

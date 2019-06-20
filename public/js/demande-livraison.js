@@ -147,7 +147,7 @@ function setMaxQuantity(select) {
     };
     $.post(Routing.generate('get_quantity_ref_article'), params, function (data) {
         let modalBody = select.closest(".modal-body");
-        modalBody.find('#quantity').attr('max', data);
+        modalBody.find('#quantity-to-deliver').attr('max', data);
     }, 'json');
 }
 
@@ -193,21 +193,18 @@ let ajaxAuto = function () {
     });
 }
 
-var editorNewLivraisonAlreadyDone = false;
-
+let editorNewLivraisonAlreadyDone = false;
 function initNewLivraisonEditor(modal) {
-
     if (!editorNewLivraisonAlreadyDone) {
-
+        // initEditor(modal);
+        //TODO CG wysiwyg
         initEditor2('.editor-container-new');
         editorNewLivraisonAlreadyDone = true;
-
     }
     ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'))
 };
 
 $('#submitSearchDemandeLivraison').on('click', function () {
-
     let statut = $('#statut').val();
     let utilisateur = $('#utilisateur').val()
     let utilisateurString = utilisateur.toString();
@@ -266,9 +263,9 @@ function ajaxGetAndFillArticle(select) {
             editNewArticle.html(data.modif);
             modalFooter.removeClass('d-none');
             displayRequireChamp($('#typeEdit'), 'edit');
-            // initEditor2('.editor-container-edit');
+            initEditor2('.editor-container-edit'); //TODO CG wysiwyg
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
-        })
+        }, 'json');
     }
 }
 

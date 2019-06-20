@@ -1,5 +1,4 @@
 $('.select2').select2();
-// $('[data-toggle="tooltip"]').tooltip();
 
 function InitialiserModalRefArticle(modal, submit, path, callback = function () { }, close = true) {
     submit.click(function () {
