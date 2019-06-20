@@ -397,7 +397,7 @@ let ajaxPlusDemandeContent = function (button, demande) {
                 modalFooter.removeClass('d-none');
             } if (dataReponse.temp) {
                 modalFooter.removeClass('d-none');
-            } // TODO Spécifique CEA
+            }
             else {
                 //TODO gérer erreur
             }

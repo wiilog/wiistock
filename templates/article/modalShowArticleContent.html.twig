@@ -1,37 +1,3 @@
-{#<div> Référence : {{article.reference}}</div>
-<div> Référence Article : {{article.articleFournisseur.reference}}</div>
-<div> Label : {{article.label}}</div>
-<div> Quantité : {{article.quantite}}</div>
-<div> Commentaires: {{article.commentaire}}</div>
-<div> Statut : {{article.statut.nom}}</div>
-<div class="mouvList">
-    <table>
-        <thead>
-            <tr>
-                Liste des mouvements:
-            </tr>
-        </thead>
-        <tbody>
-            <tr class="mouvList">
-                <td class="mouvListG">Type</td>
-                <td class="mouvListG">Date</td>
-                <td class="mouvListG">Emplacement</td>
-                <td class="mouvListG">Utilisateur</td>
-            </tr>
-            {% for mouvements in article.mouvements %}
-            <tr class="mouvListExt">
-                <td class="mouvList">{{mouvements.type}}</td>
-                <td class="mouvList">{{mouvements.date|date("m/d/Y")}}</td>
-                <td class="mouvList">{{mouvements.emplacement}}</td>
-                <td class="mouvList">{{mouvements.user}}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-        <table>
-</div>#}
-
-
-
 <div class="row">
     <div class="form-group col-6">
         <label for="libelle">Libellé</label>
@@ -94,11 +60,6 @@
                 {% for champLibre in typeChampsLibres.champsLibres %}
                 {% set needed = champLibre.requiredEdit ? 'needed' : '' %}
                 <div class="form-group col-6">
-                    {#TODO spécifique CEA : accès pour tous au champ libre 'Code projet' #}
-                    {% if champLibre.label|lower == 'code projet' %}
-                    {% set disabled = '' %}
-                    {% endif %}
-
                     <label for="input">{{ champLibre.label | capitalize}}</label>
 
                     {% if champLibre.typage == 'booleen' %}
