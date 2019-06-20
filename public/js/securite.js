@@ -12,12 +12,19 @@ function checkIfUserExists() {
 }
 function editPassword() {
     let path = Routing.generate('change_password_in_bdd', true);
-    let password = $("password");
-    let password2 = $("password2");
-    let params = JSON.stringify({password: password, password2: password2});
+    let password = $("#password").val();
+    let password2 = $("#password2").val();
+    let token = $("#token").val();
+    let params = JSON.stringify({password: password, password2: password2, token:token});
 
-    $.post(path, params,
-        function(password, password2){console.log('good : '+ password + password2)},
+    $.post(path, params, function(data){
+        if (data === true) {
+            $('.error-msg').html('Votre nouveau mot de passe a bien été enregistré.');
+        } else if (data === false) {
+            $('.error-msg').html('NON');
+        } else {
+            $('.error-msg').html('LOL');
+        }
+        },
         'json');
-    console.log('lol');
 }

@@ -70,14 +70,15 @@ class PasswordService
     public function generateToken($length)
     {
         do {
-            $generated_string = '&';
+            $generated_string = '';
             $domain = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
             $len = strlen($domain);
             for ($i = 0; $i < $length; ++$i) {
                 $index = rand(0, $len - 1);
                 $generated_string = $generated_string . $domain[$index];
             }
-        } while (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/', $generated_string));
+            dump($generated_string);
+        } while (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/', $generated_string));
 
         return $generated_string;
     }

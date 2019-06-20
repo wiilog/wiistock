@@ -167,9 +167,10 @@ class SecuriteController extends Controller
     /**
      * @Route("/change-password", name="change_password", options={"expose"=true}, methods="GET|POST")
      */
-    public function change_password()
+    public function change_password(Request $request)
     {
-        return $this->render('securite/change_password.html.twig');
+        $token = $request->get('token');
+        return $this->render('securite/change_password.html.twig', ['token' => $token]);
     }
 
     /**
@@ -177,95 +178,35 @@ class SecuriteController extends Controller
      */
     public function change_password_in_bdd(Request $request,  UserPasswordEncoderInterface $passwordEncoder, UserService $userService) : Response
     {
-        dump('t0');
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
-//        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-        $data = json_decode($request->getContent(), true);
-            dump('t1');
-//dump($data);
-        echo $_GET['token'];
-$token='&AnKC1KjbMm1BoXAUfJlumUlA15cPlkslYHzVVNWqxaZoG3mEWUAiwNVZkhk0TX0RrQcfnfFqmYWSRglD' ;
-//dump($token);
-            $user = $this->utilisateurRepository->findOneByToken($token); //c'est OK, on récupe l'utilisateur
-            if ($user) {
-                dump('t2');
-                if($user->getStatus() === true){
-                    $password = $data['password'];
-//dump($password);
+            $token = $data['token'];
+            $user = $this->utilisateurRepository->findOneByToken($token);
+            if (!$user) {
+                return new JsonResponse('Cet utilisateur n\'existe pas');
+            }
+            elseif ($user->getStatus() === true) {
+                $password = $data['password'];
+                $password2 = $data['password2'];
+                $userService->checkPassword($password,$password2);
+                if ($password !== '') {
+                    $password = $passwordEncoder->encodePassword($user, $password);
+                    $user->setPassword($password);
+                    $user->setToken('');
 
-                    $userService->checkPassword($password , $data['passsword2']);
-                    if($password !== ''){
-                        $password = $passwordEncoder->encodePassword($user, $data['password']);
-                        $user->setPassword($password);
-                        $user->setToken('null');
+                    $em = $this->getDoctrine()->getManager();
+                    $em->persist($user);
+                    $em->flush();
 
-                        $em = $this->getDoctrine()->getManager();
-                        $em->persist($user);
-                        $em->flush();
-                        return $this->render('securite/login.html.twig');
-                    }
+
+                    return $this->render('securite/login.html.twig');
                 }
-                else{ return new JsonResponse('access_denied');}
-//            }
-            return new JsonResponse('Cet utilisateur n\'existe pas');
+                else {
+                    return new JsonResponse('access_denied');
+                }
+            }
         }
         throw new NotFoundHttpException('404');
-
-
-
-//        if ($request->isXmlHttpRequest() && $mail = json_decode($request->getContent()) {
-//            $user = $this->utilisateurRepository->getByMail($mail);
-//            if ($user) {
-//                if ($user->getStatus() === true) {
-//                    $this->passwordService->updatePasswordUser($mail, $passwordEncoder);
-//                    $user->setToken('null');
-//                    $this->entityManager->flush();
-//                }
-//                else {
-//                    return new JsonResponse('inactiv');
-//                }
-//                return new JsonResponse(false);
-//            }
-//            return new JsonResponse(true);
-////        }
-
-//        throw new NotFoundHttpException('404');
-
-//        $session = $request->getSession();
-//        $user = $this->getUser();
-//        $form = $this->createFormBuilder()
-//            ->add('password', PasswordType::class, array(
-//                'label' => 'Adresse email',
-//            ))
-//            ->add('plainPassword', RepeatedType::class, array(
-//                'type' => PasswordType::class,
-//                'first_options' => array('label' => 'Nouveau Mot de Passe'),
-//                'second_options' => array('label' => 'Confirmer Nouveau Mot de Passe'),
-//            ))
-//            ->add('modifier', SubmitType::class)
-//            ->getForm();
-//
-//        $form->handleRequest($request);
-//
-//        if ($form->isSubmitted() && $form->isValid()) {
-//            $data = $form->getData();
-//            if ($passwordEncoder->isPasswordValid($user, $data['password'])) {
-//                $new_password = $passwordEncoder->encodePassword($user, $data['plainPassword']);
-//                $user->setPassword($new_password);
-//                $em->persist($user);
-//                $em->flush();
-//                $session->getFlashBag()->add('success', 'Le mot de passe a bien été modifié');
-//
-//                return $this->redirectToRoute('check_last_login');
-//            } else {
-//                $session->getFlashBag()->add('danger', 'Mot de passe invalide');
-//            }
-//        }
-//
-//        return $this->render('securite/change_password.html.twig', [
-//            'controller_name' => 'SecuriteController',
-//            'form' => $form->createView(),
-//        ]);
     }
 
     /**
