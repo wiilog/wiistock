@@ -240,12 +240,10 @@ function setMaxQuantityEdit(select) {
     }, 'json');
 }
 
-function toggleRadioButton(button) {
-    let sel = button.data('title');
-    let tog = button.data('toggle');
+function toggleRadioButton($button) {
+    let sel = $button.data('title');
+    let tog = $button.data('toggle');
     $('#' + tog).prop('value', sel);
-
-
     $('span[data-toggle="' + tog + '"]').not('[data-title="' + sel + '"]').removeClass('active').addClass('not-active');
     $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
 }
@@ -445,7 +443,7 @@ function clearNewContent(button) {
 }
 
 let displayRequireChamp = function (select, require) {
-    let bloc = $('#typeContentEdit');
+    let bloc = require == 'create' ? $('#typeContentNew') : $('#typeContentEdit'); //TODO pas top
     bloc.find('.data').removeClass('needed');
 
     let params = {};
@@ -478,7 +476,7 @@ function displayError(modal, msg, data) {
 function clearModal(modal) {
     $modal = $(modal);
     let inputs = $modal.find('.modal-body').find(".data");
-    // on vide tous les inputs (sauf les disabled)
+    // on vide tous les inputs (sauf les disabled et les input hidden)
     inputs.each(function () {
         if ($(this).attr('disabled') !== 'disabled' && $(this).attr('type') !== 'hidden') {
             $(this).val("");

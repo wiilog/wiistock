@@ -227,7 +227,7 @@ class RefArticleDataService
         
         $view =  $this->templating->render('reference_article/modalEditRefArticleContent.html.twig', [
             'articleRef' => $refArticle,
-            'statut' => ($refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF),
+            'statut' => $refArticle->getStatut()->getNom(),
             'valeurChampsLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
             'typeChampsLibres' => $typeChampLibre,
             'articlesFournisseur' => ($data['listArticlesFournisseur']),
@@ -284,9 +284,8 @@ class RefArticleDataService
                 if (isset($data['commentaire'])) $refArticle->setCommentaire($data['commentaire']);
                 if (isset($data['quantite'])) $refArticle->setQuantiteStock(intval($data['quantite']));
                 if (isset($data['statut'])) {
-                    $statutLabel = ($data['statut'] == 1) ? ReferenceArticle::STATUT_ACTIF : ReferenceArticle::STATUT_INACTIF;
-                    $statut = $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, $statutLabel);
-                    $refArticle->setStatut($statut);
+                    $statut = $this->statutRepository->findOneByCategorieAndStatut(ReferenceArticle::CATEGORIE, $data['statut']);
+                    if ($statut) $refArticle->setStatut($statut);
                 }
                 if (isset($data['type'])) {
                     $type = $this->typeRepository->find(intval($data['type']));
@@ -314,10 +313,12 @@ class RefArticleDataService
             }
             //recup de la row pour insert datatable
             $rows = $this->dataRowRefArticle($refArticle);
+            $response['success'] = true;
             $response['id'] = $refArticle->getId();
             $response['edit'] = $rows;
         } else {
-            $response = false; //TODO gérer retour erreur
+            $response['success'] = false;
+            $response['msg'] = "Tous les champs obligatoires n'ont pas été renseignés.";
         }
         return $response;
     }

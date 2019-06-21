@@ -143,7 +143,9 @@ function clearModalRefArticle(modal) {
     // on vide tous les inputs
     let inputs = modal.find('.modal-body').find(".data, .newContent>input");
     inputs.each(function () {
-        if ($(this).attr('id') !== 'type_quantite') $(this).val("");
+        if ($(this).attr('disabled') !== 'disabled' && $(this).attr('type') !== 'hidden' && $(this).attr('id') !== 'type_quantite') { //TODO type quantite trop specifique -> pq ne pas passer par celui de script-wiilog ? (et ajouter la classe checkbox)
+            $(this).val("");
+        }
     });
     // on vide tous les select2
     let selects = modal.find('.modal-body').find('.select2, .ajax-autocompleteFournisseur');
@@ -366,8 +368,11 @@ function displayFilterValue(elem) {
 }
 
 function displayErrorRA(data, modal) {
-    let msg = 'Ce nom de référence existe déjà. Vous ne pouvez pas le recréer.';
-    displayError(modal, msg, data);
+    if (data.success === true) {
+        modal.find('.close').click();
+    } else {
+        modal.find('.error-msg').html(data.msg);
+    }
 }
 
 let recupIdRefArticle = function (div) {

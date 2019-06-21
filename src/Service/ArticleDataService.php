@@ -312,21 +312,7 @@ class ArticleDataService
                 'champsLibres' => $champsLibres,
             ];
 
-
-        switch ($article->getStatut()->getNom()) {
-            case Article::STATUT_INACTIF:
-                $statut = 0;
-                break;
-            case Article::STATUT_ACTIF:
-                $statut = 1;
-                break;
-            case Article::STATUT_EN_TRANSIT:
-                $statut = 2;
-                break;
-            default:
-                $statut = 0; //TODO plutôt gérer une erreur ?
-                break;
-        }
+        $statut = $article->getStatut()->getNom();
 
         $view = $this->templating->render('article/modalModifyArticleContent.html.twig', [
             'typeChampsLibres' => $typeChampLibre,
@@ -356,31 +342,9 @@ class ArticleDataService
                     ->setQuantite($data['quantite'] ? $data['quantite'] : 0)
                     ->setCommentaire($data['commentaire']);
 
-                if (isset($data['statut'])) { // si on est dans une demande (livraison ou collecte), pas de champ statut
-                    switch (intval($data['statut'])) {
-                        case 0:
-                            $statutLabel = Article::STATUT_INACTIF;
-                            break;
-                        case 1:
-                            $statutLabel = Article::STATUT_ACTIF;
-                            break;
-                        case 2:
-                            $statutLabel = Article::STATUT_EN_TRANSIT;
-                            break;
-                    }
-
-                    //                    if (intval($data['statut']) === 0) {
-                    //                        $statutLabel = Article::STATUT_INACTIF;
-                    //                    }
-                    //                    if (intval($data['statut']) === 1) {
-                    //                        $statutLabel = Article::STATUT_ACTIF;
-                    //                    }
-                    //                    if (intval($data['statut']) === 2) {
-                    //                        $statutLabel = Article::STATUT_EN_TRANSIT;
-                    //                    }
-
-                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $statutLabel);
-                    $article->setStatut($statut);
+                if (isset($data['statut'])) {
+                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $data['statut']);
+                    if ($statut) $article->setStatut($statut);
                 }
                 if ($data['emplacement']) {
                     $article->setEmplacement($this->emplacementRepository->find($data['emplacement']));

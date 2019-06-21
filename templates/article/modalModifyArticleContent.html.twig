@@ -39,22 +39,23 @@
         <div class="input-group radio-btn">
             <label for="statut" class="mtb-auto mr-2">Statut</label>
 
-            {% if statut == 1 %}
-            <span class="btn active" {% else  %} <span class='btn not-active' {% endif %} data-toggle="statut"
-                data-title="active" {% if editable %}onclick="changeStatus(this)" data-value="1">{% endif %}
-                Actif
-
+            {% set actif = (statut == constant('App\\Entity\\Article::STATUT_ACTIF')) ? 'active' : 'not-active' %}
+            <span class="btn {{ actif }}" data-toggle="statut" data-title="{{ constant('App\\Entity\\Article::STATUT_ACTIF') }}"
+                  {% if editable %}onclick="changeStatus(this)">{% endif %}
+                {{ constant('App\\Entity\\Article::STATUT_ACTIF') | capitalize }}
             </span>
-            {% if statut == 0 %}
-            <span class="btn active" {% else  %} <span class="btn not-active" {% endif %} data-toggle="statut"
-                data-title="inactive" {% if editable %}onclick="changeStatus(this)"
-                data-value="0">{% endif %}Inactif</span>
+            {% set inactif = (statut == constant('App\\Entity\\Article::STATUT_INACTIF')) ? 'active' : 'not-active' %}
+            <span class="btn {{ inactif }}" data-toggle="statut" data-title="{{ constant('App\\Entity\\Article::STATUT_INACTIF') }}"
+                  {% if editable %}onclick="changeStatus(this)">{% endif %}
+                {{ constant('App\\Entity\\Article::STATUT_INACTIF') | capitalize }}
+            </span>
+            {% set transit = (statut == constant('App\\Entity\\Article::STATUT_EN_TRANSIT')) ? 'active' : 'not-active' %}
+            <span class="btn {{ transit }}" data-toggle="statut" data-title="{{ constant('App\\Entity\\Article::STATUT_EN_TRANSIT') }}"
+                  {% if editable %}onclick="changeStatus(this)">{% endif %}
+                {{ constant('App\\Entity\\Article::STATUT_EN_TRANSIT') | capitalize }}
+            </span>
 
-            {% if statut == 2 %}<span class="btn active" {% else  %} <span class="btn not-active" {% endif %}
-                data-toggle="statut" data-title="transit" {% if editable %}onclick="changeStatus(this)"
-                data-value="2">{% endif %}En transit</span>
-
-            <input id="s" type="hidden" value="{{statut}}" name="statut" class="data">
+            <input id="statut" type="hidden" value="{{ statut }}" name="statut" class="data">
 
         </div>
         {% endif %}

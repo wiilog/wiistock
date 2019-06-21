@@ -14,10 +14,17 @@
         <div class="input-group radio-btn">
             <label for="statut" class="mtb-auto mr-2 ">Statut</label>
             <div>
-                <span class="btn {{ statut == 1 ? 'active' : 'not-active'}}" data-toggle="statut" data-title="active"
-                    {% if editable %}onclick="toggleRadioButton($(this))" {% endif %}>Actif</span><span
-                    class="btn {{ statut == 0 ? 'active' : 'not-active'}}" data-toggle="statut" data-title="inactive"
-                    {% if editable %}onclick="toggleRadioButton($(this))" {% endif %}>Inactif</span>
+                {% set actif = (statut == constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF')) ? 'active' : 'not-active' %}
+                {% set inactif = (statut == constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF')) ? 'active' : 'not-active' %}
+
+                <span class="btn {{ actif }}" data-toggle="statut" data-title="{{ constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') }}"
+                    {% if editable %}onclick="toggleRadioButton($(this))" {% endif %}>
+                    {{ constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') }}
+                </span><span
+                    class="btn {{ inactif }}" data-toggle="statut" data-title="{{ constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF')}}"
+                    {% if editable %}onclick="toggleRadioButton($(this))" {% endif %}>
+                    {{ constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF') }}
+                </span>
             </div>
             <input type="hidden" name="statut" id="statut" class="data" value="{{ statut }}">
         </div>
