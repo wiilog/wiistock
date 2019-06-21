@@ -39,7 +39,7 @@ class SpecificService
 	{
 		/** @var ParamClient $currentClient */
 		$currentClient = $this->paramClientRepository->findOne();
-		return $currentClient->getClient() == $clientName;
+		return $currentClient ? ($currentClient->getClient() == $clientName) : false;
 	}
 
 }

@@ -1,6 +1,4 @@
-
 {% set editable = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
-
 {% set disabled = editable ? '' : 'disabled' %}
 
 <div class="row">
@@ -81,7 +79,9 @@
         <div class="input-group reference {{ dnone }}">
 
             <label class="mtb-auto mr-2" for="quantite">Quantité</label>
-            <input {{ disabled }} class="form-control data" value='{{ articleRef.quantiteStock }}' type="number" min="0"
+            {# si on est sur une demande, la quantité ne doit pas être modifiéD #}
+            {% set disabledOnDemand = isADemand ? 'disabled' : disabled %}
+            <input {{ disabledOnDemand }} class="form-control data" value='{{ articleRef.quantiteStock }}' type="number" min="0"
                 name="quantite" id="quantite">
 
         </div>
