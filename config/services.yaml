@@ -39,7 +39,6 @@ services:
             - { name: doctrine.event_listener, event: prePersist }
             - { name: doctrine.event_listener, event: preUpdate }
 
-#TODO à décommenter pour mettre en maintenance
 #    maintenance_listener:
 #        class: App\Security\MaintenanceListener
 #        tags:

@@ -1,81 +1,22 @@
 <div class="row">
-    <div class="col">
-        <h1>Demande de livraison</h1>
-    </div>
-    <button class="btn" id="negativStock" data-target='#modalNegativStock' data-toggle='modal' hidden></button>
-    {% if modifiable %}
-         <div class="col" id='boutonCollecteSup'>
-        {% if hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::DELETE')) %}
-        <a href="" data-id='{{ demande.id }}' data-target='#modalDeleteDemande' data-toggle='modal'
-            class="btn btn-danger btn-action ml-auto">
-            Supprimer</a>
-        {% endif %}
-        {% if hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
-        <a href="" data-id='{{ demande.id }}' data-target='#modalEditDemande'
-            onclick="editRow($(this), Routing.generate('demandeLivraison_api_edit', true), $('#modalEditDemande'), $('#submitEditdemande'), true)"
-            data-toggle='modal' class="btn btn-primary btn-action ml-auto">
-            Modifier</a>
-        {% endif %}
-        {% if hasRight(constant('App\\Entity\\Menu::PREPA'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
-        <a href="#" onclick="validateLivraison({{ demande.id }}, $(this))" data-id='{{demande.id}}'
-            class="btn btn-primary btn-action ml-auto">Valider</a>
-        {% endif %}
-
-                {% elseif demande.preparation is not empty %}
-                    {% if hasRight(constant('App\\Entity\\Menu::PREPA'), constant('App\\Entity\\Action::LIST')) %}
-                    <div class=" text-right">
-                        <a href="{{path('preparation_show', {'id': demande.preparation.id }) }}"
-                   class="btn btn-primary btn-action ml-auto"> Aller vers la préparation</a>
-    </div>
-                    {% endif %}
-             {% if demande.livraison is not empty %}
-                 {% if hasRight(constant('App\\Entity\\Menu::LIVRAISON'), constant('App\\Entity\\Action::LIST')) %}
-                 <div class=" text-right">
-                     <a href="{{path('livraison_show', {'id': demande.livraison.id }) }}"
-                        class="btn btn-primary btn-action ml-auto"> Aller vers l'ordre de livraison</a>
-    </div>
-    {% endif %}
-             {% endif %}
-             {% endif %}
-         </div>
-</div>
-<div class="row">
-    <div class="col-6 row">
-        <div class="col-6">
-            <p><strong>Demandeur :</strong> <span
-                    id="demandeur">{{ demande.utilisateur ? demande.utilisateur : '' }}</span></p>
-            <p><strong>Statut :</strong> {{demande.statut.nom|capitalize}}</p>
-            <p><strong>Destination :</strong> <span
+    <div class="col-6">
+        <p><strong>Demandeur :</strong> <span id="demandeur">{{ demande.utilisateur ? demande.utilisateur : '' }}</span></p>
+        <p><strong>Statut :</strong> {{demande.statut.nom|capitalize}}</p>
+        <p><strong>Destination :</strong> <span
                     id="emplacement">{{ demande.destination ? demande.destination.label : "" }}</span></p>
-        </div>
-
-        <div class="col-6">
-            <p><strong>Date demande :</strong> {{ demande.date | date("d/m/Y") }}</p>
-            <p><strong>Date de validation :</strong>
-                {% if demande.preparation is not null %}
-                {{demande.preparation.date|date('d/m/Y H:i')}}</p>
-            {% endif %}
-            <p><strong>Référence :</strong> {{ demande.numero }}</p>
-        </div>
-        <div class="col-12">
-            <p><strong> Commentaire : </strong></p>
-            <div class="commentOverflow">
-                <p>{{demande.commentaire|raw}}</p>
-            </div>
+    </div>
+    <div class="col-6">
+        <p><strong>Date demande :</strong> {{ demande.date | date("d/m/Y") }}</p>
+        <p><strong>Date de validation :</strong>
+            {% if demande.preparation is not null %}
+            {{demande.preparation.date|date('d/m/Y H:i')}}</p>
+        {% endif %}
+        <p><strong>Référence :</strong> {{ demande.numero }}</p>
+    </div>
+    <div class="col-12">
+        <p><strong> Commentaire : </strong></p>
+        <div class="commentOverflow">
+            <p>{{demande.commentaire|raw}}</p>
         </div>
     </div>
 </div>
-
-{% if modifiable %}
-<div class="col text-right" id="boutonCollecteInf">
-    <a href="{{ path('reference_article_index') }}" data-toggle="modal" class="btn btn-primary btn-action ml-auto">
-        Chercher une référence</a>
-    {% if hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
-    <a href="" data-toggle="modal" data-target="#modalNewArticle" onclick="clearDiv()"
-        class="btn btn-primary btn-action ml-auto">
-
-        <span class="fa fa-plus mr-2"></span>Ajouter article
-    </a>
-    {% endif %}
-</div>
-{% endif %}

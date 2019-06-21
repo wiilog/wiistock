@@ -57,18 +57,7 @@ class AppExtension extends AbstractExtension
 
 	public function hasRightFunction(string $menuCode, string $actionLabel = Action::YES)
     {
-        $role = $this->userService->getCurrentUserRole();
-        $actions = $role->getActions();
-
-        $thisAction = $this->actionRepository->findOneByMenuCodeAndLabel($menuCode, $actionLabel);
-
-        if ($thisAction) {
-            foreach ($actions as $action) {
-                if ($action->getId() == $thisAction->getId()) return true;
-            }
-        }
-
-        return false;
+		return $this->userService->hasRightFunction($menuCode, $actionLabel);
     }
 
     public function withoutExtensionFilter(string $filename)
