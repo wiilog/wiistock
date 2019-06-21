@@ -9,11 +9,11 @@ class='accueil-back'
 
 {% block body %}
 
-{#{% if error %}#}
-{#<div class="alert alert-danger text-center">#}
-{#    <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>#}
-{#    <strong>Erreur!</strong> {{ error }}</div>#}
-{#{% endif %}#}
+{% if error %}
+<div class="alert alert-danger text-center">
+    <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+    <strong>Erreur!</strong> {{ error }}</div>
+{% endif %}
 <div class="login-wrapper mt-3">
     <div class="row">
         <div class="box-login login-form box-shadow">

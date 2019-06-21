@@ -176,7 +176,7 @@ class SecuriteController extends Controller
     /**
      * @Route("/change-password-in-bdd", name="change_password_in_bdd", options={"expose"=true}, methods="GET|POST")
      */
-    public function change_password_in_bdd(Request $request,  UserPasswordEncoderInterface $passwordEncoder, UserService $userService) : Response
+    public function change_password_in_bdd(Request $request,  UserPasswordEncoderInterface $passwordEncoder) : Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
@@ -188,7 +188,10 @@ class SecuriteController extends Controller
             elseif ($user->getStatus() === true) {
                 $password = $data['password'];
                 $password2 = $data['password2'];
-                $userService->checkPassword($password,$password2);
+        dump($password);
+        dump($password2);
+                $this->userService->checkPassword($password,$password2);
+dump($data);
                 if ($password !== '') {
                     $password = $passwordEncoder->encodePassword($user, $password);
                     $user->setPassword($password);
@@ -198,8 +201,8 @@ class SecuriteController extends Controller
                     $em->persist($user);
                     $em->flush();
 
-
                     return $this->render('securite/login.html.twig');
+
                 }
                 else {
                     return new JsonResponse('access_denied');
