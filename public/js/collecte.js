@@ -111,28 +111,24 @@ let urlDeleteArticle = Routing.generate('collecte_remove_article', true);
 InitialiserModal(modalDeleteArticle, submitDeleteArticle, urlDeleteArticle, tableArticle);
 
 function ajaxGetCollecteArticle(select) {
-    let selection = $('#selection');
-    let editNewArticle = $('#editNewArticle');
+    let $selection = $('#selection');
+    let $editNewArticle = $('#editNewArticle');
+    let modalNewArticle = '#modalNewArticle';
     xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
             data = JSON.parse(this.responseText);
-            selection.html(data.selection);
-            if (data.modif) editNewArticle.html(data.modif);
-            $('#modalNewArticle').find('.modal-footer').removeClass('d-none');
+            $selection.html(data.selection);
+            if (data.modif) $editNewArticle.html(data.modif);
+            $(modalNewArticle).find('.modal-footer').removeClass('d-none');
             displayRequireChamp(select.closest('.modal').find('#type'), 'edit');
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
-            initEditor2('.editor-container-edit');
-
-            // //obligation de trouver dans la modale un champs qui passe d'abord défini à 0 puis undefined sur le passage lié à "ajouter"
-            // if ($('#quantity-to-collect').val() !== undefined){
-            //     initEditor2('.editor-container-edit');
-            // }; //TODO CG wysiwyg
+            initEditor(modalNewArticle + ' .editor-container-edit');
         }
     }
     path = Routing.generate('get_collecte_article_by_refArticle', true)
-    selection.html('');
-    editNewArticle.html('');
+    $selection.html('');
+    $editNewArticle.html('');
     let data = {};
     data['referenceArticle'] = $(select).val();
     json = JSON.stringify(data);
@@ -147,22 +143,11 @@ function deleteRowCollecte(button, modal, submit) {
     modal.find(submit).attr('name', name);
 }
 
-
-// //initialisation editeur de texte une seule fois à l'édit
-// let editorEditCollecteAlreadyDone = false;
-// function initEditCollecteEditor(modal) {
-//     if (!editorEditCollecteAlreadyDone) {
-//         initEditor(modal);
-//         editorEditCollecteAlreadyDone = true;
-//     }
-// };
-
-
 //initialisation editeur de texte une seule fois à la création
 let editorNewCollecteAlreadyDone = false;
 function initNewCollecteEditor(modal) {
     if (!editorNewCollecteAlreadyDone) {
-        initEditor(modal);
+        initEditorInModal(modal);
         editorNewCollecteAlreadyDone = true;
     }
     ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'))
@@ -247,7 +232,7 @@ let ajaxEditArticle = function (select) {
                 $('#editNewArticle').html(dataReponse);
                 // displayRequireChamp($('#typeEditArticle'), 'edit');
                 ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
-                initEditor2('.editor-container-edit');
+                initEditor('.editor-container-edit');
             } else {
                 //TODO gérer erreur
             }

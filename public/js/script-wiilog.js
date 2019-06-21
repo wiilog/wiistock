@@ -212,7 +212,7 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
             displayRequireChamp(modal.find('#typeEdit'), 'edit');
 
             if (setMaxQuantity) setMaxQuantityEdit($('#referenceEdit'));
-            if (editorToInit) initEditor2(editor);
+            if (editorToInit) initEditor(editor);
         }
     }
     let id = button.data('id');
@@ -249,20 +249,16 @@ function toggleRadioButton(button) {
     $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
 }
 
-
-//initialisation editeur de texte une seule fois
-
-function initEditor(modal) {
-    initEditor2(modal + ' .editor-container');
+function initEditorInModal(modal) {
+    initEditor(modal + ' .editor-container');
 };
 
-function initEditor2(div) {
+function initEditor(div) {
     new Quill(div, {
         modules: {
             toolbar: [
                 [{ header: [1, 2, 3, false] }],
                 ['bold', 'italic', 'underline', 'image'],
-
                 [{ 'list': 'ordered' }, { 'list': 'bullet' }]
             ]
         },
@@ -272,7 +268,6 @@ function initEditor2(div) {
             'list', 'bullet', 'indent',
             'link', 'image'
         ],
-
         theme: 'snow'
     });
 };

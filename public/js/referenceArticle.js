@@ -426,7 +426,7 @@ let ajaxEditArticle = function (select) {
                 ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
                 displayRequireChamp(select.closest('.modal').find('#type'), 'edit'); //TODO CG à bien tester
                 $('#livraisonShow').find('#withdrawQuantity').removeClass('d-none').addClass('data');
-                initEditor2('.editor-container-edit');
+                initEditor('.editor-container-edit');
                 modalFooter.removeClass('d-none');
             } else {
                 //TODO gérer erreur
@@ -444,7 +444,7 @@ let ajaxEditArticle = function (select) {
 let editorNewReferenceArticleAlreadyDone = false;
 function initNewReferenceArticleEditor(modal) {
     if (!editorNewReferenceArticleAlreadyDone) {
-        initEditor2('.editor-container-new');
+        initEditor('.editor-container-new');
         editorNewReferenceArticleAlreadyDone = true;
     }
     ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseur'));
@@ -456,7 +456,7 @@ function initNewReferenceArticleEditor(modal) {
 // function initEditRefArticleEditor(modal) {
 //
 //     if (!editorEditRefArticleAlreadyDone) {
-//         initEditor(modal);
+//         initEditorInModal(modal);
 //         editorEditRefArticleAlreadyDone = true;
 //
 //     }

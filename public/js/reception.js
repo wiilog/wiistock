@@ -193,7 +193,7 @@ function updateStock(select) {
 var editorNewReceptionAlreadyDone = false;
 function initNewReceptionEditor(modal) {
     if (!editorNewReceptionAlreadyDone) {
-        initEditor(modal);
+        initEditorInModal(modal);
         editorNewReceptionAlreadyDone = true;
     }
     ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur'));
@@ -202,7 +202,7 @@ function initNewReceptionEditor(modal) {
 var editorEditReceptionAlreadyDone = false;
 function initEditReceptionEditor(modal) {
     if (!editorEditReceptionAlreadyDone) {
-        initEditor(modal);
+        initEditorInModal(modal);
         editorEditReceptionAlreadyDone = true;
     }
     ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur-edit'));
@@ -231,7 +231,7 @@ function initNewArticleEditor(modal) {
         minimumInputLength: 1,
     });
     if (!editorNewArticleAlreadyDone) {
-        initEditor(modal);
+        initEditorInModal(modal);
         editorNewArticleAlreadyDone = true;
     }
 };
@@ -239,7 +239,7 @@ function initNewArticleEditor(modal) {
 var editorEditArticleAlreadyDone = false;
 function initEditArticleEditor() {
     if (!editorEditArticleAlreadyDone) {
-        initEditor();
+        initEditorInModal();
         editorEditArticleAlreadyDone = true;
     }
 };

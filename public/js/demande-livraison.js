@@ -1,6 +1,3 @@
-// $( document ).ready(function () {
-//     $('#modalNewArticle').modal('show')
-// })
 $('.select2').select2();
 
 $('#utilisateur').select2({
@@ -196,9 +193,9 @@ let ajaxAuto = function () {
 let editorNewLivraisonAlreadyDone = false;
 function initNewLivraisonEditor(modal) {
     if (!editorNewLivraisonAlreadyDone) {
-        // initEditor(modal);
+        // initEditorInModal(modal);
         //TODO CG wysiwyg
-        initEditor2('.editor-container-new');
+        initEditor('.editor-container-new');
         editorNewLivraisonAlreadyDone = true;
     }
     ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'))
@@ -263,7 +260,7 @@ function ajaxGetAndFillArticle(select) {
             editNewArticle.html(data.modif);
             modalFooter.removeClass('d-none');
             displayRequireChamp($('#typeEdit'), 'edit');
-            initEditor2('.editor-container-edit'); //TODO CG wysiwyg
+            initEditor('.editor-container-edit'); //TODO CG wysiwyg
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
         }, 'json');
     }
@@ -300,7 +297,7 @@ let ajaxEditArticle = function (select) {
                 withdrawQuantity.find('input').attr('max', valMax);
                 withdrawQuantity.removeClass('d-none');
                 ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
-                initEditor2('.editor-container-edit');
+                initEditor('.editor-container-edit');
             } else {
                 //TODO gérer erreur
             }
