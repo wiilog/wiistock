@@ -86,9 +86,13 @@ class UtilisateurController extends Controller
                 return $this->redirectToRoute('access_denied');
             }
 
+            $password = $data['password'];
+            $password2 = $data['password2'];
             // validation du mot de passe
-            $userService->checkPassword($data['password'], $data['password2']);
-
+            $result = $this->userService->checkPassword($password,$password2);
+            if($result['response'] == false){
+                return new JsonResponse($result['message']);
+            }
             // validation de l'email
             $emailAlreadyUsed = intval($this->utilisateurRepository->countByEmail($data['email']));
 
@@ -151,14 +155,12 @@ class UtilisateurController extends Controller
             }
 
             $utilisateur = $this->utilisateurRepository->find($data['user']);
+
             $password = $data['password'];
-            if ($password !== '') {
-                // validation du mot de passe
-                $userService->checkPassword($password,$data['password2']);
-            } else {
-                if ($data['password2'] !== '') {
-                    return new JsonResponse('Les mots de passe ne correspondent pas.');
-                }
+            $password2 = $data['password2'];
+            $result = $this->userService->checkPassword($password,$password2);
+            if($result['response'] == false){
+                return new JsonResponse($result['message']);
             }
 
             // validation de l'email

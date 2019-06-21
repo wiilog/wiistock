@@ -64,7 +64,6 @@ class PasswordService
         $user = $this->utilisateurRepository->findOneByMail($to);
         $user->setToken($token);
         $this->entityManager->flush();
-//        return new JsonResponse();
     }
 
     public function generateToken($length)
@@ -77,7 +76,6 @@ class PasswordService
                 $index = rand(0, $len - 1);
                 $generated_string = $generated_string . $domain[$index];
             }
-            dump($generated_string);
         } while (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/', $generated_string));
 
         return $generated_string;

@@ -148,20 +148,28 @@ class UserService
         return $row;
     }
 
-    public function checkPassword($password, $password2): Response
+    public function checkPassword($password, $password2)
     {
         if ($password !== $password2) {
-            return new JsonResponse('Les mots de passe ne correspondent pas.');
+            $response = false;
+            $message = 'Les mots de passe ne correspondent pas.';
             //TODO gérer retour erreur propre
         }
-        if (strlen($password) < 8) {
-            return new JsonResponse('Le mot de passe doit faire au moins 8 caractères.');
+        elseif (strlen($password) < 8) {
+            $response = false;
+            $message = 'Le mot de passe doit faire au moins 8 caractères.';
             //TODO gérer retour erreur propre
         }
-        if (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/', $password)) {
-            return new JsonResponse('Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial.');
+        elseif (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/', $password)) {
+            $response = false;
+            $message = 'Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial.';
             //TODO gérer retour erreur propre
         }
+        else{
+            $response = true ;
+            $message = '';
+        }
+        return $result [] = array ('response' => $response , 'message' => $message);
     }
 }
 // $utilisateurs = $this->utilisateurRepository->findAll();

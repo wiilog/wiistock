@@ -72,7 +72,7 @@ class SecuriteController extends Controller
     /**
      * @Route("/login", name="login")
      */
-    public function login(Request $request, AuthenticationUtils $authenticationUtils)
+    public function login(AuthenticationUtils $authenticationUtils)
     {
         $error = $authenticationUtils->getLastAuthenticationError();
         $errorToDisplay = "";
@@ -188,25 +188,28 @@ class SecuriteController extends Controller
             elseif ($user->getStatus() === true) {
                 $password = $data['password'];
                 $password2 = $data['password2'];
-        dump($password);
-        dump($password2);
-                $this->userService->checkPassword($password,$password2);
-dump($data);
-                if ($password !== '') {
-                    $password = $passwordEncoder->encodePassword($user, $password);
-                    $user->setPassword($password);
-                    $user->setToken('');
+                $result = $this->userService->checkPassword($password,$password2);
 
-                    $em = $this->getDoctrine()->getManager();
-                    $em->persist($user);
-                    $em->flush();
+                if ($result['response'] == true) {
+                    if ($password !== '') {
+                        $password = $passwordEncoder->encodePassword($user, $password);
+                        $user->setPassword($password);
+                        $user->setToken('');
 
-                    return $this->render('securite/login.html.twig');
+                        $em = $this->getDoctrine()->getManager();
+                        $em->persist($user);
+                        $em->flush();
 
+                        return new JsonResponse('Votre nouveau mot de passe a bien été enregistré, cliquez sur "Retour
+                    connexion" afin de vous connecter.');
+                    }
                 }
-                else {
-                    return new JsonResponse('access_denied');
+                else  {
+                    return new JsonResponse($result['message']);
                 }
+            }
+            else {
+                return new JsonResponse('access_denied');
             }
         }
         throw new NotFoundHttpException('404');
