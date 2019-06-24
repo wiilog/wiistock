@@ -124,7 +124,7 @@ InitialiserModal(modalDeleteService, submitDeleteService, urlDeleteService, tabl
 var editorEditServiceAlreadyDone = false;
 function initEditServiceEditor(modal) {
     if (!editorEditServiceAlreadyDone) {
-        initEditor(modal);
+        initEditorInModal(modal);
         editorEditServiceAlreadyDone = true;
     }
 };
@@ -133,7 +133,7 @@ function initEditServiceEditor(modal) {
 var editorNewServiceAlreadyDone = false;
 function initNewServiceEditor(modal) {
     if (!editorNewServiceAlreadyDone) {
-        initEditor2('.editor-container-new');
+        initEditor('.editor-container-new');
         editorNewServiceAlreadyDone = true;
     }
     ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'))
