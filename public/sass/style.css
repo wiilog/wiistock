@@ -87,8 +87,11 @@ td {
   font-size: 0.8em;
 }
 
-a, a:hover, a:link, a:visited {
+a, a:link, a:visited {
   text-decoration: none;
+}
+a:hover, a:link:hover, a:visited:hover {
+  color: inherit;
 }
 
 button:focus {
