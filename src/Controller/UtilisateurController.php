@@ -7,8 +7,6 @@ use App\Entity\Utilisateur;
 use App\Repository\RoleRepository;
 use App\Repository\UtilisateurRepository;
 use App\Service\UserService;
-use Doctrine\ORM\EntityManagerInterface;
-use http\Client\Curl\User;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -16,9 +14,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
-use Symfony\Component\Serializer\Serializer;
-use Symfony\Component\Serializer\Encoder\JsonEncoder;
-use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
+
 
 /**
  * @Route("/admin/utilisateur")
@@ -40,12 +36,18 @@ class UtilisateurController extends Controller
      */
     private $userService;
 
+    /**
+	 * @var UserPasswordEncoderInterface
+	 */
+    private $encoder;
 
-    public function __construct(UtilisateurRepository $utilisateurRepository, RoleRepository $roleRepository, UserService $userService)
+
+    public function __construct(UserPasswordEncoderInterface $encoder, UtilisateurRepository $utilisateurRepository, RoleRepository $roleRepository, UserService $userService)
     {
         $this->utilisateurRepository = $utilisateurRepository;
         $this->roleRepository = $roleRepository;
         $this->userService = $userService;
+        $this->encoder = $encoder;
     }
 
     /**
@@ -79,7 +81,7 @@ class UtilisateurController extends Controller
     /**
      * @Route("/creer", name="user_new",  options={"expose"=true}, methods="GET|POST")
      */
-    public function newUser(Request $request, UserPasswordEncoderInterface $passwordEncoder, UserService $userService): Response
+    public function newUser(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::PARAM)) {
@@ -102,7 +104,7 @@ class UtilisateurController extends Controller
             }
 
             $utilisateur = new Utilisateur();
-            $password = $passwordEncoder->encodePassword($utilisateur, $data['password']);
+            $password = $this->encoder->encodePassword($utilisateur, $data['password']);
 
             $role = $this->roleRepository->find($data['role']);
             $utilisateur
@@ -147,7 +149,7 @@ class UtilisateurController extends Controller
     /**
      * @Route("/modifier", name="user_edit",  options={"expose"=true}, methods="GET|POST")
      */
-    public function edit(Request $request, UserPasswordEncoderInterface $passwordEncoder, UserService $userService): Response
+    public function edit(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::PARAM)) {
@@ -183,7 +185,7 @@ class UtilisateurController extends Controller
                 ->setUsername($data['username'])
                 ->setEmail($data['email']);
             if ($password !== '') {
-                $password = $passwordEncoder->encodePassword($utilisateur, $data['password']);
+                $password = $this->encoder->encodePassword($utilisateur, $data['password']);
                 $utilisateur->setPassword($password);
             }
 

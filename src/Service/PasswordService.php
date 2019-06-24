@@ -56,14 +56,17 @@ class PasswordService
 
     public function sendToken($token, $to)
     {
-        $this->mailerService->sendMail(
-        'FOLLOW GT // Mot de passe oublié',
-            $this->templating->render('mails/mailForgotPassword.html.twig',
-            ['token' => $token]),
-        $to);
         $user = $this->utilisateurRepository->findOneByMail($to);
-        $user->setToken($token);
-        $this->entityManager->flush();
+        if ($user) {
+        	$user->setToken($token);
+        	$this->entityManager->flush();
+
+			$this->mailerService->sendMail(
+				'FOLLOW GT // Mot de passe oublié',
+				$this->templating->render('mails/mailForgotPassword.html.twig',
+					['token' => $token]),
+				$to);
+		}
     }
 
     public function generateToken($length)
@@ -81,17 +84,17 @@ class PasswordService
         return $generated_string;
     }
 
-    public function updatePasswordUser($mail, $password)
-    {
-        $user = $this->utilisateurRepository->findOneByMail($mail);
-        if ($user) {
-            $password = $this->passwordEncoder->encodePassword($user, $password);
-            $user->setPassword($password);
-            $this->entityManager->flush();
-            $return = true;
-        } else {
-            $return = false;
-        }
-        return new JsonResponse($return);
-    }
+//    public function updatePasswordUser($mail, $password)
+//    {
+//        $user = $this->utilisateurRepository->findOneByMail($mail);
+//        if ($user) {
+//            $password = $this->passwordEncoder->encodePassword($user, $password);
+//            $user->setPassword($password);
+//            $this->entityManager->flush();
+//            $return = true;
+//        } else {
+//            $return = false;
+//        }
+//        return new JsonResponse($return);
+//    }
 }

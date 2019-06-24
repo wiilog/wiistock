@@ -8,15 +8,11 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use App\Form\UtilisateurType;
 use App\Entity\Utilisateur;
-use Symfony\Component\Form\Extension\Core\Type\PasswordType;
-use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
-use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
-use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use App\Service\PasswordService;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -70,12 +66,13 @@ class SecuriteController extends Controller
     }
 
     /**
-     * @Route("/login", name="login")
+     * @Route("/login/{info}", name="login", options={"expose"=true})
      */
-    public function login(AuthenticationUtils $authenticationUtils)
+    public function login(AuthenticationUtils $authenticationUtils, string $info = '')
     {
         $error = $authenticationUtils->getLastAuthenticationError();
         $errorToDisplay = "";
+
         // last username entered by the user
         $lastUsername = $authenticationUtils->getLastUsername();
         $user = $this->utilisateurRepository->findOneByMail($lastUsername);
@@ -88,6 +85,7 @@ class SecuriteController extends Controller
             'controller_name' => 'SecuriteController',
             'last_username' => $lastUsername,
             'error' => $errorToDisplay,
+			'info' => $info
         ]);
     }
 
@@ -113,7 +111,7 @@ class SecuriteController extends Controller
                 ->setRecherche(["Libellé", "Référence"]);
             $em->persist($user);
             $em->flush();
-            $session->getFlashBag()->add('success', 'Félicitations ! Votre nouveau compte a été créé avec succès !');
+            $session->getFlashBag()->add('success', 'Votre nouveau compte a été créé avec succès.');
 
             return $this->redirectToRoute('login');
         }
@@ -183,7 +181,7 @@ class SecuriteController extends Controller
             $token = $data['token'];
             $user = $this->utilisateurRepository->findOneByToken($token);
             if (!$user) {
-                return new JsonResponse('Cet utilisateur n\'existe pas');
+                return new JsonResponse('Le lien a expiré. Veuillez refaire une demande de renouvellement de mot de passe.');
             }
             elseif ($user->getStatus() === true) {
                 $password = $data['password'];
@@ -194,14 +192,13 @@ class SecuriteController extends Controller
                     if ($password !== '') {
                         $password = $passwordEncoder->encodePassword($user, $password);
                         $user->setPassword($password);
-                        $user->setToken('');
+                        $user->setToken(null);
 
                         $em = $this->getDoctrine()->getManager();
                         $em->persist($user);
                         $em->flush();
 
-                        return new JsonResponse('Votre nouveau mot de passe a bien été enregistré, cliquez sur "Retour
-                    connexion" afin de vous connecter.');
+                        return new JsonResponse('ok');
                     }
                 }
                 else  {
@@ -237,18 +234,21 @@ class SecuriteController extends Controller
     public function checkEmail(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $email = json_decode($request->getContent())) {
+        	$errorCode = '';
+
             $user = $this->utilisateurRepository->findOneByMail($email);
             if ($user) {
-                if ($user->getStatus() === true) {
-                    $token = $this->passwordService->generateToken(80);
-                    $this->passwordService->sendToken($token, $email);
-                }
-                else {
-                    return new JsonResponse('inactiv');
-                }
-                return new JsonResponse(false);
-            }
-            return new JsonResponse(true);
+				if ($user->getStatus()) {
+					$token = $this->passwordService->generateToken(80);
+					$this->passwordService->sendToken($token, $email);
+				} else {
+					$errorCode = 'inactiv';
+				}
+			} else {
+				$errorCode = 'mailNotFound';
+			}
+
+            return new JsonResponse($errorCode);
         }
         throw new NotFoundHttpException('404');
     }

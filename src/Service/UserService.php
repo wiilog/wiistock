@@ -17,8 +17,6 @@ use App\Repository\ActionRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\RoleRepository;
 use Symfony\Component\Security\Core\Security;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Response;
 
 
 class UserService
@@ -149,22 +147,23 @@ class UserService
         if ($password !== $password2) {
             $response = false;
             $message = 'Les mots de passe ne correspondent pas.';
-            //TODO gérer retour erreur propre
         }
         elseif (strlen($password) < 8) {
             $response = false;
             $message = 'Le mot de passe doit faire au moins 8 caractères.';
-            //TODO gérer retour erreur propre
         }
         elseif (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/', $password)) {
             $response = false;
             $message = 'Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial.';
-            //TODO gérer retour erreur propre
         }
         else{
             $response = true ;
             $message = '';
         }
-        return $result [] = array ('response' => $response , 'message' => $message);
+
+        return [
+        	'response' => $response,
+			'message' => $message
+		];
     }
 }
