@@ -295,7 +295,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 
         $data = [
             'emplacements' => $this->emplacementRepository->getIdAndNom(),
-            'articles' => array_merge($articles, $articlesRef) //TODO CG provisoire pour éviter charger trop de données sur mobile en phase test
+            'articles' => array_merge($articles, $articlesRef)
         ];
         return $data;
     }

@@ -313,7 +313,7 @@ function displayNewFilter(data) {
 
 // suppression du filtre au clic dessus
 function initRemove() {
-    // $('.filter-bloc').on('click', removeFilter); //TODO CG filtres et/ou
+    // $('.filter-bloc').on('click', removeFilter); //TODO filtres et/ou
     $('.filter').on('click', removeFilter);
 }
 
@@ -429,7 +429,7 @@ let ajaxEditArticle = function (select) {
             if (dataReponse) {
                 $('.editChampLibre').html(dataReponse);
                 ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
-                displayRequireChamp(select.closest('.modal').find('#type'), 'edit'); //TODO CG à bien tester
+                displayRequireChamp(select.closest('.modal').find('#type'), 'edit');
                 $('#livraisonShow').find('#withdrawQuantity').removeClass('d-none').addClass('data');
                 initEditor('.editor-container-edit');
                 modalFooter.removeClass('d-none');
