@@ -12,6 +12,7 @@ use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategoryType;
 use App\Entity\Menu;
+use App\Entity\ParamClient;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
 use App\Entity\ValeurChampsLibre;
@@ -113,9 +114,14 @@ class ArticleDataService
      */
     private $router;
 
+	/**
+	 * @var SpecificService
+	 */
+    private $specificService;
+
     private $em;
 
-    public function __construct(EmplacementRepository $emplacementRepository, RouterInterface $router, UserService $userService, CategorieCLRepository $categorieCLRepository, RefArticleDataService $refArticleDataService, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, TypeRepository  $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampsLibreRepository $champsLibreRepository, FilterRepository $filterRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
+    public function __construct(SpecificService $specificService, EmplacementRepository $emplacementRepository, RouterInterface $router, UserService $userService, CategorieCLRepository $categorieCLRepository, RefArticleDataService $refArticleDataService, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, TypeRepository  $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampsLibreRepository $champsLibreRepository, FilterRepository $filterRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
     {
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->articleRepository = $articleRepository;
@@ -133,6 +139,7 @@ class ArticleDataService
         $this->userService = $userService;
         $this->router = $router;
         $this->emplacementRepository = $emplacementRepository;
+        $this->specificService = $specificService;
     }
 
     /**
@@ -327,10 +334,13 @@ class ArticleDataService
 
     public function editArticle($data)
     {
-        // spécifique CEA : accès pour tous au champ libre 'Code projet'
-        //        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
-        //            return new RedirectResponse($this->router->generate('access_denied'));
-        //        }
+		// spécifique CEA : accès pour tous au champ libre 'Code projet'
+		$isCea = $this->specificService->isCurrentClientNameFunction(ParamClient::CEA_LETI);
+		if (!$isCea) {
+			if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
+				return new RedirectResponse($this->router->generate('access_denied'));
+			}
+		}
 
         $entityManager = $this->em;
         $article = $this->articleRepository->find($data['article']);
@@ -342,8 +352,20 @@ class ArticleDataService
                     ->setQuantite($data['quantite'] ? $data['quantite'] : 0)
                     ->setCommentaire($data['commentaire']);
 
-                if (isset($data['statut'])) {
-                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $data['statut']);
+                if (isset($data['statut'])) { // si on est dans une demande (livraison ou collecte), pas de champ statut
+                    switch (intval($data['statut'])) {
+                        case 0:
+                            $statutLabel = Article::STATUT_INACTIF;
+                            break;
+                        case 1:
+                            $statutLabel = Article::STATUT_ACTIF;
+                            break;
+                        case 2:
+                            $statutLabel = Article::STATUT_EN_TRANSIT;
+                            break;
+                    }
+
+                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $statutLabel);
                     if ($statut) $article->setStatut($statut);
                 }
                 if ($data['emplacement']) {
@@ -355,8 +377,10 @@ class ArticleDataService
             foreach ($champsLibreKey as $champ) {
                 if (gettype($champ) === 'integer') {
                     // spécifique CEA : accès pour tous au champ libre 'Code projet'
+					$isCea = $this->specificService->isCurrentClientNameFunction(ParamClient::CEA_LETI);
+
                     $champLibre = $this->champsLibreRepository->find($champ);
-                    if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT) || $champLibre->getLabel() == 'Code projet') {
+                    if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT) || ($isCea && strtolower($champLibre->getLabel()) == 'code projet')) {
                         $valeurChampLibre = $this->valeurChampsLibreRepository->findOneByArticleANDChampsLibre($article->getId(), $champ);
                         if (!$valeurChampLibre) {
                             $valeurChampLibre = new ValeurChampsLibre();

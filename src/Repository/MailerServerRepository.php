@@ -19,7 +19,7 @@ class MailerServerRepository extends ServiceEntityRepository
         parent::__construct($registry, MailerServer::class);
     }
 
-    public function  getOneMailerServer()
+    public function findOneMailerServer()
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(

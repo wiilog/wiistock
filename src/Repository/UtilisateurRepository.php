@@ -105,7 +105,7 @@ class UtilisateurRepository extends ServiceEntityRepository implements UserLoade
         return $query->getSingleScalarResult();
     }
 
-    public function getByMail($mail)
+    public function findOneByMail($mail)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
@@ -113,6 +113,17 @@ class UtilisateurRepository extends ServiceEntityRepository implements UserLoade
             FROM App\Entity\Utilisateur u
             WHERE u.email = :email"
         )->setParameter('email', $mail);
+
+        return $query->getOneOrNullResult();
+    }
+    public function findOneByToken($token)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT u
+            FROM App\Entity\Utilisateur u
+            WHERE u.token = :token"
+        )->setParameter('token', $token);
 
         return $query->getOneOrNullResult();
     }

@@ -110,61 +110,25 @@ let submitDeleteArticle = $("#submitDeleteArticle");
 let urlDeleteArticle = Routing.generate('collecte_remove_article', true);
 InitialiserModal(modalDeleteArticle, submitDeleteArticle, urlDeleteArticle, tableArticle);
 
-// $('.ajax-autocomplete').select2({
-//     ajax: {
-//         url: Routing.generate('get_ref_articles'),
-//         dataType: 'json',
-//         delay: 250,
-//     },
-//     language: {
-//         inputTooShort: function() {
-//             return 'Veuillez entrer au moins 1 caractère.';
-//         },
-//         searching: function() {
-//             return 'Recherche en cours...';
-//         },
-//         noResults: function() {
-//             return 'Aucun résultat.';
-//         }
-//     },
-//     minimumInputLength: 1,
-// });
-
-// function ajaxGetArticle(select) {
-//     xhttp = new XMLHttpRequest();
-//     xhttp.onreadystatechange = function () {
-//         if (this.readyState == 4 && this.status == 200) {
-//             data = JSON.parse(this.responseText);
-//            $('#newContent').html(data);
-//            $('#modalNewArticle').find('div').find('div').find('.modal-footer').removeClass('d-none');
-//         }
-//     }
-//     path =  Routing.generate('get_article_by_refArticle', true)
-//     let data = {};
-//     data['referenceArticle'] = select.val();
-//     json = JSON.stringify(data);
-//     xhttp.open("POST", path, true);
-//     xhttp.send(json);
-// }
-
 function ajaxGetCollecteArticle(select) {
-    let selection = $('#selection');
-    let editNewArticle = $('#editNewArticle');
+    let $selection = $('#selection');
+    let $editNewArticle = $('#editNewArticle');
+    let modalNewArticle = '#modalNewArticle';
     xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
             data = JSON.parse(this.responseText);
-            selection.html(data.selection);
-            if (data.modif) editNewArticle.html(data.modif);
-            $('#modalNewArticle').find('.modal-footer').removeClass('d-none');
+            $selection.html(data.selection);
+            if (data.modif) $editNewArticle.html(data.modif);
+            $(modalNewArticle).find('.modal-footer').removeClass('d-none');
             displayRequireChamp(select.closest('.modal').find('#type'), 'edit');
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
-            initEditor2('.editor-container-edit');
+            initEditor(modalNewArticle + ' .editor-container-edit');
         }
     }
     path = Routing.generate('get_collecte_article_by_refArticle', true)
-    selection.html('');
-    editNewArticle.html('');
+    $selection.html('');
+    $editNewArticle.html('');
     let data = {};
     data['referenceArticle'] = $(select).val();
     json = JSON.stringify(data);
@@ -179,22 +143,11 @@ function deleteRowCollecte(button, modal, submit) {
     modal.find(submit).attr('name', name);
 }
 
-
-//initialisation editeur de texte une seule fois à l'édit
-let editorEditCollecteAlreadyDone = false;
-function initEditCollecteEditor(modal) {
-    if (!editorEditCollecteAlreadyDone) {
-        initEditor(modal);
-        editorEditCollecteAlreadyDone = true;
-    }
-};
-
-
 //initialisation editeur de texte une seule fois à la création
 let editorNewCollecteAlreadyDone = false;
 function initNewCollecteEditor(modal) {
     if (!editorNewCollecteAlreadyDone) {
-        initEditor(modal);
+        initEditorInModal(modal);
         editorNewCollecteAlreadyDone = true;
     }
     ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'))
@@ -202,7 +155,6 @@ function initNewCollecteEditor(modal) {
 
 $('#submitSearchCollecte').on('click', function () {
     let statut = $('#statut').val();
-    // let demandeur = [];
     let demandeur = $('#utilisateur').val()
     let demandeurString = demandeur.toString();
     let demandeurPiped = demandeurString.split(',').join('|')
@@ -244,20 +196,20 @@ $('#submitSearchCollecte').on('click', function () {
         .draw();
 });
 
-function destinationCollecte(button) {
-    let sel = $(button).data('title');
-    let tog = $(button).data('toggle');
-    if ($(button).hasClass('not-active')) {
-        if ($("#destination").val() == "0") {
-            $("#destination").val("1");
-        } else {
-            $("#destination").val("0");
-        }
-    }
-
-    $('span[data-toggle="' + tog + '"]').not('[data-title="' + sel + '"]').removeClass('active').addClass('not-active');
-    $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
-}
+// function destinationCollecte(button) {
+//     let sel = $(button).data('title');
+//     let tog = $(button).data('toggle');
+//     if ($(button).hasClass('not-active')) {
+//         if ($("#destination").val() == "0") {
+//             $("#destination").val("1");
+//         } else {
+//             $("#destination").val("0");
+//         }
+//     }
+//
+//     $('span[data-toggle="' + tog + '"]').not('[data-title="' + sel + '"]').removeClass('active').addClass('not-active');
+//     $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
+// }
 
 function validateCollecte(collecteId) {
     let params = JSON.stringify({ id: collecteId });
@@ -280,7 +232,7 @@ let ajaxEditArticle = function (select) {
                 $('#editNewArticle').html(dataReponse);
                 // displayRequireChamp($('#typeEditArticle'), 'edit');
                 ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
-                initEditor2('.editor-container-edit');
+                initEditor('.editor-container-edit');
             } else {
                 //TODO gérer erreur
             }

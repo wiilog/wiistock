@@ -11,6 +11,7 @@ namespace App\Twig;
 use App\Entity\Action;
 use App\Repository\ActionRepository;
 use App\Repository\RoleRepository;
+use App\Service\SpecificService;
 use App\Service\UserService;
 use Twig\TwigFilter;
 use Twig\TwigFunction;
@@ -33,18 +34,25 @@ class AppExtension extends AbstractExtension
      */
     private $roleRepository;
 
+	/**
+	 * @var SpecificService
+	 */
+    private $specificService;
 
-    public function __construct(UserService $userService, ActionRepository $actionRepository, RoleRepository $roleRepository)
+
+    public function __construct(SpecificService $specificService, UserService $userService, ActionRepository $actionRepository, RoleRepository $roleRepository)
     {
         $this->userService = $userService;
         $this->actionRepository = $actionRepository;
         $this->roleRepository = $roleRepository;
+        $this->specificService = $specificService;
     }
 
     public function getFunctions()
     {
         return [
-            new TwigFunction('hasRight', [$this, 'hasRightFunction'])
+            new TwigFunction('hasRight', [$this, 'hasRightFunction']),
+            new TwigFunction('isCurrentClient', [$this, 'isCurrentClientNameFunction'])
         ];
     }
 
@@ -59,6 +67,11 @@ class AppExtension extends AbstractExtension
     {
 		return $this->userService->hasRightFunction($menuCode, $actionLabel);
     }
+
+    public function isCurrentClientNameFunction(string $clientName)
+	{
+		return $this->specificService->isCurrentClientNameFunction($clientName);
+	}
 
     public function withoutExtensionFilter(string $filename)
 	{

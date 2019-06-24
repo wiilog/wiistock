@@ -8,27 +8,30 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use App\Form\UtilisateurType;
 use App\Entity\Utilisateur;
-use Symfony\Component\Form\Extension\Core\Type\PasswordType;
-use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
-use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
-use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use App\Service\PasswordService;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use App\Repository\UtilisateurRepository;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use App\Service\UserService;
+
 
 class SecuriteController extends Controller
 {
     /**
+     * @var UserPasswordEncoderInterface
+     */
+    private $passwordService;
+
+    /**
      * @var PasswordService
      */
-    private $psservice;
+    private $passwordEncoder;
 
     /**
      * @var RoleRepository
@@ -40,12 +43,18 @@ class SecuriteController extends Controller
      */
     private $utilisateurRepository;
 
+    /**
+     * @var UserService
+     */
+    private $userService;
 
-    public function __construct(UtilisateurRepository $utilisateurRepository, PasswordService $psservice, RoleRepository $roleRepository)
+    public function __construct(UtilisateurRepository $utilisateurRepository, PasswordService $passwordService, RoleRepository $roleRepository, UserService $userService, UserPasswordEncoderInterface $passwordEncoder)
     {
         $this->utilisateurRepository = $utilisateurRepository;
-        $this->psservice = $psservice;
+        $this->passwordService = $passwordService;
         $this->roleRepository = $roleRepository;
+        $this->userService = $userService;
+        $this->passwordEncoder = $passwordEncoder;
     }
 
     /**
@@ -57,15 +66,16 @@ class SecuriteController extends Controller
     }
 
     /**
-     * @Route("/login", name="login")
+     * @Route("/login/{info}", name="login", options={"expose"=true})
      */
-    public function login(Request $request, AuthenticationUtils $authenticationUtils)
+    public function login(AuthenticationUtils $authenticationUtils, string $info = '')
     {
         $error = $authenticationUtils->getLastAuthenticationError();
         $errorToDisplay = "";
+
         // last username entered by the user
         $lastUsername = $authenticationUtils->getLastUsername();
-        $user = $this->utilisateurRepository->getByMail($lastUsername);
+        $user = $this->utilisateurRepository->findOneByMail($lastUsername);
         if ($user && $user->getStatus() === false) {
             $errorToDisplay = 'Utilisateur inactif.';
         } else if ($error) {
@@ -75,6 +85,7 @@ class SecuriteController extends Controller
             'controller_name' => 'SecuriteController',
             'last_username' => $lastUsername,
             'error' => $errorToDisplay,
+			'info' => $info
         ]);
     }
 
@@ -100,7 +111,7 @@ class SecuriteController extends Controller
                 ->setRecherche(["Libellé", "Référence"]);
             $em->persist($user);
             $em->flush();
-            $session->getFlashBag()->add('success', 'Félicitations ! Votre nouveau compte a été créé avec succès !');
+            $session->getFlashBag()->add('success', 'Votre nouveau compte a été créé avec succès.');
 
             return $this->redirectToRoute('login');
         }
@@ -152,45 +163,53 @@ class SecuriteController extends Controller
     }
 
     /**
-     * @Route("/change_password", name="change_password")
+     * @Route("/change-password", name="change_password", options={"expose"=true}, methods="GET|POST")
      */
-    public function change_password(EntityManagerInterface $em, Request $request, UserPasswordEncoderInterface $passwordEncoder)
+    public function change_password(Request $request)
     {
-        $session = $request->getSession();
-        $user = $this->getUser();
-        $form = $this->createFormBuilder()
-            ->add('password', PasswordType::class, array(
-                'label' => 'Mot de Passe actuel',
-            ))
-            ->add('plainPassword', RepeatedType::class, array(
-                'type' => PasswordType::class,
-                'first_options' => array('label' => 'Nouveau Mot de Passe'),
-                'second_options' => array('label' => 'Confirmer Nouveau Mot de Passe'),
-            ))
-            ->add('modifier', SubmitType::class)
-            ->getForm();
+        $token = $request->get('token');
+        return $this->render('securite/change_password.html.twig', ['token' => $token]);
+    }
 
-        $form->handleRequest($request);
+    /**
+     * @Route("/change-password-in-bdd", name="change_password_in_bdd", options={"expose"=true}, methods="GET|POST")
+     */
+    public function change_password_in_bdd(Request $request,  UserPasswordEncoderInterface $passwordEncoder) : Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $data = $form->getData();
-            if ($passwordEncoder->isPasswordValid($user, $data['password'])) {
-                $new_password = $passwordEncoder->encodePassword($user, $data['plainPassword']);
-                $user->setPassword($new_password);
-                $em->persist($user);
-                $em->flush();
-                $session->getFlashBag()->add('success', 'Le mot de passe a bien été modifié');
+            $token = $data['token'];
+            $user = $this->utilisateurRepository->findOneByToken($token);
+            if (!$user) {
+                return new JsonResponse('Le lien a expiré. Veuillez refaire une demande de renouvellement de mot de passe.');
+            }
+            elseif ($user->getStatus() === true) {
+                $password = $data['password'];
+                $password2 = $data['password2'];
+                $result = $this->userService->checkPassword($password,$password2);
 
-                return $this->redirectToRoute('check_last_login');
-            } else {
-                $session->getFlashBag()->add('danger', 'Mot de passe invalide');
+                if ($result['response'] == true) {
+                    if ($password !== '') {
+                        $password = $passwordEncoder->encodePassword($user, $password);
+                        $user->setPassword($password);
+                        $user->setToken(null);
+
+                        $em = $this->getDoctrine()->getManager();
+                        $em->persist($user);
+                        $em->flush();
+
+                        return new JsonResponse('ok');
+                    }
+                }
+                else  {
+                    return new JsonResponse($result['message']);
+                }
+            }
+            else {
+                return new JsonResponse('access_denied');
             }
         }
-
-        return $this->render('securite/change_password.html.twig', [
-            'controller_name' => 'SecuriteController',
-            'form' => $form->createView(),
-        ]);
+        throw new NotFoundHttpException('404');
     }
 
     /**
@@ -215,16 +234,21 @@ class SecuriteController extends Controller
     public function checkEmail(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $email = json_decode($request->getContent())) {
-            $user = $this->utilisateurRepository->getByMail($email);
+        	$errorCode = '';
+
+            $user = $this->utilisateurRepository->findOneByMail($email);
             if ($user) {
-                if ($user->getStatus() === true) {
-                    $this->psservice->sendNewPassword($email);
-                } else {
-                    return new JsonResponse('inactiv');
-                }
-                return new JsonResponse(false);
-            }
-            return new JsonResponse(true);
+				if ($user->getStatus()) {
+					$token = $this->passwordService->generateToken(80);
+					$this->passwordService->sendToken($token, $email);
+				} else {
+					$errorCode = 'inactiv';
+				}
+			} else {
+				$errorCode = 'mailNotFound';
+			}
+
+            return new JsonResponse($errorCode);
         }
         throw new NotFoundHttpException('404');
     }

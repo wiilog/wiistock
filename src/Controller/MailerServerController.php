@@ -44,7 +44,7 @@ class MailerServerController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
-        $mailerServer =  $this->mailerServerRepository->getOneMailerServer();
+        $mailerServer =  $this->mailerServerRepository->findOneMailerServer();
         return $this->render('mailer_server/index.html.twig', [
             'mailerServer' => $mailerServer
         ]);
@@ -62,7 +62,7 @@ class MailerServerController extends AbstractController
             }
 
             $em = $this->getDoctrine()->getEntityManager();
-            $mailerServer =  $this->mailerServerRepository->getOneMailerServer();
+            $mailerServer =  $this->mailerServerRepository->findOneMailerServer();
             if ($mailerServer === null) {
                 $mailerServerNew = new MailerServer;
                 $mailerServerNew

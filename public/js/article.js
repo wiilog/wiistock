@@ -45,7 +45,7 @@ InitialiserModalArticle(modalDeleteArticle, submitDeleteArticle, urlDeleteArticl
 // var editorEditArticleAlreadyDone = false;
 // function initEditArticleEditor(modal) {
 //     if (!editorEditArticleAlreadyDone) {
-//         initEditor(modal);
+//         initEditorInModal(modal);
 //         editorEditArticleAlreadyDone = true;
 //     }
 // };
@@ -171,7 +171,7 @@ function init() {
     ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseur'));
 }
 function initNewArticleEditor(modal) {
-    initEditor2('.editor-container-new');
+    initEditor('.editor-container-new');
 };
 
 function loadAndDisplayInfos(select) {
