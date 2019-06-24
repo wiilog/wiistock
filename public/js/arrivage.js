@@ -38,9 +38,15 @@ let editorNewArrivageAlreadyDone = false;
 function initNewArrivageEditor(modal) {
     if (!editorNewArrivageAlreadyDone) {
         initEditor(modal + ' .editor-container-new');
+        $('.select2').select2();
+        console.log(editorNewArrivageAlreadyDone, 't0');
         editorNewArrivageAlreadyDone = true;
     }
+console.log($('.select2').select2())
+    console.log(editorNewArrivageAlreadyDone, 't1');
 };
+
+
 
 let modalNewArrivage = $("#modalNewArrivage");
 let submitNewArrivage = $("#submitNewArrivage");

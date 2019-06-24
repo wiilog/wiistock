@@ -255,8 +255,6 @@ function initEditor(div) {
 
     // protection pour éviter erreur console si l'élément n'existe pas dans le DOM
     if($(div).length) {
-        console.log('init');
-        console.log(div);
         new Quill(div, {
             modules: {
                 toolbar: [
@@ -274,7 +272,6 @@ function initEditor(div) {
             theme: 'snow'
         });
     }
-
 };
 
 //passe de l'éditeur à l'input pour insertion en BDD par la classe editor-container
