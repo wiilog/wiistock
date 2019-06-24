@@ -86,6 +86,7 @@
         <div class='d-block' id="{{typeArticle}}-edit">
             <div class="row mt-2">
                 {% for champLibre in typeChampsLibres.champsLibres %}
+                    {# cas général #}
                     {% if champLibre.requiredEdit and hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
                         {% set needed = 'needed' %}
                     {% else %}
@@ -94,10 +95,11 @@
 
                     <div class="form-group col-6">
 
-                    {#spécifique CEA : accès pour tous au champ libre 'Code projet' #}
+                    {# spécifique CEA : accès pour tous au champ libre 'Code projet' #}
                     {% if isCurrentClient(constant('App\\Entity\\ParamClient::CEA_LETI')) %}
                         {% if champLibre.label|lower == 'code projet' %}
                             {% set disabled = '' %}
+                            {% set needed = champLibre.requiredEdit ? 'needed' : '' %}
                         {% else %}
                             {% set disabled = editable ? '' : 'disabled' %}
                         {% endif %}
@@ -164,5 +166,3 @@
         </div>
     </div>
 </div>
-
-<div class="error-msg"></div>
