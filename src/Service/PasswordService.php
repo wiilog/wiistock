@@ -53,45 +53,48 @@ class PasswordService
         $this->templating = $templating;
     }
 
-    public function sendNewPassword($to)
+
+    public function sendToken($token, $to)
     {
-        $newPass = $this->generatePassword(10);
-        if ($this->updateUser($to, $newPass) === 1) {
-            $this->mailerService->sendMail(
-                'FOLLOW GT // Mot de passe oublié',
-                $this->templating->render('mails/mailForgotPassword.html.twig', ['password' => $newPass]),
-                $to);
-        }
+        $user = $this->utilisateurRepository->findOneByMail($to);
+        if ($user) {
+        	$user->setToken($token);
+        	$this->entityManager->flush();
+
+			$this->mailerService->sendMail(
+				'FOLLOW GT // Mot de passe oublié',
+				$this->templating->render('mails/mailForgotPassword.html.twig',
+					['token' => $token]),
+				$to);
+		}
     }
 
-    private function generatePassword($length)
+    public function generateToken($length)
     {
-        $generated_string = '';
         do {
-            $generated_string = '&';
+            $generated_string = '';
             $domain = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
             $len = strlen($domain);
             for ($i = 0; $i < $length; ++$i) {
                 $index = rand(0, $len - 1);
                 $generated_string = $generated_string . $domain[$index];
             }
-        } while (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/', $generated_string));
+        } while (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d]{8,}$/', $generated_string));
 
         return $generated_string;
     }
 
-    private function updateUser($mail, $newPass)
-    {
-        $user = $this->utilisateurRepository->getByMail($mail);
-        if ($user !== null) {
-            $password = $this->passwordEncoder->encodePassword($user, $newPass);
-            $user->setPassword($password);
-            $this->entityManager->persist($user);
-            $this->entityManager->flush();
-
-            return 1;
-        } else {
-            return new JsonResponse('Adresse email inconnue.');
-        }
-    }
+//    public function updatePasswordUser($mail, $password)
+//    {
+//        $user = $this->utilisateurRepository->findOneByMail($mail);
+//        if ($user) {
+//            $password = $this->passwordEncoder->encodePassword($user, $password);
+//            $user->setPassword($password);
+//            $this->entityManager->flush();
+//            $return = true;
+//        } else {
+//            $return = false;
+//        }
+//        return new JsonResponse($return);
+//    }
 }
