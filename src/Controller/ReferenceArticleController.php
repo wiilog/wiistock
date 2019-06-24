@@ -999,4 +999,18 @@ class ReferenceArticleController extends Controller
         return implode(';', $refData);
     }
 
+	/**
+	 * @Route("/type-quantite", name="get_quantity_type", options={"expose"=true}, methods="GET|POST")
+	 */
+    public function getQuantityType(Request $request)
+	{
+		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			$reference = $this->referenceArticleRepository->find($data['id']);
+
+			$quantityType = $reference ? $reference->getTypeQuantite() : '';
+
+			return new JsonResponse($quantityType);
+		}
+		throw new NotFoundHttpException('404');
+	}
 }

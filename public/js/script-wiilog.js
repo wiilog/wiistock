@@ -207,7 +207,7 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
                 defaultValueForTypage($('#typageModif'), '-edit');
             }
 
-            displayRequireChamp(modal.find('#typeEdit'), 'edit');
+            toggleRequiredChampsLibres(modal.find('#typeEdit'), 'edit');
 
             if (setMaxQuantity) setMaxQuantityEdit($('#referenceEdit'));
             if (editorToInit) initEditor(editor);
@@ -253,8 +253,6 @@ function initEditor(div) {
 
     // protection pour éviter erreur console si l'élément n'existe pas dans le DOM
     if($(div).length) {
-        console.log('init');
-        console.log(div);
         new Quill(div, {
             modules: {
                 toolbar: [
@@ -441,14 +439,14 @@ function clearNewContent(button) {
     $('#reference').html('');
 }
 
-let displayRequireChamp = function (select, require) {
+let toggleRequiredChampsLibres = function (select, require) {
     let bloc = require == 'create' ? $('#typeContentNew') : $('#typeContentEdit'); //TODO pas top
     bloc.find('.data').removeClass('needed');
 
     let params = {};
     if (select.val()) {
         params[require] = select.val();
-        let path = Routing.generate('display_require_champ', true);
+        let path = Routing.generate('display_required_champs_libres', true);
 
         $.post(path, JSON.stringify(params), function (data) {
             if (data) {

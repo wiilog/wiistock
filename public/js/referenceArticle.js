@@ -429,7 +429,7 @@ let ajaxEditArticle = function (select) {
             if (dataReponse) {
                 $('.editChampLibre').html(dataReponse);
                 ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
-                displayRequireChamp(select.closest('.modal').find('#type'), 'edit');
+                toggleRequiredChampsLibres(select.closest('.modal').find('#type'), 'edit');
                 $('#livraisonShow').find('#withdrawQuantity').removeClass('d-none').addClass('data');
                 initEditor('.editor-container-edit');
                 modalFooter.removeClass('d-none');
@@ -546,14 +546,25 @@ function setMaxQuantityByArtRef(input) {
     input.attr('max', val);
 }
 
+function initRequiredChampsFixes(button) {
+    let params = {id: button.data('id')};
+    let path = Routing.generate('get_quantity_type');
 
-function toggleRadioButtonNeeded(button) {
-    if (button.data('title') === 'article') {
+    $.post(path, JSON.stringify(params), function(data) {
+        displayRequiredChampsFixesByTypeQuantite(data)
+    }, 'json');
+}
+
+function toggleRequiredChampsFixes(button) {
+    displayRequiredChampsFixesByTypeQuantite(button.data('title'));
+}
+
+function displayRequiredChampsFixesByTypeQuantite(typeQuantite) {
+    if (typeQuantite === 'article') {
         $('#quantite').removeClass('needed');
         $('#emplacement').removeClass('needed');
         $('#type_quantite').val('article');
-    }
-    else {
+    } else {
         $('#quantite').addClass('needed');
         $('#emplacement').addClass('needed');
         $('#type_quantite').val('reference');
