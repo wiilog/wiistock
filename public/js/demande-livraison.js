@@ -260,7 +260,7 @@ function ajaxGetAndFillArticle(select) {
             editNewArticle.html(data.modif);
             modalFooter.removeClass('d-none');
             displayRequireChamp($('#typeEdit'), 'edit');
-            initEditor('.editor-container-edit'); //TODO CG wysiwyg
+            initEditor('#modalNewArticle .editor-container-edit');
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
         }, 'json');
     }
@@ -297,7 +297,7 @@ let ajaxEditArticle = function (select) {
                 withdrawQuantity.find('input').attr('max', valMax);
                 withdrawQuantity.removeClass('d-none');
                 ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
-                initEditor('.editor-container-edit');
+                initEditor('#modalNewArticle .editor-container-edit');
             } else {
                 //TODO gérer erreur
             }
