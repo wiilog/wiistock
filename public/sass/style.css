@@ -221,6 +221,7 @@ a:hover {
   margin: 30px 0;
   text-align: center;
   font-size: 32px;
+  line-height: 30px;
 }
 
 .login-wrapper .box-login {
