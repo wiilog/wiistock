@@ -193,9 +193,7 @@ let ajaxAuto = function () {
 let editorNewLivraisonAlreadyDone = false;
 function initNewLivraisonEditor(modal) {
     if (!editorNewLivraisonAlreadyDone) {
-        // initEditorInModal(modal);
-        //TODO CG wysiwyg
-        initEditor('.editor-container-new');
+        initEditorInModal(modal);
         editorNewLivraisonAlreadyDone = true;
     }
     ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'))
