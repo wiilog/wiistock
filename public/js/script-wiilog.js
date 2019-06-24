@@ -173,13 +173,11 @@ function deleteRow(button, modal, submit) {
  * 
  */
 function showRow(button, path, modal) {
-    
     let id = button.data('id');
     let params = JSON.stringify(id);
     $.post(path, params, function (data) {
         modal.find('.modal-body').html(data);
     }, 'json');
-
 }
 
 
