@@ -144,14 +144,14 @@ function deleteRowCollecte(button, modal, submit) {
 }
 
 
-//initialisation editeur de texte une seule fois à l'édit
-let editorEditCollecteAlreadyDone = false;
-function initEditCollecteEditor(modal) {
-    if (!editorEditCollecteAlreadyDone) {
-        initEditor(modal);
-        editorEditCollecteAlreadyDone = true;
-    }
-};
+// //initialisation editeur de texte une seule fois à l'édit
+// let editorEditCollecteAlreadyDone = false;
+// function initEditCollecteEditor(modal) {
+//     if (!editorEditCollecteAlreadyDone) {
+//         initEditor(modal);
+//         editorEditCollecteAlreadyDone = true;
+//     }
+// };
 
 //initialisation editeur de texte une seule fois à la création
 let editorNewCollecteAlreadyDone = false;
