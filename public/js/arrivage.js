@@ -8,15 +8,17 @@ $('#utilisateur').select2({
 
 let pathArrivage = Routing.generate('arrivage_api', true);
 let tableArrivage = $('#tableArrivages').DataTable({
-    "language": {
+    language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
-    "order": [[0, "desc"]],
+    order: [[0, "desc"]],
+    scrollX: true,
     ajax: {
         "url": pathArrivage,
         "type": "POST"
     },
     columns: [
+        { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' },
         { "data": "NumeroArrivage", 'name': 'NumeroArrivage', 'title': "N° d'arrivage" },
         { "data": 'Transporteur', 'name': 'Transporteur', 'title': 'Transporteur' },
         { "data": 'Chauffeur', 'name': 'Chauffeur', 'title': 'Chauffeur' },
@@ -29,7 +31,6 @@ let tableArrivage = $('#tableArrivages').DataTable({
         { "data": 'Statut', 'name': 'Statut', 'title': 'Statut' },
         { "data": 'Date', 'name': 'Date', 'title': 'Date' },
         { "data": 'Utilisateur', 'name': 'Utilisateur', 'title': 'Utilisateur' },
-        { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' },
     ],
 
 });
