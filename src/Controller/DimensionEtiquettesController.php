@@ -62,7 +62,7 @@ class DimensionEtiquettesController extends AbstractController
             }
             $em = $this->getDoctrine()->getEntityManager();
             $dimensions =  $this->dimensionsEtiquettesRepository->findOneDimension();
-            if ($dimensions === null) {
+            if (!$dimensions) {
                 $dimensions = new DimensionsEtiquettes();
                 $em->persist($dimensions);
             }

@@ -235,7 +235,7 @@ class ArrivageController extends AbstractController
             $response = [];
             $response['refs'] = [];
             $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
-            if ($dimension) {
+            if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth())) {
                 $response['height'] = $dimension->getHeight();
                 $response['width'] = $dimension->getWidth();
                 $response['arrivage'] = $numeroArrivage;
