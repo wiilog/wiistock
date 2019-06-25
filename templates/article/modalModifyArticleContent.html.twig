@@ -1,5 +1,10 @@
 {% set editable = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
 {% set disabled = editable ? '' : 'disabled' %}
+{% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+    {% set needed = 'needed' %}
+{% else %}
+    {% set needed = '' %}
+{% endif %}
 
 <div class="row">
     <div class="form-group col-6">
@@ -12,11 +17,12 @@
         <select disabled class="form-control data" name="type" id="type">
             <option value="{{ typeArticleId }}">{{ typeArticle }}</option>
         </select>
-        {#TODO CG vérifier impact value label->id#}
     </div>
     <div class="form-group col-6">
         <label for="quantité">Quantité</label>
-        <input {{ disabled }} class="form-control data needed" type="number" min="0" name="quantite" id="quantite"
+        {# si on est sur une demande, la quantité ne doit pas être modifiéD #}
+        {% set disabledOnDemand = isADemand ? 'disabled' : disabled %}
+        <input {{ disabledOnDemand }} class="form-control data {{ needed }}" type="number" min="0" name="quantite" id="quantite"
             value="{{article.quantite}}">
     </div>
     <div class="form-group col-6 w-100">
@@ -65,7 +71,7 @@
             <label for="commentaire">Commentaire</label>
             <input {{ disabled }} id="commentaire" class="form-control  data" type="hidden" name="commentaire"
                 value="{{article.commentaire}}">
-            <div class="editor-container-edit form-control comment" id="editor-container-edit">
+            <div class="editor-container-edit form-control comment">
                 {{article.commentaire|raw}}</div>
         </div>
     </div>
@@ -79,15 +85,26 @@
         </h3>
     </div>
     <div class="form-group col-12 blocVisible d-block" id='typeEdit'>
-        {#TODO CG vérifier impact typeContentEdit->typeEdit#}
         <div class='d-block' id="{{typeArticle}}-edit">
             <div class="row mt-2">
                 {% for champLibre in typeChampsLibres.champsLibres %}
-                {% set needed = champLibre.requiredEdit ? 'needed' : '' %}
-                <div class="form-group col-6">
-                    {#TODO spécifique CEA : accès pour tous au champ libre 'Code projet' #}
-                    {% if champLibre.label|lower == 'code projet' %}
-                    {% set disabled = '' %}
+                    {# cas général #}
+                    {% if champLibre.requiredEdit and hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+                        {% set needed = 'needed' %}
+                    {% else %}
+                        {% set needed = '' %}
+                    {% endif %}
+
+                    <div class="form-group col-6">
+
+                    {# spécifique CEA : accès pour tous au champ libre 'Code projet' #}
+                    {% if isCurrentClient(constant('App\\Entity\\ParamClient::CEA_LETI')) %}
+                        {% if champLibre.label|lower == 'code projet' %}
+                            {% set disabled = '' %}
+                            {% set needed = champLibre.requiredEdit ? 'needed' : '' %}
+                        {% else %}
+                            {% set disabled = editable ? '' : 'disabled' %}
+                        {% endif %}
                     {% endif %}
 
                     <label for="input">{{ champLibre.label | capitalize}}</label>
@@ -151,5 +168,3 @@
         </div>
     </div>
 </div>
-
-<div class="error-msg"></div>

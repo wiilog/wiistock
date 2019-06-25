@@ -173,13 +173,11 @@ function deleteRow(button, modal, submit) {
  * 
  */
 function showRow(button, path, modal) {
-    
     let id = button.data('id');
     let params = JSON.stringify(id);
     $.post(path, params, function (data) {
         modal.find('.modal-body').html(data);
     }, 'json');
-
 }
 
 
@@ -212,8 +210,7 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
             displayRequireChamp(modal.find('#typeEdit'), 'edit');
 
             if (setMaxQuantity) setMaxQuantityEdit($('#referenceEdit'));
-
-            if (editorToInit) initEditor2(editor);
+            if (editorToInit) initEditor(editor);
         }
     }
     let id = button.data('id');
@@ -250,32 +247,34 @@ function toggleRadioButton(button) {
     $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
 }
 
-
-//initialisation editeur de texte une seule fois
-
-function initEditor(modal) {
-    initEditor2(modal + ' .editor-container');
+function initEditorInModal(modal) {
+    initEditor(modal + ' .editor-container');
 };
 
-function initEditor2(div) {
-    new Quill(div, {
-        modules: {
-            toolbar: [
-                [{ header: [1, 2, 3, false] }],
-                ['bold', 'italic', 'underline', 'image'],
+function initEditor(div) {
 
-                [{ 'list': 'ordered' }, { 'list': 'bullet' }]
-            ]
-        },
-        formats: [
-            'header',
-            'bold', 'italic', 'underline', 'strike', 'blockquote',
-            'list', 'bullet', 'indent',
-            'link', 'image'
-        ],
+    // protection pour éviter erreur console si l'élément n'existe pas dans le DOM
+    if($(div).length) {
+        console.log('init');
+        console.log(div);
+        new Quill(div, {
+            modules: {
+                toolbar: [
+                    [{ header: [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline', 'image'],
+                    [{ 'list': 'ordered' }, { 'list': 'bullet' }]
+                ]
+            },
+            formats: [
+                'header',
+                'bold', 'italic', 'underline', 'strike', 'blockquote',
+                'list', 'bullet', 'indent',
+                'link', 'image'
+            ],
+            theme: 'snow'
+        });
+    }
 
-        theme: 'snow'
-    });
 };
 
 //passe de l'éditeur à l'input pour insertion en BDD par la classe editor-container

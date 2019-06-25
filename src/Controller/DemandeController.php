@@ -216,7 +216,12 @@ class DemandeController extends AbstractController
     public function editApi(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::CREATE_EDIT)) {
+				return $this->redirectToRoute('access_denied');
+			}
+
             $demande = $this->demandeRepository->find($data['id']);
+
             $json = $this->renderView('demande/modalEditDemandeContent.html.twig', [
                 'demande' => $demande,
             ]);

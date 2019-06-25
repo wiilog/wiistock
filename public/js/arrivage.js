@@ -37,7 +37,7 @@ let tableArrivage = $('#tableArrivages').DataTable({
 let editorNewArrivageAlreadyDone = false;
 function initNewArrivageEditor(modal) {
     if (!editorNewArrivageAlreadyDone) {
-        initEditor2(modal + ' .editor-container-new');
+        initEditor(modal + ' .editor-container-new');
         editorNewArrivageAlreadyDone = true;
     }
 };
@@ -156,7 +156,7 @@ function editRowArrivage(button) {
 
     $.post(path, JSON.stringify(params), function(data) {
         modal.find('.modal-body').html(data.html);
-        initEditor2('.editor-container-edit');
+        initEditor('.editor-container-edit');
         $('#modalEditArrivage').find('#acheteurs').val(data.acheteurs).select2();
     }, 'json');
 
