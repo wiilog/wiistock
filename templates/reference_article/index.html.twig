@@ -3,7 +3,13 @@
 {% block title %}Référentiel / Articles de référence{% endblock %}
 
 {% block page_content %}
-    <h1>Référence CEA</h1>
+    <h1>
+        {% if isCurrentClient (constant('App\\Entity\\ParamClient::CEA_LETI')) %}
+            Référence CEA
+        {% else %}
+            Référence
+        {% endif %}
+    </h1>
     <button class="btn" id="cannotDeleteArticle" data-target='#modalCannotDeleteArticle' data-toggle='modal'
             hidden></button>
 
