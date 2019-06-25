@@ -51,6 +51,16 @@ class MailerService
 
         //protection dev
         if (isset($_SERVER['APP_ENV']) && $_SERVER['APP_ENV'] == 'dev') {
+
+            $content .= '<p>DESTINATAIRES : ';
+            if (!is_array($to)) {
+                $content .= $to;
+            } else {
+                foreach($to as $dest) {
+                    $content .= $dest . ', ';
+                }
+            }
+            $content .= '</p>';
             $to = ['clara.tuco@wiilog.fr', 'cecile.gazaniol@wiilog.fr'];
         }
 

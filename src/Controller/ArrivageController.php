@@ -20,6 +20,7 @@ use App\Repository\TransporteurRepository;
 use App\Repository\TypeRepository;
 use App\Repository\UtilisateurRepository;
 use App\Service\UserService;
+use App\Service\MailerService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -74,11 +75,16 @@ class ArrivageController extends AbstractController
     private $dimensionsEtiquettesRepository;
 
     /**
+     * @var MailerService
+     */
+    private $mailerService;
+
+    /**
      * @var TypeRepository
      */
     private $typeRepository;
 
-    public function __construct(DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
+    public function __construct(MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
     {
         $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
         $this->userService = $userService;
@@ -89,6 +95,7 @@ class ArrivageController extends AbstractController
         $this->transporteurRepository = $transporteurRepository;
         $this->chauffeurRepository = $chauffeurRepository;
         $this->typeRepository = $typeRepository;
+        $this->mailerService = $mailerService;
     }
 
     /**
@@ -229,6 +236,8 @@ class ArrivageController extends AbstractController
                     ->setArrivage($arrivage)
                     ->setCommentaire($data['commentaire']);
                 $em->persist($litige);
+
+                $this->sendMailToAcheteurs($arrivage, $litige, true);
             }
 
             $em->flush();
@@ -353,7 +362,8 @@ class ArrivageController extends AbstractController
             $litige = $arrivage->getLitige();
 
             // non conforme : on enregistre le litige et/ou on le modifie
-            if ($arrivage->getStatut() != Statut::CONFORME) {
+            $statutLabel = $arrivage->getStatut()->getNom();
+            if ($statutLabel != Statut::CONFORME) {
                 if (empty($litige)) {
                     $litige = new Litige();
                     $litige->setArrivage($arrivage);
@@ -365,6 +375,11 @@ class ArrivageController extends AbstractController
                 }
                 if (isset($data['commentaire'])) {
                     $litige->setCommentaire($data['commentaire']);
+                }
+
+                // si le statut repasse en 'attente acheteur', on envoie un mail aux acheteurs
+                if ($statutLabel == Statut::ATTENTE_ACHETEUR) {
+                    $this->sendMailToAcheteurs($arrivage, $litige, false);
                 }
 
             // conforme : on supprime l'éventuel litige
@@ -465,5 +480,19 @@ class ArrivageController extends AbstractController
 			throw new NotFoundHttpException('404');
 		}
 	}
+
+	private function sendMailToAcheteurs($arrivage, $litige, $newLitige)
+    {
+        foreach ($arrivage->getAcheteurs() as $acheteur) {
+            $this->mailerService->sendMail(
+                'FOLLOW GT // Litige sur arrivage',
+                $this->renderView('mails/mailLitige.html.twig', [
+                    'litige' => $litige,
+                    'newLitige' => $newLitige
+                ]),
+                $acheteur->getEmail()
+            );
+        }
+    }
 
 }
