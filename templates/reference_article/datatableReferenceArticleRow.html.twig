@@ -1,10 +1,10 @@
 <div class="d-flex">
 
     {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
-    <div  id='edit{{idRefArticle}}' data-target='#modalEditRefArticle' data-toggle='modal'>
+    <div id='edit{{idRefArticle}}' data-target='#modalEditRefArticle' data-toggle='modal'>
         <div class="btn btn-col-action" data-id='{{ idRefArticle }}'
         onclick="editRow($(this), Routing.generate('reference_article_edit_api', true), $('#modalEditRefArticle'), $('#submitEditRefArticle'), true),
-        clearDiv(), displayRequireChamp($(this), 'edit')">
+        clearDiv(), toggleRequiredChampsLibres($(this), 'edit'), initRequiredChampsFixes($(this))">
             <i class='fas fa-pencil-alt'></i>
         </div>
     </div>

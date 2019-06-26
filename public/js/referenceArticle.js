@@ -142,7 +142,9 @@ function clearModalRefArticle(modal) {
     // on vide tous les inputs
     let inputs = modal.find('.modal-body').find(".data, .newContent>input");
     inputs.each(function () {
-        if ($(this).attr('id') !== 'type_quantite') $(this).val("");
+        if ($(this).attr('disabled') !== 'disabled' && $(this).attr('type') !== 'hidden' && $(this).attr('id') !== 'type_quantite') { //TODO type quantite trop specifique -> pq ne pas passer par celui de script-wiilog ? (et ajouter la classe checkbox)
+            $(this).val("");
+        }
     });
     // on vide tous les select2
     let selects = modal.find('.modal-body').find('.select2, .ajax-autocompleteFournisseur');
@@ -311,7 +313,7 @@ function displayNewFilter(data) {
 
 // suppression du filtre au clic dessus
 function initRemove() {
-    // $('.filter-bloc').on('click', removeFilter); //TODO CG filtres et/ou
+    // $('.filter-bloc').on('click', removeFilter); //TODO filtres et/ou
     $('.filter').on('click', removeFilter);
 }
 
@@ -365,8 +367,11 @@ function displayFilterValue(elem) {
 }
 
 function displayErrorRA(data, modal) {
-    let msg = 'Ce nom de référence existe déjà. Vous ne pouvez pas le recréer.';
-    displayError(modal, msg, data);
+    if (data.success === true) {
+        modal.find('.close').click();
+    } else {
+        modal.find('.error-msg').html(data.msg);
+    }
 }
 
 let recupIdRefArticle = function (div) {
@@ -424,7 +429,7 @@ let ajaxEditArticle = function (select) {
             if (dataReponse) {
                 $('.editChampLibre').html(dataReponse);
                 ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
-                displayRequireChamp(select.closest('.modal').find('#type'), 'edit'); //TODO CG à bien tester
+                toggleRequiredChampsLibres(select.closest('.modal').find('#type'), 'edit');
                 $('#livraisonShow').find('#withdrawQuantity').removeClass('d-none').addClass('data');
                 initEditor('.editor-container-edit');
                 modalFooter.removeClass('d-none');
@@ -541,14 +546,25 @@ function setMaxQuantityByArtRef(input) {
     input.attr('max', val);
 }
 
+function initRequiredChampsFixes(button) {
+    let params = {id: button.data('id')};
+    let path = Routing.generate('get_quantity_type');
 
-function toggleRadioButtonNeeded(button) {
-    if (button.data('title') === 'article') {
+    $.post(path, JSON.stringify(params), function(data) {
+        displayRequiredChampsFixesByTypeQuantite(data)
+    }, 'json');
+}
+
+function toggleRequiredChampsFixes(button) {
+    displayRequiredChampsFixesByTypeQuantite(button.data('title'));
+}
+
+function displayRequiredChampsFixesByTypeQuantite(typeQuantite) {
+    if (typeQuantite === 'article') {
         $('#quantite').removeClass('needed');
         $('#emplacement').removeClass('needed');
         $('#type_quantite').val('article');
-    }
-    else {
+    } else {
         $('#quantite').addClass('needed');
         $('#emplacement').addClass('needed');
         $('#type_quantite').val('reference');

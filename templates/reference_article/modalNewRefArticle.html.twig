@@ -18,12 +18,17 @@
                         <div class="input-group radio-btn">
                             <label for="statut" class="mtb-auto mr-2">Statut</label>
                             <div>
-                                <span class="btn active" data-toggle="statut" data-title="active"
-                                    onclick="toggleRadioButton($(this))">Actif</span><span class="btn not-active"
-                                    data-toggle="statut" data-title="inactive"
-                                    onclick="toggleRadioButton($(this))">Inactif</span>
+                                <span class="btn active" data-toggle="statut"
+                                      data-title="{{ constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') }}"
+                                      onclick="toggleRadioButton($(this))">
+                                    {{ constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF')|capitalize }}
+                                </span><span class="btn not-active" data-toggle="statut"
+                                             data-title="{{ constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF') }}"
+                                             onclick="toggleRadioButton($(this))">
+                                    {{ constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF')|capitalize }}
+                                </span>
                             </div>
-                            <input type="hidden" name="statut" id="statut" class="data" value="active">
+                            <input type="hidden" name="statut" id="statut" class="data" value="{{ constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') }}">
                         </div>
                     </div>
                     <div class="form-group col-6">
@@ -39,7 +44,7 @@
                     <div class="form-group col-6">
                         <label for="type">Type*</label>
                         <select name="type" onclick="typeChoice($(this), '-new', $('#typeContentNew'))"
-                            onchange="displayRequireChamp($(this),'create')"
+                            onchange="toggleRequiredChampsLibres($(this),'create')"
                             class="form-control data d-block type needed" id="">
                             <option value="">Type à choisir...</option>
                             {% for type in types %}
@@ -63,10 +68,10 @@
                             <label for="statut" class="mtb-auto mr-2">Gestion quantité</label>
                             <div onclick="updateQuantityDisplay($(this))">
                                 <span class="btn active" data-toggle="type_quantite" data-title="reference"
-                                    onclick="toggleRadioButtonNeeded($(this)), toggleRadioButton($(this)) ">Par
+                                    onclick="toggleRequiredChampsFixes($(this)), toggleRadioButton($(this)) ">Par
                                     référence</span><span class="btn not-active" data-toggle="type_quantite"
                                     data-title="article"
-                                    onclick="toggleRadioButtonNeeded($(this)), toggleRadioButton($(this))">Par
+                                    onclick="toggleRequiredChampsFixes($(this)), toggleRadioButton($(this))">Par
                                     article</span>
                             </div>
                             <input type="hidden" name="type_quantite" class="data" value="reference" id="type_quantite">
@@ -89,9 +94,9 @@
                     <div class="form-group col-4">
                         <div class="form-group w-100">
                             <div class="input-group reference">
-                                <label for="emplacement">Emplacement*</label>
-                                <select name="emplacement" 
-                                    class="form-control data ajax-autocompleteEmplacement">
+                                <label for="emplacement">Emplacement</label>
+                                <select name="emplacement" id="emplacement"
+                                    class="form-control data needed ajax-autocompleteEmplacement">
                                 </select>
                             </div>
                         </div>
