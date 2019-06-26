@@ -12,10 +12,17 @@
         <div class="input-group radio-btn">
             <label for="statut" class="mtb-auto mr-2 ">Statut</label>
             <div>
-                <span class="btn {{ statut == 1 ? 'active' : 'not-active'}}" data-toggle="statut" data-title="active"
-                    {% if editable %}onclick="toggleRadioButton($(this))" {% endif %}>Actif</span><span
-                    class="btn {{ statut == 0 ? 'active' : 'not-active'}}" data-toggle="statut" data-title="inactive"
-                    {% if editable %}onclick="toggleRadioButton($(this))" {% endif %}>Inactif</span>
+                {% set actif = (statut == constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF')) ? 'active' : 'not-active' %}
+                {% set inactif = (statut == constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF')) ? 'active' : 'not-active' %}
+
+                <span class="btn {{ actif }}" data-toggle="statut" data-title="{{ constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') }}"
+                    {% if editable %}onclick="toggleRadioButton($(this))" {% endif %}>
+                    {{ constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') }}
+                </span><span
+                    class="btn {{ inactif }}" data-toggle="statut" data-title="{{ constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF')}}"
+                    {% if editable %}onclick="toggleRadioButton($(this))" {% endif %}>
+                    {{ constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF') }}
+                </span>
             </div>
             <input type="hidden" name="statut" id="statut" class="data" value="{{ statut }}">
         </div>
@@ -29,7 +36,7 @@
     <div class="form-group col-6">
         <label for="type">Type</label>
         <select {{ disabled }} name="type" onclick="typeChoice($(this), '-edit', $('#typeContentEdit'))"
-            onchange="displayRequireChamp($(this), 'edit')" class="form-control data d-block" id="typeEdit">
+                               onchange="toggleRequiredChampsLibres($(this), 'edit')" class="form-control data d-block" id="typeEdit">
 
             {% set selected = articleRef.type is null ? 'selected' : '' %}
             <option {{ selected }} value=''> </option>
@@ -60,13 +67,14 @@
             <div onclick="updateQuantityDisplay($(this))">
                 <span class="btn {{ (articleRef.typeQuantite == 'reference') ? 'active' : 'not-active'}}"
                     data-toggle="type_quantite" data-title="reference"
-                    {% if editable %}onclick="toggleRadioButton($(this))" {% endif %}>Par
+                    {% if editable %}onclick="toggleRequiredChampsFixes($(this)), toggleRadioButton($(this))" {% endif %}>Par
                     référence</span><span
                     class="btn {{ (articleRef.typeQuantite == 'article') ? 'active' : 'not-active'}}"
                     data-toggle="type_quantite" data-title="article"
-                    {% if editable %}onclick="toggleRadioButton($(this))" {% endif %}>Par
+                    {% if editable %}onclick="toggleRequiredChampsFixes($(this)), toggleRadioButton($(this))" {% endif %}>Par
                     article</span>
             </div>
+
             <input type="hidden" name="type_quantite" class="data" id="type_quantite"
                 value="{{ articleRef.typeQuantite }}">
         </div>
@@ -96,23 +104,15 @@
     </div>
     <div class="form-group col-6">
         {% set dnone = (articleRef.typeQuantite == 'reference') ? '' : 'd-none' %}
+        {% set emplacementId = (articleRef.emplacement is null) ? '' : articleRef.emplacement.id %}
+        {% set emplacementLabel = (articleRef.emplacement is null) ? '': articleRef.emplacement.label %}
 
-        {% if  (articleRef.emplacement) is not null %}
-
-        <div class="input-group reference {{ dnone }}">
+        <div class="input-group reference {{ dnone }} w-100">
             <label class="mtb-auto mr-2">Emplacement</label>
-            <select name="emplacement" class="form-control ajax-autocompleteEmplacement-edit data">
-                <option value="{{ articleRef.emplacement.id }}">"{{ articleRef.emplacement.label }}"</option>
+            <select {{ disabled }} name="emplacement" id="emplacement" class="form-control ajax-autocompleteEmplacement-edit data">
+                <option value="{{ emplacementId}}">{{ emplacementLabel }}</option>
             </select>
         </div>
-        {% else %}
-        <div class="input-group reference {{ dnone }}">
-            <label class="mtb-auto mr-2">Emplacement</label>
-            <select {{ disabled }} name="emplacement" class="form-control ajax-autocompleteEmplacement-edit data">
-                <option value=" "></option>>
-            </select>
-        </div>
-        {% endif %}
     </div>
 
 </div>
