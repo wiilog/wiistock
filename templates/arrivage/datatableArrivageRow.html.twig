@@ -3,7 +3,7 @@
     {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::CREATE_EDIT'))%}
         <div data-id='{{ arrivage.id }}' data-target='#modalEditArrivage' data-toggle='modal'
              class='btn btn-col-action'
-             onclick="editRowArrivage($(this), Routing.generate('arrivage_edit_api', true), $('#modalEditArrivage'), $('#submitEditArrivage'), true)">
+             onclick="editRowArrivage($(this))">
             <i class='fas fa-pencil-alt'></i>
         </div>
     {% elseif arrivage.litige is defined and app.user.username in arrivage.acheteurs %}
