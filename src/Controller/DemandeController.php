@@ -181,13 +181,14 @@ class DemandeController extends AbstractController
                         'statut' => 'actif',
                     ];
                     $newArticleVCL = [];
+
                     foreach ($article->getValeurChampsLibres() as $valeurChampLibre) {
-                        $newArticleVCL = [
+                        $newArticleVCL[] = [
                             $valeurChampLibre->getChampLibre()->getId() => $valeurChampLibre->getValeur(),
                         ];
                     }
-                    $dateArticle = array_merge($newArticle, $newArticleVCL);
-                    $this->articleDataService->newArticle($dateArticle);
+                    $dataArticle = array_merge($newArticle, $newArticleVCL);
+                    $this->articleDataService->newArticle($dataArticle);
                 }
                 //modification du statut article =>en transit
                 $article->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
