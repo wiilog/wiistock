@@ -235,9 +235,9 @@ class ChampsLibreController extends AbstractController
     }
 
     /**
-     * @Route("/display-require-champ", name="display_require_champ", options={"expose"=true},  methods="GET|POST")
+     * @Route("/display-require-champ", name="display_required_champs_libres", options={"expose"=true},  methods="GET|POST")
      */
-    public function displayRequireChamp(Request $request): Response
+    public function displayRequiredChampsLibres(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (array_key_exists('create', $data)) {

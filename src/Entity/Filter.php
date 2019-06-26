@@ -40,7 +40,7 @@ class Filter
      */
     private $utilisateur;
 
-	//TODO CG filtres et/ou
+	//TODO filtres et/ou
 //	/**
 //	 * @ORM\Column(type="string", length=8, nullable=true)
 //	 */
