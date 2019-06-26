@@ -35,14 +35,6 @@ let tableArrivage = $('#tableArrivages').DataTable({
 
 });
 
-let editorNewArrivageAlreadyDone = false;
-function initNewArrivageEditor(modal) {
-    if (!editorNewArrivageAlreadyDone) {
-        initEditor(modal + ' .editor-container-new');
-        editorNewArrivageAlreadyDone = true;
-    }
-};
-
 let modalNewArrivage = $("#modalNewArrivage");
 let submitNewArrivage = $("#submitNewArrivage");
 let urlNewArrivage = Routing.generate('arrivage_new', true);
@@ -73,6 +65,31 @@ function toggleLitige(select) {
         bloc.removeClass('d-none');
         litigeType.addClass('needed');
     }
+}
+
+let editorNewArrivageAlreadyDone = false;
+function initNewArrivageEditor(modal) {
+    if (!editorNewArrivageAlreadyDone) {
+        initEditor(modal + ' .editor-container-new');
+        editorNewArrivageAlreadyDone = true;
+    }
+};
+
+
+function editRowArrivage(button) {
+    let path = Routing.generate('arrivage_edit_api', true);
+    let modal = $('#modalEditArrivage');
+    let submit = $('#submitEditArrivage');
+    let id = button.data('id');
+    let params = { id: id };
+
+    $.post(path, JSON.stringify(params), function(data) {
+        modal.find('.modal-body').html(data.html);
+        initEditor('.editor-container-edit');
+        modal.find('#acheteursEdit').val(data.acheteurs).select2();
+    }, 'json');
+
+    modal.find(submit).attr('value', id);
 }
 
 function deleteRowArrivage(button, modal, submit, hasLitige) {
@@ -146,22 +163,6 @@ function upload(files) {
             dropfile.after(html);
         }
     });
-}
-
-function editRowArrivage(button) {
-    let path = Routing.generate('arrivage_edit_api', true);
-    let modal = $('#modalEditArrivage');
-    let submit = $('#submitEditArrivage');
-    let id = button.data('id');
-    let params = { id: id };
-
-    $.post(path, JSON.stringify(params), function(data) {
-        modal.find('.modal-body').html(data.html);
-        initEditor('.editor-container-edit');
-        $('#modalEditArrivage').find('#acheteurs').val(data.acheteurs).select2();
-    }, 'json');
-
-    modal.find(submit).attr('value', id);
 }
 
 function InitialiserModalArrivage(modal, submit, path, table, callback = null, close = true) {
@@ -332,7 +333,6 @@ function submitActionArrivage(modal, path, table, callback, close) {
 
             })
         }
-
         modal.find('.error-msg').html(msg);
     }
 }

@@ -121,7 +121,7 @@ function ajaxGetCollecteArticle(select) {
             $selection.html(data.selection);
             if (data.modif) $editNewArticle.html(data.modif);
             $(modalNewArticle).find('.modal-footer').removeClass('d-none');
-            displayRequireChamp(select.closest('.modal').find('#type'), 'edit');
+            toggleRequiredChampsLibres(select.closest('.modal').find('#type'), 'edit');
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
             initEditor(modalNewArticle + ' .editor-container-edit');
         }
@@ -142,6 +142,16 @@ function deleteRowCollecte(button, modal, submit) {
     modal.find(submit).attr('value', id);
     modal.find(submit).attr('name', name);
 }
+
+
+// //initialisation editeur de texte une seule fois à l'édit
+// let editorEditCollecteAlreadyDone = false;
+// function initEditCollecteEditor(modal) {
+//     if (!editorEditCollecteAlreadyDone) {
+//         initEditor(modal);
+//         editorEditCollecteAlreadyDone = true;
+//     }
+// };
 
 //initialisation editeur de texte une seule fois à la création
 let editorNewCollecteAlreadyDone = false;
@@ -230,7 +240,7 @@ let ajaxEditArticle = function (select) {
             dataReponse = JSON.parse(this.responseText);
             if (dataReponse) {
                 $('#editNewArticle').html(dataReponse);
-                // displayRequireChamp($('#typeEditArticle'), 'edit');
+                // toggleRequiredChampsLibres($('#typeEditArticle'), 'edit');
                 ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
                 initEditor('.editor-container-edit');
             } else {

@@ -105,7 +105,13 @@
                                 <a href="{{ path('article_index') }}" class="sub-item">• Article</a>
                             </li>
                             <li>
-                                <a href="{{ path('reference_article_index') }}" class="sub-item">• Référence CEA</a>
+                                <a href="{{ path('reference_article_index') }}" class="sub-item">
+                                    {% if isCurrentClient (constant('App\\Entity\\ParamClient::CEA_LETI')) %}
+                                        • Référence CEA
+                                    {% else %}
+                                        • Référence
+                                    {% endif %}
+                                </a>
                             </li>
                             <li>
                                 <a href="{{ path('article_fournisseur_index') }}" class="sub-item">• Article
