@@ -270,7 +270,6 @@ function initEditor(div) {
             theme: 'snow'
         });
     }
-
 };
 
 //passe de l'éditeur à l'input pour insertion en BDD par la classe editor-container
