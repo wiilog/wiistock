@@ -3,10 +3,8 @@
 namespace App\Repository;
 
 use App\Entity\Article;
-use App\Entity\Statut;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
-use App\Service\UserService;
 
 /**
  * @method Article|null find($id, $lockMode = null, $lockVersion = null)
@@ -86,8 +84,8 @@ class ArticleRepository extends ServiceEntityRepository
         $query = $entityManager->createQuery(
             "SELECT a
             FROM App\Entity\Article a
-            WHERE a.Statut = :Statut "
-        )->setParameter('Statut', $statut);;
+            WHERE a.statut = :statut "
+        )->setParameter('statut', $statut);;
         return $query->execute();
     }
 
@@ -172,7 +170,7 @@ class ArticleRepository extends ServiceEntityRepository
             "SELECT a.id, a.reference
           FROM App\Entity\Article a
           JOIN a.articleFournisseur af
-          WHERE a.Statut = :statut AND af.id IN(:articleFournisseur)"
+          WHERE a.statut = :statut AND af.id IN(:articleFournisseur)"
         )->setParameters([
             'articleFournisseur' => $articleFournisseur,
             'statut' => $statut
@@ -187,7 +185,7 @@ class ArticleRepository extends ServiceEntityRepository
         $query = $em->createQuery(
             "SELECT a.id, a.reference
           FROM App\Entity\Article a
-          WHERE a.Statut = :statut AND a.articleFournisseur IN(:articleFournisseur) AND (a.demande IS NULL )"
+          WHERE a.statut = :statut AND a.articleFournisseur IN(:articleFournisseur) AND (a.demande IS NULL )"
         )->setParameters([
             'articleFournisseur' => $articleFournisseur,
             'statut' => $statut,
@@ -203,7 +201,7 @@ class ArticleRepository extends ServiceEntityRepository
             "SELECT a.id, a.reference
           FROM App\Entity\Article a
           JOIN a.demande d
-          WHERE a.Statut = :statut AND a.articleFournisseur IN(:articleFournisseur) AND  d.statut = :demandeStatut"
+          WHERE a.statut = :statut AND a.articleFournisseur IN(:articleFournisseur) AND  d.statut = :demandeStatut"
         )->setParameters([
             'articleFournisseur' => $articleFournisseur,
             'statut' => $statut,
@@ -212,8 +210,6 @@ class ArticleRepository extends ServiceEntityRepository
 
         return $query->execute();
     }
-
-
 
     public function findByEtat($etat)
     {
@@ -226,17 +222,17 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function countByRefArticleAndStatut($refArticle, $statut)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT COUNT(a)
-            FROM App\Entity\Article a
-            WHERE a.refArticle = :refArticle AND a.etat = TRUE AND s.nom = :statut"
-        )->setParameters(['refArticle' => $refArticle, 'statut' => $statut]);
-
-        return $query->getSingleScalarResult();
-    }
+//    public function countByRefArticleAndStatut($refArticle, $statut)
+//    {
+//        $entityManager = $this->getEntityManager();
+//        $query = $entityManager->createQuery(
+//            "SELECT COUNT(a)
+//            FROM App\Entity\Article a
+//            WHERE a.refArticle = :refArticle AND a.etat = TRUE AND s.nom = :statut"
+//        )->setParameters(['refArticle' => $refArticle, 'statut' => $statut]);
+//
+//        return $query->getSingleScalarResult();
+//    }
 
     public function countByRefArticle($refArticle)
     {
@@ -302,7 +298,7 @@ class ArticleRepository extends ServiceEntityRepository
         $qb
             ->select('a')
             ->from('App\Entity\Article', 'a')
-            ->where('a.Statut =' . $statutId);
+            ->where('a.statut =' . $statutId);
 
         // prise en compte des paramètres issus du datatable
         if (!empty($params)) {
