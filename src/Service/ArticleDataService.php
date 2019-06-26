@@ -353,19 +353,7 @@ class ArticleDataService
                     ->setCommentaire($data['commentaire']);
 
                 if (isset($data['statut'])) { // si on est dans une demande (livraison ou collecte), pas de champ statut
-                    switch (intval($data['statut'])) {
-                        case 0:
-                            $statutLabel = Article::STATUT_INACTIF;
-                            break;
-                        case 1:
-                            $statutLabel = Article::STATUT_ACTIF;
-                            break;
-                        case 2:
-                            $statutLabel = Article::STATUT_EN_TRANSIT;
-                            break;
-                    }
-
-                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $statutLabel);
+                	$statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $data['statut']);
                     if ($statut) $article->setStatut($statut);
                 }
                 if ($data['emplacement']) {
