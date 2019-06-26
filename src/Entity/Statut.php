@@ -50,7 +50,7 @@ class Statut
     private $demandes;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Preparation", mappedBy="Sstatut")
+     * @ORM\OneToMany(targetEntity="App\Entity\Preparation", mappedBy="statut")
      */
     private $preparations;
 
