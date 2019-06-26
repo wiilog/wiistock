@@ -255,7 +255,7 @@ function initEditor(div) {
 
     // protection pour éviter erreur console si l'élément n'existe pas dans le DOM
     if($(div).length) {
-        new Quill(div, {
+        return new Quill(div, {
             modules: {
                 toolbar: [
                     [{ header: [1, 2, 3, false] }],
@@ -272,14 +272,16 @@ function initEditor(div) {
             theme: 'snow'
         });
     }
+    return null;
 };
 
-//passe de l'éditeur à l'input pour insertion en BDD par la classe editor-container
+//passe de l'éditeur à l'input pour envoi au back
 function setCommentaire(div) {
-    let container = div;
-    let quill = new Quill(container);
-    let com = quill.container.firstChild.innerHTML;
-    $(div).closest('.modal').find('#commentaire').val(com);
+    let quill = initEditor(div);
+    if (quill) {
+        let com = quill.container.firstChild.innerHTML;
+        $(div).closest('.modal').find('#commentaire').val(com);
+    }
 };
 
 //FONCTION REFARTICLE
