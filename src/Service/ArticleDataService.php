@@ -234,22 +234,16 @@ class ArticleDataService
      * @throws \Twig_Error_Runtime
      * @throws \Twig_Error_Syntax
      */
-    public function getLivraisonArticleOrNoByRefArticle($refArticle)
+    public function getLivraisonArticlesByRefArticle($refArticle)
     {
-        $articleFournisseur = $this->articleFournisseurRepository->findByRefArticle($refArticle);
         if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
             $data = [
                 'modif' => $this->refArticleDataService->getViewEditRefArticle($refArticle, true),
                 'selection' => $this->templating->render('demande/newRefArticleByQuantiteRefContent.html.twig'),
             ];
         } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
-            $demandeStatut = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_LIVRE);
-
-            $articlesNull = $this->articleRepository->getByAFAndActifAndDemandeNull($articleFournisseur, $statut);
-            $articleStatut = $this->articleRepository->getByAFAndActifAndDemandeStatus($articleFournisseur, $statut, $demandeStatut);
-
-            $articles = array_merge($articlesNull, $articleStatut);
+            $statutArticleActif = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
+            $articles = $this->articleRepository->getByRefArticleAndStatut($refArticle, $statutArticleActif);
 
             if (count($articles) < 1) {
                 $articles[] = [

@@ -84,7 +84,7 @@ class ReferenceArticle
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="referenceArticles")
      */
-    private $Statut;
+    private $statut;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\CollecteReference", mappedBy="referenceArticle")
@@ -335,12 +335,12 @@ class ReferenceArticle
 
     public function getStatut(): ?Statut
     {
-        return $this->Statut;
+        return $this->statut;
     }
 
-    public function setStatut(?Statut $Statut): self
+    public function setStatut(?Statut $statut): self
     {
-        $this->Statut = $Statut;
+        $this->statut = $statut;
 
         return $this;
     }
