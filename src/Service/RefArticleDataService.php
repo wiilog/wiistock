@@ -222,9 +222,7 @@ class RefArticleDataService
                 'champsLibres' => $champsLibres,
             ];
         }
-        //reponse Vue + data 
 
-        
         $view =  $this->templating->render('reference_article/modalEditRefArticleContent.html.twig', [
             'articleRef' => $refArticle,
             'statut' => $refArticle->getStatut()->getNom(),
@@ -238,11 +236,11 @@ class RefArticleDataService
         return $view;
     }
 
-    /**
-     * @param ReferenceArticle $refArticle
-     * @param string[] $data
-     * @return array|bool
-     */
+	/**
+	 * @param ReferenceArticle $refArticle
+	 * @param string[] $data
+	 * @return RedirectResponse
+	 */
     public function editRefArticle($refArticle, $data)
     {
         if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {

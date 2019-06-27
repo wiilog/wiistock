@@ -694,7 +694,7 @@ class ReferenceArticleController extends Controller
                 } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
                     $this->articleDataService->editArticle($data);
                     $article = $this->articleRepository->find($data['article']);
-                    $article->setWithdrawQuantity($data['quantitie']);
+                    $article->setQuantiteAPrelever($data['quantitie']);
                     $demande->addArticle($article);
                 } else {
                     $json = false; //TOOD gérer message erreur

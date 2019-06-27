@@ -170,13 +170,13 @@ class DemandeController extends AbstractController
             $articles = $demande->getArticles();
 
             foreach ($articles as $article) {
-                if ($article->getQuantite() !== $article->getWithdrawQuantity()) {
+                if ($article->getQuantite() !== $article->getQuantiteAPrelever()) {
                     $dataArticle = [
                         'articleFournisseur' => $article->getArticleFournisseur()->getId(),
                         'libelle' => $article->getLabel(),
                         'conform' => !$article->getConform(),
                         'commentaire' => $article->getcommentaire(),
-                        'quantite' => $article->getQuantite() - $article->getWithdrawQuantity(),
+                        'quantite' => $article->getQuantite() - $article->getQuantiteAPrelever(),
                         'emplacement' => ($article->getEmplacement() ? $article->getEmplacement()->getId() : ''),
                         'statut' => 'actif',
                     ];
@@ -430,13 +430,13 @@ class DemandeController extends AbstractController
             }
             $articles = $this->articleRepository->getByDemande($demande);
             $rowsCA = [];
-            foreach ($articles as $article) {
+            foreach ($articles as $article) { /** @var Article $article */
                 $rowsCA[] = [
                     "Référence CEA" => ($article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : ''),
                     "Libellé" => ($article->getLabel() ? $article->getLabel() : ''),
                     "Emplacement" => ($article->getEmplacement() ? $article->getEmplacement()->getLabel() : ' '),
                     "Quantité" => ($article->getQuantite() ? $article->getQuantite() : ''),
-                    "Quantité à prélever" => ($article->getWithdrawQuantity() ? $article->getWithdrawQuantity() : ''),
+                    "Quantité à prélever" => ($article->getQuantiteAPrelever() ? $article->getQuantiteAPrelever() : ''),
                     "Actions" => $this->renderView(
                         'demande/datatableLigneArticleRow.html.twig',
                         [
@@ -471,7 +471,7 @@ class DemandeController extends AbstractController
             if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
                 $article = $this->articleRepository->find($data['article']);
                 $demande->addArticle($article);
-                $article->setWithdrawQuantity($data['quantitie']);
+                $article->setQuantiteAPrelever($data['quantitie']);
 
                 $this->articleDataService->editArticle($data);
             } elseif ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {

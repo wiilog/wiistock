@@ -271,7 +271,7 @@ class PreparationController extends AbstractController
                         "Libellé" => $ligneArticle->getLabel() ? $ligneArticle->getLabel() : '',
                         "Emplacement" => $ligneArticle->getEmplacement() ? $ligneArticle->getEmplacement()->getLabel() : '',
                         "Quantité" => $ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : '',
-                        "Quantité à prélever" => $ligneArticle->getWithdrawQuantity() ? $ligneArticle->getWithdrawQuantity() : '',
+                        "Quantité à prélever" => $ligneArticle->getQuantiteAPrelever() ? $ligneArticle->getQuantiteAPrelever() : '',
                         "Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
                             'id' => $ligneArticle->getId()
                    ])
@@ -323,10 +323,10 @@ class PreparationController extends AbstractController
 
             foreach ($demande->getArticles() as $article) {
                  $article->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF));
-                if ($article->getWithdrawQuantity()) {
-                    $article->setWithdrawQuantity($article->getQuantite());
-                    $article->setWithdrawQuantity(0);
-                }
+                if ($article->getQuantiteAPrelever()) {
+                    $article->setQuantiteAPrelever($article->getQuantite());
+                    $article->setQuantiteAPrelever(0);
+                } //TODO CG
             }
         }
 
@@ -336,9 +336,9 @@ class PreparationController extends AbstractController
     }
 
     /**
-     * @Route("/prelever-articles", name="preparation_withdraw_articles", options={"expose"=true},  methods="GET|POST")
+     * @Route("/prelever-articles", name="preparation_take_articles", options={"expose"=true},  methods="GET|POST")
      */
-    public function withdrawArticle(Request $request): Response
+    public function takeArticle(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::LIVRAISON, Action::CREATE_EDIT)) {
@@ -350,9 +350,8 @@ class PreparationController extends AbstractController
             $demande = $this->demandeRepository->find($data);
             $articles = $demande->getArticles();
             foreach ($articles as $article) {
-                if ($article->getQuantite() !== $article->getWithdrawQuantity()) {
-                    $article
-                        ->setQuantite($article->getWithdrawQuantity());
+                if ($article->getQuantite() !== $article->getQuantiteAPrelever()) {
+                    $article->setQuantite($article->getQuantiteAPrelever());
                 }
             }
 

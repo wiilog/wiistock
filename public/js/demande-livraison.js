@@ -290,10 +290,10 @@ let ajaxEditArticle = function (select) {
             dataReponse = JSON.parse(this.responseText);
             if (dataReponse) {
                 $('#editNewArticle').html(dataReponse);
-                let withdrawQuantity = $('#withdrawQuantity');
+                let quantityToTake = $('#quantityToTake');
                 let valMax = $('#quantite').val();
-                withdrawQuantity.find('input').attr('max', valMax);
-                withdrawQuantity.removeClass('d-none');
+                quantityToTake.find('input').attr('max', valMax);
+                quantityToTake.removeClass('d-none');
                 ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
                 initEditor('#modalNewArticle .editor-container-edit');
             } else {
