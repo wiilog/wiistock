@@ -19,7 +19,6 @@
                 {% endif %}
             {% endif%}
         </div>
-
     </div>
     <div class="row">
         <div class="col-4">
@@ -32,7 +31,10 @@
             <p><strong> Demandeur : </strong> {{demande.utilisateur ? demande.utilisateur.username : ''}}</p>
         </div>
         <div class="col-12">
-            <p><strong> Commentaire : </strong>{{demande.commentaire|raw}}</p>
+            <p><strong> Commentaire : </strong><p>
+            <div class="commentOverflow">
+                <p>{{demande.commentaire|raw}}</p>
+            </div>
         </div>
     </div>
 
@@ -55,7 +57,6 @@
                         <a href="{{path('livraison_new', {'id': preparation.id}) }}"
                            class="btn btn-primary btn-action ml-auto">Valider</a>
                     {% endif %}
-
                 {% endif %}
             {% endif %}
         </div>
