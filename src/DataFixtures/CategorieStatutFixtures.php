@@ -2,13 +2,10 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\CategorieCL;
-use App\Entity\Statut;
 use App\Repository\CategorieStatutRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
-use Symfony\Bundle\FrameworkBundle\Tests\Fixtures\Validation\Category;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use App\Entity\CategorieStatut;
 

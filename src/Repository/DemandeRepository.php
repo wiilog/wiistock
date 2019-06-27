@@ -38,7 +38,7 @@ class DemandeRepository extends ServiceEntityRepository
         $query = $entityManager->createQuery(
             "SELECT d
             FROM App\Entity\Demande d
-            JOIN d.Statut s
+            JOIN d.statut s
             WHERE s.nom <> :status AND d.utilisateur = :user"
         )->setParameters(['user' => $user, 'status' => $status]);
 
@@ -51,9 +51,9 @@ class DemandeRepository extends ServiceEntityRepository
         $query = $entityManager->createQuery(
             "SELECT d
             FROM App\Entity\Demande d
-            WHERE d.statut = :Statut AND d.utilisateur = :user"
+            WHERE d.statut = :statut AND d.utilisateur = :user"
         )->setParameters([
-            'Statut' => $statut,
+            'statut' => $statut,
             'user' => $user
         ]);
         return $query->execute();
@@ -93,8 +93,8 @@ class DemandeRepository extends ServiceEntityRepository
         $query = $entityManager->createQuery(
             "SELECT COUNT(d)
             FROM App\Entity\Demande d
-            WHERE d.statut = :Statut "
-        )->setParameter('Statut', $statut);
+            WHERE d.statut = :statut "
+        )->setParameter('statut', $statut);
         return $query->getSingleScalarResult();
     }
 

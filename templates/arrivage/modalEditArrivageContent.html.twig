@@ -55,9 +55,9 @@
 </div>
 
 <div class="form-group w-100">
-    <label for="acheteurs">Acheteur(s)</label>
+    <label for="acheteursEdit">Acheteur(s)</label>
     <select type="text" class="form-control data select2" name="acheteurs" multiple="multiple"
-            id="acheteurs">
+            id="acheteursEdit">
         {% for utilisateur in utilisateurs %}
             <option value="{{ utilisateur.username }}">
                 {{ utilisateur.username }}
@@ -88,7 +88,7 @@
 {# bloc litige à afficher si statut litige sélectionné #}
 <div id="litigeBloc" class="{{ conforme ? 'd-none' : ''}}">
     <div class="form-group">
-        <label for="litigeType">Type de litige</label>
+        <label for="litigeType">Type de litige*</label>
         <select class="form-control data" id="litigeType" name="litigeType">
             <option disabled selected> </option>
             {% for type in typesLitige %}

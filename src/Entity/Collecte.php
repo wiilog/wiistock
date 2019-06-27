@@ -58,7 +58,7 @@ class Collecte
      * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="collectes")
      */
 
-    private $Statut;
+    private $statut;
 
     /**
      * @ORM\Column(type="text", nullable=true)
@@ -150,12 +150,12 @@ class Collecte
 
     public function getStatut(): ?Statut
     {
-        return $this->Statut;
+        return $this->statut;
     }
 
-    public function setStatut(?Statut $Statut): self
+    public function setStatut(?Statut $statut): self
     {
-        $this->Statut = $Statut;
+        $this->statut = $statut;
 
         return $this;
     }

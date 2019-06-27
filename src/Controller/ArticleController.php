@@ -346,13 +346,13 @@ class ArticleController extends Controller
     /**
      * @Route("/get-article-demande", name="demande_article_by_refArticle", options={"expose"=true})
      */
-    public function getLivraisonArticleByRefArticle(Request $request): Response
+    public function getLivraisonArticlesByRefArticle(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $refArticle = json_decode($request->getContent(), true)) {
             $refArticle = $this->referenceArticleRepository->find($refArticle);
 
             if ($refArticle) {
-                $json = $this->articleDataService->getLivraisonArticleOrNoByRefArticle($refArticle);
+                $json = $this->articleDataService->getLivraisonArticlesByRefArticle($refArticle);
             } else {
                 $json = false; //TODO gérer erreur retour
             }
