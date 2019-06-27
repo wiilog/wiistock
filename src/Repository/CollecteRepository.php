@@ -25,9 +25,9 @@ class CollecteRepository extends ServiceEntityRepository
         $query = $entityManager->createQuery(
             "SELECT c
             FROM App\Entity\Collecte c
-            WHERE c.Statut = :Statut AND c.demandeur = :user "
+            WHERE c.statut = :statut AND c.demandeur = :user "
         )->setParameters([
-            'Statut' => $statut,
+            'statut' => $statut,
             'user' => $user,
         ]);
         return $query->execute();
@@ -39,8 +39,8 @@ class CollecteRepository extends ServiceEntityRepository
         $query = $entityManager->createQuery(
             "SELECT COUNT(c)
             FROM App\Entity\Collecte c
-            WHERE c.Statut = :Statut "
-        )->setParameter('Statut', $statut);
+            WHERE c.statut = :statut "
+        )->setParameter('statut', $statut);
         return $query->getSingleScalarResult();
     }
 
