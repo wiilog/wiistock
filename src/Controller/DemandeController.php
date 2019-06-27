@@ -471,20 +471,20 @@ class DemandeController extends AbstractController
             if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
                 $article = $this->articleRepository->find($data['article']);
                 $demande->addArticle($article);
-                $article->setQuantiteAPrelever($data['quantitie']);
+                $article->setQuantiteAPrelever(max($data['quantitie'], 0)); // protection contre quantités négatives
 
                 $this->articleDataService->editArticle($data);
             } elseif ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                 if ($this->ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
                     $ligneArticle = new LigneArticle();
                     $ligneArticle
-                        ->setQuantite($data["quantitie"])
+                        ->setQuantite(max($data["quantitie"], 0)) // protection contre quantités négatives
                         ->setReference($referenceArticle);
                     $em->persist($ligneArticle);
                 } else {
                     $ligneArticle = $this->ligneArticleRepository->findOneByRefArticleAndDemande($referenceArticle, $demande);
                     $ligneArticle
-                        ->setQuantite($ligneArticle->getQuantite() + $data["quantitie"]);
+                        ->setQuantite($ligneArticle->getQuantite() + max($data["quantitie"], 0)); // protection contre quantités négatives
                 }
                 $demande
                     ->addLigneArticle($ligneArticle);
@@ -533,8 +533,7 @@ class DemandeController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
             $ligneArticle = $this->ligneArticleRepository->find($data['ligneArticle']);
-            $ligneArticle
-                ->setQuantite($data["quantite"]);
+            $ligneArticle->setQuantite(max($data["quantite"], 0)); // protection contre quantités négatives
             $this->getDoctrine()->getEntityManager()->flush();
 
             return new JsonResponse();

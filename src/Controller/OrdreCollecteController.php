@@ -333,7 +333,7 @@ class OrdreCollecteController extends AbstractController
 
         if (!$request->isXmlHttpRequest() &&  $data = json_decode($request->getContent(), true)) {
             $ligneArticle = $this->collecteReferenceRepository->find($data['ligneArticle']);
-            if (isset($data['quantite'])) $ligneArticle->setQuantite($data['quantite']);
+            if (isset($data['quantite'])) $ligneArticle->setQuantite(max($data['quantite'], 0)); // protection contre quantités négatives
 
             $this->getDoctrine()->getManager()->flush();
 
