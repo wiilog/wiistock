@@ -243,7 +243,7 @@ class ArticleDataService
             ];
         } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             $statutArticleActif = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
-            $articles = $this->articleRepository->getByRefArticleAndStatut($refArticle, $statutArticleActif);
+            $articles = $this->articleRepository->getByRefArticleAndStatutWithoutDemand($refArticle, $statutArticleActif);
 
             if (count($articles) < 1) {
                 $articles[] = [

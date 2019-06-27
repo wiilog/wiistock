@@ -211,7 +211,7 @@ class ArticleRepository extends ServiceEntityRepository
 //        return $query->execute();
 //    }
 
-	public function getByRefArticleAndStatut($refArticle, $statut)
+	public function getByRefArticleAndStatutWithoutDemand($refArticle, $statut)
 	{
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager->createQuery(
@@ -219,7 +219,9 @@ class ArticleRepository extends ServiceEntityRepository
 			FROM App\Entity\Article a
 			JOIN a.articleFournisseur af
 			JOIN af.referenceArticle ra
-			WHERE a.statut =:statut AND ra = :refArticle'
+			WHERE a.statut =:statut AND ra = :refArticle
+			AND a.demande is null
+			'
 		)->setParameters([
 			'refArticle' => $refArticle,
 			'statut' => $statut
