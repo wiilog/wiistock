@@ -121,7 +121,9 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
             "idChampLibre" => $idChampLibre
         ]);
 
-        return $query->getOneOrNullResult();
+//        return $query->getOneOrNullResult();
+		$result = $query->execute();
+		return $result ? $result[0] : null;
     }
 
     public function findOneByChampLibreAndArticle($champLibreId, $articleId)
