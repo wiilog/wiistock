@@ -29,7 +29,6 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             FROM App\Entity\ReferenceArticle r
             "
         );
-
         return $query->execute();
     }
 
