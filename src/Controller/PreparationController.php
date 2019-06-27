@@ -351,7 +351,7 @@ class PreparationController extends AbstractController
             $articles = $demande->getArticles();
             foreach ($articles as $article) {
                 if ($article->getQuantite() !== $article->getQuantiteAPrelever()) {
-                    $article->setQuantite($article->getQuantiteAPrelever());
+                    $article->setQuantite(max($article->getQuantiteAPrelever(), 0)); // protection contre quantités négatives
                 }
             }
 

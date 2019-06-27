@@ -876,7 +876,7 @@ class ReceptionController extends AbstractController
                             ->setConform(true)
                             ->setStatut($statut)
                             ->setReference($ref . '-' . $counter)
-                            ->setQuantite(intval($dataContent['tailleLot'][$i]))
+                            ->setQuantite(max(intval($dataContent['tailleLot'][$i]), 0)) // protection contre quantités négatives
                             ->setArticleFournisseur($articleFournisseur)
                             ->setReception($ligne->getReception())
                             ->setType($refArticle->getType());
