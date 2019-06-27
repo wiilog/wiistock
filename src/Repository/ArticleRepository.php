@@ -296,14 +296,14 @@ class ArticleRepository extends ServiceEntityRepository
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
                     $qb
-                        ->andWhere('a.label LIKE :value OR a.reference LIKE :value')
+                        ->leftJoin('a.articleFournisseur', 'af')
+                        ->leftJoin('af.referenceArticle', 'ra')
+                        ->andWhere('a.label LIKE :value OR a.reference LIKE :value OR ra.reference LIKE :value')
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
         }
-
         $query = $qb->getQuery();
-
         return $query->getResult();
     }
 
@@ -334,10 +334,7 @@ class ArticleRepository extends ServiceEntityRepository
                 }
             }
         }
-
         $query = $qb->getQuery();
-
-
         return $query->getResult();
     }
 
