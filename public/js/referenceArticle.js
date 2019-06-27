@@ -430,7 +430,7 @@ let ajaxEditArticle = function (select) {
                 $('.editChampLibre').html(dataReponse);
                 ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
                 toggleRequiredChampsLibres(select.closest('.modal').find('#type'), 'edit');
-                $('#livraisonShow').find('#withdrawQuantity').removeClass('d-none').addClass('data');
+                $('#livraisonShow').find('#quantityToTake').removeClass('d-none').addClass('data');
                 initEditor('.editor-container-edit');
                 modalFooter.removeClass('d-none');
             } else {

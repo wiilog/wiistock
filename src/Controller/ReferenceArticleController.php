@@ -328,7 +328,7 @@ class ReferenceArticleController extends Controller
 
             if ($statut) $refArticle->setStatut($statut);
             if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-                $refArticle->setQuantiteStock($data['quantite'] ? $data['quantite'] : 0);
+                $refArticle->setQuantiteStock($data['quantite'] ? max($data['quantite'], 0) : 0); // protection contre quantités négatives
             }
             foreach ($data['frl'] as $frl) {
                 $fournisseurId = explode(';', $frl)[0];
@@ -682,19 +682,19 @@ class ReferenceArticleController extends Controller
                         $ligneArticle
                             ->setReference($refArticle)
                             ->setDemande($demande)
-                            ->setQuantite((int)$data['quantitie']);
+                            ->setQuantite(max((int)$data['quantitie'], 0)); // protection contre quantités négatives
 
                         $em->persist($ligneArticle);
                     } else {
                         $ligneArticle = $this->ligneArticleRepository->findOneByRefArticleAndDemande($refArticle, $demande);
                         /** @var LigneArticle $ligneArticle */
                         $ligneArticle
-                            ->setQuantite($ligneArticle->getQuantite() + $data["quantitie"]);
+                            ->setQuantite($ligneArticle->getQuantite() + max($data["quantitie"], 0)); // protection contre quantités négatives
                     }
                 } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
                     $this->articleDataService->editArticle($data);
                     $article = $this->articleRepository->find($data['article']);
-                    $article->setWithdrawQuantity($data['quantitie']);
+                    $article->setQuantiteAPrelever(max($data['quantitie'], 0)); // protection contre quantités négatives
                     $demande->addArticle($article);
                 } else {
                     $json = false; //TOOD gérer message erreur
@@ -728,7 +728,7 @@ class ReferenceArticleController extends Controller
                         ->setConform(true)
                         ->setStatut($statut)
                         ->setReference($ref . '-' . $index)
-                        ->setQuantite($data['quantitie'])
+                        ->setQuantite(max($data['quantitie'], 0)) // protection contre quantités négatives
                         ->setEmplacement($collecte->getPointCollecte())
                         ->setArticleFournisseur($articleFournisseur)
                         ->setType($refArticle->getType());
@@ -742,7 +742,7 @@ class ReferenceArticleController extends Controller
                     $collecteReference
                         ->setCollecte($collecte)
                         ->setReferenceArticle($refArticle)
-                        ->setQuantite((int)$data['quantitie']);
+                        ->setQuantite(max((int)$data['quantitie'], 0)); // protection contre quantités négatives
                     $em->persist($collecteReference);
                 } else {
                     $json = false; //TOOD gérer message erreur

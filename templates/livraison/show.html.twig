@@ -3,21 +3,24 @@
 {% block title %}Livraison{% endblock %}
 
 {% block page_content %}
-    <div class="row">
-        <div class="col">
-<h1>Livraison n°{{ livraison.numero }}</h1>
-        </div>
-        <div class="col text-right">
-
-            <a href="{{path('demande_show', {'id': demande.id})}}"
-           class="btn btn-primary btn-action ml-auto">Retourner à la demande de livraison</a>
-            </div>
-        <div>
-        <a href="{{path('preparation_show', {'id': preparation.id})}}"
-           class="btn btn-primary btn-action ml-auto">Retourner à la préparation</a>
-        </div>
-        </div>
+<div class="row">
+    <div class="col">
+        <h1>Ordre de livraison n°{{ livraison.numero }}</h1>
     </div>
+
+    <div class="col text-right">
+        <a href="{{path('demande_show', {'id': demande.id})}}" class="btn btn-primary btn-action ml-auto">
+            Retourner à la demande de livraison
+        </a>
+    </div>
+    <div>
+        <a href="{{path('preparation_show', {'id': preparation.id})}}"
+       class="btn btn-primary btn-action ml-auto">
+            Retourner à la préparation
+        </a>
+    </div>
+</div>
+
 <div class="row">
     <div class="col-4">
         <p><strong> Statut : </strong> {{ livraison.statut ? livraison.statut.nom : '' }}</p>
@@ -31,26 +34,32 @@
         <p><strong> Date de livraison : </strong> {{ livraison.dateFin ? livraison.dateFin|date('d/m/Y') : '' }}
         </p>
     </div>
-    {% if livraison.statut.nom == 'à traiter' %}
-    <div class="col-4 d-flex">
-        {% if not finished %}
-        {% if hasRight(constant('App\\Entity\\Menu::LIVRAISON'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
-        <p><a class="btn btn-danger btn-action" href=""
-                onclick="deleteRow($(this), $('#modalDeleteLivraison'), $('#submitDeleteLivraison'))"
-                data-id='{{livraison.id}}' data-target='#modalDeleteLivraison' data-toggle='modal'>Supprimer</a></p>
-        {% endif %}
-        {% if hasRight(constant('App\\Entity\\Menu::LIVRAISON'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
-        <p><a class="btn btn-primary btn-action" href={{path('livraison_finish', {'id': livraison.id})}}>Finir la
-                livraison</a></p>
-        {% endif %}
-        {% endif %}
-    </div>
-    {% endif %}
     <div class="col-12">
         <p><strong> Commentaire : </strong></p>
         <div class="commentOverflow">
             <p>{{ demande ? demande.commentaire|raw : ''}}</p>
         </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col text-right">
+        {% if livraison.statut.nom == constant('App\\Entity\\Livraison::STATUT_A_TRAITER') %}
+            {% if not finished %}
+                {% if hasRight(constant('App\\Entity\\Menu::LIVRAISON'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+                    <a class="btn btn-danger btn-action" href=""
+                          onclick="deleteRow($(this), $('#modalDeleteLivraison'), $('#submitDeleteLivraison'))"
+                          data-id='{{livraison.id}}' data-target='#modalDeleteLivraison' data-toggle='modal'>
+                        Supprimer
+                    </a>
+                {% endif %}
+                {% if hasRight(constant('App\\Entity\\Menu::LIVRAISON'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+                    <a class="btn btn-primary btn-action" href={{path('livraison_finish', {'id': livraison.id})}}>
+                        Finir la livraison
+                    </a>
+                {% endif %}
+            {% endif %}
+        {% endif %}
     </div>
 </div>
 

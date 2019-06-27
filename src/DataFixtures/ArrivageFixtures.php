@@ -5,7 +5,6 @@ namespace App\DataFixtures;
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
-use App\Entity\Litige;
 use App\Entity\Menu;
 use App\Entity\Statut;
 use App\Entity\Type;

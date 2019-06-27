@@ -3,6 +3,7 @@ let pathArticle = Routing.generate('article_api', true);
 let tableArticle = $('#tableArticle_id').DataTable({
     processing: true,
     serverSide: true,
+    ordering: false,
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
     },
@@ -102,18 +103,15 @@ function InitialiserModalArticle(modal, submit, path, callback = function () { }
                 $(this).addClass('is-invalid');
             }
             // validation valeur des inputs de type number
-            // if ($(this).attr('type') === 'number') {
-            //     let val = parseInt($(this).val());
-            //     console.log(val)
-            //     let min = parseInt($(this).attr('min'));
-            //     console.log(min)
-            //     let max = parseInt($(this).attr('max'));
-            //     console.log(max)
-            //     if (val > max || val < min) {
-            //         wrongInputs.push($(this));
-            //         $(this).addClass('is-invalid');
-            //     }
-            // }
+            if ($(this).attr('type') === 'number') {
+                let val = parseInt($(this).val());
+                let min = parseInt($(this).attr('min'));
+                let max = parseInt($(this).attr('max'));
+                if (val > max || val < min) {
+                    wrongInputs.push($(this));
+                    $(this).addClass('is-invalid');
+                }
+            }
         });
 
         // ... et dans les checkboxes
@@ -171,7 +169,7 @@ function init() {
     ajaxAutoFournisseurInit($('.ajax-autocompleteFournisseur'));
 }
 function initNewArticleEditor(modal) {
-    initEditor('.editor-container-new');
+    initEditor(modal + ' .editor-container-new');
 };
 
 function loadAndDisplayInfos(select) {

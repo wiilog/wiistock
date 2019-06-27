@@ -519,8 +519,8 @@ class ReceptionController extends AbstractController
                 ->setAnomalie($anomalie)
                 ->setFournisseur($fournisseur)
                 ->setReferenceArticle($refArticle)
-                ->setQuantite($contentData['quantite'])
-                ->setQuantiteAR($contentData['quantiteAR'])
+                ->setQuantite(max($contentData['quantite'], 0)) // protection contre quantités négatives
+                ->setQuantiteAR(max($contentData['quantiteAR'], 0)) // protection contre quantités négatives
                 ->setCommentaire($contentData['commentaire'])
                 ->setReception($reception);
 
@@ -591,8 +591,8 @@ class ReceptionController extends AbstractController
                 ->setAnomalie($data['anomalie'])
                 ->setFournisseur($fournisseur)
                 ->setReferenceArticle($refArticle)
-                ->setQuantite($data['quantite'])
-                ->setQuantiteAR($data['quantiteAR'])
+                ->setQuantite(max($data['quantite'], 0)) // protection contre quantités négatives
+                ->setQuantiteAR(max($data['quantiteAR'], 0)) // protection contre quantités négatives
                 ->setCommentaire($data['commentaire']);
 
             if (array_key_exists('articleFournisseur', $data) && $data['articleFournisseur']) {
@@ -876,7 +876,7 @@ class ReceptionController extends AbstractController
                             ->setConform(true)
                             ->setStatut($statut)
                             ->setReference($ref . '-' . $counter)
-                            ->setQuantite(intval($dataContent['tailleLot'][$i]))
+                            ->setQuantite(max(intval($dataContent['tailleLot'][$i]), 0)) // protection contre quantités négatives
                             ->setArticleFournisseur($articleFournisseur)
                             ->setReception($ligne->getReception())
                             ->setType($refArticle->getType());

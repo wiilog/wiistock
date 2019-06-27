@@ -314,13 +314,13 @@ class CollecteController extends AbstractController
             if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                 if ($this->collecteReferenceRepository->countByCollecteAndRA($collecte, $refArticle) > 0) {
                     $collecteReference = $this->collecteReferenceRepository->getByCollecteAndRA($collecte, $refArticle);
-                    $collecteReference->setQuantite(intval($collecteReference->getQuantite()) + intval($data['quantitie']));
+                    $collecteReference->setQuantite(intval($collecteReference->getQuantite()) + max(intval($data['quantitie']), 0)); // protection contre quantités négatives
                 } else {
                     $collecteReference = new CollecteReference();
                     $collecteReference
                         ->setCollecte($collecte)
                         ->setReferenceArticle($refArticle)
-                        ->setQuantite($data['quantitie']);
+                        ->setQuantite(max($data['quantitie'], 0)); // protection contre quantités négatives
 
                     $em->persist($collecteReference);
                 }
@@ -352,7 +352,7 @@ class CollecteController extends AbstractController
                     ->setConform(true)
                     ->setStatut($statut)
                     ->setReference($ref . '-' . $index)
-                    ->setQuantite($data['quantitie'])
+                    ->setQuantite(max($data['quantitie'], 0)) // protection contre quantités négatives
                     ->setEmplacement($collecte->getPointCollecte())
                     ->setArticleFournisseur($articleFournisseur)
                     ->setType($refArticle->getType());

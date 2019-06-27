@@ -343,7 +343,7 @@ class ArticleDataService
                 $article
                     ->setLabel($data['label'])
                     ->setConform(!$data['conform'])
-                    ->setQuantite($data['quantite'] ? $data['quantite'] : 0)
+                    ->setQuantite($data['quantite'] ? max($data['quantite'], 0) : 0) // protection contre quantités négatives
                     ->setCommentaire($data['commentaire']);
 
                 if (isset($data['statut'])) { // si on est dans une demande (livraison ou collecte), pas de champ statut
@@ -392,13 +392,13 @@ class ArticleDataService
 
         $toInsert = new Article();
         $type = $this->articleFournisseurRepository->find($data['articleFournisseur'])->getReferenceArticle()->getType();
-        $toInsert
+		$toInsert
             ->setLabel($data['libelle'])
             ->setConform(!$data['conform'])
             ->setStatut($statut)
             ->setCommentaire($data['commentaire'])
             ->setReference($ref . '-0')
-            ->setQuantite((int)$data['quantite'])
+            ->setQuantite(max((int)$data['quantite'], 0))  // protection contre quantités négatives
             ->setEmplacement($this->emplacementRepository->find($data['emplacement']))
             ->setArticleFournisseur($this->articleFournisseurRepository->find($data['articleFournisseur']))
             ->setType($type);

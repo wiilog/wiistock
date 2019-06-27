@@ -101,7 +101,7 @@ class Article
     /**
      * @ORM\Column(type="integer", nullable=true)
      */
-    private $withdrawQuantity;
+	private $quantiteAPrelever;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Reception", inversedBy="articles")
@@ -353,14 +353,14 @@ class Article
         return  $this;
     }
 
-    public function getWithdrawQuantity(): ?int
+    public function getQuantiteAPrelever(): ?int
     {
-        return $this->withdrawQuantity;
+        return $this->quantiteAPrelever;
     }
 
-    public function setWithdrawQuantity(?int $withdrawQuantity): self
+    public function setQuantiteAPrelever(?int $quantiteAPrelever): self
     {
-        $this->withdrawQuantity = $withdrawQuantity;
+        $this->quantiteAPrelever = $quantiteAPrelever;
 
         return $this;
     }

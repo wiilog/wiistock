@@ -64,7 +64,7 @@ let startPreparation = function (value) {
             $('#statutPreparation').html(data);
         }
     }
-    path = Routing.generate('preparation_withdraw_articles', true);
+    path = Routing.generate('preparation_take_articles', true);
     let demandeID = value.val();
     Json = JSON.stringify(demandeID);
     xhttp.open("POST", path, true);
