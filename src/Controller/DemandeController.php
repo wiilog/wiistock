@@ -171,7 +171,7 @@ class DemandeController extends AbstractController
 
             foreach ($articles as $article) {
                 if ($article->getQuantite() !== $article->getWithdrawQuantity()) {
-                    $newArticle = [
+                    $dataArticle = [
                         'articleFournisseur' => $article->getArticleFournisseur()->getId(),
                         'libelle' => $article->getLabel(),
                         'conform' => !$article->getConform(),
@@ -180,14 +180,11 @@ class DemandeController extends AbstractController
                         'emplacement' => ($article->getEmplacement() ? $article->getEmplacement()->getId() : ''),
                         'statut' => 'actif',
                     ];
-                    $newArticleVCL = [];
+
                     foreach ($article->getValeurChampsLibres() as $valeurChampLibre) {
-                        $newArticleVCL = [
-                            $valeurChampLibre->getChampLibre()->getId() => $valeurChampLibre->getValeur(),
-                        ];
+                        $dataArticle[$valeurChampLibre->getChampLibre()->getId()] = $valeurChampLibre->getValeur();
                     }
-                    $dateArticle = array_merge($newArticle, $newArticleVCL);
-                    $this->articleDataService->newArticle($dateArticle);
+                    $this->articleDataService->newArticle($dataArticle);
                 }
                 //modification du statut article =>en transit
                 $article->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));

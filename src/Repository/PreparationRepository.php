@@ -19,30 +19,6 @@ class PreparationRepository extends ServiceEntityRepository
         parent::__construct($registry, Preparation::class);
     }
 
-//    public function findPrepaByStatut($Statut)
-//    {
-//        $entityManager = $this->getEntityManager();
-//        $query = $entityManager->createQuery(
-//            "SELECT p
-//            FROM App\Entity\Preparation p
-//            WHERE p.Statut = :Statut "
-//        )->setParameter('Statut', $Statut);
-//        ;
-//        return $query->execute();
-//    }
-//
-//    public function findByNoStatut($Statut)
-//    {
-//        $entityManager = $this->getEntityManager();
-//        $query = $entityManager->createQuery(
-//            "SELECT p
-//            FROM App\Entity\Preparation p
-//            WHERE p.Statut <> :Statut "
-//        )->setParameter('Statut', $Statut);
-//        ;
-//        return $query->execute();
-//    }
-
    public function getByDemande($id)
    {
        $entityManager = $this->getEntityManager();

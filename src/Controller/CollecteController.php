@@ -7,6 +7,8 @@ use App\Entity\Collecte;
 use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
 use App\Entity\CollecteReference;
+use App\Entity\ValeurChampsLibre;
+use App\Repository\ChampsLibreRepository;
 use App\Service\ArticleDataService;
 use App\Service\RefArticleDataService;
 use App\Service\UserService;
@@ -107,8 +109,13 @@ class CollecteController extends AbstractController
      */
     private $articleDataService;
 
+	/**
+	 * @var ChampsLibreRepository
+	 */
+    private $champLibreRepository;
 
-    public function __construct(TypeRepository $typeRepository, FournisseurRepository $fournisseurRepository, ArticleFournisseurRepository $articleFournisseurRepository, OrdreCollecteRepository $ordreCollecteRepository, RefArticleDataService $refArticleDataService, CollecteReferenceRepository $collecteReferenceRepository, ReferenceArticleRepository $referenceArticleRepository, StatutRepository $statutRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArticleDataService $articleDataService)
+
+    public function __construct(ChampsLibreRepository $champLibreRepository, TypeRepository $typeRepository, FournisseurRepository $fournisseurRepository, ArticleFournisseurRepository $articleFournisseurRepository, OrdreCollecteRepository $ordreCollecteRepository, RefArticleDataService $refArticleDataService, CollecteReferenceRepository $collecteReferenceRepository, ReferenceArticleRepository $referenceArticleRepository, StatutRepository $statutRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArticleDataService $articleDataService)
     {
         $this->typeRepository = $typeRepository;
         $this->articleFournisseurRepository = $articleFournisseurRepository;
@@ -124,6 +131,7 @@ class CollecteController extends AbstractController
         $this->refArticleDataService = $refArticleDataService;
         $this->userService = $userService;
         $this->articleDataService = $articleDataService;
+        $this->champLibreRepository = $champLibreRepository;
     }
 
     /**
@@ -327,7 +335,7 @@ class CollecteController extends AbstractController
                         ->setNom('A DETERMINER');
                     $em->persist($fournisseurTemp);
                 }
-                $toInsert = new Article();
+                $article = new Article();
                 $index = $this->articleFournisseurRepository->countByRefArticle($refArticle);
                 $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_INACTIF);
                 $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
@@ -339,7 +347,7 @@ class CollecteController extends AbstractController
                     ->setReference($refArticle->getReference())
                     ->setLabel('A déterminer -' . $index);
                 $em->persist($articleFournisseur);
-                $toInsert
+                $article
                     ->setLabel($refArticle->getLibelle() . '-' . $index)
                     ->setConform(true)
                     ->setStatut($statut)
@@ -348,8 +356,17 @@ class CollecteController extends AbstractController
                     ->setEmplacement($collecte->getPointCollecte())
                     ->setArticleFournisseur($articleFournisseur)
                     ->setType($refArticle->getType());
-                $em->persist($toInsert);
-                $collecte->addArticle($toInsert);
+                $em->persist($article);
+                $collecte->addArticle($article);
+
+				$champslibres = $this->champLibreRepository->findByTypeAndCategorieCLLabel($refArticle->getType(), Article::CATEGORIE);
+                foreach($champslibres as $champLibre) {
+                	$valeurChampLibre = new ValeurChampsLibre();
+                	$valeurChampLibre
+						->addArticle($article)
+						->setChampLibre($champLibre);
+                	$em->persist($valeurChampLibre);
+				}
                 //TODO fin patch temporaire CEA (à remplacer par lignes suivantes)
             // $article = $this->articleRepository->find($data['article']);
             // $collecte->addArticle($article);

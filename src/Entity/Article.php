@@ -52,7 +52,7 @@ class Article
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="articles")
      */
-    private $Statut;
+    private $statut;
 
     /**
      * @ORM\Column(type="boolean")
@@ -193,12 +193,12 @@ class Article
 
     public function getStatut(): ?Statut
     {
-        return $this->Statut;
+        return $this->statut;
     }
 
-    public function setStatut(?Statut $Statut): self
+    public function setStatut(?Statut $statut): self
     {
-        $this->Statut = $Statut;
+        $this->statut = $statut;
 
         return $this;
     }

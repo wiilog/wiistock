@@ -234,22 +234,16 @@ class ArticleDataService
      * @throws \Twig_Error_Runtime
      * @throws \Twig_Error_Syntax
      */
-    public function getLivraisonArticleOrNoByRefArticle($refArticle)
+    public function getLivraisonArticlesByRefArticle($refArticle)
     {
-        $articleFournisseur = $this->articleFournisseurRepository->findByRefArticle($refArticle);
         if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
             $data = [
                 'modif' => $this->refArticleDataService->getViewEditRefArticle($refArticle, true),
                 'selection' => $this->templating->render('demande/newRefArticleByQuantiteRefContent.html.twig'),
             ];
         } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
-            $demandeStatut = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_LIVRE);
-
-            $articlesNull = $this->articleRepository->getByAFAndActifAndDemandeNull($articleFournisseur, $statut);
-            $articleStatut = $this->articleRepository->getByAFAndActifAndDemandeStatus($articleFournisseur, $statut, $demandeStatut);
-
-            $articles = array_merge($articlesNull, $articleStatut);
+            $statutArticleActif = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
+            $articles = $this->articleRepository->getByRefArticleAndStatut($refArticle, $statutArticleActif);
 
             if (count($articles) < 1) {
                 $articles[] = [
@@ -319,21 +313,7 @@ class ArticleDataService
                 'champsLibres' => $champsLibres,
             ];
 
-
-        switch ($article->getStatut()->getNom()) {
-            case Article::STATUT_INACTIF:
-                $statut = 0;
-                break;
-            case Article::STATUT_ACTIF:
-                $statut = 1;
-                break;
-            case Article::STATUT_EN_TRANSIT:
-                $statut = 2;
-                break;
-            default:
-                $statut = 0; //TODO plutôt gérer une erreur ?
-                break;
-        }
+        $statut = $article->getStatut()->getNom();
 
         $view = $this->templating->render('article/modalModifyArticleContent.html.twig', [
             'typeChampsLibres' => $typeChampLibre,
@@ -367,20 +347,8 @@ class ArticleDataService
                     ->setCommentaire($data['commentaire']);
 
                 if (isset($data['statut'])) { // si on est dans une demande (livraison ou collecte), pas de champ statut
-                    switch (intval($data['statut'])) {
-                        case 0:
-                            $statutLabel = Article::STATUT_INACTIF;
-                            break;
-                        case 1:
-                            $statutLabel = Article::STATUT_ACTIF;
-                            break;
-                        case 2:
-                            $statutLabel = Article::STATUT_EN_TRANSIT;
-                            break;
-                    }
-
-                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $statutLabel);
-                    $article->setStatut($statut);
+                	$statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $data['statut']);
+                    if ($statut) $article->setStatut($statut);
                 }
                 if ($data['emplacement']) {
                     $article->setEmplacement($this->emplacementRepository->find($data['emplacement']));

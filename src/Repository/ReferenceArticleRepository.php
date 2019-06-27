@@ -124,7 +124,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             $index++;
 //
 //            $operatorOR = $filter['operator'] == 'or';
-			//TODO CG filtres et/ou
+			//TODO filtres et/ou
 
             // cas particulier champ référence article fournisseur
             if ($filter['champFixe'] === Filter::CHAMP_FIXE_REF_ART_FOURN) {
@@ -146,7 +146,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 //                    	$where = "ra." . $field . " LIKE :value" . $index;
 //                    	$operatorOR ? $qb->orWhere($where) : $qb->andWhere($where);
 //                        $qb->setParameter('value' . $index, '%' . $filter['value'] . '%');
-						//TODO CG filtres et/ou
+						//TODO filtres et/ou
                         break;
                     case 'number':
                         $qb->andWhere("ra." . $field . " = " . $filter['value']);

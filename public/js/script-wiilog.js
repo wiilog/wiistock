@@ -207,7 +207,7 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
                 defaultValueForTypage($('#typageModif'), '-edit');
             }
 
-            displayRequireChamp(modal.find('#typeEdit'), 'edit');
+            toggleRequiredChampsLibres(modal.find('#typeEdit'), 'edit');
 
             if (setMaxQuantity) setMaxQuantityEdit($('#referenceEdit'));
             if (editorToInit) initEditor(editor);
@@ -237,12 +237,10 @@ function setMaxQuantityEdit(select) {
     }, 'json');
 }
 
-function toggleRadioButton(button) {
-    let sel = button.data('title');
-    let tog = button.data('toggle');
+function toggleRadioButton($button) {
+    let sel = $button.data('title');
+    let tog = $button.data('toggle');
     $('#' + tog).prop('value', sel);
-
-
     $('span[data-toggle="' + tog + '"]').not('[data-title="' + sel + '"]').removeClass('active').addClass('not-active');
     $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
 }
@@ -255,7 +253,7 @@ function initEditor(div) {
 
     // protection pour éviter erreur console si l'élément n'existe pas dans le DOM
     if($(div).length) {
-        new Quill(div, {
+        return new Quill(div, {
             modules: {
                 toolbar: [
                     [{ header: [1, 2, 3, false] }],
@@ -272,14 +270,16 @@ function initEditor(div) {
             theme: 'snow'
         });
     }
+    return null;
 };
 
-//passe de l'éditeur à l'input pour insertion en BDD par la classe editor-container
+//passe de l'éditeur à l'input pour envoi au back
 function setCommentaire(div) {
-    let container = div;
-    let quill = new Quill(container);
-    let com = quill.container.firstChild.innerHTML;
-    $(div).closest('.modal').find('#commentaire').val(com);
+    let quill = initEditor(div);
+    if (quill) {
+        let com = quill.container.firstChild.innerHTML;
+        $(div).closest('.modal').find('#commentaire').val(com);
+    }
 };
 
 //FONCTION REFARTICLE
@@ -440,14 +440,14 @@ function clearNewContent(button) {
     $('#reference').html('');
 }
 
-let displayRequireChamp = function (select, require) {
-    let bloc = $('#typeContentEdit');
+let toggleRequiredChampsLibres = function (select, require) {
+    let bloc = require == 'create' ? $('#typeContentNew') : $('#typeContentEdit'); //TODO pas top
     bloc.find('.data').removeClass('needed');
 
     let params = {};
     if (select.val()) {
         params[require] = select.val();
-        let path = Routing.generate('display_require_champ', true);
+        let path = Routing.generate('display_required_champs_libres', true);
 
         $.post(path, JSON.stringify(params), function (data) {
             if (data) {
@@ -474,7 +474,7 @@ function displayError(modal, msg, data) {
 function clearModal(modal) {
     $modal = $(modal);
     let inputs = $modal.find('.modal-body').find(".data");
-    // on vide tous les inputs (sauf les disabled)
+    // on vide tous les inputs (sauf les disabled et les input hidden)
     inputs.each(function () {
         if ($(this).attr('disabled') !== 'disabled' && $(this).attr('type') !== 'hidden') {
             $(this).val("");

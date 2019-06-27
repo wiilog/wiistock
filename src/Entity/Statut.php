@@ -35,12 +35,12 @@ class Statut
     private $categorie;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Article", mappedBy="Statut")
+     * @ORM\OneToMany(targetEntity="App\Entity\Article", mappedBy="statut")
      */
     private $articles;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Reception", mappedBy="Statut")
+     * @ORM\OneToMany(targetEntity="App\Entity\Reception", mappedBy="statut")
      */
     private $receptions;
 
@@ -50,22 +50,22 @@ class Statut
     private $demandes;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Preparation", mappedBy="Statut")
+     * @ORM\OneToMany(targetEntity="App\Entity\Preparation", mappedBy="statut")
      */
     private $preparations;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Livraison", mappedBy="Statut")
+     * @ORM\OneToMany(targetEntity="App\Entity\Livraison", mappedBy="statut")
      */
     private $livraisons;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Collecte", mappedBy="Statut")
+     * @ORM\OneToMany(targetEntity="App\Entity\Collecte", mappedBy="statut")
      */
     private $collectes;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\ReferenceArticle", mappedBy="Statut")
+     * @ORM\OneToMany(targetEntity="App\Entity\ReferenceArticle", mappedBy="statut")
      */
     private $referenceArticles;
 

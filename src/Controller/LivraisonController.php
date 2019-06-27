@@ -221,10 +221,12 @@ class LivraisonController extends AbstractController
                 $refArticle->setQuantiteStock($refArticle->getQuantiteStock() - $ligneArticle->getQuantite());
             }
 
-            $preparation = $livraison->getPreparation();
-            $articles = $preparation->getArticle();
+
+            $articles = $demande->getArticles();
+
             foreach ($articles as $article) {
                 $article->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_INACTIF));
+
             }
         }
         $this->getDoctrine()->getManager()->flush();
