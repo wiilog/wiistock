@@ -120,7 +120,6 @@ let submitDeleteService = $('#submitDeleteService');
 let urlDeleteService = Routing.generate('service_delete', true);
 InitialiserModal(modalDeleteService, submitDeleteService, urlDeleteService, tableService);
 
-
 var editorEditServiceAlreadyDone = false;
 function initEditServiceEditor(modal) {
     if (!editorEditServiceAlreadyDone) {

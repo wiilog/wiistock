@@ -112,7 +112,7 @@ class ServiceController extends AbstractController
         ]);
     }
     /**
-     * @Route("/voir", name="service_show", options={"expose"=true},  methods="GET|POST")
+     * @Route("/voir", name="service_show", options={"expose"=true}, methods="GET|POST")
      */
     public function show(Request $request): Response
     {
