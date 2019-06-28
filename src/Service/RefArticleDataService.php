@@ -333,12 +333,12 @@ class RefArticleDataService
             $rowCL[$champLibre['label']] = ($valeur ? $valeur->getValeur() : "");
         }
         $totalQuantity = 0;
-        $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_INACTIF);
+        $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
         if ($refArticle->getTypeQuantite() === 'article') {
             foreach ($refArticle->getArticlesFournisseur() as $articleFournisseur) {
                 $quantity = 0;
                 foreach ($articleFournisseur->getArticles() as $article) {
-                    if ($article->getStatut() !== $statut) $quantity += $article->getQuantite();
+                    if ($article->getStatut() == $statut) $quantity += $article->getQuantite();
                 }
                 $totalQuantity += $quantity;
             }
