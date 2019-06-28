@@ -1,6 +1,10 @@
 let pathArticle = Routing.generate('article_api', true);
 
 let tableArticle = $('#tableArticle_id').DataTable({
+    serverSide: true,
+    ordering: false,
+    processing: true,
+    
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
     },

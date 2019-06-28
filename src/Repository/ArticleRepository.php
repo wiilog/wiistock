@@ -277,7 +277,7 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function findByParams($params = null)
+    public function findByParamsAndStatut($params = null, $statutLabel)
     {
         $em = $this->getEntityManager();
         $qb = $em->createQueryBuilder();
@@ -285,6 +285,13 @@ class ArticleRepository extends ServiceEntityRepository
         $qb
             ->select('a')
             ->from('App\Entity\Article', 'a');
+
+        if ($statutLabel) {
+            $qb
+                ->join('a.statut', 's')
+                ->where('s.nom = :statutLabel')
+                ->setParameter('statutLabel', $statutLabel);
+        }
 
         // prise en compte des paramètres issus du datatable
         if (!empty($params)) {
@@ -309,36 +316,36 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->getResult();
     }
 
-    public function findByParamsActifStatut($params = null, $statutId)
-    {
-        $em = $this->getEntityManager();
-        $qb = $em->createQueryBuilder();
-
-        $qb
-            ->select('a')
-            ->from('App\Entity\Article', 'a')
-            ->where('a.statut =' . $statutId);
-
-        // prise en compte des paramètres issus du datatable
-        if (!empty($params)) {
-            if (!empty($params->get('start'))) {
-                $qb->setFirstResult($params->get('start'));
-            }
-            if (!empty($params->get('length'))) {
-                $qb->setMaxResults($params->get('length'));
-            }
-            if (!empty($params->get('search'))) {
-                $search = $params->get('search')['value'];
-                if (!empty($search)) {
-                    $qb
-                        ->andWhere('a.label LIKE :value OR a.reference LIKE :value')
-                        ->setParameter('value', '%' . $search . '%');
-                }
-            }
-        }
-        $query = $qb->getQuery();
-        return $query->getResult();
-    }
+//    public function findByParamsActifStatut($params = null, $statutId)
+//    {
+//        $em = $this->getEntityManager();
+//        $qb = $em->createQueryBuilder();
+//
+//        $qb
+//            ->select('a')
+//            ->from('App\Entity\Article', 'a')
+//            ->where('a.statut =' . $statutId);
+//
+//        // prise en compte des paramètres issus du datatable
+//        if (!empty($params)) {
+//            if (!empty($params->get('start'))) {
+//                $qb->setFirstResult($params->get('start'));
+//            }
+//            if (!empty($params->get('length'))) {
+//                $qb->setMaxResults($params->get('length'));
+//            }
+//            if (!empty($params->get('search'))) {
+//                $search = $params->get('search')['value'];
+//                if (!empty($search)) {
+//                    $qb
+//                        ->andWhere('a.label LIKE :value OR a.reference LIKE :value')
+//                        ->setParameter('value', '%' . $search . '%');
+//                }
+//            }
+//        }
+//        $query = $qb->getQuery();
+//        return $query->getResult();
+//    }
 
     public function findByListAF($listAf)
     {

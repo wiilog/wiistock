@@ -10,11 +10,13 @@ namespace App\Service;
 
 use App\Entity\Action;
 use App\Entity\Article;
+use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Menu;
 use App\Entity\ParamClient;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
+use App\Entity\Statut;
 use App\Entity\ValeurChampsLibre;
 use App\Entity\CategorieCL;
 
@@ -476,15 +478,12 @@ class ArticleDataService
     public function getArticleDataByParams($params = null)
     {
         if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
-            $articles = $this->articleRepository->findByParams($params);
+            $statutLabel = null;
         } else {
-            $categorieName = 'article';
-            $statutName = 'actif';
-            $statut = $this->statutRepository->findOneByCategorieAndStatut($categorieName, $statutName);
-            $statutId = $statut->getId();
-
-            $articles = $this->articleRepository->findByParamsActifStatut($params, $statutId);
+            $statutLabel = Article::STATUT_ACTIF;
         }
+
+        $articles = $this->articleRepository->findByParamsAndStatut($params, $statutLabel);
 
         $rows = [];
         foreach ($articles as $article) {
