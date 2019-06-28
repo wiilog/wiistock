@@ -120,8 +120,7 @@ let submitDeleteService = $('#submitDeleteService');
 let urlDeleteService = Routing.generate('service_delete', true);
 InitialiserModal(modalDeleteService, submitDeleteService, urlDeleteService, tableService);
 
-
-var editorEditServiceAlreadyDone = false;
+let editorEditServiceAlreadyDone = false;
 function initEditServiceEditor(modal) {
     if (!editorEditServiceAlreadyDone) {
         initEditorInModal(modal);
@@ -130,7 +129,7 @@ function initEditServiceEditor(modal) {
 };
 
 //initialisation editeur de texte une seule fois
-var editorNewServiceAlreadyDone = false;
+let editorNewServiceAlreadyDone = false;
 function initNewServiceEditor(modal) {
     if (!editorNewServiceAlreadyDone) {
         initEditor('.editor-container-new');
