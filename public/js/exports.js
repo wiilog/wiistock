@@ -6,10 +6,18 @@ function initExport(button, type) {
         button.addClass('btn-light');
         button.css('background', 'linear-gradient(to right, #00b31e 1%, grey 1%');
         button.html('Export CSV en cours ...');
-        let route = type === "ref" ? Routing.generate('get_total_and_headers_ref', true)
-                    : type === "art" ? Routing.generate('get_total_and_headers_art', true) 
-                    : Routing.generate('get_total_and_headers_other', true);
-        $.post(route, function (response) {
+        let path = '';
+        switch (type) {
+            case 'ref':
+                path = 'get_total_and_headers_ref';
+                break;
+            case 'art':
+                path = 'get_total_and_headers_art';
+                break;
+            default:
+                return;
+        }
+        $.post(Routing.generate(path, true), function (response) {
             exportAll(type, response.total, response.headers.join(';'), button);
         });
     }
@@ -19,14 +27,23 @@ async function exportAll(type, total, headers, button) {
     let increment = 100;
     let csv = headers + '\n';
     for (i = 0; i < total; i += increment) {
-        let path = type === "ref" ? 'reference_article_export'
-                    : type === "art" ? 'article_export'
-                    : 'other_export';
+        let path = '';
+        switch (type) {
+            case 'ref':
+                path = 'reference_article_export';
+                break;
+            case 'art':
+                path = 'article_export';
+                break;
+            default:
+                return;
+        }
+
         let route = Routing.generate(path, {
             max: i+increment,
             min: i
         });
-        var result = await exportWithBounds(route);
+        let result = await exportWithBounds(route);
         let percent = i+increment > total ? 100 : Math.floor(((i+increment)/total)*100);
         button.css('background', 'linear-gradient(to right, #00b31e ' + percent + '%, grey ' + percent + '%');
         button.html('Export CSV en cours... ' + percent + '%');
@@ -45,20 +62,10 @@ async function exportAll(type, total, headers, button) {
 }
 
 function exportWithBounds(path) {
-    return new Promise(function (resolve, reject) {
-        xhttp = new XMLHttpRequest();
-        xhttp.onreadystatechange = function () {
-            if (this.readyState == 4 && this.status == 200) {
-                let response = JSON.parse(this.responseText);
-                if (response) {
-                    resolve(response.values);
-                } else {
-                    //TODO gérer erreur
-                }
-            }
-        }
-        xhttp.open("POST", path);
-        xhttp.send();
+    return new Promise(function (resolve) {
+        $.post(path, function(data) {
+            resolve(data.values);
+        });
     });
 }
 
