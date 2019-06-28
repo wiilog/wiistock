@@ -49,9 +49,9 @@ Liste des articles :<br>
     {% endfor %}
     {% for article in livraison.articles %}
         <tr>
-            <td>{{ article.reference }}</td>
+            <td>{{ article.articleFournisseur.referenceArticle.reference }}</td>
             <td>{{ article.label }}</td>
-            <td></td>
+            <td>{{ article.quantite }}</td>
         </tr>
     {% endfor %}
     </tbody>
