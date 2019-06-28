@@ -10,13 +10,11 @@ namespace App\Service;
 
 use App\Entity\Action;
 use App\Entity\Article;
-use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Menu;
 use App\Entity\ParamClient;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
-use App\Entity\Statut;
 use App\Entity\ValeurChampsLibre;
 use App\Entity\CategorieCL;
 
@@ -428,8 +426,7 @@ class ArticleDataService
     public function getDataForDatatable($params = null)
     {
         $data = $this->getArticleDataByParams($params);
-        $data['recordsTotal'] = (int)$this->articleRepository->countAll();
-        $data['recordsFiltered'] = (int)$this->articleRepository->countAll();
+
         return $data;
     }
 
@@ -483,13 +480,19 @@ class ArticleDataService
             $statutLabel = Article::STATUT_ACTIF;
         }
 
-        $articles = $this->articleRepository->findByParamsAndStatut($params, $statutLabel);
+        $queryResult = $this->articleRepository->findByParamsAndStatut($params, $statutLabel);
+
+        $articles = $queryResult['data'];
 
         $rows = [];
         foreach ($articles as $article) {
             $rows[] = $this->dataRowRefArticle($article);
         }
-        return ['data' => $rows];
+        return [
+        	'data' => $rows,
+			'recordsFiltered' => $queryResult['count'],
+			'recordsTotal' => $queryResult['total'],
+		];
     }
 
     /**

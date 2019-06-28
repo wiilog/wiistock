@@ -145,13 +145,16 @@ class RefArticleDataService
         $queryResult = $this->referenceArticleRepository->findByFiltersAndParams($filters, $params, $this->user);
        
         $refs = $queryResult['data'];
-        $count = $queryResult['count'];
 
         $rows = [];
         foreach ($refs as $refArticle) {
             $rows[] = $this->dataRowRefArticle($refArticle);
         }
-        return ['data' => $rows, 'recordsFiltered' => $count];
+        return [
+        	'data' => $rows,
+			'recordsFiltered' => $queryResult['count'],
+			'recordsTotal' => $queryResult['total']
+		];
     }
 
 

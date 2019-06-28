@@ -210,7 +210,6 @@ function initTableRefArticle() {
                 'url': url,
                 'type': 'POST',
                 'dataSrc': function (json) {
-                    console.log(json);
                     return json.data;
                 }
             },

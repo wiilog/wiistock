@@ -4,13 +4,12 @@ let tableArticle = $('#tableArticle_id').DataTable({
     serverSide: true,
     ordering: false,
     processing: true,
-    
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
     },
     ajax: {
         "url": pathArticle,
-        "type": "POST"
+        "type": "POST",
     },
     columns: [
         { "data": 'Référence', 'name': 'Référence' },
