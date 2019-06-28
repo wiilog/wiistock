@@ -924,8 +924,7 @@ class ReferenceArticleController extends Controller
      */
     public function exportAll(Request $request, $max, $min): Response
     {
-        if (!$request->isXmlHttpRequest()) {
-            $this->get('profiler')->disable();
+        if ($request->isXmlHttpRequest()) {
             $data = [];
             $data['values'] = [];
             $headersCL = [];
