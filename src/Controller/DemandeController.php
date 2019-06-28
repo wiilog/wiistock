@@ -170,22 +170,6 @@ class DemandeController extends AbstractController
             $articles = $demande->getArticles();
 
             foreach ($articles as $article) {
-                if ($article->getQuantite() !== $article->getQuantiteAPrelever()) {
-                    $dataArticle = [
-                        'articleFournisseur' => $article->getArticleFournisseur()->getId(),
-                        'libelle' => $article->getLabel(),
-                        'conform' => !$article->getConform(),
-                        'commentaire' => $article->getcommentaire(),
-                        'quantite' => $article->getQuantite() - $article->getQuantiteAPrelever(),
-                        'emplacement' => ($article->getEmplacement() ? $article->getEmplacement()->getId() : ''),
-                        'statut' => 'actif',
-                    ];
-
-                    foreach ($article->getValeurChampsLibres() as $valeurChampLibre) {
-                        $dataArticle[$valeurChampLibre->getChampLibre()->getId()] = $valeurChampLibre->getValeur();
-                    }
-                    $this->articleDataService->newArticle($dataArticle);
-                }
                 //modification du statut article =>en transit
                 $article->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
             }

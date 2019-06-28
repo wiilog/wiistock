@@ -350,12 +350,28 @@ class PreparationController extends AbstractController
             $demande = $this->demandeRepository->find($data);
             $articles = $demande->getArticles();
             foreach ($articles as $article) {
-                if ($article->getQuantite() !== $article->getQuantiteAPrelever()) {
-                    $article->setQuantite(max($article->getQuantiteAPrelever(), 0)); // protection contre quantités négatives
+				// scission des articles dont la quantité prélevée n'est pas totale
+				if ($article->getQuantite() !== $article->getQuantiteAPrelever()) {
+                    $newArticle = [
+                        'articleFournisseur' => $article->getArticleFournisseur()->getId(),
+                        'libelle' => $article->getLabel(),
+                        'conform' => !$article->getConform(),
+                        'commentaire' => $article->getcommentaire(),
+                        'quantite' => $article->getQuantite() - $article->getQuantiteAPrelever(),
+                        'emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getId() : '',
+                        'statut' => 'actif',
+                    ];
+
+                    foreach ($article->getValeurChampsLibres() as $valeurChampLibre) {
+                        $newArticle[$valeurChampLibre->getChampLibre()->getId()] = $valeurChampLibre->getValeur();
+                    }
+                    $this->articleDataService->newArticle($newArticle);
+
+                    $article->setQuantite($article->getQuantiteAPrelever(), 0);
                 }
             }
 
-            //modif du statut de la preparation
+            // modif du statut de la préparation
             $preparation = $demande->getPreparation();
             $statutEDP = $this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_EN_COURS_DE_PREPARATION);
             $preparation->setStatut($statutEDP);
