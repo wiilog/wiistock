@@ -275,11 +275,10 @@ function initEditor(div) {
 
 //passe de l'éditeur à l'input pour envoi au back
 function setCommentaire(div) {
-    let quill = initEditor(div);
-    if (quill) {
-        let com = quill.container.firstChild.innerHTML;
-        $(div).closest('.modal').find('#commentaire').val(com);
-    }
+    let container = div;
+    let quill = new Quill(container);
+    let com = quill.container.firstChild.innerHTML;
+    $(div).closest('.modal').find('#commentaire').val(com);
 };
 
 //FONCTION REFARTICLE
