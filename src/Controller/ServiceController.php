@@ -112,7 +112,7 @@ class ServiceController extends AbstractController
         ]);
     }
     /**
-     * @Route("/voir", name="service_show", options={"expose"=true},  methods="GET|POST")
+     * @Route("/voir", name="service_show", options={"expose"=true}, methods="GET|POST")
      */
     public function show(Request $request): Response
     {
@@ -228,13 +228,13 @@ class ServiceController extends AbstractController
     public function delete(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-			if (!$this->userService->hasRightFunction(Menu::MANUT, Action::DELETE)) {
+			if (!$this->userService->hasRightFunction(Menu::MANUT, Action::EDIT_DELETE)) {
 				return $this->redirectToRoute('access_denied');
 			}
 
             $service = $this->serviceRepository->find($data['service']);
 
-            if (!$service->getStatut()->getNom() == Service::STATUT_TRAITE) {
+            if ($service->getStatut()->getNom() == Service::STATUT_A_TRAITER) {
 				$entityManager = $this->getDoctrine()->getManager();
 				$entityManager->remove($service);
 				$entityManager->flush();
