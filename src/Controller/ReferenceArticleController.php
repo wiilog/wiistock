@@ -457,37 +457,38 @@ class ReferenceArticleController extends Controller
         ];
 
         // champs pour recherche personnalisée (uniquement de type texte)
-		$champsLText = $this->champsLibreRepository->getByCategoryTypeAndCategoryCLAndText($category, $categorieCL);
-
-		$champsFText[] = [
-            'label' => 'Libellé',
-            'id' => 0,
-            'typage' => 'text'
-
-        ];
-
-        $champsFText[] = [
-            'label' => 'Référence',
-            'id' => 0,
-            'typage' => 'text'
-
-        ];
-
-        $champsFText[] = [
-            'label' => 'Fournisseur',
-            'id' => 0,
-            'typage' => 'text'
-
-        ];
-        $champsFText[] = [
-            'label' => 'Référence Article Fournisseur',
-            'id' => 0,
-            'typage' => 'text'
-
-        ];
+//		$champsLText = $this->champsLibreRepository->getByCategoryTypeAndCategoryCLAndText($category, $categorieCL);
+//
+//		$champsFText[] = [
+//            'label' => 'Libellé',
+//            'id' => 0,
+//            'typage' => 'text'
+//
+//        ];
+//
+//        $champsFText[] = [
+//            'label' => 'Référence',
+//            'id' => 0,
+//            'typage' => 'text'
+//
+//        ];
+//
+//        $champsFText[] = [
+//            'label' => 'Fournisseur',
+//            'id' => 0,
+//            'typage' => 'text'
+//
+//        ];
+//        $champsFText[] = [
+//            'label' => 'Référence Article Fournisseur',
+//            'id' => 0,
+//            'typage' => 'text'
+//
+//        ];
 
         $champs = array_merge($champF, $champL);
-        $champsSearch = array_merge($champsFText, $champsLText);
+        $champsSearch = array_merge($champF, $champL);
+//        $champsSearch = array_merge($champsFText, $champsLText);
 
 
         usort($champs, function ($a, $b) {
