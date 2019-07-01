@@ -373,7 +373,7 @@ class PreparationController extends AbstractController
 //                    	spécifique CEA : vider le champ libre code projet
 						if (!(
 							$this->specificService->isCurrentClientNameFunction(ParamClient::CEA_LETI)
-							&& strtolower($valeurChampLibre->getChampLibre()->getLabel()) == 'code projet')) {
+							&& (strtolower($valeurChampLibre->getChampLibre()->getLabel()) == 'code projet' || $valeurChampLibre->getChampLibre()->getLabel() == 'Destinataire'))) {
                         		$newArticle[$valeurChampLibre->getChampLibre()->getId()] = $valeurChampLibre->getValeur();
 						}
                     }
