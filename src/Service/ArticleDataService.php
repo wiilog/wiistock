@@ -362,7 +362,7 @@ class ArticleDataService
 					$isCea = $this->specificService->isCurrentClientNameFunction(ParamClient::CEA_LETI);
 
                     $champLibre = $this->champsLibreRepository->find($champ);
-                    if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT) || ($isCea && strtolower($champLibre->getLabel()) == 'code projet')) {
+                    if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT) || ($isCea && strtolower($champLibre->getLabel()) == 'code projet')  || ($isCea && $champLibre->getLabel()) == 'Destinataire') {
                         $valeurChampLibre = $this->valeurChampsLibreRepository->findOneByArticleANDChampsLibre($article->getId(), $champ);
                         if (!$valeurChampLibre) {
                             $valeurChampLibre = new ValeurChampsLibre();

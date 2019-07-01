@@ -101,7 +101,7 @@
 
                     {# spécifique CEA : accès pour tous au champ libre 'Code projet' #}
                     {% if isCurrentClient(constant('App\\Entity\\ParamClient::CEA_LETI')) %}
-                        {% if champLibre.label|lower == 'code projet' %}
+                        {% if champLibre.label|lower == 'code projet' or champLibre.label == 'Destinataire' %}
                             {% set disabled = '' %}
                             {% set needed = champLibre.requiredEdit ? 'needed' : '' %}
                         {% else %}
