@@ -11,6 +11,9 @@ let tableArticle = $('#tableArticle_id').DataTable({
         "url": pathArticle,
         "type": "POST"
     },
+    'drawCallback': function () {
+         overrideSearch();
+    },
     columns: [
         { "data": 'Référence', 'name': 'Référence' },
         { "data": "Statut", 'name': 'Statut' },
@@ -276,5 +279,17 @@ function changeStatus(button) {
 
     $('span[data-toggle="' + tog + '"]').not('[data-title="' + sel + '"]').removeClass('active').addClass('not-active');
     $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
+}
+
+function overrideSearch() {
+    let $input = $('#tableArticle_id_filter input');
+    $input.off();
+    $input.on('keyup', function(e) {
+        if (e.key === 'Enter') {
+            tableArticle.search(this.value).draw();
+        }
+    });
+
+    $input.attr('placeholder', 'entrée pour valider');
 }
 
