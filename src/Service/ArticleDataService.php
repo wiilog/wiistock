@@ -328,7 +328,7 @@ class ArticleDataService
 
     public function editArticle($data)
     {
-		// spécifique CEA : accès pour tous au champ libre 'Code projet'
+		// spécifique CEA : accès pour tous aux champs libres 'Code projet' et 'Destinataire'
 		$isCea = $this->specificService->isCurrentClientNameFunction(ParamClient::CEA_LETI);
 		if (!$isCea) {
 			if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
@@ -358,11 +358,12 @@ class ArticleDataService
             $champsLibreKey = array_keys($data);
             foreach ($champsLibreKey as $champ) {
                 if (gettype($champ) === 'integer') {
-                    // spécifique CEA : accès pour tous au champ libre 'Code projet'
+                    // spécifique CEA : accès pour tous aux champs libres 'Code projet' et 'Destinataire'
 					$isCea = $this->specificService->isCurrentClientNameFunction(ParamClient::CEA_LETI);
 
                     $champLibre = $this->champsLibreRepository->find($champ);
-                    if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT) || ($isCea && strtolower($champLibre->getLabel()) == 'code projet')  || ($isCea && $champLibre->getLabel()) == 'Destinataire') {
+					$labelCL = strtolower($champLibre->getLabel());
+                    if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT) || ($isCea && ($labelCL == 'code projet' || $labelCL == 'destinataire'))) {
                         $valeurChampLibre = $this->valeurChampsLibreRepository->findOneByArticleANDChampsLibre($article->getId(), $champ);
                         if (!$valeurChampLibre) {
                             $valeurChampLibre = new ValeurChampsLibre();
