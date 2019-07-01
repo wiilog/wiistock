@@ -496,4 +496,21 @@ class ArrivageController extends AbstractController
         }
     }
 
+	/**
+	 * @Route("/lister-colis", name="arrivage_list_colis_api", options={"expose"=true})
+	 */
+    public function listColisByArrivage(Request $request)
+	{
+		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			$arrivage = $this->arrivageRepository->find($data['id']);
+
+			$html = $this->renderView('arrivage/modalListColisContent.html.twig', ['arrivage' => $arrivage]);
+
+			return new JsonResponse($html);
+
+		} else {
+			throw new NotFoundHttpException('404');
+		}
+	}
+
 }

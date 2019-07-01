@@ -401,3 +401,14 @@ function deleteAttachement(arrivageId, pj, pjWithoutExtension) {
         }
     });
 }
+
+function listColis(elem) {
+    let arrivageId = elem.data('id');
+    let path = Routing.generate('arrivage_list_colis_api', true);
+    let modal = $('#modalListColis');
+    let params = { id: arrivageId };
+
+    $.post(path, JSON.stringify(params), function(data) {
+        modal.find('.modal-body').html(data);
+    }, 'json');
+}

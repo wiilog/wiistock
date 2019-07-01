@@ -1,0 +1,14 @@
+<h1 class="text-center">Arrivage n° {{ arrivage.id }} <i class='fas fa-print pointer'></i></h1>
+
+<table class="table table-striped table-bordered w-100">
+    <tr>
+        <th>N° colis</th>
+        <th class="text-center">Impression <i class='fas fa-print'></i></th>
+    </tr>
+    {% for colis in arrivage.colis %}
+        <tr>
+            <td>{{ colis.code }}</td>
+            <td class="text-center"><i class='fas fa-print'></i></td>
+        </tr>
+    {% endfor %}
+</table>
