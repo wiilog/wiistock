@@ -37,7 +37,7 @@ class RefArticleSILI25Fixtures extends Fixture implements FixtureGroupInterface
 					->setQuantite(25)
 					->setCommentaire($article->getCommentaire())
 					->setConform($article->getConform())
-					->setReference($article->getReference())
+					->setReference($article->getReference() . $index)
 					->setType($article->getType())
 					->setEmplacement($article->getEmplacement());
 
