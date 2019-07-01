@@ -25,7 +25,7 @@ let pathArticle = Routing.generate('article_by_reception_api', true);
 let initDataTableDone = false;
 function initDatatableConditionnement() {
     if (!initDataTableDone) {
-        var tableFromArticle = $('#tableArticleInner_id').DataTable({
+        let tableFromArticle = $('#tableArticleInner_id').DataTable({
             info: false,
             paging: false,
             "language": {
