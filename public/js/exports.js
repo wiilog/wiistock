@@ -24,9 +24,9 @@ function initExport(button, type) {
 }
 
 async function exportAll(type, total, headers, button) {
-    let increment = 100;
+    let increment = 50;
     let csv = headers + '\n';
-    for (i = 0; i < total; i += increment) {
+    for (let i = 0; i < total; i += increment) {
         let path = '';
         switch (type) {
             case 'ref':
