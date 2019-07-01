@@ -210,6 +210,7 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
             toggleRequiredChampsLibres(modal.find('#typeEdit'), 'edit');
 
             if (setMaxQuantity) setMaxQuantityEdit($('#referenceEdit'));
+
             if (editorToInit) initEditor(editor);
         }
     }
