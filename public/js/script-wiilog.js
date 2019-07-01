@@ -490,8 +490,10 @@ function clearModal(modal) {
     $modal.find('.error-msg, .password-error-msg').html('');
     // on remet toutes les checkboxes sur off
     clearCheckboxes($modal);
-    // on vide les éditeurs de text
-    $('.ql-editor').text('')
+    // on vide les éditeurs de texte
+    $modal.find('.ql-editor').text('');
+    // on vide les div identifiées comme à vider
+    $modal.find('.clear').html('')
 }
 
 function clearCheckboxes($modal) {
