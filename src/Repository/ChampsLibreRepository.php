@@ -86,7 +86,7 @@ class ChampsLibreRepository extends ServiceEntityRepository
     }
 
     // pour les colonnes dynamiques
-    public function getByCategoryTypeAndCategoryCLAndText($category, $categorieCL)
+    public function getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, $type)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
@@ -100,7 +100,7 @@ class ChampsLibreRepository extends ServiceEntityRepository
             [
                 'category' => $category,
                 'categorie' => $categorieCL,
-                'text' => 'text'
+                'text' => $type
             ]
         );
         return $query->getResult();
