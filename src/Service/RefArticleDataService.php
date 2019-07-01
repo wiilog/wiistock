@@ -324,7 +324,7 @@ class RefArticleDataService
         return $response;
     }
 
-    public function dataRowRefArticle($refArticle)
+    public function dataRowRefArticle(ReferenceArticle $refArticle)
     {
         $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_CEA);
         $category = CategoryType::ARTICLES_ET_REF_CEA;
@@ -332,7 +332,7 @@ class RefArticleDataService
         $rowCL = [];
         foreach ($champsLibres as $champLibre) {
             $champ = $this->champsLibreRepository->find($champLibre['id']);
-            $valeur = $this->valeurChampsLibreRepository->findOneByRefArticleANDChampsLibre($refArticle->getId(), $champ);
+            $valeur = $this->valeurChampsLibreRepository->findOneByRefArticleANDChampsLibre($refArticle->getId(), $champ); /** @var ValeurChampsLibre $valeur */
             $rowCL[$champLibre['label']] = ($valeur ? $valeur->getValeur() : "");
         }
         $totalQuantity = 0;
@@ -349,8 +349,8 @@ class RefArticleDataService
         $quantity = ($refArticle->getTypeQuantite() === 'reference') ? $refArticle->getQuantiteStock() : $totalQuantity;
         $rowCF = [
             "id" => $refArticle->getId(),
-            "Libellé" => $refArticle->getLibelle(),
-            "Référence" => $refArticle->getReference(),
+            "Libellé" => $refArticle->getLibelle()? $refArticle->getLibelle() : 'Non défini',
+            "Référence" => $refArticle->getReference()? $refArticle->getReference() : 'Non défini',
             "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
             "Emplacement" => ($refArticle->getEmplacement() ? $refArticle->getEmplacement()->getLabel() : ""),
             "Quantité" => $quantity,
@@ -360,7 +360,6 @@ class RefArticleDataService
             ]),
         ];
         $rows = array_merge($rowCL, $rowCF);
-
 
         return $rows;
         
