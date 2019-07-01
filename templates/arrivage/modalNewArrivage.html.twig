@@ -124,11 +124,18 @@
                             {% endfor %}
                         </select>
                     </div>
-
                     <div class="form-group">
                         <label for="commentaire">Commentaire</label>
                         <input id="commentaire" class="commentaire form-control data" name="commentaire" type="hidden">
-                        <div class="editor-container-new"></div>
+                        <div class="editor-container-new" >
+{#                            {% for type in typesLitige %}#}
+{#                                {% if type.id == 14 %}#}
+{#                                    OLA#}
+{#                                {% elseif type.id == 15 %}#}
+{#                                    OLE#}
+{#                                {% endif %}#}
+{#                            {% endfor %}#}
+                        </div>
                     </div>
                 </div>
             </div>

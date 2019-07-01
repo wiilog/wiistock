@@ -29,6 +29,22 @@ class Type
     const LABEL_PB_COMMANDE = 'problème de commande';
     const LABEL_DEST_NON_IDENT = 'destinataire non identifiable';
 
+    //commentaires liés aux types de litige
+//    const MESSAGE_MANQUE_BL = 'Nous venons de recevoir un colis à votre attention sans Bordereau de Livraison.
+//        Dans l’attente du document votre colis est placé en litige. Nous rappelons que le BL doit être émis au titre
+//        d’une commande ou à titre gracieux.';
+//    const MESSAGE_MANQUE_INFO_BL ='Nous venons de recevoir un colis à votre attention. Pour pouvoir finaliser la réception
+//        nous avons besoin d’un BL au titre d’une commande ou à titre gracieux.
+//        Dans l’attente du document votre colis est placé en litige.';
+//    const MESSAGE_ECART_QUALITE = 'Nous venons de recevoir un colis à votre attention, nous avons constaté un problème qualité.
+//        « décrire le problème qualité et joindre une ou plusieurs photos du problème constaté »
+//        Dans l’attente de vos instructions le colis est placé en zone litige';
+//    const MESSAGE_PB_COMMANDE = 'Nous venons de recevoir un colis au titre de la commande XXX.
+//        « décrire le problème constaté »
+//        Dans l’attente de vos instructions le colis est placé en zone litige';
+//    const MESSAGE_DEST_NON_IDENT = 'Nous venons de recevoir un colis à titre gracieux, nous sommes dans l’incapacité
+//        d’ identifier un destinataire.
+//        Dans l’attente de vos instructions le colis est placé en zone litige';
 
     /**
      * @ORM\Id()
