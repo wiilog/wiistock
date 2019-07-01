@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategoryType;
+use App\Entity\ChampsLibre;
 use App\Entity\Filter;
 use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
@@ -456,8 +457,9 @@ class ReferenceArticleController extends Controller
             'typage' => 'text'
         ];
 
-        // champs pour recherche personnalisée (uniquement de type texte)
-		$champsLText = $this->champsLibreRepository->getByCategoryTypeAndCategoryCLAndText($category, $categorieCL);
+        // champs pour recherche personnalisée (uniquement de type texte ou liste)
+		$champsLText = $this->champsLibreRepository->getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, ChampsLibre::TYPE_TEXT);
+		$champsLTList = $this->champsLibreRepository->getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, ChampsLibre::TYPE_LIST);
 
 		$champsFText[] = [
             'label' => 'Libellé',
@@ -487,7 +489,7 @@ class ReferenceArticleController extends Controller
         ];
 
         $champs = array_merge($champF, $champL);
-        $champsSearch = array_merge($champsFText, $champsLText);
+        $champsSearch = array_merge($champsFText, $champsLText, $champsLTList);
 
 
         usort($champs, function ($a, $b) {
