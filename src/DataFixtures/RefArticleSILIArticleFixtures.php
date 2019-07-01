@@ -94,6 +94,8 @@ class RefArticleSILIArticleFixtures extends Fixture implements FixtureGroupInter
       $type = $this->typeRepository->findOneByLabel(Type::LABEL_SILI);
       $articlesSili = $this->refArticleRepository->findBy(['type' => $type]);
 
+      dump(count($articlesSili) . ' articles à créer.');
+
       $i = 0;
       foreach ($articlesSili as $refCEA) {
 

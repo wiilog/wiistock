@@ -119,7 +119,9 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             ->from('App\Entity\ReferenceArticle', 'ra')
             ->leftJoin('ra.valeurChampsLibres', 'vcl');
 
-        foreach ($filters as $filter) {
+		$countTotal = count($qb->getQuery()->getResult());
+
+		foreach ($filters as $filter) {
             $index++;
 //
 //            $operatorOR = $filter['operator'] == 'or';
@@ -222,7 +224,6 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
         // prise en compte des paramètres issus du datatable
         if (!empty($params)) {
-            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
             if (!empty($params->get('search'))) {
                 $searchValue = $params->get('search')['value'];
                 if (!empty($searchValue)) {
@@ -308,11 +309,12 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
 				$countQuery = count($qb->getQuery()->getResult());
 			}
+			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
 			if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
 		}
         $queryResult = $qb->getQuery();
 
-        return ['data' => $queryResult->getResult(), 'count' => $countQuery];
+        return ['data' => $queryResult->getResult(), 'count' => $countQuery, 'total' => $countTotal];
     }
 
     public function countByType($typeId)
