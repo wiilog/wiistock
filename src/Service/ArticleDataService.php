@@ -426,8 +426,7 @@ class ArticleDataService
     public function getDataForDatatable($params = null)
     {
         $data = $this->getArticleDataByParams($params);
-        $data['recordsTotal'] = (int)$this->articleRepository->countAll();
-        $data['recordsFiltered'] = (int)$this->articleRepository->countAll();
+
         return $data;
     }
 
@@ -476,21 +475,24 @@ class ArticleDataService
     public function getArticleDataByParams($params = null)
     {
         if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
-            $articles = $this->articleRepository->findByParams($params);
+            $statutLabel = null;
         } else {
-            $categorieName = 'article';
-            $statutName = 'actif';
-            $statut = $this->statutRepository->findOneByCategorieAndStatut($categorieName, $statutName);
-            $statutId = $statut->getId();
-
-            $articles = $this->articleRepository->findByParamsActifStatut($params, $statutId);
+            $statutLabel = Article::STATUT_ACTIF;
         }
+
+        $queryResult = $this->articleRepository->findByParamsAndStatut($params, $statutLabel);
+
+        $articles = $queryResult['data'];
 
         $rows = [];
         foreach ($articles as $article) {
             $rows[] = $this->dataRowRefArticle($article);
         }
-        return ['data' => $rows];
+        return [
+        	'data' => $rows,
+			'recordsFiltered' => $queryResult['count'],
+			'recordsTotal' => $queryResult['total'],
+		];
     }
 
     /**

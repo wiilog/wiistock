@@ -6,10 +6,11 @@ use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\LigneArticle;
 use App\Entity\Menu;
+use App\Entity\ParamClient;
 use App\Entity\Preparation;
-use App\Entity\Livraison;
 
 use App\Repository\PreparationRepository;
+use App\Service\SpecificService;
 use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -85,7 +86,12 @@ class PreparationController extends AbstractController
      */
     private $articleDataService;
 
-    public function __construct(LivraisonRepository $livraisonRepository, ArticleDataService $articleDataService, PreparationRepository $preparationRepository, LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, StatutRepository $statutRepository, DemandeRepository $demandeRepository, ReferenceArticleRepository $referenceArticleRepository, UserService $userService)
+	/**
+	 * @var SpecificService
+	 */
+    private $specificService;
+
+    public function __construct(SpecificService $specificService, LivraisonRepository $livraisonRepository, ArticleDataService $articleDataService, PreparationRepository $preparationRepository, LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, StatutRepository $statutRepository, DemandeRepository $demandeRepository, ReferenceArticleRepository $referenceArticleRepository, UserService $userService)
     {
         $this->livraisonRepository = $livraisonRepository;
         $this->statutRepository = $statutRepository;
@@ -96,6 +102,7 @@ class PreparationController extends AbstractController
         $this->ligneArticleRepository = $ligneArticleRepository;
         $this->userService = $userService;
         $this->articleDataService = $articleDataService;
+        $this->specificService = $specificService;
     }
 
     /**
@@ -363,7 +370,12 @@ class PreparationController extends AbstractController
                     ];
 
                     foreach ($article->getValeurChampsLibres() as $valeurChampLibre) {
-                        $newArticle[$valeurChampLibre->getChampLibre()->getId()] = $valeurChampLibre->getValeur();
+//                    	spécifique CEA : vider le champ libre code projet
+						if (!(
+							$this->specificService->isCurrentClientNameFunction(ParamClient::CEA_LETI)
+							&& strtolower($valeurChampLibre->getChampLibre()->getLabel()) == 'code projet')) {
+                        		$newArticle[$valeurChampLibre->getChampLibre()->getId()] = $valeurChampLibre->getValeur();
+						}
                     }
                     $this->articleDataService->newArticle($newArticle);
 

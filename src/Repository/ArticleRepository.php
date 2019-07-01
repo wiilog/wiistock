@@ -277,7 +277,7 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function findByParams($params = null)
+    public function findByParamsAndStatut($params = null, $statutLabel = null)
     {
         $em = $this->getEntityManager();
         $qb = $em->createQueryBuilder();
@@ -286,14 +286,17 @@ class ArticleRepository extends ServiceEntityRepository
             ->select('a')
             ->from('App\Entity\Article', 'a');
 
-        // prise en compte des paramètres issus du datatable
+        if ($statutLabel) {
+            $qb
+                ->join('a.statut', 's')
+                ->where('s.nom = :statutLabel')
+                ->setParameter('statutLabel', $statutLabel);
+        }
+
+		$countQuery = $countTotal = count($qb->getQuery()->getResult());
+
+		// prise en compte des paramètres issus du datatable
         if (!empty($params)) {
-            if (!empty($params->get('start'))) {
-                $qb->setFirstResult($params->get('start'));
-            }
-            if (!empty($params->get('length'))) {
-                $qb->setMaxResults($params->get('length'));
-            }
             if (!empty($params->get('search'))) {
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
@@ -303,42 +306,46 @@ class ArticleRepository extends ServiceEntityRepository
                         ->andWhere('a.label LIKE :value OR a.reference LIKE :value OR ra.reference LIKE :value')
                         ->setParameter('value', '%' . $search . '%');
                 }
+                $countQuery = count($qb->getQuery()->getResult());
             }
+			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
+			if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
         }
         $query = $qb->getQuery();
-        return $query->getResult();
+
+        return ['data' => $query->getResult(), 'count' => $countQuery, 'total' => $countTotal];
     }
 
-    public function findByParamsActifStatut($params = null, $statutId)
-    {
-        $em = $this->getEntityManager();
-        $qb = $em->createQueryBuilder();
-
-        $qb
-            ->select('a')
-            ->from('App\Entity\Article', 'a')
-            ->where('a.statut =' . $statutId);
-
-        // prise en compte des paramètres issus du datatable
-        if (!empty($params)) {
-            if (!empty($params->get('start'))) {
-                $qb->setFirstResult($params->get('start'));
-            }
-            if (!empty($params->get('length'))) {
-                $qb->setMaxResults($params->get('length'));
-            }
-            if (!empty($params->get('search'))) {
-                $search = $params->get('search')['value'];
-                if (!empty($search)) {
-                    $qb
-                        ->andWhere('a.label LIKE :value OR a.reference LIKE :value')
-                        ->setParameter('value', '%' . $search . '%');
-                }
-            }
-        }
-        $query = $qb->getQuery();
-        return $query->getResult();
-    }
+//    public function findByParamsActifStatut($params = null, $statutId)
+//    {
+//        $em = $this->getEntityManager();
+//        $qb = $em->createQueryBuilder();
+//
+//        $qb
+//            ->select('a')
+//            ->from('App\Entity\Article', 'a')
+//            ->where('a.statut =' . $statutId);
+//
+//        // prise en compte des paramètres issus du datatable
+//        if (!empty($params)) {
+//            if (!empty($params->get('start'))) {
+//                $qb->setFirstResult($params->get('start'));
+//            }
+//            if (!empty($params->get('length'))) {
+//                $qb->setMaxResults($params->get('length'));
+//            }
+//            if (!empty($params->get('search'))) {
+//                $search = $params->get('search')['value'];
+//                if (!empty($search)) {
+//                    $qb
+//                        ->andWhere('a.label LIKE :value OR a.reference LIKE :value')
+//                        ->setParameter('value', '%' . $search . '%');
+//                }
+//            }
+//        }
+//        $query = $qb->getQuery();
+//        return $query->getResult();
+//    }
 
     public function findByListAF($listAf)
     {
