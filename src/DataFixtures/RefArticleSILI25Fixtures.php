@@ -24,7 +24,9 @@ class RefArticleSILI25Fixtures extends Fixture implements FixtureGroupInterface
     {
     	$articles = $this->articleRepository->findByQuantityMoreThan(25);
 
-    	foreach ($articles as $article) { /** @var $article Article */
+		dump(count($articles) . ' articles à traiter.');
+
+		foreach ($articles as $article) { /** @var $article Article */
     		$index = 0;
 			while ($article->getQuantite() > 25) {
 				$newArticle = new Article();
@@ -39,7 +41,11 @@ class RefArticleSILI25Fixtures extends Fixture implements FixtureGroupInterface
 					->setType($article->getType())
 					->setEmplacement($article->getEmplacement());
 
+				$manager->persist($newArticle);
+
 				$article->setQuantite($article->getQuantite() - 25);
+
+				dump('article ' . $article->getId() . ' quantité ' . $article->getQuantite());
 				$index++;
 			}
     	}
