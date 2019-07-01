@@ -190,7 +190,8 @@ class ArrivageController extends AbstractController
                 ->setDate($date)
                 ->setUtilisateur($this->getUser())
                 ->setStatut($statut)
-                ->setNumeroArrivage($numeroArrivage);
+                ->setNumeroArrivage($numeroArrivage)
+                ->setCommentaire($data['commentaire']);
 
             if (isset($data['fournisseur'])) {
                 $arrivage->setFournisseur($this->fournisseurRepository->find($data['fournisseur']));
@@ -233,8 +234,8 @@ class ArrivageController extends AbstractController
                 $litige = new Litige();
                 $litige
                     ->setType($this->typeRepository->find($data['litigeType']))
-                    ->setArrivage($arrivage)
-                    ->setCommentaire($data['commentaire']);
+                    ->setArrivage($arrivage);
+
                 $em->persist($litige);
 
                 $this->sendMailToAcheteurs($arrivage, $litige, true);
@@ -317,6 +318,10 @@ class ArrivageController extends AbstractController
 
             $arrivage = $this->arrivageRepository->find($data['id']);
 
+            if (isset($data['commentaire'])) {
+                $arrivage->setCommentaire($data['commentaire']);
+            }
+
             if (isset($data['statut'])) {
                 $statut = $this->statutRepository->find($data['statut']);
                 $arrivage->setStatut($statut);
@@ -372,9 +377,6 @@ class ArrivageController extends AbstractController
 
                 if (isset($data['litigeType'])) {
                     $litige->setType($this->typeRepository->find($data['litigeType']));
-                }
-                if (isset($data['commentaire'])) {
-                    $litige->setCommentaire($data['commentaire']);
                 }
 
                 // si le statut repasse en 'attente acheteur', on envoie un mail aux acheteurs
