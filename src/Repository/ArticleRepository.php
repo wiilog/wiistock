@@ -366,4 +366,16 @@ class ArticleRepository extends ServiceEntityRepository
 
         return $query->getSingleScalarResult();
     }
+
+    public function findByQuantityMoreThan($limit)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			"SELECT a
+			FROM App\Entity\Article a
+			WHERE a.quantite > :limit"
+		)->setParameter('limit', $limit);
+
+		return $query->execute();
+	}
 }
