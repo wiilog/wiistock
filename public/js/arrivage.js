@@ -38,13 +38,13 @@ let tableArrivage = $('#tableArrivages').DataTable({
 let modalNewArrivage = $("#modalNewArrivage");
 let submitNewArrivage = $("#submitNewArrivage");
 let urlNewArrivage = Routing.generate('arrivage_new', true);
-InitialiserModalArrivage(modalNewArrivage, submitNewArrivage, urlNewArrivage, tableArrivage);
+InitModalArrivage(modalNewArrivage, submitNewArrivage, urlNewArrivage, tableArrivage, printLabels);
 
 let modalModifyArrivage = $('#modalEditArrivage');
 let submitModifyArrivage = $('#submitEditArrivage');
 let urlModifyArrivage = Routing.generate('arrivage_edit', true);
 InitialiserModal(modalModifyArrivage, submitModifyArrivage, urlModifyArrivage, tableArrivage);
-
+//TODO CG pq pas initalisermodalArrivage ?
 let modalDeleteArrivage = $('#modalDeleteArrivage');
 let submitDeleteArrivage = $('#submitDeleteArrivage');
 let urlDeleteArrivage = Routing.generate('arrivage_delete', true);
@@ -165,7 +165,7 @@ function upload(files) {
     });
 }
 
-function InitialiserModalArrivage(modal, submit, path, table, callback = null, close = true) {
+function InitModalArrivage(modal, submit, path, table, callback = null, close = true) {
     submit.click(function () {
         submitActionArrivage(modal, path, table, callback, close);
     });
@@ -194,39 +194,7 @@ function submitActionArrivage(modal, path, table, callback, close) {
             });
 
             clearModal(modal);
-            let nbUm = data.nbUm;
-            let printUm = data.printUm;
-            let printArrivage = data.printArrivage;
-            let d = new Date();
-            let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
-            date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
-            if (data.exists) {
-                let doc = adjustScalesForDoc(data);
-                $("#barcodes").empty();
-                if (printUm) {
-                    for (let i = 0; i < nbUm; i++) {
-                        $('#barcodes').append('<img id="barcode' + i + '">');
-                        JsBarcode("#barcode" + i, data.arrivage + '-' + i, {
-                            format: "CODE128",
-                        });
-                    }
 
-                } if (printArrivage) {
-                    $('#barcodes').append('<img id="barcodeArrivage">');
-                    JsBarcode("#barcodeArrivage", data.arrivage, {
-                        format: "CODE128",
-                    });
-                } if (printArrivage || printUm) {
-                    $("#barcodes").find('img').each(function () {
-                        doc.addImage($(this).attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
-                        doc.addPage();
-                    });
-                    doc.deletePage(doc.internal.getNumberOfPages())
-                    doc.save('Etiquettes du ' + date + '.pdf');
-                }
-            } else {
-                $('#cannotGenerate').click();
-            }
             if (callback !== null) callback(data);
         }
     };
@@ -386,6 +354,42 @@ $('#submitSearchArrivage').on('click', function () {
         .draw();
 });
 
+function printLabels(data) {
+    let nbUm = data.nbUm;
+    let printUm = data.printUm;
+    let printArrivage = data.printArrivage;
+    let d = new Date();
+    let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
+    date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
+    if (data.exists) {
+        let doc = adjustScalesForDoc(data);
+        $("#barcodes").empty();
+        if (printUm) {
+            for (let i = 0; i < nbUm; i++) {
+                $('#barcodes').append('<img id="barcode' + i + '">');
+                JsBarcode("#barcode" + i, data.arrivage + '-' + i, {
+                    format: "CODE128",
+                });
+            }
+
+        } if (printArrivage) {
+            $('#barcodes').append('<img id="barcodeArrivage">');
+            JsBarcode("#barcodeArrivage", data.arrivage, {
+                format: "CODE128",
+            });
+        } if (printArrivage || printUm) {
+            $("#barcodes").find('img').each(function () {
+                doc.addImage($(this).attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
+                doc.addPage();
+            });
+            doc.deletePage(doc.internal.getNumberOfPages())
+            doc.save('Etiquettes du ' + date + '.pdf');
+        }
+    } else {
+        $('#cannotGenerate').click();
+    }
+}
+
 function deleteAttachement(arrivageId, pj, pjWithoutExtension) {
 
     let path = Routing.generate('arrivage_delete_attachement');
@@ -411,4 +415,51 @@ function listColis(elem) {
     $.post(path, JSON.stringify(params), function(data) {
         modal.find('.modal-body').html(data);
     }, 'json');
+}
+
+
+function getDataToPrintLabels(arrivageId, arrivageOrUM) {
+    let path = Routing.generate('arrivage_get_data_to_print', true);
+    let params = { id: arrivageId, arrivageOrUM: arrivageOrUM };
+
+    $.post(path, JSON.stringify(params), function(data) {
+        console.log(data);
+        printLabel(code, height, weight);
+    });
+}
+
+function printLabel(code, height, weight) {
+    // let nbUm = data.nbUm;
+    // let printUm = data.printUm;
+    // let printArrivage = data.printArrivage;
+    let d = new Date();
+    let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
+    date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
+    if (height == 0) {
+        let doc = adjustScalesForDoc(data);
+        $("#barcodes").empty();
+        if (printUm) {
+            for (let i = 0; i < nbUm; i++) {
+                $('#barcodes').append('<img id="barcode' + i + '">');
+                JsBarcode("#barcode" + i, data.arrivage + '-' + i, {
+                    format: "CODE128",
+                });
+            }
+
+        } if (printArrivage) {
+            $('#barcodes').append('<img id="barcodeArrivage">');
+            JsBarcode("#barcodeArrivage", data.arrivage, {
+                format: "CODE128",
+            });
+        } if (printArrivage || printUm) {
+            $("#barcodes").find('img').each(function () {
+                doc.addImage($(this).attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
+                doc.addPage();
+            });
+            doc.deletePage(doc.internal.getNumberOfPages())
+            doc.save('Etiquettes du ' + date + '.pdf');
+        }
+    } else {
+        $('#cannotGenerate').click();
+    }
 }

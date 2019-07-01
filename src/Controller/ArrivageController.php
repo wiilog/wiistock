@@ -7,6 +7,7 @@ use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Colis;
+use App\Entity\DimensionsEtiquettes;
 use App\Entity\Litige;
 use App\Entity\Menu;
 use App\Entity\Statut;
@@ -507,6 +508,32 @@ class ArrivageController extends AbstractController
 			$html = $this->renderView('arrivage/modalListColisContent.html.twig', ['arrivage' => $arrivage]);
 
 			return new JsonResponse($html);
+
+		} else {
+			throw new NotFoundHttpException('404');
+		}
+	}
+
+	/**
+	 * @Route("/api-etiquettes", name="arrivage_get_data_to_print", options={"expose"=true})
+	 */
+	public function getDataToPrintLabels(Request $request) {
+		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			$arrivage = $this->arrivageRepository->find($data['id']);
+
+			$dimension = $this->dimensionsEtiquettesRepository->findOneDimension(); /** @var DimensionsEtiquettes $dimension */
+			if ($dimension) {
+				$response['height'] = $dimension->getHeight();
+				$response['width'] = $dimension->getWidth();
+				$response['arrivage'] = $arrivage->getNumeroArrivage();
+				$response['exists'] = true;
+				$response['nbUm'] = $arrivage->getNbUM();
+				$response['printUm'] = ($data['arrivageOrUM'] == 'UM');
+				$response['printArrivage'] = ($data['arrivageOrUM'] == 'arrivage');
+			} else {
+				$response['height'] = $response['width'] = 0;
+			}
+			return new JsonResponse($response);
 
 		} else {
 			throw new NotFoundHttpException('404');

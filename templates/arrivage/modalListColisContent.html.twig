@@ -1,4 +1,4 @@
-<h1 class="text-center">Arrivage n° {{ arrivage.id }} <i class='fas fa-print pointer'></i></h1>
+<h1 class="text-center">Arrivage n° {{ arrivage.numeroArrivage }} <i class='fas fa-print pointer' onclick="getDataToPrintLabels({{ arrivage.id }}, 'arrivage')"></i></h1>
 
 <table class="table table-striped table-bordered w-100">
     <tr>
@@ -8,7 +8,9 @@
     {% for colis in arrivage.colis %}
         <tr>
             <td>{{ colis.code }}</td>
-            <td class="text-center"><i class='fas fa-print'></i></td>
+            <td class="text-center">
+                <i class='fas fa-print' onclick="getDataToPrintLabels({{ colis.id }}, 'UM')"></i>
+            </td>
         </tr>
     {% endfor %}
 </table>
