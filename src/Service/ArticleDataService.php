@@ -11,6 +11,7 @@ namespace App\Service;
 use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategoryType;
+use App\Entity\ChampsLibre;
 use App\Entity\Menu;
 use App\Entity\ParamClient;
 use App\Entity\ReceptionReferenceArticle;
@@ -293,8 +294,17 @@ class ArticleDataService
 
         $champsLibresComplet = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($typeArticleLabel, $categorieCL);
         $champsLibres = [];
-        foreach ($champsLibresComplet as $champLibre) {
+        foreach ($champsLibresComplet as $champLibre) { /** @var ChampsLibre $champLibre */
             $valeurChampArticle = $this->valeurChampsLibreRepository->findOneByChampLibreAndArticle($champLibre->getId(), $article->getId());
+			$labelChampLibre = strtolower($champLibre->getLabel());
+			$isCEA = $this->specificService->isCurrentClientNameFunction(ParamClient::CEA_LETI);
+
+            // spécifique CEA : on vide les champs 'Code projet' et 'Destinataire' dans le cas d'une demande
+			if ($isCEA
+			&& ($labelChampLibre == 'code projet' || $labelChampLibre == 'destinataire')
+			&& $isADemand) {
+				$valeurChampArticle = null;
+			}
             $champsLibres[] = [
                 'id' => $champLibre->getId(),
                 'label' => $champLibre->getLabel(),
