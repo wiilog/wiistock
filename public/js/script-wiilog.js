@@ -251,7 +251,6 @@ function initEditorInModal(modal) {
 };
 
 function initEditor(div) {
-
     // protection pour éviter erreur console si l'élément n'existe pas dans le DOM
     if($(div).length) {
         return new Quill(div, {
@@ -276,10 +275,13 @@ function initEditor(div) {
 
 //passe de l'éditeur à l'input pour envoi au back
 function setCommentaire(div) {
-    let container = div;
-    let quill = new Quill(container);
-    let com = quill.container.firstChild.innerHTML;
-    $(div).closest('.modal').find('#commentaire').val(com);
+    // protection pour éviter erreur console si l'élément n'existe pas dans le DOM
+    if($(div).length) {
+        let container = div;
+        let quill = new Quill(container);
+        let com = quill.container.firstChild.innerHTML;
+        $(div).closest('.modal').find('#commentaire').val(com);
+    }
 };
 
 //FONCTION REFARTICLE
