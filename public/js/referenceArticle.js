@@ -192,7 +192,7 @@ InitialiserModalRefArticle(modalNewFilter, submitNewFilter, urlNewFilter, displa
 
 let url = Routing.generate('ref_article_api', true);
 
-$(document).ready(function () {
+$(function () {
     initTableRefArticle();
 });
 
@@ -213,7 +213,7 @@ function initTableRefArticle() {
                     return json.data;
                 }
             },
-            'drawCallback': function () {
+            initComplete: function() {
                 loadSpinnerAR($('#spinner'));
                 initRemove();
                 hideAndShowColumns();
