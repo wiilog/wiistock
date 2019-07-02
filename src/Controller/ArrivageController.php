@@ -428,6 +428,7 @@ class ArrivageController extends AbstractController
      */
     public function depose(Request $request): Response
     {
+//        dump($request);
         if ($request->isXmlHttpRequest()) {
             $em = $this->getDoctrine()->getManager();
 
