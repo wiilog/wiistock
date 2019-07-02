@@ -70,11 +70,16 @@
 
     <div class="form-group col-12">
         <div>
-            <label for="commentaire">Commentaire33</label>
-            <input {{ disabledOnDemand }} id="commentaire" class="form-control data" type="hidden" name="commentaire"
-                value="{{article.commentaire}}">
-            <div class="editor-container-edit form-control comment">
-                {{article.commentaire|raw}}</div>
+            <label for="commentaire">Commentaire</label>
+            <input id="commentaire" class="form-control data" type="hidden" name="commentaire"
+                value="{{article.commentaire}}" >
+            {% if isADemand %}
+            <div class="editor-container-edit form-control comment" style="background-color:#e9ecef">
+                {{article.commentaire|raw}}
+            </div>
+            {% else %}
+            <div class="editor-container-edit form-control comment">{{article.commentaire|raw}}</div>
+            {% endif %}
         </div>
     </div>
 
