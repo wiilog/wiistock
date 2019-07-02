@@ -15,7 +15,7 @@ let table = $('#table_id').DataTable({
     ajax: path,
     columns: [
         { "data": 'Numéro' },
-        { "data": 'Date' },
+        { "data": 'Date', 'title': 'Date de création' },
         { "data": 'Statut' },
         { "data": 'Actions' },
     ],

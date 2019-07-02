@@ -11,7 +11,7 @@ let tableLivraison = $('#tableLivraison_id').DataTable({
     columns: [
     { "data": 'Numéro' },
     { "data": 'Statut' },
-    { "data": 'Date' },
+    { "data": 'Date', 'title': 'Date de création' },
     { "data": 'Opérateur' },
     { "data": 'Actions' },
     ],

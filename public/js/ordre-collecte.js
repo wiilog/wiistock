@@ -18,7 +18,7 @@ let tableCollecte = $('#tableCollecte').DataTable({
     columns: [
     { "data": 'Numéro', 'title': 'Numéro' },
     { "data": 'Statut', 'title': 'Statut' },
-    { "data": 'Date', 'title': 'Date' },
+    { "data": 'Date', 'title': 'Date de création' },
     { "data": 'Opérateur', 'title': 'Opérateur' },
     { "data": 'Actions', 'title': 'Actions' },
     ],
