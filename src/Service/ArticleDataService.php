@@ -30,12 +30,10 @@ use App\Repository\TypeRepository;
 use App\Repository\ValeurChampsLibreRepository;
 use App\Repository\CategorieCLRepository;
 
-
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Doctrine\ORM\EntityManagerInterface;
-use App\Entity\Demande;
 
 class ArticleDataService
 {
@@ -154,6 +152,7 @@ class ArticleDataService
     {
         if ($demande === 'livraison') {
             $articleStatut = Article::STATUT_ACTIF;
+            $demande = 'demande';
         } elseif ($demande === 'collecte') {
             $articleStatut = Article::STATUT_INACTIF;
         }
@@ -167,8 +166,6 @@ class ArticleDataService
             }
 
             $statuts = $this->statutRepository->findByCategorieName(ReferenceArticle::CATEGORIE);
-
-            if ($demande == 'livraison') $demande = 'demande';
 
             $json = $this->templating->render($demande . '/newRefArticleByQuantiteRefContent.html.twig', [
                 'articleRef' => $refArticle,
