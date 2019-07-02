@@ -713,7 +713,7 @@ class ReferenceArticleController extends Controller
                             ->setNom('A DETERMINER');
                         $em->persist($fournisseurTemp);
                     }
-                    $toInsert = new Article();
+                    $newArticle = new Article();
                     $index = $this->articleFournisseurRepository->countByRefArticle($refArticle);
                     $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_INACTIF);
                     $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
@@ -725,17 +725,18 @@ class ReferenceArticleController extends Controller
                         ->setReference($refArticle->getReference())
                         ->setLabel('A déterminer -' . $index);
                     $em->persist($articleFournisseur);
-                    $toInsert
+                    $newArticle
                         ->setLabel($refArticle->getLibelle() . '-' . $index)
                         ->setConform(true)
                         ->setStatut($statut)
                         ->setReference($ref . '-' . $index)
                         ->setQuantite(max($data['quantitie'], 0)) // protection contre quantités négatives
+							//TODO CG quantite, quantitie ?
                         ->setEmplacement($collecte->getPointCollecte())
                         ->setArticleFournisseur($articleFournisseur)
                         ->setType($refArticle->getType());
-                    $em->persist($toInsert);
-                    $collecte->addArticle($toInsert);
+                    $em->persist($newArticle);
+                    $collecte->addArticle($newArticle);
                     //TODO fin patch temporaire CEA (à remplacer par lignes suivantes)
 //                    $article = $this->articleRepository->find($data['article']);
 //                    $collecte->addArticle($article);
