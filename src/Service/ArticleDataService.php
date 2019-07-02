@@ -11,6 +11,7 @@ namespace App\Service;
 use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategoryType;
+use App\Entity\ChampsLibre;
 use App\Entity\Menu;
 use App\Entity\ParamClient;
 use App\Entity\ReceptionReferenceArticle;
@@ -293,8 +294,17 @@ class ArticleDataService
 
         $champsLibresComplet = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($typeArticleLabel, $categorieCL);
         $champsLibres = [];
-        foreach ($champsLibresComplet as $champLibre) {
+        foreach ($champsLibresComplet as $champLibre) { /** @var ChampsLibre $champLibre */
             $valeurChampArticle = $this->valeurChampsLibreRepository->findOneByChampLibreAndArticle($champLibre->getId(), $article->getId());
+			$labelChampLibre = strtolower($champLibre->getLabel());
+			$isCEA = $this->specificService->isCurrentClientNameFunction(ParamClient::CEA_LETI);
+
+            // spécifique CEA : on vide les champs 'Code projet' et 'Destinataire' dans le cas d'une demande
+			if ($isCEA
+			&& ($labelChampLibre == 'code projet' || $labelChampLibre == 'destinataire')
+			&& $isADemand) {
+				$valeurChampArticle = null;
+			}
             $champsLibres[] = [
                 'id' => $champLibre->getId(),
                 'label' => $champLibre->getLabel(),
@@ -328,7 +338,7 @@ class ArticleDataService
 
     public function editArticle($data)
     {
-		// spécifique CEA : accès pour tous au champ libre 'Code projet'
+		// spécifique CEA : accès pour tous aux champs libres 'Code projet' et 'Destinataire'
 		$isCea = $this->specificService->isCurrentClientNameFunction(ParamClient::CEA_LETI);
 		if (!$isCea) {
 			if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
@@ -358,11 +368,12 @@ class ArticleDataService
             $champsLibreKey = array_keys($data);
             foreach ($champsLibreKey as $champ) {
                 if (gettype($champ) === 'integer') {
-                    // spécifique CEA : accès pour tous au champ libre 'Code projet'
+                    // spécifique CEA : accès pour tous aux champs libres 'Code projet' et 'Destinataire'
 					$isCea = $this->specificService->isCurrentClientNameFunction(ParamClient::CEA_LETI);
 
                     $champLibre = $this->champsLibreRepository->find($champ);
-                    if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT) || ($isCea && strtolower($champLibre->getLabel()) == 'code projet')) {
+					$labelCL = strtolower($champLibre->getLabel());
+                    if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT) || ($isCea && ($labelCL == 'code projet' || $labelCL == 'destinataire'))) {
                         $valeurChampLibre = $this->valeurChampsLibreRepository->findOneByArticleANDChampsLibre($article->getId(), $champ);
                         if (!$valeurChampLibre) {
                             $valeurChampLibre = new ValeurChampsLibre();
