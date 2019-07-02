@@ -427,7 +427,7 @@ let ajaxEditArticle = function (select) {
                 ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
                 toggleRequiredChampsLibres(select.closest('.modal').find('#type'), 'edit');
                 $('#livraisonShow').find('#quantityToTake').removeClass('d-none').addClass('data');
-                initEditor('.editor-container-edit');
+                // initEditor('.editor-container-edit');
                 modalFooter.removeClass('d-none');
                 setMaxQuantityByArtRef($('#livraisonShow').find('#quantity-to-deliver'));
             } else {
