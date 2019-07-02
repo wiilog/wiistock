@@ -155,9 +155,10 @@ class ArticleDataService
             $demande = 'demande';
         } elseif ($demande === 'collecte') {
             $articleStatut = Article::STATUT_INACTIF;
-        }
+        } else {
+        	$articleStatut = null;
+		}
 
-        $articleFournisseur = $this->articleFournisseurRepository->findByRefArticle($refArticle);
         if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
             if ($modifieRefArticle === true) {
                 $data = $this->refArticleDataService->getDataEditForRefArticle($refArticle);
@@ -180,7 +181,13 @@ class ArticleDataService
             ]);
         } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $articleStatut);
-            $articles = $this->articleRepository->getByAFAndInactif($articleFournisseur, $statut);
+            if ($demande === 'collecte') {
+				$articles = $this->articleRepository->findByRefArticleAndStatut($refArticle, $statut);
+			} else if ($demande === 'demande') {
+            	$articles = $this->articleRepository->findByRefArticleAndStatutWithoutDemand($refArticle, $statut);
+			} else {
+            	$articles = [];
+			}
             if (count($articles) < 1) {
                 $articles[] = [
                     'id' => '',
@@ -241,7 +248,7 @@ class ArticleDataService
             ];
         } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             $statutArticleActif = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
-            $articles = $this->articleRepository->getByRefArticleAndStatutWithoutDemand($refArticle, $statutArticleActif);
+            $articles = $this->articleRepository->findByRefArticleAndStatutWithoutDemand($refArticle, $statutArticleActif);
 
             if (count($articles) < 1) {
                 $articles[] = [
