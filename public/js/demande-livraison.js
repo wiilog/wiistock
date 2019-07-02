@@ -252,7 +252,6 @@ function ajaxGetAndFillArticle(select) {
             editNewArticle.html(data.modif);
             modalFooter.removeClass('d-none');
             toggleRequiredChampsLibres($('#typeEdit'), 'edit');
-            initEditor('#modalNewArticle .editor-container-edit');
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
         }, 'json');
     }
@@ -289,7 +288,6 @@ let ajaxEditArticle = function (select) {
                 quantityToTake.find('input').attr('max', valMax);
                 quantityToTake.removeClass('d-none');
                 ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
-                initEditor('#modalNewArticle .editor-container-edit');
             } else {
                 //TODO gérer erreur
             }
