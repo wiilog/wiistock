@@ -165,6 +165,7 @@ function upload(files) {
     });
 }
 
+
 function InitialiserModalArrivage(modal, submit, path, table, callback = null, close = true) {
     submit.click(function () {
         submitActionArrivage(modal, path, table, callback, close);
