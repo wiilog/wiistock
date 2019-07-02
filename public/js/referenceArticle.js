@@ -433,6 +433,7 @@ let ajaxEditArticle = function (select) {
                 $('#livraisonShow').find('#quantityToTake').removeClass('d-none').addClass('data');
                 initEditor('.editor-container-edit');
                 modalFooter.removeClass('d-none');
+                setMaxQuantityByArtRef($('#livraisonShow').find('#quantity-to-deliver'));
             } else {
                 //TODO gérer erreur
             }
