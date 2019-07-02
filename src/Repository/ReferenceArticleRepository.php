@@ -32,6 +32,18 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
+    public function getBetweenLimits($min, $step) {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT ra 
+                  FROM App\Entity\ReferenceArticle ra
+                  ORDER BY ra.id ASC"
+        )
+            ->setMaxResults($step)
+            ->setFirstResult($min);
+        return $query->execute();
+    }
+
     public function getChampFixeById($id)
     {
         $entityManager = $this->getEntityManager();
