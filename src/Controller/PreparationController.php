@@ -329,11 +329,11 @@ class PreparationController extends AbstractController
                 ->setStatut($this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_BROUILLON));
 
             foreach ($demande->getArticles() as $article) {
-                 $article->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF));
+            	$article->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF));
                 if ($article->getQuantiteAPrelever()) {
-                    $article->setQuantiteAPrelever($article->getQuantite());
+                    $article->setQuantite($article->getQuantiteAPrelever());
                     $article->setQuantiteAPrelever(0);
-                } //TODO CG
+                }
             }
         }
 

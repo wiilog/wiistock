@@ -112,30 +112,24 @@ let submitEditDemande = $("#submitEditDemande");
 InitialiserModal(modalEditDemande, submitEditDemande, urlEditDemande, tableDemande);
 
 function getCompareStock(submit) {
-    xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function () {
-        if (this.readyState == 4 && this.status == 200) {
-            data = JSON.parse(this.responseText);
+
+    let path = Routing.generate('compare_stock', true);
+    let params = {'demande': submit.data('id')};
+
+    $.post(path, JSON.stringify(params), function(data) {
+        if (data) {
             $('.zone-entete').html(data.entete);
             $('#tableArticle_id').DataTable().ajax.reload();
-            $('#boutonCollecteSup').addClass('d-none')
-            $('#boutonCollecteInf').addClass('d-none')
+            $('#boutonCollecteSup, #boutonCollecteInf').addClass('d-none');
             tableArticle.ajax.reload(function (json) {
-                if (this.responseText !== undefined) {
+                if (data !== undefined) {
                     $('#myInput').val(json.lastInput);
                 }
             });
-        } else if (this.readyState === 4 && this.status === 250) {
-            data = JSON.parse(this.responseText);
+        } else {
             $('#negativStock').click();
         }
-    }
-    path = Routing.generate('compare_stock', true)
-    let data = {};
-    data['demande'] = submit.data('id')
-    json = JSON.stringify(data);
-    xhttp.open("POST", path, true);
-    xhttp.send(json);
+    }, 'json');
 }
 
 function setMaxQuantity(select) {

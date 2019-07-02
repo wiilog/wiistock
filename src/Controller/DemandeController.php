@@ -109,32 +109,41 @@ class DemandeController extends AbstractController
      */
     public function compareStock(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $demande = $this->demandeRepository->find($data['demande']);
 
-            $quantiteReservee = $stock = 0;
+            // pour réf gérées par articles
+			$articles = $demande->getArticles();
+			foreach ($articles as $article) {
+				if ($article->getQuantiteAPrelever() > $article->getQuantite()) {
+					return new JsonResponse(false);
+				}
 
+			}
+
+			// pour réf gérées par référence
             foreach ($demande->getLigneArticle() as $ligne) {
-                $articleRef = $ligne->getReference();
+				$articleRef = $ligne->getReference();
+
                 $stock = $articleRef->getQuantiteStock();
                 $quantiteReservee = $ligne->getQuantite();
 
-                $listLigneArticleByRefArticle = $this->ligneArticleRepository->findOneByRefArticle($articleRef);
+                $listLigneArticleByRefArticle = $this->ligneArticleRepository->findByRefArticle($articleRef);
 
                 foreach ($listLigneArticleByRefArticle as $ligneArticle) {
                     /** @var LigneArticle $ligneArticle */
-                    $status = $ligneArticle->getDemande()->getStatut()->getNom();
-                    if ($status === Demande::STATUT_A_TRAITER || $status === Demande::STATUT_PREPARE) {
+                    $statusLabel = $ligneArticle->getDemande()->getStatut()->getNom();
+                    if ($statusLabel === Demande::STATUT_A_TRAITER || $statusLabel === Demande::STATUT_PREPARE) {
                         $quantiteReservee += $ligneArticle->getQuantite();
                     }
                 }
+
+				if ($quantiteReservee > $stock) {
+					return new JsonResponse(false);
+				}
             }
 
-            if ($quantiteReservee > $stock) {
-                return new JsonResponse('La quantité souhaitée dépasse la quantité en stock.', 250);
-            } else {
-                return $this->finish($request);
-            }
+            return $this->finish($request);
         }
         throw new NotFoundHttpException('404');
     }
@@ -144,14 +153,15 @@ class DemandeController extends AbstractController
      */
     public function finish(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::PREPA, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
             $em = $this->getDoctrine()->getManager();
 
-            // Creation d'une nouvelle preparation basée sur une selection de demandes
             $demande = $this->demandeRepository->find($data['demande']);
+
+            // Creation d'une nouvelle preparation basée sur une selection de demandes
             $preparation = new Preparation();
             $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
             $preparation
@@ -166,11 +176,9 @@ class DemandeController extends AbstractController
             $demande->setStatut($statutD);
             $em->persist($preparation);
 
-            // Scission des articles dont la quantité prélevée n'est pas totale
-            $articles = $demande->getArticles();
-
-            foreach ($articles as $article) {
-                //modification du statut article =>en transit
+            // modification du statut articles => en transit
+			$articles = $demande->getArticles();
+			foreach ($articles as $article) {
                 $article->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
             }
             $em->flush();
@@ -188,7 +196,7 @@ class DemandeController extends AbstractController
 
             return new JsonResponse($data);
         }
-        throw new NotFoundHttpException('404'); //TODO retour msg erreur (pas d'article dans la DL)
+        throw new NotFoundHttpException('404');
     }
 
     /**
