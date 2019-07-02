@@ -8,6 +8,7 @@ use App\Entity\CategoryType;
 use App\Entity\ChampsLibre;
 use App\Entity\Filter;
 use App\Entity\Menu;
+use App\Entity\ParamClient;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Entity\ValeurChampsLibre;
@@ -34,6 +35,7 @@ use App\Repository\EmplacementRepository;
 use App\Service\RefArticleDataService;
 use App\Service\ArticleDataService;
 
+use App\Service\SpecificService;
 use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
@@ -150,8 +152,13 @@ class ReferenceArticleController extends Controller
      */
     private $templating;
 
+	/**
+	 * @var SpecificService
+	 */
+    private $specificService;
 
-    public function __construct(\Twig_Environment $templating, EmplacementRepository $emplacementRepository, FournisseurRepository $fournisseurRepository, CategorieCLRepository $categorieCLRepository, LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, ArticleDataService $articleDataService, LivraisonRepository $livraisonRepository, DemandeRepository $demandeRepository, CollecteRepository $collecteRepository, StatutRepository $statutRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FilterRepository $filterRepository, RefArticleDataService $refArticleDataService, UserService $userService)
+
+    public function __construct(SpecificService $specificService, \Twig_Environment $templating, EmplacementRepository $emplacementRepository, FournisseurRepository $fournisseurRepository, CategorieCLRepository $categorieCLRepository, LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, ArticleDataService $articleDataService, LivraisonRepository $livraisonRepository, DemandeRepository $demandeRepository, CollecteRepository $collecteRepository, StatutRepository $statutRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FilterRepository $filterRepository, RefArticleDataService $refArticleDataService, UserService $userService)
     {
         $this->emplacementRepository = $emplacementRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
@@ -172,6 +179,7 @@ class ReferenceArticleController extends Controller
         $this->categorieCLRepository = $categorieCLRepository;
         $this->fournisseurRepository = $fournisseurRepository;
         $this->templating = $templating;
+        $this->specificService = $specificService;
     }
 
     /**
@@ -782,7 +790,8 @@ class ReferenceArticleController extends Controller
                     }
                 } else {
                     //TODO patch temporaire CEA
-                    if ($refArticle->getStatut()->getNom() === ReferenceArticle::STATUT_INACTIF && $data['demande'] === 'collecte') {
+					$isCea = $this->specificService->isCurrentClientNameFunction(ParamClient::CEA_LETI);
+                    if ($isCea && $refArticle->getStatut()->getNom() === ReferenceArticle::STATUT_INACTIF && $data['demande'] === 'collecte') {
                         $response = [
                             'plusContent' => $this->renderView('reference_article/modalPlusDemandeTemp.html.twig', [
                                 'collectes' => $collectes
