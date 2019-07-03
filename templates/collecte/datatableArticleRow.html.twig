@@ -5,7 +5,7 @@
     {% if type == 'reference' %}
     <div data-target='#modalEditArticle' data-toggle='modal'>
         <div class="btn btn-col-action" data-id='{{ id }}'
-        onclick="editRow($(this), Routing.generate('collecte_edit_api_article', true), $('#modalEditArticle'), $('#submitEditArticle'), false, false, true)">
+        onclick="editRow($(this), Routing.generate('collecte_edit_api_article', true), $('#modalEditArticle'), $('#submitEditArticle'))">
             <i class='fas fa-pencil-alt'></i>
         </div>
     </div>
@@ -17,6 +17,7 @@
             <i class='fas fa-trash'></i>
         </div>
     </div>
+    {% endif %}
     {% endif %}
     {% if refArticleId is defined %}
     <div data-target='#modalShowRefArticle' data-toggle='modal'>
@@ -35,4 +36,3 @@
     {% endif %}
 
 </div>
-{% endif %}

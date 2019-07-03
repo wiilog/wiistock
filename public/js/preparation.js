@@ -3,10 +3,10 @@ $('.select2').select2();
 let path = Routing.generate('preparation_api');
 let table = $('#table_id').DataTable({
     order: [[1, 'desc']],
-    "columnDefs": [
+    columnDefs: [
         {
             "type": "customDate",
-            "targets": 0
+            "targets": 1
         }
     ],
     "language": {
@@ -14,10 +14,10 @@ let table = $('#table_id').DataTable({
     },
     ajax: path,
     columns: [
-        { "data": 'Numéro' },
-        { "data": 'Date' },
-        { "data": 'Statut' },
-        { "data": 'Actions' },
+        { "data": 'Numéro', 'title': 'Numéro' },
+        { "data": 'Date', 'title': 'Date de création' },
+        { "data": 'Statut', 'title': 'Statut' },
+        { "data": 'Actions', 'title': 'Actions' },
     ],
 });
 
