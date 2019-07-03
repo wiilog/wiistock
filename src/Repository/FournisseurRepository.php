@@ -19,6 +19,21 @@ class FournisseurRepository extends ServiceEntityRepository
         parent::__construct($registry, Fournisseur::class);
     }
 
+//    public function getByReference($referenceArticle)
+//    {
+//        $entityManager = $this->getEntityManager();
+//        $query = $entityManager->createQuery(
+//            'SELECT DISTINCT f
+//            FROM App\Entity\Fournisseur f
+//            JOIN f.articlesFournisseur af
+//            WHERE af.referenceArticle = :referenceArticle
+//            '
+//        )->setParameters([
+//            'referenceArticle' => $referenceArticle
+//        ]);
+//        return $query->execute();
+//    }
+
     public function findBySearch($value)
     {
         return $this->createQueryBuilder('r')
@@ -41,8 +56,8 @@ class FournisseurRepository extends ServiceEntityRepository
 
     public function findOneByCodeReference($code)
     {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
             "SELECT f
           FROM App\Entity\Fournisseur f
           WHERE f.codeReference LIKE :search"

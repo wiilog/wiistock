@@ -174,7 +174,7 @@ class SecuriteController extends Controller
     /**
      * @Route("/change-password-in-bdd", name="change_password_in_bdd", options={"expose"=true}, methods="GET|POST")
      */
-    public function change_password_in_bdd(Request $request,  UserPasswordEncoderInterface $passwordEncoder) : Response
+    public function change_password_in_bdd(Request $request, UserPasswordEncoderInterface $passwordEncoder) : Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 

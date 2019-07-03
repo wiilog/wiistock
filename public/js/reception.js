@@ -283,28 +283,44 @@ $('.ajax-autocomplete').select2({
 // }
 
 
-let getArticleFournisseur = function () {
-    xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function () {
-        if (this.readyState == 4 && this.status == 200) {
-            data = JSON.parse(this.responseText);
-            if (data.option) {
-                let $articleFourn = $('#articleFournisseur');
-                $articleFourn.parent('div').removeClass('d-none');
-                $articleFourn.parent('div').addClass('d-block');
-                $articleFourn.html(data.option);
-            }
+// let getArticleFournisseur = function () {
+//     xhttp = new XMLHttpRequest();
+//     xhttp.onreadystatechange = function () {
+//         if (this.readyState == 4 && this.status == 200) {
+//             data = JSON.parse(this.responseText);
+//             if (data.option) {
+//                 let $articleFourn = $('#articleFournisseur');
+//                 $articleFourn.parent('div').removeClass('d-none');
+//                 $articleFourn.parent('div').addClass('d-block');
+//                 $articleFourn.html(data.option);
+//             }
+//         }
+//     }
+//     path = Routing.generate('get_article_fournisseur', true)
+//     let data = {};
+//     data['referenceArticle'] = $('#referenceCEA').val();
+//     data['fournisseur'] = $('#fournisseurAddArticle').val();
+//     if (data['referenceArticle'] && data['fournisseur']) {
+//         json = JSON.stringify(data);
+//         xhttp.open("POST", path, true);
+//         xhttp.send(json);
+//     }
+// }
+
+function getArticleFournisseur(){
+    let path = Routing.generate('get_article_fournisseur', true);
+    let referenceArticle = $('#referenceCEA').val();
+    let fournisseur = $('#fournisseurAddArticle').val();
+    let params = JSON.stringify({referenceArticle: referenceArticle, fournisseur: fournisseur});
+    console.log(params);
+    $.post(path, params, function(data) {
+        if(data.option){
+            let articleFournisseur = $('#articleFournisseur');
+            articleFournisseur.parent('div').removeClass('d-none');
+            articleFournisseur.parent('div').addClass('d-block');
+            articleFournisseur.html(data.option);
         }
-    }
-    path = Routing.generate('get_article_fournisseur', true)
-    let data = {};
-    data['referenceArticle'] = $('#referenceCEA').val();
-    data['fournisseur'] = $('#fournisseurAddArticle').val();
-    if (data['referenceArticle'] && data['fournisseur']) {
-        json = JSON.stringify(data);
-        xhttp.open("POST", path, true);
-        xhttp.send(json);
-    }
+    },'json');
 }
 
 let resetNewArticle = function (element) {

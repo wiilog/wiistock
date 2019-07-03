@@ -498,7 +498,7 @@ class ReceptionController extends AbstractController
     /**
      * @Route("/add-article", name="reception_article_add", options={"expose"=true}, methods={"GET", "POST"})
      */
-    public function addArticle(Request  $request): Response
+    public function addArticle(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $contentData = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::CREATE_EDIT)) {
@@ -715,16 +715,15 @@ class ReceptionController extends AbstractController
     /**
      * @Route("/article-fournisseur", name="get_article_fournisseur", options={"expose"=true}, methods={"GET", "POST"})
      */
-    public function getArticleFournisseur(Request  $request)
+    public function getArticleFournisseur(Request $request)
     {
         if (!$request->isXmlHttpRequest() &&  $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
             }
-
             $json = null;
-
             $refArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
+            dump($refArticle);
 
             if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
                 $fournisseur = $this->fournisseurRepository->find($data['fournisseur']);
