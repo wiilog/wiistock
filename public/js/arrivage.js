@@ -67,6 +67,15 @@ function toggleLitige(select) {
     }
 }
 
+function toggleCommenataire(select){
+    let bloc = select.closest('.modal').find('#commentaireBloc');
+    let typeId = select.find('value');
+
+    let commentaire = bloc.find('#commentaire');
+
+
+}
+
 let editorNewArrivageAlreadyDone = false;
 function initNewArrivageEditor(modal) {
     if (!editorNewArrivageAlreadyDone) {
