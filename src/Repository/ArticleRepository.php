@@ -355,4 +355,19 @@ class ArticleRepository extends ServiceEntityRepository
 
 		return $query->execute();
 	}
+
+	public function findDoublons()
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			"SELECT a1
+			FROM App\Entity\Article a1
+			WHERE a1.reference IN (
+				SELECT a2.reference FROM App\Entity\Article a2
+				GROUP BY a2.reference
+				HAVING COUNT(a2.reference) > 1)"
+		);
+
+		return $query->execute();
+	}
 }
