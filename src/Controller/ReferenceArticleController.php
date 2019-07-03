@@ -944,7 +944,7 @@ class ReferenceArticleController extends Controller
                 $headersCL[] = $champLibre->getLabel();
             }
             $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::ARTICLES_ET_REF_CEA);
-            $articles = $this->referenceArticleRepository->getBetweenLimits($min, $max-$min-1);
+            $articles = $this->referenceArticleRepository->getBetweenLimits($min, $max-$min);
             foreach ($articles as $article) {
                 $data['values'][] = $this->buildInfos($article, $listTypes, $headersCL);
             }
