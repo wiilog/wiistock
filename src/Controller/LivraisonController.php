@@ -252,7 +252,7 @@ class LivraisonController extends AbstractController
                 $rows[] = [
                     'id' => ($livraison->getId() ? $livraison->getId() : ''),
                     'Numéro' => ($livraison->getNumero() ? $livraison->getNumero() : ''),
-                    'Date' => ($livraison->getDate() ? $livraison->getDate()->format('d-m-Y') : ''),
+                    'Date' => ($livraison->getDate() ? $livraison->getDate()->format('d/m/Y') : ''),
                     'Statut' => ($livraison->getStatut() ? $livraison->getStatut()->getNom() : ''),
                     'Opérateur' => ($livraison->getUtilisateur() ? $livraison->getUtilisateur()->getUsername() : ''),
                     'Actions' => $this->renderView('livraison/datatableLivraisonRow.html.twig', ['url' => $url])
