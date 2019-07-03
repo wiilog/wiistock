@@ -945,7 +945,8 @@ class ReferenceArticleController extends Controller
             }
             $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::ARTICLES_ET_REF_CEA);
             $articles = $this->referenceArticleRepository->getBetweenLimits($min, $max-$min);
-            foreach ($articles as $article) {
+            foreach ($articles as $key => $article) {
+                dump($key);
                 $data['values'][] = $this->buildInfos($article, $listTypes, $headersCL);
             }
             return new JsonResponse($data);
