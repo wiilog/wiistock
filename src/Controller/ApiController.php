@@ -180,6 +180,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
      */
     public function ping(Request $request)
     {
+        dump($request->isXmlHttpRequest());
         if (!$request->isXmlHttpRequest()) {
             $response = new Response();
 
