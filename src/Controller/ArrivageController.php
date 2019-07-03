@@ -65,8 +65,8 @@ class ArrivageController extends AbstractController
     private $chauffeurRepository;
 
     /**
- * @var TransporteurRepository
- */
+     * @var TransporteurRepository
+     */
     private $transporteurRepository;
 
     /**
@@ -131,16 +131,17 @@ class ArrivageController extends AbstractController
             if ($this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST_ALL)) {
                 $arrivages = $this->arrivageRepository->findAll();
             } else {
-                $currentUser = $this->getUser(); /** @var Utilisateur $currentUser */
+                $currentUser = $this->getUser();
+                /** @var Utilisateur $currentUser */
                 $arrivages = $currentUser->getArrivagesAcheteur();
             }
 
             $rows = [];
             foreach ($arrivages as $arrivage) {
-				$acheteursUsernames = [];
-				foreach($arrivage->getAcheteurs() as $acheteur) {
-					$acheteursUsernames[] = $acheteur->getUsername();
-				}
+                $acheteursUsernames = [];
+                foreach ($arrivage->getAcheteurs() as $acheteur) {
+                    $acheteursUsernames[] = $acheteur->getUsername();
+                }
 
                 $rows[] = [
                     'id' => $arrivage->getId(),
@@ -152,13 +153,13 @@ class ArrivageController extends AbstractController
                     'Fournisseur' => $arrivage->getFournisseur() ? $arrivage->getFournisseur()->getNom() : '',
                     'Destinataire' => $arrivage->getDestinataire() ? $arrivage->getDestinataire()->getUsername() : '',
                     'NbUM' => $arrivage->getNbUM() ? $arrivage->getNbUM() : '',
-					'Acheteurs' => implode(', ', $acheteursUsernames),
-					'Statut' => $arrivage->getStatut() ? $arrivage->getStatut()->getNom() : '',
+                    'Acheteurs' => implode(', ', $acheteursUsernames),
+                    'Statut' => $arrivage->getStatut() ? $arrivage->getStatut()->getNom() : '',
                     'Date' => $arrivage->getDate() ? $arrivage->getDate()->format('d/m/Y') : '',
                     'Utilisateur' => $arrivage->getUtilisateur() ? $arrivage->getUtilisateur()->getUsername() : '',
                     'Actions' => $this->renderView('arrivage/datatableArrivageRow.html.twig', [
                         'arrivage' => $arrivage,
-                        ])
+                    ])
                 ];
             }
 
@@ -200,6 +201,7 @@ class ArrivageController extends AbstractController
             if (isset($data['transporteur'])) {
                 $arrivage->setTransporteur($this->transporteurRepository->find($data['transporteur']));
             }
+
             if (isset($data['chauffeur'])) {
                 $arrivage->setChauffeur($this->chauffeurRepository->find($data['chauffeur']));
             }
@@ -213,21 +215,32 @@ class ArrivageController extends AbstractController
                 $arrivage->setDestinataire($this->utilisateurRepository->find($data['destinataire']));
             }
             if (isset($data['acheteurs'])) {
-                foreach($data['acheteurs'] as $acheteur) {
+                foreach ($data['acheteurs'] as $acheteur) {
                     $arrivage->addAcheteur($this->utilisateurRepository->findOneByUsername($acheteur));
                 }
             }
-			if (isset($data['nbUM'])) {
-				$arrivage->setNbUM((int)$data['nbUM']);
+            $path = "../public/uploads/attachements/temporary";
+            $parent = "../public/uploads/attachements";
+            if (is_dir($path)) {
+                foreach(scandir($path) as $file) {
+                    if ('.' === $file) continue;
+                    if ('..' === $file) continue;
+                    $arrivage->addPiecesJointes($file);
+                    copy($path . '/' . $file, $parent . '/' . $file);
+                }
+                $this->delete_files($path);
+            }
+            if (isset($data['nbUM'])) {
+                $arrivage->setNbUM((int)$data['nbUM']);
 
-				for ($i = 0; $i < $data['nbUM']; $i++) {
-					$colis = new Colis();
-					$colis
-						->setCode($numeroArrivage . '-' . $i)
-						->setArrivage($arrivage);
-					$em->persist($colis);
-				}
-			}
+                for ($i = 0; $i < $data['nbUM']; $i++) {
+                    $colis = new Colis();
+                    $colis
+                        ->setCode($numeroArrivage . '-' . $i)
+                        ->setArrivage($arrivage);
+                    $em->persist($colis);
+                }
+            }
 
             $em->persist($arrivage);
 
@@ -276,30 +289,30 @@ class ArrivageController extends AbstractController
 
             // construction de la chaîne de caractères pour alimenter le select2
             $acheteursUsernames = [];
-            foreach($arrivage->getAcheteurs() as $acheteur) {
-              $acheteursUsernames[] = $acheteur->getUsername();
+            foreach ($arrivage->getAcheteurs() as $acheteur) {
+                $acheteursUsernames[] = $acheteur->getUsername();
             }
 
-          if($this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
-            $html = $this->renderView('arrivage/modalEditArrivageContent.html.twig', [
-              'arrivage' => $arrivage,
-              'conforme' => $arrivage->getStatut()->getNom() === Statut::CONFORME,
-              'utilisateurs' => $this->utilisateurRepository->findAllSorted(),
-              'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ARRIVAGE),
-              'fournisseurs' => $this->fournisseurRepository->findAllSorted(),
-              'transporteurs' => $this->transporteurRepository->findAllSorted(),
-              'chauffeurs' => $this->chauffeurRepository->findAllSorted(),
-              'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE)
-            ]);
-          } elseif (in_array($this->getUser()->getUsername(), $acheteursUsernames)) {
-            $html = $this->renderView('arrivage/modalEditArrivageContentLitige.html.twig', [
-              'arrivage' => $arrivage,
-            ]);
-          } else {
-            $html = '';
-          }
+            if ($this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
+                $html = $this->renderView('arrivage/modalEditArrivageContent.html.twig', [
+                    'arrivage' => $arrivage,
+                    'conforme' => $arrivage->getStatut()->getNom() === Statut::CONFORME,
+                    'utilisateurs' => $this->utilisateurRepository->findAllSorted(),
+                    'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ARRIVAGE),
+                    'fournisseurs' => $this->fournisseurRepository->findAllSorted(),
+                    'transporteurs' => $this->transporteurRepository->findAllSorted(),
+                    'chauffeurs' => $this->chauffeurRepository->findAllSorted(),
+                    'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE)
+                ]);
+            } elseif (in_array($this->getUser()->getUsername(), $acheteursUsernames)) {
+                $html = $this->renderView('arrivage/modalEditArrivageContentLitige.html.twig', [
+                    'arrivage' => $arrivage,
+                ]);
+            } else {
+                $html = '';
+            }
 
-          return new JsonResponse(['html' => $html, 'acheteurs' => $acheteursUsernames]);
+            return new JsonResponse(['html' => $html, 'acheteurs' => $acheteursUsernames]);
         }
         throw new NotFoundHttpException('404');
     }
@@ -346,22 +359,22 @@ class ArrivageController extends AbstractController
                 $arrivage->setDestinataire($this->utilisateurRepository->find($data['destinataire']));
             }
             if (isset($data['acheteurs'])) {
-              // on détache les acheteurs existants...
-              $existingAcheteurs = $arrivage->getAcheteurs();
-              foreach ($existingAcheteurs as $acheteur) {
-                $arrivage->removeAcheteur($acheteur);
-              }
-              // ... et on ajoute ceux sélectionnés
-              foreach($data['acheteurs'] as $acheteur) {
-                  $arrivage->addAcheteur($this->utilisateurRepository->findOneByUsername($acheteur));
-              }
+                // on détache les acheteurs existants...
+                $existingAcheteurs = $arrivage->getAcheteurs();
+                foreach ($existingAcheteurs as $acheteur) {
+                    $arrivage->removeAcheteur($acheteur);
+                }
+                // ... et on ajoute ceux sélectionnés
+                foreach ($data['acheteurs'] as $acheteur) {
+                    $arrivage->addAcheteur($this->utilisateurRepository->findOneByUsername($acheteur));
+                }
             }
             if (isset($data['nbUM'])) {
                 $arrivage->setNbUM((int)$data['nbUM']);
             }
             if (isset($data['statutAcheteur'])) {
-              $statutName = $data['statutAcheteur'] ? Statut::TRAITE_ACHETEUR : Statut::ATTENTE_ACHETEUR;
-              $arrivage->setStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::ARRIVAGE, $statutName));
+                $statutName = $data['statutAcheteur'] ? Statut::TRAITE_ACHETEUR : Statut::ATTENTE_ACHETEUR;
+                $arrivage->setStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::ARRIVAGE, $statutName));
             }
 
             // traitement de l'éventuel litige
@@ -386,7 +399,7 @@ class ArrivageController extends AbstractController
                     $this->sendMailToAcheteurs($arrivage, $litige, false);
                 }
 
-            // conforme : on supprime l'éventuel litige
+                // conforme : on supprime l'éventuel litige
             } else {
                 if (!empty($litige)) {
                     $em->remove($litige);
@@ -445,16 +458,16 @@ class ArrivageController extends AbstractController
                     $filename = uniqid() . "." . $file->getClientOriginalExtension();
                     $file->move($path, $filename); // move the file to a path
 
-                  $arrivage->addPiecesJointes($filename);
-                  $fileNames[] = $filename;
+                    $arrivage->addPiecesJointes($filename);
+                    $fileNames[] = $filename;
                 }
             }
             $em->flush();
 
             $html = '';
             foreach ($fileNames as $fileName) {
-            	$html .= $this->renderView('arrivage/attachementLine.html.twig', ['arrivage' => $arrivage, 'pj' => $fileName]);
-			}
+                $html .= $this->renderView('arrivage/attachementLine.html.twig', ['arrivage' => $arrivage, 'pj' => $fileName]);
+            }
 
             return new JsonResponse($html);
         } else {
@@ -462,31 +475,31 @@ class ArrivageController extends AbstractController
         }
     }
 
-	/**
-	 * @Route("/supprime-pj", name="arrivage_delete_attachement", options={"expose"=true}, methods="GET|POST")
-	 */
+    /**
+     * @Route("/supprime-pj", name="arrivage_delete_attachement", options={"expose"=true}, methods="GET|POST")
+     */
     public function deleteAttachement(Request $request)
-	{
-		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
-			$arrivageId = (int)$data['arrivageId'];
+            $arrivageId = (int)$data['arrivageId'];
 
-			$arrivage = $this->arrivageRepository->find($arrivageId);
-			if ($arrivage) {
-				$arrivage->removePieceJointe($data['pj']);
-				$this->getDoctrine()->getManager()->flush();
-				$response = true;
-			} else {
-				$response = false;
-			}
+            $arrivage = $this->arrivageRepository->find($arrivageId);
+            if ($arrivage) {
+                $arrivage->removePieceJointe($data['pj']);
+                $this->getDoctrine()->getManager()->flush();
+                $response = true;
+            } else {
+                $response = false;
+            }
 
-			return new JsonResponse($response);
-		} else {
-			throw new NotFoundHttpException('404');
-		}
-	}
+            return new JsonResponse($response);
+        } else {
+            throw new NotFoundHttpException('404');
+        }
+    }
 
-	private function sendMailToAcheteurs($arrivage, $litige, $newLitige)
+    private function sendMailToAcheteurs($arrivage, $litige, $newLitige)
     {
         foreach ($arrivage->getAcheteurs() as $acheteur) {
             $this->mailerService->sendMail(
@@ -497,6 +510,57 @@ class ArrivageController extends AbstractController
                 ]),
                 $acheteur->getEmail()
             );
+        }
+    }
+
+    /**
+     * @Route("/garder-pj", name="garder_pj", options={"expose"=true}, methods="GET|POST")
+     */
+    public function keepAttachmentForNew(Request $request)
+    {
+        if ($request->isXmlHttpRequest()) {
+
+            $fileNames = [];
+            $html = '';
+            $path = "../public/uploads/attachements/temporary";
+            for ($i = 0; $i < count($request->files); $i++) {
+                $file = $request->files->get('file' . $i);
+                if ($file) {
+                    $filename = uniqid() . "." . $file->getClientOriginalExtension();
+                    $fileNames[] = $filename;
+                    $file->move($path, $filename);
+                    $html .= $this->renderView('arrivage/attachementLine.html.twig', [
+                        'arrivage' => null,
+                        'pj' => $filename,
+                        'isNew' => true
+                    ]);
+                }
+            }
+
+            return new JsonResponse($html);
+        } else {
+            throw new NotFoundHttpException('404');
+        }
+    }
+
+    /**
+     * @Route("/enlever-pj", name="remove_kept_pj", options={"expose"=true}, methods="GET|POST")
+     */
+    public function deleteAttachmentForNew(Request $request)
+    {
+        if ($request->isXmlHttpRequest()) {
+            $path = "../public/uploads/attachements/temporary";
+            $this->delete_files($path);
+            return new JsonResponse();
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+    function delete_files($target)
+    {
+        if (is_dir($target)) {
+            array_map('unlink', glob("$target/*.*"));
+            rmdir($target);
         }
     }
 

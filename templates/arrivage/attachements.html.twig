@@ -1,11 +1,21 @@
-<label for="dropfile">Pièces jointes</label>
-<div id="dropfile" class="dropFrame" data-arrivage-id="{{ arrivage.id }}"
-            ondragenter="dragEnterDiv(event, $(this))"
-            ondragover="dragOverDiv(event, $(this))"
-            ondragleave="dragLeaveDiv(event, $(this))"
-            ondrop="dropOnDiv(event, $(this))">Faites glisser vos pièces jointes ici.
-</div>
+{% if isNew is defined %}
+    <label for="dropfile">Pièces jointes</label>
+    <div id="dropfile" class="dropFrame"
+         ondragenter="dragEnterDiv(event, $(this))"
+         ondragover="dragOverDiv(event, $(this))"
+         ondragleave="dragLeaveDiv(event, $(this))"
+         ondrop="dropNewOnDiv(event, $(this))">Faites glisser vos pièces jointes ici.
+    </div>
+{% else %}
+    <label for="dropfile">Pièces jointes</label>
+    <div id="dropfile" class="dropFrame" data-arrivage-id="{{ arrivage.id }}"
+         ondragenter="dragEnterDiv(event, $(this))"
+         ondragover="dragOverDiv(event, $(this))"
+         ondragleave="dragLeaveDiv(event, $(this))"
+         ondrop="dropOnDiv(event, $(this))">Faites glisser vos pièces jointes ici.
+    </div>
 
-{% for pj in arrivage.piecesJointes %}
-    {% include 'arrivage/attachementLine.html.twig' %}
-{% endfor %}
+    {% for pj in arrivage.piecesJointes %}
+        {% include 'arrivage/attachementLine.html.twig' %}
+    {% endfor %}
+{% endif %}

@@ -1,7 +1,19 @@
-<p class="attachement" id="{{ pj|withoutExtension }}">
-    <a target="_blank" href="/uploads/attachements/{{ pj }}">
-        <i class="fa fa-file mr-2"></i>
-        {{ pj }}
-    </a>
-    <i class="fa fa-times red pointer" onclick="deleteAttachement('{{ arrivage.id }}', '{{ pj }}', '{{ pj|withoutExtension }}')"></i>
-</p>
+{% if isNew is defined %}
+    <p class="attachement" id="{{ pj }}">
+        <a target="_blank">
+            <i class="fa fa-file mr-2"></i>
+            {{ pj }}
+        </a>
+        <i class="fa fa-times red pointer"
+           onclick="deleteAttachementNew('{{ pj }}')"></i>
+    </p>
+{% else %}
+    <p class="attachement" id="{{ pj|withoutExtension }}">
+        <a target="_blank" href="/uploads/attachements/{{ pj }}">
+            <i class="fa fa-file mr-2"></i>
+            {{ pj }}
+        </a>
+        <i class="fa fa-times red pointer"
+           onclick="deleteAttachement('{{ arrivage.id }}', '{{ pj }}', '{{ pj|withoutExtension }}')"></i>
+    </p>
+{% endif %}
