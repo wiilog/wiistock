@@ -1,5 +1,3 @@
-{%  if modifiable %}
-
 <div class="d-flex">
     {% if refArticleId is defined %}
         <div data-target='#modalShowRefArticle' data-toggle='modal'>
@@ -17,23 +15,24 @@
         </div>
     {% endif %}
 
-    {% if name == reference %}
+    {% if modifiable %}
+        {% if name == reference %}
         <div data-target='#modalEditArticle' data-toggle='modal'>
             <div class="btn btn-col-action" data-id='{{ id }}'
                  onclick="editRow($(this), Routing.generate('demande_article_api_edit', true), $('#modalEditArticle'), $('#submitEditArticle'), false, false, true)">
                 <i class='fas fa-pencil-alt'></i>
             </div>
         </div>
-    {% endif %}
+        {% endif %}
 
-   <div>
-       <div class="btn btn-col-action"
-        onclick="deleteRowDemande($(this), $('#modalDeleteArticle'), $('#submitDeleteArticle'))" data-id='{{ id }}'
-        data-name='{{name}}' data-target='#modalDeleteArticle' data-toggle='modal'>
-            <i class='fas fa-trash '></i>
-       </div>
-   </div>
+        <div>
+            <div class="btn btn-col-action"
+                 onclick="deleteRowDemande($(this), $('#modalDeleteArticle'), $('#submitDeleteArticle'))" data-id='{{ id }}'
+                 data-name='{{name}}' data-target='#modalDeleteArticle' data-toggle='modal'>
+                <i class='fas fa-trash '></i>
+            </div>
+        </div>
+    {% endif %}
 
 </div>
 
-{% endif %}

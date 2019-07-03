@@ -379,7 +379,7 @@ class ArrivageController extends AbstractController
 
                 // si le statut repasse en 'attente acheteur', on envoie un mail aux acheteurs
                 if ($statutLabel == Statut::ATTENTE_ACHETEUR) {
-                    //TODO CG ajouter protection si statut inchangé
+                    //TODO ajouter protection si statut inchangé
                     $this->sendMailToAcheteurs($arrivage, $litige, false);
                 }
 

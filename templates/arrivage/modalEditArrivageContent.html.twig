@@ -1,71 +1,74 @@
-<div class="form-group">
-    <label for="fournisseur">Fournisseur*</label>
-    <select class="form-control data needed" id="fournisseur" name="fournisseur">
-        <option disabled selected> </option>
-        {% for fournisseur in fournisseurs %}
-            {% set selected = (fournisseur.id == arrivage.fournisseur.id ? 'selected' : '') %}
-            <option value="{{ fournisseur.id }}" {{ selected }}>{{ fournisseur.nom }}</option>
-        {% endfor %}
-    </select>
-</div>
+<div class="row">
+    <div class="form-group col">
+        <label for="fournisseur">Fournisseur*</label>
+        <select class="form-control data needed" id="fournisseur" name="fournisseur">
+            <option disabled selected> </option>
+            {% for fournisseur in fournisseurs %}
+                {% set selected = (fournisseur.id == arrivage.fournisseur.id ? 'selected' : '') %}
+                <option value="{{ fournisseur.id }}" {{ selected }}>{{ fournisseur.nom }}</option>
+            {% endfor %}
+        </select>
+    </div>
 
-<div class="form-group">
-    <label for="transporteur">Transporteur*</label>
-    <select class="form-control data needed" id="transporteur" name="transporteur">
-        <option disabled selected> </option>
-        {% for transporteur in transporteurs %}
-            {% set selected = (transporteur.id == arrivage.transporteur.id ? 'selected' : '') %}
-            <option value="{{ transporteur.id }}" {{ selected }}>{{ transporteur.label }}</option>
-        {% endfor %}
-    </select>
-</div>
+    <div class="form-group col">
+        <label for="transporteur">Transporteur*</label>
+        <select class="form-control data needed" id="transporteur" name="transporteur">
+            <option disabled selected> </option>
+            {% for transporteur in transporteurs %}
+                {% set selected = (transporteur.id == arrivage.transporteur.id ? 'selected' : '') %}
+                <option value="{{ transporteur.id }}" {{ selected }}>{{ transporteur.label }}</option>
+            {% endfor %}
+        </select>
+    </div>
 
-<div class="form-group">
-    <label for="chauffeur">Chauffeur</label>
-    <select class="form-control data" id="chauffeur" name="chauffeur">
-        <option disabled selected> </option>
-        {% for chauffeur in chauffeurs %}
-            {% set selected = (arrivage.chauffeur is not empty and chauffeur.id == arrivage.chauffeur.id ? 'selected' : '') %}
-            <option value="{{ chauffeur.id }}" {{ selected }}>{{ chauffeur.prenom|capitalize }} {{ chauffeur.nom|upper }}</option>
-        {% endfor %}
-    </select>
+    <div class="form-group col">
+        <label for="chauffeur">Chauffeur</label>
+        <select class="form-control data" id="chauffeur" name="chauffeur">
+            <option disabled selected> </option>
+            {% for chauffeur in chauffeurs %}
+                {% set selected = (arrivage.chauffeur is not empty and chauffeur.id == arrivage.chauffeur.id ? 'selected' : '') %}
+                <option value="{{ chauffeur.id }}" {{ selected }}>{{ chauffeur.prenom|capitalize }} {{ chauffeur.nom|upper }}</option>
+            {% endfor %}
+        </select>
+    </div>
 </div>
-
 <hr>
+<div class="row">
+    <div class="form-group col">
+        <label for="noTracking">N° tracking transporteur</label>
+        <input type="text" id="noTracking" class="form-control data" name="noTracking" maxlength="64" value="{{ arrivage.noTracking }}">
+    </div>
 
-<div class="form-group">
-    <label for="noTracking">N° tracking transporteur</label>
-    <input type="text" id="noTracking" class="form-control data" name="noTracking" maxlength="64" value="{{ arrivage.noTracking }}">
+    <div class="form-group col">
+        <label for="noBL">N° commande / BL</label>
+        <input type="text" id="noBL" class="form-control data" name="noBL" maxlength="64" value="{{ arrivage.numeroBL }}">
+    </div>
 </div>
-
-<div class="form-group">
-    <label for="noBL">N° commande / BL</label>
-    <input type="text" id="noBL" class="form-control data" name="noBL" maxlength="64" value="{{ arrivage.numeroBL }}">
+<div class="row">
+    <div class="form-group col">
+        <label for="destinataire">Destinataire</label>
+        <select class="form-control data" id="destinataire" name="destinataire">
+            <option disabled selected> </option>
+            {% for utilisateur in utilisateurs %}
+                {% set selected = (utilisateur.id == arrivage.destinataire.id ? 'selected' : '') %}
+                <option value="{{ utilisateur.id }}" {{ selected }}>{{ utilisateur.username }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col">
+        <div class="form-group w-100">
+            <label for="acheteursEdit">Acheteur(s)</label>
+            <select type="text" class="form-control data select2" name="acheteurs" multiple="multiple"
+                    id="acheteursEdit">
+                {% for utilisateur in utilisateurs %}
+                    <option value="{{ utilisateur.username }}">
+                        {{ utilisateur.username }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
 </div>
-
-<div class="form-group">
-    <label for="destinataire">Destinataire</label>
-    <select class="form-control data" id="destinataire" name="destinataire">
-        <option disabled selected> </option>
-        {% for utilisateur in utilisateurs %}
-            {% set selected = (utilisateur.id == arrivage.destinataire.id ? 'selected' : '') %}
-            <option value="{{ utilisateur.id }}" {{ selected }}>{{ utilisateur.username }}</option>
-        {% endfor %}
-    </select>
-</div>
-
-<div class="form-group w-100">
-    <label for="acheteursEdit">Acheteur(s)</label>
-    <select type="text" class="form-control data select2" name="acheteurs" multiple="multiple"
-            id="acheteursEdit">
-        {% for utilisateur in utilisateurs %}
-            <option value="{{ utilisateur.username }}">
-                {{ utilisateur.username }}
-            </option>
-        {% endfor %}
-    </select>
-</div>
-
 <hr>
 
 <div class="form-group">

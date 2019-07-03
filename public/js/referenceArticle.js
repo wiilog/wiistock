@@ -192,7 +192,7 @@ InitialiserModalRefArticle(modalNewFilter, submitNewFilter, urlNewFilter, displa
 
 let url = Routing.generate('ref_article_api', true);
 
-$(document).ready(function () {
+$(function () {
     initTableRefArticle();
 });
 
@@ -213,7 +213,7 @@ function initTableRefArticle() {
                     return json.data;
                 }
             },
-            'drawCallback': function () {
+            initComplete: function() {
                 loadSpinnerAR($('#spinner'));
                 initRemove();
                 hideAndShowColumns();
@@ -276,14 +276,12 @@ function showDemande(bloc) {
     if (bloc.data("title") == "livraison") {
         $collecteShow.removeClass('d-block');
         $collecteShow.addClass('d-none');
-        $collecteShow.find('div').find('select').removeClass('data');
-        $collecteShow.find('div').find('.quantite').removeClass('data');
+        $collecteShow.find('div').find('select, .quantite').removeClass('data');
         $collecteShow.find('.data').removeClass('needed');
 
         $livraisonShow.removeClass('d-none');
         $livraisonShow.addClass('d-block');
-        $livraisonShow.find('div').find('select').addClass('data');
-        $livraisonShow.find('div').find('.quantite').addClass('data');
+        $livraisonShow.find('div').find('select, .quantite').addClass('data');
         $livraisonShow.find('.data').addClass('needed');
 
         setMaxQuantityByArtRef($livraisonShow.find('#quantity-to-deliver'));
@@ -291,14 +289,12 @@ function showDemande(bloc) {
     } else if (bloc.data("title") == "collecte") {
         $collecteShow.removeClass('d-none');
         $collecteShow.addClass('d-block');
-        $collecteShow.find('div').find('select').addClass('data')
-        $collecteShow.find('div').find('.quantite').addClass('data')
+        $collecteShow.find('div').find('select, .quantite').addClass('data');
         $collecteShow.find('.data').addClass('needed');
 
         $livraisonShow.removeClass('d-block');
         $livraisonShow.addClass('d-none');
-        $livraisonShow.find('div').find('select').removeClass('data')
-        $livraisonShow.find('div').find('.quantite').removeClass('data')
+        $livraisonShow.find('div').find('select, .quantite').removeClass('data')
         $livraisonShow.find('.data').removeClass('needed');
     }
 }
@@ -431,8 +427,9 @@ let ajaxEditArticle = function (select) {
                 ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
                 toggleRequiredChampsLibres(select.closest('.modal').find('#type'), 'edit');
                 $('#livraisonShow').find('#quantityToTake').removeClass('d-none').addClass('data');
-                initEditor('.editor-container-edit');
+                // initEditor('.editor-container-edit');
                 modalFooter.removeClass('d-none');
+                setMaxQuantityByArtRef($('#livraisonShow').find('#quantity-to-deliver'));
             } else {
                 //TODO gérer erreur
             }

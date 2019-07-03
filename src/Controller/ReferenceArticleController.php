@@ -5,8 +5,10 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategoryType;
+use App\Entity\ChampsLibre;
 use App\Entity\Filter;
 use App\Entity\Menu;
+use App\Entity\ParamClient;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Entity\ValeurChampsLibre;
@@ -33,6 +35,7 @@ use App\Repository\EmplacementRepository;
 use App\Service\RefArticleDataService;
 use App\Service\ArticleDataService;
 
+use App\Service\SpecificService;
 use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
@@ -149,8 +152,13 @@ class ReferenceArticleController extends Controller
      */
     private $templating;
 
+	/**
+	 * @var SpecificService
+	 */
+    private $specificService;
 
-    public function __construct(\Twig_Environment $templating, EmplacementRepository $emplacementRepository, FournisseurRepository $fournisseurRepository, CategorieCLRepository $categorieCLRepository, LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, ArticleDataService $articleDataService, LivraisonRepository $livraisonRepository, DemandeRepository $demandeRepository, CollecteRepository $collecteRepository, StatutRepository $statutRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FilterRepository $filterRepository, RefArticleDataService $refArticleDataService, UserService $userService)
+
+    public function __construct(SpecificService $specificService, \Twig_Environment $templating, EmplacementRepository $emplacementRepository, FournisseurRepository $fournisseurRepository, CategorieCLRepository $categorieCLRepository, LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, ArticleDataService $articleDataService, LivraisonRepository $livraisonRepository, DemandeRepository $demandeRepository, CollecteRepository $collecteRepository, StatutRepository $statutRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FilterRepository $filterRepository, RefArticleDataService $refArticleDataService, UserService $userService)
     {
         $this->emplacementRepository = $emplacementRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
@@ -171,6 +179,7 @@ class ReferenceArticleController extends Controller
         $this->categorieCLRepository = $categorieCLRepository;
         $this->fournisseurRepository = $fournisseurRepository;
         $this->templating = $templating;
+        $this->specificService = $specificService;
     }
 
     /**
@@ -456,8 +465,9 @@ class ReferenceArticleController extends Controller
             'typage' => 'text'
         ];
 
-        // champs pour recherche personnalisée (uniquement de type texte)
-		$champsLText = $this->champsLibreRepository->getByCategoryTypeAndCategoryCLAndText($category, $categorieCL);
+        // champs pour recherche personnalisée (uniquement de type texte ou liste)
+		$champsLText = $this->champsLibreRepository->getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, ChampsLibre::TYPE_TEXT);
+		$champsLTList = $this->champsLibreRepository->getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, ChampsLibre::TYPE_LIST);
 
 		$champsFText[] = [
             'label' => 'Libellé',
@@ -487,7 +497,7 @@ class ReferenceArticleController extends Controller
         ];
 
         $champs = array_merge($champF, $champL);
-        $champsSearch = array_merge($champsFText, $champsLText);
+        $champsSearch = array_merge($champsFText, $champsLText, $champsLTList);
 
 
         usort($champs, function ($a, $b) {
@@ -711,7 +721,7 @@ class ReferenceArticleController extends Controller
                             ->setNom('A DETERMINER');
                         $em->persist($fournisseurTemp);
                     }
-                    $toInsert = new Article();
+                    $newArticle = new Article();
                     $index = $this->articleFournisseurRepository->countByRefArticle($refArticle);
                     $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_INACTIF);
                     $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
@@ -723,17 +733,18 @@ class ReferenceArticleController extends Controller
                         ->setReference($refArticle->getReference())
                         ->setLabel('A déterminer -' . $index);
                     $em->persist($articleFournisseur);
-                    $toInsert
+                    $newArticle
                         ->setLabel($refArticle->getLibelle() . '-' . $index)
                         ->setConform(true)
                         ->setStatut($statut)
                         ->setReference($ref . '-' . $index)
                         ->setQuantite(max($data['quantitie'], 0)) // protection contre quantités négatives
+							//TODO CG quantite, quantitie ?
                         ->setEmplacement($collecte->getPointCollecte())
                         ->setArticleFournisseur($articleFournisseur)
                         ->setType($refArticle->getType());
-                    $em->persist($toInsert);
-                    $collecte->addArticle($toInsert);
+                    $em->persist($newArticle);
+                    $collecte->addArticle($newArticle);
                     //TODO fin patch temporaire CEA (à remplacer par lignes suivantes)
 //                    $article = $this->articleRepository->find($data['article']);
 //                    $collecte->addArticle($article);
@@ -779,7 +790,8 @@ class ReferenceArticleController extends Controller
                     }
                 } else {
                     //TODO patch temporaire CEA
-                    if ($refArticle->getStatut()->getNom() === ReferenceArticle::STATUT_INACTIF && $data['demande'] === 'collecte') {
+					$isCea = $this->specificService->isCurrentClientNameFunction(ParamClient::CEA_LETI);
+                    if ($isCea && $refArticle->getStatut()->getNom() === ReferenceArticle::STATUT_INACTIF && $data['demande'] === 'collecte') {
                         $response = [
                             'plusContent' => $this->renderView('reference_article/modalPlusDemandeTemp.html.twig', [
                                 'collectes' => $collectes
@@ -932,11 +944,8 @@ class ReferenceArticleController extends Controller
                 $headersCL[] = $champLibre->getLabel();
             }
             $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::ARTICLES_ET_REF_CEA);
-            $articles = $this->referenceArticleRepository->findAll();
-            $total = count($articles);
-            if ($max > $total) $max = $total;
-            $toIterate = array_slice($articles, $min, $max);
-            foreach ($toIterate as $article) {
+            $articles = $this->referenceArticleRepository->getBetweenLimits($min, $max-$min);
+            foreach ($articles as $article) {
                 $data['values'][] = $this->buildInfos($article, $listTypes, $headersCL);
             }
             return new JsonResponse($data);
