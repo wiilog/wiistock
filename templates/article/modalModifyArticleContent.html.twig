@@ -71,10 +71,12 @@
     <div class="form-group col-12">
         <div>
             <label for="commentaire">Commentaire</label>
-            <input {{ disabled }} id="commentaire" class="form-control  data" type="hidden" name="commentaire"
-                value="{{article.commentaire}}">
-            <div class="editor-container-edit form-control comment">
-                {{article.commentaire|raw}}</div>
+            <input {{ disabledOnDemand }} id="commentaire" class="form-control data" type="hidden" name="commentaire"
+                value="{{article.commentaire}}" >
+            {% set backgroundGrey = (isADemand or disabledOnDemand == 'disabled') ? 'backGreyFormLight' : '' %}
+            <div {{ disabledOnDemand }} class="editor-container-edit form-control comment {{ backgroundGrey }}">
+                {{article.commentaire|raw}}
+            </div>
         </div>
     </div>
 

@@ -201,7 +201,6 @@ class ArrivageController extends AbstractController
             if (isset($data['transporteur'])) {
                 $arrivage->setTransporteur($this->transporteurRepository->find($data['transporteur']));
             }
-
             if (isset($data['chauffeur'])) {
                 $arrivage->setChauffeur($this->chauffeurRepository->find($data['chauffeur']));
             }
@@ -336,8 +335,10 @@ class ArrivageController extends AbstractController
                 $arrivage->setCommentaire($data['commentaire']);
             }
 
+            $hasChanged = false;
             if (isset($data['statut'])) {
                 $statut = $this->statutRepository->find($data['statut']);
+                if ($arrivage->getStatut() !== $statut) $hasChanged = true;
                 $arrivage->setStatut($statut);
             }
             if (isset($data['fournisseur'])) {
@@ -394,8 +395,7 @@ class ArrivageController extends AbstractController
                 }
 
                 // si le statut repasse en 'attente acheteur', on envoie un mail aux acheteurs
-                if ($statutLabel == Statut::ATTENTE_ACHETEUR) {
-                    //TODO CG ajouter protection si statut inchangé
+                if ($statutLabel == Statut::ATTENTE_ACHETEUR && $hasChanged) {
                     $this->sendMailToAcheteurs($arrivage, $litige, false);
                 }
 
@@ -441,7 +441,6 @@ class ArrivageController extends AbstractController
      */
     public function depose(Request $request): Response
     {
-//        dump($request);
         if ($request->isXmlHttpRequest()) {
             $em = $this->getDoctrine()->getManager();
 

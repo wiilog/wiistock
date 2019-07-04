@@ -174,11 +174,11 @@ class RefArticleDataService
         $listArticlesFournisseur = [];
         $articlesFournisseurs = $articleRef->getArticlesFournisseur();
         $totalQuantity = 0;
-        $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_INACTIF);
+        $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
         foreach ($articlesFournisseurs as $articleFournisseur) {
             $quantity = 0;
             foreach ($articleFournisseur->getArticles() as $article) {
-                if ($article->getStatut() !== $statut) $quantity += $article->getQuantite();
+                if ($article->getStatut() == $statut) $quantity += $article->getQuantite();
             }
             $totalQuantity += $quantity;
 
