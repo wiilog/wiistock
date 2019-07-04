@@ -969,7 +969,7 @@ class ReferenceArticleController extends Controller
     {
         if ($request->isXmlHttpRequest()) {
             $data['total'] = $this->referenceArticleRepository->countAll();
-            $data['headers'] = ['reference', 'libelle', 'quantitée', 'type', 'type_quantite', 'statut', 'commentaire', 'emplacement'];
+            $data['headers'] = ['reference', 'libelle', 'quantité', 'type', 'type_quantite', 'statut', 'commentaire', 'emplacement'];
             foreach ($this->champsLibreRepository->findAll() as $champLibre) {
                 $data['headers'][] = $champLibre->getLabel();
             }
