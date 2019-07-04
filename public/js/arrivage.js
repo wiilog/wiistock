@@ -8,6 +8,7 @@ $('#utilisateur').select2({
 
 let pathArrivage = Routing.generate('arrivage_api', true);
 let tableArrivage = $('#tableArrivages').DataTable({
+    responsive: true,
     language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
