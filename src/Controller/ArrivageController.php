@@ -496,4 +496,23 @@ class ArrivageController extends AbstractController
         }
     }
 
+    /**
+     * @Route("/commentaire", name="commentaire", options={"expose"=true}, methods="GET|POST")
+     */
+    public function commenter(Request $request): Response
+    {
+        dump($data = json_decode($request->getContent(), true));
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST)) {
+                return $this->redirectToRoute('access_denied');
+            }
+
+            $dataReturn = [];
+            $type = $this->typeRepository->find($data['constantTypeLitige']);
+            $dataReturn['type'] = $type->getLabel();
+            return new JsonResponse($dataReturn);
+        }
+        throw new NotFoundHttpException('404');
+    }
+
 }
