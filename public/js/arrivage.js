@@ -418,48 +418,19 @@ function listColis(elem) {
 }
 
 
-function getDataToPrintLabels(arrivageId, arrivageOrUM) {
+function getDataAndPrintLabels(code) {
     let path = Routing.generate('arrivage_get_data_to_print', true);
-    let params = { id: arrivageId, arrivageOrUM: arrivageOrUM };
 
-    $.post(path, JSON.stringify(params), function(data) {
-        console.log(data);
-        printLabel(code, height, weight);
-    });
-}
-
-function printLabel(code, height, weight) {
-    // let nbUm = data.nbUm;
-    // let printUm = data.printUm;
-    // let printArrivage = data.printArrivage;
-    let d = new Date();
-    let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
-    date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
-    if (height == 0) {
-        let doc = adjustScalesForDoc(data);
-        $("#barcodes").empty();
-        if (printUm) {
-            for (let i = 0; i < nbUm; i++) {
-                $('#barcodes').append('<img id="barcode' + i + '">');
-                JsBarcode("#barcode" + i, data.arrivage + '-' + i, {
-                    format: "CODE128",
-                });
-            }
-
-        } if (printArrivage) {
-            $('#barcodes').append('<img id="barcodeArrivage">');
-            JsBarcode("#barcodeArrivage", data.arrivage, {
+    $.post(path, function(response) {
+        if (response.exists) {
+            $('#barcodes').append('<img id="singleBarcode">')
+            JsBarcode("#singleBarcode", code, {
                 format: "CODE128",
             });
-        } if (printArrivage || printUm) {
-            $("#barcodes").find('img').each(function () {
-                doc.addImage($(this).attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
-                doc.addPage();
-            });
-            doc.deletePage(doc.internal.getNumberOfPages())
-            doc.save('Etiquettes du ' + date + '.pdf');
+            let doc = adjustScalesForDoc(response);
+            doc.addImage($("#singleBarcode").attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
+            doc.save('Etiquette concernant le colis ' + code + '.pdf');
+            $("#singleBarcode").remove();
         }
-    } else {
-        $('#cannotGenerate').click();
-    }
+    });
 }

@@ -518,21 +518,17 @@ class ArrivageController extends AbstractController
 	 * @Route("/api-etiquettes", name="arrivage_get_data_to_print", options={"expose"=true})
 	 */
 	public function getDataToPrintLabels(Request $request) {
-		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-			$arrivage = $this->arrivageRepository->find($data['id']);
+		if ($request->isXmlHttpRequest()) {
 
 			$dimension = $this->dimensionsEtiquettesRepository->findOneDimension(); /** @var DimensionsEtiquettes $dimension */
 			if ($dimension) {
 				$response['height'] = $dimension->getHeight();
 				$response['width'] = $dimension->getWidth();
-				$response['arrivage'] = $arrivage->getNumeroArrivage();
 				$response['exists'] = true;
-				$response['nbUm'] = $arrivage->getNbUM();
-				$response['printUm'] = ($data['arrivageOrUM'] == 'UM');
-				$response['printArrivage'] = ($data['arrivageOrUM'] == 'arrivage');
 			} else {
 				$response['height'] = $response['width'] = 0;
-			}
+                $response['exists'] = false;
+            }
 			return new JsonResponse($response);
 
 		} else {
