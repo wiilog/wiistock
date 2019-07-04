@@ -163,55 +163,25 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->getResult();
     }
 
-    public function getByAFAndInactif($articleFournisseur, $statut)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT a.id, a.reference
-          FROM App\Entity\Article a
-          JOIN a.articleFournisseur af
-          WHERE a.statut = :statut AND af.id IN(:articleFournisseur)"
-        )->setParameters([
-            'articleFournisseur' => $articleFournisseur,
-            'statut' => $statut
-        ]);
+	public function findByRefArticleAndStatut($refArticle, $statut)
+	{
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+			'SELECT a
+			FROM App\Entity\Article a
+			JOIN a.articleFournisseur af
+			JOIN af.referenceArticle ra
+			WHERE a.statut =:statut AND ra = :refArticle
+			'
+		)->setParameters([
+			'refArticle' => $refArticle,
+			'statut' => $statut
+		]);
 
-        return $query->execute();
-    }
+		return $query->execute();
+	}
 
-//    public function getByAFAndActifAndDemandeNull($articleFournisseur, $statut)
-//    {
-//        $em = $this->getEntityManager();
-//        $query = $em->createQuery(
-//            "SELECT a.id, a.reference
-//          FROM App\Entity\Article a
-//          WHERE a.statut = :statut AND a.articleFournisseur IN(:articleFournisseur) AND (a.demande IS NULL )"
-//        )->setParameters([
-//            'articleFournisseur' => $articleFournisseur,
-//            'statut' => $statut,
-//        ]);
-//
-//        return $query->execute();
-//    }
-//
-//    public function getByAFAndActifAndDemandeStatus($articleFournisseur, $statut, $demandeStatus)
-//    {
-//        $em = $this->getEntityManager();
-//        $query = $em->createQuery(
-//            "SELECT a.id, a.reference
-//          FROM App\Entity\Article a
-//          JOIN a.demande d
-//          WHERE a.statut = :statut AND a.articleFournisseur IN(:articleFournisseur) AND  d.statut = :demandeStatut"
-//        )->setParameters([
-//            'articleFournisseur' => $articleFournisseur,
-//            'statut' => $statut,
-//            'demandeStatut' => $demandeStatus
-//        ]);
-//
-//        return $query->execute();
-//    }
-
-	public function getByRefArticleAndStatutWithoutDemand($refArticle, $statut)
+	public function findByRefArticleAndStatutWithoutDemand($refArticle, $statut)
 	{
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager->createQuery(
@@ -382,6 +352,21 @@ class ArticleRepository extends ServiceEntityRepository
 			FROM App\Entity\Article a
 			WHERE a.quantite > :limit"
 		)->setParameter('limit', $limit);
+
+		return $query->execute();
+	}
+
+	public function findDoublons()
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			"SELECT a1
+			FROM App\Entity\Article a1
+			WHERE a1.reference IN (
+				SELECT a2.reference FROM App\Entity\Article a2
+				GROUP BY a2.reference
+				HAVING COUNT(a2.reference) > 1)"
+		);
 
 		return $query->execute();
 	}

@@ -317,9 +317,10 @@ class ArrivageController extends AbstractController
             $em = $this->getDoctrine()->getManager();
 
             $arrivage = $this->arrivageRepository->find($data['id']);
-
+            $hasChanged = false;
             if (isset($data['statut'])) {
                 $statut = $this->statutRepository->find($data['statut']);
+                if ($arrivage->getStatut() !== $statut) $hasChanged = true;
                 $arrivage->setStatut($statut);
             }
             if (isset($data['fournisseur'])) {
@@ -354,10 +355,6 @@ class ArrivageController extends AbstractController
             if (isset($data['nbUM'])) {
                 $arrivage->setNbUM((int)$data['nbUM']);
             }
-            if (isset($data['statutAcheteur'])) {
-              $statutName = $data['statutAcheteur'] ? Statut::TRAITE_ACHETEUR : Statut::ATTENTE_ACHETEUR;
-              $arrivage->setStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::ARRIVAGE, $statutName));
-            }
 
             // traitement de l'éventuel litige
             $litige = $arrivage->getLitige();
@@ -379,8 +376,7 @@ class ArrivageController extends AbstractController
                 }
 
                 // si le statut repasse en 'attente acheteur', on envoie un mail aux acheteurs
-                if ($statutLabel == Statut::ATTENTE_ACHETEUR) {
-                    //TODO CG ajouter protection si statut inchangé
+                if ($statutLabel == Statut::ATTENTE_ACHETEUR && $hasChanged) {
                     $this->sendMailToAcheteurs($arrivage, $litige, false);
                 }
 
