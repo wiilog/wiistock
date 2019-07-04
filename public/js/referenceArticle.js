@@ -113,12 +113,11 @@ function getDataFromModal(modal) {
         // validation données obligatoires
         if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
             let label = $(this).closest('.form-group').find('label').first().text();
-            console.log(label);
             // on enlève l'éventuelle * du nom du label
             label = label.replace(/\*/, '');
             missingInputs.push(label);
             $(this).addClass('is-invalid');
-            $(this).next().find('.select2-selection').css('border', '1px solid red');
+            $(this).next().find('.select2-selection').addClass('is-invalid');
         }
         // validation valeur des inputs de type number
         // protection pour les cas où il y a des champs cachés
@@ -141,7 +140,7 @@ function getDataFromModal(modal) {
 }
 
 function clearModalRefArticle(modal, data) {
-    if (data.success) {
+    if (typeof(data.msg) == 'undefined') {
         // on vide tous les inputs
         let inputs = modal.find('.modal-body').find(".data, .newContent>input");
         inputs.each(function () {
@@ -160,8 +159,13 @@ function clearModalRefArticle(modal, data) {
             $(this).prop('checked', false);
         })
     } else {
-        if (data.msg === 'Ce nom de référence existe déjà. Vous ne pouvez pas le recréer.') {
-            modal.find('#reference').addClass('is-invalid');
+        if (typeof(data.codeError) != 'undefined') {
+            switch(data.codeError) {
+                case 'DOUBLON-REF':
+                    modal.find('.is-invalid').removeClass('is-invalid');
+                    modal.find('#reference').addClass('is-invalid');
+                    break;
+            }
         }
     }
 }
