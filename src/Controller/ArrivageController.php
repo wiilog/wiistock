@@ -556,6 +556,19 @@ class ArrivageController extends AbstractController
         throw new NotFoundHttpException('404');
     }
 
+    /**
+     * @Route("/enlever-une-pj", name="remove_one_kept_pj", options={"expose"=true}, methods="GET|POST")
+     */
+    public function deleteOneAttachmentForNew(Request $request)
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $path = "../public/uploads/attachements/temporary/" . $data['pj'];
+            unlink($path);
+            return new JsonResponse();
+        }
+        throw new NotFoundHttpException('404');
+    }
+
     function delete_files($target)
     {
         if (is_dir($target)) {
