@@ -152,6 +152,64 @@ function dropNewOnDiv(event, div) {
     return false;
 }
 
+function openFE() {
+    $('#fileInput').click();
+}
+
+function uploadFE() {
+    let files = $('#fileInput')[0].files;
+    let formData = new FormData();
+    $.each(files, function (index, file) {
+        formData.append('file' + index, file);
+    });
+    let path = Routing.generate('arrivage_depose', true);
+
+    let arrivageId = $('#dropfile').data('arrivage-id');
+    formData.append('id', arrivageId);
+
+    $.ajax({
+        url: path,
+        data: formData,
+        type:"post",
+        contentType:false,
+        processData:false,
+        cache:false,
+        dataType:"json",
+        success:function(html){
+            let dropfile = $('#dropfile');
+            dropfile.css('border', '3px dashed #BBBBBB');
+            dropfile.after(html);
+        }
+    });
+}
+
+function openFENew() {
+    $('#fileInputNew').click();
+}
+
+function uploadFENew() {
+    let files = $('#fileInputNew')[0].files;
+    let formData = new FormData();
+    $.each(files, function (index, file) {
+        formData.append('file' + index, file);
+    });
+    let path = Routing.generate('garder_pj', true);
+    $.ajax({
+        url: path,
+        data: formData,
+        type:"post",
+        contentType:false,
+        processData:false,
+        cache:false,
+        dataType:"json",
+        success:function(html){
+            let dropfile = $('#dropfileNew');
+            dropfile.css('border', '3px dashed #BBBBBB');
+            dropfile.after(html);
+        }
+    });
+}
+
 function keepForSave(files) {
 
     let formData = new FormData();
@@ -170,7 +228,7 @@ function keepForSave(files) {
         cache:false,
         dataType:"json",
         success:function(html){
-            let dropfile = $('#dropfile');
+            let dropfile = $('#dropfileNew');
             dropfile.css('border', '3px dashed #BBBBBB');
             dropfile.after(html);
         }
@@ -180,6 +238,9 @@ function keepForSave(files) {
 
 function removeFiles() {
     $.post(Routing.generate('remove_kept_pj', true));
+    $('#modalNewArrivage').find('.attachement').each(function () {
+        $(this).remove();
+    });
 }
 
 function upload(files) {
@@ -453,7 +514,12 @@ function deleteAttachement(arrivageId, pj, pjWithoutExtension) {
 }
 
 function deleteAttachementNew(pj) {
-    $('p.attachement').each(function() {
-        if ($(this).attr('id') === pj) $(this).remove();
-    });
+    let params = {
+        pj: pj
+    };
+    $.post(Routing.generate('remove_one_kept_pj', true), JSON.stringify(params), function(data) {
+        $('p.attachement').each(function() {
+            if ($(this).attr('id') === pj) $(this).remove();
+        });
+    })
 }
