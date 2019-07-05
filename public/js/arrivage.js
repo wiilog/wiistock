@@ -18,19 +18,19 @@ let tableArrivage = $('#tableArrivages').DataTable({
         "type": "POST"
     },
     columns: [
-        {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'},
-        {"data": "NumeroArrivage", 'name': 'NumeroArrivage', 'title': "N° d'arrivage"},
-        {"data": 'Transporteur', 'name': 'Transporteur', 'title': 'Transporteur'},
-        {"data": 'Chauffeur', 'name': 'Chauffeur', 'title': 'Chauffeur'},
-        {"data": 'NoTracking', 'name': 'NoTracking', 'title': 'N° tracking transporteur'},
-        {"data": 'NumeroBL', 'name': 'NumeroBL', 'title': 'N° commande / BL'},
-        {"data": 'Fournisseur', 'name': 'Fournisseur', 'title': 'Fournisseur'},
-        {"data": 'Destinataire', 'name': 'Destinataire', 'title': 'Destinataire'},
-        {"data": 'Acheteurs', 'name': 'Acheteurs', 'title': 'Acheteurs'},
-        {"data": 'NbUM', 'name': 'NbUM', 'title': 'Nb UM'},
-        {"data": 'Statut', 'name': 'Statut', 'title': 'Statut'},
-        {"data": 'Date', 'name': 'Date', 'title': 'Date'},
-        {"data": 'Utilisateur', 'name': 'Utilisateur', 'title': 'Utilisateur'},
+        { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' },
+        { "data": "NumeroArrivage", 'name': 'NumeroArrivage', 'title': "N° d'arrivage" },
+        { "data": 'Transporteur', 'name': 'Transporteur', 'title': 'Transporteur' },
+        { "data": 'Chauffeur', 'name': 'Chauffeur', 'title': 'Chauffeur' },
+        { "data": 'NoTracking', 'name': 'NoTracking', 'title': 'N° tracking transporteur' },
+        { "data": 'NumeroBL', 'name': 'NumeroBL', 'title': 'N° commande / BL' },
+        { "data": 'Fournisseur', 'name': 'Fournisseur', 'title': 'Fournisseur' },
+        { "data": 'Destinataire', 'name': 'Destinataire', 'title': 'Destinataire' },
+        { "data": 'Acheteurs', 'name': 'Acheteurs', 'title': 'Acheteurs' },
+        { "data": 'NbUM', 'name': 'NbUM', 'title': 'Nb UM' },
+        { "data": 'Statut', 'name': 'Statut', 'title': 'Statut' },
+        { "data": 'Date', 'name': 'Date', 'title': 'Date' },
+        { "data": 'Utilisateur', 'name': 'Utilisateur', 'title': 'Utilisateur' },
     ],
 
 });
@@ -63,7 +63,6 @@ function initNewArrivageEditor(modal) {
 
 let quillEdit;
 let originalText = '';
-
 function editRowArrivage(button) {
     let path = Routing.generate('arrivage_edit_api', true);
     let modal = $('#modalEditArrivage');
@@ -187,7 +186,7 @@ function toggleCommentaire(select, bool) {
                             {insert: date + ' :', attributes: {bold: true}},
                             {
                                 insert: ' Nous venons de recevoir un colis à titre gracieux et nous sommes dans l’incapacité d’identifier un destinataire.\n'
-                                    + 'Dans l’attente de vos instructions le colis est placé en zone litige'
+                                    + 'Dans l’attente de vos instructions le colis est placé en zone litige.\n'
                             },
                         ]);
                         break;
