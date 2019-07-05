@@ -9,13 +9,13 @@ $('#utilisateur').select2({
 let pathService = Routing.generate('service_api', true);
 let tableService = $('#tableService_id').DataTable({
     order: [[0, 'desc']],
-    "columnDefs": [
+    columnDefs: [
         {
             "type": "customDate",
             "targets": 0
         }
     ],
-    "language": {
+    language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
     ajax: {

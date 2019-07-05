@@ -534,7 +534,7 @@ class ArticleController extends Controller
     {
         if ($request->isXmlHttpRequest()) {
             $data['total'] = $this->articleRepository->countAll();
-            $data['headers'] = ['reference', 'libelle', 'quantitée', 'type', 'statut', 'commentaire', 'emplacement'];
+            $data['headers'] = ['reference', 'libelle', 'quantité', 'type', 'statut', 'commentaire', 'emplacement'];
             foreach ($this->champsLibreRepository->findAll() as $champLibre) {
                 array_push($data['headers'], $champLibre->getLabel());
             }

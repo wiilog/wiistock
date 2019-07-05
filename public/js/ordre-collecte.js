@@ -2,13 +2,13 @@ let pathCollecte = Routing.generate('ordre_collecte_api');
 
 let tableCollecte = $('#tableCollecte').DataTable({
     order: [[2, 'desc']],
-    "columnDefs": [
+    columnDefs: [
         {
             "type": "customDate",
-            "targets": 0
+            "targets": 2
         }
     ],
-    "language": {
+    language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
     ajax: {
@@ -18,7 +18,7 @@ let tableCollecte = $('#tableCollecte').DataTable({
     columns: [
     { "data": 'Numéro', 'title': 'Numéro' },
     { "data": 'Statut', 'title': 'Statut' },
-    { "data": 'Date', 'title': 'Date' },
+    { "data": 'Date', 'title': 'Date de création' },
     { "data": 'Opérateur', 'title': 'Opérateur' },
     { "data": 'Actions', 'title': 'Actions' },
     ],
