@@ -10,11 +10,11 @@
             </div>
             <div class="modal-body modal-input container-fluid">
                 <div class="form-group">
-                    <label for="date-attendu">Label</label>
+                    <label for="date-attendu">Label*</label>
                     <input type="text" class="form-control data" name="label" value="" required="true">
                 </div>
                 <div class="form-group w-100 mb-3">
-                    <label for='category'>Catégorie</label>
+                    <label for='category'>Catégorie*</label>
                     <select class="form-control select2 data needed" name='category' id='category'>
                         {% for category in category %}
                         <option value="{{ category.id }}">{{ category.label }}</option>

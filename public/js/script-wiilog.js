@@ -63,9 +63,11 @@ function submitAction(modal, path, table, callback, close) {
         if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
             let label = $(this).closest('.form-group').find('label').text();
             // on enlève l'éventuelle * du nom du label
+            console.log('ola');
             label = label.replace(/\*/, '');
             missingInputs.push(label);
             $(this).addClass('is-invalid');
+            $(this).next().find('.select2-selection').addClass('is-invalid');
         }
         // validation valeur des inputs de type number
         if ($(this).attr('type') === 'number') {
