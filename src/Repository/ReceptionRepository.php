@@ -18,7 +18,6 @@ class ReceptionRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Reception::class);
     }
-
 //    public function findForIndex()
 //    {
 //        $entityManager = $this->getEntityManager();

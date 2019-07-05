@@ -159,6 +159,7 @@ class ReceptionController extends AbstractController
 
             $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
             $numeroReception = 'R' . $date->format('ymd-His');
+            //TODO faire un compteur
 
             $reception
                 ->setStatut($statut)
