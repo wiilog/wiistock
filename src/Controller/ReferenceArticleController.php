@@ -291,7 +291,11 @@ class ReferenceArticleController extends Controller
             $refAlreadyExist = $this->referenceArticleRepository->countByReference($data['reference']);
 
             if ($refAlreadyExist) {
-                return new JsonResponse(['success' => false, 'msg' => 'Ce nom de référence existe déjà. Vous ne pouvez pas le recréer.']);
+                return new JsonResponse([
+                	'success' => false,
+					'msg' => 'Ce nom de référence existe déjà. Vous ne pouvez pas le recréer.',
+					'codeError' => 'DOUBLON-REF'
+				]);
             }
             $requiredCreate = true;
             $type = $this->typeRepository->find($data['type']);
