@@ -1,5 +1,5 @@
 $('.select2').select2();
-
+const SAFRAN_CERAMICS = 'SAFRAN CERAMICS';
 $('#utilisateur').select2({
     placeholder: {
         text: 'Destinataire',
@@ -18,19 +18,19 @@ let tableArrivage = $('#tableArrivages').DataTable({
         "type": "POST"
     },
     columns: [
-        { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' },
-        { "data": "NumeroArrivage", 'name': 'NumeroArrivage', 'title': "N° d'arrivage" },
-        { "data": 'Transporteur', 'name': 'Transporteur', 'title': 'Transporteur' },
-        { "data": 'Chauffeur', 'name': 'Chauffeur', 'title': 'Chauffeur' },
-        { "data": 'NoTracking', 'name': 'NoTracking', 'title': 'N° tracking transporteur' },
-        { "data": 'NumeroBL', 'name': 'NumeroBL', 'title': 'N° commande / BL' },
-        { "data": 'Fournisseur', 'name': 'Fournisseur', 'title': 'Fournisseur' },
-        { "data": 'Destinataire', 'name': 'Destinataire', 'title': 'Destinataire' },
-        { "data": 'Acheteurs', 'name': 'Acheteurs', 'title': 'Acheteurs' },
-        { "data": 'NbUM', 'name': 'NbUM', 'title': 'Nb UM' },
-        { "data": 'Statut', 'name': 'Statut', 'title': 'Statut' },
-        { "data": 'Date', 'name': 'Date', 'title': 'Date' },
-        { "data": 'Utilisateur', 'name': 'Utilisateur', 'title': 'Utilisateur' },
+        {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'},
+        {"data": "NumeroArrivage", 'name': 'NumeroArrivage', 'title': "N° d'arrivage"},
+        {"data": 'Transporteur', 'name': 'Transporteur', 'title': 'Transporteur'},
+        {"data": 'Chauffeur', 'name': 'Chauffeur', 'title': 'Chauffeur'},
+        {"data": 'NoTracking', 'name': 'NoTracking', 'title': 'N° tracking transporteur'},
+        {"data": 'NumeroBL', 'name': 'NumeroBL', 'title': 'N° commande / BL'},
+        {"data": 'Fournisseur', 'name': 'Fournisseur', 'title': 'Fournisseur'},
+        {"data": 'Destinataire', 'name': 'Destinataire', 'title': 'Destinataire'},
+        {"data": 'Acheteurs', 'name': 'Acheteurs', 'title': 'Acheteurs'},
+        {"data": 'NbUM', 'name': 'NbUM', 'title': 'Nb UM'},
+        {"data": 'Statut', 'name': 'Statut', 'title': 'Statut'},
+        {"data": 'Date', 'name': 'Date', 'title': 'Date'},
+        {"data": 'Utilisateur', 'name': 'Utilisateur', 'title': 'Utilisateur'},
     ],
 
 });
@@ -53,6 +53,7 @@ InitialiserModal(modalDeleteArrivage, submitDeleteArrivage, urlDeleteArrivage, t
 
 let editorNewArrivageAlreadyDone = false;
 let quillNew;
+
 function initNewArrivageEditor(modal) {
     if (!editorNewArrivageAlreadyDone) {
         quillNew = initEditor(modal + ' .editor-container-new');
@@ -62,6 +63,7 @@ function initNewArrivageEditor(modal) {
 
 let quillEdit;
 let originalText = '';
+
 function editRowArrivage(button) {
     let path = Routing.generate('arrivage_edit_api', true);
     let modal = $('#modalEditArrivage');
@@ -97,85 +99,100 @@ function toggleLitige(select) {
 }
 
 function toggleCommentaire(select, bool) {
-    const MESSAGE_MANQUE_BL = 'manque BL';
-    const MESSAGE_MANQUE_INFO_BL = 'manque info BL';
-    const MESSAGE_ECART_QTE = 'écart quantité + ou -';
-    const MESSAGE_ECART_QUALITE = 'écart qualité';
-    const MESSAGE_PB_COMMANDE = 'problème de commande';
-    const MESSAGE_DEST_NON_IDENT = 'destinataire non identifiable';
+    $.post(Routing.generate('verif_spec', true), JSON.stringify({toTest: SAFRAN_CERAMICS}), function (response) {
+        if (response.isSpec) {
+            const MESSAGE_MANQUE_BL = 'manque BL';
+            const MESSAGE_MANQUE_INFO_BL = 'manque info BL';
+            const MESSAGE_ECART_QTE = 'écart quantité + ou -';
+            const MESSAGE_ECART_QUALITE = 'écart qualité';
+            const MESSAGE_PB_COMMANDE = 'problème de commande';
+            const MESSAGE_DEST_NON_IDENT = 'destinataire non identifiable';
 
-    let constantTypeLitige = select.val();
-    let path = Routing.generate('commentaire', true);
-    let params = {
-        constantTypeLitige: constantTypeLitige
-    };
+            let constantTypeLitige = select.val();
+            let path = Routing.generate('commentaire', true);
+            let params = {
+                constantTypeLitige: constantTypeLitige
+            };
 
-    let d = new Date();
-    let date = checkZero(d.getDate() + '') + '/' + checkZero(d.getMonth() + 1 + '') + '/' + checkZero(d.getFullYear() + '');
-    date += ' ' + checkZero(d.getHours() + '') + ':' + checkZero(d.getMinutes() + '');
+            let d = new Date();
+            let date = checkZero(d.getDate() + '') + '/' + checkZero(d.getMonth() + 1 + '') + '/' + checkZero(d.getFullYear() + '');
+            date += ' ' + checkZero(d.getHours() + '') + ':' + checkZero(d.getMinutes() + '');
 
-    if(bool){
-        quillType = quillNew;
-    }
-    else{
-        quillType = quillEdit;
-    }
+            if (bool) {
+                quillType = quillNew;
+            } else {
+                quillType = quillEdit;
+            }
 
-    $.post(path, JSON.stringify(params), function (data) {
-        switch(data.type){
-            case MESSAGE_MANQUE_BL:
-                quillType.setContents([
-                    { insert : (!bool) ? originalText +'\n' : ''},
-                    { insert: date + ' :', attributes: { bold: true } },
-                    { insert: ' Nous venons de recevoir un colis à votre attention sans bordereau de livraison.' +
-                            'Dans l’attente du document votre colis est placé en litige.\n'
-                            + 'Nous rappelons que le BL doit être émis au titre d’une commande ou à titre gracieux.\n'},
-                ]);
-                break;
-            case MESSAGE_MANQUE_INFO_BL:
-                quillType.setContents([
-                    { insert : (!bool) ? originalText +'\n': ''},
-                    { insert: date + ' :', attributes: { bold: true } },
-                    { insert: ' Nous venons de recevoir un colis à votre attention. Pour pouvoir finaliser la réception' +
-                            'nous avons besoin d’un BL au titre d’une commande ou à titre gracieux.\n'
-                            + 'Dans l’attente du document votre colis est placé en litige.\n'},
-                ]);
-                break;
-            case MESSAGE_ECART_QTE:
-                quillType.setContents([
-                    { insert : (!bool) ? originalText +'\n' : ''},
-                    { insert: date + ' :', attributes: { bold: true } },
-                    { insert: ' Nous venons de recevoir un colis à votre attention, nous avons constaté un écart en quantité ' },
-                    { insert: '[décrire la quantité de l’écart].\n', attributes: { italic: true, bold: true } },
-                    { insert: 'Dans l’attente de vos instructions la quantité en écart est placée en litige.\n' }
-                ]);
-                break;
-            case MESSAGE_ECART_QUALITE:
-                quillType.setContents([
-                    { insert : (!bool) ? originalText +'\n': ''},
-                    { insert: date + ' :', attributes: { bold: true } },
-                    { insert: ' Nous venons de recevoir un colis à votre attention et nous avons constaté un problème qualité.\n' },
-                    { insert: '[décrire le problème qualité et joindre une ou plusieurs photos du problème constaté]\n', attributes: { italic: true, bold: true } },
-                    { insert: 'Dans l’attente de vos instructions le colis est placé en zone litige.\n' }
-                ]);
-                break;
-            case MESSAGE_PB_COMMANDE:
-                quillType.setContents([
-                    { insert : (!bool) ? originalText +'\n': ''},
-                    { insert: date + ' :', attributes: { bold: true } },
-                    { insert: ' Nous venons de recevoir un colis au titre de la commande ' },
-                    { insert: '[rentrer le numéro de commande] [décrire le problème constaté].\n', attributes: { italic: true, bold: true } },
-                    { insert: 'Dans l’attente de vos instructions le colis est placé en zone litige.\n' }
-                ]);
-                break;
-            case MESSAGE_DEST_NON_IDENT:
-                quillType.setContents([
-                    { insert : (!bool) ? originalText +'\n': ''},
-                    { insert: date + ' :', attributes: { bold: true } },
-                    { insert: ' Nous venons de recevoir un colis à titre gracieux et nous sommes dans l’incapacité d’identifier un destinataire.\n'
-                    + 'Dans l’attente de vos instructions le colis est placé en zone litige'},
-                ]);
-                break;
+            $.post(path, JSON.stringify(params), function (data) {
+                switch (data.type) {
+                    case MESSAGE_MANQUE_BL:
+                        quillType.setContents([
+                            {insert: (!bool) ? originalText + '\n' : ''},
+                            {insert: date + ' :', attributes: {bold: true}},
+                            {
+                                insert: ' Nous venons de recevoir un colis à votre attention sans bordereau de livraison.' +
+                                    'Dans l’attente du document votre colis est placé en litige.\n'
+                                    + 'Nous rappelons que le BL doit être émis au titre d’une commande ou à titre gracieux.\n'
+                            },
+                        ]);
+                        break;
+                    case MESSAGE_MANQUE_INFO_BL:
+                        quillType.setContents([
+                            {insert: (!bool) ? originalText + '\n' : ''},
+                            {insert: date + ' :', attributes: {bold: true}},
+                            {
+                                insert: ' Nous venons de recevoir un colis à votre attention. Pour pouvoir finaliser la réception' +
+                                    'nous avons besoin d’un BL au titre d’une commande ou à titre gracieux.\n'
+                                    + 'Dans l’attente du document votre colis est placé en litige.\n'
+                            },
+                        ]);
+                        break;
+                    case MESSAGE_ECART_QTE:
+                        quillType.setContents([
+                            {insert: (!bool) ? originalText + '\n' : ''},
+                            {insert: date + ' :', attributes: {bold: true}},
+                            {insert: ' Nous venons de recevoir un colis à votre attention, nous avons constaté un écart en quantité '},
+                            {insert: '[décrire la quantité de l’écart].\n', attributes: {italic: true, bold: true}},
+                            {insert: 'Dans l’attente de vos instructions la quantité en écart est placée en litige.\n'}
+                        ]);
+                        break;
+                    case MESSAGE_ECART_QUALITE:
+                        quillType.setContents([
+                            {insert: (!bool) ? originalText + '\n' : ''},
+                            {insert: date + ' :', attributes: {bold: true}},
+                            {insert: ' Nous venons de recevoir un colis à votre attention et nous avons constaté un problème qualité.\n'},
+                            {
+                                insert: '[décrire le problème qualité et joindre une ou plusieurs photos du problème constaté]\n',
+                                attributes: {italic: true, bold: true}
+                            },
+                            {insert: 'Dans l’attente de vos instructions le colis est placé en zone litige.\n'}
+                        ]);
+                        break;
+                    case MESSAGE_PB_COMMANDE:
+                        quillType.setContents([
+                            {insert: (!bool) ? originalText + '\n' : ''},
+                            {insert: date + ' :', attributes: {bold: true}},
+                            {insert: ' Nous venons de recevoir un colis au titre de la commande '},
+                            {
+                                insert: '[rentrer le numéro de commande] [décrire le problème constaté].\n',
+                                attributes: {italic: true, bold: true}
+                            },
+                            {insert: 'Dans l’attente de vos instructions le colis est placé en zone litige.\n'}
+                        ]);
+                        break;
+                    case MESSAGE_DEST_NON_IDENT:
+                        quillType.setContents([
+                            {insert: (!bool) ? originalText + '\n' : ''},
+                            {insert: date + ' :', attributes: {bold: true}},
+                            {
+                                insert: ' Nous venons de recevoir un colis à titre gracieux et nous sommes dans l’incapacité d’identifier un destinataire.\n'
+                                    + 'Dans l’attente de vos instructions le colis est placé en zone litige'
+                            },
+                        ]);
+                        break;
+                }
+            });
         }
     });
 }
@@ -240,12 +257,12 @@ function upload(files) {
     $.ajax({
         url: path,
         data: formData,
-        type:"post",
-        contentType:false,
-        processData:false,
-        cache:false,
-        dataType:"json",
-        success:function(html){
+        type: "post",
+        contentType: false,
+        processData: false,
+        cache: false,
+        dataType: "json",
+        success: function (html) {
             let dropfile = $('#dropfile');
             dropfile.css('border', '3px dashed #BBBBBB');
             dropfile.after(html);
@@ -299,12 +316,14 @@ function submitActionArrivage(modal, path, table, callback, close) {
                         });
                     }
 
-                } if (printArrivage) {
+                }
+                if (printArrivage) {
                     $('#barcodes').append('<img id="barcodeArrivage">');
                     JsBarcode("#barcodeArrivage", data.arrivage, {
                         format: "CODE128",
                     });
-                } if (printArrivage || printUm) {
+                }
+                if (printArrivage || printUm) {
                     $("#barcodes").find('img').each(function () {
                         doc.addImage($(this).attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
                         doc.addPage();
@@ -482,9 +501,9 @@ function deleteAttachement(arrivageId, pj, pjWithoutExtension) {
         pj: pj
     };
 
-    $.post(path, JSON.stringify(params), function(data) {
+    $.post(path, JSON.stringify(params), function (data) {
 
-        if(data === true) {
+        if (data === true) {
             $('#' + pjWithoutExtension).remove();
         }
     });

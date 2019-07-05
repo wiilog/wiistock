@@ -9,6 +9,7 @@ use App\Entity\CategoryType;
 use App\Entity\Colis;
 use App\Entity\Litige;
 use App\Entity\Menu;
+use App\Entity\ParamClient;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Repository\ArrivageRepository;
@@ -19,6 +20,7 @@ use App\Repository\StatutRepository;
 use App\Repository\TransporteurRepository;
 use App\Repository\TypeRepository;
 use App\Repository\UtilisateurRepository;
+use App\Service\SpecificService;
 use App\Service\UserService;
 use App\Service\MailerService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -84,8 +86,14 @@ class ArrivageController extends AbstractController
      */
     private $typeRepository;
 
-    public function __construct(MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
+    /**
+     * @var SpecificService
+     */
+    private $specificService;
+
+    public function __construct(SpecificService $specificService, MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
     {
+        $this->specificService = $specificService;
         $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
         $this->userService = $userService;
         $this->arrivageRepository = $arrivageRepository;
@@ -501,16 +509,30 @@ class ArrivageController extends AbstractController
      */
     public function commenter(Request $request): Response
     {
-        dump($data = json_decode($request->getContent(), true));
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
             }
 
             $dataReturn = [];
-            $type = $this->typeRepository->find($data['constantTypeLitige']);
-            $dataReturn['type'] = $type->getLabel();
+            if ($this->specificService->isCurrentClientNameFunction(ParamClient::SAFRAN_CERAMICS)) {
+                $type = $this->typeRepository->find($data['constantTypeLitige']);
+                $dataReturn['type'] = $type->getLabel();
+            }
             return new JsonResponse($dataReturn);
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/verifier-spec", name="verif_spec",  options={"expose"=true}, methods="GET|POST")
+     */
+    public function verifSpec(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $response = [];
+            $response['isSpec'] = $this->specificService->isCurrentClientNameFunction($data['toTest']);
+            return new JsonResponse($response);
         }
         throw new NotFoundHttpException('404');
     }
