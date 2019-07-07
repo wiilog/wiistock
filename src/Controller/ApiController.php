@@ -239,8 +239,9 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                             $destinataire = $arrivage->getDestinataire();
                             dump('wanted to send');
                             if ($this->mailerServerRepository->findOneMailerServer()) {
+                                dump('before');
                                 $dateArray = explode('_', $mvt->getDate());
-                                dump('ys');
+                                dump('after');
                                 $date = new DateTime($dateArray[0]);
                                 $this->mailerService->sendMail(
                                     'FOLLOW GT // Dépose effectuée',
