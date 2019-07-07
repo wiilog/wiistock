@@ -239,7 +239,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                             $destinataire = $arrivage->getDestinataire();
                             dump('wanted to send');
                             if ($this->mailerServerRepository->findOneMailerServer()) {
-                                dump('before');
+                                dump($mvt->getDate());
                                 $dateArray = explode('_', $mvt->getDate());
                                 dump('after');
                                 $date = new DateTime($dateArray[0]);
