@@ -239,7 +239,6 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                             $destinataire = $arrivage->getDestinataire();
                             dump('wanted to send');
                             if ($this->mailerServerRepository->findOneMailerServer()) {
-                                dump('sent mail');
                                 $dateArray = explode('_', $mvt->getDate());
                                 $date = new DateTime($dateArray[0]);
 
@@ -257,6 +256,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                                     ),
                                     $destinataire->getEmail()
                                 );
+                                dump('sent mail');
                             } else {
                                 $this->logger->critical('Parametrage mail non defini.');
                             }
