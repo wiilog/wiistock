@@ -207,8 +207,9 @@ class ApiController extends FOSRestController implements ClassResourceInterface
             $response->headers->set('Access-Control-Allow-Methods', 'POST, GET');
             $em = $this->getDoctrine()->getManager();
             $numberOfRowsInserted = 0;
-
+            dump($data['mouvements']);
             foreach ($data['mouvements'] as $mvt) {
+                dump($mvt);
                 if (!$this->mouvementTracaRepository->getOneByDate($mvt['date'])) {
                     $refEmplacement = $mvt['ref_emplacement'];
                     $refArticle = $mvt['ref_article'];
@@ -236,8 +237,9 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                         if ($isDepose && $colis && $emplacement->getIsDeliveryPoint()) {
                             $arrivage = $colis->getArrivage();
                             $destinataire = $arrivage->getDestinataire();
-
+                            dump('wanted to send');
                             if ($this->mailerServerRepository->findOneMailerServer()) {
+                                dump('sent mail');
                                 $dateArray = explode('_', $mvt->getDate());
                                 $date = new DateTime($dateArray[0]);
 
