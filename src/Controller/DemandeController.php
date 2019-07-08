@@ -241,11 +241,11 @@ class DemandeController extends AbstractController
 
             $demande = $this->demandeRepository->find($data['id']);
 
-			$typesDL = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
-			$categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::DEMANDE_LIVRAISON);
+			$typesDL = $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
 			$typeChampLibre =  [];
+
 			foreach ($typesDL as $type) {
-				$champsLibres = $this->champLibreRepository->findByLabelTypeAndCategorieCL($type['label'], $categorieCL);
+				$champsLibres = $this->champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON);
 				$champsLibresArray = [];
 				foreach ($champsLibres as $champLibre) {
 					$valeurChampDL = $this->valeurChampLibreRepository->getValueByDemandeLivraisonAndChampLibre($demande, $champLibre);
@@ -259,8 +259,8 @@ class DemandeController extends AbstractController
 					];
 				}
 				$typeChampLibre[] = [
-					'typeLabel' =>  $type['label'],
-					'typeId' => $type['id'],
+					'typeLabel' =>  $type->getLabel(),
+					'typeId' => $type->getId(),
 					'champsLibres' => $champsLibresArray,
 				];
 			}

@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\Article;
+use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 use App\Entity\Demande;
 use App\Entity\Livraison;
@@ -30,10 +31,8 @@ use App\Repository\ReferenceArticleRepository;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\Validator\Constraints\DateTime;
 use App\Repository\UtilisateurRepository;
 use App\Repository\ChampsLibreRepository;
-use Proxies\__CG__\App\Entity\CategorieCL;
 use App\Repository\ValeurChampsLibreRepository;
 use App\Repository\CategorieCLRepository;
 use App\Repository\TypeRepository;
@@ -386,7 +385,7 @@ class LivraisonController extends AbstractController
                 $headers[] = $champLibre->getLabel();
             }
             $data[] = $headers;
-            $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::ARTICLES_ET_REF_CEA);
+            $listTypes = $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLES_ET_REF_CEA);
             foreach ($livraisons as $livraison) {
                 foreach ($livraison->getLigneArticle() as $ligneArticle) {
                     $livraisonData = [];
@@ -400,10 +399,12 @@ class LivraisonController extends AbstractController
                     $livraisonData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getReference() : '';
                     $livraisonData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getLibelle() : '';
                     $livraisonData[] = $ligneArticle->getQuantite();
-                    $categorieCL = $this->categorieCLRepository->findOneByLabel(($ligneArticle->getReference()->getTypeQuantite() === 'reference') ? 'reference CEA' : 'article');
+
+                    $categorieCLLabel = $ligneArticle->getReference()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE ? CategorieCL::REFERENCE_CEA : CategorieCL::ARTICLE;
                     $champsLibres = [];
+
                     foreach ($listTypes as $type) {
-                        $listChampsLibres = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($type['label'], $categorieCL);
+                        $listChampsLibres = $this->champsLibreRepository->findByTypeAndCategorieCLLabel($type, $categorieCLLabel);
                         foreach ($listChampsLibres as $champLibre) {
                             $valeurChampRefArticle = $this->valeurChampsLibreRepository->findOneByRefArticleANDChampsLibre($ligneArticle->getReference()->getId(), $champLibre);
                             if ($valeurChampRefArticle) {
@@ -432,10 +433,10 @@ class LivraisonController extends AbstractController
                     $livraisonData[] = $article->getArticleFournisseur()->getReferenceArticle()->getReference();
                     $livraisonData[] = $article->getLabel();
                     $livraisonData[] = $article->getQuantite();
-                    $categorieCL = $this->categorieCLRepository->findOneByLabel('article');
+
                     $champsLibres = [];
                     foreach ($listTypes as $type) {
-                        $listChampsLibres = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($type['label'], $categorieCL);
+                        $listChampsLibres = $this->champsLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::ARTICLE);
                         foreach ($listChampsLibres as $champLibre) {
                             $valeurChampRefArticle = $this->valeurChampsLibreRepository->findOneByArticleANDChampsLibre($article, $champLibre);
                             if ($valeurChampRefArticle) {

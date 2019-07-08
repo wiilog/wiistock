@@ -144,25 +144,6 @@ class ChampsLibreRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
-    //TODO CG dangereux label type n'est pas unique !! -> passer par type
-    public function findByLabelTypeAndCategorieCL($label, $categorieCL)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT c
-            FROM App\Entity\ChampsLibre c 
-            JOIN c.type t 
-            WHERE t.label = :label AND c.categorieCL = :categorie"
-        )->setParameters(
-            [
-                'label' => $label,
-                'categorie' => $categorieCL,
-            ]
-        );
-        return $query->execute();
-    }
-
-//TODO optimiser ci-dessus et ci-dessous
 	public function findByTypeAndCategorieCLLabel($type, $categorieCLLabel)
 	{
 		$entityManager = $this->getEntityManager();
