@@ -262,7 +262,7 @@ function switchWantedGlobal(checkbox) {
     let params = {
         'checked' : checkbox.is(':checked'),
         'reference' : checkbox.data('ref')
-    }
+    };
     $.post(path, JSON.stringify(params), function(data) {
         $('#choiceContent').html(data.content);
         $('.error-msg').html('');
