@@ -878,7 +878,7 @@ class ReferenceArticleController extends Controller
     /**
      * @Route("/voir", name="reference_article_show", options={"expose"=true})
      */
-    public function showRefArticle(Request $request): Response
+    public function show(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {

@@ -60,10 +60,10 @@ class Demande
      */
     private $statut;
 
-//    /**
-//     * @ORM\Column(type="datetime", nullable=true)
-//     */
-//    private $DateAttendu;
+	/**
+	 * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="demandesLivraison")
+	 */
+    private $type;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\LigneArticle", mappedBy="demande")
@@ -80,11 +80,18 @@ class Demande
      */
     private $articles;
 
-    public function __construct()
-    {
-        $this->ligneArticle = new ArrayCollection();
-        $this->articles = new ArrayCollection();
-    }
+	/**
+	 * @ORM\ManyToMany(targetEntity="App\Entity\ValeurChampsLibre", inversedBy="demandesLivraison")
+	 */
+	private $valeurChampLibre;
+
+
+	public function __construct()
+	{
+		$this->ligneArticle = new ArrayCollection();
+		$this->articles = new ArrayCollection();
+		$this->valeurChampLibre = new ArrayCollection();
+	}
 
     public function getId(): ?int
     {
@@ -258,6 +265,44 @@ class Demande
             if ($article->getDemande() === $this) {
                 $article->setDemande(null);
             }
+        }
+
+        return $this;
+    }
+
+    public function getType(): ?Type
+    {
+        return $this->type;
+    }
+
+    public function setType(?Type $type): self
+    {
+        $this->type = $type;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|ValeurChampsLibre[]
+     */
+    public function getValeurChampLibre(): Collection
+    {
+        return $this->valeurChampLibre;
+    }
+
+    public function addValeurChampLibre(ValeurChampsLibre $valeurChampLibre): self
+    {
+        if (!$this->valeurChampLibre->contains($valeurChampLibre)) {
+            $this->valeurChampLibre[] = $valeurChampLibre;
+        }
+
+        return $this;
+    }
+
+    public function removeValeurChampLibre(ValeurChampsLibre $valeurChampLibre): self
+    {
+        if ($this->valeurChampLibre->contains($valeurChampLibre)) {
+            $this->valeurChampLibre->removeElement($valeurChampLibre);
         }
 
         return $this;

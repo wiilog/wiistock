@@ -11,8 +11,15 @@
             {% if demande.preparation is not null %}
             {{demande.preparation.date|date('d/m/Y H:i')}}</p>
         {% endif %}
-        <p><strong>Référence :</strong> {{ demande.numero }}</p>
+        <p><strong>Type :</strong> {{ demande.type.label }}</p>
     </div>
+
+    {% for champLibre in champsLibres %}
+    <div class="col-6">
+        <p><strong>{{ champLibre.label|capitalize }} :</strong> {{ champLibre.valeur }}</p>
+    </div>
+    {% endfor %}
+
     <div class="col-12">
         <p><strong> Commentaire : </strong></p>
         <div class="commentOverflow">

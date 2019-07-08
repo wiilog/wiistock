@@ -157,7 +157,7 @@ class ArticleController extends Controller
 
         return $this->render('article/index.html.twig', [
             'valeurChampsLibre' => null,
-            'type' => $this->typeRepository->findOneByCategoryLabel(Article::CATEGORIE),
+//            'type' => $this->typeRepository->findOneByCategoryLabel(Article::CATEGORIE),
         ]);
     }
 
@@ -373,7 +373,7 @@ class ArticleController extends Controller
                 $json = $this->renderView('article/modalNewArticleContent.html.twig', [
                     'references' => $this->articleFournisseurRepository->getByFournisseur($fournisseur),
                     'valeurChampsLibre' => null,
-                    'type' => $this->typeRepository->findOneByCategoryLabel(Article::CATEGORIE)
+//                    'type' => $this->typeRepository->findOneByCategoryLabel(Article::CATEGORIE)
                 ]);
             } else {
                 $json = false; //TODO gérer erreur retour
