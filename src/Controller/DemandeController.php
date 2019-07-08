@@ -521,7 +521,6 @@ class DemandeController extends AbstractController
         }
 
         $valeursChampLibre = $this->valeurChampLibreRepository->getByDemandeLivraison($demande);
-
         return $this->render('demande/show.html.twig', [
 
             'demande' => $demande,

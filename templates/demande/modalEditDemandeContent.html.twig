@@ -34,6 +34,7 @@
         {% for typeChampLibre in typeChampsLibres %}
             <div {{ demande.type is not empty and typeChampLibre.typeId == demande.type.id ? "class='d-block'" : "class='d-none'"}}
                     id="{{typeChampLibre.typeId}}-edit">
+                <p class="col-12 pl-0">Champs Libres :</p>
                 <div class="row mt-2">
                     {% for champLibre in typeChampLibre.champsLibres %}
                         <div class="form-group col-6">
