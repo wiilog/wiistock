@@ -148,7 +148,7 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
             }
         }
 
-        // action exporter
+        // action choix gestion articles
         $menus = [
             Menu::DEM_LIVRAISON,
         ];

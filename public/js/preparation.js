@@ -53,80 +53,64 @@ let tableArticle = $('#tableArticle_id').DataTable({
     ],
 });
 
-let prepasToScission = [];
+let prepasToSplit = [];
 let articlesChosen = [];
 let startPreparation = function (value) {
-    let needScission;
-    $.post(Routing.generate('need_scission', true), JSON.stringify({'demande': value.val()}), function (response) {
-        needScission = response.need;
-        if (!needScission) {
-            xhttp = new XMLHttpRequest();
-            xhttp.onreadystatechange = function () {
-                if (this.readyState == 4 && this.status == 200) {
-                    data = JSON.parse(this.responseText);
-                    $('#startPreparation').addClass('d-none');
-                    $('#finishPreparation').removeClass('d-none');
-                    tableArticle.ajax.reload();
-                    $('#statutPreparation').html(data);
-                }
-            };
-            path = Routing.generate('preparation_take_articles', true);
-            let params = {
-                demande : value.val(),
-                articles : articlesChosen
-            };
-            Json = JSON.stringify(params);
-            xhttp.open("POST", path, true);
-            xhttp.send(Json);
+    let path1 = Routing.generate('need_splitting', true);
+    let params = {'demande': value.val()};
+
+    $.post(path1, JSON.stringify(params), function (needSplitting) {
+        if (!needSplitting) {
+            let path2 = Routing.generate('preparation_take_articles', true);
+            params.articles = articlesChosen;
+
+            $.post(path2, JSON.stringify(params), function(data) {
+                $('#startPreparation').addClass('d-none');
+                $('#finishPreparation').removeClass('d-none');
+                tableArticle.ajax.reload();
+                $('#statutPreparation').html(data);
+            })
         } else {
-            $.post(Routing.generate('start_scission', true), JSON.stringify({'demande': value.val()}), function (data) {
-                prepasToScission = data.prepas;
-                $('#scissionContent').html(prepasToScission[0]);
-                $('#tableScissionArticles').DataTable();
-                $('#startScission').click();
+            let path3 = Routing.generate('start_splitting', true);
+            $.post(path3, JSON.stringify(params), function (data) {
+                prepasToSplit = data.prepas;
+                $('#splittingContent').html(prepasToSplit[0]);
+                $('#tableSplittingArticles').DataTable();
+                $('#startSplitting').click();
             });
         }
     });
 };
 
-function submitScission(submit) {
+function submitSplitting(submit) {
     if ($('#scissionTitle').data('restant') <= 0) {
-        let path = Routing.generate('submit_scission', true);
+        let path = Routing.generate('submit_splitting', true);
         let params = {
             'articles': articlesChosen,
             'quantite': submit.data('qtt'),
             'demande': submit.data('demande'),
         };
-        $.post(path, JSON.stringify(params), function (response) {
-            $('#modalScission').find('.close').click();
-            if (submit.data('index') + 1 < prepasToScission.length) {
+
+        $.post(path, JSON.stringify(params), function () {
+            $('#modalSplitting').find('.close').click();
+            if (submit.data('index') + 1 < prepasToSplit.length) {
                 articlesChosen = [];
-                $('#scissionContent').html(prepasToScission[submit.data('index') + 1]);
-                $('#tableScissionArticles').DataTable();
-                $('#startScission').click();
+                $('#splittingContent').html(prepasToSplit[submit.data('index') + 1]);
+                $('#tableSplittingArticles').DataTable();
+                $('#startSplitting').click();
             } else {
-                xhttp = new XMLHttpRequest();
-                xhttp.onreadystatechange = function () {
-                    if (this.readyState == 4 && this.status == 200) {
-                        data = JSON.parse(this.responseText);
-                        $('#startPreparation').addClass('d-none');
-                        $('#finishPreparation').removeClass('d-none');
-                        tableArticle.ajax.reload();
-                        $('#statutPreparation').html(data);
-                    }
-                };
-                path = Routing.generate('preparation_take_articles', true);
-                let params = {
-                    demande : submit.data('demande'),
-                    articles : articlesChosen
-                };
-                Json = JSON.stringify(params);
-                xhttp.open("POST", path, true);
-                xhttp.send(Json);
+                let path = Routing.generate('preparation_take_articles', true);
+
+                $.post(path, JSON.stringify(params), function() {
+                    $('#startPreparation').addClass('d-none');
+                    $('#finishPreparation').removeClass('d-none');
+                    tableArticle.ajax.reload();
+                    $('#statutPreparation').html(data);
+                });
             }
         })
     } else {
-        $('.error-msg').html('Veuillez collecter l\'entièreté des articles');
+        $('.error-msg').html("Veuillez collecter le nombre total indiqué d'articles.");
     }
 }
 
@@ -142,5 +126,5 @@ function addToScission(checkbox) {
     if ($('#scissionTitle').attr('data-restant') > 0) {
         toSee = $('#scissionTitle').attr('data-restant');
     }
-    $('#scissionTitle').html('Choix d\'articles pour la référence ' + checkbox.data('ref') + ' (Quantité restante à prélever : ' + toSee + ')');
+    $('#scissionTitle').html("Choix d'articles pour la référence " + checkbox.data('ref') + " (Quantité restante à prélever : " + toSee + ")");
 }

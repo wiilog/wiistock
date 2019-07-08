@@ -37,7 +37,7 @@ class LigneArticle
     /**
      * @ORM\Column(type="boolean", nullable=true)
      */
-    private $toSeparate;
+    private $toSplit;
 
 
     public function getId(): ?int
@@ -81,14 +81,14 @@ class LigneArticle
         return $this;
     }
 
-    public function getToSeparate(): ?bool
+    public function getToSplit(): ?bool
     {
-        return $this->toSeparate;
+        return $this->toSplit;
     }
 
-    public function setToSeparate(?bool $toSeparate): self
+    public function setToSplit(?bool $toSplit): self
     {
-        $this->toSeparate = $toSeparate;
+        $this->toSplit = $toSplit;
 
         return $this;
     }

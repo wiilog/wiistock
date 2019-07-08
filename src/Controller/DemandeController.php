@@ -119,7 +119,6 @@ class DemandeController extends AbstractController
                 if ($article->getQuantiteAPrelever() > $article->getQuantite()) {
                     return new JsonResponse(false);
                 }
-
             }
 
             // pour réf gérées par référence
@@ -134,12 +133,14 @@ class DemandeController extends AbstractController
                 foreach ($listLigneArticleByRefArticle as $ligneArticle) {
                     /** @var LigneArticle $ligneArticle */
                     $statusLabel = $ligneArticle->getDemande()->getStatut()->getNom();
-                    if ($statusLabel === Demande::STATUT_A_TRAITER || $statusLabel === Demande::STATUT_PREPARE) {
+                    if (($statusLabel === Demande::STATUT_A_TRAITER || $statusLabel === Demande::STATUT_PREPARE)
+						&& (!$ligneArticle->getToSplit())
+					) {
                         $quantiteReservee += $ligneArticle->getQuantite();
                     }
                 }
 
-                if ($quantiteReservee > $stock && ($ligneArticle->getToSeparate() === null || $ligneArticle->getToSeparate() === false)) {
+				if ($quantiteReservee > $stock) {
                     return new JsonResponse(false);
                 }
             }
@@ -462,19 +463,20 @@ class DemandeController extends AbstractController
 
             $referenceArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
             $demande = $this->demandeRepository->find($data['demande']);
+
+            // cas gestion quantité par article
             if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-                if ($data['wantGlobal']) {
+                if (isset($data['wantGlobal']) && $data['wantGlobal']) {
                     if ($this->ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
                         $ligneArticle = new LigneArticle();
                         $ligneArticle
                             ->setQuantite(max($data["quantitie"], 0))// protection contre quantités négatives
-                            ->setToSeparate(true)
+                            ->setToSplit(true)
                             ->setReference($referenceArticle);
                         $em->persist($ligneArticle);
-                        $demande
-                            ->addLigneArticle($ligneArticle);
+                        $demande->addLigneArticle($ligneArticle);
                     } else {
-                        $ligneArticle = $this->ligneArticleRepository->findOneByRefArticleAndDemandeAndScission($referenceArticle, $demande);
+                        $ligneArticle = $this->ligneArticleRepository->findOneByRefArticleAndDemandeAndToSplit($referenceArticle, $demande);
                         $ligneArticle
                             ->setQuantite($ligneArticle->getQuantite() + max($data["quantitie"], 0));
                     }
@@ -485,6 +487,8 @@ class DemandeController extends AbstractController
 
                     $this->articleDataService->editArticle($data);
                 }
+
+			// cas gestion quantité par référence
             } elseif ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                 if ($this->ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
                     $ligneArticle = new LigneArticle();
@@ -492,13 +496,12 @@ class DemandeController extends AbstractController
                         ->setQuantite(max($data["quantitie"], 0))// protection contre quantités négatives
                         ->setReference($referenceArticle);
                     $em->persist($ligneArticle);
-                } else {
+					$demande->addLigneArticle($ligneArticle);
+				} else {
                     $ligneArticle = $this->ligneArticleRepository->findOneByRefArticleAndDemande($referenceArticle, $demande);
                     $ligneArticle
                         ->setQuantite($ligneArticle->getQuantite() + max($data["quantitie"], 0)); // protection contre quantités négatives
                 }
-                $demande
-                    ->addLigneArticle($ligneArticle);
                 $this->refArticleDataService->editRefArticle($referenceArticle, $data);
             }
 
@@ -588,21 +591,20 @@ class DemandeController extends AbstractController
     }
 
     /**
-     * @Route("/besoin-scission", name="need_scission", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/besoin-scission", name="need_splitting", options={"expose"=true}, methods={"GET", "POST"})
      */
-    public function needScission(Request $request): Response
+    public function needSplitting(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $demande = $this->demandeRepository->find($data['demande']);
             $need = false;
             foreach ($demande->getLigneArticle() as $ligneArticle) {
-                if ($ligneArticle->getToSeparate()) {
+                if ($ligneArticle->getToSplit()) {
                     $need = true;
                 }
             }
-            $data['need'] = $need;
 
-            return new JsonResponse($data);
+            return new JsonResponse($need);
         }
         throw new NotFoundHttpException('404');
     }

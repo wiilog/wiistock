@@ -263,9 +263,10 @@ function switchWantedGlobal(checkbox) {
         'checked' : checkbox.is(':checked'),
         'reference' : checkbox.data('ref')
     };
+    let $modal = checkbox.closest('.modal');
     $.post(path, JSON.stringify(params), function(data) {
-        $('#choiceContent').html(data.content);
-        $('.error-msg').html('');
+        $modal.find('#choiceContent').html(data.content);
+        $modal.find('.error-msg').html('');
     });
 }
 

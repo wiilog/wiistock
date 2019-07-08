@@ -343,9 +343,9 @@ class PreparationController extends AbstractController
     }
 
     /**
-     * @Route("/commencer-scission", name="start_scission", options={"expose"=true}, methods="GET|POST")
+     * @Route("/commencer-scission", name="start_splitting", options={"expose"=true}, methods="GET|POST")
      */
-    public function startScission(Request $request): Response
+    public function startSplitting(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $demande = $this->demandeRepository->find($data['demande']);
@@ -355,8 +355,8 @@ class PreparationController extends AbstractController
                 $refArticle = $ligneArticle->getReference();
                 $statutArticleActif = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
                 $articles = $this->articleRepository->findByRefArticleAndStatutWithoutDemand($refArticle, $statutArticleActif);
-                if ($ligneArticle->getToSeparate()) {
-                    $response['prepas'][] = $this->renderView('preparation/modalScission.html.twig', [
+                if ($ligneArticle->getToSplit()) {
+                    $response['prepas'][] = $this->renderView('preparation/modalSplitting.html.twig', [
                         'reference' => $refArticle->getReference(),
                         'articles' => $articles,
                         'index' => $key,
@@ -373,9 +373,9 @@ class PreparationController extends AbstractController
     }
 
     /**
-     * @Route("/finir-scission", name="submit_scission", options={"expose"=true}, methods="GET|POST")
+     * @Route("/finir-scission", name="submit_splitting", options={"expose"=true}, methods="GET|POST")
      */
-    public function submitScission(Request $request): Response
+    public function submitSplitting(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $withdrawn = 0;
@@ -414,7 +414,7 @@ class PreparationController extends AbstractController
                 }
             }
             $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
-            $em->remove($this->ligneArticleRepository->findOneByRefArticleAndDemandeAndScission($refArticle, $demande));
+            $em->remove($this->ligneArticleRepository->findOneByRefArticleAndDemandeAndToSplit($refArticle, $demande));
             $em->flush();
             return new JsonResponse();
         }
@@ -426,13 +426,13 @@ class PreparationController extends AbstractController
      */
     public function takeArticle(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::LIVRAISON, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
             $em = $this->getDoctrine()->getManager();
 
-            //modification des articles  de la demande 
+            // modification des articles de la demande
             $demande = $this->demandeRepository->find($data['demande']);
             $articles = $demande->getArticles();
             foreach ($articles as $article) {

@@ -1,4 +1,4 @@
-<div class="modal fade" id="modalScission" tabindex="-1" role="dialog"
+<div class="modal fade" id="modalSplitting" tabindex="-1" role="dialog"
      aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
@@ -9,7 +9,7 @@
                 </button>
             </div>
             <div class="modal-body">
-                <table class="table table-striped" id="tableScissionArticles">
+                <table class="table table-striped" id="tableSplittingArticles">
                     <thead>
                     <tr>
                         <th>Article</th>
@@ -35,7 +35,7 @@
             <div class="error-msg p-4"></div>
             <div class="modal-footer">
                 <div class="btn" data-dismiss="modal">Fermer</div>
-                <div class="btn btn-primary" data-qtt="{{ quantite }}" data-demande="{{ demande.id }}" data-index="{{ index }}" data-prep="{{ preparation.id }}" onclick="submitScission($(this))">Enregistrer</div>
+                <div class="btn btn-primary" data-qtt="{{ quantite }}" data-demande="{{ demande.id }}" data-index="{{ index }}" data-prep="{{ preparation.id }}" onclick="submitSplitting($(this))">Enregistrer</div>
             </div>
         </div>
     </div>
