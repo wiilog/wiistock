@@ -360,4 +360,10 @@ function checkZero(data) {
     return data;
 }
 
+$('#submitSearchDemandeLivraison').on('keypress', function(e) {
+    if (e.which === 13) {
+        $('#submitSearchDemandeLivraison').click();
+    }
+});
+
 

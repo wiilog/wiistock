@@ -345,6 +345,11 @@ a:hover {
   color: #130078;
   border-color: #130078;
 }
+.btn-primary:focus {
+  background-color: #fcfcfc;
+  color: #130078;
+  border-color: #130078;
+}
 
 .btn-success {
   background-color: #130078;
