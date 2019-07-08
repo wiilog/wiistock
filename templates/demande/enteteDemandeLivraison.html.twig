@@ -11,7 +11,7 @@
             {% if demande.preparation is not null %}
             {{demande.preparation.date|date('d/m/Y H:i')}}</p>
         {% endif %}
-        <p><strong>Type :</strong> {{ demande.type.label }}</p>
+        <p><strong>Type :</strong> {{ demande.type is not null ? demande.type.label : '' }} </p>
     </div>
 
     {% for champLibre in champsLibres %}
