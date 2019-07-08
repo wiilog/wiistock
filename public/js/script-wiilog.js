@@ -66,6 +66,8 @@ function submitAction(modal, path, table, callback, close) {
             label = label.replace(/\*/, '');
             missingInputs.push(label);
             $(this).addClass('is-invalid');
+        }else{
+            $(this).removeClass('is-invalid');
         }
         // validation valeur des inputs de type number
         if ($(this).attr('type') === 'number') {
@@ -75,6 +77,8 @@ function submitAction(modal, path, table, callback, close) {
             if (val > max || val < min) {
                 wrongNumberInputs.push($(this));
                 $(this).addClass('is-invalid');
+            }else{
+                $(this).removeClass('is-invalid');
             }
         }
         // validation valeur des inputs de type password
