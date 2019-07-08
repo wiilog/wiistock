@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\Collecte;
 use App\Entity\Demande;
 use App\Entity\Menu;
 use App\Entity\Preparation;
