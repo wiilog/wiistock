@@ -291,7 +291,11 @@ class ReferenceArticleController extends Controller
             $refAlreadyExist = $this->referenceArticleRepository->countByReference($data['reference']);
 
             if ($refAlreadyExist) {
-                return new JsonResponse(['success' => false, 'msg' => 'Ce nom de référence existe déjà. Vous ne pouvez pas le recréer.']);
+                return new JsonResponse([
+                	'success' => false,
+					'msg' => 'Ce nom de référence existe déjà. Vous ne pouvez pas le recréer.',
+					'codeError' => 'DOUBLON-REF'
+				]);
             }
             $requiredCreate = true;
             $type = $this->typeRepository->find($data['type']);
@@ -944,7 +948,7 @@ class ReferenceArticleController extends Controller
                 $headersCL[] = $champLibre->getLabel();
             }
             $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::ARTICLES_ET_REF_CEA);
-            $articles = $this->referenceArticleRepository->getBetweenLimits($min, $max-$min-1);
+            $articles = $this->referenceArticleRepository->getBetweenLimits($min, $max-$min);
             foreach ($articles as $article) {
                 $data['values'][] = $this->buildInfos($article, $listTypes, $headersCL);
             }
@@ -969,7 +973,7 @@ class ReferenceArticleController extends Controller
     {
         if ($request->isXmlHttpRequest()) {
             $data['total'] = $this->referenceArticleRepository->countAll();
-            $data['headers'] = ['reference', 'libelle', 'quantitée', 'type', 'type_quantite', 'statut', 'commentaire', 'emplacement'];
+            $data['headers'] = ['reference', 'libelle', 'quantité', 'type', 'type_quantite', 'statut', 'commentaire', 'emplacement'];
             foreach ($this->champsLibreRepository->findAll() as $champLibre) {
                 $data['headers'][] = $champLibre->getLabel();
             }

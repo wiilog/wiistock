@@ -115,7 +115,7 @@ class OrdreCollecteController extends AbstractController
                 $rows[] = [
                     'id' => ($collecte->getId() ? $collecte->getId() : ''),
                     'Numéro' => ($collecte->getNumero() ? $collecte->getNumero() : ''),
-                    'Date' => ($collecte->getDate() ? $collecte->getDate()->format('d-m-Y') : ''),
+                    'Date' => ($collecte->getDate() ? $collecte->getDate()->format('d/m/Y') : ''),
                     'Statut' => ($collecte->getStatut() ? $collecte->getStatut()->getNom() : ''),
                     'Opérateur' => ($collecte->getUtilisateur() ? $collecte->getUtilisateur()->getUsername() : ''),
                     'Actions' => $this->renderView('ordre_collecte/datatableCollecteRow.html.twig', ['url' => $url])
