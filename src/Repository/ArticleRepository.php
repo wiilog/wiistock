@@ -229,7 +229,9 @@ class ArticleRepository extends ServiceEntityRepository
         $query = $entityManager->createQuery(
             "SELECT COUNT(a)
             FROM App\Entity\Article a
-            WHERE a.refArticle = :refArticle"
+            JOIN a.articleFournisseur af
+            JOIN af.referenceArticle ra
+            WHERE ra = :refArticle"
         )->setParameter('refArticle', $refArticle);
 
         return $query->getSingleScalarResult();

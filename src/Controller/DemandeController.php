@@ -104,6 +104,7 @@ class DemandeController extends AbstractController
         $this->articleDataService = $articleDataService;
         $this->preparationRepository = $preparationRepository;
     }
+
     /**
      * @Route("/compareStock", name="compare_stock", options={"expose"=true}, methods="GET|POST")
      */
@@ -113,17 +114,17 @@ class DemandeController extends AbstractController
             $demande = $this->demandeRepository->find($data['demande']);
 
             // pour réf gérées par articles
-			$articles = $demande->getArticles();
-			foreach ($articles as $article) {
-				if ($article->getQuantiteAPrelever() > $article->getQuantite()) {
-					return new JsonResponse(false);
-				}
+            $articles = $demande->getArticles();
+            foreach ($articles as $article) {
+                if ($article->getQuantiteAPrelever() > $article->getQuantite()) {
+                    return new JsonResponse(false);
+                }
 
-			}
+            }
 
-			// pour réf gérées par référence
+            // pour réf gérées par référence
             foreach ($demande->getLigneArticle() as $ligne) {
-				$articleRef = $ligne->getReference();
+                $articleRef = $ligne->getReference();
 
                 $stock = $articleRef->getQuantiteStock();
                 $quantiteReservee = $ligne->getQuantite();
@@ -138,9 +139,9 @@ class DemandeController extends AbstractController
                     }
                 }
 
-				if ($quantiteReservee > $stock) {
-					return new JsonResponse(false);
-				}
+                if ($quantiteReservee > $stock && ($ligneArticle->getToSeparate() === null || $ligneArticle->getToSeparate() === false)) {
+                    return new JsonResponse(false);
+                }
             }
 
             return $this->finish($request);
@@ -177,8 +178,8 @@ class DemandeController extends AbstractController
             $em->persist($preparation);
 
             // modification du statut articles => en transit
-			$articles = $demande->getArticles();
-			foreach ($articles as $article) {
+            $articles = $demande->getArticles();
+            foreach ($articles as $article) {
                 $article->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
             }
             $em->flush();
@@ -205,9 +206,9 @@ class DemandeController extends AbstractController
     public function editApi(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-			if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::CREATE_EDIT)) {
-				return $this->redirectToRoute('access_denied');
-			}
+            if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::CREATE_EDIT)) {
+                return $this->redirectToRoute('access_denied');
+            }
 
             $demande = $this->demandeRepository->find($data['id']);
 
@@ -379,7 +380,7 @@ class DemandeController extends AbstractController
         return $this->render('demande/show.html.twig', [
 
             'demande' => $demande,
-           //'preparation' => $this->preparationRepository->findOneByPreparation($demande),
+            //'preparation' => $this->preparationRepository->findOneByPreparation($demande),
             'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
             'statuts' => $this->statutRepository->findByCategorieName(Demande::CATEGORIE),
             'references' => $this->referenceArticleRepository->getIdAndLibelle(),
@@ -422,7 +423,8 @@ class DemandeController extends AbstractController
             }
             $articles = $this->articleRepository->getByDemande($demande);
             $rowsCA = [];
-            foreach ($articles as $article) { /** @var Article $article */
+            foreach ($articles as $article) {
+                /** @var Article $article */
                 $rowsCA[] = [
                     "Référence CEA" => ($article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : ''),
                     "Libellé" => ($article->getLabel() ? $article->getLabel() : ''),
@@ -461,16 +463,33 @@ class DemandeController extends AbstractController
             $referenceArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
             $demande = $this->demandeRepository->find($data['demande']);
             if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-                $article = $this->articleRepository->find($data['article']);
-                $demande->addArticle($article);
-                $article->setQuantiteAPrelever(max($data['quantitie'], 0)); // protection contre quantités négatives
+                if ($data['wantGlobal']) {
+                    if ($this->ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
+                        $ligneArticle = new LigneArticle();
+                        $ligneArticle
+                            ->setQuantite(max($data["quantitie"], 0))// protection contre quantités négatives
+                            ->setToSeparate(true)
+                            ->setReference($referenceArticle);
+                        $em->persist($ligneArticle);
+                        $demande
+                            ->addLigneArticle($ligneArticle);
+                    } else {
+                        $ligneArticle = $this->ligneArticleRepository->findOneByRefArticleAndDemandeAndScission($referenceArticle, $demande);
+                        $ligneArticle
+                            ->setQuantite($ligneArticle->getQuantite() + max($data["quantitie"], 0));
+                    }
+                } else {
+                    $article = $this->articleRepository->find($data['article']);
+                    $demande->addArticle($article);
+                    $article->setQuantiteAPrelever(max($data['quantitie'], 0)); // protection contre quantités négatives
 
-                $this->articleDataService->editArticle($data);
+                    $this->articleDataService->editArticle($data);
+                }
             } elseif ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                 if ($this->ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
                     $ligneArticle = new LigneArticle();
                     $ligneArticle
-                        ->setQuantite(max($data["quantitie"], 0)) // protection contre quantités négatives
+                        ->setQuantite(max($data["quantitie"], 0))// protection contre quantités négatives
                         ->setReference($referenceArticle);
                     $em->persist($ligneArticle);
                 } else {
@@ -564,6 +583,65 @@ class DemandeController extends AbstractController
             $count = count($articles) + count($references);
 
             return new JsonResponse($count > 0);
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/besoin-scission", name="need_scission", options={"expose"=true}, methods={"GET", "POST"})
+     */
+    public function needScission(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $demande = $this->demandeRepository->find($data['demande']);
+            $need = false;
+            foreach ($demande->getLigneArticle() as $ligneArticle) {
+                if ($ligneArticle->getToSeparate()) {
+                    $need = true;
+                }
+            }
+            $data['need'] = $need;
+
+            return new JsonResponse($data);
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/changer-gestion", name="switch_choice", options={"expose"=true}, methods={"GET", "POST"})
+     */
+    public function switchChoice(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $refArticle = $this->referenceArticleRepository->find($data['reference']);
+            $response = [];
+            if ($data['checked']) {
+                $statutArticleActif = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
+                $articles = $this->articleRepository->findByRefArticleAndStatutWithoutDemand($refArticle, $statutArticleActif);
+                $maximum = 0;
+                foreach ($articles as $article) {
+                    $maximum += $article->getQuantite();
+                }
+                $response['content'] = $this->renderView('demande/newRefArticleByQuantiteArticleAndChoiceContent.html.twig', [
+                    'clicked' => false,
+                    'maximum' => $maximum,
+                    'reference' => $refArticle->getId(),
+                ]);
+            } else {
+                $statutArticleActif = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
+                $articles = $this->articleRepository->findByRefArticleAndStatutWithoutDemand($refArticle, $statutArticleActif);
+
+                if (count($articles) < 1) {
+                    $articles[] = [
+                        'id' => '',
+                        'reference' => 'aucun article disponible',
+                    ];
+                }
+                $response['content'] = $this->renderView('demande/newRefArticleByQuantiteArticleContent.html.twig', [
+                    'articles' => $articles
+                ]);
+            }
+            return new JsonResponse($response);
         }
         throw new NotFoundHttpException('404');
     }

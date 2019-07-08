@@ -47,6 +47,22 @@ class LigneArticleRepository extends ServiceEntityRepository
         return $query->getOneOrNullResult();
     }
 
+    public function findOneByRefArticleAndDemandeAndScission($referenceArticle, $demande)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT l
+            FROM App\Entity\LigneArticle l
+            WHERE l.reference = :referenceArticle AND l.demande = :demande AND l.toSeparate = 1
+            "
+        )->setParameters([
+            'referenceArticle' => $referenceArticle,
+            'demande' => $demande
+        ]);
+
+        return $query->getOneOrNullResult();
+    }
+
     public function getByDemande($demande)
     {
         $entityManager = $this->getEntityManager();
@@ -67,6 +83,21 @@ class LigneArticleRepository extends ServiceEntityRepository
             "SELECT COUNT(l)
             FROM App\Entity\LigneArticle l
             WHERE l.reference = :referenceArticle AND l.demande = :demande
+            "
+        )->setParameters([
+            'referenceArticle' => $referenceArticle,
+            'demande' => $demande
+        ]);;
+        return $query->getSingleScalarResult();
+    }
+
+    public function countByRefArticleDemandeAndScission($referenceArticle, $demande)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT COUNT(l)
+            FROM App\Entity\LigneArticle l
+            WHERE l.reference = :referenceArticle AND l.demande = :demande AND l.toSeparate = 1
             "
         )->setParameters([
             'referenceArticle' => $referenceArticle,

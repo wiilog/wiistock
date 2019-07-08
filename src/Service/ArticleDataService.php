@@ -247,23 +247,39 @@ class ArticleDataService
                 'selection' => $this->templating->render('demande/newRefArticleByQuantiteRefContent.html.twig'),
             ];
         } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-            $statutArticleActif = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
-            $articles = $this->articleRepository->findByRefArticleAndStatutWithoutDemand($refArticle, $statutArticleActif);
+            if ($this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::CHOIX)) {
+                $statutArticleActif = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
+                $articles = $this->articleRepository->findByRefArticleAndStatutWithoutDemand($refArticle, $statutArticleActif);
+                $maximum = 0;
+                foreach ($articles as $article) {
+                    $maximum+=$article->getQuantite();
+                }
+                $data = [
+                    'selection' => $this->templating->render('demande/newRefArticleByQuantiteArticleAndChoiceContent.html.twig', [
+                        'maximum' => $maximum,
+                        'reference' => $refArticle->getId(),
+                        'clicked' => true
+                    ]),
+                ];
+            } else {
+                $statutArticleActif = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
+                $articles = $this->articleRepository->findByRefArticleAndStatutWithoutDemand($refArticle, $statutArticleActif);
 
-            if (count($articles) < 1) {
-                $articles[] = [
-                    'id' => '',
-                    'reference' => 'aucun article disponible',
+                if (count($articles) < 1) {
+                    $articles[] = [
+                        'id' => '',
+                        'reference' => 'aucun article disponible',
+                    ];
+                }
+                $data = [
+                    'selection' => $this->templating->render(
+                        'demande/newRefArticleByQuantiteArticleContent.html.twig',
+                        [
+                            'articles' => $articles,
+                        ]
+                    )
                 ];
             }
-            $data = [
-                'selection' => $this->templating->render(
-                    'demande/newRefArticleByQuantiteArticleContent.html.twig',
-                    [
-                        'articles' => $articles,
-                    ]
-                )
-            ];
         } else {
             $data = false; //TODO gérer erreur retour
         }

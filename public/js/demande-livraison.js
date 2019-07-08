@@ -257,6 +257,18 @@ function ajaxGetAndFillArticle(select) {
     }
 }
 
+function switchWantedGlobal(checkbox) {
+    let path = Routing.generate('switch_choice', true);
+    let params = {
+        'checked' : checkbox.is(':checked'),
+        'reference' : checkbox.data('ref')
+    }
+    $.post(path, JSON.stringify(params), function(data) {
+        $('#choiceContent').html(data.content);
+        $('.error-msg').html('');
+    });
+}
+
 function deleteRowDemande(button, modal, submit) {
     let id = button.data('id');
     let name = button.data('name');

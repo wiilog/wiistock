@@ -34,6 +34,11 @@ class LigneArticle
      */
     private $demande;
 
+    /**
+     * @ORM\Column(type="boolean", nullable=true)
+     */
+    private $toSeparate;
+
 
     public function getId(): ?int
     {
@@ -72,6 +77,18 @@ class LigneArticle
     public function setDemande(?Demande $demande): self
     {
         $this->demande = $demande;
+
+        return $this;
+    }
+
+    public function getToSeparate(): ?bool
+    {
+        return $this->toSeparate;
+    }
+
+    public function setToSeparate(?bool $toSeparate): self
+    {
+        $this->toSeparate = $toSeparate;
 
         return $this;
     }

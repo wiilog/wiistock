@@ -86,9 +86,9 @@ class PreparationController extends AbstractController
      */
     private $articleDataService;
 
-	/**
-	 * @var SpecificService
-	 */
+    /**
+     * @var SpecificService
+     */
     private $specificService;
 
     public function __construct(SpecificService $specificService, LivraisonRepository $livraisonRepository, ArticleDataService $articleDataService, PreparationRepository $preparationRepository, LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, StatutRepository $statutRepository, DemandeRepository $demandeRepository, ReferenceArticleRepository $referenceArticleRepository, UserService $userService)
@@ -106,7 +106,7 @@ class PreparationController extends AbstractController
     }
 
     /**
-     * @Route("/creer", name="", methods="POST") 
+     * @Route("/creer", name="", methods="POST")
      */
     public function new(Request $request): Response
     {
@@ -241,7 +241,7 @@ class PreparationController extends AbstractController
 
 
     /**
-     * @Route("/api_article/{id}", name="preparation_article_api", options={"expose"=true}, methods={"GET", "POST"}) 
+     * @Route("/api_article/{id}", name="preparation_article_api", options={"expose"=true}, methods={"GET", "POST"})
      */
     public function lignePreparationApi(Request $request, $id): Response
     {
@@ -265,7 +265,7 @@ class PreparationController extends AbstractController
                         "Quantité" => ($ligneArticle->getReference() ? $ligneArticle->getReference()->getQuantiteStock() : ' '),
                         "Quantité à prélever" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ' '),
                         "Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
-                                 'refArticleId' => $ligneArticle->getReference()->getId(),
+                            'refArticleId' => $ligneArticle->getReference()->getId(),
                         ])
                     ];
                 }
@@ -281,7 +281,7 @@ class PreparationController extends AbstractController
                         "Quantité à prélever" => $ligneArticle->getQuantiteAPrelever() ? $ligneArticle->getQuantiteAPrelever() : '',
                         "Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
                             'id' => $ligneArticle->getId()
-                   ])
+                        ])
                     ];
                 }
 
@@ -329,7 +329,7 @@ class PreparationController extends AbstractController
                 ->setStatut($this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_BROUILLON));
 
             foreach ($demande->getArticles() as $article) {
-            	$article->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF));
+                $article->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF));
                 if ($article->getQuantiteAPrelever()) {
                     $article->setQuantite($article->getQuantiteAPrelever());
                     $article->setQuantiteAPrelever(0);
@@ -340,6 +340,85 @@ class PreparationController extends AbstractController
         $em->remove($preparation);
         $em->flush();
         return $this->redirectToRoute('preparation_index');
+    }
+
+    /**
+     * @Route("/commencer-scission", name="start_scission", options={"expose"=true}, methods="GET|POST")
+     */
+    public function startScission(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $demande = $this->demandeRepository->find($data['demande']);
+            $response = [];
+            $key = 0;
+            foreach ($demande->getLigneArticle() as $ligneArticle) {
+                $refArticle = $ligneArticle->getReference();
+                $statutArticleActif = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
+                $articles = $this->articleRepository->findByRefArticleAndStatutWithoutDemand($refArticle, $statutArticleActif);
+                if ($ligneArticle->getToSeparate()) {
+                    $response['prepas'][] = $this->renderView('preparation/modalScission.html.twig', [
+                        'reference' => $refArticle->getReference(),
+                        'articles' => $articles,
+                        'index' => $key,
+                        'quantite' => $ligneArticle->getQuantite(),
+                        'preparation' => $ligneArticle->getDemande()->getPreparation(),
+                        'demande' => $ligneArticle->getDemande()
+                    ]);
+                    $key++;
+                }
+            }
+            return new JsonResponse($response);
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/finir-scission", name="submit_scission", options={"expose"=true}, methods="GET|POST")
+     */
+    public function submitScission(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $withdrawn = 0;
+            $em = $this->getDoctrine()->getManager();
+            $demande = $this->demandeRepository->find($data['demande']);
+            $reached = false;
+            foreach ($data['articles'] as $idArticle) {
+                $article = $this->articleRepository->find($idArticle);
+                if (!$reached) $article->setDemande($demande);
+                $em->flush();
+                $withdrawn += $article->getQuantite();
+                if ($withdrawn > $data['quantite'] && !$reached) {
+                    $newArticle = [
+                        'articleFournisseur' => $article->getArticleFournisseur()->getId(),
+                        'libelle' => $article->getLabel(),
+                        'conform' => !$article->getConform(),
+                        'commentaire' => $article->getcommentaire(),
+                        'quantite' => $withdrawn - $data['quantite'],
+                        'emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getId() : '',
+                        'statut' => 'actif',
+                    ];
+
+                    foreach ($article->getValeurChampsLibres() as $valeurChampLibre) {
+//                    	spécifique CEA : vider le champ libre code projet
+                        $labelCL = strtolower($valeurChampLibre->getChampLibre()->getLabel());
+                        if (!(
+                            $this->specificService->isCurrentClientNameFunction(ParamClient::CEA_LETI)
+                            && ($labelCL == 'code projet' || $labelCL == 'destinataire'))) {
+                            $newArticle[$valeurChampLibre->getChampLibre()->getId()] = $valeurChampLibre->getValeur();
+                        }
+                    }
+                    $this->articleDataService->newArticle($newArticle);
+                    $article->setQuantite($article->getQuantite() - ($withdrawn - $data['quantite']));
+                    $reached = true;
+                    $em->flush();
+                }
+            }
+            $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
+            $em->remove($this->ligneArticleRepository->findOneByRefArticleAndDemandeAndScission($refArticle, $demande));
+            $em->flush();
+            return new JsonResponse();
+        }
+        throw new NotFoundHttpException('404');
     }
 
     /**
@@ -354,11 +433,11 @@ class PreparationController extends AbstractController
             $em = $this->getDoctrine()->getManager();
 
             //modification des articles  de la demande 
-            $demande = $this->demandeRepository->find($data);
+            $demande = $this->demandeRepository->find($data['demande']);
             $articles = $demande->getArticles();
             foreach ($articles as $article) {
-				// scission des articles dont la quantité prélevée n'est pas totale
-				if ($article->getQuantite() !== $article->getQuantiteAPrelever()) {
+                // scission des articles dont la quantité prélevée n'est pas totale
+                if ($article->getQuantite() !== $article->getQuantiteAPrelever() && !in_array($article->getId(), $data['articles'])) {
                     $newArticle = [
                         'articleFournisseur' => $article->getArticleFournisseur()->getId(),
                         'libelle' => $article->getLabel(),
@@ -371,12 +450,12 @@ class PreparationController extends AbstractController
 
                     foreach ($article->getValeurChampsLibres() as $valeurChampLibre) {
 //                    	spécifique CEA : vider le champ libre code projet
-						$labelCL = strtolower($valeurChampLibre->getChampLibre()->getLabel());
-						if (!(
-							$this->specificService->isCurrentClientNameFunction(ParamClient::CEA_LETI)
-							&& ($labelCL == 'code projet' || $labelCL == 'destinataire'))) {
-                        		$newArticle[$valeurChampLibre->getChampLibre()->getId()] = $valeurChampLibre->getValeur();
-						}
+                        $labelCL = strtolower($valeurChampLibre->getChampLibre()->getLabel());
+                        if (!(
+                            $this->specificService->isCurrentClientNameFunction(ParamClient::CEA_LETI)
+                            && ($labelCL == 'code projet' || $labelCL == 'destinataire'))) {
+                            $newArticle[$valeurChampLibre->getChampLibre()->getId()] = $valeurChampLibre->getValeur();
+                        }
                     }
                     $this->articleDataService->newArticle($newArticle);
 

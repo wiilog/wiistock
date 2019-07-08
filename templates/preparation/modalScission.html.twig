@@ -1,0 +1,43 @@
+<div class="modal fade" id="modalScission" tabindex="-1" role="dialog"
+     aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="scissionTitle" data-restant ="{{ quantite }}">Choix d'articles pour la référence {{ reference }} (Quantité restante à prélever : {{ quantite }})</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-striped" id="tableScissionArticles">
+                    <thead>
+                    <tr>
+                        <th>Article</th>
+                        <th>Quantité</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for article in articles %}
+
+                        <tr>
+                            <td>{{ article.label }}</td>
+                            <td>{{ article.quantite }}</td>
+                            <td>
+                                <input class="form-check-input" data-ref="{{ reference }}" data-total="{{ quantite }}"
+                                       data-quantite="{{ article.quantite }}" type="checkbox" data-name="{{ article.label }}" data-id="{{ article.id }}" onclick="addToScission($(this))">
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+
+            </div>
+            <div class="error-msg p-4"></div>
+            <div class="modal-footer">
+                <div class="btn" data-dismiss="modal">Fermer</div>
+                <div class="btn btn-primary" data-qtt="{{ quantite }}" data-demande="{{ demande.id }}" data-index="{{ index }}" data-prep="{{ preparation.id }}" onclick="submitScission($(this))">Enregistrer</div>
+            </div>
+        </div>
+    </div>
+</div>

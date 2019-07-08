@@ -1,0 +1,17 @@
+{% if clicked == true %}
+<div class="form-group col-12 d-flex mb-3">
+    <label class="switch">
+        <input class="checkbox data" type="checkbox" name="wantGlobal" checked onchange="switchWantedGlobal($(this))"
+               data-ref={{ reference }}>
+        <span class="slider round"></span>
+    </label>
+    Gestion Globale
+</div>
+{% endif %}
+<div id="choiceContent">
+    <div class="form-group col-12 d-flex  mb-3">
+        <label for="quantity-to-deliver">Quantité à livrer</label>
+        <input class="form-control data needed" type="number" min=1 max={{ maximum}} id="quantity-to-deliver-with-choice"
+               name="quantitie" value="0">
+    </div>
+</div>
