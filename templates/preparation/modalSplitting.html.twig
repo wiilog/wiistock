@@ -3,7 +3,7 @@
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="scissionTitle" data-restant ="{{ quantite }}">Choix d'articles pour la référence {{ reference }} (Quantité restante à prélever : {{ quantite }})</h5>
+                <h5 class="modal-title" id="scissionTitle" data-restant ="{{ quantite }}">Choix d'articles pour la référence {{ reference }}</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="exitScissionModal()">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -24,7 +24,7 @@
                             <td>{{ article.label }}</td>
                             <td>{{ article.quantite }}</td>
                             <td>
-                                <label class="pr-2">Selectionner ? </label>
+                                <label class="pr-2">Sélectionner ? </label>
                                 <label class="switch">
                                     <input class="checkbox" data-ref="{{ reference }}" data-total="{{ quantite }}"
                                            data-quantite="{{ article.quantite }}" type="checkbox" data-name="{{ article.label }}" data-id="{{ article.id }}" onchange="addToScission($(this))">
@@ -35,7 +35,7 @@
                     {% endfor %}
                     </tbody>
                 </table>
-                <div id="quantiteRestante" class="pt-2">Quantité restante : {{ quantite }}</div>
+                <div id="quantiteRestante" class="pt-2 pr-2 bold text-right">Quantité restante : {{ quantite }}</div>
             </div>
             <div class="error-msg p-4"></div>
             <div class="modal-footer">

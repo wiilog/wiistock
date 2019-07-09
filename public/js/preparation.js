@@ -80,6 +80,9 @@ let startPreparation = function (value) {
                     "language": {
                         url: "/js/i18n/dataTableLanguage.json",
                     },
+                    searching: false,
+                    paging: false,
+                    info: false
                 });
                 $('#startSplitting').click();
             });
@@ -136,7 +139,7 @@ function addToScission(checkbox) {
         toSee = $('#scissionTitle').attr('data-restant');
     }
     $('#quantiteRestante').html('Quantité restante ' + toSee);
-    $('#scissionTitle').html("Choix d'articles pour la référence " + checkbox.data('ref') + " (Quantité restante à prélever : " + toSee + ")");
+    $('#scissionTitle').html("Choix d'articles pour la référence " + checkbox.data('ref'));
 }
 
 function exitScissionModal() {

@@ -222,7 +222,8 @@ class DemandeController extends AbstractController
                     [
                         'demande' => $demande,
                         'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
-                    ]
+						'champsLibres' => $this->valeurChampLibreRepository->getByDemandeLivraison($demande)
+					]
                 ),
             ];
 
@@ -724,7 +725,7 @@ class DemandeController extends AbstractController
             $json = $this->renderView('demande/modalEditArticleContent.html.twig', [
                 'ligneArticle' => $ligneArticle,
                 'maximum' => $qtt,
-                'toSeparate' => $ligneArticle->getToSplit()
+                'toSplit' => $ligneArticle->getToSplit()
             ]);
 
             return new JsonResponse($json);
