@@ -410,7 +410,13 @@ class ArticleDataService
         $entityManager = $this->em;
         $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $data['statut'] === Article::STATUT_ACTIF ? Article::STATUT_ACTIF : Article::STATUT_INACTIF);
         $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
-        $ref = $date->format('YmdHis');
+        $ref = $date->format('dm');
+
+        $referenceArticle = $this->referenceArticleRepository->find($data['refArticle'])->getReference();
+        $referenceArticles = $this->articleRepository->findByReference($referenceArticle);
+
+        $i = $referenceArticles + 1;
+        $cpt = sprintf('%05u',$i);
 
         $toInsert = new Article();
         $type = $this->articleFournisseurRepository->find($data['articleFournisseur'])->getReferenceArticle()->getType();
@@ -419,7 +425,7 @@ class ArticleDataService
             ->setConform(!$data['conform'])
             ->setStatut($statut)
             ->setCommentaire($data['commentaire'])
-            ->setReference($ref . '-0')
+            ->setReference($referenceArticle.$ref.$cpt)
             ->setQuantite(max((int)$data['quantite'], 0))  // protection contre quantités négatives
             ->setEmplacement($this->emplacementRepository->find($data['emplacement']))
             ->setArticleFournisseur($this->articleFournisseurRepository->find($data['articleFournisseur']))
