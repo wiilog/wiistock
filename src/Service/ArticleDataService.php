@@ -289,14 +289,21 @@ class ArticleDataService
         ];
     }
 
+	/**
+	 * @param Article $article
+	 * @param bool $isADemand
+	 * @return string
+	 * @throws \Twig_Error_Loader
+	 * @throws \Twig_Error_Runtime
+	 * @throws \Twig_Error_Syntax
+	 */
     public function getViewEditArticle($article, $isADemand = false)
     {
         $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
         $typeArticle = $refArticle->getType();
         $typeArticleLabel = $typeArticle->getLabel();
-        $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::ARTICLE);
 
-        $champsLibresComplet = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($typeArticleLabel, $categorieCL);
+        $champsLibresComplet = $this->champsLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
         $champsLibres = [];
         foreach ($champsLibresComplet as $champLibre) { /** @var ChampsLibre $champLibre */
             $valeurChampArticle = $this->valeurChampsLibreRepository->findOneByChampLibreAndArticle($champLibre->getId(), $article->getId());
