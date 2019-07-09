@@ -293,6 +293,7 @@ class ArticleDataService
                         'maximum' => $maximum,
                         'reference' => $refArticle->getId(),
 						'byRef' => $paramQuantite->getValue() == Parametre::VALUE_PAR_REF,
+                        'articles' => $articles
                     ]),
                 ];
             } else {
