@@ -1031,7 +1031,6 @@ class ReferenceArticleController extends Controller
      */
     public function getDemande(Request $request): Response
     {
-        dump("demande0");
         if ($request->isXmlHttpRequest() && $data= json_decode($request->getContent(), true)) {
 
             $statutDemande = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_BROUILLON);

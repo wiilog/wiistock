@@ -290,7 +290,7 @@ class DemandeController extends AbstractController
     }
 
     /**
-     * @Route("/", name="demande_index", methods={"GET"})
+     * @Route("/", name="demande_index", methods="GET|POST", options={"expose"=true})
      */
     public function index(): Response
     {

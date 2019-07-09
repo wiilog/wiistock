@@ -243,6 +243,7 @@ function toggleRadioButton(button, typeDemande) {
     let demande = $('#demande');
     let params = JSON.stringify( {demande: demande, typeDemande: typeDemande});
 
+    let boutonNouvelleDemande = button.closest('.modal').find('.boutonCreationDemande');
     let sel = button.data('title');
     let tog = button.data('toggle');
     $('#' + tog).prop('value', sel);
@@ -250,14 +251,24 @@ function toggleRadioButton(button, typeDemande) {
     $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
 
     $.post(path, params, function (data) {
-        if(data === false){
+        if(data === false ){
             $('.error-msg').html('Vous n\'avez créé aucune demande de ' + typeDemande + '.');
-            button.closest('.modal').find('.boutonCreation').removeClass('d-none');
+            boutonNouvelleDemande.removeClass('d-none');
+            let pathIndex;
+            if(typeDemande === 'livraison'){
+                pathIndex = Routing.generate('demande_index', true);
+            } else {
+                pathIndex = Routing.generate('collecte_index', true);
+            }
+
+            boutonNouvelleDemande.find('#creationDemande').html(
+                "<a href=\'" + pathIndex + "\'>Nouvelle demande de "  + typeDemande + "</a>"
+            );
             button.closest('.modal').find('.plusDemandeContent').addClass('d-none');
         }
         else{
             ajaxPlusDemandeContent(button, typeDemande);
-            button.closest('.modal').find('.boutonCreation').addClass('d-none');
+            button.closest('.modal').find('.boutonCreationDemande').addClass('d-none');
             button.closest('.modal').find('.plusDemandeContent').removeClass('d-none');
             button.closest('.modal').find('.editChampLibre').removeClass('d-none');
         }

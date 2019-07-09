@@ -135,7 +135,7 @@ class CollecteController extends AbstractController
     }
 
     /**
-     * @Route("/", name="collecte_index", methods={"GET", "POST"})
+     * @Route("/", name="collecte_index", options={"expose"=true}, methods={"GET", "POST"})
      */
     public function index(): Response
     {
