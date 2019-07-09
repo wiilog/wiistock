@@ -427,10 +427,24 @@ class DemandeController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
+        $types = $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
+
+		$typeChampLibre = [];
+		foreach ($types as $type) {
+			$champsLibres = $this->champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON);
+
+			$typeChampLibre[] = [
+				'typeLabel' =>  $type->getLabel(),
+				'typeId' => $type->getId(),
+				'champsLibres' => $champsLibres,
+			];
+		}
+
         return $this->render('demande/index.html.twig', [
             'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
             'statuts' => $this->statutRepository->findByCategorieName(Demande::CATEGORIE),
             'emplacements' => $this->emplacementRepository->getIdAndNom(),
+			'typeChampsLibres' => $typeChampLibre,
         ]);
     }
 
@@ -506,6 +520,8 @@ class DemandeController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
+        $valeursChampLibre = $this->valeurChampLibreRepository->getByDemandeLivraison($demande);
+
         return $this->render('demande/show.html.twig', [
 
             'demande' => $demande,
@@ -516,6 +532,7 @@ class DemandeController extends AbstractController
             'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
             'emplacements' => $this->emplacementRepository->findAll(),
             'finished' => ($demande->getStatut()->getNom() === Demande::STATUT_A_TRAITER),
+			'champsLibres' => $valeursChampLibre
         ]);
     }
 
