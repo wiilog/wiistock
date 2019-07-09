@@ -3,21 +3,28 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\CategorieCL;
+use App\Entity\CategoryType;
 use App\Entity\Demande;
 use App\Entity\Menu;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\LigneArticle;
 
+use App\Entity\ValeurChampsLibre;
+use App\Repository\CategorieCLRepository;
+use App\Repository\ChampsLibreRepository;
 use App\Repository\DemandeRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\LigneArticleRepository;
 use App\Repository\StatutRepository;
 use App\Repository\EmplacementRepository;
+use App\Repository\TypeRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\PreparationRepository;
 
+use App\Repository\ValeurChampsLibreRepository;
 use App\Service\ArticleDataService;
 use App\Service\RefArticleDataService;
 use App\Service\UserService;
@@ -89,8 +96,27 @@ class DemandeController extends AbstractController
      */
     private $articleDataService;
 
+	/**
+	 * @var TypeRepository
+	 */
+    private $typeRepository;
 
-    public function __construct(PreparationRepository $preparationRepository, ArticleRepository $articleRepository, LigneArticleRepository $ligneArticleRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, UserService $userService, RefArticleDataService $refArticleDataService, ArticleDataService $articleDataService)
+    /**
+	 * @var ChampsLibreRepository
+	 */
+    private $champLibreRepository;
+
+	/**
+	 * @var ValeurChampsLibreRepository
+	 */
+    private $valeurChampLibreRepository;
+	/**
+	 * @var CategorieCLRepository
+	 */
+    private $categorieCLRepository;
+
+
+    public function __construct(ValeurChampsLibreRepository $valeurChampLibreRepository, CategorieCLRepository $categorieCLRepository, ChampsLibreRepository $champLibreRepository, TypeRepository $typeRepository, PreparationRepository $preparationRepository, ArticleRepository $articleRepository, LigneArticleRepository $ligneArticleRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, UserService $userService, RefArticleDataService $refArticleDataService, ArticleDataService $articleDataService)
     {
         $this->statutRepository = $statutRepository;
         $this->emplacementRepository = $emplacementRepository;
@@ -103,6 +129,10 @@ class DemandeController extends AbstractController
         $this->refArticleDataService = $refArticleDataService;
         $this->articleDataService = $articleDataService;
         $this->preparationRepository = $preparationRepository;
+        $this->typeRepository = $typeRepository;
+        $this->champLibreRepository = $champLibreRepository;
+        $this->categorieCLRepository = $categorieCLRepository;
+        $this->valeurChampLibreRepository = $valeurChampLibreRepository;
     }
     /**
      * @Route("/compareStock", name="compare_stock", options={"expose"=true}, methods="GET|POST")
@@ -211,8 +241,34 @@ class DemandeController extends AbstractController
 
             $demande = $this->demandeRepository->find($data['id']);
 
+			$typesDL = $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
+			$typeChampLibre =  [];
+
+			foreach ($typesDL as $type) {
+				$champsLibres = $this->champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON);
+				$champsLibresArray = [];
+				foreach ($champsLibres as $champLibre) {
+					$valeurChampDL = $this->valeurChampLibreRepository->getValueByDemandeLivraisonAndChampLibre($demande, $champLibre);
+					$champsLibresArray[] = [
+						'id' => $champLibre->getId(),
+						'label' => $champLibre->getLabel(),
+						'typage' => $champLibre->getTypage(),
+						'elements' => ($champLibre->getElements() ? $champLibre->getElements() : ''),
+						'defaultValue' => $champLibre->getDefaultValue(),
+						'valeurChampLibre' => $valeurChampDL,
+					];
+				}
+				$typeChampLibre[] = [
+					'typeLabel' =>  $type->getLabel(),
+					'typeId' => $type->getId(),
+					'champsLibres' => $champsLibresArray,
+				];
+			}
+
             $json = $this->renderView('demande/modalEditDemandeContent.html.twig', [
                 'demande' => $demande,
+				'types' => $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON),
+				'typeChampsLibres' => $typeChampLibre
             ]);
 
             return new JsonResponse($json);
@@ -230,24 +286,64 @@ class DemandeController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $utilisateur = $this->utilisateurRepository->find(intval($data['demandeur']));
-            $emplacement = $this->emplacementRepository->find(intval($data['destination']));
-            $demande = $this->demandeRepository->find($data['demandeId']);
-            $demande
-                ->setUtilisateur($utilisateur)
-                ->setDestination($emplacement)
-                ->setCommentaire($data['commentaire']);
-            $em = $this->getDoctrine()->getEntityManager();
-            $em->flush();
+			// vérification des champs Libres obligatoires
+			$requiredEdit = true;
+			$type =  $this->typeRepository->find(intval($data['type']));
+			$CLRequired = $this->champLibreRepository->getByTypeAndRequiredEdit($type);
+			foreach ($CLRequired as $CL) {
+				if (array_key_exists($CL['id'], $data) and $data[$CL['id']] === "") {
+					$requiredEdit = false;
+				}
+			}
 
-            $json = [
-                'entete' => $this->renderView('demande/enteteDemandeLivraison.html.twig', [
-                    'demande' => $demande,
-                    'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
-                ]),
-            ];
+			if ($requiredEdit) {
+				$utilisateur = $this->utilisateurRepository->find(intval($data['demandeur']));
+				$emplacement = $this->emplacementRepository->find(intval($data['destination']));
+				$type = $this->typeRepository->find(intval($data['type']));
+				$demande = $this->demandeRepository->find($data['demandeId']);
+				$demande
+					->setUtilisateur($utilisateur)
+					->setDestination($emplacement)
+					->setType($type)
+					->setCommentaire($data['commentaire']);
+				$em = $this->getDoctrine()->getEntityManager();
+				$em->flush();
 
-            return new JsonResponse($json);
+				// modification ou création des champs libres
+				$champsLibreKey = array_keys($data);
+
+				foreach ($champsLibreKey as $champ) {
+					if (gettype($champ) === 'integer') {
+						$champLibre = $this->champLibreRepository->find($champ);
+						$valeurChampLibre = $this->valeurChampLibreRepository->findOneByDemandeLivraisonAndChampsLibre($demande, $champLibre);
+
+						// si la valeur n'existe pas, on la crée
+						if (!$valeurChampLibre) {
+							$valeurChampLibre = new ValeurChampsLibre();
+							$valeurChampLibre
+								->addDemandesLivraison($demande)
+								->setChampLibre($this->champLibreRepository->find($champ));
+							$em->persist($valeurChampLibre);
+						}
+						$valeurChampLibre->setValeur($data[$champ]);
+						$em->flush();
+					}
+				}
+
+				$response = [
+					'entete' => $this->renderView('demande/enteteDemandeLivraison.html.twig', [
+						'demande' => $demande,
+						'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
+						'champsLibres' => $this->valeurChampLibreRepository->getByDemandeLivraison($demande)
+					]),
+				];
+
+			} else {
+				$response['success'] = false;
+				$response['msg'] = "Tous les champs obligatoires n'ont pas été renseignés.";
+			}
+
+            return new JsonResponse($response);
         }
         throw new NotFoundHttpException('404');
     }
@@ -262,21 +358,55 @@ class DemandeController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
+            // protection champs libres obligatoires
+			$requiredCreate = true;
+			$type = $this->typeRepository->find($data['type']);
+
+			$CLRequired = $this->champLibreRepository->getByTypeAndRequiredCreate($type);
+			$msgMissingCL = '';
+			foreach ($CLRequired as $CL) {
+				if (array_key_exists($CL['id'], $data) and $data[$CL['id']] === "") {
+					$requiredCreate = false;
+					if (!empty($msgMissingCL)) $msgMissingCL .= ', ';
+					$msgMissingCL .= $CL['label'];
+				}
+			}
+			if (!$requiredCreate) {
+				return new JsonResponse(['success' => false, 'msg' => 'Veuillez renseigner les champs obligatoires : ' . $msgMissingCL]);
+			}
+
             $em = $this->getDoctrine()->getManager();
             $utilisateur = $this->utilisateurRepository->find($data['demandeur']);
             $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
             $statut = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
             $destination = $this->emplacementRepository->find($data['destination']);
+            $type = $this->typeRepository->find($data['type']);
             $demande = new Demande();
             $demande
                 ->setStatut($statut)
                 ->setUtilisateur($utilisateur)
                 ->setdate($date)
-                //                ->setDateAttendu(new \DateTime($data['dateAttendu']))
+				->setType($type)
                 ->setDestination($destination)
                 ->setNumero('D-' . $date->format('YmdHis'))
                 ->setCommentaire($data['commentaire']);
             $em->persist($demande);
+
+			// enregistrement des champs libres
+			$champsLibreKey = array_keys($data);
+
+			foreach ($champsLibreKey as $champs) {
+				if (gettype($champs) === 'integer') {
+					$valeurChampLibre = new ValeurChampsLibre();
+					$valeurChampLibre
+						->setValeur($data[$champs])
+						->addDemandesLivraison($demande)
+						->setChampLibre($this->champLibreRepository->find($champs));
+					$em->persist($valeurChampLibre);
+					$em->flush();
+				}
+			}
+
             $em->flush();
 
             $data = [
@@ -297,10 +427,24 @@ class DemandeController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
+        $types = $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
+
+		$typeChampLibre = [];
+		foreach ($types as $type) {
+			$champsLibres = $this->champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON);
+
+			$typeChampLibre[] = [
+				'typeLabel' =>  $type->getLabel(),
+				'typeId' => $type->getId(),
+				'champsLibres' => $champsLibres,
+			];
+		}
+
         return $this->render('demande/index.html.twig', [
             'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
             'statuts' => $this->statutRepository->findByCategorieName(Demande::CATEGORIE),
             'emplacements' => $this->emplacementRepository->getIdAndNom(),
+			'typeChampsLibres' => $typeChampLibre,
         ]);
     }
 
@@ -376,16 +520,17 @@ class DemandeController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
+        $valeursChampLibre = $this->valeurChampLibreRepository->getByDemandeLivraison($demande);
         return $this->render('demande/show.html.twig', [
 
             'demande' => $demande,
-           //'preparation' => $this->preparationRepository->findOneByPreparation($demande),
             'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
             'statuts' => $this->statutRepository->findByCategorieName(Demande::CATEGORIE),
             'references' => $this->referenceArticleRepository->getIdAndLibelle(),
             'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
             'emplacements' => $this->emplacementRepository->findAll(),
             'finished' => ($demande->getStatut()->getNom() === Demande::STATUT_A_TRAITER),
+			'champsLibres' => $valeursChampLibre
         ]);
     }
 

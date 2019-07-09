@@ -287,6 +287,10 @@ a:hover {
   overflow: auto;
 }
 
+.modal-open {
+  padding-right: 0px !important;
+}
+
 .accueil-back {
   width: 100%;
   height: 100%;

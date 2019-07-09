@@ -201,13 +201,13 @@ class RefArticleDataService
     {
         $data = $this->getDataEditForRefArticle($refArticle);
         $articlesFournisseur = $this->articleFournisseurRepository->findByRefArticle($refArticle->getId());
-        $type = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::ARTICLES_ET_REF_CEA);
-        $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_CEA);
+        $types = $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLES_ET_REF_CEA);
+
         $typeChampLibre =  [];
-        foreach ($type as $label) {
-            $champsLibresComplet = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($label['label'], $categorieCL);
+        foreach ($types as $type) {
+            $champsLibresComplet = $this->champsLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_CEA);
             $champsLibres = [];
-            //création array edit pour vue
+
             foreach ($champsLibresComplet as $champLibre) {
                 $valeurChampRefArticle = $this->valeurChampsLibreRepository->findOneByRefArticleANDChampsLibre($refArticle->getId(), $champLibre);
                 $champsLibres[] = [
@@ -220,8 +220,8 @@ class RefArticleDataService
                 ];
             }
             $typeChampLibre[] = [
-                'typeLabel' =>  $label['label'],
-                'typeId' => $label['id'],
+                'typeLabel' =>  $type->getLabel(),
+                'typeId' => $type->getId(),
                 'champsLibres' => $champsLibres,
             ];
         }

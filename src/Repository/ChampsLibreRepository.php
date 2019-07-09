@@ -144,23 +144,6 @@ class ChampsLibreRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
-    public function findByLabelTypeAndCategorieCL($label, $categorieCL)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT c
-            FROM App\Entity\ChampsLibre c 
-            JOIN c.type t 
-            WHERE t.label = :label AND c.categorieCL = :categorie"
-        )->setParameters(
-            [
-                'label' => $label,
-                'categorie' => $categorieCL,
-            ]
-        );;
-        return $query->execute();
-    }
-
 	public function findByTypeAndCategorieCLLabel($type, $categorieCLLabel)
 	{
 		$entityManager = $this->getEntityManager();
