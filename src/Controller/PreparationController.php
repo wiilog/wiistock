@@ -17,7 +17,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-use Symfony\Component\Form\Extension\Core\Type\TextType;
 use App\Service\ArticleDataService;
 
 use App\Form\ReferenceArticleType;
@@ -28,8 +27,7 @@ use App\Repository\ArticleRepository;
 use App\Entity\Demande;
 use App\Repository\DemandeRepository;
 use App\Repository\LivraisonRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Knp\Component\Pager\PaginatorInterface;
+
 use App\Repository\StatutRepository;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -398,7 +396,7 @@ class PreparationController extends AbstractController
                         'commentaire' => $article->getcommentaire(),
                         'quantite' => $withdrawn - $data['quantite'],
                         'emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getId() : '',
-                        'statut' => 'actif',
+                        'statut' => Article::STATUT_ACTIF,
                     ];
 
                     foreach ($article->getValeurChampsLibres() as $valeurChampLibre) {
@@ -455,7 +453,7 @@ class PreparationController extends AbstractController
                         'commentaire' => $article->getcommentaire(),
                         'quantite' => $article->getQuantite() - $article->getQuantiteAPrelever(),
                         'emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getId() : '',
-                        'statut' => 'actif',
+                        'statut' => Article::STATUT_ACTIF,
                     ];
 
                     foreach ($article->getValeurChampsLibres() as $valeurChampLibre) {
