@@ -38,14 +38,14 @@ class Parametre
     private $typage;
 
     /**
-     * @ORM\Column(type="json_array", nullable=true)
+     * @ORM\Column(type="json", nullable=true)
      */
-    private $elements;
+    private $elements = [];
 
 	/**
 	 * @ORM\Column(type="string", length=255)
 	 */
-    private $default;
+    private $defaultValue;
 
 	/**
 	 * @ORM\OneToMany(targetEntity="App\Entity\ParametreRole", mappedBy="parametre")
@@ -130,14 +130,14 @@ class Parametre
         return $this;
     }
 
-    public function getDefault(): ?string
+    public function getDefaultValue(): ?string
     {
-        return $this->default;
+        return $this->defaultValue;
     }
 
-    public function setDefault(string $default): self
+    public function setDefaultValue(string $defaultValue): self
     {
-        $this->default = $default;
+        $this->defaultValue = $defaultValue;
 
         return $this;
     }

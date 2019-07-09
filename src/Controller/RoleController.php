@@ -192,7 +192,7 @@ class RoleController extends AbstractController
 					'label' => $param->getLabel(),
 					'typage' => $param->getTypage(),
 					'elements' => $param->getElements(),
-					'default' => $param->getDefault(),
+					'default' => $param->getDefaultValue(),
 					'value' => $this->parametreRoleRepository->getValueByRoleAndParam($role, $param)
 				];
 			}

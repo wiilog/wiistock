@@ -30,7 +30,7 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
 			$param
 				->setLabel($parameter['label'])
 				->setTypage($parameter['type'])
-				->setDefault($parameter['default'])
+				->setDefaultValue($parameter['default'])
 				->setElements($parameter['elements']);
 			$manager->persist($param);
 			dump("création du paramètre " . $parameter['label']);

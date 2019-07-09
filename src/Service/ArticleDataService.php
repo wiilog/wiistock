@@ -281,7 +281,7 @@ class ArticleDataService
 				if (!$paramQuantite) {
 					$paramQuantite = new ParametreRole();
 					$paramQuantite
-						->setValue($param->getDefault())
+						->setValue($param->getDefaultValue())
 						->setRole($role)
 						->setParametre($param);
 					$this->em->persist($paramQuantite);
