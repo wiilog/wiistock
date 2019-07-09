@@ -11,21 +11,21 @@
             </div>
 
             {% for action in menu.actions %}
-                {% set checked = (action.id in actionsIdOfRole) ? 'checked' : '' %}
-                {% if(loop.index % 3 == 1 and loop.index != 1) %}
+            {% set checked = (action.id in actionsIdOfRole) ? 'checked' : '' %}
+            {% if(loop.index % 3 == 1 and loop.index != 1) %}
         </div>
         <div class="row mt-3">
-                    {% set offset = 'offset-3' %}
-                {% else %}
-                    {% set offset = '' %}
-                {% endif %}
-                <div class="col-3 {{ offset }}">
-                        <label class="switch">
-                            <input class="checkbox" type="checkbox" {{ checked }} name="{{ menu.code~'/'~action.label }}">
-                            <span class="slider round"></span>
-                        </label>
-                        {{ action.label }}
-                    </div>
+            {% set offset = 'offset-3' %}
+            {% else %}
+                {% set offset = '' %}
+            {% endif %}
+            <div class="col-3 {{ offset }}">
+                <label class="switch">
+                    <input class="checkbox" type="checkbox" {{ checked }} name="{{ menu.code~'/'~action.label }}">
+                    <span class="slider round"></span>
+                </label>
+                {{ action.label }}
+            </div>
             {% endfor %}
         </div>
     </div>

@@ -148,6 +148,26 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
             }
         }
 
+        // action choix gestion articles
+        $menus = [
+            Menu::DEM_LIVRAISON,
+        ];
+
+        $actionLabel = Action::CHOIX;
+
+        foreach ($menus as $menu) {
+            $action = $this->actionRepository->findOneByMenuCodeAndLabel($menu, $actionLabel);
+
+            if (empty($action)) {
+                $action = new Action();
+                $action
+                    ->setLabel($actionLabel)
+                    ->setMenu($this->getReference('menu-' . $menu));
+                $manager->persist($action);
+                dump("création de l'action " . $menu . " / " . $actionLabel);
+            }
+        }
+
         $manager->flush();
     }
 
