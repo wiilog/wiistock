@@ -15,6 +15,8 @@ use App\Entity\CategoryType;
 use App\Entity\ChampsLibre;
 use App\Entity\Menu;
 use App\Entity\ParamClient;
+use App\Entity\Parametre;
+use App\Entity\ParametreRole;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
 use App\Entity\ValeurChampsLibre;
@@ -25,6 +27,8 @@ use App\Repository\ArticleFournisseurRepository;
 use App\Repository\ChampsLibreRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\FilterRepository;
+use App\Repository\ParametreRepository;
+use App\Repository\ParametreRoleRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\StatutRepository;
 use App\Repository\TypeRepository;
@@ -119,9 +123,19 @@ class ArticleDataService
 	 */
     private $specificService;
 
+	/**
+	 * @var ParametreRepository
+	 */
+    private $parametreRepository;
+
+	/**
+	 * @var ParametreRoleRepository
+	 */
+    private $parametreRoleRepository;
+
     private $em;
 
-    public function __construct(SpecificService $specificService, EmplacementRepository $emplacementRepository, RouterInterface $router, UserService $userService, CategorieCLRepository $categorieCLRepository, RefArticleDataService $refArticleDataService, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, TypeRepository  $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampsLibreRepository $champsLibreRepository, FilterRepository $filterRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
+    public function __construct(ParametreRoleRepository $parametreRoleRepository, ParametreRepository $parametreRepository, SpecificService $specificService, EmplacementRepository $emplacementRepository, RouterInterface $router, UserService $userService, CategorieCLRepository $categorieCLRepository, RefArticleDataService $refArticleDataService, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, TypeRepository  $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampsLibreRepository $champsLibreRepository, FilterRepository $filterRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
     {
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->articleRepository = $articleRepository;
@@ -140,6 +154,8 @@ class ArticleDataService
         $this->router = $router;
         $this->emplacementRepository = $emplacementRepository;
         $this->specificService = $specificService;
+        $this->parametreRepository = $parametreRepository;
+        $this->parametreRoleRepository = $parametreRoleRepository;
     }
 
     /**
@@ -242,7 +258,7 @@ class ArticleDataService
      */
     public function getLivraisonArticlesByRefArticle($refArticle)
     {
-        if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+		if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
             $data = [
                 'modif' => $this->refArticleDataService->getViewEditRefArticle($refArticle, true),
                 'selection' => $this->templating->render('demande/newRefArticleByQuantiteRefContent.html.twig'),
@@ -256,11 +272,27 @@ class ArticleDataService
                 foreach ($articles as $article) {
                     $maximum += $article->getQuantite();
                 }
+
+				$role = $this->user->getRole();
+				$param = $this->parametreRepository->findOneBy(['label' => Parametre::LABEL_AJOUT_QUANTITE]);
+				$paramQuantite = $this->parametreRoleRepository->findOneByRoleAndParam($role, $param);
+
+				// si le paramétrage n'existe pas pour ce rôle, on le crée (valeur par défaut)
+				if (!$paramQuantite) {
+					$paramQuantite = new ParametreRole();
+					$paramQuantite
+						->setValue($param->getDefault())
+						->setRole($role)
+						->setParametre($param);
+					$this->em->persist($paramQuantite);
+					$this->em->flush();
+				}
+
                 $data = [
                     'selection' => $this->templating->render('demande/newRefArticleByQuantiteArticleAndChoiceContent.html.twig', [
                         'maximum' => $maximum,
                         'reference' => $refArticle->getId(),
-                        'clicked' => true
+						'byRef' => $paramQuantite->getValue() == Parametre::VALUE_PAR_REF,
                     ]),
                 ];
             } else {

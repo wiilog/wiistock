@@ -15,6 +15,8 @@ use App\Entity\ValeurChampsLibre;
 use App\Repository\CategorieCLRepository;
 use App\Repository\ChampsLibreRepository;
 use App\Repository\DemandeRepository;
+use App\Repository\ParametreRepository;
+use App\Repository\ParametreRoleRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\LigneArticleRepository;
 use App\Repository\StatutRepository;
@@ -115,8 +117,18 @@ class DemandeController extends AbstractController
 	 */
     private $categorieCLRepository;
 
+	/**
+	 * @var ParametreRoleRepository
+	 */
+    private $parametreRoleRepository;
 
-    public function __construct(ValeurChampsLibreRepository $valeurChampLibreRepository, CategorieCLRepository $categorieCLRepository, ChampsLibreRepository $champLibreRepository, TypeRepository $typeRepository, PreparationRepository $preparationRepository, ArticleRepository $articleRepository, LigneArticleRepository $ligneArticleRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, UserService $userService, RefArticleDataService $refArticleDataService, ArticleDataService $articleDataService)
+	/**
+	 * @var ParametreRepository
+	 */
+    private $parametreRepository;
+
+
+    public function __construct(ParametreRepository $parametreRepository, ParametreRoleRepository $parametreRoleRepository, ValeurChampsLibreRepository $valeurChampLibreRepository, CategorieCLRepository $categorieCLRepository, ChampsLibreRepository $champLibreRepository, TypeRepository $typeRepository, PreparationRepository $preparationRepository, ArticleRepository $articleRepository, LigneArticleRepository $ligneArticleRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, UserService $userService, RefArticleDataService $refArticleDataService, ArticleDataService $articleDataService)
     {
         $this->statutRepository = $statutRepository;
         $this->emplacementRepository = $emplacementRepository;
@@ -133,6 +145,8 @@ class DemandeController extends AbstractController
         $this->champLibreRepository = $champLibreRepository;
         $this->categorieCLRepository = $categorieCLRepository;
         $this->valeurChampLibreRepository = $valeurChampLibreRepository;
+        $this->parametreRoleRepository = $parametreRoleRepository;
+        $this->parametreRepository = $parametreRepository;
     }
 
     /**
@@ -776,7 +790,8 @@ class DemandeController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::CHOIX)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $refArticle = $this->referenceArticleRepository->find($data['reference']);
+
+			$refArticle = $this->referenceArticleRepository->find($data['reference']);
             $response = [];
             if ($data['checked']) {
                 $statutArticleActif = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
@@ -785,10 +800,9 @@ class DemandeController extends AbstractController
                 foreach ($articles as $article) {
                     $maximum += $article->getQuantite();
                 }
-                $response['content'] = $this->renderView('demande/newRefArticleByQuantiteArticleAndChoiceContent.html.twig', [
-                    'clicked' => false,
+
+                $response['content'] = $this->renderView('demande/choiceContent.html.twig', [
                     'maximum' => $maximum,
-                    'reference' => $refArticle->getId(),
                 ]);
             } else {
                 $statutArticleActif = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);

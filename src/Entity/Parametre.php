@@ -11,6 +11,15 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Parametre
 {
+	const TYPE_BOOL = 'bool';
+	const TYPE_TEXT = 'text';
+	const TYPE_NUMBER = 'number';
+	const TYPE_LIST = 'list';
+
+	const LABEL_AJOUT_QUANTITE = 'ajout quantité';
+	const VALUE_PAR_REF = 'par référence';
+	const VALUE_PAR_ART = 'par article';
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()

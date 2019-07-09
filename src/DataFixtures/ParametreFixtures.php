@@ -18,10 +18,10 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
     {
 		$parameters = [
 			[
-				'label' => 'ajout quantité',
-				'type' => 'list',
-				'elements' => ['sur article', 'sur référence'],
-				'default' => 'sur article'
+				'label' => Parametre::LABEL_AJOUT_QUANTITE,
+				'type' => Parametre::TYPE_LIST,
+				'elements' => [Parametre::VALUE_PAR_ART, Parametre::VALUE_PAR_REF],
+				'default' => Parametre::VALUE_PAR_ART
 			],
 		];
 
