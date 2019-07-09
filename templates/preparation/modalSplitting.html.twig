@@ -24,13 +24,18 @@
                             <td>{{ article.label }}</td>
                             <td>{{ article.quantite }}</td>
                             <td>
-                                <input class="form-check-input" data-ref="{{ reference }}" data-total="{{ quantite }}"
-                                       data-quantite="{{ article.quantite }}" type="checkbox" data-name="{{ article.label }}" data-id="{{ article.id }}" onclick="addToScission($(this))">
+                                <label class="pr-2">Selectionner ? </label>
+                                <label class="switch">
+                                    <input class="checkbox" data-ref="{{ reference }}" data-total="{{ quantite }}"
+                                           data-quantite="{{ article.quantite }}" type="checkbox" data-name="{{ article.label }}" data-id="{{ article.id }}" onchange="addToScission($(this))">
+                                    <span class="slider round"></span>
+                                </label>
                             </td>
                         </tr>
                     {% endfor %}
                     </tbody>
                 </table>
+                <div id="quantiteRestante" class="pt-2">Quantité restante : {{ quantite }}</div>
             </div>
             <div class="error-msg p-4"></div>
             <div class="modal-footer">

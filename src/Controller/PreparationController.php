@@ -9,6 +9,7 @@ use App\Entity\Menu;
 use App\Entity\ParamClient;
 use App\Entity\Preparation;
 
+use App\Entity\ReferenceArticle;
 use App\Repository\PreparationRepository;
 use App\Service\SpecificService;
 use App\Service\UserService;
@@ -255,12 +256,17 @@ class PreparationController extends AbstractController
 
                 $lignesArticles = $this->ligneArticleRepository->getByDemande($demande->getId());
                 foreach ($lignesArticles as $ligneArticle) {
+                    $articleRef = $ligneArticle->getReference();
+                    $statutArticleActif = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
+                    $qtt = $articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE ?
+                        $this->articleRepository->getTotalQuantiteFromRef($articleRef, $statutArticleActif) :
+                        $articleRef->getQuantiteStock();
                     /** @var $ligneArticle LigneArticle */
                     $rows[] = [
                         "Référence CEA" => ($ligneArticle->getReference() ? $ligneArticle->getReference()->getReference() : ' '),
                         "Libellé" => ($ligneArticle->getReference() ? $ligneArticle->getReference()->getLibelle() : ' '),
                         "Emplacement" => ($ligneArticle->getReference()->getEmplacement() ? $ligneArticle->getReference()->getEmplacement()->getLabel() : ''),
-                        "Quantité" => ($ligneArticle->getReference() ? $ligneArticle->getReference()->getQuantiteStock() : ' '),
+                        "Quantité" => $qtt,
                         "Quantité à prélever" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ' '),
                         "Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
                             'refArticleId' => $ligneArticle->getReference()->getId(),

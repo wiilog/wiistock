@@ -404,11 +404,16 @@ class DemandeController extends AbstractController
             $ligneArticles = $demande->getLigneArticle();
             $rowsRC = [];
             foreach ($ligneArticles as $ligneArticle) {
+                $articleRef = $ligneArticle->getReference();
+                $statutArticleActif = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
+                $qtt = $articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE ?
+                    $this->articleRepository->getTotalQuantiteFromRef($articleRef, $statutArticleActif) :
+                    $articleRef->getQuantiteStock();
                 $rowsRC[] = [
                     "Référence CEA" => ($ligneArticle->getReference()->getReference() ? $ligneArticle->getReference()->getReference() : ''),
                     "Libellé" => ($ligneArticle->getReference()->getLibelle() ? $ligneArticle->getReference()->getLibelle() : ''),
                     "Emplacement" => ($ligneArticle->getReference()->getEmplacement() ? $ligneArticle->getReference()->getEmplacement()->getLabel() : ' '),
-                    "Quantité" => ($ligneArticle->getReference() ? $ligneArticle->getReference()->getQuantiteStock() : ''),
+                    "Quantité" => $qtt,
                     "Quantité à prélever" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ''),
                     "Actions" => $this->renderView(
                         'demande/datatableLigneArticleRow.html.twig',
@@ -565,9 +570,16 @@ class DemandeController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $ligneArticle = $this->ligneArticleRepository->getQuantity($data['id']);
+            $ligneArticle = $this->ligneArticleRepository->find($data['id']);
+            $articleRef = $ligneArticle->getReference();
+            $statutArticleActif = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
+            $qtt = $articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE ?
+                $this->articleRepository->getTotalQuantiteFromRef($articleRef, $statutArticleActif) :
+                $articleRef->getQuantiteStock();
             $json = $this->renderView('demande/modalEditArticleContent.html.twig', [
                 'ligneArticle' => $ligneArticle,
+                'maximum' => $qtt,
+                'toSeparate' => $ligneArticle->getToSplit()
             ]);
 
             return new JsonResponse($json);

@@ -65,7 +65,7 @@ let startPreparation = function (value) {
             let path2 = Routing.generate('preparation_take_articles', true);
             params.articles = articlesChosen;
 
-            $.post(path2, JSON.stringify(params), function(data) {
+            $.post(path2, JSON.stringify(params), function (data) {
                 $('#startPreparation').addClass('d-none');
                 $('#finishPreparation').removeClass('d-none');
                 tableArticle.ajax.reload();
@@ -76,7 +76,11 @@ let startPreparation = function (value) {
             $.post(path3, JSON.stringify(params), function (data) {
                 prepasToSplit = data.prepas;
                 $('#splittingContent').html(prepasToSplit[actualIndex]);
-                $('#tableSplittingArticles').DataTable();
+                $('#tableSplittingArticles').DataTable({
+                    "language": {
+                        url: "/js/i18n/dataTableLanguage.json",
+                    },
+                });
                 $('#startSplitting').click();
             });
         }
@@ -101,7 +105,7 @@ function submitSplitting(submit) {
                 $('#startSplitting').click();
             } else {
                 let path = Routing.generate('preparation_take_articles', true);
-                $.post(path, JSON.stringify(params), function() {
+                $.post(path, JSON.stringify(params), function () {
                     $('#startPreparation').addClass('d-none');
                     $('#finishPreparation').removeClass('d-none');
                     tableArticle.ajax.reload();
@@ -115,20 +119,25 @@ function submitSplitting(submit) {
 }
 
 function addToScission(checkbox) {
+
     let toSee = 0;
     if (articlesChosen.includes(checkbox.data('id'))) {
         articlesChosen.splice(articlesChosen.indexOf(checkbox.data('id')), 1);
         $('#scissionTitle').attr('data-restant', parseFloat($('#scissionTitle').attr('data-restant')) + parseFloat(checkbox.data('quantite')));
     } else {
-        articlesChosen.push(checkbox.data('id'));
-        $('#scissionTitle').attr('data-restant', ($('#scissionTitle').attr('data-restant') - checkbox.data('quantite')));
+        if ($('#scissionTitle').attr('data-restant') > 0) {
+            articlesChosen.push(checkbox.data('id'));
+            $('#scissionTitle').attr('data-restant', ($('#scissionTitle').attr('data-restant') - checkbox.data('quantite')));
+        } else {
+            checkbox.prop('checked', false);
+        }
     }
     if ($('#scissionTitle').attr('data-restant') > 0) {
         toSee = $('#scissionTitle').attr('data-restant');
     }
+    $('#quantiteRestante').html('Quantité restante ' + toSee);
     $('#scissionTitle').html("Choix d'articles pour la référence " + checkbox.data('ref') + " (Quantité restante à prélever : " + toSee + ")");
 }
-
 
 function exitScissionModal() {
     articlesChosen = [];
