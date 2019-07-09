@@ -123,25 +123,25 @@ class DemandeController extends AbstractController
 
             // pour réf gérées par référence
             foreach ($demande->getLigneArticle() as $ligne) {
-                $articleRef = $ligne->getReference();
+                if (!$ligne->getToSplit()) {
+                    $articleRef = $ligne->getReference();
 
-                $stock = $articleRef->getQuantiteStock();
-                $quantiteReservee = $ligne->getQuantite();
+                    $stock = $articleRef->getQuantiteStock();
+                    $quantiteReservee = $ligne->getQuantite();
 
-                $listLigneArticleByRefArticle = $this->ligneArticleRepository->findByRefArticle($articleRef);
+                    $listLigneArticleByRefArticle = $this->ligneArticleRepository->findByRefArticle($articleRef);
 
-                foreach ($listLigneArticleByRefArticle as $ligneArticle) {
-                    /** @var LigneArticle $ligneArticle */
-                    $statusLabel = $ligneArticle->getDemande()->getStatut()->getNom();
-                    if (($statusLabel === Demande::STATUT_A_TRAITER || $statusLabel === Demande::STATUT_PREPARE)
-						&& (!$ligneArticle->getToSplit())
-					) {
-                        $quantiteReservee += $ligneArticle->getQuantite();
+                    foreach ($listLigneArticleByRefArticle as $ligneArticle) {
+                        /** @var LigneArticle $ligneArticle */
+                        $statusLabel = $ligneArticle->getDemande()->getStatut()->getNom();
+                        if ($statusLabel === Demande::STATUT_A_TRAITER || $statusLabel === Demande::STATUT_PREPARE) {
+                            $quantiteReservee += $ligneArticle->getQuantite();
+                        }
                     }
-                }
 
-				if ($quantiteReservee > $stock) {
-                    return new JsonResponse(false);
+                    if ($quantiteReservee > $stock) {
+                        return new JsonResponse(false);
+                    }
                 }
             }
 
@@ -488,7 +488,7 @@ class DemandeController extends AbstractController
                     $this->articleDataService->editArticle($data);
                 }
 
-			// cas gestion quantité par référence
+                // cas gestion quantité par référence
             } elseif ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                 if ($this->ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
                     $ligneArticle = new LigneArticle();
@@ -496,8 +496,8 @@ class DemandeController extends AbstractController
                         ->setQuantite(max($data["quantitie"], 0))// protection contre quantités négatives
                         ->setReference($referenceArticle);
                     $em->persist($ligneArticle);
-					$demande->addLigneArticle($ligneArticle);
-				} else {
+                    $demande->addLigneArticle($ligneArticle);
+                } else {
                     $ligneArticle = $this->ligneArticleRepository->findOneByRefArticleAndDemande($referenceArticle, $demande);
                     $ligneArticle
                         ->setQuantite($ligneArticle->getQuantite() + max($data["quantitie"], 0)); // protection contre quantités négatives

@@ -384,7 +384,10 @@ class PreparationController extends AbstractController
             $reached = false;
             foreach ($data['articles'] as $idArticle) {
                 $article = $this->articleRepository->find($idArticle);
-                if (!$reached) $article->setDemande($demande);
+                if (!$reached) {
+                    $article->setDemande($demande);
+                    $article->setQuantiteAPrelever($article->getQuantite());
+                }
                 $em->flush();
                 $withdrawn += $article->getQuantite();
                 if ($withdrawn > $data['quantite'] && !$reached) {
@@ -408,13 +411,20 @@ class PreparationController extends AbstractController
                         }
                     }
                     $this->articleDataService->newArticle($newArticle);
-                    $article->setQuantite($article->getQuantite() - ($withdrawn - $data['quantite']));
+                    $qtt = $article->getQuantite() - ($withdrawn - $data['quantite']);
+                    $article->setQuantite($qtt);
+                    $article->setQuantiteAPrelever($qtt);
                     $reached = true;
+                    $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
+                    $em->remove($this->ligneArticleRepository->findOneByRefArticleAndDemandeAndToSplit($refArticle, $demande));
                     $em->flush();
+                } else if ($withdrawn === $data['quantite'] && !$reached) {
+                    $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
+                    $em->remove($this->ligneArticleRepository->findOneByRefArticleAndDemandeAndToSplit($refArticle, $demande));
+                    $em->flush();
+                    $reached = true;
                 }
             }
-            $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
-            $em->remove($this->ligneArticleRepository->findOneByRefArticleAndDemandeAndToSplit($refArticle, $demande));
             $em->flush();
             return new JsonResponse();
         }
@@ -437,7 +447,7 @@ class PreparationController extends AbstractController
             $articles = $demande->getArticles();
             foreach ($articles as $article) {
                 // scission des articles dont la quantité prélevée n'est pas totale
-                if ($article->getQuantite() !== $article->getQuantiteAPrelever() && !in_array($article->getId(), $data['articles'])) {
+                if ($article->getQuantite() !== $article->getQuantiteAPrelever()) {
                     $newArticle = [
                         'articleFournisseur' => $article->getArticleFournisseur()->getId(),
                         'libelle' => $article->getLabel(),

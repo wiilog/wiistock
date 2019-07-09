@@ -55,6 +55,7 @@ let tableArticle = $('#tableArticle_id').DataTable({
 
 let prepasToSplit = [];
 let articlesChosen = [];
+let actualIndex = 0;
 let startPreparation = function (value) {
     let path1 = Routing.generate('need_splitting', true);
     let params = {'demande': value.val()};
@@ -74,7 +75,7 @@ let startPreparation = function (value) {
             let path3 = Routing.generate('start_splitting', true);
             $.post(path3, JSON.stringify(params), function (data) {
                 prepasToSplit = data.prepas;
-                $('#splittingContent').html(prepasToSplit[0]);
+                $('#splittingContent').html(prepasToSplit[actualIndex]);
                 $('#tableSplittingArticles').DataTable();
                 $('#startSplitting').click();
             });
@@ -90,17 +91,16 @@ function submitSplitting(submit) {
             'quantite': submit.data('qtt'),
             'demande': submit.data('demande'),
         };
-
         $.post(path, JSON.stringify(params), function () {
             $('#modalSplitting').find('.close').click();
-            if (submit.data('index') + 1 < prepasToSplit.length) {
+            if (actualIndex + 1 < prepasToSplit.length) {
                 articlesChosen = [];
-                $('#splittingContent').html(prepasToSplit[submit.data('index') + 1]);
+                actualIndex++;
+                $('#splittingContent').html(prepasToSplit[actualIndex]);
                 $('#tableSplittingArticles').DataTable();
                 $('#startSplitting').click();
             } else {
                 let path = Routing.generate('preparation_take_articles', true);
-
                 $.post(path, JSON.stringify(params), function() {
                     $('#startPreparation').addClass('d-none');
                     $('#finishPreparation').removeClass('d-none');
@@ -127,4 +127,9 @@ function addToScission(checkbox) {
         toSee = $('#scissionTitle').attr('data-restant');
     }
     $('#scissionTitle').html("Choix d'articles pour la référence " + checkbox.data('ref') + " (Quantité restante à prélever : " + toSee + ")");
+}
+
+
+function exitScissionModal() {
+    articlesChosen = [];
 }
