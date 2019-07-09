@@ -2,9 +2,13 @@
 
 namespace App\Repository;
 
+use App\Entity\ChampsLibre;
+use App\Entity\Demande;
+use App\Entity\Reception;
 use App\Entity\ValeurChampsLibre;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
+use Doctrine\ORM\NonUniqueResultException;
 
 /**
  * @method ValeurChampsLibre|null find($id, $lockMode = null, $lockVersion = null)
@@ -158,6 +162,11 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
+	/**
+	 * @param Reception $reception
+	 * @param ChampsLibre $champLibre
+	 * @return mixed
+	 */
     public function findOneByReceptionAndChampLibre($reception, $champLibre)
     {
         $em = $this->getEntityManager();
@@ -172,4 +181,71 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
         ]);
         return $query->execute();
     }
+
+	/**
+	 * @param Demande $demande
+	 * @param ChampsLibre $champLibre
+	 * @return mixed
+	 * @throws NonUniqueResultException
+	 */
+	public function findOneByDemandeLivraisonAndChampsLibre($demande, $champLibre)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			"SELECT v
+            FROM App\Entity\ValeurChampsLibre v
+            JOIN v.demandesLivraison d
+            WHERE v.champLibre = :champLibre AND v.id IN (:demandeVCL)"
+		);
+		$query->setParameters([
+			'champLibre' => $champLibre->getId(),
+			'demandeVCL' => $demande->getValeurChampLibre()
+		]);
+
+		return $query->getOneOrNullResult();
+	}
+
+
+	/**
+	 * @param Demande $demandeLivraison
+	 * @param ChampsLibre $champLibre
+	 * @return mixed
+	 * @throws NonUniqueResultException
+	 */
+	public function getValueByDemandeLivraisonAndChampLibre($demandeLivraison, $champLibre)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			"SELECT v.valeur
+            FROM App\Entity\ValeurChampsLibre v
+            WHERE v.champLibre = :champLibre AND v.id in (:demandeLivraisonVCL)"
+		);
+		$query->setParameters([
+			'demandeLivraisonVCL' => $demandeLivraison->getValeurChampLibre(),
+			"champLibre" => $champLibre
+		]);
+
+		return $query->getOneOrNullResult();
+	}
+
+	/**
+	 * @param Demande $demandeLivraison
+	 * @return mixed
+	 */
+	public function getByDemandeLivraison($demandeLivraison)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			"SELECT v.id, v.valeur, c.label, c.typage
+            FROM App\Entity\ValeurChampsLibre v
+            JOIN v.champLibre c
+            WHERE v.id IN (:demandesLivraison) AND c.type = :type"
+		);
+		$query->setParameters([
+			"demandesLivraison" => $demandeLivraison->getValeurChampLibre(),
+			"type" => $demandeLivraison->getType()
+		]);
+
+		return $query->execute();
+	}
 }
