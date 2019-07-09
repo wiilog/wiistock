@@ -81,7 +81,6 @@ let startPreparation = function (value) {
                         url: "/js/i18n/dataTableLanguage.json",
                     },
                     searching: false,
-                    paging: false,
                     info: false
                 });
                 $('#startSplitting').click();
