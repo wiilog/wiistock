@@ -413,7 +413,7 @@ class ArticleDataService
         $ref = $date->format('dm');
 
         $referenceArticle = $this->referenceArticleRepository->find($data['refArticle'])->getReference();
-        $referenceArticles = $this->articleRepository->findByReference($referenceArticle);
+        $referenceArticles = $this->articleRepository->countByReference($referenceArticle);
 
         $i = $referenceArticles + 1;
         $cpt = sprintf('%05u',$i);

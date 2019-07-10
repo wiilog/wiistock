@@ -24,7 +24,7 @@ class ArticleRepository extends ServiceEntityRepository
      * @return mixed
      * @throws \Doctrine\ORM\NonUniqueResultException
      */
-    public function findByReference($referenceArticle)
+    public function countByReference($referenceArticle)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
