@@ -311,6 +311,7 @@ function showDemande(bloc) {
         $livraisonShow.addClass('d-none');
         $livraisonShow.find('div').find('select, .quantite').removeClass('data')
         $livraisonShow.find('.data').removeClass('needed');
+        setMaxQuantityByArtRef($collecteShow.find('#quantity-to-collect'));
     }
 }
 
