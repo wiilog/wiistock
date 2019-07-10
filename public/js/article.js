@@ -102,8 +102,10 @@ function InitialiserModalArticle(modal, submit, path, callback = function () { }
             // validation données obligatoires
             if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
                 let label = $(this).closest('.form-group').find('label').text();
+                label = label.replace(/\*/, '');
                 missingInputs.push(label);
                 $(this).addClass('is-invalid');
+                $(this).next().find('.select2-selection').addClass('is-invalid');
             }
             // validation valeur des inputs de type number
             if ($(this).attr('type') === 'number') {

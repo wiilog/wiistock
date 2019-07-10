@@ -436,7 +436,7 @@ class DemandeController extends AbstractController
     }
 
     /**
-     * @Route("/", name="demande_index", methods={"GET"})
+     * @Route("/", name="demande_index", methods="GET|POST", options={"expose"=true})
      */
     public function index(): Response
     {
@@ -462,6 +462,7 @@ class DemandeController extends AbstractController
             'statuts' => $this->statutRepository->findByCategorieName(Demande::CATEGORIE),
             'emplacements' => $this->emplacementRepository->getIdAndNom(),
 			'typeChampsLibres' => $typeChampLibre,
+            'types' => $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON),
         ]);
     }
 
@@ -512,6 +513,7 @@ class DemandeController extends AbstractController
                         'Demandeur' => ($demande->getUtilisateur()->getUsername() ? $demande->getUtilisateur()->getUsername() : ''),
                         'Numéro' => ($demande->getNumero() ? $demande->getNumero() : ''),
                         'Statut' => ($demande->getStatut()->getNom() ? $demande->getStatut()->getNom() : ''),
+                        'Type' => ($demande->getType() ? $demande->getType()->getLabel() : ''),
                         'Actions' => $this->renderView(
                             'demande/datatableDemandeRow.html.twig',
                             [
@@ -538,9 +540,11 @@ class DemandeController extends AbstractController
         }
 
         $valeursChampLibre = $this->valeurChampLibreRepository->getByDemandeLivraison($demande);
+
         return $this->render('demande/show.html.twig', [
 
             'demande' => $demande,
+           //'preparation' => $this->preparationRepository->findOneByPreparation($demande),
             'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
             'statuts' => $this->statutRepository->findByCategorieName(Demande::CATEGORIE),
             'references' => $this->referenceArticleRepository->getIdAndLibelle(),

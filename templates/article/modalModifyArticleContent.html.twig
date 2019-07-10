@@ -19,7 +19,7 @@
         </select>
     </div>
     <div class="form-group col-6">
-        <label for="quantité">Quantité</label>
+        <label for="quantité">Quantité*</label>
         {# si on est sur une demande, la quantité ne doit pas être modifiée #}
         {% set disabledOnDemand = isADemand ? 'disabled' : disabled %}
         {% set neededOnDemand = isADemand ? '' : needed %}
@@ -102,16 +102,20 @@
                     <div class="form-group col-6">
 
                     {# spécifique CEA : accès pour tous au champ libre 'Code projet' #}
-                    {% if isCurrentClient(constant('App\\Entity\\ParamClient::CEA_LETI')) %}
-                        {% if champLibre.label|lower == 'code projet' or champLibre.label|lower == 'destinataire' %}
-                            {% set disabled = '' %}
-                            {% set needed = champLibre.requiredEdit ? 'needed' : '' %}
-                        {% else %}
-                            {% set disabled = editable ? '' : 'disabled' %}
-                        {% endif %}
-                    {% endif %}
+{#                    {% if isCurrentClient(constant('App\\Entity\\ParamClient::CEA_LETI')) %}#}
+{#                        {% if champLibre.label|lower == 'code projet' or champLibre.label|lower == 'destinataire' %}#}
+{#                            {% set disabled = '' %}#}
+{#                            {% set needed = champLibre.requiredEdit ? 'needed' : '' %}#}
+{#                        {% else %}#}
+{#                            {% set disabled = editable ? '' : 'disabled' %}#}
+{#                        {% endif %}#}
+{#                    {% endif %}#}
 
+                    {% if champLibre.label|lower == 'code projet' %}
+                    <label for="input">{{ champLibre.label | capitalize}}*</label>
+                    {% else %}
                     <label for="input">{{ champLibre.label | capitalize}}</label>
+                    {% endif %}
 
                     {% if champLibre.typage == 'booleen' %}
                     {% set checked = ((champLibre.valeurChampLibre.valeur is defined ? champLibre.valeurChampLibre.valeur : 0) == 1) ? 'checked' : '' %}
