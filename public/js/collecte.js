@@ -254,3 +254,9 @@ let ajaxEditArticle = function (select) {
     xhttp.send(JSON.stringify(json));
 }
 
+$('#submitSearchCollecte').on('keypress', function(e) {
+    if (e.which === 13) {
+        $('#submitSearchCollecte').click();
+    }
+});
+
