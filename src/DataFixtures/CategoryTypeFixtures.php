@@ -29,8 +29,10 @@ class CategoryTypeFixtures extends Fixture implements FixtureGroupInterface
     public function load(ObjectManager $manager)
     {
         $categoriesNames = [
-           CategoryType::ARTICLES_ET_REF_CEA,
-           CategoryType::RECEPTION
+        	CategoryType::ARTICLES_ET_REF_CEA,
+			CategoryType::RECEPTION,
+			CategoryType::DEMANDE_LIVRAISON,
+            CategoryType::DEMANDE_COLLECTE
         ];
 
         foreach ($categoriesNames as $categorieName) {

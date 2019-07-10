@@ -10,6 +10,7 @@ use App\Entity\Filter;
 use App\Entity\Menu;
 use App\Entity\ParamClient;
 use App\Entity\ReferenceArticle;
+use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\ValeurChampsLibre;
 use App\Entity\CollecteReference;
@@ -291,7 +292,11 @@ class ReferenceArticleController extends Controller
             $refAlreadyExist = $this->referenceArticleRepository->countByReference($data['reference']);
 
             if ($refAlreadyExist) {
-                return new JsonResponse(['success' => false, 'msg' => 'Ce nom de référence existe déjà. Vous ne pouvez pas le recréer.']);
+                return new JsonResponse([
+                	'success' => false,
+					'msg' => 'Ce nom de référence existe déjà. Vous ne pouvez pas le recréer.',
+					'codeError' => 'DOUBLON-REF'
+				]);
             }
             $requiredCreate = true;
             $type = $this->typeRepository->find($data['type']);
@@ -508,15 +513,15 @@ class ReferenceArticleController extends Controller
 			return strcasecmp($a['label'], $b['label']);
 		});
 
-        $types = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::ARTICLES_ET_REF_CEA);
+        $types = $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLES_ET_REF_CEA);
         $emplacements = $this->emplacementRepository->findAll();
         $typeChampLibre =  [];
         $search = $this->getUser()->getRecherche();
         foreach ($types as $type) {
-            $champsLibres = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($type['label'], $categorieCL);
+            $champsLibres = $this->champsLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_CEA);
             $typeChampLibre[] = [
-                'typeLabel' =>  $type['label'],
-                'typeId' => $type['id'],
+                'typeLabel' =>  $type->getLabel(),
+                'typeId' => $type->getId(),
                 'champsLibres' => $champsLibres,
             ];
         }
@@ -874,7 +879,7 @@ class ReferenceArticleController extends Controller
     /**
      * @Route("/voir", name="reference_article_show", options={"expose"=true})
      */
-    public function showRefArticle(Request $request): Response
+    public function show(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
@@ -884,13 +889,13 @@ class ReferenceArticleController extends Controller
 
             $data = $this->refArticleDataService->getDataEditForRefArticle($refArticle);
             $articlesFournisseur = $this->articleFournisseurRepository->findByRefArticle($refArticle->getId());
-            $type = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::ARTICLES_ET_REF_CEA);
-            $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_CEA);
+            $types = $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLES_ET_REF_CEA);
+
             $typeChampLibre =  [];
-            foreach ($type as $label) {
-                $champsLibresComplet = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($label['label'], $categorieCL);
+            foreach ($types as $type) {
+                $champsLibresComplet = $this->champsLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_CEA);
+
                 $champsLibres = [];
-                //création array edit pour vue
                 foreach ($champsLibresComplet as $champLibre) {
                     $valeurChampRefArticle = $this->valeurChampsLibreRepository->findOneByRefArticleANDChampsLibre($refArticle->getId(), $champLibre);
                     $champsLibres[] = [
@@ -903,8 +908,8 @@ class ReferenceArticleController extends Controller
                     ];
                 }
                 $typeChampLibre[] = [
-                    'typeLabel' =>  $label['label'],
-                    'typeId' => $label['id'],
+                    'typeLabel' =>  $type->getLabel(),
+					'typeId' => $type->getId(),
                     'champsLibres' => $champsLibres,
                 ];
             }
@@ -978,6 +983,12 @@ class ReferenceArticleController extends Controller
         throw new NotFoundHttpException('404');
     }
 
+	/**
+	 * @param ReferenceArticle $ref
+	 * @param array $listTypes
+	 * @param string[] $headersCL
+	 * @return string
+	 */
     public function buildInfos(ReferenceArticle $ref, $listTypes, $headersCL)
     {
         $refData[] = $ref->getReference();
@@ -988,10 +999,11 @@ class ReferenceArticleController extends Controller
         $refData[] = $ref->getStatut()->getNom();
         $refData[] = strip_tags($ref->getCommentaire());
         $refData[] = $ref->getEmplacement() ? $ref->getEmplacement()->getLabel() : '';
-        $categorieCL = $this->categorieCLRepository->findOneByLabel('reference CEA');
+
         $champsLibres = [];
-        foreach ($listTypes as $type) {
-            $listChampsLibres = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($type['label'], $categorieCL);
+        foreach ($listTypes as $typeArray) {
+        	$type = $this->typeRepository->find($typeArray['id']);
+            $listChampsLibres = $this->champsLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_CEA);
             foreach ($listChampsLibres as $champLibre) {
                 $valeurChampRefArticle = $this->valeurChampsLibreRepository->findOneByRefArticleANDChampsLibre($ref->getId(), $champLibre);
                 if ($valeurChampRefArticle) $champsLibres[$champLibre->getLabel()] = $valeurChampRefArticle->getValeur();

@@ -3,21 +3,30 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\CategorieCL;
+use App\Entity\CategoryType;
 use App\Entity\Demande;
 use App\Entity\Menu;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\LigneArticle;
 
+use App\Entity\ValeurChampsLibre;
+use App\Repository\CategorieCLRepository;
+use App\Repository\ChampsLibreRepository;
 use App\Repository\DemandeRepository;
+use App\Repository\ParametreRepository;
+use App\Repository\ParametreRoleRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\LigneArticleRepository;
 use App\Repository\StatutRepository;
 use App\Repository\EmplacementRepository;
+use App\Repository\TypeRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\PreparationRepository;
 
+use App\Repository\ValeurChampsLibreRepository;
 use App\Service\ArticleDataService;
 use App\Service\RefArticleDataService;
 use App\Service\UserService;
@@ -89,8 +98,37 @@ class DemandeController extends AbstractController
      */
     private $articleDataService;
 
+	/**
+	 * @var TypeRepository
+	 */
+    private $typeRepository;
 
-    public function __construct(PreparationRepository $preparationRepository, ArticleRepository $articleRepository, LigneArticleRepository $ligneArticleRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, UserService $userService, RefArticleDataService $refArticleDataService, ArticleDataService $articleDataService)
+    /**
+	 * @var ChampsLibreRepository
+	 */
+    private $champLibreRepository;
+
+	/**
+	 * @var ValeurChampsLibreRepository
+	 */
+    private $valeurChampLibreRepository;
+	/**
+	 * @var CategorieCLRepository
+	 */
+    private $categorieCLRepository;
+
+	/**
+	 * @var ParametreRoleRepository
+	 */
+    private $parametreRoleRepository;
+
+	/**
+	 * @var ParametreRepository
+	 */
+    private $parametreRepository;
+
+
+    public function __construct(ParametreRepository $parametreRepository, ParametreRoleRepository $parametreRoleRepository, ValeurChampsLibreRepository $valeurChampLibreRepository, CategorieCLRepository $categorieCLRepository, ChampsLibreRepository $champLibreRepository, TypeRepository $typeRepository, PreparationRepository $preparationRepository, ArticleRepository $articleRepository, LigneArticleRepository $ligneArticleRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, UserService $userService, RefArticleDataService $refArticleDataService, ArticleDataService $articleDataService)
     {
         $this->statutRepository = $statutRepository;
         $this->emplacementRepository = $emplacementRepository;
@@ -103,7 +141,14 @@ class DemandeController extends AbstractController
         $this->refArticleDataService = $refArticleDataService;
         $this->articleDataService = $articleDataService;
         $this->preparationRepository = $preparationRepository;
+        $this->typeRepository = $typeRepository;
+        $this->champLibreRepository = $champLibreRepository;
+        $this->categorieCLRepository = $categorieCLRepository;
+        $this->valeurChampLibreRepository = $valeurChampLibreRepository;
+        $this->parametreRoleRepository = $parametreRoleRepository;
+        $this->parametreRepository = $parametreRepository;
     }
+
     /**
      * @Route("/compareStock", name="compare_stock", options={"expose"=true}, methods="GET|POST")
      */
@@ -113,34 +158,35 @@ class DemandeController extends AbstractController
             $demande = $this->demandeRepository->find($data['demande']);
 
             // pour réf gérées par articles
-			$articles = $demande->getArticles();
-			foreach ($articles as $article) {
-				if ($article->getQuantiteAPrelever() > $article->getQuantite()) {
-					return new JsonResponse(false);
-				}
+            $articles = $demande->getArticles();
+            foreach ($articles as $article) {
+                if ($article->getQuantiteAPrelever() > $article->getQuantite()) {
+                    return new JsonResponse(false);
+                }
+            }
 
-			}
-
-			// pour réf gérées par référence
+            // pour réf gérées par référence
             foreach ($demande->getLigneArticle() as $ligne) {
-				$articleRef = $ligne->getReference();
+                if (!$ligne->getToSplit()) {
+                    $articleRef = $ligne->getReference();
 
-                $stock = $articleRef->getQuantiteStock();
-                $quantiteReservee = $ligne->getQuantite();
+                    $stock = $articleRef->getQuantiteStock();
+                    $quantiteReservee = $ligne->getQuantite();
 
-                $listLigneArticleByRefArticle = $this->ligneArticleRepository->findByRefArticle($articleRef);
+                    $listLigneArticleByRefArticle = $this->ligneArticleRepository->findByRefArticle($articleRef);
 
-                foreach ($listLigneArticleByRefArticle as $ligneArticle) {
-                    /** @var LigneArticle $ligneArticle */
-                    $statusLabel = $ligneArticle->getDemande()->getStatut()->getNom();
-                    if ($statusLabel === Demande::STATUT_A_TRAITER || $statusLabel === Demande::STATUT_PREPARE) {
-                        $quantiteReservee += $ligneArticle->getQuantite();
+                    foreach ($listLigneArticleByRefArticle as $ligneArticle) {
+                        /** @var LigneArticle $ligneArticle */
+                        $statusLabel = $ligneArticle->getDemande()->getStatut()->getNom();
+                        if ($statusLabel === Demande::STATUT_A_TRAITER || $statusLabel === Demande::STATUT_PREPARE) {
+                            $quantiteReservee += $ligneArticle->getQuantite();
+                        }
+                    }
+
+                    if ($quantiteReservee > $stock) {
+                        return new JsonResponse(false);
                     }
                 }
-
-				if ($quantiteReservee > $stock) {
-					return new JsonResponse(false);
-				}
             }
 
             return $this->finish($request);
@@ -177,8 +223,8 @@ class DemandeController extends AbstractController
             $em->persist($preparation);
 
             // modification du statut articles => en transit
-			$articles = $demande->getArticles();
-			foreach ($articles as $article) {
+            $articles = $demande->getArticles();
+            foreach ($articles as $article) {
                 $article->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
             }
             $em->flush();
@@ -190,7 +236,8 @@ class DemandeController extends AbstractController
                     [
                         'demande' => $demande,
                         'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
-                    ]
+						'champsLibres' => $this->valeurChampLibreRepository->getByDemandeLivraison($demande)
+					]
                 ),
             ];
 
@@ -205,14 +252,40 @@ class DemandeController extends AbstractController
     public function editApi(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-			if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::CREATE_EDIT)) {
-				return $this->redirectToRoute('access_denied');
-			}
+            if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::CREATE_EDIT)) {
+                return $this->redirectToRoute('access_denied');
+            }
 
             $demande = $this->demandeRepository->find($data['id']);
 
+			$typesDL = $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
+			$typeChampLibre =  [];
+
+			foreach ($typesDL as $type) {
+				$champsLibres = $this->champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON);
+				$champsLibresArray = [];
+				foreach ($champsLibres as $champLibre) {
+					$valeurChampDL = $this->valeurChampLibreRepository->getValueByDemandeLivraisonAndChampLibre($demande, $champLibre);
+					$champsLibresArray[] = [
+						'id' => $champLibre->getId(),
+						'label' => $champLibre->getLabel(),
+						'typage' => $champLibre->getTypage(),
+						'elements' => ($champLibre->getElements() ? $champLibre->getElements() : ''),
+						'defaultValue' => $champLibre->getDefaultValue(),
+						'valeurChampLibre' => $valeurChampDL,
+					];
+				}
+				$typeChampLibre[] = [
+					'typeLabel' =>  $type->getLabel(),
+					'typeId' => $type->getId(),
+					'champsLibres' => $champsLibresArray,
+				];
+			}
+
             $json = $this->renderView('demande/modalEditDemandeContent.html.twig', [
                 'demande' => $demande,
+				'types' => $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON),
+				'typeChampsLibres' => $typeChampLibre
             ]);
 
             return new JsonResponse($json);
@@ -230,24 +303,64 @@ class DemandeController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $utilisateur = $this->utilisateurRepository->find(intval($data['demandeur']));
-            $emplacement = $this->emplacementRepository->find(intval($data['destination']));
-            $demande = $this->demandeRepository->find($data['demandeId']);
-            $demande
-                ->setUtilisateur($utilisateur)
-                ->setDestination($emplacement)
-                ->setCommentaire($data['commentaire']);
-            $em = $this->getDoctrine()->getEntityManager();
-            $em->flush();
+			// vérification des champs Libres obligatoires
+			$requiredEdit = true;
+			$type =  $this->typeRepository->find(intval($data['type']));
+			$CLRequired = $this->champLibreRepository->getByTypeAndRequiredEdit($type);
+			foreach ($CLRequired as $CL) {
+				if (array_key_exists($CL['id'], $data) and $data[$CL['id']] === "") {
+					$requiredEdit = false;
+				}
+			}
 
-            $json = [
-                'entete' => $this->renderView('demande/enteteDemandeLivraison.html.twig', [
-                    'demande' => $demande,
-                    'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
-                ]),
-            ];
+			if ($requiredEdit) {
+				$utilisateur = $this->utilisateurRepository->find(intval($data['demandeur']));
+				$emplacement = $this->emplacementRepository->find(intval($data['destination']));
+				$type = $this->typeRepository->find(intval($data['type']));
+				$demande = $this->demandeRepository->find($data['demandeId']);
+				$demande
+					->setUtilisateur($utilisateur)
+					->setDestination($emplacement)
+					->setType($type)
+					->setCommentaire($data['commentaire']);
+				$em = $this->getDoctrine()->getEntityManager();
+				$em->flush();
 
-            return new JsonResponse($json);
+				// modification ou création des champs libres
+				$champsLibreKey = array_keys($data);
+
+				foreach ($champsLibreKey as $champ) {
+					if (gettype($champ) === 'integer') {
+						$champLibre = $this->champLibreRepository->find($champ);
+						$valeurChampLibre = $this->valeurChampLibreRepository->findOneByDemandeLivraisonAndChampsLibre($demande, $champLibre);
+
+						// si la valeur n'existe pas, on la crée
+						if (!$valeurChampLibre) {
+							$valeurChampLibre = new ValeurChampsLibre();
+							$valeurChampLibre
+								->addDemandesLivraison($demande)
+								->setChampLibre($this->champLibreRepository->find($champ));
+							$em->persist($valeurChampLibre);
+						}
+						$valeurChampLibre->setValeur($data[$champ]);
+						$em->flush();
+					}
+				}
+
+				$response = [
+					'entete' => $this->renderView('demande/enteteDemandeLivraison.html.twig', [
+						'demande' => $demande,
+						'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
+						'champsLibres' => $this->valeurChampLibreRepository->getByDemandeLivraison($demande)
+					]),
+				];
+
+			} else {
+				$response['success'] = false;
+				$response['msg'] = "Tous les champs obligatoires n'ont pas été renseignés.";
+			}
+
+            return new JsonResponse($response);
         }
         throw new NotFoundHttpException('404');
     }
@@ -262,21 +375,55 @@ class DemandeController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
+            // protection champs libres obligatoires
+			$requiredCreate = true;
+			$type = $this->typeRepository->find($data['type']);
+
+			$CLRequired = $this->champLibreRepository->getByTypeAndRequiredCreate($type);
+			$msgMissingCL = '';
+			foreach ($CLRequired as $CL) {
+				if (array_key_exists($CL['id'], $data) and $data[$CL['id']] === "") {
+					$requiredCreate = false;
+					if (!empty($msgMissingCL)) $msgMissingCL .= ', ';
+					$msgMissingCL .= $CL['label'];
+				}
+			}
+			if (!$requiredCreate) {
+				return new JsonResponse(['success' => false, 'msg' => 'Veuillez renseigner les champs obligatoires : ' . $msgMissingCL]);
+			}
+
             $em = $this->getDoctrine()->getManager();
             $utilisateur = $this->utilisateurRepository->find($data['demandeur']);
             $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
             $statut = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
             $destination = $this->emplacementRepository->find($data['destination']);
+            $type = $this->typeRepository->find($data['type']);
             $demande = new Demande();
             $demande
                 ->setStatut($statut)
                 ->setUtilisateur($utilisateur)
                 ->setdate($date)
-                //                ->setDateAttendu(new \DateTime($data['dateAttendu']))
+				->setType($type)
                 ->setDestination($destination)
                 ->setNumero('D-' . $date->format('YmdHis'))
                 ->setCommentaire($data['commentaire']);
             $em->persist($demande);
+
+			// enregistrement des champs libres
+			$champsLibreKey = array_keys($data);
+
+			foreach ($champsLibreKey as $champs) {
+				if (gettype($champs) === 'integer') {
+					$valeurChampLibre = new ValeurChampsLibre();
+					$valeurChampLibre
+						->setValeur($data[$champs])
+						->addDemandesLivraison($demande)
+						->setChampLibre($this->champLibreRepository->find($champs));
+					$em->persist($valeurChampLibre);
+					$em->flush();
+				}
+			}
+
             $em->flush();
 
             $data = [
@@ -297,10 +444,24 @@ class DemandeController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
+        $types = $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
+
+		$typeChampLibre = [];
+		foreach ($types as $type) {
+			$champsLibres = $this->champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON);
+
+			$typeChampLibre[] = [
+				'typeLabel' =>  $type->getLabel(),
+				'typeId' => $type->getId(),
+				'champsLibres' => $champsLibres,
+			];
+		}
+
         return $this->render('demande/index.html.twig', [
             'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
             'statuts' => $this->statutRepository->findByCategorieName(Demande::CATEGORIE),
             'emplacements' => $this->emplacementRepository->getIdAndNom(),
+			'typeChampsLibres' => $typeChampLibre,
         ]);
     }
 
@@ -376,16 +537,17 @@ class DemandeController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
+        $valeursChampLibre = $this->valeurChampLibreRepository->getByDemandeLivraison($demande);
         return $this->render('demande/show.html.twig', [
 
             'demande' => $demande,
-           //'preparation' => $this->preparationRepository->findOneByPreparation($demande),
             'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
             'statuts' => $this->statutRepository->findByCategorieName(Demande::CATEGORIE),
             'references' => $this->referenceArticleRepository->getIdAndLibelle(),
             'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
             'emplacements' => $this->emplacementRepository->findAll(),
             'finished' => ($demande->getStatut()->getNom() === Demande::STATUT_A_TRAITER),
+			'champsLibres' => $valeursChampLibre
         ]);
     }
 
@@ -402,11 +564,16 @@ class DemandeController extends AbstractController
             $ligneArticles = $demande->getLigneArticle();
             $rowsRC = [];
             foreach ($ligneArticles as $ligneArticle) {
+                $articleRef = $ligneArticle->getReference();
+                $statutArticleActif = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
+                $qtt = $articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE ?
+                    $this->articleRepository->getTotalQuantiteFromRef($articleRef, $statutArticleActif) :
+                    $articleRef->getQuantiteStock();
                 $rowsRC[] = [
                     "Référence CEA" => ($ligneArticle->getReference()->getReference() ? $ligneArticle->getReference()->getReference() : ''),
                     "Libellé" => ($ligneArticle->getReference()->getLibelle() ? $ligneArticle->getReference()->getLibelle() : ''),
                     "Emplacement" => ($ligneArticle->getReference()->getEmplacement() ? $ligneArticle->getReference()->getEmplacement()->getLabel() : ' '),
-                    "Quantité" => ($ligneArticle->getReference() ? $ligneArticle->getReference()->getQuantiteStock() : ''),
+                    "Quantité" => $qtt,
                     "Quantité à prélever" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ''),
                     "Actions" => $this->renderView(
                         'demande/datatableLigneArticleRow.html.twig',
@@ -422,7 +589,8 @@ class DemandeController extends AbstractController
             }
             $articles = $this->articleRepository->getByDemande($demande);
             $rowsCA = [];
-            foreach ($articles as $article) { /** @var Article $article */
+            foreach ($articles as $article) {
+                /** @var Article $article */
                 $rowsCA[] = [
                     "Référence CEA" => ($article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : ''),
                     "Libellé" => ($article->getLabel() ? $article->getLabel() : ''),
@@ -460,26 +628,45 @@ class DemandeController extends AbstractController
 
             $referenceArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
             $demande = $this->demandeRepository->find($data['demande']);
-            if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-                $article = $this->articleRepository->find($data['article']);
-                $demande->addArticle($article);
-                $article->setQuantiteAPrelever(max($data['quantitie'], 0)); // protection contre quantités négatives
 
-                $this->articleDataService->editArticle($data);
+            // cas gestion quantité par article
+            if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+                if (isset($data['wantGlobal']) && $data['wantGlobal']) {
+                    if ($this->ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
+                        $ligneArticle = new LigneArticle();
+                        $ligneArticle
+                            ->setQuantite(max($data["quantitie"], 0))// protection contre quantités négatives
+                            ->setToSplit(true)
+                            ->setReference($referenceArticle);
+                        $em->persist($ligneArticle);
+                        $demande->addLigneArticle($ligneArticle);
+                    } else {
+                        $ligneArticle = $this->ligneArticleRepository->findOneByRefArticleAndDemandeAndToSplit($referenceArticle, $demande);
+                        $ligneArticle
+                            ->setQuantite($ligneArticle->getQuantite() + max($data["quantitie"], 0));
+                    }
+                } else {
+                    $article = $this->articleRepository->find($data['article']);
+                    $demande->addArticle($article);
+                    $article->setQuantiteAPrelever(max($data['quantitie'], 0)); // protection contre quantités négatives
+
+                    $this->articleDataService->editArticle($data);
+                }
+
+                // cas gestion quantité par référence
             } elseif ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                 if ($this->ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
                     $ligneArticle = new LigneArticle();
                     $ligneArticle
-                        ->setQuantite(max($data["quantitie"], 0)) // protection contre quantités négatives
+                        ->setQuantite(max($data["quantitie"], 0))// protection contre quantités négatives
                         ->setReference($referenceArticle);
                     $em->persist($ligneArticle);
+                    $demande->addLigneArticle($ligneArticle);
                 } else {
                     $ligneArticle = $this->ligneArticleRepository->findOneByRefArticleAndDemande($referenceArticle, $demande);
                     $ligneArticle
                         ->setQuantite($ligneArticle->getQuantite() + max($data["quantitie"], 0)); // protection contre quantités négatives
                 }
-                $demande
-                    ->addLigneArticle($ligneArticle);
                 $this->refArticleDataService->editRefArticle($referenceArticle, $data);
             }
 
@@ -543,9 +730,16 @@ class DemandeController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $ligneArticle = $this->ligneArticleRepository->getQuantity($data['id']);
+            $ligneArticle = $this->ligneArticleRepository->find($data['id']);
+            $articleRef = $ligneArticle->getReference();
+            $statutArticleActif = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
+            $qtt = $articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE ?
+                $this->articleRepository->getTotalQuantiteFromRef($articleRef, $statutArticleActif) :
+                $articleRef->getQuantiteStock();
             $json = $this->renderView('demande/modalEditArticleContent.html.twig', [
                 'ligneArticle' => $ligneArticle,
+                'maximum' => $qtt,
+                'toSplit' => $ligneArticle->getToSplit()
             ]);
 
             return new JsonResponse($json);
@@ -564,6 +758,64 @@ class DemandeController extends AbstractController
             $count = count($articles) + count($references);
 
             return new JsonResponse($count > 0);
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/besoin-scission", name="need_splitting", options={"expose"=true}, methods={"GET", "POST"})
+     */
+    public function needSplitting(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $demande = $this->demandeRepository->find($data['demande']);
+            $need = false;
+            foreach ($demande->getLigneArticle() as $ligneArticle) {
+                if ($ligneArticle->getToSplit()) {
+                    $need = true;
+                }
+            }
+
+            return new JsonResponse($need);
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/changer-gestion", name="switch_choice", options={"expose"=true}, methods={"GET", "POST"})
+     */
+    public function switchChoice(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+
+			$refArticle = $this->referenceArticleRepository->find($data['reference']);
+            $response = [];
+            if ($data['checked']) {
+                $statutArticleActif = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
+                $articles = $this->articleRepository->findByRefArticleAndStatutWithoutDemand($refArticle, $statutArticleActif);
+                $maximum = 0;
+                foreach ($articles as $article) {
+                    $maximum += $article->getQuantite();
+                }
+
+                $response['content'] = $this->renderView('demande/choiceContent.html.twig', [
+                    'maximum' => $maximum,
+                ]);
+            } else {
+                $statutArticleActif = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
+                $articles = $this->articleRepository->findByRefArticleAndStatutWithoutDemand($refArticle, $statutArticleActif);
+
+                if (count($articles) < 1) {
+                    $articles[] = [
+                        'id' => '',
+                        'reference' => 'aucun article disponible',
+                    ];
+                }
+                $response['content'] = $this->renderView('demande/newRefArticleByQuantiteArticleContent.html.twig', [
+                    'articles' => $articles
+                ]);
+            }
+            return new JsonResponse($response);
         }
         throw new NotFoundHttpException('404');
     }

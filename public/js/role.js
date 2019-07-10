@@ -8,9 +8,9 @@ let tableRoles = $('#tableRoles').DataTable({
         "type": "POST"
     },
     columns:[
-        { "data": 'Nom' },
-        { "data": 'Actif' },
-        { "data": 'Actions' }
+        { "data": 'Nom', 'title' : 'Nom' },
+        { "data": 'Actif', 'title' : 'Actif' },
+        { "data": 'Actions', 'title' : 'Actions' }
     ],
 });
 

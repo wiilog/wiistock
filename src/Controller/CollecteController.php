@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\CategoryType;
 use App\Entity\Collecte;
 use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
@@ -146,7 +147,7 @@ class CollecteController extends AbstractController
         return $this->render('collecte/index.html.twig', [
             'statuts' => $this->statutRepository->findByCategorieName(Collecte::CATEGORIE),
             'utilisateurs' => $this->utilisateurRepository->findAll(),
-
+            'types' => $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_COLLECTE),
         ]);
     }
 
@@ -277,11 +278,12 @@ class CollecteController extends AbstractController
             $numero = 'C-' . $date->format('YmdHis');
             $collecte = new Collecte();
             $destination = ($data['destination'] == 0) ? false : true;
-
+            $type = $this->typeRepository->find($data['type']);
             $collecte
                 ->setDemandeur($this->utilisateurRepository->find($data['demandeur']))
                 ->setNumero($numero)
                 ->setDate($date)
+                ->setType($type)
                 ->setStatut($status)
                 ->setPointCollecte($this->emplacementRepository->find($data['emplacement']))
                 ->setObjet(substr($data['Objet'], 0, 255))
@@ -477,6 +479,7 @@ class CollecteController extends AbstractController
             $json = $this->renderView('collecte/modalEditCollecteContent.html.twig', [
                 'collecte' => $collecte,
                 'emplacements' => $this->emplacementRepository->findAll(),
+                'types' => $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_COLLECTE),
             ]);
 
             return new JsonResponse($json);
@@ -500,12 +503,13 @@ class CollecteController extends AbstractController
             $destination = ($data['destination'] == 0) ? false : true;
 
             $ordreCollecte = $this->ordreCollecteRepository->findOneByDemandeCollecte($collecte);
-
+            $type = $this->typeRepository->find($data['type']);
             $collecte
                 ->setDate(new \DateTime($data['date-collecte']))
                 ->setCommentaire($data['commentaire'])
                 ->setObjet(substr($data['objet'], 0, 255))
                 ->setPointCollecte($pointCollecte)
+                ->setType($type)
                 ->setstockOrDestruct($destination);
 
             $em = $this->getDoctrine()->getManager();

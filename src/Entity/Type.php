@@ -28,8 +28,11 @@ class Type
     const LABEL_ECART_QUALITE = 'écart qualité';
     const LABEL_PB_COMMANDE = 'problème de commande';
     const LABEL_DEST_NON_IDENT = 'destinataire non identifiable';
+	// types de la catégorie demande de livraison
+	const LABEL_CSB = 'CSB';
 
-    /**
+
+	/**
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
@@ -67,10 +70,20 @@ class Type
      */
     private $receptions;
 
+	/**
+	 * @ORM\OneToMany(targetEntity="App\Entity\Demande", mappedBy="type")
+	 */
+	private $demandesLivraison;
+
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Litige", mappedBy="type")
      */
     private $litiges;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Collecte", mappedBy="type")
+     */
+    private $collectes;
 
     public function __construct()
     {
@@ -79,6 +92,8 @@ class Type
         $this->articles = new ArrayCollection();
         $this->receptions = new ArrayCollection();
         $this->litiges = new ArrayCollection();
+        $this->demandesLivraison = new ArrayCollection();
+        $this->collectes = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -281,6 +296,68 @@ class Type
             // set the owning side to null (unless already changed)
             if ($litige->getType() === $this) {
                 $litige->setType(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Demande[]
+     */
+    public function getDemandesLivraison(): Collection
+    {
+        return $this->demandesLivraison;
+    }
+
+    public function addDemandesLivraison(Demande $demandesLivraison): self
+    {
+        if (!$this->demandesLivraison->contains($demandesLivraison)) {
+            $this->demandesLivraison[] = $demandesLivraison;
+            $demandesLivraison->setType($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDemandesLivraison(Demande $demandesLivraison): self
+    {
+        if ($this->demandesLivraison->contains($demandesLivraison)) {
+            $this->demandesLivraison->removeElement($demandesLivraison);
+            // set the owning side to null (unless already changed)
+            if ($demandesLivraison->getType() === $this) {
+                $demandesLivraison->setType(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Collecte[]
+     */
+    public function getCollectes(): Collection
+    {
+        return $this->collectes;
+    }
+
+    public function addCollecte(Collecte $collecte): self
+    {
+        if (!$this->collectes->contains($collecte)) {
+            $this->collectes[] = $collecte;
+            $collecte->setType($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCollecte(Collecte $collecte): self
+    {
+        if ($this->collectes->contains($collecte)) {
+            $this->collectes->removeElement($collecte);
+            // set the owning side to null (unless already changed)
+            if ($collecte->getType() === $this) {
+                $collecte->setType(null);
             }
         }
 
