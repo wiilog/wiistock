@@ -14,11 +14,51 @@ let table = $('#table_id').DataTable({
     },
     ajax: path,
     columns: [
-        {"data": 'Numéro', 'title': 'Numéro'},
-        {"data": 'Date', 'title': 'Date de création'},
-        {"data": 'Statut', 'title': 'Statut'},
-        {"data": 'Actions', 'title': 'Actions'},
+        {"data": 'Numéro', 'title': 'Numéro', 'name': 'Numéro'},
+        {"data": 'Date', 'title': 'Date de création', 'name': 'Date'},
+        {"data": 'Statut', 'title': 'Statut', 'name': 'Statut'},
+        {"data": 'Type', 'title': 'Type', 'name': 'Type'},
+        {"data": 'Actions', 'title': 'Actions', 'name': 'Actions'},
     ],
+});
+
+$('#submitSearchPrepaLivraison').on('click', function () {
+    let statut = $('#statut').val();
+    let type = $('#type').val();
+    table
+        .columns('Statut:name')
+        .search(statut)
+        .draw();
+
+    table
+        .columns('Type:name')
+        .search(type)
+        .draw();
+
+    $.fn.dataTable.ext.search.push(
+        function (settings, data, dataIndex) {
+            let dateMin = $('#dateMin').val();
+            let dateMax = $('#dateMax').val();
+            let indexDate = table.column('Date:name').index();
+            let dateInit = (data[indexDate]).split('/').reverse().join('-') || 0;
+
+            if (
+                (dateMin == "" && dateMax == "")
+                ||
+                (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
+                ||
+                (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
+                ||
+                (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
+
+            ) {
+                return true;
+            }
+            return false;
+        }
+    );
+    table
+        .draw();
 });
 
 $.extend($.fn.dataTableExt.oSort, {

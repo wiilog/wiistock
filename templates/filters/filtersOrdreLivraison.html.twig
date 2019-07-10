@@ -1,0 +1,60 @@
+<div class="filterService filters w-100">
+    <div>
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <div class="input-group-text">De</div>
+            </div>
+            <input type="date" class="form-control" name="dateMin" id="dateMin" placeholder="Date de début">
+            <div class="input-group-prepend">
+                <div class="input-group-text">Au</div>
+            </div>
+            <input type="date" class="form-control" name="dateMax" id="dateMax" placeholder="Date de fin">
+        </div>
+    </div>
+
+    {% block moreFilters %}
+    {% endblock %}
+
+    <div>
+        <div class="input-group">
+            <select class="form-control data" name="statut" id="statut" placeholder='{{  statut is defined  ? statut : 'statut'}}'>
+                <option value>{{  statut is defined  ? statut : 'Statut'}}</option>
+                {% for statut in statuts %}
+                    <option value="{{ statut.nom }}">{{ statut.nom }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <div>
+        <div class="input-group">
+            <select class="form-control data" name="type" id="type" >
+                <option value>Type de demande</option>
+                {% for type in types %}
+                    <option value="{{ type.label }}">{{ type.label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <div>
+        <div class="input-group">
+            <select type="text" class="form-control data select2 " name="utilisateur" multiple="multiple"
+                    id="utilisateur">
+                {% for utilisateur in utilisateurs %}
+                    <option value="{{ utilisateur.username }}">
+                        {{ utilisateur.username }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+
+    <div>
+        <div id='{{ btnName }}' class="btn btn-primary minw-105px" tabindex="0">
+            <i class="fas fa-filter mr-2"></i>
+            Filtrer
+        </div>
+    </div>
+</div>

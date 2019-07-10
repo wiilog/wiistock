@@ -184,7 +184,11 @@ class LivraisonController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
-        return $this->render('livraison/index.html.twig');
+        return $this->render('livraison/index.html.twig', [
+            'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
+            'statuts' => $this->statutRepository->findByCategorieName(Livraison::CATEGORIE),
+            'types' => $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON),
+        ]);
     }
 
     /**
@@ -247,6 +251,7 @@ class LivraisonController extends AbstractController
             $livraisons = $this->livraisonRepository->findAll();
             $rows = [];
             foreach ($livraisons as $livraison) {
+                $demande = $this->demandeRepository->findOneByLivraison($livraison);
                 $url['show'] = $this->generateUrl('livraison_show', ['id' => $livraison->getId()]);
                 $rows[] = [
                     'id' => ($livraison->getId() ? $livraison->getId() : ''),
@@ -254,6 +259,7 @@ class LivraisonController extends AbstractController
                     'Date' => ($livraison->getDate() ? $livraison->getDate()->format('d/m/Y') : ''),
                     'Statut' => ($livraison->getStatut() ? $livraison->getStatut()->getNom() : ''),
                     'Opérateur' => ($livraison->getUtilisateur() ? $livraison->getUtilisateur()->getUsername() : ''),
+                    'Type' => ($demande && $demande->getType() ? $demande->getType()->getLabel() : ''),
                     'Actions' => $this->renderView('livraison/datatableLivraisonRow.html.twig', ['url' => $url])
                 ];
             }
