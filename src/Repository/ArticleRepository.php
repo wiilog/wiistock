@@ -181,6 +181,23 @@ class ArticleRepository extends ServiceEntityRepository
 		return $query->execute();
 	}
 
+	public function getTotalQuantiteFromRef($refArticle, $statut) {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            'SELECT SUM(a.quantite)
+			FROM App\Entity\Article a
+			JOIN a.articleFournisseur af
+			JOIN af.referenceArticle ra
+			WHERE a.statut =:statut AND ra = :refArticle AND a.demande is null
+			'
+        )->setParameters([
+            'refArticle' => $refArticle,
+            'statut' => $statut
+        ]);
+
+        return $query->getSingleScalarResult();
+    }
+
 	public function findByRefArticleAndStatutWithoutDemand($refArticle, $statut)
 	{
 		$entityManager = $this->getEntityManager();
@@ -191,6 +208,7 @@ class ArticleRepository extends ServiceEntityRepository
 			JOIN af.referenceArticle ra
 			WHERE a.statut =:statut AND ra = :refArticle
 			AND a.demande is null
+			ORDER BY a.quantite DESC
 			'
 		)->setParameters([
 			'refArticle' => $refArticle,
@@ -209,30 +227,6 @@ class ArticleRepository extends ServiceEntityRepository
             WHERE a.etat = :etat'
         )->setParameter('etat', $etat);;
         return $query->execute();
-    }
-
-//    public function countByRefArticleAndStatut($refArticle, $statut)
-//    {
-//        $entityManager = $this->getEntityManager();
-//        $query = $entityManager->createQuery(
-//            "SELECT COUNT(a)
-//            FROM App\Entity\Article a
-//            WHERE a.refArticle = :refArticle AND a.etat = TRUE AND s.nom = :statut"
-//        )->setParameters(['refArticle' => $refArticle, 'statut' => $statut]);
-//
-//        return $query->getSingleScalarResult();
-//    }
-
-    public function countByRefArticle($refArticle)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT COUNT(a)
-            FROM App\Entity\Article a
-            WHERE a.refArticle = :refArticle"
-        )->setParameter('refArticle', $refArticle);
-
-        return $query->getSingleScalarResult();
     }
 
     public function findAllSortedByName()

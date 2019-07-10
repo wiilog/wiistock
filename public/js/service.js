@@ -153,3 +153,9 @@ function changeStatus(button) {
     $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
 }
 
+$('#submitSearchService').on('keypress', function(e) {
+    if (e.which === 13) {
+        $('#submitSearchService').click();
+    }
+});
+

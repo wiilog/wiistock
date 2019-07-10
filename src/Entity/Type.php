@@ -28,7 +28,10 @@ class Type
     const LABEL_ECART_QUALITE = 'écart qualité';
     const LABEL_PB_COMMANDE = 'problème de commande';
     const LABEL_DEST_NON_IDENT = 'destinataire non identifiable';
+	// types de la catégorie demande de livraison
+	const LABEL_CSB = 'CSB';
 
+	/**
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
@@ -67,6 +70,11 @@ class Type
      */
     private $receptions;
 
+	/**
+	 * @ORM\OneToMany(targetEntity="App\Entity\Demande", mappedBy="type")
+	 */
+	private $demandesLivraison;
+
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Litige", mappedBy="type")
      */
@@ -79,6 +87,7 @@ class Type
         $this->articles = new ArrayCollection();
         $this->receptions = new ArrayCollection();
         $this->litiges = new ArrayCollection();
+        $this->demandesLivraison = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -281,6 +290,37 @@ class Type
             // set the owning side to null (unless already changed)
             if ($litige->getType() === $this) {
                 $litige->setType(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Demande[]
+     */
+    public function getDemandesLivraison(): Collection
+    {
+        return $this->demandesLivraison;
+    }
+
+    public function addDemandesLivraison(Demande $demandesLivraison): self
+    {
+        if (!$this->demandesLivraison->contains($demandesLivraison)) {
+            $this->demandesLivraison[] = $demandesLivraison;
+            $demandesLivraison->setType($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDemandesLivraison(Demande $demandesLivraison): self
+    {
+        if ($this->demandesLivraison->contains($demandesLivraison)) {
+            $this->demandesLivraison->removeElement($demandesLivraison);
+            // set the owning side to null (unless already changed)
+            if ($demandesLivraison->getType() === $this) {
+                $demandesLivraison->setType(null);
             }
         }
 
