@@ -243,18 +243,23 @@ function setMaxQuantityEdit(select) {
     }, 'json');
 }
 
-function toggleRadioButton(button, typeDemande) {
+function toggleRadioButton($button) {
+    let sel = $button.data('title');
+    let tog = $button.data('toggle');
+    $('#' + tog).prop('value', sel);
+    $('span[data-toggle="' + tog + '"]').not('[data-title="' + sel + '"]').removeClass('active').addClass('not-active');
+    $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
+}
+
+function toggleLivraisonCollecte($button) {
+    toggleRadioButton($button);
+
+    let typeDemande = $button.data('title');
     let path = Routing.generate('demande', true);
     let demande = $('#demande');
     let params = JSON.stringify( {demande: demande, typeDemande: typeDemande});
 
-    let boutonNouvelleDemande = button.closest('.modal').find('.boutonCreationDemande');
-    let sel = button.data('title');
-    let tog = button.data('toggle');
-    $('#' + tog).prop('value', sel);
-    $('span[data-toggle="' + tog + '"]').not('[data-title="' + sel + '"]').removeClass('active').addClass('not-active');
-    $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
-
+    let boutonNouvelleDemande = $button.closest('.modal').find('.boutonCreationDemande');
     $.post(path, params, function (data) {
         if(data === false ){
             $('.error-msg').html('Vous n\'avez créé aucune demande de ' + typeDemande + '.');
@@ -269,13 +274,13 @@ function toggleRadioButton(button, typeDemande) {
             boutonNouvelleDemande.find('#creationDemande').html(
                 "<a href=\'" + pathIndex + "\'>Nouvelle demande de "  + typeDemande + "</a>"
             );
-            button.closest('.modal').find('.plusDemandeContent').addClass('d-none');
+            $button.closest('.modal').find('.plusDemandeContent').addClass('d-none');
         }
         else{
-            ajaxPlusDemandeContent(button, typeDemande);
-            button.closest('.modal').find('.boutonCreationDemande').addClass('d-none');
-            button.closest('.modal').find('.plusDemandeContent').removeClass('d-none');
-            button.closest('.modal').find('.editChampLibre').removeClass('d-none');
+            ajaxPlusDemandeContent($button, typeDemande);
+            $button.closest('.modal').find('.boutonCreationDemande').addClass('d-none');
+            $button.closest('.modal').find('.plusDemandeContent').removeClass('d-none');
+            $button.closest('.modal').find('.editChampLibre').removeClass('d-none');
         }
     }, 'json');
 }
