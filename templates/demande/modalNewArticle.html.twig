@@ -11,8 +11,8 @@
             </div>
             <div class="modal-body modal-input container-fluid">
                 <form class="row">
-                    <div class="form-group col-12 d-flex w-100 mb-3">
-                        <label for="reference">Référence CEA*</label>
+                    <label for="reference" class="col-1">Référence CEA*</label>
+                    <div class="form-group col-11 d-flex w-100">
                         <select class="ajax-autocomplete data form-control needed"
                             onchange="ajaxGetAndFillArticle(this), setMaxQuantity($(this))" id="reference"
                             name="referenceArticle">

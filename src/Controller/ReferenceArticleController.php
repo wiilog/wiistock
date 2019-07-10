@@ -1033,4 +1033,30 @@ class ReferenceArticleController extends Controller
 		}
 		throw new NotFoundHttpException('404');
 	}
+
+    /**
+     * @Route("/get-demande", name="demande", options={"expose"=true})
+     */
+    public function getDemande(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data= json_decode($request->getContent(), true)) {
+
+            $statutDemande = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
+            $demandes = $this->demandeRepository->getByStatutAndUser($statutDemande, $this->getUser());
+
+            $statutC = $this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, Collecte::STATUS_BROUILLON);
+            $collectes = $this->collecteRepository->getByStatutAndUser($statutC, $this->getUser());
+
+            if ($data['typeDemande'] === 'livraison' && $demandes) {
+                $json = $demandes;
+            } elseif ($data['typeDemande'] === 'collecte' && $collectes) {
+                $json = $collectes;
+            } else {
+                $json = false;
+            }
+            return new JsonResponse($json);
+        }
+
+        throw new NotFoundHttpException('404');
+    }
 }

@@ -338,15 +338,15 @@ class ArticleDataService
         foreach ($champsLibresComplet as $champLibre) {
             /** @var ChampsLibre $champLibre */
             $valeurChampArticle = $this->valeurChampsLibreRepository->findOneByChampLibreAndArticle($champLibre->getId(), $article->getId());
-            $labelChampLibre = strtolower($champLibre->getLabel());
-            $isCEA = $this->specificService->isCurrentClientNameFunction(ParamClient::CEA_LETI);
+//			$labelChampLibre = strtolower($champLibre->getLabel());
+//			$isCEA = $this->specificService->isCurrentClientNameFunction(ParamClient::CEA_LETI);
 
-            // spécifique CEA : on vide les champs 'Code projet' et 'Destinataire' dans le cas d'une demande
-            if ($isCEA
-                && ($labelChampLibre == 'code projet' || $labelChampLibre == 'destinataire')
-                && $isADemand) {
-                $valeurChampArticle = null;
-            }
+//            // spécifique CEA : on vide les champs 'Code projet' et 'Destinataire' dans le cas d'une demande
+//			if ($isCEA
+//			&& ($labelChampLibre == 'code projet' || $labelChampLibre == 'destinataire')
+//			&& $isADemand) {
+//				$valeurChampArticle = null;
+//			}
             $champsLibres[] = [
                 'id' => $champLibre->getId(),
                 'label' => $champLibre->getLabel(),
@@ -380,13 +380,13 @@ class ArticleDataService
 
     public function editArticle($data)
     {
-        // spécifique CEA : accès pour tous aux champs libres 'Code projet' et 'Destinataire'
-        $isCea = $this->specificService->isCurrentClientNameFunction(ParamClient::CEA_LETI);
-        if (!$isCea) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
-                return new RedirectResponse($this->router->generate('access_denied'));
-            }
-        }
+//		// spécifique CEA : accès pour tous aux champs libres 'Code projet' et 'Destinataire'
+//		$isCea = $this->specificService->isCurrentClientNameFunction(ParamClient::CEA_LETI);
+//		if (!$isCea) {
+		if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
+			return new RedirectResponse($this->router->generate('access_denied'));
+		}
+//		}
 
         $entityManager = $this->em;
         $article = $this->articleRepository->find($data['article']);
@@ -410,23 +410,23 @@ class ArticleDataService
             $champsLibreKey = array_keys($data);
             foreach ($champsLibreKey as $champ) {
                 if (gettype($champ) === 'integer') {
-                    // spécifique CEA : accès pour tous aux champs libres 'Code projet' et 'Destinataire'
-                    $isCea = $this->specificService->isCurrentClientNameFunction(ParamClient::CEA_LETI);
+//                    // spécifique CEA : accès pour tous aux champs libres 'Code projet' et 'Destinataire'
+//					$isCea = $this->specificService->isCurrentClientNameFunction(ParamClient::CEA_LETI);
 
                     $champLibre = $this->champsLibreRepository->find($champ);
-                    $labelCL = strtolower($champLibre->getLabel());
-                    if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT) || ($isCea && ($labelCL == 'code projet' || $labelCL == 'destinataire'))) {
-                        $valeurChampLibre = $this->valeurChampsLibreRepository->findOneByArticleANDChampsLibre($article->getId(), $champ);
-                        if (!$valeurChampLibre) {
-                            $valeurChampLibre = new ValeurChampsLibre();
-                            $valeurChampLibre
-                                ->addArticle($article)
-                                ->setChampLibre($champLibre);
-                        }
-                        $valeurChampLibre->setValeur($data[$champ]);
-                        $entityManager->persist($valeurChampLibre);
-                        $entityManager->flush();
-                    }
+//					$labelCL = strtolower($champLibre->getLabel());
+//                    if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT) || ($isCea && ($labelCL == 'code projet' || $labelCL == 'destinataire'))) {
+					$valeurChampLibre = $this->valeurChampsLibreRepository->findOneByArticleANDChampsLibre($article->getId(), $champ);
+					if (!$valeurChampLibre) {
+						$valeurChampLibre = new ValeurChampsLibre();
+						$valeurChampLibre
+							->addArticle($article)
+							->setChampLibre($champLibre);
+					}
+					$valeurChampLibre->setValeur($data[$champ]);
+					$entityManager->persist($valeurChampLibre);
+					$entityManager->flush();
+//                    }
                 }
             }
             $entityManager->flush();
@@ -441,7 +441,13 @@ class ArticleDataService
         $entityManager = $this->em;
         $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $data['statut'] === Article::STATUT_ACTIF ? Article::STATUT_ACTIF : Article::STATUT_INACTIF);
         $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
-        $ref = $date->format('YmdHis');
+        $ref = $date->format('dm');
+
+        $referenceArticle = $this->referenceArticleRepository->find($data['refArticle'])->getReference();
+        $referenceArticles = $this->articleRepository->countByReference($referenceArticle);
+
+        $i = $referenceArticles + 1;
+        $cpt = sprintf('%05u',$i);
 
         $toInsert = new Article();
         $type = $this->articleFournisseurRepository->find($data['articleFournisseur'])->getReferenceArticle()->getType();
@@ -450,8 +456,8 @@ class ArticleDataService
             ->setConform(!$data['conform'])
             ->setStatut($statut)
             ->setCommentaire($data['commentaire'])
-            ->setReference($ref . '-0')
-            ->setQuantite(max((int)$data['quantite'], 0))// protection contre quantités négatives
+            ->setReference($referenceArticle.$ref.$cpt)
+            ->setQuantite(max((int)$data['quantite'], 0))  // protection contre quantités négatives
             ->setEmplacement($this->emplacementRepository->find($data['emplacement']))
             ->setArticleFournisseur($this->articleFournisseurRepository->find($data['articleFournisseur']))
             ->setType($type);

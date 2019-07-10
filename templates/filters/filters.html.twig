@@ -17,8 +17,9 @@
 
     <div>
         <div class="input-group">
-            <select class="form-control data" name="statut" id="statut" placeholder='{{  statut is defined  ? statut : 'statut'}}'>
-                <option value>{{  statut is defined  ? statut : 'Statut'}}</option>
+            <select class="form-control data" name="statut" id="statut"
+                    placeholder='{{ statut is defined  ? statut : 'statut' }}'>
+                <option value>{{ statut is defined  ? statut : 'Statut' }}</option>
                 {% for statut in statuts %}
                     <option value="{{ statut.nom }}">{{ statut.nom }}</option>
                 {% endfor %}
@@ -34,6 +35,21 @@
             </select>
         </div>
     </div>
+    <div>
+        <div class="input-group">
+            <select type="text" class="form-control data" name="type"
+                    id="type">
+                <option value>Type</option>
+                {% for type in types %}
+                    <option value="{{ type.label}}">
+                        {{ type.label }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <input class="current-username" hidden value="{{ app.user.username }}">
+    </div>
+
     <div>
         <div id='{{ btnName }}' class="btn btn-primary minw-105px" tabindex="0">
             <i class="fas fa-filter mr-2"></i>

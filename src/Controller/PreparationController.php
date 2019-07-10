@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\Article;
+use App\Entity\CategoryType;
 use App\Entity\LigneArticle;
 use App\Entity\Menu;
 use App\Entity\ParamClient;
@@ -11,6 +12,8 @@ use App\Entity\Preparation;
 
 use App\Entity\ReferenceArticle;
 use App\Repository\PreparationRepository;
+use App\Repository\TypeRepository;
+use App\Repository\UtilisateurRepository;
 use App\Service\SpecificService;
 use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -44,6 +47,11 @@ class PreparationController extends AbstractController
      * @var StatutRepository
      */
     private $statutRepository;
+
+    /**
+     * @var TypeRepository
+     */
+    private $typeRepository;
 
     /**
      * @var LigneArticleRepository
@@ -90,8 +98,15 @@ class PreparationController extends AbstractController
      */
     private $specificService;
 
-    public function __construct(SpecificService $specificService, LivraisonRepository $livraisonRepository, ArticleDataService $articleDataService, PreparationRepository $preparationRepository, LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, StatutRepository $statutRepository, DemandeRepository $demandeRepository, ReferenceArticleRepository $referenceArticleRepository, UserService $userService)
+    /**
+     * @var UtilisateurRepository
+     */
+    private $utilisateurRepository;
+
+    public function __construct(TypeRepository $typeRepository, UtilisateurRepository $utilisateurRepository, SpecificService $specificService, LivraisonRepository $livraisonRepository, ArticleDataService $articleDataService, PreparationRepository $preparationRepository, LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, StatutRepository $statutRepository, DemandeRepository $demandeRepository, ReferenceArticleRepository $referenceArticleRepository, UserService $userService)
     {
+        $this->typeRepository = $typeRepository;
+        $this->utilisateurRepository = $utilisateurRepository;
         $this->livraisonRepository = $livraisonRepository;
         $this->statutRepository = $statutRepository;
         $this->preparationRepository = $preparationRepository;
@@ -171,7 +186,11 @@ class PreparationController extends AbstractController
         if (!$this->userService->hasRightFunction(Menu::PREPA, Action::LIST)) {
             return $this->redirectToRoute('access_denied');
         }
-        return $this->render('preparation/index.html.twig');
+        return $this->render('preparation/index.html.twig', [
+			'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
+			'statuts' => $this->statutRepository->findByCategorieName(Preparation::CATEGORIE),
+            'types' => $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON),
+        ]);
     }
 
     /**
@@ -188,11 +207,14 @@ class PreparationController extends AbstractController
             $preparations = $this->preparationRepository->findAll();
             $rows = [];
             foreach ($preparations as $preparation) {
+                $demande = $this->demandeRepository->findOneByPreparation($preparation);
                 $url['show'] = $this->generateUrl('preparation_show', ['id' => $preparation->getId()]);
                 $rows[] = [
                     'Numéro' => ($preparation->getNumero() ? $preparation->getNumero() : ""),
                     'Date' => ($preparation->getDate() ? $preparation->getDate()->format('d/m/Y') : ''),
-                    'Statut' => ($preparation->getStatut() ? $preparation->getStatut()->getNom() : ""),
+					'Opérateur' => ($preparation->getUtilisateur() ? $preparation->getUtilisateur()->getUsername() : ''),
+					'Statut' => ($preparation->getStatut() ? $preparation->getStatut()->getNom() : ""),
+                    'Type' => ($demande && $demande->getType() ? $demande->getType()->getLabel() : ''),
                     'Actions' => $this->renderView('preparation/datatablePreparationRow.html.twig', ['url' => $url]),
                 ];
             }
@@ -463,13 +485,13 @@ class PreparationController extends AbstractController
                     ];
 
                     foreach ($article->getValeurChampsLibres() as $valeurChampLibre) {
-//                    	spécifique CEA : vider le champ libre code projet
-                        $labelCL = strtolower($valeurChampLibre->getChampLibre()->getLabel());
-                        if (!(
-                            $this->specificService->isCurrentClientNameFunction(ParamClient::CEA_LETI)
-                            && ($labelCL == 'code projet' || $labelCL == 'destinataire'))) {
-                            $newArticle[$valeurChampLibre->getChampLibre()->getId()] = $valeurChampLibre->getValeur();
-                        }
+////                    	spécifique CEA : vider le champ libre code projet
+//						$labelCL = strtolower($valeurChampLibre->getChampLibre()->getLabel());
+//						if (!(
+//							$this->specificService->isCurrentClientNameFunction(ParamClient::CEA_LETI)
+//							&& ($labelCL == 'code projet' || $labelCL == 'destinataire'))) {
+						$newArticle[$valeurChampLibre->getChampLibre()->getId()] = $valeurChampLibre->getValeur();
+//						}
                     }
                     $this->articleDataService->newArticle($newArticle);
 

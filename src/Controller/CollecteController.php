@@ -136,7 +136,7 @@ class CollecteController extends AbstractController
     }
 
     /**
-     * @Route("/", name="collecte_index", methods={"GET", "POST"})
+     * @Route("/", name="collecte_index", options={"expose"=true}, methods={"GET", "POST"})
      */
     public function index(): Response
     {
@@ -197,6 +197,7 @@ class CollecteController extends AbstractController
                     'Demandeur' => ($collecte->getDemandeur() ? $collecte->getDemandeur()->getUserName() : null),
                     'Objet' => ($collecte->getObjet() ? $collecte->getObjet() : null),
                     'Statut' => ($collecte->getStatut()->getNom() ? ucfirst($collecte->getStatut()->getNom()) : null),
+                    'Type' => ($collecte->getType() ? $collecte->getType()->getLabel() : ''),
                     'Actions' => $this->renderView('collecte/datatableCollecteRow.html.twig', [
                         'url' => $url,
                     ]),
