@@ -287,6 +287,10 @@ a:hover {
   overflow: auto;
 }
 
+.modal-open {
+  padding-right: 0px !important;
+}
+
 .accueil-back {
   width: 100%;
   height: 100%;
@@ -337,6 +341,11 @@ a:hover {
   border-color: #130078;
 }
 .btn-primary:hover {
+  background-color: #fcfcfc;
+  color: #130078;
+  border-color: #130078;
+}
+.btn-primary:focus {
   background-color: #fcfcfc;
   color: #130078;
   border-color: #130078;
