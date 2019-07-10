@@ -66,6 +66,7 @@ function submitAction(modal, path, table, callback, close) {
             label = label.replace(/\*/, '');
             missingInputs.push(label);
             $(this).addClass('is-invalid');
+            $(this).next().find('.select2-selection').addClass('is-invalid');
         }
         // validation valeur des inputs de type number
         if ($(this).attr('type') === 'number') {
@@ -116,6 +117,7 @@ function submitAction(modal, path, table, callback, close) {
         // ... sinon on construit les messages d'erreur
         let msg = '';
 
+        console.log(missingInputs);
         // cas où il manque des champs obligatoires
         if (missingInputs.length > 0) {
             if (missingInputs.length == 1) {
@@ -129,7 +131,7 @@ function submitAction(modal, path, table, callback, close) {
             wrongNumberInputs.forEach(function (elem) {
                 let label = elem.closest('.form-group').find('label').text();
 
-                msg += 'La valeur du champ ' + label;
+                msg += 'La valeur du champ ' + label.replace(/\*/, '');
 
                 let min = elem.attr('min');
                 let max = elem.attr('max');
