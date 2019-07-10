@@ -31,7 +31,6 @@ class Type
 	// types de la catégorie demande de livraison
 	const LABEL_CSB = 'CSB';
 
-
 	/**
      * @ORM\Id()
      * @ORM\GeneratedValue()
@@ -43,6 +42,11 @@ class Type
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $label;
+
+	/**
+	 * @ORM\Column(type="text", nullable=true)
+	 */
+    private $description;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\ChampsLibre", mappedBy="type")
@@ -80,6 +84,11 @@ class Type
      */
     private $litiges;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Collecte", mappedBy="type")
+     */
+    private $collectes;
+
     public function __construct()
     {
         $this->champsLibres = new ArrayCollection();
@@ -88,6 +97,7 @@ class Type
         $this->receptions = new ArrayCollection();
         $this->litiges = new ArrayCollection();
         $this->demandesLivraison = new ArrayCollection();
+        $this->collectes = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -323,6 +333,49 @@ class Type
                 $demandesLivraison->setType(null);
             }
         }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Collecte[]
+     */
+    public function getCollectes(): Collection
+    {
+        return $this->collectes;
+    }
+
+    public function addCollecte(Collecte $collecte): self
+    {
+        if (!$this->collectes->contains($collecte)) {
+            $this->collectes[] = $collecte;
+            $collecte->setType($this);
+        }
+
+        return $this;
+    }
+
+    public function removeCollecte(Collecte $collecte): self
+    {
+        if ($this->collectes->contains($collecte)) {
+            $this->collectes->removeElement($collecte);
+            // set the owning side to null (unless already changed)
+            if ($collecte->getType() === $this) {
+                $collecte->setType(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(?string $description): self
+    {
+        $this->description = $description;
 
         return $this;
     }

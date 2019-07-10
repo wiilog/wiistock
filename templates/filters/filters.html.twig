@@ -1,4 +1,4 @@
-<div class="filterService filters w-100">
+<div class="filterService filters">
     <div>
         <div class="input-group">
             <div class="input-group-prepend">
@@ -17,22 +17,32 @@
 
     <div>
         <div class="input-group">
-            <select class="form-control data" name="statut" id="statut" placeholder='{{  statut is defined  ? statut : 'statut'}}'>
-                <option value>{{  statut is defined  ? statut : 'Statut'}}</option>
+            <select class="form-control data" name="statut" id="statut"
+                    placeholder='{{ statut is defined  ? statut : 'statut' }}'>
+                <option value>{{ statut is defined  ? statut : 'Statut' }}</option>
                 {% for statut in statuts %}
                     <option value="{{ statut.nom }}">{{ statut.nom }}</option>
                 {% endfor %}
             </select>
         </div>
     </div>
-
     <div>
         <div class="input-group">
-            <select type="text" class="form-control data select2 " name="utilisateur" multiple="multiple"
-                    id="utilisateur">
+            <select class="form-control data" name="utilisateur" id="utilisateur" multiple="multiple" >
                 {% for utilisateur in utilisateurs %}
-                    <option value="{{ utilisateur.username }}">
-                        {{ utilisateur.username }}
+                    <option value="{{ utilisateur.username }}">{{ utilisateur.username }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    <div>
+        <div class="input-group">
+            <select type="text" class="form-control data" name="type"
+                    id="type">
+                <option value>Type</option>
+                {% for type in types %}
+                    <option value="{{ type.label}}">
+                        {{ type.label }}
                     </option>
                 {% endfor %}
             </select>

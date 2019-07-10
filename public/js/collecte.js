@@ -23,12 +23,13 @@ let table = $('#tableCollecte_id').DataTable({
         "type": "POST"
     },
     columns: [
-        { "data": 'Création', 'name': 'Création', 'title': 'Création' },
-        { "data": 'Validation', 'name': 'Validation', 'title': 'Validation' },
-        { "data": 'Demandeur', 'name': 'Demandeur', 'title': 'Demandeur' },
-        { "data": 'Objet', 'name': 'Objet', 'title': 'Objet' },
-        { "data": 'Statut', 'name': 'Statut', 'title': 'Statut' },
-        { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' }
+        {"data": 'Création', 'name': 'Création', 'title': 'Création'},
+        {"data": 'Validation', 'name': 'Validation', 'title': 'Validation'},
+        {"data": 'Demandeur', 'name': 'Demandeur', 'title': 'Demandeur'},
+        {"data": 'Objet', 'name': 'Objet', 'title': 'Objet'},
+        {"data": 'Statut', 'name': 'Statut', 'title': 'Statut'},
+        {"data": 'Type', 'name': 'Type', 'title': 'Type'},
+        {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'}
     ],
 });
 
@@ -76,7 +77,7 @@ $.extend($.fn.dataTableExt.oSort, {
 });
 
 //AJOUTE_ARTICLE
-let pathAddArticle = Routing.generate('collecte_article_api', { 'id': id }, true);
+let pathAddArticle = Routing.generate('collecte_article_api', {'id': id}, true);
 let tableArticle = $('#tableArticle_id').DataTable({
     language: {
         url: "/js/i18n/dataTableLanguage.json",
@@ -86,11 +87,11 @@ let tableArticle = $('#tableArticle_id').DataTable({
         "type": "POST"
     },
     columns: [
-        { "data": 'Référence CEA', 'title': 'Référence CEA' },
-        { "data": 'Libellé', 'title': 'Libellé' },
-        { "data": 'Emplacement', 'title': 'Emplacement' },
-        { "data": 'Quantité', 'title': 'Quantité' },
-        { "data": 'Actions', 'title': 'Actions' }
+        {"data": 'Référence CEA', 'title': 'Référence CEA'},
+        {"data": 'Libellé', 'title': 'Libellé'},
+        {"data": 'Emplacement', 'title': 'Emplacement'},
+        {"data": 'Quantité', 'title': 'Quantité'},
+        {"data": 'Actions', 'title': 'Actions'}
     ],
 
 });
@@ -155,6 +156,7 @@ function deleteRowCollecte(button, modal, submit) {
 
 //initialisation editeur de texte une seule fois à la création
 let editorNewCollecteAlreadyDone = false;
+
 function initNewCollecteEditor(modal) {
     if (!editorNewCollecteAlreadyDone) {
         initEditorInModal(modal);
@@ -165,6 +167,7 @@ function initNewCollecteEditor(modal) {
 
 $('#submitSearchCollecte').on('click', function () {
     let statut = $('#statut').val();
+    let type = $('#type').val();
     let demandeur = $('#utilisateur').val()
     let demandeurString = demandeur.toString();
     let demandeurPiped = demandeurString.split(',').join('|')
@@ -172,6 +175,11 @@ $('#submitSearchCollecte').on('click', function () {
     table
         .columns('Statut:name')
         .search(statut)
+        .draw();
+
+    table
+        .columns('Type:name')
+        .search(type)
         .draw();
 
     table
@@ -200,7 +208,6 @@ $('#submitSearchCollecte').on('click', function () {
             }
             return false;
         }
-
     );
     table
         .draw();
@@ -222,11 +229,11 @@ $('#submitSearchCollecte').on('click', function () {
 // }
 
 function validateCollecte(collecteId) {
-    let params = JSON.stringify({ id: collecteId });
+    let params = JSON.stringify({id: collecteId});
 
     $.post(Routing.generate('demande_collecte_has_articles'), params, function (resp) {
         if (resp === true) {
-            window.location.href = Routing.generate('ordre_collecte_new', { 'id': collecteId });
+            window.location.href = Routing.generate('ordre_collecte_new', {'id': collecteId});
         } else {
             $('#cannotValidate').click();
         }
@@ -248,13 +255,13 @@ let ajaxEditArticle = function (select) {
             }
         }
     }
-    let json = { id: select.val(), isADemand: 1 };
+    let json = {id: select.val(), isADemand: 1};
     let path = Routing.generate('article_api_edit', true);
     xhttp.open("POST", path, true);
     xhttp.send(JSON.stringify(json));
 }
 
-$('#submitSearchCollecte').on('keypress', function(e) {
+$('#submitSearchCollecte').on('keypress', function (e) {
     if (e.which === 13) {
         $('#submitSearchCollecte').click();
     }

@@ -105,24 +105,24 @@ class ApiController extends FOSRestController implements ClassResourceInterface
      */
     private $mailerServerRepository;
 
-	/**
-	 * @var LoggerInterface
-	 */
+    /**
+     * @var LoggerInterface
+     */
     private $logger;
 
-	/**
-	 * ApiController constructor.
-	 * @param LoggerInterface $logger
-	 * @param MailerServerRepository $mailerServerRepository
-	 * @param MailerService $mailerService
-	 * @param ColisRepository $colisRepository
-	 * @param MouvementTracaRepository $mouvementTracaRepository
-	 * @param ReferenceArticleRepository $referenceArticleRepository
-	 * @param UtilisateurRepository $utilisateurRepository
-	 * @param UserPasswordEncoderInterface $passwordEncoder
-	 * @param ArticleRepository $articleRepository
-	 * @param EmplacementRepository $emplacementRepository
-	 */
+    /**
+     * ApiController constructor.
+     * @param LoggerInterface $logger
+     * @param MailerServerRepository $mailerServerRepository
+     * @param MailerService $mailerService
+     * @param ColisRepository $colisRepository
+     * @param MouvementTracaRepository $mouvementTracaRepository
+     * @param ReferenceArticleRepository $referenceArticleRepository
+     * @param UtilisateurRepository $utilisateurRepository
+     * @param UserPasswordEncoderInterface $passwordEncoder
+     * @param ArticleRepository $articleRepository
+     * @param EmplacementRepository $emplacementRepository
+     */
     public function __construct(LoggerInterface $logger, MailerServerRepository $mailerServerRepository, MailerService $mailerService, ColisRepository $colisRepository, MouvementTracaRepository $mouvementTracaRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
     {
         $this->mailerServerRepository = $mailerServerRepository;
@@ -174,87 +174,106 @@ class ApiController extends FOSRestController implements ClassResourceInterface
     }
 
     /**
+     * @Rest\Post("/api/ping", name= "api-ping")
+     * @Rest\Get("/api/ping")
+     * @Rest\View()
+     */
+    public function ping(Request $request)
+    {
+        if (!$request->isXmlHttpRequest()) {
+            $response = new Response();
+
+            $response->headers->set('Content-Type', 'application/json');
+            $response->headers->set('Access-Control-Allow-Origin', '*');
+            $response->headers->set('Access-Control-Allow-Methods', 'POST, GET');
+            $this->successData['success'] = true;
+
+            $response->setContent(json_encode($this->successData));
+            return $response;
+        }
+    }
+
+    /**
      * @Rest\Post("/api/addMouvementTraca", name="api-add-mouvement-traca")
      * @Rest\Get("/api/addMouvementTraca")
      * @Rest\View()
      */
-	public function addMouvementTraca(Request $request)
-	{
-		if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-			$response = new Response();
-			$response->headers->set('Content-Type', 'application/json');
-			$response->headers->set('Access-Control-Allow-Origin', '*');
-			$response->headers->set('Access-Control-Allow-Methods', 'POST, GET');
-			$em = $this->getDoctrine()->getManager();
-			$numberOfRowsInserted = 0;
+    public function addMouvementTraca(Request $request)
+    {
+        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $response = new Response();
+            $response->headers->set('Content-Type', 'application/json');
+            $response->headers->set('Access-Control-Allow-Origin', '*');
+            $response->headers->set('Access-Control-Allow-Methods', 'POST, GET');
+            $em = $this->getDoctrine()->getManager();
+            $numberOfRowsInserted = 0;
+            foreach ($data['mouvements'] as $mvt) {
+                if (!$this->mouvementTracaRepository->getOneByDate($mvt['date'])) {
+                    $refEmplacement = $mvt['ref_emplacement'];
+                    $refArticle = $mvt['ref_article'];
+                    $type = $mvt['type'];
 
-			foreach ($data['mouvements'] as $mvt) {
-				if (!$this->mouvementTracaRepository->getOneByDate($mvt['date'])) {
-					$refEmplacement = $mvt['ref_emplacement'];
-					$refArticle = $mvt['ref_article'];
-					$type = $mvt['type'];
+                    $toInsert = new MouvementTraca();
+                    $toInsert
+                        ->setRefArticle($refArticle)
+                        ->setRefEmplacement($refEmplacement)
+                        ->setOperateur($mvt['operateur'])
+                        ->setDate($mvt['date'])
+                        ->setType($type);
+                    $em->persist($toInsert);
+                    $numberOfRowsInserted++;
 
-					$toInsert = new MouvementTraca();
-					$toInsert
-						->setRefArticle($refArticle)
-						->setRefEmplacement($refEmplacement)
-						->setOperateur($mvt['operateur'])
-						->setDate($mvt['date'])
-						->setType($type);
-					$em->persist($toInsert);
-					$numberOfRowsInserted++;
+                    $emplacement = $this->emplacementRepository->getOneByLabel($refEmplacement);
+                    /** @var Emplacement $emplacement */
 
-					$emplacement = $this->emplacementRepository->getOneByLabel($refEmplacement); /** @var Emplacement $emplacement */
+                    if ($emplacement) {
 
-					if ($emplacement) {
+                        $isDepose = $type === MouvementTraca::DEPOSE;
+                        $colis = $this->colisRepository->getOneByCode($mvt['ref_article']);
+                        /**@var Colis $colis */
 
-						$isDepose = $type === MouvementTraca::DEPOSE;
-						$colis = $this->colisRepository->getOneByCode($mvt['ref_article']); /**@var Colis $colis */
+                        if ($isDepose && $colis && $emplacement->getIsDeliveryPoint()) {
+                            $arrivage = $colis->getArrivage();
+                            $destinataire = $arrivage->getDestinataire();
+                            if ($this->mailerServerRepository->findOneMailerServer()) {
+                                $dateArray = explode('_', $toInsert->getDate());
+                                $date = new DateTime($dateArray[0]);
+                                $this->mailerService->sendMail(
+                                    'FOLLOW GT // Dépose effectuée',
+                                    $this->renderView(
+                                        'mails/mailDeposeTraca.html.twig',
+                                        [
+                                            'colis' => $colis->getCode(),
+                                            'emplacement' => $refEmplacement,
+                                            'arrivage' => $arrivage->getNumeroArrivage(),
+                                            'date' => $date,
+                                            'operateur' => $mvt['operateur']
+                                        ]
+                                    ),
+                                    $destinataire->getEmail()
+                                );
+                            } else {
+                                $this->logger->critical('Parametrage mail non defini.');
+                            }
+                        }
+                    } else {
+                        $emplacement = new Emplacement();
+                        $emplacement->setLabel($refEmplacement);
+                        $em->persist($emplacement);
+                        $em->flush();
+                    }
+                }
+            }
+            $em->flush();
 
-						if ($isDepose && $colis && $emplacement->getIsDeliveryPoint()) {
-							$arrivage = $colis->getArrivage();
-							$destinataire = $arrivage->getDestinataire();
-
-							if ($this->mailerServerRepository->findOneMailerServer()) {
-								$dateArray = explode('_', $mvt->getDate());
-								$date = new DateTime($dateArray[0]);
-
-								$this->mailerService->sendMail(
-									'FOLLOW GT // Dépose effectuée',
-									$this->renderView(
-										'mails/mailDeposeTraca.html.twig',
-										[
-											'colis' => $colis->getCode(),
-											'emplacement' => $refEmplacement,
-											'arrivage' => $arrivage->getNumeroArrivage(),
-											'date' => $date,
-											'operateur' => $mvt['operateur']
-										]
-									),
-									$destinataire->getEmail()
-								);
-							} else {
-								$this->logger->critical('Parametrage mail non defini.');
-							}
-						}
-					} else {
-						$emplacement = new Emplacement();
-						$emplacement->setLabel($refEmplacement);
-						$em->persist($emplacement);
-						$em->flush();
-					}
-				}
-			}
-			$em->flush();
-
-			$s = $numberOfRowsInserted > 0 ? 's' : '';
-			$this->successData['success'] = true;
-			$this->successData['data']['status'] = ($numberOfRowsInserted === 0) ?
-				'Aucun mouvement à synchroniser.' : $numberOfRowsInserted . ' mouvement' . $s . ' synchronisé' . $s;
-			$response->setContent(json_encode($this->successData));
-			return $response;
-		}
-	}
+            $s = $numberOfRowsInserted > 0 ? 's' : '';
+            $this->successData['success'] = true;
+            $this->successData['data']['status'] = ($numberOfRowsInserted === 0) ?
+                'Aucun mouvement à synchroniser.' : $numberOfRowsInserted . ' mouvement' . $s . ' synchronisé' . $s;
+            $response->setContent(json_encode($this->successData));
+            return $response;
+        }
+    }
 
     /**
      * @Rest\Post("/api/setmouvement", name= "api-set-mouvement")

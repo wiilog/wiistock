@@ -80,6 +80,7 @@ let tableDemande = $('#table_demande').DataTable({
         {"data": 'Demandeur', 'name': 'Demandeur'},
         {"data": 'Numéro', 'name': 'Numéro'},
         {"data": 'Statut', 'name': 'Statut'},
+        {"data": 'Type', 'name': 'Type', 'title': 'Type'},
         {"data": 'Actions', 'name': 'Actions'},
     ],
 });
@@ -116,7 +117,7 @@ function getCompareStock(submit) {
     let path = Routing.generate('compare_stock', true);
     let params = {'demande': submit.data('id')};
 
-    $.post(path, JSON.stringify(params), function(data) {
+    $.post(path, JSON.stringify(params), function (data) {
         if (data) {
             $('.zone-entete').html(data.entete);
             $('#tableArticle_id').DataTable().ajax.reload();
@@ -185,6 +186,7 @@ let ajaxAuto = function () {
 }
 
 let editorNewLivraisonAlreadyDone = false;
+
 function initNewLivraisonEditor(modal) {
     if (!editorNewLivraisonAlreadyDone) {
         initEditorInModal(modal);
@@ -195,12 +197,18 @@ function initNewLivraisonEditor(modal) {
 
 $('#submitSearchDemandeLivraison').on('click', function () {
     let statut = $('#statut').val();
+    let type = $('#type').val();
     let utilisateur = $('#utilisateur').val()
     let utilisateurString = utilisateur.toString();
     let utilisateurPiped = utilisateurString.split(',').join('|');
     tableDemande
         .columns('Statut:name')
         .search(statut)
+        .draw();
+
+    tableDemande
+        .columns('Type:name')
+        .search(type)
         .draw();
 
     tableDemande
@@ -255,6 +263,19 @@ function ajaxGetAndFillArticle(select) {
             ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
         }, 'json');
     }
+}
+
+function switchWantedGlobal(checkbox) {
+    let path = Routing.generate('switch_choice', true);
+    let params = {
+        'checked': checkbox.is(':checked'),
+        'reference': checkbox.data('ref')
+    };
+    let $modal = checkbox.closest('.modal');
+    $.post(path, JSON.stringify(params), function (data) {
+        $modal.find('#choiceContent').html(data.content);
+        $modal.find('.error-msg').html('');
+    });
 }
 
 function deleteRowDemande(button, modal, submit) {
@@ -360,7 +381,7 @@ function checkZero(data) {
     return data;
 }
 
-$('#submitSearchDemandeLivraison').on('keypress', function(e) {
+$('#submitSearchDemandeLivraison').on('keypress', function (e) {
     if (e.which === 13) {
         $('#submitSearchDemandeLivraison').click();
     }

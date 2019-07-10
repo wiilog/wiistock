@@ -2,11 +2,13 @@
 
 namespace App\Controller;
 
-use App\Entity\Action;
 use App\Entity\Menu;
+use App\Entity\ParametreRole;
 use App\Entity\Role;
 use App\Repository\ActionRepository;
 use App\Repository\MenuRepository;
+use App\Repository\ParametreRepository;
+use App\Repository\ParametreRoleRepository;
 use App\Repository\RoleRepository;
 use App\Repository\UtilisateurRepository;
 use App\Service\UserService;
@@ -42,19 +44,30 @@ class RoleController extends AbstractController
      */
     private $utilisateurRepository;
 
+	/**
+	 * @var ParametreRepository
+	 */
+    private $parametreRepository;
+
+	/**
+	 * @var ParametreRoleRepository
+	 */
+    private $parametreRoleRepository;
     /**
      * @var UserService
      */
     private $userService;
 
 
-    public function __construct(RoleRepository $roleRepository, ActionRepository $actionRepository, MenuRepository $menuRepository, UtilisateurRepository $utilisateurRepository, UserService $userService)
+    public function __construct(ParametreRoleRepository $parametreRoleRepository, ParametreRepository $parametreRepository, RoleRepository $roleRepository, ActionRepository $actionRepository, MenuRepository $menuRepository, UtilisateurRepository $utilisateurRepository, UserService $userService)
     {
         $this->roleRepository = $roleRepository;
         $this->actionRepository = $actionRepository;
         $this->menuRepository = $menuRepository;
         $this->utilisateurRepository = $utilisateurRepository;
         $this->userService = $userService;
+        $this->parametreRepository = $parametreRepository;
+        $this->parametreRoleRepository = $parametreRoleRepository;
     }
 
     /**
@@ -68,7 +81,9 @@ class RoleController extends AbstractController
 
         $menus = $this->menuRepository->findAll();
 
-        return $this->render('role/index.html.twig', ['menus' => $menus]);
+        return $this->render('role/index.html.twig', [
+        	'menus' => $menus
+		]);
     }
 
     /**
@@ -169,10 +184,24 @@ class RoleController extends AbstractController
                 $actionsIdOfRole[] = $action->getId();
             }
 
-            $json = $this->renderView('role/modalEditRoleContent.html.twig', [
+            $params = $this->parametreRepository->findAll();
+            $listParams = [];
+            foreach ($params as $param) {
+            	$listParams[] = [
+            		'id' => $param->getId(),
+					'label' => $param->getLabel(),
+					'typage' => $param->getTypage(),
+					'elements' => $param->getElements(),
+					'default' => $param->getDefaultValue(),
+					'value' => $this->parametreRoleRepository->getValueByRoleAndParam($role, $param)
+				];
+			}
+
+			$json = $this->renderView('role/modalEditRoleContent.html.twig', [
                 'role' => $role,
                 'menus' => $menus,
-                'actionsIdOfRole' => $actionsIdOfRole
+                'actionsIdOfRole' => $actionsIdOfRole,
+				'params' => $listParams
             ]);
 
             return new JsonResponse($json);
@@ -190,6 +219,7 @@ class RoleController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
+            $em = $this->getDoctrine()->getManager();
             $role = $this->roleRepository->find($data['id']);
 
             $role->setLabel($data['label']);
@@ -197,6 +227,26 @@ class RoleController extends AbstractController
             unset($data['elem']);
             unset($data['id']);
 
+            // on traite les paramètres
+			foreach (array_keys($data) as $id) {
+				if (is_numeric($id)) {
+					$parametre = $this->parametreRepository->find($id);
+
+					$paramRole = $this->parametreRoleRepository->findOneByRoleAndParam($role, $parametre);
+					if (!$paramRole) {
+						$paramRole = new ParametreRole();
+						$em->persist($paramRole);
+					}
+					$paramRole
+						->setParametre($parametre)
+						->setRole($role)
+						->setValue($data[$id]);
+					$em->flush();
+					unset($data[$id]);
+				}
+			}
+
+            // on traite les actions
             foreach ($data as $menuAction => $isChecked) {
                 $menuActionArray = explode('/', $menuAction);
                 $menuCode = $menuActionArray[0];
@@ -211,7 +261,6 @@ class RoleController extends AbstractController
                     }
                 }
             }
-            $em = $this->getDoctrine()->getManager();
             $em->flush();
             return new JsonResponse();
         }

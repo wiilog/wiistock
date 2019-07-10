@@ -3,24 +3,22 @@
 {% block title %}Ordres de préparation{% endblock %}
 
 {% block page_content %}
-<h1>Ordres de préparation</h1>
-<table id="table_id" class="table table-striped table-bordered w-100">
-    <thead>
-        <tr>
-            <th>Numéro</th>
-            <th>Date</th>
-            <th>Statut</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
+    </div>
+{% include 'filters/filtersOrdres.html.twig' with {'btnName' : 'submitSearchPrepaLivraison'} %}
+
+<div class="container-fluid">
+    <h1>Ordres de préparation</h1>
+
+    <table id="table_id" class="table table-striped table-bordered w-100">
     <tbody>
-       
+
     </tbody>
 </table>
+</div>
 {% endblock %}
 
 {% block javascript %}
-<script>let id = 0; 
+<script>let id = 0;
 </script>
 <script src="{{ asset('js/preparation.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}
