@@ -289,7 +289,7 @@ class LivraisonController extends AbstractController
                 foreach ($articles as $article) {
                     /** @var Article $article */
                     $rows[] = [
-                        "Référence CEA" => $article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
+                        "Référence" => $article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
                         "Libellé" => $article->getLabel() ? $article->getLabel() : '',
                         "Emplacement" => $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
                         "Quantité" => $article->getQuantite(),

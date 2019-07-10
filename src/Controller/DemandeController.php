@@ -574,7 +574,7 @@ class DemandeController extends AbstractController
                     $this->articleRepository->getTotalQuantiteFromRef($articleRef, $statutArticleActif) :
                     $articleRef->getQuantiteStock();
                 $rowsRC[] = [
-                    "Référence CEA" => ($ligneArticle->getReference()->getReference() ? $ligneArticle->getReference()->getReference() : ''),
+                    "Référence" => ($ligneArticle->getReference()->getReference() ? $ligneArticle->getReference()->getReference() : ''),
                     "Libellé" => ($ligneArticle->getReference()->getLibelle() ? $ligneArticle->getReference()->getLibelle() : ''),
                     "Emplacement" => ($ligneArticle->getReference()->getEmplacement() ? $ligneArticle->getReference()->getEmplacement()->getLabel() : ' '),
                     "Quantité" => $qtt,
@@ -596,7 +596,7 @@ class DemandeController extends AbstractController
             foreach ($articles as $article) {
                 /** @var Article $article */
                 $rowsCA[] = [
-                    "Référence CEA" => ($article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : ''),
+                    "Référence" => ($article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : ''),
                     "Libellé" => ($article->getLabel() ? $article->getLabel() : ''),
                     "Emplacement" => ($article->getEmplacement() ? $article->getEmplacement()->getLabel() : ' '),
                     "Quantité" => ($article->getQuantite() ? $article->getQuantite() : ''),
