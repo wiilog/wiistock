@@ -44,6 +44,11 @@ class Type
      */
     private $label;
 
+	/**
+	 * @ORM\Column(type="text", nullable=true)
+	 */
+    private $description;
+
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\ChampsLibre", mappedBy="type")
      */
@@ -323,6 +328,18 @@ class Type
                 $demandesLivraison->setType(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(?string $description): self
+    {
+        $this->description = $description;
 
         return $this;
     }
