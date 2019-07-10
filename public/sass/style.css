@@ -345,6 +345,11 @@ a:hover {
   color: #130078;
   border-color: #130078;
 }
+.btn-primary:focus {
+  background-color: #fcfcfc;
+  color: #130078;
+  border-color: #130078;
+}
 
 .btn-success {
   background-color: #130078;
@@ -643,7 +648,10 @@ a:hover {
   margin: auto 12px;
 }
 .filters > div .select2-selection {
-  height: 38px;
+  padding-top: 2px;
+  padding-bottom: 4px;
+  margin-bottom: 2px;
+  margin-top: 2px;
 }
 
 .filterService {

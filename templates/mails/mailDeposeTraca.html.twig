@@ -6,7 +6,7 @@
 </style>
 <body>
 
-<h2>Une dépose a été effectuée.</h2>
+<h2>Votre colis a été livré.</h2>
 
 <table style="border: 1px solid black;">
     <tbody>
@@ -20,7 +20,7 @@
     </tr>
     <tr>
         <td style="font-weight:bold;">Date de dépose</td>
-        <td>{{ date|date('le d/m/Y à H:i:s') }}</td>
+        <td>le {{ date|date("d/m/Y") }} à {{ date|date("H:i:s") }}</td>
     </tr>
     <tr>
         <td style="font-weight:bold;">Emplacement</td>

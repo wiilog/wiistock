@@ -18,6 +18,7 @@
         <p><strong> Objet : </strong>{{ collecte.objet }}</p>
         <p><strong> Statut : </strong> {{ collecte.statut.nom | capitalize }}</p>
         <p><strong> Point de collecte : </strong> {{ collecte.pointCollecte | capitalize }}</p>
+        <p><strong> Type : </strong> {{ collecte.type ? collecte.type.label : '' }}</p>
     </div>
     <div class="col-12">
         <p><strong> Commentaire : </strong></p>
