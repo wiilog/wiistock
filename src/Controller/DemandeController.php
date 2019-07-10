@@ -789,9 +789,6 @@ class DemandeController extends AbstractController
     public function switchChoice(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::CHOIX)) {
-                return $this->redirectToRoute('access_denied');
-            }
 
 			$refArticle = $this->referenceArticleRepository->find($data['reference']);
             $response = [];
