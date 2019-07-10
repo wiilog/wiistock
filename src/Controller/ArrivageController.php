@@ -500,37 +500,25 @@ class ArrivageController extends AbstractController
         }
     }
 
-    /**
-     * @Route("/commentaire", name="commentaire", options={"expose"=true}, methods="GET|POST")
-     */
-    public function commenter(Request $request): Response
-    {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST)) {
-                return $this->redirectToRoute('access_denied');
-            }
+	/**
+	 * @Route("/ajoute-commentaire", name="add_comment",  options={"expose"=true}, methods="GET|POST")
+	 */
+    public function addComment(Request $request): Response
+	{
+		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			$response = '';
 
-            $dataReturn = [];
-            if ($this->specificService->isCurrentClientNameFunction(ParamClient::SAFRAN_CERAMICS)) {
-                $type = $this->typeRepository->find($data['constantTypeLitige']);
-                $dataReturn['type'] = $type->getLabel();
-            }
-            return new JsonResponse($dataReturn);
-        }
-        throw new NotFoundHttpException('404');
-    }
+			// spécifique SAFRAN CERAMICS ajout de commentaire
+			$isSafran = $this->specificService->isCurrentClientNameFunction(ParamClient::SAFRAN_CERAMICS);
 
-    /**
-     * @Route("/verifier-spec", name="verif_spec",  options={"expose"=true}, methods="GET|POST")
-     */
-    public function verifSpec(Request $request): Response
-    {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $response = [];
-            $response['isSpec'] = $this->specificService->isCurrentClientNameFunction($data['toTest']);
-            return new JsonResponse($response);
-        }
-        throw new NotFoundHttpException('404');
-    }
+			if ($isSafran) {
+				$type = $this->typeRepository->find($data['typeLitigeId']);
+				$response = $type->getDescription();
+			}
+
+			return new JsonResponse($response);
+		}
+		throw new NotFoundHttpException('404');
+	}
 
 }
