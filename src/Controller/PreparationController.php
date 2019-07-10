@@ -11,7 +11,6 @@ use App\Entity\ParamClient;
 use App\Entity\Preparation;
 
 use App\Entity\ReferenceArticle;
-use App\Entity\Type;
 use App\Repository\PreparationRepository;
 use App\Repository\TypeRepository;
 use App\Repository\UtilisateurRepository;
@@ -188,7 +187,8 @@ class PreparationController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
         return $this->render('preparation/index.html.twig', [
-            'statuts' => $this->statutRepository->findByCategorieName(Preparation::CATEGORIE),
+			'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
+			'statuts' => $this->statutRepository->findByCategorieName(Preparation::CATEGORIE),
             'types' => $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON),
         ]);
     }
@@ -212,7 +212,8 @@ class PreparationController extends AbstractController
                 $rows[] = [
                     'Numéro' => ($preparation->getNumero() ? $preparation->getNumero() : ""),
                     'Date' => ($preparation->getDate() ? $preparation->getDate()->format('d/m/Y') : ''),
-                    'Statut' => ($preparation->getStatut() ? $preparation->getStatut()->getNom() : ""),
+					'Opérateur' => ($preparation->getUtilisateur() ? $preparation->getUtilisateur()->getUsername() : ''),
+					'Statut' => ($preparation->getStatut() ? $preparation->getStatut()->getNom() : ""),
                     'Type' => ($demande && $demande->getType() ? $demande->getType()->getLabel() : ''),
                     'Actions' => $this->renderView('preparation/datatablePreparationRow.html.twig', ['url' => $url]),
                 ];

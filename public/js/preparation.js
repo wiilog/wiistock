@@ -1,5 +1,11 @@
 $('.select2').select2();
 
+$('#utilisateur').select2({
+    placeholder: {
+        text: 'Opérateur',
+    }
+});
+
 let path = Routing.generate('preparation_api');
 let table = $('#table_id').DataTable({
     order: [[1, 'desc']],
@@ -15,8 +21,9 @@ let table = $('#table_id').DataTable({
     ajax: path,
     columns: [
         {"data": 'Numéro', 'title': 'Numéro', 'name': 'Numéro'},
-        {"data": 'Date', 'title': 'Date de création', 'name': 'Date'},
         {"data": 'Statut', 'title': 'Statut', 'name': 'Statut'},
+        {"data": 'Date', 'title': 'Date de création', 'name': 'Date'},
+        {"data": 'Opérateur', 'title': 'Opérateur', 'name': 'Opérateur'},
         {"data": 'Type', 'title': 'Type', 'name': 'Type'},
         {"data": 'Actions', 'title': 'Actions', 'name': 'Actions'},
     ],

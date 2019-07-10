@@ -4,20 +4,12 @@
 
 {% block page_content %}
     </div>
-    {% include 'filters/filtersOrdre.html.twig' with {'btnName' : 'submitSearchPrepaLivraison'} %}
+{% include 'filters/filtersOrdres.html.twig' with {'btnName' : 'submitSearchPrepaLivraison'} %}
+
 <div class="container-fluid">
     <h1>Ordres de préparation</h1>
 
     <table id="table_id" class="table table-striped table-bordered w-100">
-    <thead>
-        <tr>
-            <th>Numéro</th>
-            <th>Date</th>
-            <th>Statut</th>
-            <th>Type</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
     <tbody>
 
     </tbody>

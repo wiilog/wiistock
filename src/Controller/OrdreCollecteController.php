@@ -4,16 +4,14 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\Article;
+use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Collecte;
 use App\Entity\CollecteReference;
-use App\Entity\Livraison;
 use App\Entity\Menu;
 use App\Entity\OrdreCollecte;
-// use App\Entity\Emplacement;
 
 use App\Repository\ArticleRepository;
-// use App\Repository\EmplacementRepository;
 use App\Repository\CollecteReferenceRepository;
 use App\Repository\CollecteRepository;
 use App\Repository\OrdreCollecteRepository;
@@ -113,7 +111,7 @@ class OrdreCollecteController extends AbstractController
 
         return $this->render('ordre_collecte/index.html.twig', [
             'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
-            'statuts' => $this->statutRepository->findByCategorieName(OrdreCollecte::CATEGORIE),
+            'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ORDRE_COLLECTE),
             'types' => $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_COLLECTE),
         ]);
     }

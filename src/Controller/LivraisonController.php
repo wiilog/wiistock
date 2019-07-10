@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategorieCL;
+use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Demande;
 use App\Entity\Livraison;
@@ -186,7 +187,7 @@ class LivraisonController extends AbstractController
 
         return $this->render('livraison/index.html.twig', [
             'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
-            'statuts' => $this->statutRepository->findByCategorieName(Livraison::CATEGORIE),
+            'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::LIVRAISON),
             'types' => $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON),
         ]);
     }
