@@ -14,27 +14,28 @@
             <div class="modal-body modal-input container-fluid">
 
                 <div class="form-group">
-                    <label for="Nom">Nom</label>
+                    <label for="Nom">Nom*</label>
                     <input type="text" id="nom" class="form-control data needed" name="nom" maxlength="64">
                 </div>
 
                 <div class="form-group">
-                    <label for="prenom">Prénom</label>
+                    <label for="prenom">Prénom*</label>
                     <input type="text" id="prenom" class="form-control data needed" name="prenom" maxlength="64">
                 </div>
 
                 <div class="form-group needed">
-                    <label for="documentID">DocumentID</label>
+                    <label for="documentID">DocumentID*</label>
                     <input id="document" class="form-control data needed" name="documentID" maxlength="64">
                 </div>
 
                 <div class="form-group">
-                    <label for="transporteur">Transporteur</label>
+                    <label for="transporteur">Transporteur*</label>
                     <select type="text" class="form-control data ajax-autocompleteTransporteur d-block needed" name="transporteur"
                      onclick="iniTransporteur()">
                     </select>
                 </div>
             </div>
+            <div class="error-msg p-4"></div>
             <div class="modal-footer">
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>
                 <button id="submitNewChauffeur" type="button" class="btn btn-success">Enregistrer</button>

@@ -12,15 +12,22 @@
                     <label class='col'>Type de demande</label>
                     <div class="col input-group radio-btn">
                         <div>
-                            <span class="btn not-active checkbox" data-toggle="demande" data-title="livraison"
-                            onclick="toggleRadioButton($(this)), ajaxPlusDemandeContent($(this), 'livraison')">Livraison</span><span
-                            class="btn not-active checkbox" data-toggle="demande" data-title="collecte"
-                            onclick="toggleRadioButton($(this)), ajaxPlusDemandeContent($(this), 'collecte')">Collecte</span>
+                            <span class="btn not-active checkbox" data-toggle="demande" data-title="livraison" id="demande"}
+                            onclick="toggleRadioButton($(this), 'livraison')">Livraison</span>
+                            <span class="btn not-active checkbox" data-toggle="demande" data-title="collecte" id="collecte"
+                            onclick="toggleRadioButton($(this), 'collecte')">Collecte</span>
                         </div>
                     </div>
                 </div>
-                <div class="plusDemandeContent clear row mb-3"></div>
-                <div class="editChampLibre clear"></div>
+
+                <div class="plusDemandeContent d-none  row mb-3"></div>
+                <div class="editChampLibre d-none "></div>
+
+                <div class='boutonCreationDemande d-none'>
+                    <div id="creationDemande" class="btn btn-success" ></div>
+                    <button type="button" class="btn" data-dismiss="modal">Annuler</button>
+                </div>
+
             </div>
             <div class="error-msg p-4"></div>
             <div class="modal-footer d-none">
