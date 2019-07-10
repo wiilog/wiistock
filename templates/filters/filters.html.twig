@@ -17,8 +17,9 @@
 
     <div>
         <div class="input-group">
-            <select class="form-control data" name="statut" id="statut" placeholder='{{  statut is defined  ? statut : 'statut'}}'>
-                <option value>{{  statut is defined  ? statut : 'Statut'}}</option>
+            <select class="form-control data" name="statut" id="statut"
+                    placeholder='{{ statut is defined  ? statut : 'statut' }}'>
+                <option value>{{ statut is defined  ? statut : 'Statut' }}</option>
                 {% for statut in statuts %}
                     <option value="{{ statut.nom }}">{{ statut.nom }}</option>
                 {% endfor %}
@@ -33,6 +34,21 @@
                 {% for utilisateur in utilisateurs %}
                     <option value="{{ utilisateur.username }}">
                         {{ utilisateur.username }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <input class="current-username" hidden value="{{ app.user.username }}">
+    </div>
+
+    <div>
+        <div class="input-group">
+            <select type="text" class="form-control data" name="type"
+                    id="type">
+                <option value>Type</option>
+                {% for type in types %}
+                    <option value="{{ type.label}}">
+                        {{ type.label }}
                     </option>
                 {% endfor %}
             </select>
