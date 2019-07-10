@@ -67,6 +67,9 @@ function buildErrorMsg(missingInputs, wrongInputs) {
     if (wrongInputs.length > 0) {
         wrongInputs.forEach(function (elem) {
             let label = elem.closest('.form-group').find('label').text();
+            // on enlève l'éventuelle * du nom du label
+            label = label.replace(/\*/, '');
+            missingInputs.push(label);
 
             msg += 'La valeur du champ ' + label;
 
