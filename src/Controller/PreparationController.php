@@ -9,6 +9,7 @@ use App\Entity\Menu;
 use App\Entity\ParamClient;
 use App\Entity\Preparation;
 
+use App\Entity\ReferenceArticle;
 use App\Repository\PreparationRepository;
 use App\Service\SpecificService;
 use App\Service\UserService;
@@ -17,7 +18,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-use Symfony\Component\Form\Extension\Core\Type\TextType;
 use App\Service\ArticleDataService;
 
 use App\Form\ReferenceArticleType;
@@ -28,8 +28,7 @@ use App\Repository\ArticleRepository;
 use App\Entity\Demande;
 use App\Repository\DemandeRepository;
 use App\Repository\LivraisonRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Knp\Component\Pager\PaginatorInterface;
+
 use App\Repository\StatutRepository;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -86,9 +85,9 @@ class PreparationController extends AbstractController
      */
     private $articleDataService;
 
-	/**
-	 * @var SpecificService
-	 */
+    /**
+     * @var SpecificService
+     */
     private $specificService;
 
     public function __construct(SpecificService $specificService, LivraisonRepository $livraisonRepository, ArticleDataService $articleDataService, PreparationRepository $preparationRepository, LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, StatutRepository $statutRepository, DemandeRepository $demandeRepository, ReferenceArticleRepository $referenceArticleRepository, UserService $userService)
@@ -106,7 +105,7 @@ class PreparationController extends AbstractController
     }
 
     /**
-     * @Route("/creer", name="", methods="POST") 
+     * @Route("/creer", name="", methods="POST")
      */
     public function new(Request $request): Response
     {
@@ -241,7 +240,7 @@ class PreparationController extends AbstractController
 
 
     /**
-     * @Route("/api_article/{id}", name="preparation_article_api", options={"expose"=true}, methods={"GET", "POST"}) 
+     * @Route("/api_article/{id}", name="preparation_article_api", options={"expose"=true}, methods={"GET", "POST"})
      */
     public function lignePreparationApi(Request $request, $id): Response
     {
@@ -257,15 +256,20 @@ class PreparationController extends AbstractController
 
                 $lignesArticles = $this->ligneArticleRepository->getByDemande($demande->getId());
                 foreach ($lignesArticles as $ligneArticle) {
+                    $articleRef = $ligneArticle->getReference();
+                    $statutArticleActif = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
+                    $qtt = $articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE ?
+                        $this->articleRepository->getTotalQuantiteFromRef($articleRef, $statutArticleActif) :
+                        $articleRef->getQuantiteStock();
                     /** @var $ligneArticle LigneArticle */
                     $rows[] = [
                         "Référence CEA" => ($ligneArticle->getReference() ? $ligneArticle->getReference()->getReference() : ' '),
                         "Libellé" => ($ligneArticle->getReference() ? $ligneArticle->getReference()->getLibelle() : ' '),
                         "Emplacement" => ($ligneArticle->getReference()->getEmplacement() ? $ligneArticle->getReference()->getEmplacement()->getLabel() : ''),
-                        "Quantité" => ($ligneArticle->getReference() ? $ligneArticle->getReference()->getQuantiteStock() : ' '),
+                        "Quantité" => $qtt,
                         "Quantité à prélever" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ' '),
                         "Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
-                                 'refArticleId' => $ligneArticle->getReference()->getId(),
+                            'refArticleId' => $ligneArticle->getReference()->getId(),
                         ])
                     ];
                 }
@@ -281,7 +285,7 @@ class PreparationController extends AbstractController
                         "Quantité à prélever" => $ligneArticle->getQuantiteAPrelever() ? $ligneArticle->getQuantiteAPrelever() : '',
                         "Actions" => $this->renderView('preparation/datatablePreparationListeRow.html.twig', [
                             'id' => $ligneArticle->getId()
-                   ])
+                        ])
                     ];
                 }
 
@@ -329,7 +333,7 @@ class PreparationController extends AbstractController
                 ->setStatut($this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_BROUILLON));
 
             foreach ($demande->getArticles() as $article) {
-            	$article->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF));
+                $article->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF));
                 if ($article->getQuantiteAPrelever()) {
                     $article->setQuantite($article->getQuantiteAPrelever());
                     $article->setQuantiteAPrelever(0);
@@ -343,22 +347,111 @@ class PreparationController extends AbstractController
     }
 
     /**
+     * @Route("/commencer-scission", name="start_splitting", options={"expose"=true}, methods="GET|POST")
+     */
+    public function startSplitting(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $demande = $this->demandeRepository->find($data['demande']);
+            $response = [];
+            $key = 0;
+            foreach ($demande->getLigneArticle() as $ligneArticle) {
+                $refArticle = $ligneArticle->getReference();
+                $statutArticleActif = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
+                $articles = $this->articleRepository->findByRefArticleAndStatutWithoutDemand($refArticle, $statutArticleActif);
+                if ($ligneArticle->getToSplit()) {
+                    $response['prepas'][] = $this->renderView('preparation/modalSplitting.html.twig', [
+                        'reference' => $refArticle->getReference(),
+                        'articles' => $articles,
+                        'index' => $key,
+                        'quantite' => $ligneArticle->getQuantite(),
+                        'preparation' => $ligneArticle->getDemande()->getPreparation(),
+                        'demande' => $ligneArticle->getDemande()
+                    ]);
+                    $key++;
+                }
+            }
+            return new JsonResponse($response);
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/finir-scission", name="submit_splitting", options={"expose"=true}, methods="GET|POST")
+     */
+    public function submitSplitting(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $withdrawn = 0;
+            $em = $this->getDoctrine()->getManager();
+            $demande = $this->demandeRepository->find($data['demande']);
+            $reached = false;
+            foreach ($data['articles'] as $idArticle) {
+                $article = $this->articleRepository->find($idArticle);
+                if (!$reached) {
+                    $article->setDemande($demande);
+                    $article->setQuantiteAPrelever($article->getQuantite());
+                }
+                $em->flush();
+                $withdrawn += $article->getQuantite();
+                if ($withdrawn > $data['quantite'] && !$reached) {
+                    $newArticle = [
+                        'articleFournisseur' => $article->getArticleFournisseur()->getId(),
+                        'libelle' => $article->getLabel(),
+                        'conform' => !$article->getConform(),
+                        'commentaire' => $article->getcommentaire(),
+                        'quantite' => $withdrawn - $data['quantite'],
+                        'emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getId() : '',
+                        'statut' => Article::STATUT_ACTIF,
+                    ];
+
+                    foreach ($article->getValeurChampsLibres() as $valeurChampLibre) {
+//                    	spécifique CEA : vider le champ libre code projet
+                        $labelCL = strtolower($valeurChampLibre->getChampLibre()->getLabel());
+                        if (!(
+                            $this->specificService->isCurrentClientNameFunction(ParamClient::CEA_LETI)
+                            && ($labelCL == 'code projet' || $labelCL == 'destinataire'))) {
+                            $newArticle[$valeurChampLibre->getChampLibre()->getId()] = $valeurChampLibre->getValeur();
+                        }
+                    }
+                    $this->articleDataService->newArticle($newArticle);
+                    $qtt = $article->getQuantite() - ($withdrawn - $data['quantite']);
+                    $article->setQuantite($qtt);
+                    $article->setQuantiteAPrelever($qtt);
+                    $reached = true;
+                    $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
+                    $em->remove($this->ligneArticleRepository->findOneByRefArticleAndDemandeAndToSplit($refArticle, $demande));
+                    $em->flush();
+                } else if ($withdrawn === $data['quantite'] && !$reached) {
+                    $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
+                    $em->remove($this->ligneArticleRepository->findOneByRefArticleAndDemandeAndToSplit($refArticle, $demande));
+                    $em->flush();
+                    $reached = true;
+                }
+            }
+            $em->flush();
+            return new JsonResponse();
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+    /**
      * @Route("/prelever-articles", name="preparation_take_articles", options={"expose"=true},  methods="GET|POST")
      */
     public function takeArticle(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::LIVRAISON, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
             $em = $this->getDoctrine()->getManager();
 
-            //modification des articles  de la demande 
-            $demande = $this->demandeRepository->find($data);
+            // modification des articles de la demande
+            $demande = $this->demandeRepository->find($data['demande']);
             $articles = $demande->getArticles();
             foreach ($articles as $article) {
-				// scission des articles dont la quantité prélevée n'est pas totale
-				if ($article->getQuantite() !== $article->getQuantiteAPrelever()) {
+                // scission des articles dont la quantité prélevée n'est pas totale
+                if ($article->getQuantite() !== $article->getQuantiteAPrelever()) {
                     $newArticle = [
                         'articleFournisseur' => $article->getArticleFournisseur()->getId(),
                         'libelle' => $article->getLabel(),
@@ -366,7 +459,7 @@ class PreparationController extends AbstractController
                         'commentaire' => $article->getcommentaire(),
                         'quantite' => $article->getQuantite() - $article->getQuantiteAPrelever(),
                         'emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getId() : '',
-                        'statut' => 'actif',
+                        'statut' => Article::STATUT_ACTIF,
                     ];
 
                     foreach ($article->getValeurChampsLibres() as $valeurChampLibre) {

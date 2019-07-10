@@ -1,5 +1,5 @@
 $('.select2').select2();
-
+const SAFRAN_CERAMICS = 'SAFRAN CERAMICS';
 $('#utilisateur').select2({
     placeholder: {
         text: 'Destinataire',
@@ -50,6 +50,36 @@ let submitDeleteArrivage = $('#submitDeleteArrivage');
 let urlDeleteArrivage = Routing.generate('arrivage_delete', true);
 InitialiserModal(modalDeleteArrivage, submitDeleteArrivage, urlDeleteArrivage, tableArrivage);
 
+
+let editorNewArrivageAlreadyDone = false;
+let quillNew;
+
+function initNewArrivageEditor(modal) {
+    if (!editorNewArrivageAlreadyDone) {
+        quillNew = initEditor(modal + ' .editor-container-new');
+        editorNewArrivageAlreadyDone = true;
+    }
+}
+
+let quillEdit;
+let originalText = '';
+function editRowArrivage(button) {
+    let path = Routing.generate('arrivage_edit_api', true);
+    let modal = $('#modalEditArrivage');
+    let submit = $('#submitEditArrivage');
+    let id = button.data('id');
+    let params = {id: id};
+
+    $.post(path, JSON.stringify(params), function (data) {
+        modal.find('.modal-body').html(data.html);
+        quillEdit = initEditor('.editor-container-edit');
+        modal.find('#acheteursEdit').val(data.acheteurs).select2();
+        originalText = quillEdit.getText();
+    }, 'json');
+
+    modal.find(submit).attr('value', id);
+}
+
 function toggleLitige(select) {
     let bloc = select.closest('.modal').find('#litigeBloc');
     let status = select.find('option:selected').text();
@@ -67,29 +97,29 @@ function toggleLitige(select) {
     }
 }
 
-let editorNewArrivageAlreadyDone = false;
-function initNewArrivageEditor(modal) {
-    if (!editorNewArrivageAlreadyDone) {
-        initEditor(modal + ' .editor-container-new');
-        editorNewArrivageAlreadyDone = true;
-    }
-};
+function addCommentaire(select, bool) {
+    let params = {
+        typeLitigeId: select.val()
+    };
 
+    let quillType = bool ? quillNew : quillEdit;
+    originalText = quillType.getText().trim();
 
-function editRowArrivage(button) {
-    let path = Routing.generate('arrivage_edit_api', true);
-    let modal = $('#modalEditArrivage');
-    let submit = $('#submitEditArrivage');
-    let id = button.data('id');
-    let params = { id: id };
+    $.post(Routing.generate('add_comment', true), JSON.stringify(params), function (comment) {
+        if (comment) {
+            let d = new Date();
+            let date = checkZero(d.getDate() + '') + '/' + checkZero(d.getMonth() + 1 + '') + '/' + checkZero(d.getFullYear() + '');
+            date += ' ' + checkZero(d.getHours() + '') + ':' + checkZero(d.getMinutes() + '');
 
-    $.post(path, JSON.stringify(params), function(data) {
-        modal.find('.modal-body').html(data.html);
-        initEditor('.editor-container-edit');
-        modal.find('#acheteursEdit').val(data.acheteurs).select2();
-    }, 'json');
+            let textToInsert = originalText.length > 0 ? originalText + "\n\n" : '';
 
-    modal.find(submit).attr('value', id);
+            quillType.setContents([
+                {insert: textToInsert},
+                {insert: date + ' : '},
+                {insert: comment},
+            ]);
+        }
+    });
 }
 
 function deleteRowArrivage(button, modal, submit, hasLitige) {
@@ -152,12 +182,12 @@ function upload(files) {
     $.ajax({
         url: path,
         data: formData,
-        type:"post",
-        contentType:false,
-        processData:false,
-        cache:false,
-        dataType:"json",
-        success:function(html){
+        type: "post",
+        contentType: false,
+        processData: false,
+        cache: false,
+        dataType: "json",
+        success: function (html) {
             let dropfile = $('#dropfile');
             dropfile.css('border', '3px dashed #BBBBBB');
             dropfile.after(html);
@@ -211,12 +241,14 @@ function submitActionArrivage(modal, path, table, callback, close) {
                         });
                     }
 
-                } if (printArrivage) {
+                }
+                if (printArrivage) {
                     $('#barcodes').append('<img id="barcodeArrivage">');
                     JsBarcode("#barcodeArrivage", data.arrivage, {
                         format: "CODE128",
                     });
-                } if (printArrivage || printUm) {
+                }
+                if (printArrivage || printUm) {
                     $("#barcodes").find('img').each(function () {
                         doc.addImage($(this).attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
                         doc.addPage();
@@ -394,9 +426,9 @@ function deleteAttachement(arrivageId, pj, pjWithoutExtension) {
         pj: pj
     };
 
-    $.post(path, JSON.stringify(params), function(data) {
+    $.post(path, JSON.stringify(params), function (data) {
 
-        if(data === true) {
+        if (data === true) {
             $('#' + pjWithoutExtension).remove();
         }
     });

@@ -9,27 +9,27 @@
             </div>
             <div class="modal-body modal-input container-fluid row">
                 <div class="col-12 form-group">
-                    <label for="username">Nom d'utilisateur</label>
+                    <label for="username">Nom d'utilisateur*</label>
                     <input type="text" class="form-control data needed" name="username" required="">
                 </div>
 
                 <div class="col-12 form-group">
-                    <label for="email">Email</label>
+                    <label for="email">Email*</label>
                     <input type="email" class="form-control data needed" name="email">
                 </div>
 
                 <div class="col-12 form-group">
-                    <label for="password">Mot de passe</label>
+                    <label for="password">Mot de passe*</label>
                     <input type="password" class="form-control data needed" name="password">
                     <div class="password-error-msg"></div>
                 </div>
 
                 <div class="col-12 form-group">
-                    <label for="password2">Confirmer mot de passe</label>
+                    <label for="password2">Confirmer mot de passe*</label>
                     <input type="password" class="form-control data needed" name="password2">
                 </div>
                 <div class="col-12 form-group">
-                    <label for="role">Rôle</label>
+                    <label for="role">Rôle*</label>
                     <select name="role" class="form-control data needed" id="">
                         <option disabled selected> </option>
                     {% for role in roles %}
