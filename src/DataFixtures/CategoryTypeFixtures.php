@@ -31,7 +31,8 @@ class CategoryTypeFixtures extends Fixture implements FixtureGroupInterface
         $categoriesNames = [
         	CategoryType::ARTICLES_ET_REF_CEA,
 			CategoryType::RECEPTION,
-			CategoryType::DEMANDE_LIVRAISON
+			CategoryType::DEMANDE_LIVRAISON,
+            CategoryType::DEMANDE_COLLECTE
         ];
 
         foreach ($categoriesNames as $categorieName) {
