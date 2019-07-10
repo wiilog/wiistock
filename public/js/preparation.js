@@ -101,7 +101,7 @@ let tableArticle = $('#tableArticle_id').DataTable({
 });
 
 let prepasToSplit = [];
-let articlesChosen = [];
+let articlesChosen = {};
 let actualIndex = 0;
 let startPreparation = function (value) {
     let path1 = Routing.generate('need_splitting', true);
@@ -123,13 +123,7 @@ let startPreparation = function (value) {
             $.post(path3, JSON.stringify(params), function (data) {
                 prepasToSplit = data.prepas;
                 $('#splittingContent').html(prepasToSplit[actualIndex]);
-                $('#tableSplittingArticles').DataTable({
-                    "language": {
-                        url: "/js/i18n/dataTableLanguage.json",
-                    },
-                    searching: false,
-                    info: false
-                });
+                $('#tableSplittingArticles').DataTable();
                 $('#startSplitting').click();
             });
         }
@@ -143,7 +137,7 @@ function submitSplitting(submit) {
             'articles': articlesChosen,
             'quantite': submit.data('qtt'),
             'demande': submit.data('demande'),
-            'refArticle' : submit.data('ref')
+            'refArticle': submit.data('ref')
         };
         $.post(path, JSON.stringify(params), function () {
             $('#modalSplitting').find('.close').click();
@@ -168,15 +162,28 @@ function submitSplitting(submit) {
     }
 }
 
-function addToScission(checkbox) {
+function limitInput(input) {
+    let id = input.data('id');
+    if (input.val() !== '') {
+        input.val(Math.min(input.val(), input.data('quantite')));
+    }
+    articlesChosen[id] = input.val();
+    console.log(articlesChosen);
+}
 
+function addToScissionAll(checkbox) {
     let toSee = 0;
-    if (articlesChosen.includes(checkbox.data('id'))) {
-        articlesChosen.splice(articlesChosen.indexOf(checkbox.data('id')), 1);
+    let input = $('#' + checkbox.data('id'));
+    if (!checkbox.is(':checked')) {
         $('#scissionTitle').attr('data-restant', parseFloat($('#scissionTitle').attr('data-restant')) + parseFloat(checkbox.data('quantite')));
+        input.prop('disabled', false);
+        input.val('');
+        limitInput(input)
     } else {
         if ($('#scissionTitle').attr('data-restant') > 0) {
-            articlesChosen.push(checkbox.data('id'));
+            input.val(checkbox.data('quantite'));
+            input.prop('disabled', true);
+            limitInput(input);
             $('#scissionTitle').attr('data-restant', ($('#scissionTitle').attr('data-restant') - checkbox.data('quantite')));
         } else {
             checkbox.prop('checked', false);
@@ -190,5 +197,5 @@ function addToScission(checkbox) {
 }
 
 function exitScissionModal() {
-    articlesChosen = [];
+    articlesChosen = {};
 }
