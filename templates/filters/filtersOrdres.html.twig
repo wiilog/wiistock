@@ -1,0 +1,14 @@
+{% extends 'filters/filters.html.twig' %}
+
+{% block moreFilters %}
+    <div>
+        <div class="input-group">
+            <select class="form-control data" name="type" id="type" >
+                <option value>Type de demande</option>
+                {% for type in types %}
+                    <option value="{{ type.label }}">{{ type.label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+{% endblock %}

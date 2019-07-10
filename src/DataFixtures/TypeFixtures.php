@@ -65,28 +65,35 @@ class TypeFixtures extends Fixture implements DependentFixtureInterface, Fixture
             dump("création du type " . CategoryType::RECEPTION);
         }
 
-		// categorie demande de livraison
-		$typesNames = [
-			Type::LABEL_PDT,
-			Type::LABEL_CSP,
-			Type::LABEL_SILI,
-			Type::LABEL_MOB,
-			Type::LABEL_CSB,
-		];
+        // categorie demande de livraison
+        $typesNames = [
+            Type::LABEL_PDT,
+            Type::LABEL_CSP,
+            Type::LABEL_SILI,
+            Type::LABEL_MOB,
+            Type::LABEL_CSB,
+        ];
 
-		foreach ($typesNames as $typeName) {
-			$type = $this->typeRepository->findOneByCategoryLabelAndLabel(CategoryType::DEMANDE_LIVRAISON, $typeName);
+        $categories = [
+            CategoryType::DEMANDE_LIVRAISON,
+            CategoryType::DEMANDE_COLLECTE
+        ];
 
-			if (empty($type)) {
-				$type = new Type();
-				$type
-					->setCategory($this->getReference('type-' . CategoryType::DEMANDE_LIVRAISON))
-					->setLabel($typeName);
-				$manager->persist($type);
-				dump("création du type " . $typeName);
-			}
-		}
-        $manager->flush();
+        foreach ($categories as $category) {
+            foreach ($typesNames as $typeName) {
+                $type = $this->typeRepository->findOneByCategoryLabelAndLabel($category, $typeName);
+
+                if (empty($type)) {
+                    $type = new Type();
+                    $type
+                        ->setCategory($this->getReference('type-' . $category))
+                        ->setLabel($typeName);
+                    $manager->persist($type);
+                    dump("création du type " . $typeName);
+                }
+            }
+            $manager->flush();
+        }
     }
 
     public function getDependencies()

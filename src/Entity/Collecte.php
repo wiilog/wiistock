@@ -75,6 +75,11 @@ class Collecte
      */
     private $stockOrDestruct;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="collectes")
+     */
+    private $type;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
@@ -235,6 +240,18 @@ class Collecte
     public function setStockOrDestruct(bool $stockOrDestruct): self
     {
         $this->stockOrDestruct = $stockOrDestruct;
+
+        return $this;
+    }
+
+    public function getType(): ?Type
+    {
+        return $this->type;
+    }
+
+    public function setType(?Type $type): self
+    {
+        $this->type = $type;
 
         return $this;
     }

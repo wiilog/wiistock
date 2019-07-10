@@ -11,8 +11,9 @@
             </div>
             <div class="modal-body modal-input container-fluid">
                 <form class="row">
-                    <label for="reference" class="col-1">Référence CEA</label>
-                    <div class="form-group w-100 col-11 d-flex">
+{#                    TODO CG#}
+                    <label for="reference" class="col-1">Référence CEA*</label>
+                    <div class="form-group col-11 d-flex w-100">
                         <select class="ajax-autocomplete data form-control needed"
                             onchange="ajaxGetAndFillArticle(this), setMaxQuantity($(this))" id="reference"
                             name="referenceArticle">
@@ -31,7 +32,7 @@
             <div class="modal-footer d-none">
                 <div class="btn" data-dismiss="modal">Annuler</div>
                 <button id="submitNewArticle" onclick="setCommentaire('.editor-container-edit')" name="demande" value="{{demande.id}}" type="button"
-                    class="btn data btn-success">Ajouter</button>
+                    class="btn data btn-success data">Ajouter</button>
             </div>
         </div>
     </div>

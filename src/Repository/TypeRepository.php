@@ -95,11 +95,11 @@ class TypeRepository extends ServiceEntityRepository
 			"SELECT t
             FROM App\Entity\Type t
             JOIN t.category c
-            WHERE LOWER(t.label) = :typeLabel
+            WHERE t.label = :typeLabel
             AND c.label = :categoryLabel
            "
 		)->setParameters([
-			'typeLabel' => strtolower($typeLabel),
+			'typeLabel' => $typeLabel,
 			'categoryLabel' => $categoryLabel
 		]);
 

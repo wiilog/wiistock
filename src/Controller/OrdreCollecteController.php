@@ -4,20 +4,22 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\Article;
+use App\Entity\CategorieStatut;
+use App\Entity\CategoryType;
 use App\Entity\Collecte;
 use App\Entity\CollecteReference;
 use App\Entity\Menu;
 use App\Entity\OrdreCollecte;
-// use App\Entity\Emplacement;
 
 use App\Repository\ArticleRepository;
-// use App\Repository\EmplacementRepository;
 use App\Repository\CollecteReferenceRepository;
 use App\Repository\CollecteRepository;
 use App\Repository\OrdreCollecteRepository;
 use App\Repository\StatutRepository;
 use App\Repository\MailerServerRepository;
 
+use App\Repository\TypeRepository;
+use App\Repository\UtilisateurRepository;
 use App\Service\MailerService;
 use App\Service\UserService;
 
@@ -73,9 +75,21 @@ class OrdreCollecteController extends AbstractController
      */
     private $mailerServerRepository;
 
+    /**
+     * @var UtilisateurRepository
+     */
+    private $utilisateurRepository;
 
-    public function __construct(MailerServerRepository $mailerServerRepository, OrdreCollecteRepository $ordreCollecteRepository, StatutRepository $statutRepository, CollecteRepository $collecteRepository, CollecteReferenceRepository $collecteReferenceRepository, UserService $userService, MailerService $mailerService, ArticleRepository $articleRepository)
+    /**
+     * @var TypeRepository
+     */
+    private $typeRepository;
+
+
+    public function __construct(TypeRepository $typeRepository, UtilisateurRepository $utilisateurRepository, MailerServerRepository $mailerServerRepository, OrdreCollecteRepository $ordreCollecteRepository, StatutRepository $statutRepository, CollecteRepository $collecteRepository, CollecteReferenceRepository $collecteReferenceRepository, UserService $userService, MailerService $mailerService, ArticleRepository $articleRepository)
     {
+        $this->utilisateurRepository = $utilisateurRepository;
+        $this->typeRepository = $typeRepository;
         $this->ordreCollecteRepository = $ordreCollecteRepository;
         $this->statutRepository = $statutRepository;
         $this->collecteRepository = $collecteRepository;
@@ -95,7 +109,11 @@ class OrdreCollecteController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
-        return $this->render('ordre_collecte/index.html.twig');
+        return $this->render('ordre_collecte/index.html.twig', [
+            'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
+            'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ORDRE_COLLECTE),
+            'types' => $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_COLLECTE),
+        ]);
     }
 
     /**
@@ -111,6 +129,7 @@ class OrdreCollecteController extends AbstractController
             $collectes = $this->ordreCollecteRepository->findAll();
             $rows = [];
             foreach ($collectes as $collecte) {
+                $demandeCollecte = $collecte->getDemandeCollecte();
                 $url['show'] = $this->generateUrl('ordre_collecte_show', ['id' => $collecte->getId()]);
                 $rows[] = [
                     'id' => ($collecte->getId() ? $collecte->getId() : ''),
@@ -118,6 +137,7 @@ class OrdreCollecteController extends AbstractController
                     'Date' => ($collecte->getDate() ? $collecte->getDate()->format('d/m/Y') : ''),
                     'Statut' => ($collecte->getStatut() ? $collecte->getStatut()->getNom() : ''),
                     'Opérateur' => ($collecte->getUtilisateur() ? $collecte->getUtilisateur()->getUsername() : ''),
+                    'Type' => ($demandeCollecte && $demandeCollecte->getType() ? $demandeCollecte->getType()->getLabel() : '' ),
                     'Actions' => $this->renderView('ordre_collecte/datatableCollecteRow.html.twig', ['url' => $url])
                 ];
             }
