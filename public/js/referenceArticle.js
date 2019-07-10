@@ -173,7 +173,11 @@ function clearModalRefArticle(modal, data) {
     }
 }
 
-
+function clearDemandeContent() {
+    $('.plusDemandeContent').find('#collecteShow, #livraisonShow').addClass('d-none');
+    $('.plusDemandeContent').find('#collecteShow, #livraisonShow').removeClass('d-block');
+    //TODO supprimer partout où pas nécessaire d-block
+}
 
 let modalRefArticleNew = $("#modalNewRefArticle");
 let submitNewRefArticle = $("#submitNewRefArticle");
@@ -311,7 +315,6 @@ function showDemande(bloc) {
         $livraisonShow.addClass('d-none');
         $livraisonShow.find('div').find('select, .quantite').removeClass('data')
         $livraisonShow.find('.data').removeClass('needed');
-        setMaxQuantityByArtRef($collecteShow.find('#quantity-to-collect'));
     }
 }
 
