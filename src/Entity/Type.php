@@ -31,7 +31,6 @@ class Type
 	// types de la catégorie demande de livraison
 	const LABEL_CSB = 'CSB';
 
-
 	/**
      * @ORM\Id()
      * @ORM\GeneratedValue()
@@ -43,6 +42,11 @@ class Type
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $label;
+
+	/**
+	 * @ORM\Column(type="text", nullable=true)
+	 */
+    private $description;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\ChampsLibre", mappedBy="type")
@@ -360,6 +364,18 @@ class Type
                 $collecte->setType(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(?string $description): self
+    {
+        $this->description = $description;
 
         return $this;
     }
