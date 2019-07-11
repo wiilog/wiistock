@@ -322,10 +322,18 @@ let ajaxEditArticle = function (select) {
 }
 
 let generateCSV = function () {
-    xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function () {
-        if (this.readyState == 4 && this.status == 200) {
-            response = JSON.parse(this.responseText);
+    let data = {};
+    $('.filterService, select').first().find('input').each(function () {
+        if ($(this).attr('name') !== undefined) {
+            data[$(this).attr('name')] = $(this).val();
+        }
+    });
+
+    if (data['dateMin'] && data['dateMax']) {
+        let params = JSON.stringify(data);
+        let path = Routing.generate('get_livraisons_for_csv', true);
+
+        $.post(path, params, function(response) {
             if (response) {
                 $('.error-msg').empty();
                 let csv = "";
@@ -335,19 +343,8 @@ let generateCSV = function () {
                 });
                 dlFile(csv);
             }
-        }
-    }
-    Data = {};
-    $('.filterService, select').first().find('input').each(function () {
-        if ($(this).attr('name') !== undefined) {
-            Data[$(this).attr('name')] = $(this).val();
-        }
-    });
-    // let utilisateurs = $('#utilisateur').val().toString().split(',');
-    if (Data['dateMin'] && Data['dateMax']) {
-        json = JSON.stringify(Data);
-        xhttp.open("POST", Routing.generate('get_livraisons_for_csv', true));
-        xhttp.send(json);
+        }, 'json');
+
     } else {
         $('.error-msg').html('<p>Saisissez une date de départ et une date de fin dans le filtre en en-tête de page.</p>');
     }

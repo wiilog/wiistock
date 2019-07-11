@@ -20,9 +20,9 @@
     </div>
     <div class="form-group col-6">
         <label for="quantité">Quantité*</label>
-        {# si on est sur une demande, la quantité ne doit pas être modifiée #}
-        {% set disabledOnDemand = isADemand ? 'disabled' : disabled %}
-        {% set neededOnDemand = isADemand ? '' : needed %}
+            {# si on est sur une demande, la quantité ne doit pas être modifiée #}
+            {% set disabledOnDemand = isADemand ? 'disabled' : disabled %}
+            {% set neededOnDemand = isADemand ? '' : needed %}
         <input {{ disabledOnDemand }} class="form-control data {{ neededOnDemand }}" type="number" min="0" name="quantite" id="quantite"
             value="{{article.quantite}}">
     </div>
