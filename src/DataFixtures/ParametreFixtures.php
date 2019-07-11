@@ -3,6 +3,7 @@
 namespace App\DataFixtures;
 
 use App\Entity\Parametre;
+use App\Repository\ParametreRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
@@ -10,8 +11,14 @@ use Doctrine\Common\Persistence\ObjectManager;
 class ParametreFixtures extends Fixture implements FixtureGroupInterface
 {
 
-    public function __construct()
+	/**
+	 * @var ParametreRepository
+	 */
+	private $parametreRepository;
+
+    public function __construct(ParametreRepository $parametreRepository)
     {
+    	$this->parametreRepository = $parametreRepository;
     }
 
     public function load(ObjectManager $manager)
@@ -26,14 +33,18 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
 		];
 
 		foreach ($parameters as $parameter) {
-			$param = new Parametre();
-			$param
-				->setLabel($parameter['label'])
-				->setTypage($parameter['type'])
-				->setDefaultValue($parameter['default'])
-				->setElements($parameter['elements']);
-			$manager->persist($param);
-			dump("création du paramètre " . $parameter['label']);
+			$param = $this->parametreRepository->findBy(['label' => $parameter['label']]);
+
+			if (empty($param)) {
+				$param = new Parametre();
+				$param
+					->setLabel($parameter['label'])
+					->setTypage($parameter['type'])
+					->setDefaultValue($parameter['default'])
+					->setElements($parameter['elements']);
+				$manager->persist($param);
+				dump("création du paramètre " . $parameter['label']);
+			}
 		}
 
         $manager->flush();
