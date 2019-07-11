@@ -6,6 +6,7 @@ use App\Entity\Menu;
 use App\Entity\Utilisateur;
 use App\Repository\RoleRepository;
 use App\Repository\UtilisateurRepository;
+use App\Service\PasswordService;
 use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
@@ -41,13 +42,19 @@ class UtilisateurController extends Controller
 	 */
     private $encoder;
 
+	/**
+	 * @var PasswordService
+	 */
+    private $passwordService;
 
-    public function __construct(UserPasswordEncoderInterface $encoder, UtilisateurRepository $utilisateurRepository, RoleRepository $roleRepository, UserService $userService)
+
+    public function __construct(PasswordService $passwordService, UserPasswordEncoderInterface $encoder, UtilisateurRepository $utilisateurRepository, RoleRepository $roleRepository, UserService $userService)
     {
         $this->utilisateurRepository = $utilisateurRepository;
         $this->roleRepository = $roleRepository;
         $this->userService = $userService;
         $this->encoder = $encoder;
+        $this->passwordService = $passwordService;
     }
 
     /**
@@ -91,7 +98,7 @@ class UtilisateurController extends Controller
             $password = $data['password'];
             $password2 = $data['password2'];
             // validation du mot de passe
-            $result = $this->userService->checkPassword($password,$password2);
+            $result = $this->passwordService->checkPassword($password,$password2);
             if($result['response'] == false){
                 return new JsonResponse($result['message']);
             }
@@ -160,7 +167,7 @@ class UtilisateurController extends Controller
 
             $password = $data['password'];
             $password2 = $data['password2'];
-            $result = $this->userService->checkPassword($password,$password2);
+            $result = $this->passwordService->checkPassword($password,$password2);
             if($result['response'] == false){
                 return new JsonResponse($result['message']);
             }

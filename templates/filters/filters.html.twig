@@ -35,6 +35,7 @@
             </select>
         </div>
     </div>
+    {% if types is defined %}
     <div>
         <div class="input-group">
             <select type="text" class="form-control data" name="type"
@@ -49,6 +50,7 @@
         </div>
         <input class="current-username" hidden value="{{ app.user.username }}">
     </div>
+    {% endif %}
 
     <div>
         <div id='{{ btnName }}' class="btn btn-primary minw-105px" tabindex="0">

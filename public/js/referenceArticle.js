@@ -414,7 +414,7 @@ let ajaxPlusDemandeContent = function (button, demande) {
             if (dataReponse.editChampLibre) {
                 editChampLibre.html(dataReponse.editChampLibre);
                 modalFooter.removeClass('d-none');
-            } if (dataReponse.temp) {
+            } if (dataReponse.temp || dataReponse.byRef) {
                 modalFooter.removeClass('d-none');
             }
             else {
