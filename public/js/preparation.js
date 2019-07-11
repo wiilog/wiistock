@@ -12,7 +12,7 @@ let table = $('#table_id').DataTable({
     columnDefs: [
         {
             "type": "customDate",
-            "targets": 1
+            "targets": 2
         }
     ],
     "language": {
@@ -32,6 +32,9 @@ let table = $('#table_id').DataTable({
 $('#submitSearchPrepaLivraison').on('click', function () {
     let statut = $('#statut').val();
     let type = $('#type').val();
+    let utilisateur = $('#utilisateur').val()
+    let utilisateurString = utilisateur.toString();
+    let utilisateurPiped = utilisateurString.split(',').join('|');
     table
         .columns('Statut:name')
         .search(statut)
@@ -40,6 +43,11 @@ $('#submitSearchPrepaLivraison').on('click', function () {
     table
         .columns('Type:name')
         .search(type)
+        .draw();
+
+    table
+        .columns('Opérateur:name')
+        .search(utilisateurPiped ? '^' + utilisateurPiped + '$' : '', true, false)
         .draw();
 
     $.fn.dataTable.ext.search.push(
