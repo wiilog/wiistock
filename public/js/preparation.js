@@ -149,7 +149,7 @@ function submitSplitting(submit) {
                 $('#startSplitting').click();
             } else {
                 let path = Routing.generate('preparation_take_articles', true);
-                $.post(path, JSON.stringify(params), function () {
+                $.post(path, JSON.stringify(params), function (data) {
                     $('#startPreparation').addClass('d-none');
                     $('#finishPreparation').removeClass('d-none');
                     tableArticle.ajax.reload();
@@ -164,10 +164,14 @@ function submitSplitting(submit) {
 
 function limitInput(input) {
     let id = input.data('id');
+    let qttForArticle = articlesChosen[id];
+    let restant = Math.min($('#scissionTitle').attr('data-restant'), input.data('quantite'));
     if (input.val() !== '') {
-        input.val(Math.min(input.val(), input.data('quantite')));
+        input.val(Math.min(input.val(), (restant >= 0 ? restant : 0)));
     }
+
     articlesChosen[id] = input.val();
+
     console.log(articlesChosen);
 }
 
@@ -178,11 +182,12 @@ function addToScissionAll(checkbox) {
         $('#scissionTitle').attr('data-restant', parseFloat($('#scissionTitle').attr('data-restant')) + parseFloat(checkbox.data('quantite')));
         input.prop('disabled', false);
         input.val('');
+        limitInput(input);
     } else {
         if ($('#scissionTitle').attr('data-restant') > 0) {
             input.val(checkbox.data('quantite'));
-            input.prop('disabled', true);
             limitInput(input);
+            input.prop('disabled', true);
             $('#scissionTitle').attr('data-restant', ($('#scissionTitle').attr('data-restant') - checkbox.data('quantite')));
         } else {
             checkbox.prop('checked', false);
