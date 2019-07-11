@@ -570,14 +570,22 @@ class DemandeController extends AbstractController
             foreach ($ligneArticles as $ligneArticle) {
                 $articleRef = $ligneArticle->getReference();
                 $statutArticleActif = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
-                $qtt = $articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE ?
-                    $this->articleRepository->getTotalQuantiteFromRef($articleRef, $statutArticleActif) :
-                    $articleRef->getQuantiteStock();
+                $totalQuantity = 0;
+                if ($articleRef->getTypeQuantite() === 'article') {
+                    foreach ($articleRef->getArticlesFournisseur() as $articleFournisseur) {
+                        $quantity = 0;
+                        foreach ($articleFournisseur->getArticles() as $article) {
+                            if ($article->getStatut() == $statutArticleActif) $quantity += $article->getQuantite();
+                        }
+                        $totalQuantity += $quantity;
+                    }
+                }
+                $quantity = ($articleRef->getTypeQuantite() === 'reference') ? $articleRef->getQuantiteStock() : $totalQuantity;
                 $rowsRC[] = [
                     "Référence CEA" => ($ligneArticle->getReference()->getReference() ? $ligneArticle->getReference()->getReference() : ''),
                     "Libellé" => ($ligneArticle->getReference()->getLibelle() ? $ligneArticle->getReference()->getLibelle() : ''),
                     "Emplacement" => ($ligneArticle->getReference()->getEmplacement() ? $ligneArticle->getReference()->getEmplacement()->getLabel() : ' '),
-                    "Quantité" => $qtt,
+                    "Quantité" => $quantity,
                     "Quantité à prélever" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ''),
                     "Actions" => $this->renderView(
                         'demande/datatableLigneArticleRow.html.twig',
