@@ -11,6 +11,7 @@ use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\LigneArticle;
 
+use App\Entity\Statut;
 use App\Entity\ValeurChampsLibre;
 use App\Repository\CategorieCLRepository;
 use App\Repository\ChampsLibreRepository;
@@ -30,6 +31,7 @@ use App\Repository\ValeurChampsLibreRepository;
 use App\Service\ArticleDataService;
 use App\Service\RefArticleDataService;
 use App\Service\UserService;
+use Symfony\Bundle\FrameworkBundle\Tests\Fixtures\Validation\Category;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -157,11 +159,14 @@ class DemandeController extends AbstractController
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $demande = $this->demandeRepository->find($data['demande']);
 
+            $response = [];
+            $response['status'] = false;
             // pour réf gérées par articles
             $articles = $demande->getArticles();
             foreach ($articles as $article) {
                 if ($article->getQuantiteAPrelever() > $article->getQuantite()) {
-                    return new JsonResponse(false);
+                    $response['stock'] = $article->getQuantite();
+                    return new JsonResponse($response);
                 }
             }
 
@@ -184,7 +189,17 @@ class DemandeController extends AbstractController
                     }
 
                     if ($quantiteReservee > $stock) {
-                        return new JsonResponse(false);
+                        $response['stock'] = $stock;
+                        return new JsonResponse($response);
+                    }
+                } else {
+                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
+                    $statutDemande = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
+                    $totalQuantity = $this->articleRepository->getTotalQuantiteFromRefWithDemande($ligne->getReference(), $statut);
+                    $totalQuantity -= $this->referenceArticleRepository->getTotalQuantityReservedWithoutLigne($ligne->getReference(), $ligne, $statutDemande);
+                    if ($ligne->getQuantite() > $totalQuantity) {
+                        $response['stock'] = $totalQuantity;
+                        return new JsonResponse($response);
                     }
                 }
             }
@@ -239,8 +254,8 @@ class DemandeController extends AbstractController
 						'champsLibres' => $this->valeurChampLibreRepository->getByDemandeLivraison($demande)
 					]
                 ),
+                'status' => true
             ];
-
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException('404');

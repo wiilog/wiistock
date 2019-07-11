@@ -13,6 +13,7 @@ use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\ChampsLibre;
+use App\Entity\Demande;
 use App\Entity\Menu;
 use App\Entity\ParamClient;
 use App\Entity\Parametre;
@@ -285,9 +286,12 @@ class ArticleDataService
                 $this->em->persist($paramQuantite);
                 $this->em->flush();
             }
-
+            $statutDemande = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
+            $totalQuantity = $this->articleRepository->getTotalQuantiteFromRefWithDemande($refArticle, $statutArticleActif);
+            $totalQuantity -= $this->referenceArticleRepository->getTotalQuantityReserved($refArticle, $statutDemande);
             $data = [
                 'selection' => $this->templating->render('demande/newRefArticleByQuantiteArticleAndChoiceContent.html.twig', [
+                    'maximumForArticle' => $totalQuantity,
                     'maximum' => $maximum,
                     'reference' => $refArticle->getId(),
                     'byRef' => $paramQuantite->getValue() == Parametre::VALUE_PAR_REF,
