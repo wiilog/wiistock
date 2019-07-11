@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\CategorieCL;
+use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Demande;
 use App\Entity\Menu;
@@ -163,9 +164,15 @@ class DemandeController extends AbstractController
             $response['status'] = false;
             // pour réf gérées par articles
             $articles = $demande->getArticles();
+            $statutArticleActif = $this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
+            $statutDemande = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
             foreach ($articles as $article) {
-                if ($article->getQuantiteAPrelever() > $article->getQuantite()) {
-                    $response['stock'] = $article->getQuantite();
+                $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
+                $totalQuantity = $this->articleRepository->getTotalQuantiteFromRefWithDemande($refArticle, $statutArticleActif);
+                $totalQuantity -= $this->referenceArticleRepository->getTotalQuantityReserved($refArticle, $statutDemande);
+                $treshHold = ($article->getQuantite() > $totalQuantity) ? $totalQuantity : $article->getQuantite();
+                if ($article->getQuantiteAPrelever() > $treshHold) {
+                    $response['stock'] = $treshHold;
                     return new JsonResponse($response);
                 }
             }
