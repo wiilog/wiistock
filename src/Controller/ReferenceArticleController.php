@@ -658,11 +658,17 @@ class ReferenceArticleController extends Controller
             if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $refArticleId = $request->request->get('refArticleId');
 
+            $quantity = false;
+
+            $refArticleId = $request->request->get('refArticleId');
             $refArticle = $this->referenceArticleRepository->find($refArticleId);
 
-            $quantity = $refArticle ? ($refArticle->getQuantiteStock() ? $refArticle->getQuantiteStock() : 0) : 0;
+            if ($refArticle) {
+				if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+					$quantity = $refArticle->getQuantiteStock();
+				}
+			}
 
             return new JsonResponse($quantity);
         }
@@ -757,7 +763,7 @@ class ReferenceArticleController extends Controller
                         ->setStatut($statut)
                         ->setReference($ref . '-' . $index)
                         ->setQuantite(max($data['quantitie'], 0)) // protection contre quantités négatives
-							//TODO CG quantite, quantitie ?
+							//TODO quantite, quantitie ?
                         ->setEmplacement($collecte->getPointCollecte())
                         ->setArticleFournisseur($articleFournisseur)
                         ->setType($refArticle->getType());

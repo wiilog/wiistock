@@ -13,6 +13,7 @@ use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\ChampsLibre;
+use App\Entity\Demande;
 use App\Entity\Menu;
 use App\Entity\Parametre;
 use App\Entity\ParametreRole;
@@ -285,16 +286,18 @@ class ArticleDataService
             $statutArticleActif = $this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
             $articles = $this->articleRepository->findByRefArticleAndStatutWithoutDemand($refArticle, $statutArticleActif);
 
-            $totalQuantity = 0;
-            foreach ($refArticle->getArticlesFournisseur() as $articleFournisseur) {
-                $quantity = 0;
-                foreach ($articleFournisseur->getArticles() as $article) {
-                    if ($article->getStatut() == $statutArticleActif) $quantity += $article->getQuantite();
-                }
-                $totalQuantity += $quantity;
-            }
+//			$maximum = 0;
+//            foreach ($refArticle->getArticlesFournisseur() as $articleFournisseur) {
+//                $quantity = 0;
+//                foreach ($articleFournisseur->getArticles() as $article) {
+//                    if ($article->getStatut() == $statutArticleActif) $quantity += $article->getQuantite();
+//                }
+//				$maximum += $quantity;
+//            }
+			//TODO CG vérifier qu'équivalent
+			$maximum = $this->articleRepository->getTotalQuantiteByRefAndStatut($refArticle, $statutArticleActif);
 
-            $role = $this->user->getRole();
+			$role = $this->user->getRole();
             $param = $this->parametreRepository->findOneBy(['label' => Parametre::LABEL_AJOUT_QUANTITE]);
             $paramQuantite = $this->parametreRoleRepository->findOneByRoleAndParam($role, $param);
 
@@ -308,10 +311,12 @@ class ArticleDataService
                 $this->em->persist($paramQuantite);
                 $this->em->flush();
             }
-
+            $statutDemande = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
+            $totalQuantity = $maximum - $this->referenceArticleRepository->getTotalQuantityReserved($refArticle, $statutDemande);
             $data = [
                 'selection' => $this->templating->render('demande/newRefArticleByQuantiteArticleAndChoiceContent.html.twig', [
-                    'maximum' => $totalQuantity,
+					'maximumForArticle' => $totalQuantity,
+					'maximum' => $maximum,
                     'reference' => $refArticle->getId(),
                     'byRef' => $paramQuantite->getValue() == Parametre::VALUE_PAR_REF,
                     'articles' => $articles
