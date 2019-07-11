@@ -221,12 +221,12 @@ class ArticleDataService
 				}
 			}
 
-			if ($byRef) {
+			if ($byRef && $demande == 'demande') {
 				$json = $this->templating->render('demande/choiceContent.html.twig', [
 					'maximum' => $maximum
 				]);
 			} else {
-				$json = $this->templating->render('demande/newRefArticleByQuantiteArticleContent.html.twig', [
+				$json = $this->templating->render($demande . '/newRefArticleByQuantiteArticleContent.html.twig', [
 					'articles' => $articles,
 				]);
 			}

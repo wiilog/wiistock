@@ -839,6 +839,7 @@ class ReferenceArticleController extends Controller
             } else {
                 $json = false;
             }
+
             return new JsonResponse($json);
         }
         throw new NotFoundHttpException("404");
