@@ -410,8 +410,10 @@ class PreparationController extends AbstractController
             $i = 0;
             foreach ($data['articles'] as $idArticle => $quantite) {
                 $article = $this->articleRepository->find($idArticle);
-                $article->setQuantiteAPrelever($quantite);
-                $article->setDemande($demande);
+                if ($quantite !== '' && $quantite > 0) {
+                    $article->setQuantiteAPrelever($quantite);
+                    $article->setDemande($demande);
+                }
                 $i++;
                 if ($i === count($data['articles'])) {
                     $refArticle = $article->getArticleFournisseur()->getReferenceArticle();

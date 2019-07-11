@@ -27,8 +27,8 @@
                             <td>{{ article.label }}</td>
                             <td>{{ article.quantite }}</td>
                             <td>{{ article.emplacement ? article.emplacement.label : '' }}</td>
-                            <td>
-                                <label class="pr-2">Tout ? </label>
+                            <td class="row d-flex">
+                                <label class="pr-2">Quantité totale ? </label>
                                 <label class="switch">
                                     <input class="checkbox" data-ref="{{ reference }}" data-total="{{ quantite }}"
                                            data-quantite="{{ article.quantite }}" type="checkbox"
@@ -36,10 +36,12 @@
                                            onchange="addToScissionAll($(this))">
                                     <span class="slider round"></span>
                                 </label>
-                                <label class="pr-2 pl-2">Combien : </label>
-                                <input id="{{ article.id }}" class="input" data-ref="{{ reference }}" data-total="{{ quantite }}"
+                                <label class="pr-2 pl-2">Quantité : </label>
+                                <input id="{{ article.id }}" class="input" data-ref="{{ reference }}"
+                                       data-total="{{ quantite }}"
                                        data-quantite="{{ article.quantite }}" type="number"
-                                       data-name="{{ article.label }}" data-id="{{ article.id }}" max="{{ article.quantite }}" oninput="limitInput($(this))">
+                                       data-name="{{ article.label }}" data-id="{{ article.id }}"
+                                       max="{{ article.quantite }}" oninput="typeInput($(this))"  style="width: 25%">
                             </td>
                         </tr>
                     {% endfor %}

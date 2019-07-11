@@ -162,29 +162,43 @@ function submitSplitting(submit) {
     }
 }
 
-function limitInput(input) {
-    let id = input.data('id');
-    let qttForArticle = articlesChosen[id];
-    let restant = Math.min($('#scissionTitle').attr('data-restant'), input.data('quantite'));
-    if (input.val() !== '') {
-        input.val(Math.min(input.val(), (restant >= 0 ? restant : 0)));
+function typeInput(input) {
+    if (input.data('typed') !== input.val()) {
+        limitInput(input);
+        let newVal;
+        if (input.data('typed')) {
+            if (input.data('typed') > (input.val() === '' ? 0 : input.val())) {
+                newVal = parseFloat($('#scissionTitle').attr('data-restant')) + (input.data('typed') - input.val());
+            } else {
+                newVal = parseFloat($('#scissionTitle').attr('data-restant')) - (input.val() - input.data('typed'));
+            }
+        } else {
+            if (input.val() !== '') newVal = $('#scissionTitle').attr('data-restant') - input.val();
+        }
+        let toSee = 0;
+        $('#scissionTitle').attr('data-restant', newVal);
+        if ($('#scissionTitle').attr('data-restant') > 0) {
+            toSee = $('#scissionTitle').attr('data-restant');
+        }
+        $('#quantiteRestante').html('Quantité restante : ' + toSee);
+        input.data('typed', input.val());
     }
-
-    articlesChosen[id] = input.val();
-
-    console.log(articlesChosen);
 }
 
 function addToScissionAll(checkbox) {
     let toSee = 0;
     let input = $('#' + checkbox.data('id'));
     if (!checkbox.is(':checked')) {
-        $('#scissionTitle').attr('data-restant', parseFloat($('#scissionTitle').attr('data-restant')) + parseFloat(checkbox.data('quantite')));
+        if ($('#scissionTitle').attr('data-restant') < 0) {
+            $('#scissionTitle').attr('data-restant', input.val());
+        } else {
+            $('#scissionTitle').attr('data-restant', parseFloat($('#scissionTitle').attr('data-restant')) + parseFloat(checkbox.data('quantite')));
+        }
         input.prop('disabled', false);
         input.val('');
         limitInput(input);
     } else {
-        if ($('#scissionTitle').attr('data-restant') > 0) {
+        if (parseFloat($('#scissionTitle').attr('data-restant')) > 0) {
             input.val(checkbox.data('quantite'));
             limitInput(input);
             input.prop('disabled', true);
@@ -196,8 +210,28 @@ function addToScissionAll(checkbox) {
     if ($('#scissionTitle').attr('data-restant') > 0) {
         toSee = $('#scissionTitle').attr('data-restant');
     }
-    $('#quantiteRestante').html('Quantité restante ' + toSee);
+    $('#quantiteRestante').html('Quantité restante : ' + toSee);
     $('#scissionTitle').html("Choix d'articles pour la référence " + checkbox.data('ref'));
+}
+
+function limitInput(input) {
+    if (input.val().includes('.')) {
+        input.val(Math.trunc(input.val()));
+    }
+    if (input.val().includes('-')) {
+        input.val(input.val().replace('-', ''));
+    }
+    if (input.val().includes(',')) {
+
+    }
+    let id = input.data('id');
+    let restant = Math.min(
+        parseFloat($('#scissionTitle').attr('data-restant')) + (input.data('typed') ? parseFloat(input.data('typed')) : 0),
+        input.data('quantite'));
+    if (input.val() !== '') {
+        input.val(Math.min(input.val(), (restant >= 0 ? restant : 0)));
+    }
+    articlesChosen[id] = input.val();
 }
 
 function exitScissionModal() {
