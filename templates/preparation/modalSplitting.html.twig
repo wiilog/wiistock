@@ -40,7 +40,7 @@
             <div class="error-msg p-4"></div>
             <div class="modal-footer">
                 <div class="btn" data-dismiss="modal" onclick="exitScissionModal()">Fermer</div>
-                <div class="btn btn-primary" data-qtt="{{ quantite }}" data-demande="{{ demande.id }}" data-index="{{ index }}" data-prep="{{ preparation.id }}" onclick="submitSplitting($(this))">Enregistrer</div>
+                <div class="btn btn-primary" data-ref={{ referenceId }} data-qtt="{{ quantite }}" data-demande="{{ demande.id }}" data-index="{{ index }}" data-prep="{{ preparation.id }}" onclick="submitSplitting($(this))">Enregistrer</div>
             </div>
         </div>
     </div>

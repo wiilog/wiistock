@@ -13,14 +13,13 @@
                     <div class="col input-group radio-btn">
                         <div>
                             <span class="btn not-active checkbox" data-toggle="demande" data-title="livraison" id="demande"}
-                            onclick="toggleRadioButton($(this), 'livraison')">Livraison</span>
-                            <span class="btn not-active checkbox" data-toggle="demande" data-title="collecte" id="collecte"
-                            onclick="toggleRadioButton($(this), 'collecte')">Collecte</span>
+                            onclick="clearModal('#modalPlusDemande'), toggleRadioButton($(this), 'livraison')">Livraison</span><span class="btn not-active checkbox" data-toggle="demande" data-title="collecte" id="collecte"
+                            onclick="clearModal('#modalPlusDemande'), toggleRadioButton($(this), 'collecte')">Collecte</span>
                         </div>
                     </div>
                 </div>
 
-                <div class="plusDemandeContent d-none  row mb-3"></div>
+                <div class="plusDemandeContent d-none row mb-3"></div>
                 <div class="editChampLibre d-none "></div>
 
                 <div class='boutonCreationDemande d-none'>
