@@ -384,6 +384,7 @@ class PreparationController extends AbstractController
                 if ($ligneArticle->getToSplit()) {
                     $response['prepas'][] = $this->renderView('preparation/modalSplitting.html.twig', [
                         'reference' => $refArticle->getReference(),
+                        'referenceId' => $refArticle->getId(),
                         'articles' => $articles,
                         'index' => $key,
                         'quantite' => $ligneArticle->getQuantite(),
@@ -425,6 +426,7 @@ class PreparationController extends AbstractController
                         'quantite' => $withdrawn - $data['quantite'],
                         'emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getId() : '',
                         'statut' => Article::STATUT_ACTIF,
+                        'refArticle' => $data['refArticle']
                     ];
 
                     foreach ($article->getValeurChampsLibres() as $valeurChampLibre) {
@@ -482,6 +484,7 @@ class PreparationController extends AbstractController
                         'quantite' => $article->getQuantite() - $article->getQuantiteAPrelever(),
                         'emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getId() : '',
                         'statut' => Article::STATUT_ACTIF,
+                        'refArticle' => $data['refArticle']
                     ];
 
                     foreach ($article->getValeurChampsLibres() as $valeurChampLibre) {
