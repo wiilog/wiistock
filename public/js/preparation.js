@@ -123,7 +123,11 @@ let startPreparation = function (value) {
             $.post(path3, JSON.stringify(params), function (data) {
                 prepasToSplit = data.prepas;
                 $('#splittingContent').html(prepasToSplit[actualIndex]);
-                $('#tableSplittingArticles').DataTable();
+                $('#tableSplittingArticles').DataTable({
+                    "language": {
+                        url: "/js/i18n/dataTableLanguage.json",
+                    },
+                });
                 $('#startSplitting').click();
             });
         }
@@ -145,7 +149,11 @@ function submitSplitting(submit) {
                 articlesChosen = [];
                 actualIndex++;
                 $('#splittingContent').html(prepasToSplit[actualIndex]);
-                $('#tableSplittingArticles').DataTable();
+                $('#tableSplittingArticles').DataTable({
+                    "language": {
+                        url: "/js/i18n/dataTableLanguage.json",
+                    },
+                });
                 $('#startSplitting').click();
             } else {
                 let path = Routing.generate('preparation_take_articles', true);

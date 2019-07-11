@@ -1,6 +1,6 @@
 <div class="modal fade" id="modalSplitting" tabindex="-1" role="dialog"
      aria-hidden="true" data-backdrop="static" data-keyboard="false">
-    <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-dialog modal-xl" role="document">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="scissionTitle" data-restant="{{ quantite }}">Choix d'articles pour la
@@ -27,7 +27,7 @@
                             <td>{{ article.label }}</td>
                             <td>{{ article.quantite }}</td>
                             <td>{{ article.emplacement ? article.emplacement.label : '' }}</td>
-                            <td class="row d-flex">
+                            <td class="d-flex">
                                 <label class="pr-2">Quantité totale ? </label>
                                 <label class="switch">
                                     <input class="checkbox" data-ref="{{ reference }}" data-total="{{ quantite }}"
