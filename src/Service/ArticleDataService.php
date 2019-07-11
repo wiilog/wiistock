@@ -284,10 +284,18 @@ class ArticleDataService
         } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             $statutArticleActif = $this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
             $articles = $this->articleRepository->findByRefArticleAndStatutWithoutDemand($refArticle, $statutArticleActif);
-            $maximum = 0;
-            foreach ($articles as $article) {
-                $maximum += $article->getQuantite();
+
+            $totalQuantity = 0;
+            if ($refArticle->getTypeQuantite() === 'article') {
+                foreach ($refArticle->getArticlesFournisseur() as $articleFournisseur) {
+                    $quantity = 0;
+                    foreach ($articleFournisseur->getArticles() as $article) {
+                            $quantity += $article->getQuantite();
+                    }
+                    $totalQuantity += $quantity;
+                }
             }
+            $quantity = ($refArticle->getTypeQuantite() === 'reference') ? $refArticle->getQuantiteStock() : $totalQuantity;
 
             $role = $this->user->getRole();
             $param = $this->parametreRepository->findOneBy(['label' => Parametre::LABEL_AJOUT_QUANTITE]);
@@ -306,7 +314,7 @@ class ArticleDataService
 
             $data = [
                 'selection' => $this->templating->render('demande/newRefArticleByQuantiteArticleAndChoiceContent.html.twig', [
-                    'maximum' => $maximum,
+                    'maximum' => $quantity,
                     'reference' => $refArticle->getId(),
                     'byRef' => $paramQuantite->getValue() == Parametre::VALUE_PAR_REF,
                     'articles' => $articles
