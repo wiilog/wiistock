@@ -28,7 +28,7 @@
     {% endif %}
     <div>
         <div class="btn btn-col-action"
-        onclick="recupIdRefArticle($(this)), clearDiv(), clearCheckboxes($('#modalPlusDemande'))" data-id='{{ idRefArticle }}'
+        onclick="clearModal('#modalPlusDemande'), clearDemandeContent(), recupIdRefArticle($(this))" data-id='{{ idRefArticle }}'
         data-target='#modalPlusDemande' data-toggle='modal'>
             <i class="fas fa-plus"></i>
         </div>

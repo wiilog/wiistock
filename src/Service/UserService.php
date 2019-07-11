@@ -11,11 +11,15 @@ namespace App\Service;
 
 
 use App\Entity\Action;
+use App\Entity\Parametre;
 use App\Entity\Utilisateur;
 
 use App\Repository\ActionRepository;
+use App\Repository\ParametreRepository;
+use App\Repository\ParametreRoleRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\RoleRepository;
+
 use Symfony\Component\Security\Core\Security;
 
 
@@ -45,14 +49,25 @@ class UserService
      */
     private $utilisateurRepository;
 
+	/**
+	 * @var ParametreRepository
+	 */
+	private $parametreRepository;
 
-    public function __construct(\Twig_Environment $templating, RoleRepository $roleRepository, UtilisateurRepository $utilisateurRepository, Security $security, ActionRepository $actionRepository)
+	/**
+	 * @var ParametreRoleRepository
+	 */
+	private $parametreRoleRepository;
+
+    public function __construct(ParametreRepository $parametreRepository, ParametreRoleRepository $parametreRoleRepository, \Twig_Environment $templating, RoleRepository $roleRepository, UtilisateurRepository $utilisateurRepository, Security $security, ActionRepository $actionRepository)
     {
         $this->user = $security->getUser();
         $this->actionRepository = $actionRepository;
         $this->utilisateurRepository = $utilisateurRepository;
         $this->roleRepository = $roleRepository;
         $this->templating = $templating;
+        $this->parametreRepository = $parametreRepository;
+        $this->parametreRoleRepository = $parametreRoleRepository;
     }
 
 
@@ -142,28 +157,22 @@ class UserService
         return $row;
     }
 
-    public function checkPassword($password, $password2)
-    {
-        if ($password !== $password2) {
-            $response = false;
-            $message = 'Les mots de passe ne correspondent pas.';
-        }
-        elseif (strlen($password) < 8) {
-            $response = false;
-            $message = 'Le mot de passe doit faire au moins 8 caractères.';
-        }
-        elseif (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/', $password)) {
-            $response = false;
-            $message = 'Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial.';
-        }
-        else{
-            $response = true ;
-            $message = '';
-        }
+	/**
+	 * @return bool
+	 */
+    public function hasParamQuantityByRef()
+	{
+		$response = false;
 
-        return [
-        	'response' => $response,
-			'message' => $message
-		];
-    }
+		$role = $this->user->getRole();
+		$param = $this->parametreRepository->findOneBy(['label' => Parametre::LABEL_AJOUT_QUANTITE]);
+		if ($param) {
+			$paramQuantite = $this->parametreRoleRepository->findOneByRoleAndParam($role, $param);
+			if ($paramQuantite) {
+				$response = $paramQuantite->getValue() == Parametre::VALUE_PAR_REF;
+			}
+		}
+
+		return $response;
+	}
 }
