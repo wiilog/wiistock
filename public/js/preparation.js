@@ -178,7 +178,6 @@ function addToScissionAll(checkbox) {
         $('#scissionTitle').attr('data-restant', parseFloat($('#scissionTitle').attr('data-restant')) + parseFloat(checkbox.data('quantite')));
         input.prop('disabled', false);
         input.val('');
-        limitInput(input)
     } else {
         if ($('#scissionTitle').attr('data-restant') > 0) {
             input.val(checkbox.data('quantite'));
