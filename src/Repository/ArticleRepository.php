@@ -214,7 +214,7 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
-    public function getTotalQuantiteFromRefWithDemande($refArticle, $statut) {
+    public function getTotalQuantiteByRefAndStatut($refArticle, $statut) {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             'SELECT SUM(a.quantite)

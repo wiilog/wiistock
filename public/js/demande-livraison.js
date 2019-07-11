@@ -118,7 +118,6 @@ function getCompareStock(submit) {
     let params = {'demande': submit.data('id')};
 
     $.post(path, JSON.stringify(params), function (data) {
-        console.log(data);
         if (data.status === true) {
             $('.zone-entete').html(data.entete);
             $('#tableArticle_id').DataTable().ajax.reload();
@@ -129,7 +128,7 @@ function getCompareStock(submit) {
                 }
             });
         } else {
-            $('#restantQuantite').html('étant de ' + data.stock + '.');
+            $('#restantQuantite').html(data.stock);
             $('#negativStock').click();
         }
     }, 'json');
@@ -140,7 +139,11 @@ function setMaxQuantity(select) {
         refArticleId: select.val(),
     };
     $.post(Routing.generate('get_quantity_ref_article'), params, function (data) {
-        let modalBody = select.closest(".modal-body");
+        if (data) {
+            let modalBody = select.closest(".modal-body");
+            modalBody.find('#quantity-to-deliver').attr('max', data);
+        }
+
     }, 'json');
 }
 
@@ -307,7 +310,9 @@ let ajaxEditArticle = function (select) {
                 $('#editNewArticle').html(dataReponse);
                 let quantityToTake = $('#quantityToTake');
                 let valMax = $('#quantite').val();
-                if (quantityToTake.find('input').attr('max') > valMax) quantityToTake.find('input').attr('max', valMax);
+
+                let attrMax = quantityToTake.find('input').attr('max');
+                if (attrMax > valMax) quantityToTake.find('input').attr('max', valMax);
                 quantityToTake.removeClass('d-none');
                 ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
             } else {

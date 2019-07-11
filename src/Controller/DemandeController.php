@@ -11,8 +11,8 @@ use App\Entity\Menu;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\LigneArticle;
+use App\Entity\Article;
 
-use App\Entity\Statut;
 use App\Entity\ValeurChampsLibre;
 use App\Repository\CategorieCLRepository;
 use App\Repository\ChampsLibreRepository;
@@ -27,19 +27,19 @@ use App\Repository\TypeRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\PreparationRepository;
-
 use App\Repository\ValeurChampsLibreRepository;
+
 use App\Service\ArticleDataService;
 use App\Service\RefArticleDataService;
 use App\Service\UserService;
-use Symfony\Bundle\FrameworkBundle\Tests\Fixtures\Validation\Category;
+
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use App\Entity\Article;
 
 /**
  * @Route("/demande")
@@ -168,7 +168,7 @@ class DemandeController extends AbstractController
             $statutDemande = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
             foreach ($articles as $article) {
                 $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
-                $totalQuantity = $this->articleRepository->getTotalQuantiteFromRefWithDemande($refArticle, $statutArticleActif);
+                $totalQuantity = $this->articleRepository->getTotalQuantiteByRefAndStatut($refArticle, $statutArticleActif);
                 $totalQuantity -= $this->referenceArticleRepository->getTotalQuantityReserved($refArticle, $statutDemande);
                 $treshHold = ($article->getQuantite() > $totalQuantity) ? $totalQuantity : $article->getQuantite();
                 if ($article->getQuantiteAPrelever() > $treshHold) {
@@ -202,7 +202,7 @@ class DemandeController extends AbstractController
                 } else {
                     $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
                     $statutDemande = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
-                    $totalQuantity = $this->articleRepository->getTotalQuantiteFromRefWithDemande($ligne->getReference(), $statut);
+                    $totalQuantity = $this->articleRepository->getTotalQuantiteByRefAndStatut($ligne->getReference(), $statut);
                     $totalQuantity -= $this->referenceArticleRepository->getTotalQuantityReservedWithoutLigne($ligne->getReference(), $ligne, $statutDemande);
                     if ($ligne->getQuantite() > $totalQuantity) {
                         $response['stock'] = $totalQuantity;
