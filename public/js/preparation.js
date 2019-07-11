@@ -145,12 +145,13 @@ let startPreparation = function (value) {
 };
 
 function submitSplitting(submit) {
-    if ($('#scissionTitle').data('restant') <= 0) {
+    if ($('#scissionTitle').attr('data-restant') <= 0) {
         let path = Routing.generate('submit_splitting', true);
         let params = {
             'articles': articlesChosen,
             'quantite': submit.data('qtt'),
             'demande': submit.data('demande'),
+            'refArticle' : submit.data('ref')
         };
         $.post(path, JSON.stringify(params), function () {
             $('#modalSplitting').find('.close').click();
