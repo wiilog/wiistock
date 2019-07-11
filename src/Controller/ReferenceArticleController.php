@@ -710,6 +710,7 @@ class ReferenceArticleController extends Controller
                             ->setReference($refArticle)
                             ->setDemande($demande)
                             ->setQuantite(max((int)$data['quantitie'], 0)); // protection contre quantités négatives
+                        if ($byRef) $ligneArticle->setToSplit(true);
 
                         $em->persist($ligneArticle);
                     } else {
