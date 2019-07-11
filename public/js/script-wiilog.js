@@ -258,8 +258,8 @@ function toggleLivraisonCollecte($button) {
     let path = Routing.generate('demande', true);
     let demande = $('#demande');
     let params = JSON.stringify( {demande: demande, typeDemande: typeDemande});
-
     let boutonNouvelleDemande = $button.closest('.modal').find('.boutonCreationDemande');
+
     $.post(path, params, function (data) {
         if(data === false ){
             $('.error-msg').html('Vous n\'avez créé aucune demande de ' + typeDemande + '.');

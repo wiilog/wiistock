@@ -186,7 +186,7 @@ class SecuriteController extends Controller
             elseif ($user->getStatus() === true) {
                 $password = $data['password'];
                 $password2 = $data['password2'];
-                $result = $this->userService->checkPassword($password,$password2);
+                $result = $this->passwordService->checkPassword($password,$password2);
 
                 if ($result['response'] == true) {
                     if ($password !== '') {

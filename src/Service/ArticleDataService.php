@@ -14,7 +14,6 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\ChampsLibre;
 use App\Entity\Menu;
-use App\Entity\ParamClient;
 use App\Entity\Parametre;
 use App\Entity\ParametreRole;
 use App\Entity\ReceptionReferenceArticle;
@@ -38,6 +37,7 @@ use App\Repository\CategorieCLRepository;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+
 use Doctrine\ORM\EntityManagerInterface;
 
 class ArticleDataService
@@ -158,14 +158,17 @@ class ArticleDataService
         $this->parametreRoleRepository = $parametreRoleRepository;
     }
 
-    /**
-     * @return array
-     *
-     * @throws \Twig_Error_Loader
-     * @throws \Twig_Error_Runtime
-     * @throws \Twig_Error_Syntax
-     */
-    public function getArticleOrNoByRefArticle($refArticle, $demande, $modifieRefArticle)
+	/**
+	 * @param ReferenceArticle $refArticle
+	 * @param string $demande
+	 * @param bool $modifieRefArticle
+	 * @param bool $byRef
+	 * @return bool|string
+	 * @throws \Twig_Error_Loader
+	 * @throws \Twig_Error_Runtime
+	 * @throws \Twig_Error_Syntax
+	 */
+    public function getArticleOrNoByRefArticle($refArticle, $demande, $modifieRefArticle, $byRef)
     {
         if ($demande === 'livraison') {
             $articleStatut = Article::STATUT_ACTIF;
@@ -205,15 +208,30 @@ class ArticleDataService
             } else {
                 $articles = [];
             }
-            if (count($articles) < 1) {
+
+			$maximum = 0;
+			if (count($articles) < 1) {
                 $articles[] = [
                     'id' => '',
                     'reference' => 'aucun article disponible',
                 ];
-            }
-            $json = $this->templating->render('demande/newRefArticleByQuantiteArticleContent.html.twig', [
-                'articles' => $articles,
-            ]);
+            } else {
+				foreach ($articles as $article) {
+					$maximum += $article->getQuantite();
+				}
+			}
+
+			if ($byRef) {
+				$json = $this->templating->render('demande/choiceContent.html.twig', [
+					'maximum' => $maximum
+				]);
+			} else {
+				$json = $this->templating->render('demande/newRefArticleByQuantiteArticleContent.html.twig', [
+					'articles' => $articles,
+				]);
+			}
+
+
         } else {
             $json = false; //TODO gérer erreur retour
         }
