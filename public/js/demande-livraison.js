@@ -212,7 +212,7 @@ $('#submitSearchDemandeLivraison').on('click', function () {
 
     tableDemande
         .columns('Type:name')
-        .search(type)
+        .search('^' + type + '$', true, false)
         .draw();
 
     tableDemande

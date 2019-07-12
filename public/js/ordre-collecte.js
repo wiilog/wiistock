@@ -47,7 +47,7 @@ $('#submitSearchOrdreCollecte').on('click', function () {
 
     tableCollecte
         .columns('Type:name')
-        .search(type)
+        .search('^' + type + '$', true, false)
         .draw();
 
     tableCollecte

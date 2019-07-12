@@ -46,7 +46,7 @@ $('#submitSearchLivraison').on('click', function () {
 
     tableLivraison
         .columns('Type:name')
-        .search(type)
+        .search('^' + type + '$', true, false)
         .draw();
 
     tableLivraison
