@@ -120,7 +120,8 @@
                     <div class="form-group">
                         <label for="litigeType">Type de litige*</label>
                         <select class="form-control data" id="litigeType" name="litigeType">
-                            <option disabled selected></option>
+{#                            TODO CG onchange = addcommentaire() suppr ok ?? #}
+                            <option disabled selected> </option>
                             {% for type in typesLitige %}
                                 <option value="{{ type.id }}">{{ type.label }}</option>
                             {% endfor %}
@@ -128,10 +129,10 @@
                     </div>
                 </div>
 
-                <div class="form-group">
+                <div class="form-group" id="commentaireBloc">
                     <label for="commentaire">Commentaire</label>
                     <input id="commentaire" class="commentaire form-control data" name="commentaire" type="hidden">
-                    <div class="editor-container-new"></div>
+                    <div class="editor-container-new" ></div>
                 </div>
                 <div class="form-group">
                     {% include 'arrivage/attachements.html.twig' with {'isNew' : true} %}
@@ -144,7 +145,6 @@
                         onclick="setCommentaire('.editor-container-new')">Enregistrer
                 </button>
             </div>
-
         </div>
     </div>
 </form>

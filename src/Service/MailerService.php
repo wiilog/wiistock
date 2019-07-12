@@ -61,7 +61,7 @@ class MailerService
                 }
             }
             $content .= '</p>';
-            $to = ['clara.tuco@wiilog.fr', 'cecile.gazaniol@wiilog.fr'];
+            $to = ['clara.tuco@wiilog.fr', 'cecile.gazaniol@wiilog.fr', 'matteo.hevin@wiilog.fr'];
         }
 
         $transport = (new \Swift_SmtpTransport($host, $port, $protocole))

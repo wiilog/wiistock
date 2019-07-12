@@ -16,5 +16,5 @@ let ajaxDims = function () {
     let path = Routing.generate('ajax_dimensions_etiquettes', true);
     xhttp.open("POST", path, true);
     xhttp.send(Json);
-    //TODO CG passer en jquery
+    //TODO passer en jquery
 }

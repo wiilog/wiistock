@@ -66,6 +66,9 @@ function submitAction(modal, path, table, callback, close) {
             label = label.replace(/\*/, '');
             missingInputs.push(label);
             $(this).addClass('is-invalid');
+            $(this).next().find('.select2-selection').addClass('is-invalid');
+        }else{
+            $(this).removeClass('is-invalid');
         }
         // validation valeur des inputs de type number
         if ($(this).attr('type') === 'number') {
@@ -75,6 +78,8 @@ function submitAction(modal, path, table, callback, close) {
             if (val > max || val < min) {
                 wrongNumberInputs.push($(this));
                 $(this).addClass('is-invalid');
+            }else{
+                $(this).removeClass('is-invalid');
             }
         }
         // validation valeur des inputs de type password
@@ -129,7 +134,7 @@ function submitAction(modal, path, table, callback, close) {
             wrongNumberInputs.forEach(function (elem) {
                 let label = elem.closest('.form-group').find('label').text();
 
-                msg += 'La valeur du champ ' + label;
+                msg += 'La valeur du champ ' + label.replace(/\*/, '');
 
                 let min = elem.attr('min');
                 let max = elem.attr('max');
@@ -244,6 +249,40 @@ function toggleRadioButton($button) {
     $('#' + tog).prop('value', sel);
     $('span[data-toggle="' + tog + '"]').not('[data-title="' + sel + '"]').removeClass('active').addClass('not-active');
     $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
+}
+
+function toggleLivraisonCollecte($button) {
+    toggleRadioButton($button);
+
+    let typeDemande = $button.data('title');
+    let path = Routing.generate('demande', true);
+    let demande = $('#demande');
+    let params = JSON.stringify( {demande: demande, typeDemande: typeDemande});
+    let boutonNouvelleDemande = $button.closest('.modal').find('.boutonCreationDemande');
+
+    $.post(path, params, function (data) {
+        if(data === false ){
+            $('.error-msg').html('Vous n\'avez créé aucune demande de ' + typeDemande + '.');
+            boutonNouvelleDemande.removeClass('d-none');
+            let pathIndex;
+            if(typeDemande === 'livraison'){
+                pathIndex = Routing.generate('demande_index', true);
+            } else {
+                pathIndex = Routing.generate('collecte_index', true);
+            }
+
+            boutonNouvelleDemande.find('#creationDemande').html(
+                "<a href=\'" + pathIndex + "\'>Nouvelle demande de "  + typeDemande + "</a>"
+            );
+            $button.closest('.modal').find('.plusDemandeContent').addClass('d-none');
+        }
+        else{
+            ajaxPlusDemandeContent($button, typeDemande);
+            $button.closest('.modal').find('.boutonCreationDemande').addClass('d-none');
+            $button.closest('.modal').find('.plusDemandeContent').removeClass('d-none');
+            $button.closest('.modal').find('.editChampLibre').removeClass('d-none');
+        }
+    }, 'json');
 }
 
 function initEditorInModal(modal) {
@@ -436,12 +475,6 @@ function ajaxAutoUserInit(select) {
     });
 }
 
-function clearNewContent(button) {
-    button.parent().addClass('d-none');
-    $('#newContent').html('');
-    $('#reference').html('');
-}
-
 let toggleRequiredChampsLibres = function (select, require) {
     let bloc = require == 'create' ? $('#typeContentNew') : $('#typeContentEdit'); //TODO pas top
     bloc.find('.data').removeClass('needed');
@@ -474,7 +507,7 @@ function displayError(modal, msg, data) {
 }
 
 function clearModal(modal) {
-    $modal = $(modal);
+    let $modal = $(modal);
     let inputs = $modal.find('.modal-body').find(".data");
     // on vide tous les inputs (sauf les disabled et les input hidden)
     inputs.each(function () {

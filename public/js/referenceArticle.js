@@ -22,7 +22,7 @@ function submitActionRefArticle(modal, path, callback = function () { }, close =
             }
             callback(data, modal);
             initRemove();
-            clearModalRefArticle(modal);
+            clearModalRefArticle(modal, data);
 
         } else if (this.readyState == 4 && this.status == 250) {
             $('#cannotDeleteArticle').click();
@@ -67,6 +67,9 @@ function buildErrorMsg(missingInputs, wrongInputs) {
     if (wrongInputs.length > 0) {
         wrongInputs.forEach(function (elem) {
             let label = elem.closest('.form-group').find('label').text();
+            // on enlève l'éventuelle * du nom du label
+            label = label.replace(/\*/, '');
+            missingInputs.push(label);
 
             msg += 'La valeur du champ ' + label;
 
@@ -112,11 +115,12 @@ function getDataFromModal(modal) {
         }
         // validation données obligatoires
         if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
-            let label = $(this).closest('.form-group').find('label').text();
+            let label = $(this).closest('.form-group').find('label').first().text();
             // on enlève l'éventuelle * du nom du label
             label = label.replace(/\*/, '');
             missingInputs.push(label);
             $(this).addClass('is-invalid');
+            $(this).next().find('.select2-selection').addClass('is-invalid');
         }
         // validation valeur des inputs de type number
         // protection pour les cas où il y a des champs cachés
@@ -138,27 +142,42 @@ function getDataFromModal(modal) {
     return { Data, missingInputs, wrongInputs };
 }
 
-function clearModalRefArticle(modal) {
-    // on vide tous les inputs
-    let inputs = modal.find('.modal-body').find(".data, .newContent>input");
-    inputs.each(function () {
-        if ($(this).attr('disabled') !== 'disabled' && $(this).attr('type') !== 'hidden' && $(this).attr('id') !== 'type_quantite') { //TODO type quantite trop specifique -> pq ne pas passer par celui de script-wiilog ? (et ajouter la classe checkbox)
-            $(this).val("");
+function clearModalRefArticle(modal, data) {
+    if (typeof(data.msg) == 'undefined') {
+        // on vide tous les inputs
+        let inputs = modal.find('.modal-body').find(".data, .newContent>input");
+        inputs.each(function () {
+            if ($(this).attr('disabled') !== 'disabled' && $(this).attr('type') !== 'hidden' && $(this).attr('id') !== 'type_quantite') { //TODO type quantite trop specifique -> pq ne pas passer par celui de script-wiilog ? (et ajouter la classe checkbox)
+                $(this).val("");
+            }
+        });
+        // on vide tous les select2
+        let selects = modal.find('.modal-body').find('.select2, .ajax-autocompleteFournisseur');
+        selects.each(function () {
+            $(this).val(null).trigger('change');
+        });
+        // on remet toutes les checkboxes sur off
+        let checkboxes = modal.find('.checkbox');
+        checkboxes.each(function () {
+            $(this).prop('checked', false);
+        })
+    } else {
+        if (typeof(data.codeError) != 'undefined') {
+            switch(data.codeError) {
+                case 'DOUBLON-REF':
+                    modal.find('.is-invalid').removeClass('is-invalid');
+                    modal.find('#reference').addClass('is-invalid');
+                    break;
+            }
         }
-    });
-    // on vide tous les select2
-    let selects = modal.find('.modal-body').find('.select2, .ajax-autocompleteFournisseur');
-    selects.each(function () {
-        $(this).val(null).trigger('change');
-    });
-    // on remet toutes les checkboxes sur off
-    let checkboxes = modal.find('.checkbox');
-    checkboxes.each(function () {
-        $(this).prop('checked', false);
-    })
+    }
 }
 
-
+function clearDemandeContent() {
+    $('.plusDemandeContent').find('#collecteShow, #livraisonShow').addClass('d-none');
+    $('.plusDemandeContent').find('#collecteShow, #livraisonShow').removeClass('d-block');
+    //TODO supprimer partout où pas nécessaire d-block
+}
 
 let modalRefArticleNew = $("#modalNewRefArticle");
 let submitNewRefArticle = $("#submitNewRefArticle");
@@ -395,7 +414,7 @@ let ajaxPlusDemandeContent = function (button, demande) {
             if (dataReponse.editChampLibre) {
                 editChampLibre.html(dataReponse.editChampLibre);
                 modalFooter.removeClass('d-none');
-            } if (dataReponse.temp) {
+            } if (dataReponse.temp || dataReponse.byRef) {
                 modalFooter.removeClass('d-none');
             }
             else {
