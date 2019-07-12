@@ -448,19 +448,28 @@ function listColis(elem) {
 }
 
 
-function getDataAndPrintLabels(code) {
+function getDataAndPrintLabels(codes) {
     let path = Routing.generate('arrivage_get_data_to_print', true);
+    let codesArray = codes.split(',');
 
-    $.post(path, function(response) {
+    $.post(path, function (response) {
         if (response.exists) {
-            $('#barcodes').append('<img id="singleBarcode">')
-            JsBarcode("#singleBarcode", code, {
-                format: "CODE128",
+            $("#barcodes").empty();
+            let i = 0;
+            codesArray.forEach(function(code) {
+                $('#barcodes').append('<img id="barcode' + i + '">')
+                JsBarcode("#barcode" + i, code, {
+                    format: "CODE128",
+                });
+                i++;
             });
             let doc = adjustScalesForDoc(response);
-            doc.addImage($("#singleBarcode").attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
-            doc.save('Etiquette concernant le colis ' + code + '.pdf');
-            $("#singleBarcode").remove();
+            $("#barcodes").find('img').each(function () {
+                doc.addImage($(this).attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
+                doc.addPage();
+            });
+            doc.deletePage(doc.internal.getNumberOfPages())
+            doc.save('Etiquettes ' + codes + '.pdf');
         }
     });
 }
