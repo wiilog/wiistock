@@ -224,40 +224,52 @@ let getArticleFournisseur = function () {
         xhttp.open("POST", path, true);
         xhttp.send(json);
     }
+};
+
+function clearNewArticleContent(button) {
+    button.parent().addClass('d-none');
+    let $modal = button.closest('.modal');
+    $modal.find('#fournisseur').addClass('d-none');
+    $modal.find('#referenceCEA').val(null).trigger('change');
+    $('#newContent').html('');
+    $('#reference').html('');
+    clearModal('#' + $modal.attr('id'));
 }
 
 let ajaxGetFournisseurByRefArticle = function (select) {
-    let fournisseur = $('#fournisseur');
-    let modalfooter = $('#modalNewArticle').find('.modal-footer');
-    xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function () {
-        if (this.readyState == 4 && this.status == 200) {
-            data = JSON.parse(this.responseText);
-            if (data === false) {
-                $('.error-msg').html('Vous ne pouvez par créer d\'article quand la référence CEA est gérée à la référence.');
-            } else {
-                fournisseur.removeClass('d-none');
-                fournisseur.find('select').html(data);
-                $('.error-msg').html('');
+    if (select.val()) {
+        let fournisseur = $('#fournisseur');
+        let modalfooter = $('#modalNewArticle').find('.modal-footer');
+        xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                data = JSON.parse(this.responseText);
+                if (data === false) {
+                    $('.error-msg').html('Vous ne pouvez par créer d\'article quand la référence CEA est gérée à la référence.');
+                } else {
+                    fournisseur.removeClass('d-none');
+                    fournisseur.find('select').html(data);
+                    $('.error-msg').html('');
+                }
             }
         }
+        path = Routing.generate('ajax_fournisseur_by_refarticle', true)
+        $('#newContent').html('');
+        fournisseur.addClass('d-none');
+        modalfooter.addClass('d-none')
+        let refArticleId = select.val();
+        let json = {};
+        json['refArticle'] = refArticleId;
+        Json = JSON.stringify(json);
+        xhttp.open("POST", path, true);
+        xhttp.send(Json);
     }
-    path = Routing.generate('ajax_fournisseur_by_refarticle', true)
-    $('#newContent').html('');
-    fournisseur.addClass('d-none');
-    modalfooter.addClass('d-none')
-    let refArticleId = select.val();
-    let json = {};
-    json['refArticle'] = refArticleId;
-    Json = JSON.stringify(json);
-    xhttp.open("POST", path, true);
-    xhttp.send(Json);
-}
+};
 
 function printSingleArticleBarcode(button) {
     let params = {
         'article': button.data('id')
-    }
+    };
     $.post(Routing.generate('get_article_from_id'), JSON.stringify(params), function (response) {
         if (response.exists) {
             $('#barcodes').append('<img id="singleBarcode">')

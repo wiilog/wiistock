@@ -441,6 +441,7 @@ class PreparationController extends AbstractController
             $demande = $this->demandeRepository->find($data['demande']);
             $articles = $demande->getArticles();
             foreach ($articles as $article) {
+                $article->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
                 // scission des articles dont la quantité prélevée n'est pas totale
                 if ($article->getQuantite() !== $article->getQuantiteAPrelever()) {
                     $newArticle = [

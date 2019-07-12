@@ -29,7 +29,7 @@ class Type
     const LABEL_PB_COMMANDE = 'problème de commande';
     const LABEL_DEST_NON_IDENT = 'destinataire non identifiable';
 	// types de la catégorie demande de livraison
-	const LABEL_CSB = 'CSB';
+	const LABEL_STANDARD = 'standard';
 
 	/**
      * @ORM\Id()
