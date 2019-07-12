@@ -44,11 +44,41 @@ let modalModifyArrivage = $('#modalEditArrivage');
 let submitModifyArrivage = $('#submitEditArrivage');
 let urlModifyArrivage = Routing.generate('arrivage_edit', true);
 InitialiserModal(modalModifyArrivage, submitModifyArrivage, urlModifyArrivage, tableArrivage);
-//TODO CG pq pas initalisermodalArrivage ?
+
 let modalDeleteArrivage = $('#modalDeleteArrivage');
 let submitDeleteArrivage = $('#submitDeleteArrivage');
 let urlDeleteArrivage = Routing.generate('arrivage_delete', true);
 InitialiserModal(modalDeleteArrivage, submitDeleteArrivage, urlDeleteArrivage, tableArrivage);
+
+
+let editorNewArrivageAlreadyDone = false;
+let quillNew;
+
+function initNewArrivageEditor(modal) {
+    if (!editorNewArrivageAlreadyDone) {
+        quillNew = initEditor(modal + ' .editor-container-new');
+        editorNewArrivageAlreadyDone = true;
+    }
+}
+
+let quillEdit;
+let originalText = '';
+function editRowArrivage(button) {
+    let path = Routing.generate('arrivage_edit_api', true);
+    let modal = $('#modalEditArrivage');
+    let submit = $('#submitEditArrivage');
+    let id = button.data('id');
+    let params = {id: id};
+
+    $.post(path, JSON.stringify(params), function (data) {
+        modal.find('.modal-body').html(data.html);
+        quillEdit = initEditor('.editor-container-edit');
+        modal.find('#acheteursEdit').val(data.acheteurs).select2();
+        originalText = quillEdit.getText();
+    }, 'json');
+
+    modal.find(submit).attr('value', id);
+}
 
 function toggleLitige(select) {
     let bloc = select.closest('.modal').find('#litigeBloc');
@@ -67,29 +97,29 @@ function toggleLitige(select) {
     }
 }
 
-let editorNewArrivageAlreadyDone = false;
-function initNewArrivageEditor(modal) {
-    if (!editorNewArrivageAlreadyDone) {
-        initEditor(modal + ' .editor-container-new');
-        editorNewArrivageAlreadyDone = true;
-    }
-};
+function addCommentaire(select, bool) {
+    let params = {
+        typeLitigeId: select.val()
+    };
 
+    let quillType = bool ? quillNew : quillEdit;
+    originalText = quillType.getText().trim();
 
-function editRowArrivage(button) {
-    let path = Routing.generate('arrivage_edit_api', true);
-    let modal = $('#modalEditArrivage');
-    let submit = $('#submitEditArrivage');
-    let id = button.data('id');
-    let params = { id: id };
+    $.post(Routing.generate('add_comment', true), JSON.stringify(params), function (comment) {
+        if (comment) {
+            let d = new Date();
+            let date = checkZero(d.getDate() + '') + '/' + checkZero(d.getMonth() + 1 + '') + '/' + checkZero(d.getFullYear() + '');
+            date += ' ' + checkZero(d.getHours() + '') + ':' + checkZero(d.getMinutes() + '');
 
-    $.post(path, JSON.stringify(params), function(data) {
-        modal.find('.modal-body').html(data.html);
-        initEditor('.editor-container-edit');
-        modal.find('#acheteursEdit').val(data.acheteurs).select2();
-    }, 'json');
+            let textToInsert = originalText.length > 0 ? originalText + "\n\n" : '';
 
-    modal.find(submit).attr('value', id);
+            quillType.setContents([
+                {insert: textToInsert},
+                {insert: date + ' : '},
+                {insert: comment},
+            ]);
+        }
+    });
 }
 
 function deleteRowArrivage(button, modal, submit, hasLitige) {
@@ -152,12 +182,12 @@ function upload(files) {
     $.ajax({
         url: path,
         data: formData,
-        type:"post",
-        contentType:false,
-        processData:false,
-        cache:false,
-        dataType:"json",
-        success:function(html){
+        type: "post",
+        contentType: false,
+        processData: false,
+        cache: false,
+        dataType: "json",
+        success: function (html) {
             let dropfile = $('#dropfile');
             dropfile.css('border', '3px dashed #BBBBBB');
             dropfile.after(html);
@@ -320,7 +350,7 @@ $('#submitSearchArrivage').on('click', function () {
     let utilisateurPiped = utilisateurString.split(',').join('|');
     tableArrivage
         .columns('Statut:name')
-        .search(statut)
+        .search(statut ? '^' + statut + '$' : '', true, false)
         .draw();
 
     tableArrivage
@@ -398,9 +428,9 @@ function deleteAttachement(arrivageId, pj, pjWithoutExtension) {
         pj: pj
     };
 
-    $.post(path, JSON.stringify(params), function(data) {
+    $.post(path, JSON.stringify(params), function (data) {
 
-        if(data === true) {
+        if (data === true) {
             $('#' + pjWithoutExtension).remove();
         }
     });

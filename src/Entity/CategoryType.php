@@ -15,6 +15,8 @@ class CategoryType
     const RECEPTION = 'réception';
     const ARTICLES_ET_REF_CEA = 'articles et références CEA';
     const LITIGE = 'litige';
+    const DEMANDE_LIVRAISON = 'demande livraison';
+    const DEMANDE_COLLECTE = 'demande collecte';
 
     /**
      * @ORM\Id()

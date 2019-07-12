@@ -10,6 +10,7 @@ use App\Entity\Colis;
 use App\Entity\DimensionsEtiquettes;
 use App\Entity\Litige;
 use App\Entity\Menu;
+use App\Entity\ParamClient;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Repository\ArrivageRepository;
@@ -20,6 +21,7 @@ use App\Repository\StatutRepository;
 use App\Repository\TransporteurRepository;
 use App\Repository\TypeRepository;
 use App\Repository\UtilisateurRepository;
+use App\Service\SpecificService;
 use App\Service\UserService;
 use App\Service\MailerService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -85,8 +87,14 @@ class ArrivageController extends AbstractController
      */
     private $typeRepository;
 
-    public function __construct(MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
+    /**
+     * @var SpecificService
+     */
+    private $specificService;
+
+    public function __construct(SpecificService $specificService, MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
     {
+        $this->specificService = $specificService;
         $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
         $this->userService = $userService;
         $this->arrivageRepository = $arrivageRepository;
@@ -492,6 +500,27 @@ class ArrivageController extends AbstractController
             );
         }
     }
+
+	/**
+	 * @Route("/ajoute-commentaire", name="add_comment",  options={"expose"=true}, methods="GET|POST")
+	 */
+    public function addComment(Request $request): Response
+	{
+		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			$response = '';
+
+			// spécifique SAFRAN CERAMICS ajout de commentaire
+			$isSafran = $this->specificService->isCurrentClientNameFunction(ParamClient::SAFRAN_CERAMICS);
+
+			if ($isSafran) {
+				$type = $this->typeRepository->find($data['typeLitigeId']);
+				$response = $type->getDescription();
+			}
+
+			return new JsonResponse($response);
+		}
+		throw new NotFoundHttpException('404');
+	}
 
 	/**
 	 * @Route("/lister-colis", name="arrivage_list_colis_api", options={"expose"=true})
