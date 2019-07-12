@@ -8,6 +8,7 @@ $('#utilisateur').select2({
 
 let pathArrivage = Routing.generate('arrivage_api', true);
 let tableArrivage = $('#tableArrivages').DataTable({
+    responsive: true,
     language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
@@ -38,7 +39,7 @@ let tableArrivage = $('#tableArrivages').DataTable({
 let modalNewArrivage = $("#modalNewArrivage");
 let submitNewArrivage = $("#submitNewArrivage");
 let urlNewArrivage = Routing.generate('arrivage_new', true);
-InitialiserModalArrivage(modalNewArrivage, submitNewArrivage, urlNewArrivage, tableArrivage);
+InitModalArrivage(modalNewArrivage, submitNewArrivage, urlNewArrivage, tableArrivage, printLabels);
 
 let modalModifyArrivage = $('#modalEditArrivage');
 let submitModifyArrivage = $('#submitEditArrivage');
@@ -49,6 +50,36 @@ let modalDeleteArrivage = $('#modalDeleteArrivage');
 let submitDeleteArrivage = $('#submitDeleteArrivage');
 let urlDeleteArrivage = Routing.generate('arrivage_delete', true);
 InitialiserModal(modalDeleteArrivage, submitDeleteArrivage, urlDeleteArrivage, tableArrivage);
+
+
+let editorNewArrivageAlreadyDone = false;
+let quillNew;
+
+function initNewArrivageEditor(modal) {
+    if (!editorNewArrivageAlreadyDone) {
+        quillNew = initEditor(modal + ' .editor-container-new');
+        editorNewArrivageAlreadyDone = true;
+    }
+}
+
+let quillEdit;
+let originalText = '';
+function editRowArrivage(button) {
+    let path = Routing.generate('arrivage_edit_api', true);
+    let modal = $('#modalEditArrivage');
+    let submit = $('#submitEditArrivage');
+    let id = button.data('id');
+    let params = {id: id};
+
+    $.post(path, JSON.stringify(params), function (data) {
+        modal.find('.modal-body').html(data.html);
+        quillEdit = initEditor('.editor-container-edit');
+        modal.find('#acheteursEdit').val(data.acheteurs).select2();
+        originalText = quillEdit.getText();
+    }, 'json');
+
+    modal.find(submit).attr('value', id);
+}
 
 function toggleLitige(select) {
     let bloc = select.closest('.modal').find('#litigeBloc');
@@ -67,29 +98,29 @@ function toggleLitige(select) {
     }
 }
 
-let editorNewArrivageAlreadyDone = false;
-function initNewArrivageEditor(modal) {
-    if (!editorNewArrivageAlreadyDone) {
-        initEditor(modal + ' .editor-container-new');
-        editorNewArrivageAlreadyDone = true;
-    }
-};
+function addCommentaire(select, bool) {
+    let params = {
+        typeLitigeId: select.val()
+    };
 
+    let quillType = bool ? quillNew : quillEdit;
+    originalText = quillType.getText().trim();
 
-function editRowArrivage(button) {
-    let path = Routing.generate('arrivage_edit_api', true);
-    let modal = $('#modalEditArrivage');
-    let submit = $('#submitEditArrivage');
-    let id = button.data('id');
-    let params = { id: id };
+    $.post(Routing.generate('add_comment', true), JSON.stringify(params), function (comment) {
+        if (comment) {
+            let d = new Date();
+            let date = checkZero(d.getDate() + '') + '/' + checkZero(d.getMonth() + 1 + '') + '/' + checkZero(d.getFullYear() + '');
+            date += ' ' + checkZero(d.getHours() + '') + ':' + checkZero(d.getMinutes() + '');
 
-    $.post(path, JSON.stringify(params), function(data) {
-        modal.find('.modal-body').html(data.html);
-        initEditor('.editor-container-edit');
-        modal.find('#acheteursEdit').val(data.acheteurs).select2();
-    }, 'json');
+            let textToInsert = originalText.length > 0 ? originalText + "\n\n" : '';
 
-    modal.find(submit).attr('value', id);
+            quillType.setContents([
+                {insert: textToInsert},
+                {insert: date + ' : '},
+                {insert: comment},
+            ]);
+        }
+    });
 }
 
 function deleteRowArrivage(button, modal, submit, hasLitige) {
@@ -152,12 +183,12 @@ function upload(files) {
     $.ajax({
         url: path,
         data: formData,
-        type:"post",
-        contentType:false,
-        processData:false,
-        cache:false,
-        dataType:"json",
-        success:function(html){
+        type: "post",
+        contentType: false,
+        processData: false,
+        cache: false,
+        dataType: "json",
+        success: function (html) {
             let dropfile = $('#dropfile');
             dropfile.css('border', '3px dashed #BBBBBB');
             dropfile.after(html);
@@ -165,7 +196,7 @@ function upload(files) {
     });
 }
 
-function InitialiserModalArrivage(modal, submit, path, table, callback = null, close = true) {
+function InitModalArrivage(modal, submit, path, table, callback = null, close = true) {
     submit.click(function () {
         submitActionArrivage(modal, path, table, callback, close);
     });
@@ -194,39 +225,7 @@ function submitActionArrivage(modal, path, table, callback, close) {
             });
 
             clearModal(modal);
-            let nbUm = data.nbUm;
-            let printUm = data.printUm;
-            let printArrivage = data.printArrivage;
-            let d = new Date();
-            let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
-            date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
-            if (data.exists) {
-                let doc = adjustScalesForDoc(data);
-                $("#barcodes").empty();
-                if (printUm) {
-                    for (let i = 0; i < nbUm; i++) {
-                        $('#barcodes').append('<img id="barcode' + i + '">');
-                        JsBarcode("#barcode" + i, data.arrivage + '-' + i, {
-                            format: "CODE128",
-                        });
-                    }
 
-                } if (printArrivage) {
-                    $('#barcodes').append('<img id="barcodeArrivage">');
-                    JsBarcode("#barcodeArrivage", data.arrivage, {
-                        format: "CODE128",
-                    });
-                } if (printArrivage || printUm) {
-                    $("#barcodes").find('img').each(function () {
-                        doc.addImage($(this).attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
-                        doc.addPage();
-                    });
-                    doc.deletePage(doc.internal.getNumberOfPages())
-                    doc.save('Etiquettes du ' + date + '.pdf');
-                }
-            } else {
-                $('#cannotGenerate').click();
-            }
             if (callback !== null) callback(data);
         }
     };
@@ -352,7 +351,7 @@ $('#submitSearchArrivage').on('click', function () {
     let utilisateurPiped = utilisateurString.split(',').join('|');
     tableArrivage
         .columns('Statut:name')
-        .search(statut)
+        .search(statut ? '^' + statut + '$' : '', true, false)
         .draw();
 
     tableArrivage
@@ -386,6 +385,42 @@ $('#submitSearchArrivage').on('click', function () {
         .draw();
 });
 
+function printLabels(data) {
+    let nbUm = data.nbUm;
+    let printUm = data.printUm;
+    let printArrivage = data.printArrivage;
+    let d = new Date();
+    let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
+    date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
+    if (data.exists) {
+        let doc = adjustScalesForDoc(data);
+        $("#barcodes").empty();
+        if (printUm) {
+            for (let i = 0; i < nbUm; i++) {
+                $('#barcodes').append('<img id="barcode' + i + '">');
+                JsBarcode("#barcode" + i, data.arrivage + '-' + i, {
+                    format: "CODE128",
+                });
+            }
+
+        } if (printArrivage) {
+            $('#barcodes').append('<img id="barcodeArrivage">');
+            JsBarcode("#barcodeArrivage", data.arrivage, {
+                format: "CODE128",
+            });
+        } if (printArrivage || printUm) {
+            $("#barcodes").find('img').each(function () {
+                doc.addImage($(this).attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
+                doc.addPage();
+            });
+            doc.deletePage(doc.internal.getNumberOfPages())
+            doc.save('Etiquettes du ' + date + '.pdf');
+        }
+    } else {
+        $('#cannotGenerate').click();
+    }
+}
+
 function deleteAttachement(arrivageId, pj, pjWithoutExtension) {
 
     let path = Routing.generate('arrivage_delete_attachement');
@@ -394,10 +429,48 @@ function deleteAttachement(arrivageId, pj, pjWithoutExtension) {
         pj: pj
     };
 
-    $.post(path, JSON.stringify(params), function(data) {
+    $.post(path, JSON.stringify(params), function (data) {
 
-        if(data === true) {
+        if (data === true) {
             $('#' + pjWithoutExtension).remove();
+        }
+    });
+}
+
+function listColis(elem) {
+    let arrivageId = elem.data('id');
+    let path = Routing.generate('arrivage_list_colis_api', true);
+    let modal = $('#modalListColis');
+    let params = { id: arrivageId };
+
+    $.post(path, JSON.stringify(params), function(data) {
+        modal.find('.modal-body').html(data);
+    }, 'json');
+}
+
+
+function getDataAndPrintLabels(codes) {
+    let path = Routing.generate('arrivage_get_data_to_print', true);
+    let codesArray = codes.split(',');
+
+    $.post(path, function (response) {
+        if (response.exists) {
+            $("#barcodes").empty();
+            let i = 0;
+            codesArray.forEach(function(code) {
+                $('#barcodes').append('<img id="barcode' + i + '">')
+                JsBarcode("#barcode" + i, code, {
+                    format: "CODE128",
+                });
+                i++;
+            });
+            let doc = adjustScalesForDoc(response);
+            $("#barcodes").find('img').each(function () {
+                doc.addImage($(this).attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
+                doc.addPage();
+            });
+            doc.deletePage(doc.internal.getNumberOfPages())
+            doc.save('Etiquettes ' + codes + '.pdf');
         }
     });
 }

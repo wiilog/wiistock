@@ -416,4 +416,31 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
+    public function getTotalQuantityReserved($refArticle, $statut) {
+        $em = $this->getEntityManager();
+        return $em->createQuery(
+            'SELECT SUM(l.quantite)
+                  FROM App\Entity\LigneArticle l 
+                  JOIN l.demande d
+                  WHERE l.reference = :refArticle AND d.statut = :statut'
+        )->setParameters([
+            'refArticle' => $refArticle,
+            'statut' => $statut
+        ])->getSingleScalarResult();
+    }
+
+    public function getTotalQuantityReservedWithoutLigne($refArticle, $ligneArticle, $statut) {
+        $em = $this->getEntityManager();
+        return $em->createQuery(
+            'SELECT SUM(l.quantite)
+                  FROM App\Entity\LigneArticle l 
+                  JOIN l.demande d
+                  WHERE l.reference = :refArticle AND l.id != :id AND d.statut = :statut'
+        )->setParameters([
+            'refArticle' => $refArticle,
+            'id' => $ligneArticle->getId(),
+            'statut' => $statut
+        ])->getSingleScalarResult();
+    }
+
 }

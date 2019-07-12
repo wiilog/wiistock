@@ -44,10 +44,16 @@ class Role
      */
     private $users;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\ParametreRole", mappedBy="role")
+     */
+    private $parametreRoles;
+
     public function __construct()
     {
         $this->actions = new ArrayCollection();
         $this->users = new ArrayCollection();
+        $this->parametreRoles = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -132,6 +138,37 @@ class Role
             // set the owning side to null (unless already changed)
             if ($user->getRole() === $this) {
                 $user->setRole(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|ParametreRole[]
+     */
+    public function getParametreRoles(): Collection
+    {
+        return $this->parametreRoles;
+    }
+
+    public function addParametreRole(ParametreRole $parametreRole): self
+    {
+        if (!$this->parametreRoles->contains($parametreRole)) {
+            $this->parametreRoles[] = $parametreRole;
+            $parametreRole->setRole($this);
+        }
+
+        return $this;
+    }
+
+    public function removeParametreRole(ParametreRole $parametreRole): self
+    {
+        if ($this->parametreRoles->contains($parametreRole)) {
+            $this->parametreRoles->removeElement($parametreRole);
+            // set the owning side to null (unless already changed)
+            if ($parametreRole->getRole() === $this) {
+                $parametreRole->setRole(null);
             }
         }
 

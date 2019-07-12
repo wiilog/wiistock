@@ -80,6 +80,7 @@ let tableDemande = $('#table_demande').DataTable({
         {"data": 'Demandeur', 'name': 'Demandeur'},
         {"data": 'Numéro', 'name': 'Numéro'},
         {"data": 'Statut', 'name': 'Statut'},
+        {"data": 'Type', 'name': 'Type', 'title': 'Type'},
         {"data": 'Actions', 'name': 'Actions'},
     ],
 });
@@ -116,8 +117,8 @@ function getCompareStock(submit) {
     let path = Routing.generate('compare_stock', true);
     let params = {'demande': submit.data('id')};
 
-    $.post(path, JSON.stringify(params), function(data) {
-        if (data) {
+    $.post(path, JSON.stringify(params), function (data) {
+        if (data.status === true) {
             $('.zone-entete').html(data.entete);
             $('#tableArticle_id').DataTable().ajax.reload();
             $('#boutonCollecteSup, #boutonCollecteInf').addClass('d-none');
@@ -127,6 +128,7 @@ function getCompareStock(submit) {
                 }
             });
         } else {
+            $('#restantQuantite').html(data.stock);
             $('#negativStock').click();
         }
     }, 'json');
@@ -137,8 +139,11 @@ function setMaxQuantity(select) {
         refArticleId: select.val(),
     };
     $.post(Routing.generate('get_quantity_ref_article'), params, function (data) {
-        let modalBody = select.closest(".modal-body");
-        modalBody.find('#quantity-to-deliver').attr('max', data);
+        if (data) {
+            let modalBody = select.closest(".modal-body");
+            modalBody.find('#quantity-to-deliver').attr('max', data);
+        }
+
     }, 'json');
 }
 
@@ -185,6 +190,7 @@ let ajaxAuto = function () {
 }
 
 let editorNewLivraisonAlreadyDone = false;
+
 function initNewLivraisonEditor(modal) {
     if (!editorNewLivraisonAlreadyDone) {
         initEditorInModal(modal);
@@ -195,12 +201,18 @@ function initNewLivraisonEditor(modal) {
 
 $('#submitSearchDemandeLivraison').on('click', function () {
     let statut = $('#statut').val();
+    let type = $('#type').val();
     let utilisateur = $('#utilisateur').val()
     let utilisateurString = utilisateur.toString();
     let utilisateurPiped = utilisateurString.split(',').join('|');
     tableDemande
         .columns('Statut:name')
-        .search(statut)
+        .search(statut ? '^' + statut + '$' : '', true, false)
+        .draw();
+
+    tableDemande
+        .columns('Type:name')
+        .search(type ? '^' + type + '$' : '', true, false)
         .draw();
 
     tableDemande
@@ -257,6 +269,19 @@ function ajaxGetAndFillArticle(select) {
     }
 }
 
+function switchWantedGlobal(checkbox) {
+    let path = Routing.generate('switch_choice', true);
+    let params = {
+        'checked': checkbox.is(':checked'),
+        'reference': checkbox.data('ref')
+    };
+    let $modal = checkbox.closest('.modal');
+    $.post(path, JSON.stringify(params), function (data) {
+        $modal.find('#choiceContent').html(data.content);
+        $modal.find('.error-msg').html('');
+    });
+}
+
 function deleteRowDemande(button, modal, submit) {
     let id = button.data('id');
     let name = button.data('name');
@@ -285,7 +310,9 @@ let ajaxEditArticle = function (select) {
                 $('#editNewArticle').html(dataReponse);
                 let quantityToTake = $('#quantityToTake');
                 let valMax = $('#quantite').val();
-                quantityToTake.find('input').attr('max', valMax);
+
+                let attrMax = quantityToTake.find('input').attr('max');
+                if (attrMax > valMax) quantityToTake.find('input').attr('max', valMax);
                 quantityToTake.removeClass('d-none');
                 ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
             } else {
@@ -300,10 +327,18 @@ let ajaxEditArticle = function (select) {
 }
 
 let generateCSV = function () {
-    xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function () {
-        if (this.readyState == 4 && this.status == 200) {
-            response = JSON.parse(this.responseText);
+    let data = {};
+    $('.filterService, select').first().find('input').each(function () {
+        if ($(this).attr('name') !== undefined) {
+            data[$(this).attr('name')] = $(this).val();
+        }
+    });
+
+    if (data['dateMin'] && data['dateMax']) {
+        let params = JSON.stringify(data);
+        let path = Routing.generate('get_livraisons_for_csv', true);
+
+        $.post(path, params, function(response) {
             if (response) {
                 $('.error-msg').empty();
                 let csv = "";
@@ -313,19 +348,8 @@ let generateCSV = function () {
                 });
                 dlFile(csv);
             }
-        }
-    }
-    Data = {};
-    $('.filterService, select').first().find('input').each(function () {
-        if ($(this).attr('name') !== undefined) {
-            Data[$(this).attr('name')] = $(this).val();
-        }
-    });
-    // let utilisateurs = $('#utilisateur').val().toString().split(',');
-    if (Data['dateMin'] && Data['dateMax']) {
-        json = JSON.stringify(Data);
-        xhttp.open("POST", Routing.generate('get_livraisons_for_csv', true));
-        xhttp.send(json);
+        }, 'json');
+
     } else {
         $('.error-msg').html('<p>Saisissez une date de départ et une date de fin dans le filtre en en-tête de page.</p>');
     }
@@ -359,5 +383,11 @@ function checkZero(data) {
     }
     return data;
 }
+
+$('#submitSearchDemandeLivraison').on('keypress', function (e) {
+    if (e.which === 13) {
+        $('#submitSearchDemandeLivraison').click();
+    }
+});
 
 

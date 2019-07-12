@@ -7,8 +7,10 @@ use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Colis;
+use App\Entity\DimensionsEtiquettes;
 use App\Entity\Litige;
 use App\Entity\Menu;
+use App\Entity\ParamClient;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Repository\ArrivageRepository;
@@ -19,6 +21,7 @@ use App\Repository\StatutRepository;
 use App\Repository\TransporteurRepository;
 use App\Repository\TypeRepository;
 use App\Repository\UtilisateurRepository;
+use App\Service\SpecificService;
 use App\Service\UserService;
 use App\Service\MailerService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -27,7 +30,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Validator\Tests\Fixtures\Countable;
 
 /**
  * @Route("/arrivage")
@@ -84,8 +86,14 @@ class ArrivageController extends AbstractController
      */
     private $typeRepository;
 
-    public function __construct(MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
+    /**
+     * @var SpecificService
+     */
+    private $specificService;
+
+    public function __construct(SpecificService $specificService, MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
     {
+        $this->specificService = $specificService;
         $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
         $this->userService = $userService;
         $this->arrivageRepository = $arrivageRepository;
@@ -491,5 +499,65 @@ class ArrivageController extends AbstractController
             );
         }
     }
+
+	/**
+	 * @Route("/ajoute-commentaire", name="add_comment",  options={"expose"=true}, methods="GET|POST")
+	 */
+    public function addComment(Request $request): Response
+	{
+		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			$response = '';
+
+			// spécifique SAFRAN CERAMICS ajout de commentaire
+			$isSafran = $this->specificService->isCurrentClientNameFunction(ParamClient::SAFRAN_CERAMICS);
+
+			if ($isSafran) {
+				$type = $this->typeRepository->find($data['typeLitigeId']);
+				$response = $type->getDescription();
+			}
+
+			return new JsonResponse($response);
+		}
+		throw new NotFoundHttpException('404');
+	}
+
+	/**
+	 * @Route("/lister-colis", name="arrivage_list_colis_api", options={"expose"=true})
+	 */
+    public function listColisByArrivage(Request $request)
+	{
+		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			$arrivage = $this->arrivageRepository->find($data['id']);
+
+			$html = $this->renderView('arrivage/modalListColisContent.html.twig', ['arrivage' => $arrivage]);
+
+			return new JsonResponse($html);
+
+		} else {
+			throw new NotFoundHttpException('404');
+		}
+	}
+
+	/**
+	 * @Route("/api-etiquettes", name="arrivage_get_data_to_print", options={"expose"=true})
+	 */
+	public function getDataToPrintLabels(Request $request) {
+		if ($request->isXmlHttpRequest()) {
+
+			$dimension = $this->dimensionsEtiquettesRepository->findOneDimension(); /** @var DimensionsEtiquettes $dimension */
+			if ($dimension) {
+				$response['height'] = $dimension->getHeight();
+				$response['width'] = $dimension->getWidth();
+				$response['exists'] = true;
+			} else {
+				$response['height'] = $response['width'] = 0;
+                $response['exists'] = false;
+            }
+			return new JsonResponse($response);
+
+		} else {
+			throw new NotFoundHttpException('404');
+		}
+	}
 
 }
