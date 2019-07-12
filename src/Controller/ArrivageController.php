@@ -161,7 +161,7 @@ class ArrivageController extends AbstractController
                     'NbUM' => $arrivage->getNbUM() ? $arrivage->getNbUM() : '',
 					'Acheteurs' => implode(', ', $acheteursUsernames),
 					'Statut' => $arrivage->getStatut() ? $arrivage->getStatut()->getNom() : '',
-                    'Date' => $arrivage->getDate() ? $arrivage->getDate()->format('d/m/Y') : '',
+                    'Date' => $arrivage->getDate() ? $arrivage->getDate()->format('d/m/Y H:i:s') : '',
                     'Utilisateur' => $arrivage->getUtilisateur() ? $arrivage->getUtilisateur()->getUsername() : '',
                     'Actions' => $this->renderView('arrivage/datatableArrivageRow.html.twig', [
                         'arrivage' => $arrivage,
