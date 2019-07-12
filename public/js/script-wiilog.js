@@ -475,12 +475,6 @@ function ajaxAutoUserInit(select) {
     });
 }
 
-function clearNewContent(button) {
-    button.parent().addClass('d-none');
-    $('#newContent').html('');
-    $('#reference').html('');
-}
-
 let toggleRequiredChampsLibres = function (select, require) {
     let bloc = require == 'create' ? $('#typeContentNew') : $('#typeContentEdit'); //TODO pas top
     bloc.find('.data').removeClass('needed');
@@ -513,7 +507,7 @@ function displayError(modal, msg, data) {
 }
 
 function clearModal(modal) {
-    $modal = $(modal);
+    let $modal = $(modal);
     let inputs = $modal.find('.modal-body').find(".data");
     // on vide tous les inputs (sauf les disabled et les input hidden)
     inputs.each(function () {

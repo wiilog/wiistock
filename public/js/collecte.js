@@ -174,12 +174,12 @@ $('#submitSearchCollecte').on('click', function () {
 
     table
         .columns('Statut:name')
-        .search(statut)
+        .search(statut ? '^' + statut + '$' : '', true, false)
         .draw();
 
     table
         .columns('Type:name')
-        .search(type)
+        .search(type ? '^' + type + '$' : '', true, false)
         .draw();
 
     table
