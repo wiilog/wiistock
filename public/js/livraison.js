@@ -41,12 +41,12 @@ $('#submitSearchLivraison').on('click', function () {
 
     tableLivraison
         .columns('Statut:name')
-        .search(statut === '' ? statut : '^' + statut + '$', true, false)
+        .search(statut ? '^' + statut + '$' : '', true, false)
         .draw();
 
     tableLivraison
         .columns('Type:name')
-        .search(type === '' ? type : '^' + type + '$', true, false)
+        .search(type ? '^' + type + '$' : '', true, false)
         .draw();
 
     tableLivraison
