@@ -49,7 +49,7 @@ $('#submitSearchMvt').on('click', function () {
 
     tableMvt
         .columns('type:name')
-        .search(statut)
+        .search(statut ? '^' + statut + '$' : '', true, false)
         .draw();
 
     tableMvt
@@ -58,7 +58,7 @@ $('#submitSearchMvt').on('click', function () {
         .draw();
     tableMvt
         .columns('refEmplacement:name')
-        .search(emplacement)
+        .search(emplacement ? '^' + emplacement + '$' : '', true, false)
         .draw();
     tableMvt
         .columns('refArticle:name')

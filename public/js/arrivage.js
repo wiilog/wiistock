@@ -384,7 +384,7 @@ $('#submitSearchArrivage').on('click', function () {
     let utilisateurPiped = utilisateurString.split(',').join('|');
     tableArrivage
         .columns('Statut:name')
-        .search(statut)
+        .search(statut ? '^' + statut + '$' : '', true, false)
         .draw();
 
     tableArrivage
