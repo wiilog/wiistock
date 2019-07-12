@@ -14,7 +14,7 @@
                 <table class="table table-striped" id="tableSplittingArticles">
                     <thead>
                     <tr>
-                        <th>Article</th>
+                        <th>Code Article</th>
                         <th>Quantité</th>
                         <th>Emplacement</th>
                         <th>Actions</th>
@@ -22,16 +22,17 @@
                     </thead>
                     <tbody>
                     {% for article in articles %}
+                        {% set quantite = article.quantite is null ? 0 : article.quantite %}
 
                         <tr>
-                            <td>{{ article.label }}</td>
-                            <td>{{ article.quantite }}</td>
+                            <td>{{ article.reference }}</td>
+                            <td>{{ quantite }}</td>
                             <td>{{ article.emplacement ? article.emplacement.label : '' }}</td>
                             <td class="d-flex">
                                 <label class="pr-2">Quantité totale ? </label>
                                 <label class="switch">
                                     <input class="checkbox" data-ref="{{ reference }}" data-total="{{ quantite }}"
-                                           data-quantite="{{ article.quantite }}" type="checkbox"
+                                           data-quantite="{{ quantite }}" type="checkbox"
                                            data-name="{{ article.label }}" data-id="{{ article.id }}"
                                            onchange="addToScissionAll($(this))">
                                     <span class="slider round"></span>
@@ -39,9 +40,9 @@
                                 <label class="pr-2 pl-2">Quantité : </label>
                                 <input id="{{ article.id }}" class="input" data-ref="{{ reference }}"
                                        data-total="{{ quantite }}"
-                                       data-quantite="{{ article.quantite }}" type="number"
+                                       data-quantite="{{ quantite }}" type="number"
                                        data-name="{{ article.label }}" data-id="{{ article.id }}"
-                                       max="{{ article.quantite }}" oninput="typeInput($(this))"  style="width: 25%">
+                                       max="{{ quantite }}" oninput="typeInput($(this))"  style="width: 25%">
                             </td>
                         </tr>
                     {% endfor %}
