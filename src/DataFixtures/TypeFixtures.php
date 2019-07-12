@@ -65,7 +65,31 @@ class TypeFixtures extends Fixture implements DependentFixtureInterface, Fixture
             dump("création du type " . CategoryType::RECEPTION);
         }
 
-        $manager->flush();
+        // categorie demandes de livraison et de collecte
+        $typesNames = [
+            Type::LABEL_STANDARD,
+        ];
+
+        $categories = [
+            CategoryType::DEMANDE_LIVRAISON,
+            CategoryType::DEMANDE_COLLECTE
+        ];
+
+        foreach ($categories as $category) {
+            foreach ($typesNames as $typeName) {
+                $type = $this->typeRepository->findOneByCategoryLabelAndLabel($category, $typeName);
+
+                if (empty($type)) {
+                    $type = new Type();
+                    $type
+                        ->setCategory($this->getReference('type-' . $category))
+                        ->setLabel($typeName);
+                    $manager->persist($type);
+                    dump("création du type " . $typeName);
+                }
+            }
+            $manager->flush();
+        }
     }
 
     public function getDependencies()
