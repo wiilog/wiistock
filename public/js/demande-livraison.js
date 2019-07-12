@@ -207,12 +207,12 @@ $('#submitSearchDemandeLivraison').on('click', function () {
     let utilisateurPiped = utilisateurString.split(',').join('|');
     tableDemande
         .columns('Statut:name')
-        .search(statut)
+        .search(statut === '' ? statut : '^' + statut + '$', true, false)
         .draw();
 
     tableDemande
         .columns('Type:name')
-        .search('^' + type + '$', true, false)
+        .search(type === '' ? type : '^' + type + '$', true, false)
         .draw();
 
     tableDemande

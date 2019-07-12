@@ -70,7 +70,7 @@ $('#submitSearchService').on('click', function () {
 
     tableService
         .columns('Statut:name')
-        .search(statut)
+        .search(statut === '' ? statut : '^' + statut + '$', true, false)
         .draw();
 
     tableService

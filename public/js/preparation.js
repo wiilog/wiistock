@@ -37,12 +37,12 @@ $('#submitSearchPrepaLivraison').on('click', function () {
     let utilisateurPiped = utilisateurString.split(',').join('|');
     table
         .columns('Statut:name')
-        .search(statut)
+        .search(statut === '' ? statut : '^' + statut + '$', true, false)
         .draw();
 
     table
         .columns('Type:name')
-        .search('^' + type + '$', true, false)
+        .search(type === '' ? type : '^' + type + '$', true, false)
         .draw();
 
     table
