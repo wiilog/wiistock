@@ -14,7 +14,7 @@
                 <table class="table table-striped" id="tableSplittingArticles">
                     <thead>
                     <tr>
-                        <th>Article</th>
+                        <th>Code Article</th>
                         <th>Quantité</th>
                         <th>Emplacement</th>
                         <th>Actions</th>
@@ -24,7 +24,7 @@
                     {% for article in articles %}
 
                         <tr>
-                            <td>{{ article.label }}</td>
+                            <td>{{ article.reference }}</td>
                             <td>{{ article.quantite }}</td>
                             <td>{{ article.emplacement ? article.emplacement.label : '' }}</td>
                             <td class="d-flex">
