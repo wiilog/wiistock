@@ -186,7 +186,7 @@ class ArrivageController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
-
+dump($data);
             $em = $this->getDoctrine()->getEntityManager();
 
             $statutLabel = $data['statut'] === '1' ? Statut::CONFORME : Statut::ATTENTE_ACHETEUR;
@@ -341,7 +341,6 @@ class ArrivageController extends AbstractController
             if (isset($data['commentaire'])) {
                 $arrivage->setCommentaire($data['commentaire']);
             }
-
             $hasChanged = false;
             if (isset($data['statut'])) {
                 $statut = $this->statutRepository->find($data['statut']);
@@ -464,15 +463,22 @@ class ArrivageController extends AbstractController
                     $filename = uniqid() . "." . $file->getClientOriginalExtension();
                     $file->move($path, $filename); // move the file to a path
 
-                    $arrivage->addPiecesJointes($filename);
-                    $fileNames[] = $filename;
+                    $arrivage->addPiecesJointes([$file->getClientOriginalName() => $filename]);
+                    $fileNames[] = [
+                    	'name' => $filename,
+						'originalName' => $file->getClientOriginalName()
+					];
                 }
             }
             $em->flush();
 
             $html = '';
             foreach ($fileNames as $fileName) {
-                $html .= $this->renderView('arrivage/attachementLine.html.twig', ['arrivage' => $arrivage, 'pj' => $fileName]);
+                $html .= $this->renderView('arrivage/attachementLine.html.twig', [
+                	'arrivage' => $arrivage,
+					'pj' => $fileName['name'],
+					'originalName' => $fileName['originalName']
+				]);
             }
 
             return new JsonResponse($html);
@@ -589,6 +595,8 @@ class ArrivageController extends AbstractController
             $fileNames = [];
             $html = '';
             $path = "../public/uploads/attachements/temporary";
+
+            if (!is_dir($path)) mkdir($path);
             for ($i = 0; $i < count($request->files); $i++) {
                 $file = $request->files->get('file' . $i);
                 if ($file) {
@@ -598,7 +606,8 @@ class ArrivageController extends AbstractController
                     $html .= $this->renderView('arrivage/attachementLine.html.twig', [
                         'arrivage' => null,
                         'pj' => $filename,
-                        'isNew' => true
+                        'isNew' => true,
+						'originalName' => $file->getClientOriginalName()
                     ]);
                 }
             }

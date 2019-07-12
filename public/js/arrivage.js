@@ -220,6 +220,7 @@ function openFENew() {
 
 function uploadFENew() {
     let files = $('#fileInputNew')[0].files;
+    console.log(files);
     let formData = new FormData();
     $.each(files, function (index, file) {
         formData.append('file' + index, file);

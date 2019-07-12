@@ -1,24 +1,22 @@
 {% if isNew == true %}
     <label for="dropfile">Pièces jointes</label>
-    <div id="dropfileNew" class="dropFrame row justify-content-md-center"
+    <div id="dropfileNew" class="dropFrame justify-content-md-center"
          ondragenter="dragEnterDiv(event, $(this))"
          ondragover="dragOverDiv(event, $(this))"
          ondragleave="dragLeaveDiv(event, $(this))"
          ondrop="dropNewOnDiv(event, $(this))">
-        <p class="col-12">Faites glisser vos pièces jointes ici.</p>
+        <p>Faites glisser vos pièces jointes ou <span onclick="openFENew()" class="pointer"><i class="fa fa-folder-open" ></i> cliquez ici</span></p>
         <input id="fileInputNew" type="file" name="files[]" multiple class="d-none" onchange="uploadFENew()">
-        <div class="btn btn-primary justify-content-md-center " onclick="openFENew()">Ou cliquez</div>
     </div>
 {% else %}
     <label for="dropfile">Pièces jointes</label>
-    <div id="dropfile" class="dropFrame row justify-content-md-center" data-arrivage-id="{{ arrivage.id }}"
+    <div id="dropfile" class="dropFrame justify-content-md-center" data-arrivage-id="{{ arrivage.id }}"
          ondragenter="dragEnterDiv(event, $(this))"
          ondragover="dragOverDiv(event, $(this))"
          ondragleave="dragLeaveDiv(event, $(this))"
          ondrop="dropOnDiv(event, $(this))">
-        <p class="col-12">Faites glisser vos pièces jointes ici.</p>
-        <input id="fileInput" type="file" name="files[]" multiple class="d-none" onchange="uploadFE()">
-        <div class="btn btn-primary justify-content-md-center " onclick="openFE()">Ou cliquez</div>
+        <p>Faites glisser vos pièces jointes ou <span onclick="openFENew()" class="pointer"><i class="fa fa-folder-open" ></i> cliquez ici</span></p>
+        <input id="fileInputNew" type="file" name="files[]" multiple class="d-none" onchange="uploadFENew()">
     </div>
 
     {% for pj in arrivage.piecesJointes %}
