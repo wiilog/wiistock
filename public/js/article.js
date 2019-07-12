@@ -228,10 +228,12 @@ let getArticleFournisseur = function () {
 
 function clearNewArticleContent(button) {
     button.parent().addClass('d-none');
-    button.closest('.modal').find('#fournisseur').addClass('d-none');
-    button.closest('.modal').find('#referenceCEA').val(null).trigger('change');
+    let $modal = button.closest('.modal');
+    $modal.find('#fournisseur').addClass('d-none');
+    $modal.find('#referenceCEA').val(null).trigger('change');
     $('#newContent').html('');
     $('#reference').html('');
+    clearModal('#' + $modal.attr('id'));
 }
 
 let ajaxGetFournisseurByRefArticle = function (select) {
