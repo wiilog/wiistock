@@ -165,11 +165,10 @@ class DemandeController extends AbstractController
             // pour réf gérées par articles
             $articles = $demande->getArticles();
             $statutArticleActif = $this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
-            $statutDemande = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
             foreach ($articles as $article) {
                 $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
                 $totalQuantity = $this->articleRepository->getTotalQuantiteByRefAndStatut($refArticle, $statutArticleActif);
-                $totalQuantity -= $this->referenceArticleRepository->getTotalQuantityReserved($refArticle, $statutDemande);
+                $totalQuantity -= $this->referenceArticleRepository->getTotalQuantityReservedByRefArticle($refArticle);
                 $treshHold = ($article->getQuantite() > $totalQuantity) ? $totalQuantity : $article->getQuantite();
                 if ($article->getQuantiteAPrelever() > $treshHold) {
                     $response['stock'] = $treshHold;
@@ -815,42 +814,44 @@ class DemandeController extends AbstractController
         throw new NotFoundHttpException('404');
     }
 
-    /**
-     * @Route("/changer-gestion", name="switch_choice", options={"expose"=true}, methods={"GET", "POST"})
-     */
-    public function switchChoice(Request $request): Response
-    {
-        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-
-			$refArticle = $this->referenceArticleRepository->find($data['reference']);
-            $response = [];
-            if ($data['checked']) {
-                $statutArticleActif = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
-                $articles = $this->articleRepository->findByRefArticleAndStatutWithoutDemand($refArticle, $statutArticleActif);
-                $maximum = 0;
-                foreach ($articles as $article) {
-                    $maximum += $article->getQuantite();
-                }
-
-                $response['content'] = $this->renderView('demande/choiceContent.html.twig', [
-                    'maximum' => $maximum,
-                ]);
-            } else {
-                $statutArticleActif = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
-                $articles = $this->articleRepository->findByRefArticleAndStatutWithoutDemand($refArticle, $statutArticleActif);
-
-                if (count($articles) < 1) {
-                    $articles[] = [
-                        'id' => '',
-                        'reference' => 'aucun article disponible',
-                    ];
-                }
-                $response['content'] = $this->renderView('demande/newRefArticleByQuantiteArticleContent.html.twig', [
-                    'articles' => $articles
-                ]);
-            }
-            return new JsonResponse($response);
-        }
-        throw new NotFoundHttpException('404');
-    }
+//    /**
+//     * @Route("/changer-gestion", name="switch_choice", options={"expose"=true}, methods={"GET", "POST"})
+//     */
+//    public function switchChoice(Request $request): Response
+//    {
+//        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+//
+//			$refArticle = $this->referenceArticleRepository->find($data['reference']);
+//            $response = [];
+//            if ($data['checked']) {
+//                $statutArticleActif = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
+//                $articles = $this->articleRepository->findByRefArticleAndStatutWithoutDemand($refArticle, $statutArticleActif);
+//                $totalQuantity = 0;
+//                foreach ($articles as $article) {
+//					$totalQuantity += $article->getQuantite();
+//                }
+//                $availableQuantity = $totalQuantity - $this->referenceArticleRepository->getTotalQuantityReservedByRefArticle($refArticle);
+//
+//                $response['content'] = $this->renderView('demande/choiceContent.html.twig', [
+//                    'maximum' => $availableQuantity,
+//                ]);
+//            } else {
+//                $statutArticleActif = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
+//                $articles = $this->articleRepository->findByRefArticleAndStatutWithoutDemand($refArticle, $statutArticleActif);
+//
+//                if (count($articles) < 1) {
+//                    $articles[] = [
+//                        'id' => '',
+//                        'reference' => 'aucun article disponible',
+//                    ];
+//                }
+//                $response['content'] = $this->renderView('demande/newRefArticleByQuantiteArticleContent.html.twig', [
+//                    'articles' => $articles,
+//					'maximum' => $availableQuantity
+//                ]);
+//            }
+//            return new JsonResponse($response);
+//        }
+//        throw new NotFoundHttpException('404');
+//    }
 }
