@@ -28,7 +28,7 @@ class ParametreFixtures extends Fixture implements FixtureGroupInterface
 				'label' => Parametre::LABEL_AJOUT_QUANTITE,
 				'type' => Parametre::TYPE_LIST,
 				'elements' => [Parametre::VALUE_PAR_ART, Parametre::VALUE_PAR_REF],
-				'default' => Parametre::VALUE_PAR_ART
+				'default' => Parametre::VALUE_PAR_REF
 			],
 		];
 
