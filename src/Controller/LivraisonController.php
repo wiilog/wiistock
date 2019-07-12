@@ -223,6 +223,7 @@ class LivraisonController extends AbstractController
                 $demande->getUtilisateur()->getEmail()
             );
 
+            // quantités gérées à la référence
             $ligneArticles = $this->ligneArticleRepository->getByDemande($demande);
 
             foreach ($ligneArticles as $ligneArticle) {
@@ -230,12 +231,13 @@ class LivraisonController extends AbstractController
                 $refArticle->setQuantiteStock($refArticle->getQuantiteStock() - $ligneArticle->getQuantite());
             }
 
-
+            // quantités gérées à l'article
             $articles = $demande->getArticles();
 
             foreach ($articles as $article) {
-                $article->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_INACTIF));
-
+                $article
+					->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_INACTIF))
+					->setEmplacement($demande->getDestination());
             }
         }
         $this->getDoctrine()->getManager()->flush();
