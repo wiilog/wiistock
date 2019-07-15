@@ -11,6 +11,7 @@ namespace App\Service;
 
 use App\Entity\Action;
 use App\Entity\CategoryType;
+use App\Entity\LigneArticle;
 use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
 use App\Entity\ValeurChampsLibre;
@@ -18,8 +19,11 @@ use App\Entity\CategorieCL;
 use App\Entity\ArticleFournisseur;
 
 use App\Repository\ArticleFournisseurRepository;
+use App\Repository\ArticleRepository;
 use App\Repository\ChampsLibreRepository;
+use App\Repository\DemandeRepository;
 use App\Repository\FilterRepository;
+use App\Repository\LigneArticleRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\StatutRepository;
 use App\Repository\TypeRepository;
@@ -85,6 +89,16 @@ class RefArticleDataService
      */
     private $emplacementRepository;
 
+	/**
+	 * @var ArticleRepository
+	 */
+    private $articleRepository;
+
+	/**
+	 * @var DemandeRepository
+	 */
+    private $demandeRepository;
+
     /**
      * @var \Twig_Environment
      */
@@ -94,6 +108,16 @@ class RefArticleDataService
      * @var UserService
      */
     private $userService;
+
+	/**
+	 * @var ArticleDataService $articleDataService
+	 */
+    private $articleDataService;
+
+	/**
+	 * @var LigneArticleRepository
+	 */
+    private $ligneArticleRepository;
 
     /**
      * @var object|string
@@ -108,7 +132,7 @@ class RefArticleDataService
     private $router;
 
 
-    public function __construct(EmplacementRepository $emplacementRepository, RouterInterface $router, UserService $userService, ArticleFournisseurRepository $articleFournisseurRepository,FournisseurRepository $fournisseurRepository, CategorieCLRepository $categorieCLRepository, TypeRepository  $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampsLibreRepository $champsLibreRepository, FilterRepository $filterRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
+    public function __construct(DemandeRepository $demandeRepository, ArticleRepository $articleRepository, ArticleDataService $articleDataService, LigneArticleRepository $ligneArticleRepository, EmplacementRepository $emplacementRepository, RouterInterface $router, UserService $userService, ArticleFournisseurRepository $articleFournisseurRepository,FournisseurRepository $fournisseurRepository, CategorieCLRepository $categorieCLRepository, TypeRepository  $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampsLibreRepository $champsLibreRepository, FilterRepository $filterRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
     {
         $this->emplacementRepository = $emplacementRepository;
         $this->fournisseurRepository = $fournisseurRepository;
@@ -125,6 +149,10 @@ class RefArticleDataService
         $this->em = $em;
         $this->userService = $userService;
         $this->router = $router;
+        $this->ligneArticleRepository = $ligneArticleRepository;
+        $this->articleDataService = $articleDataService;
+        $this->articleRepository = $articleRepository;
+        $this->demandeRepository = $demandeRepository;
     }
 
     public function getDataForDatatable($params = null)
@@ -366,5 +394,63 @@ class RefArticleDataService
         return $rows;
         
     }
+
+	/**
+	 * @param array $data
+	 * @param ReferenceArticle $referenceArticle
+	 * @return bool
+	 */
+    public function addRefToDemand($data, $referenceArticle)
+	{
+		$resp = true;
+		$demande = $this->demandeRepository->find($data['livraison']);
+
+		// cas gestion quantité par référence
+		if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+			if ($this->ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
+				$ligneArticle = new LigneArticle();
+				$ligneArticle
+					->setReference($referenceArticle)
+					->setDemande($demande)
+					->setQuantite(max($data["quantitie"], 0)); // protection contre quantités négatives
+				$this->em->persist($ligneArticle);
+			} else {
+				$ligneArticle = $this->ligneArticleRepository->findOneByRefArticleAndDemande($referenceArticle, $demande);
+				/** @var LigneArticle $ligneArticle */
+				$ligneArticle->setQuantite($ligneArticle->getQuantite() + max($data["quantitie"], 0)); // protection contre quantités négatives
+			}
+			$this->editRefArticle($referenceArticle, $data);
+
+			// cas gestion quantité par article
+		} elseif ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+			if ($this->userService->hasParamQuantityByRef()) {
+				if ($this->ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
+					$ligneArticle = new LigneArticle();
+					$ligneArticle
+						->setQuantite(max($data["quantitie"], 0))// protection contre quantités négatives
+						->setReference($referenceArticle)
+						->setDemande($demande)
+						->setToSplit(true);
+					$this->em->persist($ligneArticle);
+				} else {
+					$ligneArticle = $this->ligneArticleRepository->findOneByRefArticleAndDemandeAndToSplit($referenceArticle, $demande);
+					/** @var LigneArticle $ligneArticle */
+					$ligneArticle->setQuantite($ligneArticle->getQuantite() + max($data["quantitie"], 0));
+				}
+			} else {
+				$article = $this->articleRepository->find($data['article']);
+				/** @var Article $article */
+				$demande->addArticle($article);
+				$article->setQuantiteAPrelever(max($data["quantitie"], 0)); // protection contre quantités négatives
+
+				$this->articleDataService->editArticle($data);
+			}
+		} else {
+			$resp = false;
+		}
+
+		$this->em->flush();
+		return $resp;
+	}
     
 }
