@@ -105,7 +105,7 @@ function addCommentaire(select, bool) {
 
     let quillType = bool ? quillNew : quillEdit;
     originalText = quillType.getText().trim();
-
+console.log('bool  ', bool);
     $.post(Routing.generate('add_comment', true), JSON.stringify(params), function (comment) {
         if (comment) {
             let d = new Date();
@@ -113,11 +113,11 @@ function addCommentaire(select, bool) {
             date += ' ' + checkZero(d.getHours() + '') + ':' + checkZero(d.getMinutes() + '');
 
             let textToInsert = originalText.length > 0 ? originalText + "\n\n" : '';
-
             quillType.setContents([
                 {insert: textToInsert},
                 {insert: date + ' : '},
                 {insert: comment},
+                {insert: '\n'},
             ]);
         }
     });
