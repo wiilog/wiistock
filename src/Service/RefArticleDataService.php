@@ -110,11 +110,6 @@ class RefArticleDataService
     private $userService;
 
 	/**
-	 * @var ArticleDataService $articleDataService
-	 */
-    private $articleDataService;
-
-	/**
 	 * @var LigneArticleRepository
 	 */
     private $ligneArticleRepository;
@@ -132,7 +127,7 @@ class RefArticleDataService
     private $router;
 
 
-    public function __construct(DemandeRepository $demandeRepository, ArticleRepository $articleRepository, ArticleDataService $articleDataService, LigneArticleRepository $ligneArticleRepository, EmplacementRepository $emplacementRepository, RouterInterface $router, UserService $userService, ArticleFournisseurRepository $articleFournisseurRepository,FournisseurRepository $fournisseurRepository, CategorieCLRepository $categorieCLRepository, TypeRepository  $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampsLibreRepository $champsLibreRepository, FilterRepository $filterRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
+    public function __construct(DemandeRepository $demandeRepository, ArticleRepository $articleRepository, LigneArticleRepository $ligneArticleRepository, EmplacementRepository $emplacementRepository, RouterInterface $router, UserService $userService, ArticleFournisseurRepository $articleFournisseurRepository,FournisseurRepository $fournisseurRepository, CategorieCLRepository $categorieCLRepository, TypeRepository  $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampsLibreRepository $champsLibreRepository, FilterRepository $filterRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
     {
         $this->emplacementRepository = $emplacementRepository;
         $this->fournisseurRepository = $fournisseurRepository;
@@ -150,7 +145,6 @@ class RefArticleDataService
         $this->userService = $userService;
         $this->router = $router;
         $this->ligneArticleRepository = $ligneArticleRepository;
-        $this->articleDataService = $articleDataService;
         $this->articleRepository = $articleRepository;
         $this->demandeRepository = $demandeRepository;
     }
@@ -440,10 +434,10 @@ class RefArticleDataService
 			} else {
 				$article = $this->articleRepository->find($data['article']);
 				/** @var Article $article */
-				$demande->addArticle($article);
-				$article->setQuantiteAPrelever(max($data["quantitie"], 0)); // protection contre quantités négatives
-
-				$this->articleDataService->editArticle($data);
+				$article
+					->setDemande($demande)
+					->setQuantiteAPrelever(max($data["quantitie"], 0)); // protection contre quantités négatives
+				$resp = 'article';
 			}
 		} else {
 			$resp = false;
