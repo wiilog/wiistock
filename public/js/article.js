@@ -93,7 +93,7 @@ function InitialiserModalArticle(modal, submit, path, callback = function () { }
         let inputs = modal.find(".data");
         let Data = {};
         let missingInputs = [];
-        let wrongInputs = [];
+        let wrongNumberInputs = [];
 
         inputs.each(function () {
             let val = $(this).val();
@@ -113,7 +113,7 @@ function InitialiserModalArticle(modal, submit, path, callback = function () { }
                 let min = parseInt($(this).attr('min'));
                 let max = parseInt($(this).attr('max'));
                 if (val > max || val < min) {
-                    wrongInputs.push($(this));
+                    wrongNumberInputs.push($(this));
                     $(this).addClass('is-invalid');
                 }
             }
@@ -125,7 +125,7 @@ function InitialiserModalArticle(modal, submit, path, callback = function () { }
             Data[$(this).attr("name")] = $(this).is(':checked');
         });
         // si tout va bien on envoie la requête ajax...
-        if (missingInputs.length == 0 && wrongInputs.length == 0) {
+        if (missingInputs.length == 0 && wrongNumberInputs.length == 0) {
             if (close == true) modal.find('.close').click();
             Json = {};
             Json = JSON.stringify(Data);
@@ -145,8 +145,8 @@ function InitialiserModalArticle(modal, submit, path, callback = function () { }
                 }
             }
             // cas où les champs number ne respectent pas les valeurs imposées (min et max)
-            if (wrongInputs.length > 0) {
-                wrongInputs.forEach(function (elem) {
+            if (wrongNumberInputs.length > 0) {
+                wrongNumberInputs.forEach(function (elem) {
                     let label = elem.closest('.form-group').find('label').text();
 
                     msg += 'La valeur du champ ' + label;
