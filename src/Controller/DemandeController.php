@@ -660,55 +660,15 @@ class DemandeController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $em = $this->getDoctrine()->getEntityManager();
-
             $referenceArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
-            $demande = $this->demandeRepository->find($data['demande']);
+            $resp = $this->refArticleDataService->addRefToDemand($data, $referenceArticle);
 
-            // cas gestion quantité par article
-            if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-            	if ($this->userService->hasParamQuantityByRef()) {
-                    if ($this->ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
-                        $ligneArticle = new LigneArticle();
-                        $ligneArticle
-                            ->setQuantite(max($data["quantitie"], 0))// protection contre quantités négatives
-                            ->setToSplit(true)
-                            ->setReference($referenceArticle);
-                        $em->persist($ligneArticle);
-                        $demande->addLigneArticle($ligneArticle);
-                    } else {
-                        $ligneArticle = $this->ligneArticleRepository->findOneByRefArticleAndDemandeAndToSplit($referenceArticle, $demande);
-                        $ligneArticle
-                            ->setQuantite($ligneArticle->getQuantite() + max($data["quantitie"], 0));
-                    }
-                } else {
-                    $article = $this->articleRepository->find($data['article']);
-                    $demande->addArticle($article);
-                    $article->setQuantiteAPrelever(max($data['quantitie'], 0)); // protection contre quantités négatives
+            if ($resp === 'article') {
+            	$this->articleDataService->editArticle($data);
+            	$resp = true;
+			}
 
-                    $this->articleDataService->editArticle($data);
-                }
-
-                // cas gestion quantité par référence
-            } elseif ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-                if ($this->ligneArticleRepository->countByRefArticleDemande($referenceArticle, $demande) < 1) {
-                    $ligneArticle = new LigneArticle();
-                    $ligneArticle
-                        ->setQuantite(max($data["quantitie"], 0))// protection contre quantités négatives
-                        ->setReference($referenceArticle);
-                    $em->persist($ligneArticle);
-                    $demande->addLigneArticle($ligneArticle);
-                } else {
-                    $ligneArticle = $this->ligneArticleRepository->findOneByRefArticleAndDemande($referenceArticle, $demande);
-                    $ligneArticle
-                        ->setQuantite($ligneArticle->getQuantite() + max($data["quantitie"], 0)); // protection contre quantités négatives
-                }
-                $this->refArticleDataService->editRefArticle($referenceArticle, $data);
-            }
-
-            $em->flush();
-
-            return new JsonResponse();
+            return new JsonResponse($resp);
         }
         throw new NotFoundHttpException('404');
     }
