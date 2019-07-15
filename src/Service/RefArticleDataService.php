@@ -437,7 +437,6 @@ class RefArticleDataService
 				$article
 					->setDemande($demande)
 					->setQuantiteAPrelever(max($data["quantitie"], 0)); // protection contre quantités négatives
-
 				$resp = 'article';
 			}
 		} else {
