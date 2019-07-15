@@ -210,7 +210,7 @@ class ArticleDataService
                 $articles = [];
             }
 
-            $maximum = 0;
+            $totalQuantity = 0;
             if (count($articles) < 1) {
                 $articles[] = [
                     'id' => '',
@@ -218,17 +218,19 @@ class ArticleDataService
                 ];
             } else {
                 foreach ($articles as $article) {
-                    $maximum += $article->getQuantite();
+					$totalQuantity += $article->getQuantite();
                 }
             }
+			$availableQuantity = $totalQuantity - $this->referenceArticleRepository->getTotalQuantityReservedByRefArticle($refArticle);
 
 			if ($byRef && $demande == 'demande') {
 				$json = $this->templating->render('demande/choiceContent.html.twig', [
-					'maximum' => $maximum
+					'maximum' => $availableQuantity
 				]);
 			} else {
 				$json = $this->templating->render($demande . '/newRefArticleByQuantiteArticleContent.html.twig', [
 					'articles' => $articles,
+					'maximum' => $availableQuantity
 				]);
 			}
 
@@ -286,16 +288,7 @@ class ArticleDataService
             $statutArticleActif = $this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
             $articles = $this->articleRepository->findByRefArticleAndStatutWithoutDemand($refArticle, $statutArticleActif);
 
-//			$maximum = 0;
-//            foreach ($refArticle->getArticlesFournisseur() as $articleFournisseur) {
-//                $quantity = 0;
-//                foreach ($articleFournisseur->getArticles() as $article) {
-//                    if ($article->getStatut() == $statutArticleActif) $quantity += $article->getQuantite();
-//                }
-//				$maximum += $quantity;
-//            }
-			//TODO CG vérifier qu'équivalent
-			$maximum = $this->articleRepository->getTotalQuantiteByRefAndStatut($refArticle, $statutArticleActif);
+			$totalQuantity = $this->articleRepository->getTotalQuantiteByRefAndStatut($refArticle, $statutArticleActif);
 
 			$role = $this->user->getRole();
             $param = $this->parametreRepository->findOneBy(['label' => Parametre::LABEL_AJOUT_QUANTITE]);
@@ -311,17 +304,19 @@ class ArticleDataService
                 $this->em->persist($paramQuantite);
                 $this->em->flush();
             }
-            $statutDemande = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
-            $totalQuantity = $maximum - $this->referenceArticleRepository->getTotalQuantityReserved($refArticle, $statutDemande);
-            $data = [
-                'selection' => $this->templating->render('demande/newRefArticleByQuantiteArticleAndChoiceContent.html.twig', [
-					'maximumForArticle' => $totalQuantity,
-					'maximum' => $maximum,
-                    'reference' => $refArticle->getId(),
-                    'byRef' => $paramQuantite->getValue() == Parametre::VALUE_PAR_REF,
-                    'articles' => $articles
-                ]),
-            ];
+            $availableQuantity = $totalQuantity - $this->referenceArticleRepository->getTotalQuantityReservedByRefArticle($refArticle);
+
+            $byRef = $paramQuantite->getValue() == Parametre::VALUE_PAR_REF;
+            if ($byRef) {
+            	$data = ['selection' => $this->templating->render('demande/choiceContent.html.twig', [
+            		'maximum' => $availableQuantity
+				])];
+			} else {
+            	$data = ['selection' => $this->templating->render('demande/newRefArticleByQuantiteArticleContent.html.twig', [
+					'articles' => $articles,
+					'maximum' => $availableQuantity,
+				])];
+			}
         } else {
             $data = false; //TODO gérer erreur retour
         }

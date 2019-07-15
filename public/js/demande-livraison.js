@@ -207,12 +207,12 @@ $('#submitSearchDemandeLivraison').on('click', function () {
     let utilisateurPiped = utilisateurString.split(',').join('|');
     tableDemande
         .columns('Statut:name')
-        .search(statut)
+        .search(statut ? '^' + statut + '$' : '', true, false)
         .draw();
 
     tableDemande
         .columns('Type:name')
-        .search(type)
+        .search(type ? '^' + type + '$' : '', true, false)
         .draw();
 
     tableDemande
@@ -269,18 +269,18 @@ function ajaxGetAndFillArticle(select) {
     }
 }
 
-function switchWantedGlobal(checkbox) {
-    let path = Routing.generate('switch_choice', true);
-    let params = {
-        'checked': checkbox.is(':checked'),
-        'reference': checkbox.data('ref')
-    };
-    let $modal = checkbox.closest('.modal');
-    $.post(path, JSON.stringify(params), function (data) {
-        $modal.find('#choiceContent').html(data.content);
-        $modal.find('.error-msg').html('');
-    });
-}
+// function switchWantedGlobal(checkbox) {
+// //     let path = Routing.generate('switch_choice', true);
+// //     let params = {
+// //         'checked': checkbox.is(':checked'),
+// //         'reference': checkbox.data('ref')
+// //     };
+// //     let $modal = checkbox.closest('.modal');
+// //     $.post(path, JSON.stringify(params), function (data) {
+// //         $modal.find('#choiceContent').html(data.content);
+// //         $modal.find('.error-msg').html('');
+// //     });
+// // }
 
 function deleteRowDemande(button, modal, submit) {
     let id = button.data('id');

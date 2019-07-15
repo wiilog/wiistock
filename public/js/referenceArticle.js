@@ -33,10 +33,10 @@ function submitActionRefArticle(modal, path, callback = function () { }, close =
         tableColumnVisible.search('').draw()
     }
 
-    let { Data, missingInputs, wrongInputs } = getDataFromModal(modal);
+    let { Data, missingInputs, wrongNumberInputs, doublonRef } = getDataFromModal(modal);
 
     // si tout va bien on envoie la requête ajax...
-    if (missingInputs.length == 0 && wrongInputs.length == 0) {
+    if (missingInputs.length == 0 && wrongNumberInputs.length == 0 && !doublonRef) {
         if (close == true) {
             modal.find('.close').click();
         }
@@ -47,13 +47,18 @@ function submitActionRefArticle(modal, path, callback = function () { }, close =
         xhttp.send(Json);
     } else {
         // ... sinon on construit les messages d'erreur
-        let msg = buildErrorMsg(missingInputs, wrongInputs);
+        let msg = buildErrorMsg(missingInputs, wrongNumberInputs, doublonRef);
         modal.find('.error-msg').html(msg);
     }
 }
 
-function buildErrorMsg(missingInputs, wrongInputs) {
+function buildErrorMsg(missingInputs, wrongNumberInputs, doublonRef) {
     let msg = '';
+    console.log(doublonRef);
+
+    if(doublonRef ){
+        msg+= 'Il n\'est pas possible de rentrer plusieurs références article fournisseur du même nom. Veuillez les différencier. <br>'
+    }
 
     // cas où il manque des champs obligatoires
     if (missingInputs.length > 0) {
@@ -64,8 +69,8 @@ function buildErrorMsg(missingInputs, wrongInputs) {
         }
     }
     // cas où les champs number ne respectent pas les valeurs imposées (min et max)
-    if (wrongInputs.length > 0) {
-        wrongInputs.forEach(function (elem) {
+    if (wrongNumberInputs.length > 0) {
+        wrongNumberInputs.forEach(function (elem) {
             let label = elem.closest('.form-group').find('label').text();
             // on enlève l'éventuelle * du nom du label
             label = label.replace(/\*/, '');
@@ -97,16 +102,24 @@ function getDataFromModal(modal) {
     let fournisseursWithRefAndLabel = [];
     let fournisseurReferences = modal.find('input[name="referenceFournisseur"]');
     let labelFournisseur = modal.find('input[name="labelFournisseur"]');
+    let refsF = [];
     let missingInputs = [];
+    let wrongNumberInputs = [];
+    let doublonRef = false;
     modal.find('select[name="fournisseur"]').each(function (index) {
         if ($(this).val()) {
-            if (fournisseurReferences.eq(index).val() && labelFournisseur.eq(index).val()) {
+            if (fournisseurReferences.eq(index).val()) {
                 fournisseursWithRefAndLabel.push($(this).val() + ';' + fournisseurReferences.eq(index).val() + ';' + labelFournisseur.eq(index).val());
+                if (refsF.includes(fournisseurReferences.eq(index).val())) {
+                    doublonRef = true;
+                    fournisseurReferences.eq(index).addClass('is-invalid');
+                } else {
+                    refsF.push(fournisseurReferences.eq(index).val());
+                }
             }
         }
     });
     Data['frl'] = fournisseursWithRefAndLabel;
-    let wrongInputs = [];
     inputs.each(function () {
         let val = $(this).val();
         let name = $(this).attr("name");
@@ -129,7 +142,7 @@ function getDataFromModal(modal) {
             let min = parseInt($(this).attr('min'));
             let max = parseInt($(this).attr('max'));
             if (val > max || val < min) {
-                wrongInputs.push($(this));
+                wrongNumberInputs.push($(this));
                 $(this).addClass('is-invalid');
             }
         }
@@ -139,7 +152,7 @@ function getDataFromModal(modal) {
     checkboxes.each(function () {
         Data[$(this).attr("name")] = $(this).is(':checked');
     });
-    return { Data, missingInputs, wrongInputs };
+    return { Data, missingInputs, wrongNumberInputs, doublonRef };
 }
 
 function clearModalRefArticle(modal, data) {

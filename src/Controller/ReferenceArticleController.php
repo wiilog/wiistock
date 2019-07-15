@@ -357,6 +357,16 @@ class ReferenceArticleController extends Controller
                 $ref = explode(';', $frl)[1];
                 $label = explode(';', $frl)[2];
                 $fournisseur = $this->fournisseurRepository->find(intval($fournisseurId));
+
+                // on vérifie que la référence article fournisseur n'existe pas déjà
+                $refFournisseurAlreadyExist = $this->articleFournisseurRepository->findByReferenceArticleFournisseur($ref);
+                if ($refFournisseurAlreadyExist) {
+                    return new JsonResponse([
+                        'success' => false,
+                        'msg' => 'Ce nom de référence article fournnisseur existe déjà. Vous ne pouvez pas le recréer.'
+                    ]);
+                }
+
                 $articleFournisseur = new ArticleFournisseur();
                 $articleFournisseur
                     ->setReferenceArticle($refArticle)
@@ -364,6 +374,7 @@ class ReferenceArticleController extends Controller
                     ->setReference($ref)
                     ->setLabel($label);
                 $em->persist($articleFournisseur);
+
             }
             $em->persist($refArticle);
             $em->flush();
@@ -698,41 +709,16 @@ class ReferenceArticleController extends Controller
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $em = $this->getDoctrine()->getManager();
             $json = true;
-            $byRef = $this->userService->hasParamQuantityByRef();
 
-            //edit Refrence Article
             $refArticle = (isset($data['refArticle']) ? $this->referenceArticleRepository->find($data['refArticle']) : '');
-            //ajout demande
+
             if (array_key_exists('livraison', $data) && $data['livraison']) {
-                $demande = $this->demandeRepository->find($data['livraison']);
-                if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE || $byRef) {
-                	if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-						$this->refArticleDataService->editRefArticle($refArticle, $data);
-					}
+				$json = $this->refArticleDataService->addRefToDemand($data, $refArticle);
+				if ($json === 'article') {
+					$this->articleDataService->editArticle($data);
+					$json = true;
+				}
 
-                    if ($this->ligneArticleRepository->countByRefArticleDemande($refArticle, $demande) < 1) {
-                        $ligneArticle = new LigneArticle;
-                        $ligneArticle
-                            ->setReference($refArticle)
-                            ->setDemande($demande)
-                            ->setQuantite(max((int)$data['quantitie'], 0)); // protection contre quantités négatives
-                        if ($byRef) $ligneArticle->setToSplit(true);
-
-                        $em->persist($ligneArticle);
-                    } else {
-                        $ligneArticle = $this->ligneArticleRepository->findOneByRefArticleAndDemande($refArticle, $demande);
-                        /** @var LigneArticle $ligneArticle */
-                        $ligneArticle
-                            ->setQuantite($ligneArticle->getQuantite() + max($data["quantitie"], 0)); // protection contre quantités négatives
-                    }
-                } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-                    $this->articleDataService->editArticle($data);
-                    $article = $this->articleRepository->find($data['article']);
-                    $article->setQuantiteAPrelever(max($data['quantitie'], 0)); // protection contre quantités négatives
-                    $demande->addArticle($article);
-                } else {
-                    $json = false; //TOOD gérer message erreur
-                }
             } elseif (array_key_exists('collecte', $data) && $data['collecte']) {
                 $collecte = $this->collecteRepository->find($data['collecte']);
                 if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
