@@ -19,19 +19,19 @@ let tableArrivage = $('#tableArrivages').DataTable({
         "type": "POST"
     },
     columns: [
-        { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' },
-        { "data": "NumeroArrivage", 'name': 'NumeroArrivage', 'title': "N° d'arrivage" },
-        { "data": 'Transporteur', 'name': 'Transporteur', 'title': 'Transporteur' },
-        { "data": 'Chauffeur', 'name': 'Chauffeur', 'title': 'Chauffeur' },
-        { "data": 'NoTracking', 'name': 'NoTracking', 'title': 'N° tracking transporteur' },
-        { "data": 'NumeroBL', 'name': 'NumeroBL', 'title': 'N° commande / BL' },
-        { "data": 'Fournisseur', 'name': 'Fournisseur', 'title': 'Fournisseur' },
-        { "data": 'Destinataire', 'name': 'Destinataire', 'title': 'Destinataire' },
-        { "data": 'Acheteurs', 'name': 'Acheteurs', 'title': 'Acheteurs' },
-        { "data": 'NbUM', 'name': 'NbUM', 'title': 'Nb UM' },
-        { "data": 'Statut', 'name': 'Statut', 'title': 'Statut' },
-        { "data": 'Date', 'name': 'Date', 'title': 'Date' },
-        { "data": 'Utilisateur', 'name': 'Utilisateur', 'title': 'Utilisateur' },
+        {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'},
+        {"data": "NumeroArrivage", 'name': 'NumeroArrivage', 'title': "N° d'arrivage"},
+        {"data": 'Transporteur', 'name': 'Transporteur', 'title': 'Transporteur'},
+        {"data": 'Chauffeur', 'name': 'Chauffeur', 'title': 'Chauffeur'},
+        {"data": 'NoTracking', 'name': 'NoTracking', 'title': 'N° tracking transporteur'},
+        {"data": 'NumeroBL', 'name': 'NumeroBL', 'title': 'N° commande / BL'},
+        {"data": 'Fournisseur', 'name': 'Fournisseur', 'title': 'Fournisseur'},
+        {"data": 'Destinataire', 'name': 'Destinataire', 'title': 'Destinataire'},
+        {"data": 'Acheteurs', 'name': 'Acheteurs', 'title': 'Acheteurs'},
+        {"data": 'NbUM', 'name': 'NbUM', 'title': 'Nb UM'},
+        {"data": 'Statut', 'name': 'Statut', 'title': 'Statut'},
+        {"data": 'Date', 'name': 'Date', 'title': 'Date'},
+        {"data": 'Utilisateur', 'name': 'Utilisateur', 'title': 'Utilisateur'},
     ],
 
 });
@@ -64,6 +64,7 @@ function initNewArrivageEditor(modal) {
 
 let quillEdit;
 let originalText = '';
+
 function editRowArrivage(button) {
     let path = Routing.generate('arrivage_edit_api', true);
     let modal = $('#modalEditArrivage');
@@ -105,14 +106,16 @@ function addCommentaire(select, bool) {
 
     let quillType = bool ? quillNew : quillEdit;
     originalText = quillType.getText().trim();
-console.log('bool  ', bool);
+    console.log('bool  ', bool);
     $.post(Routing.generate('add_comment', true), JSON.stringify(params), function (comment) {
         if (comment) {
             let d = new Date();
             let date = checkZero(d.getDate() + '') + '/' + checkZero(d.getMonth() + 1 + '') + '/' + checkZero(d.getFullYear() + '');
             date += ' ' + checkZero(d.getHours() + '') + ':' + checkZero(d.getMinutes() + '');
 
-            let textToInsert = originalText.length > 0 ? originalText + "\n\n" : '';
+            let textToInsert = originalText.length > 0 && !bool ? originalText + "\n\n" : '';
+            console.log(comment);
+            console.log(quillType);
             quillType.setContents([
                 {insert: textToInsert},
                 {insert: date + ' : '},
@@ -288,6 +291,7 @@ function submitActionArrivage(modal, path, table, callback, close) {
     modal.find(".elem").remove();
     // si tout va bien on envoie la requête ajax...
     if (missingInputs.length == 0 && wrongNumberInputs.length == 0 && passwordIsValid) {
+
         if (close == true) modal.find('.close').click();
         Json = {};
         Json = JSON.stringify(Data);
@@ -403,12 +407,14 @@ function printLabels(data) {
                 });
             }
 
-        } if (printArrivage) {
+        }
+        if (printArrivage) {
             $('#barcodes').append('<img id="barcodeArrivage">');
             JsBarcode("#barcodeArrivage", data.arrivage, {
                 format: "CODE128",
             });
-        } if (printArrivage || printUm) {
+        }
+        if (printArrivage || printUm) {
             $("#barcodes").find('img').each(function () {
                 doc.addImage($(this).attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
                 doc.addPage();
@@ -441,9 +447,9 @@ function listColis(elem) {
     let arrivageId = elem.data('id');
     let path = Routing.generate('arrivage_list_colis_api', true);
     let modal = $('#modalListColis');
-    let params = { id: arrivageId };
+    let params = {id: arrivageId};
 
-    $.post(path, JSON.stringify(params), function(data) {
+    $.post(path, JSON.stringify(params), function (data) {
         modal.find('.modal-body').html(data);
     }, 'json');
 }
@@ -457,7 +463,7 @@ function getDataAndPrintLabels(codes) {
         if (response.exists) {
             $("#barcodes").empty();
             let i = 0;
-            codesArray.forEach(function(code) {
+            codesArray.forEach(function (code) {
                 $('#barcodes').append('<img id="barcode' + i + '">')
                 JsBarcode("#barcode" + i, code, {
                     format: "CODE128",
