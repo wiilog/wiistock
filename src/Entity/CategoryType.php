@@ -17,6 +17,8 @@ class CategoryType
     const LITIGE = 'litige';
     const DEMANDE_LIVRAISON = 'demande livraison';
     const DEMANDE_COLLECTE = 'demande collecte';
+    const ARRIVAGE = 'arrivage';
+    const MOUVEMENT = 'mouvement';
 
     /**
      * @ORM\Id()

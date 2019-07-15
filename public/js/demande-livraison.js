@@ -326,7 +326,7 @@ let ajaxEditArticle = function (select) {
     xhttp.send(JSON.stringify(json));
 }
 
-let generateCSV = function () {
+let generateCSV = function (type) {
     let data = {};
     $('.filterService, select').first().find('input').each(function () {
         if ($(this).attr('name') !== undefined) {
@@ -336,7 +336,12 @@ let generateCSV = function () {
 
     if (data['dateMin'] && data['dateMax']) {
         let params = JSON.stringify(data);
-        let path = Routing.generate('get_livraisons_for_csv', true);
+        let path;
+        if(type === "livraison"){
+            path = Routing.generate('get_livraisons_for_csv', true);
+        } else if (type === "arrivage"){
+            path = Routing.generate('get_livraisons_for_csv', true);
+        }
 
         $.post(path, params, function(response) {
             if (response) {

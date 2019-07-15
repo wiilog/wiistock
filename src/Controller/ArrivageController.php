@@ -4,16 +4,21 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\Arrivage;
+use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Colis;
+use App\Entity\Demande;
 use App\Entity\DimensionsEtiquettes;
+use App\Entity\LigneArticle;
 use App\Entity\Litige;
 use App\Entity\Menu;
 use App\Entity\ParamClient;
+use App\Entity\ReferenceArticle;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Repository\ArrivageRepository;
+use App\Repository\ChampsLibreRepository;
 use App\Repository\ChauffeurRepository;
 use App\Repository\DimensionsEtiquettesRepository;
 use App\Repository\FournisseurRepository;
@@ -21,6 +26,7 @@ use App\Repository\StatutRepository;
 use App\Repository\TransporteurRepository;
 use App\Repository\TypeRepository;
 use App\Repository\UtilisateurRepository;
+use App\Repository\ValeurChampsLibreRepository;
 use App\Service\SpecificService;
 use App\Service\UserService;
 use App\Service\MailerService;
@@ -91,7 +97,14 @@ class ArrivageController extends AbstractController
      */
     private $specificService;
 
-    public function __construct(SpecificService $specificService, MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
+    /**
+     * @var ChampsLibreRepository
+     */
+    private $champsLibreRepository;
+
+
+
+    public function __construct(ChampsLibreRepository $champsLibreRepository, SpecificService $specificService, MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
     {
         $this->specificService = $specificService;
         $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
@@ -104,6 +117,7 @@ class ArrivageController extends AbstractController
         $this->chauffeurRepository = $chauffeurRepository;
         $this->typeRepository = $typeRepository;
         $this->mailerService = $mailerService;
+        $this->champsLibreRepository = $champsLibreRepository;
     }
 
     /**
@@ -559,5 +573,132 @@ class ArrivageController extends AbstractController
 			throw new NotFoundHttpException('404');
 		}
 	}
+
+    /**
+     * @Route("/arrivage-infos", name="get_arrivages_for_csv", options={"expose"=true}, methods={"GET","POST"})
+     */
+    public function getArrivageIntels(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $dateMin = $data['dateMin'] . ' 00:00:00';
+            $dateMax = $data['dateMax'] . ' 23:59:59';
+            $arrivages = $this->arrivageRepository->findByDates($dateMin, $dateMax);
+
+            $headers = [];
+            // en-têtes champs libres Arrivage
+            $champLibreArrivage = $this->champsLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]);
+            foreach ($champLibreArrivage as $champLibre) {
+                $headers[] = $champLibre->getLabel();
+            }
+            // en-têtes champs fixes
+            $headers = array_merge($headers, ['destinataire', 'acheteurs', 'nombre d\'UM', 'statut', 'date', 'utilisateur']);
+
+            // en-têtes champs libres articles
+//            $clAR = $this->champsLibreRepository->findByCategoryTypeLabels([CategoryType::ARTICLES_ET_REF_CEA]);
+//            foreach ($clAR as $champLibre) {
+//                $headers[] = $champLibre->getLabel();
+//            }
+
+            $data = [];
+            $data[] = $headers;
+//            $listTypesArt = $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLES_ET_REF_CEA);
+//            $listTypesArrivage = $this->typeRepository->findByCategoryLabel(CategoryType::ARRIVAGE);
+
+//            $listChampsLibresArrivage = [];
+//            foreach ($listTypesArrivage as $type) {
+//                $listChampsLibresArrivage = array_merge($listChampsLibresArrivage, $this->champsLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::ARRIVAGE));
+//            }
+
+            foreach ($arrivages as $arrivage) { /** @var Arrivage $arrivage */
+//                foreach ($arrivage->getLigneArticle() as $ligneArticle) { /** @var LigneArticle $ligneArticle */
+                    $arrivageData = [];
+
+                    // champs libres de la demande
+//                    $this->addChampsLibresDL($arrivage, $listChampsLibresArrivage, $champLibreArrivage, $livraisonData);
+                    $arrivageData[] = $arrivage->getNumeroArrivage();
+                    $arrivageData[] = $arrivage->getChauffeur();
+                    $arrivageData[] = $arrivage->getNoTracking();
+                    $arrivageData[] = $arrivage->getNumeroBL();
+                    $arrivageData[] = $arrivage->getFournisseur();
+                    $arrivageData[] = $arrivage->getAcheteurs();
+                    $arrivageData[] = $arrivage->getDestinataire();
+                    $arrivageData[] = $arrivage->getNbUM();
+                    $arrivageData[] = $arrivage->getDate()->format('Y/m/d-H:i:s');;
+                    $arrivageData[] = $arrivage->getUtilisateur();
+                    $arrivageData[] = $arrivage->getStatut()->getNom();
+
+//                    $arrivageData[] = strip_tags($arrivage->getCommentaire());
+
+
+                    // champs libres de l'article de référence
+                    $categorieCLLabel = $ligneArticle->getReference()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE ? CategorieCL::REFERENCE_CEA : CategorieCL::ARTICLE;
+                    $champsLibresArt = [];
+
+                    foreach ($listTypesArt as $type) {
+                        $listChampsLibres = $this->champsLibreRepository->findByTypeAndCategorieCLLabel($type, $categorieCLLabel);
+                        foreach ($listChampsLibres as $champLibre) {
+                            $valeurChampRefArticle = $this->valeurChampsLibreRepository->findOneByRefArticleANDChampsLibre($ligneArticle->getReference()->getId(), $champLibre);
+                            if ($valeurChampRefArticle) {
+                                $champsLibresArt[$champLibre->getLabel()] = $valeurChampRefArticle->getValeur();
+                            }
+                        }
+                    }
+                    foreach ($clAR as $type) {
+                        if (array_key_exists($type->getLabel(), $champsLibresArt)) {
+                            $livraisonData[] = $champsLibresArt[$type->getLabel()];
+                        } else {
+                            $livraisonData[] = '';
+                        }
+                    }
+
+                    $data[] = $livraisonData;
+//                }
+                foreach ($this->articleRepository->getByDemande($arrivage) as $article) {
+                    $livraisonData = [];
+
+                    // champs libres de la demande
+//                    $this->addChampsLibresDL($arrivage, $listChampsLibresArrivage, $champLibreArrivage, $livraisonData);
+
+                    $livraisonData[] = $arrivage->getUtilisateur()->getUsername();
+                    $livraisonData[] = $arrivage->getStatut()->getNom();
+                    $livraisonData[] = $arrivage->getDestination()->getLabel();
+                    $livraisonData[] = strip_tags($arrivage->getCommentaire());
+                    $livraisonData[] = $arrivage->getDate()->format('Y/m/d-H:i:s');
+                    $livraisonData[] = $arrivage->getPreparation() ? $arrivage->getPreparation()->getDate()->format('Y/m/d-H:i:s') : '';
+                    $livraisonData[] = $arrivage->getNumero();
+                    $livraisonData[] = $arrivage->getType() ? $arrivage->getType()->getLabel() : '';
+                    $livraisonData[] = $article->getArticleFournisseur()->getReferenceArticle()->getReference();
+                    $livraisonData[] = $article->getLabel();
+                    $livraisonData[] = $article->getQuantite();
+
+                    // champs libres de l'article
+                    $champsLibresArt = [];
+                    foreach ($listTypesArt as $type) {
+                        $listChampsLibres = $this->champsLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::ARTICLE);
+                        foreach ($listChampsLibres as $champLibre) {
+                            $valeurChampRefArticle = $this->valeurChampsLibreRepository->findOneByArticleANDChampsLibre($article, $champLibre);
+                            if ($valeurChampRefArticle) {
+                                $champsLibresArt[$champLibre->getLabel()] = $valeurChampRefArticle->getValeur();
+                            }
+                        }
+                    }
+                    foreach ($clAR as $type) {
+                        if (array_key_exists($type->getLabel(), $champsLibresArt)) {
+                            $livraisonData[] = $champsLibresArt[$type->getLabel()];
+                        } else {
+                            $livraisonData[] = '';
+                        }
+                    }
+
+                    $data[] = $livraisonData;
+                }
+            }
+
+            return new JsonResponse($data);
+        } else {
+            throw new NotFoundHttpException('404');
+        }
+    }
+
 
 }
