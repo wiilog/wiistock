@@ -112,8 +112,6 @@ class UsersSCS1RecFixtures extends Fixture implements FixtureGroupInterface
 
         array_shift($rows); // supprime la 1è ligne d'en-têtes
 
-        // à modifier pour faire imports successifs
-        $rows = array_slice($rows, 0, 1000);
         $role = $this->roleRepository->findByLabel(Role::DEM_SAFRAN);
         foreach($rows as $row) {
             $utilisateur = new Utilisateur();
