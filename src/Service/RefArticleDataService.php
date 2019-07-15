@@ -346,14 +346,16 @@ class RefArticleDataService
                 $totalQuantity += $quantity;
             }
         }
-        $quantity = ($refArticle->getTypeQuantite() === 'reference') ? $refArticle->getQuantiteStock() : $totalQuantity;
+        $quantityInStock = ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) ? $refArticle->getQuantiteStock() : $totalQuantity;
+        $reservedQuantity = $this->referenceArticleRepository->getTotalQuantityReservedByRefArticle($refArticle);
+        
         $rowCF = [
             "id" => $refArticle->getId(),
             "Libellé" => $refArticle->getLibelle()? $refArticle->getLibelle() : 'Non défini',
             "Référence" => $refArticle->getReference()? $refArticle->getReference() : 'Non défini',
             "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
             "Emplacement" => ($refArticle->getEmplacement() ? $refArticle->getEmplacement()->getLabel() : ""),
-            "Quantité" => $quantity,
+            "Quantité" => $quantityInStock - $reservedQuantity,
             "Commentaire" => ($refArticle->getCommentaire() ? $refArticle->getCommentaire() : ""),
             "Actions" => $this->templating->render('reference_article/datatableReferenceArticleRow.html.twig', [
                 'idRefArticle' => $refArticle->getId(),

@@ -7,6 +7,7 @@ use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Colis;
+use App\Entity\DimensionsEtiquettes;
 use App\Entity\Litige;
 use App\Entity\Menu;
 use App\Entity\ParamClient;
@@ -29,7 +30,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Validator\Tests\Fixtures\Countable;
 
 /**
  * @Route("/arrivage")
@@ -519,6 +519,45 @@ class ArrivageController extends AbstractController
 			return new JsonResponse($response);
 		}
 		throw new NotFoundHttpException('404');
+	}
+
+	/**
+	 * @Route("/lister-colis", name="arrivage_list_colis_api", options={"expose"=true})
+	 */
+    public function listColisByArrivage(Request $request)
+	{
+		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			$arrivage = $this->arrivageRepository->find($data['id']);
+
+			$html = $this->renderView('arrivage/modalListColisContent.html.twig', ['arrivage' => $arrivage]);
+
+			return new JsonResponse($html);
+
+		} else {
+			throw new NotFoundHttpException('404');
+		}
+	}
+
+	/**
+	 * @Route("/api-etiquettes", name="arrivage_get_data_to_print", options={"expose"=true})
+	 */
+	public function getDataToPrintLabels(Request $request) {
+		if ($request->isXmlHttpRequest()) {
+
+			$dimension = $this->dimensionsEtiquettesRepository->findOneDimension(); /** @var DimensionsEtiquettes $dimension */
+			if ($dimension) {
+				$response['height'] = $dimension->getHeight();
+				$response['width'] = $dimension->getWidth();
+				$response['exists'] = true;
+			} else {
+				$response['height'] = $response['width'] = 0;
+                $response['exists'] = false;
+            }
+			return new JsonResponse($response);
+
+		} else {
+			throw new NotFoundHttpException('404');
+		}
 	}
 
 }

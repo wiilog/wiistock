@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Demande;
 use App\Entity\Filter;
 use App\Entity\ReferenceArticle;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -416,16 +417,17 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function getTotalQuantityReserved($refArticle, $statut) {
+    public function getTotalQuantityReservedByRefArticle($refArticle) {
         $em = $this->getEntityManager();
         return $em->createQuery(
             'SELECT SUM(l.quantite)
                   FROM App\Entity\LigneArticle l 
                   JOIN l.demande d
-                  WHERE l.reference = :refArticle AND d.statut = :statut'
+                  JOIN d.statut s
+                  WHERE l.reference = :refArticle AND s.nom = :statut'
         )->setParameters([
             'refArticle' => $refArticle,
-            'statut' => $statut
+            'statut' => Demande::STATUT_A_TRAITER
         ])->getSingleScalarResult();
     }
 
