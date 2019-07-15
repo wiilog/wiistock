@@ -663,7 +663,7 @@ class DemandeController extends AbstractController
             $referenceArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
             $resp = $this->refArticleDataService->addRefToDemand($data, $referenceArticle);
 
-            if ($resp == 'article') {
+            if ($resp === 'article') {
             	$this->articleDataService->editArticle($data);
             	$resp = true;
 			}

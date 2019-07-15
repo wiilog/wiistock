@@ -703,7 +703,7 @@ class ReferenceArticleController extends Controller
 
             if (array_key_exists('livraison', $data) && $data['livraison']) {
 				$json = $this->refArticleDataService->addRefToDemand($data, $refArticle);
-				if ($json == 'article') {
+				if ($json === 'article') {
 					$this->articleDataService->editArticle($data);
 					$json = true;
 				}
