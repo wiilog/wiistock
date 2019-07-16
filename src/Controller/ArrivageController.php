@@ -472,9 +472,12 @@ class ArrivageController extends AbstractController
             for ($i = 0; $i < count($request->files); $i++) {
                 $file = $request->files->get('file' . $i);
                 if ($file) {
-                    // generate a random name for the file but keep the extension
-                    $filename = uniqid() . "." . $file->getClientOriginalExtension();
-                    $file->move($path, $filename); // move the file to a path
+					if ($file->getClientOriginalExtension()) {
+						$filename = uniqid() . "." . $file->getClientOriginalExtension();
+					} else {
+						$filename = uniqid();
+					}
+                    $file->move($path, $filename);
 
                     $pj = new PieceJointe();
                     $pj
