@@ -30,6 +30,7 @@ class Type
     const LABEL_DEST_NON_IDENT = 'destinataire non identifiable';
 	// types de la catégorie demande de livraison
 	const LABEL_STANDARD = 'standard';
+	const SILI_DEM = 'Silicium';
 
 	/**
      * @ORM\Id()

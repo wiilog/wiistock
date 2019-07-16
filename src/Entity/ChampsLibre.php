@@ -11,6 +11,10 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class ChampsLibre
 {
+    const LABEL_CP_DEM = 'code projet demandes';
+    const LABEL_DESTI_DEM = 'destinataire demandes';
+    const LABEL_CP_ART = 'code projet';
+    const LABEL_DESTI_ART = 'destinataire';
     const TYPE_BOOL = 'booleen';
     const TYPE_TEXT = 'text';
     const TYPE_NUMBER = 'number';
