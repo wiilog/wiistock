@@ -37,7 +37,7 @@ use Symfony\Component\Routing\Annotation\Route;
 /**
  * @Route("/arrivage")
  */
-class ArrivageController extends Controller
+class ArrivageController extends AbstractController
 {
     /**
      * @var UserService
@@ -173,7 +173,7 @@ class ArrivageController extends Controller
                     'NbUM' => $arrivage->getNbUM() ? $arrivage->getNbUM() : '',
                     'Acheteurs' => implode(', ', $acheteursUsernames),
                     'Statut' => $arrivage->getStatut() ? $arrivage->getStatut()->getNom() : '',
-                    'Date' => $arrivage->getDate() ? $arrivage->getDate()->format('d/m/Y') : '',
+                    'Date' => $arrivage->getDate() ? $arrivage->getDate()->format('d/m/Y H:i:s') : '',
                     'Utilisateur' => $arrivage->getUtilisateur() ? $arrivage->getUtilisateur()->getUsername() : '',
                     'Actions' => $this->renderView('arrivage/datatableArrivageRow.html.twig', [
                         'arrivage' => $arrivage,
@@ -232,7 +232,7 @@ class ArrivageController extends Controller
                 $arrivage->setDestinataire($this->utilisateurRepository->find($data['destinataire']));
             }
             if (isset($data['acheteurs'])) {
-                foreach ($data['acheteurs'] as $acheteur) {
+                foreach($data['acheteurs'] as $acheteur) {
                     $arrivage->addAcheteur($this->utilisateurRepository->findOneByUsername($acheteur));
                 }
             }
@@ -269,7 +269,6 @@ class ArrivageController extends Controller
                 $litige
                     ->setType($this->typeRepository->find($data['litigeType']))
                     ->setArrivage($arrivage);
-
                 $em->persist($litige);
 
                 $this->sendMailToAcheteurs($arrivage, $litige, true);

@@ -29,6 +29,7 @@
             <th>N° tracking transporteur</th>
             <th>N° commande / BL</th>
             <th>Fournisseur</th>
+            <th>Acheteur(s)</th>
             <th>Destinataire</th>
             <th>Nb UM</th>
             <th>Date</th>
@@ -43,6 +44,11 @@
             <td>{{ arrivage.noTracking }}</td>
             <td>{{ arrivage.numeroBL }}</td>
             <td>{{ arrivage.fournisseur.nom }}</td>
+            <td>
+                {% for acheteur in arrivage.acheteurs %}
+                    {{ acheteur }} <br>
+                {% endfor %}
+            </td>
             <td>{{ arrivage.destinataire.username }}</td>
             <td>{{ arrivage.nbUM }}</td>
             <td>{{ arrivage.date|date('d/m/Y H:i') }}</td>

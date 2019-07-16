@@ -95,7 +95,7 @@ class MouvementTracaController extends AbstractController
 				$date = new DateTime($dateArray[0]);
                 $rows[] = [
                     'id' => $mvt->getId(),
-                    'date' => $date->format('d/m/Y H:i'),
+                    'date' => $date->format('d/m/Y H:i:s'),
                     'refArticle' => $mvt->getRefArticle(),
                     'refEmplacement' => $mvt->getRefEmplacement(),
                     'type' => $mvt->getType(),

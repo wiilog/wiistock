@@ -357,6 +357,16 @@ class ReferenceArticleController extends Controller
                 $ref = explode(';', $frl)[1];
                 $label = explode(';', $frl)[2];
                 $fournisseur = $this->fournisseurRepository->find(intval($fournisseurId));
+
+                // on vérifie que la référence article fournisseur n'existe pas déjà
+                $refFournisseurAlreadyExist = $this->articleFournisseurRepository->findByReferenceArticleFournisseur($ref);
+                if ($refFournisseurAlreadyExist) {
+                    return new JsonResponse([
+                        'success' => false,
+                        'msg' => 'Ce nom de référence article fournnisseur existe déjà. Vous ne pouvez pas le recréer.'
+                    ]);
+                }
+
                 $articleFournisseur = new ArticleFournisseur();
                 $articleFournisseur
                     ->setReferenceArticle($refArticle)
@@ -364,6 +374,7 @@ class ReferenceArticleController extends Controller
                     ->setReference($ref)
                     ->setLabel($label);
                 $em->persist($articleFournisseur);
+
             }
             $em->persist($refArticle);
             $em->flush();
