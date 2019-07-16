@@ -270,13 +270,6 @@ function keepForSave(files) {
 
 }
 
-function removeFiles() {
-    $.post(Routing.generate('remove_kept_pj', true));
-    $('#modalNewArrivage').find('.attachement').each(function () {
-        $(this).remove();
-    });
-}
-
 function upload(files) {
 
     let formData = new FormData();
@@ -287,8 +280,6 @@ function upload(files) {
 
     let arrivageId = $('#dropfile').data('arrivage-id');
     formData.append('id', arrivageId);
-
-    let filepath = '/uploads/attachements/';
 
     $.ajax({
         url: path,
@@ -339,10 +330,9 @@ function submitActionArrivage(modal, path, table, callback, close) {
             clearModal(modal);
 
             if (callback !== null) callback(data);
-            // if (close == true) {
-            //     modal.find('.close').click();
-            // }
-            //TODO CG ici ??
+            if (close == true) {
+                modal.find('.close').click();
+            }
         }
     };
 
@@ -404,7 +394,6 @@ function submitActionArrivage(modal, path, table, callback, close) {
     modal.find(".elem").remove();
     // si tout va bien on envoie la requête ajax...
     if (missingInputs.length == 0 && wrongNumberInputs.length == 0 && passwordIsValid) {
-        if (close == true) modal.find('.close').click(); //TODO CG suppr ??
         Json = {};
         Json = JSON.stringify(Data);
         xhttp.open("POST", path, true);

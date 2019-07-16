@@ -197,7 +197,6 @@ class ArrivageController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
-
             $em = $this->getDoctrine()->getEntityManager();
 
             $statutLabel = $data['statut'] === '1' ? Statut::CONFORME : Statut::ATTENTE_ACHETEUR;
@@ -643,19 +642,6 @@ class ArrivageController extends AbstractController
 		} else {
 			throw new NotFoundHttpException('404');
 		}
-    }
-
-    /**
-     * @Route("/enlever-pj", name="remove_kept_pj", options={"expose"=true}, methods="GET|POST")
-     */
-    public function deleteAttachmentForNew(Request $request)
-    {
-        if ($request->isXmlHttpRequest()) {
-            $path = "../public/uploads/attachements/temp";
-            $this->delete_files($path);
-            return new JsonResponse();
-        }
-        throw new NotFoundHttpException('404');
     }
 
     /**
