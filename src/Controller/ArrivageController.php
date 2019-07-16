@@ -706,7 +706,7 @@ class ArrivageController extends AbstractController
                 $arrivageData[] = $arrivage->getNbUM() ? $arrivage->getNbUM() : '';
                 $arrivageData[] = $arrivage->getStatut()->getNom();
                 $arrivageData[] = $arrivage->getLitige() ? $arrivage->getLitige()->getType()->getLabel() : '';
-                $arrivageData[] = $arrivage->getLitige() ? strip_tags($this->litigeRepository->findByArrivage($arrivage)) : '';
+                $arrivageData[] = strip_tags($arrivage->getCommentaire());
                 $arrivageData[] = $arrivage->getDate()->format('Y/m/d-H:i:s');
                 $arrivageData[] = $arrivage->getUtilisateur()->getUsername();
 

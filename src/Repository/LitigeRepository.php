@@ -32,16 +32,4 @@ class LitigeRepository extends ServiceEntityRepository
 
 		return $query->execute();
 	}
-
-    public function findByArrivage($arrivage)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            'SELECT l.commentaire
-            FROM App\Entity\Litige l
-            JOIN l.arrivage a
-            WHERE a =:arrivage'
-        )->setParameter('arrivage', $arrivage);
-        return $query->getSingleScalarResult();
-    }
 }
