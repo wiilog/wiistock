@@ -210,6 +210,11 @@ a:hover {
   background-size: calc(2.25rem / 2) calc(2.25rem / 2);
 }
 
+.commentArrivageAcheteur {
+  min-height: 100px;
+  overflow: auto;
+}
+
 /* Login    
  * *================= 
  * */
