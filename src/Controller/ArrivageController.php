@@ -615,7 +615,7 @@ class ArrivageController extends AbstractController
 
 			$fileNames = [];
 			$html = '';
-			$path = "..\public\uploads\attachements\\temp\\";
+			$path = "../public/uploads/attachements/temp/";
 			for ($i = 0; $i < count($request->files); $i++) {
 				$file = $request->files->get('file' . $i);
 				if ($file) {
