@@ -19,11 +19,14 @@
                     <span class="fa fa-plus mr-2"></span>Nouvel arrivage
                 </a>
             {% endif %}
-{#            {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::EXPORT')) %}#}
-                <div class="btn btn-primary" onclick='generateCSV("arrivage")'>
+            {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::EXPORT')) %}
+                <div class="btn btn-primary" onclick='generateCSVArrivage()'>
                     <span class="fa fa-plus mr-2"></span>Générer CSV
                 </div>
-{#            {% endif %}#}
+            {% endif %}
+        </div>
+        <div class="row">
+            <div class="error-msg p-4"></div>
         </div>
 
         <div>

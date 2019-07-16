@@ -19,6 +19,7 @@ use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Repository\ArrivageRepository;
 use App\Repository\ChampsLibreRepository;
+use App\Repository\LitigeRepository;
 use App\Repository\ChauffeurRepository;
 use App\Repository\DimensionsEtiquettesRepository;
 use App\Repository\FournisseurRepository;
@@ -73,8 +74,8 @@ class ArrivageController extends AbstractController
     private $chauffeurRepository;
 
     /**
- * @var TransporteurRepository
- */
+     * @var TransporteurRepository
+     */
     private $transporteurRepository;
 
     /**
@@ -102,9 +103,13 @@ class ArrivageController extends AbstractController
      */
     private $champsLibreRepository;
 
+    /**
+     * @var LitigeRepository
+     */
+    private $litigeRepository;
 
 
-    public function __construct(ChampsLibreRepository $champsLibreRepository, SpecificService $specificService, MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
+    public function __construct(LitigeRepository $litigeRepository, ChampsLibreRepository $champsLibreRepository, SpecificService $specificService, MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
     {
         $this->specificService = $specificService;
         $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
@@ -118,6 +123,7 @@ class ArrivageController extends AbstractController
         $this->typeRepository = $typeRepository;
         $this->mailerService = $mailerService;
         $this->champsLibreRepository = $champsLibreRepository;
+        $this->litigeRepository = $litigeRepository;
     }
 
     /**
@@ -152,16 +158,17 @@ class ArrivageController extends AbstractController
             if ($this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST_ALL)) {
                 $arrivages = $this->arrivageRepository->findAll();
             } else {
-                $currentUser = $this->getUser(); /** @var Utilisateur $currentUser */
+                $currentUser = $this->getUser();
+                /** @var Utilisateur $currentUser */
                 $arrivages = $currentUser->getArrivagesAcheteur();
             }
 
             $rows = [];
             foreach ($arrivages as $arrivage) {
-				$acheteursUsernames = [];
-				foreach($arrivage->getAcheteurs() as $acheteur) {
-					$acheteursUsernames[] = $acheteur->getUsername();
-				}
+                $acheteursUsernames = [];
+                foreach ($arrivage->getAcheteurs() as $acheteur) {
+                    $acheteursUsernames[] = $acheteur->getUsername();
+                }
 
                 $rows[] = [
                     'id' => $arrivage->getId(),
@@ -173,13 +180,13 @@ class ArrivageController extends AbstractController
                     'Fournisseur' => $arrivage->getFournisseur() ? $arrivage->getFournisseur()->getNom() : '',
                     'Destinataire' => $arrivage->getDestinataire() ? $arrivage->getDestinataire()->getUsername() : '',
                     'NbUM' => $arrivage->getNbUM() ? $arrivage->getNbUM() : '',
-					'Acheteurs' => implode(', ', $acheteursUsernames),
-					'Statut' => $arrivage->getStatut() ? $arrivage->getStatut()->getNom() : '',
+                    'Acheteurs' => implode(', ', $acheteursUsernames),
+                    'Statut' => $arrivage->getStatut() ? $arrivage->getStatut()->getNom() : '',
                     'Date' => $arrivage->getDate() ? $arrivage->getDate()->format('d/m/Y H:i:s') : '',
                     'Utilisateur' => $arrivage->getUtilisateur() ? $arrivage->getUtilisateur()->getUsername() : '',
                     'Actions' => $this->renderView('arrivage/datatableArrivageRow.html.twig', [
                         'arrivage' => $arrivage,
-                        ])
+                    ])
                 ];
             }
 
@@ -233,21 +240,21 @@ class ArrivageController extends AbstractController
                 $arrivage->setDestinataire($this->utilisateurRepository->find($data['destinataire']));
             }
             if (isset($data['acheteurs'])) {
-                foreach($data['acheteurs'] as $acheteur) {
+                foreach ($data['acheteurs'] as $acheteur) {
                     $arrivage->addAcheteur($this->utilisateurRepository->findOneByUsername($acheteur));
                 }
             }
-			if (isset($data['nbUM'])) {
-				$arrivage->setNbUM((int)$data['nbUM']);
+            if (isset($data['nbUM'])) {
+                $arrivage->setNbUM((int)$data['nbUM']);
 
-				for ($i = 0; $i < $data['nbUM']; $i++) {
-					$colis = new Colis();
-					$colis
-						->setCode($numeroArrivage . '-' . $i)
-						->setArrivage($arrivage);
-					$em->persist($colis);
-				}
-			}
+                for ($i = 0; $i < $data['nbUM']; $i++) {
+                    $colis = new Colis();
+                    $colis
+                        ->setCode($numeroArrivage . '-' . $i)
+                        ->setArrivage($arrivage);
+                    $em->persist($colis);
+                }
+            }
 
             $em->persist($arrivage);
 
@@ -296,30 +303,30 @@ class ArrivageController extends AbstractController
 
             // construction de la chaîne de caractères pour alimenter le select2
             $acheteursUsernames = [];
-            foreach($arrivage->getAcheteurs() as $acheteur) {
-              $acheteursUsernames[] = $acheteur->getUsername();
+            foreach ($arrivage->getAcheteurs() as $acheteur) {
+                $acheteursUsernames[] = $acheteur->getUsername();
             }
 
-          if($this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
-            $html = $this->renderView('arrivage/modalEditArrivageContent.html.twig', [
-              'arrivage' => $arrivage,
-              'conforme' => $arrivage->getStatut()->getNom() === Statut::CONFORME,
-              'utilisateurs' => $this->utilisateurRepository->findAllSorted(),
-              'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ARRIVAGE),
-              'fournisseurs' => $this->fournisseurRepository->findAllSorted(),
-              'transporteurs' => $this->transporteurRepository->findAllSorted(),
-              'chauffeurs' => $this->chauffeurRepository->findAllSorted(),
-              'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE)
-            ]);
-          } elseif (in_array($this->getUser()->getUsername(), $acheteursUsernames)) {
-            $html = $this->renderView('arrivage/modalEditArrivageContentLitige.html.twig', [
-              'arrivage' => $arrivage,
-            ]);
-          } else {
-            $html = '';
-          }
+            if ($this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
+                $html = $this->renderView('arrivage/modalEditArrivageContent.html.twig', [
+                    'arrivage' => $arrivage,
+                    'conforme' => $arrivage->getStatut()->getNom() === Statut::CONFORME,
+                    'utilisateurs' => $this->utilisateurRepository->findAllSorted(),
+                    'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ARRIVAGE),
+                    'fournisseurs' => $this->fournisseurRepository->findAllSorted(),
+                    'transporteurs' => $this->transporteurRepository->findAllSorted(),
+                    'chauffeurs' => $this->chauffeurRepository->findAllSorted(),
+                    'typesLitige' => $this->typeRepository->findByCategoryLabel(CategoryType::LITIGE)
+                ]);
+            } elseif (in_array($this->getUser()->getUsername(), $acheteursUsernames)) {
+                $html = $this->renderView('arrivage/modalEditArrivageContentLitige.html.twig', [
+                    'arrivage' => $arrivage,
+                ]);
+            } else {
+                $html = '';
+            }
 
-          return new JsonResponse(['html' => $html, 'acheteurs' => $acheteursUsernames]);
+            return new JsonResponse(['html' => $html, 'acheteurs' => $acheteursUsernames]);
         }
         throw new NotFoundHttpException('404');
     }
@@ -363,15 +370,15 @@ class ArrivageController extends AbstractController
                 $arrivage->setDestinataire($this->utilisateurRepository->find($data['destinataire']));
             }
             if (isset($data['acheteurs'])) {
-              // on détache les acheteurs existants...
-              $existingAcheteurs = $arrivage->getAcheteurs();
-              foreach ($existingAcheteurs as $acheteur) {
-                $arrivage->removeAcheteur($acheteur);
-              }
-              // ... et on ajoute ceux sélectionnés
-              foreach($data['acheteurs'] as $acheteur) {
-                  $arrivage->addAcheteur($this->utilisateurRepository->findOneByUsername($acheteur));
-              }
+                // on détache les acheteurs existants...
+                $existingAcheteurs = $arrivage->getAcheteurs();
+                foreach ($existingAcheteurs as $acheteur) {
+                    $arrivage->removeAcheteur($acheteur);
+                }
+                // ... et on ajoute ceux sélectionnés
+                foreach ($data['acheteurs'] as $acheteur) {
+                    $arrivage->addAcheteur($this->utilisateurRepository->findOneByUsername($acheteur));
+                }
             }
             if (isset($data['nbUM'])) {
                 $arrivage->setNbUM((int)$data['nbUM']);
@@ -401,7 +408,7 @@ class ArrivageController extends AbstractController
                     $this->sendMailToAcheteurs($arrivage, $litige, false);
                 }
 
-            // conforme : on supprime l'éventuel litige
+                // conforme : on supprime l'éventuel litige
             } else {
                 if (!empty($litige)) {
                     $em->remove($litige);
@@ -459,16 +466,16 @@ class ArrivageController extends AbstractController
                     $filename = uniqid() . "." . $file->getClientOriginalExtension();
                     $file->move($path, $filename); // move the file to a path
 
-                  $arrivage->addPiecesJointes($filename);
-                  $fileNames[] = $filename;
+                    $arrivage->addPiecesJointes($filename);
+                    $fileNames[] = $filename;
                 }
             }
             $em->flush();
 
             $html = '';
             foreach ($fileNames as $fileName) {
-            	$html .= $this->renderView('arrivage/attachementLine.html.twig', ['arrivage' => $arrivage, 'pj' => $fileName]);
-			}
+                $html .= $this->renderView('arrivage/attachementLine.html.twig', ['arrivage' => $arrivage, 'pj' => $fileName]);
+            }
 
             return new JsonResponse($html);
         } else {
@@ -476,31 +483,31 @@ class ArrivageController extends AbstractController
         }
     }
 
-	/**
-	 * @Route("/supprime-pj", name="arrivage_delete_attachement", options={"expose"=true}, methods="GET|POST")
-	 */
+    /**
+     * @Route("/supprime-pj", name="arrivage_delete_attachement", options={"expose"=true}, methods="GET|POST")
+     */
     public function deleteAttachement(Request $request)
-	{
-		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
-			$arrivageId = (int)$data['arrivageId'];
+            $arrivageId = (int)$data['arrivageId'];
 
-			$arrivage = $this->arrivageRepository->find($arrivageId);
-			if ($arrivage) {
-				$arrivage->removePieceJointe($data['pj']);
-				$this->getDoctrine()->getManager()->flush();
-				$response = true;
-			} else {
-				$response = false;
-			}
+            $arrivage = $this->arrivageRepository->find($arrivageId);
+            if ($arrivage) {
+                $arrivage->removePieceJointe($data['pj']);
+                $this->getDoctrine()->getManager()->flush();
+                $response = true;
+            } else {
+                $response = false;
+            }
 
-			return new JsonResponse($response);
-		} else {
-			throw new NotFoundHttpException('404');
-		}
-	}
+            return new JsonResponse($response);
+        } else {
+            throw new NotFoundHttpException('404');
+        }
+    }
 
-	private function sendMailToAcheteurs($arrivage, $litige, $newLitige)
+    private function sendMailToAcheteurs($arrivage, $litige, $newLitige)
     {
         foreach ($arrivage->getAcheteurs() as $acheteur) {
             $this->mailerService->sendMail(
@@ -514,65 +521,67 @@ class ArrivageController extends AbstractController
         }
     }
 
-	/**
-	 * @Route("/ajoute-commentaire", name="add_comment",  options={"expose"=true}, methods="GET|POST")
-	 */
+    /**
+     * @Route("/ajoute-commentaire", name="add_comment",  options={"expose"=true}, methods="GET|POST")
+     */
     public function addComment(Request $request): Response
-	{
-		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-			$response = '';
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $response = '';
 
-			// spécifique SAFRAN CERAMICS ajout de commentaire
-			$isSafran = $this->specificService->isCurrentClientNameFunction(ParamClient::SAFRAN_CERAMICS);
+            // spécifique SAFRAN CERAMICS ajout de commentaire
+            $isSafran = $this->specificService->isCurrentClientNameFunction(ParamClient::SAFRAN_CERAMICS);
 
-			if ($isSafran) {
-				$type = $this->typeRepository->find($data['typeLitigeId']);
-				$response = $type->getDescription();
-			}
+            if ($isSafran) {
+                $type = $this->typeRepository->find($data['typeLitigeId']);
+                $response = $type->getDescription();
+            }
 
-			return new JsonResponse($response);
-		}
-		throw new NotFoundHttpException('404');
-	}
+            return new JsonResponse($response);
+        }
+        throw new NotFoundHttpException('404');
+    }
 
-	/**
-	 * @Route("/lister-colis", name="arrivage_list_colis_api", options={"expose"=true})
-	 */
+    /**
+     * @Route("/lister-colis", name="arrivage_list_colis_api", options={"expose"=true})
+     */
     public function listColisByArrivage(Request $request)
-	{
-		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-			$arrivage = $this->arrivageRepository->find($data['id']);
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $arrivage = $this->arrivageRepository->find($data['id']);
 
-			$html = $this->renderView('arrivage/modalListColisContent.html.twig', ['arrivage' => $arrivage]);
+            $html = $this->renderView('arrivage/modalListColisContent.html.twig', ['arrivage' => $arrivage]);
 
-			return new JsonResponse($html);
+            return new JsonResponse($html);
 
-		} else {
-			throw new NotFoundHttpException('404');
-		}
-	}
+        } else {
+            throw new NotFoundHttpException('404');
+        }
+    }
 
-	/**
-	 * @Route("/api-etiquettes", name="arrivage_get_data_to_print", options={"expose"=true})
-	 */
-	public function getDataToPrintLabels(Request $request) {
-		if ($request->isXmlHttpRequest()) {
+    /**
+     * @Route("/api-etiquettes", name="arrivage_get_data_to_print", options={"expose"=true})
+     */
+    public function getDataToPrintLabels(Request $request)
+    {
+        if ($request->isXmlHttpRequest()) {
 
-			$dimension = $this->dimensionsEtiquettesRepository->findOneDimension(); /** @var DimensionsEtiquettes $dimension */
-			if ($dimension) {
-				$response['height'] = $dimension->getHeight();
-				$response['width'] = $dimension->getWidth();
-				$response['exists'] = true;
-			} else {
-				$response['height'] = $response['width'] = 0;
+            $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
+            /** @var DimensionsEtiquettes $dimension */
+            if ($dimension) {
+                $response['height'] = $dimension->getHeight();
+                $response['width'] = $dimension->getWidth();
+                $response['exists'] = true;
+            } else {
+                $response['height'] = $response['width'] = 0;
                 $response['exists'] = false;
             }
-			return new JsonResponse($response);
+            return new JsonResponse($response);
 
-		} else {
-			throw new NotFoundHttpException('404');
-		}
-	}
+        } else {
+            throw new NotFoundHttpException('404');
+        }
+    }
 
     /**
      * @Route("/arrivage-infos", name="get_arrivages_for_csv", options={"expose"=true}, methods={"GET","POST"})
@@ -585,120 +594,43 @@ class ArrivageController extends AbstractController
             $arrivages = $this->arrivageRepository->findByDates($dateMin, $dateMax);
 
             $headers = [];
-            // en-têtes champs libres Arrivage
-            $champLibreArrivage = $this->champsLibreRepository->findByCategoryTypeLabels([CategoryType::ARRIVAGE]);
-            foreach ($champLibreArrivage as $champLibre) {
-                $headers[] = $champLibre->getLabel();
-            }
             // en-têtes champs fixes
-            $headers = array_merge($headers, ['destinataire', 'acheteurs', 'nombre d\'UM', 'statut', 'date', 'utilisateur']);
-
-            // en-têtes champs libres articles
-//            $clAR = $this->champsLibreRepository->findByCategoryTypeLabels([CategoryType::ARTICLES_ET_REF_CEA]);
-//            foreach ($clAR as $champLibre) {
-//                $headers[] = $champLibre->getLabel();
-//            }
+            $headers = array_merge($headers, ['n° arrivage', 'destinataire', 'fournisseur', 'transporteur', 'chauffeur', 'n° tracking transporteur',
+                'n° commande/BL', 'acheteurs', 'nombre d\'UM', 'statut', 'type de litige', 'commentaire', 'date', 'utilisateur']);
 
             $data = [];
             $data[] = $headers;
-//            $listTypesArt = $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLES_ET_REF_CEA);
-//            $listTypesArrivage = $this->typeRepository->findByCategoryLabel(CategoryType::ARRIVAGE);
 
-//            $listChampsLibresArrivage = [];
-//            foreach ($listTypesArrivage as $type) {
-//                $listChampsLibresArrivage = array_merge($listChampsLibresArrivage, $this->champsLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::ARRIVAGE));
-//            }
+            foreach ($arrivages as $arrivage) {
+                /** @var Arrivage $arrivage */
+                $arrivageData = [];
 
-            foreach ($arrivages as $arrivage) { /** @var Arrivage $arrivage */
-//                foreach ($arrivage->getLigneArticle() as $ligneArticle) { /** @var LigneArticle $ligneArticle */
-                    $arrivageData = [];
+                $arrivageData[] = $arrivage->getNumeroArrivage();
+                $arrivageData[] = $arrivage->getDestinataire()->getUsername();
+                $arrivageData[] = $arrivage->getFournisseur()->getNom();
+                $arrivageData[] = $arrivage->getTransporteur()->getLabel();
+                $arrivageData[] = $arrivage->getChauffeur() ? $arrivage->getChauffeur()->getNom() . ' ' . $arrivage->getChauffeur()->getPrenom() : '';
+                $arrivageData[] = $arrivage->getNoTracking() ? $arrivage->getNoTracking() : '';
+                $arrivageData[] = $arrivage->getNumeroBL() ? $arrivage->getNumeroBL() : '';
 
-                    // champs libres de la demande
-//                    $this->addChampsLibresDL($arrivage, $listChampsLibresArrivage, $champLibreArrivage, $livraisonData);
-                    $arrivageData[] = $arrivage->getNumeroArrivage();
-                    $arrivageData[] = $arrivage->getChauffeur();
-                    $arrivageData[] = $arrivage->getNoTracking();
-                    $arrivageData[] = $arrivage->getNumeroBL();
-                    $arrivageData[] = $arrivage->getFournisseur();
-                    $arrivageData[] = $arrivage->getAcheteurs();
-                    $arrivageData[] = $arrivage->getDestinataire();
-                    $arrivageData[] = $arrivage->getNbUM();
-                    $arrivageData[] = $arrivage->getDate()->format('Y/m/d-H:i:s');;
-                    $arrivageData[] = $arrivage->getUtilisateur();
-                    $arrivageData[] = $arrivage->getStatut()->getNom();
-
-//                    $arrivageData[] = strip_tags($arrivage->getCommentaire());
-
-
-                    // champs libres de l'article de référence
-                    $categorieCLLabel = $ligneArticle->getReference()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE ? CategorieCL::REFERENCE_CEA : CategorieCL::ARTICLE;
-                    $champsLibresArt = [];
-
-                    foreach ($listTypesArt as $type) {
-                        $listChampsLibres = $this->champsLibreRepository->findByTypeAndCategorieCLLabel($type, $categorieCLLabel);
-                        foreach ($listChampsLibres as $champLibre) {
-                            $valeurChampRefArticle = $this->valeurChampsLibreRepository->findOneByRefArticleANDChampsLibre($ligneArticle->getReference()->getId(), $champLibre);
-                            if ($valeurChampRefArticle) {
-                                $champsLibresArt[$champLibre->getLabel()] = $valeurChampRefArticle->getValeur();
-                            }
-                        }
-                    }
-                    foreach ($clAR as $type) {
-                        if (array_key_exists($type->getLabel(), $champsLibresArt)) {
-                            $livraisonData[] = $champsLibresArt[$type->getLabel()];
-                        } else {
-                            $livraisonData[] = '';
-                        }
-                    }
-
-                    $data[] = $livraisonData;
-//                }
-                foreach ($this->articleRepository->getByDemande($arrivage) as $article) {
-                    $livraisonData = [];
-
-                    // champs libres de la demande
-//                    $this->addChampsLibresDL($arrivage, $listChampsLibresArrivage, $champLibreArrivage, $livraisonData);
-
-                    $livraisonData[] = $arrivage->getUtilisateur()->getUsername();
-                    $livraisonData[] = $arrivage->getStatut()->getNom();
-                    $livraisonData[] = $arrivage->getDestination()->getLabel();
-                    $livraisonData[] = strip_tags($arrivage->getCommentaire());
-                    $livraisonData[] = $arrivage->getDate()->format('Y/m/d-H:i:s');
-                    $livraisonData[] = $arrivage->getPreparation() ? $arrivage->getPreparation()->getDate()->format('Y/m/d-H:i:s') : '';
-                    $livraisonData[] = $arrivage->getNumero();
-                    $livraisonData[] = $arrivage->getType() ? $arrivage->getType()->getLabel() : '';
-                    $livraisonData[] = $article->getArticleFournisseur()->getReferenceArticle()->getReference();
-                    $livraisonData[] = $article->getLabel();
-                    $livraisonData[] = $article->getQuantite();
-
-                    // champs libres de l'article
-                    $champsLibresArt = [];
-                    foreach ($listTypesArt as $type) {
-                        $listChampsLibres = $this->champsLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::ARTICLE);
-                        foreach ($listChampsLibres as $champLibre) {
-                            $valeurChampRefArticle = $this->valeurChampsLibreRepository->findOneByArticleANDChampsLibre($article, $champLibre);
-                            if ($valeurChampRefArticle) {
-                                $champsLibresArt[$champLibre->getLabel()] = $valeurChampRefArticle->getValeur();
-                            }
-                        }
-                    }
-                    foreach ($clAR as $type) {
-                        if (array_key_exists($type->getLabel(), $champsLibresArt)) {
-                            $livraisonData[] = $champsLibresArt[$type->getLabel()];
-                        } else {
-                            $livraisonData[] = '';
-                        }
-                    }
-
-                    $data[] = $livraisonData;
+                $acheteurs = $arrivage->getAcheteurs();
+                $acheteurData = [];
+                foreach ($acheteurs as $acheteur) {
+                    $acheteurData[] = $acheteur->getUsername();
                 }
-            }
+                $arrivageData[] = implode(' / ', $acheteurData);
+                $arrivageData[] = $arrivage->getNbUM() ? $arrivage->getNbUM() : '';
+                $arrivageData[] = $arrivage->getStatut()->getNom();
+                $arrivageData[] = $arrivage->getLitige() ? $arrivage->getLitige()->getType()->getLabel() : '';
+                $arrivageData[] = $arrivage->getLitige() ? strip_tags($this->litigeRepository->findByArrivage($arrivage)) : '';
+                $arrivageData[] = $arrivage->getDate()->format('Y/m/d-H:i:s');
+                $arrivageData[] = $arrivage->getUtilisateur()->getUsername();
 
+                $data[] = $arrivageData;
+            }
             return new JsonResponse($data);
         } else {
             throw new NotFoundHttpException('404');
         }
     }
-
-
 }
