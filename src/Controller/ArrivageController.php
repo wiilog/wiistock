@@ -11,12 +11,14 @@ use App\Entity\DimensionsEtiquettes;
 use App\Entity\Litige;
 use App\Entity\Menu;
 use App\Entity\ParamClient;
+use App\Entity\PieceJointe;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Repository\ArrivageRepository;
 use App\Repository\ChauffeurRepository;
 use App\Repository\DimensionsEtiquettesRepository;
 use App\Repository\FournisseurRepository;
+use App\Repository\PieceJointeRepository;
 use App\Repository\StatutRepository;
 use App\Repository\TransporteurRepository;
 use App\Repository\TypeRepository;
@@ -25,6 +27,7 @@ use App\Service\SpecificService;
 use App\Service\UserService;
 use App\Service\MailerService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -34,7 +37,7 @@ use Symfony\Component\Routing\Annotation\Route;
 /**
  * @Route("/arrivage")
  */
-class ArrivageController extends AbstractController
+class ArrivageController extends Controller
 {
     /**
      * @var UserService
@@ -86,12 +89,19 @@ class ArrivageController extends AbstractController
      */
     private $typeRepository;
 
+	/**
+	 * @var PieceJointeRepository
+	 */
+    private $pieceJointeRepository;
+
     /**
      * @var SpecificService
      */
     private $specificService;
 
-    public function __construct(SpecificService $specificService, MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
+
+
+    public function __construct(PieceJointeRepository $pieceJointeRepository, SpecificService $specificService, MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
     {
         $this->specificService = $specificService;
         $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
@@ -104,6 +114,7 @@ class ArrivageController extends AbstractController
         $this->chauffeurRepository = $chauffeurRepository;
         $this->typeRepository = $typeRepository;
         $this->mailerService = $mailerService;
+        $this->pieceJointeRepository = $pieceJointeRepository;
     }
 
     /**
@@ -186,7 +197,7 @@ class ArrivageController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
-dump($data);
+
             $em = $this->getDoctrine()->getEntityManager();
 
             $statutLabel = $data['statut'] === '1' ? Statut::CONFORME : Statut::ATTENTE_ACHETEUR;
@@ -225,16 +236,19 @@ dump($data);
                     $arrivage->addAcheteur($this->utilisateurRepository->findOneByUsername($acheteur));
                 }
             }
-            $path = "../public/uploads/attachements/temporary";
-            $parent = "../public/uploads/attachements";
+
+            $path = '../public/uploads/attachements/temp';
+
             if (is_dir($path)) {
                 foreach(scandir($path) as $file) {
                     if ('.' === $file) continue;
                     if ('..' === $file) continue;
-                    $arrivage->addPiecesJointes($file);
-                    copy($path . '/' . $file, $parent . '/' . $file);
+
+                    $pj = $this->pieceJointeRepository->findOneByFileName($file);
+                    if ($pj) $pj->setArrivage($arrivage);
+                    copy($path . '/' . $file, $path . '/../' . $file);
+                    unlink($path . '/' . $file);
                 }
-                $this->delete_files($path);
             }
             if (isset($data['nbUM'])) {
                 $arrivage->setNbUM((int)$data['nbUM']);
@@ -302,6 +316,7 @@ dump($data);
             if ($this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
                 $html = $this->renderView('arrivage/modalEditArrivageContent.html.twig', [
                     'arrivage' => $arrivage,
+                    'attachements' => $this->pieceJointeRepository->findBy(['arrivage' => $arrivage]),
                     'conforme' => $arrivage->getStatut()->getNom() === Statut::CONFORME,
                     'utilisateurs' => $this->utilisateurRepository->findAllSorted(),
                     'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ARRIVAGE),
@@ -463,11 +478,14 @@ dump($data);
                     $filename = uniqid() . "." . $file->getClientOriginalExtension();
                     $file->move($path, $filename); // move the file to a path
 
-                    $arrivage->addPiecesJointes([$file->getClientOriginalName() => $filename]);
-                    $fileNames[] = [
-                    	'name' => $filename,
-						'originalName' => $file->getClientOriginalName()
-					];
+                    $pj = new PieceJointe();
+                    $pj
+						->setFileName($filename)
+						->setOriginalName($file->getClientOriginalName())
+						->setArrivage($arrivage);
+                    $em->persist($pj);
+
+                    $fileNames[] = ['name' => $filename, 'originalName' => $file->getClientOriginalName()];
                 }
             }
             $em->flush();
@@ -476,7 +494,7 @@ dump($data);
             foreach ($fileNames as $fileName) {
                 $html .= $this->renderView('arrivage/attachementLine.html.twig', [
                 	'arrivage' => $arrivage,
-					'pj' => $fileName['name'],
+					'pjName' => $fileName['name'],
 					'originalName' => $fileName['originalName']
 				]);
             }
@@ -493,13 +511,14 @@ dump($data);
     public function deleteAttachement(Request $request)
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			$em = $this->getDoctrine()->getManager();
 
             $arrivageId = (int)$data['arrivageId'];
 
-            $arrivage = $this->arrivageRepository->find($arrivageId);
-            if ($arrivage) {
-                $arrivage->removePieceJointe($data['pj']);
-                $this->getDoctrine()->getManager()->flush();
+            $attachement = $this->pieceJointeRepository->findOneByFileNameAndArrivageId($data['pjName'], $arrivageId);
+            if ($attachement) {
+            	$em->remove($attachement);
+                $em->flush();
                 $response = true;
             } else {
                 $response = false;
@@ -590,32 +609,41 @@ dump($data);
      */
     public function keepAttachmentForNew(Request $request)
     {
-        if ($request->isXmlHttpRequest()) {
+		if ($request->isXmlHttpRequest()) {
+			$em = $this->getDoctrine()->getManager();
 
-            $fileNames = [];
-            $html = '';
-            $path = "../public/uploads/attachements/temporary";
-
-            if (!is_dir($path)) mkdir($path);
-            for ($i = 0; $i < count($request->files); $i++) {
-                $file = $request->files->get('file' . $i);
-                if ($file) {
-                    $filename = uniqid() . "." . $file->getClientOriginalExtension();
-                    $fileNames[] = $filename;
-                    $file->move($path, $filename);
-                    $html .= $this->renderView('arrivage/attachementLine.html.twig', [
-                        'arrivage' => null,
-                        'pj' => $filename,
-                        'isNew' => true,
+			$fileNames = [];
+			$html = '';
+			$path = "..\public\uploads\attachements\\temp\\";
+			for ($i = 0; $i < count($request->files); $i++) {
+				$file = $request->files->get('file' . $i);
+				if ($file) {
+					if ($file->getClientOriginalExtension()) {
+						$filename = uniqid() . "." . $file->getClientOriginalExtension();
+					} else {
+						$filename = uniqid();
+					}
+					$fileNames[] = $filename;
+					$file->move($path, $filename);
+					$html .= $this->renderView('arrivage/attachementLine.html.twig', [
+						'arrivage' => null,
+						'pjName' => $filename,
+						'isNew' => true,
 						'originalName' => $file->getClientOriginalName()
-                    ]);
-                }
-            }
+					]);
+					$pj = new PieceJointe();
+					$pj
+						->setOriginalName($file->getClientOriginalName())
+						->setFileName($filename);
+					$em->persist($pj);
+				}
+				$em->flush();
+			}
 
-            return new JsonResponse($html);
-        } else {
-            throw new NotFoundHttpException('404');
-        }
+			return new JsonResponse($html);
+		} else {
+			throw new NotFoundHttpException('404');
+		}
     }
 
     /**
@@ -624,7 +652,7 @@ dump($data);
     public function deleteAttachmentForNew(Request $request)
     {
         if ($request->isXmlHttpRequest()) {
-            $path = "../public/uploads/attachements/temporary";
+            $path = "../public/uploads/attachements/temp";
             $this->delete_files($path);
             return new JsonResponse();
         }
@@ -637,7 +665,7 @@ dump($data);
     public function deleteOneAttachmentForNew(Request $request)
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $path = "../public/uploads/attachements/temporary/" . $data['pj'];
+            $path = "../public/uploads/attachements/temp/" . $data['pj'];
             unlink($path);
             return new JsonResponse();
         }

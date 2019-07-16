@@ -60,11 +60,6 @@ class Arrivage
     private $acheteurs;
 
     /**
-     * @ORM\Column(type="json", nullable=true)
-     */
-    private $piecesJointes = [];
-
-    /**
      * @ORM\Column(type="string", length=64, nullable=true)
      */
     private $numeroReception;
@@ -104,11 +99,17 @@ class Arrivage
      */
     private $commentaire;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\PieceJointe", mappedBy="arrivage")
+     */
+    private $attachements;
+
 
     public function __construct()
     {
         $this->acheteurs = new ArrayCollection();
         $this->colis = new ArrayCollection();
+        $this->attachements = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -405,6 +406,60 @@ class Arrivage
     public function setCommentaire(?string $commentaire): self
     {
         $this->commentaire = $commentaire;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|PieceJointe[]
+     */
+    public function getAttachements(): Collection
+    {
+        return $this->attachements;
+    }
+
+    public function addAttachement(PieceJointe $attachement): self
+    {
+        if (!$this->attachements->contains($attachement)) {
+            $this->attachements[] = $attachement;
+            $attachement->setArrivage($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAttachement(PieceJointe $attachement): self
+    {
+        if ($this->attachements->contains($attachement)) {
+            $this->attachements->removeElement($attachement);
+            // set the owning side to null (unless already changed)
+            if ($attachement->getArrivage() === $this) {
+                $attachement->setArrivage(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function addColi(Colis $coli): self
+    {
+        if (!$this->colis->contains($coli)) {
+            $this->colis[] = $coli;
+            $coli->setArrivage($this);
+        }
+
+        return $this;
+    }
+
+    public function removeColi(Colis $coli): self
+    {
+        if ($this->colis->contains($coli)) {
+            $this->colis->removeElement($coli);
+            // set the owning side to null (unless already changed)
+            if ($coli->getArrivage() === $this) {
+                $coli->setArrivage(null);
+            }
+        }
 
         return $this;
     }

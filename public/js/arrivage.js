@@ -220,7 +220,6 @@ function openFENew() {
 
 function uploadFENew() {
     let files = $('#fileInputNew')[0].files;
-    console.log(files);
     let formData = new FormData();
     $.each(files, function (index, file) {
         formData.append('file' + index, file);
@@ -535,16 +534,17 @@ function printLabels(data) {
     }
 }
 
-function deleteAttachement(arrivageId, pj, pjWithoutExtension) {
+function deleteAttachement(arrivageId, originalName, pjName) {
 
     let path = Routing.generate('arrivage_delete_attachement');
     let params = {
         arrivageId: arrivageId,
-        pj: pj
+        originalName: originalName,
+        pjName: pjName
     };
 
     $.post(path, JSON.stringify(params), function (data) {
-
+        let pjWithoutExtension = pjName.substr(0, pjName.indexOf('.'));
         if (data === true) {
             $('#' + pjWithoutExtension).remove();
         }

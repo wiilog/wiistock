@@ -5,8 +5,9 @@
          ondragover="dragOverDiv(event, $(this))"
          ondragleave="dragLeaveDiv(event, $(this))"
          ondrop="dropNewOnDiv(event, $(this))">
-        <p>Faites glisser vos pièces jointes ou <span onclick="openFENew()" class="pointer"><i class="fa fa-folder-open" ></i> cliquez ici</span></p>
-        <input id="fileInputNew" type="file" name="files[]" multiple class="d-none" onchange="uploadFENew()">
+        <p>Faites glisser vos pièces jointes ou <span onclick="openFENew()" class="pointer"><i class="fa fa-folder-open" ></i> cliquez ici</span>
+            <input id="fileInputNew" type="file" name="files[]" multiple class="d-none" onchange="uploadFENew()">
+        </p>
     </div>
 {% else %}
     <label for="dropfile">Pièces jointes</label>
@@ -15,11 +16,14 @@
          ondragover="dragOverDiv(event, $(this))"
          ondragleave="dragLeaveDiv(event, $(this))"
          ondrop="dropOnDiv(event, $(this))">
-        <p>Faites glisser vos pièces jointes ou <span onclick="openFENew()" class="pointer"><i class="fa fa-folder-open" ></i> cliquez ici</span></p>
-        <input id="fileInputNew" type="file" name="files[]" multiple class="d-none" onchange="uploadFENew()">
+        <p>Faites glisser vos pièces jointes ou <span onclick="openFE()" class="pointer"><i class="fa fa-folder-open" ></i> cliquez ici</span></p>
+        <input id="fileInput" type="file" name="files[]" multiple class="d-none" onchange="uploadFE()">
     </div>
 
-    {% for pj in arrivage.piecesJointes %}
+    {% for pj in attachements %}
+        {% set pjName = pj.fileName %}
+        {% set originalName = pj.originalName %}
         {% include 'arrivage/attachementLine.html.twig' %}
     {% endfor %}
+
 {% endif %}
