@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\Fournisseur;
 use App\Entity\Menu;
+use App\Repository\ArrivageRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\ReceptionRepository;
@@ -50,13 +51,19 @@ class FournisseurController extends AbstractController
     private $fournisseurDataService;
 
     /**
+     * @var ArrivageRepository
+     */
+    private $arrivageRepository;
+
+    /**
      * @var UserService
      */
     private $userService;
 
 
-    public function __construct(FournisseurDataService $fournisseurDataService,ReceptionReferenceArticleRepository $receptionReferenceArticleRepository, ReceptionRepository $receptionRepository, ArticleFournisseurRepository $articleFournisseurRepository, FournisseurRepository $fournisseurRepository, UserService $userService)
+    public function __construct(ArrivageRepository $arrivageRepository, FournisseurDataService $fournisseurDataService,ReceptionReferenceArticleRepository $receptionReferenceArticleRepository, ReceptionRepository $receptionRepository, ArticleFournisseurRepository $articleFournisseurRepository, FournisseurRepository $fournisseurRepository, UserService $userService)
     {
+        $this->arrivageRepository = $arrivageRepository;
         $this->fournisseurDataService = $fournisseurDataService;
         $this->fournisseurRepository = $fournisseurRepository;
         $this->userService = $userService;
@@ -166,7 +173,7 @@ class FournisseurController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            if ($this->countUsedFournisseurs($fournisseurId) == 0) {
+            if ($this->countUsedFournisseurs($fournisseurId) === 0) {
                 $delete = true;
                 $html = $this->renderView('fournisseur/modalDeleteFournisseurRight.html.twig');
             } else {
@@ -184,8 +191,8 @@ class FournisseurController extends AbstractController
         $usedFournisseur = $this->articleFournisseurRepository->countByFournisseur($fournisseurId);
         $usedFournisseur += $this->receptionRepository->countByFournisseur($fournisseurId);
         $usedFournisseur += $this->receptionReferenceArticleRepository->countByFournisseur($fournisseurId);
+        $usedFournisseur += $this->arrivageRepository->countByFournisseur($fournisseurId);
         // $$usedFournisseur += $this->mouvementRepository->countByFournisseur($fournisseurId);
-
         return $usedFournisseur;
     }
 
