@@ -18,6 +18,7 @@ use App\Repository\FournisseurRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\RoleRepository;
 use App\Repository\StatutRepository;
+use App\Repository\UtilisateurRepository;
 use App\Repository\ValeurChampsLibreRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
@@ -80,13 +81,19 @@ class UsersSCS1RecFixtures extends Fixture implements FixtureGroupInterface
     private $valeurCLRepository;
 
     /**
+     * @var UtilisateurRepository
+     */
+    private $utilisateurRepository;
+
+    /**
      * @var RoleRepository
      */
     private $roleRepository;
 
 
-    public function __construct(RoleRepository $roleRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, EmplacementRepository $emplacementRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampsLibreRepository $champsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $refArticleRepository, CategorieCLRepository $categorieCLRepository)
+    public function __construct(UtilisateurRepository $utilisateurRepository, RoleRepository $roleRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, EmplacementRepository $emplacementRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampsLibreRepository $champsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $refArticleRepository, CategorieCLRepository $categorieCLRepository)
     {
+        $this->utilisateurRepository = $utilisateurRepository;
         $this->roleRepository = $roleRepository;
         $this->typeRepository = $typeRepository;
         $this->champsLibreRepository = $champsLibreRepository;
@@ -116,17 +123,19 @@ class UsersSCS1RecFixtures extends Fixture implements FixtureGroupInterface
         foreach($rows as $row) {
             $utilisateur = new Utilisateur();
             $password = $this->encoder->encodePassword($utilisateur, 'DemSafran&123');
-            $utilisateur
-                ->setUsername($row[0] . ' ' . $row[1])
-                ->setEmail($row[2])
-                ->setRole($role)
-                ->setStatus(true)
-                ->setRoles(['USER'])// évite bug -> champ roles ne doit pas être vide
-                ->setPassword($password)
-                ->setColumnVisible(["Actions", "Libellé", "Référence", "Type", "Quantité", "Emplacement"])
-                ->setRecherche(["Libellé", "Référence"]);
-            dump('insert user ' . $row[0] . ' ' . $row[1]);
-            $manager->persist($utilisateur);
+            if ($this->utilisateurRepository->findOneByMail($row[2]) === null) {
+                $utilisateur
+                    ->setUsername($row[0] . ' ' . $row[1])
+                    ->setEmail($row[2])
+                    ->setRole($role)
+                    ->setStatus(true)
+                    ->setRoles(['USER'])// évite bug -> champ roles ne doit pas être vide
+                    ->setPassword($password)
+                    ->setColumnVisible(["Actions", "Libellé", "Référence", "Type", "Quantité", "Emplacement"])
+                    ->setRecherche(["Libellé", "Référence"]);
+                dump('insert user ' . $row[0] . ' ' . $row[1]);
+                $manager->persist($utilisateur);
+            }
         }
         $manager->flush();
         fclose($file);
