@@ -31,6 +31,4 @@ class MouvementRepository extends ServiceEntityRepository
 
         return $query->getSingleScalarResult();
     }
-
-
 }

@@ -3,8 +3,10 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\Arrivage;
 use App\Entity\CategorieStatut;
 use App\Entity\Menu;
+use App\Entity\MouvementTraca;
 use App\Repository\EmplacementRepository;
 use App\Repository\MouvementTracaRepository;
 use App\Repository\StatutRepository;
@@ -14,6 +16,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 use DateTime;
 
@@ -132,5 +135,38 @@ class MouvementTracaController extends AbstractController
         }
 
         throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/mouvement-infos", name="get_mouvements_for_csv", options={"expose"=true}, methods={"GET","POST"})
+     */
+    public function getMouvementIntels(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $dateMin = $data['dateMin'] . ' 00:00:00';
+            $dateMax = $data['dateMax'] . ' 23:59:59';
+            $mouvements = $this->mouvementRepository->findByDates($dateMin, $dateMax);
+
+            $headers = [];
+            // en-têtes champs fixes
+            $headers = array_merge($headers, ['date', 'colis', 'emplacement', 'type', 'opérateur']);
+            $data = [];
+            $data[] = $headers;
+
+            foreach ($mouvements as $mouvement) { /** @var MouvementTraca $mouvement */
+                $mouvementData = [];
+
+                $mouvementData[] = substr($mouvement->getDate(), 0,10). ' ' . substr($mouvement->getDate(), 11,8);
+                $mouvementData[] = $mouvement->getRefArticle();
+                $mouvementData[] = $mouvement->getRefEmplacement();
+                $mouvementData[] = $mouvement->getType();
+                $mouvementData[] = $mouvement->getOperateur();
+
+                $data[] = $mouvementData;
+            }
+            return new JsonResponse($data);
+        } else {
+            throw new NotFoundHttpException('404');
+        }
     }
 }

@@ -399,9 +399,11 @@ class LivraisonController extends AbstractController
 			foreach ($clDL as $champLibre) {
 				$headers[] = $champLibre->getLabel();
 			}
+
             // en-têtes champs fixes
             $headers = array_merge($headers, ['demandeur', 'statut', 'destination', 'commentaire', 'dateDemande', 'dateValidation', 'reference', 'type demande', 'referenceArticle', 'libelleArticle', 'quantite']);
-            // en-têtes champs libres articles
+
+			// en-têtes champs libres articles
             $clAR = $this->champsLibreRepository->findByCategoryTypeLabels([CategoryType::ARTICLES_ET_REF_CEA]);
             foreach ($clAR as $champLibre) {
                 $headers[] = $champLibre->getLabel();
@@ -411,6 +413,7 @@ class LivraisonController extends AbstractController
             $data[] = $headers;
             $listTypesArt = $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLES_ET_REF_CEA);
             $listTypesDL = $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
+
 
             $listChampsLibresDL = [];
 			foreach ($listTypesDL as $type) {
@@ -500,7 +503,6 @@ class LivraisonController extends AbstractController
 					$data[] = $livraisonData;
                 }
             }
-
             return new JsonResponse($data);
         } else {
             throw new NotFoundHttpException('404');
