@@ -106,7 +106,7 @@ function addCommentaire(select, bool) {
 
     let quillType = bool ? quillNew : quillEdit;
     originalText = quillType.getText().trim();
-    console.log('bool  ', bool);
+
     $.post(Routing.generate('add_comment', true), JSON.stringify(params), function (comment) {
         if (comment) {
             let d = new Date();
@@ -170,6 +170,106 @@ function dropOnDiv(event, div) {
     return false;
 }
 
+function dropNewOnDiv(event, div) {
+    if (event.dataTransfer) {
+        if (event.dataTransfer.files.length) {
+            // Stop the propagation of the event
+            event.preventDefault();
+            event.stopPropagation();
+            div.css('border', '3px dashed green');
+            // Main function to upload
+            keepForSave(event.dataTransfer.files);
+        }
+    } else {
+        div.css('border', '3px dashed #BBBBBB');
+    }
+    return false;
+}
+
+function openFE() {
+    $('#fileInput').click();
+}
+
+function uploadFE() {
+    let files = $('#fileInput')[0].files;
+    let formData = new FormData();
+    $.each(files, function (index, file) {
+        formData.append('file' + index, file);
+    });
+    let path = Routing.generate('arrivage_depose', true);
+
+    let arrivageId = $('#dropfile').data('arrivage-id');
+    formData.append('id', arrivageId);
+
+    $.ajax({
+        url: path,
+        data: formData,
+        type:"post",
+        contentType:false,
+        processData:false,
+        cache:false,
+        dataType:"json",
+        success:function(html){
+            let dropfile = $('#dropfile');
+            dropfile.css('border', '3px dashed #BBBBBB');
+            dropfile.after(html);
+        }
+    });
+}
+
+function openFENew() {
+    $('#fileInputNew').click();
+}
+
+function uploadFENew() {
+    let files = $('#fileInputNew')[0].files;
+    let formData = new FormData();
+    $.each(files, function (index, file) {
+        formData.append('file' + index, file);
+    });
+    let path = Routing.generate('garder_pj', true);
+    $.ajax({
+        url: path,
+        data: formData,
+        type:"post",
+        contentType:false,
+        processData:false,
+        cache:false,
+        dataType:"json",
+        success:function(html){
+            let dropfile = $('#dropfileNew');
+            dropfile.css('border', '3px dashed #BBBBBB');
+            dropfile.after(html);
+        }
+    });
+}
+
+function keepForSave(files) {
+
+    let formData = new FormData();
+    $.each(files, function (index, file) {
+        formData.append('file' + index, file);
+    });
+
+    let path = Routing.generate('garder_pj', true);
+
+    $.ajax({
+        url: path,
+        data: formData,
+        type:"post",
+        contentType:false,
+        processData:false,
+        cache:false,
+        dataType:"json",
+        success:function(html){
+            let dropfile = $('#dropfileNew');
+            dropfile.css('border', '3px dashed #BBBBBB');
+            dropfile.after(html);
+        }
+    });
+
+}
+
 function upload(files) {
 
     let formData = new FormData();
@@ -180,8 +280,6 @@ function upload(files) {
 
     let arrivageId = $('#dropfile').data('arrivage-id');
     formData.append('id', arrivageId);
-
-    let filepath = '/uploads/attachements/';
 
     $.ajax({
         url: path,
@@ -212,7 +310,9 @@ function submitActionArrivage(modal, path, table, callback, close) {
         if (this.readyState == 4 && this.status == 200) {
             $('.errorMessage').html(JSON.parse(this.responseText));
             data = JSON.parse(this.responseText);
-
+            $('p.attachement').each(function() {
+                $(this).remove();
+            });
             if (data.redirect) {
                 window.location.href = data.redirect;
                 return;
@@ -230,6 +330,9 @@ function submitActionArrivage(modal, path, table, callback, close) {
             clearModal(modal);
 
             if (callback !== null) callback(data);
+            if (close == true) {
+                modal.find('.close').click();
+            }
         }
     };
 
@@ -291,8 +394,6 @@ function submitActionArrivage(modal, path, table, callback, close) {
     modal.find(".elem").remove();
     // si tout va bien on envoie la requête ajax...
     if (missingInputs.length == 0 && wrongNumberInputs.length == 0 && passwordIsValid) {
-
-        if (close == true) modal.find('.close').click();
         Json = {};
         Json = JSON.stringify(Data);
         xhttp.open("POST", path, true);
@@ -427,16 +528,17 @@ function printLabels(data) {
     }
 }
 
-function deleteAttachement(arrivageId, pj, pjWithoutExtension) {
+function deleteAttachement(arrivageId, originalName, pjName) {
 
     let path = Routing.generate('arrivage_delete_attachement');
     let params = {
         arrivageId: arrivageId,
-        pj: pj
+        originalName: originalName,
+        pjName: pjName
     };
 
     $.post(path, JSON.stringify(params), function (data) {
-
+        let pjWithoutExtension = pjName.substr(0, pjName.indexOf('.'));
         if (data === true) {
             $('#' + pjWithoutExtension).remove();
         }
@@ -447,9 +549,9 @@ function listColis(elem) {
     let arrivageId = elem.data('id');
     let path = Routing.generate('arrivage_list_colis_api', true);
     let modal = $('#modalListColis');
-    let params = {id: arrivageId};
+    let params = { id: arrivageId };
 
-    $.post(path, JSON.stringify(params), function (data) {
+    $.post(path, JSON.stringify(params), function(data) {
         modal.find('.modal-body').html(data);
     }, 'json');
 }
@@ -463,7 +565,7 @@ function getDataAndPrintLabels(codes) {
         if (response.exists) {
             $("#barcodes").empty();
             let i = 0;
-            codesArray.forEach(function (code) {
+            codesArray.forEach(function(code) {
                 $('#barcodes').append('<img id="barcode' + i + '">')
                 JsBarcode("#barcode" + i, code, {
                     format: "CODE128",
@@ -479,6 +581,17 @@ function getDataAndPrintLabels(codes) {
             doc.save('Etiquettes ' + codes + '.pdf');
         }
     });
+}
+
+function deleteAttachementNew(pj) {
+    let params = {
+        pj: pj
+    };
+    $.post(Routing.generate('remove_one_kept_pj', true), JSON.stringify(params), function(data) {
+        $('p.attachement').each(function() {
+            if ($(this).attr('id') === pj) $(this).remove();
+        });
+    })
 }
 
 function generateCSVArrivage () {

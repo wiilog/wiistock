@@ -27,10 +27,6 @@ class Litige
      */
     private $type;
 
-    /**
-     * @ORM\Column(type="text", nullable=true)
-     */
-    private $commentaire;
 
     public function getId(): ?int
     {
@@ -61,15 +57,4 @@ class Litige
         return $this;
     }
 
-    public function getCommentaire(): ?string
-    {
-        return $this->commentaire;
-    }
-
-    public function setCommentaire(?string $commentaire): self
-    {
-        $this->commentaire = $commentaire;
-
-        return $this;
-    }
 }

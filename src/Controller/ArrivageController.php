@@ -15,6 +15,7 @@ use App\Entity\Litige;
 use App\Entity\Menu;
 use App\Entity\ParamClient;
 use App\Entity\ReferenceArticle;
+use App\Entity\PieceJointe;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Repository\ArrivageRepository;
@@ -23,6 +24,7 @@ use App\Repository\LitigeRepository;
 use App\Repository\ChauffeurRepository;
 use App\Repository\DimensionsEtiquettesRepository;
 use App\Repository\FournisseurRepository;
+use App\Repository\PieceJointeRepository;
 use App\Repository\StatutRepository;
 use App\Repository\TransporteurRepository;
 use App\Repository\TypeRepository;
@@ -32,6 +34,7 @@ use App\Service\SpecificService;
 use App\Service\UserService;
 use App\Service\MailerService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -93,6 +96,11 @@ class ArrivageController extends AbstractController
      */
     private $typeRepository;
 
+	/**
+	 * @var PieceJointeRepository
+	 */
+    private $pieceJointeRepository;
+
     /**
      * @var SpecificService
      */
@@ -124,6 +132,7 @@ class ArrivageController extends AbstractController
         $this->mailerService = $mailerService;
         $this->champsLibreRepository = $champsLibreRepository;
         $this->litigeRepository = $litigeRepository;
+        $this->pieceJointeRepository = $pieceJointeRepository;
     }
 
     /**
@@ -206,7 +215,6 @@ class ArrivageController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
-
             $em = $this->getDoctrine()->getEntityManager();
 
             $statutLabel = $data['statut'] === '1' ? Statut::CONFORME : Statut::ATTENTE_ACHETEUR;
@@ -219,7 +227,8 @@ class ArrivageController extends AbstractController
                 ->setDate($date)
                 ->setUtilisateur($this->getUser())
                 ->setStatut($statut)
-                ->setNumeroArrivage($numeroArrivage);
+                ->setNumeroArrivage($numeroArrivage)
+                ->setCommentaire($data['commentaire']);
 
             if (isset($data['fournisseur'])) {
                 $arrivage->setFournisseur($this->fournisseurRepository->find($data['fournisseur']));
@@ -244,6 +253,20 @@ class ArrivageController extends AbstractController
                     $arrivage->addAcheteur($this->utilisateurRepository->findOneByUsername($acheteur));
                 }
             }
+
+            $path = '../public/uploads/attachements/temp';
+
+            if (is_dir($path)) {
+                foreach(scandir($path) as $file) {
+                    if ('.' === $file) continue;
+                    if ('..' === $file) continue;
+
+                    $pj = $this->pieceJointeRepository->findOneByFileName($file);
+                    if ($pj) $pj->setArrivage($arrivage);
+                    copy($path . '/' . $file, $path . '/../' . $file);
+                    unlink($path . '/' . $file);
+                }
+            }
             if (isset($data['nbUM'])) {
                 $arrivage->setNbUM((int)$data['nbUM']);
 
@@ -262,8 +285,7 @@ class ArrivageController extends AbstractController
                 $litige = new Litige();
                 $litige
                     ->setType($this->typeRepository->find($data['litigeType']))
-                    ->setArrivage($arrivage)
-                    ->setCommentaire($data['commentaire']);
+                    ->setArrivage($arrivage);
                 $em->persist($litige);
 
                 $this->sendMailToAcheteurs($arrivage, $litige, true);
@@ -310,6 +332,7 @@ class ArrivageController extends AbstractController
             if ($this->userService->hasRightFunction(Menu::ARRIVAGE, Action::CREATE_EDIT)) {
                 $html = $this->renderView('arrivage/modalEditArrivageContent.html.twig', [
                     'arrivage' => $arrivage,
+                    'attachements' => $this->pieceJointeRepository->findBy(['arrivage' => $arrivage]),
                     'conforme' => $arrivage->getStatut()->getNom() === Statut::CONFORME,
                     'utilisateurs' => $this->utilisateurRepository->findAllSorted(),
                     'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::ARRIVAGE),
@@ -345,6 +368,10 @@ class ArrivageController extends AbstractController
             $em = $this->getDoctrine()->getManager();
 
             $arrivage = $this->arrivageRepository->find($data['id']);
+
+            if (isset($data['commentaire'])) {
+                $arrivage->setCommentaire($data['commentaire']);
+            }
             $hasChanged = false;
             if (isset($data['statut'])) {
                 $statut = $this->statutRepository->find($data['statut']);
@@ -383,6 +410,10 @@ class ArrivageController extends AbstractController
             if (isset($data['nbUM'])) {
                 $arrivage->setNbUM((int)$data['nbUM']);
             }
+            if (isset($data['statutAcheteur'])) {
+                $statutName = $data['statutAcheteur'] ? Statut::TRAITE_ACHETEUR : Statut::ATTENTE_ACHETEUR;
+                $arrivage->setStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::ARRIVAGE, $statutName));
+            }
 
             // traitement de l'éventuel litige
             $litige = $arrivage->getLitige();
@@ -399,16 +430,13 @@ class ArrivageController extends AbstractController
                 if (isset($data['litigeType'])) {
                     $litige->setType($this->typeRepository->find($data['litigeType']));
                 }
-                if (isset($data['commentaire'])) {
-                    $litige->setCommentaire($data['commentaire']);
-                }
 
                 // si le statut repasse en 'attente acheteur', on envoie un mail aux acheteurs
                 if ($statutLabel == Statut::ATTENTE_ACHETEUR && $hasChanged) {
                     $this->sendMailToAcheteurs($arrivage, $litige, false);
                 }
 
-                // conforme : on supprime l'éventuel litige
+			// conforme : on supprime l'éventuel litige
             } else {
                 if (!empty($litige)) {
                     $em->remove($litige);
@@ -462,19 +490,32 @@ class ArrivageController extends AbstractController
             for ($i = 0; $i < count($request->files); $i++) {
                 $file = $request->files->get('file' . $i);
                 if ($file) {
-                    // generate a random name for the file but keep the extension
-                    $filename = uniqid() . "." . $file->getClientOriginalExtension();
-                    $file->move($path, $filename); // move the file to a path
+					if ($file->getClientOriginalExtension()) {
+						$filename = uniqid() . "." . $file->getClientOriginalExtension();
+					} else {
+						$filename = uniqid();
+					}
+                    $file->move($path, $filename);
 
-                    $arrivage->addPiecesJointes($filename);
-                    $fileNames[] = $filename;
+                    $pj = new PieceJointe();
+                    $pj
+						->setFileName($filename)
+						->setOriginalName($file->getClientOriginalName())
+						->setArrivage($arrivage);
+                    $em->persist($pj);
+
+                    $fileNames[] = ['name' => $filename, 'originalName' => $file->getClientOriginalName()];
                 }
             }
             $em->flush();
 
             $html = '';
             foreach ($fileNames as $fileName) {
-                $html .= $this->renderView('arrivage/attachementLine.html.twig', ['arrivage' => $arrivage, 'pj' => $fileName]);
+                $html .= $this->renderView('arrivage/attachementLine.html.twig', [
+                	'arrivage' => $arrivage,
+					'pjName' => $fileName['name'],
+					'originalName' => $fileName['originalName']
+				]);
             }
 
             return new JsonResponse($html);
@@ -489,13 +530,14 @@ class ArrivageController extends AbstractController
     public function deleteAttachement(Request $request)
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			$em = $this->getDoctrine()->getManager();
 
             $arrivageId = (int)$data['arrivageId'];
 
-            $arrivage = $this->arrivageRepository->find($arrivageId);
-            if ($arrivage) {
-                $arrivage->removePieceJointe($data['pj']);
-                $this->getDoctrine()->getManager()->flush();
+            $attachement = $this->pieceJointeRepository->findOneByFileNameAndArrivageId($data['pjName'], $arrivageId);
+            if ($attachement) {
+            	$em->remove($attachement);
+                $em->flush();
                 $response = true;
             } else {
                 $response = false;
@@ -578,9 +620,51 @@ class ArrivageController extends AbstractController
             }
             return new JsonResponse($response);
 
-        } else {
-            throw new NotFoundHttpException('404');
-        }
+		} else {
+			throw new NotFoundHttpException('404');
+		}
+	}
+
+    /**
+     * @Route("/garder-pj", name="garder_pj", options={"expose"=true}, methods="GET|POST")
+     */
+    public function keepAttachmentForNew(Request $request)
+    {
+		if ($request->isXmlHttpRequest()) {
+			$em = $this->getDoctrine()->getManager();
+
+			$fileNames = [];
+			$html = '';
+			$path = "../public/uploads/attachements/temp/";
+			for ($i = 0; $i < count($request->files); $i++) {
+				$file = $request->files->get('file' . $i);
+				if ($file) {
+					if ($file->getClientOriginalExtension()) {
+						$filename = uniqid() . "." . $file->getClientOriginalExtension();
+					} else {
+						$filename = uniqid();
+					}
+					$fileNames[] = $filename;
+					$file->move($path, $filename);
+					$html .= $this->renderView('arrivage/attachementLine.html.twig', [
+						'arrivage' => null,
+						'pjName' => $filename,
+						'isNew' => true,
+						'originalName' => $file->getClientOriginalName()
+					]);
+					$pj = new PieceJointe();
+					$pj
+						->setOriginalName($file->getClientOriginalName())
+						->setFileName($filename);
+					$em->persist($pj);
+				}
+				$em->flush();
+			}
+
+			return new JsonResponse($html);
+		} else {
+			throw new NotFoundHttpException('404');
+		}
     }
 
     /**
@@ -633,4 +717,26 @@ class ArrivageController extends AbstractController
             throw new NotFoundHttpException('404');
         }
     }
+
+    /**
+     * @Route("/enlever-une-pj", name="remove_one_kept_pj", options={"expose"=true}, methods="GET|POST")
+     */
+    public function deleteOneAttachmentForNew(Request $request)
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $path = "../public/uploads/attachements/temp/" . $data['pj'];
+            unlink($path);
+            return new JsonResponse();
+        }
+        throw new NotFoundHttpException('404');
+    }
+
+    function delete_files($target)
+    {
+        if (is_dir($target)) {
+            array_map('unlink', glob("$target/*.*"));
+            rmdir($target);
+        }
+    }
+
 }
