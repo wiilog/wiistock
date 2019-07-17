@@ -6,9 +6,12 @@
 <h1>Emplacements</h1>
 
 <div class='row'>
-    <a href="" data-toggle="modal" data-target="#modalNewEmplacement" class="btn btn-primary">
+    {% if hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+    <a href="" data-toggle="modal" data-target="#modalNewEmplacement" class="btn btn-primary"
+        onclick="clearModal('#modalNewEmplacement')">
         <span class="fa fa-plus mr-2"></span>Nouvel emplacement
     </a>
+    {% endif %}
 </div>
 
 <table id="tableEmplacement_id" class="table table-striped table-bordered w-100">

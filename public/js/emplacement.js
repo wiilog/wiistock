@@ -25,7 +25,7 @@ let tableEmplacement = $('#tableEmplacement_id').DataTable({
 let modalNewEmplacement = $("#modalNewEmplacement");
 let submitNewEmplacement = $("#submitNewEmplacement");
 let urlNewEmplacement = Routing.generate('emplacement_new', true);
-InitialiserModal(modalNewEmplacement, submitNewEmplacement, urlNewEmplacement, tableEmplacement);
+InitialiserModal(modalNewEmplacement, submitNewEmplacement, urlNewEmplacement, tableEmplacement, verifyModal, false);
 
 let modalDeleteEmplacement = $('#modalDeleteEmplacement');
 let submitDeleteEmplacement = $('#submitDeleteEmplacement');
@@ -52,3 +52,12 @@ function checkAndDeleteRow(icon) {
         }
     });
 }
+
+function verifyModal(data) {
+    if(data.success === true) {
+        $('#modalNewEmplacement').find('.close').click();
+    } else {
+        $('#modalNewEmplacement').find('.error-msg').html(data.msg);
+    }
+}
+
