@@ -86,24 +86,22 @@ class PasswordService
 
 	public function checkPassword($password, $password2)
 	{
-	    if ($password === $password2 && $password === '') {
-            if ($password !== $password2) {
-                $response = false;
-                $message = 'Les mots de passe ne correspondent pas.';
-            } elseif (strlen($password) < 8) {
-                $response = false;
-                $message = 'Le mot de passe doit faire au moins 8 caractères.';
-            } elseif (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/', $password)) {
-                $response = false;
-                $message = 'Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial.';
-            } else {
-                $response = true;
-                $message = '';
-            }
-        } else {
-            $response = true;
-            $message = '';
-        }
+		if ($password === $password2 && $password === '') {
+			$response = true;
+			$message = '';
+		} elseif ($password !== $password2) {
+			$response = false;
+			$message = 'Les mots de passe ne correspondent pas.';
+		} elseif (strlen($password) < 8) {
+			$response = false;
+			$message = 'Le mot de passe doit faire au moins 8 caractères.';
+		} elseif (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/', $password)) {
+			$response = false;
+			$message = 'Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial.';
+		} else {
+			$response = true;
+			$message = '';
+		}
 
 		return [
 			'response' => $response,
