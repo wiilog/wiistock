@@ -2,17 +2,9 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\Article;
-use App\Entity\ArticleFournisseur;
-use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
-use App\Entity\ChampsLibre;
-use App\Entity\Demande;
-use App\Entity\Emplacement;
-use App\Entity\Fournisseur;
-use App\Entity\Statut;
-use App\Entity\Type;
 use App\Entity\ValeurChampsLibre;
+
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\CategorieCLRepository;
@@ -22,17 +14,17 @@ use App\Repository\FournisseurRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\StatutRepository;
 use App\Repository\ValeurChampsLibreRepository;
-use Doctrine\Bundle\FixturesBundle\Fixture;
-use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
-use Doctrine\Common\Persistence\ObjectManager;
-use Symfony\Bundle\FrameworkBundle\Tests\Fixtures\Validation\Category;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
-
-use App\Entity\ReferenceArticle;
 use App\Repository\TypeRepository;
 use App\Repository\ChampsLibreRepository;
 
-class AfterFileCEAFixtures extends Fixture implements FixtureGroupInterface
+use Doctrine\Bundle\FixturesBundle\Fixture;
+
+use Doctrine\Common\Persistence\ObjectManager;
+
+use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+
+
+class AfterFileCEAFixtures extends Fixture
 {
     private $encoder;
 
@@ -109,9 +101,9 @@ class AfterFileCEAFixtures extends Fixture implements FixtureGroupInterface
 
     public function load(ObjectManager $manager)
     {
-        $clCodeProjet = $this->champsLibreRepository->findOneByLabel(ChampsLibre::LABEL_CP_DEM);
-        $clDestinataire = $this->champsLibreRepository->findOneByLabel(ChampsLibre::LABEL_DESTI_DEM);
-        $siliTypeDemande = $this->typeRepository->findOneByCategoryLabelAndLabel(CategoryType::DEMANDE_LIVRAISON, Type::SILI_DEM);
+        $clCodeProjet = $this->champsLibreRepository->findOneByLabel('code projet');
+        $clDestinataire = $this->champsLibreRepository->findOneByLabel('destinataire');
+        $siliTypeDemande = $this->typeRepository->findOneByCategoryLabelAndLabel(CategoryType::DEMANDE_LIVRAISON, 'sili');
         $path = "src/DataFixtures/demandes.csv";
         $file = fopen($path, "r");
 
@@ -129,37 +121,25 @@ class AfterFileCEAFixtures extends Fixture implements FixtureGroupInterface
             $valeurChampLibreDestinataire = $this->valeurChampLibreRepository->findOneByDemandeLivraisonAndChampsLibre($demande, $clDestinataire);
             if (empty($valeurChampLibreCP)) {
                 $valeurChampLibreCP = new ValeurChampsLibre();
-                $valeurChampLibreCP
-                    ->setValeur($row[1])
-                    ->addDemandesLivraison($demande)
-                    ->setChampLibre($clCodeProjet);
                 $manager->persist($valeurChampLibreCP);
-            } else {
-                $valeurChampLibreCP
-                    ->setValeur($row[1])
-                    ->addDemandesLivraison($demande)
-                    ->setChampLibre($clCodeProjet);
             }
+			$valeurChampLibreCP
+				->setValeur($row[1])
+				->addDemandesLivraison($demande)
+				->setChampLibre($clCodeProjet);
+
             if (empty($valeurChampLibreDestinataire)) {
                 $valeurChampLibreDestinataire = new ValeurChampsLibre();
-                $valeurChampLibreDestinataire
-                    ->setValeur($row[2])
-                    ->addDemandesLivraison($demande)
-                    ->setChampLibre($clDestinataire);
                 $manager->persist($valeurChampLibreDestinataire);
-            } else {
-                $valeurChampLibreDestinataire
-                    ->setValeur($row[2])
-                    ->addDemandesLivraison($demande)
-                    ->setChampLibre($clDestinataire);
             }
+			$valeurChampLibreDestinataire
+				->setValeur($row[2])
+				->addDemandesLivraison($demande)
+				->setChampLibre($clDestinataire);
+
             dump('Setted cp and desti CL ' . $row[1] . ' - ' . $row[2] . ' for demande n°' . $demande->getId());
         }
         $manager->flush();
-    }
-
-    public static function getGroups():array {
-        return ['transfertCEA'];
     }
 
 }
