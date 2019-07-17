@@ -12,7 +12,7 @@ let tableArrivage = $('#tableArrivages').DataTable({
     language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
-    order: [[0, "desc"]],
+    order: [[11, "desc"]],
     scrollX: true,
     ajax: {
         "url": pathArrivage,
@@ -35,6 +35,10 @@ let tableArrivage = $('#tableArrivages').DataTable({
     ],
 
 });
+
+tableArrivage.on('responsive-resize', function (e, datatable) {
+    datatable.columns.adjust().responsive.recalc();
+})
 
 let modalNewArrivage = $("#modalNewArrivage");
 let submitNewArrivage = $("#submitNewArrivage");
