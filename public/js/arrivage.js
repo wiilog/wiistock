@@ -165,7 +165,18 @@ function dropOnDiv(event, div) {
             event.stopPropagation();
             div.css('border', '3px dashed green');
             // Main function to upload
-            upload(event.dataTransfer.files);
+            let valid = true;
+            Array.prototype.forEach.call(event.dataTransfer.files, file => {
+                if (!(['pdf', 'xls', 'xlsx', 'png', 'jpg', 'jpeg', 'doc', 'docx', 'ppt', 'pptx', 'csv'].includes(file.name.split('.').pop())) && valid) {
+                    div.closest('.modal-body').next('.error-msg').html('L\'extension .' + file.name.split('.').pop() + ' n\'est pas supportée.');
+                    valid = false;
+                }
+            });
+            if (valid) {
+                upload(event.dataTransfer.files);
+                div.closest('.modal-body').next('.error-msg').html('');
+            }
+            else div.css('border', '3px dashed #BBBBBB');
         }
     } else {
         div.css('border', '3px dashed #BBBBBB');
@@ -181,7 +192,18 @@ function dropNewOnDiv(event, div) {
             event.stopPropagation();
             div.css('border', '3px dashed green');
             // Main function to upload
-            keepForSave(event.dataTransfer.files);
+            let valid = true;
+            Array.prototype.forEach.call(event.dataTransfer.files, file => {
+                if (!(['pdf', 'xls', 'xlsx', 'png', 'jpg', 'jpeg', 'doc', 'docx', 'ppt', 'pptx', 'csv'].includes(file.name.split('.').pop())) && valid) {
+                    div.closest('.modal-body').next('.error-msg').html('L\'extension .' + file.name.split('.').pop() + ' n\'est pas supportée.');
+                    valid = false;
+                }
+            });
+            if (valid) {
+                keepForSave(event.dataTransfer.files);
+                div.closest('.modal-body').next('.error-msg').html('');
+            }
+            else div.css('border', '3px dashed #BBBBBB');
         }
     } else {
         div.css('border', '3px dashed #BBBBBB');
