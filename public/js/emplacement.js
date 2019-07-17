@@ -25,7 +25,7 @@ let tableEmplacement = $('#tableEmplacement_id').DataTable({
 let modalNewEmplacement = $("#modalNewEmplacement");
 let submitNewEmplacement = $("#submitNewEmplacement");
 let urlNewEmplacement = Routing.generate('emplacement_new', true);
-InitialiserModal(modalNewEmplacement, submitNewEmplacement, urlNewEmplacement, tableEmplacement);
+InitialiserModal(modalNewEmplacement, submitNewEmplacement, urlNewEmplacement, tableEmplacement, displayErrorEmplacement, false);
 
 let modalDeleteEmplacement = $('#modalDeleteEmplacement');
 let submitDeleteEmplacement = $('#submitDeleteEmplacement');
@@ -51,4 +51,10 @@ function checkAndDeleteRow(icon) {
             submitDeleteEmplacement.attr('value', id);
         }
     });
+}
+
+function displayErrorEmplacement(data) {
+    let modal = $("#modalNewEmplacement");
+    let msg = "Ce nom d'emplacement existe déjà. Veuillez en choisir un autre.";
+    displayError(modal, msg, data);
 }

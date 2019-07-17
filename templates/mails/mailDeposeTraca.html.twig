@@ -1,4 +1,4 @@
- <html>
+<html>
 <style>
     body {
         font-family: 'Source Sans Pro', sans-serif;
@@ -24,12 +24,28 @@
     </tr>
     <tr>
         <td style="font-weight:bold;">Emplacement</td>
-        <td>{{ emplacement }}</td>
+        <td>{{ emplacement.label }}{% if emplacement.description is not empty %} : {{ emplacement.description }}{% endif %}</td>
     </tr>
     <tr>
         <td style="font-weight:bold;">Opérateur</td>
         <td>{{ operateur }}</td>
     </tr>
+
+    <tr>
+        <td style="font-weight:bold;">Pièces jointes</td>
+        <td>
+            <table>
+                {% for pj in pjs %}
+                    <tr>
+                        <td>
+                            <a href="{{ app.request.getSchemeAndHttpHost() ~ asset('uploads/attachements/' ~ pj.fileName) }}"> {{ pj.OriginalName }} </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </td>
+    </tr>
+
     </tbody>
 </table>
 
