@@ -35,8 +35,8 @@
         <td style="font-weight:bold;">Pièces jointes</td>
         {% for pj in pjs %}
             <td>
-                <a href="{{ app.request.getSchemeAndHttpHost() ~ asset('uploads/attachements/' ~ pj.fileName) }}"> {{ pj.OriginalName }} </a><br>
-            </td>
+                <a href="{{ app.request.getSchemeAndHttpHost() ~ asset('uploads/attachements/' ~ pj.fileName) }}"> {{ pj.OriginalName }} </a>
+            </td><br />
         {% endfor %}
     </tr>
 
