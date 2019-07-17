@@ -65,13 +65,9 @@ class TypeFixtures extends Fixture implements DependentFixtureInterface, Fixture
             dump("création du type " . CategoryType::RECEPTION);
         }
 
-        // categorie demande de livraison
+        // categorie demandes de livraison et de collecte
         $typesNames = [
-            Type::LABEL_PDT,
-            Type::LABEL_CSP,
-            Type::LABEL_SILI,
-            Type::LABEL_MOB,
-            Type::LABEL_CSB,
+            Type::LABEL_STANDARD,
         ];
 
         $categories = [

@@ -29,6 +29,21 @@ class MouvementTracaRepository extends ServiceEntityRepository
         return $query->getOneOrNullResult();
     }
 
+    public function findByDates($dateMin, $dateMax)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            'SELECT m
+            FROM App\Entity\MouvementTraca m
+            WHERE m.date BETWEEN :dateMin AND :dateMax'
+        )->setParameters([
+            'dateMin' => $dateMin,
+            'dateMax' => $dateMax
+        ]);
+        return $query->execute();
+    }
+
+
     // /**
     //  * @return MouvementTraca[] Returns an array of MouvementTraca objects
     //  */

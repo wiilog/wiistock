@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Demande;
 use App\Entity\Filter;
 use App\Entity\ReferenceArticle;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -414,6 +415,34 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             WHERE ra.typeQuantite = :typeQuantite"
         )->setParameter('typeQuantite', $typeQuantite);
         return $query->execute();
+    }
+
+    public function getTotalQuantityReservedByRefArticle($refArticle) {
+        $em = $this->getEntityManager();
+        return $em->createQuery(
+            'SELECT SUM(l.quantite)
+                  FROM App\Entity\LigneArticle l 
+                  JOIN l.demande d
+                  JOIN d.statut s
+                  WHERE l.reference = :refArticle AND s.nom = :statut'
+        )->setParameters([
+            'refArticle' => $refArticle,
+            'statut' => Demande::STATUT_A_TRAITER
+        ])->getSingleScalarResult();
+    }
+
+    public function getTotalQuantityReservedWithoutLigne($refArticle, $ligneArticle, $statut) {
+        $em = $this->getEntityManager();
+        return $em->createQuery(
+            'SELECT SUM(l.quantite)
+                  FROM App\Entity\LigneArticle l 
+                  JOIN l.demande d
+                  WHERE l.reference = :refArticle AND l.id != :id AND d.statut = :statut'
+        )->setParameters([
+            'refArticle' => $refArticle,
+            'id' => $ligneArticle->getId(),
+            'statut' => $statut
+        ])->getSingleScalarResult();
     }
 
 }

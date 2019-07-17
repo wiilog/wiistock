@@ -6,6 +6,7 @@ use App\Entity\Menu;
 use App\Entity\Utilisateur;
 use App\Repository\RoleRepository;
 use App\Repository\UtilisateurRepository;
+use App\Service\PasswordService;
 use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
@@ -41,13 +42,19 @@ class UtilisateurController extends Controller
 	 */
     private $encoder;
 
+	/**
+	 * @var PasswordService
+	 */
+    private $passwordService;
 
-    public function __construct(UserPasswordEncoderInterface $encoder, UtilisateurRepository $utilisateurRepository, RoleRepository $roleRepository, UserService $userService)
+
+    public function __construct(PasswordService $passwordService, UserPasswordEncoderInterface $encoder, UtilisateurRepository $utilisateurRepository, RoleRepository $roleRepository, UserService $userService)
     {
         $this->utilisateurRepository = $utilisateurRepository;
         $this->roleRepository = $roleRepository;
         $this->userService = $userService;
         $this->encoder = $encoder;
+        $this->passwordService = $passwordService;
     }
 
     /**
@@ -91,7 +98,7 @@ class UtilisateurController extends Controller
             $password = $data['password'];
             $password2 = $data['password2'];
             // validation du mot de passe
-            $result = $this->userService->checkPassword($password,$password2);
+            $result = $this->passwordService->checkPassword($password,$password2);
             if($result['response'] == false){
                 return new JsonResponse($result['message']);
             }
@@ -104,7 +111,6 @@ class UtilisateurController extends Controller
             }
 
             $utilisateur = new Utilisateur();
-            $password = $this->encoder->encodePassword($utilisateur, $data['password']);
 
             $role = $this->roleRepository->find($data['role']);
             $utilisateur
@@ -113,9 +119,13 @@ class UtilisateurController extends Controller
                 ->setRole($role)
                 ->setStatus(true)
                 ->setRoles(['USER'])// évite bug -> champ roles ne doit pas être vide
-                ->setPassword($password)
                 ->setColumnVisible(["Actions", "Libellé", "Référence", "Type", "Quantité", "Emplacement"])
                 ->setRecherche(["Libellé", "Référence"]);
+
+            if ($password !== '') {
+				$password = $this->encoder->encodePassword($utilisateur, $data['password']);
+				$utilisateur->setPassword($password);
+			}
 
             $em = $this->getDoctrine()->getManager();
             $em->persist($utilisateur);
@@ -158,9 +168,7 @@ class UtilisateurController extends Controller
 
             $utilisateur = $this->utilisateurRepository->find($data['user']);
 
-            $password = $data['password'];
-            $password2 = $data['password2'];
-            $result = $this->userService->checkPassword($password,$password2);
+            $result = $this->passwordService->checkPassword($data['password'],$data['password2']);
             if($result['response'] == false){
                 return new JsonResponse($result['message']);
             }
@@ -184,7 +192,7 @@ class UtilisateurController extends Controller
                 ->setStatus($data['status'] === 'active')
                 ->setUsername($data['username'])
                 ->setEmail($data['email']);
-            if ($password !== '') {
+            if ($data['password'] !== '') {
                 $password = $this->encoder->encodePassword($utilisateur, $data['password']);
                 $utilisateur->setPassword($password);
             }

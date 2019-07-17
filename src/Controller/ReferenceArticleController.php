@@ -10,16 +10,18 @@ use App\Entity\Filter;
 use App\Entity\Menu;
 use App\Entity\ParamClient;
 use App\Entity\ReferenceArticle;
-use App\Entity\Type;
 use App\Entity\Utilisateur;
 use App\Entity\ValeurChampsLibre;
 use App\Entity\CollecteReference;
 use App\Entity\LigneArticle;
 use App\Entity\CategorieCL;
 use App\Entity\Fournisseur;
+use App\Entity\Collecte;
 
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\FilterRepository;
+use App\Repository\ParametreRepository;
+use App\Repository\ParametreRoleRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\ChampsLibreRepository;
 use App\Repository\ValeurChampsLibreRepository;
@@ -35,9 +37,9 @@ use App\Repository\EmplacementRepository;
 
 use App\Service\RefArticleDataService;
 use App\Service\ArticleDataService;
-
 use App\Service\SpecificService;
 use App\Service\UserService;
+
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -45,14 +47,9 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
-use App\Service\FileUploader;
-use App\Entity\Collecte;
-use Proxies\__CG__\App\Entity\Livraison;
 use App\Entity\Demande;
-use Symfony\Component\Serializer\Encoder\JsonEncode;
 use App\Entity\ArticleFournisseur;
 use App\Repository\FournisseurRepository;
-use Symfony\Component\HttpKernel\Profiler\Profiler;
 
 /**
  * @Route("/reference-article")
@@ -158,8 +155,17 @@ class ReferenceArticleController extends Controller
 	 */
     private $specificService;
 
+	/**
+	 * @var ParametreRepository
+	 */
+    private $parametreRepository;
 
-    public function __construct(SpecificService $specificService, \Twig_Environment $templating, EmplacementRepository $emplacementRepository, FournisseurRepository $fournisseurRepository, CategorieCLRepository $categorieCLRepository, LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, ArticleDataService $articleDataService, LivraisonRepository $livraisonRepository, DemandeRepository $demandeRepository, CollecteRepository $collecteRepository, StatutRepository $statutRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FilterRepository $filterRepository, RefArticleDataService $refArticleDataService, UserService $userService)
+	/**
+	 * @var ParametreRoleRepository
+	 */
+    private $parametreRoleRepository;
+
+    public function __construct(ParametreRoleRepository $parametreRoleRepository, ParametreRepository $parametreRepository, SpecificService $specificService, \Twig_Environment $templating, EmplacementRepository $emplacementRepository, FournisseurRepository $fournisseurRepository, CategorieCLRepository $categorieCLRepository, LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, ArticleDataService $articleDataService, LivraisonRepository $livraisonRepository, DemandeRepository $demandeRepository, CollecteRepository $collecteRepository, StatutRepository $statutRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FilterRepository $filterRepository, RefArticleDataService $refArticleDataService, UserService $userService)
     {
         $this->emplacementRepository = $emplacementRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
@@ -181,6 +187,8 @@ class ReferenceArticleController extends Controller
         $this->fournisseurRepository = $fournisseurRepository;
         $this->templating = $templating;
         $this->specificService = $specificService;
+        $this->parametreRepository = $parametreRepository;
+        $this->parametreRoleRepository = $parametreRoleRepository;
     }
 
     /**
@@ -349,6 +357,16 @@ class ReferenceArticleController extends Controller
                 $ref = explode(';', $frl)[1];
                 $label = explode(';', $frl)[2];
                 $fournisseur = $this->fournisseurRepository->find(intval($fournisseurId));
+
+                // on vérifie que la référence article fournisseur n'existe pas déjà
+                $refFournisseurAlreadyExist = $this->articleFournisseurRepository->findByReferenceArticleFournisseur($ref);
+                if ($refFournisseurAlreadyExist) {
+                    return new JsonResponse([
+                        'success' => false,
+                        'msg' => 'Ce nom de référence article fournnisseur existe déjà. Vous ne pouvez pas le recréer.'
+                    ]);
+                }
+
                 $articleFournisseur = new ArticleFournisseur();
                 $articleFournisseur
                     ->setReferenceArticle($refArticle)
@@ -356,6 +374,7 @@ class ReferenceArticleController extends Controller
                     ->setReference($ref)
                     ->setLabel($label);
                 $em->persist($articleFournisseur);
+
             }
             $em->persist($refArticle);
             $em->flush();
@@ -650,11 +669,17 @@ class ReferenceArticleController extends Controller
             if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $refArticleId = $request->request->get('refArticleId');
 
+            $quantity = false;
+
+            $refArticleId = $request->request->get('refArticleId');
             $refArticle = $this->referenceArticleRepository->find($refArticleId);
 
-            $quantity = $refArticle ? ($refArticle->getQuantiteStock() ? $refArticle->getQuantiteStock() : 0) : 0;
+            if ($refArticle) {
+				if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+					$quantity = $refArticle->getQuantiteStock();
+				}
+			}
 
             return new JsonResponse($quantity);
         }
@@ -685,35 +710,15 @@ class ReferenceArticleController extends Controller
             $em = $this->getDoctrine()->getManager();
             $json = true;
 
-            //edit Refrence Article
             $refArticle = (isset($data['refArticle']) ? $this->referenceArticleRepository->find($data['refArticle']) : '');
-            //ajout demande
-            if (array_key_exists('livraison', $data) && $data['livraison']) {
-                $demande = $this->demandeRepository->find($data['livraison']);
-                if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-                    $this->refArticleDataService->editRefArticle($refArticle, $data);
-                    if ($this->ligneArticleRepository->countByRefArticleDemande($refArticle, $demande) < 1) {
-                        $ligneArticle = new LigneArticle;
-                        $ligneArticle
-                            ->setReference($refArticle)
-                            ->setDemande($demande)
-                            ->setQuantite(max((int)$data['quantitie'], 0)); // protection contre quantités négatives
 
-                        $em->persist($ligneArticle);
-                    } else {
-                        $ligneArticle = $this->ligneArticleRepository->findOneByRefArticleAndDemande($refArticle, $demande);
-                        /** @var LigneArticle $ligneArticle */
-                        $ligneArticle
-                            ->setQuantite($ligneArticle->getQuantite() + max($data["quantitie"], 0)); // protection contre quantités négatives
-                    }
-                } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-                    $this->articleDataService->editArticle($data);
-                    $article = $this->articleRepository->find($data['article']);
-                    $article->setQuantiteAPrelever(max($data['quantitie'], 0)); // protection contre quantités négatives
-                    $demande->addArticle($article);
-                } else {
-                    $json = false; //TOOD gérer message erreur
-                }
+            if (array_key_exists('livraison', $data) && $data['livraison']) {
+				$json = $this->refArticleDataService->addRefToDemand($data, $refArticle);
+				if ($json === 'article') {
+					$this->articleDataService->editArticle($data);
+					$json = true;
+				}
+
             } elseif (array_key_exists('collecte', $data) && $data['collecte']) {
                 $collecte = $this->collecteRepository->find($data['collecte']);
                 if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
@@ -744,7 +749,7 @@ class ReferenceArticleController extends Controller
                         ->setStatut($statut)
                         ->setReference($ref . '-' . $index)
                         ->setQuantite(max($data['quantitie'], 0)) // protection contre quantités négatives
-							//TODO CG quantite, quantitie ?
+							//TODO quantite, quantitie ?
                         ->setEmplacement($collecte->getPointCollecte())
                         ->setArticleFournisseur($articleFournisseur)
                         ->setType($refArticle->getType());
@@ -809,7 +814,8 @@ class ReferenceArticleController extends Controller
                     $editChampLibre = false;
                 }
 
-                $articleOrNo  = $this->articleDataService->getArticleOrNoByRefArticle($refArticle, $data['demande'], false);
+				$byRef = $this->userService->hasParamQuantityByRef();
+                $articleOrNo  = $this->articleDataService->getArticleOrNoByRefArticle($refArticle, $data['demande'], false, $byRef);
 
                 $json = [
                     'plusContent' => $this->renderView(
@@ -821,39 +827,16 @@ class ReferenceArticleController extends Controller
                         ]
                     ),
                     'editChampLibre' => $editChampLibre,
-                ];
+					'byRef' => $byRef && $refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE
+				];
             } else {
                 $json = false;
             }
+
             return new JsonResponse($json);
         }
         throw new NotFoundHttpException("404");
     }
-
-    //    /**
-    //     * @Route("/get-RefArticle", name="get_refArticle_in_reception", options={"expose"=true})
-    //     */
-    //    public function getRefArticleInReception(Request $request): Response
-    //    {
-    //        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-    //            $refArticle  = $this->referenceArticleRepository->find($data['referenceArticle']);
-    //            if ($refArticle) {
-    //                if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-    //                    $json  = $this->renderView('reference_article/newRefArticleByReference.html.twig');
-    //                } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-    //                    $json  = $this->renderView('reference_article/newRefArticleByArticle.html.twig', [
-    //                        'articlesFournisseurs' => $this->articleFournisseurRepository->findALL(),
-    //                    ]);
-    //                } else {
-    //                    $json = false;
-    //                }
-    //            } else {
-    //                $json = false;
-    //            }
-    //            return new JsonResponse($json);
-    //        }
-    //        throw new NotFoundHttpException("404");
-    //    }
 
     /**
      * @Route("/colonne-visible", name="save_column_visible", options={"expose"=true}, methods="GET|POST")

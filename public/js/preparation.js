@@ -12,7 +12,7 @@ let table = $('#table_id').DataTable({
     columnDefs: [
         {
             "type": "customDate",
-            "targets": 1
+            "targets": 2
         }
     ],
     "language": {
@@ -32,14 +32,22 @@ let table = $('#table_id').DataTable({
 $('#submitSearchPrepaLivraison').on('click', function () {
     let statut = $('#statut').val();
     let type = $('#type').val();
+    let utilisateur = $('#utilisateur').val()
+    let utilisateurString = utilisateur.toString();
+    let utilisateurPiped = utilisateurString.split(',').join('|');
     table
         .columns('Statut:name')
-        .search(statut)
+        .search(statut ? '^' + statut + '$' : '', true, false)
         .draw();
 
     table
         .columns('Type:name')
-        .search(type)
+        .search(type ? '^' + type + '$' : '', true, false)
+        .draw();
+
+    table
+        .columns('Opérateur:name')
+        .search(utilisateurPiped ? '^' + utilisateurPiped + '$' : '', true, false)
         .draw();
 
     $.fn.dataTable.ext.search.push(
@@ -101,7 +109,7 @@ let tableArticle = $('#tableArticle_id').DataTable({
 });
 
 let prepasToSplit = [];
-let articlesChosen = [];
+let articlesChosen = {};
 let actualIndex = 0;
 let startPreparation = function (value) {
     let path1 = Routing.generate('need_splitting', true);
@@ -127,8 +135,6 @@ let startPreparation = function (value) {
                     "language": {
                         url: "/js/i18n/dataTableLanguage.json",
                     },
-                    searching: false,
-                    info: false
                 });
                 $('#startSplitting').click();
             });
@@ -137,12 +143,13 @@ let startPreparation = function (value) {
 };
 
 function submitSplitting(submit) {
-    if ($('#scissionTitle').data('restant') <= 0) {
+    if ($('#scissionTitle').attr('data-restant') <= 0) {
         let path = Routing.generate('submit_splitting', true);
         let params = {
             'articles': articlesChosen,
             'quantite': submit.data('qtt'),
             'demande': submit.data('demande'),
+            'refArticle': submit.data('ref')
         };
         $.post(path, JSON.stringify(params), function () {
             $('#modalSplitting').find('.close').click();
@@ -150,11 +157,15 @@ function submitSplitting(submit) {
                 articlesChosen = [];
                 actualIndex++;
                 $('#splittingContent').html(prepasToSplit[actualIndex]);
-                $('#tableSplittingArticles').DataTable();
+                $('#tableSplittingArticles').DataTable({
+                    "language": {
+                        url: "/js/i18n/dataTableLanguage.json",
+                    },
+                });
                 $('#startSplitting').click();
             } else {
                 let path = Routing.generate('preparation_take_articles', true);
-                $.post(path, JSON.stringify(params), function () {
+                $.post(path, JSON.stringify(params), function (data) {
                     $('#startPreparation').addClass('d-none');
                     $('#finishPreparation').removeClass('d-none');
                     tableArticle.ajax.reload();
@@ -167,15 +178,46 @@ function submitSplitting(submit) {
     }
 }
 
-function addToScission(checkbox) {
-
-    let toSee = 0;
-    if (articlesChosen.includes(checkbox.data('id'))) {
-        articlesChosen.splice(articlesChosen.indexOf(checkbox.data('id')), 1);
-        $('#scissionTitle').attr('data-restant', parseFloat($('#scissionTitle').attr('data-restant')) + parseFloat(checkbox.data('quantite')));
-    } else {
+function typeInput(input) {
+    if (input.data('typed') !== input.val()) {
+        limitInput(input);
+        let newVal;
+        if (input.data('typed')) {
+            if (input.data('typed') > (input.val() === '' ? 0 : input.val())) {
+                newVal = parseFloat($('#scissionTitle').attr('data-restant')) + (input.data('typed') - input.val());
+            } else {
+                newVal = parseFloat($('#scissionTitle').attr('data-restant')) - (input.val() - input.data('typed'));
+            }
+        } else {
+            if (input.val() !== '') newVal = $('#scissionTitle').attr('data-restant') - input.val();
+        }
+        let toSee = 0;
+        $('#scissionTitle').attr('data-restant', newVal);
         if ($('#scissionTitle').attr('data-restant') > 0) {
-            articlesChosen.push(checkbox.data('id'));
+            toSee = $('#scissionTitle').attr('data-restant');
+        }
+        $('#quantiteRestante').html('Quantité restante : ' + toSee);
+        input.data('typed', input.val());
+    }
+}
+
+function addToScissionAll(checkbox) {
+    let toSee = 0;
+    let input = $('#' + checkbox.data('id'));
+    if (!checkbox.is(':checked')) {
+        if ($('#scissionTitle').attr('data-restant') < 0) {
+            $('#scissionTitle').attr('data-restant', input.val());
+        } else {
+            $('#scissionTitle').attr('data-restant', parseFloat($('#scissionTitle').attr('data-restant')) + parseFloat(checkbox.data('quantite')));
+        }
+        input.prop('disabled', false);
+        input.val('');
+        limitInput(input);
+    } else {
+        if (parseFloat($('#scissionTitle').attr('data-restant')) > 0) {
+            input.val(checkbox.data('quantite'));
+            limitInput(input);
+            input.prop('disabled', true);
             $('#scissionTitle').attr('data-restant', ($('#scissionTitle').attr('data-restant') - checkbox.data('quantite')));
         } else {
             checkbox.prop('checked', false);
@@ -184,10 +226,30 @@ function addToScission(checkbox) {
     if ($('#scissionTitle').attr('data-restant') > 0) {
         toSee = $('#scissionTitle').attr('data-restant');
     }
-    $('#quantiteRestante').html('Quantité restante ' + toSee);
+    $('#quantiteRestante').html('Quantité restante : ' + toSee);
     $('#scissionTitle').html("Choix d'articles pour la référence " + checkbox.data('ref'));
 }
 
+function limitInput(input) {
+    if (input.val().includes('.')) {
+        input.val(Math.trunc(input.val()));
+    }
+    if (input.val().includes('-')) {
+        input.val(input.val().replace('-', ''));
+    }
+    if (input.val().includes(',')) {
+
+    }
+    let id = input.data('id');
+    let restant = Math.min(
+        parseFloat($('#scissionTitle').attr('data-restant')) + (input.data('typed') ? parseFloat(input.data('typed')) : 0),
+        input.data('quantite'));
+    if (input.val() !== '') {
+        input.val(Math.min(input.val(), (restant >= 0 ? restant : 0)));
+    }
+    articlesChosen[id] = input.val();
+}
+
 function exitScissionModal() {
-    articlesChosen = [];
+    articlesChosen = {};
 }

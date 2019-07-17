@@ -27,11 +27,12 @@ class RolesFixtures extends Fixture implements FixtureGroupInterface
     public function load(ObjectManager $manager)
     {
         $rolesLabels = [
-            Role::NO_ACCESS_USER
+            Role::NO_ACCESS_USER,
+            Role::DEM_SAFRAN
         ];
 
         foreach ($rolesLabels as $roleLabel) {
-            $role = $this->roleRepository->findByLabel(Role::NO_ACCESS_USER);
+            $role = $this->roleRepository->findByLabel($roleLabel);
 
             if (empty($role)) {
                 $role = new Role();

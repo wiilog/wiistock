@@ -13,8 +13,8 @@ use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\ChampsLibre;
+use App\Entity\Demande;
 use App\Entity\Menu;
-use App\Entity\ParamClient;
 use App\Entity\Parametre;
 use App\Entity\ParametreRole;
 use App\Entity\ReceptionReferenceArticle;
@@ -38,6 +38,7 @@ use App\Repository\CategorieCLRepository;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+
 use Doctrine\ORM\EntityManagerInterface;
 
 class ArticleDataService
@@ -159,13 +160,16 @@ class ArticleDataService
     }
 
     /**
-     * @return array
-     *
+     * @param ReferenceArticle $refArticle
+     * @param string $demande
+     * @param bool $modifieRefArticle
+     * @param bool $byRef
+     * @return bool|string
      * @throws \Twig_Error_Loader
      * @throws \Twig_Error_Runtime
      * @throws \Twig_Error_Syntax
      */
-    public function getArticleOrNoByRefArticle($refArticle, $demande, $modifieRefArticle)
+    public function getArticleOrNoByRefArticle($refArticle, $demande, $modifieRefArticle, $byRef)
     {
         if ($demande === 'livraison') {
             $articleStatut = Article::STATUT_ACTIF;
@@ -205,15 +209,32 @@ class ArticleDataService
             } else {
                 $articles = [];
             }
+
+            $totalQuantity = 0;
             if (count($articles) < 1) {
                 $articles[] = [
                     'id' => '',
                     'reference' => 'aucun article disponible',
                 ];
+            } else {
+                foreach ($articles as $article) {
+					$totalQuantity += $article->getQuantite();
+                }
             }
-            $json = $this->templating->render('demande/newRefArticleByQuantiteArticleContent.html.twig', [
-                'articles' => $articles,
-            ]);
+			$availableQuantity = $totalQuantity - $this->referenceArticleRepository->getTotalQuantityReservedByRefArticle($refArticle);
+
+			if ($byRef && $demande == 'demande') {
+				$json = $this->templating->render('demande/choiceContent.html.twig', [
+					'maximum' => $availableQuantity
+				]);
+			} else {
+				$json = $this->templating->render($demande . '/newRefArticleByQuantiteArticleContent.html.twig', [
+					'articles' => $articles,
+					'maximum' => $availableQuantity
+				]);
+			}
+
+
         } else {
             $json = false; //TODO gérer erreur retour
         }
@@ -266,12 +287,10 @@ class ArticleDataService
         } elseif ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
             $statutArticleActif = $this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
             $articles = $this->articleRepository->findByRefArticleAndStatutWithoutDemand($refArticle, $statutArticleActif);
-            $maximum = 0;
-            foreach ($articles as $article) {
-                $maximum += $article->getQuantite();
-            }
 
-            $role = $this->user->getRole();
+			$totalQuantity = $this->articleRepository->getTotalQuantiteByRefAndStatut($refArticle, $statutArticleActif);
+
+			$role = $this->user->getRole();
             $param = $this->parametreRepository->findOneBy(['label' => Parametre::LABEL_AJOUT_QUANTITE]);
             $paramQuantite = $this->parametreRoleRepository->findOneByRoleAndParam($role, $param);
 
@@ -285,15 +304,19 @@ class ArticleDataService
                 $this->em->persist($paramQuantite);
                 $this->em->flush();
             }
+            $availableQuantity = $totalQuantity - $this->referenceArticleRepository->getTotalQuantityReservedByRefArticle($refArticle);
 
-            $data = [
-                'selection' => $this->templating->render('demande/newRefArticleByQuantiteArticleAndChoiceContent.html.twig', [
-                    'maximum' => $maximum,
-                    'reference' => $refArticle->getId(),
-                    'byRef' => $paramQuantite->getValue() == Parametre::VALUE_PAR_REF,
-                    'articles' => $articles
-                ]),
-            ];
+            $byRef = $paramQuantite->getValue() == Parametre::VALUE_PAR_REF;
+            if ($byRef) {
+            	$data = ['selection' => $this->templating->render('demande/choiceContent.html.twig', [
+            		'maximum' => $availableQuantity
+				])];
+			} else {
+            	$data = ['selection' => $this->templating->render('demande/newRefArticleByQuantiteArticleContent.html.twig', [
+					'articles' => $articles,
+					'maximum' => $availableQuantity,
+				])];
+			}
         } else {
             $data = false; //TODO gérer erreur retour
         }
@@ -383,9 +406,9 @@ class ArticleDataService
 //		// spécifique CEA : accès pour tous aux champs libres 'Code projet' et 'Destinataire'
 //		$isCea = $this->specificService->isCurrentClientNameFunction(ParamClient::CEA_LETI);
 //		if (!$isCea) {
-		if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
-			return new RedirectResponse($this->router->generate('access_denied'));
-		}
+        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
+            return new RedirectResponse($this->router->generate('access_denied'));
+        }
 //		}
 
         $entityManager = $this->em;
@@ -416,16 +439,16 @@ class ArticleDataService
                     $champLibre = $this->champsLibreRepository->find($champ);
 //					$labelCL = strtolower($champLibre->getLabel());
 //                    if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT) || ($isCea && ($labelCL == 'code projet' || $labelCL == 'destinataire'))) {
-					$valeurChampLibre = $this->valeurChampsLibreRepository->findOneByArticleANDChampsLibre($article->getId(), $champ);
-					if (!$valeurChampLibre) {
-						$valeurChampLibre = new ValeurChampsLibre();
-						$valeurChampLibre
-							->addArticle($article)
-							->setChampLibre($champLibre);
-					}
-					$valeurChampLibre->setValeur($data[$champ]);
-					$entityManager->persist($valeurChampLibre);
-					$entityManager->flush();
+                    $valeurChampLibre = $this->valeurChampsLibreRepository->findOneByArticleANDChampsLibre($article->getId(), $champ);
+                    if (!$valeurChampLibre) {
+                        $valeurChampLibre = new ValeurChampsLibre();
+                        $valeurChampLibre
+                            ->addArticle($article)
+                            ->setChampLibre($champLibre);
+                    }
+                    $valeurChampLibre->setValeur($data[$champ]);
+                    $entityManager->persist($valeurChampLibre);
+                    $entityManager->flush();
 //                    }
                 }
             }
@@ -441,7 +464,13 @@ class ArticleDataService
         $entityManager = $this->em;
         $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $data['statut'] === Article::STATUT_ACTIF ? Article::STATUT_ACTIF : Article::STATUT_INACTIF);
         $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
-        $ref = $date->format('YmdHis');
+        $ref = $date->format('dm');
+
+        $referenceArticle = $this->referenceArticleRepository->find($data['refArticle'])->getReference();
+        $referenceArticles = $this->articleRepository->countByReference($referenceArticle);
+
+        $i = $referenceArticles + 1;
+        $cpt = sprintf('%05u', $i);
 
         $toInsert = new Article();
         $type = $this->articleFournisseurRepository->find($data['articleFournisseur'])->getReferenceArticle()->getType();
@@ -450,7 +479,7 @@ class ArticleDataService
             ->setConform(!$data['conform'])
             ->setStatut($statut)
             ->setCommentaire($data['commentaire'])
-            ->setReference($ref . '-0')
+            ->setReference($referenceArticle . $ref . $cpt)
             ->setQuantite(max((int)$data['quantite'], 0))// protection contre quantités négatives
             ->setEmplacement($this->emplacementRepository->find($data['emplacement']))
             ->setArticleFournisseur($this->articleFournisseurRepository->find($data['articleFournisseur']))

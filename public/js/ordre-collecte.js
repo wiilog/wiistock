@@ -42,12 +42,12 @@ $('#submitSearchOrdreCollecte').on('click', function () {
 
     tableCollecte
         .columns('Statut:name')
-        .search(statut)
+        .search(statut ? '^' + statut + '$' : '', true, false)
         .draw();
 
     tableCollecte
         .columns('Type:name')
-        .search(type)
+        .search(type ? '^' + type + '$' : '', true, false)
         .draw();
 
     tableCollecte

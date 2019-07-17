@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\ChampsLibre;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Connection;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 use Proxies\__CG__\App\Entity\CategorieCL;
 
@@ -83,6 +84,17 @@ class ChampsLibreRepository extends ServiceEntityRepository
             ]
         );
         return $query->getResult();
+    }
+
+    public function findOneByLabel($label) {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT cl
+            FROM App\Entity\ChampsLibre cl 
+            WHERE cl.label LIKE :label
+            "
+        )->setParameter('label', $label);
+        return $query->getOneOrNullResult();
     }
 
     // pour les colonnes dynamiques
@@ -173,6 +185,21 @@ class ChampsLibreRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
+	/**
+	 * @param string[] $categoryTypeLabels
+	 * @return mixed
+	 */
+	public function findByCategoryTypeLabels($categoryTypeLabels)
+	{
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+			"SELECT c
+            FROM App\Entity\ChampsLibre c
+            JOIN c.type t
+            JOIN t.category cat
+            WHERE cat.label in (:categoryTypeLabels)"
+		)->setParameter('categoryTypeLabels', $categoryTypeLabels, Connection::PARAM_STR_ARRAY);
 
-
+		return $query->execute();
+	}
 }

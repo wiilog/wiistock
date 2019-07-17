@@ -16,6 +16,7 @@ class Role
 {
     const NO_ACCESS_USER = 'aucun accès';
     const CLIENT_UTIL = 'Client utilisation';
+    const DEM_SAFRAN = 'Demandeur Safran';
 
     /**
      * @ORM\Id()

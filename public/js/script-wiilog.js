@@ -243,17 +243,22 @@ function setMaxQuantityEdit(select) {
     }, 'json');
 }
 
-function toggleRadioButton(button, typeDemande) {
-    let path = Routing.generate('demande', true);
-    let demande = $('#demande');
-    let params = JSON.stringify( {demande: demande, typeDemande: typeDemande});
-
-    let boutonNouvelleDemande = button.closest('.modal').find('.boutonCreationDemande');
-    let sel = button.data('title');
-    let tog = button.data('toggle');
+function toggleRadioButton($button) {
+    let sel = $button.data('title');
+    let tog = $button.data('toggle');
     $('#' + tog).prop('value', sel);
     $('span[data-toggle="' + tog + '"]').not('[data-title="' + sel + '"]').removeClass('active').addClass('not-active');
     $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
+}
+
+function toggleLivraisonCollecte($button) {
+    toggleRadioButton($button);
+
+    let typeDemande = $button.data('title');
+    let path = Routing.generate('demande', true);
+    let demande = $('#demande');
+    let params = JSON.stringify( {demande: demande, typeDemande: typeDemande});
+    let boutonNouvelleDemande = $button.closest('.modal').find('.boutonCreationDemande');
 
     $.post(path, params, function (data) {
         if(data === false ){
@@ -269,13 +274,13 @@ function toggleRadioButton(button, typeDemande) {
             boutonNouvelleDemande.find('#creationDemande').html(
                 "<a href=\'" + pathIndex + "\'>Nouvelle demande de "  + typeDemande + "</a>"
             );
-            button.closest('.modal').find('.plusDemandeContent').addClass('d-none');
+            $button.closest('.modal').find('.plusDemandeContent').addClass('d-none');
         }
         else{
-            ajaxPlusDemandeContent(button, typeDemande);
-            button.closest('.modal').find('.boutonCreationDemande').addClass('d-none');
-            button.closest('.modal').find('.plusDemandeContent').removeClass('d-none');
-            button.closest('.modal').find('.editChampLibre').removeClass('d-none');
+            ajaxPlusDemandeContent($button, typeDemande);
+            $button.closest('.modal').find('.boutonCreationDemande').addClass('d-none');
+            $button.closest('.modal').find('.plusDemandeContent').removeClass('d-none');
+            $button.closest('.modal').find('.editChampLibre').removeClass('d-none');
         }
     }, 'json');
 }
@@ -285,6 +290,7 @@ function initEditorInModal(modal) {
 };
 
 function initEditor(div) {
+    console.log('quill');
     // protection pour éviter erreur console si l'élément n'existe pas dans le DOM
     if($(div).length) {
         return new Quill(div, {
@@ -308,13 +314,15 @@ function initEditor(div) {
 };
 
 //passe de l'éditeur à l'input pour envoi au back
-function setCommentaire(div) {
+function setCommentaire(div, quillArrivage = null) {
     // protection pour éviter erreur console si l'élément n'existe pas dans le DOM
-    if($(div).length) {
+    if($(div).length && quillArrivage === null) {
         let container = div;
         let quill = new Quill(container);
         let com = quill.container.firstChild.innerHTML;
         $(div).closest('.modal').find('#commentaire').val(com);
+    } else if (quillArrivage) {
+        $(div).closest('.modal').find('#commentaire').val(quillArrivage.container.firstChild.innerHTML);
     }
 };
 
@@ -470,12 +478,6 @@ function ajaxAutoUserInit(select) {
     });
 }
 
-function clearNewContent(button) {
-    button.parent().addClass('d-none');
-    $('#newContent').html('');
-    $('#reference').html('');
-}
-
 let toggleRequiredChampsLibres = function (select, require) {
     let bloc = require == 'create' ? $('#typeContentNew') : $('#typeContentEdit'); //TODO pas top
     bloc.find('.data').removeClass('needed');
@@ -508,7 +510,7 @@ function displayError(modal, msg, data) {
 }
 
 function clearModal(modal) {
-    $modal = $(modal);
+    let $modal = $(modal);
     let inputs = $modal.find('.modal-body').find(".data");
     // on vide tous les inputs (sauf les disabled et les input hidden)
     inputs.each(function () {
@@ -544,12 +546,12 @@ function clearCheckboxes($modal) {
 
 function adjustScalesForDoc(response) {
     let format = response.width > response.height ? 'l' : 'p';
-    console.log('Wanted scales : \n-Width : ' + response.width + '\n-Height : ' + response.height);
+    // console.log('Wanted scales : \n-Width : ' + response.width + '\n-Height : ' + response.height);
     let docTemp = new jsPDF(format, 'mm', [response.height, response.width]);
-    console.log('Document original scales : \n-Width : ' + docTemp.internal.pageSize.getWidth() + '\n-Height : ' + docTemp.internal.pageSize.getHeight())
+    // console.log('Document original scales : \n-Width : ' + docTemp.internal.pageSize.getWidth() + '\n-Height : ' + docTemp.internal.pageSize.getHeight())
     let newWidth = response.width * (response.width / docTemp.internal.pageSize.getWidth());
     let newHeight = response.height * (response.height / docTemp.internal.pageSize.getHeight());
     let doc = new jsPDF(format, 'mm', [newHeight, newWidth]);
-    console.log('Document adjusted scales : \n-Width : ' + doc.internal.pageSize.getWidth() + '\n-Height : ' + doc.internal.pageSize.getHeight());
+    // console.log('Document adjusted scales : \n-Width : ' + doc.internal.pageSize.getWidth() + '\n-Height : ' + doc.internal.pageSize.getHeight());
     return doc;
 }
