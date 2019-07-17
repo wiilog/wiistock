@@ -252,7 +252,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                                         'mails/mailDeposeTraca.html.twig',
                                         [
                                             'colis' => $colis->getCode(),
-                                            'emplacement' => $emplacement,
+                                            'emplacement' => $refEmplacement,
                                             'arrivage' => $arrivage->getNumeroArrivage(),
                                             'date' => $date,
                                             'operateur' => $mvt['operateur'],
