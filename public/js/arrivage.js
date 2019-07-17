@@ -12,7 +12,7 @@ let tableArrivage = $('#tableArrivages').DataTable({
     language: {
         url: "/js/i18n/dataTableLanguage.json",
     },
-    order: [[0, "desc"]],
+    order: [[11, "desc"]],
     scrollX: true,
     ajax: {
         "url": pathArrivage,
@@ -35,6 +35,10 @@ let tableArrivage = $('#tableArrivages').DataTable({
     ],
 
 });
+
+tableArrivage.on('responsive-resize', function (e, datatable) {
+    datatable.columns.adjust().responsive.recalc();
+})
 
 let modalNewArrivage = $("#modalNewArrivage");
 let submitNewArrivage = $("#submitNewArrivage");
@@ -114,8 +118,7 @@ function addCommentaire(select, bool) {
             date += ' ' + checkZero(d.getHours() + '') + ':' + checkZero(d.getMinutes() + '');
 
             let textToInsert = originalText.length > 0 && !bool ? originalText + "\n\n" : '';
-            console.log(comment);
-            console.log(quillType);
+
             quillType.setContents([
                 {insert: textToInsert},
                 {insert: date + ' : '},

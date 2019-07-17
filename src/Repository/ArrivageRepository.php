@@ -32,4 +32,17 @@ class ArrivageRepository extends ServiceEntityRepository
         ]);
         return $query->execute();
     }
+
+	public function countByFournisseur($fournisseurId)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			"SELECT COUNT(a)
+			FROM App\Entity\Arrivage a
+			WHERE a.fournisseur = :fournisseurId"
+		)->setParameter('fournisseurId', $fournisseurId);
+
+		return $query->getSingleScalarResult();
+	}
+
 }
