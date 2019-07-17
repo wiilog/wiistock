@@ -1,4 +1,4 @@
- <html>
+<html>
 <style>
     body {
         font-family: 'Source Sans Pro', sans-serif;
@@ -30,6 +30,19 @@
         <td style="font-weight:bold;">Opérateur</td>
         <td>{{ operateur }}</td>
     </tr>
+
+    <tr>
+        <td style="font-weight:bold;">Pièces jointes</td>
+        {% for pj in pjs %}
+            <td>
+                <a target="_blank" href={{ asset('uploads/attachements/' ~ {{ pj.fileName }}) }}>
+                    <i class="fa fa-file mr-2"></i>
+                    {{ pj.originalName }}
+                </a>
+            </td>
+        {% endfor %}
+    </tr>
+
     </tbody>
 </table>
 

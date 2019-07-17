@@ -43,4 +43,16 @@ class PieceJointeRepository extends ServiceEntityRepository
 
 		return $query->getOneOrNullResult();
 	}
+
+    public function findByArrivage($arrivage)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT pj
+           FROM App\Entity\PieceJointe pj
+           WHERE pj.arrivage = :arrivage"
+        )->setParameter('arrivage', $arrivage);
+
+        return $query->getResult();
+    }
 }

@@ -17,6 +17,7 @@ use App\Entity\ReferenceArticle;
 use App\Repository\ColisRepository;
 use App\Repository\MailerServerRepository;
 use App\Repository\MouvementTracaRepository;
+use App\Repository\PieceJointeRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\ArticleRepository;
@@ -111,6 +112,11 @@ class ApiController extends FOSRestController implements ClassResourceInterface
     private $logger;
 
     /**
+     * @var PieceJointeRepository
+     */
+    private $pieceJointeRepository;
+
+    /**
      * ApiController constructor.
      * @param LoggerInterface $logger
      * @param MailerServerRepository $mailerServerRepository
@@ -123,8 +129,9 @@ class ApiController extends FOSRestController implements ClassResourceInterface
      * @param ArticleRepository $articleRepository
      * @param EmplacementRepository $emplacementRepository
      */
-    public function __construct(LoggerInterface $logger, MailerServerRepository $mailerServerRepository, MailerService $mailerService, ColisRepository $colisRepository, MouvementTracaRepository $mouvementTracaRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
+    public function __construct(PieceJointeRepository $pieceJointeRepository, LoggerInterface $logger, MailerServerRepository $mailerServerRepository, MailerService $mailerService, ColisRepository $colisRepository, MouvementTracaRepository $mouvementTracaRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
     {
+        $this->pieceJointeRepository = $pieceJointeRepository;
         $this->mailerServerRepository = $mailerServerRepository;
         $this->mailerService = $mailerService;
         $this->colisRepository = $colisRepository;
@@ -247,7 +254,8 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                                             'emplacement' => $refEmplacement,
                                             'arrivage' => $arrivage->getNumeroArrivage(),
                                             'date' => $date,
-                                            'operateur' => $mvt['operateur']
+                                            'operateur' => $mvt['operateur'],
+                                            'pjs' => $this->pieceJointeRepository->findByArrivage($arrivage)
                                         ]
                                     ),
                                     $destinataire->getEmail()
