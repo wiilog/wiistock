@@ -326,7 +326,7 @@ let ajaxEditArticle = function (select) {
     xhttp.send(JSON.stringify(json));
 }
 
-let generateCSV = function () {
+let generateCSVDemande = function () {
     let data = {};
     $('.filterService, select').first().find('input').each(function () {
         if ($(this).attr('name') !== undefined) {

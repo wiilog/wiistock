@@ -4,17 +4,23 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\Arrivage;
+use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Colis;
+use App\Entity\Demande;
 use App\Entity\DimensionsEtiquettes;
+use App\Entity\LigneArticle;
 use App\Entity\Litige;
 use App\Entity\Menu;
 use App\Entity\ParamClient;
+use App\Entity\ReferenceArticle;
 use App\Entity\PieceJointe;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
 use App\Repository\ArrivageRepository;
+use App\Repository\ChampsLibreRepository;
+use App\Repository\LitigeRepository;
 use App\Repository\ChauffeurRepository;
 use App\Repository\DimensionsEtiquettesRepository;
 use App\Repository\FournisseurRepository;
@@ -23,6 +29,7 @@ use App\Repository\StatutRepository;
 use App\Repository\TransporteurRepository;
 use App\Repository\TypeRepository;
 use App\Repository\UtilisateurRepository;
+use App\Repository\ValeurChampsLibreRepository;
 use App\Service\SpecificService;
 use App\Service\UserService;
 use App\Service\MailerService;
@@ -99,9 +106,18 @@ class ArrivageController extends AbstractController
      */
     private $specificService;
 
+    /**
+     * @var ChampsLibreRepository
+     */
+    private $champsLibreRepository;
+
+    /**
+     * @var LitigeRepository
+     */
+    private $litigeRepository;
 
 
-    public function __construct(PieceJointeRepository $pieceJointeRepository, SpecificService $specificService, MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
+    public function __construct(PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, ChampsLibreRepository $champsLibreRepository, SpecificService $specificService, MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
     {
         $this->specificService = $specificService;
         $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
@@ -114,6 +130,8 @@ class ArrivageController extends AbstractController
         $this->chauffeurRepository = $chauffeurRepository;
         $this->typeRepository = $typeRepository;
         $this->mailerService = $mailerService;
+        $this->champsLibreRepository = $champsLibreRepository;
+        $this->litigeRepository = $litigeRepository;
         $this->pieceJointeRepository = $pieceJointeRepository;
     }
 
@@ -231,7 +249,7 @@ class ArrivageController extends AbstractController
                 $arrivage->setDestinataire($this->utilisateurRepository->find($data['destinataire']));
             }
             if (isset($data['acheteurs'])) {
-                foreach($data['acheteurs'] as $acheteur) {
+                foreach ($data['acheteurs'] as $acheteur) {
                     $arrivage->addAcheteur($this->utilisateurRepository->findOneByUsername($acheteur));
                 }
             }
@@ -379,15 +397,15 @@ class ArrivageController extends AbstractController
                 $arrivage->setDestinataire($this->utilisateurRepository->find($data['destinataire']));
             }
             if (isset($data['acheteurs'])) {
-              // on détache les acheteurs existants...
-              $existingAcheteurs = $arrivage->getAcheteurs();
-              foreach ($existingAcheteurs as $acheteur) {
-                $arrivage->removeAcheteur($acheteur);
-              }
-              // ... et on ajoute ceux sélectionnés
-              foreach($data['acheteurs'] as $acheteur) {
-                  $arrivage->addAcheteur($this->utilisateurRepository->findOneByUsername($acheteur));
-              }
+                // on détache les acheteurs existants...
+                $existingAcheteurs = $arrivage->getAcheteurs();
+                foreach ($existingAcheteurs as $acheteur) {
+                    $arrivage->removeAcheteur($acheteur);
+                }
+                // ... et on ajoute ceux sélectionnés
+                foreach ($data['acheteurs'] as $acheteur) {
+                    $arrivage->addAcheteur($this->utilisateurRepository->findOneByUsername($acheteur));
+                }
             }
             if (isset($data['nbUM'])) {
                 $arrivage->setNbUM((int)$data['nbUM']);
@@ -545,60 +563,62 @@ class ArrivageController extends AbstractController
         }
     }
 
-	/**
-	 * @Route("/ajoute-commentaire", name="add_comment",  options={"expose"=true}, methods="GET|POST")
-	 */
+    /**
+     * @Route("/ajoute-commentaire", name="add_comment",  options={"expose"=true}, methods="GET|POST")
+     */
     public function addComment(Request $request): Response
-	{
-		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-			$response = '';
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $response = '';
 
-			// spécifique SAFRAN CERAMICS ajout de commentaire
-			$isSafran = $this->specificService->isCurrentClientNameFunction(ParamClient::SAFRAN_CERAMICS);
+            // spécifique SAFRAN CERAMICS ajout de commentaire
+            $isSafran = $this->specificService->isCurrentClientNameFunction(ParamClient::SAFRAN_CERAMICS);
 
-			if ($isSafran) {
-				$type = $this->typeRepository->find($data['typeLitigeId']);
-				$response = $type->getDescription();
-			}
+            if ($isSafran) {
+                $type = $this->typeRepository->find($data['typeLitigeId']);
+                $response = $type->getDescription();
+            }
 
-			return new JsonResponse($response);
-		}
-		throw new NotFoundHttpException('404');
-	}
+            return new JsonResponse($response);
+        }
+        throw new NotFoundHttpException('404');
+    }
 
-	/**
-	 * @Route("/lister-colis", name="arrivage_list_colis_api", options={"expose"=true})
-	 */
+    /**
+     * @Route("/lister-colis", name="arrivage_list_colis_api", options={"expose"=true})
+     */
     public function listColisByArrivage(Request $request)
-	{
-		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-			$arrivage = $this->arrivageRepository->find($data['id']);
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $arrivage = $this->arrivageRepository->find($data['id']);
 
-			$html = $this->renderView('arrivage/modalListColisContent.html.twig', ['arrivage' => $arrivage]);
+            $html = $this->renderView('arrivage/modalListColisContent.html.twig', ['arrivage' => $arrivage]);
 
-			return new JsonResponse($html);
+            return new JsonResponse($html);
 
-		} else {
-			throw new NotFoundHttpException('404');
-		}
-	}
+        } else {
+            throw new NotFoundHttpException('404');
+        }
+    }
 
-	/**
-	 * @Route("/api-etiquettes", name="arrivage_get_data_to_print", options={"expose"=true})
-	 */
-	public function getDataToPrintLabels(Request $request) {
-		if ($request->isXmlHttpRequest()) {
+    /**
+     * @Route("/api-etiquettes", name="arrivage_get_data_to_print", options={"expose"=true})
+     */
+    public function getDataToPrintLabels(Request $request)
+    {
+        if ($request->isXmlHttpRequest()) {
 
-			$dimension = $this->dimensionsEtiquettesRepository->findOneDimension(); /** @var DimensionsEtiquettes $dimension */
-			if ($dimension) {
-				$response['height'] = $dimension->getHeight();
-				$response['width'] = $dimension->getWidth();
-				$response['exists'] = true;
-			} else {
-				$response['height'] = $response['width'] = 0;
+            $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
+            /** @var DimensionsEtiquettes $dimension */
+            if ($dimension) {
+                $response['height'] = $dimension->getHeight();
+                $response['width'] = $dimension->getWidth();
+                $response['exists'] = true;
+            } else {
+                $response['height'] = $response['width'] = 0;
                 $response['exists'] = false;
             }
-			return new JsonResponse($response);
+            return new JsonResponse($response);
 
 		} else {
 			throw new NotFoundHttpException('404');
@@ -645,6 +665,57 @@ class ArrivageController extends AbstractController
 		} else {
 			throw new NotFoundHttpException('404');
 		}
+    }
+
+    /**
+     * @Route("/arrivage-infos", name="get_arrivages_for_csv", options={"expose"=true}, methods={"GET","POST"})
+     */
+    public function getArrivageIntels(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $dateMin = $data['dateMin'] . ' 00:00:00';
+            $dateMax = $data['dateMax'] . ' 23:59:59';
+            $arrivages = $this->arrivageRepository->findByDates($dateMin, $dateMax);
+
+            $headers = [];
+            // en-têtes champs fixes
+            $headers = array_merge($headers, ['n° arrivage', 'destinataire', 'fournisseur', 'transporteur', 'chauffeur', 'n° tracking transporteur',
+                'n° commande/BL', 'acheteurs', 'nombre d\'UM', 'statut', 'type de litige', 'commentaire', 'date', 'utilisateur']);
+
+            $data = [];
+            $data[] = $headers;
+
+            foreach ($arrivages as $arrivage) {
+                /** @var Arrivage $arrivage */
+                $arrivageData = [];
+
+                $arrivageData[] = $arrivage->getNumeroArrivage();
+                $arrivageData[] = $arrivage->getDestinataire()->getUsername();
+                $arrivageData[] = $arrivage->getFournisseur()->getNom();
+                $arrivageData[] = $arrivage->getTransporteur()->getLabel();
+                $arrivageData[] = $arrivage->getChauffeur() ? $arrivage->getChauffeur()->getNom() . ' ' . $arrivage->getChauffeur()->getPrenom() : '';
+                $arrivageData[] = $arrivage->getNoTracking() ? $arrivage->getNoTracking() : '';
+                $arrivageData[] = $arrivage->getNumeroBL() ? $arrivage->getNumeroBL() : '';
+
+                $acheteurs = $arrivage->getAcheteurs();
+                $acheteurData = [];
+                foreach ($acheteurs as $acheteur) {
+                    $acheteurData[] = $acheteur->getUsername();
+                }
+                $arrivageData[] = implode(' / ', $acheteurData);
+                $arrivageData[] = $arrivage->getNbUM() ? $arrivage->getNbUM() : '';
+                $arrivageData[] = $arrivage->getStatut()->getNom();
+                $arrivageData[] = $arrivage->getLitige() ? $arrivage->getLitige()->getType()->getLabel() : '';
+                $arrivageData[] = strip_tags($arrivage->getCommentaire());
+                $arrivageData[] = $arrivage->getDate()->format('Y/m/d-H:i:s');
+                $arrivageData[] = $arrivage->getUtilisateur()->getUsername();
+
+                $data[] = $arrivageData;
+            }
+            return new JsonResponse($data);
+        } else {
+            throw new NotFoundHttpException('404');
+        }
     }
 
     /**
