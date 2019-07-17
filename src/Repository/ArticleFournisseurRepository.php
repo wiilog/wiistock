@@ -145,4 +145,16 @@ class ArticleFournisseurRepository extends ServiceEntityRepository
         return $query->getResult();
     }
 
+    public function countByFournisseur($fournisseurId)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			"SELECT COUNT(af)
+			FROM App\Entity\ArticleFournisseur af
+			WHERE af.fournisseur = :fournisseurId"
+		)->setParameter('fournisseurId', $fournisseurId);
+
+		return $query->getSingleScalarResult();
+	}
+
 }

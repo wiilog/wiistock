@@ -44,33 +44,16 @@ class ReceptionReferenceArticleRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();;
     }
 
+	public function countByFournisseur($fournisseurId)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			"SELECT COUNT(rra)
+			FROM App\Entity\ReceptionReferenceArticle rra
+			WHERE rra.fournisseur = :fournisseurId"
+		)->setParameter('fournisseurId', $fournisseurId);
 
-    // /**
-    //  * @return ReceptionReferenceArticle[] Returns an array of ReceptionReferenceArticle objects
-    //  */
-    /*
-    public function findByExampleField($value)
-    {
-        return $this->createQueryBuilder('r')
-            ->andWhere('r.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('r.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
+		return $query->getSingleScalarResult();
+	}
 
-    /*
-    public function findOneBySomeField($value): ?ReceptionReferenceArticle
-    {
-        return $this->createQueryBuilder('r')
-            ->andWhere('r.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
-    }
-    */
 }
