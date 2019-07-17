@@ -35,6 +35,7 @@
             <th>Nb UM</th>
             <th>Date</th>
             <th>Utilisateur</th>
+            <th>Commentaire</th>
         </tr>
         </thead>
         <tbody>
@@ -54,12 +55,12 @@
             <td>{{ arrivage.nbUM }}</td>
             <td>{{ arrivage.date|date('d/m/Y H:i') }}</td>
             <td>{{ arrivage.utilisateur.username}}</td>
+            <td>{{ arrivage.commentaire | raw}}</td>
         </tr>
         </tbody>
     </table>
 
     <p style="font-weight:bold;">Type de litige : {{ litige.type.label }}</p>
-    <p style="font-style:italic;">{{ litige.commentaire|raw }}</p>
 
     <hr>
 

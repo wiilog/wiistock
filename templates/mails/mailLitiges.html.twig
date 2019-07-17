@@ -54,7 +54,7 @@
             <td>{{ arrivage.nbUM }}</td>
             <td>{{ arrivage.date|date('d/m/Y H:i') }}</td>
             <td>{{ arrivage.utilisateur.username}}</td>
-            <td>{{ arrivage.commentaire}}</td>
+            <td>{{ arrivage.commentaire | raw}}</td>
         </tr>
         </tbody>
     </table>
