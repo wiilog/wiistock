@@ -344,7 +344,9 @@ class ArrivageController extends AbstractController
             } elseif (in_array($this->getUser()->getUsername(), $acheteursUsernames)) {
                 $html = $this->renderView('arrivage/modalEditArrivageContentLitige.html.twig', [
                     'arrivage' => $arrivage,
-                ]);
+					'attachements' => $this->pieceJointeRepository->findBy(['arrivage' => $arrivage]),
+					'conforme' => $arrivage->getStatut()->getNom() === Statut::CONFORME
+				]);
             } else {
                 $html = '';
             }
