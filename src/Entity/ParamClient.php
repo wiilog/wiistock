@@ -9,7 +9,11 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class ParamClient
 {
-	const CEA_LETI = 'CEA LETI';
+    const CEA_LETI = 'CEA LETI';
+    const CEA_PROD = 'https://cl2-prod.follow-gt.fr/';
+    const CEA_REC = 'https://cl1-rec.follow-gt.fr/';
+    const SAFRAN_REC = 'https://scs1-rec.follow-gt.fr/';
+    const SAFRAN_PROD = 'https://scs1-prod.follow-gt.fr/';
 	const SAFRAN_CERAMICS = 'SAFRAN CERAMICS';
 
     /**

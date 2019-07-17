@@ -143,9 +143,18 @@ class MouvementTracaController extends AbstractController
     public function getMouvementIntels(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $dateMin = $data['dateMin'] . ' 00:00:00';
-            $dateMax = $data['dateMax'] . ' 23:59:59';
+            $dateMin = $data['dateMin'] . '00:00:00';
+            $dateMax = $data['dateMax'] . '23:59:59';
+            $newDateMin = new DateTime($dateMin);
+            $newDateMax = new DateTime($dateMax);
             $mouvements = $this->mouvementRepository->findByDates($dateMin, $dateMax);
+            foreach($mouvements as $mouvement) {
+                $date = substr($mouvement->getDate(),0, -10);
+                $newDate = new DateTime($date);
+                if ($newDateMin >= $newDate || $newDateMax <= $newDate) {
+                    array_splice($mouvements, array_search($mouvement, $mouvements), 1);
+                }
+            }
 
             $headers = [];
             // en-têtes champs fixes
