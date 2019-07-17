@@ -575,7 +575,6 @@ class ArrivageController extends AbstractController
 
             // spécifique SAFRAN CERAMICS ajout de commentaire
             $isSafran = $this->specificService->isCurrentClientNameFunction(ParamClient::SAFRAN_CERAMICS);
-
             if ($isSafran) {
                 $type = $this->typeRepository->find($data['typeLitigeId']);
                 $response = $type->getDescription();
