@@ -201,7 +201,6 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
 			'champLibre' => $champLibre->getId(),
 			'demandeVCL' => $demande->getValeurChampLibre()
 		]);
-
 		return $query->getOneOrNullResult();
 	}
 
