@@ -86,6 +86,17 @@ class ChampsLibreRepository extends ServiceEntityRepository
         return $query->getResult();
     }
 
+    public function findOneByLabel($label) {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT cl
+            FROM App\Entity\ChampsLibre cl 
+            WHERE cl.label LIKE :label
+            "
+        )->setParameter('label', $label);
+        return $query->getOneOrNullResult();
+    }
+
     // pour les colonnes dynamiques
     public function getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, $type)
     {
