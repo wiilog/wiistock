@@ -290,6 +290,7 @@ function initEditorInModal(modal) {
 };
 
 function initEditor(div) {
+    console.log('quill');
     // protection pour éviter erreur console si l'élément n'existe pas dans le DOM
     if($(div).length) {
         return new Quill(div, {
@@ -313,13 +314,15 @@ function initEditor(div) {
 };
 
 //passe de l'éditeur à l'input pour envoi au back
-function setCommentaire(div) {
+function setCommentaire(div, quillArrivage = null) {
     // protection pour éviter erreur console si l'élément n'existe pas dans le DOM
-    if($(div).length) {
+    if($(div).length && quillArrivage === null) {
         let container = div;
         let quill = new Quill(container);
         let com = quill.container.firstChild.innerHTML;
         $(div).closest('.modal').find('#commentaire').val(com);
+    } else if (quillArrivage) {
+        $(div).closest('.modal').find('#commentaire').val(quillArrivage.container.firstChild.innerHTML);
     }
 };
 
@@ -543,12 +546,12 @@ function clearCheckboxes($modal) {
 
 function adjustScalesForDoc(response) {
     let format = response.width > response.height ? 'l' : 'p';
-    console.log('Wanted scales : \n-Width : ' + response.width + '\n-Height : ' + response.height);
+    // console.log('Wanted scales : \n-Width : ' + response.width + '\n-Height : ' + response.height);
     let docTemp = new jsPDF(format, 'mm', [response.height, response.width]);
-    console.log('Document original scales : \n-Width : ' + docTemp.internal.pageSize.getWidth() + '\n-Height : ' + docTemp.internal.pageSize.getHeight())
+    // console.log('Document original scales : \n-Width : ' + docTemp.internal.pageSize.getWidth() + '\n-Height : ' + docTemp.internal.pageSize.getHeight())
     let newWidth = response.width * (response.width / docTemp.internal.pageSize.getWidth());
     let newHeight = response.height * (response.height / docTemp.internal.pageSize.getHeight());
     let doc = new jsPDF(format, 'mm', [newHeight, newWidth]);
-    console.log('Document adjusted scales : \n-Width : ' + doc.internal.pageSize.getWidth() + '\n-Height : ' + doc.internal.pageSize.getHeight());
+    // console.log('Document adjusted scales : \n-Width : ' + doc.internal.pageSize.getWidth() + '\n-Height : ' + doc.internal.pageSize.getHeight());
     return doc;
 }

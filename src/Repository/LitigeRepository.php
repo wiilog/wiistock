@@ -32,5 +32,4 @@ class LitigeRepository extends ServiceEntityRepository
 
 		return $query->execute();
 	}
-
 }
