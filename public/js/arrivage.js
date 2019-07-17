@@ -114,8 +114,7 @@ function addCommentaire(select, bool) {
             date += ' ' + checkZero(d.getHours() + '') + ':' + checkZero(d.getMinutes() + '');
 
             let textToInsert = originalText.length > 0 && !bool ? originalText + "\n\n" : '';
-            console.log(comment);
-            console.log(quillType);
+
             quillType.setContents([
                 {insert: textToInsert},
                 {insert: date + ' : '},
