@@ -128,6 +128,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
      * @param UserPasswordEncoderInterface $passwordEncoder
      * @param ArticleRepository $articleRepository
      * @param EmplacementRepository $emplacementRepository
+	 * @param PieceJointeRepository $pieceJointeRepository
      */
     public function __construct(PieceJointeRepository $pieceJointeRepository, LoggerInterface $logger, MailerServerRepository $mailerServerRepository, MailerService $mailerService, ColisRepository $colisRepository, MouvementTracaRepository $mouvementTracaRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
     {
@@ -251,11 +252,11 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                                         'mails/mailDeposeTraca.html.twig',
                                         [
                                             'colis' => $colis->getCode(),
-                                            'emplacement' => $refEmplacement,
+                                            'emplacement' => $emplacement,
                                             'arrivage' => $arrivage->getNumeroArrivage(),
                                             'date' => $date,
                                             'operateur' => $mvt['operateur'],
-                                            'pjs' => $this->pieceJointeRepository->findByArrivage($arrivage)
+                                            'pjs' => $arrivage->getPiecesJointes()
                                         ]
                                     ),
                                     $destinataire->getEmail()
