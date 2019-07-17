@@ -19,16 +19,16 @@ class ReceptionRepository extends ServiceEntityRepository
         parent::__construct($registry, Reception::class);
     }
 
-//    public function findForIndex()
-//    {
-//        $entityManager = $this->getEntityManager();
-//        $query = $entityManager->createQuery(
-//            "SELECT r.id, r.date, r.numeroReception, r.dateAttendu, s.nom as statut, f.nom as fournisseur
-//            FROM App\Entity\Receptions r
-//            JOIN r.statut s JOIN r.fournisseur f
-//           "
-//        );;
-//        return $query->execute();
-//    }
+	public function countByFournisseur($fournisseurId)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			"SELECT COUNT(r)
+			FROM App\Entity\Reception r
+			WHERE r.fournisseur = :fournisseurId"
+		)->setParameter('fournisseurId', $fournisseurId);
+
+		return $query->getSingleScalarResult();
+	}
 
 }
