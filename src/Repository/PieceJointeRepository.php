@@ -52,7 +52,7 @@ class PieceJointeRepository extends ServiceEntityRepository
            FROM App\Entity\PieceJointe pj
            WHERE pj.arrivage = :arrivage"
         )->setParameter('arrivage', $arrivage);
-
+        dump($query->getResult());
         return $query->getResult();
     }
 }
