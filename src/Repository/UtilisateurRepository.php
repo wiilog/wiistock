@@ -128,6 +128,18 @@ class UtilisateurRepository extends ServiceEntityRepository implements UserLoade
         return $query->getOneOrNullResult();
     }
 
+    public function findOneByApiKey($key)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT u
+            FROM App\Entity\Utilisateur u
+            WHERE u.apiKey = :key"
+        )->setParameter('key', $key);
+
+        return $query->getOneOrNullResult();
+    }
+
     public function loadUserByUsername($username)
     {
         return $this->createQueryBuilder('u')

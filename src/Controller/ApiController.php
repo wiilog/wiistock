@@ -225,7 +225,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                     $toInsert
                         ->setRefArticle($refArticle)
                         ->setRefEmplacement($refEmplacement)
-                        ->setOperateur($mvt['operateur'])
+                        ->setOperateur($this->utilisateurRepository->findOneByApiKey($data['apikey'])->getUsername())
                         ->setDate($mvt['date'])
                         ->setType($type);
                     $em->persist($toInsert);
@@ -255,7 +255,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                                             'emplacement' => $emplacement,
                                             'arrivage' => $arrivage->getNumeroArrivage(),
                                             'date' => $date,
-                                            'operateur' => $mvt['operateur'],
+                                            'operateur' => $toInsert->getOperateur(),
                                             'pjs' => $arrivage->getPiecesJointes()
                                         ]
                                     ),
