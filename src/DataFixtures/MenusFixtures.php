@@ -36,7 +36,8 @@ class MenusFixtures extends Fixture implements FixtureGroupInterface
             ['Manutention', 'MANUT'],
             ['Paramétrage', 'PARAM'],
             ['Stock', 'STOCK'],
-            ['Indicateurs accueil', 'INDICAC']
+            ['Indicateurs accueil', 'INDICAC'],
+            ['Arrivage', 'ARRIVAGE']
         ];
         foreach ($menusInfos as $menuInfos) {
             $menu = $this->menuRepository->findOneBy(['code' => $menuInfos[1]]);
