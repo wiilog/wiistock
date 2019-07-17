@@ -29,7 +29,7 @@ class EmplacementController extends AbstractController
     /**
      * @var EmplacementDataService
      */
-    private $EmplacementDataService;
+    private $emplacementDataService;
 
     /**
      * @var EmplacementRepository
@@ -120,10 +120,7 @@ class EmplacementController extends AbstractController
             // on vérifie que l'emplacement n'existe pas déjà
             $emplacementAlreadyExist = $this->emplacementRepository->countByLabel($data['Label']);
             if ($emplacementAlreadyExist) {
-                return new JsonResponse([
-                    'success' => false,
-                    'msg' => 'Ce nom d\'emplacement existe déjà. Vous ne pouvez pas le recréer.'
-                ]);
+                return new JsonResponse(false);
             }
 
             $em = $this->getDoctrine()->getManager();
@@ -134,7 +131,7 @@ class EmplacementController extends AbstractController
 				->setIsDeliveryPoint($data["isDeliveryPoint"]);
             $em->persist($emplacement);
             $em->flush();
-            return new JsonResponse(['success' => true, 'new' => $data]);
+            return new JsonResponse(true);
         }
 
         throw new NotFoundHttpException("404");
