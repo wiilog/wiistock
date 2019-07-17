@@ -173,12 +173,17 @@ class FournisseurController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            if ($this->countUsedFournisseurs($fournisseurId) === 0) {
+            $isUsedBy = $this->isFournisseurUsed($fournisseurId);
+
+            if (empty($isUsedBy)) {
                 $delete = true;
                 $html = $this->renderView('fournisseur/modalDeleteFournisseurRight.html.twig');
             } else {
                 $delete = false;
-                $html = $this->renderView('fournisseur/modalDeleteFournisseurWrong.html.twig', ['delete' => false]);
+                $html = $this->renderView('fournisseur/modalDeleteFournisseurWrong.html.twig', [
+                	'delete' => false,
+					'isUsedBy' => $isUsedBy
+				]);
             }
 
             return new JsonResponse(['delete' => $delete, 'html' => $html]);
@@ -186,14 +191,30 @@ class FournisseurController extends AbstractController
         throw new NotFoundHttpException('404');
     }
 
-    private function countUsedFournisseurs($fournisseurId)
+	/**
+	 * @param int $fournisseurId
+	 * @return array
+	 */
+    private function isFournisseurUsed($fournisseurId)
     {
-        $usedFournisseur = $this->articleFournisseurRepository->countByFournisseur($fournisseurId);
-        $usedFournisseur += $this->receptionRepository->countByFournisseur($fournisseurId);
-        $usedFournisseur += $this->receptionReferenceArticleRepository->countByFournisseur($fournisseurId);
-        $usedFournisseur += $this->arrivageRepository->countByFournisseur($fournisseurId);
-        // $$usedFournisseur += $this->mouvementRepository->countByFournisseur($fournisseurId);
-        return $usedFournisseur;
+    	$usedBy = [];
+
+    	$AF = $this->articleFournisseurRepository->countByFournisseur($fournisseurId);
+    	if ($AF > 0) $usedBy[] = 'articles fournisseur';
+
+    	$receptions = $this->receptionRepository->countByFournisseur($fournisseurId);
+    	if ($receptions > 0) $usedBy[] = 'réceptions';
+
+		$ligneReceptions = $this->receptionReferenceArticleRepository->countByFournisseur($fournisseurId);
+		if ($ligneReceptions > 0) $usedBy[] = 'lignes réception';
+
+		$arrivages = $this->arrivageRepository->countByFournisseur($fournisseurId);
+		if ($arrivages > 0) $usedBy[] = 'arrivages';
+
+        // $mouvements = $this->mouvementRepository->countByFournisseur($fournisseurId);
+//		if ($mouvements > 0) $usedBy[] = 'mouvements';
+
+        return $usedBy;
     }
 
 
@@ -211,16 +232,15 @@ class FournisseurController extends AbstractController
                 $fournisseur = $this->fournisseurRepository->find($fournisseurId);
 
                 // on vérifie que le fournisseur n'est plus utilisé
-                $usedFournisseur = $this->countUsedFournisseurs($fournisseurId);
+                $usedFournisseur = $this->isFournisseurUsed($fournisseurId);
 
-                if ($usedFournisseur > 0) {
+                if (!empty($usedFournisseur)) {
                     return new JsonResponse(false);
                 }
 
                 $entityManager = $this->getDoctrine()->getManager();
                 $entityManager->remove($fournisseur);
                 $entityManager->flush();
-                return new JsonResponse();
             }
             return new JsonResponse();
         }

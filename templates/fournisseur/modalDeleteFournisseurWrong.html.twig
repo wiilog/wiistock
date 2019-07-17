@@ -1,4 +1,6 @@
 <p class='error-msg'>
-    Ce fournisseur est utilisé.<br>
+    Ce fournisseur est utilisé par un ou plusieurs
+    {% for entity in isUsedBy %}
+        <span class="bold">{{ entity }}</span>{% if not loop.last %},{% endif %}{% endfor %}.
     Vous ne pouvez pas le supprimer.
 </p>
