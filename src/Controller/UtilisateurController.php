@@ -111,7 +111,6 @@ class UtilisateurController extends Controller
             }
 
             $utilisateur = new Utilisateur();
-            $password = $this->encoder->encodePassword($utilisateur, $data['password']);
 
             $role = $this->roleRepository->find($data['role']);
             $utilisateur
@@ -120,9 +119,13 @@ class UtilisateurController extends Controller
                 ->setRole($role)
                 ->setStatus(true)
                 ->setRoles(['USER'])// évite bug -> champ roles ne doit pas être vide
-                ->setPassword($password)
                 ->setColumnVisible(["Actions", "Libellé", "Référence", "Type", "Quantité", "Emplacement"])
                 ->setRecherche(["Libellé", "Référence"]);
+
+            if ($password !== '') {
+				$password = $this->encoder->encodePassword($utilisateur, $data['password']);
+				$utilisateur->setPassword($password);
+			}
 
             $em = $this->getDoctrine()->getManager();
             $em->persist($utilisateur);
@@ -165,9 +168,7 @@ class UtilisateurController extends Controller
 
             $utilisateur = $this->utilisateurRepository->find($data['user']);
 
-            $password = $data['password'];
-            $password2 = $data['password2'];
-            $result = $this->passwordService->checkPassword($password,$password2);
+            $result = $this->passwordService->checkPassword($data['password'],$data['password2']);
             if($result['response'] == false){
                 return new JsonResponse($result['message']);
             }
@@ -191,7 +192,7 @@ class UtilisateurController extends Controller
                 ->setStatus($data['status'] === 'active')
                 ->setUsername($data['username'])
                 ->setEmail($data['email']);
-            if ($password !== '') {
+            if ($data['password'] !== '') {
                 $password = $this->encoder->encodePassword($utilisateur, $data['password']);
                 $utilisateur->setPassword($password);
             }

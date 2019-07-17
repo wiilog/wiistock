@@ -119,7 +119,7 @@
                 <div id="litigeBloc" class="d-none">
                     <div class="form-group">
                         <label for="litigeType">Type de litige*</label>
-                        <select class="form-control data" id="litigeType" name="litigeType">
+                        <select class="form-control data" id="litigeType" name="litigeType" onchange="addCommentaire($(this), true)">
                             <option disabled selected> </option>
                             {% for type in typesLitige %}
                                 <option value="{{ type.id }}">{{ type.label }}</option>
