@@ -310,7 +310,7 @@ class LivraisonController extends AbstractController
 
                 foreach ($lignes as $ligne) {
                     $rows[] = [
-                        "Référence CEA" => $ligne->getReference()->getReference(),
+                        "Référence" => $ligne->getReference()->getReference(),
                         "Libellé" => $ligne->getReference()->getLibelle(),
                         "Emplacement" => $ligne->getReference()->getEmplacement() ? $ligne->getReference()->getEmplacement()->getLabel() : '',
                         "Quantité" => $ligne->getQuantite(),
