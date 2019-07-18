@@ -352,9 +352,9 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 
 	/**
 	 * @Route("/testcg", name="getdata")
-	 * @return JsonResponse
+	 * @return array
 	 */
-    public function getData()
+    private function getData()
     {
         $articles = $this->articleRepository->getIdRefLabelAndQuantity();
         $articlesRef = $this->referenceArticleRepository->getIdRefLabelAndQuantityByTypeQuantite(ReferenceArticle::TYPE_QUANTITE_REFERENCE);
@@ -368,7 +368,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 			'preparations' => $this->preparationRepository->getByStatusLabel(Preparation::STATUT_A_TRAITER),
 			'articlesPrepa' => array_merge($articlesPrepa, $refArticlesPrepa)
         ];
-        return new JsonResponse($data);
+        return $data;
     }
 
     public function apiKeyGenerator()
