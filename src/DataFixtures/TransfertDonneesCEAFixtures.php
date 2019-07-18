@@ -104,7 +104,7 @@ class TransfertDonneesCEAFixtures extends Fixture
         $siliType = $this->typeRepository->findOneByCategoryLabelAndLabel(CategoryType::ARTICLES_ET_REF_CEA, Type::LABEL_SILI);
         $clCodeProjet = $this->champsLibreRepository->findOneByLabel('code projet');
         $clDestinataire = $this->champsLibreRepository->findOneByLabel('destinataire');
-        $toPut = 'demande' . ';' . 'codeProjet' . ';' . 'destinataire' . PHP_EOL;
+        $toPut = 'demande' . ';' . 'numéro' . ';' . 'codeProjet' . ';' . 'destinataire' . PHP_EOL;
         $path = "src/DataFixtures/demandes.csv";
         file_put_contents($path, $toPut);
 
@@ -119,7 +119,7 @@ class TransfertDonneesCEAFixtures extends Fixture
                 $specialChars = ['├®', '├¿', '├º', '├á', '├½', '├ë'];
                 $normalChars = ['é', 'è', 'ç', 'à', 'ë', 'É'];
                 $valeurDestinataire = str_replace($specialChars, $normalChars, $valeurDestinataire);
-                $toPut = $demande->getId() . ';' . $valeurCodeProjet . ';' . $valeurDestinataire . PHP_EOL;
+                $toPut = $demande->getId() . ';' . $demande->getNumero() . ';' . $valeurCodeProjet . ';' . $valeurDestinataire . PHP_EOL;
                 dump($toPut);
                 file_put_contents($path, $toPut, FILE_APPEND | LOCK_EX);
             }
