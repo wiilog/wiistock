@@ -658,7 +658,34 @@ function saveRapidSearch() {
         $("#modalRapidSearch").find('.close').click();
         tableRefArticle.search(tableRefArticle.search()).draw();
     });
+}
 
+function buttonPrintTag(){
+    $('.justify-content-end').find('.printButton').removeClass('d-none');
+}
+
+function getDataAndPrintLabels() {
+    let path = Routing.generate('reference_article_get_data_to_print', true);
+    $.post(path, function (response) {
+        if (response['tags'].exists) {
+            $("#barcodes").empty();
+            let i = 0;
+            response['refs'].forEach(function(code) {
+                $('#barcodes').append('<img id="barcode' + i + '">')
+                JsBarcode("#barcode" + i, code, {
+                    format: "CODE128",
+                });
+                i++;
+            });
+            let doc = adjustScalesForDoc(response['tags']);
+            $("#barcodes").find('img').each(function () {
+                doc.addImage($(this).attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
+                doc.addPage();
+            });
+            doc.deletePage(doc.internal.getNumberOfPages())
+            doc.save('Etiquettes ' + '???' + '.pdf');
+        }
+    });
 }
 
 

@@ -290,7 +290,6 @@ function initEditorInModal(modal) {
 };
 
 function initEditor(div) {
-    console.log('quill');
     // protection pour éviter erreur console si l'élément n'existe pas dans le DOM
     if($(div).length) {
         return new Quill(div, {
