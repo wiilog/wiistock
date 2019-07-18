@@ -29,7 +29,7 @@ class EmplacementController extends AbstractController
     /**
      * @var EmplacementDataService
      */
-    private $EmplacementDataService;
+    private $emplacementDataService;
 
     /**
      * @var EmplacementRepository
