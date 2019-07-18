@@ -455,7 +455,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 		$query = $em->createQuery(
 			"SELECT ra.reference, e.label as location, ra.libelle as label, la.quantite as quantity, 1 as is_ref, p.id as id_prepa
 			FROM App\Entity\ReferenceArticle ra
-			JOIN ra.emplacement e
+			LEFT JOIN ra.emplacement e
 			JOIN ra.ligneArticles la
 			JOIN la.demande d
 			JOIN d.preparation p

@@ -387,7 +387,7 @@ class ArticleRepository extends ServiceEntityRepository
 		$query = $em->createQuery(
 			"SELECT a.reference, e.label as location, a.label, a.quantiteAPrelever as quantity, 0 as is_ref, p.id as id_prepa
 			FROM App\Entity\Article a
-			JOIN a.emplacement e
+			LEFT JOIN a.emplacement e
 			JOIN a.demande d
 			JOIN d.preparation p
 			JOIN p.statut s
