@@ -19,56 +19,30 @@ class PreparationRepository extends ServiceEntityRepository
         parent::__construct($registry, Preparation::class);
     }
 
-   public function getByDemande($id)
-   {
-       $entityManager = $this->getEntityManager();
-       $query = $entityManager->createQuery(
-           "SELECT p
+	public function getByDemande($id)
+	{
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+			"SELECT p
            FROM App\Entity\Preparation p
            JOIN p.demande d
            WHERE d.id = :id "
-       )->setParameter('id', $id);
-       ;
-       return $query->execute();
-   }
-    
-//    public function findByPrepa($preparation)
-//    {
-//        $entityManager = $this->getEntityManager();
-//
-//        return $query = $entityManager->createQuery(
-//            "SELECT p FROM App\Entity\Preparation p WHERE p.id = :preparation")
-//            ->setParameter("preparation", $preparation->getId())
-//            ->execute()
-//            ;
-//    }
+		)->setParameter('id', $id);
 
-//    /**
-//     * @return Preparation[] Returns an array of Preparation objects
-//     */
-    /*
-    public function findByExampleField($value)
-    {
-        return $this->createQueryBuilder('p')
-            ->andWhere('p.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('p.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
+		return $query->execute();
+	}
 
-    /*
-    public function findOneBySomeField($value): ?Preparation
-    {
-        return $this->createQueryBuilder('p')
-            ->andWhere('p.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
-    }
-    */
+
+	public function getByStatusLabel($statusLabel)
+	{
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+			"SELECT p.id, p.number
+			FROM App\Entity\Preparation p
+			JOIN p.statut s
+			WHERE s.nom = :statusLabel"
+		)->setParameter('statusLabel', $statusLabel);
+
+		return $query->execute();
+	}
 }

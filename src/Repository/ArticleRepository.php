@@ -181,7 +181,7 @@ class ArticleRepository extends ServiceEntityRepository
         )->setParameter('id', $id);
         return $query->getResult();
     }
-    public function getByPreparation($id)
+    public function findByPreparation($id)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
@@ -327,37 +327,6 @@ class ArticleRepository extends ServiceEntityRepository
         return ['data' => $query->getResult(), 'count' => $countQuery, 'total' => $countTotal];
     }
 
-//    public function findByParamsActifStatut($params = null, $statutId)
-//    {
-//        $em = $this->getEntityManager();
-//        $qb = $em->createQueryBuilder();
-//
-//        $qb
-//            ->select('a')
-//            ->from('App\Entity\Article', 'a')
-//            ->where('a.statut =' . $statutId);
-//
-//        // prise en compte des paramètres issus du datatable
-//        if (!empty($params)) {
-//            if (!empty($params->get('start'))) {
-//                $qb->setFirstResult($params->get('start'));
-//            }
-//            if (!empty($params->get('length'))) {
-//                $qb->setMaxResults($params->get('length'));
-//            }
-//            if (!empty($params->get('search'))) {
-//                $search = $params->get('search')['value'];
-//                if (!empty($search)) {
-//                    $qb
-//                        ->andWhere('a.label LIKE :value OR a.reference LIKE :value')
-//                        ->setParameter('value', '%' . $search . '%');
-//                }
-//            }
-//        }
-//        $query = $qb->getQuery();
-//        return $query->getResult();
-//    }
-
     public function findByListAF($listAf)
     {
         $em = $this->getEntityManager();
@@ -408,6 +377,22 @@ class ArticleRepository extends ServiceEntityRepository
 				GROUP BY a2.reference
 				HAVING COUNT(a2.reference) > 1)"
 		);
+
+		return $query->execute();
+	}
+
+	public function getByPreparationStatutLabel($statutLabel)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			"SELECT a.reference, e.label as location, a.label, a.quantiteAPrelever as quantity, 0 as is_ref, p.id as id_prepa
+			FROM App\Entity\Article a
+			JOIN a.emplacement e
+			JOIN a.demande d
+			JOIN d.preparation p
+			JOIN p.statut s
+			WHERE s.nom = :statutLabel"
+		)->setParameter('statutLabel', $statutLabel);
 
 		return $query->execute();
 	}

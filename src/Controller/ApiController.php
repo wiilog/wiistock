@@ -13,11 +13,13 @@ use App\Entity\Emplacement;
 use App\Entity\Mouvement;
 
 use App\Entity\MouvementTraca;
+use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Repository\ColisRepository;
 use App\Repository\MailerServerRepository;
 use App\Repository\MouvementTracaRepository;
 use App\Repository\PieceJointeRepository;
+use App\Repository\PreparationRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\ArticleRepository;
@@ -47,6 +49,7 @@ use Symfony\Component\Security\Core\Encoder\UserPasswordEncoder;
 use Symfony\Component\Serializer\SerializerInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Routing\Annotation\Route;
 use DateTime;
 
 /**
@@ -116,6 +119,11 @@ class ApiController extends FOSRestController implements ClassResourceInterface
      */
     private $pieceJointeRepository;
 
+	/**
+	 * @var PreparationRepository
+	 */
+    private $preparationRepository;
+
     /**
      * ApiController constructor.
      * @param LoggerInterface $logger
@@ -129,8 +137,9 @@ class ApiController extends FOSRestController implements ClassResourceInterface
      * @param ArticleRepository $articleRepository
      * @param EmplacementRepository $emplacementRepository
 	 * @param PieceJointeRepository $pieceJointeRepository
+	 * @param PreparationRepository $preparationRepository
      */
-    public function __construct(PieceJointeRepository $pieceJointeRepository, LoggerInterface $logger, MailerServerRepository $mailerServerRepository, MailerService $mailerService, ColisRepository $colisRepository, MouvementTracaRepository $mouvementTracaRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
+    public function __construct(PreparationRepository $preparationRepository, PieceJointeRepository $pieceJointeRepository, LoggerInterface $logger, MailerServerRepository $mailerServerRepository, MailerService $mailerService, ColisRepository $colisRepository, MouvementTracaRepository $mouvementTracaRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
     {
         $this->pieceJointeRepository = $pieceJointeRepository;
         $this->mailerServerRepository = $mailerServerRepository;
@@ -144,6 +153,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->successData = ['success' => false, 'data' => []];
         $this->logger = $logger;
+        $this->preparationRepository = $preparationRepository;
     }
 
     /**
@@ -290,13 +300,6 @@ class ApiController extends FOSRestController implements ClassResourceInterface
      */
     public function setMouvement(Request $request)
     {
-        //TODO JV récupérer fichier json construit sur ce modèle :
-        // ['mouvements':
-        //  ['id_article': int, 'date_prise': date, 'id_emplacement_prise': int, 'date_depose': date, 'id_emplacement_depose': int],
-        //  [...],
-        //];
-        // ajouter l'id en autoincrement
-        // ajouter l'user retrouvé grâce au token api
         $data = json_decode($request->getContent(), true);
 
         if (!$request->isXmlHttpRequest() && ($this->utilisateurRepository->countApiKey($data['apiKey'])) === '1') {
@@ -316,16 +319,56 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         }
     }
 
-    private function getData()
+	/**
+	 * @Rest\Post("/api/finishPrepa", name= "api-finish-prepa")
+	 * @Rest\View()
+	 */
+    public function finishPrepa(Request $request)
+	{
+		$data = json_decode($request->getContent(), true);
+
+		if (!$request->isXmlHttpRequest() && ($this->utilisateurRepository->countApiKey($data['apiKey'])) === '1') {
+			$preparations = $data['preparations'];
+			$mouvements = $data['mouvements'];
+
+			foreach ($mouvements as $mouvement) {
+				if ($mouvement['is_ref']) {
+					$refArticle = $this->referenceArticleRepository->findOneByReference($mouvement['reference']);
+					if ($refArticle) {
+
+					}
+				}
+			}
+
+			foreach($preparations as $preparationArray) {
+				$preparation = $this->preparationRepository->find($preparationArray['id']);
+				if ($preparation) {
+
+				}
+			}
+		}
+
+	}
+
+	/**
+	 * @Route("/testcg", name="getdata")
+	 * @return JsonResponse
+	 */
+    public function getData()
     {
         $articles = $this->articleRepository->getIdRefLabelAndQuantity();
         $articlesRef = $this->referenceArticleRepository->getIdRefLabelAndQuantityByTypeQuantite(ReferenceArticle::TYPE_QUANTITE_REFERENCE);
 
+        $articlesPrepa = $this->articleRepository->getByPreparationStatutLabel(Preparation::STATUT_A_TRAITER);
+        $refArticlesPrepa = $this->referenceArticleRepository->getByPreparationStatutLabel(Preparation::STATUT_A_TRAITER);
+
         $data = [
             'emplacements' => $this->emplacementRepository->getIdAndNom(),
-            'articles' => array_merge($articles, $articlesRef)
+            'articles' => array_merge($articles, $articlesRef),
+			'preparations' => $this->preparationRepository->getByStatusLabel(Preparation::STATUT_A_TRAITER),
+			'articlesPrepa' => array_merge($articlesPrepa, $refArticlesPrepa)
         ];
-        return $data;
+        return new JsonResponse($data);
     }
 
     public function apiKeyGenerator()

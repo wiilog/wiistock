@@ -71,6 +71,11 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $query->getOneOrNullResult();
     }
 
+	/**
+	 * @param $reference
+	 * @return ReferenceArticle|null
+	 * @throws \Doctrine\ORM\NonUniqueResultException
+	 */
     public function findOneByReference($reference)
     {
         $entityManager = $this->getEntityManager();
@@ -444,5 +449,21 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             'statut' => $statut
         ])->getSingleScalarResult();
     }
+
+    public function getByPreparationStatutLabel($statutLabel) {
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			"SELECT ra.reference, e.label as location, ra.libelle as label, la.quantite as quantity, 1 as is_ref, p.id as id_prepa
+			FROM App\Entity\ReferenceArticle ra
+			JOIN ra.emplacement e
+			JOIN ra.ligneArticles la
+			JOIN la.demande d
+			JOIN d.preparation p
+			JOIN p.statut s
+			WHERE s.nom = :statut"
+		)->setParameter('statut', $statutLabel);
+
+		return $query->execute();
+	}
 
 }

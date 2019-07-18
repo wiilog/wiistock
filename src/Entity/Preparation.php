@@ -52,7 +52,7 @@ class Preparation
     /**
      * @ORM\ManyToMany(targetEntity="App\Entity\Article", inversedBy="preparations")
      */
-    private $article;
+    private $articles;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Livraison", mappedBy="preparation")
@@ -62,7 +62,7 @@ class Preparation
     public function __construct()
     {
         $this->demandes = new ArrayCollection();
-        $this->article = new ArrayCollection();
+        $this->articles = new ArrayCollection();
         $this->livraisons = new ArrayCollection();
     }
 
@@ -153,15 +153,15 @@ class Preparation
     /**
      * @return Collection|Article[]
      */
-    public function getArticle(): Collection
+    public function getArticles(): Collection
     {
-        return $this->article;
+        return $this->articles;
     }
 
     public function addArticle(Article $article): self
     {
-        if (!$this->article->contains($article)) {
-            $this->article[] = $article;
+        if (!$this->articles->contains($article)) {
+            $this->articles[] = $article;
         }
 
         return $this;
@@ -169,8 +169,8 @@ class Preparation
 
     public function removeArticle(Article $article): self
     {
-        if ($this->article->contains($article)) {
-            $this->article->removeElement($article);
+        if ($this->articles->contains($article)) {
+            $this->articles->removeElement($article);
         }
 
         return $this;

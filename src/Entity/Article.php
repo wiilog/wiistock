@@ -70,7 +70,7 @@ class Article
     private $mouvements;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Preparation", mappedBy="article")
+     * @ORM\ManyToMany(targetEntity="App\Entity\Preparation", mappedBy="articles")
      */
     private $preparations;
 
