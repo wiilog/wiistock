@@ -8,8 +8,12 @@
 
 namespace App\Controller;
 
+use App\Entity\Article;
+use App\Entity\CategorieStatut;
 use App\Entity\Colis;
+use App\Entity\Demande;
 use App\Entity\Emplacement;
+use App\Entity\Livraison;
 use App\Entity\Mouvement;
 
 use App\Entity\MouvementTraca;
@@ -21,10 +25,12 @@ use App\Repository\MouvementTracaRepository;
 use App\Repository\PieceJointeRepository;
 use App\Repository\PreparationRepository;
 use App\Repository\ReferenceArticleRepository;
+use App\Repository\StatutRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\EmplacementRepository;
 
+use App\Service\ArticleDataService;
 use App\Service\MailerService;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\ORMException;
@@ -124,6 +130,16 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 	 */
     private $preparationRepository;
 
+	/**
+	 * @var StatutRepository
+	 */
+    private $statutRepository;
+
+	/**
+	 * @var ArticleDataService
+	 */
+    private $articleDataService;
+
     /**
      * ApiController constructor.
      * @param LoggerInterface $logger
@@ -138,8 +154,10 @@ class ApiController extends FOSRestController implements ClassResourceInterface
      * @param EmplacementRepository $emplacementRepository
 	 * @param PieceJointeRepository $pieceJointeRepository
 	 * @param PreparationRepository $preparationRepository
+	 * @param StatutRepository $statutRepository
+	 * @param ArticleDataService $articleDataService
      */
-    public function __construct(PreparationRepository $preparationRepository, PieceJointeRepository $pieceJointeRepository, LoggerInterface $logger, MailerServerRepository $mailerServerRepository, MailerService $mailerService, ColisRepository $colisRepository, MouvementTracaRepository $mouvementTracaRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
+    public function __construct(ArticleDataService $articleDataService, StatutRepository $statutRepository, PreparationRepository $preparationRepository, PieceJointeRepository $pieceJointeRepository, LoggerInterface $logger, MailerServerRepository $mailerServerRepository, MailerService $mailerService, ColisRepository $colisRepository, MouvementTracaRepository $mouvementTracaRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
     {
         $this->pieceJointeRepository = $pieceJointeRepository;
         $this->mailerServerRepository = $mailerServerRepository;
@@ -154,6 +172,8 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         $this->successData = ['success' => false, 'data' => []];
         $this->logger = $logger;
         $this->preparationRepository = $preparationRepository;
+        $this->statutRepository = $statutRepository;
+        $this->articleDataService = $articleDataService;
     }
 
     /**
@@ -181,7 +201,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                     $em->flush();
 
                     $this->successData['success'] = true;
-                    $this->successData['data'] = $this->getData();
+                    $this->successData['data'] = $this->getDataArray();
                     $this->successData['data']['apiKey'] = $apiKey;
                 }
             }
@@ -320,6 +340,48 @@ class ApiController extends FOSRestController implements ClassResourceInterface
     }
 
 	/**
+	 * @Rest\Post("/api/beginPrepa", name= "api-begin-prepa")
+	 * @Rest\View()
+	 */
+	public function beginPrepa(Request $request)
+	{
+		$data = json_decode($request->getContent(), true);
+
+		if (!$request->isXmlHttpRequest() && ($this->utilisateurRepository->countApiKey($data['apiKey'])) === '1') {
+
+			$preparation = $this->preparationRepository->find($data['id']);
+			$demandes = $preparation->getDemandes();
+			$demande = $demandes[0];
+
+			// modification des articles de la demande
+			$articles = $demande->getArticles();
+			foreach ($articles as $article) {
+				$article->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
+				// scission des articles dont la quantité prélevée n'est pas totale
+				if ($article->getQuantite() !== $article->getQuantiteAPrelever()) {
+					$newArticle = [
+						'articleFournisseur' => $article->getArticleFournisseur()->getId(),
+						'libelle' => $article->getLabel(),
+						'conform' => !$article->getConform(),
+						'commentaire' => $article->getcommentaire(),
+						'quantite' => $article->getQuantite() - $article->getQuantiteAPrelever(),
+						'emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getId() : '',
+						'statut' => Article::STATUT_ACTIF,
+						'refArticle' => isset($data['refArticle']) ? $data['refArticle'] : $article->getArticleFournisseur()->getReferenceArticle()->getId()
+					];
+
+					foreach ($article->getValeurChampsLibres() as $valeurChampLibre) {
+						$newArticle[$valeurChampLibre->getChampLibre()->getId()] = $valeurChampLibre->getValeur();
+					}
+					$this->articleDataService->newArticle($newArticle);
+
+					$article->setQuantite($article->getQuantiteAPrelever(), 0);
+				}
+			}
+		}
+	}
+
+	/**
 	 * @Rest\Post("/api/finishPrepa", name= "api-finish-prepa")
 	 * @Rest\View()
 	 */
@@ -328,6 +390,9 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 		$data = json_decode($request->getContent(), true);
 
 		if (!$request->isXmlHttpRequest() && ($this->utilisateurRepository->countApiKey($data['apiKey'])) === '1') {
+			$nomadUser = $this->utilisateurRepository->findOneByToken($data['apiKey']);
+			$entityManager = $this->getDoctrine()->getManager();
+
 			$preparations = $data['preparations'];
 			$mouvements = $data['mouvements'];
 
@@ -337,24 +402,48 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 					if ($refArticle) {
 
 					}
+				} else {
+					$article = $this->articleRepository->findOneByReference($mouvement['reference']);
+					if ($article) {
+						$article->setStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::ARTICLE, Article::STATUT_EN_TRANSIT));
+					}
 				}
 			}
 
+			// on termine les préparations
+			// même comportement que LivraisonController.new()
 			foreach($preparations as $preparationArray) {
 				$preparation = $this->preparationRepository->find($preparationArray['id']);
 				if ($preparation) {
 
+					$demandes = $preparation->getDemandes();
+					$demande = $demandes[0];
+
+					$statut = $this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::LIVRAISON, Livraison::STATUT_A_TRAITER);
+					$livraison = new Livraison();
+					$date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+					$livraison
+						->setDate($date)
+						->setNumero('L-' . $date->format('YmdHis'))
+						->setStatut($statut);
+					$entityManager->persist($livraison);
+
+					$preparation
+						->addLivraison($livraison)
+						->setUtilisateur($nomadUser)
+						->setStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::PREPARATION, Preparation::STATUT_PREPARE));
+
+					$demande
+						->setStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::DEMANDE, Demande::STATUT_PREPARE))
+						->setLivraison($livraison);
+					$entityManager->flush();
 				}
 			}
 		}
 
 	}
 
-	/**
-	 * @Route("/testcg", name="getdata")
-	 * @return array
-	 */
-    private function getData()
+    private function getDataArray()
     {
         $articles = $this->articleRepository->getIdRefLabelAndQuantity();
         $articlesRef = $this->referenceArticleRepository->getIdRefLabelAndQuantityByTypeQuantite(ReferenceArticle::TYPE_QUANTITE_REFERENCE);
@@ -370,6 +459,14 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         ];
         return $data;
     }
+
+	/**
+	 * @Rest\Post("/api/getData", name= "api-get-data")
+	 */
+    public function getData()
+	{
+		return new JsonResponse($this->getDataArray());
+	}
 
     public function apiKeyGenerator()
     {

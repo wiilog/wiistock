@@ -396,4 +396,21 @@ class ArticleRepository extends ServiceEntityRepository
 
 		return $query->execute();
 	}
+
+	/**
+	 * @param string $reference
+	 * @return Article|null
+	 * @throws \Doctrine\ORM\NonUniqueResultException
+	 */
+	public function findOneByReference($reference)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			"SELECT a
+			FROM App\Entity\Article a
+			WHERE a.reference = :reference"
+		)->setParameter('reference', $reference);
+
+		return $query->getOneOrNullResult();
+	}
 }
