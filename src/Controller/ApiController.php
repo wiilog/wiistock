@@ -103,7 +103,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
     /**
      * @var array
      */
-    private $successData;
+    private $successDataMsg;
 
     /**
      * @var MailerService
@@ -169,7 +169,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         $this->utilisateurRepository = $utilisateurRepository;
         $this->passwordEncoder = $passwordEncoder;
         $this->referenceArticleRepository = $referenceArticleRepository;
-        $this->successData = ['success' => false, 'data' => []];
+        $this->successDataMsg = ['success' => false, 'data' => [], 'msg' => ''];
         $this->logger = $logger;
         $this->preparationRepository = $preparationRepository;
         $this->statutRepository = $statutRepository;
@@ -200,13 +200,13 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                     $em = $this->getDoctrine()->getManager();
                     $em->flush();
 
-                    $this->successData['success'] = true;
-                    $this->successData['data'] = $this->getDataArray();
-                    $this->successData['data']['apiKey'] = $apiKey;
+                    $this->successDataMsg['success'] = true;
+                    $this->successDataMsg['data'] = $this->getDataArray();
+                    $this->successDataMsg['data']['apiKey'] = $apiKey;
                 }
             }
 
-            $response->setContent(json_encode($this->successData));
+            $response->setContent(json_encode($this->successDataMsg));
             return $response;
         }
     }
@@ -224,9 +224,9 @@ class ApiController extends FOSRestController implements ClassResourceInterface
             $response->headers->set('Content-Type', 'application/json');
             $response->headers->set('Access-Control-Allow-Origin', '*');
             $response->headers->set('Access-Control-Allow-Methods', 'POST, GET');
-            $this->successData['success'] = true;
+            $this->successDataMsg['success'] = true;
 
-            $response->setContent(json_encode($this->successData));
+            $response->setContent(json_encode($this->successDataMsg));
             return $response;
         }
     }
@@ -306,10 +306,10 @@ class ApiController extends FOSRestController implements ClassResourceInterface
             $em->flush();
 
             $s = $numberOfRowsInserted > 0 ? 's' : '';
-            $this->successData['success'] = true;
-            $this->successData['data']['status'] = ($numberOfRowsInserted === 0) ?
+            $this->successDataMsg['success'] = true;
+            $this->successDataMsg['data']['status'] = ($numberOfRowsInserted === 0) ?
                 'Aucun mouvement à synchroniser.' : $numberOfRowsInserted . ' mouvement' . $s . ' synchronisé' . $s;
-            $response->setContent(json_encode($this->successData));
+            $response->setContent(json_encode($this->successDataMsg));
             return $response;
         }
     }
@@ -332,11 +332,9 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                     ->setEmplacement($this->emplacemnt->$mouvementR[''])
                     ->setUser($mouvementR['']);
             }
-
-            return new JsonResponse($this->successData);
-        } else {
-            return new JsonResponse($this->successData);
         }
+
+        return new JsonResponse($this->successDataMsg);
     }
 
 	/**
@@ -348,37 +346,56 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 		$data = json_decode($request->getContent(), true);
 
 		if (!$request->isXmlHttpRequest() && ($this->utilisateurRepository->countApiKey($data['apiKey'])) === '1') {
+			$em = $this->getDoctrine()->getManager();
 
 			$preparation = $this->preparationRepository->find($data['id']);
-			$demandes = $preparation->getDemandes();
-			$demande = $demandes[0];
 
-			// modification des articles de la demande
-			$articles = $demande->getArticles();
-			foreach ($articles as $article) {
-				$article->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
-				// scission des articles dont la quantité prélevée n'est pas totale
-				if ($article->getQuantite() !== $article->getQuantiteAPrelever()) {
-					$newArticle = [
-						'articleFournisseur' => $article->getArticleFournisseur()->getId(),
-						'libelle' => $article->getLabel(),
-						'conform' => !$article->getConform(),
-						'commentaire' => $article->getcommentaire(),
-						'quantite' => $article->getQuantite() - $article->getQuantiteAPrelever(),
-						'emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getId() : '',
-						'statut' => Article::STATUT_ACTIF,
-						'refArticle' => isset($data['refArticle']) ? $data['refArticle'] : $article->getArticleFournisseur()->getReferenceArticle()->getId()
-					];
+			if ($preparation->getStatut()->getNom() == Preparation::STATUT_A_TRAITER) {
 
-					foreach ($article->getValeurChampsLibres() as $valeurChampLibre) {
-						$newArticle[$valeurChampLibre->getChampLibre()->getId()] = $valeurChampLibre->getValeur();
+				$demandes = $preparation->getDemandes();
+				$demande = $demandes[0];
+
+				// modification des articles de la demande
+				$articles = $demande->getArticles();
+				foreach ($articles as $article) {
+					$article->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
+					// scission des articles dont la quantité prélevée n'est pas totale
+					if ($article->getQuantite() !== $article->getQuantiteAPrelever()) {
+						$newArticle = [
+							'articleFournisseur' => $article->getArticleFournisseur()->getId(),
+							'libelle' => $article->getLabel(),
+							'conform' => !$article->getConform(),
+							'commentaire' => $article->getcommentaire(),
+							'quantite' => $article->getQuantite() - $article->getQuantiteAPrelever(),
+							'emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getId() : '',
+							'statut' => Article::STATUT_ACTIF,
+							'refArticle' => isset($data['refArticle']) ? $data['refArticle'] : $article->getArticleFournisseur()->getReferenceArticle()->getId()
+						];
+
+						foreach ($article->getValeurChampsLibres() as $valeurChampLibre) {
+							$newArticle[$valeurChampLibre->getChampLibre()->getId()] = $valeurChampLibre->getValeur();
+						}
+						$this->articleDataService->newArticle($newArticle);
+
+						$article->setQuantite($article->getQuantiteAPrelever(), 0);
 					}
-					$this->articleDataService->newArticle($newArticle);
-
-					$article->setQuantite($article->getQuantiteAPrelever(), 0);
 				}
+
+				// modif du statut de la préparation
+				$statutEDP = $this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::PREPARATION, Preparation::STATUT_EN_COURS_DE_PREPARATION);
+				$preparation->setStatut($statutEDP);
+				$em->flush();
+
+				$this->successDataMsg['success'] = true;
+			} else {
+				$this->successDataMsg['success'] = false;
+				$this->successDataMsg['msg'] = "Cette préparation a déjà été prise en charge par un opérateur.";
 			}
+		} else {
+			$this->successDataMsg['success'] = false;
+			$this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
 		}
+		return new JsonResponse($this->successDataMsg);
 	}
 
 	/**
@@ -421,7 +438,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 
 					$statut = $this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::LIVRAISON, Livraison::STATUT_A_TRAITER);
 					$livraison = new Livraison();
-					$date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+					$date = DateTime::createFromFormat('Ymd-H:i:s', $preparationArray['date_end'], new \DateTimeZone('Europe/Paris'));
 					$livraison
 						->setDate($date)
 						->setNumero('L-' . $date->format('YmdHis'))
@@ -437,10 +454,15 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 						->setStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::DEMANDE, Demande::STATUT_PREPARE))
 						->setLivraison($livraison);
 					$entityManager->flush();
+					$this->successDataMsg['success'] = true;
 				}
 			}
+		} else {
+			$this->successDataMsg['success'] = false;
+			$this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
 		}
 
+		return new JsonResponse($this->successDataMsg);
 	}
 
     private function getDataArray()
