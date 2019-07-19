@@ -335,6 +335,7 @@ function showDemande(bloc) {
 // affiche le filtre après ajout
 function displayNewFilter(data) {
     $('#filters').append(data.filterHtml);
+    $('.justify-content-end').find('.printButton').removeClass('d-none');
     tableRefArticle.clear();
     tableRefArticle.ajax.reload();
 }
@@ -347,12 +348,14 @@ function initRemove() {
 
 function removeFilter() {
     $(this).remove();
-
     let params = JSON.stringify({ 'filterId': $(this).find('.filter-id').val() });
     $.post(Routing.generate('filter_delete', true), params, function () {
         tableRefArticle.clear();
         tableRefArticle.ajax.reload();
     });
+    if($('#filters').find('.filter').length <= 0){
+        $('.justify-content-end').find('.printButton').addClass('d-none');
+    }
 }
 
 // modale ajout d'un filtre, affichage du champ "contient" en fonction du champ sélectionné
@@ -682,7 +685,7 @@ function getDataAndPrintLabels() {
                 doc.addImage($(this).attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
                 doc.addPage();
             });
-            doc.deletePage(doc.internal.getNumberOfPages())
+            doc.deletePage(doc.internal.getNumberOfPages());
             doc.save('Etiquettes-references.pdf');
         }
     });
