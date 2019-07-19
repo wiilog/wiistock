@@ -487,7 +487,10 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 	 */
     public function getData()
 	{
-		return new JsonResponse($this->getDataArray());
+	    $response = [];
+	    $response['success'] = true;
+	    $response['data'] = $this->getDataArray();
+		return new JsonResponse($response);
 	}
 
     public function apiKeyGenerator()
