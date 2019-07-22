@@ -12,7 +12,6 @@ let tableArticle = $('#tableArticle_id').DataTable({
         "type": "POST",
         'dataSrc': function (json) {
             $('#listArticleIdToPrint').val(json.listId);
-
             return json.data;
         }
     },

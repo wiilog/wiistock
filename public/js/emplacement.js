@@ -10,7 +10,14 @@ let tableEmplacement = $('#tableEmplacement_id').DataTable({
     },
     ajax: {
         "url": pathEmplacement,
-        "type": "POST"
+        "type": "POST",
+        'dataSrc': function (json) {
+            $('#listEmplacementIdToPrint').val(json.listId);
+            return json.data;
+        }
+    },
+    'drawCallback': function () {
+        overrideSearch();
     },
     columns: [
         { "data": 'Nom' },
@@ -57,4 +64,43 @@ function displayErrorEmplacement(data) {
     let modal = $("#modalNewEmplacement");
     let msg = "Ce nom d'emplacement existe déjà. Veuillez en choisir un autre.";
     displayError(modal, msg, data);
+}
+
+function overrideSearch() {
+    let $input = $('#tableEmplacement_id_filter input');
+    $input.off();
+    $input.on('keyup', function(e){
+        if (e.key === 'Enter'){
+            tableEmplacement.search(this.value).draw();
+            $('.emplacement').find('.printButton').removeClass('d-none');
+        }  else if (e.key === 'Backspace') {
+            $('.emplacement').find('.printButton').addClass('d-none');
+        }
+    });
+    $input.attr('placeholder', 'entrée pour valider');
+}
+function getDataAndPrintLabels() {
+    let path = Routing.generate('emplacement_get_data_to_print', true);
+    let listEmplacements = $("#listEmplacementIdToPrint").val();
+    let params = JSON.stringify({listEmplacements: listEmplacements});
+    $.post(path, params, function (response) {
+        if (response.tags.exists) {
+            $("#barcodes").empty();
+            let i = 0;
+            response.emplacements.forEach(function(code) {
+                $('#barcodes').append('<img id="barcode' + i + '">')
+                JsBarcode("#barcode" + i, code, {
+                    format: "CODE128",
+                });
+                i++;
+            });
+            let doc = adjustScalesForDoc(response.tags);
+            $("#barcodes").find('img').each(function () {
+                doc.addImage($(this).attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
+                doc.addPage();
+            });
+            doc.deletePage(doc.internal.getNumberOfPages());
+            doc.save('Etiquettes-emplacements.pdf');
+        }
+    });
 }

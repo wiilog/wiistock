@@ -89,10 +89,9 @@ class EmplacementRepository extends ServiceEntityRepository
             ->select('a')
             ->from('App\Entity\Emplacement', 'a');
 
+        $allEmplacementDataTable = null;
         // prise en compte des paramètres issus du datatable
         if (!empty($params)) {
-            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
-            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
             if (!empty($params->get('search'))) {
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
@@ -101,11 +100,12 @@ class EmplacementRepository extends ServiceEntityRepository
                         ->setParameter('value', '%' . $search . '%');
                 }
             }
+            $allEmplacementDataTable = $qb->getQuery();
+            if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
+            if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
         }
-
         $query = $qb->getQuery();
-
-        return $query->getResult();
+        return ['data' => $query ? $query->getResult() : null, 'allEmplacementDataTable' => $allEmplacementDataTable ? $allEmplacementDataTable->getResult() : null];
     }
 
     public function countAll()

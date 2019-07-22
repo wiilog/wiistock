@@ -36,7 +36,6 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
-use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 /**
  * @Route("/article")
@@ -129,17 +128,7 @@ class ArticleController extends Controller
      */
     private $dimensionsEtiquettesRepository;
 
-    /**
-     * @var object|string
-     */
-    private $user;
-
-    /**
-     * @var FilterRepository
-     */
-    private $filterRepository;
-
-    public function __construct(FilterRepository $filterRepository, TokenStorageInterface $tokenStorage,\Twig_Environment $templating, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, CategorieCLRepository $categorieCLRepository, FournisseurRepository $fournisseurRepository, ChampsLibreRepository $champsLibreRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ArticleDataService $articleDataService, TypeRepository $typeRepository, RefArticleDataService $refArticleDataService, ArticleFournisseurRepository $articleFournisseurRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, StatutRepository $statutRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UserService $userService)
+    public function __construct(\Twig_Environment $templating, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, CategorieCLRepository $categorieCLRepository, FournisseurRepository $fournisseurRepository, ChampsLibreRepository $champsLibreRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ArticleDataService $articleDataService, TypeRepository $typeRepository, RefArticleDataService $refArticleDataService, ArticleFournisseurRepository $articleFournisseurRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, StatutRepository $statutRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UserService $userService)
     {
         $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
         $this->fournisseurRepository = $fournisseurRepository;
@@ -158,8 +147,6 @@ class ArticleController extends Controller
         $this->userService = $userService;
         $this->categorieCLRepository = $categorieCLRepository;
         $this->templating = $templating;
-        $this->user = $tokenStorage->getToken()->getUser();
-        $this->filterRepository = $filterRepository;
     }
 
     /**
