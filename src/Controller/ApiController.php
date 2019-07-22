@@ -437,6 +437,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 
 					$statut = $this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::LIVRAISON, Livraison::STATUT_A_TRAITER);
 					$livraison = new Livraison();
+					dump($preparationArray['date_end']);
 					$date = DateTime::createFromFormat('Ymd-H:i:s', $preparationArray['date_end'], new \DateTimeZone('Europe/Paris'));
 					$livraison
 						->setDate($date)
