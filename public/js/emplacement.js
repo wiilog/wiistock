@@ -104,3 +104,23 @@ function getDataAndPrintLabels() {
         }
     });
 }
+
+function printSingleArticleBarcode(button) {
+    let params = {
+        'emplacement': button.data('id')
+    };
+    $.post(Routing.generate('get_emplacement_from_id'), JSON.stringify(params), function (response) {
+        if (response.exists) {
+            $('#barcodes').append('<img id="singleBarcode">')
+            JsBarcode("#singleBarcode", response.emplacementLabel, {
+                format: "CODE128",
+            });
+            let doc = adjustScalesForDoc(response);
+            doc.addImage($("#singleBarcode").attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
+            doc.save('Etiquette concernant l\'emplacement ' + response.emplacementLabel + '.pdf');
+            $("#singleBarcode").remove();
+        } else {
+            $('#cannotGenerate').click();
+        }
+    });
+}

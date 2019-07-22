@@ -314,4 +314,25 @@ class EmplacementController extends AbstractController
             throw new NotFoundHttpException('404');
         }
     }
+
+    /**
+     * @Route("/ajax-article-depuis-id", name="get_emplacement_from_id", options={"expose"=true}, methods="GET|POST")
+     */
+    public function getEmplacementLabelFromId(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $dataContent = json_decode($request->getContent(), true)) {
+            $data = [];
+            $data['emplacementLabel'] = $this->emplacementRepository->find(intval($dataContent['emplacement']))->getLabel();
+            $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
+            if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth())) {
+                $data['height'] = $dimension->getHeight();
+                $data['width'] = $dimension->getWidth();
+                $data['exists'] = true;
+            } else {
+                $data['exists'] = false;
+            }
+            return new JsonResponse($data);
+        }
+        throw new NotFoundHttpException('404');
+    }
 }
