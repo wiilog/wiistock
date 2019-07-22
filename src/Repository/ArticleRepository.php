@@ -325,7 +325,8 @@ class ArticleRepository extends ServiceEntityRepository
 			if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
         }
         $query = $qb->getQuery();
-        return ['data' => $query ? $query->getResult() : null , 'allArticleDataTable' => $allArticleDataTable ? $allArticleDataTable->getResult() : null, 'count' => $countQuery, 'total' => $countTotal];
+        return ['data' => $query ? $query->getResult() : null , 'allArticleDataTable' => $allArticleDataTable ? $allArticleDataTable->getResult() : null,
+            'count' => $countQuery, 'total' => $countTotal];
     }
 
 //    public function findByParamsActifStatut($params = null, $statutId)

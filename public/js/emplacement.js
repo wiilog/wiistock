@@ -12,6 +12,7 @@ let tableEmplacement = $('#tableEmplacement_id').DataTable({
         "url": pathEmplacement,
         "type": "POST",
         'dataSrc': function (json) {
+            console.log(json);
             $('#listEmplacementIdToPrint').val(json.listId);
             return json.data;
         }
