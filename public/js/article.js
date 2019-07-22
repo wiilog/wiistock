@@ -10,6 +10,11 @@ let tableArticle = $('#tableArticle_id').DataTable({
     ajax: {
         "url": pathArticle,
         "type": "POST",
+        'dataSrc': function (json) {
+            $('#listArticleIdToPrint').val(json.listId);
+
+            return json.data;
+        }
     },
     'drawCallback': function () {
          overrideSearch();
@@ -301,9 +306,37 @@ function overrideSearch() {
     $input.on('keyup', function(e) {
         if (e.key === 'Enter') {
             tableArticle.search(this.value).draw();
+            $('.justify-content-end').find('.printButton').removeClass('d-none');
+        }
+        else if (e.key === 'Backspace') {
+            $('.justify-content-end').find('.printButton').addClass('d-none');
         }
     });
-
     $input.attr('placeholder', 'entrée pour valider');
 }
 
+function getDataAndPrintLabels() {
+    let path = Routing.generate('article_get_data_to_print', true);
+    let listArticles = $("#listArticleIdToPrint").val();
+    let params = JSON.stringify({listArticles: listArticles});
+    $.post(path, params, function (response) {
+        if (response.tags.exists) {
+            $("#barcodes").empty();
+            let i = 0;
+            response.articles.forEach(function(code) {
+                $('#barcodes').append('<img id="barcode' + i + '">')
+                JsBarcode("#barcode" + i, code, {
+                    format: "CODE128",
+                });
+                i++;
+            });
+            let doc = adjustScalesForDoc(response.tags);
+            $("#barcodes").find('img').each(function () {
+                doc.addImage($(this).attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
+                doc.addPage();
+            });
+            doc.deletePage(doc.internal.getNumberOfPages());
+            doc.save('Etiquettes-articles.pdf');
+        }
+    });
+}

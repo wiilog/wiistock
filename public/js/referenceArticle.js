@@ -663,10 +663,6 @@ function saveRapidSearch() {
     });
 }
 
-// function buttonPrintTag(){
-//     $('.justify-content-end').find('.printButton').removeClass('d-none');
-// }
-
 function getDataAndPrintLabels() {
     let path = Routing.generate('reference_article_get_data_to_print', true);
     $.post(path, function (response) {
