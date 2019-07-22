@@ -406,7 +406,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 	{
 		$data = json_decode($request->getContent(), true);
 		if (!$request->isXmlHttpRequest() && ($this->utilisateurRepository->countApiKey($data['apiKey'])) === '1') {
-			$nomadUser = $this->utilisateurRepository->findOneByToken($data['apiKey']);
+			$nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey']);
 			$entityManager = $this->getDoctrine()->getManager();
             dump($nomadUser);
 			$preparations = $data['preparations'];
