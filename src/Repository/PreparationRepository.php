@@ -19,30 +19,33 @@ class PreparationRepository extends ServiceEntityRepository
         parent::__construct($registry, Preparation::class);
     }
 
-	public function getByDemande($id)
-	{
-		$entityManager = $this->getEntityManager();
-		$query = $entityManager->createQuery(
-			"SELECT p
+    public function getByDemande($id)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT p
            FROM App\Entity\Preparation p
            JOIN p.demande d
            WHERE d.id = :id "
-		)->setParameter('id', $id);
+        )->setParameter('id', $id);
 
-		return $query->execute();
-	}
+        return $query->execute();
+    }
 
 
-	public function getByStatusLabelAndUser($statusLabel)
-	{
-		$entityManager = $this->getEntityManager();
-		$query = $entityManager->createQuery(
-			"SELECT p.id, p.numero as number
+    public function getByStatusLabelAndUser($statusLabel, $user)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT p.id, p.numero as number
 			FROM App\Entity\Preparation p
 			JOIN p.statut s
-			WHERE s.nom = :statusLabel"
-		)->setParameter('statusLabel', $statusLabel);
+			WHERE s.nom = :statusLabel AND p.Utilisateur = :user"
+        )->setParameters([
+            'statusLabel' => $statusLabel,
+            'user' => $user
+        ]);
 
-		return $query->execute();
-	}
+        return $query->execute();
+    }
 }
