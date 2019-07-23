@@ -33,7 +33,7 @@ class PreparationRepository extends ServiceEntityRepository
 	}
 
 
-	public function getByStatusLabel($statusLabel)
+	public function getByStatusLabelAndUser($statusLabel)
 	{
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager->createQuery(

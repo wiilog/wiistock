@@ -125,19 +125,19 @@ class ApiController extends FOSRestController implements ClassResourceInterface
      */
     private $pieceJointeRepository;
 
-	/**
-	 * @var PreparationRepository
-	 */
+    /**
+     * @var PreparationRepository
+     */
     private $preparationRepository;
 
-	/**
-	 * @var StatutRepository
-	 */
+    /**
+     * @var StatutRepository
+     */
     private $statutRepository;
 
-	/**
-	 * @var ArticleDataService
-	 */
+    /**
+     * @var ArticleDataService
+     */
     private $articleDataService;
 
     /**
@@ -152,10 +152,10 @@ class ApiController extends FOSRestController implements ClassResourceInterface
      * @param UserPasswordEncoderInterface $passwordEncoder
      * @param ArticleRepository $articleRepository
      * @param EmplacementRepository $emplacementRepository
-	 * @param PieceJointeRepository $pieceJointeRepository
-	 * @param PreparationRepository $preparationRepository
-	 * @param StatutRepository $statutRepository
-	 * @param ArticleDataService $articleDataService
+     * @param PieceJointeRepository $pieceJointeRepository
+     * @param PreparationRepository $preparationRepository
+     * @param StatutRepository $statutRepository
+     * @param ArticleDataService $articleDataService
      */
     public function __construct(ArticleDataService $articleDataService, StatutRepository $statutRepository, PreparationRepository $preparationRepository, PieceJointeRepository $pieceJointeRepository, LoggerInterface $logger, MailerServerRepository $mailerServerRepository, MailerService $mailerService, ColisRepository $colisRepository, MouvementTracaRepository $mouvementTracaRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
     {
@@ -201,7 +201,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
                     $em->flush();
 
                     $this->successDataMsg['success'] = true;
-                    $this->successDataMsg['data'] = $this->getDataArray();
+                    $this->successDataMsg['data'] = $this->getDataArray($user);
                     $this->successDataMsg['data']['apiKey'] = $apiKey;
                 }
             }
@@ -337,135 +337,137 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         return new JsonResponse($this->successDataMsg);
     }
 
-	/**
-	 * @Rest\Post("/api/beginPrepa", name= "api-begin-prepa")
-	 * @Rest\View()
-	 */
-	public function beginPrepa(Request $request)
-	{
-		$data = json_decode($request->getContent(), true);
+    /**
+     * @Rest\Post("/api/beginPrepa", name= "api-begin-prepa")
+     * @Rest\View()
+     */
+    public function beginPrepa(Request $request)
+    {
+        $data = json_decode($request->getContent(), true);
 
-		if (!$request->isXmlHttpRequest() && ($this->utilisateurRepository->countApiKey($data['apiKey'])) === '1') {
-			$em = $this->getDoctrine()->getManager();
+        if (!$request->isXmlHttpRequest() && ($this->utilisateurRepository->countApiKey($data['apiKey'])) === '1') {
+            $em = $this->getDoctrine()->getManager();
 
-			$preparation = $this->preparationRepository->find($data['id']);
+            $preparation = $this->preparationRepository->find($data['id']);
 
-			if ($preparation->getStatut()->getNom() == Preparation::STATUT_A_TRAITER) {
+            if ($preparation->getStatut()->getNom() == Preparation::STATUT_A_TRAITER) {
 
-				$demandes = $preparation->getDemandes();
-				$demande = $demandes[0];
+                $demandes = $preparation->getDemandes();
+                $demande = $demandes[0];
 
-				// modification des articles de la demande
-				$articles = $demande->getArticles();
-				foreach ($articles as $article) {
-					$article->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
-					// scission des articles dont la quantité prélevée n'est pas totale
-					if ($article->getQuantite() !== $article->getQuantiteAPrelever()) {
-						$newArticle = [
-							'articleFournisseur' => $article->getArticleFournisseur()->getId(),
-							'libelle' => $article->getLabel(),
-							'conform' => !$article->getConform(),
-							'commentaire' => $article->getcommentaire(),
-							'quantite' => $article->getQuantite() - $article->getQuantiteAPrelever(),
-							'emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getId() : '',
-							'statut' => Article::STATUT_ACTIF,
-							'refArticle' => isset($data['refArticle']) ? $data['refArticle'] : $article->getArticleFournisseur()->getReferenceArticle()->getId()
-						];
+                // modification des articles de la demande
+                $articles = $demande->getArticles();
+                foreach ($articles as $article) {
+                    $article->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
+                    // scission des articles dont la quantité prélevée n'est pas totale
+                    if ($article->getQuantite() !== $article->getQuantiteAPrelever()) {
+                        $newArticle = [
+                            'articleFournisseur' => $article->getArticleFournisseur()->getId(),
+                            'libelle' => $article->getLabel(),
+                            'conform' => !$article->getConform(),
+                            'commentaire' => $article->getcommentaire(),
+                            'quantite' => $article->getQuantite() - $article->getQuantiteAPrelever(),
+                            'emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getId() : '',
+                            'statut' => Article::STATUT_ACTIF,
+                            'refArticle' => isset($data['refArticle']) ? $data['refArticle'] : $article->getArticleFournisseur()->getReferenceArticle()->getId()
+                        ];
 
-						foreach ($article->getValeurChampsLibres() as $valeurChampLibre) {
-							$newArticle[$valeurChampLibre->getChampLibre()->getId()] = $valeurChampLibre->getValeur();
-						}
-						$this->articleDataService->newArticle($newArticle);
+                        foreach ($article->getValeurChampsLibres() as $valeurChampLibre) {
+                            $newArticle[$valeurChampLibre->getChampLibre()->getId()] = $valeurChampLibre->getValeur();
+                        }
+                        $this->articleDataService->newArticle($newArticle);
 
-						$article->setQuantite($article->getQuantiteAPrelever(), 0);
-					}
-				}
+                        $article->setQuantite($article->getQuantiteAPrelever(), 0);
+                    }
+                }
 
-				// modif du statut de la préparation
-				$statutEDP = $this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::PREPARATION, Preparation::STATUT_EN_COURS_DE_PREPARATION);
-				$preparation->setStatut($statutEDP);
-				$em->flush();
+                // modif du statut de la préparation
+                $nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey']);
+                $statutEDP = $this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::PREPARATION, Preparation::STATUT_EN_COURS_DE_PREPARATION);
+                $preparation->setStatut($statutEDP)
+                    ->setUtilisateur($nomadUser);
+                $em->flush();
 
-				$this->successDataMsg['success'] = true;
-			} else {
-				$this->successDataMsg['success'] = false;
-				$this->successDataMsg['msg'] = "Cette préparation a déjà été prise en charge par un opérateur.";
-			}
-		} else {
-			$this->successDataMsg['success'] = false;
-			$this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
-		}
-		return new JsonResponse($this->successDataMsg);
-	}
+                $this->successDataMsg['success'] = true;
+            } else {
+                $this->successDataMsg['success'] = false;
+                $this->successDataMsg['msg'] = "Cette préparation a déjà été prise en charge par un opérateur.";
+            }
+        } else {
+            $this->successDataMsg['success'] = false;
+            $this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
+        }
+        return new JsonResponse($this->successDataMsg);
+    }
 
-	/**
-	 * @Rest\Post("/api/finishPrepa", name= "api-finish-prepa")
-	 * @Rest\View()
-	 */
+    /**
+     * @Rest\Post("/api/finishPrepa", name= "api-finish-prepa")
+     * @Rest\View()
+     */
     public function finishPrepa(Request $request)
-	{
-		$data = json_decode($request->getContent(), true);
-		if (!$request->isXmlHttpRequest() && ($this->utilisateurRepository->countApiKey($data['apiKey'])) === '1') {
-			$nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey']);
-			$entityManager = $this->getDoctrine()->getManager();
+    {
+        $data = json_decode($request->getContent(), true);
+        if (!$request->isXmlHttpRequest() && ($this->utilisateurRepository->countApiKey($data['apiKey'])) === '1') {
+            $nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey']);
+            $entityManager = $this->getDoctrine()->getManager();
             dump($nomadUser);
-			$preparations = $data['preparations'];
-			$mouvements = $data['mouvements'];
+            $preparations = $data['preparations'];
+            $mouvements = $data['mouvements'];
 
-			foreach ($mouvements as $mouvement) {
-				if ($mouvement['is_ref']) {
-					$refArticle = $this->referenceArticleRepository->findOneByReference($mouvement['reference']);
-					if ($refArticle) {
+            foreach ($mouvements as $mouvement) {
+                if ($mouvement['is_ref']) {
+                    $refArticle = $this->referenceArticleRepository->findOneByReference($mouvement['reference']);
+                    if ($refArticle) {
 
-					}
-				} else {
-					$article = $this->articleRepository->findOneByReference($mouvement['reference']);
-					if ($article) {
-						$article->setStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::ARTICLE, Article::STATUT_EN_TRANSIT));
-					}
-				}
-			}
+                    }
+                } else {
+                    $article = $this->articleRepository->findOneByReference($mouvement['reference']);
+                    if ($article) {
+                        $article->setStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::ARTICLE, Article::STATUT_EN_TRANSIT));
+                    }
+                }
+            }
 
-			// on termine les préparations
-			// même comportement que LivraisonController.new()
-			foreach($preparations as $preparationArray) {
-				$preparation = $this->preparationRepository->find($preparationArray['id']);
-				if ($preparation) {
+            // on termine les préparations
+            // même comportement que LivraisonController.new()
+            foreach ($preparations as $preparationArray) {
+                $preparation = $this->preparationRepository->find($preparationArray['id']);
+                if ($preparation) {
 
-					$demandes = $preparation->getDemandes();
-					$demande = $demandes[0];
+                    $demandes = $preparation->getDemandes();
+                    $demande = $demandes[0];
 
-					$statut = $this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::LIVRAISON, Livraison::STATUT_A_TRAITER);
-					$livraison = new Livraison();
-					dump($preparationArray['date_end']);
-					$date = DateTime::createFromFormat(DateTime::ATOM, $preparationArray['date_end']);
-					$livraison
-						->setDate($date)
-						->setNumero('L-' . $date->format('YmdHis'))
-						->setStatut($statut);
-					$entityManager->persist($livraison);
+                    $statut = $this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::LIVRAISON, Livraison::STATUT_A_TRAITER);
+                    $livraison = new Livraison();
+                    dump($preparationArray['date_end']);
+                    $date = DateTime::createFromFormat(DateTime::ATOM, $preparationArray['date_end']);
+                    $livraison
+                        ->setDate($date)
+                        ->setNumero('L-' . $date->format('YmdHis'))
+                        ->setStatut($statut);
+                    $entityManager->persist($livraison);
 
-					$preparation
-						->addLivraison($livraison)
-						->setUtilisateur($nomadUser)
-						->setStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::PREPARATION, Preparation::STATUT_PREPARE));
+                    $preparation
+                        ->addLivraison($livraison)
+                        ->setUtilisateur($nomadUser)
+                        ->setStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::PREPARATION, Preparation::STATUT_PREPARE));
 
-					$demande
-						->setStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::DEMANDE, Demande::STATUT_PREPARE))
-						->setLivraison($livraison);
-					$entityManager->flush();
-					$this->successDataMsg['success'] = true;
-				}
-			}
-		} else {
-			$this->successDataMsg['success'] = false;
-			$this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
-		}
+                    $demande
+                        ->setStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::DEMANDE, Demande::STATUT_PREPARE))
+                        ->setLivraison($livraison);
+                    $entityManager->flush();
+                    $this->successDataMsg['success'] = true;
+                }
+            }
+        } else {
+            $this->successDataMsg['success'] = false;
+            $this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
+        }
 
-		return new JsonResponse($this->successDataMsg);
-	}
+        return new JsonResponse($this->successDataMsg);
+    }
 
-    private function getDataArray()
+    private function getDataArray($user)
     {
         $articles = $this->articleRepository->getIdRefLabelAndQuantity();
         $articlesRef = $this->referenceArticleRepository->getIdRefLabelAndQuantityByTypeQuantite(ReferenceArticle::TYPE_QUANTITE_REFERENCE);
@@ -476,22 +478,24 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         $data = [
             'emplacements' => $this->emplacementRepository->getIdAndNom(),
             'articles' => array_merge($articles, $articlesRef),
-			'preparations' => $this->preparationRepository->getByStatusLabel(Preparation::STATUT_A_TRAITER),
-			'articlesPrepa' => array_merge($articlesPrepa, $refArticlesPrepa)
+            'preparations' => $this->preparationRepository->getByStatusLabelAndUser(Preparation::STATUT_A_TRAITER, $user),
+            'articlesPrepa' => array_merge($articlesPrepa, $refArticlesPrepa)
         ];
         return $data;
     }
 
-	/**
-	 * @Rest\Post("/api/getData", name= "api-get-data")
-	 */
-    public function getData()
-	{
-	    $response = [];
-	    $response['success'] = true;
-	    $response['data'] = $this->getDataArray();
-		return new JsonResponse($response);
-	}
+    /**
+     * @Rest\Post("/api/getData", name= "api-get-data")
+     */
+    public function getData(Request $request)
+    {
+        $data = json_decode($request->getContent(), true);
+        $nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey']);
+        $response = [];
+        $response['success'] = true;
+        $response['data'] = $this->getDataArray($nomadUser);
+        return new JsonResponse($response);
+    }
 
     public function apiKeyGenerator()
     {
