@@ -40,7 +40,7 @@ class PreparationRepository extends ServiceEntityRepository
             "SELECT p.id, p.numero as number
 			FROM App\Entity\Preparation p
 			JOIN p.statut s
-			WHERE s.nom = :statusLabel AND p.Utilisateur = :user"
+			WHERE s.nom IN(:statusLabel) or p.Utilisateur = :user"
         )->setParameters([
             'statusLabel' => $statusLabel,
             'user' => $user
