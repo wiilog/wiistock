@@ -350,7 +350,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 
             $preparation = $this->preparationRepository->find($data['id']);
 
-            if ($preparation->getStatut()->getNom() == Preparation::STATUT_A_TRAITER) {
+            if ($preparation->getStatut()->getNom() == Preparation::STATUT_A_TRAITER || $preparation->getUtilisateur() === $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
 
                 $demandes = $preparation->getDemandes();
                 $demande = $demandes[0];
