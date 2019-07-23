@@ -450,7 +450,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         ])->getSingleScalarResult();
     }
 
-    public function getByPreparationStatutLabel($statutLabel) {
+    public function getByPreparationStatutLabelAndUser($statutLabel, $enCours, $user) {
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
 			"SELECT ra.reference, e.label as location, ra.libelle as label, la.quantite as quantity, 1 as is_ref, p.id as id_prepa
@@ -460,8 +460,12 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 			JOIN la.demande d
 			JOIN d.preparation p
 			JOIN p.statut s
-			WHERE s.nom = :statut"
-		)->setParameter('statut', $statutLabel);
+			WHERE s.nom = :statutLabel OR (s.nom = :enCours AND p.Utilisateur = :user)"
+		)->setParameters([
+		    'statutLabel' => $statutLabel,
+            'enCours' => $enCours,
+            'user' => $user
+        ]);
 
 		return $query->execute();
 	}

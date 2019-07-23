@@ -472,8 +472,8 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         $articles = $this->articleRepository->getIdRefLabelAndQuantity();
         $articlesRef = $this->referenceArticleRepository->getIdRefLabelAndQuantityByTypeQuantite(ReferenceArticle::TYPE_QUANTITE_REFERENCE);
 
-        $articlesPrepa = $this->articleRepository->getByPreparationStatutLabel(Preparation::STATUT_A_TRAITER);
-        $refArticlesPrepa = $this->referenceArticleRepository->getByPreparationStatutLabel(Preparation::STATUT_A_TRAITER);
+        $articlesPrepa = $this->articleRepository->getByPreparationStatutLabelAndUser(Preparation::STATUT_A_TRAITER, Preparation::STATUT_EN_COURS_DE_PREPARATION, $user);
+        $refArticlesPrepa = $this->referenceArticleRepository->getByPreparationStatutLabelAndUser(Preparation::STATUT_A_TRAITER, Preparation::STATUT_EN_COURS_DE_PREPARATION, $user);
 
         $data = [
             'emplacements' => $this->emplacementRepository->getIdAndNom(),

@@ -381,7 +381,7 @@ class ArticleRepository extends ServiceEntityRepository
 		return $query->execute();
 	}
 
-	public function getByPreparationStatutLabel($statutLabel)
+	public function getByPreparationStatutLabelAndUser($statutLabel, $enCours, $user)
 	{
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
@@ -391,8 +391,12 @@ class ArticleRepository extends ServiceEntityRepository
 			JOIN a.demande d
 			JOIN d.preparation p
 			JOIN p.statut s
-			WHERE s.nom = :statutLabel"
-		)->setParameter('statutLabel', $statutLabel);
+			WHERE s.nom = :statutLabel OR (s.nom = :enCours AND p.Utilisateur = :user)"
+		)->setParameters([
+		    'statutLabel' => $statutLabel,
+            'enCours' => $enCours,
+            'user' => $user
+        ]);
 
 		return $query->execute();
 	}
