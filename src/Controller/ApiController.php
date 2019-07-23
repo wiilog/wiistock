@@ -478,7 +478,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         $data = [
             'emplacements' => $this->emplacementRepository->getIdAndNom(),
             'articles' => array_merge($articles, $articlesRef),
-            'preparations' => $this->preparationRepository->getByStatusLabelAndUser([Preparation::STATUT_A_TRAITER, Preparation::STATUT_EN_COURS_DE_PREPARATION], $user),
+            'preparations' => $this->preparationRepository->getByStatusLabelAndUser(Preparation::STATUT_A_TRAITER, Preparation::STATUT_EN_COURS_DE_PREPARATION, $user),
             'articlesPrepa' => array_merge($articlesPrepa, $refArticlesPrepa)
         ];
         return $data;

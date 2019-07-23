@@ -33,17 +33,18 @@ class PreparationRepository extends ServiceEntityRepository
     }
 
 
-    public function getByStatusLabelAndUser($statusLabel, $user)
+    public function getByStatusLabelAndUser($statusLabel, $statutEnCoursLabel, $user)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT p.id, p.numero as number
 			FROM App\Entity\Preparation p
 			JOIN p.statut s
-			WHERE s.nom IN(:statusLabel) or p.Utilisateur = :user"
+			WHERE s.nom = :statusLabel or (s.nom = :enCours AND p.Utilisateur = :user)"
         )->setParameters([
             'statusLabel' => $statusLabel,
-            'user' => $user
+            'user' => $user,
+            'enCours' => $statutEnCoursLabel
         ]);
 
         return $query->execute();
