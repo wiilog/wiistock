@@ -470,7 +470,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 		return $query->execute();
 	}
 
-    public function getByLivraisonStatutLabelAndWithoutOtherUser($statutLabel, $enCours, $user) {
+    public function getByLivraisonStatutLabelAndWithoutOtherUser($statutLabel, $user) {
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
 			"SELECT ra.reference, e.label as location, ra.libelle as label, la.quantite as quantity, 1 as is_ref, p.id as id_prepa
@@ -483,7 +483,6 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 			WHERE s.nom = :statutLabel OR (s.nom = :enCours AND p.Utilisateur = :user)"
 		)->setParameters([
 		    'statutLabel' => $statutLabel,
-            'enCours' => $enCours,
             'user' => $user
         ]);
 
