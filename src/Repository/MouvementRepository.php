@@ -31,4 +31,21 @@ class MouvementRepository extends ServiceEntityRepository
 
         return $query->getSingleScalarResult();
     }
+
+	/**
+	 * @param $preparation
+	 * @return Mouvement[]
+	 */
+    public function findByPreparation($preparation)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			/** @lang DQL */
+			"SELECT m
+            FROM App\Entity\Mouvement m
+            WHERE m.preparationOrder = :preparation"
+		)->setParameter('preparation', $preparation);
+
+		return $query->execute();
+	}
 }

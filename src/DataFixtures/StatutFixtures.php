@@ -234,8 +234,8 @@ class StatutFixtures extends Fixture implements DependentFixtureInterface, Fixtu
 
         // catégorie mouvement traça
         $statutsNames = [
-            MouvementTraca::PRISE,
-            MouvementTraca::DEPOSE,
+            MouvementTraca::TYPE_PRISE,
+            MouvementTraca::TYPE_DEPOSE,
         ];
 
         foreach ($statutsNames as $statutName) {

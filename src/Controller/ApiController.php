@@ -20,7 +20,9 @@ use App\Entity\MouvementTraca;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Repository\ColisRepository;
+use App\Repository\LivraisonRepository;
 use App\Repository\MailerServerRepository;
+use App\Repository\MouvementRepository;
 use App\Repository\MouvementTracaRepository;
 use App\Repository\PieceJointeRepository;
 use App\Repository\PreparationRepository;
@@ -140,6 +142,16 @@ class ApiController extends FOSRestController implements ClassResourceInterface
      */
     private $articleDataService;
 
+	/**
+	 * @var LivraisonRepository
+	 */
+    private $livraisonRepository;
+
+	/**
+	 * @var MouvementRepository
+	 */
+    private $mouvementRepository;
+
     /**
      * ApiController constructor.
      * @param LoggerInterface $logger
@@ -156,8 +168,10 @@ class ApiController extends FOSRestController implements ClassResourceInterface
      * @param PreparationRepository $preparationRepository
      * @param StatutRepository $statutRepository
      * @param ArticleDataService $articleDataService
+	 * @param LivraisonRepository $livraisonRepository
+	 * @param MouvementRepository $mouvementRepository;
      */
-    public function __construct(ArticleDataService $articleDataService, StatutRepository $statutRepository, PreparationRepository $preparationRepository, PieceJointeRepository $pieceJointeRepository, LoggerInterface $logger, MailerServerRepository $mailerServerRepository, MailerService $mailerService, ColisRepository $colisRepository, MouvementTracaRepository $mouvementTracaRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
+    public function __construct(MouvementRepository $mouvementRepository, LivraisonRepository $livraisonRepository, ArticleDataService $articleDataService, StatutRepository $statutRepository, PreparationRepository $preparationRepository, PieceJointeRepository $pieceJointeRepository, LoggerInterface $logger, MailerServerRepository $mailerServerRepository, MailerService $mailerService, ColisRepository $colisRepository, MouvementTracaRepository $mouvementTracaRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
     {
         $this->pieceJointeRepository = $pieceJointeRepository;
         $this->mailerServerRepository = $mailerServerRepository;
@@ -174,6 +188,8 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         $this->preparationRepository = $preparationRepository;
         $this->statutRepository = $statutRepository;
         $this->articleDataService = $articleDataService;
+        $this->livraisonRepository = $livraisonRepository;
+        $this->mouvementRepository = $mouvementRepository;
     }
 
     /**
@@ -269,7 +285,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 
 						if ($emplacement) {
 
-							$isDepose = $type === MouvementTraca::DEPOSE;
+							$isDepose = $type === MouvementTraca::TYPE_DEPOSE;
 							$colis = $this->colisRepository->getOneByCode($mvt['ref_article']);
 							/**@var Colis $colis */
 
@@ -337,7 +353,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 					$mouvement
 						->setType($mouvementR['type'])
 						->setDate(DateTime::createFromFormat('j-M-Y', $mouvementR['date']))
-						->setEmplacement($this->emplacemnt->$mouvementR[''])
+						->setEmplacementFrom($this->emplacemnt->$mouvementR[''])
 						->setUser($mouvementR['']);
 				}
 				$this->successDataMsg['success'] = true;
@@ -392,11 +408,42 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 
 							$article->setQuantite($article->getQuantiteAPrelever(), 0);
 						}
+
+						// création des mouvements de préparation pour les articles
+						$mouvement = new Mouvement();
+						$mouvement
+							->setUser($nomadUser)
+							->setArticle($article)
+							->setQuantity($article->getQuantiteAPrelever())
+							->setEmplacementFrom($article->getEmplacement())
+							->setType(Mouvement::TYPE_TRANSFERT)
+							->setPreparationOrder($preparation)
+							->setExpectedDate($preparation->getDate());
+						$em->persist($mouvement);
+						$em->flush();
+					}
+
+					// création des mouvements de préparation pour les articles de référence
+					foreach($demande->getLigneArticle() as $ligneArticle) {
+						$articleRef = $ligneArticle->getReference();
+
+						$mouvement = new Mouvement();
+						$mouvement
+							->setUser($nomadUser)
+							->setRefArticle($articleRef)
+							->setQuantity($ligneArticle->getQuantite())
+							->setEmplacementFrom($articleRef->getEmplacement())
+							->setType(Mouvement::TYPE_TRANSFERT)
+							->setPreparationOrder($preparation)
+							->setExpectedDate($preparation->getDate());
+						$em->persist($mouvement);
+						$em->flush();
 					}
 
 					// modif du statut de la préparation
 					$statutEDP = $this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::PREPARATION, Preparation::STATUT_EN_COURS_DE_PREPARATION);
-					$preparation->setStatut($statutEDP)
+					$preparation
+						->setStatut($statutEDP)
 						->setUtilisateur($nomadUser);
 					$em->flush();
 
@@ -427,20 +474,6 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 				$preparations = $data['preparations'];
 				$mouvements = $data['mouvements'];
 
-				foreach ($mouvements as $mouvement) {
-					if ($mouvement['is_ref']) {
-						$refArticle = $this->referenceArticleRepository->findOneByReference($mouvement['reference']);
-						if ($refArticle) {
-
-						}
-					} else {
-						$article = $this->articleRepository->findOneByReference($mouvement['reference']);
-						if ($article) {
-							$article->setStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::ARTICLE, Article::STATUT_EN_TRANSIT));
-						}
-					}
-				}
-
 				// on termine les préparations
 				// même comportement que LivraisonController.new()
 				foreach ($preparations as $preparationArray) {
@@ -468,10 +501,51 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 						$demande
 							->setStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::DEMANDE, Demande::STATUT_PREPARE))
 							->setLivraison($livraison);
+
+						// on termine les mouvements de préparation
+						$mouvements = $this->mouvementRepository->findByPreparation($preparation);
+						foreach ($mouvements as $mouvement) {
+							$mouvement
+								->setDate($preparationArray['date_end'])
+								->setEmplacementTo($preparationArray['emplacement']);
+						}
+
 						$entityManager->flush();
-						$this->successDataMsg['success'] = true;
 					}
 				}
+
+				// on crée les mouvements de livraison
+				foreach ($mouvements as $mouvement) {
+					$livraison = $this->livraisonRepository->findOneByPreparationId($mouvement['id_prepa']);
+
+					$mouvement = new Mouvement();
+					$mouvement
+						->setUser($nomadUser)
+						->setQuantity($mouvement['quantity'])
+						->setEmplacementFrom($mouvement['location'])
+						->setType(Mouvement::TYPE_SORTIE)
+						->setLivraisonOrder($livraison)
+						->setExpectedDate($livraison->getDate());
+					$entityManager->persist($mouvement);
+
+					if ($mouvement['is_ref']) {
+						$refArticle = $this->referenceArticleRepository->findOneByReference($mouvement['reference']);
+						if ($refArticle) {
+							$mouvement->setRefArticle($refArticle);
+						}
+					} else {
+						$article = $this->articleRepository->findOneByReference($mouvement['reference']);
+						if ($article) {
+							$article->setStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::ARTICLE, Article::STATUT_EN_TRANSIT));
+							$mouvement->setArticle($article);
+						}
+					}
+
+					$entityManager->flush();
+				}
+
+				$this->successDataMsg['success'] = true;
+
 			} else {
 				$this->successDataMsg['success'] = false;
 				$this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";

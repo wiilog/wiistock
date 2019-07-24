@@ -31,4 +31,20 @@ class LivraisonRepository extends ServiceEntityRepository
 
         return $query->getSingleScalarResult();
     }
+
+    public function findOneByPreparationId($preparationId)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			/** @lang DQL */
+			"SELECT l
+			FROM App\Entity\Demande d 
+			JOIN d.livraison l
+			JOIN d.preparation p
+			WHERE p.id = :preparationId
+			"
+		)->setParameter('preparationId', $preparationId);
+
+		return $query->getOneOrNullResult();
+	}
 }

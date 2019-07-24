@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use Amm\Entity\ReferenceArticle;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -11,6 +12,9 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Mouvement
 {
+	const TYPE_ENTREE = 'entrée';
+	const TYPE_SORTIE = 'sortie';
+	const TYPE_TRANSFERT = 'transfert';
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
@@ -18,15 +22,26 @@ class Mouvement
      */
     private $id;
 
+	/**
+	 * @ORM\Column(type="datetime", nullable=true)
+	 */
+    private $expectedDate;
+
     /**
      * @ORM\Column(type="datetime", nullable=true)
      */
     private $date;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement", inversedBy="mouvements")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement")
      */
-    private $emplacement;
+    private $emplacementFrom;
+
+
+	/**
+	 * @ORM\ManyToOne(targetEntity="App\Entity\Emplacement")
+	 */
+	private $emplacementTo;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="mouvements")
@@ -34,23 +49,45 @@ class Mouvement
     private $user;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Article", inversedBy="mouvements")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Article", inversedBy="mouvements")
      */
     private $article;
+
+	/**
+	 * @ORM\ManyToOne(targetEntity="App\Entity\ReferenceArticle", inversedBy="mouvements")
+	 */
+    private $refArticle;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $type;
 
-    /**
-     * @ORM\OneToOne(targetEntity="App\Entity\Mouvement", cascade={"persist", "remove"})
-     */
-    private $link;
+	/**
+	 * @ORM\Column(type="integer")
+	 */
+    private $quantity;
+
+	/**
+	 * @ORM\ManyToOne(targetEntity="App\Entity\Livraison", inversedBy="mouvements")
+	 */
+    private $livraisonOrder;
+
+	/**
+	 * @ORM\ManyToOne(targetEntity="App\Entity\Collecte", inversedBy="mouvements")
+	 */
+	private $collecteOrder;
+
+	/**
+	 * @ORM\ManyToOne(targetEntity="App\Entity\Preparation", inversedBy="mouvements")
+	 */
+	private $preparationOrder;
+
 
     public function __construct()
     {
         $this->article = new ArrayCollection();
+        $this->refArticle = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -70,14 +107,14 @@ class Mouvement
         return $this;
     }
 
-    public function getEmplacement(): ?Emplacement
+    public function getEmplacementFrom(): ?Emplacement
     {
-        return $this->emplacement;
+        return $this->emplacementFrom;
     }
 
-    public function setEmplacement(?Emplacement $emplacement): self
+    public function setEmplacementFrom(?Emplacement $emplacementFrom): self
     {
-        $this->emplacement = $emplacement;
+        $this->emplacementFrom = $emplacementFrom;
 
         return $this;
     }
@@ -94,32 +131,6 @@ class Mouvement
         return $this;
     }
 
-    /**
-     * @return Collection|Article[]
-     */
-    public function getArticle(): Collection
-    {
-        return $this->article;
-    }
-
-    public function addArticle(Article $article): self
-    {
-        if (!$this->article->contains($article)) {
-            $this->article[] = $article;
-        }
-
-        return $this;
-    }
-
-    public function removeArticle(Article $article): self
-    {
-        if ($this->article->contains($article)) {
-            $this->article->removeElement($article);
-        }
-
-        return $this;
-    }
-
     public function getType(): ?string
     {
         return $this->type;
@@ -132,15 +143,100 @@ class Mouvement
         return $this;
     }
 
-    public function getLink(): ?self
+    public function getQuantity(): ?int
     {
-        return $this->link;
+        return $this->quantity;
     }
 
-    public function setLink(?self $link): self
+    public function setQuantity(int $quantity): self
     {
-        $this->link = $link;
+        $this->quantity = $quantity;
 
         return $this;
     }
+
+    public function getArticle(): ?Article
+    {
+        return $this->article;
+    }
+
+    public function setArticle(?Article $article): self
+    {
+        $this->article = $article;
+
+        return $this;
+    }
+
+    public function getRefArticle(): ?ReferenceArticle
+    {
+        return $this->refArticle;
+    }
+
+    public function setRefArticle(?ReferenceArticle $refArticle): self
+    {
+        $this->refArticle = $refArticle;
+
+        return $this;
+    }
+
+    public function getExpectedDate(): ?\DateTimeInterface
+    {
+        return $this->expectedDate;
+    }
+
+    public function setExpectedDate(?\DateTimeInterface $expectedDate): self
+    {
+        $this->expectedDate = $expectedDate;
+
+        return $this;
+    }
+
+    public function getLivraisonOrder(): ?Livraison
+    {
+        return $this->livraisonOrder;
+    }
+
+    public function setLivraisonOrder(?Livraison $livraisonOrder): self
+    {
+        $this->livraisonOrder = $livraisonOrder;
+
+        return $this;
+    }
+
+    public function getCollecteOrder(): ?Collecte
+    {
+        return $this->collecteOrder;
+    }
+
+    public function setCollecteOrder(?Collecte $collecteOrder): self
+    {
+        $this->collecteOrder = $collecteOrder;
+
+        return $this;
+    }
+
+    public function getPreparationOrder(): ?Preparation
+    {
+        return $this->preparationOrder;
+    }
+
+    public function setPreparationOrder(?Preparation $preparationOrder): self
+    {
+        $this->preparationOrder = $preparationOrder;
+
+        return $this;
+    }
+
+    public function getEmplacementTo(): ?Emplacement
+    {
+        return $this->emplacementTo;
+    }
+
+    public function setEmplacementTo(?Emplacement $emplacementTo): self
+    {
+        $this->emplacementTo = $emplacementTo;
+
+        return $this;
+    }
+
 }
