@@ -50,7 +50,7 @@ class RefArticleAdressageInEmplacementPatchFixtures extends Fixture implements F
     {
         $allRefArticles = $this->refArticleRepository->findAllRefArticles();
 
-//        $allRefArticles = array_slice($allRefArticles, 0, 5);
+        $allRefArticles = array_slice($allRefArticles, 0, 3000);
         foreach($allRefArticles as $key => $refArticle){
             dump($key);
             if(!$refArticle->getEmplacement()){
@@ -58,7 +58,7 @@ class RefArticleAdressageInEmplacementPatchFixtures extends Fixture implements F
                 $refArticle->setEmplacement($emplacement);
             }
         }
-//        $manager->flush();
+        $manager->flush();
     }
 
     public static function getGroups():array {
