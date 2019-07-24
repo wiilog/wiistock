@@ -85,10 +85,7 @@ class Mouvement
 
 
     public function __construct()
-    {
-        $this->article = new ArrayCollection();
-        $this->refArticle = new ArrayCollection();
-    }
+    {}
 
     public function getId(): ?int
     {
