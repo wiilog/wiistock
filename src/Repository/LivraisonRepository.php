@@ -43,8 +43,8 @@ class LivraisonRepository extends ServiceEntityRepository
 		$query = $em->createQuery(
 			/** @lang DQL */
 			"SELECT l
-			FROM App\Entity\Demande d 
-			JOIN d.livraison l
+			FROM App\Entity\Livraison l
+			JOIN l.demande d
 			JOIN d.preparation p
 			WHERE p.id = :preparationId
 			"
