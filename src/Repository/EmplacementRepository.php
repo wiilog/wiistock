@@ -43,7 +43,7 @@ class EmplacementRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
-    public function getOneByLabel($label) {
+    public function findOneByLabel($label) {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT e
