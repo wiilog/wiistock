@@ -564,6 +564,78 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 		}
     }
 
+	/**
+	 * @Rest\Post("/api/beginLivraison", name= "api-begin-livraison")
+	 * @Rest\View()
+	 */
+	public function beginLivraison(Request $request)
+	{
+		if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
+
+				$em = $this->getDoctrine()->getManager();
+
+				$livraison = $this->livraisonRepository->find($data['id']);
+
+				if (
+					$livraison->getStatut()->getNom() == Livraison::STATUT_A_TRAITER &&
+					(empty($livraison->getUtilisateur()) || $livraison->getUtilisateur() === $nomadUser)
+				) {
+
+					$demandes = $livraison->getDemande();
+					$demande = $demandes[0];
+
+					// création des mouvements de livraison pour les articles
+					$articles = $demande->getArticles();
+					foreach ($articles as $article) {
+						$mouvement = new Mouvement();
+						$mouvement
+							->setUser($nomadUser)
+							->setArticle($article)
+							->setQuantity($article->getQuantiteAPrelever())
+							->setEmplacementFrom($article->getEmplacement())
+							->setType(Mouvement::TYPE_TRANSFERT)
+							->setLivraisonOrder($livraison)
+							->setExpectedDate($livraison->getDate());
+						$em->persist($mouvement);
+						$em->flush();
+					}
+
+					// création des mouvements de livraison pour les articles de référence
+					foreach($demande->getLigneArticle() as $ligneArticle) {
+						$articleRef = $ligneArticle->getReference();
+
+						$mouvement = new Mouvement();
+						$mouvement
+							->setUser($nomadUser)
+							->setRefArticle($articleRef)
+							->setQuantity($ligneArticle->getQuantite())
+							->setEmplacementFrom($articleRef->getEmplacement())
+							->setType(Mouvement::TYPE_TRANSFERT)
+							->setLivraisonOrder($livraison)
+							->setExpectedDate($livraison->getDate());
+						$em->persist($mouvement);
+						$em->flush();
+					}
+
+					// modif de la livraison
+					$livraison->setUtilisateur($nomadUser);
+
+					$em->flush();
+
+					$this->successDataMsg['success'] = true;
+				} else {
+					$this->successDataMsg['success'] = false;
+					$this->successDataMsg['msg'] = "Cette livraison a déjà été prise en charge par un opérateur.";
+				}
+			} else {
+				$this->successDataMsg['success'] = false;
+				$this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
+			}
+			return new JsonResponse($this->successDataMsg);
+		}
+	}
+
     private function getDataArray($user)
     {
         $articles = $this->articleRepository->getIdRefLabelAndQuantity();
