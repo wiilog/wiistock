@@ -2,7 +2,6 @@
 
 namespace App\Entity;
 
-use Amm\Entity\ReferenceArticle;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
