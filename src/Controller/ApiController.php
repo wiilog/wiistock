@@ -506,7 +506,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 						$mouvements = $this->mouvementRepository->findByPreparation($preparation);
 						foreach ($mouvements as $mouvement) {
 							$mouvement
-								->setDate($preparationArray['date_end'])
+								->setDate($date)
 								->setEmplacementTo($preparationArray['emplacement']);
 						}
 
