@@ -404,14 +404,14 @@ class LivraisonController extends AbstractController
             $headers = array_merge($headers, ['demandeur', 'statut', 'destination', 'commentaire', 'dateDemande', 'dateValidation', 'reference', 'type demande', 'referenceArticle', 'libelleArticle', 'quantite']);
 
 			// en-têtes champs libres articles
-            $clAR = $this->champsLibreRepository->findByCategoryTypeLabels([CategoryType::ARTICLES_ET_REF_CEA]);
+            $clAR = $this->champsLibreRepository->findByCategoryTypeLabels([CategoryType::ARTICLE]);
             foreach ($clAR as $champLibre) {
                 $headers[] = $champLibre->getLabel();
             }
 
             $data = [];
             $data[] = $headers;
-            $listTypesArt = $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLES_ET_REF_CEA);
+            $listTypesArt = $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
             $listTypesDL = $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
 
 
@@ -441,7 +441,7 @@ class LivraisonController extends AbstractController
                     $livraisonData[] = $ligneArticle->getQuantite();
 
                     // champs libres de l'article de référence
-                    $categorieCLLabel = $ligneArticle->getReference()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE ? CategorieCL::REFERENCE_CEA : CategorieCL::ARTICLE;
+                    $categorieCLLabel = $ligneArticle->getReference()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE ? CategorieCL::REFERENCE_ARTICLE : CategorieCL::ARTICLE;
                     $champsLibresArt = [];
 
                     foreach ($listTypesArt as $type) {

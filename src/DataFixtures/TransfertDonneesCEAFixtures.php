@@ -101,7 +101,7 @@ class TransfertDonneesCEAFixtures extends Fixture
 
     public function load(ObjectManager $manager)
     {
-        $siliType = $this->typeRepository->findOneByCategoryLabelAndLabel(CategoryType::ARTICLES_ET_REF_CEA, Type::LABEL_SILI);
+        $siliType = $this->typeRepository->findOneByCategoryLabelAndLabel(CategoryType::ARTICLE, Type::LABEL_SILI);
         $clCodeProjet = $this->champsLibreRepository->findOneByLabel('code projet');
         $clDestinataire = $this->champsLibreRepository->findOneByLabel('destinataire');
         $toPut = 'demande' . ';' . 'numéro' . ';' . 'codeProjet' . ';' . 'destinataire' . PHP_EOL;

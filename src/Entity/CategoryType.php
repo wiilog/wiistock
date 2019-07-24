@@ -13,7 +13,7 @@ class CategoryType
 {
 //    const TYPE_ARTICLE = 'typeArticle';
     const RECEPTION = 'réception';
-    const ARTICLES_ET_REF_CEA = 'articles et références CEA';
+    const ARTICLE = 'article';
     const LITIGE = 'litige';
     const DEMANDE_LIVRAISON = 'demande livraison';
     const DEMANDE_COLLECTE = 'demande collecte';

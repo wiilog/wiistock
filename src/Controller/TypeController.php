@@ -85,7 +85,7 @@ class TypeController extends AbstractController
                 $options = $cl->getElements();
                 $isType = false;
             } else {
-                $options = $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLES_ET_REF_CEA);
+                $options = $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
             }
 
             $view = $this->renderView('type/inputSelectTypes.html.twig', [
@@ -137,7 +137,7 @@ class TypeController extends AbstractController
 
             if (!$typeExist) {
                 if ($data['category'] === null) {
-                    $category = $this->categoryTypeRepository->findoneBy(['label' => CategoryType::ARTICLES_ET_REF_CEA]);
+                    $category = $this->categoryTypeRepository->findoneBy(['label' => CategoryType::ARTICLE]);
                 } else {
                     $category = $this->categoryTypeRepository->find($data['category']);
                 }

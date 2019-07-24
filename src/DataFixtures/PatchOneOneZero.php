@@ -40,8 +40,8 @@ class PatchOneOneZero extends Fixture implements FixtureGroupInterface
         $categoryType = $this->categoryTypeRepository->findOneBy(['label' => 'typeArticle']);
 
         if (!empty($categoryType)) {
-            $categoryType->setLabel(CategoryType::ARTICLES_ET_REF_CEA);
-            dump("renommage de la catégorie typeArticle -> " . CategoryType::ARTICLES_ET_REF_CEA);
+            $categoryType->setLabel(CategoryType::ARTICLE);
+            dump("renommage de la catégorie typeArticle -> " . CategoryType::ARTICLE);
         }
 
 
@@ -49,8 +49,8 @@ class PatchOneOneZero extends Fixture implements FixtureGroupInterface
         $categorieCL = $this->categorieCLRepository->findOneBy(['label' => 'referenceArticle']);
 
         if (!empty($categorieCL)) {
-            $categorieCL->setLabel(CategorieCL::REFERENCE_CEA);
-            dump("renommage de la catégorie referenceArticle -> " . CategorieCL::REFERENCE_CEA);
+            $categorieCL->setLabel(CategorieCL::REFERENCE_ARTICLE);
+            dump("renommage de la catégorie referenceArticle -> " . CategorieCL::REFERENCE_ARTICLE);
         }
 
 
