@@ -10,8 +10,8 @@ use Doctrine\ORM\Mapping as ORM;
 class MouvementTraca
 {
 
-    const PRISE = 'prise';
-    const DEPOSE = 'depose';
+    const TYPE_PRISE = 'prise';
+    const TYPE_DEPOSE = 'depose';
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
