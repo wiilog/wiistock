@@ -280,7 +280,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 						$em->persist($toInsert);
 						$numberOfRowsInserted++;
 
-						$emplacement = $this->emplacementRepository->getOneByLabel($refEmplacement);
+						$emplacement = $this->emplacementRepository->findOneByLabel($refEmplacement);
 						/** @var Emplacement $emplacement */
 
 						if ($emplacement) {
@@ -505,9 +505,16 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 						// on termine les mouvements de préparation
 						$mouvements = $this->mouvementRepository->findByPreparation($preparation);
 						foreach ($mouvements as $mouvement) {
-							$mouvement
-								->setDate($date)
-								->setEmplacementTo($preparationArray['emplacement']);
+							$emplacement = $this->emplacementRepository->findOneByLabel($preparationArray['emplacement']);
+							if ($emplacement) {
+								$mouvement
+									->setDate($date)
+									->setEmplacementTo($emplacement);
+							} else {
+								$this->successDataMsg['success'] = false;
+								$this->successDataMsg['msg'] = "L'emplacement que vous avez sélectionné n'existe plus.";
+								return new JsonResponse($this->successDataMsg);
+							}
 						}
 
 						$entityManager->flush();
