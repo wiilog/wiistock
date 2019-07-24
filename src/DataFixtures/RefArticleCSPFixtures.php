@@ -266,7 +266,6 @@ class RefArticleCSPFixtures extends Fixture implements FixtureGroupInterface
             }
             $manager->flush();
         }
-
         fclose($file);
     }
 

@@ -202,4 +202,13 @@ class ChampsLibreRepository extends ServiceEntityRepository
 
 		return $query->execute();
 	}
+
+	public function deleteByLabel(){
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "DELETE FROM App\Entity\ChampsLibre cl
+            WHERE cl.label LIKE 'adresse%'");
+
+        return $query->execute();
+    }
 }

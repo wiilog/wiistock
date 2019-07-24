@@ -42,6 +42,48 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
+    public function getEmplacementByRefArticle($refArticle)
+    {
+        $em = $this->getEntityManager();
+        dump($refArticle->getId());
+
+        $query = $em->createQuery(
+            "
+            SELECT e
+            FROM App\Entity\Emplacement e
+            WHERE e.label IN 
+            (SELECT v.valeur
+            FROM App\Entity\ValeurChampsLibre v
+            JOIN v.champLibre c
+            JOIN v.articleReference a
+            WHERE c.label LIKE 'adresse%' AND v.valeur is not null AND a =:refArticle)"
+        )->setParameter('refArticle', $refArticle);
+        return $query->getResult() ? $query->getResult()[0] : null ;
+    }
+
+    public function getCLsAdresse()
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT DISTINCT v.valeur
+            FROM App\Entity\ValeurChampsLibre v
+            JOIN v.champLibre c
+            WHERE c.label LIKE 'adresse%'
+            "
+        );
+        return $query->execute();
+    }
+
+    public function deleteAdresse()
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "DELETE FROM App\Entity\ChampsLibre cl
+            WHERE cl.label LIKE 'adresse%'"
+        );
+        return $query->execute();
+    }
+
     public function findOneByRefArticleANDChampsLibre($refArticleId, $champLibre)
     {
         $em = $this->getEntityManager();
