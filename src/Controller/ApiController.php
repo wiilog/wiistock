@@ -15,10 +15,10 @@ use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\Livraison;
 use App\Entity\Mouvement;
-
 use App\Entity\MouvementTraca;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
+
 use App\Repository\ColisRepository;
 use App\Repository\LivraisonRepository;
 use App\Repository\MailerServerRepository;
@@ -31,6 +31,7 @@ use App\Repository\StatutRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\EmplacementRepository;
+use App\Repository\FournisseurRepository;
 
 use App\Service\ArticleDataService;
 use App\Service\MailerService;
@@ -153,6 +154,11 @@ class ApiController extends FOSRestController implements ClassResourceInterface
     private $mouvementRepository;
 
     /**
+     * @var FournisseurRepository
+     */
+    private $fournisseurRepository;
+
+    /**
      * ApiController constructor.
      * @param LoggerInterface $logger
      * @param MailerServerRepository $mailerServerRepository
@@ -171,7 +177,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 	 * @param LivraisonRepository $livraisonRepository
 	 * @param MouvementRepository $mouvementRepository;
      */
-    public function __construct(MouvementRepository $mouvementRepository, LivraisonRepository $livraisonRepository, ArticleDataService $articleDataService, StatutRepository $statutRepository, PreparationRepository $preparationRepository, PieceJointeRepository $pieceJointeRepository, LoggerInterface $logger, MailerServerRepository $mailerServerRepository, MailerService $mailerService, ColisRepository $colisRepository, MouvementTracaRepository $mouvementTracaRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
+    public function __construct(FournisseurRepository $fournisseurRepository, MouvementRepository $mouvementRepository, LivraisonRepository $livraisonRepository, ArticleDataService $articleDataService, StatutRepository $statutRepository, PreparationRepository $preparationRepository, PieceJointeRepository $pieceJointeRepository, LoggerInterface $logger, MailerServerRepository $mailerServerRepository, MailerService $mailerService, ColisRepository $colisRepository, MouvementTracaRepository $mouvementTracaRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
     {
         $this->pieceJointeRepository = $pieceJointeRepository;
         $this->mailerServerRepository = $mailerServerRepository;
@@ -190,6 +196,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         $this->articleDataService = $articleDataService;
         $this->livraisonRepository = $livraisonRepository;
         $this->mouvementRepository = $mouvementRepository;
+        $this->fournisseurRepository = $fournisseurRepository;
     }
 
     /**
@@ -290,6 +297,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 							/**@var Colis $colis */
 
 							if ($isDepose && $colis && $emplacement->getIsDeliveryPoint()) {
+							    $fournisseur = $this->fournisseurRepository->findByColis($colis);
 								$arrivage = $colis->getArrivage();
 								$destinataire = $arrivage->getDestinataire();
 								if ($this->mailerServerRepository->findOneMailerServer()) {
@@ -302,7 +310,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 											[
 												'colis' => $colis->getCode(),
 												'emplacement' => $emplacement,
-												'arrivage' => $arrivage->getNumeroArrivage(),
+												'fournisseur' => $fournisseur->getNumeroArrivage(),
 												'date' => $date,
 												'operateur' => $toInsert->getOperateur(),
 												'pjs' => $arrivage->getPiecesJointes()

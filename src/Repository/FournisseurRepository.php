@@ -128,4 +128,17 @@ class FournisseurRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
+    public function findByColis($colis)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT f
+            FROM App\Entity\Colis c
+            JOIN c.arrivage a
+            JOIN a.fournisseur f
+            WHERE c =:colis"
+        )->setParameter('colis', $colis);
+
+        return $query->execute();
+    }
 }
