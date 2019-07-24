@@ -472,14 +472,13 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 				$entityManager = $this->getDoctrine()->getManager();
 
 				$preparations = $data['preparations'];
-				$mouvements = $data['mouvements'];
 
 				// on termine les préparations
 				// même comportement que LivraisonController.new()
 				foreach ($preparations as $preparationArray) {
 					$preparation = $this->preparationRepository->find($preparationArray['id']);
-					if ($preparation) {
 
+					if ($preparation) {
 						$demandes = $preparation->getDemandes();
 						$demande = $demandes[0];
 
@@ -521,27 +520,29 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 					}
 				}
 
+				$mouvementsNomade = $data['mouvements'];
+
 				// on crée les mouvements de livraison
-				foreach ($mouvements as $mouvement) {
-					$livraison = $this->livraisonRepository->findOneByPreparationId($mouvement['id_prepa']);
+				foreach ($mouvementsNomade as $mouvementNomade) {
+					$livraison = $this->livraisonRepository->findOneByPreparationId($mouvementNomade['id_prepa']);
 
 					$mouvement = new Mouvement();
 					$mouvement
 						->setUser($nomadUser)
-						->setQuantity($mouvement['quantity'])
-						->setEmplacementFrom($mouvement['location'])
+						->setQuantity($mouvementNomade['quantity'])
+						->setEmplacementFrom($mouvementNomade['location'])
 						->setType(Mouvement::TYPE_SORTIE)
 						->setLivraisonOrder($livraison)
 						->setExpectedDate($livraison->getDate());
 					$entityManager->persist($mouvement);
 
-					if ($mouvement['is_ref']) {
-						$refArticle = $this->referenceArticleRepository->findOneByReference($mouvement['reference']);
+					if ($mouvementNomade['is_ref']) {
+						$refArticle = $this->referenceArticleRepository->findOneByReference($mouvementNomade['reference']);
 						if ($refArticle) {
 							$mouvement->setRefArticle($refArticle);
 						}
 					} else {
-						$article = $this->articleRepository->findOneByReference($mouvement['reference']);
+						$article = $this->articleRepository->findOneByReference($mouvementNomade['reference']);
 						if ($article) {
 							$article->setStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::ARTICLE, Article::STATUT_EN_TRANSIT));
 							$mouvement->setArticle($article);
