@@ -373,11 +373,14 @@ class ApiController extends FOSRestController implements ClassResourceInterface
     public function beginPrepa(Request $request)
     {
 		if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			dump('here');
 			if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
+				dump($data);
 
 				$em = $this->getDoctrine()->getManager();
 
 				$preparation = $this->preparationRepository->find($data['id']);
+				dump($preparation);
 
 				if ($preparation->getStatut()->getNom() == Preparation::STATUT_A_TRAITER || $preparation->getUtilisateur() === $nomadUser) {
 
