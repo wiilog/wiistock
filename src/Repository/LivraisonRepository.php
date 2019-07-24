@@ -32,6 +32,11 @@ class LivraisonRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
+	/**
+	 * @param $preparationId
+	 * @return Livraison|null
+	 * @throws \Doctrine\ORM\NonUniqueResultException
+	 */
     public function findOneByPreparationId($preparationId)
 	{
 		$em = $this->getEntityManager();

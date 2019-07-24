@@ -525,12 +525,13 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 				// on crée les mouvements de livraison
 				foreach ($mouvementsNomade as $mouvementNomade) {
 					$livraison = $this->livraisonRepository->findOneByPreparationId($mouvementNomade['id_prepa']);
+					$emplacement = $this->emplacementRepository->findOneByLabel($mouvementNomade['location']);
 
 					$mouvement = new Mouvement();
 					$mouvement
 						->setUser($nomadUser)
 						->setQuantity($mouvementNomade['quantity'])
-						->setEmplacementFrom($mouvementNomade['location'])
+						->setEmplacementFrom($emplacement)
 						->setType(Mouvement::TYPE_SORTIE)
 						->setLivraisonOrder($livraison)
 						->setExpectedDate($livraison->getDate());
