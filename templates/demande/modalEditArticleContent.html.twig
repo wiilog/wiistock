@@ -8,9 +8,9 @@
 <div class="form-group w-100 mb-3">
     <label for="reference">
         {% if isCurrentClient (constant('App\\Entity\\ParamClient::CEA_LETI')) %}
-        Référence CEA
+            Référence CEA
         {% else %}
-        Référence
+            Référence
         {% endif %}
     </label>
     <select class="ajax-autocomplete data form-control" {{ disabled }} value='{{ligneArticle.reference}}' id='referenceEdit'  name='reference'
