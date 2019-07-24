@@ -44,11 +44,6 @@ class Emplacement
     private $description;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Mouvement", mappedBy="emplacement")
-     */
-    private $mouvements;
-
-    /**
      * @ORM\OneToMany(targetEntity="App\Entity\Article", mappedBy="emplacement")
      */
     private $articles;
