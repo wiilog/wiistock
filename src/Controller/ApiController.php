@@ -238,81 +238,90 @@ class ApiController extends FOSRestController implements ClassResourceInterface
      */
     public function addMouvementTraca(Request $request)
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $response = new Response();
-            $response->headers->set('Content-Type', 'application/json');
-            $response->headers->set('Access-Control-Allow-Origin', '*');
-            $response->headers->set('Access-Control-Allow-Methods', 'POST, GET');
-            $em = $this->getDoctrine()->getManager();
-            $numberOfRowsInserted = 0;
-            foreach ($data['mouvements'] as $mvt) {
-                if (!$this->mouvementTracaRepository->getOneByDate($mvt['date'])) {
-                    $refEmplacement = $mvt['ref_emplacement'];
-                    $refArticle = $mvt['ref_article'];
-                    $type = $mvt['type'];
+		if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			$response = new Response();
+			$response->headers->set('Content-Type', 'application/json');
+			$response->headers->set('Access-Control-Allow-Origin', '*');
+			$response->headers->set('Access-Control-Allow-Methods', 'POST, GET');
 
-                    $toInsert = new MouvementTraca();
-                    $toInsert
-                        ->setRefArticle($refArticle)
-                        ->setRefEmplacement($refEmplacement)
-                        ->setOperateur($this->utilisateurRepository->findOneByApiKey($data['apikey'])->getUsername())
-                        ->setDate($mvt['date'])
-                        ->setType($type);
-                    $em->persist($toInsert);
-                    $numberOfRowsInserted++;
+			if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
 
-                    $emplacement = $this->emplacementRepository->getOneByLabel($refEmplacement);
-                    /** @var Emplacement $emplacement */
+				$em = $this->getDoctrine()->getManager();
+				$numberOfRowsInserted = 0;
+				foreach ($data['mouvements'] as $mvt) {
+					if (!$this->mouvementTracaRepository->getOneByDate($mvt['date'])) {
+						$refEmplacement = $mvt['ref_emplacement'];
+						$refArticle = $mvt['ref_article'];
+						$type = $mvt['type'];
 
-                    if ($emplacement) {
+						$toInsert = new MouvementTraca();
+						$toInsert
+							->setRefArticle($refArticle)
+							->setRefEmplacement($refEmplacement)
+							->setOperateur($this->utilisateurRepository->findOneByApiKey($data['apikey'])->getUsername())
+							->setDate($mvt['date'])
+							->setType($type);
+						$em->persist($toInsert);
+						$numberOfRowsInserted++;
 
-                        $isDepose = $type === MouvementTraca::DEPOSE;
-                        $colis = $this->colisRepository->getOneByCode($mvt['ref_article']);
-                        /**@var Colis $colis */
+						$emplacement = $this->emplacementRepository->getOneByLabel($refEmplacement);
+						/** @var Emplacement $emplacement */
 
-                        if ($isDepose && $colis && $emplacement->getIsDeliveryPoint()) {
-                            $arrivage = $colis->getArrivage();
-                            $destinataire = $arrivage->getDestinataire();
-                            if ($this->mailerServerRepository->findOneMailerServer()) {
-                                $dateArray = explode('_', $toInsert->getDate());
-                                $date = new DateTime($dateArray[0]);
-                                $this->mailerService->sendMail(
-                                    'FOLLOW GT // Dépose effectuée',
-                                    $this->renderView(
-                                        'mails/mailDeposeTraca.html.twig',
-                                        [
-                                            'colis' => $colis->getCode(),
-                                            'emplacement' => $emplacement,
-                                            'arrivage' => $arrivage->getNumeroArrivage(),
-                                            'date' => $date,
-                                            'operateur' => $toInsert->getOperateur(),
-                                            'pjs' => $arrivage->getPiecesJointes()
-                                        ]
-                                    ),
-                                    $destinataire->getEmail()
-                                );
-                            } else {
-                                $this->logger->critical('Parametrage mail non defini.');
-                            }
-                        }
-                    } else {
-                        $emplacement = new Emplacement();
-                        $emplacement->setLabel($refEmplacement);
-                        $em->persist($emplacement);
-                        $em->flush();
-                    }
-                }
-            }
-            $em->flush();
+						if ($emplacement) {
 
-            $s = $numberOfRowsInserted > 0 ? 's' : '';
-            $this->successDataMsg['success'] = true;
-            $this->successDataMsg['data']['status'] = ($numberOfRowsInserted === 0) ?
-                'Aucun mouvement à synchroniser.' : $numberOfRowsInserted . ' mouvement' . $s . ' synchronisé' . $s;
-            $response->setContent(json_encode($this->successDataMsg));
-            return $response;
-        }
-    }
+							$isDepose = $type === MouvementTraca::DEPOSE;
+							$colis = $this->colisRepository->getOneByCode($mvt['ref_article']);
+							/**@var Colis $colis */
+
+							if ($isDepose && $colis && $emplacement->getIsDeliveryPoint()) {
+								$arrivage = $colis->getArrivage();
+								$destinataire = $arrivage->getDestinataire();
+								if ($this->mailerServerRepository->findOneMailerServer()) {
+									$dateArray = explode('_', $toInsert->getDate());
+									$date = new DateTime($dateArray[0]);
+									$this->mailerService->sendMail(
+										'FOLLOW GT // Dépose effectuée',
+										$this->renderView(
+											'mails/mailDeposeTraca.html.twig',
+											[
+												'colis' => $colis->getCode(),
+												'emplacement' => $emplacement,
+												'arrivage' => $arrivage->getNumeroArrivage(),
+												'date' => $date,
+												'operateur' => $toInsert->getOperateur(),
+												'pjs' => $arrivage->getPiecesJointes()
+											]
+										),
+										$destinataire->getEmail()
+									);
+								} else {
+									$this->logger->critical('Parametrage mail non defini.');
+								}
+							}
+						} else {
+							$emplacement = new Emplacement();
+							$emplacement->setLabel($refEmplacement);
+							$em->persist($emplacement);
+							$em->flush();
+						}
+					}
+				}
+				$em->flush();
+
+				$s = $numberOfRowsInserted > 0 ? 's' : '';
+				$this->successDataMsg['success'] = true;
+				$this->successDataMsg['data']['status'] = ($numberOfRowsInserted === 0) ?
+					'Aucun mouvement à synchroniser.' : $numberOfRowsInserted . ' mouvement' . $s . ' synchronisé' . $s;
+
+			} else {
+				$this->successDataMsg['success'] = false;
+				$this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
+			}
+
+			$response->setContent(json_encode($this->successDataMsg));
+			return $response;
+		}
+	}
 
     /**
      * @Rest\Post("/api/setmouvement", name= "api-set-mouvement")
@@ -320,21 +329,25 @@ class ApiController extends FOSRestController implements ClassResourceInterface
      */
     public function setMouvement(Request $request)
     {
-        $data = json_decode($request->getContent(), true);
+		if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
+				$mouvementsR = $data['mouvement'];
+				foreach ($mouvementsR as $mouvementR) {
+					$mouvement = new Mouvement;
+					$mouvement
+						->setType($mouvementR['type'])
+						->setDate(DateTime::createFromFormat('j-M-Y', $mouvementR['date']))
+						->setEmplacement($this->emplacemnt->$mouvementR[''])
+						->setUser($mouvementR['']);
+				}
+				$this->successDataMsg['success'] = true;
+			}  else {
+				$this->successDataMsg['success'] = false;
+				$this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
+			}
 
-        if (!$request->isXmlHttpRequest() && ($this->utilisateurRepository->countApiKey($data['apiKey'])) === '1') {
-            $mouvementsR = $data['mouvement'];
-            foreach ($mouvementsR as $mouvementR) {
-                $mouvement = new Mouvement;
-                $mouvement
-                    ->setType($mouvementR['type'])
-                    ->setDate(DateTime::createFromFormat('j-M-Y', $mouvementR['date']))
-                    ->setEmplacement($this->emplacemnt->$mouvementR[''])
-                    ->setUser($mouvementR['']);
-            }
+        	return new JsonResponse($this->successDataMsg);
         }
-
-        return new JsonResponse($this->successDataMsg);
     }
 
     /**
@@ -343,61 +356,61 @@ class ApiController extends FOSRestController implements ClassResourceInterface
      */
     public function beginPrepa(Request $request)
     {
-        $data = json_decode($request->getContent(), true);
+		if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
 
-        if (!$request->isXmlHttpRequest() && ($this->utilisateurRepository->countApiKey($data['apiKey'])) === '1') {
-            $em = $this->getDoctrine()->getManager();
+				$em = $this->getDoctrine()->getManager();
 
-            $preparation = $this->preparationRepository->find($data['id']);
+				$preparation = $this->preparationRepository->find($data['id']);
 
-            if ($preparation->getStatut()->getNom() == Preparation::STATUT_A_TRAITER || $preparation->getUtilisateur() === $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
+				if ($preparation->getStatut()->getNom() == Preparation::STATUT_A_TRAITER || $preparation->getUtilisateur() === $nomadUser) {
 
-                $demandes = $preparation->getDemandes();
-                $demande = $demandes[0];
+					$demandes = $preparation->getDemandes();
+					$demande = $demandes[0];
 
-                // modification des articles de la demande
-                $articles = $demande->getArticles();
-                foreach ($articles as $article) {
-                    $article->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
-                    // scission des articles dont la quantité prélevée n'est pas totale
-                    if ($article->getQuantite() !== $article->getQuantiteAPrelever()) {
-                        $newArticle = [
-                            'articleFournisseur' => $article->getArticleFournisseur()->getId(),
-                            'libelle' => $article->getLabel(),
-                            'conform' => !$article->getConform(),
-                            'commentaire' => $article->getcommentaire(),
-                            'quantite' => $article->getQuantite() - $article->getQuantiteAPrelever(),
-                            'emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getId() : '',
-                            'statut' => Article::STATUT_ACTIF,
-                            'refArticle' => isset($data['refArticle']) ? $data['refArticle'] : $article->getArticleFournisseur()->getReferenceArticle()->getId()
-                        ];
+					// modification des articles de la demande
+					$articles = $demande->getArticles();
+					foreach ($articles as $article) {
+						$article->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_EN_TRANSIT));
+						// scission des articles dont la quantité prélevée n'est pas totale
+						if ($article->getQuantite() !== $article->getQuantiteAPrelever()) {
+							$newArticle = [
+								'articleFournisseur' => $article->getArticleFournisseur()->getId(),
+								'libelle' => $article->getLabel(),
+								'conform' => !$article->getConform(),
+								'commentaire' => $article->getcommentaire(),
+								'quantite' => $article->getQuantite() - $article->getQuantiteAPrelever(),
+								'emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getId() : '',
+								'statut' => Article::STATUT_ACTIF,
+								'refArticle' => isset($data['refArticle']) ? $data['refArticle'] : $article->getArticleFournisseur()->getReferenceArticle()->getId()
+							];
 
-                        foreach ($article->getValeurChampsLibres() as $valeurChampLibre) {
-                            $newArticle[$valeurChampLibre->getChampLibre()->getId()] = $valeurChampLibre->getValeur();
-                        }
-                        $this->articleDataService->newArticle($newArticle);
+							foreach ($article->getValeurChampsLibres() as $valeurChampLibre) {
+								$newArticle[$valeurChampLibre->getChampLibre()->getId()] = $valeurChampLibre->getValeur();
+							}
+							$this->articleDataService->newArticle($newArticle);
 
-                        $article->setQuantite($article->getQuantiteAPrelever(), 0);
-                    }
-                }
+							$article->setQuantite($article->getQuantiteAPrelever(), 0);
+						}
+					}
 
-                // modif du statut de la préparation
-                $nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey']);
-                $statutEDP = $this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::PREPARATION, Preparation::STATUT_EN_COURS_DE_PREPARATION);
-                $preparation->setStatut($statutEDP)
-                    ->setUtilisateur($nomadUser);
-                $em->flush();
+					// modif du statut de la préparation
+					$statutEDP = $this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::PREPARATION, Preparation::STATUT_EN_COURS_DE_PREPARATION);
+					$preparation->setStatut($statutEDP)
+						->setUtilisateur($nomadUser);
+					$em->flush();
 
-                $this->successDataMsg['success'] = true;
-            } else {
-                $this->successDataMsg['success'] = false;
-                $this->successDataMsg['msg'] = "Cette préparation a déjà été prise en charge par un opérateur.";
-            }
-        } else {
-            $this->successDataMsg['success'] = false;
-            $this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
-        }
-        return new JsonResponse($this->successDataMsg);
+					$this->successDataMsg['success'] = true;
+				} else {
+					$this->successDataMsg['success'] = false;
+					$this->successDataMsg['msg'] = "Cette préparation a déjà été prise en charge par un opérateur.";
+				}
+			} else {
+				$this->successDataMsg['success'] = false;
+				$this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
+			}
+			return new JsonResponse($this->successDataMsg);
+		}
     }
 
     /**
@@ -406,65 +419,66 @@ class ApiController extends FOSRestController implements ClassResourceInterface
      */
     public function finishPrepa(Request $request)
     {
-        $data = json_decode($request->getContent(), true);
-        if (!$request->isXmlHttpRequest() && ($this->utilisateurRepository->countApiKey($data['apiKey'])) === '1') {
-            $nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey']);
-            $entityManager = $this->getDoctrine()->getManager();
-            dump($nomadUser);
-            $preparations = $data['preparations'];
-            $mouvements = $data['mouvements'];
+		if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
 
-            foreach ($mouvements as $mouvement) {
-                if ($mouvement['is_ref']) {
-                    $refArticle = $this->referenceArticleRepository->findOneByReference($mouvement['reference']);
-                    if ($refArticle) {
+				$entityManager = $this->getDoctrine()->getManager();
 
-                    }
-                } else {
-                    $article = $this->articleRepository->findOneByReference($mouvement['reference']);
-                    if ($article) {
-                        $article->setStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::ARTICLE, Article::STATUT_EN_TRANSIT));
-                    }
-                }
-            }
+				$preparations = $data['preparations'];
+				$mouvements = $data['mouvements'];
 
-            // on termine les préparations
-            // même comportement que LivraisonController.new()
-            foreach ($preparations as $preparationArray) {
-                $preparation = $this->preparationRepository->find($preparationArray['id']);
-                if ($preparation) {
+				foreach ($mouvements as $mouvement) {
+					if ($mouvement['is_ref']) {
+						$refArticle = $this->referenceArticleRepository->findOneByReference($mouvement['reference']);
+						if ($refArticle) {
 
-                    $demandes = $preparation->getDemandes();
-                    $demande = $demandes[0];
+						}
+					} else {
+						$article = $this->articleRepository->findOneByReference($mouvement['reference']);
+						if ($article) {
+							$article->setStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::ARTICLE, Article::STATUT_EN_TRANSIT));
+						}
+					}
+				}
 
-                    $statut = $this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::LIVRAISON, Livraison::STATUT_A_TRAITER);
-                    $livraison = new Livraison();
-                    dump($preparationArray['date_end']);
-                    $date = DateTime::createFromFormat(DateTime::ATOM, $preparationArray['date_end']);
-                    $livraison
-                        ->setDate($date)
-                        ->setNumero('L-' . $date->format('YmdHis'))
-                        ->setStatut($statut);
-                    $entityManager->persist($livraison);
+				// on termine les préparations
+				// même comportement que LivraisonController.new()
+				foreach ($preparations as $preparationArray) {
+					$preparation = $this->preparationRepository->find($preparationArray['id']);
+					if ($preparation) {
 
-                    $preparation
-                        ->addLivraison($livraison)
-                        ->setUtilisateur($nomadUser)
-                        ->setStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::PREPARATION, Preparation::STATUT_PREPARE));
+						$demandes = $preparation->getDemandes();
+						$demande = $demandes[0];
 
-                    $demande
-                        ->setStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::DEMANDE, Demande::STATUT_PREPARE))
-                        ->setLivraison($livraison);
-                    $entityManager->flush();
-                    $this->successDataMsg['success'] = true;
-                }
-            }
-        } else {
-            $this->successDataMsg['success'] = false;
-            $this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
-        }
+						$statut = $this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::LIVRAISON, Livraison::STATUT_A_TRAITER);
+						$livraison = new Livraison();
 
-        return new JsonResponse($this->successDataMsg);
+						$date = DateTime::createFromFormat(DateTime::ATOM, $preparationArray['date_end']);
+						$livraison
+							->setDate($date)
+							->setNumero('L-' . $date->format('YmdHis'))
+							->setStatut($statut);
+						$entityManager->persist($livraison);
+
+						$preparation
+							->addLivraison($livraison)
+							->setUtilisateur($nomadUser)
+							->setStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::PREPARATION, Preparation::STATUT_PREPARE));
+
+						$demande
+							->setStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::DEMANDE, Demande::STATUT_PREPARE))
+							->setLivraison($livraison);
+						$entityManager->flush();
+						$this->successDataMsg['success'] = true;
+					}
+				}
+			} else {
+				$this->successDataMsg['success'] = false;
+				$this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
+			}
+
+			return new JsonResponse($this->successDataMsg);
+		}
     }
 
     private function getDataArray($user)
@@ -489,15 +503,21 @@ class ApiController extends FOSRestController implements ClassResourceInterface
      */
     public function getData(Request $request)
     {
-        $data = json_decode($request->getContent(), true);
-        $nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey']);
-        $response = [];
-        $response['success'] = true;
-        $response['data'] = $this->getDataArray($nomadUser);
-        return new JsonResponse($response);
-    }
+		if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
+				$this->successDataMsg['success'] = true;
+				$this->successDataMsg['data'] = $this->getDataArray($nomadUser);
 
-    public function apiKeyGenerator()
+			} else {
+				$this->successDataMsg['success'] = false;
+				$this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
+			}
+
+			return new JsonResponse($this->successDataMsg);
+		}
+	}
+
+    private function apiKeyGenerator()
     {
         $key = md5(microtime() . rand());
         return $key;
