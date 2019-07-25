@@ -1,23 +1,18 @@
-<html>
-<style>
-    body {
-        font-family: Montserrat, Helvetica, Arial, sans-serif;
-    }
+{% extends 'mails/template.html.twig' %}
+{% block style %}
     table, th, td {
-        border: 1px solid black;
+    border: 1px solid black;
     }
     table {
-        border-collapse: collapse;
+    border-collapse: collapse;
     }
     th, td {
-        padding: 6px;
-        text-align: center;
+    padding: 6px;
+    text-align: center;
     }
-</style>
-<body>
+{% endblock %}
 
-<h2>Votre demande a bien été livrée</h2>
-
+{% block content %}
 <p>Rappel de votre demande de livraison :</p>
 
 Numéro : {{ livraison.numero }}<br>
@@ -61,5 +56,4 @@ Liste des articles :<br>
     </tbody>
 </table>
 
-</body>
-</html>
+{% endblock %}
