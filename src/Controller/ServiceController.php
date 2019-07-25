@@ -213,7 +213,9 @@ class ServiceController extends AbstractController
                 $this->mailerService->sendMail(
                     'FOLLOW GT // Manutention effectuée',
                     $this->renderView('mails/mailManutentionDone.html.twig', ['manut' => $service]),
-                    $service->getDemandeur()->getEmail()
+                    $service->getDemandeur()->getEmail(),
+					'Votre demande de manutention a bien été effectuée',
+					'manutention'
                 );
             }
 
