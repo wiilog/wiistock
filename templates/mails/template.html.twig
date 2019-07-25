@@ -47,7 +47,11 @@
                                     {% if urlSuffix is not defined %}{% set urlSuffix = '' %}{% endif %}
                                     <td class="content-block aligncenter">
                                         <a href="{{ getDomainName() }}{{ urlSuffix }}" class="btn-primary">
-                                            Cliquez ici pour accéder à Follow GT
+                                            {% if buttonText is defined %}
+                                                {{ buttonText }}
+                                            {% else %}
+                                                Cliquez ici pour accéder à Follow GT
+                                            {% endif %}
                                         </a>
                                     </td>
                                 </tr>

@@ -562,7 +562,8 @@ class ArrivageController extends AbstractController
                 'FOLLOW GT // Litige sur arrivage',
                 $this->renderView('mails/mailLitige.html.twig', [
                     'litige' => $litige,
-					'title' => $title
+					'title' => $title,
+					'urlSuffix' => 'arrivage'
                 ]),
                 $acheteur->getEmail()
             );
