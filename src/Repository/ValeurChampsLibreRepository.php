@@ -42,6 +42,33 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
+    public function getValeurAdresse (){
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT DISTINCT vcl.valeur 
+            FROM App\Entity\ValeurChampsLibre vcl
+            JOIN vcl.champLibre cl
+            WHERE cl.id IN (
+                SELECT c.id
+                FROM App\Entity\ChampsLibre c
+                WHERE c.label LIKE 'adresse%'
+            )"
+        );
+        return $query->execute();
+    }
+    public function getCLsAdresse()
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT DISTINCT v.valeur
+            FROM App\Entity\ValeurChampsLibre v
+            JOIN v.champLibre c
+            WHERE c.label LIKE 'adresse%'
+            "
+        );
+        return $query->execute();
+    }
+
     public function findOneByRefArticleANDChampsLibre($refArticleId, $champLibre)
     {
         $em = $this->getEntityManager();

@@ -53,5 +53,4 @@ class EmplacementFixtures extends Fixture
         }
         $manager->flush();
     }
-
 }
