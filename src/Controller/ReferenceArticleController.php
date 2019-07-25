@@ -202,8 +202,8 @@ class ReferenceArticleController extends Controller
             }
 
             $columnsVisible = $this->getUser()->getColumnVisible();
-            $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_CEA);
-            $category = CategoryType::ARTICLES_ET_REF_CEA;
+            $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
+            $category = CategoryType::ARTICLE;
             $champs = $this->champsLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
 
             $columns = [];
@@ -392,8 +392,8 @@ class ReferenceArticleController extends Controller
                 }
             }
 
-            $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_CEA);
-            $category = CategoryType::ARTICLES_ET_REF_CEA;
+            $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
+            $category = CategoryType::ARTICLE;
             $champsLibres = $this->champsLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
 
             $rowCL = [];
@@ -442,8 +442,8 @@ class ReferenceArticleController extends Controller
             ]
         ];
 
-        $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_CEA);
-        $category = CategoryType::ARTICLES_ET_REF_CEA;
+        $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
+        $category = CategoryType::ARTICLE;
         $champL = $this->champsLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
         $champF[] = [
             'label' => 'Actions',
@@ -532,12 +532,12 @@ class ReferenceArticleController extends Controller
 			return strcasecmp($a['label'], $b['label']);
 		});
 
-        $types = $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLES_ET_REF_CEA);
+        $types = $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
         $emplacements = $this->emplacementRepository->findAll();
         $typeChampLibre =  [];
         $search = $this->getUser()->getRecherche();
         foreach ($types as $type) {
-            $champsLibres = $this->champsLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_CEA);
+            $champsLibres = $this->champsLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
             $typeChampLibre[] = [
                 'typeLabel' =>  $type->getLabel(),
                 'typeId' => $type->getId(),
@@ -872,11 +872,11 @@ class ReferenceArticleController extends Controller
 
             $data = $this->refArticleDataService->getDataEditForRefArticle($refArticle);
             $articlesFournisseur = $this->articleFournisseurRepository->findByRefArticle($refArticle->getId());
-            $types = $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLES_ET_REF_CEA);
+            $types = $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
 
             $typeChampLibre =  [];
             foreach ($types as $type) {
-                $champsLibresComplet = $this->champsLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_CEA);
+                $champsLibresComplet = $this->champsLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
 
                 $champsLibres = [];
                 foreach ($champsLibresComplet as $champLibre) {
@@ -931,7 +931,7 @@ class ReferenceArticleController extends Controller
             foreach ($this->champsLibreRepository->findAll() as $champLibre) {
                 $headersCL[] = $champLibre->getLabel();
             }
-            $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::ARTICLES_ET_REF_CEA);
+            $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::ARTICLE);
             $articles = $this->referenceArticleRepository->getBetweenLimits($min, $max-$min);
             foreach ($articles as $article) {
                 $data['values'][] = $this->buildInfos($article, $listTypes, $headersCL);
@@ -986,7 +986,7 @@ class ReferenceArticleController extends Controller
         $champsLibres = [];
         foreach ($listTypes as $typeArray) {
         	$type = $this->typeRepository->find($typeArray['id']);
-            $listChampsLibres = $this->champsLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_CEA);
+            $listChampsLibres = $this->champsLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
             foreach ($listChampsLibres as $champLibre) {
                 $valeurChampRefArticle = $this->valeurChampsLibreRepository->findOneByRefArticleANDChampsLibre($ref->getId(), $champLibre);
                 if ($valeurChampRefArticle) $champsLibres[$champLibre->getLabel()] = $valeurChampRefArticle->getValeur();

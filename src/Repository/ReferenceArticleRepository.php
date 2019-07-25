@@ -71,6 +71,11 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $query->getOneOrNullResult();
     }
 
+	/**
+	 * @param $reference
+	 * @return ReferenceArticle|null
+	 * @throws \Doctrine\ORM\NonUniqueResultException
+	 */
     public function findOneByReference($reference)
     {
         $entityManager = $this->getEntityManager();
@@ -444,5 +449,45 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             'statut' => $statut
         ])->getSingleScalarResult();
     }
+
+    public function getByPreparationStatutLabelAndUser($statutLabel, $enCours, $user) {
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			"SELECT ra.reference, e.label as location, ra.libelle as label, la.quantite as quantity, 1 as is_ref, p.id as id_prepa
+			FROM App\Entity\ReferenceArticle ra
+			LEFT JOIN ra.emplacement e
+			JOIN ra.ligneArticles la
+			JOIN la.demande d
+			JOIN d.preparation p
+			JOIN p.statut s
+			WHERE s.nom = :statutLabel OR (s.nom = :enCours AND p.utilisateur = :user)"
+		)->setParameters([
+		    'statutLabel' => $statutLabel,
+            'enCours' => $enCours,
+            'user' => $user
+        ]);
+
+		return $query->execute();
+	}
+
+    public function getByLivraisonStatutLabelAndWithoutOtherUser($statutLabel, $user) {
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			/** @lang DQL */
+			"SELECT ra.reference, e.label as location, ra.libelle as label, la.quantite as quantity, 1 as is_ref, l.id as id_livraison
+			FROM App\Entity\ReferenceArticle ra
+			LEFT JOIN ra.emplacement e
+			JOIN ra.ligneArticles la
+			JOIN la.demande d
+			JOIN d.livraison l
+			JOIN l.statut s
+			WHERE s.nom = :statutLabel OR (l.utilisateur is null OR l.utilisateur = :user)"
+		)->setParameters([
+		    'statutLabel' => $statutLabel,
+            'user' => $user
+        ]);
+
+		return $query->execute();
+	}
 
 }

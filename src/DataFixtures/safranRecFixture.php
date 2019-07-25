@@ -26,7 +26,7 @@ class safranRecFixture extends Fixture implements FixtureGroupInterface
     {
         $paramClient = $this->paramClientRepository->findOne();
         $paramClient->setClient(ParamClient::SAFRAN_CERAMICS);
-        $paramClient->setDomainName(ParamClient::SAFRAN_REC);
+        $paramClient->setDomainName(ParamClient::DOMAIN_NAME_SAFRAN_REC);
         $manager->flush();
     }
 

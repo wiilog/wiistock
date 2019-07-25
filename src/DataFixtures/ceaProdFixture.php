@@ -26,7 +26,7 @@ class ceaProdFixture extends Fixture implements FixtureGroupInterface
     {
         $paramClient = $this->paramClientRepository->findOne();
         $paramClient->setClient(ParamClient::CEA_LETI);
-        $paramClient->setDomainName(ParamClient::CEA_PROD);
+        $paramClient->setDomainName(ParamClient::DOMAIN_NAME_CEA_PROD);
         $manager->flush();
     }
 
