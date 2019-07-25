@@ -290,7 +290,6 @@ function initEditorInModal(modal) {
 };
 
 function initEditor(div) {
-    console.log('quill');
     // protection pour éviter erreur console si l'élément n'existe pas dans le DOM
     if($(div).length) {
         return new Quill(div, {
@@ -499,6 +498,10 @@ let toggleRequiredChampsLibres = function (select, require) {
 
 function clearDiv() {
     $('.clear').html('');
+}
+
+function clearErrorMsg(div) {
+    div.closest('.modal').find('.error-msg').html('');
 }
 
 function displayError(modal, msg, data) {
