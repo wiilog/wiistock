@@ -138,6 +138,6 @@ class FournisseurRepository extends ServiceEntityRepository
             WHERE a.colis =:colis"
         )->setParameter('colis', $colis);
 
-        return $query->execute();
+        return $query->getOneOrNullResult();
     }
 }
