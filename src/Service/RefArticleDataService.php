@@ -223,11 +223,11 @@ class RefArticleDataService
     {
         $data = $this->getDataEditForRefArticle($refArticle);
         $articlesFournisseur = $this->articleFournisseurRepository->findByRefArticle($refArticle->getId());
-        $types = $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLES_ET_REF_CEA);
+        $types = $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
 
         $typeChampLibre =  [];
         foreach ($types as $type) {
-            $champsLibresComplet = $this->champsLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_CEA);
+            $champsLibresComplet = $this->champsLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
             $champsLibres = [];
 
             foreach ($champsLibresComplet as $champLibre) {
@@ -348,8 +348,8 @@ class RefArticleDataService
 
     public function dataRowRefArticle(ReferenceArticle $refArticle)
     {
-        $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_CEA);
-        $category = CategoryType::ARTICLES_ET_REF_CEA;
+        $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
+        $category = CategoryType::ARTICLE;
         $champsLibres = $this->champsLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
         $rowCL = [];
         foreach ($champsLibres as $champLibre) {
