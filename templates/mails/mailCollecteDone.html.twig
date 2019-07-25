@@ -2,8 +2,6 @@
 
 {% block content %}
 
-<p>Rappel de votre demande de collecte :</p>
-
 Numéro : {{ collecte.numero }}<br>
 Date de demande : {{ collecte.date|date('d/m/Y') }}<br>
 Demandeur : {{ collecte.demandeur.username }}<br>
