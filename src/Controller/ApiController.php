@@ -20,6 +20,7 @@ use App\Entity\MouvementTraca;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Repository\ColisRepository;
+use App\Repository\LigneArticleRepository;
 use App\Repository\LivraisonRepository;
 use App\Repository\MailerServerRepository;
 use App\Repository\MouvementRepository;
@@ -152,6 +153,11 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 	 */
     private $mouvementRepository;
 
+	/**
+	 * @var LigneArticleRepository
+	 */
+    private $ligneArticleRepository;
+
     /**
      * ApiController constructor.
      * @param LoggerInterface $logger
@@ -169,9 +175,10 @@ class ApiController extends FOSRestController implements ClassResourceInterface
      * @param StatutRepository $statutRepository
      * @param ArticleDataService $articleDataService
 	 * @param LivraisonRepository $livraisonRepository
-	 * @param MouvementRepository $mouvementRepository;
+	 * @param MouvementRepository $mouvementRepository
+	 * @param LigneArticleRepository $ligneArticleRepository
      */
-    public function __construct(MouvementRepository $mouvementRepository, LivraisonRepository $livraisonRepository, ArticleDataService $articleDataService, StatutRepository $statutRepository, PreparationRepository $preparationRepository, PieceJointeRepository $pieceJointeRepository, LoggerInterface $logger, MailerServerRepository $mailerServerRepository, MailerService $mailerService, ColisRepository $colisRepository, MouvementTracaRepository $mouvementTracaRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
+    public function __construct(LigneArticleRepository $ligneArticleRepository, MouvementRepository $mouvementRepository, LivraisonRepository $livraisonRepository, ArticleDataService $articleDataService, StatutRepository $statutRepository, PreparationRepository $preparationRepository, PieceJointeRepository $pieceJointeRepository, LoggerInterface $logger, MailerServerRepository $mailerServerRepository, MailerService $mailerService, ColisRepository $colisRepository, MouvementTracaRepository $mouvementTracaRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
     {
         $this->pieceJointeRepository = $pieceJointeRepository;
         $this->mailerServerRepository = $mailerServerRepository;
@@ -190,6 +197,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         $this->articleDataService = $articleDataService;
         $this->livraisonRepository = $livraisonRepository;
         $this->mouvementRepository = $mouvementRepository;
+        $this->ligneArticleRepository = $ligneArticleRepository;
     }
 
     /**
@@ -526,7 +534,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 				foreach ($mouvementsNomade as $mouvementNomade) {
 					$livraison = $this->livraisonRepository->findOneByPreparationId($mouvementNomade['id_prepa']);
 					$emplacement = $this->emplacementRepository->findOneByLabel($mouvementNomade['location']);
-
+//TODO CG envoi mouvements utile uniquement si quantité peut être différente -> sinon toutes ces infos peuvent se retrouver à partir de la préparation
 					$mouvement = new Mouvement();
 					$mouvement
 						->setUser($nomadUser)
@@ -632,6 +640,91 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 				$this->successDataMsg['success'] = false;
 				$this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
 			}
+			return new JsonResponse($this->successDataMsg);
+		}
+	}
+
+	/**
+	 * @Rest\Post("/api/finishLivraison", name= "api-finish-livraison")
+	 * @Rest\View()
+	 */
+	public function finishLivraison(Request $request)
+	{
+		if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
+
+				$entityManager = $this->getDoctrine()->getManager();
+
+				$livraisons = $data['livraisons'];
+
+				// on termine les livraisons
+				// même comportement que LivraisonController.finish()
+				foreach ($livraisons as $livraisonArray) {
+					$livraison = $this->livraisonRepository->find($livraisonArray['id']);
+
+					if ($livraison) {
+						$date = DateTime::createFromFormat(DateTime::ATOM, $livraisonArray['date_end']);
+
+						$livraison
+							->setStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::LIVRAISON, Livraison::STATUT_LIVRE))
+							->setUtilisateur($nomadUser)
+							->setDateFin($date);
+
+						$demandes = $livraison->getDemande();
+						$demande = $demandes[0];
+
+						$statutLivre = $this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::DEMANDE, Demande::STATUT_LIVRE);
+						$demande->setStatut($statutLivre);
+
+						$this->mailerService->sendMail(
+							'FOLLOW GT // Livraison effectuée',
+							$this->renderView('mails/mailLivraisonDone.html.twig', ['livraison' => $demande]),
+							$demande->getUtilisateur()->getEmail()
+						);
+
+						// quantités gérées à la référence
+						$ligneArticles = $demande->getLigneArticle();
+
+						foreach ($ligneArticles as $ligneArticle) {
+							$refArticle = $ligneArticle->getReference();
+							$refArticle->setQuantiteStock($refArticle->getQuantiteStock() - $ligneArticle->getQuantite());
+						}
+
+						// quantités gérées à l'article
+						$articles = $demande->getArticles();
+
+						foreach ($articles as $article) {
+							$article
+								->setStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::ARTICLE, Article::STATUT_INACTIF))
+								->setEmplacement($demande->getDestination());
+						}
+
+						// on termine les mouvements de livraison
+						$mouvements = $this->mouvementRepository->findByLivraison($livraison);
+						foreach ($mouvements as $mouvement) {
+							$emplacement = $this->emplacementRepository->findOneByLabel($livraisonArray['emplacement']);
+							if ($emplacement) {
+								$mouvement
+									->setDate($date)
+									->setEmplacementTo($emplacement);
+							} else {
+								$this->successDataMsg['success'] = false;
+								$this->successDataMsg['msg'] = "L'emplacement que vous avez sélectionné n'existe plus.";
+								return new JsonResponse($this->successDataMsg);
+							}
+						}
+
+						$entityManager->flush();
+					}
+				}
+
+				$this->successDataMsg['success'] = true;
+
+			} else {
+				$this->successDataMsg['success'] = false;
+				$this->successDataMsg['msg'] = "Vous n'avez pas pu être authentifié. Veuillez vous reconnecter.";
+			}
+
 			return new JsonResponse($this->successDataMsg);
 		}
 	}

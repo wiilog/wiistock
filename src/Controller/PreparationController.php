@@ -130,32 +130,20 @@ class PreparationController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            // creation d'une nouvelle preparation basée sur une selection de demandes
             $preparation = new Preparation();
 
-            //declaration de la date pour remplir Date et Numero
             $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
             $preparation->setNumero('P-' . $date->format('YmdHis'));
             $preparation->setDate($date);
             $statut = $this->statutRepository->findOneByCategorieAndStatut(Preparation::CATEGORIE, Preparation::STATUT_A_TRAITER);
             $preparation->setStatut($statut);
-            //Plus de detail voir creation demande meme principe
 
             foreach ($data as $key) {
                 $demande = $this->demandeRepository->find($key);
-                // On avance dans le tableau
                 $statut = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
                 $demande
                     ->setPreparation($preparation)
                     ->setStatut($statut);
-
-                // $articles = $demande->getArticles();
-                // foreach ($articles as $article) {
-                //     $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
-                //     $article
-                //         ->setStatut($statut)
-                //         ->setDirection($demande->getDestination());
-                // }
             }
 
             $em = $this->getDoctrine()->getManager();
@@ -169,7 +157,7 @@ class PreparationController extends AbstractController
                     "date" => $preparation->getDate()->format("d/m/Y H:i:s"),
                     "Statut" => $preparation->getStatut()->getNom()
                 ],
-                "message" => "Votre préparation à été enregistrer"
+                "message" => "Votre préparation à été enregistrée."
             ];
             $data = json_encode($data);
             return new JsonResponse($data);
