@@ -41,7 +41,7 @@
                                 <tr>
                                     {% if url is not defined %}{% set url = '' %}{% endif %}
                                     <td class="content-block aligncenter">
-                                        <a href="{{ getDomainName }}{{ url }}" class="btn-primary">
+                                        <a href="{{ getDomainName() }}{{ url }}" class="btn-primary">
                                             Cliquez ici pour accéder à Follow GT
                                         </a>
                                     </td>
