@@ -511,12 +511,12 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 
 						// on termine les mouvements de préparation
 						$mouvements = $this->mouvementRepository->findByPreparation($preparation);
+						$emplacementPrepa = $this->emplacementRepository->findOneByLabel($preparationArray['emplacement']);
 						foreach ($mouvements as $mouvement) {
-							$emplacement = $this->emplacementRepository->findOneByLabel($preparationArray['emplacement']);
-							if ($emplacement) {
+							if ($emplacementPrepa) {
 								$mouvement
 									->setDate($date)
-									->setEmplacementTo($emplacement);
+									->setEmplacementTo($emplacementPrepa);
 							} else {
 								$this->successDataMsg['success'] = false;
 								$this->successDataMsg['msg'] = "L'emplacement que vous avez sélectionné n'existe plus.";
@@ -534,7 +534,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 				foreach ($mouvementsNomade as $mouvementNomade) {
 					$livraison = $this->livraisonRepository->findOneByPreparationId($mouvementNomade['id_prepa']);
 					$emplacement = $this->emplacementRepository->findOneByLabel($mouvementNomade['location']);
-//TODO CG envoi mouvements utile uniquement si quantité peut être différente -> sinon toutes ces infos peuvent se retrouver à partir de la préparation
+
 					$mouvement = new Mouvement();
 					$mouvement
 						->setUser($nomadUser)

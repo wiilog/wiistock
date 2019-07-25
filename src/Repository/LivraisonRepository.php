@@ -33,7 +33,7 @@ class LivraisonRepository extends ServiceEntityRepository
     }
 
 	/**
-	 * @param $preparationId
+	 * @param int $preparationId
 	 * @return Livraison|null
 	 * @throws \Doctrine\ORM\NonUniqueResultException
 	 */
