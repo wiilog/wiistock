@@ -304,7 +304,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 							/**@var Colis $colis */
 
 							if ($isDepose && $colis && $emplacement->getIsDeliveryPoint()) {
-							    $fournisseur = $this->fournisseurRepository->findByColis($colis);
+							    $fournisseur = $this->fournisseurRepository->findOneByColis($colis);
 								$arrivage = $colis->getArrivage();
 								$destinataire = $arrivage->getDestinataire();
 								if ($this->mailerServerRepository->findOneMailerServer()) {
@@ -317,7 +317,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 											[
 												'colis' => $colis->getCode(),
 												'emplacement' => $emplacement,
-												'fournisseur' => $fournisseur->getNumeroArrivage(),
+												'fournisseur' => $fournisseur->getNom(),
 												'date' => $date,
 												'operateur' => $toInsert->getOperateur(),
 												'pjs' => $arrivage->getPiecesJointes()
