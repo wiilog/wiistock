@@ -79,17 +79,11 @@ class MailerService
 
         //        $image = $message->embed(\Swift_Image::fromPath('img/Logo-FollowGTpetit.png'));
 
-		$contentWithTemplate = $this->templating->render('mails/template.html.twig', [
-			'title' => $title,
-			'content' => $content,
-			'url' => $this->paramClientRepository->findOne()->getDomainName() . $url
-		]);
-
         $message
             ->setFrom($from)
             ->setTo($to)
             ->setSubject($subject)
-            ->setBody($contentWithTemplate)
+            ->setBody($content)
             ->setContentType('text/html');
         $mailer = (new \Swift_Mailer($transport));
         $mailer->send($message);

@@ -8,6 +8,10 @@
 
 {#<h2>Votre demande de manutention a bien été effectuée</h2>#}
 
+{% extends 'mails/template.html.twig' %}
+
+{% block content %}
+
 Date de demande : {{ manut.date|date('d/m/Y') }}<br>
 Libellé : {{ manut.libelle }}<br>
 Demandeur : {{ manut.demandeur.username }}<br>
@@ -19,5 +23,6 @@ Destination : {{ manut.destination }}<br>
 <br>
 <br>
 
+{% endblock %}
 {#</body>#}
 {#</html>#}

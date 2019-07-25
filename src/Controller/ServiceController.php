@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\Menu;
 use App\Entity\Service;
+use App\Repository\ParamClientRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\ServiceRepository;
@@ -43,6 +44,11 @@ class ServiceController extends AbstractController
      */
     private $utilisateurRepository;
 
+	/**
+	 * @var ParamClientRepository
+	 */
+    private $paramClientRepository;
+
     /**
      * @var UserService
      */
@@ -54,7 +60,7 @@ class ServiceController extends AbstractController
     private $mailerService;
 
 
-    public function __construct(ServiceRepository $serviceRepository, EmplacementRepository $emplacementRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, MailerService $mailerService)
+    public function __construct(ParamClientRepository $paramClientRepository, ServiceRepository $serviceRepository, EmplacementRepository $emplacementRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, MailerService $mailerService)
     {
         $this->serviceRepository = $serviceRepository;
         $this->emplacementRepository = $emplacementRepository;
@@ -62,6 +68,7 @@ class ServiceController extends AbstractController
         $this->utilisateurRepository = $utilisateurRepository;
         $this->userService = $userService;
         $this->mailerService = $mailerService;
+        $this->paramClientRepository = $paramClientRepository;
     }
 
     /**
@@ -212,10 +219,12 @@ class ServiceController extends AbstractController
             if ($statutLabel == Service::STATUT_TRAITE) {
                 $this->mailerService->sendMail(
                     'FOLLOW GT // Manutention effectuée',
-                    $this->renderView('mails/mailManutentionDone.html.twig', ['manut' => $service]),
-                    $service->getDemandeur()->getEmail(),
-					'Votre demande de manutention a bien été effectuée',
-					'manutention'
+                    $this->renderView('mails/mailManutentionDone.html.twig', [
+                    	'manut' => $service,
+						'title' => 'Votre demande de manutention a bien été effectuée',
+						'url' => $this->paramClientRepository->findOne()->getDomainName() . '/manutention'
+					]),
+                    $service->getDemandeur()->getEmail()
                 );
             }
 
