@@ -2,30 +2,23 @@
 
 {% block content %}
 <table class='table'>
+    <thead>
+        <tr>
+            <th class="th">Fournisseur</th>
+            <th class="th">Colis</th>
+            <th class="th">Date de dépose</th>
+            <th class="th">Emplacement</th>
+            <th class="th">Opérateur</th>
+            <th class="th">Pièces jointes</th>
+        </tr>
+    </thead>
     <tbody>
     <tr>
-        <td class='td bold'>Fournisseur</td>
-        <td>{{ fournisseur }}</td>
-    </tr>
-    <tr>
-        <td class='td bold'>Colis</td>
+        <td class='td'>{{ fournisseur }}</td>
         <td class='td'>{{ colis }}</td>
-    </tr>
-    <tr>
-        <td class='td bold'>Date de dépose</td>
         <td class='td'>le {{ date|date("d/m/Y") }} à {{ date|date("H:i:s") }}</td>
-    </tr>
-    <tr>
-        <td class='td bold'>Emplacement</td>
         <td class='td'>{{ emplacement.label }}{% if emplacement.description is not empty %} : {{ emplacement.description }}{% endif %}</td>
-    </tr>
-    <tr>
-        <td class='td bold'>Opérateur</td>
         <td class='td'>{{ operateur }}</td>
-    </tr>
-
-    <tr>
-        <td  class='td bold'>Pièces jointes</td>
         <td class='td'>
             <table>
                 {% for pj in pjs %}
@@ -38,7 +31,6 @@
             </table>
         </td>
     </tr>
-
     </tbody>
 </table>
 
