@@ -88,6 +88,7 @@ class MailsLitigesComand extends Command
                 'FOLLOW GT // Récapitulatif de vos litiges',
                 $this->templating->render('mails/mailLitiges.html.twig', [
                     'litiges' => $litiges,
+                    'title' => 'Récapitulatif de vos litiges',
                     'urlSuffix' => 'arrivage'
                 ]),
                 $email

@@ -4,25 +4,25 @@
 
 {% set s = litiges|length > 1 ? 's' : '' %}
 {% set nt = litiges|length > 1 ? 'nt' : '' %}
-<h2>{{ litiges|length }}</span> litige{{ s }} vous concerne{{ nt }} :</h2>
+<h4 class="margin-bottom:30px;">{{ litiges|length }}</span> litige{{ s }} vous concerne{{ nt }} :</h4>
 
 {% for litige in litiges %}
     {% set arrivage = litige.arrivage %}
     <table class="table">
         <thead>
-        <tr>
-            <th class="th">N° d'arrivage</th>
-            <th class="th">Transporteur</th>
-            <th class="th">Chauffeur</th>
-            <th class="th">N° tracking transporteur</th>
-            <th class="th">N° commande / BL</th>
-            <th class="th">Fournisseur</th>
-            <th class="th">Acheteur(s)</th>
-            <th class="th">Destinataire</th>
-            <th class="th">Nb UM</th>
-            <th class="th">Date</th>
-            <th class="th">Utilisateur</th>
-        </tr>
+            <tr>
+                <th class="th">N° d'arrivage</th>
+                <th class="th">Transporteur</th>
+                <th class="th">Chauffeur</th>
+                <th class="th">N° tracking transporteur</th>
+                <th class="th">N° commande / BL</th>
+                <th class="th">Fournisseur</th>
+                <th class="th">Acheteur(s)</th>
+                <th class="th">Destinataire</th>
+                <th class="th">Nb UM</th>
+                <th class="th">Date</th>
+                <th class="th">Utilisateur</th>
+            </tr>
         </thead>
         <tbody>
         <tr>
@@ -45,7 +45,7 @@
         </tbody>
     </table>
 
-    <p style="font-weight:bold;margin-bottom: 20px;">Type de litige : {{ litige.type.label }}</p>
+    <p style="font-weight:bold;margin-bottom:30px;">Type de litige : {{ litige.type.label }}</p>
 {% endfor %}
 
 <br>
