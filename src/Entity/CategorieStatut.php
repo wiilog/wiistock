@@ -22,6 +22,7 @@ class CategorieStatut
     const MANUTENTION = 'manutention';
     const ARRIVAGE = 'arrivage';
     const MVT_TRACA = 'mouvement_traca';
+    const MVT_STOCK = 'mouvement_stock';
 
     /**
      * @ORM\Id()

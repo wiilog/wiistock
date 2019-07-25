@@ -3,22 +3,22 @@
 namespace App\Repository;
 
 use App\Entity\Livraison;
-use App\Entity\Mouvement;
+use App\Entity\MouvementStock;
 use App\Entity\Preparation;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
- * @method Mouvement|null find($id, $lockMode = null, $lockVersion = null)
- * @method Mouvement|null findOneBy(array $criteria, array $orderBy = null)
- * @method Mouvement[]    findAll()
- * @method Mouvement[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method MouvementStock|null find($id, $lockMode = null, $lockVersion = null)
+ * @method MouvementStock|null findOneBy(array $criteria, array $orderBy = null)
+ * @method MouvementStock[]    findAll()
+ * @method MouvementStock[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class MouvementRepository extends ServiceEntityRepository
+class MouvementStockRepository extends ServiceEntityRepository
 {
     public function __construct(RegistryInterface $registry)
     {
-        parent::__construct($registry, Mouvement::class);
+        parent::__construct($registry, MouvementStock::class);
     }
 
     public function countByEmplacement($emplacementId)
@@ -26,7 +26,7 @@ class MouvementRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
         $query = $em->createQuery(
             "SELECT COUNT(m)
-            FROM App\Entity\Mouvement m
+            FROM App\Entity\MouvementStock m
             JOIN m.emplacement empl
             WHERE empl.id = :emplacementId"
         )->setParameter('emplacementId', $emplacementId);
@@ -36,7 +36,7 @@ class MouvementRepository extends ServiceEntityRepository
 
 	/**
 	 * @param Preparation $preparation
-	 * @return Mouvement[]
+	 * @return MouvementStock[]
 	 */
     public function findByPreparation($preparation)
 	{
@@ -44,7 +44,7 @@ class MouvementRepository extends ServiceEntityRepository
 		$query = $em->createQuery(
 			/** @lang DQL */
 			"SELECT m
-            FROM App\Entity\Mouvement m
+            FROM App\Entity\MouvementStock m
             WHERE m.preparationOrder = :preparation"
 		)->setParameter('preparation', $preparation);
 
@@ -53,7 +53,7 @@ class MouvementRepository extends ServiceEntityRepository
 
 	/**
 	 * @param Livraison $livraison
-	 * @return Mouvement[]
+	 * @return MouvementStock[]
 	 */
 	public function findByLivraison($livraison)
 	{
@@ -61,7 +61,7 @@ class MouvementRepository extends ServiceEntityRepository
 		$query = $em->createQuery(
 		/** @lang DQL */
 			"SELECT m
-            FROM App\Entity\Mouvement m
+            FROM App\Entity\MouvementStock m
             WHERE m.livraisonOrder = :livraison"
 		)->setParameter('livraison', $livraison);
 

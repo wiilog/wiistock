@@ -11,7 +11,7 @@ use App\Repository\DemandeRepository;
 use App\Repository\DimensionsEtiquettesRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\LivraisonRepository;
-use App\Repository\MouvementRepository;
+use App\Repository\MouvementStockRepository;
 use App\Service\UserService;
 use App\Service\EmplacementDataService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -59,7 +59,7 @@ class EmplacementController extends AbstractController
     private $collecteRepository;
 
     /**
-     * @var MouvementRepository
+     * @var MouvementStockRepository
      */
     private $mouvementRepository;
 
@@ -74,7 +74,7 @@ class EmplacementController extends AbstractController
     private $dimensionsEtiquettesRepository;
 
 
-    public function __construct(DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, EmplacementDataService $emplacementDataService, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, UserService $userService, DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, CollecteRepository $collecteRepository, MouvementRepository $mouvementRepository)
+    public function __construct(DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, EmplacementDataService $emplacementDataService, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, UserService $userService, DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, CollecteRepository $collecteRepository, MouvementStockRepository $mouvementRepository)
     {
         $this->emplacementDataService = $emplacementDataService;
         $this->emplacementRepository = $emplacementRepository;
