@@ -33,7 +33,7 @@ class LivraisonRepository extends ServiceEntityRepository
     }
 
 	/**
-	 * @param $preparationId
+	 * @param int $preparationId
 	 * @return Livraison|null
 	 * @throws \Doctrine\ORM\NonUniqueResultException
 	 */
@@ -51,5 +51,22 @@ class LivraisonRepository extends ServiceEntityRepository
 		)->setParameter('preparationId', $preparationId);
 
 		return $query->getOneOrNullResult();
+	}
+
+	public function getByStatusLabelAndWithoutOtherUser($statusLabel, $user)
+	{
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+			/** @lang DQL */
+			"SELECT l.id, l.numero as number
+			FROM App\Entity\Livraison l
+			JOIN l.statut s
+			WHERE s.nom = :statusLabel AND (l.utilisateur is null or l.utilisateur = :user)"
+		)->setParameters([
+			'statusLabel' => $statusLabel,
+			'user' => $user
+		]);
+
+		return $query->execute();
 	}
 }

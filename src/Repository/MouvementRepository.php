@@ -2,7 +2,9 @@
 
 namespace App\Repository;
 
+use App\Entity\Livraison;
 use App\Entity\Mouvement;
+use App\Entity\Preparation;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
@@ -33,7 +35,7 @@ class MouvementRepository extends ServiceEntityRepository
     }
 
 	/**
-	 * @param $preparation
+	 * @param Preparation $preparation
 	 * @return Mouvement[]
 	 */
     public function findByPreparation($preparation)
@@ -45,6 +47,23 @@ class MouvementRepository extends ServiceEntityRepository
             FROM App\Entity\Mouvement m
             WHERE m.preparationOrder = :preparation"
 		)->setParameter('preparation', $preparation);
+
+		return $query->execute();
+	}
+
+	/**
+	 * @param Livraison $livraison
+	 * @return Mouvement[]
+	 */
+	public function findByLivraison($livraison)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+		/** @lang DQL */
+			"SELECT m
+            FROM App\Entity\Mouvement m
+            WHERE m.livraisonOrder = :livraison"
+		)->setParameter('livraison', $livraison);
 
 		return $query->execute();
 	}
