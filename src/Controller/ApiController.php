@@ -288,7 +288,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 						$toInsert
 							->setRefArticle($refArticle)
 							->setRefEmplacement($refEmplacement)
-							->setOperateur($this->utilisateurRepository->findOneByApiKey($data['apikey'])->getUsername())
+							->setOperateur($this->utilisateurRepository->findOneByApiKey($data['apiKey'])->getUsername())
 							->setDate($mvt['date'])
 							->setType($type);
 						$em->persist($toInsert);
