@@ -4,20 +4,17 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\Arrivage;
-use App\Entity\CategorieCL;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Colis;
-use App\Entity\Demande;
 use App\Entity\DimensionsEtiquettes;
-use App\Entity\LigneArticle;
 use App\Entity\Litige;
 use App\Entity\Menu;
 use App\Entity\ParamClient;
-use App\Entity\ReferenceArticle;
 use App\Entity\PieceJointe;
 use App\Entity\Statut;
 use App\Entity\Utilisateur;
+
 use App\Repository\ArrivageRepository;
 use App\Repository\ChampsLibreRepository;
 use App\Repository\LitigeRepository;
@@ -29,12 +26,13 @@ use App\Repository\StatutRepository;
 use App\Repository\TransporteurRepository;
 use App\Repository\TypeRepository;
 use App\Repository\UtilisateurRepository;
-use App\Repository\ValeurChampsLibreRepository;
+
 use App\Service\SpecificService;
 use App\Service\UserService;
 use App\Service\MailerService;
+
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -575,7 +573,6 @@ class ArrivageController extends AbstractController
 
             // spécifique SAFRAN CERAMICS ajout de commentaire
             $isSafran = $this->specificService->isCurrentClientNameFunction(ParamClient::SAFRAN_CERAMICS);
-
             if ($isSafran) {
                 $type = $this->typeRepository->find($data['typeLitigeId']);
                 $response = $type->getDescription();

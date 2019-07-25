@@ -31,7 +31,19 @@ class EmplacementRepository extends ServiceEntityRepository
         return $query->execute(); 
     }
 
-    public function getOneByLabel($label) {
+    public function countByLabel($label)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT COUNT(e.label)
+            FROM App\Entity\Emplacement e
+            WHERE e.label = :label"
+        )->setParameter('label', $label);
+
+        return $query->getSingleScalarResult();
+    }
+
+    public function findOneByLabel($label) {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             "SELECT e

@@ -85,7 +85,7 @@ class Utilisateur implements UserInterface, EquatableInterface
      */
     private $collectes;
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Preparation", mappedBy="Utilisateur")
+     * @ORM\OneToMany(targetEntity="App\Entity\Preparation", mappedBy="utilisateur")
      */
     private $preparations;
 

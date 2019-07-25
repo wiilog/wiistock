@@ -9,8 +9,13 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class ParamClient
 {
-	const CEA_LETI = 'CEA LETI';
+    const CEA_LETI = 'CEA LETI';
+    const DOMAIN_NAME_CEA_PROD = 'https://cl2-prod.follow-gt.fr/';
+    const DOMAIN_NAME_CEA_REC = 'https://cl1-rec.follow-gt.fr/';
+
 	const SAFRAN_CERAMICS = 'SAFRAN CERAMICS';
+    const DOMAIN_NAME_SAFRAN_REC = 'https://scs1-rec.follow-gt.fr/';
+    const DOMAIN_NAME_SAFRAN_PROD = 'https://scs1-prod.follow-gt.fr/';
 
     /**
      * @ORM\Id()

@@ -102,14 +102,14 @@ class Arrivage
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\PieceJointe", mappedBy="arrivage")
      */
-    private $attachements;
+    private $piecesJointes;
 
 
     public function __construct()
     {
         $this->acheteurs = new ArrayCollection();
         $this->colis = new ArrayCollection();
-        $this->attachements = new ArrayCollection();
+        $this->piecesJointes = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -214,37 +214,6 @@ class Arrivage
 
         return $this;
     }
-
-    public function getPiecesJointes(): ?array
-    {
-        return $this->piecesJointes;
-    }
-
-    public function setPiecesJointes(?array $piecesJointes): self
-    {
-        $this->piecesJointes = $piecesJointes;
-
-        return $this;
-    }
-
-    public function addPiecesJointes($filename): self
-    {
-        $this->piecesJointes[] = $filename;
-
-        return $this;
-    }
-
-    public function removePieceJointe($filename): self
-	{
-		$piecesJointes = $this->getPiecesJointes();
-
-		if (($key = array_search($filename, $piecesJointes)) !== false) {
-			unset($piecesJointes[$key]);
-		}
-		$this->setPiecesJointes($piecesJointes);
-
-		return $this;
-	}
 
     public function getNumeroReception(): ?string
     {
@@ -413,28 +382,28 @@ class Arrivage
     /**
      * @return Collection|PieceJointe[]
      */
-    public function getAttachements(): Collection
+    public function getPiecesJointes(): Collection
     {
-        return $this->attachements;
+        return $this->piecesJointes;
     }
 
-    public function addAttachement(PieceJointe $attachement): self
+    public function addPieceJointe(PieceJointe $pieceJointe): self
     {
-        if (!$this->attachements->contains($attachement)) {
-            $this->attachements[] = $attachement;
-            $attachement->setArrivage($this);
+        if (!$this->piecesJointes->contains($pieceJointe)) {
+            $this->piecesJointes[] = $pieceJointe;
+            $pieceJointe->setArrivage($this);
         }
 
         return $this;
     }
 
-    public function removeAttachement(PieceJointe $attachement): self
+    public function removePieceJointe(PieceJointe $pieceJointe): self
     {
-        if ($this->attachements->contains($attachement)) {
-            $this->attachements->removeElement($attachement);
+        if ($this->piecesJointes->contains($pieceJointe)) {
+            $this->piecesJointes->removeElement($pieceJointe);
             // set the owning side to null (unless already changed)
-            if ($attachement->getArrivage() === $this) {
-                $attachement->setArrivage(null);
+            if ($pieceJointe->getArrivage() === $this) {
+                $pieceJointe->setArrivage(null);
             }
         }
 
@@ -458,6 +427,29 @@ class Arrivage
             // set the owning side to null (unless already changed)
             if ($coli->getArrivage() === $this) {
                 $coli->setArrivage(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function addPiecesJointe(PieceJointe $piecesJointe): self
+    {
+        if (!$this->piecesJointes->contains($piecesJointe)) {
+            $this->piecesJointes[] = $piecesJointe;
+            $piecesJointe->setArrivage($this);
+        }
+
+        return $this;
+    }
+
+    public function removePiecesJointe(PieceJointe $piecesJointe): self
+    {
+        if ($this->piecesJointes->contains($piecesJointe)) {
+            $this->piecesJointes->removeElement($piecesJointe);
+            // set the owning side to null (unless already changed)
+            if ($piecesJointe->getArrivage() === $this) {
+                $piecesJointe->setArrivage(null);
             }
         }
 

@@ -227,7 +227,7 @@ class CollecteController extends AbstractController
             $rowsRC = [];
             foreach ($referenceCollectes as $referenceCollecte) {
                 $rowsRC[] = [
-                    'Référence CEA' => ($referenceCollecte->getReferenceArticle() ? $referenceCollecte->getReferenceArticle()->getReference() : ''),
+                    'Référence' => ($referenceCollecte->getReferenceArticle() ? $referenceCollecte->getReferenceArticle()->getReference() : ''),
                     'Libellé' => ($referenceCollecte->getReferenceArticle() ? $referenceCollecte->getReferenceArticle()->getLibelle() : ''),
                     'Emplacement' => $collecte->getPointCollecte()->getLabel(),
                     'Quantité' => ($referenceCollecte->getQuantite() ? $referenceCollecte->getQuantite() : ''),
@@ -244,7 +244,7 @@ class CollecteController extends AbstractController
             $rowsCA = [];
             foreach ($articles as $article) {
                 $rowsCA[] = [
-                    'Référence CEA' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : ''),
+                    'Référence' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : ''),
                     'Libellé' => $article->getLabel(),
                     'Emplacement' => ($collecte->getPointCollecte() ? $collecte->getPointCollecte()->getLabel() : ''),
                     'Quantité' => $article->getQuantite(),

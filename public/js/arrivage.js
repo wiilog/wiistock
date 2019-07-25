@@ -521,7 +521,7 @@ $('#submitSearchArrivage').on('click', function () {
             let dateMin = $('#dateMin').val();
             let dateMax = $('#dateMax').val();
             let indexDate = tableArrivage.column('Date:name').index();
-            let dateInit = (data[indexDate]).split('/').reverse().join('-') || 0;
+            let dateInit = (data[indexDate]).split(' ')[0].split('/').reverse().join('-') || 0;
 
             if (
                 (dateMin == "" && dateMax == "")

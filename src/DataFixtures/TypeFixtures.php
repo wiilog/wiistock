@@ -29,7 +29,7 @@ class TypeFixtures extends Fixture implements DependentFixtureInterface, Fixture
 
     public function load(ObjectManager $manager)
     {
-        // categorie articles et références CEA
+        // categorie article
         $typesNames = [
             Type::LABEL_PDT,
             Type::LABEL_CSP,
@@ -46,7 +46,7 @@ class TypeFixtures extends Fixture implements DependentFixtureInterface, Fixture
             if (empty($type)) {
                 $type = new Type();
                 $type
-                    ->setCategory($this->getReference('type-' . CategoryType::ARTICLES_ET_REF_CEA))
+                    ->setCategory($this->getReference('type-' . CategoryType::ARTICLE))
                     ->setLabel($typeName);
                 $manager->persist($type);
                 dump("création du type " . $typeName);

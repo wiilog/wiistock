@@ -117,7 +117,13 @@ class EmplacementController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $em = $this->getDoctrine()->getEntityManager();
+            // on vérifie que l'emplacement n'existe pas déjà
+            $emplacementAlreadyExist = $this->emplacementRepository->countByLabel($data['Label']);
+            if ($emplacementAlreadyExist) {
+                return new JsonResponse(false);
+            }
+
+            $em = $this->getDoctrine()->getManager();
             $emplacement = new Emplacement();
             $emplacement
 				->setLabel($data["Label"])
@@ -125,7 +131,7 @@ class EmplacementController extends AbstractController
 				->setIsDeliveryPoint($data["isDeliveryPoint"]);
             $em->persist($emplacement);
             $em->flush();
-            return new JsonResponse($data);
+            return new JsonResponse(true);
         }
 
         throw new NotFoundHttpException("404");
