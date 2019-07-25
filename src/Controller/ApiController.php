@@ -317,7 +317,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 											[
 												'colis' => $colis->getCode(),
 												'emplacement' => $emplacement,
-												'fournisseur' => $fournisseur->getNom(),
+												'fournisseur' => $fournisseur ? $fournisseur->getNom() : '',
 												'date' => $date,
 												'operateur' => $toInsert->getOperateur(),
 												'pjs' => $arrivage->getPiecesJointes()
