@@ -782,4 +782,5 @@ class ApiController extends FOSRestController implements ClassResourceInterface
         $key = md5(microtime() . rand());
         return $key;
     }
+
 }

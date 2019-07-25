@@ -135,7 +135,8 @@ class FournisseurRepository extends ServiceEntityRepository
             "SELECT f
             FROM App\Entity\Fournisseur f
             JOIN f.arrivages a
-            WHERE a.colis =:colis"
+            JOIN a.colis c
+            WHERE c = :colis"
         )->setParameter('colis', $colis);
 
         return $query->getOneOrNullResult();
