@@ -509,7 +509,6 @@ class ArticleDataService
     public function getDataForDatatable($params = null)
     {
         $data = $this->getArticleDataByParams($params);
-
         return $data;
     }
 
@@ -566,6 +565,12 @@ class ArticleDataService
         $queryResult = $this->articleRepository->findByParamsAndStatut($params, $statutLabel);
 
         $articles = $queryResult['data'];
+        $listId = $queryResult['allArticleDataTable'];
+
+        $articlesString = [];
+        foreach ($listId as $id) {
+            $articlesString[] = $id->getId();
+        }
 
         $rows = [];
         foreach ($articles as $article) {
@@ -575,6 +580,7 @@ class ArticleDataService
             'data' => $rows,
             'recordsFiltered' => $queryResult['count'],
             'recordsTotal' => $queryResult['total'],
+            'listId' => $articlesString,
         ];
     }
 

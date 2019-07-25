@@ -6,6 +6,7 @@ use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategoryType;
 use App\Entity\ChampsLibre;
+use App\Entity\DimensionsEtiquettes;
 use App\Entity\Filter;
 use App\Entity\Menu;
 use App\Entity\ParamClient;
@@ -34,6 +35,7 @@ use App\Repository\ArticleRepository;
 use App\Repository\LigneArticleRepository;
 use App\Repository\CategorieCLRepository;
 use App\Repository\EmplacementRepository;
+use App\Repository\DimensionsEtiquettesRepository;
 
 use App\Service\RefArticleDataService;
 use App\Service\ArticleDataService;
@@ -46,10 +48,12 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 use App\Entity\Demande;
 use App\Entity\ArticleFournisseur;
 use App\Repository\FournisseurRepository;
+
 
 /**
  * @Route("/reference-article")
@@ -165,7 +169,17 @@ class ReferenceArticleController extends Controller
 	 */
     private $parametreRoleRepository;
 
-    public function __construct(ParametreRoleRepository $parametreRoleRepository, ParametreRepository $parametreRepository, SpecificService $specificService, \Twig_Environment $templating, EmplacementRepository $emplacementRepository, FournisseurRepository $fournisseurRepository, CategorieCLRepository $categorieCLRepository, LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, ArticleDataService $articleDataService, LivraisonRepository $livraisonRepository, DemandeRepository $demandeRepository, CollecteRepository $collecteRepository, StatutRepository $statutRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FilterRepository $filterRepository, RefArticleDataService $refArticleDataService, UserService $userService)
+    /**
+     * @var DimensionsEtiquettesRepository
+     */
+    private $dimensionsEtiquettesRepository;
+
+    /**
+     * @var object|string
+     */
+    private $user;
+
+    public function __construct(TokenStorageInterface $tokenStorage, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, ParametreRoleRepository $parametreRoleRepository, ParametreRepository $parametreRepository, SpecificService $specificService, \Twig_Environment $templating, EmplacementRepository $emplacementRepository, FournisseurRepository $fournisseurRepository, CategorieCLRepository $categorieCLRepository, LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, ArticleDataService $articleDataService, LivraisonRepository $livraisonRepository, DemandeRepository $demandeRepository, CollecteRepository $collecteRepository, StatutRepository $statutRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FilterRepository $filterRepository, RefArticleDataService $refArticleDataService, UserService $userService)
     {
         $this->emplacementRepository = $emplacementRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
@@ -189,6 +203,8 @@ class ReferenceArticleController extends Controller
         $this->specificService = $specificService;
         $this->parametreRepository = $parametreRepository;
         $this->parametreRoleRepository = $parametreRoleRepository;
+        $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
+        $this->user = $tokenStorage->getToken()->getUser();
     }
 
     /**
@@ -1041,5 +1057,40 @@ class ReferenceArticleController extends Controller
         }
 
         throw new NotFoundHttpException('404');
+    }
+
+    /**
+     * @Route("/api-etiquettes", name="reference_article_get_data_to_print", options={"expose"=true})
+     */
+    public function getDataToPrintLabels(Request $request, $params = null) : Response
+    {
+        $userId = $this->user->getId();
+        $filters = $this->filterRepository->getFieldsAndValuesByUser($userId);
+        $queryResult = $this->referenceArticleRepository->findByFiltersAndParams($filters, $params, $this->user);
+        $refs = $queryResult['data'];
+
+        $refsString = [];
+        foreach ($refs as $ref) {
+            $refsString[] = $ref->getReference();
+        }
+
+        if ($request->isXmlHttpRequest()) {
+            $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
+            /** @var DimensionsEtiquettes $dimension */
+            if ($dimension) {
+                $tags['height'] = $dimension->getHeight();
+                $tags['width'] = $dimension->getWidth();
+                $tags['exists'] = true;
+            } else {
+                $tags['height'] = $tags['width'] = 0;
+                $tags['exists'] = false;
+            }
+            $data  = array('tags' => $tags, 'refs' => $refsString);
+            return new JsonResponse($data);
+        } else {
+            throw new NotFoundHttpException('404');
+        }
+
+
     }
 }

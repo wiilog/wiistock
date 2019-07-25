@@ -591,7 +591,8 @@ class ArrivageController extends AbstractController
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $arrivage = $this->arrivageRepository->find($data['id']);
 
-            $html = $this->renderView('arrivage/modalListColisContent.html.twig', ['arrivage' => $arrivage]);
+            $html = $this->renderView('arrivage/modalListColisContent.html.twig',
+                ['arrivage' => $arrivage]);
 
             return new JsonResponse($html);
 

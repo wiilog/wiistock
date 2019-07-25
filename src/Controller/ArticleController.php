@@ -3,6 +3,8 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\DimensionsEtiquettes;
+use App\Entity\Filter;
 use App\Entity\Menu;
 use App\Entity\Article;
 use App\Entity\ReferenceArticle;
@@ -10,6 +12,7 @@ use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 
 use App\Repository\ArticleRepository;
+use App\Repository\FilterRepository;
 use App\Repository\StatutRepository;
 use App\Repository\CollecteRepository;
 use App\Repository\ReceptionRepository;
@@ -573,5 +576,37 @@ class ArticleController extends Controller
             }
         }
         return implode(';', $refData);
+    }
+
+    /**
+     * @Route("/api-etiquettes", name="article_get_data_to_print", options={"expose"=true})
+     */
+    public function getDataToPrintLabels(Request $request) : Response
+    {
+        if ($request->isXmlHttpRequest() && $data= json_decode($request->getContent(), true)){
+
+            $listArticles =  explode(',', $data['listArticles']);
+
+            $articlesString = [];
+            for ($i = 0 ; $i < count($listArticles); $i++) {
+                $articlesString[] = $this->articleRepository->find($listArticles[$i])->getReference();
+            }
+
+            $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
+            /** @var DimensionsEtiquettes $dimension */
+            if ($dimension) {
+                $tags['height'] = $dimension->getHeight();
+                $tags['width'] = $dimension->getWidth();
+                $tags['exists'] = true;
+            } else {
+                $tags['height'] = $tags['width'] = 0;
+                $tags['exists'] = false;
+            }
+            $data  = array('tags' => $tags, 'articles' => $articlesString);
+            return new JsonResponse($data);
+        }
+        else {
+            throw new NotFoundHttpException('404');
+        }
     }
 }

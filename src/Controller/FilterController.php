@@ -148,7 +148,6 @@ class FilterController extends AbstractController
                     $em->flush();
                 }
             }
-
             return new JsonResponse();
         }
         throw new NotFoundHttpException("404");

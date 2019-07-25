@@ -8,6 +8,8 @@
 
 namespace App\Service;
 
+use App\Entity\Emplacement;
+
 use App\Repository\EmplacementRepository;
 
 use Symfony\Component\Routing\RouterInterface;
@@ -48,8 +50,6 @@ class EmplacementDataService
     public function getDataForDatatable($params = null)
     {
         $data = $this->getEmplacementDataByParams($params);
-        $data['recordsTotal'] = (int)$this->emplacementRepository->countAll();
-        $data['recordsFiltered'] = (int)$this->emplacementRepository->countAll();
         return $data;
     }
 
@@ -62,13 +62,26 @@ class EmplacementDataService
      */
     public function getEmplacementDataByParams($params = null)
     {
-        $emplacements = $this->emplacementRepository->findByParams($params);
+        $queryResult = $this->emplacementRepository->findByParams($params);
+
+        $emplacements = $queryResult['data'];
+        $listId = $queryResult['allEmplacementDataTable'];
+
+        $emplacementsString = [];
+        foreach ($listId as $id) {
+            $emplacementsString[] = $id->getId();
+        }
 
         $rows = [];
         foreach ($emplacements as $emplacement) {
             $rows[] = $this->dataRowEmplacement($emplacement);
         }
-        return ['data' => $rows];
+        return [
+            'data' => $rows,
+            'recordsFiltered' => $queryResult['count'],
+            'recordsTotal' => $queryResult['total'],
+            'listId' => $emplacementsString,
+        ];
     }
 
     /**

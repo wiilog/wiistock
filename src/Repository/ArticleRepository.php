@@ -306,6 +306,7 @@ class ArticleRepository extends ServiceEntityRepository
 
 		$countQuery = $countTotal = count($qb->getQuery()->getResult());
 
+        $allArticleDataTable = null;
 		// prise en compte des paramètres issus du datatable
         if (!empty($params)) {
             if (!empty($params->get('search'))) {
@@ -319,12 +320,13 @@ class ArticleRepository extends ServiceEntityRepository
                 }
                 $countQuery = count($qb->getQuery()->getResult());
             }
+            $allArticleDataTable = $qb->getQuery();
 			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
 			if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
         }
         $query = $qb->getQuery();
-
-        return ['data' => $query->getResult(), 'count' => $countQuery, 'total' => $countTotal];
+        return ['data' => $query ? $query->getResult() : null , 'allArticleDataTable' => $allArticleDataTable ? $allArticleDataTable->getResult() : null,
+            'count' => $countQuery, 'total' => $countTotal];
     }
 
     public function findByListAF($listAf)
