@@ -48,17 +48,29 @@ class RefArticleAdressageInEmplacementPatchFixtures extends Fixture implements F
 
     public function load(ObjectManager $manager)
     {
-        $allRefArticles = $this->refArticleRepository->findAllRefArticles();
+        $clAdresse = $this->valeurChampsLibreRepository->getValeurAdresse();
+        if($clAdresse){
+            foreach($clAdresse as $adresse){
+                if(!$this->emplacementRepository->getOneByLabel($adresse['valeur'])){
+                    $emplacement = new Emplacement();
+                    $emplacement->setLabel($adresse['valeur']);
+                    $manager->persist($emplacement);
+                }
+            }
+        }
+        $manager->flush();
 
-//        $allRefArticles = array_slice($allRefArticles, 0, 5);
-        foreach($allRefArticles as $key => $refArticle){
-            dump($key);
+        $allRefArticles = $this->refArticleRepository->findAllRefArticles();
+        foreach($allRefArticles as $refArticle){
             if(!$refArticle->getEmplacement()){
-                $emplacement = $this->valeurChampsLibreRepository->getEmplacementByRefArticle($refArticle);
+                $emplacement = $this->emplacementRepository->getEmplacementByRefArticle($refArticle);
                 $refArticle->setEmplacement($emplacement);
             }
         }
-//        $manager->flush();
+        $manager->flush();
+
+        $this->valeurChampsLibreRepository->deleteAdresse();
+        $manager->flush();
     }
 
     public static function getGroups():array {
