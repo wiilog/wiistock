@@ -315,6 +315,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 										$this->renderView(
 											'mails/mailDeposeTraca.html.twig',
 											[
+												'title' => 'Votre colis a été livré.',
 												'colis' => $colis->getCode(),
 												'emplacement' => $emplacement,
 												'fournisseur' => $fournisseur ? $fournisseur->getNom() : '',

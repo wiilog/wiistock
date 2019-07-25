@@ -1,39 +1,31 @@
-<html>
-<style>
-    body {
-        font-family: 'Source Sans Pro', sans-serif;
-    }
-</style>
-<body>
-
-<h2>Votre colis a été livré.</h2>
+{% extends 'mails/template.html.twig' %}
 
 <table style="border: 1px solid black;">
     <tbody>
     <tr>
-        <td style="font-weight:bold;">Fournisseur</td>
+        <td class='td bold'>Fournisseur</td>
         <td>{{ fournisseur }}</td>
     </tr>
     <tr>
-        <td style="font-weight:bold;">Colis</td>
-        <td>{{ colis }}</td>
+        <td class='td bold'>Colis</td>
+        <td class='td'>{{ colis }}</td>
     </tr>
     <tr>
-        <td style="font-weight:bold;">Date de dépose</td>
-        <td>le {{ date|date("d/m/Y") }} à {{ date|date("H:i:s") }}</td>
+        <td class='td bold'>Date de dépose</td>
+        <td class='td'>le {{ date|date("d/m/Y") }} à {{ date|date("H:i:s") }}</td>
     </tr>
     <tr>
-        <td style="font-weight:bold;">Emplacement</td>
-        <td>{{ emplacement.label }}{% if emplacement.description is not empty %} : {{ emplacement.description }}{% endif %}</td>
+        <td class='td bold'>Emplacement</td>
+        <td class='td'>{{ emplacement.label }}{% if emplacement.description is not empty %} : {{ emplacement.description }}{% endif %}</td>
     </tr>
     <tr>
-        <td style="font-weight:bold;">Opérateur</td>
-        <td>{{ operateur }}</td>
+        <td class='td bold'>Opérateur</td>
+        <td class='td'>{{ operateur }}</td>
     </tr>
 
     <tr>
-        <td style="font-weight:bold;">Pièces jointes</td>
-        <td>
+        <td  class='td bold'>Pièces jointes</td>
+        <td class='td'>
             <table>
                 {% for pj in pjs %}
                     <tr>
@@ -49,5 +41,4 @@
     </tbody>
 </table>
 
-</body>
-</html>
+{% endblock %}
