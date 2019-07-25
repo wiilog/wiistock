@@ -15,7 +15,7 @@ use Doctrine\Common\Persistence\ObjectManager;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\ref;
 
 
-class RefArticleAdressageInEmplacementPatchFixtures extends Fixture implements FixtureGroupInterface
+class PatchRefArticleAdressageInEmplacementFixtures extends Fixture implements FixtureGroupInterface
 {
     /**
      * @var ValeurChampsLibreRepository
@@ -48,28 +48,28 @@ class RefArticleAdressageInEmplacementPatchFixtures extends Fixture implements F
 
     public function load(ObjectManager $manager)
     {
-        $clAdresse = $this->valeurChampsLibreRepository->getValeurAdresse();
-        if($clAdresse){
-            foreach($clAdresse as $adresse){
-                if(!$this->emplacementRepository->getOneByLabel($adresse['valeur'])){
-                    $emplacement = new Emplacement();
-                    $emplacement->setLabel($adresse['valeur']);
-                    $manager->persist($emplacement);
-                }
-            }
-        }
+        $listAdresses = $this->valeurChampsLibreRepository->getValeurAdresse();
+
+		foreach($listAdresses as $adresse){
+			if(!$this->emplacementRepository->findOneByLabel($adresse['valeur'])){
+				$emplacement = new Emplacement();
+				$emplacement->setLabel($adresse['valeur']);
+				$manager->persist($emplacement);
+			}
+		}
+
         $manager->flush();
 
-        $allRefArticles = $this->refArticleRepository->findAllRefArticles();
+        $allRefArticles = $this->refArticleRepository->findAll();
+
         foreach($allRefArticles as $refArticle){
             if(!$refArticle->getEmplacement()){
-                $emplacement = $this->emplacementRepository->getEmplacementByRefArticle($refArticle);
+                $emplacement = $this->emplacementRepository->findOneByRefArticleWithChampLibreAdresse($refArticle);
                 $refArticle->setEmplacement($emplacement);
             }
         }
-        $manager->flush();
 
-        $this->valeurChampsLibreRepository->deleteAdresse();
+        $this->champsLibreRepository->deleteByLabel('adresse');
         $manager->flush();
     }
 

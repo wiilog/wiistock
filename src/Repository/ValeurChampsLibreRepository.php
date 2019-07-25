@@ -69,16 +69,6 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function deleteAdresse()
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "DELETE FROM App\Entity\ChampsLibre cl
-            WHERE cl.label LIKE 'adresse%'"
-        );
-        return $query->execute();
-    }
-
     public function findOneByRefArticleANDChampsLibre($refArticleId, $champLibre)
     {
         $em = $this->getEntityManager();

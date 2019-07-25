@@ -22,16 +22,6 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         parent::__construct($registry, ReferenceArticle::class);
     }
 
-    public function findAllRefArticles(){
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT ra
-            FROM App\Entity\ReferenceArticle ra
-            "
-        );
-        return $query->execute();
-    }
-
     public function getIdAndLibelle()
     {
         $entityManager = $this->getEntityManager();
