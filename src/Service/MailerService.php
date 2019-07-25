@@ -38,7 +38,7 @@ class MailerService
         $this->templating = $templating;
     }
 
-    public function sendMail($subject, $content, $to, $title = '', $url = '')
+    public function sendMail($subject, $content, $to)
     {
         $mailerServer = $this->mailerServerRepository->findOneMailerServer();
         /** @var MailerServer $mailerServer */
@@ -77,7 +77,7 @@ class MailerService
 
         $message = (new \Swift_Message());
 
-		$message->attach(\Swift_Attachment::fromPath('/img/Logo-FollowGTpetit.png', 'image/jpeg'));
+//		$message->attach(\Swift_Attachment::fromPath('/img/Logo-FollowGTpetit.png', 'image/jpeg'));
 
 		$message
             ->setFrom($from)
