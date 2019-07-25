@@ -193,7 +193,7 @@ class ArticleDataService
                 'articleRef' => $refArticle,
                 'articles' => $this->articleFournisseurRepository->findByRefArticle($refArticle->getId()),
                 'statut' => ($refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF),
-                'types' => $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLES_ET_REF_CEA),
+                'types' => $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLE),
                 'statuts' => $statuts,
                 'modifieRefArticle' => $modifieRefArticle,
                 'valeurChampsLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,

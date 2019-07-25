@@ -11,7 +11,7 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class Type
 {
-    // types de la catégorie articles et références CEA
+    // types de la catégorie article
     const LABEL_CSP = 'CSP';
     const LABEL_PDT = 'PDT';
     const LABEL_SILI = 'SILI';

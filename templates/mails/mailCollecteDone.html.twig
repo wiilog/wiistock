@@ -34,7 +34,11 @@ Liste des articles :<br>
 <table>
     <thead>
         <tr>
-            <th>Référence CEA</th>
+            {% if isCurrentClient (constant('App\\Entity\\ParamClient::CEA_LETI')) %}
+                <th>Référence CEA</th>
+            {% else %}
+                <th>Référence</th>
+            {% endif %}
             <th>Libellé</th>
             <th>Quantité</th>
         </tr>

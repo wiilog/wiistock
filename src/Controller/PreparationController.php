@@ -273,7 +273,7 @@ class PreparationController extends AbstractController
                         $articleRef->getQuantiteStock();
                     /** @var $ligneArticle LigneArticle */
                     $rows[] = [
-                        "Référence CEA" => ($ligneArticle->getReference() ? $ligneArticle->getReference()->getReference() : ' '),
+                        "Référence" => ($ligneArticle->getReference() ? $ligneArticle->getReference()->getReference() : ' '),
                         "Libellé" => ($ligneArticle->getReference() ? $ligneArticle->getReference()->getLibelle() : ' '),
                         "Emplacement" => ($ligneArticle->getReference()->getEmplacement() ? $ligneArticle->getReference()->getEmplacement()->getLabel() : ''),
                         "Quantité" => $qtt,
@@ -288,7 +288,7 @@ class PreparationController extends AbstractController
                 foreach ($articles as $ligneArticle) {
                     /** @var Article $ligneArticle */
                     $rows[] = [
-                        "Référence CEA" => $ligneArticle->getArticleFournisseur()->getReferenceArticle() ? $ligneArticle->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
+                        "Référence" => $ligneArticle->getArticleFournisseur()->getReferenceArticle() ? $ligneArticle->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
                         "Libellé" => $ligneArticle->getLabel() ? $ligneArticle->getLabel() : '',
                         "Emplacement" => $ligneArticle->getEmplacement() ? $ligneArticle->getEmplacement()->getLabel() : '',
                         "Quantité" => $ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : '',

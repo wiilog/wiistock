@@ -190,37 +190,37 @@ class ChampsLibresFixtures extends Fixture implements FixtureGroupInterface
 
         // PDT
 //        foreach ($listFieldsRefArticlePDT as $field) {
-//            $this->createCL($manager, $field, Type::LABEL_PDT, CategorieCL::REFERENCE_CEA);
+//            $this->createCL($manager, $field, Type::LABEL_PDT, CategorieCL::REFERENCE_ARTICLE);
 //        }
 //        foreach ($listFieldsArticlePDT as $field) {
 //            $this->createCL($manager, $field, Type::LABEL_PDT, CategorieCL::ARTICLE);
 //        }
 //        // CSP
 //        foreach ($listFieldsRefArticleCSP as $field) {
-//            $this->createCL($manager, $field, Type::LABEL_CSP, CategorieCL::REFERENCE_CEA);
+//            $this->createCL($manager, $field, Type::LABEL_CSP, CategorieCL::REFERENCE_ARTICLE);
 //        }
 //        foreach ($listFieldsArticleCSP as $field) {
 //            $this->createCL($manager, $field, Type::LABEL_CSP, CategorieCL::ARTICLE);
 //        }
         // SILI
 //        foreach ($listFieldsSILI as $field) {
-//            $this->createCL($manager, $field, Type::LABEL_SILI, CategorieCL::REFERENCE_CEA);
+//            $this->createCL($manager, $field, Type::LABEL_SILI, CategorieCL::REFERENCE_ARTICLE);
 //        }
         // SILI ext
         foreach ($listFieldsSILIExt as $field) {
-            $this->createCL($manager, $field, Type::LABEL_SILI_EXT, CategorieCL::REFERENCE_CEA);
+            $this->createCL($manager, $field, Type::LABEL_SILI_EXT, CategorieCL::REFERENCE_ARTICLE);
         }
         // SILI int
         foreach ($listFieldsSILIInt as $field) {
-            $this->createCL($manager, $field, Type::LABEL_SILI_INT, CategorieCL::REFERENCE_CEA);
+            $this->createCL($manager, $field, Type::LABEL_SILI_INT, CategorieCL::REFERENCE_ARTICLE);
         }
         // MOB
 //        foreach ($listFieldsMOB as $field) {
-//            $this->createCL($manager, $field, Type::LABEL_MOB, CategorieCL::REFERENCE_CEA);
+//            $this->createCL($manager, $field, Type::LABEL_MOB, CategorieCL::REFERENCE_ARTICLE);
 //        }
         // SLUGCIBLE
 //        foreach ($listFieldsSLUGCIBLE as $field) {
-//            $this->createCL($manager, $field, Type::LABEL_SLUGCIBLE, CategorieCL::REFERENCE_CEA);
+//            $this->createCL($manager, $field, Type::LABEL_SLUGCIBLE, CategorieCL::REFERENCE_ARTICLE);
 //        }
 
         $manager->flush();

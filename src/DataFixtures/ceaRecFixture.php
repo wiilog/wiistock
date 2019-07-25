@@ -26,7 +26,7 @@ class ceaRecFixture extends Fixture implements FixtureGroupInterface
     {
         $paramClient = $this->paramClientRepository->findOne();
         $paramClient->setClient(ParamClient::CEA_LETI);
-        $paramClient->setDomainName(ParamClient::CEA_REC);
+        $paramClient->setDomainName(ParamClient::DOMAIN_NAME_CEA_REC);
         $manager->flush();
     }
 
