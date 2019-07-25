@@ -190,6 +190,7 @@ class OrdreCollecteController extends AbstractController
                     $this->renderView(
                         'mails/mailCollecteDone.html.twig',
                         [
+                        	'title' => 'Votre demande a bien été collectée',
                             'collecte' => $demandeCollecte,
 
                         ]

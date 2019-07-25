@@ -16,7 +16,7 @@
     <tr>
         <td class='td'>{{ fournisseur }}</td>
         <td class='td'>{{ colis }}</td>
-        <td class='td'>le {{ date|date("d/m/Y") }} à {{ date|date("H:i:s") }}</td>
+        <td class='td'>{{ date|date("d/m/Y") }} à {{ date|date("H:i:s") }}</td>
         <td class='td'>{{ emplacement.label }}{% if emplacement.description is not empty %} : {{ emplacement.description }}{% endif %}</td>
         <td class='td'>{{ operateur }}</td>
         <td class='td'>

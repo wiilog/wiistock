@@ -1,22 +1,6 @@
-<html>
-<style>
-    body {
-        font-family: Montserrat, Helvetica, Arial, sans-serif;
-    }
-    table, th, td {
-        border: 1px solid black;
-    }
-    table {
-        border-collapse: collapse;
-    }
-    th, td {
-        padding: 6px;
-        text-align: center;
-    }
-</style>
-<body>
+{% extends 'mails/template.html.twig' %}
 
-<h2>Votre demande a bien été collectée</h2>
+{% block content %}
 
 <p>Rappel de votre demande de collecte :</p>
 
@@ -31,35 +15,34 @@ Point de collecte : {{ collecte.pointCollecte.label }}<br>
 <br>
 Liste des articles :<br>
 <br>
-<table>
+<table class="table">
     <thead>
         <tr>
             {% if isCurrentClient (constant('App\\Entity\\ParamClient::CEA_LETI')) %}
-                <th>Référence CEA</th>
+                <th class="th">Référence CEA</th>
             {% else %}
-                <th>Référence</th>
+                <th class="th">Référence</th>
             {% endif %}
-            <th>Libellé</th>
-            <th>Quantité</th>
+            <th class="th">Libellé</th>
+            <th class="th">Quantité</th>
         </tr>
     </thead>
     <tbody>
     {% for article in collecte.articles %}
         <tr>
-            <td>{{ article.articleFournisseur.referenceArticle.reference }}</td>
-            <td>{{ article.articleFournisseur.referenceArticle.libelle }}</td>
-            <td>{{ article.quantite }}</td>
+            <td class="td">{{ article.articleFournisseur.referenceArticle.reference }}</td>
+            <td class="td">{{ article.articleFournisseur.referenceArticle.libelle }}</td>
+            <td class="td">{{ article.quantite }}</td>
         </tr>
     {% endfor %}
     {% for collecteRef in collecte.collecteReferences %}
         <tr>
-            <td>{{ collecteRef.referenceArticle.reference }}</td>
-            <td>{{ collecteRef.referenceArticle.libelle }}</td>
-            <td>{{ collecteRef.quantite }}</td>
+            <td class="td">{{ collecteRef.referenceArticle.reference }}</td>
+            <td class="td">{{ collecteRef.referenceArticle.libelle }}</td>
+            <td class="td">{{ collecteRef.quantite }}</td>
         </tr>
     {% endfor %}
     </tbody>
 </table>
 
-</body>
-</html>
+{% endblock %}
