@@ -500,6 +500,10 @@ function clearDiv() {
     $('.clear').html('');
 }
 
+function clearErrorMsg(div) {
+    div.closest('.modal').find('.error-msg').html('');
+}
+
 function displayError(modal, msg, data) {
     if (data === false) {
         modal.find('.error-msg').html(msg);

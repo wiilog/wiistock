@@ -249,7 +249,7 @@ class OrdreCollecteController extends AbstractController
                     $referenceArticle = $ligneArticle->getReferenceArticle();
 
                     $rows[] = [
-                        "Référence CEA" => $referenceArticle ? $referenceArticle->getReference() : ' ',
+                        "Référence" => $referenceArticle ? $referenceArticle->getReference() : ' ',
                         "Libellé" => $referenceArticle ? $referenceArticle->getLibelle() : ' ',
                         "Emplacement" => $referenceArticle->getEmplacement() ? $referenceArticle->getEmplacement()->getLabel() : '',
                         "Quantité" => ($ligneArticle->getQuantite() ? $ligneArticle->getQuantite() : ' '),
@@ -265,7 +265,7 @@ class OrdreCollecteController extends AbstractController
                 foreach ($articles as $article) {
                     /** @var Article $article */
                     $rows[] = [
-                        'Référence CEA' => $article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
+                        'Référence' => $article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
                         'Libellé' => $article->getLabel(),
                         "Emplacement" => $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
                         'Quantité' => $article->getQuantite(),

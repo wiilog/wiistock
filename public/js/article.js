@@ -249,7 +249,7 @@ let ajaxGetFournisseurByRefArticle = function (select) {
             if (this.readyState == 4 && this.status == 200) {
                 data = JSON.parse(this.responseText);
                 if (data === false) {
-                    $('.error-msg').html('Vous ne pouvez par créer d\'article quand la référence CEA est gérée à la référence.');
+                    $('.error-msg').html('Vous ne pouvez par créer d\'article quand la quantité est gérée à la référence.');
                 } else {
                     fournisseur.removeClass('d-none');
                     fournisseur.find('select').html(data);

@@ -193,7 +193,7 @@ class ArticleDataService
                 'articleRef' => $refArticle,
                 'articles' => $this->articleFournisseurRepository->findByRefArticle($refArticle->getId()),
                 'statut' => ($refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF),
-                'types' => $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLES_ET_REF_CEA),
+                'types' => $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLE),
                 'statuts' => $statuts,
                 'modifieRefArticle' => $modifieRefArticle,
                 'valeurChampsLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
@@ -464,7 +464,7 @@ class ArticleDataService
         $entityManager = $this->em;
         $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $data['statut'] === Article::STATUT_ACTIF ? Article::STATUT_ACTIF : Article::STATUT_INACTIF);
         $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
-        $ref = $date->format('dm');
+        $ref = $date->format('ym');
 
         $referenceArticle = $this->referenceArticleRepository->find($data['refArticle'])->getReference();
         $referenceArticles = $this->articleRepository->countByReference($referenceArticle);

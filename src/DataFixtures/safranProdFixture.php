@@ -26,7 +26,7 @@ class safranProdFixture extends Fixture implements FixtureGroupInterface
     {
         $paramClient = $this->paramClientRepository->findOne();
         $paramClient->setClient(ParamClient::SAFRAN_CERAMICS);
-        $paramClient->setDomainName(ParamClient::SAFRAN_PROD);
+        $paramClient->setDomainName(ParamClient::DOMAIN_NAME_SAFRAN_PROD);
         $manager->flush();
     }
 

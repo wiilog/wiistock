@@ -44,11 +44,6 @@ class Emplacement
     private $description;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Mouvement", mappedBy="emplacement")
-     */
-    private $mouvements;
-
-    /**
      * @ORM\OneToMany(targetEntity="App\Entity\Article", mappedBy="emplacement")
      */
     private $articles;
@@ -213,7 +208,7 @@ class Emplacement
     {
         if (!$this->mouvements->contains($mouvement)) {
             $this->mouvements[] = $mouvement;
-            $mouvement->setEmplacement($this);
+            $mouvement->setEmplacementFrom($this);
         }
 
         return $this;
@@ -224,8 +219,8 @@ class Emplacement
         if ($this->mouvements->contains($mouvement)) {
             $this->mouvements->removeElement($mouvement);
             // set the owning side to null (unless already changed)
-            if ($mouvement->getEmplacement() === $this) {
-                $mouvement->setEmplacement(null);
+            if ($mouvement->getEmplacementFrom() === $this) {
+                $mouvement->setEmplacementFrom(null);
             }
         }
 

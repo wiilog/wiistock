@@ -433,4 +433,27 @@ class Arrivage
         return $this;
     }
 
+    public function addPiecesJointe(PieceJointe $piecesJointe): self
+    {
+        if (!$this->piecesJointes->contains($piecesJointe)) {
+            $this->piecesJointes[] = $piecesJointe;
+            $piecesJointe->setArrivage($this);
+        }
+
+        return $this;
+    }
+
+    public function removePiecesJointe(PieceJointe $piecesJointe): self
+    {
+        if ($this->piecesJointes->contains($piecesJointe)) {
+            $this->piecesJointes->removeElement($piecesJointe);
+            // set the owning side to null (unless already changed)
+            if ($piecesJointe->getArrivage() === $this) {
+                $piecesJointe->setArrivage(null);
+            }
+        }
+
+        return $this;
+    }
+
 }

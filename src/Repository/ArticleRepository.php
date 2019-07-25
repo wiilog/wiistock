@@ -181,7 +181,7 @@ class ArticleRepository extends ServiceEntityRepository
         )->setParameter('id', $id);
         return $query->getResult();
     }
-    public function getByPreparation($id)
+    public function findByPreparation($id)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
@@ -329,37 +329,6 @@ class ArticleRepository extends ServiceEntityRepository
             'count' => $countQuery, 'total' => $countTotal];
     }
 
-//    public function findByParamsActifStatut($params = null, $statutId)
-//    {
-//        $em = $this->getEntityManager();
-//        $qb = $em->createQueryBuilder();
-//
-//        $qb
-//            ->select('a')
-//            ->from('App\Entity\Article', 'a')
-//            ->where('a.statut =' . $statutId);
-//
-//        // prise en compte des paramètres issus du datatable
-//        if (!empty($params)) {
-//            if (!empty($params->get('start'))) {
-//                $qb->setFirstResult($params->get('start'));
-//            }
-//            if (!empty($params->get('length'))) {
-//                $qb->setMaxResults($params->get('length'));
-//            }
-//            if (!empty($params->get('search'))) {
-//                $search = $params->get('search')['value'];
-//                if (!empty($search)) {
-//                    $qb
-//                        ->andWhere('a.label LIKE :value OR a.reference LIKE :value')
-//                        ->setParameter('value', '%' . $search . '%');
-//                }
-//            }
-//        }
-//        $query = $qb->getQuery();
-//        return $query->getResult();
-//    }
-
     public function findByListAF($listAf)
     {
         $em = $this->getEntityManager();
@@ -412,5 +381,62 @@ class ArticleRepository extends ServiceEntityRepository
 		);
 
 		return $query->execute();
+	}
+
+	public function getByPreparationStatutLabelAndUser($statutLabel, $enCours, $user)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			"SELECT a.reference, e.label as location, a.label, a.quantiteAPrelever as quantity, 0 as is_ref, p.id as id_prepa
+			FROM App\Entity\Article a
+			LEFT JOIN a.emplacement e
+			JOIN a.demande d
+			JOIN d.preparation p
+			JOIN p.statut s
+			WHERE s.nom = :statutLabel OR (s.nom = :enCours AND p.utilisateur = :user)"
+		)->setParameters([
+		    'statutLabel' => $statutLabel,
+            'enCours' => $enCours,
+            'user' => $user
+        ]);
+
+		return $query->execute();
+	}
+
+	public function getByLivraisonStatutLabelAndWithoutOtherUser($statutLabel, $user)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			/** @lang DQL */
+			"SELECT a.reference, e.label as location, a.label, a.quantiteAPrelever as quantity, 0 as is_ref, l.id as id_livraison
+			FROM App\Entity\Article a
+			LEFT JOIN a.emplacement e
+			JOIN a.demande d
+			JOIN d.livraison l
+			JOIN l.statut s
+			WHERE s.nom = :statutLabel AND (l.utilisateur is null OR l.utilisateur = :user)"
+		)->setParameters([
+			'statutLabel' => $statutLabel,
+			'user' => $user
+		]);
+
+		return $query->execute();
+	}
+
+	/**
+	 * @param string $reference
+	 * @return Article|null
+	 * @throws \Doctrine\ORM\NonUniqueResultException
+	 */
+	public function findOneByReference($reference)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			"SELECT a
+			FROM App\Entity\Article a
+			WHERE a.reference = :reference"
+		)->setParameter('reference', $reference);
+
+		return $query->getOneOrNullResult();
 	}
 }
