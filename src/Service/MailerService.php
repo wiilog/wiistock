@@ -11,6 +11,7 @@ namespace App\Service;
 
 use App\Entity\MailerServer;
 use App\Repository\MailerServerRepository;
+use App\Repository\ParamClientRepository;
 
 class MailerService
 {
@@ -19,19 +20,25 @@ class MailerService
      */
     private $mailerServerRepository;
 
+	/**
+	 * @var ParamClientRepository
+	 */
+    private $paramClientRepository;
+
     /**
      * @var \Twig_Environment
      */
     private $templating;
 
 
-    public function __construct(MailerServerRepository $mailerServerRepository, \Twig_Environment $templating)
+    public function __construct(ParamClientRepository $paramClientRepository, MailerServerRepository $mailerServerRepository, \Twig_Environment $templating)
     {
         $this->mailerServerRepository = $mailerServerRepository;
+        $this->paramClientRepository = $paramClientRepository;
         $this->templating = $templating;
     }
 
-    public function sendMail($subject, $content, $to)
+    public function sendMail($subject, $content, $to, $title = '', $url = '')
     {
         $mailerServer = $this->mailerServerRepository->findOneMailerServer();
         /** @var MailerServer $mailerServer */
@@ -72,11 +79,17 @@ class MailerService
 
         //        $image = $message->embed(\Swift_Image::fromPath('img/Logo-FollowGTpetit.png'));
 
+		$contentWithTemplate = $this->templating->render('mails/template.html.twig', [
+			'title' => $title,
+			'content' => $content,
+			'url' => $this->paramClientRepository->findOne()->getDomainName() . $url
+		]);
+
         $message
             ->setFrom($from)
             ->setTo($to)
             ->setSubject($subject)
-            ->setBody($content)
+            ->setBody($contentWithTemplate)
             ->setContentType('text/html');
         $mailer = (new \Swift_Mailer($transport));
         $mailer->send($message);
