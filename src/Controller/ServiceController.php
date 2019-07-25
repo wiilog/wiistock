@@ -221,7 +221,7 @@ class ServiceController extends AbstractController
                     'FOLLOW GT // Manutention effectuée',
                     $this->renderView('mails/mailManutentionDone.html.twig', [
                     	'manut' => $service,
-						'title' => 'Votre demande de manutention a bien été effectuée',
+						'title' => 'Votre demande de manutention a bien été effectuée.',
 						'url' => $this->paramClientRepository->findOne()->getDomainName() . '/manutention'
 					]),
                     $service->getDemandeur()->getEmail()
