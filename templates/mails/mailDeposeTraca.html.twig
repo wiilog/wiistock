@@ -4,9 +4,9 @@
 
 Fournisseur : {{ fournisseur }}<br>
 Colis : {{ colis }}<br>
-Date de dépose : {{ date|date("d/m/Y") }} à {{ date|date("H:i:s") }}
-Emplacement : {{ emplacement.label }}{% if emplacement.description is not empty %} : {{ emplacement.description }}{% endif %}
-Opérateur : {{ operateur }}
+Date de dépose : {{ date|date("d/m/Y") }} à {{ date|date("H:i:s") }}<br>
+Emplacement : {{ emplacement.label }}{% if emplacement.description is not empty %} : {{ emplacement.description }}{% endif %}<br>
+Opérateur : {{ operateur }}<br>
 Pièces jointes :<br>
 {% for pj in pjs %}
     <a href="{{ app.request.getSchemeAndHttpHost() ~ asset('uploads/attachements/' ~ pj.fileName) }}"> {{ pj.OriginalName }} </a><br>
