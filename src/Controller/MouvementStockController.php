@@ -164,7 +164,7 @@ class MouvementStockController extends AbstractController
             $newDateMax = new DateTime($dateMax);
             $mouvements = $this->mouvementStockRepository->findByDates($dateMin, $dateMax);
             foreach($mouvements as $mouvement) {
-                if ($newDateMin >= $mouvement->getDate() || $newDateMax <= $mouvement->getDate()) {
+                if ($newDateMin > $mouvement->getDate() || $newDateMax < $mouvement->getDate()) {
                     array_splice($mouvements, array_search($mouvement, $mouvements), 1);
                 }
             }

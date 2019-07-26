@@ -103,7 +103,7 @@ class MouvementTracaController extends AbstractController
                     'refEmplacement' => $mvt->getRefEmplacement(),
                     'type' => $mvt->getType(),
                     'operateur' => $mvt->getOperateur(),
-                    'Actions' => $this->renderView('mouvement_traca/datatableMvtStockRow.html.twig', [
+                    'Actions' => $this->renderView('mouvement_traca/datatableMvtTracaRow.html.twig', [
                         'mvt' => $mvt,
                     ])
                 ];

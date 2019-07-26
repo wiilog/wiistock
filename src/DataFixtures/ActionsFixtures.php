@@ -34,7 +34,8 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
             Menu::RECEPTION,
             Menu::DEM_LIVRAISON,
             Menu::DEM_COLLECTE,
-            Menu::STOCK
+            Menu::STOCK,
+			Menu::REFERENTIEL
         ];
 
         $actionLabels = [Action::LIST, Action::CREATE_EDIT, Action::DELETE];
@@ -108,7 +109,6 @@ class ActionsFixtures extends Fixture implements DependentFixtureInterface, Fixt
         $menus = [
             Menu::DEM_LIVRAISON,
             Menu::STOCK,
-            Menu::ARRIVAGE,
         ];
 
         $actionLabel = Action::EXPORT;

@@ -69,8 +69,7 @@ class ArrivageFixtures extends Fixture implements FixtureGroupInterface
     {
     	// création des menus
         $menusInfos = [
-            ['Arrivage', Menu::ARRIVAGE],
-            ['Référentiel', Menu::REFERENTIEL],
+            ['Arrivage', Menu::ARRIVAGE]
         ];
         foreach ($menusInfos as $menuInfos) {
             $menu = $this->menuRepository->findOneBy(['code' => $menuInfos[1]]);
@@ -93,33 +92,9 @@ class ArrivageFixtures extends Fixture implements FixtureGroupInterface
         // création des actions
         $menus = [
             Menu::ARRIVAGE,
-			Menu::REFERENTIEL
         ];
 
-        $actionLabels = [Action::LIST, Action::CREATE_EDIT, Action::DELETE];
-
-        foreach ($menus as $menu) {
-            foreach ($actionLabels as $actionLabel) {
-                $action = $this->actionRepository->findOneByMenuCodeAndLabel($menu, $actionLabel);
-
-                if (empty($action)) {
-                    $action = new Action();
-
-                    $action
-                        ->setLabel($actionLabel)
-                        ->setMenu($this->getReference('menu-' . $menu));
-                    $manager->persist($action);
-                    dump("création de l'action " . $menu . " / " . $actionLabel);
-                }
-            }
-        }
-
-        // création de l'action LIST_ALL
-        $menus = [
-			Menu::ARRIVAGE
-        ];
-
-        $actionLabels = [Action::LIST_ALL];
+        $actionLabels = [Action::LIST, Action::CREATE_EDIT, Action::DELETE, Action::LIST_ALL, Action::EXPORT];
 
         foreach ($menus as $menu) {
             foreach ($actionLabels as $actionLabel) {
@@ -149,27 +124,27 @@ class ArrivageFixtures extends Fixture implements FixtureGroupInterface
         $this->addReference('type-litige', $categorie);
 
         // types liés à la catégorie arrivage
-        $typesNames = [
-            Type::LABEL_MANQUE_BL,
-            Type::LABEL_MANQUE_INFO_BL,
-            Type::LABEL_ECART_QTE,
-            Type::LABEL_ECART_QUALITE,
-            Type::LABEL_PB_COMMANDE,
-            Type::LABEL_DEST_NON_IDENT
-        ];
+		$typesNames = [
+			Type::LABEL_MANQUE_BL,
+			Type::LABEL_MANQUE_INFO_BL,
+			Type::LABEL_ECART_QTE,
+			Type::LABEL_ECART_QUALITE,
+			Type::LABEL_PB_COMMANDE,
+			Type::LABEL_DEST_NON_IDENT
+		];
 
-        foreach ($typesNames as $typeName) {
-            $type = $this->typeRepository->findOneBy(['label' => $typeName]);
+		foreach ($typesNames as $typeName) {
+			$type = $this->typeRepository->findOneBy(['label' => $typeName]);
 
-            if (empty($type)) {
-                $type = new Type();
-                $type
-                    ->setCategory($this->getReference('type-litige'))
-                    ->setLabel($typeName);
-                $manager->persist($type);
-                dump("création du type " . $typeName);
-            }
-        }
+			if (empty($type)) {
+				$type = new Type();
+				$type
+					->setCategory($this->getReference('type-litige'))
+					->setLabel($typeName);
+				$manager->persist($type);
+				dump("création du type " . $typeName);
+			}
+		}
 
         // catégorie statut arrivage
         $categorie = $this->categorieStatutRepository->findOneBy(['nom' => CategorieStatut::ARRIVAGE]);
