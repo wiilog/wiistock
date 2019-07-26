@@ -65,7 +65,7 @@ class Article
     private $label;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Mouvement", mappedBy="article")
+     * @ORM\OneToMany(targetEntity="App\Entity\MouvementStock", mappedBy="article")
      */
     private $mouvements;
 
@@ -350,14 +350,14 @@ class Article
     }
 
     /**
-     * @return Collection|Mouvement[]
+     * @return Collection|MouvementStock[]
      */
     public function getMouvements(): Collection
     {
         return $this->mouvements;
     }
 
-    public function addMouvement(Mouvement $mouvement): self
+    public function addMouvement(MouvementStock $mouvement): self
     {
         if (!$this->mouvements->contains($mouvement)) {
             $this->mouvements[] = $mouvement;
@@ -367,7 +367,7 @@ class Article
         return $this;
     }
 
-    public function removeMouvement(Mouvement $mouvement): self
+    public function removeMouvement(MouvementStock $mouvement): self
     {
         if ($this->mouvements->contains($mouvement)) {
             $this->mouvements->removeElement($mouvement);

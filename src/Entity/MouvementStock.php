@@ -7,9 +7,9 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity(repositoryClass="App\Repository\MouvementRepository")
+ * @ORM\Entity(repositoryClass="App\Repository\MouvementStockRepository")
  */
-class Mouvement
+class MouvementStock
 {
 	const TYPE_ENTREE = 'entrée';
 	const TYPE_SORTIE = 'sortie';

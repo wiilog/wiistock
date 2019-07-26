@@ -14,7 +14,7 @@ use App\Entity\Colis;
 use App\Entity\Demande;
 use App\Entity\Emplacement;
 use App\Entity\Livraison;
-use App\Entity\Mouvement;
+use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
@@ -23,7 +23,7 @@ use App\Repository\ColisRepository;
 use App\Repository\LigneArticleRepository;
 use App\Repository\LivraisonRepository;
 use App\Repository\MailerServerRepository;
-use App\Repository\MouvementRepository;
+use App\Repository\MouvementStockRepository;
 use App\Repository\MouvementTracaRepository;
 use App\Repository\PieceJointeRepository;
 use App\Repository\PreparationRepository;
@@ -150,7 +150,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
     private $livraisonRepository;
 
 	/**
-	 * @var MouvementRepository
+	 * @var MouvementStockRepository
 	 */
     private $mouvementRepository;
 
@@ -180,10 +180,10 @@ class ApiController extends FOSRestController implements ClassResourceInterface
      * @param StatutRepository $statutRepository
      * @param ArticleDataService $articleDataService
 	 * @param LivraisonRepository $livraisonRepository
-	 * @param MouvementRepository $mouvementRepository
+	 * @param MouvementStockRepository $mouvementRepository
 	 * @param LigneArticleRepository $ligneArticleRepository
      */
-    public function __construct(FournisseurRepository $fournisseurRepository,LigneArticleRepository $ligneArticleRepository, MouvementRepository $mouvementRepository, LivraisonRepository $livraisonRepository, ArticleDataService $articleDataService, StatutRepository $statutRepository, PreparationRepository $preparationRepository, PieceJointeRepository $pieceJointeRepository, LoggerInterface $logger, MailerServerRepository $mailerServerRepository, MailerService $mailerService, ColisRepository $colisRepository, MouvementTracaRepository $mouvementTracaRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
+    public function __construct(FournisseurRepository $fournisseurRepository, LigneArticleRepository $ligneArticleRepository, MouvementStockRepository $mouvementRepository, LivraisonRepository $livraisonRepository, ArticleDataService $articleDataService, StatutRepository $statutRepository, PreparationRepository $preparationRepository, PieceJointeRepository $pieceJointeRepository, LoggerInterface $logger, MailerServerRepository $mailerServerRepository, MailerService $mailerService, ColisRepository $colisRepository, MouvementTracaRepository $mouvementTracaRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, UserPasswordEncoderInterface $passwordEncoder, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository)
     {
         $this->pieceJointeRepository = $pieceJointeRepository;
         $this->mailerServerRepository = $mailerServerRepository;
@@ -365,7 +365,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 			if ($nomadUser = $this->utilisateurRepository->findOneByApiKey($data['apiKey'])) {
 				$mouvementsR = $data['mouvement'];
 				foreach ($mouvementsR as $mouvementR) {
-					$mouvement = new Mouvement;
+					$mouvement = new MouvementStock;
 					$mouvement
 						->setType($mouvementR['type'])
 						->setDate(DateTime::createFromFormat('j-M-Y', $mouvementR['date']))
@@ -426,13 +426,13 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 						}
 
 						// création des mouvements de préparation pour les articles
-						$mouvement = new Mouvement();
+						$mouvement = new MouvementStock();
 						$mouvement
 							->setUser($nomadUser)
 							->setArticle($article)
 							->setQuantity($article->getQuantiteAPrelever())
 							->setEmplacementFrom($article->getEmplacement())
-							->setType(Mouvement::TYPE_TRANSFERT)
+							->setType(MouvementStock::TYPE_TRANSFERT)
 							->setPreparationOrder($preparation)
 							->setExpectedDate($preparation->getDate());
 						$em->persist($mouvement);
@@ -443,13 +443,13 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 					foreach($demande->getLigneArticle() as $ligneArticle) {
 						$articleRef = $ligneArticle->getReference();
 
-						$mouvement = new Mouvement();
+						$mouvement = new MouvementStock();
 						$mouvement
 							->setUser($nomadUser)
 							->setRefArticle($articleRef)
 							->setQuantity($ligneArticle->getQuantite())
 							->setEmplacementFrom($articleRef->getEmplacement())
-							->setType(Mouvement::TYPE_TRANSFERT)
+							->setType(MouvementStock::TYPE_TRANSFERT)
 							->setPreparationOrder($preparation)
 							->setExpectedDate($preparation->getDate());
 						$em->persist($mouvement);
@@ -543,12 +543,12 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 					$livraison = $this->livraisonRepository->findOneByPreparationId($mouvementNomade['id_prepa']);
 					$emplacement = $this->emplacementRepository->findOneByLabel($mouvementNomade['location']);
 
-					$mouvement = new Mouvement();
+					$mouvement = new MouvementStock();
 					$mouvement
 						->setUser($nomadUser)
 						->setQuantity($mouvementNomade['quantity'])
 						->setEmplacementFrom($emplacement)
-						->setType(Mouvement::TYPE_SORTIE)
+						->setType(MouvementStock::TYPE_SORTIE)
 						->setLivraisonOrder($livraison)
 						->setExpectedDate($livraison->getDate());
 					$entityManager->persist($mouvement);
