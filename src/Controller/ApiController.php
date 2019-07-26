@@ -596,43 +596,6 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 					$livraison->getStatut()->getNom() == Livraison::STATUT_A_TRAITER &&
 					(empty($livraison->getUtilisateur()) || $livraison->getUtilisateur() === $nomadUser)
 				) {
-
-					$demandes = $livraison->getDemande();
-					$demande = $demandes[0];
-
-					// création des mouvements de livraison pour les articles
-					$articles = $demande->getArticles();
-					foreach ($articles as $article) {
-						$mouvement = new Mouvement();
-						$mouvement
-							->setUser($nomadUser)
-							->setArticle($article)
-							->setQuantity($article->getQuantiteAPrelever())
-							->setEmplacementFrom($article->getEmplacement())
-							->setType(Mouvement::TYPE_TRANSFERT)
-							->setLivraisonOrder($livraison)
-							->setExpectedDate($livraison->getDate());
-						$em->persist($mouvement);
-						$em->flush();
-					}
-
-					// création des mouvements de livraison pour les articles de référence
-					foreach($demande->getLigneArticle() as $ligneArticle) {
-						$articleRef = $ligneArticle->getReference();
-
-						$mouvement = new Mouvement();
-						$mouvement
-							->setUser($nomadUser)
-							->setRefArticle($articleRef)
-							->setQuantity($ligneArticle->getQuantite())
-							->setEmplacementFrom($articleRef->getEmplacement())
-							->setType(Mouvement::TYPE_TRANSFERT)
-							->setLivraisonOrder($livraison)
-							->setExpectedDate($livraison->getDate());
-						$em->persist($mouvement);
-						$em->flush();
-					}
-
 					// modif de la livraison
 					$livraison->setUtilisateur($nomadUser);
 
