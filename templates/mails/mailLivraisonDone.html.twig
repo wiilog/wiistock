@@ -1,7 +1,6 @@
 {% extends 'mails/template.html.twig' %}
 
 {% block content %}
-<p>Rappel de votre demande de livraison :</p>
 
 Numéro : {{ livraison.numero }}<br>
 Date de demande : {{ livraison.date|date('d/m/Y') }}<br>

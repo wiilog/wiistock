@@ -1,37 +1,15 @@
 {% extends 'mails/template.html.twig' %}
 
 {% block content %}
-<table class='table'>
-    <thead>
-        <tr>
-            <th class="th">Fournisseur</th>
-            <th class="th">Colis</th>
-            <th class="th">Date de dépose</th>
-            <th class="th">Emplacement</th>
-            <th class="th">Opérateur</th>
-            <th class="th">Pièces jointes</th>
-        </tr>
-    </thead>
-    <tbody>
-    <tr>
-        <td class='td'>{{ fournisseur }}</td>
-        <td class='td'>{{ colis }}</td>
-        <td class='td'>{{ date|date("d/m/Y") }} à {{ date|date("H:i:s") }}</td>
-        <td class='td'>{{ emplacement.label }}{% if emplacement.description is not empty %} : {{ emplacement.description }}{% endif %}</td>
-        <td class='td'>{{ operateur }}</td>
-        <td class='td'>
-            <table>
-                {% for pj in pjs %}
-                    <tr>
-                        <td>
-                            <a href="{{ app.request.getSchemeAndHttpHost() ~ asset('uploads/attachements/' ~ pj.fileName) }}"> {{ pj.OriginalName }} </a>
-                        </td>
-                    </tr>
-                {% endfor %}
-            </table>
-        </td>
-    </tr>
-    </tbody>
-</table>
+
+Fournisseur : {{ fournisseur }}<br>
+Colis : {{ colis }}<br>
+Date de dépose : {{ date|date("d/m/Y") }} à {{ date|date("H:i:s") }}
+Emplacement : {{ emplacement.label }}{% if emplacement.description is not empty %} : {{ emplacement.description }}{% endif %}
+Opérateur : {{ operateur }}
+Pièces jointes :<br>
+{% for pj in pjs %}
+    <a href="{{ app.request.getSchemeAndHttpHost() ~ asset('uploads/attachements/' ~ pj.fileName) }}"> {{ pj.OriginalName }} </a><br>
+{% endfor %}
 
 {% endblock %}
