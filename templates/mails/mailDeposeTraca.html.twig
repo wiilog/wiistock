@@ -1,53 +1,15 @@
-<html>
-<style>
-    body {
-        font-family: 'Source Sans Pro', sans-serif;
-    }
-</style>
-<body>
+{% extends 'mails/template.html.twig' %}
 
-<h2>Votre colis a été livré.</h2>
+{% block content %}
 
-<table style="border: 1px solid black;">
-    <tbody>
-    <tr>
-        <td style="font-weight:bold;">Fournisseur</td>
-        <td>{{ fournisseur }}</td>
-    </tr>
-    <tr>
-        <td style="font-weight:bold;">Colis</td>
-        <td>{{ colis }}</td>
-    </tr>
-    <tr>
-        <td style="font-weight:bold;">Date de dépose</td>
-        <td>le {{ date|date("d/m/Y") }} à {{ date|date("H:i:s") }}</td>
-    </tr>
-    <tr>
-        <td style="font-weight:bold;">Emplacement</td>
-        <td>{{ emplacement.label }}{% if emplacement.description is not empty %} : {{ emplacement.description }}{% endif %}</td>
-    </tr>
-    <tr>
-        <td style="font-weight:bold;">Opérateur</td>
-        <td>{{ operateur }}</td>
-    </tr>
+Fournisseur : {{ fournisseur }}<br>
+Colis : {{ colis }}<br>
+Date de dépose : {{ date|date("d/m/Y") }} à {{ date|date("H:i:s") }}<br>
+Emplacement : {{ emplacement.label }}{% if emplacement.description is not empty %} : {{ emplacement.description }}{% endif %}<br>
+Opérateur : {{ operateur }}<br>
+Pièces jointes :<br>
+{% for pj in pjs %}
+    <a href="{{ app.request.getSchemeAndHttpHost() ~ asset('uploads/attachements/' ~ pj.fileName) }}"> {{ pj.OriginalName }} </a><br>
+{% endfor %}
 
-    <tr>
-        <td style="font-weight:bold;">Pièces jointes</td>
-        <td>
-            <table>
-                {% for pj in pjs %}
-                    <tr>
-                        <td>
-                            <a href="{{ app.request.getSchemeAndHttpHost() ~ asset('uploads/attachements/' ~ pj.fileName) }}"> {{ pj.OriginalName }} </a>
-                        </td>
-                    </tr>
-                {% endfor %}
-            </table>
-        </td>
-    </tr>
-
-    </tbody>
-</table>
-
-</body>
-</html>
+{% endblock %}

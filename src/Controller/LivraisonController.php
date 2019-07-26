@@ -219,7 +219,10 @@ class LivraisonController extends AbstractController
 
             $this->mailerService->sendMail(
                 'FOLLOW GT // Livraison effectuée',
-                $this->renderView('mails/mailLivraisonDone.html.twig', ['livraison' => $demande]),
+                $this->renderView('mails/mailLivraisonDone.html.twig', [
+					'livraison' => $demande,
+					'title' => 'Votre demande a bien été livrée.',
+				]),
                 $demande->getUtilisateur()->getEmail()
             );
 
