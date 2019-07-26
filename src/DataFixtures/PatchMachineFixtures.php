@@ -70,7 +70,7 @@ class PatchMachineFixtures extends Fixture implements FixtureGroupInterface
             }
 
             $newElements = str_replace($colMachines, $colEyelit, $elements['elements']);
-            $champsLibre = $this->champsLibreRepository->findOneById($elements['id']);
+            $champsLibre = $this->champsLibreRepository->find($elements['id']);
             $champsLibre->setElements($newElements);
         }
 
@@ -79,6 +79,6 @@ class PatchMachineFixtures extends Fixture implements FixtureGroupInterface
     }
 
     public static function getGroups():array {
-        return ['machine', 'cea'];
+        return ['machine'];
     }
 }
