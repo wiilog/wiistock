@@ -59,7 +59,11 @@ $('#submitSearchMvt').on('click', function () {
         .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
         .draw();
     tableMvt
-        .columns('refEmplacement:name')
+        .columns('origine:name')
+        .search(emplacement ? '^' + emplacement + '$' : '', true, false)
+        .draw();
+    tableMvt
+        .columns('destination.name')
         .search(emplacement ? '^' + emplacement + '$' : '', true, false)
         .draw();
     tableMvt
