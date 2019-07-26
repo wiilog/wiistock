@@ -138,7 +138,7 @@ class MouvementTracaController extends AbstractController
     }
 
     /**
-     * @Route("/mouvement-infos", name="get_mouvements_for_csv", options={"expose"=true}, methods={"GET","POST"})
+     * @Route("/mouvement-traca-infos", name="get_mouvements_traca_for_csv", options={"expose"=true}, methods={"GET","POST"})
      */
     public function getMouvementIntels(Request $request): Response
     {
@@ -157,12 +157,11 @@ class MouvementTracaController extends AbstractController
             }
 
             $headers = [];
-            // en-têtes champs fixes
             $headers = array_merge($headers, ['date', 'colis', 'emplacement', 'type', 'opérateur']);
             $data = [];
             $data[] = $headers;
 
-            foreach ($mouvements as $mouvement) { /** @var MouvementTraca $mouvement */
+            foreach ($mouvements as $mouvement) {
                 $mouvementData = [];
 
                 $mouvementData[] = substr($mouvement->getDate(), 0,10). ' ' . substr($mouvement->getDate(), 11,8);

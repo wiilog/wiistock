@@ -107,7 +107,7 @@ function generateCSVMouvement () {
 
     if (data['dateMin'] && data['dateMax']) {
         let params = JSON.stringify(data);
-        let path = Routing.generate('get_mouvements_for_csv', true);
+        let path = Routing.generate('get_mouvements_traca_for_csv', true);
 
         $.post(path, params, function(response) {
             if (response) {
@@ -130,7 +130,7 @@ let mFile = function (csv) {
     let d = new Date();
     let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
     date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
-    let exportedFilenmae = 'export-mouvement-' + date + '.csv';
+    let exportedFilenmae = 'export-mouvement-traca-' + date + '.csv';
     let blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     if (navigator.msSaveBlob) { // IE 10+
         navigator.msSaveBlob(blob, exportedFilenmae);

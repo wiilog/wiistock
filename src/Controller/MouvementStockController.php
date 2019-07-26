@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\CategorieStatut;
 use App\Entity\Menu;
+use App\Entity\MouvementStock;
 use App\Repository\EmplacementRepository;
 use App\Repository\MouvementStockRepository;
 use App\Repository\StatutRepository;
@@ -16,6 +17,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
+use DateTime;
 
 /**
  * @Route("/mouvement-stock")
@@ -150,45 +152,45 @@ class MouvementStockController extends AbstractController
         throw new NotFoundHttpException("404");
     }
 
-//    /**
-//     * @Route("/mouvement-infos", name="get_mouvements_for_csv", options={"expose"=true}, methods={"GET","POST"})
-//     */
-//    public function getMouvementIntels(Request $request): Response
-//    {
-//        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-//            $dateMin = $data['dateMin'] . '00:00:00';
-//            $dateMax = $data['dateMax'] . '23:59:59';
-//            $newDateMin = new DateTime($dateMin);
-//            $newDateMax = new DateTime($dateMax);
-//            $mouvements = $this->mouvementStockRepository->findByDates($dateMin, $dateMax);
-//            foreach($mouvements as $mouvement) {
-//                $date = substr($mouvement->getDate(),0, -10);
-//                $newDate = new DateTime($date);
-//                if ($newDateMin >= $newDate || $newDateMax <= $newDate) {
-//                    array_splice($mouvements, array_search($mouvement, $mouvements), 1);
-//                }
-//            }
-//
-//            $headers = [];
-//            // en-têtes champs fixes
-//            $headers = array_merge($headers, ['date', 'colis', 'emplacement', 'type', 'opérateur']);
-//            $data = [];
-//            $data[] = $headers;
-//
-//            foreach ($mouvements as $mouvement) { /** @var MouvementTraca $mouvement */
-//                $mouvementData = [];
-//
-//                $mouvementData[] = substr($mouvement->getDate(), 0,10). ' ' . substr($mouvement->getDate(), 11,8);
-//                $mouvementData[] = $mouvement->getRefArticle();
-//                $mouvementData[] = $mouvement->getRefEmplacement();
-//                $mouvementData[] = $mouvement->getType();
-//                $mouvementData[] = $mouvement->getOperateur();
-//
-//                $data[] = $mouvementData;
-//            }
-//            return new JsonResponse($data);
-//        } else {
-//            throw new NotFoundHttpException('404');
-//        }
-//    }
+    /**
+     * @Route("/mouvement-stock-infos", name="get_mouvements_stock_for_csv", options={"expose"=true}, methods={"GET","POST"})
+     */
+    public function getMouvementIntels(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+            $dateMin = $data['dateMin'] . '00:00:00';
+            $dateMax = $data['dateMax'] . '23:59:59';
+            $newDateMin = new DateTime($dateMin);
+            $newDateMax = new DateTime($dateMax);
+            $mouvements = $this->mouvementStockRepository->findByDates($dateMin, $dateMax);
+            foreach($mouvements as $mouvement) {
+                if ($newDateMin >= $mouvement->getDate() || $newDateMax <= $mouvement->getDate()) {
+                    array_splice($mouvements, array_search($mouvement, $mouvements), 1);
+                }
+            }
+
+            $headers = [];
+            $headers = array_merge($headers, ['date attendue', 'date', 'référence article', 'quantité', 'origine', 'destination', 'type', 'opérateur']);
+            $data = [];
+            $data[] = $headers;
+
+            foreach ($mouvements as $mouvement) {
+                $mouvementData = [];
+
+                $mouvementData[] = $mouvement->getExpectedDate()->format('d/m/Y H:i:s');
+                $mouvementData[] = $mouvement->getDate()->format('d/m/Y H:i:s');
+                $mouvementData[] = $mouvement->getRefArticle() ? $mouvement->getRefArticle()->getReference() : $mouvement->getArticle() ? $mouvement->getArticle()->getReference() : '';
+				$mouvementData[] = $mouvement->getQuantity();
+				$mouvementData[] = $mouvement->getEmplacementFrom() ? $mouvement->getEmplacementFrom()->getLabel() : '';
+				$mouvementData[] = $mouvement->getEmplacementTo() ? $mouvement->getEmplacementTo()->getLabel() : '';
+                $mouvementData[] = $mouvement->getType();
+                $mouvementData[] = $mouvement->getUser() ? $mouvement->getUser()->getUsername() : '';
+
+                $data[] = $mouvementData;
+            }
+            return new JsonResponse($data);
+        } else {
+            throw new NotFoundHttpException('404');
+        }
+    }
 }

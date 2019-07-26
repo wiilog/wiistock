@@ -67,4 +67,30 @@ class MouvementStockRepository extends ServiceEntityRepository
 
 		return $query->execute();
 	}
+
+	/**
+	 * @param $dateMin
+	 * @param $dateMax
+	 * @return MouvementStock[]
+	 * @throws \Exception
+	 */
+	public function findByDates($dateMin, $dateMax)
+	{
+		$dateMinDate = new \DateTime($dateMin);
+		$dateMaxDate = new \DateTime($dateMax);
+		$dateMaxDate->modify('+1 day');
+		$dateMinDate->modify('-1 day');
+		$dateMax = $dateMaxDate->format('Y-m-d H:i:s');
+		$dateMin = $dateMinDate->format('Y-m-d H:i:s');
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+			'SELECT m
+            FROM App\Entity\MouvementStock m
+            WHERE m.date BETWEEN :dateMin AND :dateMax'
+		)->setParameters([
+			'dateMin' => $dateMin,
+			'dateMax' => $dateMax
+		]);
+		return $query->execute();
+	}
 }
