@@ -4,7 +4,7 @@
 
 {% set s = litiges|length > 1 ? 's' : '' %}
 {% set nt = litiges|length > 1 ? 'nt' : '' %}
-<h4 class="margin-bottom:30px;">{{ litiges|length }}</span> litige{{ s }} vous concerne{{ nt }} :</h4>
+<h3 class="margin-bottom:30px;">{{ litiges|length }}</span> litige{{ s }} vous concerne{{ nt }} :</h3>
 
 {% for litige in litiges %}
     {% set arrivage = litige.arrivage %}
@@ -45,7 +45,7 @@
         </tbody>
     </table>
 
-    <p style="font-weight:bold;margin-bottom:30px;">Type de litige : {{ litige.type.label }}</p>
+    <p><span style="font-weight:bold;margin-bottom:30px;">Type de litige : {{ litige.type.label }}</span></p>
 {% endfor %}
 
 <br>
