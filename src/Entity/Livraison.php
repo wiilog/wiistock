@@ -57,7 +57,7 @@ class Livraison
     private $preparation;
 
 	/**
-	 * @ORM\OneToMany(targetEntity="App\Entity\Mouvement", mappedBy="livraisonOrder")
+	 * @ORM\OneToMany(targetEntity="App\Entity\MouvementStock", mappedBy="livraisonOrder")
 	 */
 	private $mouvements;
 
@@ -171,14 +171,14 @@ class Livraison
     }
 
     /**
-     * @return Collection|Mouvement[]
+     * @return Collection|MouvementStock[]
      */
     public function getMouvements(): Collection
     {
         return $this->mouvements;
     }
 
-    public function addMouvement(Mouvement $mouvement): self
+    public function addMouvement(MouvementStock $mouvement): self
     {
         if (!$this->mouvements->contains($mouvement)) {
             $this->mouvements[] = $mouvement;
@@ -188,7 +188,7 @@ class Livraison
         return $this;
     }
 
-    public function removeMouvement(Mouvement $mouvement): self
+    public function removeMouvement(MouvementStock $mouvement): self
     {
         if ($this->mouvements->contains($mouvement)) {
             $this->mouvements->removeElement($mouvement);

@@ -41,7 +41,7 @@ class TypeFixtures extends Fixture implements DependentFixtureInterface, Fixture
         ];
 
         foreach ($typesNames as $typeName) {
-            $type = $this->typeRepository->findOneBy(['label' => $typeName]);
+            $type = $this->typeRepository->findOneByCategoryLabelAndLabel(CategoryType::ARTICLE, $typeName);
 
             if (empty($type)) {
                 $type = new Type();
@@ -54,7 +54,7 @@ class TypeFixtures extends Fixture implements DependentFixtureInterface, Fixture
         }
 
         // catégorie réception
-        $type = $this->typeRepository->findOneBy(['label' => Type::LABEL_RECEPTION]);
+        $type = $this->typeRepository->findOneByCategoryLabelAndLabel(CategoryType::RECEPTION, Type::LABEL_RECEPTION);
 
         if (empty($type)) {
             $type = new Type();

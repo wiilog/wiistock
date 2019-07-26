@@ -95,7 +95,7 @@ class Utilisateur implements UserInterface, EquatableInterface
     private $livraisons;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Mouvement", mappedBy="user")
+     * @ORM\OneToMany(targetEntity="App\Entity\MouvementStock", mappedBy="user")
      */
     private $mouvements;
 
@@ -418,14 +418,14 @@ class Utilisateur implements UserInterface, EquatableInterface
     }
 
     /**
-     * @return Collection|Mouvement[]
+     * @return Collection|MouvementStock[]
      */
     public function getMouvements(): Collection
     {
         return $this->mouvements;
     }
 
-    public function addMouvement(Mouvement $mouvement): self
+    public function addMouvement(MouvementStock $mouvement): self
     {
         if (!$this->mouvements->contains($mouvement)) {
             $this->mouvements[] = $mouvement;
@@ -435,7 +435,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         return $this;
     }
 
-    public function removeMouvement(Mouvement $mouvement): self
+    public function removeMouvement(MouvementStock $mouvement): self
     {
         if ($this->mouvements->contains($mouvement)) {
             $this->mouvements->removeElement($mouvement);

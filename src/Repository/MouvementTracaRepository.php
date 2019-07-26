@@ -29,6 +29,12 @@ class MouvementTracaRepository extends ServiceEntityRepository
         return $query->getOneOrNullResult();
     }
 
+	/**
+	 * @param $dateMin
+	 * @param $dateMax
+	 * @return MouvementTraca[]
+	 * @throws \Exception
+	 */
     public function findByDates($dateMin, $dateMax)
     {
         $dateMinDate = new \DateTime($dateMin);
@@ -49,33 +55,4 @@ class MouvementTracaRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-
-    // /**
-    //  * @return MouvementTraca[] Returns an array of MouvementTraca objects
-    //  */
-    /*
-    public function findByExampleField($value)
-    {
-        return $this->createQueryBuilder('m')
-            ->andWhere('m.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('m.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
-    }
-    */
-
-    /*
-    public function findOneBySomeField($value): ?MouvementTraca
-    {
-        return $this->createQueryBuilder('m')
-            ->andWhere('m.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
-    }
-    */
 }
