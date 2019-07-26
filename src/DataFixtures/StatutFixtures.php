@@ -8,6 +8,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\Collecte;
 use App\Entity\Demande;
 use App\Entity\Livraison;
+use App\Entity\MouvementStock;
 use App\Entity\MouvementTraca;
 use App\Entity\OrdreCollecte;
 use App\Entity\Preparation;
@@ -250,6 +251,26 @@ class StatutFixtures extends Fixture implements DependentFixtureInterface, Fixtu
                 dump("création du statut " . $statutName);
             }
         }
+
+		// catégorie mouvement sock
+		$statutsNames = [
+			MouvementStock::TYPE_ENTREE,
+			MouvementStock::TYPE_SORTIE,
+			MouvementStock::TYPE_TRANSFERT,
+		];
+
+		foreach ($statutsNames as $statutName) {
+			$statut = $this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::MVT_TRACA, $statutName);
+
+			if (empty($statut)) {
+				$statut = new Statut();
+				$statut
+					->setNom($statutName)
+					->setCategorie($this->getReference('statut-mouvement_stock'));
+				$manager->persist($statut);
+				dump("création du statut " . $statutName);
+			}
+		}
 
         $manager->flush();
     }

@@ -552,11 +552,18 @@ class ArrivageController extends AbstractController
     private function sendMailToAcheteurs($arrivage, $litige, $newLitige)
     {
         foreach ($arrivage->getAcheteurs() as $acheteur) {
+        	if ($newLitige) {
+				$title = 'Un litige a été déclaré sur un arrivage vous concernant :';
+			} else {
+        		$title = 'Un litige sur arrivage nécessite un retour de votre part :';
+			}
+
             $this->mailerService->sendMail(
                 'FOLLOW GT // Litige sur arrivage',
                 $this->renderView('mails/mailLitige.html.twig', [
                     'litige' => $litige,
-                    'newLitige' => $newLitige
+					'title' => $title,
+					'urlSuffix' => 'arrivage'
                 ]),
                 $acheteur->getEmail()
             );

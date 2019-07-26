@@ -1,12 +1,6 @@
-<html>
-<style>
-    body {
-        font-family: Montserrat, Helvetica, Arial, sans-serif;
-    }
-</style>
-<body>
+{% extends 'mails/template.html.twig' %}
 
-<h2>Votre demande de manutention a bien été effectuée</h2>
+{% block content %}
 
 Date de demande : {{ manut.date|date('d/m/Y') }}<br>
 Libellé : {{ manut.libelle }}<br>
@@ -19,5 +13,4 @@ Destination : {{ manut.destination }}<br>
 <br>
 <br>
 
-</body>
-</html>
+{% endblock %}

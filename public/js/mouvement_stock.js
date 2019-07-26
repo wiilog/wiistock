@@ -13,7 +13,7 @@ $('#emplacement').select2({
     }
 });
 
-let pathMvt = Routing.generate('mvt_traca_api', true);
+let pathMvt = Routing.generate('mouvement_stock_api', true);
 let tableMvt = $('#tableMvts').DataTable({
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
@@ -24,18 +24,21 @@ let tableMvt = $('#tableMvts').DataTable({
         "type": "POST"
     },
     columns: [
+        {"data": 'date attendue', 'name': 'date attendue', 'title': 'Date attendue'},
         {"data": 'date', 'name': 'date', 'title': 'Date'},
-        {"data": "refArticle", 'name': 'refArticle', 'title': "Colis"},
-        {"data": 'refEmplacement', 'name': 'refEmplacement', 'title': 'Emplacement'},
+        {"data": "refArticle", 'name': 'refArticle', 'title': 'Référence article'},
+        {"data": "quantite", 'name': 'quantite', 'title': 'Quantité'},
+        {"data": 'origine', 'name': 'origine', 'title': 'Origine'},
+        {"data": 'destination', 'name': 'destination', 'title': 'Destination'},
         {"data": 'type', 'name': 'type', 'title': 'Type'},
-        {"data": 'operateur', 'name': 'operateur', 'title': 'Operateur'},
-        {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'},
+        {"data": 'operateur', 'name': 'operateur', 'title': 'Opérateur'},
+        {"data": 'actions', 'name': 'Actions', 'title': 'Actions'},
     ],
 
 });
-let modalDeleteArrivage = $('#modalDeleteMvtTraca');
-let submitDeleteArrivage = $('#submitDeleteMvtTraca');
-let urlDeleteArrivage = Routing.generate('mvt_traca_delete', true);
+let modalDeleteArrivage = $('#modalDeleteMvtStock');
+let submitDeleteArrivage = $('#submitDeleteMvtStock');
+let urlDeleteArrivage = Routing.generate('mvt_stock_delete', true);
 InitialiserModal(modalDeleteArrivage, submitDeleteArrivage, urlDeleteArrivage, tableMvt);
 
 $('#submitSearchMvt').on('click', function () {
@@ -51,13 +54,16 @@ $('#submitSearchMvt').on('click', function () {
         .columns('type:name')
         .search(statut ? '^' + statut + '$' : '', true, false)
         .draw();
-
     tableMvt
         .columns('operateur:name')
         .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
         .draw();
     tableMvt
-        .columns('refEmplacement:name')
+        .columns('origine:name')
+        .search(emplacement ? '^' + emplacement + '$' : '', true, false)
+        .draw();
+    tableMvt
+        .columns('destination.name')
         .search(emplacement ? '^' + emplacement + '$' : '', true, false)
         .draw();
     tableMvt
@@ -107,7 +113,7 @@ function generateCSVMouvement () {
 
     if (data['dateMin'] && data['dateMax']) {
         let params = JSON.stringify(data);
-        let path = Routing.generate('get_mouvements_traca_for_csv', true);
+        let path = Routing.generate('get_mouvements_stock_for_csv', true);
 
         $.post(path, params, function(response) {
             if (response) {
@@ -130,16 +136,16 @@ let mFile = function (csv) {
     let d = new Date();
     let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
     date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
-    let exportedFilenmae = 'export-mouvement-traca-' + date + '.csv';
+    let exportedFilename = 'export-mouvements-stock-' + date + '.csv';
     let blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     if (navigator.msSaveBlob) { // IE 10+
-        navigator.msSaveBlob(blob, exportedFilenmae);
+        navigator.msSaveBlob(blob, exportedFilename);
     } else {
         let link = document.createElement("a");
         if (link.download !== undefined) {
             let url = URL.createObjectURL(blob);
             link.setAttribute("href", url);
-            link.setAttribute("download", exportedFilenmae);
+            link.setAttribute("download", exportedFilename);
             link.style.visibility = 'hidden';
             document.body.appendChild(link);
             link.click();

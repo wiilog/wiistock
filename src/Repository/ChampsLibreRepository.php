@@ -212,4 +212,26 @@ class ChampsLibreRepository extends ServiceEntityRepository
 
         return $query->execute();
     }
+
+    public function getIdAndElementsWithMachine()
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT c.id, c.elements
+	        FROM App\Entity\ChampsLibre c
+	        WHERE c.label LIKE '%machine%'"
+        );
+        return $query->execute();
+    }
+
+    public function findOneById($id)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT c
+	        FROM App\Entity\ChampsLibre c
+	        WHERE c.id =:id"
+        )->setParameter('id', $id);
+        return $query->getOneOrNullResult();
+    }
 }
