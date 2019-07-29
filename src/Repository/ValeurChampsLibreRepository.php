@@ -281,7 +281,7 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
 	        "SELECT v.valeur
 	        FROM App\Entity\ValeurChampsLibre v
 	        JOIN v.champLibre c
-	        WHERE c =:champLibre"
+	        WHERE c.id =:champLibre"
         )->setParameter('champLibre', $champLibre);
 	    return $query->execute();
     }
