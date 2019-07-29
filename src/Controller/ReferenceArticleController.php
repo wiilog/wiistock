@@ -252,6 +252,12 @@ class ReferenceArticleController extends Controller
                         "class" => (in_array('Type', $columnsVisible) ? 'display' : 'hide'),
                     ],
                     [
+                        "title" => 'Statut',
+                        "data" => 'Statut',
+                        'name' => 'Statut',
+                        "class" => (in_array('Statut', $columnsVisible) ? 'display' : 'hide'),
+                    ],
+                    [
                         "title" => 'Quantité',
                         "data" => 'Quantité',
                         'name' => 'Quantité',
@@ -280,7 +286,6 @@ class ReferenceArticleController extends Controller
                     ];
                 }
             }
-
             return new JsonResponse($columns);
         }
         throw new NotFoundHttpException("404");
@@ -425,6 +430,7 @@ class ReferenceArticleController extends Controller
                 "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
                 "Quantité" => $refArticle->getQuantiteStock(),
                 "Emplacement" => $emplacement,
+                "Statut" => $refArticle->getStatut(),
                 "Commentaire" => $refArticle->getCommentaire(),
                 'Actions' => $this->renderView('reference_article/datatableReferenceArticleRow.html.twig', [
                     'idRefArticle' => $refArticle->getId(),
@@ -484,6 +490,11 @@ class ReferenceArticleController extends Controller
             'typage' => 'list'
         ];
         $champF[] = [
+            'label' => 'Statut',
+            'id' => 0,
+            'typage' => 'list'
+        ];
+        $champF[] = [
             'label' => 'Quantité',
             'id' => 0,
             'typage' => 'number'
@@ -520,6 +531,13 @@ class ReferenceArticleController extends Controller
             'label' => 'Référence',
             'id' => 0,
             'typage' => 'text'
+
+        ];
+
+        $champsFText[] = [
+            'label' => 'Statut',
+            'id' => 0,
+            'typage' => 'list'
 
         ];
 
@@ -1090,7 +1108,23 @@ class ReferenceArticleController extends Controller
         } else {
             throw new NotFoundHttpException('404');
         }
+    }
 
+    /**
+     * @Route("/show-actif-inactif", name="reference_article_actif_inactif", options={"expose"=true})
+     */
+    public function displayActifOrInactif(Request $request, $params = null) : Response
+    {
+        if ($request->isXmlHttpRequest() && $data= json_decode($request->getContent(), true)) {
 
+            $userId = $this->user->getId();
+            if($data['donnees']== 'actif'){
+                $actif = true;
+            } elseif($data['donnees']== 'inactif'){
+                $actif = false;
+            }
+            return new JsonResponse();
+        }
+        throw new NotFoundHttpException('404');
     }
 }

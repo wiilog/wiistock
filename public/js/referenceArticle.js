@@ -687,5 +687,18 @@ function getDataAndPrintLabels() {
     });
 }
 
+function displayActifOrInactif(select){
+    let donnees;
+    if (select.is(':checked')) {
+        donnees = 'actif';
+    } else {
+        donnees = 'inactif';
+    }
+    let params = {donnees: donnees};
+    let path = Routing.generate('reference_article_actif_inactif');
 
+    $.post(path, JSON.stringify(params), function(data){
+        console.log(data);
+    });
+}
 

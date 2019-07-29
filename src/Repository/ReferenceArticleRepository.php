@@ -128,6 +128,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             'Référence' => ['field' => 'reference', 'typage' => 'text'],
             'Type' => ['field' => 'type_id', 'typage' => 'list'],
             'Quantité' => ['field' => 'quantiteStock', 'typage' => 'number'],
+            'Statut' => ['field' => 'statut', 'typage' => 'list'],
 			'Emplacement' => ['field' => 'emplacement_id', 'typage' => 'list']
         ];
         //TODO trouver + dynamique
@@ -330,6 +331,8 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
 			if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
 		}
+        $qb->leftJoin('ra.statut', 'sra');
+        $qb->andWhere('sra.nom LIKE \'' . ReferenceArticle::STATUT_ACTIF . '\'');
         $queryResult = $qb->getQuery();
 
         return ['data' => $queryResult->getResult(), 'count' => $countQuery, 'total' => $countTotal];
@@ -473,7 +476,6 @@ class ReferenceArticleRepository extends ServiceEntityRepository
     public function getByLivraisonStatutLabelAndWithoutOtherUser($statutLabel, $user) {
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
-			/** @lang DQL */
 			"SELECT ra.reference, e.label as location, ra.libelle as label, la.quantite as quantity, 1 as is_ref, l.id as id_livraison
 			FROM App\Entity\ReferenceArticle ra
 			LEFT JOIN ra.emplacement e
@@ -489,5 +491,15 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
 		return $query->execute();
 	}
+
+	public function findByUserAndStatut($userId, $statut){
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT f
+            FROM App\Entity\Filter f
+            WHERE f.utilisateur =: userId AND f.value =:statut"
+        )->setParameters(['user' => $userId, 'statut' => $statut]);
+        $query->execute();
+    }
 
 }
