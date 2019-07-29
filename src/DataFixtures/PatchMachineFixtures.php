@@ -3,6 +3,7 @@
 namespace App\DataFixtures;
 
 use App\Repository\ChampsLibreRepository;
+use App\Repository\ValeurChampsLibreRepository;
 
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
@@ -18,10 +19,16 @@ class PatchMachineFixtures extends Fixture implements FixtureGroupInterface
      */
     private $champsLibreRepository;
 
+    /**
+     * @var ValeurChampsLibreRepository
+     */
+    private $valeurChampsLibreRepository;
 
-    public function __construct(ChampsLibreRepository $champsLibreRepository)
+
+    public function __construct(ChampsLibreRepository $champsLibreRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository)
     {
         $this->champsLibreRepository = $champsLibreRepository;
+        $this->valeurChampsLibreRepository = $valeurChampsLibreRepository;
     }
 
     public function load(ObjectManager $manager)
@@ -37,7 +44,6 @@ class PatchMachineFixtures extends Fixture implements FixtureGroupInterface
         array_shift($rows); // supprime la 1è ligne d'en-têtes
 
         $listElements = $this->champsLibreRepository->getIdAndElementsWithMachine();
-
 //        foreach($listElements as $elements){
 //            $i = 0;
 //            while($i < count($rows)) {
@@ -68,12 +74,20 @@ class PatchMachineFixtures extends Fixture implements FixtureGroupInterface
                     $colEyelit [] = $row[0];
                 }
             }
-
             $newElements = str_replace($colMachines, $colEyelit, $elements['elements']);
             $champsLibre = $this->champsLibreRepository->find($elements['id']);
             $champsLibre->setElements($newElements);
-        }
 
+            //remplace toutes les valeurs champs libre
+            $listValeurChampsLibres = $this->valeurChampsLibreRepository->getValeurByCL($elements['id']);
+            foreach($listValeurChampsLibres as $valeurChampsLibre){
+                $newValeur = str_replace($colMachines, $colEyelit, $valeurChampsLibre['valeur']);
+                $valeurChampsLibreTab = $this->valeurChampsLibreRepository->findByCL($elements['id']);
+                foreach($valeurChampsLibreTab as $oneValeurChampsLibre){
+                    $oneValeurChampsLibre->setValeur($newValeur);
+                }
+            }
+        }
         $manager->flush();
         fclose($file);
     }
