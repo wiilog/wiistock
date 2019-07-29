@@ -81,10 +81,10 @@ class PatchMachineFixtures extends Fixture implements FixtureGroupInterface
             //remplace toutes les valeurs champs libre
             $listValeurChampsLibres = $this->valeurChampsLibreRepository->findByCL($elements['id']);
             $i = 0;
+            dump($colEyelit);
             foreach($listValeurChampsLibres as $valeurChampsLibre){
                 dump($i);
                 $newValeur = $colEyelit[array_search($valeurChampsLibre->getValeur(), $colMachines)];
-                dump($newValeur);
                 $valeurChampsLibre->setValeur($newValeur);
                 $i++;
             }
