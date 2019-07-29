@@ -84,6 +84,7 @@ class PatchMachineFixtures extends Fixture implements FixtureGroupInterface
             foreach($listValeurChampsLibres as $valeurChampsLibre){
                 dump($i);
                 $newValeur = $colEyelit[array_search($valeurChampsLibre->getValeur(), $colMachines)];
+                dump($newValeur);
                 $valeurChampsLibre->setValeur($newValeur);
                 $i++;
             }

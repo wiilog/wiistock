@@ -293,7 +293,7 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
 	        FROM App\Entity\ValeurChampsLibre v
 	        JOIN v.champLibre c
 	        WHERE c.id =:champLibre"
-        )->setParameter('champLibre', $champLibreId);
+        )->setParameter('champLibre', $champLibreId)->setMaxResults(10);
         return $query->execute();
     }
 }
