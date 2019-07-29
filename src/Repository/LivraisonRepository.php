@@ -61,10 +61,13 @@ class LivraisonRepository extends ServiceEntityRepository
 			"SELECT l.id, l.numero as number
 			FROM App\Entity\Livraison l
 			JOIN l.statut s
-			WHERE s.nom = :statusLabel AND (l.utilisateur is null or l.utilisateur = :user)"
+			JOIN l.demande d
+			JOIN d.type t
+			WHERE (s.nom = :statusLabel AND (l.utilisateur is null or l.utilisateur = :user)) AND t.label = :type"
 		)->setParameters([
 			'statusLabel' => $statusLabel,
-			'user' => $user
+			'user' => $user,
+            'type' => $user->getType() ? $user->getType()->getLabel() : null
 		]);
 
 		return $query->execute();

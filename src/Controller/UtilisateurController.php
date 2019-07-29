@@ -2,9 +2,11 @@
 
 namespace App\Controller;
 
+use App\Entity\CategoryType;
 use App\Entity\Menu;
 use App\Entity\Utilisateur;
 use App\Repository\RoleRepository;
+use App\Repository\TypeRepository;
 use App\Repository\UtilisateurRepository;
 use App\Service\PasswordService;
 use App\Service\UserService;
@@ -33,6 +35,11 @@ class UtilisateurController extends Controller
     private $roleRepository;
 
     /**
+     * @var TypeRepository
+     */
+    private $typeRepository;
+
+    /**
      * @var UserService
      */
     private $userService;
@@ -48,8 +55,9 @@ class UtilisateurController extends Controller
     private $passwordService;
 
 
-    public function __construct(PasswordService $passwordService, UserPasswordEncoderInterface $encoder, UtilisateurRepository $utilisateurRepository, RoleRepository $roleRepository, UserService $userService)
+    public function __construct(TypeRepository $typeRepository, PasswordService $passwordService, UserPasswordEncoderInterface $encoder, UtilisateurRepository $utilisateurRepository, RoleRepository $roleRepository, UserService $userService)
     {
+        $this->typeRepository = $typeRepository;
         $this->utilisateurRepository = $utilisateurRepository;
         $this->roleRepository = $roleRepository;
         $this->userService = $userService;
@@ -79,9 +87,11 @@ class UtilisateurController extends Controller
             }
         }
 
+        $types = $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
         return $this->render('utilisateur/index.html.twig', [
             'utilisateurs' => $utilisateurRepository->findAll(),
-            'roles' => $this->roleRepository->findAll()
+            'roles' => $this->roleRepository->findAll(),
+            'types' => $types
         ]);
     }
 
@@ -113,11 +123,13 @@ class UtilisateurController extends Controller
             $utilisateur = new Utilisateur();
 
             $role = $this->roleRepository->find($data['role']);
+            $type = $this->typeRepository->find($data['type']);
             $utilisateur
                 ->setUsername($data['username'])
                 ->setEmail($data['email'])
                 ->setRole($role)
                 ->setStatus(true)
+                ->setType($type)
                 ->setRoles(['USER'])// évite bug -> champ roles ne doit pas être vide
                 ->setColumnVisible(["Actions", "Libellé", "Référence", "Type", "Quantité", "Emplacement"])
                 ->setRecherche(["Libellé", "Référence"]);
@@ -147,8 +159,10 @@ class UtilisateurController extends Controller
             }
 
             $user = $this->utilisateurRepository->find($data['id']);
+            $types = $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
             $json = $this->renderView('utilisateur/modalEditUserContent.html.twig', [
                 'user' => $user,
+                'types' => $types
             ]);
 
             return new JsonResponse($json);
@@ -188,9 +202,11 @@ class UtilisateurController extends Controller
                 return new JsonResponse('Un utilisateur connecté ne peut pas se désactiver lui-même.');
             }
 
+            $type = $this->typeRepository->find($data['type']);
             $utilisateur
                 ->setStatus($data['status'] === 'active')
                 ->setUsername($data['username'])
+                ->setType($type)
                 ->setEmail($data['email']);
             if ($data['password'] !== '') {
                 $password = $this->encoder->encodePassword($utilisateur, $data['password']);
