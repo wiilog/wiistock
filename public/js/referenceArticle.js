@@ -694,11 +694,12 @@ function displayActifOrInactif(select){
     } else {
         donnees = 'inactif';
     }
+
     let params = {donnees: donnees};
     let path = Routing.generate('reference_article_actif_inactif');
 
-    $.post(path, JSON.stringify(params), function(data){
-
+    $.post(path, JSON.stringify(params), function(){
+        tableRefArticle.ajax.reload();
     });
 }
 

@@ -577,6 +577,7 @@ class ReferenceArticleController extends Controller
                 'champsLibres' => $champsLibres,
             ];
         }
+        $filter = $this->filterRepository->findByUserAndStatut($this->getUser()->getId());
         return $this->render('reference_article/index.html.twig', [
             'champs' => $champs,
             'champsSearch' => $champsSearch,
@@ -586,7 +587,8 @@ class ReferenceArticleController extends Controller
             'types' => $types,
             'emplacements' => $emplacements,
             'typeQuantite' => $typeQuantite,
-            'filters' => $this->filterRepository->findBy(['utilisateur' => $this->getUser()]),
+            'filters' => $this->filterRepository->findByUserAndNoStatut($this->getUser()->getId()),
+            'wantInactif' => !empty($filter) && $filter->getValue() === Article::STATUT_INACTIF
         ]);
     }
 
@@ -1120,7 +1122,7 @@ class ReferenceArticleController extends Controller
             $userId = $user->getId();
             $statutArticle = $data['donnees'];
 
-            $filter = $this->filterRepository->findByUser($userId);
+            $filter = $this->filterRepository->findByUserAndStatut($userId);
 
             $em = $this->getDoctrine()->getManager();
             if($filter == null){
@@ -1128,7 +1130,7 @@ class ReferenceArticleController extends Controller
                 $newFilter
                     ->setUtilisateur($user)
                     ->setChampFixe('Statut')
-                    ->setValue($statutArticle);
+                    ->setValue('actif');
                 $em->persist($newFilter);
             } elseif ($filter->getValue() != $statutArticle) {
                 $filter->setValue($statutArticle);

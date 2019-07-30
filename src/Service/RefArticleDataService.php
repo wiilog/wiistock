@@ -34,6 +34,7 @@ use App\Repository\EmplacementRepository;
 
 
 use http\Env\Request;
+use Symfony\Component\DependencyInjection\Tests\A;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -361,6 +362,7 @@ class RefArticleDataService
             $rowCL[$champLibre['label']] = ($valeur ? $valeur->getValeur() : "");
         }
         $totalQuantity = 0;
+
         $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
         if ($refArticle->getTypeQuantite() === 'article') {
             foreach ($refArticle->getArticlesFournisseur() as $articleFournisseur) {
@@ -374,8 +376,7 @@ class RefArticleDataService
         $quantityInStock = ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) ? $refArticle->getQuantiteStock() : $totalQuantity;
         $reservedQuantity = $this->referenceArticleRepository->getTotalQuantityReservedByRefArticle($refArticle);
 
-//        if($statutArticle == 'actif'){}
-        dump($refArticle->getStatut());
+//        dump($refArticle->getStatut()->getNom());
 
             $rowCF = [
                 "id" => $refArticle->getId(),

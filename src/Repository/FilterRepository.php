@@ -58,6 +58,7 @@ class FilterRepository extends ServiceEntityRepository
         )->setParameter('cl', $cl);
         return $query->getSingleScalarResult();
     }
+
     public function deleteByChampLibre($cl)
     {
         $em = $this->getEntityManager();
@@ -70,12 +71,27 @@ class FilterRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function findByUser($userId){
+    /**
+     * @param $userId
+     * @return Filter
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
+    public function findByUserAndStatut($userId) {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
             "SELECT f
             FROM App\Entity\Filter f
-            WHERE f.utilisateur=:userId"
+            WHERE f.utilisateur=:userId AND f.champFixe = 'Statut'"
+        )->setParameter('userId' , $userId);
+        return $query->getOneOrNullResult();
+    }
+
+    public function findByUserAndNoStatut($userId) {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT f
+            FROM App\Entity\Filter f
+            WHERE f.utilisateur=:userId AND f.champFixe != 'Statut'"
         )->setParameter('userId' , $userId);
         return $query->getOneOrNullResult();
     }
