@@ -1068,8 +1068,9 @@ class ReferenceArticleController extends Controller
         $filters = $this->filterRepository->getFieldsAndValuesByUser($userId);
         $queryResult = $this->referenceArticleRepository->findByFiltersAndParams($filters, $params, $this->user);
         $refs = $queryResult['data'];
-
+        $data = json_decode($request->getContent(), true);
         $refsString = [];
+        $refs = array_slice($refs, $data['start'] ,$data['length']);
         foreach ($refs as $ref) {
             $refsString[] = $ref->getReference();
         }

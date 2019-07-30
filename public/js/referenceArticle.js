@@ -665,7 +665,7 @@ function saveRapidSearch() {
 
 function getDataAndPrintLabels() {
     let path = Routing.generate('reference_article_get_data_to_print', true);
-    $.post(path, function (response) {
+    $.post(path, JSON.stringify({length : tableRefArticle.page.info().length, start : tableRefArticle.page.info().start}), function (response) {
         if (response.tags.exists) {
             $("#barcodes").empty();
             let i = 0;

@@ -591,7 +591,7 @@ class ArticleController extends Controller
             for ($i = 0 ; $i < count($listArticles); $i++) {
                 $articlesString[] = $this->articleRepository->find($listArticles[$i])->getReference();
             }
-
+            $articlesString = array_slice($articlesString, $data['start'], $data['length']);
             $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
             /** @var DimensionsEtiquettes $dimension */
             if ($dimension) {
