@@ -493,6 +493,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 				// même comportement que LivraisonController.new()
 				foreach ($preparations as $preparationArray) {
 					$preparation = $this->preparationRepository->find($preparationArray['id']);
+                    $preparation->setCommentaire($preparationArray['commentaire']);
 
 					if ($preparation) {
 						$demandes = $preparation->getDemandes();
@@ -557,12 +558,15 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 						$refArticle = $this->referenceArticleRepository->findOneByReference($mouvementNomade['reference']);
 						if ($refArticle) {
 							$mouvement->setRefArticle($refArticle);
+							$ligneArticle = $this->ligneArticleRepository->findOneByRefArticleAndDemande($refArticle, $livraison->getPreparation()->getDemandes()[0]);
+							$ligneArticle->setQuantite($mouvement->getQuantity());
 						}
 					} else {
 						$article = $this->articleRepository->findOneByReference($mouvementNomade['reference']);
 						if ($article) {
 							$article->setStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::ARTICLE, Article::STATUT_EN_TRANSIT));
 							$mouvement->setArticle($article);
+							$article->setQuantiteAPrelever($mouvement->getQuantity());
 						}
 					}
 

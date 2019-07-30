@@ -64,6 +64,11 @@ class Preparation
 	 */
 	private $mouvements;
 
+    /**
+     * @ORM\Column(type="text", nullable=true)
+     */
+    private $commentaire;
+
 
     public function __construct()
     {
@@ -238,6 +243,18 @@ class Preparation
                 $mouvement->setPreparationOrder(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getCommentaire(): ?string
+    {
+        return $this->commentaire;
+    }
+
+    public function setCommentaire(?string $commentaire): self
+    {
+        $this->commentaire = $commentaire;
 
         return $this;
     }
