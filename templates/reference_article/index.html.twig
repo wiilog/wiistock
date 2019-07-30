@@ -24,7 +24,7 @@
                 <div class="statut dropdown-item" >
                     Statut article actif
                     <label class="switch">
-                        <input class="checkbox" type="checkbox" value="ok" {{ wantInactif == false ? 'checked' : '' }} onchange="displayActifOrInactif($(this))">
+                        <input class="checkbox" type="checkbox" {{ wantInactif == false ? 'checked' : '' }} onchange="displayActifOrInactif($(this))">
                         <span class="slider round"></span>
                     </label>
                 </div>
