@@ -303,12 +303,18 @@ function overrideSearch() {
     let $input = $('#tableArticle_id_filter input');
     $input.off();
     $input.on('keyup', function(e) {
-        if (e.key === 'Enter') {
+        if (e.key === 'Enter'){
+            if ($input.val() === '') {
+                $('.justify-content-end').find('.printButton').addClass('btn-disabled');
+                $('.justify-content-end').find('.printButton').removeClass('btn-primary');
+            } else {
+                $('.justify-content-end').find('.printButton').removeClass('btn-disabled');
+                $('.justify-content-end').find('.printButton').addClass('btn-primary');
+            }
             tableArticle.search(this.value).draw();
-            $('.justify-content-end').find('.printButton').removeClass('d-none');
-        }
-        else if (e.key === 'Backspace') {
-            $('.justify-content-end').find('.printButton').addClass('d-none');
+        }  else if (e.key === 'Backspace' && $input.val() === '') {
+            $('.justify-content-end').find('.printButton').addClass('btn-disabled');
+            $('.justify-content-end').find('.printButton').removeClass('btn-primary');
         }
     });
     $input.attr('placeholder', 'entrée pour valider');

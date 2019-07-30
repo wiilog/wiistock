@@ -72,10 +72,17 @@ function overrideSearch() {
     $input.off();
     $input.on('keyup', function(e){
         if (e.key === 'Enter'){
+            if ($input.val() === '') {
+                $('.emplacement').find('.printButton').addClass('btn-disabled');
+                $('.emplacement').find('.printButton').removeClass('btn-primary');
+            } else {
+                $('.emplacement').find('.printButton').removeClass('btn-disabled');
+                $('.emplacement').find('.printButton').addClass('btn-primary');
+            }
             tableEmplacement.search(this.value).draw();
-            $('.emplacement').find('.printButton').removeClass('d-none');
-        }  else if (e.key === 'Backspace') {
-            $('.emplacement').find('.printButton').addClass('d-none');
+        }  else if (e.key === 'Backspace' && $input.val() === '') {
+            $('.emplacement').find('.printButton').addClass('btn-disabled');
+            $('.emplacement').find('.printButton').removeClass('btn-primary');
         }
     });
     $input.attr('placeholder', 'entrée pour valider');
@@ -89,8 +96,9 @@ function getDataAndPrintLabels() {
             $("#barcodes").empty();
             let i = 0;
             response.emplacements.forEach(function(code) {
+                console.log(code);
                 $('#barcodes').append('<img id="barcode' + i + '">')
-                JsBarcode("#barcode" + i, code, {
+                JsBarcode("#barcode" + i, code.replace('é', 'e').replace('è', 'e').trim(), {
                     format: "CODE128",
                 });
                 i++;

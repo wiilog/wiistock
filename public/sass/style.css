@@ -393,6 +393,12 @@ a:hover {
   margin: 0 !important;
 }
 
+.btn-disabled {
+  background-color: #424242;
+  border-color: #424242;
+  pointer-events: none;
+}
+
 .sidemenu-bg {
   position: fixed;
   top: 0;
