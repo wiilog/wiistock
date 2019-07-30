@@ -567,6 +567,25 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 							$article->setStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::ARTICLE, Article::STATUT_EN_TRANSIT));
 							$mouvement->setArticle($article);
 							$article->setQuantiteAPrelever($mouvement->getQuantity());
+                            if ($article->getQuantite() !== $article->getQuantiteAPrelever()) {
+                                $newArticle = [
+                                    'articleFournisseur' => $article->getArticleFournisseur()->getId(),
+                                    'libelle' => $article->getLabel(),
+                                    'conform' => !$article->getConform(),
+                                    'commentaire' => $article->getcommentaire(),
+                                    'quantite' => $article->getQuantite() - $article->getQuantiteAPrelever(),
+                                    'emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getId() : '',
+                                    'statut' => Article::STATUT_ACTIF,
+                                    'refArticle' => $article->getArticleFournisseur()->getReferenceArticle()->getId()
+                                ];
+
+                                foreach ($article->getValeurChampsLibres() as $valeurChampLibre) {
+                                    $newArticle[$valeurChampLibre->getChampLibre()->getId()] = $valeurChampLibre->getValeur();
+                                }
+                                $this->articleDataService->newArticle($newArticle);
+
+                                $article->setQuantite($article->getQuantiteAPrelever(), 0);
+                            }
 						}
 					}
 
