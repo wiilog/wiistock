@@ -374,6 +374,8 @@ class RefArticleDataService
         $quantityInStock = ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) ? $refArticle->getQuantiteStock() : $totalQuantity;
         $reservedQuantity = $this->referenceArticleRepository->getTotalQuantityReservedByRefArticle($refArticle);
 
+//        if($statutArticle == 'actif'){}
+        dump($refArticle->getStatut());
 
             $rowCF = [
                 "id" => $refArticle->getId(),

@@ -491,15 +491,4 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
 		return $query->execute();
 	}
-
-	public function findByUserAndStatut($userId, $statut){
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT f
-            FROM App\Entity\Filter f
-            WHERE f.utilisateur =: userId AND f.value =:statut"
-        )->setParameters(['user' => $userId, 'statut' => $statut]);
-        $query->execute();
-    }
-
 }

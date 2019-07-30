@@ -69,4 +69,14 @@ class FilterRepository extends ServiceEntityRepository
         )->setParameter('cl', $cl);
         return $query->execute();
     }
+
+    public function findByUser($userId){
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT f
+            FROM App\Entity\Filter f
+            WHERE f.utilisateur=:userId"
+        )->setParameter('userId' , $userId);
+        return $query->getOneOrNullResult();
+    }
 }

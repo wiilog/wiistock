@@ -301,7 +301,6 @@ class ReferenceArticleController extends Controller
                 return $this->redirectToRoute('access_denied');
             }
             $data = $this->refArticleDataService->getDataForDatatable($request->request);
-
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
@@ -1113,16 +1112,29 @@ class ReferenceArticleController extends Controller
     /**
      * @Route("/show-actif-inactif", name="reference_article_actif_inactif", options={"expose"=true})
      */
-    public function displayActifOrInactif(Request $request, $params = null) : Response
+    public function displayActifOrInactif(Request $request) : Response
     {
-        if ($request->isXmlHttpRequest() && $data= json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data= json_decode($request->getContent(), true)){
 
-            $userId = $this->user->getId();
-            if($data['donnees']== 'actif'){
-                $actif = true;
-            } elseif($data['donnees']== 'inactif'){
-                $actif = false;
+            $user = $this->getUser();
+            $userId = $user->getId();
+            $statutArticle = $data['donnees'];
+
+            $filter = $this->filterRepository->findByUser($userId);
+
+            $em = $this->getDoctrine()->getManager();
+            if($filter == null){
+                $newFilter = new Filter();
+                $newFilter
+                    ->setUtilisateur($user)
+                    ->setChampFixe('Statut')
+                    ->setValue($statutArticle);
+                $em->persist($newFilter);
+            } elseif ($filter->getValue() != $statutArticle) {
+                $filter->setValue($statutArticle);
             }
+            $em->flush();
+
             return new JsonResponse();
         }
         throw new NotFoundHttpException('404');

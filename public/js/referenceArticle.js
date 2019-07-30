@@ -698,7 +698,7 @@ function displayActifOrInactif(select){
     let path = Routing.generate('reference_article_actif_inactif');
 
     $.post(path, JSON.stringify(params), function(data){
-        console.log(data);
+
     });
 }
 
