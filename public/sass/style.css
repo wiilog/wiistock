@@ -268,6 +268,13 @@ a:hover {
   border-radius: 5px;
 }
 
+.messageChrome {
+  margin-top: 30px;
+  margin-left: 5px;
+  text-align: center;
+  color: #656565;
+}
+
 .modal-body label {
   color: #b2b2b2;
 }
