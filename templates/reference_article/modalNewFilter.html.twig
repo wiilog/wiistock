@@ -13,7 +13,7 @@
                     <select class="form-control data needed" id="field" name="field" onchange="displayFilterValue($(this))">
                         <option disabled selected> </option>
                         {% for champ in champs %}
-                            {% if (champ.label != 'Actions' and champ.label != 'Commentaire') %}
+                            {% if (champ.label != 'Actions' and champ.label != 'Commentaire' and champ.label !='Statut') %}
                                 {% set value = (champ.id == 0) ? champ.label : champ.id %}
                                 <option value="{{ value }}" data-type="{{ champ.typage }}">{{ champ.label|capitalize }}</option>
                             {% endif %}

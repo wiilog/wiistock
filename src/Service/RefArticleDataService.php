@@ -32,9 +32,6 @@ use App\Repository\CategorieCLRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\EmplacementRepository;
 
-
-use http\Env\Request;
-use Symfony\Component\DependencyInjection\Tests\A;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Routing\RouterInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -375,8 +372,6 @@ class RefArticleDataService
         }
         $quantityInStock = ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) ? $refArticle->getQuantiteStock() : $totalQuantity;
         $reservedQuantity = $this->referenceArticleRepository->getTotalQuantityReservedByRefArticle($refArticle);
-
-//        dump($refArticle->getStatut()->getNom());
 
             $rowCF = [
                 "id" => $refArticle->getId(),

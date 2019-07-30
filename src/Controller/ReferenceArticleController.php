@@ -491,7 +491,7 @@ class ReferenceArticleController extends Controller
         $champF[] = [
             'label' => 'Statut',
             'id' => 0,
-            'typage' => 'list'
+            'typage' => 'text'
         ];
         $champF[] = [
             'label' => 'Quantité',
@@ -530,13 +530,6 @@ class ReferenceArticleController extends Controller
             'label' => 'Référence',
             'id' => 0,
             'typage' => 'text'
-
-        ];
-
-        $champsFText[] = [
-            'label' => 'Statut',
-            'id' => 0,
-            'typage' => 'list'
 
         ];
 

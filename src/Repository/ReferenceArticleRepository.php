@@ -143,7 +143,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
 		foreach ($filters as $filter) {
             $index++;
-//
+
             if ($filter['champFixe'] === 'Statut') {
                 if ($filter['value'] === Article::STATUT_ACTIF) {
                     $qb->leftJoin('ra.statut', 'sra');

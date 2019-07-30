@@ -262,6 +262,7 @@ function initTableRefArticle() {
 
 function overrideSearch() {
     let $input = $('#tableRefArticle_id_filter input');
+
     $input.off();
     $input.on('keyup', function(e) {
         if (e.key === 'Enter') {
