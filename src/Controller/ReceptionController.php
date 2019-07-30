@@ -724,7 +724,6 @@ class ReceptionController extends AbstractController
             }
             $json = null;
             $refArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
-            dump($refArticle);
 
             if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
                 $fournisseur = $this->fournisseurRepository->find($data['fournisseur']);

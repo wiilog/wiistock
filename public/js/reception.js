@@ -312,7 +312,6 @@ function getArticleFournisseur(){
     let referenceArticle = $('#referenceCEA').val();
     let fournisseur = $('#fournisseurAddArticle').val();
     let params = JSON.stringify({referenceArticle: referenceArticle, fournisseur: fournisseur});
-    console.log(params);
     $.post(path, params, function(data) {
         if(data.option){
             let articleFournisseur = $('#articleFournisseur');
