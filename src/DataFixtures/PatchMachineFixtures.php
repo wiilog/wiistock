@@ -76,7 +76,7 @@ class PatchMachineFixtures extends Fixture implements FixtureGroupInterface
             }
             $newElements = str_replace($colMachines, $colEyelit, $elements['elements']);
             $champsLibre = $this->champsLibreRepository->find($elements['id']);
-            $champsLibre->setElements($newElements);
+            $champsLibre->setElements(array_unique($newElements));
 
             //remplace toutes les valeurs champs libre
             $listValeurChampsLibres = $this->valeurChampsLibreRepository->findByCL($elements['id']);
