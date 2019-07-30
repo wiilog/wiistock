@@ -493,7 +493,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 				// même comportement que LivraisonController.new()
 				foreach ($preparations as $preparationArray) {
 					$preparation = $this->preparationRepository->find($preparationArray['id']);
-                    $preparation->setCommentaire($preparationArray['commentaire']);
+                    $preparation->setCommentaire($preparationArray['comment']);
 
 					if ($preparation) {
 						$demandes = $preparation->getDemandes();
