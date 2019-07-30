@@ -363,7 +363,7 @@ class ReceptionController extends AbstractController
             foreach ($ligneArticles as  $ligneArticle) {
                 $rows[] =
                     [
-                        "Référence CEA" => ($ligneArticle->getReferenceArticle() ?  $ligneArticle->getReferenceArticle()->getReference() : ''),
+                        "Référence" => ($ligneArticle->getReferenceArticle() ?  $ligneArticle->getReferenceArticle()->getReference() : ''),
                         "Fournisseur" => ($ligneArticle->getFournisseur() ?  $ligneArticle->getFournisseur()->getNom() : ''),
                         "Libellé" => ($ligneArticle->getLabel() ?  $ligneArticle->getLabel() : ''),
                         "A recevoir" => ($ligneArticle->getQuantiteAR() ?  $ligneArticle->getQuantiteAR() : ''),

@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\Fournisseur;
 use App\Entity\Menu;
+use App\Repository\ArrivageRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\ReceptionRepository;
@@ -50,13 +51,19 @@ class FournisseurController extends AbstractController
     private $fournisseurDataService;
 
     /**
+     * @var ArrivageRepository
+     */
+    private $arrivageRepository;
+
+    /**
      * @var UserService
      */
     private $userService;
 
 
-    public function __construct(FournisseurDataService $fournisseurDataService,ReceptionReferenceArticleRepository $receptionReferenceArticleRepository, ReceptionRepository $receptionRepository, ArticleFournisseurRepository $articleFournisseurRepository, FournisseurRepository $fournisseurRepository, UserService $userService)
+    public function __construct(ArrivageRepository $arrivageRepository, FournisseurDataService $fournisseurDataService,ReceptionReferenceArticleRepository $receptionReferenceArticleRepository, ReceptionRepository $receptionRepository, ArticleFournisseurRepository $articleFournisseurRepository, FournisseurRepository $fournisseurRepository, UserService $userService)
     {
+        $this->arrivageRepository = $arrivageRepository;
         $this->fournisseurDataService = $fournisseurDataService;
         $this->fournisseurRepository = $fournisseurRepository;
         $this->userService = $userService;
@@ -71,7 +78,7 @@ class FournisseurController extends AbstractController
     public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
             }
             $data = $this->fournisseurDataService->getDataForDatatable($request->request);
@@ -86,7 +93,7 @@ class FournisseurController extends AbstractController
      */
     public function index(): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+        if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::LIST)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -99,7 +106,7 @@ class FournisseurController extends AbstractController
     public function new(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -121,7 +128,7 @@ class FournisseurController extends AbstractController
     public function apiEdit(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -140,7 +147,7 @@ class FournisseurController extends AbstractController
     public function edit(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -162,16 +169,21 @@ class FournisseurController extends AbstractController
     public function checkFournisseurCanBeDeleted(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $fournisseurId = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            if ($this->countUsedFournisseurs($fournisseurId) == 0) {
+            $isUsedBy = $this->isFournisseurUsed($fournisseurId);
+
+            if (empty($isUsedBy)) {
                 $delete = true;
                 $html = $this->renderView('fournisseur/modalDeleteFournisseurRight.html.twig');
             } else {
                 $delete = false;
-                $html = $this->renderView('fournisseur/modalDeleteFournisseurWrong.html.twig', ['delete' => false]);
+                $html = $this->renderView('fournisseur/modalDeleteFournisseurWrong.html.twig', [
+                	'delete' => false,
+					'isUsedBy' => $isUsedBy
+				]);
             }
 
             return new JsonResponse(['delete' => $delete, 'html' => $html]);
@@ -179,14 +191,30 @@ class FournisseurController extends AbstractController
         throw new NotFoundHttpException('404');
     }
 
-    private function countUsedFournisseurs($fournisseurId)
+	/**
+	 * @param int $fournisseurId
+	 * @return array
+	 */
+    private function isFournisseurUsed($fournisseurId)
     {
-        $usedFournisseur = $this->articleFournisseurRepository->countByFournisseur($fournisseurId);
-        $usedFournisseur += $this->receptionRepository->countByFournisseur($fournisseurId);
-        $usedFournisseur += $this->receptionReferenceArticleRepository->countByFournisseur($fournisseurId);
-        // $$usedFournisseur += $this->mouvementRepository->countByFournisseur($fournisseurId);
+    	$usedBy = [];
 
-        return $usedFournisseur;
+    	$AF = $this->articleFournisseurRepository->countByFournisseur($fournisseurId);
+    	if ($AF > 0) $usedBy[] = 'articles fournisseur';
+
+    	$receptions = $this->receptionRepository->countByFournisseur($fournisseurId);
+    	if ($receptions > 0) $usedBy[] = 'réceptions';
+
+		$ligneReceptions = $this->receptionReferenceArticleRepository->countByFournisseur($fournisseurId);
+		if ($ligneReceptions > 0) $usedBy[] = 'lignes réception';
+
+		$arrivages = $this->arrivageRepository->countByFournisseur($fournisseurId);
+		if ($arrivages > 0) $usedBy[] = 'arrivages';
+
+        // $mouvements = $this->mouvementRepository->countByFournisseur($fournisseurId);
+//		if ($mouvements > 0) $usedBy[] = 'mouvements';
+
+        return $usedBy;
     }
 
 
@@ -196,7 +224,7 @@ class FournisseurController extends AbstractController
     public function delete(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)) {
+            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
             if ($fournisseurId = (int)$data['fournisseur']) {
@@ -204,16 +232,15 @@ class FournisseurController extends AbstractController
                 $fournisseur = $this->fournisseurRepository->find($fournisseurId);
 
                 // on vérifie que le fournisseur n'est plus utilisé
-                $usedFournisseur = $this->countUsedFournisseurs($fournisseurId);
+                $usedFournisseur = $this->isFournisseurUsed($fournisseurId);
 
-                if ($usedFournisseur > 0) {
+                if (!empty($usedFournisseur)) {
                     return new JsonResponse(false);
                 }
 
                 $entityManager = $this->getDoctrine()->getManager();
                 $entityManager->remove($fournisseur);
                 $entityManager->flush();
-                return new JsonResponse();
             }
             return new JsonResponse();
         }
@@ -226,7 +253,7 @@ class FournisseurController extends AbstractController
     public function getFournisseur(Request $request)
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::LIST)) {
                 return new JsonResponse(['results' => null]);
             }
 

@@ -1,75 +1,53 @@
-<html>
-<style>
-    body {
-        font-family: 'Source Sans Pro', sans-serif;
-    }
-    th, td {
-        border: 1px solid black;
-        padding: 6px;
-        text-align: center;
-    }
-    table {
-        border-collapse: collapse;
-    }
-</style>
-<body>
+{% extends 'mails/template.html.twig' %}
+
+{% block content %}
 
 {% set s = litiges|length > 1 ? 's' : '' %}
 {% set nt = litiges|length > 1 ? 'nt' : '' %}
-<h2>{{ litiges|length }}</span> litige{{ s }} vous concerne{{ nt }} :</h2>
+<h3 class="margin-bottom:30px;">{{ litiges|length }}</span> litige{{ s }} vous concerne{{ nt }} :</h3>
 
 {% for litige in litiges %}
     {% set arrivage = litige.arrivage %}
-    <table style="border: 1px solid black;">
+    <table class="table">
         <thead>
-        <tr>
-            <th>N° d'arrivage</th>
-            <th>Transporteur</th>
-            <th>Chauffeur</th>
-            <th>N° tracking transporteur</th>
-            <th>N° commande / BL</th>
-            <th>Fournisseur</th>
-            <th>Destinataire</th>
-            <th>Nb UM</th>
-            <th>Date</th>
-            <th>Utilisateur</th>
-        </tr>
+            <tr>
+                <th class="th">N° d'arrivage</th>
+                <th class="th">Transporteur</th>
+                <th class="th">Chauffeur</th>
+                <th class="th">N° tracking transporteur</th>
+                <th class="th">N° commande / BL</th>
+                <th class="th">Fournisseur</th>
+                <th class="th">Acheteur(s)</th>
+                <th class="th">Destinataire</th>
+                <th class="th">Nb UM</th>
+                <th class="th">Date</th>
+                <th class="th">Utilisateur</th>
+            </tr>
         </thead>
         <tbody>
         <tr>
-            <td>{{ arrivage.numeroArrivage }}</td>
-            <td>{{ arrivage.transporteur.label|capitalize }}</td>
-            <td>{{ arrivage.chauffeur is not empty ? arrivage.chauffeur.prenom|capitalize ~ ' ' ~ arrivage.chauffeur.nom|upper : '' }} </td>
-            <td>{{ arrivage.noTracking }}</td>
-            <td>{{ arrivage.numeroBL }}</td>
-            <td>{{ arrivage.fournisseur.nom }}</td>
-            <td>{{ arrivage.destinataire.username }}</td>
-            <td>{{ arrivage.nbUM }}</td>
-            <td>{{ arrivage.date|date('d/m/Y H:i') }}</td>
-            <td>{{ arrivage.utilisateur.username}}</td>
+            <td class="td">{{ arrivage.numeroArrivage }}</td>
+            <td class="td">{{ arrivage.transporteur.label|capitalize }}</td>
+            <td class="td">{{ arrivage.chauffeur is not empty ? arrivage.chauffeur.prenom|capitalize ~ ' ' ~ arrivage.chauffeur.nom|upper : '' }} </td>
+            <td class="td">{{ arrivage.noTracking }}</td>
+            <td class="td">{{ arrivage.numeroBL }}</td>
+            <td class="td">{{ arrivage.fournisseur.nom }}</td>
+            <td class="td">
+                {% for acheteur in arrivage.acheteurs %}
+                    {{ acheteur }} <br>
+                {% endfor %}
+            </td>
+            <td class="td">{{ arrivage.destinataire.username }}</td>
+            <td class="td">{{ arrivage.nbUM }}</td>
+            <td class="td">{{ arrivage.date|date('d/m/Y H:i') }}</td>
+            <td class="td">{{ arrivage.utilisateur.username}}</td>
         </tr>
         </tbody>
     </table>
 
-    <p style="font-weight:bold;">Type de litige : {{ litige.type.label }}</p>
-    <p style="font-style:italic;">{{ litige.commentaire|raw }}</p>
-
-    <hr>
+    <p><span style="font-weight:bold;margin-bottom:30px;">Type de litige : {{ litige.type.label }}</span></p>
 {% endfor %}
 
 <br>
 <br>
-
-Veuillez vous connecter pour régler le{{ s }} litige{{ s }} :<br><br>
-<table width="160" class="button" style="margin: 0px 0px 10px 30px;">
-    <tr>
-        <td style="text-align: center; background-color: #130078; padding: 10px; border-radius: 5px;cursor:pointer;border:none;">
-            <a href="{{ url('arrivage_index') }}" style="color: #fff; font-size: 18px; letter-spacing: 1px; text-decoration: none;">
-                Aller vers Follow GT
-            </a>
-        </td>
-    </tr>
-</table>
-
-</body>
-</html>
+{% endblock %}

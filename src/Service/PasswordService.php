@@ -63,8 +63,11 @@ class PasswordService
 
 			$this->mailerService->sendMail(
 				'FOLLOW GT // Mot de passe oublié',
-				$this->templating->render('mails/mailForgotPassword.html.twig',
-					['token' => $token]),
+				$this->templating->render('mails/template.html.twig', [
+					'title' => 'Renouvellement de votre mot de passe Follow GT.',
+					'url' => 'change-password?token=' . $token,
+					'buttonText' => 'Cliquez ici pour modifier votre mot de passe'
+				]),
 				$to);
 		}
     }
@@ -84,17 +87,28 @@ class PasswordService
         return $generated_string;
     }
 
-//    public function updatePasswordUser($mail, $password)
-//    {
-//        $user = $this->utilisateurRepository->findOneByMail($mail);
-//        if ($user) {
-//            $password = $this->passwordEncoder->encodePassword($user, $password);
-//            $user->setPassword($password);
-//            $this->entityManager->flush();
-//            $return = true;
-//        } else {
-//            $return = false;
-//        }
-//        return new JsonResponse($return);
-//    }
+	public function checkPassword($password, $password2)
+	{
+		if ($password === $password2 && $password === '') {
+			$response = true;
+			$message = '';
+		} elseif ($password !== $password2) {
+			$response = false;
+			$message = 'Les mots de passe ne correspondent pas.';
+		} elseif (strlen($password) < 8) {
+			$response = false;
+			$message = 'Le mot de passe doit faire au moins 8 caractères.';
+		} elseif (!preg_match('/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/', $password)) {
+			$response = false;
+			$message = 'Le mot de passe doit contenir au moins une majuscule, une minuscule, un chiffre, un caractère spécial.';
+		} else {
+			$response = true;
+			$message = '';
+		}
+
+		return [
+			'response' => $response,
+			'message' => $message
+		];
+	}
 }

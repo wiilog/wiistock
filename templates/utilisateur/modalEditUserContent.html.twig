@@ -4,7 +4,7 @@
             <input type="text" class="form-control data needed" name="user" required="" value="{{ user.id }}">
         </div>
         <div class="col-12 form-group">
-            <label for="username">Nom d'utilisateur</label>
+            <label for="username">Nom d'utilisateur*</label>
             <input type="text" class="form-control data needed" name="username" required="" value="{{ user.username }}">
         </div>
         <div class="col-12 form-group">
@@ -28,7 +28,7 @@
                         class="btn {{ user.status == 0 ? 'active' : 'not-active'}}" data-toggle="status"
                         data-title="inactive" onclick="toggleRadioButton($(this))">Inactif</span>
                 </div>
-                <input type="hidden" name="status" id="status" class="data" value="{{ user.status }}">
+                <input type="hidden" name="status" id="status" class="data" value="{{ user.status ? 'active' : 'inactive' }}">
             </div>
         </div>
     </div>

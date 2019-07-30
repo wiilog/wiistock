@@ -1,9 +1,9 @@
 <div class="form-group">
-    <label for="date-attendu">Label</label>
+    <label for="date-attendu">Label*</label>
     <input type="text" class="form-control data needed" name="label" value="{{type.label}}" >
 </div>
 <div class="form-group">
-    <label for='category'>Catégorie</label>
+    <label for='category'>Catégorie*</label>
     <select class="form-control select2 data" name='category' id='category'>
         <option value="{{type.category.id}}">{{type.category.label}}</option>
         {% for category in category %}

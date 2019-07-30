@@ -4,39 +4,44 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\Article;
+use App\Entity\CategorieCL;
+use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
+use App\Entity\ChampsLibre;
 use App\Entity\Demande;
+use App\Entity\LigneArticle;
 use App\Entity\Livraison;
 use App\Entity\Menu;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
+
 use App\Repository\ArticleRepository;
 use App\Repository\LivraisonRepository;
 use App\Repository\PreparationRepository;
-use App\Service\MailerService;
-use App\Service\UserService;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
-
-
 use App\Repository\DemandeRepository;
 use App\Repository\StatutRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\LigneArticleRepository;
 use App\Repository\ReferenceArticleRepository;
-
-
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\Validator\Constraints\DateTime;
 use App\Repository\UtilisateurRepository;
 use App\Repository\ChampsLibreRepository;
-use Proxies\__CG__\App\Entity\CategorieCL;
 use App\Repository\ValeurChampsLibreRepository;
 use App\Repository\CategorieCLRepository;
 use App\Repository\TypeRepository;
+
+use App\Service\MailerService;
+use App\Service\UserService;
+
+use Doctrine\ORM\NonUniqueResultException;
+
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+
 
 /**
  * @Route("/livraison")
@@ -185,7 +190,11 @@ class LivraisonController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
-        return $this->render('livraison/index.html.twig');
+        return $this->render('livraison/index.html.twig', [
+            'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
+            'statuts' => $this->statutRepository->findByCategorieName(CategorieStatut::LIVRAISON),
+            'types' => $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON),
+        ]);
     }
 
     /**
@@ -210,10 +219,14 @@ class LivraisonController extends AbstractController
 
             $this->mailerService->sendMail(
                 'FOLLOW GT // Livraison effectuée',
-                $this->renderView('mails/mailLivraisonDone.html.twig', ['livraison' => $demande]),
+                $this->renderView('mails/mailLivraisonDone.html.twig', [
+					'livraison' => $demande,
+					'title' => 'Votre demande a bien été livrée.',
+				]),
                 $demande->getUtilisateur()->getEmail()
             );
 
+            // quantités gérées à la référence
             $ligneArticles = $this->ligneArticleRepository->getByDemande($demande);
 
             foreach ($ligneArticles as $ligneArticle) {
@@ -221,12 +234,13 @@ class LivraisonController extends AbstractController
                 $refArticle->setQuantiteStock($refArticle->getQuantiteStock() - $ligneArticle->getQuantite());
             }
 
-
+            // quantités gérées à l'article
             $articles = $demande->getArticles();
 
             foreach ($articles as $article) {
-                $article->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_INACTIF));
-
+                $article
+					->setStatut($this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_INACTIF))
+					->setEmplacement($demande->getDestination());
             }
         }
         $this->getDoctrine()->getManager()->flush();
@@ -248,6 +262,7 @@ class LivraisonController extends AbstractController
             $livraisons = $this->livraisonRepository->findAll();
             $rows = [];
             foreach ($livraisons as $livraison) {
+                $demande = $this->demandeRepository->findOneByLivraison($livraison);
                 $url['show'] = $this->generateUrl('livraison_show', ['id' => $livraison->getId()]);
                 $rows[] = [
                     'id' => ($livraison->getId() ? $livraison->getId() : ''),
@@ -255,6 +270,7 @@ class LivraisonController extends AbstractController
                     'Date' => ($livraison->getDate() ? $livraison->getDate()->format('d/m/Y') : ''),
                     'Statut' => ($livraison->getStatut() ? $livraison->getStatut()->getNom() : ''),
                     'Opérateur' => ($livraison->getUtilisateur() ? $livraison->getUtilisateur()->getUsername() : ''),
+                    'Type' => ($demande && $demande->getType() ? $demande->getType()->getLabel() : ''),
                     'Actions' => $this->renderView('livraison/datatableLivraisonRow.html.twig', ['url' => $url])
                 ];
             }
@@ -283,7 +299,7 @@ class LivraisonController extends AbstractController
                 foreach ($articles as $article) {
                     /** @var Article $article */
                     $rows[] = [
-                        "Référence CEA" => $article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
+                        "Référence" => $article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
                         "Libellé" => $article->getLabel() ? $article->getLabel() : '',
                         "Emplacement" => $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '',
                         "Quantité" => $article->getQuantite(),
@@ -297,7 +313,7 @@ class LivraisonController extends AbstractController
 
                 foreach ($lignes as $ligne) {
                     $rows[] = [
-                        "Référence CEA" => $ligne->getReference()->getReference(),
+                        "Référence" => $ligne->getReference()->getReference(),
                         "Libellé" => $ligne->getReference()->getLibelle(),
                         "Emplacement" => $ligne->getReference()->getEmplacement() ? $ligne->getReference()->getEmplacement()->getLabel() : '',
                         "Quantité" => $ligne->getQuantite(),
@@ -375,21 +391,46 @@ class LivraisonController extends AbstractController
      */
     public function getLivraisonIntels(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $dateMin = $data['dateMin'] . ' 00:00:00';
             $dateMax = $data['dateMax'] . ' 23:59:59';
             $livraisons = $this->demandeRepository->findByDates($dateMin, $dateMax);
-            $data = [];
-            $headers = ['demandeur', 'statut', 'destination', 'commentaire', 'dateDemande', 'dateValidation', 'reference', 'referenceArticle', 'libelleArticle', 'quantite'];
-            $cls = $this->champsLibreRepository->findAll();
-            foreach ($cls as $champLibre) {
+
+            $headers = [];
+            // en-têtes champs libres DL
+            $clDL = $this->champsLibreRepository->findByCategoryTypeLabels([CategoryType::DEMANDE_LIVRAISON]);
+			foreach ($clDL as $champLibre) {
+				$headers[] = $champLibre->getLabel();
+			}
+
+            // en-têtes champs fixes
+            $headers = array_merge($headers, ['demandeur', 'statut', 'destination', 'commentaire', 'dateDemande', 'dateValidation', 'reference', 'type demande', 'referenceArticle', 'libelleArticle', 'quantite']);
+
+			// en-têtes champs libres articles
+            $clAR = $this->champsLibreRepository->findByCategoryTypeLabels([CategoryType::ARTICLE]);
+            foreach ($clAR as $champLibre) {
                 $headers[] = $champLibre->getLabel();
             }
+
+            $data = [];
             $data[] = $headers;
-            $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::ARTICLES_ET_REF_CEA);
-            foreach ($livraisons as $livraison) {
-                foreach ($livraison->getLigneArticle() as $ligneArticle) {
+            $listTypesArt = $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
+            $listTypesDL = $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
+
+
+            $listChampsLibresDL = [];
+			foreach ($listTypesDL as $type) {
+				$listChampsLibresDL = array_merge($listChampsLibresDL, $this->champsLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON));
+			}
+
+            foreach ($livraisons as $livraison) { /** @var Demande $livraison */
+
+				foreach ($livraison->getLigneArticle() as $ligneArticle) { /** @var LigneArticle $ligneArticle */
                     $livraisonData = [];
+
+					// champs libres de la demande
+					$this->addChampsLibresDL($livraison, $listChampsLibresDL, $clDL, $livraisonData);
+
                     $livraisonData[] = $livraison->getUtilisateur()->getUsername();
                     $livraisonData[] = $livraison->getStatut()->getNom();
                     $livraisonData[] = $livraison->getDestination()->getLabel();
@@ -397,60 +438,72 @@ class LivraisonController extends AbstractController
                     $livraisonData[] = $livraison->getDate()->format('Y/m/d-H:i:s');
                     $livraisonData[] = $livraison->getPreparation() ? $livraison->getPreparation()->getDate()->format('Y/m/d-H:i:s') : '';
                     $livraisonData[] = $livraison->getNumero();
+                    $livraisonData[] = $livraison->getType() ? $livraison->getType()->getLabel() : '';
                     $livraisonData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getReference() : '';
                     $livraisonData[] = $ligneArticle->getReference() ? $ligneArticle->getReference()->getLibelle() : '';
                     $livraisonData[] = $ligneArticle->getQuantite();
-                    $categorieCL = $this->categorieCLRepository->findOneByLabel(($ligneArticle->getReference()->getTypeQuantite() === 'reference') ? 'reference CEA' : 'article');
-                    $champsLibres = [];
-                    foreach ($listTypes as $type) {
-                        $listChampsLibres = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($type['label'], $categorieCL);
+
+                    // champs libres de l'article de référence
+                    $categorieCLLabel = $ligneArticle->getReference()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE ? CategorieCL::REFERENCE_ARTICLE : CategorieCL::ARTICLE;
+                    $champsLibresArt = [];
+
+                    foreach ($listTypesArt as $type) {
+                        $listChampsLibres = $this->champsLibreRepository->findByTypeAndCategorieCLLabel($type, $categorieCLLabel);
                         foreach ($listChampsLibres as $champLibre) {
                             $valeurChampRefArticle = $this->valeurChampsLibreRepository->findOneByRefArticleANDChampsLibre($ligneArticle->getReference()->getId(), $champLibre);
                             if ($valeurChampRefArticle) {
-                                $champsLibres[$champLibre->getLabel()] = $valeurChampRefArticle->getValeur();
+                                $champsLibresArt[$champLibre->getLabel()] = $valeurChampRefArticle->getValeur();
                             }
                         }
                     }
-                    foreach ($cls as $type) {
-                        if (array_key_exists($type->getLabel(), $champsLibres)) {
-                            $livraisonData[] = $champsLibres[$type->getLabel()];
+                    foreach ($clAR as $type) {
+                        if (array_key_exists($type->getLabel(), $champsLibresArt)) {
+                            $livraisonData[] = $champsLibresArt[$type->getLabel()];
                         } else {
                             $livraisonData[] = '';
                         }
                     }
+
                     $data[] = $livraisonData;
                 }
                 foreach ($this->articleRepository->getByDemande($livraison) as $article) {
                     $livraisonData = [];
-                    $livraisonData[] = $livraison->getUtilisateur()->getUsername();
+
+                    // champs libres de la demande
+					$this->addChampsLibresDL($livraison, $listChampsLibresDL, $clDL, $livraisonData);
+
+					$livraisonData[] = $livraison->getUtilisateur()->getUsername();
                     $livraisonData[] = $livraison->getStatut()->getNom();
                     $livraisonData[] = $livraison->getDestination()->getLabel();
                     $livraisonData[] = strip_tags($livraison->getCommentaire());
                     $livraisonData[] = $livraison->getDate()->format('Y/m/d-H:i:s');
                     $livraisonData[] = $livraison->getPreparation() ? $livraison->getPreparation()->getDate()->format('Y/m/d-H:i:s') : '';
                     $livraisonData[] = $livraison->getNumero();
-                    $livraisonData[] = $article->getArticleFournisseur()->getReferenceArticle()->getReference();
+					$livraisonData[] = $livraison->getType() ? $livraison->getType()->getLabel() : '';
+					$livraisonData[] = $article->getArticleFournisseur()->getReferenceArticle()->getReference();
                     $livraisonData[] = $article->getLabel();
                     $livraisonData[] = $article->getQuantite();
-                    $categorieCL = $this->categorieCLRepository->findOneByLabel('article');
-                    $champsLibres = [];
-                    foreach ($listTypes as $type) {
-                        $listChampsLibres = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($type['label'], $categorieCL);
+
+                    // champs libres de l'article
+                    $champsLibresArt = [];
+                    foreach ($listTypesArt as $type) {
+                        $listChampsLibres = $this->champsLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::ARTICLE);
                         foreach ($listChampsLibres as $champLibre) {
                             $valeurChampRefArticle = $this->valeurChampsLibreRepository->findOneByArticleANDChampsLibre($article, $champLibre);
                             if ($valeurChampRefArticle) {
-                                $champsLibres[$champLibre->getLabel()] = $valeurChampRefArticle->getValeur();
+                                $champsLibresArt[$champLibre->getLabel()] = $valeurChampRefArticle->getValeur();
                             }
                         }
                     }
-                    foreach ($cls as $type) {
-                        if (array_key_exists($type->getLabel(), $champsLibres)) {
-                            $livraisonData[] = $champsLibres[$type->getLabel()];
+                    foreach ($clAR as $type) {
+                        if (array_key_exists($type->getLabel(), $champsLibresArt)) {
+                            $livraisonData[] = $champsLibresArt[$type->getLabel()];
                         } else {
                             $livraisonData[] = '';
                         }
                     }
-                    $data[] = $livraisonData;
+
+					$data[] = $livraisonData;
                 }
             }
             return new JsonResponse($data);
@@ -458,4 +511,31 @@ class LivraisonController extends AbstractController
             throw new NotFoundHttpException('404');
         }
     }
+
+	/**
+	 * @param Demande $livraison
+	 * @param ChampsLibre[] $listChampsLibresDL
+	 * @param ChampsLibre[] $cls
+	 * @param array $livraisonData
+	 * @throws NonUniqueResultException
+	 */
+    private function addChampsLibresDL($livraison, $listChampsLibresDL, $cls, &$livraisonData)
+	{
+		$champsLibresDL = [];
+		foreach ($listChampsLibresDL as $champLibre) {
+			$valeurChampDL = $this->valeurChampsLibreRepository->findOneByDemandeLivraisonAndChampsLibre($livraison, $champLibre);
+			if ($valeurChampDL) {
+				$champsLibresDL[$champLibre->getLabel()] = $valeurChampDL->getValeur();
+			}
+		}
+
+		foreach ($cls as $cl) {
+			if (array_key_exists($cl->getLabel(), $champsLibresDL)) {
+				$livraisonData[] = $champsLibresDL[$cl->getLabel()];
+			} else {
+				$livraisonData[] = '';
+			}
+		}
+
+	}
 }

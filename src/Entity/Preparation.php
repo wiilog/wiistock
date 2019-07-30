@@ -47,23 +47,30 @@ class Preparation
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="preparations")
      */
-    private $Utilisateur;
+    private $utilisateur;
 
     /**
      * @ORM\ManyToMany(targetEntity="App\Entity\Article", inversedBy="preparations")
      */
-    private $article;
+    private $articles;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Livraison", mappedBy="preparation")
      */
     private $livraisons;
 
+	/**
+	 * @ORM\OneToMany(targetEntity="App\Entity\MouvementStock", mappedBy="preparationOrder")
+	 */
+	private $mouvements;
+
+
     public function __construct()
     {
         $this->demandes = new ArrayCollection();
-        $this->article = new ArrayCollection();
+        $this->articles = new ArrayCollection();
         $this->livraisons = new ArrayCollection();
+        $this->mouvements = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -140,12 +147,12 @@ class Preparation
 
     public function getUtilisateur(): ?Utilisateur
     {
-        return $this->Utilisateur;
+        return $this->utilisateur;
     }
 
-    public function setUtilisateur(?Utilisateur $Utilisateur): self
+    public function setUtilisateur(?Utilisateur $utilisateur): self
     {
-        $this->Utilisateur = $Utilisateur;
+        $this->utilisateur = $utilisateur;
 
         return $this;
     }
@@ -153,15 +160,15 @@ class Preparation
     /**
      * @return Collection|Article[]
      */
-    public function getArticle(): Collection
+    public function getArticles(): Collection
     {
-        return $this->article;
+        return $this->articles;
     }
 
     public function addArticle(Article $article): self
     {
-        if (!$this->article->contains($article)) {
-            $this->article[] = $article;
+        if (!$this->articles->contains($article)) {
+            $this->articles[] = $article;
         }
 
         return $this;
@@ -169,8 +176,8 @@ class Preparation
 
     public function removeArticle(Article $article): self
     {
-        if ($this->article->contains($article)) {
-            $this->article->removeElement($article);
+        if ($this->articles->contains($article)) {
+            $this->articles->removeElement($article);
         }
 
         return $this;
@@ -198,6 +205,37 @@ class Preparation
             // set the owning side to null (unless already changed)
             if ($livraison->getPreparation() === $this) {
                 $livraison->setPreparation(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|MouvementStock[]
+     */
+    public function getMouvements(): Collection
+    {
+        return $this->mouvements;
+    }
+
+    public function addMouvement(MouvementStock $mouvement): self
+    {
+        if (!$this->mouvements->contains($mouvement)) {
+            $this->mouvements[] = $mouvement;
+            $mouvement->setPreparationOrder($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMouvement(MouvementStock $mouvement): self
+    {
+        if ($this->mouvements->contains($mouvement)) {
+            $this->mouvements->removeElement($mouvement);
+            // set the owning side to null (unless already changed)
+            if ($mouvement->getPreparationOrder() === $this) {
+                $mouvement->setPreparationOrder(null);
             }
         }
 

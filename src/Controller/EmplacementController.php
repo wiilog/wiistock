@@ -3,13 +3,15 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\DimensionsEtiquettes;
 use App\Entity\Emplacement;
 use App\Entity\Menu;
 use App\Repository\CollecteRepository;
 use App\Repository\DemandeRepository;
+use App\Repository\DimensionsEtiquettesRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\LivraisonRepository;
-use App\Repository\MouvementRepository;
+use App\Repository\MouvementStockRepository;
 use App\Service\UserService;
 use App\Service\EmplacementDataService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -29,7 +31,7 @@ class EmplacementController extends AbstractController
     /**
      * @var EmplacementDataService
      */
-    private $EmplacementDataService;
+    private $emplacementDataService;
 
     /**
      * @var EmplacementRepository
@@ -57,7 +59,7 @@ class EmplacementController extends AbstractController
     private $collecteRepository;
 
     /**
-     * @var MouvementRepository
+     * @var MouvementStockRepository
      */
     private $mouvementRepository;
 
@@ -66,8 +68,13 @@ class EmplacementController extends AbstractController
      */
     private $userService;
 
+    /**
+     * @var DimensionsEtiquettesRepository
+     */
+    private $dimensionsEtiquettesRepository;
 
-    public function __construct(EmplacementDataService $emplacementDataService, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, UserService $userService, DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, CollecteRepository $collecteRepository, MouvementRepository $mouvementRepository)
+
+    public function __construct(DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, EmplacementDataService $emplacementDataService, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, UserService $userService, DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, CollecteRepository $collecteRepository, MouvementStockRepository $mouvementRepository)
     {
         $this->emplacementDataService = $emplacementDataService;
         $this->emplacementRepository = $emplacementRepository;
@@ -77,6 +84,7 @@ class EmplacementController extends AbstractController
         $this->livraisonRepository = $livraisonRepository;
         $this->collecteRepository = $collecteRepository;
         $this->mouvementRepository = $mouvementRepository;
+        $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
     }
 
     /**
@@ -85,11 +93,10 @@ class EmplacementController extends AbstractController
     public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
             }
             $data = $this->emplacementDataService->getDataForDatatable($request->request);
-            
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
@@ -100,7 +107,7 @@ class EmplacementController extends AbstractController
      */
     public function index(): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+        if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::LIST)) {
             return $this->redirectToRoute('access_denied');
         }
 
@@ -113,11 +120,17 @@ class EmplacementController extends AbstractController
     public function new(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            $em = $this->getDoctrine()->getEntityManager();
+            // on vérifie que l'emplacement n'existe pas déjà
+            $emplacementAlreadyExist = $this->emplacementRepository->countByLabel($data['Label']);
+            if ($emplacementAlreadyExist) {
+                return new JsonResponse(false);
+            }
+
+            $em = $this->getDoctrine()->getManager();
             $emplacement = new Emplacement();
             $emplacement
 				->setLabel($data["Label"])
@@ -125,7 +138,7 @@ class EmplacementController extends AbstractController
 				->setIsDeliveryPoint($data["isDeliveryPoint"]);
             $em->persist($emplacement);
             $em->flush();
-            return new JsonResponse($data);
+            return new JsonResponse(true);
         }
 
         throw new NotFoundHttpException("404");
@@ -153,7 +166,7 @@ class EmplacementController extends AbstractController
     public function apiEdit(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -173,7 +186,7 @@ class EmplacementController extends AbstractController
     public function edit(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT)) {
+            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -195,7 +208,7 @@ class EmplacementController extends AbstractController
     public function checkEmplacementCanBeDeleted(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $emplacementId = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -228,7 +241,7 @@ class EmplacementController extends AbstractController
     public function delete(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)) {
+            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
@@ -259,7 +272,7 @@ class EmplacementController extends AbstractController
     public function getRefArticles(Request $request)
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+            if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::LIST)) {
                 return new JsonResponse(['results' => []]);
             }
 
@@ -269,5 +282,57 @@ class EmplacementController extends AbstractController
             return new JsonResponse(['results' => $emplacement]);
         }
         throw new NotFoundHttpException("404");
+    }
+
+    /**
+     * @Route("/api-etiquettes", name="emplacement_get_data_to_print", options={"expose"=true})
+     */
+    public function getDataToPrintLabels(Request $request) : Response
+    {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+
+            $listEmplacements = explode(',', $data['listEmplacements']);
+
+            $emplacementsString = [];
+            for ($i = 0; $i < count($listEmplacements); $i++) {
+                $emplacementsString[] = $this->emplacementRepository->find($listEmplacements[$i])->getLabel();
+            }
+
+            $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
+            /** @var DimensionsEtiquettes $dimension */
+            if ($dimension) {
+                $tags['height'] = $dimension->getHeight();
+                $tags['width'] = $dimension->getWidth();
+                $tags['exists'] = true;
+            } else {
+                $tags['height'] = $tags['width'] = 0;
+                $tags['exists'] = false;
+            }
+            $data = array('tags' => $tags, 'emplacements' => $emplacementsString);
+            return new JsonResponse($data);
+        } else {
+            throw new NotFoundHttpException('404');
+        }
+    }
+
+    /**
+     * @Route("/ajax-article-depuis-id", name="get_emplacement_from_id", options={"expose"=true}, methods="GET|POST")
+     */
+    public function getEmplacementLabelFromId(Request $request): Response
+    {
+        if ($request->isXmlHttpRequest() && $dataContent = json_decode($request->getContent(), true)) {
+            $data = [];
+            $data['emplacementLabel'] = $this->emplacementRepository->find(intval($dataContent['emplacement']))->getLabel();
+            $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
+            if ($dimension && !empty($dimension->getHeight()) && !empty($dimension->getWidth())) {
+                $data['height'] = $dimension->getHeight();
+                $data['width'] = $dimension->getWidth();
+                $data['exists'] = true;
+            } else {
+                $data['exists'] = false;
+            }
+            return new JsonResponse($data);
+        }
+        throw new NotFoundHttpException('404');
     }
 }

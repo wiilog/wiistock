@@ -102,7 +102,7 @@ let tableArticle = $('#tableArticle_id').DataTable({
         "type": "POST"
     },
     columns: [
-        { "data": 'Référence CEA', 'title': 'Référence CEA' },
+        { "data": 'Référence', 'title': 'Référence' },
         { "data": 'Libellé', 'title': 'Libellé' },
         { "data": 'Fournisseur', 'title': 'Fournisseur' },
         { "data": 'A recevoir', 'title': 'A recevoir' },
@@ -445,7 +445,7 @@ function InitialiserModalArticle(modal, submit, path, table, callback = function
         let inputs = modal.find(".data");
         let Data = {};
         let missingInputs = [];
-        let wrongInputs = [];
+        let wrongNumberInputs = [];
 
         inputs.each(function () {
             let val = $(this).val();
@@ -478,7 +478,7 @@ function InitialiserModalArticle(modal, submit, path, table, callback = function
             Data[$(this).attr("name")] = $(this).is(':checked');
         });
         // si tout va bien on envoie la requête ajax...
-        if (missingInputs.length == 0 && wrongInputs.length == 0) {
+        if (missingInputs.length == 0 && wrongNumberInputs.length == 0) {
             if (close == true) modal.find('.close').click();
             Json = {};
             Json = JSON.stringify(Data);
@@ -498,8 +498,8 @@ function InitialiserModalArticle(modal, submit, path, table, callback = function
                 }
             }
             // cas où les champs number ne respectent pas les valeurs imposées (min et max)
-            if (wrongInputs.length > 0) {
-                wrongInputs.forEach(function (elem) {
+            if (wrongNumberInputs.length > 0) {
+                wrongNumberInputs.forEach(function (elem) {
                     let label = elem.closest('.form-group').find('label').text();
 
                     msg += 'La valeur du champ ' + label;

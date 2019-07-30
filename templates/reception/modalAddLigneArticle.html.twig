@@ -11,13 +11,19 @@
             <div class="modal-body modal-input container-fluid">
                 <div class="row">
                     <div class="form-group col-12  w-100 mb-3">
-                        <label for="reference">Référence CEA</label>
+                        <label for="reference">
+                            {% if isCurrentClient (constant('App\\Entity\\ParamClient::CEA_LETI')) %}
+                                Référence CEA*
+                            {% else %}
+                                Référence*
+                            {% endif %}
+                        </label>
                         <select class="ajax-autocomplete data form-control needed" onchange="getArticleFournisseur()" id="referenceCEA"
                             name="referenceArticle">
                         </select>
                     </div>
                     <div class="form-group w-100 col-6">
-                        <label for="fournisseur">Fournisseur</label>
+                        <label for="fournisseur">Fournisseur*</label>
                         <select class="form-control data ajax-autocomplete-fournisseur needed" name="fournisseur"
                             id="fournisseurAddArticle">
                         </select>
@@ -32,11 +38,11 @@
                         <input class="form-control data" type="text" name="libelle" id="libelle">
                     </div>
                     <div class="form-group col-6">
-                        <label for="">Quantité à recevoir</label>
+                        <label for="">Quantité à recevoir*</label>
                         <input type="number" class="form-control data needed" name="quantiteAR" id="stock" min=0>
                     </div>
                     <div class="form-group col-6">
-                        <label for="">Quantité reçue</label>
+                        <label for="">Quantité reçue*</label>
                         <input type="number" class="form-control data needed" name="quantite" id="quantite" min=0>
                     </div>
                     <div class="form-group col-6">

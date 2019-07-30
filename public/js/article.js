@@ -10,6 +10,10 @@ let tableArticle = $('#tableArticle_id').DataTable({
     ajax: {
         "url": pathArticle,
         "type": "POST",
+        'dataSrc': function (json) {
+            $('#listArticleIdToPrint').val(json.listId);
+            return json.data;
+        }
     },
     'drawCallback': function () {
          overrideSearch();
@@ -93,7 +97,7 @@ function InitialiserModalArticle(modal, submit, path, callback = function () { }
         let inputs = modal.find(".data");
         let Data = {};
         let missingInputs = [];
-        let wrongInputs = [];
+        let wrongNumberInputs = [];
 
         inputs.each(function () {
             let val = $(this).val();
@@ -102,8 +106,10 @@ function InitialiserModalArticle(modal, submit, path, callback = function () { }
             // validation données obligatoires
             if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
                 let label = $(this).closest('.form-group').find('label').text();
+                label = label.replace(/\*/, '');
                 missingInputs.push(label);
                 $(this).addClass('is-invalid');
+                $(this).next().find('.select2-selection').addClass('is-invalid');
             }
             // validation valeur des inputs de type number
             if ($(this).attr('type') === 'number') {
@@ -111,7 +117,7 @@ function InitialiserModalArticle(modal, submit, path, callback = function () { }
                 let min = parseInt($(this).attr('min'));
                 let max = parseInt($(this).attr('max'));
                 if (val > max || val < min) {
-                    wrongInputs.push($(this));
+                    wrongNumberInputs.push($(this));
                     $(this).addClass('is-invalid');
                 }
             }
@@ -123,7 +129,7 @@ function InitialiserModalArticle(modal, submit, path, callback = function () { }
             Data[$(this).attr("name")] = $(this).is(':checked');
         });
         // si tout va bien on envoie la requête ajax...
-        if (missingInputs.length == 0 && wrongInputs.length == 0) {
+        if (missingInputs.length == 0 && wrongNumberInputs.length == 0) {
             if (close == true) modal.find('.close').click();
             Json = {};
             Json = JSON.stringify(Data);
@@ -143,8 +149,8 @@ function InitialiserModalArticle(modal, submit, path, callback = function () { }
                 }
             }
             // cas où les champs number ne respectent pas les valeurs imposées (min et max)
-            if (wrongInputs.length > 0) {
-                wrongInputs.forEach(function (elem) {
+            if (wrongNumberInputs.length > 0) {
+                wrongNumberInputs.forEach(function (elem) {
                     let label = elem.closest('.form-group').find('label').text();
 
                     msg += 'La valeur du champ ' + label;
@@ -222,40 +228,52 @@ let getArticleFournisseur = function () {
         xhttp.open("POST", path, true);
         xhttp.send(json);
     }
+};
+
+function clearNewArticleContent(button) {
+    button.parent().addClass('d-none');
+    let $modal = button.closest('.modal');
+    $modal.find('#fournisseur').addClass('d-none');
+    $modal.find('#referenceCEA').val(null).trigger('change');
+    $('#newContent').html('');
+    $('#reference').html('');
+    clearModal('#' + $modal.attr('id'));
 }
 
 let ajaxGetFournisseurByRefArticle = function (select) {
-    let fournisseur = $('#fournisseur');
-    let modalfooter = $('#modalNewArticle').find('.modal-footer');
-    xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function () {
-        if (this.readyState == 4 && this.status == 200) {
-            data = JSON.parse(this.responseText);
-            if (data === false) {
-                $('.error-msg').html('Vous ne pouvez par créer d\'article quand la référence CEA est gérée à la référence.');
-            } else {
-                fournisseur.removeClass('d-none');
-                fournisseur.find('select').html(data);
-                $('.error-msg').html('');
+    if (select.val()) {
+        let fournisseur = $('#fournisseur');
+        let modalfooter = $('#modalNewArticle').find('.modal-footer');
+        xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                data = JSON.parse(this.responseText);
+                if (data === false) {
+                    $('.error-msg').html('Vous ne pouvez par créer d\'article quand la quantité est gérée à la référence.');
+                } else {
+                    fournisseur.removeClass('d-none');
+                    fournisseur.find('select').html(data);
+                    $('.error-msg').html('');
+                }
             }
         }
+        path = Routing.generate('ajax_fournisseur_by_refarticle', true)
+        $('#newContent').html('');
+        fournisseur.addClass('d-none');
+        modalfooter.addClass('d-none')
+        let refArticleId = select.val();
+        let json = {};
+        json['refArticle'] = refArticleId;
+        Json = JSON.stringify(json);
+        xhttp.open("POST", path, true);
+        xhttp.send(Json);
     }
-    path = Routing.generate('ajax_fournisseur_by_refarticle', true)
-    $('#newContent').html('');
-    fournisseur.addClass('d-none');
-    modalfooter.addClass('d-none')
-    let refArticleId = select.val();
-    let json = {};
-    json['refArticle'] = refArticleId;
-    Json = JSON.stringify(json);
-    xhttp.open("POST", path, true);
-    xhttp.send(Json);
-}
+};
 
 function printSingleArticleBarcode(button) {
     let params = {
         'article': button.data('id')
-    }
+    };
     $.post(Routing.generate('get_article_from_id'), JSON.stringify(params), function (response) {
         if (response.exists) {
             $('#barcodes').append('<img id="singleBarcode">')
@@ -287,9 +305,37 @@ function overrideSearch() {
     $input.on('keyup', function(e) {
         if (e.key === 'Enter') {
             tableArticle.search(this.value).draw();
+            $('.justify-content-end').find('.printButton').removeClass('d-none');
+        }
+        else if (e.key === 'Backspace') {
+            $('.justify-content-end').find('.printButton').addClass('d-none');
         }
     });
-
     $input.attr('placeholder', 'entrée pour valider');
 }
 
+function getDataAndPrintLabels() {
+    let path = Routing.generate('article_get_data_to_print', true);
+    let listArticles = $("#listArticleIdToPrint").val();
+    let params = JSON.stringify({listArticles: listArticles});
+    $.post(path, params, function (response) {
+        if (response.tags.exists) {
+            $("#barcodes").empty();
+            let i = 0;
+            response.articles.forEach(function(code) {
+                $('#barcodes').append('<img id="barcode' + i + '">')
+                JsBarcode("#barcode" + i, code, {
+                    format: "CODE128",
+                });
+                i++;
+            });
+            let doc = adjustScalesForDoc(response.tags);
+            $("#barcodes").find('img').each(function () {
+                doc.addImage($(this).attr('src'), 'JPEG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
+                doc.addPage();
+            });
+            doc.deletePage(doc.internal.getNumberOfPages());
+            doc.save('Etiquettes-articles.pdf');
+        }
+    });
+}

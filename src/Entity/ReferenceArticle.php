@@ -106,6 +106,11 @@ class ReferenceArticle
      */
     private $emplacement;
 
+	/**
+	 * @ORM\OneToMany(targetEntity="App\Entity\MouvementStock", mappedBy="refArticle")
+	 */
+	private $mouvements;
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
@@ -116,6 +121,7 @@ class ReferenceArticle
         $this->articlesFournisseur = new ArrayCollection();
         $this->collecteReferences = new ArrayCollection();
         $this->receptionReferenceArticles = new ArrayCollection();
+        $this->mouvements = new ArrayCollection();
     }
 
     public function getId()
@@ -451,4 +457,36 @@ class ReferenceArticle
 
         return $this;
     }
+
+    /**
+     * @return Collection|MouvementStock[]
+     */
+    public function getMouvements(): Collection
+    {
+        return $this->mouvements;
+    }
+
+    public function addMouvement(MouvementStock $mouvement): self
+    {
+        if (!$this->mouvements->contains($mouvement)) {
+            $this->mouvements[] = $mouvement;
+            $mouvement->setRefArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMouvement(MouvementStock $mouvement): self
+    {
+        if ($this->mouvements->contains($mouvement)) {
+            $this->mouvements->removeElement($mouvement);
+            // set the owning side to null (unless already changed)
+            if ($mouvement->getRefArticle() === $this) {
+                $mouvement->setRefArticle(null);
+            }
+        }
+
+        return $this;
+    }
+
 }

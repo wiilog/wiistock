@@ -1,23 +1,28 @@
+{% if not conforme %}
 <div class="form-group">
     <label for="litigeType">Type de litige :</label> {{ arrivage.litige.type.label }}
 </div>
+{% endif %}
 
 <div class="form-group">
     <label for="commentaire">Commentaire</label>
-    <div class="form-control no-padding">{{ arrivage.litige.commentaire|raw }}</div>
+    <input id="commentaire" class="commentaire form-control data" name="commentaire" type="hidden"
+           value="{{ arrivage.commentaire }}">
+    <div class="editor-container-edit" value="{{ arrivage.commentaire }}">{{ arrivage.commentaire|raw }}</div>
 </div>
 
 <div class="form-group">
-    {% include 'arrivage/attachements.html.twig' %}
-
+    {% include 'arrivage/attachements.html.twig' with {'isNew' : false} %}
 </div>
 
-{% set checked = (arrivage.statut.nom == 'traité par acheteur') ? 'checked' : '' %}
+{% if not conforme %}
+    {% set checked = (arrivage.statut.nom == 'traité par acheteur') ? 'checked' : '' %}
 
-<div class="form-group text-right">
-    litige traité
-    <label class="switch">
-        <input class="checkbox" type="checkbox" {{ checked }} name="statutAcheteur">
-        <span class="slider round"></span>
-    </label>
-</div>
+    <div class="form-group text-right">
+        litige traité
+        <label class="switch">
+            <input class="checkbox" type="checkbox" {{ checked }} name="statutAcheteur">
+            <span class="slider round"></span>
+        </label>
+    </div>
+{% endif %}

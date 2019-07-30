@@ -19,6 +19,7 @@ class Action
     const EDIT_DELETE = 'modifier+supprimer';
     const EXPORT = 'exporter';
     const YES = 'oui';
+    const CHOIX = 'choix';
 
     /**
      * @ORM\Id()

@@ -27,16 +27,17 @@ class MenusFixtures extends Fixture implements FixtureGroupInterface
     public function load(ObjectManager $manager)
     {
         $menusInfos = [
-            ['Réception', 'REC'],
-            ['Préparation', 'PREPA'],
-            ['Livraison', 'LIVR'],
-            ['Demande de livraison', 'DEMLIVR'],
-            ['Demande de collecte', 'DEMCOL'],
-            ['Collecte', 'COL'],
-            ['Manutention', 'MANUT'],
-            ['Paramétrage', 'PARAM'],
-            ['Stock', 'STOCK'],
-            ['Indicateurs accueil', 'INDICAC']
+            ['Réception', Menu::RECEPTION],
+            ['Préparation', Menu::PREPA],
+            ['Livraison', Menu::LIVRAISON],
+            ['Demande de livraison', Menu::DEM_LIVRAISON],
+            ['Demande de collecte', Menu::DEM_COLLECTE],
+            ['Collecte', Menu::COLLECTE],
+            ['Manutention', Menu::MANUT],
+            ['Paramétrage', Menu::PARAM],
+            ['Stock', Menu::STOCK],
+            ['Indicateurs accueil', Menu::INDICS_ACCUEIL],
+			['Référentiel', Menu::REFERENTIEL],
         ];
         foreach ($menusInfos as $menuInfos) {
             $menu = $this->menuRepository->findOneBy(['code' => $menuInfos[1]]);

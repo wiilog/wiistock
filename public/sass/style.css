@@ -210,6 +210,11 @@ a:hover {
   background-size: calc(2.25rem / 2) calc(2.25rem / 2);
 }
 
+.commentArrivageAcheteur {
+  min-height: 100px;
+  overflow: auto;
+}
+
 /* Login    
  * *================= 
  * */
@@ -287,6 +292,10 @@ a:hover {
   overflow: auto;
 }
 
+.modal-open {
+  padding-right: 0px !important;
+}
+
 .accueil-back {
   width: 100%;
   height: 100%;
@@ -337,6 +346,11 @@ a:hover {
   border-color: #130078;
 }
 .btn-primary:hover {
+  background-color: #fcfcfc;
+  color: #130078;
+  border-color: #130078;
+}
+.btn-primary:focus {
   background-color: #fcfcfc;
   color: #130078;
   border-color: #130078;
@@ -639,7 +653,14 @@ a:hover {
   margin: auto 12px;
 }
 .filters > div .select2-selection {
+  padding-top: 2px;
+  padding-bottom: 4px;
+  margin-bottom: 2px;
+  margin-top: 2px;
   height: 38px;
+}
+.filters > div .select2-selection__placeholder {
+  vertical-align: middle;
 }
 
 .filterService {

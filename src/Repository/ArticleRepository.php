@@ -19,6 +19,22 @@ class ArticleRepository extends ServiceEntityRepository
         parent::__construct($registry, Article::class);
     }
 
+    /**
+     * @param $referenceArticle
+     * @return mixed
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
+    public function countByReference($referenceArticle)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            'SELECT COUNT(a)
+            FROM App\Entity\Article a
+            WHERE a.reference LIKE :referenceArticle'
+        )->setParameter('referenceArticle', '%' . $referenceArticle . '%');
+        return $query->getSingleScalarResult();
+    }
+
     public function findByReception($id)
     {
         $entityManager = $this->getEntityManager();
@@ -63,6 +79,21 @@ class ArticleRepository extends ServiceEntityRepository
              WHERE a.demande =:demande
             "
         )->setParameter('demande', $demande);
+        return $query->execute();
+    }
+
+    public function getByDemandeAndType($demande, $type)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT a
+             FROM App\Entity\Article a
+             WHERE a.demande =:demande AND a.type = :type
+            "
+        )->setParameters([
+            'demande' => $demande,
+            'type' => $type
+        ]);
         return $query->execute();
     }
 
@@ -150,7 +181,7 @@ class ArticleRepository extends ServiceEntityRepository
         )->setParameter('id', $id);
         return $query->getResult();
     }
-    public function getByPreparation($id)
+    public function findByPreparation($id)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
@@ -181,6 +212,40 @@ class ArticleRepository extends ServiceEntityRepository
 		return $query->execute();
 	}
 
+	public function getTotalQuantiteFromRef($refArticle, $statut) {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            'SELECT SUM(a.quantite)
+			FROM App\Entity\Article a
+			JOIN a.articleFournisseur af
+			JOIN af.referenceArticle ra
+			WHERE a.statut =:statut AND ra = :refArticle AND a.demande is null
+			'
+        )->setParameters([
+            'refArticle' => $refArticle,
+            'statut' => $statut
+        ]);
+
+        return $query->getSingleScalarResult();
+    }
+
+    public function getTotalQuantiteByRefAndStatut($refArticle, $statut) {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            'SELECT SUM(a.quantite)
+			FROM App\Entity\Article a
+			JOIN a.articleFournisseur af
+			JOIN af.referenceArticle ra
+			WHERE a.statut =:statut AND ra = :refArticle
+			'
+        )->setParameters([
+            'refArticle' => $refArticle,
+            'statut' => $statut
+        ]);
+
+        return $query->getSingleScalarResult();
+    }
+
 	public function findByRefArticleAndStatutWithoutDemand($refArticle, $statut)
 	{
 		$entityManager = $this->getEntityManager();
@@ -190,7 +255,7 @@ class ArticleRepository extends ServiceEntityRepository
 			JOIN a.articleFournisseur af
 			JOIN af.referenceArticle ra
 			WHERE a.statut =:statut AND ra = :refArticle
-			AND a.demande is null
+			ORDER BY a.quantite DESC
 			'
 		)->setParameters([
 			'refArticle' => $refArticle,
@@ -209,30 +274,6 @@ class ArticleRepository extends ServiceEntityRepository
             WHERE a.etat = :etat'
         )->setParameter('etat', $etat);;
         return $query->execute();
-    }
-
-//    public function countByRefArticleAndStatut($refArticle, $statut)
-//    {
-//        $entityManager = $this->getEntityManager();
-//        $query = $entityManager->createQuery(
-//            "SELECT COUNT(a)
-//            FROM App\Entity\Article a
-//            WHERE a.refArticle = :refArticle AND a.etat = TRUE AND s.nom = :statut"
-//        )->setParameters(['refArticle' => $refArticle, 'statut' => $statut]);
-//
-//        return $query->getSingleScalarResult();
-//    }
-
-    public function countByRefArticle($refArticle)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT COUNT(a)
-            FROM App\Entity\Article a
-            WHERE a.refArticle = :refArticle"
-        )->setParameter('refArticle', $refArticle);
-
-        return $query->getSingleScalarResult();
     }
 
     public function findAllSortedByName()
@@ -265,6 +306,7 @@ class ArticleRepository extends ServiceEntityRepository
 
 		$countQuery = $countTotal = count($qb->getQuery()->getResult());
 
+        $allArticleDataTable = null;
 		// prise en compte des paramètres issus du datatable
         if (!empty($params)) {
             if (!empty($params->get('search'))) {
@@ -278,44 +320,14 @@ class ArticleRepository extends ServiceEntityRepository
                 }
                 $countQuery = count($qb->getQuery()->getResult());
             }
+            $allArticleDataTable = $qb->getQuery();
 			if (!empty($params->get('start'))) $qb->setFirstResult($params->get('start'));
 			if (!empty($params->get('length'))) $qb->setMaxResults($params->get('length'));
         }
         $query = $qb->getQuery();
-
-        return ['data' => $query->getResult(), 'count' => $countQuery, 'total' => $countTotal];
+        return ['data' => $query ? $query->getResult() : null , 'allArticleDataTable' => $allArticleDataTable ? $allArticleDataTable->getResult() : null,
+            'count' => $countQuery, 'total' => $countTotal];
     }
-
-//    public function findByParamsActifStatut($params = null, $statutId)
-//    {
-//        $em = $this->getEntityManager();
-//        $qb = $em->createQueryBuilder();
-//
-//        $qb
-//            ->select('a')
-//            ->from('App\Entity\Article', 'a')
-//            ->where('a.statut =' . $statutId);
-//
-//        // prise en compte des paramètres issus du datatable
-//        if (!empty($params)) {
-//            if (!empty($params->get('start'))) {
-//                $qb->setFirstResult($params->get('start'));
-//            }
-//            if (!empty($params->get('length'))) {
-//                $qb->setMaxResults($params->get('length'));
-//            }
-//            if (!empty($params->get('search'))) {
-//                $search = $params->get('search')['value'];
-//                if (!empty($search)) {
-//                    $qb
-//                        ->andWhere('a.label LIKE :value OR a.reference LIKE :value')
-//                        ->setParameter('value', '%' . $search . '%');
-//                }
-//            }
-//        }
-//        $query = $qb->getQuery();
-//        return $query->getResult();
-//    }
 
     public function findByListAF($listAf)
     {
@@ -369,5 +381,62 @@ class ArticleRepository extends ServiceEntityRepository
 		);
 
 		return $query->execute();
+	}
+
+	public function getByPreparationStatutLabelAndUser($statutLabel, $enCours, $user)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			"SELECT a.reference, e.label as location, a.label, a.quantiteAPrelever as quantity, 0 as is_ref, p.id as id_prepa
+			FROM App\Entity\Article a
+			LEFT JOIN a.emplacement e
+			JOIN a.demande d
+			JOIN d.preparation p
+			JOIN p.statut s
+			WHERE s.nom = :statutLabel OR (s.nom = :enCours AND p.utilisateur = :user)"
+		)->setParameters([
+		    'statutLabel' => $statutLabel,
+            'enCours' => $enCours,
+            'user' => $user
+        ]);
+
+		return $query->execute();
+	}
+
+	public function getByLivraisonStatutLabelAndWithoutOtherUser($statutLabel, $user)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			/** @lang DQL */
+			"SELECT a.reference, e.label as location, a.label, a.quantiteAPrelever as quantity, 0 as is_ref, l.id as id_livraison
+			FROM App\Entity\Article a
+			LEFT JOIN a.emplacement e
+			JOIN a.demande d
+			JOIN d.livraison l
+			JOIN l.statut s
+			WHERE s.nom = :statutLabel AND (l.utilisateur is null OR l.utilisateur = :user)"
+		)->setParameters([
+			'statutLabel' => $statutLabel,
+			'user' => $user
+		]);
+
+		return $query->execute();
+	}
+
+	/**
+	 * @param string $reference
+	 * @return Article|null
+	 * @throws \Doctrine\ORM\NonUniqueResultException
+	 */
+	public function findOneByReference($reference)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			"SELECT a
+			FROM App\Entity\Article a
+			WHERE a.reference = :reference"
+		)->setParameter('reference', $reference);
+
+		return $query->getOneOrNullResult();
 	}
 }

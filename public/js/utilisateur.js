@@ -37,7 +37,10 @@ InitialiserModalUser(modalDeleteUser, submitDeleteUser, pathDeleteUser, tableUse
 
 function alertErrorMsg(data) {
     if (data !== true) {
-        alert(data); //TODO gérer erreur retour plus propre (alert bootstrap)
+        let $alertDanger = $('#alerts').find('.alert-danger');
+        $alertDanger.removeClass('d-none');
+        $alertDanger.delay(2000).fadeOut(2000);
+        $alertDanger.find('.error-msg').html(data);
     }
 }
 

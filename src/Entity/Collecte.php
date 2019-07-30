@@ -75,10 +75,22 @@ class Collecte
      */
     private $stockOrDestruct;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="collectes")
+     */
+    private $type;
+
+	/**
+	 * @ORM\OneToMany(targetEntity="App\Entity\MouvementStock", mappedBy="collecteOrder")
+	 */
+	private $mouvements;
+
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
         $this->collecteReferences = new ArrayCollection();
+        $this->mouvements = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -235,6 +247,49 @@ class Collecte
     public function setStockOrDestruct(bool $stockOrDestruct): self
     {
         $this->stockOrDestruct = $stockOrDestruct;
+
+        return $this;
+    }
+
+    public function getType(): ?Type
+    {
+        return $this->type;
+    }
+
+    public function setType(?Type $type): self
+    {
+        $this->type = $type;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|MouvementStock[]
+     */
+    public function getMouvements(): Collection
+    {
+        return $this->mouvements;
+    }
+
+    public function addMouvement(MouvementStock $mouvement): self
+    {
+        if (!$this->mouvements->contains($mouvement)) {
+            $this->mouvements[] = $mouvement;
+            $mouvement->setCollecteOrder($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMouvement(MouvementStock $mouvement): self
+    {
+        if ($this->mouvements->contains($mouvement)) {
+            $this->mouvements->removeElement($mouvement);
+            // set the owning side to null (unless already changed)
+            if ($mouvement->getCollecteOrder() === $this) {
+                $mouvement->setCollecteOrder(null);
+            }
+        }
 
         return $this;
     }

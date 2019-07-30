@@ -15,10 +15,19 @@
         <div class="row">
             {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
                 <a href="" data-toggle="modal" data-target="#modalNewArrivage" class="btn btn-primary"
-                   onclick='initNewArrivageEditor("#modalNewArrivage")'>
+                   data-backdrop="static" data-keyboard="false"
+                   onclick="initNewArrivageEditor('#modalNewArrivage'), clearModal('#modalNewArrivage')">
                     <span class="fa fa-plus mr-2"></span>Nouvel arrivage
                 </a>
             {% endif %}
+            {% if hasRight(constant('App\\Entity\\Menu::ARRIVAGE'), constant('App\\Entity\\Action::EXPORT')) %}
+                <div class="btn btn-primary" onclick='generateCSVArrivage()'>
+                    <span class="fa fa-plus mr-2"></span>Générer CSV
+                </div>
+            {% endif %}
+        </div>
+        <div class="row">
+            <div class="error-msg p-4"></div>
         </div>
 
         <div>
@@ -33,6 +42,7 @@
     {% include "arrivage/modalNewArrivage.html.twig" %}
     {% include "arrivage/modalEditArrivage.html.twig" %}
     {% include "arrivage/modalDeleteArrivage.html.twig" %}
+    {% include "arrivage/modalListColis.html.twig" %}
     {% include "dimensions_etiquettes/modalNoParamsEtiquettes.html.twig" %}
 {% endblock %}
 

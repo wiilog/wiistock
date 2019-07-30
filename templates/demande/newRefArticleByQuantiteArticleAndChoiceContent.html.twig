@@ -1,0 +1,19 @@
+{#{% set checked = byRef ? 'checked' : '' %}#}
+
+{#<div class="form-group col-12 mb-3 d-none">#}
+{#    <label class="pr-2">Quantité à la référence ? </label>#}
+{#    <label class="switch mb-3">#}
+{#        <input class="checkbox data form-control" type="checkbox" name="wantGlobal" {{ checked }}#}
+{#               onchange="switchWantedGlobal($(this))"#}
+{#               data-ref={{ reference }}>#}
+{#        <span class="slider round"></span>#}
+{#    </label>#}
+{#</div>#}
+
+{#<div id="choiceContent">#}
+{#    {% if byRef %}#}
+{#        {% include 'demande/choiceContent.html.twig' %}#}
+{#    {% else %}#}
+{#        {% include 'demande/newRefArticleByQuantiteArticleContent.html.twig' %}#}
+{#    {% endif %}#}
+{#</div>#}

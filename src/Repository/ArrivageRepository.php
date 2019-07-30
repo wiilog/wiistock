@@ -19,4 +19,30 @@ class ArrivageRepository extends ServiceEntityRepository
         parent::__construct($registry, Arrivage::class);
     }
 
+    public function findByDates($dateMin, $dateMax)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            'SELECT a
+            FROM App\Entity\Arrivage a
+            WHERE a.date BETWEEN :dateMin AND :dateMax'
+        )->setParameters([
+            'dateMin' => $dateMin,
+            'dateMax' => $dateMax
+        ]);
+        return $query->execute();
+    }
+
+	public function countByFournisseur($fournisseurId)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			"SELECT COUNT(a)
+			FROM App\Entity\Arrivage a
+			WHERE a.fournisseur = :fournisseurId"
+		)->setParameter('fournisseurId', $fournisseurId);
+
+		return $query->getSingleScalarResult();
+	}
+
 }

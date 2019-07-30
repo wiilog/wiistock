@@ -29,32 +29,30 @@ class MouvementTracaRepository extends ServiceEntityRepository
         return $query->getOneOrNullResult();
     }
 
-    // /**
-    //  * @return MouvementTraca[] Returns an array of MouvementTraca objects
-    //  */
-    /*
-    public function findByExampleField($value)
+	/**
+	 * @param $dateMin
+	 * @param $dateMax
+	 * @return MouvementTraca[]
+	 * @throws \Exception
+	 */
+    public function findByDates($dateMin, $dateMax)
     {
-        return $this->createQueryBuilder('m')
-            ->andWhere('m.exampleField = :val')
-            ->setParameter('val', $value)
-            ->orderBy('m.id', 'ASC')
-            ->setMaxResults(10)
-            ->getQuery()
-            ->getResult()
-        ;
+        $dateMinDate = new \DateTime($dateMin);
+        $dateMaxDate = new \DateTime($dateMax);
+        $dateMaxDate->modify('+1 day');
+        $dateMinDate->modify('-1 day');
+        $dateMax = $dateMaxDate->format('Y-m-d H:i:s');
+        $dateMin = $dateMinDate->format('Y-m-d H:i:s');
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            'SELECT m
+            FROM App\Entity\MouvementTraca m
+            WHERE m.date BETWEEN :dateMin AND :dateMax'
+        )->setParameters([
+            'dateMin' => $dateMin,
+            'dateMax' => $dateMax
+        ]);
+        return $query->execute();
     }
-    */
 
-    /*
-    public function findOneBySomeField($value): ?MouvementTraca
-    {
-        return $this->createQueryBuilder('m')
-            ->andWhere('m.exampleField = :val')
-            ->setParameter('val', $value)
-            ->getQuery()
-            ->getOneOrNullResult()
-        ;
-    }
-    */
 }

@@ -3,6 +3,8 @@
 namespace App\Controller;
 
 use App\Entity\Action;
+use App\Entity\DimensionsEtiquettes;
+use App\Entity\Filter;
 use App\Entity\Menu;
 use App\Entity\Article;
 use App\Entity\ReferenceArticle;
@@ -10,6 +12,7 @@ use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 
 use App\Repository\ArticleRepository;
+use App\Repository\FilterRepository;
 use App\Repository\StatutRepository;
 use App\Repository\CollecteRepository;
 use App\Repository\ReceptionRepository;
@@ -157,7 +160,7 @@ class ArticleController extends Controller
 
         return $this->render('article/index.html.twig', [
             'valeurChampsLibre' => null,
-            'type' => $this->typeRepository->findOneByCategoryLabel(Article::CATEGORIE),
+//            'type' => $this->typeRepository->findOneByCategoryLabel(Article::CATEGORIE),
         ]);
     }
 
@@ -190,10 +193,10 @@ class ArticleController extends Controller
             $article = $this->articleRepository->find($data);
 
             $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
-            $typeArticle = $refArticle->getType()->getLabel();
-            $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::ARTICLE);
+            $typeArticle = $refArticle->getType();
+            $typeArticleLabel = $typeArticle->getLabel();
 
-            $champsLibresComplet = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($typeArticle, $categorieCL);
+            $champsLibresComplet = $this->champsLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
             $champsLibres = [];
             foreach ($champsLibresComplet as $champLibre) {
                 $valeurChampArticle = $this->valeurChampsLibreRepository->findOneByChampLibreAndArticle($champLibre->getId(), $article->getId());
@@ -211,16 +214,15 @@ class ArticleController extends Controller
 
             $typeChampLibre =
                 [
-                    'type' => $typeArticle,
+                    'type' => $typeArticleLabel,
                     'champsLibres' => $champsLibres,
                 ];
             if ($article) {
                 $view = $this->templating->render('article/modalShowArticleContent.html.twig', [
                     'typeChampsLibres' => $typeChampLibre,
-                    'typeArticle' => $typeArticle,
+                    'typeArticle' => $typeArticleLabel,
                     'article' => $article,
                     'statut' => ($article->getStatut()->getNom() === Article::STATUT_ACTIF ? true : false),
-                    // 'isADemand' => $isADemand
                 ]);
                 $json = $view;
             } else {
@@ -373,7 +375,7 @@ class ArticleController extends Controller
                 $json = $this->renderView('article/modalNewArticleContent.html.twig', [
                     'references' => $this->articleFournisseurRepository->getByFournisseur($fournisseur),
                     'valeurChampsLibre' => null,
-                    'type' => $this->typeRepository->findOneByCategoryLabel(Article::CATEGORIE)
+//                    'type' => $this->typeRepository->findOneByCategoryLabel(Article::CATEGORIE)
                 ]);
             } else {
                 $json = false; //TODO gérer erreur retour
@@ -397,15 +399,14 @@ class ArticleController extends Controller
                     'error' => 'Aucune référence fournisseur trouvée.'
                 ];
             } elseif (count($articleFournisseur) > 0) {
-                $typeArticle = $refArticle->getType()->getLabel();
-                $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::ARTICLE);
+                $typeArticle = $refArticle->getType();
 
-                $champsLibres = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($typeArticle, $categorieCL);
+                $champsLibres = $this->champsLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
                 $json = [
                     'content' => $this->renderView(
                         'article/modalNewArticleContent.html.twig',
                         [
-                            'typeArticle' => $typeArticle,
+                            'typeArticle' => $typeArticle->getLabel(),
                             'champsLibres' => $champsLibres,
                             'references' => $articleFournisseur,
                         ]
@@ -516,7 +517,7 @@ class ArticleController extends Controller
             foreach ($this->champsLibreRepository->findAll() as $champLibre) {
                 $headersCL[] = $champLibre->getLabel();
             }
-            $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::ARTICLES_ET_REF_CEA);
+            $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::ARTICLE);
             $refs = $this->articleRepository->findAll();
             if ($max > count($refs)) $max = count($refs);
             for ($i = $min; $i < $max; $i++) {
@@ -543,6 +544,12 @@ class ArticleController extends Controller
         throw new NotFoundHttpException('404');
     }
 
+	/**
+	 * @param Article $ref
+	 * @param array $listTypes
+	 * @param $headers
+	 * @return string
+	 */
     public function buildInfos(Article $ref, $listTypes, $headers)
     {
         $refData[] = $ref->getReference() ? $ref->getReference() : '';
@@ -552,10 +559,10 @@ class ArticleController extends Controller
         $refData[] = $ref->getStatut() ? $ref->getStatut()->getNom() : '';
         $refData[] = strip_tags($ref->getCommentaire());
         $refData[] = $ref->getEmplacement() ? $ref->getEmplacement()->getLabel() : '';
-        $categorieCL = $this->categorieCLRepository->findOneByLabel('article');
         $champsLibres = [];
         foreach ($listTypes as $type) {
-            $listChampsLibres = $this->champsLibreRepository->findByLabelTypeAndCategorieCL($type['label'], $categorieCL);
+			$typeArticle = $this->typeRepository->find($type['id']);
+            $listChampsLibres = $this->champsLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
             foreach ($listChampsLibres as $champLibre) {
                 $valeurChampRefArticle = $this->valeurChampsLibreRepository->findOneByArticleANDChampsLibre($ref->getId(), $champLibre);
                 if ($valeurChampRefArticle) $champsLibres[$champLibre->getLabel()] = $valeurChampRefArticle->getValeur();
@@ -569,5 +576,37 @@ class ArticleController extends Controller
             }
         }
         return implode(';', $refData);
+    }
+
+    /**
+     * @Route("/api-etiquettes", name="article_get_data_to_print", options={"expose"=true})
+     */
+    public function getDataToPrintLabels(Request $request) : Response
+    {
+        if ($request->isXmlHttpRequest() && $data= json_decode($request->getContent(), true)){
+
+            $listArticles =  explode(',', $data['listArticles']);
+
+            $articlesString = [];
+            for ($i = 0 ; $i < count($listArticles); $i++) {
+                $articlesString[] = $this->articleRepository->find($listArticles[$i])->getReference();
+            }
+
+            $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
+            /** @var DimensionsEtiquettes $dimension */
+            if ($dimension) {
+                $tags['height'] = $dimension->getHeight();
+                $tags['width'] = $dimension->getWidth();
+                $tags['exists'] = true;
+            } else {
+                $tags['height'] = $tags['width'] = 0;
+                $tags['exists'] = false;
+            }
+            $data  = array('tags' => $tags, 'articles' => $articlesString);
+            return new JsonResponse($data);
+        }
+        else {
+            throw new NotFoundHttpException('404');
+        }
     }
 }

@@ -19,7 +19,7 @@ class ValeurChampsLibre
     private $id;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
+     * @ORM\Column(type="text", nullable=true)
      */
     private $valeur;
 
@@ -43,12 +43,19 @@ class ValeurChampsLibre
      */
     private $receptions;
 
+	/**
+	 * @ORM\ManyToMany(targetEntity="App\Entity\Demande", mappedBy="valeurChampLibre")
+	 */
+    private $demandesLivraison;
+
+
     public function __construct()
     {
         $this->champLibre = new ArrayCollection();
         $this->articleReference = new ArrayCollection();
         $this->article = new ArrayCollection();
         $this->receptions = new ArrayCollection();
+        $this->demandesLivraison = new ArrayCollection();
     }
 
 
@@ -162,6 +169,34 @@ class ValeurChampsLibre
         if ($this->receptions->contains($reception)) {
             $this->receptions->removeElement($reception);
             $reception->removeValeurChampsLibre($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Demande[]
+     */
+    public function getDemandesLivraison(): Collection
+    {
+        return $this->demandesLivraison;
+    }
+
+    public function addDemandesLivraison(Demande $demandesLivraison): self
+    {
+        if (!$this->demandesLivraison->contains($demandesLivraison)) {
+            $this->demandesLivraison[] = $demandesLivraison;
+            $demandesLivraison->addValeurChampLibre($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDemandesLivraison(Demande $demandesLivraison): self
+    {
+        if ($this->demandesLivraison->contains($demandesLivraison)) {
+            $this->demandesLivraison->removeElement($demandesLivraison);
+            $demandesLivraison->removeValeurChampLibre($this);
         }
 
         return $this;

@@ -148,7 +148,6 @@ class FilterController extends AbstractController
                     $em->flush();
                 }
             }
-
             return new JsonResponse();
         }
         throw new NotFoundHttpException("404");
@@ -170,7 +169,7 @@ class FilterController extends AbstractController
 					$options[] = $emplacement->getLabel();
 				}
 			} else if ($value === 'Type') {
-				$types = $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLES_ET_REF_CEA); /** @var Type[] $types */
+				$types = $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLE); /** @var Type[] $types */
 				$options = [];
 				foreach ($types as $type) {
 					$options[] = $type->getLabel();

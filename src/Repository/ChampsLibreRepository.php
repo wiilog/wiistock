@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\ChampsLibre;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\DBAL\Connection;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 use Proxies\__CG__\App\Entity\CategorieCL;
 
@@ -85,6 +86,17 @@ class ChampsLibreRepository extends ServiceEntityRepository
         return $query->getResult();
     }
 
+    public function findOneByLabel($label) {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT cl
+            FROM App\Entity\ChampsLibre cl 
+            WHERE cl.label LIKE :label
+            "
+        )->setParameter('label', $label);
+        return $query->getOneOrNullResult();
+    }
+
     // pour les colonnes dynamiques
     public function getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, $type)
     {
@@ -144,23 +156,6 @@ class ChampsLibreRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
-    public function findByLabelTypeAndCategorieCL($label, $categorieCL)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT c
-            FROM App\Entity\ChampsLibre c 
-            JOIN c.type t 
-            WHERE t.label = :label AND c.categorieCL = :categorie"
-        )->setParameters(
-            [
-                'label' => $label,
-                'categorie' => $categorieCL,
-            ]
-        );;
-        return $query->execute();
-    }
-
 	public function findByTypeAndCategorieCLLabel($type, $categorieCLLabel)
 	{
 		$entityManager = $this->getEntityManager();
@@ -190,6 +185,42 @@ class ChampsLibreRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
+	/**
+	 * @param string[] $categoryTypeLabels
+	 * @return mixed
+	 */
+	public function findByCategoryTypeLabels($categoryTypeLabels)
+	{
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+			"SELECT c
+            FROM App\Entity\ChampsLibre c
+            JOIN c.type t
+            JOIN t.category cat
+            WHERE cat.label in (:categoryTypeLabels)"
+		)->setParameter('categoryTypeLabels', $categoryTypeLabels, Connection::PARAM_STR_ARRAY);
 
+		return $query->execute();
+	}
 
+	public function deleteByLabel($label){
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "DELETE FROM App\Entity\ChampsLibre cl
+            WHERE cl.label LIKE :label")
+		->setParameter('label', $label . '%');
+
+        return $query->execute();
+    }
+
+    public function getIdAndElementsWithMachine()
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            "SELECT c.id, c.elements
+	        FROM App\Entity\ChampsLibre c
+	        WHERE c.label LIKE '%machine%'"
+        );
+        return $query->execute();
+    }
 }

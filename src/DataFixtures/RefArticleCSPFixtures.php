@@ -4,7 +4,6 @@ namespace App\DataFixtures;
 
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
-use App\Entity\CategorieCL;
 use App\Entity\ChampsLibre;
 use App\Entity\Emplacement;
 use App\Entity\Fournisseur;
@@ -266,7 +265,6 @@ class RefArticleCSPFixtures extends Fixture implements FixtureGroupInterface
             }
             $manager->flush();
         }
-
         fclose($file);
     }
 

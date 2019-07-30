@@ -60,11 +60,6 @@ class Arrivage
     private $acheteurs;
 
     /**
-     * @ORM\Column(type="json", nullable=true)
-     */
-    private $piecesJointes = [];
-
-    /**
      * @ORM\Column(type="string", length=64, nullable=true)
      */
     private $numeroReception;
@@ -99,11 +94,22 @@ class Arrivage
      */
     private $colis;
 
+    /**
+     * @ORM\Column(type="text", nullable=true)
+     */
+    private $commentaire;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\PieceJointe", mappedBy="arrivage")
+     */
+    private $piecesJointes;
+
 
     public function __construct()
     {
         $this->acheteurs = new ArrayCollection();
         $this->colis = new ArrayCollection();
+        $this->piecesJointes = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -208,37 +214,6 @@ class Arrivage
 
         return $this;
     }
-
-    public function getPiecesJointes(): ?array
-    {
-        return $this->piecesJointes;
-    }
-
-    public function setPiecesJointes(?array $piecesJointes): self
-    {
-        $this->piecesJointes = $piecesJointes;
-
-        return $this;
-    }
-
-    public function addPiecesJointes($filename): self
-    {
-        $this->piecesJointes[] = $filename;
-
-        return $this;
-    }
-
-    public function removePieceJointe($filename): self
-	{
-		$piecesJointes = $this->getPiecesJointes();
-
-		if (($key = array_search($filename, $piecesJointes)) !== false) {
-			unset($piecesJointes[$key]);
-		}
-		$this->setPiecesJointes($piecesJointes);
-
-		return $this;
-	}
 
     public function getNumeroReception(): ?string
     {
@@ -386,6 +361,95 @@ class Arrivage
             // set the owning side to null (unless already changed)
             if ($colis->getArrivage() === $this) {
                 $colis->setArrivage(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getCommentaire(): ?string
+    {
+        return $this->commentaire;
+    }
+
+    public function setCommentaire(?string $commentaire): self
+    {
+        $this->commentaire = $commentaire;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|PieceJointe[]
+     */
+    public function getPiecesJointes(): Collection
+    {
+        return $this->piecesJointes;
+    }
+
+    public function addPieceJointe(PieceJointe $pieceJointe): self
+    {
+        if (!$this->piecesJointes->contains($pieceJointe)) {
+            $this->piecesJointes[] = $pieceJointe;
+            $pieceJointe->setArrivage($this);
+        }
+
+        return $this;
+    }
+
+    public function removePieceJointe(PieceJointe $pieceJointe): self
+    {
+        if ($this->piecesJointes->contains($pieceJointe)) {
+            $this->piecesJointes->removeElement($pieceJointe);
+            // set the owning side to null (unless already changed)
+            if ($pieceJointe->getArrivage() === $this) {
+                $pieceJointe->setArrivage(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function addColi(Colis $coli): self
+    {
+        if (!$this->colis->contains($coli)) {
+            $this->colis[] = $coli;
+            $coli->setArrivage($this);
+        }
+
+        return $this;
+    }
+
+    public function removeColi(Colis $coli): self
+    {
+        if ($this->colis->contains($coli)) {
+            $this->colis->removeElement($coli);
+            // set the owning side to null (unless already changed)
+            if ($coli->getArrivage() === $this) {
+                $coli->setArrivage(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function addPiecesJointe(PieceJointe $piecesJointe): self
+    {
+        if (!$this->piecesJointes->contains($piecesJointe)) {
+            $this->piecesJointes[] = $piecesJointe;
+            $piecesJointe->setArrivage($this);
+        }
+
+        return $this;
+    }
+
+    public function removePiecesJointe(PieceJointe $piecesJointe): self
+    {
+        if ($this->piecesJointes->contains($piecesJointe)) {
+            $this->piecesJointes->removeElement($piecesJointe);
+            // set the owning side to null (unless already changed)
+            if ($piecesJointe->getArrivage() === $this) {
+                $piecesJointe->setArrivage(null);
             }
         }
 

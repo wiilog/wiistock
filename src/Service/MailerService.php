@@ -11,6 +11,7 @@ namespace App\Service;
 
 use App\Entity\MailerServer;
 use App\Repository\MailerServerRepository;
+use App\Repository\ParamClientRepository;
 
 class MailerService
 {
@@ -19,15 +20,21 @@ class MailerService
      */
     private $mailerServerRepository;
 
+	/**
+	 * @var ParamClientRepository
+	 */
+    private $paramClientRepository;
+
     /**
      * @var \Twig_Environment
      */
     private $templating;
 
 
-    public function __construct(MailerServerRepository $mailerServerRepository, \Twig_Environment $templating)
+    public function __construct(ParamClientRepository $paramClientRepository, MailerServerRepository $mailerServerRepository, \Twig_Environment $templating)
     {
         $this->mailerServerRepository = $mailerServerRepository;
+        $this->paramClientRepository = $paramClientRepository;
         $this->templating = $templating;
     }
 
@@ -61,7 +68,7 @@ class MailerService
                 }
             }
             $content .= '</p>';
-            $to = ['clara.tuco@wiilog.fr', 'cecile.gazaniol@wiilog.fr'];
+            $to = ['clara.tuco@wiilog.fr', 'cecile.gazaniol@wiilog.fr', 'matteo.hevin@wiilog.fr'];
         }
 
         $transport = (new \Swift_SmtpTransport($host, $port, $protocole))
@@ -70,9 +77,9 @@ class MailerService
 
         $message = (new \Swift_Message());
 
-        //        $image = $message->embed(\Swift_Image::fromPath('img/Logo-FollowGTpetit.png'));
+//		$message->attach(\Swift_Attachment::fromPath('/img/Logo-FollowGTpetit.png', 'image/jpeg'));
 
-        $message
+		$message
             ->setFrom($from)
             ->setTo($to)
             ->setSubject($subject)

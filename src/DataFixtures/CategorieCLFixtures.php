@@ -28,10 +28,11 @@ class CategorieCLFixtures extends Fixture implements FixtureGroupInterface
     public function load(ObjectManager $manager)
     {
         $categoriesNames = [
-            CategorieCL::REFERENCE_CEA,
+            CategorieCL::REFERENCE_ARTICLE,
             CategorieCL::ARTICLE,
             CategorieCL::AUCUNE,
-            CategorieCL::RECEPTION
+            CategorieCL::RECEPTION,
+			CategorieCL::DEMANDE_LIVRAISON
         ];
         foreach ($categoriesNames as $categorieName) {
             $categorie = $this->categorieCLRepository->findOneByLabel($categorieName);

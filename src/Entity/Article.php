@@ -65,12 +65,12 @@ class Article
     private $label;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Mouvement", mappedBy="article")
+     * @ORM\OneToMany(targetEntity="App\Entity\MouvementStock", mappedBy="article")
      */
     private $mouvements;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Preparation", mappedBy="article")
+     * @ORM\ManyToMany(targetEntity="App\Entity\Preparation", mappedBy="articles")
      */
     private $preparations;
 
@@ -228,34 +228,6 @@ class Article
     }
 
     /**
-     * @return Collection|Mouvement[]
-     */
-    public function getMouvements(): Collection
-    {
-        return $this->mouvements;
-    }
-
-    public function addMouvement(Mouvement $mouvement): self
-    {
-        if (!$this->mouvements->contains($mouvement)) {
-            $this->mouvements[] = $mouvement;
-            $mouvement->addArticle($this);
-        }
-
-        return $this;
-    }
-
-    public function removeMouvement(Mouvement $mouvement): self
-    {
-        if ($this->mouvements->contains($mouvement)) {
-            $this->mouvements->removeElement($mouvement);
-            $mouvement->removeArticle($this);
-        }
-
-        return $this;
-    }
-
-    /**
      * @return Collection|Preparation[]
      */
     public function getPreparations(): Collection
@@ -373,6 +345,37 @@ class Article
     public function setReception(?Reception $reception): self
     {
         $this->reception = $reception;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|MouvementStock[]
+     */
+    public function getMouvements(): Collection
+    {
+        return $this->mouvements;
+    }
+
+    public function addMouvement(MouvementStock $mouvement): self
+    {
+        if (!$this->mouvements->contains($mouvement)) {
+            $this->mouvements[] = $mouvement;
+            $mouvement->setArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeMouvement(MouvementStock $mouvement): self
+    {
+        if ($this->mouvements->contains($mouvement)) {
+            $this->mouvements->removeElement($mouvement);
+            // set the owning side to null (unless already changed)
+            if ($mouvement->getArticle() === $this) {
+                $mouvement->setArticle(null);
+            }
+        }
 
         return $this;
     }

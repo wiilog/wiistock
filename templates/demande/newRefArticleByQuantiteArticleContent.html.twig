@@ -1,5 +1,5 @@
 <div class="form-group col-12 d-flex w-100 mb-3">
-    <label for="code">Code article</label>
+    <label for="code">Code article*</label>
     <select class="form-control ajax-autocomplete-article data select2" id="article"
             onchange="ajaxEditArticle($(this))" name="article">
         <option value="">choisir un article</option>
@@ -9,6 +9,6 @@
     </select>
 </div>
 <div id='quantityToTake' class="form-group col-12 d-none  mb-3">
-    <label for="quantity-to-deliver">Quantité à livrer</label>
-    <input class="form-control data needed" type="number" min="1" id="quantity-to-deliver" name="quantitie" value="0">
+    <label for="quantity-to-deliver">Quantité à livrer*</label>
+    <input class="form-control data needed" type="number" min="1" max="{{ maximum }}" id="quantity-to-deliver" name="quantitie" value="0">
 </div>
