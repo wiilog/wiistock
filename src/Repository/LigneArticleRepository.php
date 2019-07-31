@@ -31,6 +31,12 @@ class LigneArticleRepository extends ServiceEntityRepository
         return $query->getSingleResult();
     }
 
+    /**
+     * @param $referenceArticle
+     * @param $demande
+     * @return LigneArticle
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
     public function findOneByRefArticleAndDemande($referenceArticle, $demande)
     {
         $entityManager = $this->getEntityManager();
