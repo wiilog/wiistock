@@ -8,6 +8,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Demande;
 use App\Entity\Menu;
+use App\Entity\PrefixageDemandes;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\LigneArticle;
@@ -125,9 +126,9 @@ class DemandeController extends AbstractController
 	 */
     private $parametreRoleRepository;
 
-	/**
-	 * @var ParametreRepository
-	 */
+    /**
+     * @var ParametreRepository
+     */
     private $parametreRepository;
 
 
@@ -420,6 +421,7 @@ class DemandeController extends AbstractController
             $destination = $this->emplacementRepository->find($data['destination']);
             $type = $this->typeRepository->find($data['type']);
 
+//            $nombreDemandes = $this->demandeRepository->count
             $i =  1;
             //TODO compter nombre de demandes
             $cpt = sprintf('%04u', $i);
@@ -781,6 +783,39 @@ class DemandeController extends AbstractController
         }
         throw new NotFoundHttpException('404');
     }
+
+//    /**
+//     * @Route("/prefixe-demande", name="prefixe_demande", options={"expose"=true}, methods={"GET", "POST"})
+//     */
+//    public function prefixeDemande(Request $request): Response
+//    {
+//        dump('t0');
+//        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)){
+//        $data = json_decode($request->getContent(), true);
+//            dump('t1');
+//            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+//                return $this->redirectToRoute('access_denied');
+//            }
+//
+//            $prefixeDemande =  $this->prefixeDemandeRepository->findOneByPrefixeAndTypeDemande($data['prefixe'], $data['typeDemande']);
+//
+//            $em = $this->getDoctrine()->getManager();
+//            if($prefixeDemande == null){
+//                $newPrefixe = new PrefixageDemandes();
+//                $newPrefixe
+//                    ->setAssociatedEntity($data['typeDemande'])
+//                    ->setPrefix($data['prefixe']);
+//
+//                $em->persist($newPrefixe);
+//                $em->flush();
+//            }
+//            return $this->render('demande/prefixeDemande.html.twig',[
+//                'prefixe_demande' => $prefixeDemande
+//            ]);
+//        }
+//        throw new NotFoundHttpException('404');
+//    }
+
 
 //    /**
 //     * @Route("/changer-gestion", name="switch_choice", options={"expose"=true}, methods={"GET", "POST"})
