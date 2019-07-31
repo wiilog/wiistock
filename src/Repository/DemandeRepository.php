@@ -132,4 +132,15 @@ class DemandeRepository extends ServiceEntityRepository
         ]);
         return $query->execute();
     }
+
+    public function countByPrefixeAndDate($prefixe, $date)
+    {
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
+            'SELECT COUNT(d)
+            FROM App\Entity\Demande d, App\Entity\PrefixeNomDemande p
+            WHERE d.numero LIKE :value'
+        )->setParameter('value', '%' . $prefixe . $date . '%');
+        return $query->getSingleScalarResult();
+    }
 }

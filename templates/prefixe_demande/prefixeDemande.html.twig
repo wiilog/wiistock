@@ -10,27 +10,24 @@
             <h1>Préfixage des noms de demandes</h1>
             <div class="form-group">
                 <label for="typeDemande">Type de demande</label>
-                <select name="typeDemande" class="form-control data d-block type needed" id="typeDemandePrefixageDemande">
-                    <option value="">Type demande à choisir...</option>
-{#                    //TODO gérer le cas de tous les types de demandes#}
-{#                    {% for type in typeChampsLibres %}#}
-{#                        <option value="{{type.typeId}}">{{type.typeLabel}}</option>#}
-                        <option value="livraison">Demande de livraison</option>
-{#                    {% endfor %}#}
+                <select name="typeDemande" class="form-control data d-block type" id="typeDemandePrefixageDemande">
+                    <option value="aucunPrefixe">Type demande à choisir...</option>
+                    <option value="livraison">Demande de livraison </option>
+                    <option value="collecte" hidden>Demande de collecte</option>
+                    <option value="manutention" hidden>Demande de manutention</option>
                 </select>
             </div>
 
             <div class="form-group">
                 <label for="">Préfixe</label>
                 <input type="text" class="form-control data needed" name="prefixeDemande" id="prefixeDemande"
-                   value="{{typeDemande is defined ? typeDemande :'' }}">
-{#                   value="{{prefixe_demande.prefix is defined ? prefixe_demande.prefix :'' }}">#}
+                   value="">
             </div>
             <button type="button" class="btn btn-success" onclick="prefixDemand()">Enregistrer</button>
         </form>
     </div>
 
-    {% include 'demande/modalPrefixageDemandeSet.html.twig' %}
+    {% include 'prefixe_demande/modalPrefixageDemandeSet.html.twig' %}
 
 {% endblock %}
 {% block javascript %}

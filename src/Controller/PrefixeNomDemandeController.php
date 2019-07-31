@@ -8,7 +8,7 @@ use App\Entity\PrefixeNomDemande;
 use App\Repository\PrefixeNomDemandeRepository;
 use App\Service\UserService;
 
-use http\Client\Curl\User;
+
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 use Symfony\Component\DependencyInjection\Tests\Compiler\J;
@@ -47,9 +47,8 @@ class PrefixeNomDemandeController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
-        return $this->render('demande/prefixeDemande.html.twig');
+        return $this->render('prefixe_demande/prefixeDemande.html.twig');
     }
-
 
     /**
      * @Route("/ajax-prefixe-demande", name="ajax_prefixe_demande",  options={"expose"=true},  methods="GET|POST")

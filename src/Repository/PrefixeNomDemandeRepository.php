@@ -26,7 +26,6 @@ class PrefixeNomDemandeRepository extends ServiceEntityRepository
            FROM App\Entity\PrefixeNomDemande p
            WHERE p.typeDemandeAssociee =:typeDemande"
         )->setParameter('typeDemande' , $typeDemande);
-        dump($query->getOneOrNullResult());
         return $query->getOneOrNullResult();
     }
 }

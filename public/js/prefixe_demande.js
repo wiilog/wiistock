@@ -6,7 +6,6 @@ function prefixDemand(){
     let params = JSON.stringify({prefixe: prefixe, typeDemande: typeDemande});
 
     $.post(path, params, function(data){
-        console.log(data);
         // $('.justify-content-center').find('#prefixeForm').html(data);
     });
 }
