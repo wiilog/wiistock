@@ -19,6 +19,7 @@ class CategoryType
     const DEMANDE_COLLECTE = 'demande collecte';
     const ARRIVAGE = 'arrivage';
     const MOUVEMENT = 'mouvement';
+    const ART_REFS = 'articles et références CEA';
 
     /**
      * @ORM\Id()

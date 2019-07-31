@@ -145,6 +145,11 @@ class Utilisateur implements UserInterface, EquatableInterface
      */
     private $recherche;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Type", inversedBy="utilisateurs")
+     */
+    private $type;
+
 
 
     public function __construct()
@@ -710,6 +715,18 @@ class Utilisateur implements UserInterface, EquatableInterface
     public function setRecherche($recherche): self
     {
         $this->recherche = $recherche;
+
+        return $this;
+    }
+
+    public function getType(): ?Type
+    {
+        return $this->type;
+    }
+
+    public function setType(?Type $type): self
+    {
+        $this->type = $type;
 
         return $this;
     }
