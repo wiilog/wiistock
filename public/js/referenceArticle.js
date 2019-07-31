@@ -262,6 +262,7 @@ function initTableRefArticle() {
 
 function overrideSearch() {
     let $input = $('#tableRefArticle_id_filter input');
+
     $input.off();
     $input.on('keyup', function(e) {
         if (e.key === 'Enter') {
@@ -665,7 +666,7 @@ function saveRapidSearch() {
 
 function getDataAndPrintLabels() {
     let path = Routing.generate('reference_article_get_data_to_print', true);
-    $.post(path, function (response) {
+    $.post(path, JSON.stringify({length : tableRefArticle.page.info().length, start : tableRefArticle.page.info().start}), function (response) {
         if (response.tags.exists) {
             $("#barcodes").empty();
             let i = 0;
@@ -687,5 +688,19 @@ function getDataAndPrintLabels() {
     });
 }
 
+function displayActifOrInactif(select){
+    let donnees;
+    if (select.is(':checked')) {
+        donnees = 'actif';
+    } else {
+        donnees = 'inactif';
+    }
 
+    let params = {donnees: donnees};
+    let path = Routing.generate('reference_article_actif_inactif');
+
+    $.post(path, JSON.stringify(params), function(){
+        tableRefArticle.ajax.reload();
+    });
+}
 

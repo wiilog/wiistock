@@ -297,7 +297,7 @@ class EmplacementController extends AbstractController
             for ($i = 0; $i < count($listEmplacements); $i++) {
                 $emplacementsString[] = $this->emplacementRepository->find($listEmplacements[$i])->getLabel();
             }
-
+            $emplacementsString = array_slice($emplacementsString, $data['start'], $data['length']);
             $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
             /** @var DimensionsEtiquettes $dimension */
             if ($dimension) {

@@ -323,7 +323,11 @@ function overrideSearch() {
 function getDataAndPrintLabels() {
     let path = Routing.generate('article_get_data_to_print', true);
     let listArticles = $("#listArticleIdToPrint").val();
-    let params = JSON.stringify({listArticles: listArticles});
+    let params = JSON.stringify({
+        listArticles: listArticles,
+        start : tableArticle.page.info().start,
+        length : tableArticle.page.info().length
+    });
     $.post(path, params, function (response) {
         if (response.tags.exists) {
             $("#barcodes").empty();

@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Article;
 use App\Entity\Demande;
 use App\Entity\Filter;
 use App\Entity\ReferenceArticle;
@@ -128,6 +129,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
             'Référence' => ['field' => 'reference', 'typage' => 'text'],
             'Type' => ['field' => 'type_id', 'typage' => 'list'],
             'Quantité' => ['field' => 'quantiteStock', 'typage' => 'number'],
+            'Statut' => ['field' => 'Statut', 'typage' => 'text'],
 			'Emplacement' => ['field' => 'emplacement_id', 'typage' => 'list']
         ];
         //TODO trouver + dynamique
@@ -141,91 +143,96 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
 		foreach ($filters as $filter) {
             $index++;
-//
+
+            if ($filter['champFixe'] === 'Statut') {
+                if ($filter['value'] === Article::STATUT_ACTIF) {
+                    $qb->leftJoin('ra.statut', 'sra');
+                    $qb->andWhere('sra.nom LIKE \'' . $filter['value'] . '\'');
+                }
+            } else {
 //            $operatorOR = $filter['operator'] == 'or';
-			//TODO filtres et/ou
+                //TODO filtres et/ou
 
-            // cas particulier champ référence article fournisseur
-            if ($filter['champFixe'] === Filter::CHAMP_FIXE_REF_ART_FOURN) {
-                $qb
-                    ->leftJoin('ra.articlesFournisseur', 'af')
-                    ->andWhere('af.reference LIKE :reference')
-                    ->setParameter('reference', '%' . $filter['value'] . '%');
-            } // cas champ fixe
-            else if ($label = $filter['champFixe']) {
-                $array = $linkChampLibreLabelToField[$label];
-                $field = $array['field'];
-                $typage = $array['typage'];
+                // cas particulier champ référence article fournisseur
+                if ($filter['champFixe'] === Filter::CHAMP_FIXE_REF_ART_FOURN) {
+                    $qb
+                        ->leftJoin('ra.articlesFournisseur', 'af')
+                        ->andWhere('af.reference LIKE :reference')
+                        ->setParameter('reference', '%' . $filter['value'] . '%');
+                } // cas champ fixe
+                else if ($label = $filter['champFixe']) {
+                    $array = $linkChampLibreLabelToField[$label];
+                    $field = $array['field'];
+                    $typage = $array['typage'];
 
-                switch ($typage) {
-                    case 'text':
-                        $qb
-							->andWhere("ra." . $field . " LIKE :value" . $index)
-							->setParameter('value' . $index, '%' . $filter['value'] . '%');
+                    switch ($typage) {
+                        case 'text':
+                            $qb
+                                ->andWhere("ra." . $field . " LIKE :value" . $index)
+                                ->setParameter('value' . $index, '%' . $filter['value'] . '%');
 //                    	$where = "ra." . $field . " LIKE :value" . $index;
 //                    	$operatorOR ? $qb->orWhere($where) : $qb->andWhere($where);
 //                        $qb->setParameter('value' . $index, '%' . $filter['value'] . '%');
-						//TODO filtres et/ou
-                        break;
-                    case 'number':
-                        $qb->andWhere("ra." . $field . " = " . $filter['value']);
-                        break;
-                    case 'list':
-                    	switch ($field) {
-							case 'type_id':
-                        $qb
-                            ->leftJoin('ra.type', 't')
-                            ->andWhere('t.label = :typeLabel')
-                            ->setParameter('typeLabel', $filter['value']);
-                        break;
-							case 'emplacement_id':
-								$qb
-									->leftJoin('ra.emplacement', 'e')
-									->andWhere('e.label = :emplacementLabel')
-									->setParameter('emplacementLabel', $filter['value']);
-								break;
-                }
-                        break;
-                }
-            }
+                            //TODO filtres et/ou
+                            break;
+                        case 'number':
+                            $qb->andWhere("ra." . $field . " = " . $filter['value']);
+                            break;
+                        case 'list':
+                            switch ($field) {
+                                case 'type_id':
+                                    $qb
+                                        ->leftJoin('ra.type', 't')
+                                        ->andWhere('t.label = :typeLabel')
+                                        ->setParameter('typeLabel', $filter['value']);
+                                    break;
+                                case 'emplacement_id':
+                                    $qb
+                                        ->leftJoin('ra.emplacement', 'e')
+                                        ->andWhere('e.label = :emplacementLabel')
+                                        ->setParameter('emplacementLabel', $filter['value']);
+                                    break;
+                            }
+                            break;
+                    }
+                } // cas champ libre
+                else if ($filter['champLibre']) {
+                    $qbSub = $em->createQueryBuilder();
+                    $qbSub
+                        ->select('ra' . $index . '.id')
+                        ->from('App\Entity\ReferenceArticle', 'ra' . $index)
+                        ->leftJoin('ra' . $index . '.valeurChampsLibres', 'vcl' . $index);
 
-            // cas champ libre
-            else if ($filter['champLibre']) {
-                $qbSub = $em->createQueryBuilder();
-                $qbSub
-                    ->select('ra' . $index . '.id')
-                    ->from('App\Entity\ReferenceArticle', 'ra' . $index)
-                    ->leftJoin('ra' . $index . '.valeurChampsLibres', 'vcl' . $index);
-
-                switch ($filter['typage']) {
-                    case 'booleen':
-                        $value = $filter['value'] == 1 ? '1' : '0';
-                        $qbSub
-                            ->andWhere('vcl' . $index . '.champLibre = ' . $filter['champLibre'])
-                            ->andWhere('vcl' . $index . '.valeur = ' . $value);
-                        break;
-                    case 'text':
-                        $qbSub
-                            ->andWhere('vcl' . $index . '.champLibre = ' . $filter['champLibre'])
-                            ->andWhere('vcl' . $index . '.valeur LIKE :value' . $index)
-                            ->setParameter('value' . $index, '%' . $filter['value'] . '%');
-                        break;
-                    case 'number':
-                    case 'list':
-                        $qbSub
-                            ->andWhere('vcl' . $index . '.champLibre = ' . $filter['champLibre'])
-                            ->andWhere('vcl' . $index . '.valeur = :value' . $index)
-                            ->setParameter('value' . $index, $filter['value']);
-                        break;
-                    case 'date':
-                        $date = explode('-', $filter['value']);
-                        $formattedDated = $date[2] . '/' . $date[1] . '/' . $date[0];
-                        $qbSub
-                            ->andWhere('vcl' . $index . '.champLibre = ' . $filter['champLibre'])
-                            ->andWhere('vcl' . $index . ".valeur = '" . $formattedDated . "'");
-                        break;
+                    switch ($filter['typage']) {
+                        case 'booleen':
+                            $value = $filter['value'] == 1 ? '1' : '0';
+                            $qbSub
+                                ->andWhere('vcl' . $index . '.champLibre = ' . $filter['champLibre'])
+                                ->andWhere('vcl' . $index . '.valeur = ' . $value);
+                            break;
+                        case 'text':
+                            $qbSub
+                                ->andWhere('vcl' . $index . '.champLibre = ' . $filter['champLibre'])
+                                ->andWhere('vcl' . $index . '.valeur LIKE :value' . $index)
+                                ->setParameter('value' . $index, '%' . $filter['value'] . '%');
+                            break;
+                        case 'number':
+                        case 'list':
+                            $qbSub
+                                ->andWhere('vcl' . $index . '.champLibre = ' . $filter['champLibre'])
+                                ->andWhere('vcl' . $index . '.valeur = :value' . $index)
+                                ->setParameter('value' . $index, $filter['value']);
+                            break;
+                        case 'date':
+                            $date = explode('-', $filter['value']);
+                            $formattedDated = $date[2] . '/' . $date[1] . '/' . $date[0];
+                            $qbSub
+                                ->andWhere('vcl' . $index . '.champLibre = ' . $filter['champLibre'])
+                                ->andWhere('vcl' . $index . ".valeur = '" . $formattedDated . "'");
+                            break;
+                    }
+                    $subQueries[] = $qbSub->getQuery()->getResult();
                 }
-                $subQueries[] = $qbSub->getQuery()->getResult();
             }
         }
 
@@ -473,7 +480,6 @@ class ReferenceArticleRepository extends ServiceEntityRepository
     public function getByLivraisonStatutLabelAndWithoutOtherUser($statutLabel, $user) {
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
-			/** @lang DQL */
 			"SELECT ra.reference, e.label as location, ra.libelle as label, la.quantite as quantity, 1 as is_ref, l.id as id_livraison
 			FROM App\Entity\ReferenceArticle ra
 			LEFT JOIN ra.emplacement e
@@ -489,5 +495,4 @@ class ReferenceArticleRepository extends ServiceEntityRepository
 
 		return $query->execute();
 	}
-
 }

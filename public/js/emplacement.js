@@ -4,7 +4,7 @@ let pathEmplacement = Routing.generate("emplacement_api", true);
 let tableEmplacement = $('#tableEmplacement_id').DataTable({
     processing: true,
     serverSide: true,
-    
+
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
     },
@@ -21,9 +21,9 @@ let tableEmplacement = $('#tableEmplacement_id').DataTable({
         overrideSearch();
     },
     columns: [
-        { "data": 'Nom' },
-        { "data": 'Description' },
-        { "data": 'Actions' }
+        {"data": 'Nom'},
+        {"data": 'Description'},
+        {"data": 'Actions'}
     ],
     buttons: [
         'copy', 'excel', 'pdf'
@@ -50,7 +50,7 @@ function checkAndDeleteRow(icon) {
     let id = icon.data('id');
     let param = JSON.stringify(id);
 
-    $.post(Routing.generate('emplacement_check_delete'), param, function(resp) {
+    $.post(Routing.generate('emplacement_check_delete'), param, function (resp) {
         modalBody.html(resp.html);
         if (resp.delete == false) {
             submitDeleteEmplacement.hide();
@@ -70,8 +70,8 @@ function displayErrorEmplacement(data) {
 function overrideSearch() {
     let $input = $('#tableEmplacement_id_filter input');
     $input.off();
-    $input.on('keyup', function(e){
-        if (e.key === 'Enter'){
+    $input.on('keyup', function (e) {
+        if (e.key === 'Enter') {
             if ($input.val() === '') {
                 $('.emplacement').find('.printButton').addClass('btn-disabled');
                 $('.emplacement').find('.printButton').removeClass('btn-primary');
@@ -80,22 +80,27 @@ function overrideSearch() {
                 $('.emplacement').find('.printButton').addClass('btn-primary');
             }
             tableEmplacement.search(this.value).draw();
-        }  else if (e.key === 'Backspace' && $input.val() === '') {
+        } else if (e.key === 'Backspace' && $input.val() === '') {
             $('.emplacement').find('.printButton').addClass('btn-disabled');
             $('.emplacement').find('.printButton').removeClass('btn-primary');
         }
     });
     $input.attr('placeholder', 'entrée pour valider');
 }
+
 function getDataAndPrintLabels() {
     let path = Routing.generate('emplacement_get_data_to_print', true);
     let listEmplacements = $("#listEmplacementIdToPrint").val();
-    let params = JSON.stringify({listEmplacements: listEmplacements});
+    let params = JSON.stringify({
+        listEmplacements: listEmplacements,
+        length: tableEmplacement.page.info().length,
+        start: tableEmplacement.page.info().start
+    });
     $.post(path, params, function (response) {
         if (response.tags.exists) {
             $("#barcodes").empty();
             let i = 0;
-            response.emplacements.forEach(function(code) {
+            response.emplacements.forEach(function (code) {
                 console.log(code);
                 $('#barcodes').append('<img id="barcode' + i + '">')
                 JsBarcode("#barcode" + i, code.replace('é', 'e').replace('è', 'e').trim(), {
