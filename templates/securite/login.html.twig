@@ -55,8 +55,17 @@ class='accueil-back'
                 <a class="btn" href="{{ path('forgotten') }}">Mot de passe oublié ?</a>
                 <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
             </form>
+            <div class="messageChrome">
+                <span class="fas fa-exclamation-triangle"></span>
+                Cette application est uniquement compatible avec le navigateur Google Chrome.
+            </div>
         </div>
     </div>
 </div>
+
+{% endblock %}
+
+{% block javascript %}
+<script src="{{asset('js/login.js')}}?{{ date().timestamp }}"></script>
 
 {% endblock %}

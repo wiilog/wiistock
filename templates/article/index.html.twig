@@ -13,12 +13,10 @@
         <i class="fa fa-plus mr-2"></i>Nouvel article
     </div>
     {% endif %}
-    <div class = "printButton d-none">
-        <div data-toggle="modal" id="printTag" class="btn btn-action btn-primary"
+        <div data-toggle="modal" id="printTag" class="btn btn-disabled printButton"
              onclick="getDataAndPrintLabels()">
             <i class="fas fa-print"></i> Imprimer les étiquettes
         </div>
-    </div>
 </div>
 
 <input type="hidden" id="listArticleIdToPrint">
@@ -35,7 +33,7 @@
             <th>Actions</th>
         </tr>
     </thead>
-    
+
 </table>
     {% set statutVisible = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
     <input type="hidden" class='statutVisible' name="statutVisible" value="{{statutVisible}}">
