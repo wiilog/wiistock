@@ -6,13 +6,13 @@
 
 
     <div class='row justify-content-center'>
-        <form action="" class="col-3" id="dimsForm">
+        <form action="" class="col-3" id="prefixeForm">
             <h1>Préfixage des noms de demandes</h1>
             <div class="form-group">
-                <label for="typeDemande" id="typeDemandePrefixageDemande">Type de demande</label>
-                <select name="typeDemande" class="form-control data d-block type needed">
+                <label for="typeDemande">Type de demande</label>
+                <select name="typeDemande" class="form-control data d-block type needed" id="typeDemandePrefixageDemande">
                     <option value="">Type demande à choisir...</option>
-                    //TODO gérer le cas de tous les types de demandes
+{#                    //TODO gérer le cas de tous les types de demandes#}
 {#                    {% for type in typeChampsLibres %}#}
 {#                        <option value="{{type.typeId}}">{{type.typeLabel}}</option>#}
                         <option value="livraison">Demande de livraison</option>
@@ -22,8 +22,9 @@
 
             <div class="form-group">
                 <label for="">Préfixe</label>
-                <input type="text" class="form-control data needed" name="height" id="prefixeDemande"
-                       value="{{prefixe_demande.prefix is defined ? prefixe_demande.prefix :'' }}">
+                <input type="text" class="form-control data needed" name="prefixeDemande" id="prefixeDemande"
+                   value="{{typeDemande is defined ? typeDemande :'' }}">
+{#                   value="{{prefixe_demande.prefix is defined ? prefixe_demande.prefix :'' }}">#}
             </div>
             <button type="button" class="btn btn-success" onclick="prefixDemand()">Enregistrer</button>
         </form>
@@ -33,5 +34,5 @@
 
 {% endblock %}
 {% block javascript %}
-<script src="{{ asset('js/demande-livraison.js') }}?{{ date().timestamp }}"></script>
+<script src="{{ asset('js/prefixe_demande.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

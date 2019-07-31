@@ -8,7 +8,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Demande;
 use App\Entity\Menu;
-use App\Entity\PrefixageDemandes;
+use App\Entity\PrefixeNomDemande;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\LigneArticle;
@@ -29,6 +29,7 @@ use App\Repository\UtilisateurRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\PreparationRepository;
 use App\Repository\ValeurChampsLibreRepository;
+use App\Repository\PrefixeNomDemandeRepository;
 
 use App\Service\ArticleDataService;
 use App\Service\RefArticleDataService;
@@ -131,8 +132,12 @@ class DemandeController extends AbstractController
      */
     private $parametreRepository;
 
+    /**
+     * @var PrefixeNomDemandeRepository
+     */
+    private $prefixeNomDemandeRepository;
 
-    public function __construct(ParametreRepository $parametreRepository, ParametreRoleRepository $parametreRoleRepository, ValeurChampsLibreRepository $valeurChampLibreRepository, CategorieCLRepository $categorieCLRepository, ChampsLibreRepository $champLibreRepository, TypeRepository $typeRepository, PreparationRepository $preparationRepository, ArticleRepository $articleRepository, LigneArticleRepository $ligneArticleRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, UserService $userService, RefArticleDataService $refArticleDataService, ArticleDataService $articleDataService)
+    public function __construct(PrefixeNomDemandeRepository $prefixeNomDemandeRepository, ParametreRepository $parametreRepository, ParametreRoleRepository $parametreRoleRepository, ValeurChampsLibreRepository $valeurChampLibreRepository, CategorieCLRepository $categorieCLRepository, ChampsLibreRepository $champLibreRepository, TypeRepository $typeRepository, PreparationRepository $preparationRepository, ArticleRepository $articleRepository, LigneArticleRepository $ligneArticleRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, UserService $userService, RefArticleDataService $refArticleDataService, ArticleDataService $articleDataService)
     {
         $this->statutRepository = $statutRepository;
         $this->emplacementRepository = $emplacementRepository;
@@ -151,6 +156,7 @@ class DemandeController extends AbstractController
         $this->valeurChampLibreRepository = $valeurChampLibreRepository;
         $this->parametreRoleRepository = $parametreRoleRepository;
         $this->parametreRepository = $parametreRepository;
+        $this->prefixeNomDemandeRepository = $prefixeNomDemandeRepository;
     }
 
     /**
@@ -783,39 +789,6 @@ class DemandeController extends AbstractController
         }
         throw new NotFoundHttpException('404');
     }
-
-//    /**
-//     * @Route("/prefixe-demande", name="prefixe_demande", options={"expose"=true}, methods={"GET", "POST"})
-//     */
-//    public function prefixeDemande(Request $request): Response
-//    {
-//        dump('t0');
-//        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)){
-//        $data = json_decode($request->getContent(), true);
-//            dump('t1');
-//            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
-//                return $this->redirectToRoute('access_denied');
-//            }
-//
-//            $prefixeDemande =  $this->prefixeDemandeRepository->findOneByPrefixeAndTypeDemande($data['prefixe'], $data['typeDemande']);
-//
-//            $em = $this->getDoctrine()->getManager();
-//            if($prefixeDemande == null){
-//                $newPrefixe = new PrefixageDemandes();
-//                $newPrefixe
-//                    ->setAssociatedEntity($data['typeDemande'])
-//                    ->setPrefix($data['prefixe']);
-//
-//                $em->persist($newPrefixe);
-//                $em->flush();
-//            }
-//            return $this->render('demande/prefixeDemande.html.twig',[
-//                'prefixe_demande' => $prefixeDemande
-//            ]);
-//        }
-//        throw new NotFoundHttpException('404');
-//    }
-
 
 //    /**
 //     * @Route("/changer-gestion", name="switch_choice", options={"expose"=true}, methods={"GET", "POST"})

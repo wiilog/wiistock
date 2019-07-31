@@ -389,16 +389,3 @@ $('#submitSearchDemandeLivraison').on('keypress', function (e) {
         $('#submitSearchDemandeLivraison').click();
     }
 });
-
-function prefixDemand(){
-    let prefixe = $('#prefixeDemande');
-    let typeDemande = $('#typeDemandePrefixageDemande');
-    let path = Routing.generate('prefixe_demande',true);
-    let params = {prefixe: prefixe, typeDemande: typeDemande};
-
-    $.post(path, JSON.stringify(params),function(data){
-
-    });
-}
-
-
