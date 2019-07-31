@@ -1119,13 +1119,15 @@ class ReferenceArticleController extends Controller
 
             $em = $this->getDoctrine()->getManager();
             if($filter == null){
-                $newFilter = new Filter();
-                $newFilter
+                $filter = new Filter();
+                $filter
                     ->setUtilisateur($user)
                     ->setChampFixe('Statut')
                     ->setValue('actif');
-                $em->persist($newFilter);
-            } elseif ($filter->getValue() != $statutArticle) {
+                $em->persist($filter);
+            }
+
+            if ($filter->getValue() != $statutArticle) {
                 $filter->setValue($statutArticle);
             }
             $em->flush();
