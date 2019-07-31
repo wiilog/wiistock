@@ -493,6 +493,7 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 				// même comportement que LivraisonController.new()
 				foreach ($preparations as $preparationArray) {
 					$preparation = $this->preparationRepository->find($preparationArray['id']);
+                    $preparation->setCommentaire($preparationArray['comment']);
 
 					if ($preparation) {
 						$demandes = $preparation->getDemandes();
@@ -557,12 +558,34 @@ class ApiController extends FOSRestController implements ClassResourceInterface
 						$refArticle = $this->referenceArticleRepository->findOneByReference($mouvementNomade['reference']);
 						if ($refArticle) {
 							$mouvement->setRefArticle($refArticle);
+							$ligneArticle = $this->ligneArticleRepository->findOneByRefArticleAndDemande($refArticle, $livraison->getPreparation()->getDemandes()[0]);
+							$ligneArticle->setQuantite($mouvement->getQuantity());
 						}
 					} else {
 						$article = $this->articleRepository->findOneByReference($mouvementNomade['reference']);
 						if ($article) {
 							$article->setStatut($this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::ARTICLE, Article::STATUT_EN_TRANSIT));
 							$mouvement->setArticle($article);
+							$article->setQuantiteAPrelever($mouvement->getQuantity());
+                            if ($article->getQuantite() !== $article->getQuantiteAPrelever()) {
+                                $newArticle = [
+                                    'articleFournisseur' => $article->getArticleFournisseur()->getId(),
+                                    'libelle' => $article->getLabel(),
+                                    'conform' => !$article->getConform(),
+                                    'commentaire' => $article->getcommentaire(),
+                                    'quantite' => $article->getQuantite() - $article->getQuantiteAPrelever(),
+                                    'emplacement' => $article->getEmplacement() ? $article->getEmplacement()->getId() : '',
+                                    'statut' => Article::STATUT_ACTIF,
+                                    'refArticle' => $article->getArticleFournisseur()->getReferenceArticle()->getId()
+                                ];
+
+                                foreach ($article->getValeurChampsLibres() as $valeurChampLibre) {
+                                    $newArticle[$valeurChampLibre->getChampLibre()->getId()] = $valeurChampLibre->getValeur();
+                                }
+                                $this->articleDataService->newArticle($newArticle);
+
+                                $article->setQuantite($article->getQuantiteAPrelever(), 0);
+                            }
 						}
 					}
 

@@ -274,4 +274,26 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
 
 		return $query->execute();
 	}
+
+	public function getValeurByCL($champLibre){
+	    $em = $this->getEntityManager();
+	    $query = $em->createQuery(
+	        "SELECT v.valeur
+	        FROM App\Entity\ValeurChampsLibre v
+	        JOIN v.champLibre c
+	        WHERE c.id =:champLibre"
+        )->setParameter('champLibre', $champLibre);
+	    return $query->execute();
+    }
+
+    public function findByCL($champLibreId){
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT v
+	        FROM App\Entity\ValeurChampsLibre v
+	        JOIN v.champLibre c
+	        WHERE c.id =:champLibre"
+        )->setParameter('champLibre', $champLibreId);
+        return $query->execute();
+    }
 }

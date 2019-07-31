@@ -346,6 +346,7 @@ class RefArticleDataService
         return $response;
     }
 
+
     public function dataRowRefArticle(ReferenceArticle $refArticle)
     {
         $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
@@ -358,6 +359,7 @@ class RefArticleDataService
             $rowCL[$champLibre['label']] = ($valeur ? $valeur->getValeur() : "");
         }
         $totalQuantity = 0;
+
         $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
         if ($refArticle->getTypeQuantite() === 'article') {
             foreach ($refArticle->getArticlesFournisseur() as $articleFournisseur) {
@@ -370,23 +372,23 @@ class RefArticleDataService
         }
         $quantityInStock = ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) ? $refArticle->getQuantiteStock() : $totalQuantity;
         $reservedQuantity = $this->referenceArticleRepository->getTotalQuantityReservedByRefArticle($refArticle);
-        
-        $rowCF = [
-            "id" => $refArticle->getId(),
-            "Libellé" => $refArticle->getLibelle()? $refArticle->getLibelle() : 'Non défini',
-            "Référence" => $refArticle->getReference()? $refArticle->getReference() : 'Non défini',
-            "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
-            "Emplacement" => ($refArticle->getEmplacement() ? $refArticle->getEmplacement()->getLabel() : ""),
-            "Quantité" => $quantityInStock - $reservedQuantity,
-            "Commentaire" => ($refArticle->getCommentaire() ? $refArticle->getCommentaire() : ""),
-            "Actions" => $this->templating->render('reference_article/datatableReferenceArticleRow.html.twig', [
-                'idRefArticle' => $refArticle->getId(),
-            ]),
-        ];
-        $rows = array_merge($rowCL, $rowCF);
 
+            $rowCF = [
+                "id" => $refArticle->getId(),
+                "Libellé" => $refArticle->getLibelle()? $refArticle->getLibelle() : 'Non défini',
+                "Référence" => $refArticle->getReference()? $refArticle->getReference() : 'Non défini',
+                "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
+                "Emplacement" => ($refArticle->getEmplacement() ? $refArticle->getEmplacement()->getLabel() : ""),
+                "Quantité" => $quantityInStock - $reservedQuantity,
+                "Commentaire" => ($refArticle->getCommentaire() ? $refArticle->getCommentaire() : ""),
+                "Statut" => $refArticle->getStatut() ? $refArticle->getStatut()->getNom() : "",
+                "Actions" => $this->templating->render('reference_article/datatableReferenceArticleRow.html.twig', [
+                    'idRefArticle' => $refArticle->getId(),
+                ]),
+            ];
+
+        $rows = array_merge($rowCL, $rowCF);
         return $rows;
-        
     }
 
 	/**

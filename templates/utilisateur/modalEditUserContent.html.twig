@@ -20,6 +20,14 @@
             <label for="password2">Confirmer mot de passe</label>
             <input type="password" class="form-control data optional-password" name="password2">
         </div>
+        <div class="form-group col-12">
+            <label for="type">Type</label>
+            <select name="type" class="form-control data">
+                {% for type in types %}
+                    <option value="{{ type.id }}" {{ user.type is not empty and type.label == user.type.label ? 'selected' : '' }}>{{ type.label }}</option>
+                {% endfor %}
+            </select>
+        </div>
         <div class="col-12 form-group">
             <div class="input-group radio-btn">
                 <div>

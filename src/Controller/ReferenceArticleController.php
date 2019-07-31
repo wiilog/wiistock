@@ -252,6 +252,12 @@ class ReferenceArticleController extends Controller
                         "class" => (in_array('Type', $columnsVisible) ? 'display' : 'hide'),
                     ],
                     [
+                        "title" => 'Statut',
+                        "data" => 'Statut',
+                        'name' => 'Statut',
+                        "class" => (in_array('Statut', $columnsVisible) ? 'display' : 'hide'),
+                    ],
+                    [
                         "title" => 'Quantité',
                         "data" => 'Quantité',
                         'name' => 'Quantité',
@@ -280,7 +286,6 @@ class ReferenceArticleController extends Controller
                     ];
                 }
             }
-
             return new JsonResponse($columns);
         }
         throw new NotFoundHttpException("404");
@@ -296,7 +301,6 @@ class ReferenceArticleController extends Controller
                 return $this->redirectToRoute('access_denied');
             }
             $data = $this->refArticleDataService->getDataForDatatable($request->request);
-
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
@@ -425,6 +429,7 @@ class ReferenceArticleController extends Controller
                 "Type" => ($refArticle->getType() ? $refArticle->getType()->getLabel() : ""),
                 "Quantité" => $refArticle->getQuantiteStock(),
                 "Emplacement" => $emplacement,
+                "Statut" => $refArticle->getStatut(),
                 "Commentaire" => $refArticle->getCommentaire(),
                 'Actions' => $this->renderView('reference_article/datatableReferenceArticleRow.html.twig', [
                     'idRefArticle' => $refArticle->getId(),
@@ -482,6 +487,11 @@ class ReferenceArticleController extends Controller
             'label' => 'Type',
             'id' => 0,
             'typage' => 'list'
+        ];
+        $champF[] = [
+            'label' => 'Statut',
+            'id' => 0,
+            'typage' => 'text'
         ];
         $champF[] = [
             'label' => 'Quantité',
@@ -560,6 +570,7 @@ class ReferenceArticleController extends Controller
                 'champsLibres' => $champsLibres,
             ];
         }
+        $filter = $this->filterRepository->findByUserAndStatut($this->getUser()->getId());
         return $this->render('reference_article/index.html.twig', [
             'champs' => $champs,
             'champsSearch' => $champsSearch,
@@ -569,7 +580,8 @@ class ReferenceArticleController extends Controller
             'types' => $types,
             'emplacements' => $emplacements,
             'typeQuantite' => $typeQuantite,
-            'filters' => $this->filterRepository->findBy(['utilisateur' => $this->getUser()]),
+            'filters' => $this->filterRepository->findByUserAndNoStatut($this->getUser()->getId()),
+            'wantInactif' => !empty($filter) && $filter->getValue() === Article::STATUT_INACTIF
         ]);
     }
 
@@ -1068,8 +1080,9 @@ class ReferenceArticleController extends Controller
         $filters = $this->filterRepository->getFieldsAndValuesByUser($userId);
         $queryResult = $this->referenceArticleRepository->findByFiltersAndParams($filters, $params, $this->user);
         $refs = $queryResult['data'];
-
+        $data = json_decode($request->getContent(), true);
         $refsString = [];
+        $refs = array_slice($refs, $data['start'] ,$data['length']);
         foreach ($refs as $ref) {
             $refsString[] = $ref->getReference();
         }
@@ -1090,7 +1103,38 @@ class ReferenceArticleController extends Controller
         } else {
             throw new NotFoundHttpException('404');
         }
+    }
 
+    /**
+     * @Route("/show-actif-inactif", name="reference_article_actif_inactif", options={"expose"=true})
+     */
+    public function displayActifOrInactif(Request $request) : Response
+    {
+        if ($request->isXmlHttpRequest() && $data= json_decode($request->getContent(), true)){
 
+            $user = $this->getUser();
+            $userId = $user->getId();
+            $statutArticle = $data['donnees'];
+
+            $filter = $this->filterRepository->findByUserAndStatut($userId);
+
+            $em = $this->getDoctrine()->getManager();
+            if($filter == null){
+                $filter = new Filter();
+                $filter
+                    ->setUtilisateur($user)
+                    ->setChampFixe('Statut')
+                    ->setValue('actif');
+                $em->persist($filter);
+            }
+
+            if ($filter->getValue() != $statutArticle) {
+                $filter->setValue($statutArticle);
+            }
+            $em->flush();
+
+            return new JsonResponse();
+        }
+        throw new NotFoundHttpException('404');
     }
 }

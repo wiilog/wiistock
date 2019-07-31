@@ -21,6 +21,13 @@
             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                 <a class="dropdown-item" data-toggle="modal" data-target="#modalColumnVisible" href="#">Modifier colonnes</a>
                 <a class="dropdown-item" data-toggle="modal" data-target="#modalRapidSearch" href="#">Recherche rapide</a>
+                <div class="statut dropdown-item" >
+                    Statut article actif
+                    <label class="switch">
+                        <input class="checkbox" type="checkbox" {{ wantInactif == false ? 'checked' : '' }} onchange="displayActifOrInactif($(this))">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
             </div>
         </div>
         {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
@@ -29,7 +36,7 @@
             <i class="fa fa-plus mr-2"></i>Nouvel article de référence
         </div>
         {% endif %}
-        <div class = "printButton d-none">
+        <div class = "printButton {{ filters | length > 0 ? '' : 'd-none' }}">
             <div data-toggle="modal" id="printTag" class="btn btn-action btn-primary"
                  onclick="getDataAndPrintLabels()">
                 <i class="fas fa-print"></i> Imprimer les étiquettes

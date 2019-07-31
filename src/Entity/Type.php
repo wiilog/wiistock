@@ -89,6 +89,11 @@ class Type
      */
     private $collectes;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Utilisateur", mappedBy="type")
+     */
+    private $utilisateurs;
+
     public function __construct()
     {
         $this->champsLibres = new ArrayCollection();
@@ -98,6 +103,7 @@ class Type
         $this->litiges = new ArrayCollection();
         $this->demandesLivraison = new ArrayCollection();
         $this->collectes = new ArrayCollection();
+        $this->utilisateurs = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -376,6 +382,37 @@ class Type
     public function setDescription(?string $description): self
     {
         $this->description = $description;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Utilisateur[]
+     */
+    public function getUtilisateurs(): Collection
+    {
+        return $this->utilisateurs;
+    }
+
+    public function addUtilisateur(Utilisateur $utilisateur): self
+    {
+        if (!$this->utilisateurs->contains($utilisateur)) {
+            $this->utilisateurs[] = $utilisateur;
+            $utilisateur->setType($this);
+        }
+
+        return $this;
+    }
+
+    public function removeUtilisateur(Utilisateur $utilisateur): self
+    {
+        if ($this->utilisateurs->contains($utilisateur)) {
+            $this->utilisateurs->removeElement($utilisateur);
+            // set the owning side to null (unless already changed)
+            if ($utilisateur->getType() === $this) {
+                $utilisateur->setType(null);
+            }
+        }
 
         return $this;
     }
