@@ -12,12 +12,10 @@
         <span class="fa fa-plus mr-2"></span>Nouvel emplacement
     </a>
     {% endif %}
-    <div class = "printButton d-none">
-        <div data-toggle="modal" id="printTag" class="btn btn-action btn-primary"
+        <button data-toggle="modal" id="btnPrint" class="btn btn-disabled printButton"
              onclick="getDataAndPrintLabels()">
             <i class="fas fa-print"></i> Imprimer les étiquettes
-        </div>
-    </div>
+        </button>
 </div>
 
 <input type="hidden" id="listEmplacementIdToPrint">
