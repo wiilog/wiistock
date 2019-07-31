@@ -64,3 +64,8 @@ class='accueil-back'
 </div>
 
 {% endblock %}
+
+{% block javascript %}
+<script src="{{asset('js/login.js')}}?{{ date().timestamp }}"></script>
+
+{% endblock %}
