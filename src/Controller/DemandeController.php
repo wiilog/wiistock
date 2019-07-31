@@ -419,6 +419,11 @@ class DemandeController extends AbstractController
             $statut = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
             $destination = $this->emplacementRepository->find($data['destination']);
             $type = $this->typeRepository->find($data['type']);
+
+            $i =  1;
+            //TODO compter nombre de demandes
+            $cpt = sprintf('%04u', $i);
+
             $demande = new Demande();
             $demande
                 ->setStatut($statut)
@@ -426,7 +431,7 @@ class DemandeController extends AbstractController
                 ->setdate($date)
 				->setType($type)
                 ->setDestination($destination)
-                ->setNumero('D-' . $date->format('YmdHis'))
+                ->setNumero('D-' . $date->format('ym') . $cpt)
                 ->setCommentaire($data['commentaire']);
             $em->persist($demande);
 
