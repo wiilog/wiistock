@@ -9,6 +9,7 @@ function filtreDemande(valeur){
     } else if (valeur === 'service'){
         path = 'service_filtre_indicateur_accueil';
     }
+
     let params = {
         filtre: indicateurAccueil
     };
@@ -17,15 +18,15 @@ function filtreDemande(valeur){
 }
 
 $(document).ready(() => {
-   if($('#statut').val($('#filtreRedirectDemande').val())){
+   if($('#filtreRedirectDemande').val()){
        $('#statut').val($('#filtreRedirectDemande').val());
        $('#submitSearchDemandeLivraison').click();
    }
-   if($('#statut').val($('#filtreRedirectCollecte').val())){
+   if($('#filtreRedirectCollecte').val()){
        $('#statut').val($('#filtreRedirectCollecte').val());
        $('#submitSearchCollecte').click();
    }
-    if($('#statut').val($('#filtreRedirectService').val())){
+    if($('#filtreRedirectService').val()){
         $('#statut').val($('#filtreRedirectService').val());
         $('#submitSearchService').click();
     }
