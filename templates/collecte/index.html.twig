@@ -38,7 +38,7 @@
                 </tbody>
             </table>
         </div>
-    
+    <input hidden value="{{ statutF }}" id="filtreRedirectCollecte">
 </div>
 {% include "collecte/modalNewCollecte.html.twig" %}
 {% include "collecte/modalEditCollecte.html.twig" %}
@@ -51,4 +51,5 @@
     let id = 0;
 </script>
 <script src="{{ asset('js/collecte.js') }}?{{ date().timestamp }}"></script>
+<script src="{{ asset('js/accueil.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

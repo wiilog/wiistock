@@ -552,9 +552,9 @@ class DemandeController extends AbstractController
     }
 
     /**
-     * @Route("/filtre-indicateur-accueil-{filtre}", name="filtre_indicateur_accueil", options={"expose"=true},  methods={"GET", "POST"})
+     * @Route("/demande-filtre-indicateur-accueil-{filtre}", name="demande_filtre_indicateur_accueil", options={"expose"=true},  methods={"GET", "POST"})
      */
-    public function filtrerIndicateurAccueil(Request $request, $filtre): Response
+    public function filtrerIndicateurAccueil($filtre): Response
     {
         if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::LIST)) {
             return $this->redirectToRoute('access_denied');

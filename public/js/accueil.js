@@ -3,9 +3,9 @@ function filtreDemande(valeur){
     let path = '';
 
     if(valeur === 'demandeT' || valeur === 'demandeP'){
-        path = 'filtre_indicateur_accueil';
+        path = 'demande_filtre_indicateur_accueil';
     } else if (valeur === 'collecte') {
-        path = 'collecte_index';
+        path = 'collecte_filtre_indicateur_accueil';
     } else if (valeur === 'service'){
         path = 'service_index';
     }
@@ -17,8 +17,14 @@ function filtreDemande(valeur){
 }
 
 $(document).ready(() => {
-    $('#statut').val($('#filtreRedirect').val());
-    $('#submitSearchDemandeLivraison').click();
+   if($('#statut').val($('#filtreRedirectDemande').val())){
+       $('#statut').val($('#filtreRedirectDemande').val());
+       $('#submitSearchDemandeLivraison').click();
+   }
+   if($('#statut').val($('#filtreRedirectCollecte').val())){
+       $('#statut').val($('#filtreRedirectCollecte').val());
+       $('#submitSearchCollecte').click();
+   }
 });
 
 $('#submitSearchDemandeLivraison').on('click', function () {
@@ -65,5 +71,53 @@ $('#submitSearchDemandeLivraison').on('click', function () {
         }
     );
     tableDemande
+        .draw();
+});
+
+$('#submitSearchCollecte').on('click', function () {
+    let statut = $('#statut').val();
+    let type = $('#type').val();
+    let demandeur = $('#utilisateur').val()
+    let demandeurString = demandeur.toString();
+    let demandeurPiped = demandeurString.split(',').join('|')
+
+    table
+        .columns('Statut:name')
+        .search(statut ? '^' + statut + '$' : '', true, false)
+        .draw();
+
+    table
+        .columns('Type:name')
+        .search(type ? '^' + type + '$' : '', true, false)
+        .draw();
+
+    table
+        .columns('Demandeur:name')
+        .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
+        .draw();
+
+    $.fn.dataTable.ext.search.push(
+        function (settings, data, dataIndex) {
+            let dateMin = $('#dateMin').val();
+            let dateMax = $('#dateMax').val();
+            let indexDate = table.column('Création:name').index();
+            let dateInit = (data[indexDate]).split('/').reverse().join('-') || 0;
+
+            if (
+                (dateMin == "" && dateMax == "")
+                ||
+                (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
+                ||
+                (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
+                ||
+                (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
+
+            ) {
+                return true;
+            }
+            return false;
+        }
+    );
+    table
         .draw();
 });
