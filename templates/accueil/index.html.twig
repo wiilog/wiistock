@@ -11,22 +11,22 @@ class='accueil-back'
         <div class="col-6 ">
             <div class="row justify-content-end">
                 <div class="col-7 mb-1 mt-1 alerte">
-                    <a href={{path('collecte_index')}}>
+                    <a href="{{path('collecte_index')}}" onclick="filtreDemande('collecte')">
                         <p><strong> Demandes de collecte à traiter : </strong>{{nbDemandeCollecte}}</p>
                     </a>
                 </div>
                 <div class="col-7 mb-1 mt-1 alerte">
-                    <a href={{path('demande_index')}}>
+                    <a href="#" onclick="filtreDemande('demandeT')">
                         <p><strong> Demandes de livraison à traiter : </strong>{{nbDemandeLivraisonAT}}</p>
                     </a>
                 </div>
                 <div class="col-7 mb-1 mt-1 alerte">
-                    <a href={{path('demande_index')}}>
+                    <a href="{{path('demande_index')}}" onclick="filtreDemande('demandeP')">
                         <p><strong> Demandes de livraison préparées : </strong>{{nbDemandeLivraisonP}}</p>
                     </a>
                 </div>
                 <div class="col-7 mb-1 mt-1 alerte">
-                    <a href={{path('service_index')}}>
+                    <a href="{{path('service_index')}}" onclick="filtreDemande('service')">
                         <p><strong> Demandes de manutentions à traiter : </strong>{{nbDemandeManutentionAT}}</p>
                     </a>
                 </div>
@@ -49,5 +49,5 @@ class='accueil-back'
 <script>
     const id = 0;
 </script>
-<script src="{{ asset('js/demande-livraison.js')}}?{{ date().timestamp }}"></script>
+<script src="{{ asset('js/accueil.js')}}?{{ date().timestamp }}"></script>
 {% endblock %}

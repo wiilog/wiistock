@@ -11,7 +11,6 @@
 <div class="container-fluid">
 
     <h1>Demandes de livraison</h1>
-
     <div class="row">
         {% if hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
         <div href="" data-toggle="modal" data-target="#modalNewDemande" class="btn btn-primary"
@@ -44,7 +43,7 @@
             </tbody>
         </table>
     </div>
-
+    <input hidden value="{{ statutF }}" id="filtreRedirect">
 
 
 </div>
@@ -58,4 +57,5 @@
     const id = 0;
 </script>
 <script src="{{ asset('js/demande-livraison.js')}}?{{ date().timestamp }}"></script>
+<script src="{{ asset('js/accueil.js')}}?{{ date().timestamp }}"></script>
 {% endblock %}

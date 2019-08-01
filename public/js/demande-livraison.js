@@ -148,6 +148,7 @@ function setMaxQuantity(select) {
 }
 
 
+
 $('.ajax-autocomplete').select2({
     ajax: {
         url: Routing.generate('get_ref_articles'),
@@ -389,5 +390,3 @@ $('#submitSearchDemandeLivraison').on('keypress', function (e) {
         $('#submitSearchDemandeLivraison').click();
     }
 });
-
-
