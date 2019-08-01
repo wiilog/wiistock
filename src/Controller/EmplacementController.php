@@ -203,16 +203,18 @@ class EmplacementController extends AbstractController
     }
 
     /**
-     * @Route("/verification", name="emplacement_check_delete", options={"expose"=true})
+     * @Route("/verification", name="emplacement_check_delete", options={"expose"=true}, methods="GET|POST")
      */
     public function checkEmplacementCanBeDeleted(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $emplacementId = json_decode($request->getContent(), true)) {
+
             if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
             }
 
             if ($this->countUsedEmplacements($emplacementId) == 0) {
+                dump('ok');
                 $delete = true;
                 $html = $this->renderView('emplacement/modalDeleteEmplacementRight.html.twig');
             } else {

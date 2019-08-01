@@ -25,12 +25,13 @@ class MouvementStockRepository extends ServiceEntityRepository
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
+            /** @lang DQL */
             "SELECT COUNT(m)
             FROM App\Entity\MouvementStock m
-            JOIN m.emplacement empl
-            WHERE empl.id = :emplacementId"
+            JOIN m.emplacementFrom ef
+            JOIN m.emplacementTo et
+            WHERE ef.id = :emplacementId OR et.id =:emplacementId"
         )->setParameter('emplacementId', $emplacementId);
-
         return $query->getSingleScalarResult();
     }
 
