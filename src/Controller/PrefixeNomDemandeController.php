@@ -70,10 +70,7 @@ class PrefixeNomDemandeController extends AbstractController
                 $prefixeDemande->setPrefixe($data['prefixe']);
             }
             $em->flush();
-            return new JsonResponse([
-                'typeDemande' => $prefixeDemande->getTypeDemandeAssociee(),
-                'prefixe' => $prefixeDemande->getPrefixe()
-            ]);
+            return new JsonResponse(['typeDemande' => $data['typeDemande'], 'prefixe' => $data['prefixe']]);
         }
         throw new NotFoundHttpException("404");
     }
