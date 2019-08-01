@@ -118,6 +118,23 @@ class ServiceController extends AbstractController
             'statuts' => $this->statutRepository->findByCategorieName(Service::CATEGORIE),
         ]);
     }
+
+    /**
+     * @Route("/service-filtre-indicateur-accueil", name="service_filtre_indicateur_accueil", methods={"GET", "POST"}, options={"expose"=true},)
+     */
+    public function filtrerIndicateurAccueil(): Response
+    {
+        if (!$this->userService->hasRightFunction(Menu::MANUT, Action::LIST)) {
+            return $this->redirectToRoute('access_denied');
+        }
+
+        return $this->render('service/index.html.twig', [
+            'utilisateurs' => $this->utilisateurRepository->findAll(),
+            'statuts' => $this->statutRepository->findByCategorieName(Service::CATEGORIE),
+            'statutF' => Service::STATUT_A_TRAITER
+        ]);
+    }
+
     /**
      * @Route("/voir", name="service_show", options={"expose"=true}, methods="GET|POST")
      */

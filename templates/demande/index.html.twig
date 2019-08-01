@@ -43,7 +43,9 @@
             </tbody>
         </table>
     </div>
+    {% if statutF is defined %}
     <input hidden value="{{ statutF }}" id="filtreRedirectDemande">
+    {% endif %}
 </div>
 {% include "demande/modalNewDemande.html.twig" %}
 {% include "demande/modalShowDemande.html.twig" %}

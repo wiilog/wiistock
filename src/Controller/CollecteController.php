@@ -152,9 +152,9 @@ class CollecteController extends AbstractController
     }
 
     /**
-     * @Route("/collecte-filtre-indicateur-accueil-{filtre}", name="collecte_filtre_indicateur_accueil", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/collecte-filtre-indicateur-accueil", name="collecte_filtre_indicateur_accueil", options={"expose"=true}, methods={"GET", "POST"})
      */
-    public function filtrerIndicateurAccueil($filtre): Response
+    public function filtrerIndicateurAccueil(): Response
     {
         if (!$this->userService->hasRightFunction(Menu::DEM_COLLECTE, Action::LIST)) {
             return $this->redirectToRoute('access_denied');

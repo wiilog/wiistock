@@ -7,7 +7,7 @@ function filtreDemande(valeur){
     } else if (valeur === 'collecte') {
         path = 'collecte_filtre_indicateur_accueil';
     } else if (valeur === 'service'){
-        path = 'service_index';
+        path = 'service_filtre_indicateur_accueil';
     }
     let params = {
         filtre: indicateurAccueil
@@ -25,6 +25,10 @@ $(document).ready(() => {
        $('#statut').val($('#filtreRedirectCollecte').val());
        $('#submitSearchCollecte').click();
    }
+    if($('#statut').val($('#filtreRedirectService').val())){
+        $('#statut').val($('#filtreRedirectService').val());
+        $('#submitSearchService').click();
+    }
 });
 
 $('#submitSearchDemandeLivraison').on('click', function () {
@@ -119,5 +123,49 @@ $('#submitSearchCollecte').on('click', function () {
         }
     );
     table
+        .draw();
+});
+
+$('#submitSearchService').on('click', function () {
+
+    let statut = $('#statut').val();
+    let demandeur = $('#utilisateur').val()
+    let demandeurString = demandeur.toString();
+    demandeurPiped = demandeurString.split(',').join('|')
+
+    tableService
+        .columns('Statut:name')
+        .search(statut ? '^' + statut + '$' : '', true, false)
+        .draw();
+
+    tableService
+        .columns('Demandeur:name')
+        .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
+        .draw();
+
+    $.fn.dataTable.ext.search.push(
+        function (settings, data) {
+            let dateMin = $('#dateMin').val();
+            let dateMax = $('#dateMax').val();
+            let indexDate = tableService.column('Date:name').index();
+            let dateInit = (data[indexDate]).split('/').reverse().join('-') || 0;
+
+            if (
+                (dateMin == "" && dateMax == "")
+                ||
+                (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
+                ||
+                (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
+                ||
+                (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
+
+            ) {
+                return true;
+            }
+            return false;
+        }
+
+    );
+    tableService
         .draw();
 });
