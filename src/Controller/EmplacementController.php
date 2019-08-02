@@ -222,12 +222,16 @@ class EmplacementController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            if ($this->countUsedEmplacements($emplacementId) == 0) {
+            $isUsedBy = $this->isEmplacementUsed($emplacementId);
+            if (empty($isUsedBy)) {
                 $delete = true;
                 $html = $this->renderView('emplacement/modalDeleteEmplacementRight.html.twig');
             } else {
                 $delete = false;
-                $html = $this->renderView('emplacement/modalDeleteEmplacementWrong.html.twig', ['delete' => false]);
+                $html = $this->renderView('emplacement/modalDeleteEmplacementWrong.html.twig', [
+                    'delete' => false,
+                    'isUsedBy' => $isUsedBy
+                ]);
             }
 
             return new JsonResponse(['delete' => $delete, 'html' => $html]);
@@ -235,16 +239,33 @@ class EmplacementController extends AbstractController
         throw new NotFoundHttpException('404');
     }
 
-    private function countUsedEmplacements($emplacementId)
+    /**
+     * @param int $emplacementId
+     * @return array
+     */
+    private function isEmplacementUsed($emplacementId)
     {
-        $usedEmplacement = $this->demandeRepository->countByEmplacement($emplacementId);
-        $usedEmplacement += $this->livraisonRepository->countByEmplacement($emplacementId);
-        $usedEmplacement += $this->collecteRepository->countByEmplacement($emplacementId);
-        $usedEmplacement += $this->mouvementStockRepository->countByEmplacement($emplacementId);
-        $usedEmplacement += $this->referenceArticleRepository->countByEmplacement($emplacementId);
-        $usedEmplacement += $this->articleRepository->countByEmplacement($emplacementId);
+        $usedBy = [];
 
-        return $usedEmplacement;
+        $demandes = $this->demandeRepository->countByEmplacement($emplacementId);
+        if ($demandes > 0) $usedBy[] = 'demandes';
+
+        $livraisons = $this->livraisonRepository->countByEmplacement($emplacementId);
+        if ($livraisons > 0) $usedBy[] = 'livraisons';
+
+        $collectes = $this->collecteRepository->countByEmplacement($emplacementId);
+        if ($collectes > 0) $usedBy[] = 'collectes';
+
+        $mouvementsStock = $this->mouvementStockRepository->countByEmplacement($emplacementId);
+        if ($mouvementsStock > 0) $usedBy[] = 'mouvements de stock';
+
+        $refArticle = $this->referenceArticleRepository->countByEmplacement($emplacementId);
+        if ($refArticle > 0)$usedBy[] = 'références article';
+
+        $articles = $this->articleRepository->countByEmplacement($emplacementId);
+        if ($articles > 0) $usedBy[] ='articles';
+
+        return $usedBy;
     }
 
     /**
@@ -257,18 +278,18 @@ class EmplacementController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $entityManager = $this->getDoctrine()->getManager();
             if ($emplacementId = (int)$data['emplacement']) {
 
                 $emplacement = $this->emplacementRepository->find($emplacementId);
 
                 // on vérifie que l'emplacement n'est plus utilisé
-                $usedEmplacement = $this->countUsedEmplacements($emplacementId);
+                $usedEmplacement = $this->isEmplacementUsed($emplacementId);
 
-                if ($usedEmplacement > 0) {
+                if (!empty($usedEmplacement)) {
                     return new JsonResponse(false);
                 }
 
+                $entityManager = $this->getDoctrine()->getManager();
                 $entityManager->remove($emplacement);
                 $entityManager->flush();
                 return new JsonResponse();
