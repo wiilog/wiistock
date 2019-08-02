@@ -6,14 +6,18 @@ use App\Entity\Action;
 use App\Entity\DimensionsEtiquettes;
 use App\Entity\Emplacement;
 use App\Entity\Menu;
+
 use App\Repository\CollecteRepository;
 use App\Repository\DemandeRepository;
 use App\Repository\DimensionsEtiquettesRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\LivraisonRepository;
 use App\Repository\MouvementStockRepository;
+use App\Repository\ReferenceArticleRepository;
+
 use App\Service\UserService;
 use App\Service\EmplacementDataService;
+
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -61,7 +65,7 @@ class EmplacementController extends AbstractController
     /**
      * @var MouvementStockRepository
      */
-    private $mouvementRepository;
+    private $mouvementStockRepository;
 
     /**
      * @var UserService
@@ -73,8 +77,12 @@ class EmplacementController extends AbstractController
      */
     private $dimensionsEtiquettesRepository;
 
+    /**
+     * @var ReferenceArticleRepository
+     */
+    private $referenceArticleRepository;
 
-    public function __construct(DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, EmplacementDataService $emplacementDataService, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, UserService $userService, DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, CollecteRepository $collecteRepository, MouvementStockRepository $mouvementRepository)
+    public function __construct(ReferenceArticleRepository $referenceArticleRepository, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, EmplacementDataService $emplacementDataService, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, UserService $userService, DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, CollecteRepository $collecteRepository, MouvementStockRepository $mouvementStockRepository)
     {
         $this->emplacementDataService = $emplacementDataService;
         $this->emplacementRepository = $emplacementRepository;
@@ -83,8 +91,9 @@ class EmplacementController extends AbstractController
         $this->demandeRepository = $demandeRepository;
         $this->livraisonRepository = $livraisonRepository;
         $this->collecteRepository = $collecteRepository;
-        $this->mouvementRepository = $mouvementRepository;
+        $this->mouvementStockRepository = $mouvementStockRepository;
         $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
+        $this->referenceArticleRepository = $referenceArticleRepository;
     }
 
     /**
@@ -214,7 +223,6 @@ class EmplacementController extends AbstractController
             }
 
             if ($this->countUsedEmplacements($emplacementId) == 0) {
-                dump('ok');
                 $delete = true;
                 $html = $this->renderView('emplacement/modalDeleteEmplacementRight.html.twig');
             } else {
@@ -232,7 +240,9 @@ class EmplacementController extends AbstractController
         $usedEmplacement = $this->demandeRepository->countByEmplacement($emplacementId);
         $usedEmplacement += $this->livraisonRepository->countByEmplacement($emplacementId);
         $usedEmplacement += $this->collecteRepository->countByEmplacement($emplacementId);
-        $usedEmplacement += $this->mouvementRepository->countByEmplacement($emplacementId);
+        $usedEmplacement += $this->mouvementStockRepository->countByEmplacement($emplacementId);
+        $usedEmplacement += $this->referenceArticleRepository->countByEmplacement($emplacementId);
+        $usedEmplacement += $this->articleRepository->countByEmplacement($emplacementId);
 
         return $usedEmplacement;
     }
@@ -247,6 +257,7 @@ class EmplacementController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
+            $entityManager = $this->getDoctrine()->getManager();
             if ($emplacementId = (int)$data['emplacement']) {
 
                 $emplacement = $this->emplacementRepository->find($emplacementId);
@@ -258,7 +269,6 @@ class EmplacementController extends AbstractController
                     return new JsonResponse(false);
                 }
 
-                $entityManager = $this->getDoctrine()->getManager();
                 $entityManager->remove($emplacement);
                 $entityManager->flush();
                 return new JsonResponse();
