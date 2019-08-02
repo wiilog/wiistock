@@ -713,36 +713,55 @@ class ReceptionController extends AbstractController
         return new JsonResponse($quantiteStock);
     }
 
+//    /**
+//     * @Route("/article-fournisseur", name="get_article_fournisseur", options={"expose"=true}, methods={"GET", "POST"})
+//     */
+//    public function getArticleFournisseur(Request $request)
+//    {
+//        if (!$request->isXmlHttpRequest() &&  $data = json_decode($request->getContent(), true)) {
+//            if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::LIST)) {
+//                return $this->redirectToRoute('access_denied');
+//            }
+//            $json = null;
+//            $refArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
+//
+//            if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
+//                $fournisseur = $this->fournisseurRepository->find($data['fournisseur']);
+//                $articlesFournisseurs = $this->articleFournisseurRepository->getByRefArticleAndFournisseur($refArticle, $fournisseur);
+//                if ($articlesFournisseurs !== null) {
+//                    $json = [
+//                        "option" => $this->renderView(
+//                            'reception/optionArticleFournisseur.html.twig',
+//                            [
+//                                'articlesFournisseurs' =>  $articlesFournisseurs,
+//                            ]
+//                        )
+//                    ];
+//                }
+//            }
+//            return new JsonResponse($json);
+//        }
+//        throw new NotFoundHttpException("404");
+//    }
+
     /**
-     * @Route("/article-fournisseur", name="get_article_fournisseur", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/check-if-quantity-article", name="check_if_quantity_article", options={"expose"=true}, methods={"GET", "POST"})
      */
-    public function getArticleFournisseur(Request $request)
+    public function checkIfQuantityArticle(Request $request) : Response
     {
-        if (!$request->isXmlHttpRequest() &&  $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
             }
-            $json = null;
-            $refArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
 
-            if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE) {
-                $fournisseur = $this->fournisseurRepository->find($data['fournisseur']);
-                $articlesFournisseurs = $this->articleFournisseurRepository->getByRefArticleAndFournisseur($refArticle, $fournisseur);
-                if ($articlesFournisseurs !== null) {
-                    $json = [
-                        "option" => $this->renderView(
-                            'reception/optionArticleFournisseur.html.twig',
-                            [
-                                'articlesFournisseurs' =>  $articlesFournisseurs,
-                            ]
-                        )
-                    ];
-                }
-            }
-            return new JsonResponse($json);
+            $refArticle = $this->referenceArticleRepository->find($data['reference']);
+            $typeQuantite = $refArticle->getTypeQuantite();
+
+            return new JsonResponse($typeQuantite);
         }
         throw new NotFoundHttpException("404");
     }
+
 
     /**
      * @Route("/articlesRefs", name="get_article_refs", options={"expose"=true}, methods={"GET", "POST"})     

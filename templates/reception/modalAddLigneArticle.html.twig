@@ -1,5 +1,5 @@
 <form method="" class="modal fade" id="modalAddLigneArticle" role="dialog" aria-labelledby="dataModalCenterTitle"
-    aria-hidden="true">
+             aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -18,14 +18,8 @@
                                 Référence*
                             {% endif %}
                         </label>
-                        <select class="ajax-autocomplete data form-control needed" onchange="getArticleFournisseur()" id="referenceCEA"
-                            name="referenceArticle">
-                        </select>
-                    </div>
-                    <div class="form-group w-100 col-6">
-                        <label for="fournisseur">Fournisseur*</label>
-                        <select class="form-control data ajax-autocomplete-fournisseur needed" name="fournisseur"
-                            id="fournisseurAddArticle">
+                        <select class="ajax-autocomplete data form-control needed" onchange="checkIfQuantityArticle()"
+                                id="referenceCEA" name="referenceArticle">
                         </select>
                     </div>
                     <div id='articleFournisseurAddArticle' class="form-group d-none w-100 col-6">
@@ -33,9 +27,15 @@
                         <select class="form-control data" name="articleFournisseur" id="articleFournisseur">
                         </select>
                     </div>
-                    <div class="form-group col-6">
+
+{#                    <div class="form-group col-12">#}
+{#                        <label for="qt">qt</label>#}
+                        <input hidden class="form-control data needed typeQuantite" type="text" name="typeQuantite">
+{#                    </div>#}
+
+                    <div class="form-group col-12">
                         <label for="libelle">Libellé</label>
-                         <input class="form-control data needed" type="text" name="libelle" id="libelle">
+                        <input class="form-control data needed" type="text" name="libelle">
                     </div>
                     <div class="form-group col-6">
                         <label for="">Quantité à recevoir*</label>
@@ -43,7 +43,7 @@
                     </div>
                     <div class="form-group col-6">
                         <label for="">Quantité reçue</label>
-                        <input type="number" class="form-control data" name="quantite" id="quantite" min=0>
+                        <input type="number" class="form-control data" name="quantite" id="quantite" min=0 disabled>
                     </div>
                     <div class="form-group col-6">
                         <label>Anomalie</label>
@@ -65,7 +65,10 @@
             <div class="modal-footer">
                 <button type="button" class="btn" data-dismiss="modal">Annuler</button>
                 <button type="button" id="addArticleLigneSubmit" class="btn btn-success data"
-                    name="reception" value="{{reception.id}}" onclick="setCommentaire('.editor-container'), resetNewArticle($('#articleFournisseurAddArticle'))">Enregistrer</button>
+                        name="reception" value="{{ reception.id }}"
+                        onclick="setCommentaire('.editor-container'), resetNewArticle($('#articleFournisseurAddArticle'))">
+                    Enregistrer
+                </button>
             </div>
         </div>
     </div>

@@ -185,7 +185,7 @@ let printerAll = function () {
 function updateStock(select) {
     let id = select.val();
     $.post(Routing.generate('get_article_stock'), { 'id': id }, function (data) {
-        $('#stock').val(data);
+        $('.stock').val(data);
     }, "json");
 }
 
@@ -306,21 +306,6 @@ $('.ajax-autocomplete').select2({
 //         xhttp.send(json);
 //     }
 // }
-
-function getArticleFournisseur(){
-    let path = Routing.generate('get_article_fournisseur', true);
-    let referenceArticle = $('#referenceCEA').val();
-    let fournisseur = $('#fournisseurAddArticle').val();
-    let params = JSON.stringify({referenceArticle: referenceArticle, fournisseur: fournisseur});
-    $.post(path, params, function(data) {
-        if(data.option){
-            let articleFournisseur = $('#articleFournisseur');
-            articleFournisseur.parent('div').removeClass('d-none');
-            articleFournisseur.parent('div').addClass('d-block');
-            articleFournisseur.html(data.option);
-        }
-    },'json');
-}
 
 let resetNewArticle = function (element) {
     element.removeClass('d-block');
@@ -539,5 +524,15 @@ function printSingleArticleBarcode(button) {
         } else {
             $('#cannotGenerate').click();
         }
+    });
+}
+
+function checkIfQuantityArticle(){
+    let reference = $('#referenceCEA').val();
+    let path = Routing.generate('check_if_quantity_article');
+    let params = JSON.stringify({reference: reference});
+
+    $.post(path, params, function(data){
+        $('#modalAddLigneArticle').find('.typeQuantite').val(data);
     });
 }

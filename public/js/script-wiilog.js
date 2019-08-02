@@ -65,17 +65,22 @@ function submitAction(modal, path, table, callback, close) {
             // on enlève l'éventuelle * du nom du label
             label = label.replace(/\*/, '');
             missingInputs.push(label);
+           // if($('.typeQuantite').val() === 'reference'){
+           //
+           // };
             $(this).addClass('is-invalid');
             $(this).next().find('.select2-selection').addClass('is-invalid');
+
         }else{
             $(this).removeClass('is-invalid');
         }
         // validation valeur des inputs de type number
-        if ($(this).attr('type') === 'number') {
-            let val = parseInt($(this).val());
+        if ($(this).attr('type') === 'number' && $(this).hasClass('needed')) {
+            let val = $(this).val();
             let min = parseInt($(this).attr('min'));
             let max = parseInt($(this).attr('max'));
-            if (val > max || val < min) {
+            console.log(val);
+            if (val > max || val < min || val === '') {
                 wrongNumberInputs.push($(this));
                 $(this).addClass('is-invalid');
             }else{
