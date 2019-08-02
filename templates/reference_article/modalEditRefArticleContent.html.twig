@@ -13,14 +13,14 @@
             <label for="statut" class="mtb-auto mr-2 ">Statut</label>
             <div>
                 {% set actif = (statut == constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF')) ? 'active' : 'not-active' %}
+                <span class="btn {{ actif }}" data-toggle="statut" data-title="{{ constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') }}"
+                      {% if editable %}onclick="toggleRadioButton($(this))" {% endif %}>
+                    {{ constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') }}
+                </span>
                 {% set inactif = (statut == constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF')) ? 'active' : 'not-active' %}
 
-                <span class="btn {{ actif }}" data-toggle="statut" data-title="{{ constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') }}"
-                    {% if editable %}onclick="toggleRadioButton($(this))" {% endif %}>
-                    {{ constant('App\\Entity\\ReferenceArticle::STATUT_ACTIF') }}
-                </span><span
-                    class="btn {{ inactif }}" data-toggle="statut" data-title="{{ constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF')}}"
-                    {% if editable %}onclick="toggleRadioButton($(this))" {% endif %}>
+                <span class="btn {{ inactif }}" data-toggle="statut" data-title="{{ constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF')}}"
+                      {% if editable %}onclick="toggleRadioButton($(this))" {% endif %}>
                     {{ constant('App\\Entity\\ReferenceArticle::STATUT_INACTIF') }}
                 </span>
             </div>
