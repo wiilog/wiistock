@@ -464,12 +464,18 @@ class ArticleDataService
         $entityManager = $this->em;
         $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $data['statut'] === Article::STATUT_ACTIF ? Article::STATUT_ACTIF : Article::STATUT_INACTIF);
         $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
-        $ref = $date->format('ym');
+        $formattedDate = $date->format('ym');
 
         $referenceArticle = $this->referenceArticleRepository->find($data['refArticle'])->getReference();
-        $referenceArticles = $this->articleRepository->countByReference($referenceArticle);
+        $references = $this->articleRepository->getReferencesByRefAndDate($referenceArticle, $formattedDate);
 
-        $i = $referenceArticles + 1;
+        $highestCpt = 0;
+        foreach ($references as $reference) {
+        	$cpt = (int)substr($reference, -5, 5);
+        	if ($cpt > $highestCpt) $highestCpt = $cpt;
+		}
+
+        $i = $highestCpt + 1;
         $cpt = sprintf('%05u', $i);
 
         $toInsert = new Article();
@@ -479,7 +485,7 @@ class ArticleDataService
             ->setConform(!$data['conform'])
             ->setStatut($statut)
             ->setCommentaire($data['commentaire'])
-            ->setReference($referenceArticle . $ref . $cpt)
+            ->setReference($referenceArticle . $formattedDate . $cpt)
             ->setQuantite(max((int)$data['quantite'], 0))// protection contre quantités négatives
             ->setEmplacement($this->emplacementRepository->find($data['emplacement']))
             ->setArticleFournisseur($this->articleFournisseurRepository->find($data['articleFournisseur']))
