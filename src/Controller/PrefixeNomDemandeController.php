@@ -51,9 +51,9 @@ class PrefixeNomDemandeController extends AbstractController
     }
 
     /**
-     * @Route("/ajax-prefixe-demande", name="ajax_prefixe_demande",  options={"expose"=true},  methods="GET|POST")
+     * @Route("/ajax-update-prefix-demand", name="ajax_update_prefix_demand",  options={"expose"=true},  methods="GET|POST")
      */
-    public function prefixDemande(Request $request): response
+    public function updatePrefixDemand(Request $request): response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $prefixeDemande =  $this->prefixeNomDemandeRepository->findOneByTypeDemande($data['typeDemande']);
@@ -74,4 +74,18 @@ class PrefixeNomDemandeController extends AbstractController
         }
         throw new NotFoundHttpException("404");
     }
+
+	/**
+	 * @Route("/ajax-get-prefix-demand", name="ajax_get_prefix_demand",  options={"expose"=true},  methods="GET|POST")
+	 */
+    public function getPrefixDemand(Request $request)
+	{
+		if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+			$prefixeNomDemande = $this->prefixeNomDemandeRepository->findOneByTypeDemande($data);
+			$prefix = $prefixeNomDemande ? $prefixeNomDemande->getPrefixe() : '';
+
+			return new JsonResponse($prefix);
+		}
+		throw new NotFoundHttpException("404");
+	}
 }

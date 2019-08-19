@@ -9,11 +9,12 @@
             <h1>Préfixage des noms de demandes</h1>
             <div class="form-group">
                 <label for="typeDemande">Type de demande</label>
-                <select name="typeDemande" class="form-control data d-block type" id="typeDemandePrefixageDemande">
+                <select name="typeDemande" class="form-control data d-block type" id="typeDemandePrefixageDemande" onchange="getPrefixDemand($(this))">
                     <option value="aucunPrefixe">Type demande à choisir...</option>
-                    <option value="livraison">Demande de livraison </option>
-                    <option value="collecte" hidden>Demande de collecte</option>
-                    <option value="manutention" hidden>Demande de manutention</option>
+                    <option value="{{ constant('App\\Entity\\PrefixeNomDemande::TYPE_LIVRAISON') }}">Demande de livraison </option>
+                    <option value="{{ constant('App\\Entity\\PrefixeNomDemande::TYPE_COLLECTE') }}" hidden>Demande de collecte</option>
+                    <option value="{{ constant('App\\Entity\\PrefixeNomDemande::TYPE_MANUT') }}" hidden>Demande de manutention</option>
+{#                    //TODO CG pourquoi hidden ? #}
                 </select>
             </div>
 
@@ -22,7 +23,7 @@
                 <input type="text" class="form-control data needed" name="prefixeDemande" id="prefixeDemande"
                    value="">
             </div>
-            <button type="button" class="btn btn-success" onclick="prefixDemand()">Enregistrer</button>
+            <button type="button" class="btn btn-success" onclick="updatePrefixDemand()">Enregistrer</button>
             <div class="error-msg p-4"></div>
         </form>
     </div>

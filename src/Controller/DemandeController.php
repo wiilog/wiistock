@@ -8,6 +8,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Demande;
 use App\Entity\Menu;
+use App\Entity\PrefixeNomDemande;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\LigneArticle;
@@ -426,15 +427,13 @@ class DemandeController extends AbstractController
             $destination = $this->emplacementRepository->find($data['destination']);
             $type = $this->typeRepository->find($data['type']);
 
-            $prefixeExist = $this->prefixeNomDemandeRepository->findOneByTypeDemande('livraison');
-            if($prefixeExist == null){
-                $prefixe='';
-            } else {
-                $prefixe = $prefixeExist->getPrefixe();
-            }
-            $demandeAlreadyExist = $this->demandeRepository->countByPrefixeAndDate($prefixe, $date->format('ym'));
+            $prefixeExist = $this->prefixeNomDemandeRepository->findOneByTypeDemande(PrefixeNomDemande::TYPE_LIVRAISON);
+            $prefixe = $prefixeExist ? $prefixeExist->getPrefixe() : '';
 
-            $i = $demandeAlreadyExist + 1;
+            $lastNumero = $this->demandeRepository->getLastNumeroByPrefixeAndDate($prefixe, $date->format('ym'));
+            $lastCpt = (int)substr($lastNumero, -4, 4);
+            $i = $lastCpt + 1;
+
             $cpt = sprintf('%04u', $i);
 
             $demande = new Demande();

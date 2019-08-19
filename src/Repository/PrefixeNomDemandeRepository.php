@@ -19,6 +19,11 @@ class PrefixeNomDemandeRepository extends ServiceEntityRepository
         parent::__construct($registry, PrefixeNomDemande::class);
     }
 
+	/**
+	 * @param string $typeDemande
+	 * @return PrefixeNomDemande|null
+	 * @throws \Doctrine\ORM\NonUniqueResultException
+	 */
     public function findOneByTypeDemande($typeDemande){
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(

@@ -9,6 +9,10 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class PrefixeNomDemande
 {
+	const TYPE_LIVRAISON = 'livraison';
+	const TYPE_COLLECTE = 'collecte';
+	const TYPE_MANUT = 'manutention';
+
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()
