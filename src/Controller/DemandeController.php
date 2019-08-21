@@ -581,49 +581,6 @@ class DemandeController extends AbstractController
     }
 
     /**
-     * @Route("/demande-filtre-indicateur-accueil-{filtre}", name="demande_filtre_indicateur_accueil", options={"expose"=true},  methods={"GET", "POST"})
-     */
-    public function filtrerIndicateurAccueil($filtre): Response
-    {
-        if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::LIST)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
-        $statut = '';
-        if ($filtre == 'demandeT') {
-            $statut = Demande::STATUT_A_TRAITER;
-        } elseif ($filtre == 'demandeP') {
-            $statut = Demande::STATUT_PREPARE;
-        }
-
-        if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::LIST)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
-        $types = $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
-
-        $typeChampLibre = [];
-        foreach ($types as $type) {
-            $champsLibres = $this->champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON);
-
-            $typeChampLibre[] = [
-                'typeLabel' => $type->getLabel(),
-                'typeId' => $type->getId(),
-                'champsLibres' => $champsLibres,
-            ];
-        }
-
-        return $this->render('demande/index.html.twig', [
-            'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
-            'statuts' => $this->statutRepository->findByCategorieName(Demande::CATEGORIE),
-            'emplacements' => $this->emplacementRepository->getIdAndNom(),
-            'typeChampsLibres' => $typeChampLibre,
-            'types' => $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON),
-            'statutF' => $statut
-        ]);
-    }
-
-    /**
      * @Route("/voir/{id}", name="demande_show", options={"expose"=true}, methods={"GET", "POST"})
      */
     public function show(Demande $demande): Response

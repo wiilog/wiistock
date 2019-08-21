@@ -35,9 +35,6 @@
 
         </table>
     </div>
-    {% if statutF is defined %}
-        <input hidden value="{{ statutF }}" id="filtreRedirectService">
-    {%  endif %}
 </div>
 {% include "service/modalDeleteService.html.twig" %}
 {% include "service/modalEditService.html.twig" %}
@@ -49,5 +46,4 @@
 
 {% block javascript %}
 <script src="{{ asset('js/service.js') }}?{{ date().timestamp }}"></script>
-<script src="{{ asset('js/accueil.js') }}?{{ date().timestamp }}"></script>
 {% endblock %}

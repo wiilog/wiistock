@@ -43,9 +43,9 @@
             </tbody>
         </table>
     </div>
-    {% if statutF is defined %}
-    <input hidden value="{{ statutF }}" id="filtreRedirectDemande">
-    {% endif %}
+
+
+
 </div>
 {% include "demande/modalNewDemande.html.twig" %}
 {% include "demande/modalShowDemande.html.twig" %}
@@ -57,5 +57,4 @@
     const id = 0;
 </script>
 <script src="{{ asset('js/demande-livraison.js')}}?{{ date().timestamp }}"></script>
-<script src="{{ asset('js/accueil.js')}}?{{ date().timestamp }}"></script>
 {% endblock %}
