@@ -8,6 +8,7 @@ use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
 use App\Entity\Demande;
 use App\Entity\Menu;
+use App\Entity\PrefixeNomDemande;
 use App\Entity\Preparation;
 use App\Entity\ReferenceArticle;
 use App\Entity\LigneArticle;
@@ -28,6 +29,7 @@ use App\Repository\UtilisateurRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\PreparationRepository;
 use App\Repository\ValeurChampsLibreRepository;
+use App\Repository\PrefixeNomDemandeRepository;
 
 use App\Service\ArticleDataService;
 use App\Service\RefArticleDataService;
@@ -125,13 +127,17 @@ class DemandeController extends AbstractController
 	 */
     private $parametreRoleRepository;
 
-	/**
-	 * @var ParametreRepository
-	 */
+    /**
+     * @var ParametreRepository
+     */
     private $parametreRepository;
 
+    /**
+     * @var PrefixeNomDemandeRepository
+     */
+    private $prefixeNomDemandeRepository;
 
-    public function __construct(ParametreRepository $parametreRepository, ParametreRoleRepository $parametreRoleRepository, ValeurChampsLibreRepository $valeurChampLibreRepository, CategorieCLRepository $categorieCLRepository, ChampsLibreRepository $champLibreRepository, TypeRepository $typeRepository, PreparationRepository $preparationRepository, ArticleRepository $articleRepository, LigneArticleRepository $ligneArticleRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, UserService $userService, RefArticleDataService $refArticleDataService, ArticleDataService $articleDataService)
+    public function __construct(PrefixeNomDemandeRepository $prefixeNomDemandeRepository, ParametreRepository $parametreRepository, ParametreRoleRepository $parametreRoleRepository, ValeurChampsLibreRepository $valeurChampLibreRepository, CategorieCLRepository $categorieCLRepository, ChampsLibreRepository $champLibreRepository, TypeRepository $typeRepository, PreparationRepository $preparationRepository, ArticleRepository $articleRepository, LigneArticleRepository $ligneArticleRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, UserService $userService, RefArticleDataService $refArticleDataService, ArticleDataService $articleDataService)
     {
         $this->statutRepository = $statutRepository;
         $this->emplacementRepository = $emplacementRepository;
@@ -150,6 +156,7 @@ class DemandeController extends AbstractController
         $this->valeurChampLibreRepository = $valeurChampLibreRepository;
         $this->parametreRoleRepository = $parametreRoleRepository;
         $this->parametreRepository = $parametreRepository;
+        $this->prefixeNomDemandeRepository = $prefixeNomDemandeRepository;
     }
 
     /**
@@ -419,6 +426,16 @@ class DemandeController extends AbstractController
             $statut = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
             $destination = $this->emplacementRepository->find($data['destination']);
             $type = $this->typeRepository->find($data['type']);
+
+            $prefixeExist = $this->prefixeNomDemandeRepository->findOneByTypeDemande(PrefixeNomDemande::TYPE_LIVRAISON);
+            $prefixe = $prefixeExist ? $prefixeExist->getPrefixe() : '';
+
+            $lastNumero = $this->demandeRepository->getLastNumeroByPrefixeAndDate($prefixe, $date->format('ym'));
+            $lastCpt = (int)substr($lastNumero, -4, 4);
+            $i = $lastCpt + 1;
+
+            $cpt = sprintf('%04u', $i);
+
             $demande = new Demande();
             $demande
                 ->setStatut($statut)
@@ -426,7 +443,7 @@ class DemandeController extends AbstractController
                 ->setdate($date)
 				->setType($type)
                 ->setDestination($destination)
-                ->setNumero('D-' . $date->format('YmdHis'))
+                ->setNumero($prefixe . $date->format('ym') . $cpt)
                 ->setCommentaire($data['commentaire']);
             $em->persist($demande);
 
