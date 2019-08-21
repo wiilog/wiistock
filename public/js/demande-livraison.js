@@ -389,5 +389,3 @@ $('#submitSearchDemandeLivraison').on('keypress', function (e) {
         $('#submitSearchDemandeLivraison').click();
     }
 });
-
-
