@@ -31,16 +31,4 @@ class ReceptionRepository extends ServiceEntityRepository
 		return $query->getSingleScalarResult();
 	}
 
-//    public function findForIndex()
-//    {
-//        $entityManager = $this->getEntityManager();
-//        $query = $entityManager->createQuery(
-//            "SELECT r.id, r.date, r.numeroReception, r.dateAttendu, s.nom as statut, f.nom as fournisseur
-//            FROM App\Entity\Receptions r
-//            JOIN r.statut s JOIN r.fournisseur f
-//           "
-//        );;
-//        return $query->execute();
-//    }
-
 }

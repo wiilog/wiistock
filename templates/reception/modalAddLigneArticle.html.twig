@@ -19,7 +19,7 @@
                             {% endif %}
                         </label>
                         <select class="ajax-autocomplete data form-control needed" onchange="checkIfQuantityArticle()"
-                                id="referenceCEA" name="referenceArticle">
+                                id="reference" name="referenceArticle">
                         </select>
                     </div>
                     <div id='articleFournisseurAddArticle' class="form-group d-none w-100 col-6">
@@ -28,14 +28,9 @@
                         </select>
                     </div>
 
-{#                    <div class="form-group col-12">#}
-{#                        <label for="qt">qt</label>#}
-                        <input hidden class="form-control data needed typeQuantite" type="text" name="typeQuantite">
-{#                    </div>#}
-
                     <div class="form-group col-12">
-                        <label for="libelle">Libellé</label>
-                        <input class="form-control data needed" type="text" name="libelle">
+                        <label for="label">Libellé</label>
+                        <input class="form-control data needed" type="text" name="libelle" id="label">
                     </div>
                     <div class="form-group col-6">
                         <label for="">Quantité à recevoir*</label>
