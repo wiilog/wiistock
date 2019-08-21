@@ -19,21 +19,17 @@ class ArticleRepository extends ServiceEntityRepository
         parent::__construct($registry, Article::class);
     }
 
-    /**
-     * @param $referenceArticle
-     * @return mixed
-     * @throws \Doctrine\ORM\NonUniqueResultException
-     */
-    public function countByReference($referenceArticle)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            'SELECT COUNT(a)
+    public function getReferencesByRefAndDate($refPrefix, $date)
+	{
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+			'SELECT a.reference
             FROM App\Entity\Article a
-            WHERE a.reference LIKE :referenceArticle'
-        )->setParameter('referenceArticle', '%' . $referenceArticle . '%');
-        return $query->getSingleScalarResult();
-    }
+            WHERE a.reference LIKE :refPrefix'
+		)->setParameter('refPrefix', $refPrefix . $date . '%');
+
+		return array_column($query->execute(), 'reference');
+	}
 
     public function findByReception($id)
     {
