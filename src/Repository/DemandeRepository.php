@@ -132,4 +132,19 @@ class DemandeRepository extends ServiceEntityRepository
         ]);
         return $query->execute();
     }
+
+    public function getLastNumeroByPrefixeAndDate($prefixe, $date)
+	{
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+			/** @lang DQL */
+			'SELECT d.numero
+			FROM App\Entity\Demande d
+			WHERE d.numero LIKE :value
+			ORDER BY d.date DESC'
+		)->setParameter('value', $prefixe . $date . '%');
+
+		$result = $query->execute();
+		return $result ? $result[0]['numero'] : null;
+	}
 }
