@@ -59,6 +59,13 @@ if (demandeur !== undefined) {
     $('#utilisateur').val(demandeur).trigger('change');
 }
 
+// applique les filtres si pré-remplis
+$(function() {
+    if ($('#statut').val() !== null) {
+        $('#submitSearchService').click();
+    }
+});
+
 // filtres de recheches
 $('#submitSearchService').on('click', function () {
 

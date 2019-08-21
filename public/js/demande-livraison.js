@@ -169,6 +169,12 @@ $('.ajax-autocomplete').select2({
     minimumInputLength: 1,
 });
 
+// applique les filtres si pré-remplis
+$(function() {
+    if ($('#statut').val() !== null) {
+        $('#submitSearchDemandeLivraison').click();
+    }
+});
 
 let ajaxAuto = function () {
 

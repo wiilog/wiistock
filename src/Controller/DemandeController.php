@@ -474,9 +474,11 @@ class DemandeController extends AbstractController
     }
 
     /**
-     * @Route("/", name="demande_index", methods="GET|POST", options={"expose"=true})
+     * @Route("/liste/{filter}", name="demande_index", methods="GET|POST", options={"expose"=true})
+	 * @param string|null $filter
+	 * @return Response
      */
-    public function index(): Response
+    public function index($filter = null): Response
     {
         if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::LIST)) {
             return $this->redirectToRoute('access_denied');
@@ -495,13 +497,23 @@ class DemandeController extends AbstractController
             ];
         }
 
+		switch ($filter) {
+			case 'a-traiter':
+				$filter = Demande::STATUT_A_TRAITER;
+				break;
+			case 'prepare':
+				$filter = Demande::STATUT_PREPARE;
+				break;
+		}
+
         return $this->render('demande/index.html.twig', [
             'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
             'statuts' => $this->statutRepository->findByCategorieName(Demande::CATEGORIE),
             'emplacements' => $this->emplacementRepository->getIdAndNom(),
             'typeChampsLibres' => $typeChampLibre,
             'types' => $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON),
-        ]);
+			'filterStatus' => $filter
+		]);
     }
 
     /**

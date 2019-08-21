@@ -11,22 +11,22 @@ class='accueil-back'
         <div class="col-6 ">
             <div class="row justify-content-end">
                 <div class="col-7 mb-1 mt-1 alerte">
-                    <a href="#" onclick="filtreDemande('collecte')">
+                    <a href="#" onclick="goToFilteredDemande('collecte', 'a-traiter')">
                         <p><strong> Demandes de collecte à traiter : </strong>{{nbDemandeCollecte}}</p>
                     </a>
                 </div>
                 <div class="col-7 mb-1 mt-1 alerte">
-                    <a href="#" onclick="filtreDemande('demandeT')">
+                    <a href="#" onclick="goToFilteredDemande('livraison', 'a-traiter')">
                         <p><strong> Demandes de livraison à traiter : </strong>{{nbDemandeLivraisonAT}}</p>
                     </a>
                 </div>
                 <div class="col-7 mb-1 mt-1 alerte">
-                    <a href="#" onclick="filtreDemande('demandeP')">
+                    <a href="#" onclick="goToFilteredDemande('livraison', 'prepare')">
                         <p><strong> Demandes de livraison préparées : </strong>{{nbDemandeLivraisonP}}</p>
                     </a>
                 </div>
                 <div class="col-7 mb-1 mt-1 alerte">
-                    <a href="#" onclick="filtreDemande('service')">
+                    <a href="#" onclick="goToFilteredDemande('manutention', 'a-traiter')">
                         <p><strong> Demandes de manutentions à traiter : </strong>{{nbDemandeManutentionAT}}</p>
                     </a>
                 </div>
