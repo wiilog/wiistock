@@ -158,12 +158,17 @@ class ReceptionController extends AbstractController
             $statut = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, $statutLabel);
 
             $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
-            $numeroReception = 'R' . $date->format('ymd-His');
-            //TODO faire un compteur
+
+			// génère le numéro
+			$lastNumero = $this->receptionRepository->getLastNumeroByPrefixeAndDate('R', $date->format('ym'));
+			$lastCpt = (int)substr($lastNumero, -4, 4);
+			$i = $lastCpt + 1;
+			$cpt = sprintf('%04u', $i);
+            $numero = 'R' . $date->format('ymd') . $cpt;
 
             $reception
                 ->setStatut($statut)
-                ->setNumeroReception($numeroReception)
+                ->setNumeroReception($numero)
                 ->setDate(new \DateTime($data['date-commande']))
                 ->setDateAttendu(new \DateTime($data['date-attendu']))
                 ->setFournisseur($fournisseur)

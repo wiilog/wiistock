@@ -427,14 +427,15 @@ class DemandeController extends AbstractController
             $destination = $this->emplacementRepository->find($data['destination']);
             $type = $this->typeRepository->find($data['type']);
 
+            // génère le numéro
             $prefixeExist = $this->prefixeNomDemandeRepository->findOneByTypeDemande(PrefixeNomDemande::TYPE_LIVRAISON);
             $prefixe = $prefixeExist ? $prefixeExist->getPrefixe() : '';
 
             $lastNumero = $this->demandeRepository->getLastNumeroByPrefixeAndDate($prefixe, $date->format('ym'));
             $lastCpt = (int)substr($lastNumero, -4, 4);
             $i = $lastCpt + 1;
-
             $cpt = sprintf('%04u', $i);
+            $numero = $prefixe . $date->format('ym') . $cpt;
 
             $demande = new Demande();
             $demande
@@ -443,7 +444,7 @@ class DemandeController extends AbstractController
                 ->setdate($date)
 				->setType($type)
                 ->setDestination($destination)
-                ->setNumero($prefixe . $date->format('ym') . $cpt)
+                ->setNumero($numero)
                 ->setCommentaire($data['commentaire']);
             $em->persist($demande);
 
