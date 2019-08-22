@@ -299,7 +299,6 @@ class EmplacementController extends AbstractController
             }
             $emplacementsString = array_slice($emplacementsString, $data['start'], $data['length']);
             $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
-            /** @var DimensionsEtiquettes $dimension */
             if ($dimension) {
                 $tags['height'] = $dimension->getHeight();
                 $tags['width'] = $dimension->getWidth();

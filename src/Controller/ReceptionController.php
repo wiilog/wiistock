@@ -692,7 +692,6 @@ class ReceptionController extends AbstractController
         $listReceptionReferenceArticle = $this->receptionReferenceArticleRepository->findByReception($reception);
         $em = $this->getDoctrine()->getManager();
         foreach ($listReceptionReferenceArticle as $receptionRA) {
-            /** @var ReceptionReferenceArticle $receptionRA */
             $referenceArticle = $receptionRA->getReferenceArticle();
             if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                 $referenceArticle->setQuantiteStock($referenceArticle->getQuantiteStock() + $receptionRA->getQuantite());
@@ -795,7 +794,6 @@ class ReceptionController extends AbstractController
 
             $listReceptionReferenceArticle = $this->receptionReferenceArticleRepository->findByReception($reception);
             foreach ($listReceptionReferenceArticle as $recepRef) {
-                /** @var ReceptionReferenceArticle $recepRef */
                 if ($recepRef->getReferenceArticle()->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                     array_push($data['refs'], $recepRef->getReferenceArticle()->getReference());
                 } else {
@@ -804,7 +802,6 @@ class ReceptionController extends AbstractController
                     $listArticle = $this->articleRepository->findByListAF($listArticleFournisseur);
 
                     foreach ($listArticle as $article) {
-                        /** @var Article $article */
                         if ($article->getReception() && $article->getReception() === $reception) {
                             array_push($data['refs'], $article->getReference());
                         }

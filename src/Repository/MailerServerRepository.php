@@ -19,6 +19,10 @@ class MailerServerRepository extends ServiceEntityRepository
         parent::__construct($registry, MailerServer::class);
     }
 
+	/**
+	 * @return MailerServer|null
+	 * @throws \Doctrine\ORM\NonUniqueResultException
+	 */
     public function findOneMailerServer()
     {
         $entityManager = $this->getEntityManager();

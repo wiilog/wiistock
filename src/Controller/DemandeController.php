@@ -194,7 +194,6 @@ class DemandeController extends AbstractController
                     $listLigneArticleByRefArticle = $this->ligneArticleRepository->findByRefArticle($articleRef);
 
                     foreach ($listLigneArticleByRefArticle as $ligneArticle) {
-                        /** @var LigneArticle $ligneArticle */
                         $statusLabel = $ligneArticle->getDemande()->getStatut()->getNom();
                         if ($statusLabel === Demande::STATUT_A_TRAITER || $statusLabel === Demande::STATUT_PREPARE) {
                             $quantiteReservee += $ligneArticle->getQuantite();
@@ -640,10 +639,9 @@ class DemandeController extends AbstractController
                     )
                 ];
             }
-            $articles = $this->articleRepository->getByDemande($demande);
+            $articles = $this->articleRepository->findByDemande($demande);
             $rowsCA = [];
             foreach ($articles as $article) {
-                /** @var Article $article */
                 $rowsCA[] = [
                     "Référence" => ($article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : ''),
                     "Libellé" => ($article->getLabel() ? $article->getLabel() : ''),
@@ -767,8 +765,8 @@ class DemandeController extends AbstractController
     public function hasArticles(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $articles = $this->articleRepository->getByDemande($data['id']);
-            $references = $this->ligneArticleRepository->getByDemande($data['id']);
+            $articles = $this->articleRepository->findByDemande($data['id']);
+            $references = $this->ligneArticleRepository->findByDemande($data['id']);
             $count = count($articles) + count($references);
 
             return new JsonResponse($count > 0);

@@ -2,6 +2,7 @@
 
 namespace App\Repository;
 
+use App\Entity\Reception;
 use App\Entity\ReceptionReferenceArticle;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
@@ -19,6 +20,10 @@ class ReceptionReferenceArticleRepository extends ServiceEntityRepository
         parent::__construct($registry, ReceptionReferenceArticle::class);
     }
 
+	/**
+	 * @param Reception $reception
+	 * @return ReceptionReferenceArticle[]|null
+	 */
     public function findByReception($reception)
     {
         $entityManager = $this->getEntityManager();

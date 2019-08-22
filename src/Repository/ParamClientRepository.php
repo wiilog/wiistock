@@ -19,6 +19,10 @@ class ParamClientRepository extends ServiceEntityRepository
         parent::__construct($registry, ParamClient::class);
     }
 
+	/**
+	 * @return ParamClient|null
+	 * @throws \Doctrine\ORM\NonUniqueResultException
+	 */
 	public function findOne()
 	{
 		$entityManager = $this->getEntityManager();

@@ -355,7 +355,7 @@ class RefArticleDataService
         $rowCL = [];
         foreach ($champsLibres as $champLibre) {
             $champ = $this->champsLibreRepository->find($champLibre['id']);
-            $valeur = $this->valeurChampsLibreRepository->findOneByRefArticleANDChampsLibre($refArticle->getId(), $champ); /** @var ValeurChampsLibre $valeur */
+            $valeur = $this->valeurChampsLibreRepository->findOneByRefArticleANDChampsLibre($refArticle->getId(), $champ);
             $rowCL[$champLibre['label']] = ($valeur ? $valeur->getValeur() : "");
         }
         $totalQuantity = 0;
@@ -412,7 +412,6 @@ class RefArticleDataService
 				$this->em->persist($ligneArticle);
 			} else {
 				$ligneArticle = $this->ligneArticleRepository->findOneByRefArticleAndDemande($referenceArticle, $demande);
-				/** @var LigneArticle $ligneArticle */
 				$ligneArticle->setQuantite($ligneArticle->getQuantite() + max($data["quantitie"], 0)); // protection contre quantités négatives
 			}
 			$this->editRefArticle($referenceArticle, $data);
@@ -430,7 +429,6 @@ class RefArticleDataService
 					$this->em->persist($ligneArticle);
 				} else {
 					$ligneArticle = $this->ligneArticleRepository->findOneByRefArticleAndDemandeAndToSplit($referenceArticle, $demande);
-					/** @var LigneArticle $ligneArticle */
 					$ligneArticle->setQuantite($ligneArticle->getQuantite() + max($data["quantitie"], 0));
 				}
 			} else {

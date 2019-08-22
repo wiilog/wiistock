@@ -3,6 +3,8 @@
 namespace App\Repository;
 
 use App\Entity\Article;
+use App\Entity\ArticleFournisseur;
+use App\Entity\Demande;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
@@ -53,7 +55,11 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function getByCollecte($id)
+	/**
+	 * @param int $id
+	 * @return Article[]|null
+	 */
+    public function findByCollecteId($id)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
@@ -66,7 +72,11 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->getResult();
     }
 
-    public function getByDemande($demande)
+	/**
+	 * @param Demande|int $demande
+	 * @return Article[]|null
+	 */
+    public function findByDemande($demande)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
@@ -325,6 +335,10 @@ class ArticleRepository extends ServiceEntityRepository
             'count' => $countQuery, 'total' => $countTotal];
     }
 
+	/**
+	 * @param ArticleFournisseur[] $listAf
+	 * @return Article[]|null
+	 */
     public function findByListAF($listAf)
     {
         $em = $this->getEntityManager();
@@ -352,6 +366,10 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
+	/**
+	 * @param int $limit
+	 * @return Article[]|null
+	 */
     public function findByQuantityMoreThan($limit)
 	{
 		$em = $this->getEntityManager();
@@ -364,6 +382,9 @@ class ArticleRepository extends ServiceEntityRepository
 		return $query->execute();
 	}
 
+	/**
+	 * @return Article[]|null
+	 */
 	public function findDoublons()
 	{
 		$em = $this->getEntityManager();

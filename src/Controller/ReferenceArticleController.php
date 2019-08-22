@@ -1089,7 +1089,6 @@ class ReferenceArticleController extends Controller
 
         if ($request->isXmlHttpRequest()) {
             $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
-            /** @var DimensionsEtiquettes $dimension */
             if ($dimension) {
                 $tags['height'] = $dimension->getHeight();
                 $tags['width'] = $dimension->getWidth();
