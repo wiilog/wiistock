@@ -11,7 +11,7 @@
         {% if modifiable %}
         {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::DELETE')) %}
         <a href="" data-id='{{ reception.id }}' data-target='#modalDeleteReception' data-toggle='modal'
-            class="btn btn-danger btn-action ml-auto">
+            class="btn btn-danger btn-action ml-auto" onclick="checkAndDeleteReception($(this))">
             Supprimer</a>
         {% endif %}
 

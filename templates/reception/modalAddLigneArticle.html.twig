@@ -18,7 +18,7 @@
                                 Référence*
                             {% endif %}
                         </label>
-                        <select class="ajax-autocomplete data form-control needed" onchange="checkIfQuantityArticle()"
+                        <select class="ajax-autocomplete data form-control needed" onchange="checkIfQuantityArticle($(this))"
                                 id="reference" name="referenceArticle">
                         </select>
                     </div>
@@ -30,7 +30,7 @@
 
                     <div class="form-group col-12">
                         <label for="label">Libellé</label>
-                        <input class="form-control data needed" type="text" name="libelle" id="label">
+                        <input class="form-control data" type="text" name="libelle" id="label">
                     </div>
                     <div class="form-group col-6">
                         <label for="">Quantité à recevoir*</label>

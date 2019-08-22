@@ -520,18 +520,40 @@ function printSingleArticleBarcode(button) {
     });
 }
 
-function checkIfQuantityArticle(){
-    let referenceId = $('#reference').val();
+function checkIfQuantityArticle($select){
+    let referenceId = $select.val();
     let path = Routing.generate('check_if_quantity_article');
-    let params = JSON.stringify({referenceId: referenceId});
+    let params = JSON.stringify(referenceId);
     let $label = $('#label');
 
-    $.post(path, params, function(labelIsNeeded){
-        $label.removeClass('is-invalid');
-        if(labelIsNeeded) {
-            $label.addClass('needed');
+    if (referenceId) { // protection pour éviter appel ajax en cas vidage modale
+        $.post(path, params, function(labelIsNeeded){
+            $label.removeClass('is-invalid');
+            if(labelIsNeeded) {
+                $label.addClass('needed');
+                $label.closest('div').find('label').html('Libellé*');
+            } else {
+                $label.removeClass('needed');
+                $label.closest('div').find('label').html('Libellé');
+            }
+        });
+    }
+
+}
+
+function checkAndDeleteReception(btn) {
+    let modalBody = $('#modalDeleteReception').find('.modal-body');
+    let id = btn.data('id');
+    let param = JSON.stringify(id);
+
+    $.post(Routing.generate('reception_check_delete'), param, function (resp) {
+        modalBody.html(resp.html);
+        let $submitDeleteReception = $('#submitDeleteReception');
+        if (resp.delete == false) {
+            $submitDeleteReception.hide();
         } else {
-            $label.removeClass('needed');
+            $submitDeleteReception.show();
+            $submitDeleteReception.attr('value', id);
         }
     });
 }

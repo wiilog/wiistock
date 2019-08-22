@@ -212,7 +212,7 @@ class EmplacementController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            if ($this->countUsedEmplacements($emplacementId) == 0) {
+            if ($this->countUsedEmplacement($emplacementId) == 0) {
                 $delete = true;
                 $html = $this->renderView('emplacement/modalDeleteEmplacementRight.html.twig');
             } else {
@@ -225,7 +225,7 @@ class EmplacementController extends AbstractController
         throw new NotFoundHttpException('404');
     }
 
-    private function countUsedEmplacements($emplacementId)
+    private function countUsedEmplacement($emplacementId)
     {
         $usedEmplacement = $this->demandeRepository->countByEmplacement($emplacementId);
         $usedEmplacement += $this->livraisonRepository->countByEmplacement($emplacementId);
@@ -250,7 +250,7 @@ class EmplacementController extends AbstractController
                 $emplacement = $this->emplacementRepository->find($emplacementId);
 
                 // on vérifie que l'emplacement n'est plus utilisé
-                $usedEmplacement = $this->countUsedEmplacements($emplacementId);
+                $usedEmplacement = $this->countUsedEmplacement($emplacementId);
 
                 if ($usedEmplacement > 0) {
                     return new JsonResponse(false);
