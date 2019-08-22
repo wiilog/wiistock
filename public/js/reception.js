@@ -319,12 +319,14 @@ function addLot(button) {
     });
 }
 
-function createArticleAndBarcodes(button) {
+function createArticleAndBarcodes(button, receptionId) {
     let data = {};
     data.refArticle = button.attr('data-ref');
     data.ligne = button.attr('data-id');
     data.quantiteLot = [];
     data.tailleLot = [];
+    data.receptionId = receptionId;
+
     $('#modalChoose').find('input.data').each(function () {
         data[$(this).attr('name')].push($(this).val());
     });

@@ -527,15 +527,18 @@ class ReceptionController extends AbstractController
                 ->setAnomalie($anomalie)
 //                ->setFournisseur($fournisseur)
                 ->setReferenceArticle($refArticle)
-//                ->setQuantite(max($contentData['quantite'], 0)) // protection contre quantités négatives
                 ->setQuantiteAR(max($contentData['quantiteAR'], 0)) // protection contre quantités négatives
                 ->setCommentaire($contentData['commentaire'])
                 ->setReception($reception);
 
-            if (array_key_exists('articleFournisseur', $contentData) && $contentData['articleFournisseur']) {
-                $articleFournisseur = $this->articleFournisseurRepository->find($contentData['articleFournisseur']);
-                $receptionReferenceArticle->setArticleFournisseur($articleFournisseur);
-            }
+            if (array_key_exists('quantite', $contentData) && $contentData['quantite']) {
+            	$receptionReferenceArticle->setQuantite(max($contentData['quantite'], 0));
+			}
+
+//            if (array_key_exists('articleFournisseur', $contentData) && $contentData['articleFournisseur']) {
+//                $articleFournisseur = $this->articleFournisseurRepository->find($contentData['articleFournisseur']);
+//                $receptionReferenceArticle->setArticleFournisseur($articleFournisseur);
+//            }
             $em =  $this->getDoctrine()->getManager();
             $em->persist($receptionReferenceArticle);
             $em->flush();
@@ -688,9 +691,11 @@ class ReceptionController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
+        $em = $this->getDoctrine()->getManager();
+
         $statut =  $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_RECEPTION_TOTALE);
         $listReceptionReferenceArticle = $this->receptionReferenceArticleRepository->findByReception($reception);
-        $em = $this->getDoctrine()->getManager();
+
         foreach ($listReceptionReferenceArticle as $receptionRA) {
             $referenceArticle = $receptionRA->getReferenceArticle();
             if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
@@ -885,16 +890,19 @@ class ReceptionController extends AbstractController
             if ($response['exists'] === true) {
                 for ($i = 0; $i < count($dataContent['quantiteLot']); $i++) {
                     for ($j = 0; $j < $dataContent['quantiteLot'][$i]; $j++) {
-                        $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
-                        $ref = $date->format('YmdHis');
-                        $refArticle = $this->referenceArticleRepository->findOneByReference($dataContent['refArticle']);
-                        $toInsert = new Article();
-                        $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
-                        $ligne = $this->receptionReferenceArticleRepository->find(intval($dataContent['ligne']));
+						$date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+						$ref = $date->format('YmdHis');
+						$refArticle = $this->referenceArticleRepository->findOneByReference($dataContent['refArticle']);
+
+						$toInsert = new Article();
+						$statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
+						$ligne = $this->receptionReferenceArticleRepository->find(intval($dataContent['ligne']));
+						$reception = $this->receptionRepository->find($dataContent['receptionId']);
+
                         $articleFournisseur = new ArticleFournisseur();
                         $articleFournisseur
                             ->setReferenceArticle($refArticle)
-                            ->setFournisseur($ligne->getFournisseur())
+                            ->setFournisseur($reception->getFournisseur())
                             ->setReference($refArticle->getReference())
                             ->setLabel($ligne->getLabel());
                         $em->persist($articleFournisseur);
