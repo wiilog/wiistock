@@ -388,118 +388,6 @@ function printSingleBarcode(button) {
     });
 }
 
-// function InitialiserModalArticle(modal, submit, path, table, callback = function () { }, close = true) {
-//     submit.click(function () {
-//         xhttp = new XMLHttpRequest();
-//         xhttp.onreadystatechange = function () {
-//             if (this.readyState == 4 && this.status == 200) {
-//                 $('.errorMessage').html(JSON.parse(this.responseText))
-//                 data = JSON.parse(this.responseText);
-//                 table.ajax.reload(function (json) {
-//                     if (this.responseText !== undefined) {
-//                         $('#myInput').val(json.lastInput);
-//                     }
-//                 });
-//                 callback(data);
-//
-//                 let inputs = modal.find('.modal-body').find(".data");
-//                 // on vide tous les inputs
-//                 inputs.each(function () {
-//                     $(this).val("");
-//                 });
-//                 // on remet toutes les checkboxes sur off
-//                 let checkboxes = modal.find('.checkbox');
-//                 checkboxes.each(function () {
-//                     $(this).prop('checked', false);
-//                 })
-//             } else if (this.readyState == 4 && this.status == 250) {
-//                 $('#cannotDeleteArticle').click();
-//             }
-//         };
-//
-//         // On récupère toutes les données qui nous intéressent
-//         // dans les inputs...
-//         let inputs = modal.find(".data");
-//         let Data = {};
-//         let missingInputs = [];
-//         let wrongNumberInputs = [];
-//
-//         inputs.each(function () {
-//             let val = $(this).val();
-//             let name = $(this).attr("name");
-//             Data[name] = val;
-//             // validation données obligatoires
-//             if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
-//                 let label = $(this).closest('.form-group').find('label').text();
-//                 missingInputs.push(label);
-//                 $(this).addClass('is-invalid');
-//             }
-//             // validation valeur des inputs de type number
-//             // if ($(this).attr('type') === 'number') {
-//             //     let val = parseInt($(this).val());
-//             //     console.log(val)
-//             //     let min = parseInt($(this).attr('min'));
-//             //     console.log(min)
-//             //     let max = parseInt($(this).attr('max'));
-//             //     console.log(max)
-//             //     if (val > max || val < min) {
-//             //         wrongInputs.push($(this));
-//             //         $(this).addClass('is-invalid');
-//             //     }
-//             // }
-//         });
-//
-//         // ... et dans les checkboxes
-//         let checkboxes = modal.find('.checkbox');
-//         checkboxes.each(function () {
-//             Data[$(this).attr("name")] = $(this).is(':checked');
-//         });
-//         // si tout va bien on envoie la requête ajax...
-//         if (missingInputs.length == 0 && wrongNumberInputs.length == 0) {
-//             if (close == true) modal.find('.close').click();
-//             Json = {};
-//             Json = JSON.stringify(Data);
-//             xhttp.open("POST", path, true);
-//             xhttp.send(Json);
-//         } else {
-//
-//             // ... sinon on construit les messages d'erreur
-//             let msg = '';
-//
-//             // cas où il manque des champs obligatoires
-//             if (missingInputs.length > 0) {
-//                 if (missingInputs.length == 1) {
-//                     msg += 'Veuillez renseigner le champ ' + missingInputs[0] + ".<br>";
-//                 } else {
-//                     msg += 'Veuillez renseigner les champs : ' + missingInputs.join(', ') + ".<br>";
-//                 }
-//             }
-//             // cas où les champs number ne respectent pas les valeurs imposées (min et max)
-//             if (wrongNumberInputs.length > 0) {
-//                 wrongNumberInputs.forEach(function (elem) {
-//                     let label = elem.closest('.form-group').find('label').text();
-//
-//                     msg += 'La valeur du champ ' + label;
-//
-//                     let min = elem.attr('min');
-//                     let max = elem.attr('max');
-//
-//                     if (typeof (min) !== 'undefined' && typeof (max) !== 'undefined') {
-//                         msg += ' doit être comprise entre ' + min + ' et ' + max + ".<br>";
-//                     } else if (typeof (min) == 'undefined') {
-//                         msg += ' doit être inférieure à ' + max + ".<br>";
-//                     } else if (typeof (max) == 'undefined') {
-//                         msg += ' doit être supérieure à ' + min + ".<br>";
-//                     }
-//
-//                 })
-//             }
-//
-//             modal.find('.error-msg').html(msg);
-//         }
-//     });
-// }
-
 function printSingleArticleBarcode(button) {
     let params = {
         'article': button.data('id')
@@ -527,14 +415,16 @@ function checkIfQuantityArticle($select){
     let $label = $('#label');
 
     if (referenceId) { // protection pour éviter appel ajax en cas vidage modale
-        $.post(path, params, function(labelIsNeeded){
+        $.post(path, params, function(quantityByArticle){
             $label.removeClass('is-invalid');
-            if(labelIsNeeded) {
+            if(quantityByArticle) {
                 $label.addClass('needed');
                 $label.closest('div').find('label').html('Libellé*');
+                $label.closest('.modal-body').find('#quantite').attr('disabled', true);
             } else {
                 $label.removeClass('needed');
                 $label.closest('div').find('label').html('Libellé');
+                $label.closest('.modal-body').find('#quantite').attr('disabled', false);
             }
         });
     }

@@ -169,13 +169,15 @@ class ReceptionController extends AbstractController
             $reception
                 ->setStatut($statut)
                 ->setNumeroReception($numero)
-                ->setDate(new \DateTime($data['date-commande']))
-                ->setDateAttendu(new \DateTime($data['date-attendu']))
+                ->setDate($date)
+                ->setDateAttendue($data['date-attendue'] ? new \DateTime($data['date-attendue']) : null)
+                ->setDateCommande($data['date-commande'] ? new \DateTime($data['date-commande']) : null)
                 ->setFournisseur($fournisseur)
                 ->setReference($data['reference'])
                 ->setUtilisateur($this->getUser())
                 ->setType($type)
                 ->setCommentaire($data['commentaire']);
+
 
             $em = $this->getDoctrine()->getManager();
             $em->persist($reception);
@@ -223,8 +225,8 @@ class ReceptionController extends AbstractController
             $reception =  $this->receptionRepository->find($data['receptionId']);
             $reception
                 ->setNumeroReception($data['NumeroReception'])
-                ->setDate(new \DateTime($data['date-commande']))
-                ->setDateAttendu(new \DateTime($data['date-attendu']))
+                ->setDateCommande(new \DateTime($data['date-commande']))
+                ->setDateAttendue(new \DateTime($data['date-attendue']))
                 ->setStatut($statut)
                 ->setFournisseur($fournisseur)
                 ->setUtilisateur($utilisateur)
@@ -588,14 +590,14 @@ class ReceptionController extends AbstractController
 
         if (!$request->isXmlHttpRequest() &&  $data = json_decode($request->getContent(), true)) { //Si la requête est de type Xml
             $receptionReferenceArticle =  $this->receptionReferenceArticleRepository->find($data['article']);
-            $fournisseur = $this->fournisseurRepository->find($data['fournisseur']);
+//            $fournisseur = $this->fournisseurRepository->find($data['fournisseur']);
             $refArticle =  $this->referenceArticleRepository->find($data['referenceArticle']);
             $reception = $receptionReferenceArticle->getReception();
 
             $receptionReferenceArticle
                 ->setLabel($data['libelle'])
                 ->setAnomalie($data['anomalie'])
-                ->setFournisseur($fournisseur)
+//                ->setFournisseur($fournisseur)
                 ->setReferenceArticle($refArticle)
                 ->setQuantite(max($data['quantite'], 0)) // protection contre quantités négatives
                 ->setQuantiteAR(max($data['quantiteAR'], 0)) // protection contre quantités négatives
@@ -697,7 +699,7 @@ class ReceptionController extends AbstractController
             }
         }
         $reception->setStatut($statut);
-        $reception->setDateReception(new \DateTime('now'));
+        $reception->setDateCommande(new \DateTime('now'));
         $em->flush();
 
         return  $this->redirectToRoute('reception_index');
@@ -763,8 +765,8 @@ class ReceptionController extends AbstractController
 				$refArticle = $this->referenceArticleRepository->find($referenceId);
 				$typeQuantite = $refArticle ? $refArticle->getTypeQuantite() : '';
 
-				$labelIsNeeded = $typeQuantite == ReferenceArticle::TYPE_QUANTITE_ARTICLE;
-            	return new JsonResponse($labelIsNeeded);
+				$quantityByArticle = $typeQuantite == ReferenceArticle::TYPE_QUANTITE_ARTICLE;
+            	return new JsonResponse($quantityByArticle);
 			}
             return new JsonResponse();
 

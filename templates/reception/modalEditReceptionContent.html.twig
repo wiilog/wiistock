@@ -20,14 +20,14 @@
     <div class="form-group col-6">
         <label for="date-commande">Date commande*</label>
         <input type="date" class="form-control data" name="date-commande" id="dateCommande"
-            value="{{reception.date | date('Y-m-d')}}" required="true" min="{{ 'now' | date('Y-m-d') }}"
+            value="{{reception.dateCommande is empty ? '' : reception.dateCommande | date('Y-m-d')}}" required="true"
             max="{{ '+25year' | date('Y-m-d') }}">
     </div>
 
     <div class="form-group col-6">
-        <label for="date-attendu">Date attendue*</label>
-        <input type="date" class="form-control data" name="date-attendu" id='dateAttendu'
-            value="{{reception.dateAttendu | date('Y-m-d')}}" required="true" min="{{ 'now' | date('Y-m-d') }}"
+        <label for="date-attendue">Date attendue*</label>
+        <input type="date" class="form-control data" name="date-attendue" id='dateAttendue'
+            value="{{reception.dateAttendue is empty ? '' : reception.dateAttendue | date('Y-m-d')}}" required="true"
             max="{{ '+25year' | date('Y-m-d') }}">
     </div>
 </div>
