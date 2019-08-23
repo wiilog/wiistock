@@ -549,7 +549,6 @@ class ReferenceArticleController extends Controller
         $champs = array_merge($champF, $champL);
         $champsSearch = array_merge($champsFText, $champsLText, $champsLTList);
 
-
         usort($champs, function ($a, $b) {
 			return strcasecmp($a['label'], $b['label']);
         });
@@ -570,7 +569,8 @@ class ReferenceArticleController extends Controller
                 'champsLibres' => $champsLibres,
             ];
         }
-        $filter = $this->filterRepository->findByUserAndStatut($this->getUser()->getId());
+        $filter = $this->filterRepository->findByUserAndChampFixe($this->getUser(), Filter::CHAMP_FIXE_STATUT);
+
         return $this->render('reference_article/index.html.twig', [
             'champs' => $champs,
             'champsSearch' => $champsSearch,
@@ -580,7 +580,7 @@ class ReferenceArticleController extends Controller
             'types' => $types,
             'emplacements' => $emplacements,
             'typeQuantite' => $typeQuantite,
-            'filters' => $this->filterRepository->findByUserAndNoStatut($this->getUser()->getId()),
+            'filters' => $this->filterRepository->findByUserExceptChampFixe($this->getUser(), Filter::CHAMP_FIXE_STATUT),
             'wantInactif' => !empty($filter) && $filter->getValue() === Article::STATUT_INACTIF
         ]);
     }
@@ -1113,10 +1113,9 @@ class ReferenceArticleController extends Controller
         if ($request->isXmlHttpRequest() && $data= json_decode($request->getContent(), true)){
 
             $user = $this->getUser();
-            $userId = $user->getId();
             $statutArticle = $data['donnees'];
 
-            $filter = $this->filterRepository->findByUserAndStatut($userId);
+            $filter = $this->filterRepository->findByUserAndChampFixe($user, Filter::CHAMP_FIXE_STATUT);
 
             $em = $this->getDoctrine()->getManager();
             if($filter == null){
