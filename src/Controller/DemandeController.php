@@ -103,28 +103,28 @@ class DemandeController extends AbstractController
      */
     private $articleDataService;
 
-	/**
-	 * @var TypeRepository
-	 */
+    /**
+     * @var TypeRepository
+     */
     private $typeRepository;
 
     /**
-	 * @var ChampsLibreRepository
-	 */
+     * @var ChampsLibreRepository
+     */
     private $champLibreRepository;
 
-	/**
-	 * @var ValeurChampsLibreRepository
-	 */
+    /**
+     * @var ValeurChampsLibreRepository
+     */
     private $valeurChampLibreRepository;
-	/**
-	 * @var CategorieCLRepository
-	 */
+    /**
+     * @var CategorieCLRepository
+     */
     private $categorieCLRepository;
 
-	/**
-	 * @var ParametreRoleRepository
-	 */
+    /**
+     * @var ParametreRoleRepository
+     */
     private $parametreRoleRepository;
 
     /**
@@ -264,8 +264,8 @@ class DemandeController extends AbstractController
                     [
                         'demande' => $demande,
                         'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
-						'champsLibres' => $this->valeurChampLibreRepository->getByDemandeLivraison($demande)
-					]
+                        'champsLibres' => $this->valeurChampLibreRepository->getByDemandeLivraison($demande)
+                    ]
                 ),
                 'status' => true
             ];
@@ -286,34 +286,34 @@ class DemandeController extends AbstractController
 
             $demande = $this->demandeRepository->find($data['id']);
 
-			$typesDL = $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
-			$typeChampLibre =  [];
+            $typesDL = $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
+            $typeChampLibre = [];
 
-			foreach ($typesDL as $type) {
-				$champsLibres = $this->champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON);
-				$champsLibresArray = [];
-				foreach ($champsLibres as $champLibre) {
-					$valeurChampDL = $this->valeurChampLibreRepository->getValueByDemandeLivraisonAndChampLibre($demande, $champLibre);
-					$champsLibresArray[] = [
-						'id' => $champLibre->getId(),
-						'label' => $champLibre->getLabel(),
-						'typage' => $champLibre->getTypage(),
-						'elements' => ($champLibre->getElements() ? $champLibre->getElements() : ''),
-						'defaultValue' => $champLibre->getDefaultValue(),
-						'valeurChampLibre' => $valeurChampDL,
-					];
-				}
-				$typeChampLibre[] = [
-					'typeLabel' =>  $type->getLabel(),
-					'typeId' => $type->getId(),
-					'champsLibres' => $champsLibresArray,
-				];
-			}
+            foreach ($typesDL as $type) {
+                $champsLibres = $this->champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON);
+                $champsLibresArray = [];
+                foreach ($champsLibres as $champLibre) {
+                    $valeurChampDL = $this->valeurChampLibreRepository->getValueByDemandeLivraisonAndChampLibre($demande, $champLibre);
+                    $champsLibresArray[] = [
+                        'id' => $champLibre->getId(),
+                        'label' => $champLibre->getLabel(),
+                        'typage' => $champLibre->getTypage(),
+                        'elements' => ($champLibre->getElements() ? $champLibre->getElements() : ''),
+                        'defaultValue' => $champLibre->getDefaultValue(),
+                        'valeurChampLibre' => $valeurChampDL,
+                    ];
+                }
+                $typeChampLibre[] = [
+                    'typeLabel' => $type->getLabel(),
+                    'typeId' => $type->getId(),
+                    'champsLibres' => $champsLibresArray,
+                ];
+            }
 
             $json = $this->renderView('demande/modalEditDemandeContent.html.twig', [
                 'demande' => $demande,
-				'types' => $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON),
-				'typeChampsLibres' => $typeChampLibre
+                'types' => $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON),
+                'typeChampsLibres' => $typeChampLibre
             ]);
 
             return new JsonResponse($json);
@@ -331,62 +331,62 @@ class DemandeController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-			// vérification des champs Libres obligatoires
-			$requiredEdit = true;
-			$type =  $this->typeRepository->find(intval($data['type']));
-			$CLRequired = $this->champLibreRepository->getByTypeAndRequiredEdit($type);
-			foreach ($CLRequired as $CL) {
-				if (array_key_exists($CL['id'], $data) and $data[$CL['id']] === "") {
-					$requiredEdit = false;
-				}
-			}
+            // vérification des champs Libres obligatoires
+            $requiredEdit = true;
+            $type = $this->typeRepository->find(intval($data['type']));
+            $CLRequired = $this->champLibreRepository->getByTypeAndRequiredEdit($type);
+            foreach ($CLRequired as $CL) {
+                if (array_key_exists($CL['id'], $data) and $data[$CL['id']] === "") {
+                    $requiredEdit = false;
+                }
+            }
 
-			if ($requiredEdit) {
-				$utilisateur = $this->utilisateurRepository->find(intval($data['demandeur']));
-				$emplacement = $this->emplacementRepository->find(intval($data['destination']));
-				$type = $this->typeRepository->find(intval($data['type']));
-				$demande = $this->demandeRepository->find($data['demandeId']);
-				$demande
-					->setUtilisateur($utilisateur)
-					->setDestination($emplacement)
-					->setType($type)
-					->setCommentaire($data['commentaire']);
-				$em = $this->getDoctrine()->getEntityManager();
-				$em->flush();
+            if ($requiredEdit) {
+                $utilisateur = $this->utilisateurRepository->find(intval($data['demandeur']));
+                $emplacement = $this->emplacementRepository->find(intval($data['destination']));
+                $type = $this->typeRepository->find(intval($data['type']));
+                $demande = $this->demandeRepository->find($data['demandeId']);
+                $demande
+                    ->setUtilisateur($utilisateur)
+                    ->setDestination($emplacement)
+                    ->setType($type)
+                    ->setCommentaire($data['commentaire']);
+                $em = $this->getDoctrine()->getEntityManager();
+                $em->flush();
 
-				// modification ou création des champs libres
-				$champsLibreKey = array_keys($data);
+                // modification ou création des champs libres
+                $champsLibreKey = array_keys($data);
 
-				foreach ($champsLibreKey as $champ) {
-					if (gettype($champ) === 'integer') {
-						$champLibre = $this->champLibreRepository->find($champ);
-						$valeurChampLibre = $this->valeurChampLibreRepository->findOneByDemandeLivraisonAndChampsLibre($demande, $champLibre);
+                foreach ($champsLibreKey as $champ) {
+                    if (gettype($champ) === 'integer') {
+                        $champLibre = $this->champLibreRepository->find($champ);
+                        $valeurChampLibre = $this->valeurChampLibreRepository->findOneByDemandeLivraisonAndChampsLibre($demande, $champLibre);
 
-						// si la valeur n'existe pas, on la crée
-						if (!$valeurChampLibre) {
-							$valeurChampLibre = new ValeurChampsLibre();
-							$valeurChampLibre
-								->addDemandesLivraison($demande)
-								->setChampLibre($this->champLibreRepository->find($champ));
-							$em->persist($valeurChampLibre);
-						}
-						$valeurChampLibre->setValeur($data[$champ]);
-						$em->flush();
-					}
-				}
+                        // si la valeur n'existe pas, on la crée
+                        if (!$valeurChampLibre) {
+                            $valeurChampLibre = new ValeurChampsLibre();
+                            $valeurChampLibre
+                                ->addDemandesLivraison($demande)
+                                ->setChampLibre($this->champLibreRepository->find($champ));
+                            $em->persist($valeurChampLibre);
+                        }
+                        $valeurChampLibre->setValeur($data[$champ]);
+                        $em->flush();
+                    }
+                }
 
-				$response = [
-					'entete' => $this->renderView('demande/enteteDemandeLivraison.html.twig', [
-						'demande' => $demande,
-						'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
-						'champsLibres' => $this->valeurChampLibreRepository->getByDemandeLivraison($demande)
-					]),
-				];
+                $response = [
+                    'entete' => $this->renderView('demande/enteteDemandeLivraison.html.twig', [
+                        'demande' => $demande,
+                        'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
+                        'champsLibres' => $this->valeurChampLibreRepository->getByDemandeLivraison($demande)
+                    ]),
+                ];
 
-			} else {
-				$response['success'] = false;
-				$response['msg'] = "Tous les champs obligatoires n'ont pas été renseignés.";
-			}
+            } else {
+                $response['success'] = false;
+                $response['msg'] = "Tous les champs obligatoires n'ont pas été renseignés.";
+            }
 
             return new JsonResponse($response);
         }
@@ -404,21 +404,21 @@ class DemandeController extends AbstractController
             }
 
             // protection champs libres obligatoires
-			$requiredCreate = true;
-			$type = $this->typeRepository->find($data['type']);
+            $requiredCreate = true;
+            $type = $this->typeRepository->find($data['type']);
 
-			$CLRequired = $this->champLibreRepository->getByTypeAndRequiredCreate($type);
-			$msgMissingCL = '';
-			foreach ($CLRequired as $CL) {
-				if (array_key_exists($CL['id'], $data) and $data[$CL['id']] === "") {
-					$requiredCreate = false;
-					if (!empty($msgMissingCL)) $msgMissingCL .= ', ';
-					$msgMissingCL .= $CL['label'];
-				}
-			}
-			if (!$requiredCreate) {
-				return new JsonResponse(['success' => false, 'msg' => 'Veuillez renseigner les champs obligatoires : ' . $msgMissingCL]);
-			}
+            $CLRequired = $this->champLibreRepository->getByTypeAndRequiredCreate($type);
+            $msgMissingCL = '';
+            foreach ($CLRequired as $CL) {
+                if (array_key_exists($CL['id'], $data) and $data[$CL['id']] === "") {
+                    $requiredCreate = false;
+                    if (!empty($msgMissingCL)) $msgMissingCL .= ', ';
+                    $msgMissingCL .= $CL['label'];
+                }
+            }
+            if (!$requiredCreate) {
+                return new JsonResponse(['success' => false, 'msg' => 'Veuillez renseigner les champs obligatoires : ' . $msgMissingCL]);
+            }
 
             $em = $this->getDoctrine()->getManager();
             $utilisateur = $this->utilisateurRepository->find($data['demandeur']);
@@ -441,26 +441,26 @@ class DemandeController extends AbstractController
                 ->setStatut($statut)
                 ->setUtilisateur($utilisateur)
                 ->setdate($date)
-				->setType($type)
+                ->setType($type)
                 ->setDestination($destination)
                 ->setNumero($prefixe . $date->format('ym') . $cpt)
                 ->setCommentaire($data['commentaire']);
             $em->persist($demande);
 
-			// enregistrement des champs libres
-			$champsLibreKey = array_keys($data);
+            // enregistrement des champs libres
+            $champsLibreKey = array_keys($data);
 
-			foreach ($champsLibreKey as $champs) {
-				if (gettype($champs) === 'integer') {
-					$valeurChampLibre = new ValeurChampsLibre();
-					$valeurChampLibre
-						->setValeur($data[$champs])
-						->addDemandesLivraison($demande)
-						->setChampLibre($this->champLibreRepository->find($champs));
-					$em->persist($valeurChampLibre);
-					$em->flush();
-				}
-			}
+            foreach ($champsLibreKey as $champs) {
+                if (gettype($champs) === 'integer') {
+                    $valeurChampLibre = new ValeurChampsLibre();
+                    $valeurChampLibre
+                        ->setValeur($data[$champs])
+                        ->addDemandesLivraison($demande)
+                        ->setChampLibre($this->champLibreRepository->find($champs));
+                    $em->persist($valeurChampLibre);
+                    $em->flush();
+                }
+            }
 
             $em->flush();
 
@@ -474,9 +474,11 @@ class DemandeController extends AbstractController
     }
 
     /**
-     * @Route("/", name="demande_index", methods="GET|POST", options={"expose"=true})
+     * @Route("/liste/{filter}", name="demande_index", methods="GET|POST", options={"expose"=true})
+	 * @param string|null $filter
+	 * @return Response
      */
-    public function index(): Response
+    public function index($filter = null): Response
     {
         if (!$this->userService->hasRightFunction(Menu::DEM_LIVRAISON, Action::LIST)) {
             return $this->redirectToRoute('access_denied');
@@ -484,24 +486,34 @@ class DemandeController extends AbstractController
 
         $types = $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
 
-		$typeChampLibre = [];
-		foreach ($types as $type) {
-			$champsLibres = $this->champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON);
+        $typeChampLibre = [];
+        foreach ($types as $type) {
+            $champsLibres = $this->champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON);
 
-			$typeChampLibre[] = [
-				'typeLabel' =>  $type->getLabel(),
-				'typeId' => $type->getId(),
-				'champsLibres' => $champsLibres,
-			];
+            $typeChampLibre[] = [
+                'typeLabel' => $type->getLabel(),
+                'typeId' => $type->getId(),
+                'champsLibres' => $champsLibres,
+            ];
+        }
+
+		switch ($filter) {
+			case 'a-traiter':
+				$filter = Demande::STATUT_A_TRAITER;
+				break;
+			case 'prepare':
+				$filter = Demande::STATUT_PREPARE;
+				break;
 		}
 
         return $this->render('demande/index.html.twig', [
             'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
             'statuts' => $this->statutRepository->findByCategorieName(Demande::CATEGORIE),
             'emplacements' => $this->emplacementRepository->getIdAndNom(),
-			'typeChampsLibres' => $typeChampLibre,
+            'typeChampsLibres' => $typeChampLibre,
             'types' => $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON),
-        ]);
+			'filterStatus' => $filter
+		]);
     }
 
     /**
@@ -582,14 +594,14 @@ class DemandeController extends AbstractController
         return $this->render('demande/show.html.twig', [
 
             'demande' => $demande,
-           //'preparation' => $this->preparationRepository->findOneByPreparation($demande),
+            //'preparation' => $this->preparationRepository->findOneByPreparation($demande),
             'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
             'statuts' => $this->statutRepository->findByCategorieName(Demande::CATEGORIE),
             'references' => $this->referenceArticleRepository->getIdAndLibelle(),
             'modifiable' => ($demande->getStatut()->getNom() === (Demande::STATUT_BROUILLON)),
             'emplacements' => $this->emplacementRepository->findAll(),
             'finished' => ($demande->getStatut()->getNom() === Demande::STATUT_A_TRAITER),
-			'champsLibres' => $valeursChampLibre
+            'champsLibres' => $valeursChampLibre
         ]);
     }
 
@@ -618,10 +630,10 @@ class DemandeController extends AbstractController
                         $totalQuantity += $quantity;
                     }
                 }
-				$quantity = ($articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) ? $articleRef->getQuantiteStock() : $totalQuantity;
-				$availableQuantity = $quantity - $this->referenceArticleRepository->getTotalQuantityReservedByRefArticle($articleRef);
+                $quantity = ($articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) ? $articleRef->getQuantiteStock() : $totalQuantity;
+                $availableQuantity = $quantity - $this->referenceArticleRepository->getTotalQuantityReservedByRefArticle($articleRef);
 
-				$rowsRC[] = [
+                $rowsRC[] = [
                     "Référence" => ($ligneArticle->getReference()->getReference() ? $ligneArticle->getReference()->getReference() : ''),
                     "Libellé" => ($ligneArticle->getReference()->getLibelle() ? $ligneArticle->getReference()->getLibelle() : ''),
                     "Emplacement" => ($ligneArticle->getReference()->getEmplacement() ? $ligneArticle->getReference()->getEmplacement()->getLabel() : ' '),
@@ -681,9 +693,9 @@ class DemandeController extends AbstractController
             $resp = $this->refArticleDataService->addRefToDemand($data, $referenceArticle);
 
             if ($resp === 'article') {
-            	$this->articleDataService->editArticle($data);
-            	$resp = true;
-			}
+                $this->articleDataService->editArticle($data);
+                $resp = true;
+            }
 
             return new JsonResponse($resp);
         }

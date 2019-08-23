@@ -111,6 +111,13 @@ let submitDeleteArticle = $("#submitDeleteArticle");
 let urlDeleteArticle = Routing.generate('collecte_remove_article', true);
 InitialiserModal(modalDeleteArticle, submitDeleteArticle, urlDeleteArticle, tableArticle);
 
+// applique les filtres si pré-remplis
+$(function() {
+    if ($('#statut').val() !== null) {
+        $('#submitSearchCollecte').click();
+    }
+});
+
 function ajaxGetCollecteArticle(select) {
     let $selection = $('#selection');
     let $editNewArticle = $('#editNewArticle');

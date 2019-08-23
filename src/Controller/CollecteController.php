@@ -135,19 +135,28 @@ class CollecteController extends AbstractController
         $this->champLibreRepository = $champLibreRepository;
     }
 
-    /**
-     * @Route("/", name="collecte_index", options={"expose"=true}, methods={"GET", "POST"})
-     */
-    public function index(): Response
+	/**
+	 * @Route("/liste/{filter}", name="collecte_index", options={"expose"=true}, methods={"GET", "POST"})
+	 * @param string|null $filter
+	 * @return Response
+	 */
+    public function index($filter = null): Response
     {
         if (!$this->userService->hasRightFunction(Menu::DEM_COLLECTE, Action::LIST)) {
             return $this->redirectToRoute('access_denied');
         }
 
+        switch ($filter) {
+			case 'a-traiter':
+				$filter = Collecte::STATUS_A_TRAITER;
+				break;
+		}
+
         return $this->render('collecte/index.html.twig', [
             'statuts' => $this->statutRepository->findByCategorieName(Collecte::CATEGORIE),
             'utilisateurs' => $this->utilisateurRepository->findAll(),
             'types' => $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_COLLECTE),
+			'filterStatus' => $filter
         ]);
     }
 

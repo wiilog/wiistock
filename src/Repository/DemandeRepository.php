@@ -45,7 +45,7 @@ class DemandeRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function getByStatutAndUser($statut, $user)
+    public function findByStatutAndUser($statut, $user)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
