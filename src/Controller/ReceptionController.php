@@ -683,7 +683,7 @@ class ReceptionController extends AbstractController
     }
 
     /**
-     * @Route("/finir/{id}", name="reception_finish", methods={"GET", "POST"})
+     * @Route("/finir/{id}", name="reception_finish", methods={"GET", "POST"}, options={"expose"=true})
      */
     public function finish(Reception $reception): Response
     {
@@ -692,9 +692,14 @@ class ReceptionController extends AbstractController
         }
 
         $em = $this->getDoctrine()->getManager();
+        $listReceptionReferenceArticle = $this->receptionReferenceArticleRepository->findByReception($reception);
+
+        // blocage si aucun article dans la réception
+        if (empty($listReceptionReferenceArticle)) {
+        	return new JsonResponse(false);
+		}
 
         $statut =  $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_RECEPTION_TOTALE);
-        $listReceptionReferenceArticle = $this->receptionReferenceArticleRepository->findByReception($reception);
 
         foreach ($listReceptionReferenceArticle as $receptionRA) {
             $referenceArticle = $receptionRA->getReferenceArticle();
@@ -706,7 +711,7 @@ class ReceptionController extends AbstractController
         $reception->setDateCommande(new \DateTime('now'));
         $em->flush();
 
-        return  $this->redirectToRoute('reception_index');
+        return new JsonResponse(true);
     }
 
     /**

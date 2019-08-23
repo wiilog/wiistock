@@ -449,3 +449,8 @@ function checkAndDeleteReception(btn) {
         }
     });
 }
+
+function finishReception(receptionId) {
+    $.post(Routing.generate('reception_finish'), receptionId, function(data) {
+    }, 'json');
+}
