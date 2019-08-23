@@ -49,6 +49,11 @@ function initDatatableConditionnement() {
                 { "data": 'Quantité', 'name': 'Quantité', 'title': 'Quantité' },
                 { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' }
             ],
+            aoColumnDefs: [{
+                'sType': 'natural',
+                'bSortable': true,
+                'aTargets': [0]
+            }]
         });
 
         let statutVisible = $("#statutVisible").val();
@@ -62,6 +67,15 @@ function initDatatableConditionnement() {
         $('#tableArticleInner_id').DataTable().ajax.reload();
     }
 }
+
+$.extend($.fn.dataTableExt.oSort, {
+    "natural-asc": function (a, b) {
+        return parseInt(a) < parseInt(b) ? -1 : 1;
+    },
+    "natural-desc": function (a, b) {
+        return parseInt(a) < parseInt(b) ? -1 : 1;
+    }
+});
 
 function initModalCondit(tableFromArticle) {
     let modalEditInnerArticle = $("#modalEditArticle");
