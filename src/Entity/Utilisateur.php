@@ -110,7 +110,7 @@ class Utilisateur implements UserInterface, EquatableInterface
     private $services;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Filter", mappedBy="utilisateur", orphanRemoval=true)
+     * @ORM\OneToMany(targetEntity="App\Entity\FiltreRef", mappedBy="utilisateur", orphanRemoval=true)
      */
     private $filters;
 
@@ -497,14 +497,14 @@ class Utilisateur implements UserInterface, EquatableInterface
     }
 
     /**
-     * @return Collection|Filter[]
+     * @return Collection|FiltreRef[]
      */
     public function getFilters(): Collection
     {
         return $this->filters;
     }
 
-    public function addFilter(Filter $filter): self
+    public function addFilter(FiltreRef $filter): self
     {
         if (!$this->filters->contains($filter)) {
             $this->filters[] = $filter;
@@ -514,7 +514,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         return $this;
     }
 
-    public function removeFilter(Filter $filter): self
+    public function removeFilter(FiltreRef $filter): self
     {
         if ($this->filters->contains($filter)) {
             $this->filters->removeElement($filter);

@@ -11,7 +11,7 @@ namespace App\Service;
 use App\Repository\ArticleRepository;
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\ChampsLibreRepository;
-use App\Repository\FilterRepository;
+use App\Repository\FiltreRefRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\StatutRepository;
 use App\Repository\TypeRepository;
@@ -61,9 +61,9 @@ class SeuilAlerteService
     private $valeurChampsLibreRepository;
 
     /**
-     * @var FilterRepository
+     * @var FiltreRefRepository
      */
-    private $filterRepository;
+    private $filtreRefRepository;
 
     /**
      * @var \Twig_Environment
@@ -111,14 +111,14 @@ class SeuilAlerteService
 
     private $em;
 
-    public function __construct(AlerteRepository $alerteRepository, RefArticleDataService $refArticleDataService, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, TypeRepository  $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampsLibreRepository $champsLibreRepository, FilterRepository $filterRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage, UtilisateurRepository $utilisateurRepository)
+    public function __construct(AlerteRepository $alerteRepository, RefArticleDataService $refArticleDataService, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, TypeRepository  $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampsLibreRepository $champsLibreRepository, FiltreRefRepository $filtreRefRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage, UtilisateurRepository $utilisateurRepository)
     {
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->articleRepository = $articleRepository;
         $this->champsLibreRepository = $champsLibreRepository;
         $this->statutRepository = $statutRepository;
         $this->valeurChampsLibreRepository = $valeurChampsLibreRepository;
-        $this->filterRepository = $filterRepository;
+        $this->filtreRefRepository = $filtreRefRepository;
         $this->articleFournisseurRepository = $articleFournisseurRepository;
         $this->refArticleDataService = $refArticleDataService;
         $this->typeRepository = $typeRepository;

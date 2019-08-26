@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use App\Entity\Action;
 use App\Entity\DimensionsEtiquettes;
-use App\Entity\Filter;
 use App\Entity\Menu;
 use App\Entity\Article;
 use App\Entity\ReferenceArticle;
@@ -12,7 +11,6 @@ use App\Entity\CategorieCL;
 use App\Entity\CategoryType;
 
 use App\Repository\ArticleRepository;
-use App\Repository\FilterRepository;
 use App\Repository\StatutRepository;
 use App\Repository\CollecteRepository;
 use App\Repository\ReceptionRepository;

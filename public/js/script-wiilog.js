@@ -558,3 +558,20 @@ function adjustScalesForDoc(response) {
     // console.log('Document adjusted scales : \n-Width : ' + doc.internal.pageSize.getWidth() + '\n-Height : ' + doc.internal.pageSize.getHeight());
     return doc;
 }
+
+function saveFilters(page, dateMin, dateMax, statut, demandeurPiped, type, location = null, colis = null)
+{
+    let path = Routing.generate('filter_sup_new');
+
+    let params = {};
+    if (dateMin) params.dateMin = dateMin;
+    if (dateMax) params.dateMax = dateMax;
+    if (statut) params.statut = statut;
+    if (demandeurPiped) params.user = demandeurPiped;
+    if (type) params.type = type;
+    if (location) params.location = location;
+    if (colis) params.colis = colis;
+    params.page = page;
+
+    $.post(path, JSON.stringify(params), 'json');
+}

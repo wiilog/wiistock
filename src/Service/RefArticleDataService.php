@@ -22,7 +22,7 @@ use App\Repository\ArticleFournisseurRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\ChampsLibreRepository;
 use App\Repository\DemandeRepository;
-use App\Repository\FilterRepository;
+use App\Repository\FiltreRefRepository;
 use App\Repository\LigneArticleRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\StatutRepository;
@@ -81,9 +81,9 @@ class RefArticleDataService
     private $categorieCLRepository;
 
     /**
-     * @var FilterRepository
+     * @var FiltreRefRepository
      */
-    private $filterRepository;
+    private $filtreRefRepository;
     /**
      * @var EmplacementRepository
      */
@@ -127,7 +127,7 @@ class RefArticleDataService
     private $router;
 
 
-    public function __construct(DemandeRepository $demandeRepository, ArticleRepository $articleRepository, LigneArticleRepository $ligneArticleRepository, EmplacementRepository $emplacementRepository, RouterInterface $router, UserService $userService, ArticleFournisseurRepository $articleFournisseurRepository,FournisseurRepository $fournisseurRepository, CategorieCLRepository $categorieCLRepository, TypeRepository  $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampsLibreRepository $champsLibreRepository, FilterRepository $filterRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
+    public function __construct(DemandeRepository $demandeRepository, ArticleRepository $articleRepository, LigneArticleRepository $ligneArticleRepository, EmplacementRepository $emplacementRepository, RouterInterface $router, UserService $userService, ArticleFournisseurRepository $articleFournisseurRepository, FournisseurRepository $fournisseurRepository, CategorieCLRepository $categorieCLRepository, TypeRepository  $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampsLibreRepository $champsLibreRepository, FiltreRefRepository $filtreRefRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
     {
         $this->emplacementRepository = $emplacementRepository;
         $this->fournisseurRepository = $fournisseurRepository;
@@ -135,7 +135,7 @@ class RefArticleDataService
         $this->champsLibreRepository = $champsLibreRepository;
         $this->statutRepository = $statutRepository;
         $this->valeurChampsLibreRepository = $valeurChampsLibreRepository;
-        $this->filterRepository = $filterRepository;
+        $this->filtreRefRepository = $filtreRefRepository;
         $this->typeRepository = $typeRepository;
         $this->categorieCLRepository = $categorieCLRepository;
         $this->templating = $templating;
@@ -163,7 +163,7 @@ class RefArticleDataService
     public function getRefArticleDataByParams($params = null)
     {
         $userId = $this->user->getId();
-        $filters = $this->filterRepository->getFieldsAndValuesByUser($userId);
+        $filters = $this->filtreRefRepository->getFieldsAndValuesByUser($userId);
         $queryResult = $this->referenceArticleRepository->findByFiltersAndParams($filters, $params, $this->user);
        
         $refs = $queryResult['data'];

@@ -111,11 +111,27 @@ let submitDeleteArticle = $("#submitDeleteArticle");
 let urlDeleteArticle = Routing.generate('collecte_remove_article', true);
 InitialiserModal(modalDeleteArticle, submitDeleteArticle, urlDeleteArticle, tableArticle);
 
+let $submitSearchCollecte = $('#submitSearchCollecte');
+
 // applique les filtres si pré-remplis
 $(function() {
-    if ($('#statut').val() !== null) {
-        $('#submitSearchCollecte').click();
+    let val = $('#statut').val();
+    if (val != null && val != '') {
+        $submitSearchCollecte.click();
     }
+
+    // filtres enregistrés en base pour chaque utilisateur
+    let path = Routing.generate('filter_get_by_page');
+    let params = JSON.stringify('dcollecte');;
+    $.post(path, params, function(data) {
+        data.forEach(function(element) {
+            if (element.field == 'utilisateurs') {
+                $('#utilisateur').val(element.value.split(',')).select2();
+            } else {
+                $('#'+element.field).val(element.value);
+            }
+        });
+    }, 'json');
 });
 
 function ajaxGetCollecteArticle(select) {
@@ -172,12 +188,15 @@ function initNewCollecteEditor(modal) {
     ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'))
 };
 
-$('#submitSearchCollecte').on('click', function () {
+$submitSearchCollecte.on('click', function () {
+    let dateMin = $('#dateMin').val();
+    let dateMax = $('#dateMax').val();
     let statut = $('#statut').val();
-    let type = $('#type').val();
     let demandeur = $('#utilisateur').val()
     let demandeurString = demandeur.toString();
     let demandeurPiped = demandeurString.split(',').join('|')
+    let type = $('#type').val();
+    saveFilters('dcollecte', dateMin, dateMax, statut, demandeurPiped, type);
 
     table
         .columns('Statut:name')
@@ -196,8 +215,6 @@ $('#submitSearchCollecte').on('click', function () {
 
     $.fn.dataTable.ext.search.push(
         function (settings, data, dataIndex) {
-            let dateMin = $('#dateMin').val();
-            let dateMax = $('#dateMax').val();
             let indexDate = table.column('Création:name').index();
             let dateInit = (data[indexDate]).split('/').reverse().join('-') || 0;
 
@@ -219,21 +236,6 @@ $('#submitSearchCollecte').on('click', function () {
     table
         .draw();
 });
-
-// function destinationCollecte(button) {
-//     let sel = $(button).data('title');
-//     let tog = $(button).data('toggle');
-//     if ($(button).hasClass('not-active')) {
-//         if ($("#destination").val() == "0") {
-//             $("#destination").val("1");
-//         } else {
-//             $("#destination").val("0");
-//         }
-//     }
-//
-//     $('span[data-toggle="' + tog + '"]').not('[data-title="' + sel + '"]').removeClass('active').addClass('not-active');
-//     $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
-// }
 
 function validateCollecte(collecteId) {
     let params = JSON.stringify({id: collecteId});
@@ -268,9 +270,9 @@ let ajaxEditArticle = function (select) {
     xhttp.send(JSON.stringify(json));
 }
 
-$('#submitSearchCollecte').on('keypress', function (e) {
+//TODO MH utilisé ?
+$submitSearchCollecte.on('keypress', function (e) {
     if (e.which === 13) {
-        $('#submitSearchCollecte').click();
+        $submitSearchCollecte.click();
     }
 });
-

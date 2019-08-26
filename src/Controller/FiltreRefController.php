@@ -4,11 +4,11 @@ namespace App\Controller;
 
 use App\Entity\CategoryType;
 use App\Entity\ChampsLibre;
-use App\Entity\Filter;
+use App\Entity\FiltreRef;
 use App\Entity\Type;
 use App\Repository\ChampsLibreRepository;
 use App\Repository\EmplacementRepository;
-use App\Repository\FilterRepository;
+use App\Repository\FiltreRefRepository;
 use App\Repository\TypeRepository;
 use App\Service\RefArticleDataService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -19,11 +19,11 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
- * Class FilterController
+ * Class FiltreRefController
  * @package App\Controller
- * @Route("/filter")
+ * @Route("/filtre-ref")
  */
-class FilterController extends AbstractController
+class FiltreRefController extends AbstractController
 {
     /**
      * @var ChampsLibreRepository
@@ -31,9 +31,9 @@ class FilterController extends AbstractController
     private $champLibreRepository;
 
     /**
-     * @var FilterRepository
+     * @var FiltreRefRepository
      */
-    private $filterRepository;
+    private $filtreRefRepository;
 
     /**
      * @var RefArticleDataService
@@ -51,24 +51,24 @@ class FilterController extends AbstractController
     private $emplacementRepository;
 
 	/**
-	 * FilterController constructor.
+	 * FiltreRefController constructor.
 	 * @param TypeRepository $typeRepository
 	 * @param EmplacementRepository $emplacementRepository
 	 * @param ChampsLibreRepository $champsLibreRepository
-	 * @param FilterRepository $filterRepository
+	 * @param FiltreRefRepository $filtreRefRepository
 	 * @param RefArticleDataService $refArticleDataService
 	 */
-    public function __construct(TypeRepository $typeRepository, EmplacementRepository $emplacementRepository, ChampsLibreRepository $champsLibreRepository, FilterRepository $filterRepository, RefArticleDataService $refArticleDataService)
+    public function __construct(TypeRepository $typeRepository, EmplacementRepository $emplacementRepository, ChampsLibreRepository $champsLibreRepository, FiltreRefRepository $filtreRefRepository, RefArticleDataService $refArticleDataService)
     {
         $this->champLibreRepository = $champsLibreRepository;
-        $this->filterRepository = $filterRepository;
+        $this->filtreRefRepository = $filtreRefRepository;
         $this->refArticleDataService = $refArticleDataService;
         $this->typeRepository = $typeRepository;
         $this->emplacementRepository = $emplacementRepository;
     }
 
     /**
-     * @Route("/creer", name="filter_new", options={"expose"=true})
+     * @Route("/creer", name="filter_ref_new", options={"expose"=true})
      */
     public function new(Request $request): Response
     {
@@ -77,10 +77,10 @@ class FilterController extends AbstractController
 
             // on vérifie qu'il n'existe pas déjà un filtre sur le même champ
             $userId = $this->getUser()->getId();
-            $existingFilter = $this->filterRepository->countByChampAndUser($data['field'], $userId);
+            $existingFilter = $this->filtreRefRepository->countByChampAndUser($data['field'], $userId);
 
             if($existingFilter == 0) {
-                $filter = new Filter();
+                $filter = new FiltreRef();
 
                 // opérateur
 //				$operator = isset($data['operator']) ? $data['operator'] : 'and';
@@ -132,7 +132,7 @@ class FilterController extends AbstractController
     }
 
     /**
-     * @Route("/supprimer", name="filter_delete", options={"expose"=true})
+     * @Route("/supprimer", name="filter_ref_delete", options={"expose"=true})
      */
     public function delete(Request $request): Response
     {
@@ -140,7 +140,7 @@ class FilterController extends AbstractController
             $filterId = $data['filterId'];
 
             if ($filterId) {
-                $filter = $this->filterRepository->find($filterId);
+                $filter = $this->filtreRefRepository->find($filterId);
 
                 if ($filter) {
                     $em = $this->getDoctrine()->getManager();
