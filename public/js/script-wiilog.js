@@ -1,3 +1,10 @@
+const PAGE_DEM_COLLECTE = 'dcollecte';
+const PAGE_DEM_LIVRAISON = 'dlivraison';
+const PAGE_MANUT = 'manutention';
+const PAGE_ORDRE_COLLECTE = 'ocollecte';
+const PAGE_ORDRE_LIVRAISON = 'olivraison';
+const PAGE_PREPA = 'prépa';
+
 /**
  * Initialise une fenêtre modale
  *
@@ -559,15 +566,14 @@ function adjustScalesForDoc(response) {
     return doc;
 }
 
-function saveFilters(page, dateMin, dateMax, statut, demandeurPiped, type, location = null, colis = null)
+function saveFilters(page, dateMin, dateMax, statut, user, type = null, location = null, colis = null)
 {
     let path = Routing.generate('filter_sup_new');
-
     let params = {};
     if (dateMin) params.dateMin = dateMin;
     if (dateMax) params.dateMax = dateMax;
     if (statut) params.statut = statut;
-    if (demandeurPiped) params.user = demandeurPiped;
+    if (user) params.user = user;
     if (type) params.type = type;
     if (location) params.location = location;
     if (colis) params.colis = colis;
