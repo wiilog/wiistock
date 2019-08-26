@@ -8,6 +8,24 @@ $('#utilisateur').select2({
     }
 });
 
+let $submitSearchArrivage = $('#submitSearchArrivage');
+
+$(function() {
+    // filtres enregistrés en base pour chaque utilisateur
+    let path = Routing.generate('filter_get_by_page');
+    let params = JSON.stringify(PAGE_ARRIVAGE);;
+    $.post(path, params, function(data) {
+        data.forEach(function(element) {
+            if (element.field == 'utilisateurs') {
+                $('#utilisateur').val(element.value.split(',')).select2();
+            } else {
+                $('#'+element.field).val(element.value);
+            }
+        });
+        if (data.length > 0)$submitSearchArrivage.click();
+    }, 'json');
+});
+
 let pathArrivage = Routing.generate('arrivage_api', true);
 let tableArrivage = $('#tableArrivages').DataTable({
     responsive: true,
@@ -500,12 +518,16 @@ function checkZero(data) {
     return data;
 }
 
-$('#submitSearchArrivage').on('click', function () {
-
+$submitSearchArrivage.on('click', function () {
+    let dateMin = $('#dateMin').val();
+    let dateMax = $('#dateMax').val();
     let statut = $('#statut').val();
     let utilisateur = $('#utilisateur').val();
     let utilisateurString = utilisateur.toString();
     let utilisateurPiped = utilisateurString.split(',').join('|');
+
+    saveFilters(PAGE_ARRIVAGE, dateMin, dateMax, statut, utilisateurPiped);
+
     tableArrivage
         .columns('Statut:name')
         .search(statut ? '^' + statut + '$' : '', true, false)
@@ -518,8 +540,6 @@ $('#submitSearchArrivage').on('click', function () {
 
     $.fn.dataTable.ext.search.push(
         function (settings, data, dataIndex) {
-            let dateMin = $('#dateMin').val();
-            let dateMax = $('#dateMax').val();
             let indexDate = tableArrivage.column('Date:name').index();
             let dateInit = (data[indexDate]).split(' ')[0].split('/').reverse().join('-') || 0;
 

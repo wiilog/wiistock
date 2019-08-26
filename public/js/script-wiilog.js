@@ -4,6 +4,9 @@ const PAGE_MANUT = 'manutention';
 const PAGE_ORDRE_COLLECTE = 'ocollecte';
 const PAGE_ORDRE_LIVRAISON = 'olivraison';
 const PAGE_PREPA = 'prépa';
+const PAGE_ARRIVAGE = 'arrivage';
+const PAGE_MVT_STOCK = 'mvt_stock';
+const PAGE_MVT_TRACA = 'mvt_traca';
 
 /**
  * Initialise une fenêtre modale
