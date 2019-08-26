@@ -77,9 +77,9 @@ class Utilisateur implements UserInterface, EquatableInterface
      */
     private $demandes;
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Alerte", mappedBy="AlerteUtilisateur")
+     * @ORM\OneToMany(targetEntity="App\Entity\Alerte", mappedBy="user")
      */
-    private $UtilisateurAlertes;
+    private $alertesStock;
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Collecte", mappedBy="demandeur")
      */
@@ -156,7 +156,7 @@ class Utilisateur implements UserInterface, EquatableInterface
     {
         $this->receptions = new ArrayCollection();
         $this->demandes = new ArrayCollection();
-        $this->UtilisateurAlertes = new ArrayCollection();
+        $this->alertesStock = new ArrayCollection();
         $this->collectes = new ArrayCollection();
         $this->preparations = new ArrayCollection();
         $this->livraisons = new ArrayCollection();
@@ -315,25 +315,25 @@ class Utilisateur implements UserInterface, EquatableInterface
     /**
      * @return Collection|Alerte[]
      */
-    public function getUtilisateurAlertes(): Collection
+    public function getAlertesStock(): Collection
     {
-        return $this->UtilisateurAlertes;
+        return $this->alertesStock;
     }
     public function addUtilisateurAlerte(Alerte $utilisateurAlerte): self
     {
-        if (!$this->UtilisateurAlertes->contains($utilisateurAlerte)) {
-            $this->UtilisateurAlertes[] = $utilisateurAlerte;
-            $utilisateurAlerte->setAlerteUtilisateur($this);
+        if (!$this->alertesStock->contains($utilisateurAlerte)) {
+            $this->alertesStock[] = $utilisateurAlerte;
+            $utilisateurAlerte->setUser($this);
         }
         return $this;
     }
     public function removeUtilisateurAlerte(Alerte $utilisateurAlerte): self
     {
-        if ($this->UtilisateurAlertes->contains($utilisateurAlerte)) {
-            $this->UtilisateurAlertes->removeElement($utilisateurAlerte);
+        if ($this->alertesStock->contains($utilisateurAlerte)) {
+            $this->alertesStock->removeElement($utilisateurAlerte);
             // set the owning side to null (unless already changed)
-            if ($utilisateurAlerte->getAlerteUtilisateur() === $this) {
-                $utilisateurAlerte->setAlerteUtilisateur(null);
+            if ($utilisateurAlerte->getUser() === $this) {
+                $utilisateurAlerte->setUser(null);
             }
         }
         return $this;
@@ -727,6 +727,29 @@ class Utilisateur implements UserInterface, EquatableInterface
     public function setType(?Type $type): self
     {
         $this->type = $type;
+
+        return $this;
+    }
+
+    public function addAlertesStock(Alerte $alertesStock): self
+    {
+        if (!$this->alertesStock->contains($alertesStock)) {
+            $this->alertesStock[] = $alertesStock;
+            $alertesStock->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAlertesStock(Alerte $alertesStock): self
+    {
+        if ($this->alertesStock->contains($alertesStock)) {
+            $this->alertesStock->removeElement($alertesStock);
+            // set the owning side to null (unless already changed)
+            if ($alertesStock->getUser() === $this) {
+                $alertesStock->setUser(null);
+            }
+        }
 
         return $this;
     }

@@ -559,6 +559,10 @@ a:hover {
   width: 100%;
 }
 
+.bg-danger {
+  color: white;
+}
+
 .table .fas {
   font-size: 0.8rem;
   cursor: pointer;

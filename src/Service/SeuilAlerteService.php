@@ -147,12 +147,12 @@ class SeuilAlerteService
         $seuils = $this->alerteRepository->findAll();
         $nbSeuilAtteint = 0;
         foreach ($seuils as $seuil) {
-            $quantiteAR = $this->referenceArticleRepository->getQuantiteStockById($seuil->getAlerteRefArticle()->getId());
-            if ($seuil->getAlerteSeuil() > $quantiteAR) {
-                $seuil->setSeuilAtteint(true);
+            $quantiteAR = $this->referenceArticleRepository->getQuantiteStockById($seuil->getRefArticle()->getId());
+            if ($seuil->getLimitSecurity() > $quantiteAR) {
+                $seuil->setActivated(true);
                 ++$nbSeuilAtteint;
             } else {
-                $seuil->getSeuilAtteint(false);
+                $seuil->getActivated(false);
             }
         }
         $entityManager = $this->em;
@@ -165,9 +165,9 @@ class SeuilAlerteService
     {
         $seuils = $this->alerteRepository->findAll();
         foreach ($seuils as $seuil) {
-            $quantiteAR = $this->referenceArticleRepository->getQuantiteStockById($seuil->getAlerteRefArticle()->getId());
-            if ($seuil->getAlerteSeuil() > $quantiteAR) {
-                $user = $this->utilisateurRepository->find($seuil->getAlerteUtilisateur()->getId());
+            $quantiteAR = $this->referenceArticleRepository->getQuantiteStockById($seuil->getRefArticle()->getId());
+            if ($seuil->getLimitSecurity() > $quantiteAR) {
+                $user = $this->utilisateurRepository->find($seuil->getUser()->getId());
                 $this->sendWarning($user->getEmail(), $seuil);
             }
         }

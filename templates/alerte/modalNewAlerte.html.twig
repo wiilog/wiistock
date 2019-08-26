@@ -1,35 +1,31 @@
-<form method="" class="modal fade" id="modalNewAlerte" role="dialog" aria-labelledby="dataModalCenterTitle"
-    aria-hidden="true">
+<form method="" class="modal fade" id="modalNewAlerte" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLongTitle">Nouvelle alerte</h5>
+                <h5 class="modal-title">Nouvelle alerte</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body modal-input container-fluid">
                 <div class="form-group w-100">
-                    <label for="utilisateur">Utilisateur</label>
-                    <select class="form-control ajax-autocomplete-user data" name="utilisateur">
-                        <option value="{{app.user.id}}">{{ app.user.username }}</option>
-                    </select>
-                </div>
-                <div class="form-group w-100">
-                    <label for="AlerteArticleReference">Article Référence</label>
-                    <select name="AlerteArticleReference" class="AlerteNom form-control ajax-autocomplete data">
+                    <label for="reference">Article Référence</label>
+                    <select name="reference" class="AlerteNom form-control ajax-autocomplete data needed" id="reference">
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="AlerteNom">Seuil</label>
-                    <input type="number" min="0" id="AlerteSeuil" class="form-control data" name="AlerteSeuil"
-                        placeholder=" ">
+                    <label for="limitAlert">Seuil d'alerte</label>
+                    <input type="number" min="0" id="limitAlert" class="form-control data" name="limitAlert" onchange="updateLimitsMinMax($(this))">
+                </div>
+                <div class="form-group">
+                    <label for="limitSecurity">Seuil de sécurité</label>
+                    <input type="number" min="0" id="limitSecurity" class="form-control data" name="limitSecurity" onchange="updateLimitsMinMax($(this))">
                 </div>
             </div>
+            <div class="error-msg p-4"></div>
             <div class="modal-footer">
                 <div class="btn" data-dismiss="modal">Annuler</div>
-                <div id="submitNewAlerte"  data-dismiss="modal"
-                    class="btn btn-success">Enregistrer</div>
+                <div id="submitNewAlerte" class="btn btn-success">Enregistrer</div>
             </div>
         </div>
     </div>

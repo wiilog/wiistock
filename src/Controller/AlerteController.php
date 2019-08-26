@@ -67,18 +67,18 @@ class AlerteController extends AbstractController
             }
 
             $alertes = $this->alerteRepository->findAll();
-            $seuilAtteint = $this->seuilAlerteService->thresholdReaches();
             $rows = [];
 
             foreach ($alertes as $alerte) {
                 $rows[] = [
                     'id' => $alerte->getId(),
-                    'Code' => $alerte->getAlerteNumero(),
-                    'Seuil limite' => $alerte->getAlerteSeuil(),
-                    'Seuil' => ($alerte->getSeuilAtteint() ? "<i class='fas fa-exclamation' style='color:red'></i>" : "<i class='fas fa-check' style='color:green'></i>"),
-                    'Article Référence' => $alerte->getAlerteRefArticle()->getLibelle(),
-                    'Quantité en stock' => $alerte->getAlerteRefArticle()->getQuantiteStock(),
-                    'Utilisateur' => $alerte->getAlerteUtilisateur()->getUsername(),
+                    'Code' => $alerte->getNumero(),
+                    "SeuilAlerte" => $alerte->getLimitAlert(),
+                    'SeuilSecurite' => $alerte->getLimitSecurity(),
+                    'Statut' => $alerte->getActivated() ? 'active' : 'inactive',
+                    'Référence' => $alerte->getRefArticle()->getLibelle(),
+                    'QuantiteStock' => $alerte->getRefArticle()->getQuantiteStock(),
+                    'Utilisateur' => $alerte->getUser()->getUsername(),
                     'Actions' => $this->renderView('alerte/datatableAlerteRow.html.twig', [
                         'alerteId' => $alerte->getId(),
                     ]),
@@ -113,22 +113,25 @@ class AlerteController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $em = $this->getDoctrine()->getEntityManager();
+            $em = $this->getDoctrine()->getManager();
 
-            $refArticle = $this->referenceArticleRepository->find($data['AlerteArticleReference']);
+            $refArticle = $this->referenceArticleRepository->find($data['reference']);
 
-            $alerte = new Alerte();
-            $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
-            $alerte
-                ->setAlerteNumero('P-' . $date->format('YmdHis'))
-                ->setAlerteSeuil($data['AlerteSeuil'])
-                ->setAlerteUtilisateur($this->utilisateurRepository->find($data['utilisateur']))
-                ->setAlerteRefArticle($refArticle);
+            if ($refArticle) {
+				$alerte = new Alerte();
+				$date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+				$alerte
+					->setNumero('A-' . $date->format('YmdHis'))
+					->setLimitAlert($data['limitAlert'] ? $data['limitAlert'] : null)
+					->setLimitSecurity($data['limitSecurity'] ? $data['limitSecurity'] : null)
+					->setUser($this->getUser())
+					->setRefArticle($refArticle);
 
-            $em->persist($alerte);
-            $em->flush();
+				$em->persist($alerte);
+				$em->flush();
+			}
 
-            return new JsonResponse($data);
+            return new JsonResponse();
         }
         throw new XmlHttpException('404 not found');
     }
@@ -164,8 +167,12 @@ class AlerteController extends AbstractController
             }
 
             $alerte = $this->alerteRepository->find($data['id']);
-            $alerte
-                ->setAlerteSeuil($data["seuil"]);
+
+            if ($alerte) {
+            	$alerte
+					->setLimitAlert($data['limitAlert'] == '' ? null : $data['limitAlert'])
+					->setLimitSecurity($data['limitSecurity'] == '' ? null : $data['limitSecurity']);
+			}
             $em = $this->getDoctrine()->getManager();
             $em->flush();
 

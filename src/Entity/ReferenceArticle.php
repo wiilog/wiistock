@@ -42,9 +42,9 @@ class ReferenceArticle
     private $quantiteDisponible;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Alerte", mappedBy="AlerteRefArticle")
+     * @ORM\OneToMany(targetEntity="App\Entity\Alerte", mappedBy="refArticle")
      */
-    private $RefArticleAlerte;
+    private $alertesStock;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
@@ -115,7 +115,7 @@ class ReferenceArticle
     {
         $this->articles = new ArrayCollection();
         $this->demandes = new ArrayCollection();
-        $this->RefArticleAlerte = new ArrayCollection();
+        $this->alertesStock = new ArrayCollection();
         $this->ligneArticles = new ArrayCollection();
         $this->valeurChampsLibres = new ArrayCollection();
         $this->articlesFournisseur = new ArrayCollection();
@@ -173,16 +173,16 @@ class ReferenceArticle
     /**
      * @return Collection|Alerte[]
      */
-    public function getRefArticleAlerte(): Collection
+    public function getAlertesStock(): Collection
     {
-        return $this->RefArticleAlerte;
+        return $this->alertesStock;
     }
 
     public function addRefArticleAlerte(Alerte $refArticleAlerte): self
     {
-        if (!$this->RefArticleAlerte->contains($refArticleAlerte)) {
-            $this->RefArticleAlerte[] = $refArticleAlerte;
-            $refArticleAlerte->setAlerteRefArticle($this);
+        if (!$this->alertesStock->contains($refArticleAlerte)) {
+            $this->alertesStock[] = $refArticleAlerte;
+            $refArticleAlerte->setRefArticle($this);
         }
 
         return $this;
@@ -190,11 +190,11 @@ class ReferenceArticle
 
     public function removeRefArticleAlerte(Alerte $refArticleAlerte): self
     {
-        if ($this->RefArticleAlerte->contains($refArticleAlerte)) {
-            $this->RefArticleAlerte->removeElement($refArticleAlerte);
+        if ($this->alertesStock->contains($refArticleAlerte)) {
+            $this->alertesStock->removeElement($refArticleAlerte);
             // set the owning side to null (unless already changed)
-            if ($refArticleAlerte->getAlerteRefArticle() === $this) {
-                $refArticleAlerte->setAlerteRefArticle(null);
+            if ($refArticleAlerte->getRefArticle() === $this) {
+                $refArticleAlerte->setRefArticle(null);
             }
         }
 
@@ -483,6 +483,29 @@ class ReferenceArticle
             // set the owning side to null (unless already changed)
             if ($mouvement->getRefArticle() === $this) {
                 $mouvement->setRefArticle(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function addAlertesStock(Alerte $alertesStock): self
+    {
+        if (!$this->alertesStock->contains($alertesStock)) {
+            $this->alertesStock[] = $alertesStock;
+            $alertesStock->setRefArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAlertesStock(Alerte $alertesStock): self
+    {
+        if ($this->alertesStock->contains($alertesStock)) {
+            $this->alertesStock->removeElement($alertesStock);
+            // set the owning side to null (unless already changed)
+            if ($alertesStock->getRefArticle() === $this) {
+                $alertesStock->setRefArticle(null);
             }
         }
 
