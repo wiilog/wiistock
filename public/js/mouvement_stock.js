@@ -13,6 +13,27 @@ $('#emplacement').select2({
     }
 });
 
+$(function() {
+    // filtres enregistrés en base pour chaque utilisateur
+    let path = Routing.generate('filter_get_by_page');
+    let params = JSON.stringify(PAGE_MVT_STOCK);;
+    $.post(path, params, function(data) {
+        console.log(data);
+        data.forEach(function(element) {
+            if (element.field == 'utilisateurs') {
+                $('#utilisateur').val(element.value.split(',')).select2();
+            } else if (element.field == 'emplacement') {
+                $('#emplacement').val(element.value).select2();
+            } else {
+                $('#'+element.field).val(element.value);
+                console.log(element.field);
+                console.log(element.value);
+            }
+        });
+        if (data.length > 0) $submitSearchMvt.click();
+    }, 'json');
+});
+
 let pathMvt = Routing.generate('mouvement_stock_api', true);
 let tableMvt = $('#tableMvts').DataTable({
     "language": {
@@ -41,14 +62,18 @@ let submitDeleteArrivage = $('#submitDeleteMvtStock');
 let urlDeleteArrivage = Routing.generate('mvt_stock_delete', true);
 InitialiserModal(modalDeleteArrivage, submitDeleteArrivage, urlDeleteArrivage, tableMvt);
 
-$('#submitSearchMvt').on('click', function () {
-
+let $submitSearchMvt = $('#submitSearchMvt');
+$submitSearchMvt.on('click', function () {
+    let dateMin = $('#dateMin').val();
+    let dateMax = $('#dateMax').val();
     let statut = $('#statut').val();
     let emplacement = $('#emplacement').val();
     let article = $('#colis').val();
     let demandeur = $('#utilisateur').val()
     let demandeurString = demandeur.toString();
     demandeurPiped = demandeurString.split(',').join('|')
+
+    saveFilters(PAGE_MVT_STOCK, dateMin, dateMax, statut, demandeurPiped, null, emplacement, article);
 
     tableMvt
         .columns('type:name')
@@ -73,8 +98,6 @@ $('#submitSearchMvt').on('click', function () {
 
     $.fn.dataTable.ext.search.push(
         function (settings, data) {
-            let dateMin = $('#dateMin').val();
-            let dateMax = $('#dateMax').val();
             let indexDate = tableMvt.column('date:name').index();
             let dateInit = (data[indexDate]).split(' ')[0].split('/').reverse().join('-') || 0;
 
