@@ -18,7 +18,6 @@ $(function() {
     let path = Routing.generate('filter_get_by_page');
     let params = JSON.stringify(PAGE_MVT_STOCK);;
     $.post(path, params, function(data) {
-        console.log(data);
         data.forEach(function(element) {
             if (element.field == 'utilisateurs') {
                 $('#utilisateur').val(element.value.split(',')).select2();
@@ -26,8 +25,6 @@ $(function() {
                 $('#emplacement').val(element.value).select2();
             } else {
                 $('#'+element.field).val(element.value);
-                console.log(element.field);
-                console.log(element.value);
             }
         });
         if (data.length > 0) $submitSearchMvt.click();
@@ -84,14 +81,6 @@ $submitSearchMvt.on('click', function () {
         .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
         .draw();
     tableMvt
-        .columns('origine:name')
-        .search(emplacement ? '^' + emplacement + '$' : '', true, false)
-        .draw();
-    tableMvt
-        .columns('destination.name')
-        .search(emplacement ? '^' + emplacement + '$' : '', true, false)
-        .draw();
-    tableMvt
         .columns('refArticle:name')
         .search(article)
         .draw();
@@ -115,8 +104,17 @@ $submitSearchMvt.on('click', function () {
             return false;
         }
     );
-    tableMvt
-        .draw();
+
+    $.fn.dataTable.ext.search.push(
+        function (settings, data) {
+            let originIndex = tableMvt.column('origine:name').index();
+            let destinationIndex = tableMvt.column('destination:name').index();
+
+            return data[originIndex] == emplacement || data[destinationIndex] == emplacement;
+        }
+    );
+
+    tableMvt.draw();
 });
 
 function checkZero(data) {
