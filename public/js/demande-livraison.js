@@ -112,6 +112,8 @@ let modalEditDemande = $("#modalEditDemande");
 let submitEditDemande = $("#submitEditDemande");
 InitialiserModal(modalEditDemande, submitEditDemande, urlEditDemande, tableDemande);
 
+let $submitSearchDemandeLivraison = $('#submitSearchDemandeLivraison');
+
 function getCompareStock(submit) {
 
     let path = Routing.generate('compare_stock', true);
@@ -172,8 +174,21 @@ $('.ajax-autocomplete').select2({
 // applique les filtres si pré-remplis
 $(function() {
     if ($('#statut').val() !== null) {
-        $('#submitSearchDemandeLivraison').click();
+        $submitSearchDemandeLivraison.click();
     }
+
+    // filtres enregistrés en base pour chaque utilisateur
+    let path = Routing.generate('filter_get_by_page');
+    let params = JSON.stringify('dlivraison');;
+    $.post(path, params, function(data) {
+        data.forEach(function(element) {
+            if (element.field == 'utilisateurs') {
+                $('#utilisateur').val(element.value.split(',')).select2();
+            } else {
+                $('#'+element.field).val(element.value);
+            }
+        });
+    }, 'json');
 });
 
 let ajaxAuto = function () {
@@ -206,12 +221,17 @@ function initNewLivraisonEditor(modal) {
     ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'))
 };
 
-$('#submitSearchDemandeLivraison').on('click', function () {
+$submitSearchDemandeLivraison.on('click', function () {
+    let dateMin = $('#dateMin').val();
+    let dateMax = $('#dateMax').val();
     let statut = $('#statut').val();
-    let type = $('#type').val();
     let utilisateur = $('#utilisateur').val()
     let utilisateurString = utilisateur.toString();
     let utilisateurPiped = utilisateurString.split(',').join('|');
+    let type = $('#type').val();
+
+    saveFilters('dlivraison', dateMin, dateMax, statut, utilisateurPiped, type);
+
     tableDemande
         .columns('Statut:name')
         .search(statut ? '^' + statut + '$' : '', true, false)
@@ -229,8 +249,6 @@ $('#submitSearchDemandeLivraison').on('click', function () {
 
     $.fn.dataTable.ext.search.push(
         function (settings, data, dataIndex) {
-            let dateMin = $('#dateMin').val();
-            let dateMax = $('#dateMax').val();
             let indexDate = tableDemande.column('Date:name').index();
             let dateInit = (data[indexDate]).split('/').reverse().join('-') || 0;
 
@@ -391,8 +409,8 @@ function checkZero(data) {
     return data;
 }
 
-$('#submitSearchDemandeLivraison').on('keypress', function (e) {
+$submitSearchDemandeLivraison.on('keypress', function (e) {
     if (e.which === 13) {
-        $('#submitSearchDemandeLivraison').click();
+        $submitSearchDemandeLivraison.click();
     }
 });

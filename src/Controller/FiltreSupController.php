@@ -51,6 +51,12 @@ class FiltreSupController extends AbstractController
 				}
 				$filter->setValue($data['dateMin']);
 				$em->flush();
+			} else {
+				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_DATE_MIN, $page, $user);
+				if ($filter) {
+					$em->remove($filter);
+					$em->flush();
+				}
 			}
 			if (isset($data['dateMax'])) {
 				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_DATE_MAX, $page, $user);
@@ -64,6 +70,12 @@ class FiltreSupController extends AbstractController
 				}
 				$filter->setValue($data['dateMax']);
 				$em->flush();
+			} else {
+				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_DATE_MAX, $page, $user);
+				if ($filter) {
+					$em->remove($filter);
+					$em->flush();
+				}
 			}
 			if (isset($data['statut'])) {
 				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_STATUT, $page, $user);
@@ -77,6 +89,12 @@ class FiltreSupController extends AbstractController
 				}
 				$filter->setValue($data['statut']);
 				$em->flush();
+			} else {
+				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_STATUT, $page, $user);
+				if ($filter) {
+					$em->remove($filter);
+					$em->flush();
+				}
 			}
 			if (isset($data['user'])) {
 				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_USERS, $page, $user);
@@ -91,6 +109,12 @@ class FiltreSupController extends AbstractController
 				$users = str_replace('|', ',', $data['user']);
 				$filter->setValue($users);
 				$em->flush();
+			} else {
+				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_USERS, $page, $user);
+				if ($filter) {
+					$em->remove($filter);
+					$em->flush();
+				}
 			}
 			if (isset($data['type'])) {
 				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_TYPE, $page, $user);
@@ -104,6 +128,12 @@ class FiltreSupController extends AbstractController
 				}
 				$filter->setValue($data['type']);
 				$em->flush();
+			} else {
+				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_TYPE, $page, $user);
+				if ($filter) {
+					$em->remove($filter);
+					$em->flush();
+				}
 			}
 			if (isset($data['location'])) {
 				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_EMPLACEMENT, $page, $user);
@@ -117,6 +147,12 @@ class FiltreSupController extends AbstractController
 				}
 				$filter->setValue($data['location']);
 				$em->flush();
+			} else {
+				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_EMPLACEMENT, $page, $user);
+				if ($filter) {
+					$em->remove($filter);
+					$em->flush();
+				}
 			}
 			if (isset($data['colis'])) {
 				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_COLIS, $page, $user);
@@ -130,6 +166,12 @@ class FiltreSupController extends AbstractController
 				}
 				$filter->setValue($data['colis']);
 				$em->flush();
+			} else {
+				$filter = $this->filtreSupRepository->findOnebyFieldAndPageAndUser(FiltreSup::FIELD_COLIS, $page, $user);
+				if ($filter) {
+					$em->remove($filter);
+					$em->flush();
+				}
 			}
 
 			$em->flush();
