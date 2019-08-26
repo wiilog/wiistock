@@ -173,13 +173,14 @@ $('.ajax-autocomplete').select2({
 
 // applique les filtres si pré-remplis
 $(function() {
-    if ($('#statut').val() !== null) {
+    let val = $('#statut').val();
+    if (val != null && val != '') {
         $submitSearchDemandeLivraison.click();
     }
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
-    let params = JSON.stringify('dlivraison');;
+    let params = JSON.stringify(PAGE_DEM_LIVRAISON);;
     $.post(path, params, function(data) {
         data.forEach(function(element) {
             if (element.field == 'utilisateurs') {
@@ -188,6 +189,7 @@ $(function() {
                 $('#'+element.field).val(element.value);
             }
         });
+        if (data.length > 0)$submitSearchDemandeLivraison.click();
     }, 'json');
 });
 
@@ -230,7 +232,7 @@ $submitSearchDemandeLivraison.on('click', function () {
     let utilisateurPiped = utilisateurString.split(',').join('|');
     let type = $('#type').val();
 
-    saveFilters('dlivraison', dateMin, dateMax, statut, utilisateurPiped, type);
+    saveFilters(PAGE_DEM_LIVRAISON, dateMin, dateMax, statut, utilisateurPiped, type);
 
     tableDemande
         .columns('Statut:name')

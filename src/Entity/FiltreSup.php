@@ -17,13 +17,6 @@ class FiltreSup
 	const FIELD_EMPLACEMENT = 'emplacement';
 	const FIELD_COLIS = 'colis';
 
-	const PAGE_DEM_COLLECTE = 'dcollecte';
-	const PAGE_DEM_LIVRAISON = 'dlivraison';
-	const PAGE_MANUT = 'manutention';
-	const PAGE_ORDRE_COLLECTE = 'ocollecte';
-	const PAGE_ORDRE_LIVRAISON = 'olivraison';
-	const PAGE_PREPA = 'prépa';
-
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()

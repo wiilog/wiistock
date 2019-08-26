@@ -122,7 +122,7 @@ $(function() {
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
-    let params = JSON.stringify('dcollecte');;
+    let params = JSON.stringify(PAGE_DEM_COLLECTE);;
     $.post(path, params, function(data) {
         data.forEach(function(element) {
             if (element.field == 'utilisateurs') {
@@ -131,6 +131,7 @@ $(function() {
                 $('#'+element.field).val(element.value);
             }
         });
+        if (data.length > 0)$submitSearchCollecte.click();
     }, 'json');
 });
 
@@ -196,7 +197,7 @@ $submitSearchCollecte.on('click', function () {
     let demandeurString = demandeur.toString();
     let demandeurPiped = demandeurString.split(',').join('|')
     let type = $('#type').val();
-    saveFilters('dcollecte', dateMin, dateMax, statut, demandeurPiped, type);
+    saveFilters(PAGE_DEM_COLLECTE, dateMin, dateMax, statut, demandeurPiped, type);
 
     table
         .columns('Statut:name')
