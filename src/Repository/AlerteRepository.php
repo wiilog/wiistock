@@ -19,16 +19,17 @@ class AlerteRepository extends ServiceEntityRepository
         parent::__construct($registry, Alerte::class);
     }
 
-    // Utilisé dans l'accueil
-    public function countAlertes()
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT COUNT(a)
-            FROM App\Entity\Alerte a
-            WHERE a.SeuilAtteint = TRUE "
-        );
+    public function countByLimitReached()
+	{
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+			/** @lang DQL */
+			"SELECT COUNT(a)
+			FROM App\Entity\Alerte a
+			JOIN a.refArticle ra
+			WHERE ra.quantiteStock >= a.limitAlert OR ra.quantiteStock >= a.limitSecurity"
+		);
 
-        return $query->getSingleScalarResult();
-    }
+		return $query->getSingleScalarResult();
+	}
 }

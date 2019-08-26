@@ -62,10 +62,6 @@ class AlerteController extends AbstractController
     public function alerteApi(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
             $alertes = $this->alerteRepository->findAll();
             $rows = [];
 
@@ -96,10 +92,6 @@ class AlerteController extends AbstractController
      */
     public function index(): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::PARAM)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
         return $this->render('alerte/index.html.twig');
     }
 
@@ -201,49 +193,4 @@ class AlerteController extends AbstractController
         throw new NotFoundHttpException('404');
     }
 
-    /**
-     * @Route("/verifier", name="check")
-     */
-    public function check()
-    {
-        if (!$this->userService->hasRightFunction(Menu::PARAM)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
-        $this->seuilAlerteService->warnUsers();
-
-        return $this->redirectToRoute('alerte_index');
-    }
-
-    // /* Mailer */
-    // public function mailer($alertes, \Swift_Mailer $mailer)
-    // {
-    //     $message = (new \Swift_Message('Alerte Email'))
-    //         ->setFrom('contact@wiilog.com')
-    //         ->setTo($this->getUser()->getEmail())
-    //         ->setBody(
-    //             $this->renderView(
-    //             // templates/mailer/index.html.twig
-    //                 'mailer/index.html.twig',
-    //                 ['alertes' => $alertes]
-    //             ),
-    //             'text/html'
-    //         )
-    //     /*
-    //      * If you also want to include a plaintext version of the message
-    //     ->addPart(
-    //         $this->renderView(
-    //             'emails/registration.txt.twig',
-    //             ['name' => $name]
-    //         ),
-    //         'text/plain'
-    //     )
-    //      */;
-
-    //     $mailer->send($message);
-
-    //     return $this->render('mailer/index.html.twig', [
-    //         'alertes' => $alertes
-    //     ]);
-    // }
 }
