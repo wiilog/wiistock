@@ -4,17 +4,20 @@ namespace App\Controller;
 
 use App\Entity\Alerte;
 use App\Entity\Menu;
+
 use App\Repository\AlerteRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\ReferenceArticleRepository;
+
 use App\Service\UserService;
+
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use App\Service\SeuilAlerteService;
 
 /**
  * @Route("/alerte")
@@ -37,22 +40,16 @@ class AlerteController extends AbstractController
     private $utilisateurRepository;
 
     /**
-     * @var SeuilAlerteService
-     */
-    private $seuilAlerteService;
-
-    /**
      * @var UserService
      */
     private $userService;
 
 
-    public function __construct(SeuilAlerteService $seuilAlerteService, AlerteRepository $alerteRepository, UtilisateurRepository $utilisateurRepository, ReferenceArticleRepository $referenceArticleRepository, UserService $userService)
+    public function __construct(AlerteRepository $alerteRepository, UtilisateurRepository $utilisateurRepository, ReferenceArticleRepository $referenceArticleRepository, UserService $userService)
     {
         $this->alerteRepository = $alerteRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->utilisateurRepository = $utilisateurRepository;
-        $this->seuilAlerteService = $seuilAlerteService;
         $this->userService = $userService;
     }
 
