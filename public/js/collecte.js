@@ -254,7 +254,6 @@ let ajaxEditArticle = function (select) {
             dataReponse = JSON.parse(this.responseText);
             if (dataReponse) {
                 $('#editNewArticle').html(dataReponse);
-                // toggleRequiredChampsLibres($('#typeEditArticle'), 'edit');
                 ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
                 initEditor('.editor-container-edit');
             } else {

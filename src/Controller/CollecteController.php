@@ -8,8 +8,8 @@ use App\Entity\Collecte;
 use App\Entity\Menu;
 use App\Entity\ReferenceArticle;
 use App\Entity\CollecteReference;
-use App\Entity\ValeurChampsLibre;
-use App\Repository\ChampsLibreRepository;
+use App\Entity\ValeurChampLibre;
+use App\Repository\ChampLibreRepository;
 use App\Service\ArticleDataService;
 use App\Service\RefArticleDataService;
 use App\Service\UserService;
@@ -111,12 +111,12 @@ class CollecteController extends AbstractController
     private $articleDataService;
 
 	/**
-	 * @var ChampsLibreRepository
+	 * @var ChampLibreRepository
 	 */
     private $champLibreRepository;
 
 
-    public function __construct(ChampsLibreRepository $champLibreRepository, TypeRepository $typeRepository, FournisseurRepository $fournisseurRepository, ArticleFournisseurRepository $articleFournisseurRepository, OrdreCollecteRepository $ordreCollecteRepository, RefArticleDataService $refArticleDataService, CollecteReferenceRepository $collecteReferenceRepository, ReferenceArticleRepository $referenceArticleRepository, StatutRepository $statutRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArticleDataService $articleDataService)
+    public function __construct(ChampLibreRepository $champLibreRepository, TypeRepository $typeRepository, FournisseurRepository $fournisseurRepository, ArticleFournisseurRepository $articleFournisseurRepository, OrdreCollecteRepository $ordreCollecteRepository, RefArticleDataService $refArticleDataService, CollecteReferenceRepository $collecteReferenceRepository, ReferenceArticleRepository $referenceArticleRepository, StatutRepository $statutRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArticleDataService $articleDataService)
     {
         $this->typeRepository = $typeRepository;
         $this->articleFournisseurRepository = $articleFournisseurRepository;
@@ -373,7 +373,7 @@ class CollecteController extends AbstractController
 
 				$champslibres = $this->champLibreRepository->findByTypeAndCategorieCLLabel($refArticle->getType(), Article::CATEGORIE);
                 foreach($champslibres as $champLibre) {
-                	$valeurChampLibre = new ValeurChampsLibre();
+                	$valeurChampLibre = new ValeurChampLibre();
                 	$valeurChampLibre
 						->addArticle($article)
 						->setChampLibre($champLibre);

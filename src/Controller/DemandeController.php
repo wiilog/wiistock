@@ -14,9 +14,9 @@ use App\Entity\ReferenceArticle;
 use App\Entity\LigneArticle;
 use App\Entity\Article;
 
-use App\Entity\ValeurChampsLibre;
+use App\Entity\ValeurChampLibre;
 use App\Repository\CategorieCLRepository;
-use App\Repository\ChampsLibreRepository;
+use App\Repository\ChampLibreRepository;
 use App\Repository\DemandeRepository;
 use App\Repository\ParametreRepository;
 use App\Repository\ParametreRoleRepository;
@@ -28,7 +28,7 @@ use App\Repository\TypeRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\PreparationRepository;
-use App\Repository\ValeurChampsLibreRepository;
+use App\Repository\ValeurChampLibreRepository;
 use App\Repository\PrefixeNomDemandeRepository;
 
 use App\Service\ArticleDataService;
@@ -109,12 +109,12 @@ class DemandeController extends AbstractController
     private $typeRepository;
 
     /**
-     * @var ChampsLibreRepository
+     * @var ChampLibreRepository
      */
     private $champLibreRepository;
 
     /**
-     * @var ValeurChampsLibreRepository
+     * @var ValeurChampLibreRepository
      */
     private $valeurChampLibreRepository;
     /**
@@ -137,7 +137,7 @@ class DemandeController extends AbstractController
      */
     private $prefixeNomDemandeRepository;
 
-    public function __construct(PrefixeNomDemandeRepository $prefixeNomDemandeRepository, ParametreRepository $parametreRepository, ParametreRoleRepository $parametreRoleRepository, ValeurChampsLibreRepository $valeurChampLibreRepository, CategorieCLRepository $categorieCLRepository, ChampsLibreRepository $champLibreRepository, TypeRepository $typeRepository, PreparationRepository $preparationRepository, ArticleRepository $articleRepository, LigneArticleRepository $ligneArticleRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, UserService $userService, RefArticleDataService $refArticleDataService, ArticleDataService $articleDataService)
+    public function __construct(PrefixeNomDemandeRepository $prefixeNomDemandeRepository, ParametreRepository $parametreRepository, ParametreRoleRepository $parametreRoleRepository, ValeurChampLibreRepository $valeurChampLibreRepository, CategorieCLRepository $categorieCLRepository, ChampLibreRepository $champLibreRepository, TypeRepository $typeRepository, PreparationRepository $preparationRepository, ArticleRepository $articleRepository, LigneArticleRepository $ligneArticleRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, UserService $userService, RefArticleDataService $refArticleDataService, ArticleDataService $articleDataService)
     {
         $this->statutRepository = $statutRepository;
         $this->emplacementRepository = $emplacementRepository;
@@ -355,16 +355,16 @@ class DemandeController extends AbstractController
                 $em->flush();
 
                 // modification ou création des champs libres
-                $champsLibreKey = array_keys($data);
+                $champsLibresKey = array_keys($data);
 
-                foreach ($champsLibreKey as $champ) {
+                foreach ($champsLibresKey as $champ) {
                     if (gettype($champ) === 'integer') {
                         $champLibre = $this->champLibreRepository->find($champ);
-                        $valeurChampLibre = $this->valeurChampLibreRepository->findOneByDemandeLivraisonAndChampsLibre($demande, $champLibre);
+                        $valeurChampLibre = $this->valeurChampLibreRepository->findOneByDemandeLivraisonAndChampLibre($demande, $champLibre);
 
                         // si la valeur n'existe pas, on la crée
                         if (!$valeurChampLibre) {
-                            $valeurChampLibre = new ValeurChampsLibre();
+                            $valeurChampLibre = new ValeurChampLibre();
                             $valeurChampLibre
                                 ->addDemandesLivraison($demande)
                                 ->setChampLibre($this->champLibreRepository->find($champ));
@@ -448,11 +448,11 @@ class DemandeController extends AbstractController
             $em->persist($demande);
 
             // enregistrement des champs libres
-            $champsLibreKey = array_keys($data);
+            $champsLibresKey = array_keys($data);
 
-            foreach ($champsLibreKey as $champs) {
+            foreach ($champsLibresKey as $champs) {
                 if (gettype($champs) === 'integer') {
-                    $valeurChampLibre = new ValeurChampsLibre();
+                    $valeurChampLibre = new ValeurChampLibre();
                     $valeurChampLibre
                         ->setValeur($data[$champs])
                         ->addDemandesLivraison($demande)

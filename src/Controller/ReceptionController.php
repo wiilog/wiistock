@@ -11,7 +11,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-use App\Entity\ValeurChampsLibre;
+use App\Entity\ValeurChampLibre;
 use App\Entity\Article;
 use App\Entity\ReferenceArticle;
 use App\Entity\Action;
@@ -26,8 +26,8 @@ use App\Repository\EmplacementRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\DimensionsEtiquettesRepository;
-use App\Repository\ChampsLibreRepository;
-use App\Repository\ValeurChampsLibreRepository;
+use App\Repository\ChampLibreRepository;
+use App\Repository\ValeurChampLibreRepository;
 use App\Repository\TypeRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\StatutRepository;
@@ -85,9 +85,9 @@ class ReceptionController extends AbstractController
     private $articleFournisseurRepository;
 
     /**
-     * @var ChampslibreRepository
+     * @var ChampLibreRepository
      */
-    private $champsLibreRepository;
+    private $champLibreRepository;
 
     /**
      * @var ReceptionReferenceArticleRepository
@@ -95,9 +95,9 @@ class ReceptionController extends AbstractController
     private $receptionReferenceArticleRepository;
 
     /**
-     * @var ValeurChampsLibreRepository
+     * @var ValeurChampLibreRepository
      */
-    private $valeurChampsLibreRepository;
+    private $valeurChampLibreRepository;
 
     /**
      * @var TypeRepository
@@ -120,7 +120,7 @@ class ReceptionController extends AbstractController
     private $articleDataService;
 
 
-    public function __construct(ArticleDataService $articleDataService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChampsLibreRepository $champsLibreRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, UserService $userService, ReceptionReferenceArticleRepository $receptionReferenceArticleRepository)
+    public function __construct(ArticleDataService $articleDataService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChampLibreRepository $champLibreRepository, ValeurChampLibreRepository $valeurChampsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, UtilisateurRepository $utilisateurRepository, EmplacementRepository $emplacementRepository, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, UserService $userService, ReceptionReferenceArticleRepository $receptionReferenceArticleRepository)
     {
         $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
         $this->statutRepository = $statutRepository;
@@ -132,8 +132,8 @@ class ReceptionController extends AbstractController
         $this->fournisseurRepository = $fournisseurRepository;
         $this->articleRepository = $articleRepository;
         $this->articleFournisseurRepository = $articleFournisseurRepository;
-        $this->champsLibreRepository = $champsLibreRepository;
-        $this->valeurChampsLibreRepository = $valeurChampsLibreRepository;
+        $this->champLibreRepository = $champLibreRepository;
+        $this->valeurChampLibreRepository = $valeurChampsLibreRepository;
         $this->typeRepository = $typeRepository;
         $this->userService = $userService;
         $this->articleDataService = $articleDataService;
@@ -175,15 +175,15 @@ class ReceptionController extends AbstractController
             $em->persist($reception);
             $em->flush();
 
-            $champsLibreKey = array_keys($data);
+            $champsLibresKey = array_keys($data);
 
-            foreach ($champsLibreKey as $champs) {
+            foreach ($champsLibresKey as $champs) {
                 if (gettype($champs) === 'integer') {
-                    $valeurChampLibre = new ValeurChampsLibre();
+                    $valeurChampLibre = new ValeurChampLibre();
                     $valeurChampLibre
                         ->setValeur($data[$champs])
                         ->addReception($reception)
-                        ->setChampLibre($this->champsLibreRepository->find($champs));
+                        ->setChampLibre($this->champLibreRepository->find($champs));
 
                     $em->persist($valeurChampLibre);
                     $em->flush();
@@ -227,17 +227,17 @@ class ReceptionController extends AbstractController
             $em =  $this->getDoctrine()->getManager();
             $em->flush();
 
-            $champsLibreKey = array_keys($data);
-            foreach ($champsLibreKey as $champ) {
+            $champLibreKey = array_keys($data);
+            foreach ($champLibreKey as $champ) {
                 if (gettype($champ) === 'integer') {
-                    $champLibre = $this->champsLibreRepository->find($champ);
-                    $valeurChampLibre = $this->valeurChampsLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
+                    $champLibre = $this->champLibreRepository->find($champ);
+                    $valeurChampLibre = $this->valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
                     // si la valeur n'existe pas, on la crée
                     if (!$valeurChampLibre) {
-                        $valeurChampLibre = new ValeurChampsLibre();
+                        $valeurChampLibre = new ValeurChampLibre();
                         $valeurChampLibre
                             ->addReception($reception)
-                            ->setChampLibre($this->champsLibreRepository->find($champ));
+                            ->setChampLibre($this->champLibreRepository->find($champ));
                         $em->persist($valeurChampLibre);
                     }
                     $valeurChampLibre->setValeur($data[$champ]);
@@ -246,7 +246,7 @@ class ReceptionController extends AbstractController
             }
             $type = $reception->getType();
 
-            $valeurChampLibreTab = empty($type) ? [] : $this->valeurChampsLibreRepository->getByReceptionAndType($reception, $type);
+            $valeurChampLibreTab = empty($type) ? [] : $this->valeurChampLibreRepository->getByReceptionAndType($reception, $type);
 
             $json = [
                 'entete' =>  $this->renderView('reception/enteteReception.html.twig', [
@@ -276,11 +276,11 @@ class ReceptionController extends AbstractController
 
             $typeChampLibre =  [];
             foreach ($listType as $type) {
-                $champsLibresComplet = $this->champsLibreRepository->findByTypeId($type['id']);
+                $champsLibresComplet = $this->champLibreRepository->findByTypeId($type['id']);
                 $champsLibres = [];
                 //création array edit pour vue
                 foreach ($champsLibresComplet as $champLibre) {
-                    $valeurChampReception = $this->valeurChampsLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
+                    $valeurChampReception = $this->valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
                     $champsLibres[] = [
                         'id' => $champLibre->getId(),
                         'label' => $champLibre->getLabel(),
@@ -302,7 +302,7 @@ class ReceptionController extends AbstractController
                 'fournisseurs' =>  $this->fournisseurRepository->getNoOne($reception->getFournisseur()->getId()),
                 'utilisateurs' =>  $this->utilisateurRepository->getNoOne($reception->getUtilisateur()->getId()),
                 'statuts' =>  $this->statutRepository->findByCategorieName(Reception::CATEGORIE),
-                'valeurChampsLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
+                'valeurChampLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
                 'typeChampsLibres' => $typeChampLibre
             ]);
             return new JsonResponse($json);
@@ -418,7 +418,7 @@ class ReceptionController extends AbstractController
 
         $typeChampLibre =  [];
         foreach ($types as $type) {
-            $champsLibres = $this->champsLibreRepository->findByTypeId($type['id']);
+            $champsLibres = $this->champLibreRepository->findByTypeId($type['id']);
 
             $typeChampLibre[] = [
                 'typeLabel' =>  $type['label'],
@@ -481,7 +481,7 @@ class ReceptionController extends AbstractController
             $reception->setStatut($statut);
             $type = $reception->getType();
 
-            $valeurChampLibreTab = empty($type) ? [] : $this->valeurChampsLibreRepository->getByReceptionAndType($reception, $type);
+            $valeurChampLibreTab = empty($type) ? [] : $this->valeurChampLibreRepository->getByReceptionAndType($reception, $type);
 
             $json = [
                 'entete' =>  $this->renderView('reception/enteteReception.html.twig', [
@@ -533,7 +533,7 @@ class ReceptionController extends AbstractController
             $em->flush();
 
             $type = $reception->getType();
-            $valeurChampLibreTab = empty($type) ? [] : $this->valeurChampsLibreRepository->getByReceptionAndType($reception, $type);
+            $valeurChampLibreTab = empty($type) ? [] : $this->valeurChampLibreRepository->getByReceptionAndType($reception, $type);
 
             $json = [
                 'entete' =>  $this->renderView('reception/enteteReception.html.twig', [
@@ -612,7 +612,7 @@ class ReceptionController extends AbstractController
             $em->flush();
             $type = $reception->getType();
 
-            $valeurChampLibreTab = empty($type) ? [] : $this->valeurChampsLibreRepository->getByReceptionAndType($reception, $type);
+            $valeurChampLibreTab = empty($type) ? [] : $this->valeurChampLibreRepository->getByReceptionAndType($reception, $type);
 
             $json = [
                 'entete' =>  $this->renderView('reception/enteteReception.html.twig', [
@@ -636,7 +636,7 @@ class ReceptionController extends AbstractController
 
         $type = $reception->getType();
         if ($type) {
-            $valeurChampLibreTab = $this->valeurChampsLibreRepository->getByReceptionAndType($reception, $type);
+            $valeurChampLibreTab = $this->valeurChampLibreRepository->getByReceptionAndType($reception, $type);
         } else {
             $valeurChampLibreTab = [];
         }
@@ -644,10 +644,10 @@ class ReceptionController extends AbstractController
         $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(Reception::CATEGORIE);
         $champsLibres = [];
         foreach ($listTypes as $type) {
-            $listChampLibreReception = $this->champsLibreRepository->findByTypeId($type['id']);
+            $listChampLibreReception = $this->champLibreRepository->findByTypeId($type['id']);
 
             foreach ($listChampLibreReception as $champLibre) {
-                $valeurChampLibre = $this->valeurChampsLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
+                $valeurChampLibre = $this->valeurChampLibreRepository->findOneByReceptionAndChampLibre($reception, $champLibre);
 
                 $champsLibres[] = [
                     'id' => $champLibre->getId(),

@@ -81,7 +81,7 @@ class Demande
     private $articles;
 
 	/**
-	 * @ORM\ManyToMany(targetEntity="App\Entity\ValeurChampsLibre", inversedBy="demandesLivraison")
+	 * @ORM\ManyToMany(targetEntity="App\Entity\ValeurChampLibre", inversedBy="demandesLivraison")
 	 */
 	private $valeurChampLibre;
 
@@ -283,14 +283,14 @@ class Demande
     }
 
     /**
-     * @return Collection|ValeurChampsLibre[]
+     * @return Collection|ValeurChampLibre[]
      */
     public function getValeurChampLibre(): Collection
     {
         return $this->valeurChampLibre;
     }
 
-    public function addValeurChampLibre(ValeurChampsLibre $valeurChampLibre): self
+    public function addValeurChampLibre(ValeurChampLibre $valeurChampLibre): self
     {
         if (!$this->valeurChampLibre->contains($valeurChampLibre)) {
             $this->valeurChampLibre[] = $valeurChampLibre;
@@ -299,7 +299,7 @@ class Demande
         return $this;
     }
 
-    public function removeValeurChampLibre(ValeurChampsLibre $valeurChampLibre): self
+    public function removeValeurChampLibre(ValeurChampLibre $valeurChampLibre): self
     {
         if ($this->valeurChampLibre->contains($valeurChampLibre)) {
             $this->valeurChampLibre->removeElement($valeurChampLibre);

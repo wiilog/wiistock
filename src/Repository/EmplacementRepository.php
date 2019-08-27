@@ -133,7 +133,7 @@ class EmplacementRepository extends ServiceEntityRepository
             FROM App\Entity\Emplacement e
             WHERE e.label IN 
             (SELECT v.valeur
-            FROM App\Entity\ValeurChampsLibre v
+            FROM App\Entity\ValeurChampLibre v
             JOIN v.champLibre c
             JOIN v.articleReference a
             WHERE c.label LIKE 'adresse%' AND v.valeur is not null AND a =:refArticle)"

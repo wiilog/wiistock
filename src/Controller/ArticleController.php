@@ -20,8 +20,8 @@ use App\Repository\EmplacementRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\FournisseurRepository;
-use App\Repository\ValeurChampsLibreRepository;
-use App\Repository\ChampsLibreRepository;
+use App\Repository\ValeurChampLibreRepository;
+use App\Repository\ChampLibreRepository;
 use App\Repository\TypeRepository;
 use App\Repository\CategorieCLRepository;
 use App\Repository\DimensionsEtiquettesRepository;
@@ -44,14 +44,14 @@ class ArticleController extends Controller
 {
 
     /**
-     * @var ValeurChampsLibreRepository
+     * @var ValeurChampLibreRepository
      */
-    private $valeurChampsLibreRepository;
+    private $valeurChampLibreRepository;
 
     /**
-     * @var ChampsLibreRepository
+     * @var ChampLibreRepository
      */
-    private $champsLibreRepository;
+    private $champLibreRepository;
 
     /**
      * @var StatutRepository
@@ -128,12 +128,12 @@ class ArticleController extends Controller
      */
     private $dimensionsEtiquettesRepository;
 
-    public function __construct(\Twig_Environment $templating, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, CategorieCLRepository $categorieCLRepository, FournisseurRepository $fournisseurRepository, ChampsLibreRepository $champsLibreRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ArticleDataService $articleDataService, TypeRepository $typeRepository, RefArticleDataService $refArticleDataService, ArticleFournisseurRepository $articleFournisseurRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, StatutRepository $statutRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UserService $userService)
+    public function __construct(\Twig_Environment $templating, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, CategorieCLRepository $categorieCLRepository, FournisseurRepository $fournisseurRepository, ChampLibreRepository $champLibreRepository, ValeurChampLibreRepository $valeurChampsLibreRepository, ArticleDataService $articleDataService, TypeRepository $typeRepository, RefArticleDataService $refArticleDataService, ArticleFournisseurRepository $articleFournisseurRepository, ReferenceArticleRepository $referenceArticleRepository, ReceptionRepository $receptionRepository, StatutRepository $statutRepository, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, CollecteRepository $collecteRepository, UserService $userService)
     {
         $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
         $this->fournisseurRepository = $fournisseurRepository;
-        $this->champsLibreRepository = $champsLibreRepository;
-        $this->valeurChampsLibreRepository = $valeurChampsLibreRepository;
+        $this->champLibreRepository = $champLibreRepository;
+        $this->valeurChampLibreRepository = $valeurChampsLibreRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->statutRepository = $statutRepository;
         $this->emplacementRepository = $emplacementRepository;
@@ -159,7 +159,7 @@ class ArticleController extends Controller
         }
 
         return $this->render('article/index.html.twig', [
-            'valeurChampsLibre' => null,
+            'valeurChampLibre' => null,
 //            'type' => $this->typeRepository->findOneByCategoryLabel(Article::CATEGORIE),
         ]);
     }
@@ -196,10 +196,10 @@ class ArticleController extends Controller
             $typeArticle = $refArticle->getType();
             $typeArticleLabel = $typeArticle->getLabel();
 
-            $champsLibresComplet = $this->champsLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
+            $champsLibresComplet = $this->champLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
             $champsLibres = [];
             foreach ($champsLibresComplet as $champLibre) {
-                $valeurChampArticle = $this->valeurChampsLibreRepository->findOneByChampLibreAndArticle($champLibre->getId(), $article->getId());
+                $valeurChampArticle = $this->valeurChampLibreRepository->findOneByChampLibreAndArticle($champLibre->getId(), $article->getId());
                 $champsLibres[] = [
                     'id' => $champLibre->getId(),
                     'label' => $champLibre->getLabel(),
@@ -374,7 +374,7 @@ class ArticleController extends Controller
             if ($fournisseur) {
                 $json = $this->renderView('article/modalNewArticleContent.html.twig', [
                     'references' => $this->articleFournisseurRepository->getByFournisseur($fournisseur),
-                    'valeurChampsLibre' => null,
+                    'valeurChampLibre' => null,
 //                    'type' => $this->typeRepository->findOneByCategoryLabel(Article::CATEGORIE)
                 ]);
             } else {
@@ -401,7 +401,7 @@ class ArticleController extends Controller
             } elseif (count($articleFournisseur) > 0) {
                 $typeArticle = $refArticle->getType();
 
-                $champsLibres = $this->champsLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
+                $champsLibres = $this->champLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
                 $json = [
                     'content' => $this->renderView(
                         'article/modalNewArticleContent.html.twig',
@@ -514,7 +514,7 @@ class ArticleController extends Controller
             $data = [];
             $data['values'] = [];
             $headersCL = [];
-            foreach ($this->champsLibreRepository->findAll() as $champLibre) {
+            foreach ($this->champLibreRepository->findAll() as $champLibre) {
                 $headersCL[] = $champLibre->getLabel();
             }
             $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::ARTICLE);
@@ -536,7 +536,7 @@ class ArticleController extends Controller
         if ($request->isXmlHttpRequest()) {
             $data['total'] = $this->articleRepository->countAll();
             $data['headers'] = ['reference', 'libelle', 'quantité', 'type', 'statut', 'commentaire', 'emplacement'];
-            foreach ($this->champsLibreRepository->findAll() as $champLibre) {
+            foreach ($this->champLibreRepository->findAll() as $champLibre) {
                 array_push($data['headers'], $champLibre->getLabel());
             }
             return new JsonResponse($data);
@@ -562,9 +562,9 @@ class ArticleController extends Controller
         $champsLibres = [];
         foreach ($listTypes as $type) {
 			$typeArticle = $this->typeRepository->find($type['id']);
-            $listChampsLibres = $this->champsLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
+            $listChampsLibres = $this->champLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
             foreach ($listChampsLibres as $champLibre) {
-                $valeurChampRefArticle = $this->valeurChampsLibreRepository->findOneByArticleANDChampsLibre($ref->getId(), $champLibre);
+                $valeurChampRefArticle = $this->valeurChampLibreRepository->findOneByArticleAndChampLibre($ref->getId(), $champLibre);
                 if ($valeurChampRefArticle) $champsLibres[$champLibre->getLabel()] = $valeurChampRefArticle->getValeur();
             }
         }

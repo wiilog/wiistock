@@ -7,9 +7,9 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity(repositoryClass="App\Repository\ValeurChampsLibreRepository")
+ * @ORM\Entity(repositoryClass="App\Repository\ValeurChampLibreRepository")
  */
-class ValeurChampsLibre
+class ValeurChampLibre
 {
     /**
      * @ORM\Id()
@@ -33,13 +33,13 @@ class ValeurChampsLibre
     private $article;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\ChampsLibre", inversedBy="valeurChampsLibres")
+     * @ORM\ManyToOne(targetEntity="App\Entity\ChampLibre", inversedBy="valeurChampsLibres")
      * @ORM\JoinColumn(name="champ_libre_id", referencedColumnName="id", onDelete="CASCADE")
      */
     private $champLibre;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Reception", mappedBy="valeurChampsLibre")
+     * @ORM\ManyToMany(targetEntity="App\Entity\Reception", mappedBy="valeurChampLibre")
      */
     private $receptions;
 
@@ -107,12 +107,12 @@ class ValeurChampsLibre
         return $this;
     }
 
-    public function getChampLibre(): ?ChampsLibre
+    public function getChampLibre(): ?ChampLibre
     {
         return $this->champLibre;
     }
 
-    public function setChampLibre(?ChampsLibre $champLibre): self
+    public function setChampLibre(?ChampLibre $champLibre): self
     {
         $this->champLibre = $champLibre;
 
@@ -158,7 +158,7 @@ class ValeurChampsLibre
     {
         if (!$this->receptions->contains($reception)) {
             $this->receptions[] = $reception;
-            $reception->addValeurChampsLibre($this);
+            $reception->addValeurChampLibre($this);
         }
 
         return $this;
@@ -168,7 +168,7 @@ class ValeurChampsLibre
     {
         if ($this->receptions->contains($reception)) {
             $this->receptions->removeElement($reception);
-            $reception->removeValeurChampsLibre($this);
+            $reception->removeValeurChampLibre($this);
         }
 
         return $this;

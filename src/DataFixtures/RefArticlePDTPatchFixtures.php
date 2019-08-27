@@ -13,9 +13,9 @@ use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
-use App\Entity\ValeurChampsLibre;
+use App\Entity\ValeurChampLibre;
 use App\Repository\TypeRepository;
-use App\Repository\ChampsLibreRepository;
+use App\Repository\ChampLibreRepository;
 
 class RefArticlePDTPatchFixtures extends Fixture implements FixtureGroupInterface
 {
@@ -28,9 +28,9 @@ class RefArticlePDTPatchFixtures extends Fixture implements FixtureGroupInterfac
     private $typeRepository;
 
     /**
-     * @var ChampsLibreRepository
+     * @var ChampLibreRepository
      */
-    private $champsLibreRepository;
+    private $champLibreRepository;
 
     /**
      * @var FournisseurRepository
@@ -63,10 +63,10 @@ class RefArticlePDTPatchFixtures extends Fixture implements FixtureGroupInterfac
     private  $articleFournisseurRepository;
 
 
-    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository, EmplacementRepository $emplacementRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampsLibreRepository $champsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $refArticleRepository, CategorieCLRepository $categorieCLRepository)
+    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository, EmplacementRepository $emplacementRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampLibreRepository $champLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $refArticleRepository, CategorieCLRepository $categorieCLRepository)
     {
         $this->typeRepository = $typeRepository;
-        $this->champsLibreRepository = $champsLibreRepository;
+        $this->champLibreRepository = $champLibreRepository;
         $this->encoder = $encoder;
         $this->fournisseurRepository = $fournisseurRepository;
         $this->statutRepository = $statutRepository;
@@ -111,9 +111,9 @@ class RefArticlePDTPatchFixtures extends Fixture implements FixtureGroupInterfac
                 ];
 
                 foreach ($listFields as $field) {
-                    $vcl = new ValeurChampsLibre();
+                    $vcl = new ValeurChampLibre();
                     $label = $field['label'] . ' (PDT)';
-                    $cl = $this->champsLibreRepository->findOneBy(['label' => $label]);
+                    $cl = $this->champLibreRepository->findOneBy(['label' => $label]);
                     if (empty($cl)) {
                         dump('il manque le champ libre de label ' . $label);
                     } else {

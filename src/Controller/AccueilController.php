@@ -38,11 +38,6 @@ class AccueilController extends AbstractController
     private $statutRepository;
 
     /**
-     * @var SeuilAlerteServic
-     */
-    private $seuilAlerteService;
-
-    /**
      * @var EmplacementRepository
      */
     private $emplacementRepository;

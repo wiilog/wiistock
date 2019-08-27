@@ -49,7 +49,7 @@ class Type
     private $description;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\ChampsLibre", mappedBy="type")
+     * @ORM\OneToMany(targetEntity="App\Entity\ChampLibre", mappedBy="type")
      */
     private $champsLibres;
 
@@ -124,30 +124,30 @@ class Type
     }
 
     /**
-     * @return Collection|ChampsLibre[]
+     * @return Collection|ChampLibre[]
      */
     public function getChampsLibres(): Collection
     {
         return $this->champsLibres;
     }
 
-    public function addChampsLibre(ChampsLibre $champsLibre): self
+    public function addChampLibre(ChampLibre $champLibre): self
     {
-        if (!$this->champsLibres->contains($champsLibre)) {
-            $this->champsLibres[] = $champsLibre;
-            $champsLibre->setType($this);
+        if (!$this->champsLibres->contains($champLibre)) {
+            $this->champsLibres[] = $champLibre;
+            $champLibre->setType($this);
         }
 
         return $this;
     }
 
-    public function removeChampsLibre(ChampsLibre $champsLibre): self
+    public function removeChampLibre(ChampLibre $champLibre): self
     {
-        if ($this->champsLibres->contains($champsLibre)) {
-            $this->champsLibres->removeElement($champsLibre);
+        if ($this->champsLibres->contains($champLibre)) {
+            $this->champsLibres->removeElement($champLibre);
             // set the owning side to null (unless already changed)
-            if ($champsLibre->getType() === $this) {
-                $champsLibre->setType(null);
+            if ($champLibre->getType() === $this) {
+                $champLibre->setType(null);
             }
         }
 

@@ -19,7 +19,7 @@ class Filter
     private $id;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\ChampsLibre", inversedBy="filters")
+     * @ORM\ManyToOne(targetEntity="App\Entity\ChampLibre", inversedBy="filters")
      * @ORM\JoinColumn(nullable=true)
      */
     private $champLibre;
@@ -52,12 +52,12 @@ class Filter
         return $this->id;
     }
 
-    public function getChampLibre(): ?ChampsLibre
+    public function getChampLibre(): ?ChampLibre
     {
         return $this->champLibre;
     }
 
-    public function setChampLibre(?ChampsLibre $champLibre): self
+    public function setChampLibre(?ChampLibre $champLibre): self
     {
         $this->champLibre = $champLibre;
 

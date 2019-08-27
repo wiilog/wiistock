@@ -2,10 +2,10 @@
 
 namespace App\Controller;
 
-use App\Entity\ChampsLibre;
+use App\Entity\ChampLibre;
 use App\Entity\Type;
 
-use App\Repository\ChampsLibreRepository;
+use App\Repository\ChampLibreRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\TypeRepository;
 use App\Repository\CategoryTypeRepository;
@@ -21,12 +21,12 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 /**
  * @Route("/champ-libre")
  */
-class ChampsLibreController extends AbstractController
+class ChampLibreController extends AbstractController
 {
     /**
-     * @var ChampslibreRepository
+     * @var ChampLibreRepository
      */
-    private $champsLibreRepository;
+    private $champLibreRepository;
 
     /**
      * @var TypeRepository
@@ -48,9 +48,9 @@ class ChampsLibreController extends AbstractController
      */
     private $categorieCLRepository;
 
-    public function __construct(CategorieCLRepository $categorieCLRepository, CategoryTypeRepository $categoryTypeRepository, ChampsLibreRepository $champsLibreRepository, TypeRepository $typeRepository, ReferenceArticleRepository $refArticleRepository)
+    public function __construct(CategorieCLRepository $categorieCLRepository, CategoryTypeRepository $categoryTypeRepository, ChampLibreRepository $champsLibreRepository, TypeRepository $typeRepository, ReferenceArticleRepository $refArticleRepository)
     {
-        $this->champsLibreRepository = $champsLibreRepository;
+        $this->champLibreRepository = $champsLibreRepository;
         $this->typeRepository = $typeRepository;
         $this->categoryTypeRepository = $categoryTypeRepository;
         $this->refArticleRepository = $refArticleRepository;
@@ -74,19 +74,19 @@ class ChampsLibreController extends AbstractController
     public function api(Request $request, $id): Response
     {
         if ($request->isXmlHttpRequest()) { //Si la requête est de type Xml
-            $champsLibres = $this->champsLibreRepository->getByType($this->typeRepository->find($id));
+            $champsLibres = $this->champLibreRepository->getByType($this->typeRepository->find($id));
             $rows = [];
-            foreach ($champsLibres as $champsLibre) {
+            foreach ($champsLibres as $champLibre) {
 
-                if ($champsLibre->getTypage() === ChampsLibre::TYPE_BOOL) {
+                if ($champLibre->getTypage() === ChampLibre::TYPE_BOOL) {
                     $typageCLFr = 'Oui/Non';
-                } elseif ($champsLibre->getTypage() === ChampsLibre::TYPE_NUMBER) {
+                } elseif ($champLibre->getTypage() === ChampLibre::TYPE_NUMBER) {
                     $typageCLFr = 'Nombre';
-                } elseif ($champsLibre->getTypage() === ChampsLibre::TYPE_TEXT) {
+                } elseif ($champLibre->getTypage() === ChampLibre::TYPE_TEXT) {
                     $typageCLFr = 'Texte';
-                } elseif ($champsLibre->getTypage() === ChampsLibre::TYPE_LIST) {
+                } elseif ($champLibre->getTypage() === ChampLibre::TYPE_LIST) {
                     $typageCLFr = 'Liste';
-                } elseif ($champsLibre->getTypage() === ChampsLibre::TYPE_DATE) {
+                } elseif ($champLibre->getTypage() === ChampLibre::TYPE_DATE) {
                     $typageCLFr = 'Date';
                 } else {
                     $typageCLFr = '';
@@ -94,15 +94,15 @@ class ChampsLibreController extends AbstractController
 
                 $rows[] =
                     [
-                        'id' => ($champsLibre->getId() ? $champsLibre->getId() : 'Non défini'),
-                        'Label' => ($champsLibre->getLabel() ? $champsLibre->getLabel() : 'Non défini'),
-                        'S\'applique' => ($champsLibre->getCategorieCL() ? $champsLibre->getCategorieCL()->getLabel() : ''),
+                        'id' => ($champLibre->getId() ? $champLibre->getId() : 'Non défini'),
+                        'Label' => ($champLibre->getLabel() ? $champLibre->getLabel() : 'Non défini'),
+                        'S\'applique' => ($champLibre->getCategorieCL() ? $champLibre->getCategorieCL()->getLabel() : ''),
                         'Typage' => $typageCLFr,
-                        'Obligatoire à la création' => ($champsLibre->getRequiredCreate() ? "oui" : "non"),
-                        'Obligatoire à la modification' => ($champsLibre->getRequiredEdit() ? "oui" : "non"),
-                        'Valeur par défaut' => ($champsLibre->getDefaultValue() ? $champsLibre->getDefaultValue() : 'Non défini'),
-                        'Elements' => $this->renderView('champ_libre/champLibreElems.html.twig', ['elems' => $champsLibre->getElements()]),
-                        'Actions' => $this->renderView('champ_libre/datatableChampsLibreRow.html.twig', ['idChampsLibre' => $champsLibre->getId()]),
+                        'Obligatoire à la création' => ($champLibre->getRequiredCreate() ? "oui" : "non"),
+                        'Obligatoire à la modification' => ($champLibre->getRequiredEdit() ? "oui" : "non"),
+                        'Valeur par défaut' => ($champLibre->getDefaultValue() ? $champLibre->getDefaultValue() : 'Non défini'),
+                        'Elements' => $this->renderView('champ_libre/champLibreElems.html.twig', ['elems' => $champLibre->getElements()]),
+                        'Actions' => $this->renderView('champ_libre/datatableChampLibreRow.html.twig', ['idChampLibre' => $champLibre->getId()]),
                     ];
             }
             $data['data'] = $rows;
@@ -117,7 +117,7 @@ class ChampsLibreController extends AbstractController
      */
     public function show(Request $request, $id): Response
     {
-        $typages = ChampsLibre::TYPAGE;
+        $typages = ChampLibre::TYPAGE;
         return $this->render('champ_libre/show.html.twig', [
             'type' => $this->typeRepository->find($id),
             'categoriesCL' => $this->categorieCLRepository->findAll(),
@@ -133,11 +133,11 @@ class ChampsLibreController extends AbstractController
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
             // on vérifie que le nom du champ libre n'est pas déjà utilisé
-            $champLibreExist = $this->champsLibreRepository->countByLabel($data['label']);
+            $champLibreExist = $this->champLibreRepository->countByLabel($data['label']);
             if (!$champLibreExist) {
                 $type = $this->typeRepository->find($data['type']);
                 $categorieCL = $this->categorieCLRepository->find($data['categorieCL']);
-                $champLibre = new ChampsLibre();
+                $champLibre = new ChampLibre();
                 $champLibre
                     ->setlabel($data['label'])
                     ->setCategorieCL($categorieCL)
@@ -172,8 +172,8 @@ class ChampsLibreController extends AbstractController
     public function editApi(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $champLibre = $this->champsLibreRepository->find($data['id']);
-            $typages = ChampsLibre::TYPAGE;
+            $champLibre = $this->champLibreRepository->find($data['id']);
+            $typages = ChampLibre::TYPAGE;
             $json = $this->renderView('champ_libre/modalEditChampLibreContent.html.twig', [
                 'champLibre' => $champLibre,
                 'categoriesCL' => $this->categorieCLRepository->findAll(),
@@ -192,7 +192,7 @@ class ChampsLibreController extends AbstractController
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $categorieCL = $this->categorieCLRepository->find($data['categorieCL']);
-            $champLibre = $this->champsLibreRepository->find($data['champLibre']);
+            $champLibre = $this->champLibreRepository->find($data['champLibre']);
 
             $champLibre
                 ->setLabel($data['label'])
@@ -224,9 +224,9 @@ class ChampsLibreController extends AbstractController
     public function delete(Request $request): Response
     {
         if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $champsLibre = $this->champsLibreRepository->find($data['champsLibre']);
+            $champLibre = $this->champLibreRepository->find($data['champLibre']);
             $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->remove($champsLibre);
+            $entityManager->remove($champLibre);
             $entityManager->flush();
 
             return new JsonResponse();
@@ -242,10 +242,10 @@ class ChampsLibreController extends AbstractController
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (array_key_exists('create', $data)) {
                 $type = $this->typeRepository->find($data['create']);
-                $champsLibres = $this->champsLibreRepository->getByTypeAndRequiredCreate($type);
+                $champsLibres = $this->champLibreRepository->getByTypeAndRequiredCreate($type);
             } else if (array_key_exists('edit', $data)) {
                 $type = $this->typeRepository->find($data['edit']);
-                $champsLibres = $this->champsLibreRepository->getByTypeAndRequiredEdit($type);
+                $champsLibres = $this->champLibreRepository->getByTypeAndRequiredEdit($type);
             } else {
                 $json = false;
                 return new JsonResponse($json);

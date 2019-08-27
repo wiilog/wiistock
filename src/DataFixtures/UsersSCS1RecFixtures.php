@@ -5,7 +5,7 @@ namespace App\DataFixtures;
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
 use App\Entity\CategorieCL;
-use App\Entity\ChampsLibre;
+use App\Entity\ChampLibre;
 use App\Entity\Emplacement;
 use App\Entity\Fournisseur;
 use App\Entity\Role;
@@ -19,16 +19,16 @@ use App\Repository\ReferenceArticleRepository;
 use App\Repository\RoleRepository;
 use App\Repository\StatutRepository;
 use App\Repository\UtilisateurRepository;
-use App\Repository\ValeurChampsLibreRepository;
+use App\Repository\ValeurChampLibreRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 use App\Entity\ReferenceArticle;
-use App\Entity\ValeurChampsLibre;
+use App\Entity\ValeurChampLibre;
 use App\Repository\TypeRepository;
-use App\Repository\ChampsLibreRepository;
+use App\Repository\ChampLibreRepository;
 
 class UsersSCS1RecFixtures extends Fixture implements FixtureGroupInterface
 {
@@ -41,9 +41,9 @@ class UsersSCS1RecFixtures extends Fixture implements FixtureGroupInterface
     private $typeRepository;
 
     /**
-     * @var ChampsLibreRepository
+     * @var ChampLibreRepository
      */
-    private $champsLibreRepository;
+    private $champLibreRepository;
 
     /**
      * @var FournisseurRepository
@@ -76,7 +76,7 @@ class UsersSCS1RecFixtures extends Fixture implements FixtureGroupInterface
     private $articleFournisseurRepository;
 
     /**
-     * @var ValeurChampsLibreRepository
+     * @var ValeurChampLibreRepository
      */
     private $valeurCLRepository;
 
@@ -91,12 +91,12 @@ class UsersSCS1RecFixtures extends Fixture implements FixtureGroupInterface
     private $roleRepository;
 
 
-    public function __construct(UtilisateurRepository $utilisateurRepository, RoleRepository $roleRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, EmplacementRepository $emplacementRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampsLibreRepository $champsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $refArticleRepository, CategorieCLRepository $categorieCLRepository)
+    public function __construct(UtilisateurRepository $utilisateurRepository, RoleRepository $roleRepository, ValeurChampLibreRepository $valeurChampLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, EmplacementRepository $emplacementRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampLibreRepository $champLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $refArticleRepository, CategorieCLRepository $categorieCLRepository)
     {
         $this->utilisateurRepository = $utilisateurRepository;
         $this->roleRepository = $roleRepository;
         $this->typeRepository = $typeRepository;
-        $this->champsLibreRepository = $champsLibreRepository;
+        $this->champLibreRepository = $champLibreRepository;
         $this->encoder = $encoder;
         $this->fournisseurRepository = $fournisseurRepository;
         $this->statutRepository = $statutRepository;
@@ -104,7 +104,7 @@ class UsersSCS1RecFixtures extends Fixture implements FixtureGroupInterface
         $this->categorieCLRepository = $categorieCLRepository;
         $this->emplacementRepository = $emplacementRepository;
         $this->articleFournisseurRepository = $articleFournisseurRepository;
-        $this->valeurCLRepository = $valeurChampsLibreRepository;
+        $this->valeurCLRepository = $valeurChampLibreRepository;
     }
 
     public function load(ObjectManager $manager)

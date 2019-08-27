@@ -7,7 +7,7 @@ use App\Entity\ReferenceArticle;
 use App\Entity\Type;
 
 use App\Repository\CategoryTypeRepository;
-use App\Repository\ChampsLibreRepository;
+use App\Repository\ChampLibreRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\TypeRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -52,7 +52,7 @@ class TypeController extends AbstractController
     private $articleRepository;
 
     /**
-     * @var ChampsLibreRepository
+     * @var ChampLibreRepository
      */
     private $champLibreRepository;
 
@@ -60,9 +60,9 @@ class TypeController extends AbstractController
      * TypeController constructor.
      * @param TypeRepository $typeRepository
      * @param CategoryTypeRepository $categoryTypeRepository
-     * @param ChampsLibreRepository $champLibreRepository
+     * @param ChampLibreRepository $champLibreRepository
      */
-    public function __construct(ArticleRepository $articleRepository, FilterRepository $filterRepository, TypeRepository $typeRepository, CategoryTypeRepository $categoryTypeRepository, ChampsLibreRepository $champLibreRepository, ReferenceArticleRepository $refArticleRepository)
+    public function __construct(ArticleRepository $articleRepository, FilterRepository $filterRepository, TypeRepository $typeRepository, CategoryTypeRepository $categoryTypeRepository, ChampLibreRepository $champLibreRepository, ReferenceArticleRepository $refArticleRepository)
     {
         $this->articleRepository = $articleRepository;
         $this->filterRepository = $filterRepository;
@@ -114,7 +114,7 @@ class TypeController extends AbstractController
                         'Label' => ($type->getLabel() ? $type->getLabel() : "Non défini"),
                         'S\'applique' => ($type->getCategory() ? $type->getCategory()->getLabel() : 'Non défini'),
                         'Actions' =>  $this->renderView('champ_libre/datatableTypeRow.html.twig', [
-                            'urlChampsLibre' => $url,
+                            'urlChampLibre' => $url,
                             'idType' => $type->getId()
                         ]),
                     ];
@@ -185,7 +185,7 @@ class TypeController extends AbstractController
                 }
                 if ((int)$champsLibresExist + (int)$articlesExist + (int)$articlesRefExist > 0) {
                     $result = $this->renderView('champ_libre/modalDeleteTypeConfirm.html.twig', [
-                        'champsLibreFilter' => $filters !== 0
+                        'champLibreFilter' => $filters !== 0
                     ]);
                     return new JsonResponse($result);
                 }

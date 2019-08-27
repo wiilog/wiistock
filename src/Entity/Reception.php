@@ -86,16 +86,16 @@ class Reception
     private $type;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\ValeurChampsLibre", inversedBy="receptions")
+     * @ORM\ManyToMany(targetEntity="App\Entity\ValeurChampLibre", inversedBy="receptions")
      */
-    private $valeurChampsLibre;
+    private $valeurChampLibre;
 
 
     public function __construct()
     {
         $this->receptionReferenceArticles = new ArrayCollection();
         $this->articles = new ArrayCollection();
-        $this->valeurChampsLibre = new ArrayCollection();
+        $this->valeurChampLibre = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -277,17 +277,17 @@ class Reception
     }
 
     /**
-     * @return Collection|valeurChampsLibre[]
+     * @return Collection|ValeurChampLibre[]
      */
-    public function getValeurChampsLibre(): Collection
+    public function getValeurChampLibre(): Collection
     {
-        return $this->valeurChampsLibre;
+        return $this->valeurChampLibre;
     }
 
-    public function addValeurChampsLibre(valeurChampsLibre $valeurChampsLibre): self
+    public function addValeurChampLibre(ValeurChampLibre $valeurChampLibre): self
     {
-        if (!$this->valeurChampsLibre->contains($valeurChampsLibre)) {
-            $this->valeurChampsLibre[] = $valeurChampsLibre;
+        if (!$this->valeurChampLibre->contains($valeurChampLibre)) {
+            $this->valeurChampLibre[] = $valeurChampLibre;
         }
 
         return $this;
@@ -304,10 +304,10 @@ class Reception
         }
         return $this;
     }
-    public function removeValeurChampsLibre(valeurChampsLibre $valeurChampsLibre): self
+    public function removeValeurChampLibre(ValeurChampLibre $valeurChampLibre): self
     {
-        if ($this->valeurChampsLibre->contains($valeurChampsLibre)) {
-            $this->valeurChampsLibre->removeElement($valeurChampsLibre);
+        if ($this->valeurChampLibre->contains($valeurChampLibre)) {
+            $this->valeurChampLibre->removeElement($valeurChampLibre);
         }
 
         return $this;

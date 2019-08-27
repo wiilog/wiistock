@@ -31,7 +31,7 @@ class CategorieCL
     private $label;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\ChampsLibre", mappedBy="categorieCL")
+     * @ORM\OneToMany(targetEntity="App\Entity\ChampLibre", mappedBy="categorieCL")
      */
     private $champsLibres;
 
@@ -58,30 +58,30 @@ class CategorieCL
     }
 
     /**
-     * @return Collection|ChampsLibre[]
+     * @return Collection|ChampLibre[]
      */
     public function getChampsLibres(): Collection
     {
         return $this->champsLibres;
     }
 
-    public function addChampsLibre(ChampsLibre $champsLibre): self
+    public function addChampLibre(ChampLibre $champLibre): self
     {
-        if (!$this->champsLibres->contains($champsLibre)) {
-            $this->champsLibres[] = $champsLibre;
-            $champsLibre->setCategorieCL($this);
+        if (!$this->champsLibres->contains($champLibre)) {
+            $this->champsLibres[] = $champLibre;
+            $champLibre->setCategorieCL($this);
         }
 
         return $this;
     }
 
-    public function removeChampsLibre(ChampsLibre $champsLibre): self
+    public function removeChampLibre(ChampLibre $champLibre): self
     {
-        if ($this->champsLibres->contains($champsLibre)) {
-            $this->champsLibres->removeElement($champsLibre);
+        if ($this->champsLibres->contains($champLibre)) {
+            $this->champsLibres->removeElement($champLibre);
             // set the owning side to null (unless already changed)
-            if ($champsLibre->getCategorieCL() === $this) {
-                $champsLibre->setCategorieCL(null);
+            if ($champLibre->getCategorieCL() === $this) {
+                $champLibre->setCategorieCL(null);
             }
         }
 

@@ -16,7 +16,7 @@ use App\Entity\Statut;
 use App\Entity\Utilisateur;
 
 use App\Repository\ArrivageRepository;
-use App\Repository\ChampsLibreRepository;
+use App\Repository\ChampLibreRepository;
 use App\Repository\LitigeRepository;
 use App\Repository\ChauffeurRepository;
 use App\Repository\DimensionsEtiquettesRepository;
@@ -105,9 +105,9 @@ class ArrivageController extends AbstractController
     private $specificService;
 
     /**
-     * @var ChampsLibreRepository
+     * @var ChampLibreRepository
      */
-    private $champsLibreRepository;
+    private $champLibreRepository;
 
     /**
      * @var LitigeRepository
@@ -115,7 +115,7 @@ class ArrivageController extends AbstractController
     private $litigeRepository;
 
 
-    public function __construct(PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, ChampsLibreRepository $champsLibreRepository, SpecificService $specificService, MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
+    public function __construct(PieceJointeRepository $pieceJointeRepository, LitigeRepository $litigeRepository, ChampLibreRepository $champsLibreRepository, SpecificService $specificService, MailerService $mailerService, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, TypeRepository $typeRepository, ChauffeurRepository $chauffeurRepository, TransporteurRepository $transporteurRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, UtilisateurRepository $utilisateurRepository, UserService $userService, ArrivageRepository $arrivageRepository)
     {
         $this->specificService = $specificService;
         $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
@@ -128,7 +128,7 @@ class ArrivageController extends AbstractController
         $this->chauffeurRepository = $chauffeurRepository;
         $this->typeRepository = $typeRepository;
         $this->mailerService = $mailerService;
-        $this->champsLibreRepository = $champsLibreRepository;
+        $this->champLibreRepository = $champsLibreRepository;
         $this->litigeRepository = $litigeRepository;
         $this->pieceJointeRepository = $pieceJointeRepository;
     }

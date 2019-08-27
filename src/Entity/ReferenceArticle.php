@@ -62,7 +62,7 @@ class ReferenceArticle
     private $ligneArticles;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\ValeurChampsLibre", mappedBy="articleReference")
+     * @ORM\ManyToMany(targetEntity="App\Entity\ValeurChampLibre", mappedBy="articleReference")
      */
     private $valeurChampsLibres;
 
@@ -257,28 +257,28 @@ class ReferenceArticle
     }
 
     /**
-     * @return Collection|ValeurChampsLibre[]
+     * @return Collection|ValeurChampLibre[]
      */
     public function getValeurChampsLibres(): Collection
     {
         return $this->valeurChampsLibres;
     }
 
-    public function addValeurChampsLibre(ValeurChampsLibre $valeurChampsLibre): self
+    public function addValeurChampLibre(ValeurChampLibre $valeurChampLibre): self
     {
-        if (!$this->valeurChampsLibres->contains($valeurChampsLibre)) {
-            $this->valeurChampsLibres[] = $valeurChampsLibre;
-            $valeurChampsLibre->addArticleReference($this);
+        if (!$this->valeurChampsLibres->contains($valeurChampLibre)) {
+            $this->valeurChampsLibres[] = $valeurChampLibre;
+            $valeurChampLibre->addArticleReference($this);
         }
 
         return $this;
     }
 
-    public function removeValeurChampsLibre(ValeurChampsLibre $valeurChampsLibre): self
+    public function removeValeurChampLibre(ValeurChampLibre $valeurChampLibre): self
     {
-        if ($this->valeurChampsLibres->contains($valeurChampsLibre)) {
-            $this->valeurChampsLibres->removeElement($valeurChampsLibre);
-            $valeurChampsLibre->removeArticleReference($this);
+        if ($this->valeurChampsLibres->contains($valeurChampLibre)) {
+            $this->valeurChampsLibres->removeElement($valeurChampLibre);
+            $valeurChampLibre->removeArticleReference($this);
         }
 
         return $this;

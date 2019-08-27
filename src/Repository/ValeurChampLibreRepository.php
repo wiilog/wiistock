@@ -2,25 +2,25 @@
 
 namespace App\Repository;
 
-use App\Entity\ChampsLibre;
+use App\Entity\ChampLibre;
 use App\Entity\Demande;
 use App\Entity\Reception;
-use App\Entity\ValeurChampsLibre;
+use App\Entity\ValeurChampLibre;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 use Doctrine\ORM\NonUniqueResultException;
 
 /**
- * @method ValeurChampsLibre|null find($id, $lockMode = null, $lockVersion = null)
- * @method ValeurChampsLibre|null findOneBy(array $criteria, array $orderBy = null)
- * @method ValeurChampsLibre[]    findAll()
- * @method ValeurChampsLibre[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method ValeurChampLibre|null find($id, $lockMode = null, $lockVersion = null)
+ * @method ValeurChampLibre|null findOneBy(array $criteria, array $orderBy = null)
+ * @method ValeurChampLibre[]    findAll()
+ * @method ValeurChampLibre[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class ValeurChampsLibreRepository extends ServiceEntityRepository
+class ValeurChampLibreRepository extends ServiceEntityRepository
 {
     public function __construct(RegistryInterface $registry)
     {
-        parent::__construct($registry, ValeurChampsLibre::class);
+        parent::__construct($registry, ValeurChampLibre::class);
     }
 
     public function getByRefArticleAndType($idArticle, $idType)
@@ -28,7 +28,7 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
         $query = $em->createQuery(
             "SELECT v.id, v.valeur, c.label, c.id idCL
-            FROM App\Entity\ValeurChampsLibre v
+            FROM App\Entity\ValeurChampLibre v
             JOIN v.articleReference a
             JOIN v.champLibre c
             JOIN c.type t
@@ -46,11 +46,11 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
         $query = $em->createQuery(
             "SELECT DISTINCT vcl.valeur 
-            FROM App\Entity\ValeurChampsLibre vcl
+            FROM App\Entity\ValeurChampLibre vcl
             JOIN vcl.champLibre cl
             WHERE cl.id IN (
                 SELECT c.id
-                FROM App\Entity\ChampsLibre c
+                FROM App\Entity\ChampLibre c
                 WHERE c.label LIKE 'adresse%'
             )"
         );
@@ -61,7 +61,7 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
         $query = $em->createQuery(
             "SELECT DISTINCT v.valeur
-            FROM App\Entity\ValeurChampsLibre v
+            FROM App\Entity\ValeurChampLibre v
             JOIN v.champLibre c
             WHERE c.label LIKE 'adresse%'
             "
@@ -69,12 +69,12 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function findOneByRefArticleANDChampsLibre($refArticleId, $champLibre)
+    public function findOneByRefArticleAndChampLibre($refArticleId, $champLibre)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
             "SELECT v
-            FROM App\Entity\ValeurChampsLibre v
+            FROM App\Entity\ValeurChampLibre v
             JOIN v.articleReference a
             WHERE a.id = :refArticle AND v.champLibre = :champLibre"
         );
@@ -93,7 +93,7 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
         $query = $em->createQuery(
             "SELECT v.id, v.valeur, c.label
-            FROM App\Entity\ValeurChampsLibre v
+            FROM App\Entity\ValeurChampLibre v
             JOIN v.articleReference a
             JOIN v.champLibre c
             WHERE a.id = :idArticle "
@@ -108,7 +108,7 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
         $query = $em->createQuery(
             "SELECT v.id, v.valeur, c.label
-            FROM App\Entity\ValeurChampsLibre v
+            FROM App\Entity\ValeurChampLibre v
             JOIN v.article a
             JOIN v.champLibre c
             WHERE a.id = :id "
@@ -123,7 +123,7 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
         $query = $em->createQuery(
             "SELECT v.id, v.valeur, c.label, c.id idCL
-            FROM App\Entity\ValeurChampsLibre v
+            FROM App\Entity\ValeurChampLibre v
             JOIN v.article a
             JOIN v.champLibre c
             JOIN c.type t
@@ -137,12 +137,12 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function findOneByArticleANDChampsLibre($idArticle, $idChampLibre)
+    public function findOneByArticleAndChampLibre($idArticle, $idChampLibre)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
             "SELECT v
-            FROM App\Entity\ValeurChampsLibre v
+            FROM App\Entity\ValeurChampLibre v
             JOIN v.article a
             JOIN v.champLibre c
             WHERE a.id = :idArticle AND c.id = :idChampLibre"
@@ -162,7 +162,7 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
         $query = $em->createQuery(
             "SELECT v
-            FROM App\Entity\ValeurChampsLibre v
+            FROM App\Entity\ValeurChampLibre v
             JOIN v.article a
             JOIN v.champLibre c
             WHERE a.id = :articleId AND c.id = :champLibreId"
@@ -172,17 +172,22 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
         return $query->getOneOrNullResult();
     }
 
+	/**
+	 * @param Reception $reception
+	 * @param $type
+	 * @return mixed
+	 */
     public function getByReceptionAndType($reception, $type)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
             "SELECT v.id, v.valeur, c.label, c.typage
-            FROM App\Entity\ValeurChampsLibre v
+            FROM App\Entity\ValeurChampLibre v
             JOIN v.champLibre c
             WHERE v.id IN (:receptions) AND c.type = :type"
         );
         $query->setParameters([
-            "receptions" => $reception->getValeurChampsLibre(),
+            "receptions" => $reception->getValeurChampLibre(),
             "type" => $type
         ]);
 
@@ -191,7 +196,7 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
 
 	/**
 	 * @param Reception $reception
-	 * @param ChampsLibre $champLibre
+	 * @param ChampLibre $champLibre
 	 * @return mixed
 	 */
     public function findOneByReceptionAndChampLibre($reception, $champLibre)
@@ -199,11 +204,11 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
         $query = $em->createQuery(
             "SELECT v
-            FROM App\Entity\ValeurChampsLibre v
+            FROM App\Entity\ValeurChampLibre v
             WHERE v.champLibre = :champLibre AND v.id IN (:receptionvcl)"
         );
         $query->setParameters([
-            'receptionvcl' => $reception->getValeurChampsLibre(),
+            'receptionvcl' => $reception->getValeurChampLibre(),
             "champLibre" => $champLibre
         ]);
         return $query->execute();
@@ -211,16 +216,16 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
 
 	/**
 	 * @param Demande $demande
-	 * @param ChampsLibre $champLibre
+	 * @param ChampLibre $champLibre
 	 * @return mixed
 	 * @throws NonUniqueResultException
 	 */
-	public function findOneByDemandeLivraisonAndChampsLibre($demande, $champLibre)
+	public function findOneByDemandeLivraisonAndChampLibre($demande, $champLibre)
 	{
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
 			"SELECT v
-            FROM App\Entity\ValeurChampsLibre v
+            FROM App\Entity\ValeurChampLibre v
             JOIN v.demandesLivraison d
             WHERE v.champLibre = :champLibre AND v.id IN (:demandeVCL)"
 		);
@@ -234,7 +239,7 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
 
 	/**
 	 * @param Demande $demandeLivraison
-	 * @param ChampsLibre $champLibre
+	 * @param ChampLibre $champLibre
 	 * @return mixed
 	 * @throws NonUniqueResultException
 	 */
@@ -243,7 +248,7 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
 			"SELECT v.valeur
-            FROM App\Entity\ValeurChampsLibre v
+            FROM App\Entity\ValeurChampLibre v
             WHERE v.champLibre = :champLibre AND v.id in (:demandeLivraisonVCL)"
 		);
 		$query->setParameters([
@@ -263,7 +268,7 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
 		$em = $this->getEntityManager();
 		$query = $em->createQuery(
 			"SELECT v.id, v.valeur, c.label, c.typage
-            FROM App\Entity\ValeurChampsLibre v
+            FROM App\Entity\ValeurChampLibre v
             JOIN v.champLibre c
             WHERE v.id IN (:demandesLivraison) AND c.type = :type"
 		);
@@ -279,7 +284,7 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
 	    $em = $this->getEntityManager();
 	    $query = $em->createQuery(
 	        "SELECT v.valeur
-	        FROM App\Entity\ValeurChampsLibre v
+	        FROM App\Entity\ValeurChampLibre v
 	        JOIN v.champLibre c
 	        WHERE c.id =:champLibre"
         )->setParameter('champLibre', $champLibre);
@@ -290,7 +295,7 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
         $em = $this->getEntityManager();
         $query = $em->createQuery(
             "SELECT v
-	        FROM App\Entity\ValeurChampsLibre v
+	        FROM App\Entity\ValeurChampLibre v
 	        JOIN v.champLibre c
 	        WHERE c.id =:champLibre"
         )->setParameter('champLibre', $champLibreId);

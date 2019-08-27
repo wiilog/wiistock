@@ -3,10 +3,10 @@
 namespace App\Controller;
 
 use App\Entity\CategoryType;
-use App\Entity\ChampsLibre;
+use App\Entity\ChampLibre;
 use App\Entity\Filter;
 use App\Entity\Type;
-use App\Repository\ChampsLibreRepository;
+use App\Repository\ChampLibreRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\FilterRepository;
 use App\Repository\TypeRepository;
@@ -26,7 +26,7 @@ use Symfony\Component\Routing\Annotation\Route;
 class FilterController extends AbstractController
 {
     /**
-     * @var ChampsLibreRepository
+     * @var ChampLibreRepository
      */
     private $champLibreRepository;
 
@@ -54,13 +54,13 @@ class FilterController extends AbstractController
 	 * FilterController constructor.
 	 * @param TypeRepository $typeRepository
 	 * @param EmplacementRepository $emplacementRepository
-	 * @param ChampsLibreRepository $champsLibreRepository
+	 * @param ChampLibreRepository $champLibreRepository
 	 * @param FilterRepository $filterRepository
 	 * @param RefArticleDataService $refArticleDataService
 	 */
-    public function __construct(TypeRepository $typeRepository, EmplacementRepository $emplacementRepository, ChampsLibreRepository $champsLibreRepository, FilterRepository $filterRepository, RefArticleDataService $refArticleDataService)
+    public function __construct(TypeRepository $typeRepository, EmplacementRepository $emplacementRepository, ChampLibreRepository $champLibreRepository, FilterRepository $filterRepository, RefArticleDataService $refArticleDataService)
     {
-        $this->champLibreRepository = $champsLibreRepository;
+        $this->champLibreRepository = $champLibreRepository;
         $this->filterRepository = $filterRepository;
         $this->refArticleDataService = $refArticleDataService;
         $this->typeRepository = $typeRepository;
@@ -175,7 +175,7 @@ class FilterController extends AbstractController
 					$options[] = $type->getLabel();
 				}
 			} else {
-				$cl = $this->champLibreRepository->find(intval($value)); /** @var $cl ChampsLibre */
+				$cl = $this->champLibreRepository->find(intval($value)); /** @var $cl ChampLibre */
 				$options = $cl->getElements();
 			}
 

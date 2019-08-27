@@ -5,14 +5,14 @@ namespace App\Controller;
 use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategoryType;
-use App\Entity\ChampsLibre;
+use App\Entity\ChampLibre;
 use App\Entity\DimensionsEtiquettes;
 use App\Entity\Filter;
 use App\Entity\Menu;
 use App\Entity\ParamClient;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
-use App\Entity\ValeurChampsLibre;
+use App\Entity\ValeurChampLibre;
 use App\Entity\CollecteReference;
 use App\Entity\LigneArticle;
 use App\Entity\CategorieCL;
@@ -24,8 +24,8 @@ use App\Repository\FilterRepository;
 use App\Repository\ParametreRepository;
 use App\Repository\ParametreRoleRepository;
 use App\Repository\ReferenceArticleRepository;
-use App\Repository\ChampsLibreRepository;
-use App\Repository\ValeurChampsLibreRepository;
+use App\Repository\ChampLibreRepository;
+use App\Repository\ValeurChampLibreRepository;
 use App\Repository\TypeRepository;
 use App\Repository\StatutRepository;
 use App\Repository\CollecteRepository;
@@ -100,14 +100,14 @@ class ReferenceArticleController extends Controller
     private $typeRepository;
 
     /**
-     * @var ChampslibreRepository
+     * @var ChampLibreRepository
      */
-    private $champsLibreRepository;
+    private $champLibreRepository;
 
     /**
-     * @var ValeurChampsLibreRepository
+     * @var ValeurChampLibreRepository
      */
-    private $valeurChampsLibreRepository;
+    private $valeurChampLibreRepository;
 
     /**
      * @var ArticleFournisseurRepository
@@ -179,12 +179,12 @@ class ReferenceArticleController extends Controller
      */
     private $user;
 
-    public function __construct(TokenStorageInterface $tokenStorage, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, ParametreRoleRepository $parametreRoleRepository, ParametreRepository $parametreRepository, SpecificService $specificService, \Twig_Environment $templating, EmplacementRepository $emplacementRepository, FournisseurRepository $fournisseurRepository, CategorieCLRepository $categorieCLRepository, LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, ArticleDataService $articleDataService, LivraisonRepository $livraisonRepository, DemandeRepository $demandeRepository, CollecteRepository $collecteRepository, StatutRepository $statutRepository, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampsLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FilterRepository $filterRepository, RefArticleDataService $refArticleDataService, UserService $userService)
+    public function __construct(TokenStorageInterface $tokenStorage, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, ParametreRoleRepository $parametreRoleRepository, ParametreRepository $parametreRepository, SpecificService $specificService, \Twig_Environment $templating, EmplacementRepository $emplacementRepository, FournisseurRepository $fournisseurRepository, CategorieCLRepository $categorieCLRepository, LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, ArticleDataService $articleDataService, LivraisonRepository $livraisonRepository, DemandeRepository $demandeRepository, CollecteRepository $collecteRepository, StatutRepository $statutRepository, ValeurChampLibreRepository $valeurChampLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FilterRepository $filterRepository, RefArticleDataService $refArticleDataService, UserService $userService)
     {
         $this->emplacementRepository = $emplacementRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
-        $this->champsLibreRepository = $champsLibreRepository;
-        $this->valeurChampsLibreRepository = $valeurChampsLibreRepository;
+        $this->champLibreRepository = $champsLibreRepository;
+        $this->valeurChampLibreRepository = $valeurChampLibreRepository;
         $this->typeRepository = $typeRepository;
         $this->statutRepository = $statutRepository;
         $this->articleFournisseurRepository = $articleFournisseurRepository;
@@ -220,7 +220,7 @@ class ReferenceArticleController extends Controller
             $columnsVisible = $this->getUser()->getColumnVisible();
             $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
             $category = CategoryType::ARTICLE;
-            $champs = $this->champsLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
+            $champs = $this->champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
 
             $columns = [];
             if ($columnsVisible) {
@@ -334,7 +334,7 @@ class ReferenceArticleController extends Controller
             } else {
                 $emplacement = null; //TODO gérer message erreur (faire un return avec msg erreur adapté -> à ce jour un return false correspond forcément à une réf déjà utilisée)
             };
-            $CLRequired = $this->champsLibreRepository->getByTypeAndRequiredCreate($type);
+            $CLRequired = $this->champLibreRepository->getByTypeAndRequiredCreate($type);
             $msgMissingCL = '';
             foreach ($CLRequired as $CL) {
                 if (array_key_exists($CL['id'], $data) and $data[$CL['id']] === "") {
@@ -398,15 +398,15 @@ class ReferenceArticleController extends Controller
             }
             $em->persist($refArticle);
             $em->flush();
-            $champsLibreKey = array_keys($data);
+            $champsLibresKey = array_keys($data);
 
-            foreach ($champsLibreKey as $champs) {
+            foreach ($champsLibresKey as $champs) {
                 if (gettype($champs) === 'integer') {
-                    $valeurChampLibre = new ValeurChampsLibre();
+                    $valeurChampLibre = new ValeurChampLibre();
                     $valeurChampLibre
                         ->setValeur($data[$champs])
                         ->addArticleReference($refArticle)
-                        ->setChampLibre($this->champsLibreRepository->find($champs));
+                        ->setChampLibre($this->champLibreRepository->find($champs));
                     $em->persist($valeurChampLibre);
                     $em->flush();
                 }
@@ -414,11 +414,11 @@ class ReferenceArticleController extends Controller
 
             $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
             $category = CategoryType::ARTICLE;
-            $champsLibres = $this->champsLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
+            $champsLibres = $this->champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
 
             $rowCL = [];
             foreach ($champsLibres as $champLibre) {
-                $valeur = $this->valeurChampsLibreRepository->findOneByRefArticleANDChampsLibre($refArticle->getId(), $champLibre['id']);
+                $valeur = $this->valeurChampLibreRepository->findOneByRefArticleAndChampLibre($refArticle->getId(), $champLibre['id']);
 
                 $rowCL[$champLibre['label']] = ($valeur ? $valeur->getValeur() : "");
             }
@@ -465,7 +465,7 @@ class ReferenceArticleController extends Controller
 
         $categorieCL = $this->categorieCLRepository->findOneByLabel(CategorieCL::REFERENCE_ARTICLE);
         $category = CategoryType::ARTICLE;
-        $champL = $this->champsLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
+        $champL = $this->champLibreRepository->getByCategoryTypeAndCategoryCL($category, $categorieCL);
         $champF[] = [
             'label' => 'Actions',
             'id' => 0,
@@ -516,8 +516,8 @@ class ReferenceArticleController extends Controller
         ];
 
         // champs pour recherche personnalisée (uniquement de type texte ou liste)
-		$champsLText = $this->champsLibreRepository->getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, ChampsLibre::TYPE_TEXT);
-		$champsLTList = $this->champsLibreRepository->getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, ChampsLibre::TYPE_LIST);
+		$champsLText = $this->champLibreRepository->getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, ChampLibre::TYPE_TEXT);
+		$champsLTList = $this->champLibreRepository->getByCategoryTypeAndCategoryCLAndType($category, $categorieCL, ChampLibre::TYPE_LIST);
 
 		$champsFText[] = [
             'label' => 'Libellé',
@@ -563,7 +563,7 @@ class ReferenceArticleController extends Controller
         $typeChampLibre =  [];
         $search = $this->getUser()->getRecherche();
         foreach ($types as $type) {
-            $champsLibres = $this->champsLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
+            $champsLibres = $this->champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
             $typeChampLibre[] = [
                 'typeLabel' =>  $type->getLabel(),
                 'typeId' => $type->getId(),
@@ -904,11 +904,11 @@ class ReferenceArticleController extends Controller
 
             $typeChampLibre =  [];
             foreach ($types as $type) {
-                $champsLibresComplet = $this->champsLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
+                $champsLibresComplet = $this->champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
 
                 $champsLibres = [];
                 foreach ($champsLibresComplet as $champLibre) {
-                    $valeurChampRefArticle = $this->valeurChampsLibreRepository->findOneByRefArticleANDChampsLibre($refArticle->getId(), $champLibre);
+                    $valeurChampRefArticle = $this->valeurChampLibreRepository->findOneByRefArticleAndChampLibre($refArticle->getId(), $champLibre);
                     $champsLibres[] = [
                         'id' => $champLibre->getId(),
                         'label' => $champLibre->getLabel(),
@@ -930,7 +930,7 @@ class ReferenceArticleController extends Controller
                 $view =  $this->templating->render('reference_article/modalShowRefArticleContent.html.twig', [
                     'articleRef' => $refArticle,
                     'statut' => ($refArticle->getStatut()->getNom() == ReferenceArticle::STATUT_ACTIF),
-                    'valeurChampsLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
+                    'valeurChampLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
                     'typeChampsLibres' => $typeChampLibre,
                     'articlesFournisseur' => ($data['listArticlesFournisseur']),
                     'totalQuantity' => $data['totalQuantity'],
@@ -956,7 +956,7 @@ class ReferenceArticleController extends Controller
             $data = [];
             $data['values'] = [];
             $headersCL = [];
-            foreach ($this->champsLibreRepository->findAll() as $champLibre) {
+            foreach ($this->champLibreRepository->findAll() as $champLibre) {
                 $headersCL[] = $champLibre->getLabel();
             }
             $listTypes = $this->typeRepository->getIdAndLabelByCategoryLabel(CategoryType::ARTICLE);
@@ -986,7 +986,7 @@ class ReferenceArticleController extends Controller
         if ($request->isXmlHttpRequest()) {
             $data['total'] = $this->referenceArticleRepository->countAll();
             $data['headers'] = ['reference', 'libelle', 'quantité', 'type', 'type_quantite', 'statut', 'commentaire', 'emplacement'];
-            foreach ($this->champsLibreRepository->findAll() as $champLibre) {
+            foreach ($this->champLibreRepository->findAll() as $champLibre) {
                 $data['headers'][] = $champLibre->getLabel();
             }
             return new JsonResponse($data);
@@ -1014,9 +1014,9 @@ class ReferenceArticleController extends Controller
         $champsLibres = [];
         foreach ($listTypes as $typeArray) {
         	$type = $this->typeRepository->find($typeArray['id']);
-            $listChampsLibres = $this->champsLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
+            $listChampsLibres = $this->champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::REFERENCE_ARTICLE);
             foreach ($listChampsLibres as $champLibre) {
-                $valeurChampRefArticle = $this->valeurChampsLibreRepository->findOneByRefArticleANDChampsLibre($ref->getId(), $champLibre);
+                $valeurChampRefArticle = $this->valeurChampLibreRepository->findOneByRefArticleAndChampLibre($ref->getId(), $champLibre);
                 if ($valeurChampRefArticle) $champsLibres[$champLibre->getLabel()] = $valeurChampRefArticle->getValeur();
             }
         }
