@@ -141,7 +141,7 @@ function getDataFromModal(modal) {
             let val = parseInt($(this).val());
             let min = parseInt($(this).attr('min'));
             let max = parseInt($(this).attr('max'));
-            if (val > max || val < min) {
+            if (val > max || val < min || isNaN(val)) {
                 wrongNumberInputs.push($(this));
                 $(this).addClass('is-invalid');
             }

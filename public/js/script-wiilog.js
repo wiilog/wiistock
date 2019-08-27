@@ -76,10 +76,13 @@ function submitAction(modal, path, table, callback, close) {
             let val = parseInt($(this).val());
             let min = parseInt($(this).attr('min'));
             let max = parseInt($(this).attr('max'));
-            if (val > max || val < min) {
+            if (val > max || val < min || isNaN(val)) {
                 wrongNumberInputs.push($(this));
                 $(this).addClass('is-invalid');
-            }else{
+            } else {
+                $(this).removeClass('is-invalid');
+            }
+            if($(this).is(':disabled') === true){
                 $(this).removeClass('is-invalid');
             }
         }
@@ -134,26 +137,26 @@ function submitAction(modal, path, table, callback, close) {
         if (wrongNumberInputs.length > 0) {
             wrongNumberInputs.forEach(function (elem) {
                 let label = elem.closest('.form-group').find('label').text();
+                if(elem.is(':disabled') === false){
+                    msg += 'La valeur du champ ' + label.replace(/\*/, '');
 
-                msg += 'La valeur du champ ' + label.replace(/\*/, '');
+                    let min = elem.attr('min');
+                    let max = elem.attr('max');
 
-                let min = elem.attr('min');
-                let max = elem.attr('max');
-
-                if (typeof (min) !== 'undefined' && typeof (max) !== 'undefined') {
-                    if (min > max) {
-                        msg += " doit être inférieure à " + max + ".<br>";
-                    } else {
-                        msg += ' doit être comprise entre ' + min + ' et ' + max + ".<br>";
+                    if (typeof (min) !== 'undefined' && typeof (max) !== 'undefined') {
+                        if (min > max) {
+                            msg += " doit être inférieure à " + max + ".<br>";
+                        } else {
+                            msg += ' doit être comprise entre ' + min + ' et ' + max + ".<br>";
+                        }
+                    } else if (typeof (min) == 'undefined') {
+                        msg += ' doit être inférieure à ' + max + ".<br>";
+                    } else if (typeof (max) == 'undefined') {
+                        msg += ' doit être supérieure à ' + min + ".<br>";
+                    } else if (min < 1) {
+                        msg += ' ne peut pas être rempli'
                     }
-                } else if (typeof (min) == 'undefined') {
-                    msg += ' doit être inférieure à ' + max + ".<br>";
-                } else if (typeof (max) == 'undefined') {
-                    msg += ' doit être supérieure à ' + min + ".<br>";
-                } else if (min < 1) {
-                    msg += ' ne peut pas être rempli'
                 }
-
             })
         }
 
