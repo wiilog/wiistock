@@ -456,4 +456,17 @@ class ArticleRepository extends ServiceEntityRepository
 
 		return $query->getOneOrNullResult();
 	}
+
+    public function countByEmplacement($emplacementId)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT COUNT(a)
+			FROM App\Entity\Article a
+			JOIN a.emplacement e
+			WHERE e.id = :emplacementId"
+        )->setParameter('emplacementId', $emplacementId);
+
+        return $query->getSingleScalarResult();
+    }
 }

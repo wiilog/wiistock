@@ -31,5 +31,4 @@ class AlerteRepository extends ServiceEntityRepository
 
         return $query->getSingleScalarResult();
     }
-
 }

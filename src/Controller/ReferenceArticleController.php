@@ -818,7 +818,7 @@ class ReferenceArticleController extends Controller
                 $collectes = $this->collecteRepository->getByStatutAndUser($statutC, $this->getUser());
 
                 $statutD = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
-                $demandes = $this->demandeRepository->getByStatutAndUser($statutD, $this->getUser());
+                $demandes = $this->demandeRepository->findByStatutAndUser($statutD, $this->getUser());
 
                 if ($refArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                     if ($refArticle) {
@@ -1053,7 +1053,7 @@ class ReferenceArticleController extends Controller
         if ($request->isXmlHttpRequest() && $data= json_decode($request->getContent(), true)) {
 
             $statutDemande = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_BROUILLON);
-            $demandes = $this->demandeRepository->getByStatutAndUser($statutDemande, $this->getUser());
+            $demandes = $this->demandeRepository->findByStatutAndUser($statutDemande, $this->getUser());
 
             $statutC = $this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, Collecte::STATUS_BROUILLON);
             $collectes = $this->collecteRepository->getByStatutAndUser($statutC, $this->getUser());
