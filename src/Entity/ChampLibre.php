@@ -270,4 +270,27 @@ class ChampLibre
 
         return $this;
     }
+
+    public function addValeurChampsLibre(ValeurChampLibre $valeurChampsLibre): self
+    {
+        if (!$this->valeurChampsLibres->contains($valeurChampsLibre)) {
+            $this->valeurChampsLibres[] = $valeurChampsLibre;
+            $valeurChampsLibre->setChampLibre($this);
+        }
+
+        return $this;
+    }
+
+    public function removeValeurChampsLibre(ValeurChampLibre $valeurChampsLibre): self
+    {
+        if ($this->valeurChampsLibres->contains($valeurChampsLibre)) {
+            $this->valeurChampsLibres->removeElement($valeurChampsLibre);
+            // set the owning side to null (unless already changed)
+            if ($valeurChampsLibre->getChampLibre() === $this) {
+                $valeurChampsLibre->setChampLibre(null);
+            }
+        }
+
+        return $this;
+    }
 }

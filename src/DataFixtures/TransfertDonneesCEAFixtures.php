@@ -113,8 +113,8 @@ class TransfertDonneesCEAFixtures extends Fixture
             if (count($articles) > 0) {
 
                 $article = $articles[0];
-                $valeurCodeProjet = $this->valeurChampLibreRepository->findOneByChampLibreAndArticle($clCodeProjet->getId(), $article->getId())->getValeur();
-                $valeurDestinataire = $this->valeurChampLibreRepository->findOneByChampLibreAndArticle($clDestinataire->getId(), $article->getId())->getValeur();
+                $valeurCodeProjet = $this->valeurChampLibreRepository->findOneByArticleAndChampLibre($article, $clCodeProjet)->getValeur();
+                $valeurDestinataire = $this->valeurChampLibreRepository->findOneByArticleAndChampLibre($clDestinataire, $article)->getValeur();
 
                 $specialChars = ['├®', '├¿', '├º', '├á', '├½', '├ë'];
                 $normalChars = ['é', 'è', 'ç', 'à', 'ë', 'É'];

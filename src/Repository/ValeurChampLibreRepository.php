@@ -2,7 +2,9 @@
 
 namespace App\Repository;
 
+use App\Entity\Article;
 use App\Entity\ChampLibre;
+use App\Entity\Collecte;
 use App\Entity\Demande;
 use App\Entity\Reception;
 use App\Entity\ValeurChampLibre;
@@ -137,41 +139,30 @@ class ValeurChampLibreRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function findOneByArticleAndChampLibre($idArticle, $idChampLibre)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT v
+	/**
+	 * @param int|ChampLibre $champLibre
+	 * @param int|Article $article
+	 * @return ValeurChampLibre|null
+	 */
+	public function findOneByArticleAndChampLibre($article, $champLibre)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			"SELECT v
             FROM App\Entity\ValeurChampLibre v
             JOIN v.article a
             JOIN v.champLibre c
-            WHERE a.id = :idArticle AND c.id = :idChampLibre"
-        );
-        $query->setParameters([
-            "idArticle" => $idArticle,
-            "idChampLibre" => $idChampLibre
-        ]);
+            WHERE a.id = :article AND c.id = :champLibre"
+		);
+		$query->setParameters([
+			'champLibre' => $champLibre,
+			'article' => $article
+		]);
 
-//        return $query->getOneOrNullResult();
+//		return $query->getOneOrNullResult();
 		$result = $query->execute();
 		return $result ? $result[0] : null;
-    }
-
-    public function findOneByChampLibreAndArticle($champLibreId, $articleId)
-    {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
-            "SELECT v
-            FROM App\Entity\ValeurChampLibre v
-            JOIN v.article a
-            JOIN v.champLibre c
-            WHERE a.id = :articleId AND c.id = :champLibreId"
-        );
-        $query->setParameters(['champLibreId' => $champLibreId, 'articleId' => $articleId]);
-
-        return $query->getOneOrNullResult();
-    }
-
+	}
 	/**
 	 * @param Reception $reception
 	 * @param $type
@@ -216,7 +207,7 @@ class ValeurChampLibreRepository extends ServiceEntityRepository
 
 	/**
 	 * @param Demande $demande
-	 * @param ChampLibre $champLibre
+	 * @param int|ChampLibre $champLibre
 	 * @return mixed
 	 * @throws NonUniqueResultException
 	 */
@@ -230,12 +221,35 @@ class ValeurChampLibreRepository extends ServiceEntityRepository
             WHERE v.champLibre = :champLibre AND v.id IN (:demandeVCL)"
 		);
 		$query->setParameters([
-			'champLibre' => $champLibre->getId(),
+			'champLibre' => $champLibre,
 			'demandeVCL' => $demande->getValeurChampLibre()
 		]);
 		return $query->getOneOrNullResult();
 	}
 
+	/**
+	 * @param Collecte $demandeCollecte
+	 * @param int|ChampLibre $champLibre
+	 * @return ValeurChampLibre|null
+	 * @throws NonUniqueResultException
+	 */
+	public function findOneByDemandeCollecteAndChampLibre($demandeCollecte, $champLibre)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+		/** @lang DQL */
+			"SELECT v
+            FROM App\Entity\ValeurChampLibre v
+            JOIN v.demandesCollecte c
+            WHERE v.champLibre = :champLibre AND v.id IN (:collecteVCL)"
+		);
+		$query->setParameters([
+			'champLibre' => $champLibre,
+			'collecteVCL' => $demandeCollecte->getValeurChampLibre()
+		]);
+
+		return $query->getOneOrNullResult();
+	}
 
 	/**
 	 * @param Demande $demandeLivraison
@@ -260,6 +274,29 @@ class ValeurChampLibreRepository extends ServiceEntityRepository
 	}
 
 	/**
+	 * @param Collecte $demandeCollecte
+	 * @param ChampLibre $champLibre
+	 * @return string|null
+	 * @throws NonUniqueResultException
+	 */
+	public function getValueByDemandeCollecteAndChampLibre($demandeCollecte, $champLibre)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+		/** @lang DQL  */
+			"SELECT v.valeur
+            FROM App\Entity\ValeurChampLibre v
+            WHERE v.champLibre = :champLibre AND v.id in (:demandeCollecteVCL)"
+		);
+		$query->setParameters([
+			'demandeCollecteVCL' => $demandeCollecte->getValeurChampLibre(),
+			"champLibre" => $champLibre
+		]);
+
+		return $query->getOneOrNullResult();
+	}
+
+	/**
 	 * @param Demande $demandeLivraison
 	 * @return mixed
 	 */
@@ -275,6 +312,28 @@ class ValeurChampLibreRepository extends ServiceEntityRepository
 		$query->setParameters([
 			"demandesLivraison" => $demandeLivraison->getValeurChampLibre(),
 			"type" => $demandeLivraison->getType()
+		]);
+
+		return $query->execute();
+	}
+
+	/**
+	 * @param Collecte $demandeCollecte
+	 * @return mixed
+	 */
+	public function getByDemandeCollecte($demandeCollecte)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			/** @lang DQL */
+			"SELECT v.id, v.valeur, c.label, c.typage
+            FROM App\Entity\ValeurChampLibre v
+            JOIN v.champLibre c
+            WHERE v.id IN (:demandesCollecte) AND c.type = :type"
+		);
+		$query->setParameters([
+			"demandesCollecte" => $demandeCollecte->getValeurChampLibre(),
+			"type" => $demandeCollecte->getType()
 		]);
 
 		return $query->execute();

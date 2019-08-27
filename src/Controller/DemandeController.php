@@ -286,10 +286,10 @@ class DemandeController extends AbstractController
 
             $demande = $this->demandeRepository->find($data['id']);
 
-            $typesDL = $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
+            $listTypes = $this->typeRepository->findByCategoryLabel(CategoryType::DEMANDE_LIVRAISON);
             $typeChampLibre = [];
 
-            foreach ($typesDL as $type) {
+            foreach ($listTypes as $type) {
                 $champsLibres = $this->champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON);
                 $champsLibresArray = [];
                 foreach ($champsLibres as $champLibre) {
@@ -359,8 +359,7 @@ class DemandeController extends AbstractController
 
                 foreach ($champsLibresKey as $champ) {
                     if (gettype($champ) === 'integer') {
-                        $champLibre = $this->champLibreRepository->find($champ);
-                        $valeurChampLibre = $this->valeurChampLibreRepository->findOneByDemandeLivraisonAndChampLibre($demande, $champLibre);
+                        $valeurChampLibre = $this->valeurChampLibreRepository->findOneByDemandeLivraisonAndChampLibre($demande, $champ);
 
                         // si la valeur n'existe pas, on la crée
                         if (!$valeurChampLibre) {

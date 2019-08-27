@@ -199,7 +199,7 @@ class ArticleController extends Controller
             $champsLibresComplet = $this->champLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
             $champsLibres = [];
             foreach ($champsLibresComplet as $champLibre) {
-                $valeurChampArticle = $this->valeurChampLibreRepository->findOneByChampLibreAndArticle($champLibre->getId(), $article->getId());
+                $valeurChampArticle = $this->valeurChampLibreRepository->findOneByArticleAndChampLibre($article, $champLibre);
                 $champsLibres[] = [
                     'id' => $champLibre->getId(),
                     'label' => $champLibre->getLabel(),
@@ -545,26 +545,26 @@ class ArticleController extends Controller
     }
 
 	/**
-	 * @param Article $ref
+	 * @param Article $article
 	 * @param array $listTypes
 	 * @param $headers
 	 * @return string
 	 */
-    public function buildInfos(Article $ref, $listTypes, $headers)
+    public function buildInfos(Article $article, $listTypes, $headers)
     {
-        $refData[] = $ref->getReference() ? $ref->getReference() : '';
-        $refData[] = $ref->getLabel() ? $ref->getLabel() : '';
-        $refData[] = $ref->getQuantite() ? $ref->getQuantite() : '';
-        $refData[] = $ref->getType() ? ($ref->getType()->getLabel() ? $ref->getType()->getLabel() : '') : '';
-        $refData[] = $ref->getStatut() ? $ref->getStatut()->getNom() : '';
-        $refData[] = strip_tags($ref->getCommentaire());
-        $refData[] = $ref->getEmplacement() ? $ref->getEmplacement()->getLabel() : '';
+        $refData[] = $article->getReference() ? $article->getReference() : '';
+        $refData[] = $article->getLabel() ? $article->getLabel() : '';
+        $refData[] = $article->getQuantite() ? $article->getQuantite() : '';
+        $refData[] = $article->getType() ? ($article->getType()->getLabel() ? $article->getType()->getLabel() : '') : '';
+        $refData[] = $article->getStatut() ? $article->getStatut()->getNom() : '';
+        $refData[] = strip_tags($article->getCommentaire());
+        $refData[] = $article->getEmplacement() ? $article->getEmplacement()->getLabel() : '';
         $champsLibres = [];
         foreach ($listTypes as $type) {
 			$typeArticle = $this->typeRepository->find($type['id']);
             $listChampsLibres = $this->champLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
             foreach ($listChampsLibres as $champLibre) {
-                $valeurChampRefArticle = $this->valeurChampLibreRepository->findOneByArticleAndChampLibre($ref->getId(), $champLibre);
+                $valeurChampRefArticle = $this->valeurChampLibreRepository->findOneByArticleAndChampLibre($article, $champLibre);
                 if ($valeurChampRefArticle) $champsLibres[$champLibre->getLabel()] = $valeurChampRefArticle->getValeur();
             }
         }

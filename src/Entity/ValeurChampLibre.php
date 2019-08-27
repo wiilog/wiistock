@@ -48,6 +48,11 @@ class ValeurChampLibre
 	 */
     private $demandesLivraison;
 
+	/**
+	 * @ORM\ManyToMany(targetEntity="App\Entity\Collecte", mappedBy="valeurChampLibre")
+	 */
+	private $demandesCollecte;
+
 
     public function __construct()
     {
@@ -56,6 +61,7 @@ class ValeurChampLibre
         $this->article = new ArrayCollection();
         $this->receptions = new ArrayCollection();
         $this->demandesLivraison = new ArrayCollection();
+        $this->demandesCollecte = new ArrayCollection();
     }
 
 
@@ -197,6 +203,34 @@ class ValeurChampLibre
         if ($this->demandesLivraison->contains($demandesLivraison)) {
             $this->demandesLivraison->removeElement($demandesLivraison);
             $demandesLivraison->removeValeurChampLibre($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Collecte[]
+     */
+    public function getDemandesCollecte(): Collection
+    {
+        return $this->demandesCollecte;
+    }
+
+    public function addDemandesCollecte(Collecte $demandesCollecte): self
+    {
+        if (!$this->demandesCollecte->contains($demandesCollecte)) {
+            $this->demandesCollecte[] = $demandesCollecte;
+            $demandesCollecte->addValeurChampLibre($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDemandesCollecte(Collecte $demandesCollecte): self
+    {
+        if ($this->demandesCollecte->contains($demandesCollecte)) {
+            $this->demandesCollecte->removeElement($demandesCollecte);
+            $demandesCollecte->removeValeurChampLibre($this);
         }
 
         return $this;

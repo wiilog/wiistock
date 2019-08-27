@@ -379,4 +379,24 @@ class Article
 
         return $this;
     }
+
+    public function addValeurChampsLibre(ValeurChampLibre $valeurChampsLibre): self
+    {
+        if (!$this->valeurChampsLibres->contains($valeurChampsLibre)) {
+            $this->valeurChampsLibres[] = $valeurChampsLibre;
+            $valeurChampsLibre->addArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeValeurChampsLibre(ValeurChampLibre $valeurChampsLibre): self
+    {
+        if ($this->valeurChampsLibres->contains($valeurChampsLibre)) {
+            $this->valeurChampsLibres->removeElement($valeurChampsLibre);
+            $valeurChampsLibre->removeArticle($this);
+        }
+
+        return $this;
+    }
 }

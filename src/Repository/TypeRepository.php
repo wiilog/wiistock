@@ -19,6 +19,10 @@ class TypeRepository extends ServiceEntityRepository
         parent::__construct($registry, Type::class);
     }
 
+	/**
+	 * @param string $categoryLabel
+	 * @return Type[]
+	 */
     public function findByCategoryLabel($categoryLabel)
     {
         $em = $this->getEntityManager();

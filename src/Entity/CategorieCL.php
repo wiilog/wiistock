@@ -16,6 +16,7 @@ class CategorieCL
     const ARTICLE = 'article';
     const RECEPTION = 'réception';
     const DEMANDE_LIVRAISON = 'demande livraison';
+    const DEMANDE_COLLECTE = 'demande collecte';
     const AUCUNE = 'aucune';
 
     /**
@@ -82,6 +83,29 @@ class CategorieCL
             // set the owning side to null (unless already changed)
             if ($champLibre->getCategorieCL() === $this) {
                 $champLibre->setCategorieCL(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function addChampsLibre(ChampLibre $champsLibre): self
+    {
+        if (!$this->champsLibres->contains($champsLibre)) {
+            $this->champsLibres[] = $champsLibre;
+            $champsLibre->setCategorieCL($this);
+        }
+
+        return $this;
+    }
+
+    public function removeChampsLibre(ChampLibre $champsLibre): self
+    {
+        if ($this->champsLibres->contains($champsLibre)) {
+            $this->champsLibres->removeElement($champsLibre);
+            // set the owning side to null (unless already changed)
+            if ($champsLibre->getCategorieCL() === $this) {
+                $champsLibre->setCategorieCL(null);
             }
         }
 

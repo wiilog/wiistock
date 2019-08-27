@@ -358,8 +358,7 @@ class ArticleDataService
         $champsLibresComplet = $this->champLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
         $champsLibres = [];
         foreach ($champsLibresComplet as $champLibre) {
-            /** @var ChampLibre $champLibre */
-            $valeurChampArticle = $this->valeurChampLibreRepository->findOneByChampLibreAndArticle($champLibre->getId(), $article->getId());
+            $valeurChampArticle = $this->valeurChampLibreRepository->findOneByArticleAndChampLibre($article, $champLibre);
 //			$labelChampLibre = strtolower($champLibre->getLabel());
 //			$isCEA = $this->specificService->isCurrentClientNameFunction(ParamClient::CEA_LETI);
 
@@ -438,7 +437,7 @@ class ArticleDataService
                     $champLibre = $this->champLibreRepository->find($champ);
 //					$labelCL = strtolower($champLibre->getLabel());
 //                    if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT) || ($isCea && ($labelCL == 'code projet' || $labelCL == 'destinataire'))) {
-                    $valeurChampLibre = $this->valeurChampLibreRepository->findOneByArticleAndChampLibre($article->getId(), $champ);
+                    $valeurChampLibre = $this->valeurChampLibreRepository->findOneByArticleAndChampLibre($article, $champ);
                     if (!$valeurChampLibre) {
                         $valeurChampLibre = new ValeurChampLibre();
                         $valeurChampLibre
@@ -494,7 +493,7 @@ class ArticleDataService
         $champLibreKey = array_keys($data);
         foreach ($champLibreKey as $champ) {
             if (gettype($champ) === 'integer') {
-                $valeurChampLibre = $this->valeurChampLibreRepository->findOneByArticleAndChampLibre($toInsert->getId(), $champ);
+                $valeurChampLibre = $this->valeurChampLibreRepository->findOneByArticleAndChampLibre($toInsert, $champ);
                 if (!$valeurChampLibre) {
                     $valeurChampLibre = new ValeurChampLibre();
                     $valeurChampLibre

@@ -512,4 +512,24 @@ class ReferenceArticle
         return $this;
     }
 
+    public function addValeurChampsLibre(ValeurChampLibre $valeurChampsLibre): self
+    {
+        if (!$this->valeurChampsLibres->contains($valeurChampsLibre)) {
+            $this->valeurChampsLibres[] = $valeurChampsLibre;
+            $valeurChampsLibre->addArticleReference($this);
+        }
+
+        return $this;
+    }
+
+    public function removeValeurChampsLibre(ValeurChampLibre $valeurChampsLibre): self
+    {
+        if ($this->valeurChampsLibres->contains($valeurChampsLibre)) {
+            $this->valeurChampsLibres->removeElement($valeurChampsLibre);
+            $valeurChampsLibre->removeArticleReference($this);
+        }
+
+        return $this;
+    }
+
 }

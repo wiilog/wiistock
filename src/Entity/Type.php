@@ -416,4 +416,27 @@ class Type
 
         return $this;
     }
+
+    public function addChampsLibre(ChampLibre $champsLibre): self
+    {
+        if (!$this->champsLibres->contains($champsLibre)) {
+            $this->champsLibres[] = $champsLibre;
+            $champsLibre->setType($this);
+        }
+
+        return $this;
+    }
+
+    public function removeChampsLibre(ChampLibre $champsLibre): self
+    {
+        if ($this->champsLibres->contains($champsLibre)) {
+            $this->champsLibres->removeElement($champsLibre);
+            // set the owning side to null (unless already changed)
+            if ($champsLibre->getType() === $this) {
+                $champsLibre->setType(null);
+            }
+        }
+
+        return $this;
+    }
 }
