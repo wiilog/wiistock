@@ -35,15 +35,6 @@ let submitDeleteUser = $("#submitDeleteUser");
 let pathDeleteUser = Routing.generate('user_delete', true);
 InitialiserModalUser(modalDeleteUser, submitDeleteUser, pathDeleteUser, tableUser);
 
-function alertErrorMsg(data) {
-    if (data !== true) {
-        let $alertDanger = $('#alerts').find('.alert-danger');
-        $alertDanger.removeClass('d-none');
-        $alertDanger.delay(2000).fadeOut(2000);
-        $alertDanger.find('.error-msg').html(data);
-    }
-}
-
 function editRole(select) {
     let params = JSON.stringify({
         'role': select.val(),

@@ -414,7 +414,7 @@ class ReceptionController extends AbstractController
     }
 
     /**
-     * @Route("/", name="reception_index", methods={"GET", "POST"})
+     * @Route("/", name="reception_index", methods={"GET", "POST"}, options={"expose"=true})
      */
     public function index(): Response
     {
@@ -442,7 +442,7 @@ class ReceptionController extends AbstractController
     }
 
     /**
-     * @Route("/supprimer", name="reception_delete",  options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/supprimer", name="reception_delete", options={"expose"=true}, methods={"GET", "POST"})
      */
     public function delete(Request  $request): Response
     {
@@ -683,35 +683,38 @@ class ReceptionController extends AbstractController
     }
 
     /**
-     * @Route("/finir/{id}", name="reception_finish", methods={"GET", "POST"}, options={"expose"=true})
+     * @Route("/finir", name="reception_finish", methods={"GET", "POST"}, options={"expose"=true})
      */
-    public function finish(Reception $reception): Response
+    public function finish(Request $request): Response
     {
         if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::CREATE_EDIT)) {
             return $this->redirectToRoute('access_denied');
         }
 
-        $em = $this->getDoctrine()->getManager();
-        $listReceptionReferenceArticle = $this->receptionReferenceArticleRepository->findByReception($reception);
+        if ($request->isXmlHttpRequest() &&  $receptionId = json_decode($request->getContent(), true)) {
+            $em = $this->getDoctrine()->getManager();
+            $reception = $this->receptionRepository->find($receptionId);
+            $listReceptionReferenceArticle = $this->receptionReferenceArticleRepository->findByReception($reception);
 
-        // blocage si aucun article dans la réception
-        if (empty($listReceptionReferenceArticle)) {
-        	return new JsonResponse(false);
-		}
+            if (empty($listReceptionReferenceArticle)) {
+                return new JsonResponse('Vous ne pouvez pas finir une réception sans article.');
+            } else {
+                $statut = $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_RECEPTION_TOTALE);
 
-        $statut =  $this->statutRepository->findOneByCategorieAndStatut(Reception::CATEGORIE, Reception::STATUT_RECEPTION_TOTALE);
+                foreach ($listReceptionReferenceArticle as $receptionRA) {
+                    $referenceArticle = $receptionRA->getReferenceArticle();
+                    if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+                        $referenceArticle->setQuantiteStock($referenceArticle->getQuantiteStock() + $receptionRA->getQuantite());
+                    }
+                }
+                $reception->setStatut($statut);
+                $reception->setDateCommande(new \DateTime('now'));
+                $em->flush();
 
-        foreach ($listReceptionReferenceArticle as $receptionRA) {
-            $referenceArticle = $receptionRA->getReferenceArticle();
-            if ($referenceArticle->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
-                $referenceArticle->setQuantiteStock($referenceArticle->getQuantiteStock() + $receptionRA->getQuantite());
+                return new JsonResponse(true);
             }
         }
-        $reception->setStatut($statut);
-        $reception->setDateCommande(new \DateTime('now'));
-        $em->flush();
-
-        return new JsonResponse(true);
+        throw new NotFoundHttpException("404");
     }
 
     /**

@@ -451,6 +451,11 @@ function checkAndDeleteReception(btn) {
 }
 
 function finishReception(receptionId) {
-    $.post(Routing.generate('reception_finish'), receptionId, function(data) {
+    $.post(Routing.generate('reception_finish'), JSON.stringify(receptionId), function(data) {
+        if (data === true) {
+            window.location.href = Routing.generate('reception_index', true);
+        } else {
+            alertErrorMsg(data);
+        }
     }, 'json');
 }
