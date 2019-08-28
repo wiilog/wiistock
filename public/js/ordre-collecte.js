@@ -56,7 +56,7 @@ $submitSearchOrdreCollecte.on('click', function () {
     let dateMax = $('#dateMax').val();
     let statut = $('#statut').val();
     let type = $('#type').val();
-    let utilisateur = $('#utilisateur').val()
+    let utilisateur = $('#utilisateur').val();
     let utilisateurString = utilisateur.toString();
     let utilisateurPiped = utilisateurString.split(',').join('|');
     saveFilters(PAGE_ORDRE_COLLECTE, dateMin, dateMax, statut, utilisateurPiped, type);

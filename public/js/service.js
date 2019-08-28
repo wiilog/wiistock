@@ -70,7 +70,7 @@ $(function() {
 
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
-    let params = JSON.stringify(PAGE_MANUT);;
+    let params = JSON.stringify(PAGE_MANUT);
     $.post(path, params, function(data) {
         data.forEach(function(element) {
             if (element.field == 'utilisateurs') {
@@ -88,9 +88,9 @@ $submitSearchService.on('click', function () {
     let dateMin = $('#dateMin').val();
     let dateMax = $('#dateMax').val();
     let statut = $('#statut').val();
-    let demandeur = $('#utilisateur').val()
+    let demandeur = $('#utilisateur').val();
     let demandeurString = demandeur.toString();
-    demandeurPiped = demandeurString.split(',').join('|')
+    demandeurPiped = demandeurString.split(',').join('|');
 
     saveFilters(PAGE_MANUT, dateMin, dateMax, statut, demandeurPiped);
 

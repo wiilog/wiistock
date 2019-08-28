@@ -17,7 +17,7 @@ let $submitSearchMvt = $('#submitSearchMvt');
 $(function() {
     // filtres enregistrés en base pour chaque utilisateur
     let path = Routing.generate('filter_get_by_page');
-    let params = JSON.stringify(PAGE_MVT_TRACA);;
+    let params = JSON.stringify(PAGE_MVT_TRACA);
     $.post(path, params, function(data) {
         data.forEach(function(element) {
             if (element.field == 'utilisateurs') {
@@ -63,9 +63,9 @@ $submitSearchMvt.on('click', function () {
     let article = $('#colis').val();
     let emplacement = $('#emplacement').val();
     let statut = $('#statut').val();
-    let demandeur = $('#utilisateur').val()
+    let demandeur = $('#utilisateur').val();
     let demandeurString = demandeur.toString();
-    let demandeurPiped = demandeurString.split(',').join('|')
+    let demandeurPiped = demandeurString.split(',').join('|');
 
     saveFilters(PAGE_MVT_TRACA, dateMin, dateMax, statut, demandeurPiped, null, emplacement, article);
 
