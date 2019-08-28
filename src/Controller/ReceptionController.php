@@ -225,8 +225,8 @@ class ReceptionController extends AbstractController
             $reception =  $this->receptionRepository->find($data['receptionId']);
             $reception
                 ->setNumeroReception($data['NumeroReception'])
-                ->setDateCommande(new \DateTime($data['date-commande']))
-                ->setDateAttendue(new \DateTime($data['date-attendue']))
+                ->setDateAttendue($data['date-attendue'] ? new \DateTime($data['date-attendue']) : null)
+                ->setDateAttendue($data['date-commande'] ? new \DateTime($data['date-commande']) : null)
                 ->setStatut($statut)
                 ->setFournisseur($fournisseur)
                 ->setUtilisateur($utilisateur)
