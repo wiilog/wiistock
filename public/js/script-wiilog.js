@@ -60,7 +60,7 @@ function submitAction(modal, path, table, callback, close) {
         let name = $(this).attr("name");
         Data[name] = val;
         // validation données obligatoires
-        if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
+        if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null) && $(this).is(':disabled') === false) {
             let label = $(this).closest('.form-group').find('label').text();
             // on enlève l'éventuelle * du nom du label
             label = label.replace(/\*/, '');
