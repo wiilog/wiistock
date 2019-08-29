@@ -5,11 +5,12 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity(repositoryClass="App\Repository\FilterRepository")
+ * @ORM\Entity(repositoryClass="App\Repository\FiltreRefRepository")
  */
-class Filter
+class FiltreRef
 {
     const CHAMP_FIXE_REF_ART_FOURN = 'référence article fournisseur';
+    const CHAMP_FIXE_STATUT = 'Statut';
 
     /**
      * @ORM\Id()

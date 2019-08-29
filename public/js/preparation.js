@@ -6,6 +6,24 @@ $('#utilisateur').select2({
     }
 });
 
+let $submitSearchPrepa = $('#submitSearchPrepaLivraison');
+
+$(function() {
+    // filtres enregistrés en base pour chaque utilisateur
+    let path = Routing.generate('filter_get_by_page');
+    let params = JSON.stringify(PAGE_PREPA);;
+    $.post(path, params, function(data) {
+        data.forEach(function(element) {
+            if (element.field == 'utilisateurs') {
+                $('#utilisateur').val(element.value.split(',')).select2();
+            } else {
+                $('#'+element.field).val(element.value);
+            }
+        });
+        if (data.length > 0)$submitSearchPrepa.click();
+    }, 'json');
+});
+
 let path = Routing.generate('preparation_api');
 let table = $('#table_id').DataTable({
     order: [[1, 'desc']],
@@ -29,12 +47,17 @@ let table = $('#table_id').DataTable({
     ],
 });
 
-$('#submitSearchPrepaLivraison').on('click', function () {
+$submitSearchPrepa.on('click', function () {
+    let dateMin = $('#dateMin').val();
+    let dateMax = $('#dateMax').val();
     let statut = $('#statut').val();
-    let type = $('#type').val();
     let utilisateur = $('#utilisateur').val()
     let utilisateurString = utilisateur.toString();
     let utilisateurPiped = utilisateurString.split(',').join('|');
+    let type = $('#type').val();
+
+    saveFilters(PAGE_PREPA, dateMin, dateMax, statut, utilisateurPiped, type);
+
     table
         .columns('Statut:name')
         .search(statut ? '^' + statut + '$' : '', true, false)
@@ -52,8 +75,6 @@ $('#submitSearchPrepaLivraison').on('click', function () {
 
     $.fn.dataTable.ext.search.push(
         function (settings, data, dataIndex) {
-            let dateMin = $('#dateMin').val();
-            let dateMax = $('#dateMax').val();
             let indexDate = table.column('Date:name').index();
             let dateInit = (data[indexDate]).split('/').reverse().join('-') || 0;
 

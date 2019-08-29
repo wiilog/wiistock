@@ -6,6 +6,24 @@ $('#utilisateur').select2({
     }
 });
 
+let $submitSearchLivraison = $('#submitSearchLivraison');
+
+$(function() {
+    // filtres enregistrés en base pour chaque utilisateur
+    let path = Routing.generate('filter_get_by_page');
+    let params = JSON.stringify(PAGE_ORDRE_LIVRAISON);;
+    $.post(path, params, function(data) {
+        data.forEach(function(element) {
+            if (element.field == 'utilisateurs') {
+                $('#utilisateur').val(element.value.split(',')).select2();
+            } else {
+                $('#'+element.field).val(element.value);
+            }
+        });
+        if (data.length > 0)$submitSearchLivraison.click();
+    }, 'json');
+});
+
 let pathLivraison = Routing.generate('livraison_api');
 let tableLivraison = $('#tableLivraison_id').DataTable({
     language: {
@@ -32,12 +50,16 @@ let tableLivraison = $('#tableLivraison_id').DataTable({
     ],
 });
 
-$('#submitSearchLivraison').on('click', function () {
+$submitSearchLivraison.on('click', function () {
+    let dateMin = $('#dateMin').val();
+    let dateMax = $('#dateMax').val();
     let statut = $('#statut').val();
-    let type = $('#type').val();
     let utilisateur = $('#utilisateur').val()
     let utilisateurString = utilisateur.toString();
     let utilisateurPiped = utilisateurString.split(',').join('|');
+    let type = $('#type').val();
+
+    saveFilters(PAGE_ORDRE_LIVRAISON, dateMin, dateMax, statut, utilisateurPiped, type);
 
     tableLivraison
         .columns('Statut:name')
@@ -56,8 +78,6 @@ $('#submitSearchLivraison').on('click', function () {
 
     $.fn.dataTable.ext.search.push(
         function (settings, data, dataIndex) {
-            let dateMin = $('#dateMin').val();
-            let dateMax = $('#dateMax').val();
             let indexDate = tableLivraison.column('Date:name').index();
             let dateInit = (data[indexDate]).split('/').reverse().join('-') || 0;
 

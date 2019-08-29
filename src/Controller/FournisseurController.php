@@ -205,7 +205,7 @@ class FournisseurController extends AbstractController
     	$receptions = $this->receptionRepository->countByFournisseur($fournisseurId);
     	if ($receptions > 0) $usedBy[] = 'réceptions';
 
-		$ligneReceptions = $this->receptionReferenceArticleRepository->countByFournisseur($fournisseurId);
+		$ligneReceptions = $this->receptionReferenceArticleRepository->countByFournisseurId($fournisseurId);
 		if ($ligneReceptions > 0) $usedBy[] = 'lignes réception';
 
 		$arrivages = $this->arrivageRepository->countByFournisseur($fournisseurId);

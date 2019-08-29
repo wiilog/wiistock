@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\ChampsLibre;
+use App\Entity\Type;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\DBAL\Connection;
 use Symfony\Bridge\Doctrine\RegistryInterface;
@@ -156,6 +157,11 @@ class ChampsLibreRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
+	/**
+	 * @param Type $type
+	 * @param string $categorieCLLabel
+	 * @return ChampsLibre[]|null
+	 */
 	public function findByTypeAndCategorieCLLabel($type, $categorieCLLabel)
 	{
 		$entityManager = $this->getEntityManager();

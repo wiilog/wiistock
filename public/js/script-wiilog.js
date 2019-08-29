@@ -1,3 +1,13 @@
+const PAGE_DEM_COLLECTE = 'dcollecte';
+const PAGE_DEM_LIVRAISON = 'dlivraison';
+const PAGE_MANUT = 'manutention';
+const PAGE_ORDRE_COLLECTE = 'ocollecte';
+const PAGE_ORDRE_LIVRAISON = 'olivraison';
+const PAGE_PREPA = 'prépa';
+const PAGE_ARRIVAGE = 'arrivage';
+const PAGE_MVT_STOCK = 'mvt_stock';
+const PAGE_MVT_TRACA = 'mvt_traca';
+
 /**
  * Initialise une fenêtre modale
  *
@@ -60,14 +70,17 @@ function submitAction(modal, path, table, callback, close) {
         let name = $(this).attr("name");
         Data[name] = val;
         // validation données obligatoires
-        if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
+        if ($(this).hasClass('needed')
+            && (val === undefined || val === '' || val === null)
+            && $(this).is(':disabled') === false) {
             let label = $(this).closest('.form-group').find('label').text();
             // on enlève l'éventuelle * du nom du label
             label = label.replace(/\*/, '');
             missingInputs.push(label);
             $(this).addClass('is-invalid');
             $(this).next().find('.select2-selection').addClass('is-invalid');
-        }else{
+
+        } else {
             $(this).removeClass('is-invalid');
         }
         // validation valeur des inputs de type number
@@ -78,7 +91,10 @@ function submitAction(modal, path, table, callback, close) {
             if (val > max || val < min) {
                 wrongNumberInputs.push($(this));
                 $(this).addClass('is-invalid');
-            }else{
+            } else if(!isNaN(val)) {
+                $(this).removeClass('is-invalid');
+            }
+            if($(this).is(':disabled') === true){
                 $(this).removeClass('is-invalid');
             }
         }
@@ -133,26 +149,26 @@ function submitAction(modal, path, table, callback, close) {
         if (wrongNumberInputs.length > 0) {
             wrongNumberInputs.forEach(function (elem) {
                 let label = elem.closest('.form-group').find('label').text();
+                if(elem.is(':disabled') === false){
+                    msg += 'La valeur du champ ' + label.replace(/\*/, '');
 
-                msg += 'La valeur du champ ' + label.replace(/\*/, '');
+                    let min = elem.attr('min');
+                    let max = elem.attr('max');
 
-                let min = elem.attr('min');
-                let max = elem.attr('max');
-
-                if (typeof (min) !== 'undefined' && typeof (max) !== 'undefined') {
-                    if (min > max) {
-                        msg += " doit être inférieure à " + max + ".<br>";
-                    } else {
-                        msg += ' doit être comprise entre ' + min + ' et ' + max + ".<br>";
+                    if (typeof (min) !== 'undefined' && typeof (max) !== 'undefined') {
+                        if (min > max) {
+                            msg += " doit être inférieure à " + max + ".<br>";
+                        } else {
+                            msg += ' doit être comprise entre ' + min + ' et ' + max + ".<br>";
+                        }
+                    } else if (typeof (min) == 'undefined') {
+                        msg += ' doit être inférieure à ' + max + ".<br>";
+                    } else if (typeof (max) == 'undefined') {
+                        msg += ' doit être supérieure à ' + min + ".<br>";
+                    } else if (min < 1) {
+                        msg += ' ne peut pas être rempli'
                     }
-                } else if (typeof (min) == 'undefined') {
-                    msg += ' doit être inférieure à ' + max + ".<br>";
-                } else if (typeof (max) == 'undefined') {
-                    msg += ' doit être supérieure à ' + min + ".<br>";
-                } else if (min < 1) {
-                    msg += ' ne peut pas être rempli'
                 }
-
             })
         }
 
@@ -180,6 +196,7 @@ function deleteRow(button, modal, submit) {
 function showRow(button, path, modal) {
     let id = button.data('id');
     let params = JSON.stringify(id);
+
     $.post(path, params, function (data) {
         modal.find('.modal-body').html(data);
     }, 'json');
@@ -453,6 +470,9 @@ function ajaxAutoFournisseurInit(select) {
             },
             searching: function () {
                 return 'Recherche en cours...';
+            },
+            noResults: function () {
+                return 'Aucun résultat.';
             }
         },
         minimumInputLength: 1,
@@ -557,4 +577,29 @@ function adjustScalesForDoc(response) {
     let doc = new jsPDF(format, 'mm', [newHeight, newWidth]);
     // console.log('Document adjusted scales : \n-Width : ' + doc.internal.pageSize.getWidth() + '\n-Height : ' + doc.internal.pageSize.getHeight());
     return doc;
+}
+
+function alertErrorMsg(data) {
+    if (data !== true) {
+        let $alertDanger = $('#alerts').find('.alert-danger');
+        $alertDanger.removeClass('d-none');
+        $alertDanger.delay(2000).fadeOut(2000);
+        $alertDanger.find('.error-msg').html(data);
+    }
+}
+
+function saveFilters(page, dateMin, dateMax, statut, user, type = null, location = null, colis = null)
+{
+    let path = Routing.generate('filter_sup_new');
+    let params = {};
+    if (dateMin) params.dateMin = dateMin;
+    if (dateMax) params.dateMax = dateMax;
+    if (statut) params.statut = statut;
+    if (user) params.user = user;
+    if (type) params.type = type;
+    if (location) params.location = location;
+    if (colis) params.colis = colis;
+    params.page = page;
+
+    $.post(path, JSON.stringify(params), 'json');
 }

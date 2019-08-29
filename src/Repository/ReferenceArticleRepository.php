@@ -4,7 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Article;
 use App\Entity\Demande;
-use App\Entity\Filter;
+use App\Entity\FiltreRef;
 use App\Entity\ReferenceArticle;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
@@ -154,7 +154,7 @@ class ReferenceArticleRepository extends ServiceEntityRepository
                 //TODO filtres et/ou
 
                 // cas particulier champ référence article fournisseur
-                if ($filter['champFixe'] === Filter::CHAMP_FIXE_REF_ART_FOURN) {
+                if ($filter['champFixe'] === FiltreRef::CHAMP_FIXE_REF_ART_FOURN) {
                     $qb
                         ->leftJoin('ra.articlesFournisseur', 'af')
                         ->andWhere('af.reference LIKE :reference')
