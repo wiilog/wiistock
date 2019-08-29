@@ -287,8 +287,7 @@ class ArticleDataService
             $statutArticleActif = $this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
             $articles = $this->articleRepository->findByRefArticleAndStatutWithoutDemand($refArticle, $statutArticleActif);
 
-			$totalQuantity = $this->articleRepository->getTotalQuantiteByRefAndStatut($refArticle, $statutArticleActif);
-
+			$totalQuantity = $this->articleRepository->getTotalQuantiteByRefAndStatusLabel($refArticle, Article::STATUT_ACTIF);
 			$role = $this->user->getRole();
             $param = $this->parametreRepository->findOneBy(['label' => Parametre::LABEL_AJOUT_QUANTITE]);
             $paramQuantite = $this->parametreRoleRepository->findOneByRoleAndParam($role, $param);

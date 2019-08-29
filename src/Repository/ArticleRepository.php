@@ -208,7 +208,7 @@ class ArticleRepository extends ServiceEntityRepository
 		return $query->execute();
 	}
 
-	public function getTotalQuantiteFromRef($refArticle, $statut) {
+	public function getTotalQuantiteFromRefNotInDemand($refArticle, $statut) {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             'SELECT SUM(a.quantite)
@@ -225,22 +225,24 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
-    public function getTotalQuantiteByRefAndStatut($refArticle, $statut) {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            'SELECT SUM(a.quantite)
+	public function getTotalQuantiteByRefAndStatusLabel($refArticle, $statusLabel) {
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+			/** @lang DQL */
+			'SELECT SUM(a.quantite)
 			FROM App\Entity\Article a
 			JOIN a.articleFournisseur af
 			JOIN af.referenceArticle ra
-			WHERE a.statut =:statut AND ra = :refArticle
+			JOIN a.statut s
+			WHERE s.nom =:statusLabel AND ra = :refArticle
 			'
-        )->setParameters([
-            'refArticle' => $refArticle,
-            'statut' => $statut
-        ]);
+		)->setParameters([
+			'refArticle' => $refArticle,
+			'statusLabel' => $statusLabel
+		]);
 
-        return $query->getSingleScalarResult();
-    }
+		return $query->getSingleScalarResult();
+	}
 
 	public function findByRefArticleAndStatutWithoutDemand($refArticle, $statut)
 	{

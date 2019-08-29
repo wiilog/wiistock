@@ -3,9 +3,12 @@
 namespace App\Controller;
 
 use App\Entity\Alerte;
+use App\Entity\Article;
 use App\Entity\Menu;
 
+use App\Entity\ReferenceArticle;
 use App\Repository\AlerteRepository;
+use App\Repository\ArticleRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\ReferenceArticleRepository;
 
@@ -39,17 +42,23 @@ class AlerteController extends AbstractController
      */
     private $utilisateurRepository;
 
+	/**
+	 * @var ArticleRepository
+	 */
+    private $articleRepository;
+
     /**
      * @var UserService
      */
     private $userService;
 
 
-    public function __construct(AlerteRepository $alerteRepository, UtilisateurRepository $utilisateurRepository, ReferenceArticleRepository $referenceArticleRepository, UserService $userService)
+    public function __construct(ArticleRepository $articleRepository, AlerteRepository $alerteRepository, UtilisateurRepository $utilisateurRepository, ReferenceArticleRepository $referenceArticleRepository, UserService $userService)
     {
         $this->alerteRepository = $alerteRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->utilisateurRepository = $utilisateurRepository;
+        $this->articleRepository = $articleRepository;
         $this->userService = $userService;
     }
 
@@ -62,7 +71,21 @@ class AlerteController extends AbstractController
             $alertes = $this->alerteRepository->findAll();
             $rows = [];
 
+
             foreach ($alertes as $alerte) {
+				$ref = $alerte->getRefArticle();
+
+				if ($ref) {
+					if ($ref->getTypeQuantite() == ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+						$quantiteStock = $ref->getQuantiteStock();
+					} else {
+						$quantiteStock = $this->articleRepository->getTotalQuantiteByRefAndStatusLabel($ref, Article::STATUT_ACTIF);
+					}
+				} else {
+					$quantiteStock = '';
+				}
+
+
                 $rows[] = [
                     'id' => $alerte->getId(),
                     'Code' => $alerte->getNumero(),
@@ -70,8 +93,8 @@ class AlerteController extends AbstractController
                     'SeuilSecurite' => $alerte->getLimitSecurity(),
                     'Statut' => $alerte->getActivated() ? 'active' : 'inactive',
                     'Référence' => $alerte->getRefArticle() ? $alerte->getRefArticle()->getLibelle() . '<br>(' . $alerte->getRefArticle()->getReference() . ')' : null,
-                    'QuantiteStock' => $alerte->getRefArticle() ? $alerte->getRefArticle()->getQuantiteStock() : null,
-                    'Utilisateur' => $alerte->getUser() ? $alerte->getUser()->getUsername() : null,
+                    'QuantiteStock' => $quantiteStock,
+                    'Utilisateur' => $alerte->getUser() ? $alerte->getUser()->getUsername() : '',
                     'Actions' => $this->renderView('alerte/datatableAlerteRow.html.twig', [
                         'alerteId' => $alerte->getId(),
                     ]),
@@ -113,7 +136,10 @@ class AlerteController extends AbstractController
 					'msg' => 'Une alerte existe déjà sur cette référence.'
 				];
 			} elseif (!$refArticle) {
-				$response = ['success' => false];
+				$response = [
+					'success' => false,
+					'msg' => 'Veuillez renseigner une référence.'
+				];
 			} else {
 				$alerte = new Alerte();
 				$date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));

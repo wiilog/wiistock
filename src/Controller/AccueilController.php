@@ -67,6 +67,7 @@ class AccueilController extends AbstractController
      */
     public function index(): Response
     {
+    	$nbAlertsSecurity = $this->alerteRepository->countActivatedLimitSecurityReached();
     	$nbAlerts = $this->alerteRepository->countActivatedLimitReached();
 
         $statutCollecte = $this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, Collecte::STATUS_A_TRAITER);
@@ -83,6 +84,7 @@ class AccueilController extends AbstractController
 
         return $this->render('accueil/index.html.twig', [
             'nbAlerts' => $nbAlerts,
+            'nbAlertsSecurity' => $nbAlertsSecurity,
             'nbDemandeCollecte' => $nbrDemandeCollecte,
             'nbDemandeLivraisonAT' => $nbrDemandeLivraisonAT,
             'nbDemandeLivraisonP' => $nbrDemandeLivraisonP,

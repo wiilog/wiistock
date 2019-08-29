@@ -269,7 +269,7 @@ class PreparationController extends AbstractController
                     $articleRef = $ligneArticle->getReference();
                     $statutArticleActif = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
                     $qtt = $articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE ?
-                        $this->articleRepository->getTotalQuantiteFromRef($articleRef, $statutArticleActif) :
+                        $this->articleRepository->getTotalQuantiteFromRefNotInDemand($articleRef, $statutArticleActif) :
                         $articleRef->getQuantiteStock();
                     /** @var $ligneArticle LigneArticle */
                     $rows[] = [

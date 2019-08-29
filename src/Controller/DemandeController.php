@@ -171,10 +171,9 @@ class DemandeController extends AbstractController
             $response['status'] = false;
             // pour réf gérées par articles
             $articles = $demande->getArticles();
-            $statutArticleActif = $this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
             foreach ($articles as $article) {
                 $refArticle = $article->getArticleFournisseur()->getReferenceArticle();
-                $totalQuantity = $this->articleRepository->getTotalQuantiteByRefAndStatut($refArticle, $statutArticleActif);
+                $totalQuantity = $this->articleRepository->getTotalQuantiteByRefAndStatusLabel($refArticle, Article::STATUT_ACTIF);
                 $totalQuantity -= $this->referenceArticleRepository->getTotalQuantityReservedByRefArticle($refArticle);
                 $treshHold = ($article->getQuantite() > $totalQuantity) ? $totalQuantity : $article->getQuantite();
                 if ($article->getQuantiteAPrelever() > $treshHold) {
@@ -206,9 +205,8 @@ class DemandeController extends AbstractController
                         return new JsonResponse($response);
                     }
                 } else {
-                    $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
                     $statutDemande = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_A_TRAITER);
-                    $totalQuantity = $this->articleRepository->getTotalQuantiteByRefAndStatut($ligne->getReference(), $statut);
+                    $totalQuantity = $this->articleRepository->getTotalQuantiteByRefAndStatusLabel($ligne->getReference(), Article::STATUT_ACTIF);
                     $totalQuantity -= $this->referenceArticleRepository->getTotalQuantityReservedWithoutLigne($ligne->getReference(), $ligne, $statutDemande);
                     if ($ligne->getQuantite() > $totalQuantity) {
                         $response['stock'] = $totalQuantity;
@@ -758,7 +756,7 @@ class DemandeController extends AbstractController
             $articleRef = $ligneArticle->getReference();
             $statutArticleActif = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, Article::STATUT_ACTIF);
             $qtt = $articleRef->getTypeQuantite() === ReferenceArticle::TYPE_QUANTITE_ARTICLE ?
-                $this->articleRepository->getTotalQuantiteFromRef($articleRef, $statutArticleActif) :
+                $this->articleRepository->getTotalQuantiteFromRefNotInDemand($articleRef, $statutArticleActif) :
                 $articleRef->getQuantiteStock();
             $json = $this->renderView('demande/modalEditArticleContent.html.twig', [
                 'ligneArticle' => $ligneArticle,
