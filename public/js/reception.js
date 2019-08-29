@@ -21,52 +21,48 @@ let table = $('#tableReception_id').DataTable({
 });
 
 let pathArticle = Routing.generate('article_by_reception_api', true);
-
-let initDataTableDone = false;
 function initDatatableConditionnement() {
-    if (!initDataTableDone) {
-        let tableFromArticle = $('#tableArticleInner_id').DataTable({
-            info: false,
-            paging: false,
-            "language": {
-                url: "/js/i18n/dataTableLanguage.json",
+    let tableFromArticle = $('#tableArticleInner_id').DataTable({
+        info: false,
+        paging: false,
+        "language": {
+            url: "/js/i18n/dataTableLanguage.json",
+        },
+        searching: false,
+        destroy: true,
+        ajax: {
+            "url": pathArticle,
+            "type": "POST",
+            "data": function () {
+                return {
+                    'ligne': $('#ligneSelected').val()
+                }
             },
-            searching: false,
-            ajax: {
-                "url": pathArticle,
-                "type": "POST",
-                "data": function () {
-                    return {
-                        'ligne': $('#ligneSelected').val()
-                    }
-                },
-            },
-            columns: [
-                { "data": 'Référence', 'name': 'Référence', 'title': 'Référence' },
-                { "data": "Statut", 'name': 'Statut', 'title': 'Statut' },
-                { "data": 'Libellé', 'name': 'Libellé', 'title': 'Libellé' },
-                { "data": 'Référence article', 'name': 'Référence article', 'title': 'Référence article' },
-                { "data": 'Quantité', 'name': 'Quantité', 'title': 'Quantité' },
-                { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' }
-            ],
-            aoColumnDefs: [{
-                'sType': 'natural',
-                'bSortable': true,
-                'aTargets': [0]
-            }]
-        });
+        },
+        columns: [
+            { "data": 'Référence', 'name': 'Référence', 'title': 'Référence' },
+            { "data": "Statut", 'name': 'Statut', 'title': 'Statut' },
+            { "data": 'Libellé', 'name': 'Libellé', 'title': 'Libellé' },
+            { "data": 'Référence article', 'name': 'Référence article', 'title': 'Référence article' },
+            { "data": 'Quantité', 'name': 'Quantité', 'title': 'Quantité' },
+            { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' }
+        ],
+        aoColumnDefs: [{
+            'sType': 'natural',
+            'bSortable': true,
+            'aTargets': [0]
+        }]
+    });
 
-        let statutVisible = $("#statutVisible").val();
-
-        if (!statutVisible) {
-            tableFromArticle.column('Statut:name').visible(false);
-        }
-        initDataTableDone = true;
-        initModalCondit(tableFromArticle);
-    } else {
-        $('#tableArticleInner_id').DataTable().ajax.reload();
+    let statutVisible = $("#statutVisible").val();
+    if (!statutVisible) {
+        tableFromArticle.column('Statut:name').visible(false);
     }
+
+    initModalCondit(tableFromArticle);
 }
+
+
 
 $.extend($.fn.dataTableExt.oSort, {
     "natural-asc": function (a, b) {
@@ -330,6 +326,7 @@ function checkZero(data) {
 function addLot(button) {
     $.post(Routing.generate('add_lot'), function (response) {
         button.parent().append(response);
+        $('#submitConditionnement').removeClass('d-none');
     });
 }
 
@@ -349,6 +346,7 @@ function createArticleAndBarcodes(button, receptionId) {
         let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
         date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
         $('#modalChoose').find('.modal-choose').first().html('<span class="btn btn-primary" onclick="addLot($(this))"><i class="fa fa-plus"></i></span>');
+
         if (response.exists) {
             $("#barcodes").empty();
             for (let i = 0; i < response.refs.length; i++) {
@@ -400,6 +398,7 @@ function printSingleBarcode(button) {
             $submit.attr('data-ref', response.article)
             $submit.attr('data-id', button.data('id'))
             initDatatableConditionnement();
+            $submit.addClass('d-none');
         }
     });
 }
