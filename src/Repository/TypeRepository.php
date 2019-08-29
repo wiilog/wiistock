@@ -92,6 +92,12 @@ class TypeRepository extends ServiceEntityRepository
         return $query->getOneOrNullResult();
     }
 
+	/**
+	 * @param string $categoryLabel
+	 * @param string $typeLabel
+	 * @return Type|null
+	 * @throws \Doctrine\ORM\NonUniqueResultException
+	 */
     public function findOneByCategoryLabelAndLabel($categoryLabel, $typeLabel)
 	{
 		$entityManager = $this->getEntityManager();

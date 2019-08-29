@@ -37,7 +37,6 @@ class SpecificService
 
 	public function isCurrentClientNameFunction(string $clientName)
 	{
-		/** @var ParamClient $currentClient */
 		$currentClient = $this->paramClientRepository->findOne();
 		return $currentClient ? ($currentClient->getClient() == $clientName) : false;
 	}

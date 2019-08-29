@@ -200,7 +200,7 @@ class CollecteController extends AbstractController
 		$valeursChampLibre = $this->valeurChampLibreRepository->getByDemandeCollecte($collecte);
 
 		return $this->render('collecte/show.html.twig', [
-            'refCollecte' => $this->collecteReferenceRepository->getByCollecte($collecte),
+            'refCollecte' => $this->collecteReferenceRepository->findByCollecte($collecte),
             'collecte' => $collecte,
             'modifiable' => ($collecte->getStatut()->getNom() == Collecte::STATUS_BROUILLON),
             'ordreCollecte' => $ordreCollecte,
@@ -262,8 +262,8 @@ class CollecteController extends AbstractController
             }
 
             $collecte = $this->collecteRepository->find($id);
-            $articles = $this->articleRepository->getByCollecte($collecte->getId());
-            $referenceCollectes = $this->collecteReferenceRepository->getByCollecte($collecte);
+            $articles = $this->articleRepository->findByCollecteId($collecte->getId());
+            $referenceCollectes = $this->collecteReferenceRepository->findByCollecte($collecte);
             $rowsRC = [];
             foreach ($referenceCollectes as $referenceCollecte) {
                 $rowsRC[] = [
@@ -677,8 +677,8 @@ class CollecteController extends AbstractController
     public function hasArticles(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
-            $articles = $this->articleRepository->getByCollecte($data['id']);
-            $referenceCollectes = $this->collecteReferenceRepository->getByCollecte($data['id']);
+            $articles = $this->articleRepository->findByCollecteId($data['id']);
+            $referenceCollectes = $this->collecteReferenceRepository->findByCollecte($data['id']);
             $count = count($articles) + count($referenceCollectes);
 
             return new JsonResponse($count > 0);

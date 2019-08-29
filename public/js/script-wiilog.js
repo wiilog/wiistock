@@ -60,14 +60,17 @@ function submitAction(modal, path, table, callback, close) {
         let name = $(this).attr("name");
         Data[name] = val;
         // validation données obligatoires
-        if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
+        if ($(this).hasClass('needed')
+            && (val === undefined || val === '' || val === null)
+            && $(this).is(':disabled') === false) {
             let label = $(this).closest('.form-group').find('label').text();
             // on enlève l'éventuelle * du nom du label
             label = label.replace(/\*/, '');
             missingInputs.push(label);
             $(this).addClass('is-invalid');
             $(this).next().find('.select2-selection').addClass('is-invalid');
-        }else{
+
+        } else {
             $(this).removeClass('is-invalid');
         }
         // validation valeur des inputs de type number
@@ -78,7 +81,10 @@ function submitAction(modal, path, table, callback, close) {
             if (val > max || val < min) {
                 wrongNumberInputs.push($(this));
                 $(this).addClass('is-invalid');
-            }else{
+            } else if(!isNaN(val)) {
+                $(this).removeClass('is-invalid');
+            }
+            if($(this).is(':disabled') === true){
                 $(this).removeClass('is-invalid');
             }
         }
@@ -140,7 +146,7 @@ function submitAction(modal, path, table, callback, close) {
                     }
                 } else {
                     let label = elem.closest('.form-group').find('label').text();
-
+                    if(elem.is(':disabled') === false){
                     msg += 'La valeur du champ ' + label.replace(/\*/, '');
 
                     let min = elem.attr('min');
@@ -187,6 +193,7 @@ function deleteRow(button, modal, submit) {
 function showRow(button, path, modal) {
     let id = button.data('id');
     let params = JSON.stringify(id);
+
     $.post(path, params, function (data) {
         modal.find('.modal-body').html(data);
     }, 'json');
@@ -460,6 +467,9 @@ function ajaxAutoFournisseurInit(select) {
             },
             searching: function () {
                 return 'Recherche en cours...';
+            },
+            noResults: function () {
+                return 'Aucun résultat.';
             }
         },
         minimumInputLength: 1,
@@ -564,4 +574,13 @@ function adjustScalesForDoc(response) {
     let doc = new jsPDF(format, 'mm', [newHeight, newWidth]);
     // console.log('Document adjusted scales : \n-Width : ' + doc.internal.pageSize.getWidth() + '\n-Height : ' + doc.internal.pageSize.getHeight());
     return doc;
+}
+
+function alertErrorMsg(data) {
+    if (data !== true) {
+        let $alertDanger = $('#alerts').find('.alert-danger');
+        $alertDanger.removeClass('d-none');
+        $alertDanger.delay(2000).fadeOut(2000);
+        $alertDanger.find('.error-msg').html(data);
+    }
 }

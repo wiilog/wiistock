@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Filter;
+use App\Entity\Utilisateur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
@@ -72,27 +73,27 @@ class FilterRepository extends ServiceEntityRepository
     }
 
     /**
-     * @param $userId
+     * @param Utilisateur $user
+	 * @param string $champFixe
      * @return Filter
-     * @throws \Doctrine\ORM\NonUniqueResultException
      */
-    public function findByUserAndStatut($userId) {
+    public function findByUserAndChampFixe($user, $champFixe) {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
             "SELECT f
             FROM App\Entity\Filter f
-            WHERE f.utilisateur=:userId AND f.champFixe = 'Statut'"
-        )->setParameter('userId' , $userId);
-        return $query->getOneOrNullResult();
+            WHERE f.utilisateur =:user AND f.champFixe = :cf"
+        )->setParameters(['user' => $user, 'cf' => $champFixe]);
+        return $query->execute();
     }
 
-    public function findByUserAndNoStatut($userId) {
+    public function findByUserExceptChampFixe($user, $champFixe) {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
             "SELECT f
             FROM App\Entity\Filter f
-            WHERE f.utilisateur=:userId AND f.champFixe != 'Statut'"
-        )->setParameter('userId' , $userId);
-        return $query->getOneOrNullResult();
+            WHERE f.utilisateur =:user AND f.champFixe != :cf"
+        )->setParameters(['user' => $user, 'cf' => $champFixe]);
+        return $query->execute();
     }
 }

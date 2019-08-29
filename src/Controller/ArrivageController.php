@@ -616,7 +616,6 @@ class ArrivageController extends AbstractController
         if ($request->isXmlHttpRequest()) {
 
             $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
-            /** @var DimensionsEtiquettes $dimension */
             if ($dimension) {
                 $response['height'] = $dimension->getHeight();
                 $response['width'] = $dimension->getWidth();
@@ -693,7 +692,6 @@ class ArrivageController extends AbstractController
             $data[] = $headers;
 
             foreach ($arrivages as $arrivage) {
-                /** @var Arrivage $arrivage */
                 $arrivageData = [];
 
                 $arrivageData[] = $arrivage->getNumeroArrivage();

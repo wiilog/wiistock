@@ -212,8 +212,8 @@ class LivraisonController extends AbstractController
                 ->setUtilisateur($this->getUser())
                 ->setDateFin(new \DateTime('now', new \DateTimeZone('Europe/Paris')));
 
-            $demande = $this->demandeRepository->getByLivraison($livraison->getId());
-            /** @var Demande $demande */
+            $demande = $this->demandeRepository->findOneByLivraison($livraison);
+
             $statutLivre = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_LIVRE);
             $demande->setStatut($statutLivre);
 
@@ -227,7 +227,7 @@ class LivraisonController extends AbstractController
             );
 
             // quantités gérées à la référence
-            $ligneArticles = $this->ligneArticleRepository->getByDemande($demande);
+            $ligneArticles = $this->ligneArticleRepository->findByDemande($demande);
 
             foreach ($ligneArticles as $ligneArticle) {
                 $refArticle = $ligneArticle->getReference();
@@ -291,13 +291,12 @@ class LivraisonController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $demande = $this->demandeRepository->getByLivraison($livraison->getId());
+            $demande = $this->demandeRepository->findOneByLivraison($livraison);
             $data = [];
             if ($demande) {
                 $rows = [];
-                $articles = $this->articleRepository->getByDemande($demande);
+                $articles = $this->articleRepository->findByDemande($demande);
                 foreach ($articles as $article) {
-                    /** @var Article $article */
                     $rows[] = [
                         "Référence" => $article->getArticleFournisseur()->getReferenceArticle() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : '',
                         "Libellé" => $article->getLabel() ? $article->getLabel() : '',
@@ -423,9 +422,9 @@ class LivraisonController extends AbstractController
 				$listChampsLibresDL = array_merge($listChampsLibresDL, $this->champLibreRepository->findByTypeAndCategorieCLLabel($type, CategorieCL::DEMANDE_LIVRAISON));
 			}
 
-            foreach ($livraisons as $livraison) { /** @var Demande $livraison */
+            foreach ($livraisons as $livraison) {
 
-				foreach ($livraison->getLigneArticle() as $ligneArticle) { /** @var LigneArticle $ligneArticle */
+				foreach ($livraison->getLigneArticle() as $ligneArticle) {
                     $livraisonData = [];
 
 					// champs libres de la demande
@@ -466,7 +465,7 @@ class LivraisonController extends AbstractController
 
                     $data[] = $livraisonData;
                 }
-                foreach ($this->articleRepository->getByDemande($livraison) as $article) {
+                foreach ($this->articleRepository->findByDemande($livraison) as $article) {
                     $livraisonData = [];
 
                     // champs libres de la demande

@@ -43,6 +43,11 @@ class EmplacementRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
+	/**
+	 * @param string $label
+	 * @return Emplacement|null
+	 * @throws \Doctrine\ORM\NonUniqueResultException
+	 */
     public function findOneByLabel($label) {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
