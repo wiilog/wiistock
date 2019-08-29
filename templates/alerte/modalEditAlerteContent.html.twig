@@ -3,7 +3,7 @@
         <div class="input-group-prepend">
             <label class="input-group-text" for="limitAlert">Seuil d'alerte</label>
         </div>
-        <input class="form-control data" type="number" min="0" value='{{ alerte.limitAlert }}' name="limitAlert" id="limitAlert" onchange="updateLimitsMinMax()">
+        <input class="form-control data" type="number" min="0" value='{{ alerte.limitAlert }}' name="limitAlert" id="limitAlert" onchange="updateLimitsMinMax($(this))">
     </div>
 </div>
 <div class="form-group col-12">
@@ -11,7 +11,7 @@
         <div class="input-group-prepend">
             <label class="input-group-text" for="limitSecurity">Seuil de sécurité</label>
         </div>
-        <input class="form-control data" type="number" min="0" value='{{ alerte.limitSecurity }}' name="limitSecurity" id="limitSecurity" onchange="updateLimitsMinMax()">
+        <input class="form-control data" type="number" min="0" value='{{ alerte.limitSecurity }}' name="limitSecurity" id="limitSecurity" onchange="updateLimitsMinMax($(this))">
     </div>
 </div>
 

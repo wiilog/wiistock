@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Alerte;
+use App\Entity\ReferenceArticle;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
@@ -19,7 +20,7 @@ class AlerteRepository extends ServiceEntityRepository
         parent::__construct($registry, Alerte::class);
     }
 
-    public function countByLimitReached()
+    public function countActivatedLimitReached()
 	{
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager->createQuery(
@@ -27,8 +28,27 @@ class AlerteRepository extends ServiceEntityRepository
 			"SELECT COUNT(a)
 			FROM App\Entity\Alerte a
 			JOIN a.refArticle ra
-			WHERE ra.quantiteStock >= a.limitAlert OR ra.quantiteStock >= a.limitSecurity"
+			WHERE ra.quantiteStock <= a.limitAlert OR ra.quantiteStock <= a.limitSecurity
+			AND a.activated = 1"
 		);
+
+		return $query->getSingleScalarResult();
+	}
+
+	/**
+	 * @param ReferenceArticle $refArticle
+	 * @return int
+	 * @throws \Doctrine\ORM\NonUniqueResultException
+	 */
+	public function countByRef($refArticle)
+	{
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+			/** @lang DQL */
+			"SELECT count(a) 
+			FROM App\Entity\Alerte a
+			WHERE a.refArticle = :refArticle"
+		)->setParameter('refArticle', $refArticle);
 
 		return $query->getSingleScalarResult();
 	}

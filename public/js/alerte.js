@@ -31,7 +31,7 @@ let tableAlerte = $('#tableAlerte_id').DataTable({
 let modalNewAlerte = $("#modalNewAlerte"); 
 let submitNewAlerte = $("#submitNewAlerte");
 let urlNewAlerte = Routing.generate('alerte_new', true);
-InitialiserModal(modalNewAlerte, submitNewAlerte, urlNewAlerte, tableAlerte);
+InitialiserModal(modalNewAlerte, submitNewAlerte, urlNewAlerte, tableAlerte, displayErrorAlert, false);
 
 let ModalDeleteAlerte = $("#modalDeleteAlerte");
 let SubmitDeleteAlerte = $("#submitDeleteAlerte");
@@ -51,4 +51,10 @@ function updateLimitsMinMax(elem)
 
     $limitSecurity.attr('max', $limitAlert.val());
     $limitAlert.attr('min', $limitSecurity.val());
+}
+
+function displayErrorAlert(data) {
+    let modal = $("#modalNewAlerte");
+    let msg = data.msg;
+    displayError(modal, msg, data.success);
 }

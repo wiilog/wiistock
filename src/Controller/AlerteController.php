@@ -56,7 +56,7 @@ class AlerteController extends AbstractController
     /**
      * @Route("/api", name="alerte_api", options={"expose"=true}, methods="GET|POST")
      */
-    public function alerteApi(Request $request): Response
+    public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
             $alertes = $this->alerteRepository->findAll();
@@ -69,9 +69,9 @@ class AlerteController extends AbstractController
                     "SeuilAlerte" => $alerte->getLimitAlert(),
                     'SeuilSecurite' => $alerte->getLimitSecurity(),
                     'Statut' => $alerte->getActivated() ? 'active' : 'inactive',
-                    'Référence' => $alerte->getRefArticle()->getLibelle(),
-                    'QuantiteStock' => $alerte->getRefArticle()->getQuantiteStock(),
-                    'Utilisateur' => $alerte->getUser()->getUsername(),
+                    'Référence' => $alerte->getRefArticle() ? $alerte->getRefArticle()->getLibelle() . '<br>(' . $alerte->getRefArticle()->getReference() . ')' : null,
+                    'QuantiteStock' => $alerte->getRefArticle() ? $alerte->getRefArticle()->getQuantiteStock() : null,
+                    'Utilisateur' => $alerte->getUser() ? $alerte->getUser()->getUsername() : null,
                     'Actions' => $this->renderView('alerte/datatableAlerteRow.html.twig', [
                         'alerteId' => $alerte->getId(),
                     ]),
@@ -103,10 +103,18 @@ class AlerteController extends AbstractController
             }
 
             $em = $this->getDoctrine()->getManager();
-
             $refArticle = $this->referenceArticleRepository->find($data['reference']);
 
-            if ($refArticle) {
+			// on vérifie qu'une alerte n'existe pas déjà sur cette référence
+			$alertAlreadyExist = $this->alerteRepository->countByRef($refArticle);
+			if ($alertAlreadyExist) {
+				$response = [
+					'success' => false,
+					'msg' => 'Une alerte existe déjà sur cette référence.'
+				];
+			} elseif (!$refArticle) {
+				$response = ['success' => false];
+			} else {
 				$alerte = new Alerte();
 				$date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
 				$alerte
@@ -114,14 +122,18 @@ class AlerteController extends AbstractController
 					->setLimitAlert($data['limitAlert'] ? $data['limitAlert'] : null)
 					->setLimitSecurity($data['limitSecurity'] ? $data['limitSecurity'] : null)
 					->setUser($this->getUser())
+					->setActivated(true)
 					->setRefArticle($refArticle);
 
 				$em->persist($alerte);
 				$em->flush();
+
+				$response = ['success' => true];
 			}
 
-            return new JsonResponse();
+			return new JsonResponse($response);
         }
+
         throw new XmlHttpException('404 not found');
     }
 

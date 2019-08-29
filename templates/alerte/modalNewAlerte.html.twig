@@ -9,8 +9,8 @@
             </div>
             <div class="modal-body modal-input container-fluid">
                 <div class="form-group w-100">
-                    <label for="reference">Article Référence</label>
-                    <select name="reference" class="AlerteNom form-control ajax-autocomplete data needed" id="reference">
+                    <label for="reference">Référence</label>
+                    <select name="reference" class="AlerteNom form-control ajax-autocomplete data needed" id="reference" onchange="clearErrorMsg($(this))">
                     </select>
                 </div>
                 <div class="form-group">
