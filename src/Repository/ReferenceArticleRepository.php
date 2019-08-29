@@ -429,19 +429,6 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function getTypeQuantiteByReceptionReferenceArticle($receptionReferenceArticle)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            'SELECT ra.typeQuantite
-            FROM APP\Entity\ReferenceArticle ra
-            JOIN ra.receptionReferenceArticles rra
-            WHERE rra =:receptionReferenceArticle'
-        )->setParameter('receptionReferenceArticle', $receptionReferenceArticle);
-
-        return $query->getOneOrNullResult();
-    }
-
     public function getTotalQuantityReservedByRefArticle($refArticle) {
         $em = $this->getEntityManager();
         return $em->createQuery(

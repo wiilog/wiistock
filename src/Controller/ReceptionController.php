@@ -600,21 +600,18 @@ class ReceptionController extends AbstractController
                 ->setLabel($data['libelle'])
                 ->setAnomalie($data['anomalie'])
 //                ->setFournisseur($fournisseur)
-                ->setReferenceArticle($refArticle);
+                ->setReferenceArticle($refArticle)
+				->setQuantiteAR(max($data['quantiteAR'], 0)) // protection contre quantités négatives
+				->setCommentaire($data['commentaire']);
 
-            $type = $this->referenceArticleRepository->getTypeQuantiteByReceptionReferenceArticle($receptionReferenceArticle);
-            if($type['typeQuantite'] == ReferenceArticle::TYPE_QUANTITE_REFERENCE){
+            $typeQuantite = $receptionReferenceArticle->getReferenceArticle()->getTypeQuantite();
+            if ($typeQuantite == ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
                 $receptionReferenceArticle->setQuantite(max($data['quantite'], 0)); // protection contre quantités négatives
             }
 
-            $receptionReferenceArticle
-                ->setQuantiteAR(max($data['quantiteAR'], 0)) // protection contre quantités négatives
-                ->setCommentaire($data['commentaire']);
-
             if (array_key_exists('articleFournisseur', $data) && $data['articleFournisseur']) {
                 $articleFournisseur = $this->articleFournisseurRepository->find($data['articleFournisseur']);
-                $receptionReferenceArticle
-                    ->setArticleFournisseur($articleFournisseur);
+                $receptionReferenceArticle->setArticleFournisseur($articleFournisseur);
             }
 
             $em =  $this->getDoctrine()->getManager();
