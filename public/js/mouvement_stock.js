@@ -65,12 +65,11 @@ $submitSearchMvt.on('click', function () {
     let dateMax = $('#dateMax').val();
     let statut = $('#statut').val();
     let emplacement = $('#emplacement').val();
-    let article = $('#colis').val();
     let demandeur = $('#utilisateur').val()
     let demandeurString = demandeur.toString();
     demandeurPiped = demandeurString.split(',').join('|')
 
-    saveFilters(PAGE_MVT_STOCK, dateMin, dateMax, statut, demandeurPiped, null, emplacement, article);
+    saveFilters(PAGE_MVT_STOCK, dateMin, dateMax, statut, demandeurPiped, null, emplacement);
 
     tableMvt
         .columns('type:name')
@@ -79,10 +78,6 @@ $submitSearchMvt.on('click', function () {
     tableMvt
         .columns('operateur:name')
         .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
-        .draw();
-    tableMvt
-        .columns('refArticle:name')
-        .search(article)
         .draw();
 
     $.fn.dataTable.ext.search.push(
@@ -107,10 +102,15 @@ $submitSearchMvt.on('click', function () {
 
     $.fn.dataTable.ext.search.push(
         function (settings, data) {
-            let originIndex = tableMvt.column('origine:name').index();
-            let destinationIndex = tableMvt.column('destination:name').index();
 
-            return data[originIndex] == emplacement || data[destinationIndex] == emplacement;
+            if (emplacement !== '') {
+                let originIndex = tableMvt.column('origine:name').index();
+                let destinationIndex = tableMvt.column('destination:name').index();
+
+                return data[originIndex] == emplacement || data[destinationIndex] == emplacement;
+            } else {
+                return true;
+            }
         }
     );
 
