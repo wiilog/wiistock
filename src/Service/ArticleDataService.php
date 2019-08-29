@@ -135,7 +135,7 @@ class ArticleDataService
 
     private $em;
 
-    public function __construct(ParametreRoleRepository $parametreRoleRepository, ParametreRepository $parametreRepository, SpecificService $specificService, EmplacementRepository $emplacementRepository, RouterInterface $router, UserService $userService, CategorieCLRepository $categorieCLRepository, RefArticleDataService $refArticleDataService, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, TypeRepository $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampLibreRepository $valeurChampLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampsLibreRepository $champsLibreRepository, FiltreRefRepository $filtreRefRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
+    public function __construct(ParametreRoleRepository $parametreRoleRepository, ParametreRepository $parametreRepository, SpecificService $specificService, EmplacementRepository $emplacementRepository, RouterInterface $router, UserService $userService, CategorieCLRepository $categorieCLRepository, RefArticleDataService $refArticleDataService, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, TypeRepository $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampLibreRepository $valeurChampLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampLibreRepository $champLibreRepository, FiltreRefRepository $filtreRefRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
     {
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->articleRepository = $articleRepository;
@@ -354,9 +354,9 @@ class ArticleDataService
         $typeArticle = $refArticle->getType();
         $typeArticleLabel = $typeArticle->getLabel();
 
-        $champsLibresComplet = $this->champLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
-        $champsLibres = [];
-        foreach ($champsLibresComplet as $champLibre) {
+        $champLibresComplet = $this->champLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
+        $champLibres = [];
+        foreach ($champLibresComplet as $champLibre) {
             $valeurChampArticle = $this->valeurChampLibreRepository->findOneByArticleAndChampLibre($article, $champLibre);
 //			$labelChampLibre = strtolower($champLibre->getLabel());
 //			$isCEA = $this->specificService->isCurrentClientNameFunction(ParamClient::CEA_LETI);
@@ -367,7 +367,7 @@ class ArticleDataService
 //			&& $isADemand) {
 //				$valeurChampArticle = null;
 //			}
-            $champsLibres[] = [
+            $champLibres[] = [
                 'id' => $champLibre->getId(),
                 'label' => $champLibre->getLabel(),
                 'typage' => $champLibre->getTypage(),
@@ -382,13 +382,13 @@ class ArticleDataService
         $typeChampLibre =
             [
                 'type' => $typeArticleLabel,
-                'champsLibres' => $champsLibres,
+                'champLibres' => $champLibres,
             ];
 
         $statut = $article->getStatut()->getNom();
 
         $view = $this->templating->render('article/modalModifyArticleContent.html.twig', [
-            'typeChampsLibres' => $typeChampLibre,
+            'typeChampLibres' => $typeChampLibre,
             'typeArticle' => $typeArticleLabel,
             'typeArticleId' => $typeArticle->getId(),
             'article' => $article,
@@ -427,8 +427,8 @@ class ArticleDataService
                 }
             }
 
-            $champsLibresKey = array_keys($data);
-            foreach ($champsLibresKey as $champ) {
+            $champLibresKey = array_keys($data);
+            foreach ($champLibresKey as $champ) {
                 if (gettype($champ) === 'integer') {
 //                    // spécifique CEA : accès pour tous aux champs libres 'Code projet' et 'Destinataire'
 //					$isCea = $this->specificService->isCurrentClientNameFunction(ParamClient::CEA_LETI);
