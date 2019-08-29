@@ -10,7 +10,9 @@ let tableAlerte = $('#tableAlerte_id').DataTable({
         "type": "POST"
     },
     'rowCallback': function (row, data) {
-        if (data.QuantiteStock <= data.SeuilSecurite) {
+        if (data.Statut == 'inactive') {
+            $(row).addClass('bg-secondary text-white')
+        } else if (data.QuantiteStock <= data.SeuilSecurite) {
             $(row).addClass('bg-danger');
         } else if (data.QuantiteStock <= data.SeuilAlerte) {
             $(row).addClass('bg-warning');
