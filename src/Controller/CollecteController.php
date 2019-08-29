@@ -331,7 +331,23 @@ class CollecteController extends AbstractController
                 ->setCommentaire($data['commentaire'])
                 ->setstockOrDestruct($destination);
             $em->persist($collecte);
-            $em->flush();
+			$em->flush();
+
+			// enregistrement des champs libres
+			$champsLibresKey = array_keys($data);
+
+			foreach ($champsLibresKey as $champs) {
+				if (gettype($champs) === 'integer') {
+					$valeurChampLibre = new ValeurChampLibre();
+					$valeurChampLibre
+						->setValeur($data[$champs])
+						->addDemandesCollecte($collecte)
+						->setChampLibre($this->champLibreRepository->find($champs));
+					$em->persist($valeurChampLibre);
+					$em->flush();
+				}
+			}
+
             $data = [
                 'redirect' => $this->generateUrl('collecte_show', ['id' => $collecte->getId()]),
             ];
