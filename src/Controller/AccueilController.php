@@ -75,7 +75,7 @@ class AccueilController extends AbstractController
      */
     public function index(): Response
     {
-        $nbAlerte = $this->seuilAlerteService->thresholdReaches();
+//        $nbAlerte = $this->seuilAlerteService->thresholdReaches();
 
         $statutCollecte = $this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, Collecte::STATUS_A_TRAITER);
         $nbrDemandeCollecte = $this->collecteRepository->countByStatut($statutCollecte);
@@ -90,7 +90,7 @@ class AccueilController extends AbstractController
         $nbrDemandeManutentionAT = $this->serviceRepository->countByStatut($statutServiceAT);
 
         return $this->render('accueil/index.html.twig', [
-            'nbAlerte' => $nbAlerte,
+//            'nbAlerte' => $nbAlerte,
             'nbDemandeCollecte' => $nbrDemandeCollecte,
             'nbDemandeLivraisonAT' => $nbrDemandeLivraisonAT,
             'nbDemandeLivraisonP' => $nbrDemandeLivraisonP,
