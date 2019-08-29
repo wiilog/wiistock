@@ -16,7 +16,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
-use App\Repository\FilterRepository;
+use App\Repository\FiltreRefRepository;
 use App\Repository\ArticleRepository;
 
 /**
@@ -32,9 +32,9 @@ class TypeController extends AbstractController
     private $typeRepository;
 
     /**
-     * @var FilterRepository
+     * @var FiltreRefRepository
      */
-    private $filterRepository;
+    private $filtreRefRepository;
 
     /**
      * @var CategoryTypeRepository
@@ -56,16 +56,19 @@ class TypeController extends AbstractController
      */
     private $champLibreRepository;
 
-    /**
-     * TypeController constructor.
-     * @param TypeRepository $typeRepository
-     * @param CategoryTypeRepository $categoryTypeRepository
-     * @param ChampLibreRepository $champLibreRepository
-     */
-    public function __construct(ArticleRepository $articleRepository, FilterRepository $filterRepository, TypeRepository $typeRepository, CategoryTypeRepository $categoryTypeRepository, ChampLibreRepository $champLibreRepository, ReferenceArticleRepository $refArticleRepository)
+	/**
+	 * TypeController constructor.
+	 * @param ArticleRepository $articleRepository
+	 * @param FiltreRefRepository $filtreRefRepository
+	 * @param TypeRepository $typeRepository
+	 * @param CategoryTypeRepository $categoryTypeRepository
+	 * @param ChampLibreRepository $champLibreRepository
+	 * @param ReferenceArticleRepository $refArticleRepository
+	 */
+    public function __construct(ArticleRepository $articleRepository, FiltreRefRepository $filtreRefRepository, TypeRepository $typeRepository, CategoryTypeRepository $categoryTypeRepository, ChampLibreRepository $champLibreRepository, ReferenceArticleRepository $refArticleRepository)
     {
         $this->articleRepository = $articleRepository;
-        $this->filterRepository = $filterRepository;
+        $this->filtreRefRepository = $filtreRefRepository;
         $this->typeRepository = $typeRepository;
         $this->categoryTypeRepository = $categoryTypeRepository;
         $this->refArticleRepository = $refArticleRepository;
@@ -170,7 +173,7 @@ class TypeController extends AbstractController
                 $this->refArticleRepository->setTypeIdNull($type);
                 $this->articleRepository->setTypeIdNull($type);
                 foreach ($this->champLibreRepository->getByType($type) as $cl) {
-                    $this->filterRepository->deleteByChampLibre($cl);
+                    $this->filtreRefRepository->deleteByChampLibre($cl);
                 }
                 $this->champLibreRepository->deleteByType($type);
                 $entityManager->flush();
@@ -181,7 +184,7 @@ class TypeController extends AbstractController
                 $champsLibresExist = $this->champLibreRepository->countByType($type);
                 $filters = 0;
                 foreach ($this->champLibreRepository->getByType($type) as $cl) {
-                    $filters += $this->filterRepository->countByChampLibre($cl);
+                    $filters += $this->filtreRefRepository->countByChampLibre($cl);
                 }
                 if ((int)$champsLibresExist + (int)$articlesExist + (int)$articlesRefExist > 0) {
                     $result = $this->renderView('champ_libre/modalDeleteTypeConfirm.html.twig', [

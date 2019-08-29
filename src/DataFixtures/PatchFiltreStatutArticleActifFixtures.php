@@ -2,10 +2,10 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\Filter;
+use App\Entity\FiltreRef;
 
 use App\Repository\UtilisateurRepository;
-use App\Repository\FilterRepository;
+use App\Repository\FiltreRefRepository;
 
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
@@ -21,26 +21,26 @@ class PatchFiltreStatutArticleActifFixtures extends Fixture implements FixtureGr
     private $utilisateurRepository;
 
     /**
-     * @var FilterRepository
+     * @var FiltreRefRepository
      */
-    private $filterRepository;
+    private $filtreRefRepository;
 
-    public function __construct(UtilisateurRepository $utilisateurRepository, FilterRepository $filterRepository)
+    public function __construct(UtilisateurRepository $utilisateurRepository, FiltreRefRepository $filtreRefRepository)
     {
         $this->utilisateurRepository = $utilisateurRepository;
-        $this->filterRepository = $filterRepository;
+        $this->filtreRefRepository = $filtreRefRepository;
     }
 
     public function load(ObjectManager $manager)
     {
         $listUser = $this->utilisateurRepository->findAll();
         foreach($listUser as $user){
-            $filter = $this->filterRepository->findByUserAndChampFixe($user, Filter::CHAMP_FIXE_STATUT);
+            $filter = $this->filtreRefRepository->findByUserAndChampFixe($user, FiltreRef::CHAMP_FIXE_STATUT);
             if($filter == null){
-                $newFilter = new Filter ();
+                $newFilter = new FiltreRef ();
                 $newFilter
                     ->setUtilisateur($user)
-                    ->setChampFixe(Filter::CHAMP_FIXE_STATUT)
+                    ->setChampFixe(FiltreRef::CHAMP_FIXE_STATUT)
                     ->setValue('actif');
 
             $manager->persist($newFilter);

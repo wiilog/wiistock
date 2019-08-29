@@ -7,20 +7,19 @@ use App\Entity\Article;
 use App\Entity\CategoryType;
 use App\Entity\ChampLibre;
 use App\Entity\DimensionsEtiquettes;
-use App\Entity\Filter;
+use App\Entity\FiltreRef;
 use App\Entity\Menu;
 use App\Entity\ParamClient;
 use App\Entity\ReferenceArticle;
 use App\Entity\Utilisateur;
 use App\Entity\ValeurChampLibre;
 use App\Entity\CollecteReference;
-use App\Entity\LigneArticle;
 use App\Entity\CategorieCL;
 use App\Entity\Fournisseur;
 use App\Entity\Collecte;
 
 use App\Repository\ArticleFournisseurRepository;
-use App\Repository\FilterRepository;
+use App\Repository\FiltreRefRepository;
 use App\Repository\ParametreRepository;
 use App\Repository\ParametreRoleRepository;
 use App\Repository\ReferenceArticleRepository;
@@ -125,9 +124,9 @@ class ReferenceArticleController extends Controller
     private $ligneArticleRepository;
 
     /**
-     * @var FilterRepository
+     * @var FiltreRefRepository
      */
-    private $filterRepository;
+    private $filtreRefRepository;
 
     /**
      * @var RefArticleDataService
@@ -179,7 +178,7 @@ class ReferenceArticleController extends Controller
      */
     private $user;
 
-    public function __construct(TokenStorageInterface $tokenStorage, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, ParametreRoleRepository $parametreRoleRepository, ParametreRepository $parametreRepository, SpecificService $specificService, \Twig_Environment $templating, EmplacementRepository $emplacementRepository, FournisseurRepository $fournisseurRepository, CategorieCLRepository $categorieCLRepository, LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, ArticleDataService $articleDataService, LivraisonRepository $livraisonRepository, DemandeRepository $demandeRepository, CollecteRepository $collecteRepository, StatutRepository $statutRepository, ValeurChampLibreRepository $valeurChampLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FilterRepository $filterRepository, RefArticleDataService $refArticleDataService, UserService $userService)
+    public function __construct(TokenStorageInterface $tokenStorage, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, ParametreRoleRepository $parametreRoleRepository, ParametreRepository $parametreRepository, SpecificService $specificService, \Twig_Environment $templating, EmplacementRepository $emplacementRepository, FournisseurRepository $fournisseurRepository, CategorieCLRepository $categorieCLRepository, LigneArticleRepository $ligneArticleRepository, ArticleRepository $articleRepository, ArticleDataService $articleDataService, LivraisonRepository $livraisonRepository, DemandeRepository $demandeRepository, CollecteRepository $collecteRepository, StatutRepository $statutRepository, ValeurChampLibreRepository $valeurChampLibreRepository, ReferenceArticleRepository $referenceArticleRepository, TypeRepository  $typeRepository, ChampLibreRepository $champsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FiltreRefRepository $filtreRefRepository, RefArticleDataService $refArticleDataService, UserService $userService)
     {
         $this->emplacementRepository = $emplacementRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
@@ -190,7 +189,7 @@ class ReferenceArticleController extends Controller
         $this->articleFournisseurRepository = $articleFournisseurRepository;
         $this->collecteRepository = $collecteRepository;
         $this->demandeRepository = $demandeRepository;
-        $this->filterRepository = $filterRepository;
+        $this->filtreRefRepository = $filtreRefRepository;
         $this->livraisonRepository = $livraisonRepository;
         $this->refArticleDataService = $refArticleDataService;
         $this->articleDataService = $articleDataService;
@@ -510,7 +509,7 @@ class ReferenceArticleController extends Controller
         ];
 
         $champF[] = [
-            'label' => Filter::CHAMP_FIXE_REF_ART_FOURN,
+            'label' => FiltreRef::CHAMP_FIXE_REF_ART_FOURN,
             'id' => 0,
             'typage' => 'text'
         ];
@@ -569,7 +568,7 @@ class ReferenceArticleController extends Controller
                 'champsLibres' => $champsLibres,
             ];
         }
-        $filter = $this->filterRepository->findByUserAndChampFixe($this->getUser(), Filter::CHAMP_FIXE_STATUT);
+        $filter = $this->filtreRefRepository->findByUserAndChampFixe($this->getUser(), FiltreRef::CHAMP_FIXE_STATUT);
 
         return $this->render('reference_article/index.html.twig', [
             'champs' => $champs,
@@ -580,7 +579,7 @@ class ReferenceArticleController extends Controller
             'types' => $types,
             'emplacements' => $emplacements,
             'typeQuantite' => $typeQuantite,
-            'filters' => $this->filterRepository->findByUserExceptChampFixe($this->getUser(), Filter::CHAMP_FIXE_STATUT),
+            'filters' => $this->filtreRefRepository->findByUserExceptChampFixe($this->getUser(), FiltreRef::CHAMP_FIXE_STATUT),
             'wantInactif' => !empty($filter) && $filter->getValue() === Article::STATUT_INACTIF
         ]);
     }
@@ -1077,7 +1076,7 @@ class ReferenceArticleController extends Controller
     public function getDataToPrintLabels(Request $request, $params = null) : Response
     {
         $userId = $this->user->getId();
-        $filters = $this->filterRepository->getFieldsAndValuesByUser($userId);
+        $filters = $this->filtreRefRepository->getFieldsAndValuesByUser($userId);
         $queryResult = $this->referenceArticleRepository->findByFiltersAndParams($filters, $params, $this->user);
         $refs = $queryResult['data'];
         $data = json_decode($request->getContent(), true);
@@ -1114,11 +1113,11 @@ class ReferenceArticleController extends Controller
             $user = $this->getUser();
             $statutArticle = $data['donnees'];
 
-            $filter = $this->filterRepository->findByUserAndChampFixe($user, Filter::CHAMP_FIXE_STATUT);
+            $filter = $this->filtreRefRepository->findByUserAndChampFixe($user, FiltreRef::CHAMP_FIXE_STATUT);
 
             $em = $this->getDoctrine()->getManager();
             if($filter == null){
-                $filter = new Filter();
+                $filter = new FiltreRef();
                 $filter
                     ->setUtilisateur($user)
                     ->setChampFixe('Statut')

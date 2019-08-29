@@ -1,3 +1,13 @@
+const PAGE_DEM_COLLECTE = 'dcollecte';
+const PAGE_DEM_LIVRAISON = 'dlivraison';
+const PAGE_MANUT = 'manutention';
+const PAGE_ORDRE_COLLECTE = 'ocollecte';
+const PAGE_ORDRE_LIVRAISON = 'olivraison';
+const PAGE_PREPA = 'prépa';
+const PAGE_ARRIVAGE = 'arrivage';
+const PAGE_MVT_STOCK = 'mvt_stock';
+const PAGE_MVT_TRACA = 'mvt_traca';
+
 /**
  * Initialise une fenêtre modale
  *
@@ -583,4 +593,20 @@ function alertErrorMsg(data) {
         $alertDanger.delay(2000).fadeOut(2000);
         $alertDanger.find('.error-msg').html(data);
     }
+}
+
+function saveFilters(page, dateMin, dateMax, statut, user, type = null, location = null, colis = null)
+{
+    let path = Routing.generate('filter_sup_new');
+    let params = {};
+    if (dateMin) params.dateMin = dateMin;
+    if (dateMax) params.dateMax = dateMax;
+    if (statut) params.statut = statut;
+    if (user) params.user = user;
+    if (type) params.type = type;
+    if (location) params.location = location;
+    if (colis) params.colis = colis;
+    params.page = page;
+
+    $.post(path, JSON.stringify(params), 'json');
 }

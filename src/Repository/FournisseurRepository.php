@@ -19,15 +19,6 @@ class FournisseurRepository extends ServiceEntityRepository
         parent::__construct($registry, Fournisseur::class);
     }
 
-    public function findBySearch($value)
-    {
-        return $this->createQueryBuilder('r')
-            ->andWhere('r.nom like :value OR r.code_reference like :value')
-            ->setParameter('value', '%' . $value . '%')
-            ->orderBy('r.nom', 'ASC')
-            ->getQuery()
-            ->getResult();
-    }
     public function getNoOne($fournisseur)
     {
         $entityManager = $this->getEntityManager();

@@ -72,7 +72,7 @@ class ChampLibre
     private $valeurChampsLibres;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Filter", mappedBy="champLibre")
+     * @ORM\OneToMany(targetEntity="App\Entity\FiltreRef", mappedBy="champLibre")
      */
     private $filters;
 
@@ -193,14 +193,14 @@ class ChampLibre
     }
 
     /**
-     * @return Collection|Filter[]
+     * @return Collection|FiltreRef[]
      */
     public function getFilters(): Collection
     {
         return $this->filters;
     }
 
-    public function addFilter(Filter $filter): self
+    public function addFilter(FiltreRef $filter): self
     {
         if (!$this->filters->contains($filter)) {
             $this->filters[] = $filter;
@@ -210,7 +210,7 @@ class ChampLibre
         return $this;
     }
 
-    public function removeFilter(Filter $filter): self
+    public function removeFilter(FiltreRef $filter): self
     {
         if ($this->filters->contains($filter)) {
             $this->filters->removeElement($filter);

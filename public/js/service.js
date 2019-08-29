@@ -6,6 +6,8 @@ $('#utilisateur').select2({
     }
 });
 
+let $submitSearchService = $('#submitSearchService');
+
 let pathService = Routing.generate('service_api', true);
 let tableService = $('#tableService_id').DataTable({
     order: [[0, 'desc']],
@@ -61,18 +63,36 @@ if (demandeur !== undefined) {
 
 // applique les filtres si pré-remplis
 $(function() {
-    if ($('#statut').val() !== null) {
-        $('#submitSearchService').click();
+    let val = $('#statut').val();
+    if (val != null && val != '') {
+        $submitSearchService.click();
     }
+
+    // filtres enregistrés en base pour chaque utilisateur
+    let path = Routing.generate('filter_get_by_page');
+    let params = JSON.stringify(PAGE_MANUT);
+    $.post(path, params, function(data) {
+        data.forEach(function(element) {
+            if (element.field == 'utilisateurs') {
+                $('#utilisateur').val(element.value.split(',')).select2();
+            } else {
+                $('#'+element.field).val(element.value);
+            }
+        });
+        if (data.length > 0) $submitSearchService.click();
+    }, 'json');
 });
 
 // filtres de recheches
-$('#submitSearchService').on('click', function () {
-
+$submitSearchService.on('click', function () {
+    let dateMin = $('#dateMin').val();
+    let dateMax = $('#dateMax').val();
     let statut = $('#statut').val();
-    let demandeur = $('#utilisateur').val()
+    let demandeur = $('#utilisateur').val();
     let demandeurString = demandeur.toString();
-    demandeurPiped = demandeurString.split(',').join('|')
+    demandeurPiped = demandeurString.split(',').join('|');
+
+    saveFilters(PAGE_MANUT, dateMin, dateMax, statut, demandeurPiped);
 
     tableService
         .columns('Statut:name')
@@ -86,8 +106,6 @@ $('#submitSearchService').on('click', function () {
 
     $.fn.dataTable.ext.search.push(
         function (settings, data) {
-            let dateMin = $('#dateMin').val();
-            let dateMax = $('#dateMax').val();
             let indexDate = tableService.column('Date:name').index();
             let dateInit = (data[indexDate]).split('/').reverse().join('-') || 0;
 
@@ -159,9 +177,9 @@ function changeStatus(button) {
     $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
 }
 
-$('#submitSearchService').on('keypress', function(e) {
+$submitSearchService.on('keypress', function(e) {
     if (e.which === 13) {
-        $('#submitSearchService').click();
+        $submitSearchService.click();
     }
 });
 
