@@ -19,6 +19,10 @@ class DimensionsEtiquettesRepository extends ServiceEntityRepository
         parent::__construct($registry, DimensionsEtiquettes::class);
     }
 
+	/**
+	 * @return DimensionsEtiquettes|null
+	 * @throws \Doctrine\ORM\NonUniqueResultException
+	 */
     public function findOneDimension()
     {
         $entityManager = $this->getEntityManager();

@@ -35,15 +35,6 @@ let submitDeleteUser = $("#submitDeleteUser");
 let pathDeleteUser = Routing.generate('user_delete', true);
 InitialiserModalUser(modalDeleteUser, submitDeleteUser, pathDeleteUser, tableUser);
 
-function alertErrorMsg(data) {
-    if (data !== true) {
-        let $alertDanger = $('#alerts').find('.alert-danger');
-        $alertDanger.removeClass('d-none');
-        $alertDanger.delay(2000).fadeOut(2000);
-        $alertDanger.find('.error-msg').html(data);
-    }
-}
-
 function editRole(select) {
     let params = JSON.stringify({
         'role': select.val(),
@@ -127,7 +118,7 @@ function InitialiserModalUser(modal, submit, path, table, callback = null, close
                 let val = parseInt($(this).val());
                 let min = parseInt($(this).attr('min'));
                 let max = parseInt($(this).attr('max'));
-                if (val > max || val < min) {
+                if (val > max || val < min || isNaN(val)) {
                     wrongNumberInputs.push($(this));
                     $(this).addClass('is-invalid');
                 }

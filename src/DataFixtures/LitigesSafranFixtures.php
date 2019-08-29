@@ -64,7 +64,7 @@ class LitigesSafranFixtures extends Fixture implements FixtureGroupInterface
 				dump('il manque le type ' . $typeLabel);
 				break;
 			}
-			/** @var Type $type */
+
 			$type->setDescription($msg);
 			$manager->flush();
 		}

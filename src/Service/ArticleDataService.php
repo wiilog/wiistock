@@ -359,7 +359,6 @@ class ArticleDataService
         $champsLibresComplet = $this->champsLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
         $champsLibres = [];
         foreach ($champsLibresComplet as $champLibre) {
-            /** @var ChampsLibre $champLibre */
             $valeurChampArticle = $this->valeurChampsLibreRepository->findOneByChampLibreAndArticle($champLibre->getId(), $article->getId());
 //			$labelChampLibre = strtolower($champLibre->getLabel());
 //			$isCEA = $this->specificService->isCurrentClientNameFunction(ParamClient::CEA_LETI);

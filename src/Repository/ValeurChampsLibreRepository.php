@@ -69,6 +69,11 @@ class ValeurChampsLibreRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
+	/**
+	 * @param int $refArticleId
+	 * @param ChampsLibre $champLibre
+	 * @return ValeurChampsLibre|null
+	 */
     public function findOneByRefArticleANDChampsLibre($refArticleId, $champLibre)
     {
         $em = $this->getEntityManager();

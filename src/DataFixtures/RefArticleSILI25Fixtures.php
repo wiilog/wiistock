@@ -26,7 +26,7 @@ class RefArticleSILI25Fixtures extends Fixture implements FixtureGroupInterface
 
 		dump(count($articles) . ' articles à traiter.');
 
-		foreach ($articles as $article) { /** @var $article Article */
+		foreach ($articles as $article) {
     		$index = 0;
 			while ($article->getQuantite() > 25) {
 				$newArticle = new Article();

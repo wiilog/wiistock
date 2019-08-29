@@ -58,12 +58,12 @@ class Reception
     /**
      * @ORM\Column(type="datetime", nullable=true)
      */
-    private $dateAttendu;
+    private $dateAttendue;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
      */
-    private $dateReception;
+    private $dateCommande;
 
     /**
      * @ORM\Column(type="string", nullable=true)
@@ -181,26 +181,26 @@ class Reception
         return $this;
     }
 
-    public function getDateAttendu(): ?\DateTimeInterface
+    public function getDateAttendue(): ?\DateTimeInterface
     {
-        return $this->dateAttendu;
+        return $this->dateAttendue;
     }
 
-    public function setDateAttendu(?\DateTimeInterface $dateAttendu): self
+    public function setDateAttendue(?\DateTimeInterface $dateAttendue): self
     {
-        $this->dateAttendu = $dateAttendu;
+        $this->dateAttendue = $dateAttendue;
 
         return $this;
     }
 
-    public function getDateReception(): ?\DateTimeInterface
+    public function getDateCommande(): ?\DateTimeInterface
     {
-        return $this->dateReception;
+        return $this->dateCommande;
     }
 
-    public function setDateReception(?\DateTimeInterface $dateReception): self
+    public function setDateCommande(?\DateTimeInterface $dateCommande): self
     {
-        $this->dateReception = $dateReception;
+        $this->dateCommande = $dateCommande;
 
         return $this;
     }
