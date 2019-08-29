@@ -2,8 +2,6 @@
 
 namespace App\Controller;
 
-
-use App\Entity\DimensionsEtiquettes;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -11,6 +9,7 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
+use App\Entity\DimensionsEtiquettes;
 use App\Entity\ValeurChampsLibre;
 use App\Entity\Article;
 use App\Entity\ReferenceArticle;
@@ -226,7 +225,7 @@ class ReceptionController extends AbstractController
             $reception
                 ->setNumeroReception($data['NumeroReception'])
                 ->setDateAttendue($data['date-attendue'] ? new \DateTime($data['date-attendue']) : null)
-                ->setDateAttendue($data['date-commande'] ? new \DateTime($data['date-commande']) : null)
+                ->setDateCommande($data['date-commande'] ? new \DateTime($data['date-commande']) : null)
                 ->setStatut($statut)
                 ->setFournisseur($fournisseur)
                 ->setUtilisateur($utilisateur)
@@ -601,8 +600,14 @@ class ReceptionController extends AbstractController
                 ->setLabel($data['libelle'])
                 ->setAnomalie($data['anomalie'])
 //                ->setFournisseur($fournisseur)
-                ->setReferenceArticle($refArticle)
-                ->setQuantite(max($data['quantite'], 0)) // protection contre quantités négatives
+                ->setReferenceArticle($refArticle);
+
+            $type = $this->referenceArticleRepository->getTypeQuantiteByReceptionReferenceArticle($receptionReferenceArticle);
+            if($type['typeQuantite'] == ReferenceArticle::TYPE_QUANTITE_REFERENCE){
+                $receptionReferenceArticle->setQuantite(max($data['quantite'], 0)); // protection contre quantités négatives
+            }
+
+            $receptionReferenceArticle
                 ->setQuantiteAR(max($data['quantiteAR'], 0)) // protection contre quantités négatives
                 ->setCommentaire($data['commentaire']);
 
