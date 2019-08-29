@@ -392,6 +392,7 @@ class ArticleController extends Controller
             $refArticle = $this->referenceArticleRepository->find($data['referenceArticle']);
             $articleFournisseur = $this->articleFournisseurRepository
                 ->findByRefArticleAndFournisseur($data['referenceArticle'], $data['fournisseur']);
+
             if (count($articleFournisseur) === 0) {
                 $json =  [
                     'error' => 'Aucune référence fournisseur trouvée.'
@@ -591,7 +592,6 @@ class ArticleController extends Controller
             }
             $articlesString = array_slice($articlesString, $data['start'], $data['length']);
             $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
-            /** @var DimensionsEtiquettes $dimension */
             if ($dimension) {
                 $tags['height'] = $dimension->getHeight();
                 $tags['width'] = $dimension->getWidth();

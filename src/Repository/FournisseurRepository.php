@@ -32,8 +32,8 @@ class FournisseurRepository extends ServiceEntityRepository
 
     public function findOneByCodeReference($code)
     {
-        $em = $this->getEntityManager();
-        $query = $em->createQuery(
+        $entityManager = $this->getEntityManager();
+        $query = $entityManager->createQuery(
             "SELECT f
           FROM App\Entity\Fournisseur f
           WHERE f.codeReference LIKE :search"

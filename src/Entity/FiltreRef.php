@@ -10,6 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 class FiltreRef
 {
     const CHAMP_FIXE_REF_ART_FOURN = 'référence article fournisseur';
+    const CHAMP_FIXE_STATUT = 'Statut';
 
     /**
      * @ORM\Id()

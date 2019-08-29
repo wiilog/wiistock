@@ -147,12 +147,14 @@ class SeuilAlerteService
         $seuils = $this->alerteRepository->findAll();
         $nbSeuilAtteint = 0;
         foreach ($seuils as $seuil) {
-            $quantiteAR = $this->referenceArticleRepository->getQuantiteStockById($seuil->getAlerteRefArticle()->getId());
-            if ($seuil->getAlerteSeuil() > $quantiteAR) {
-                $seuil->setSeuilAtteint(true);
-                ++$nbSeuilAtteint;
-            } else {
-                $seuil->getSeuilAtteint(false);
+            if ($seuil->getAlerteRefArticle()){
+                $quantiteAR = $this->referenceArticleRepository->getQuantiteStockById($seuil->getAlerteRefArticle()->getId());
+                if ($seuil->getAlerteSeuil() > $quantiteAR) {
+                    $seuil->setSeuilAtteint(true);
+                    ++$nbSeuilAtteint;
+                } else {
+                    $seuil->getSeuilAtteint(false);
+                }
             }
         }
         $entityManager = $this->em;

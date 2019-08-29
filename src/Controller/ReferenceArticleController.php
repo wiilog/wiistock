@@ -548,7 +548,6 @@ class ReferenceArticleController extends Controller
         $champs = array_merge($champF, $champL);
         $champsSearch = array_merge($champsFText, $champsLText, $champsLTList);
 
-
         usort($champs, function ($a, $b) {
 			return strcasecmp($a['label'], $b['label']);
         });
@@ -569,7 +568,8 @@ class ReferenceArticleController extends Controller
                 'champsLibres' => $champsLibres,
             ];
         }
-        $filter = $this->filtreRefRepository->findByUserAndStatut($this->getUser()->getId());
+        $filter = $this->filtreRefRepository->findByUserAndChampFixe($this->getUser(), FiltreRef::CHAMP_FIXE_STATUT);
+
         return $this->render('reference_article/index.html.twig', [
             'champs' => $champs,
             'champsSearch' => $champsSearch,
@@ -579,7 +579,7 @@ class ReferenceArticleController extends Controller
             'types' => $types,
             'emplacements' => $emplacements,
             'typeQuantite' => $typeQuantite,
-            'filters' => $this->filtreRefRepository->findByUserAndNoStatut($this->getUser()->getId()),
+            'filters' => $this->filtreRefRepository->findByUserExceptChampFixe($this->getUser(), FiltreRef::CHAMP_FIXE_STATUT),
             'wantInactif' => !empty($filter) && $filter->getValue() === Article::STATUT_INACTIF
         ]);
     }
@@ -1088,7 +1088,6 @@ class ReferenceArticleController extends Controller
 
         if ($request->isXmlHttpRequest()) {
             $dimension = $this->dimensionsEtiquettesRepository->findOneDimension();
-            /** @var DimensionsEtiquettes $dimension */
             if ($dimension) {
                 $tags['height'] = $dimension->getHeight();
                 $tags['width'] = $dimension->getWidth();
@@ -1112,10 +1111,9 @@ class ReferenceArticleController extends Controller
         if ($request->isXmlHttpRequest() && $data= json_decode($request->getContent(), true)){
 
             $user = $this->getUser();
-            $userId = $user->getId();
             $statutArticle = $data['donnees'];
 
-            $filter = $this->filtreRefRepository->findByUserAndStatut($userId);
+            $filter = $this->filtreRefRepository->findByUserAndChampFixe($user, FiltreRef::CHAMP_FIXE_STATUT);
 
             $em = $this->getDoctrine()->getManager();
             if($filter == null){

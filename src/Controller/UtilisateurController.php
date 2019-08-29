@@ -117,7 +117,6 @@ class UtilisateurController extends Controller
 
             if ($emailAlreadyUsed) {
                 return new JsonResponse('Un compte existe déjà avec cet email.');
-                //TODO gérer retour erreur propre
             }
 
             $utilisateur = new Utilisateur();

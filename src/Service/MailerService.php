@@ -41,7 +41,6 @@ class MailerService
     public function sendMail($subject, $content, $to)
     {
         $mailerServer = $this->mailerServerRepository->findOneMailerServer();
-        /** @var MailerServer $mailerServer */
         if ($mailerServer) {
             $from = $mailerServer->getUser() ? $mailerServer->getUser() : '';
             $password = $mailerServer->getPassword() ? $mailerServer->getPassword() : '';

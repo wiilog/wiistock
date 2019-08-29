@@ -169,7 +169,7 @@ class FiltreRefController extends AbstractController
 					$options[] = $emplacement->getLabel();
 				}
 			} else if ($value === 'Type') {
-				$types = $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLE); /** @var Type[] $types */
+				$types = $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLE);
 				$options = [];
 				foreach ($types as $type) {
 					$options[] = $type->getLabel();
