@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Demande;
+use App\Entity\Livraison;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
@@ -19,18 +20,22 @@ class DemandeRepository extends ServiceEntityRepository
         parent::__construct($registry, Demande::class);
     }
 
-    public function getByLivraison($id)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            "SELECT d
-           FROM App\Entity\Demande d
-            JOIN d.livraison l
-           WHERE l.id = :id "
-        )->setParameter('id', $id);
+	/**
+	 * @param Livraison $livraison
+	 * @return Demande|null
+	 * @throws \Doctrine\ORM\NonUniqueResultException
+	 */
+	public function findOneByLivraison($livraison)
+	{
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+			'SELECT d
+            FROM App\Entity\Demande d
+            WHERE d.livraison = :livraison'
+		)->setParameter('livraison', $livraison);
 
-        return $query->getOneOrNullResult();
-    }
+		return $query->getOneOrNullResult();
+	}
 
     public function findByUserAndNotStatus($user, $status)
     {
@@ -45,7 +50,7 @@ class DemandeRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function getByStatutAndUser($statut, $user)
+    public function findByStatutAndUser($statut, $user)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
@@ -108,17 +113,12 @@ class DemandeRepository extends ServiceEntityRepository
         )->setParameter('preparation', $preparation);
         return $query->getOneOrNullResult();
     }
-    public function findOneByLivraison($livraison)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            'SELECT a
-            FROM App\Entity\Demande a
-            WHERE a.livraison = :livraison'
-        )->setParameter('livraison', $livraison);
-        return $query->getOneOrNullResult();
-    }
 
+	/**
+	 * @param string $dateMin
+	 * @param string $dateMax
+	 * @return Demande[]|null
+	 */
     public function findByDates($dateMin, $dateMax)
     {
         $entityManager = $this->getEntityManager();
@@ -132,4 +132,19 @@ class DemandeRepository extends ServiceEntityRepository
         ]);
         return $query->execute();
     }
+
+    public function getLastNumeroByPrefixeAndDate($prefixe, $date)
+	{
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+			/** @lang DQL */
+			'SELECT d.numero
+			FROM App\Entity\Demande d
+			WHERE d.numero LIKE :value
+			ORDER BY d.date DESC'
+		)->setParameter('value', $prefixe . $date . '%');
+
+		$result = $query->execute();
+		return $result ? $result[0]['numero'] : null;
+	}
 }

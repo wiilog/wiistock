@@ -5,11 +5,12 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity(repositoryClass="App\Repository\FilterRepository")
+ * @ORM\Entity(repositoryClass="App\Repository\FiltreRefRepository")
  */
-class Filter
+class FiltreRef
 {
     const CHAMP_FIXE_REF_ART_FOURN = 'référence article fournisseur';
+    const CHAMP_FIXE_STATUT = 'Statut';
 
     /**
      * @ORM\Id()
@@ -19,7 +20,7 @@ class Filter
     private $id;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\ChampsLibre", inversedBy="filters")
+     * @ORM\ManyToOne(targetEntity="App\Entity\ChampLibre", inversedBy="filters")
      * @ORM\JoinColumn(nullable=true)
      */
     private $champLibre;
@@ -52,12 +53,12 @@ class Filter
         return $this->id;
     }
 
-    public function getChampLibre(): ?ChampsLibre
+    public function getChampLibre(): ?ChampLibre
     {
         return $this->champLibre;
     }
 
-    public function setChampLibre(?ChampsLibre $champLibre): self
+    public function setChampLibre(?ChampLibre $champLibre): self
     {
         $this->champLibre = $champLibre;
 

@@ -559,6 +559,10 @@ a:hover {
   width: 100%;
 }
 
+.bg-danger {
+  color: white;
+}
+
 .table .fas {
   font-size: 0.8rem;
   cursor: pointer;
@@ -697,6 +701,10 @@ strong {
 
 em {
   font-style: italic !important;
+}
+
+.editor-container-article.ql-container.ql-snow {
+  height: 80%;
 }
 
 .dropFrame {

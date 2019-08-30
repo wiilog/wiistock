@@ -7,9 +7,9 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity(repositoryClass="App\Repository\ValeurChampsLibreRepository")
+ * @ORM\Entity(repositoryClass="App\Repository\ValeurChampLibreRepository")
  */
-class ValeurChampsLibre
+class ValeurChampLibre
 {
     /**
      * @ORM\Id()
@@ -33,13 +33,13 @@ class ValeurChampsLibre
     private $article;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\ChampsLibre", inversedBy="valeurChampsLibres")
+     * @ORM\ManyToOne(targetEntity="App\Entity\ChampLibre", inversedBy="valeurChampsLibres")
      * @ORM\JoinColumn(name="champ_libre_id", referencedColumnName="id", onDelete="CASCADE")
      */
     private $champLibre;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Reception", mappedBy="valeurChampsLibre")
+     * @ORM\ManyToMany(targetEntity="App\Entity\Reception", mappedBy="valeurChampLibre")
      */
     private $receptions;
 
@@ -47,6 +47,11 @@ class ValeurChampsLibre
 	 * @ORM\ManyToMany(targetEntity="App\Entity\Demande", mappedBy="valeurChampLibre")
 	 */
     private $demandesLivraison;
+
+	/**
+	 * @ORM\ManyToMany(targetEntity="App\Entity\Collecte", mappedBy="valeurChampLibre")
+	 */
+	private $demandesCollecte;
 
 
     public function __construct()
@@ -56,6 +61,7 @@ class ValeurChampsLibre
         $this->article = new ArrayCollection();
         $this->receptions = new ArrayCollection();
         $this->demandesLivraison = new ArrayCollection();
+        $this->demandesCollecte = new ArrayCollection();
     }
 
 
@@ -107,12 +113,12 @@ class ValeurChampsLibre
         return $this;
     }
 
-    public function getChampLibre(): ?ChampsLibre
+    public function getChampLibre(): ?ChampLibre
     {
         return $this->champLibre;
     }
 
-    public function setChampLibre(?ChampsLibre $champLibre): self
+    public function setChampLibre(?ChampLibre $champLibre): self
     {
         $this->champLibre = $champLibre;
 
@@ -158,7 +164,7 @@ class ValeurChampsLibre
     {
         if (!$this->receptions->contains($reception)) {
             $this->receptions[] = $reception;
-            $reception->addValeurChampsLibre($this);
+            $reception->addValeurChampLibre($this);
         }
 
         return $this;
@@ -168,7 +174,7 @@ class ValeurChampsLibre
     {
         if ($this->receptions->contains($reception)) {
             $this->receptions->removeElement($reception);
-            $reception->removeValeurChampsLibre($this);
+            $reception->removeValeurChampLibre($this);
         }
 
         return $this;
@@ -197,6 +203,34 @@ class ValeurChampsLibre
         if ($this->demandesLivraison->contains($demandesLivraison)) {
             $this->demandesLivraison->removeElement($demandesLivraison);
             $demandesLivraison->removeValeurChampLibre($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Collecte[]
+     */
+    public function getDemandesCollecte(): Collection
+    {
+        return $this->demandesCollecte;
+    }
+
+    public function addDemandesCollecte(Collecte $demandesCollecte): self
+    {
+        if (!$this->demandesCollecte->contains($demandesCollecte)) {
+            $this->demandesCollecte[] = $demandesCollecte;
+            $demandesCollecte->addValeurChampLibre($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDemandesCollecte(Collecte $demandesCollecte): self
+    {
+        if ($this->demandesCollecte->contains($demandesCollecte)) {
+            $this->demandesCollecte->removeElement($demandesCollecte);
+            $demandesCollecte->removeValeurChampLibre($this);
         }
 
         return $this;

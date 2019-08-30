@@ -21,58 +21,68 @@ let table = $('#tableReception_id').DataTable({
 });
 
 let pathArticle = Routing.generate('article_by_reception_api', true);
-
-let initDataTableDone = false;
 function initDatatableConditionnement() {
-    if (!initDataTableDone) {
-        let tableFromArticle = $('#tableArticleInner_id').DataTable({
-            info: false,
-            paging: false,
-            "language": {
-                url: "/js/i18n/dataTableLanguage.json",
+    let tableFromArticle = $('#tableArticleInner_id').DataTable({
+        info: false,
+        paging: false,
+        "language": {
+            url: "/js/i18n/dataTableLanguage.json",
+        },
+        searching: false,
+        destroy: true,
+        ajax: {
+            "url": pathArticle,
+            "type": "POST",
+            "data": function () {
+                return {
+                    'ligne': $('#ligneSelected').val()
+                }
             },
-            searching: false,
-            ajax: {
-                "url": pathArticle,
-                "type": "POST",
-                "data": function () {
-                    return {
-                        'ligne': $('#ligneSelected').val()
-                    }
-                },
-            },
-            columns: [
-                { "data": 'Référence', 'name': 'Référence', 'title': 'Référence' },
-                { "data": "Statut", 'name': 'Statut', 'title': 'Statut' },
-                { "data": 'Libellé', 'name': 'Libellé', 'title': 'Libellé' },
-                { "data": 'Référence article', 'name': 'Référence article', 'title': 'Référence article' },
-                { "data": 'Quantité', 'name': 'Quantité', 'title': 'Quantité' },
-                { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' }
-            ],
-        });
+        },
+        columns: [
+            { "data": 'Référence', 'name': 'Référence', 'title': 'Référence' },
+            { "data": "Statut", 'name': 'Statut', 'title': 'Statut' },
+            { "data": 'Libellé', 'name': 'Libellé', 'title': 'Libellé' },
+            { "data": 'Référence article', 'name': 'Référence article', 'title': 'Référence article' },
+            { "data": 'Quantité', 'name': 'Quantité', 'title': 'Quantité' },
+            { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' }
+        ],
+        aoColumnDefs: [{
+            'sType': 'natural',
+            'bSortable': true,
+            'aTargets': [0]
+        }]
+    });
 
-        let statutVisible = $("#statutVisible").val();
-
-        if (!statutVisible) {
-            tableFromArticle.column('Statut:name').visible(false);
-        }
-        initDataTableDone = true;
-        initModalCondit(tableFromArticle);
-    } else {
-        $('#tableArticleInner_id').DataTable().ajax.reload();
+    let statutVisible = $("#statutVisible").val();
+    if (!statutVisible) {
+        tableFromArticle.column('Statut:name').visible(false);
     }
+
+    initModalCondit(tableFromArticle);
 }
+
+
+
+$.extend($.fn.dataTableExt.oSort, {
+    "natural-asc": function (a, b) {
+        return parseInt(a) < parseInt(b) ? -1 : 1;
+    },
+    "natural-desc": function (a, b) {
+        return parseInt(a) < parseInt(b) ? -1 : 1;
+    }
+});
 
 function initModalCondit(tableFromArticle) {
     let modalEditInnerArticle = $("#modalEditArticle");
     let submitEditInnerArticle = $("#submitEditArticle");
     let urlEditInnerArticle = Routing.generate('article_edit', true);
-    InitialiserModalArticle(modalEditInnerArticle, submitEditInnerArticle, urlEditInnerArticle, tableFromArticle);
+    InitialiserModal(modalEditInnerArticle, submitEditInnerArticle, urlEditInnerArticle, tableFromArticle);
 
     let modalDeleteInnerArticle = $("#modalDeleteArticle");
     let submitDeleteInnerArticle = $("#submitDeleteArticle");
     let urlDeleteInnerArticle = Routing.generate('article_delete', true);
-    InitialiserModalArticle(modalDeleteInnerArticle, submitDeleteInnerArticle, urlDeleteInnerArticle, tableFromArticle);
+    InitialiserModal(modalDeleteInnerArticle, submitDeleteInnerArticle, urlDeleteInnerArticle, tableFromArticle);
 }
 
 let modalReceptionNew = $("#modalNewReception");
@@ -180,13 +190,6 @@ let printerAll = function () {
     json = JSON.stringify(Data);
     xhttp.open("POST", pathPrinterAll, true);
     xhttp.send(json);
-}
-
-function updateStock(select) {
-    let id = select.val();
-    $.post(Routing.generate('get_article_stock'), { 'id': id }, function (data) {
-        $('#stock').val(data);
-    }, "json");
 }
 
 //initialisation editeur de texte une seule fois
@@ -298,7 +301,7 @@ let getArticleFournisseur = function () {
     }
     path = Routing.generate('get_article_fournisseur', true)
     let data = {};
-    data['referenceArticle'] = $('#referenceCEA').val();
+    data['referenceArticle'] = $('#reference').val();
     data['fournisseur'] = $('#fournisseurAddArticle').val();
     if (data['referenceArticle'] && data['fournisseur']) {
         json = JSON.stringify(data);
@@ -323,15 +326,18 @@ function checkZero(data) {
 function addLot(button) {
     $.post(Routing.generate('add_lot'), function (response) {
         button.parent().append(response);
+        $('#submitConditionnement').removeClass('d-none');
     });
 }
 
-function createArticleAndBarcodes(button) {
+function createArticleAndBarcodes(button, receptionId) {
     let data = {};
     data.refArticle = button.attr('data-ref');
     data.ligne = button.attr('data-id');
     data.quantiteLot = [];
     data.tailleLot = [];
+    data.receptionId = receptionId;
+
     $('#modalChoose').find('input.data').each(function () {
         data[$(this).attr('name')].push($(this).val());
     });
@@ -340,6 +346,7 @@ function createArticleAndBarcodes(button) {
         let date = checkZero(d.getDate() + '') + '-' + checkZero(d.getMonth() + 1 + '') + '-' + checkZero(d.getFullYear() + '');
         date += ' ' + checkZero(d.getHours() + '') + '-' + checkZero(d.getMinutes() + '') + '-' + checkZero(d.getSeconds() + '');
         $('#modalChoose').find('.modal-choose').first().html('<span class="btn btn-primary" onclick="addLot($(this))"><i class="fa fa-plus"></i></span>');
+
         if (response.exists) {
             $("#barcodes").empty();
             for (let i = 0; i < response.refs.length; i++) {
@@ -391,118 +398,7 @@ function printSingleBarcode(button) {
             $submit.attr('data-ref', response.article)
             $submit.attr('data-id', button.data('id'))
             initDatatableConditionnement();
-        }
-    });
-}
-
-function InitialiserModalArticle(modal, submit, path, table, callback = function () { }, close = true) {
-    submit.click(function () {
-        xhttp = new XMLHttpRequest();
-        xhttp.onreadystatechange = function () {
-            if (this.readyState == 4 && this.status == 200) {
-                $('.errorMessage').html(JSON.parse(this.responseText))
-                data = JSON.parse(this.responseText);
-                table.ajax.reload(function (json) {
-                    if (this.responseText !== undefined) {
-                        $('#myInput').val(json.lastInput);
-                    }
-                });
-                callback(data);
-
-                let inputs = modal.find('.modal-body').find(".data");
-                // on vide tous les inputs
-                inputs.each(function () {
-                    $(this).val("");
-                });
-                // on remet toutes les checkboxes sur off
-                let checkboxes = modal.find('.checkbox');
-                checkboxes.each(function () {
-                    $(this).prop('checked', false);
-                })
-            } else if (this.readyState == 4 && this.status == 250) {
-                $('#cannotDeleteArticle').click();
-            }
-        };
-
-        // On récupère toutes les données qui nous intéressent
-        // dans les inputs...
-        let inputs = modal.find(".data");
-        let Data = {};
-        let missingInputs = [];
-        let wrongNumberInputs = [];
-
-        inputs.each(function () {
-            let val = $(this).val();
-            let name = $(this).attr("name");
-            Data[name] = val;
-            // validation données obligatoires
-            if ($(this).hasClass('needed') && (val === undefined || val === '' || val === null)) {
-                let label = $(this).closest('.form-group').find('label').text();
-                missingInputs.push(label);
-                $(this).addClass('is-invalid');
-            }
-            // validation valeur des inputs de type number
-            // if ($(this).attr('type') === 'number') {
-            //     let val = parseInt($(this).val());
-            //     console.log(val)
-            //     let min = parseInt($(this).attr('min'));
-            //     console.log(min)
-            //     let max = parseInt($(this).attr('max'));
-            //     console.log(max)
-            //     if (val > max || val < min) {
-            //         wrongInputs.push($(this));
-            //         $(this).addClass('is-invalid');
-            //     }
-            // }
-        });
-
-        // ... et dans les checkboxes
-        let checkboxes = modal.find('.checkbox');
-        checkboxes.each(function () {
-            Data[$(this).attr("name")] = $(this).is(':checked');
-        });
-        // si tout va bien on envoie la requête ajax...
-        if (missingInputs.length == 0 && wrongNumberInputs.length == 0) {
-            if (close == true) modal.find('.close').click();
-            Json = {};
-            Json = JSON.stringify(Data);
-            xhttp.open("POST", path, true);
-            xhttp.send(Json);
-        } else {
-
-            // ... sinon on construit les messages d'erreur
-            let msg = '';
-
-            // cas où il manque des champs obligatoires
-            if (missingInputs.length > 0) {
-                if (missingInputs.length == 1) {
-                    msg += 'Veuillez renseigner le champ ' + missingInputs[0] + ".<br>";
-                } else {
-                    msg += 'Veuillez renseigner les champs : ' + missingInputs.join(', ') + ".<br>";
-                }
-            }
-            // cas où les champs number ne respectent pas les valeurs imposées (min et max)
-            if (wrongNumberInputs.length > 0) {
-                wrongNumberInputs.forEach(function (elem) {
-                    let label = elem.closest('.form-group').find('label').text();
-
-                    msg += 'La valeur du champ ' + label;
-
-                    let min = elem.attr('min');
-                    let max = elem.attr('max');
-
-                    if (typeof (min) !== 'undefined' && typeof (max) !== 'undefined') {
-                        msg += ' doit être comprise entre ' + min + ' et ' + max + ".<br>";
-                    } else if (typeof (min) == 'undefined') {
-                        msg += ' doit être inférieure à ' + max + ".<br>";
-                    } else if (typeof (max) == 'undefined') {
-                        msg += ' doit être supérieure à ' + min + ".<br>";
-                    }
-
-                })
-            }
-
-            modal.find('.error-msg').html(msg);
+            $submit.addClass('d-none');
         }
     });
 }
@@ -525,4 +421,54 @@ function printSingleArticleBarcode(button) {
             $('#cannotGenerate').click();
         }
     });
+}
+
+function checkIfQuantityArticle($select){
+    let referenceId = $select.val();
+    let path = Routing.generate('check_if_quantity_article');
+    let params = JSON.stringify(referenceId);
+    let $label = $('#label');
+
+    if (referenceId) { // protection pour éviter appel ajax en cas vidage modale
+        $.post(path, params, function(quantityByArticle){
+            $label.removeClass('is-invalid');
+            if(quantityByArticle) {
+                $label.addClass('needed');
+                $label.closest('div').find('label').html('Libellé*');
+                $label.closest('.modal-body').find('#quantite').attr('disabled', true);
+            } else {
+                $label.removeClass('needed');
+                $label.closest('div').find('label').html('Libellé');
+                $label.closest('.modal-body').find('#quantite').attr('disabled', false);
+            }
+        });
+    }
+
+}
+
+function checkAndDeleteReception(btn) {
+    let modalBody = $('#modalDeleteReception').find('.modal-body');
+    let id = btn.data('id');
+    let param = JSON.stringify(id);
+
+    $.post(Routing.generate('reception_check_delete'), param, function (resp) {
+        modalBody.html(resp.html);
+        let $submitDeleteReception = $('#submitDeleteReception');
+        if (resp.delete == false) {
+            $submitDeleteReception.hide();
+        } else {
+            $submitDeleteReception.show();
+            $submitDeleteReception.attr('value', id);
+        }
+    });
+}
+
+function finishReception(receptionId) {
+    $.post(Routing.generate('reception_finish'), JSON.stringify(receptionId), function(data) {
+        if (data === true) {
+            window.location.href = Routing.generate('reception_index', true);
+        } else {
+            alertErrorMsg(data);
+        }
+    }, 'json');
 }

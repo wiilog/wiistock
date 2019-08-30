@@ -85,7 +85,7 @@ class Article
     private $type;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\ValeurChampsLibre", mappedBy="article")
+     * @ORM\ManyToMany(targetEntity="App\Entity\ValeurChampLibre", mappedBy="article")
      */
     private $valeurChampsLibres;
 
@@ -278,28 +278,28 @@ class Article
         return $this;
     }
     /**
-     * @return Collection|ValeurChampsLibre[]
+     * @return Collection|ValeurChampLibre[]
      */
     public function getValeurChampsLibres(): Collection
     {
         return $this->valeurChampsLibres;
     }
 
-    public function addValeurChampsLibre(ValeurChampsLibre $valeurChampsLibre): self
+    public function addValeurChampLibre(ValeurChampLibre $valeurChampLibre): self
     {
-        if (!$this->valeurChampsLibres->contains($valeurChampsLibre)) {
-            $this->valeurChampsLibres[] = $valeurChampsLibre;
-            $valeurChampsLibre->addArticle($this);
+        if (!$this->valeurChampsLibres->contains($valeurChampLibre)) {
+            $this->valeurChampsLibres[] = $valeurChampLibre;
+            $valeurChampLibre->addArticle($this);
         }
 
         return $this;
     }
 
-    public function removeValeurChampsLibre(ValeurChampsLibre $valeurChampsLibre): self
+    public function removeValeurChampLibre(ValeurChampLibre $valeurChampLibre): self
     {
-        if ($this->valeurChampsLibres->contains($valeurChampsLibre)) {
-            $this->valeurChampsLibres->removeElement($valeurChampsLibre);
-            $valeurChampsLibre->removeArticle($this);
+        if ($this->valeurChampsLibres->contains($valeurChampLibre)) {
+            $this->valeurChampsLibres->removeElement($valeurChampLibre);
+            $valeurChampLibre->removeArticle($this);
         }
 
         return $this;
@@ -375,6 +375,26 @@ class Article
             if ($mouvement->getArticle() === $this) {
                 $mouvement->setArticle(null);
             }
+        }
+
+        return $this;
+    }
+
+    public function addValeurChampsLibre(ValeurChampLibre $valeurChampsLibre): self
+    {
+        if (!$this->valeurChampsLibres->contains($valeurChampsLibre)) {
+            $this->valeurChampsLibres[] = $valeurChampsLibre;
+            $valeurChampsLibre->addArticle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeValeurChampsLibre(ValeurChampLibre $valeurChampsLibre): self
+    {
+        if ($this->valeurChampsLibres->contains($valeurChampsLibre)) {
+            $this->valeurChampsLibres->removeElement($valeurChampsLibre);
+            $valeurChampsLibre->removeArticle($this);
         }
 
         return $this;

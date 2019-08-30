@@ -6,14 +6,18 @@ use App\Entity\Action;
 use App\Entity\DimensionsEtiquettes;
 use App\Entity\Emplacement;
 use App\Entity\Menu;
+
 use App\Repository\CollecteRepository;
 use App\Repository\DemandeRepository;
 use App\Repository\DimensionsEtiquettesRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\LivraisonRepository;
 use App\Repository\MouvementStockRepository;
+use App\Repository\ReferenceArticleRepository;
+
 use App\Service\UserService;
 use App\Service\EmplacementDataService;
+
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -61,7 +65,7 @@ class EmplacementController extends AbstractController
     /**
      * @var MouvementStockRepository
      */
-    private $mouvementRepository;
+    private $mouvementStockRepository;
 
     /**
      * @var UserService
@@ -73,8 +77,12 @@ class EmplacementController extends AbstractController
      */
     private $dimensionsEtiquettesRepository;
 
+    /**
+     * @var ReferenceArticleRepository
+     */
+    private $referenceArticleRepository;
 
-    public function __construct(DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, EmplacementDataService $emplacementDataService, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, UserService $userService, DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, CollecteRepository $collecteRepository, MouvementStockRepository $mouvementRepository)
+    public function __construct(ReferenceArticleRepository $referenceArticleRepository, DimensionsEtiquettesRepository $dimensionsEtiquettesRepository, EmplacementDataService $emplacementDataService, ArticleRepository $articleRepository, EmplacementRepository $emplacementRepository, UserService $userService, DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, CollecteRepository $collecteRepository, MouvementStockRepository $mouvementStockRepository)
     {
         $this->emplacementDataService = $emplacementDataService;
         $this->emplacementRepository = $emplacementRepository;
@@ -83,8 +91,9 @@ class EmplacementController extends AbstractController
         $this->demandeRepository = $demandeRepository;
         $this->livraisonRepository = $livraisonRepository;
         $this->collecteRepository = $collecteRepository;
-        $this->mouvementRepository = $mouvementRepository;
+        $this->mouvementStockRepository = $mouvementStockRepository;
         $this->dimensionsEtiquettesRepository = $dimensionsEtiquettesRepository;
+        $this->referenceArticleRepository = $referenceArticleRepository;
     }
 
     /**
@@ -203,21 +212,26 @@ class EmplacementController extends AbstractController
     }
 
     /**
-     * @Route("/verification", name="emplacement_check_delete", options={"expose"=true})
+     * @Route("/verification", name="emplacement_check_delete", options={"expose"=true}, methods="GET|POST")
      */
     public function checkEmplacementCanBeDeleted(Request $request): Response
     {
         if ($request->isXmlHttpRequest() && $emplacementId = json_decode($request->getContent(), true)) {
+
             if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
             }
 
-            if ($this->countUsedEmplacements($emplacementId) == 0) {
+            $isUsedBy = $this->isEmplacementUsed($emplacementId);
+            if (empty($isUsedBy)) {
                 $delete = true;
                 $html = $this->renderView('emplacement/modalDeleteEmplacementRight.html.twig');
             } else {
                 $delete = false;
-                $html = $this->renderView('emplacement/modalDeleteEmplacementWrong.html.twig', ['delete' => false]);
+                $html = $this->renderView('emplacement/modalDeleteEmplacementWrong.html.twig', [
+                    'delete' => false,
+                    'isUsedBy' => $isUsedBy
+                ]);
             }
 
             return new JsonResponse(['delete' => $delete, 'html' => $html]);
@@ -225,14 +239,33 @@ class EmplacementController extends AbstractController
         throw new NotFoundHttpException('404');
     }
 
-    private function countUsedEmplacements($emplacementId)
+    /**
+     * @param int $emplacementId
+     * @return array
+     */
+    private function isEmplacementUsed($emplacementId)
     {
-        $usedEmplacement = $this->demandeRepository->countByEmplacement($emplacementId);
-        $usedEmplacement += $this->livraisonRepository->countByEmplacement($emplacementId);
-        $usedEmplacement += $this->collecteRepository->countByEmplacement($emplacementId);
-        $usedEmplacement += $this->mouvementRepository->countByEmplacement($emplacementId);
+        $usedBy = [];
 
-        return $usedEmplacement;
+        $demandes = $this->demandeRepository->countByEmplacement($emplacementId);
+        if ($demandes > 0) $usedBy[] = 'demandes';
+
+        $livraisons = $this->livraisonRepository->countByEmplacement($emplacementId);
+        if ($livraisons > 0) $usedBy[] = 'livraisons';
+
+        $collectes = $this->collecteRepository->countByEmplacement($emplacementId);
+        if ($collectes > 0) $usedBy[] = 'collectes';
+
+        $mouvementsStock = $this->mouvementStockRepository->countByEmplacement($emplacementId);
+        if ($mouvementsStock > 0) $usedBy[] = 'mouvements de stock';
+
+        $refArticle = $this->referenceArticleRepository->countByEmplacement($emplacementId);
+        if ($refArticle > 0)$usedBy[] = 'références article';
+
+        $articles = $this->articleRepository->countByEmplacement($emplacementId);
+        if ($articles > 0) $usedBy[] ='articles';
+
+        return $usedBy;
     }
 
     /**
@@ -250,9 +283,9 @@ class EmplacementController extends AbstractController
                 $emplacement = $this->emplacementRepository->find($emplacementId);
 
                 // on vérifie que l'emplacement n'est plus utilisé
-                $usedEmplacement = $this->countUsedEmplacements($emplacementId);
+                $usedEmplacement = $this->isEmplacementUsed($emplacementId);
 
-                if ($usedEmplacement > 0) {
+                if (!empty($usedEmplacement)) {
                     return new JsonResponse(false);
                 }
 

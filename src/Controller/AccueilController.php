@@ -5,7 +5,6 @@ namespace App\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use App\Service\SeuilAlerteService;
 
 use App\Repository\EmplacementRepository;
 use App\Repository\AlerteRepository;
@@ -15,7 +14,6 @@ use App\Repository\DemandeRepository;
 use App\Repository\ServiceRepository;
 
 use App\Entity\Collecte;
-use App\Entity\Livraison;
 use App\Entity\Demande;
 use App\Entity\Service;
 
@@ -40,11 +38,6 @@ class AccueilController extends AbstractController
     private $statutRepository;
 
     /**
-     * @var SeuilAlerteServic
-     */
-    private $seuilAlerteService;
-
-    /**
      * @var EmplacementRepository
      */
     private $emplacementRepository;
@@ -59,11 +52,10 @@ class AccueilController extends AbstractController
      */
     private $serviceRepository;
 
-    public function __construct(ServiceRepository $serviceRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, CollecteRepository $collecteRepository, SeuilAlerteService $seuilAlerteService, AlerteRepository $alerteRepository, EmplacementRepository $emplacementRepository)
+    public function __construct(ServiceRepository $serviceRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, CollecteRepository $collecteRepository, AlerteRepository $alerteRepository, EmplacementRepository $emplacementRepository)
     {
         $this->alerteRepository = $alerteRepository;
         $this->emplacementRepository = $emplacementRepository;
-        $this->seuilAlerteService = $seuilAlerteService;
         $this->collecteRepository = $collecteRepository;
         $this->statutRepository = $statutRepository;
         $this->demandeRepository = $demandeRepository;
@@ -75,7 +67,8 @@ class AccueilController extends AbstractController
      */
     public function index(): Response
     {
-        $nbAlerte = $this->seuilAlerteService->thresholdReaches();
+    	$nbAlertsSecurity = $this->alerteRepository->countActivatedLimitSecurityReached();
+    	$nbAlerts = $this->alerteRepository->countActivatedLimitReached();
 
         $statutCollecte = $this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, Collecte::STATUS_A_TRAITER);
         $nbrDemandeCollecte = $this->collecteRepository->countByStatut($statutCollecte);
@@ -90,7 +83,8 @@ class AccueilController extends AbstractController
         $nbrDemandeManutentionAT = $this->serviceRepository->countByStatut($statutServiceAT);
 
         return $this->render('accueil/index.html.twig', [
-            'nbAlerte' => $nbAlerte,
+            'nbAlerts' => $nbAlerts,
+            'nbAlertsSecurity' => $nbAlertsSecurity,
             'nbDemandeCollecte' => $nbrDemandeCollecte,
             'nbDemandeLivraisonAT' => $nbrDemandeLivraisonAT,
             'nbDemandeLivraisonP' => $nbrDemandeLivraisonP,

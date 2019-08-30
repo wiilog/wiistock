@@ -105,19 +105,29 @@ class ServiceController extends AbstractController
     }
 
     /**
-     * @Route("/", name="service_index", methods={"GET", "POST"})
+     * @Route("/liste/{filter}", name="service_index", options={"expose"=true}, methods={"GET", "POST"})
+	 * @param string|null $filter
+	 * @return Response
      */
-    public function index(): Response
+    public function index($filter = null): Response
     {
         if (!$this->userService->hasRightFunction(Menu::MANUT, Action::LIST)) {
             return $this->redirectToRoute('access_denied');
         }
 
+		switch ($filter) {
+			case 'a-traiter':
+				$filter = Service::STATUT_A_TRAITER;
+				break;
+		}
+
         return $this->render('service/index.html.twig', [
             'utilisateurs' => $this->utilisateurRepository->findAll(),
             'statuts' => $this->statutRepository->findByCategorieName(Service::CATEGORIE),
-        ]);
+			'filterStatus' => $filter
+		]);
     }
+
     /**
      * @Route("/voir", name="service_show", options={"expose"=true}, methods="GET|POST")
      */

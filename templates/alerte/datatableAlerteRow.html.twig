@@ -1,15 +1,17 @@
 <div class="d-flex">
-    <div data-target='#modalEditAlerte' data-toggle='modal'>
-        <div class="btn btn-col-action" data-id='{{ alerteId }}'
-        onclick="editRow($(this), Routing.generate('alerte_api_edit', true), $('#modalEditAlerte'), $('#submitEditAlerte'))">
-            <i class='fas fa-pencil-alt'></i>
+    {% if hasRight(constant('App\\Entity\\Menu::PARAM')) %}
+        <div data-target='#modalEditAlerte' data-toggle='modal'>
+            <div class="btn btn-col-action" data-id='{{ alerteId }}'
+            onclick="editRow($(this), Routing.generate('alerte_api_edit', true), $('#modalEditAlerte'), $('#submitEditAlerte'))">
+                <i class='fas fa-pencil-alt'></i>
+            </div>
         </div>
-    </div>
-    <div>
-        <div class="btn btn-col-action"
-        onclick="deleteRow($(this), $('#modalDeleteAlerte'), $('#submitDeleteAlerte'))"
-        data-id='{{ alerteId }}' data-target='#modalDeleteAlerte' data-toggle='modal'>
-            <i class='fas fa-trash'></i>
+        <div>
+            <div class="btn btn-col-action"
+            onclick="deleteRow($(this), $('#modalDeleteAlerte'), $('#submitDeleteAlerte'))"
+            data-id='{{ alerteId }}' data-target='#modalDeleteAlerte' data-toggle='modal'>
+                <i class='fas fa-trash'></i>
+            </div>
         </div>
-    </div>
+    {% endif %}
 </div>

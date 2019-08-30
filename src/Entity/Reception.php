@@ -58,12 +58,12 @@ class Reception
     /**
      * @ORM\Column(type="datetime", nullable=true)
      */
-    private $dateAttendu;
+    private $dateAttendue;
 
     /**
      * @ORM\Column(type="datetime", nullable=true)
      */
-    private $dateReception;
+    private $dateCommande;
 
     /**
      * @ORM\Column(type="string", nullable=true)
@@ -86,16 +86,16 @@ class Reception
     private $type;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\ValeurChampsLibre", inversedBy="receptions")
+     * @ORM\ManyToMany(targetEntity="App\Entity\ValeurChampLibre", inversedBy="receptions")
      */
-    private $valeurChampsLibre;
+    private $valeurChampLibre;
 
 
     public function __construct()
     {
         $this->receptionReferenceArticles = new ArrayCollection();
         $this->articles = new ArrayCollection();
-        $this->valeurChampsLibre = new ArrayCollection();
+        $this->valeurChampLibre = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -181,26 +181,26 @@ class Reception
         return $this;
     }
 
-    public function getDateAttendu(): ?\DateTimeInterface
+    public function getDateAttendue(): ?\DateTimeInterface
     {
-        return $this->dateAttendu;
+        return $this->dateAttendue;
     }
 
-    public function setDateAttendu(?\DateTimeInterface $dateAttendu): self
+    public function setDateAttendue(?\DateTimeInterface $dateAttendue): self
     {
-        $this->dateAttendu = $dateAttendu;
+        $this->dateAttendue = $dateAttendue;
 
         return $this;
     }
 
-    public function getDateReception(): ?\DateTimeInterface
+    public function getDateCommande(): ?\DateTimeInterface
     {
-        return $this->dateReception;
+        return $this->dateCommande;
     }
 
-    public function setDateReception(?\DateTimeInterface $dateReception): self
+    public function setDateCommande(?\DateTimeInterface $dateCommande): self
     {
-        $this->dateReception = $dateReception;
+        $this->dateCommande = $dateCommande;
 
         return $this;
     }
@@ -277,17 +277,17 @@ class Reception
     }
 
     /**
-     * @return Collection|valeurChampsLibre[]
+     * @return Collection|ValeurChampLibre[]
      */
-    public function getValeurChampsLibre(): Collection
+    public function getValeurChampLibre(): Collection
     {
-        return $this->valeurChampsLibre;
+        return $this->valeurChampLibre;
     }
 
-    public function addValeurChampsLibre(valeurChampsLibre $valeurChampsLibre): self
+    public function addValeurChampLibre(ValeurChampLibre $valeurChampLibre): self
     {
-        if (!$this->valeurChampsLibre->contains($valeurChampsLibre)) {
-            $this->valeurChampsLibre[] = $valeurChampsLibre;
+        if (!$this->valeurChampLibre->contains($valeurChampLibre)) {
+            $this->valeurChampLibre[] = $valeurChampLibre;
         }
 
         return $this;
@@ -304,10 +304,10 @@ class Reception
         }
         return $this;
     }
-    public function removeValeurChampsLibre(valeurChampsLibre $valeurChampsLibre): self
+    public function removeValeurChampLibre(ValeurChampLibre $valeurChampLibre): self
     {
-        if ($this->valeurChampsLibre->contains($valeurChampsLibre)) {
-            $this->valeurChampsLibre->removeElement($valeurChampsLibre);
+        if ($this->valeurChampLibre->contains($valeurChampLibre)) {
+            $this->valeurChampLibre->removeElement($valeurChampLibre);
         }
 
         return $this;

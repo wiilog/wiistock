@@ -9,14 +9,14 @@ use App\Entity\Emplacement;
 use App\Entity\Fournisseur;
 use App\Entity\Statut;
 use App\Entity\Type;
-use App\Entity\ValeurChampsLibre;
+use App\Entity\ValeurChampLibre;
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\CategorieCLRepository;
 use App\Repository\EmplacementRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\StatutRepository;
-use App\Repository\ValeurChampsLibreRepository;
+use App\Repository\ValeurChampLibreRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
@@ -24,7 +24,7 @@ use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 use App\Entity\ReferenceArticle;
 use App\Repository\TypeRepository;
-use App\Repository\ChampsLibreRepository;
+use App\Repository\ChampLibreRepository;
 
 class RefArticleSILIArticleFixtures extends Fixture implements FixtureGroupInterface
 {
@@ -36,9 +36,9 @@ class RefArticleSILIArticleFixtures extends Fixture implements FixtureGroupInter
      */
     private $typeRepository;
     /**
-     * @var ChampsLibreRepository
+     * @var ChampLibreRepository
      */
-    private $champsLibreRepository;
+    private $champLibreRepository;
 
     /**
      * @var StatutRepository
@@ -71,14 +71,14 @@ class RefArticleSILIArticleFixtures extends Fixture implements FixtureGroupInter
     private $articleFournisseurRepository;
 
   /**
-   * @var ValeurChampsLibreRepository
+   * @var ValeurChampLibreRepository
    */
     private $valeurChampLibreRepository;
 
-    public function __construct(ValeurChampsLibreRepository $valeurChampLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FournisseurRepository $fournisseurRepository, EmplacementRepository $emplacementRepository, CategorieCLRepository $categorieCLRepository, ReferenceArticleRepository $refArticleRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampsLibreRepository $champsLibreRepository, StatutRepository $statutRepository)
+    public function __construct(ValeurChampLibreRepository $valeurChampLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, FournisseurRepository $fournisseurRepository, EmplacementRepository $emplacementRepository, CategorieCLRepository $categorieCLRepository, ReferenceArticleRepository $refArticleRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampLibreRepository $champLibreRepository, StatutRepository $statutRepository)
     {
         $this->typeRepository = $typeRepository;
-        $this->champsLibreRepository = $champsLibreRepository;
+        $this->champLibreRepository = $champLibreRepository;
         $this->encoder = $encoder;
         $this->statutRepository = $statutRepository;
         $this->refArticleRepository = $refArticleRepository;
@@ -116,13 +116,13 @@ class RefArticleSILIArticleFixtures extends Fixture implements FixtureGroupInter
           ->setType($refCEA->getType());
 
         // transfert du champ libre Adresse (SILI) vers le champ emplacement
-        $champLibreAdresse = $this->champsLibreRepository->findBy(['label' => 'Adresse (SILI)']);
+        $champLibreAdresse = $this->champLibreRepository->findBy(['label' => 'Adresse (SILI)']);
         if (empty($champLibreAdresse)) {
           dump('champ libre adresse SILI non retrouvé en base');
           exit;
         }
 
-        $valeurCL = $this->valeurChampLibreRepository->findOneByRefArticleANDChampsLibre($refCEA->getId(), $champLibreAdresse);
+        $valeurCL = $this->valeurChampLibreRepository->findOneByRefArticleAndChampLibre($refCEA->getId(), $champLibreAdresse);
         if (!empty($valeurCL)) {
           $emplacement = $this->emplacementRepository->findOneBy(['label' => $valeurCL->getValeur()]);
 

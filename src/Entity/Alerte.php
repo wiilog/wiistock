@@ -21,32 +21,37 @@ class Alerte
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $AlerteNom;
+    private $label;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
-    private $AlerteNumero;
+    private $numero;
 
     /**
      * @ORM\Column(type="integer", nullable=true)
      */
-    private $AlerteSeuil;
+    private $limitSecurity;
+
+	/**
+	 * @ORM\Column(type="integer", nullable=true)
+	 */
+	private $limitAlert;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="UtilisateurAlertes")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="alertesStock")
      */
-    private $AlerteUtilisateur;
+    private $user;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\ReferenceArticle", inversedBy="RefArticleAlerte")
+     * @ORM\ManyToOne(targetEntity="App\Entity\ReferenceArticle", inversedBy="alertesStock")
      */
-    private $AlerteRefArticle;
+    private $refArticle;
 
     /**
      * @ORM\Column(type="boolean", nullable=true)
      */
-    private $SeuilAtteint;
+    private $activated;
 
 
     public function getId(): ?int
@@ -54,81 +59,93 @@ class Alerte
         return $this->id;
     }
 
-    public function getAlerteNom(): ?string
+    public function getLabel(): ?string
     {
-        return $this->AlerteNom;
+        return $this->label;
     }
 
-    public function setAlerteNom(?string $AlerteNom): self
+    public function setLabel(?string $label): self
     {
-        $this->AlerteNom = $AlerteNom;
+        $this->label = $label;
 
         return $this;
     }
 
-    public function getAlerteNumero(): ?string
+    public function getNumero(): ?string
     {
-        return $this->AlerteNumero;
+        return $this->numero;
     }
 
-    public function setAlerteNumero(?string $AlerteNumero): self
+    public function setNumero(?string $numero): self
     {
-        $this->AlerteNumero = $AlerteNumero;
+        $this->numero = $numero;
 
         return $this;
     }
 
-    public function getAlerteSeuil(): ?int
+    public function getLimitSecurity(): ?int
     {
-        return $this->AlerteSeuil;
+        return $this->limitSecurity;
     }
 
-    public function setAlerteSeuil(?int $AlerteSeuil): self
+    public function setLimitSecurity(?int $limitSecurity): self
     {
-        $this->AlerteSeuil = $AlerteSeuil;
+        $this->limitSecurity = $limitSecurity;
 
         return $this;
     }
 
-    public function getAlerteUtilisateur(): ?Utilisateur
+    public function getUser(): ?Utilisateur
     {
-        return $this->AlerteUtilisateur;
+        return $this->user;
     }
 
-    public function setAlerteUtilisateur(?Utilisateur $AlerteUtilisateur): self
+    public function setUser(?Utilisateur $user): self
     {
-        $this->AlerteUtilisateur = $AlerteUtilisateur;
+        $this->user = $user;
 
         return $this;
     }
 
-    public function getAlerteRefArticle(): ?ReferenceArticle
+    public function getRefArticle(): ?ReferenceArticle
     {
-        return $this->AlerteRefArticle;
+        return $this->refArticle;
     }
 
-    public function setAlerteRefArticle(?ReferenceArticle $AlerteRefArticle): self
+    public function setRefArticle(?ReferenceArticle $refArticle): self
     {
-        $this->AlerteRefArticle = $AlerteRefArticle;
+        $this->refArticle = $refArticle;
 
         return $this;
     }
 
-    public function getSeuilAtteint(): ?bool
+    public function getActivated(): ?bool
     {
-        return $this->SeuilAtteint;
+        return $this->activated;
     }
 
-    public function setSeuilAtteint(?bool $SeuilAtteint): self
+    public function setActivated(?bool $activated): self
     {
-        $this->SeuilAtteint = $SeuilAtteint;
+        $this->activated = $activated;
 
         return $this;
     }
 
     public function __toString()
     {
-        return $this->AlerteNom;
+        return $this->label;
+    }
+
+    public function getLimitAlert(): ?int
+    {
+        return $this->limitAlert;
+    }
+
+    public function setLimitAlert(?int $limitAlert): self
+    {
+        $this->limitAlert = $limitAlert;
+
+        return $this;
     }
 
 }

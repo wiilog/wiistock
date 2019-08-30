@@ -260,7 +260,7 @@ class StatutFixtures extends Fixture implements DependentFixtureInterface, Fixtu
 		];
 
 		foreach ($statutsNames as $statutName) {
-			$statut = $this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::MVT_TRACA, $statutName);
+			$statut = $this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::MVT_STOCK, $statutName);
 
 			if (empty($statut)) {
 				$statut = new Statut();

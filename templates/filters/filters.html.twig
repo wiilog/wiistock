@@ -21,7 +21,12 @@
                     placeholder='{{ statut is defined  ? statut : 'statut' }}'>
                 <option value>{{ statut is defined  ? statut : 'Statut' }}</option>
                 {% for statut in statuts %}
-                    <option value="{{ statut.nom }}">{{ statut.nom }}</option>
+                    {% if filterStatus is defined and statut.nom == filterStatus%}
+                        {% set selected = 'selected' %}
+                    {% else %}
+                        {% set selected = '' %}
+                    {% endif %}
+                    <option value="{{ statut.nom }}" {{ selected }}>{{ statut.nom }}</option>
                 {% endfor %}
             </select>
         </div>

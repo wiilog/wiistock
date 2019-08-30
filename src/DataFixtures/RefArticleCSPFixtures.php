@@ -4,7 +4,7 @@ namespace App\DataFixtures;
 
 use App\Entity\Article;
 use App\Entity\ArticleFournisseur;
-use App\Entity\ChampsLibre;
+use App\Entity\ChampLibre;
 use App\Entity\Emplacement;
 use App\Entity\Fournisseur;
 use App\Entity\Type;
@@ -14,16 +14,16 @@ use App\Repository\EmplacementRepository;
 use App\Repository\FournisseurRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\StatutRepository;
-use App\Repository\ValeurChampsLibreRepository;
+use App\Repository\ValeurChampLibreRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Bundle\FixturesBundle\FixtureGroupInterface;
 use Doctrine\Common\Persistence\ObjectManager;
 use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 use App\Entity\ReferenceArticle;
-use App\Entity\ValeurChampsLibre;
+use App\Entity\ValeurChampLibre;
 use App\Repository\TypeRepository;
-use App\Repository\ChampsLibreRepository;
+use App\Repository\ChampLibreRepository;
 
 class RefArticleCSPFixtures extends Fixture implements FixtureGroupInterface
 {
@@ -36,9 +36,9 @@ class RefArticleCSPFixtures extends Fixture implements FixtureGroupInterface
     private $typeRepository;
 
     /**
-     * @var ChampsLibreRepository
+     * @var ChampLibreRepository
      */
-    private $champsLibreRepository;
+    private $champLibreRepository;
 
     /**
      * @var FournisseurRepository
@@ -71,15 +71,15 @@ class RefArticleCSPFixtures extends Fixture implements FixtureGroupInterface
     private $articleFournisseurRepository;
 
     /**
-     * @var ValeurChampsLibreRepository
+     * @var ValeurChampLibreRepository
      */
     private $valeurCLRepository;
 
 
-    public function __construct(ValeurChampsLibreRepository $valeurChampsLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, EmplacementRepository $emplacementRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampsLibreRepository $champsLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $refArticleRepository, CategorieCLRepository $categorieCLRepository)
+    public function __construct(ValeurChampLibreRepository $valeurChampLibreRepository, ArticleFournisseurRepository $articleFournisseurRepository, EmplacementRepository $emplacementRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampLibreRepository $champLibreRepository, FournisseurRepository $fournisseurRepository, StatutRepository $statutRepository, ReferenceArticleRepository $refArticleRepository, CategorieCLRepository $categorieCLRepository)
     {
         $this->typeRepository = $typeRepository;
-        $this->champsLibreRepository = $champsLibreRepository;
+        $this->champLibreRepository = $champLibreRepository;
         $this->encoder = $encoder;
         $this->fournisseurRepository = $fournisseurRepository;
         $this->statutRepository = $statutRepository;
@@ -87,7 +87,7 @@ class RefArticleCSPFixtures extends Fixture implements FixtureGroupInterface
         $this->categorieCLRepository = $categorieCLRepository;
         $this->emplacementRepository = $emplacementRepository;
         $this->articleFournisseurRepository = $articleFournisseurRepository;
-        $this->valeurCLRepository = $valeurChampsLibreRepository;
+        $this->valeurCLRepository = $valeurChampLibreRepository;
     }
 
     public function load(ObjectManager $manager)
@@ -163,18 +163,18 @@ class RefArticleCSPFixtures extends Fixture implements FixtureGroupInterface
 
                 // champs libres
                 $listFields = [
-                    ['label' => 'famille produit', 'col' => 4, 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['CONSOMMABLES', 'PAD', 'POMPE', 'POMPE_41', 'PIECES DETACHEES', 'PDT GENERIQUE', 'DCOS TEST ELECTRIQUE', 'SILICIUM', 'SIL_EXTERNE', 'SIL_INTERNE', 'MOBILIER SB', 'MOBILIER TERTIAIRE', 'CIBLE / SLUGS']],
-                    ['label' => "stock mini", 'col' => 7, 'type' => ChampsLibre::TYPE_NUMBER],
-                    ['label' => "stock alerte", 'col' => 8, 'type' => ChampsLibre::TYPE_NUMBER],
-                    ['label' => "prix du stock final", 'col' => 11, 'type' => ChampsLibre::TYPE_DATE],
-                    ['label' => "alerte mini", 'col' => 12, 'type' => ChampsLibre::TYPE_LIST, 'elements' => ['besoin', '']],
-                    ['label' => "alerte prévision", 'col' => 13, 'type' => ChampsLibre::TYPE_NUMBER],
+                    ['label' => 'famille produit', 'col' => 4, 'type' => ChampLibre::TYPE_LIST, 'elements' => ['CONSOMMABLES', 'PAD', 'POMPE', 'POMPE_41', 'PIECES DETACHEES', 'PDT GENERIQUE', 'DCOS TEST ELECTRIQUE', 'SILICIUM', 'SIL_EXTERNE', 'SIL_INTERNE', 'MOBILIER SB', 'MOBILIER TERTIAIRE', 'CIBLE / SLUGS']],
+                    ['label' => "stock mini", 'col' => 7, 'type' => ChampLibre::TYPE_NUMBER],
+                    ['label' => "stock alerte", 'col' => 8, 'type' => ChampLibre::TYPE_NUMBER],
+                    ['label' => "prix du stock final", 'col' => 11, 'type' => ChampLibre::TYPE_DATE],
+                    ['label' => "alerte mini", 'col' => 12, 'type' => ChampLibre::TYPE_LIST, 'elements' => ['besoin', '']],
+                    ['label' => "alerte prévision", 'col' => 13, 'type' => ChampLibre::TYPE_NUMBER],
                 ];
 
                 foreach ($listFields as $field) {
-                    $vcl = new ValeurChampsLibre();
+                    $vcl = new ValeurChampLibre();
                     $label = $field['label'] . ' (' . $typeCsp->getLabel() . ')';
-                    $cl = $this->champsLibreRepository->findOneBy(['label' => $label]);
+                    $cl = $this->champLibreRepository->findOneBy(['label' => $label]);
                     if (empty($cl)) {
                         dump('il manque le champ libre de label ' . $label);
                     } else {
@@ -244,15 +244,15 @@ class RefArticleCSPFixtures extends Fixture implements FixtureGroupInterface
 
             // champs libres
             $listFields = [
-                ['label' => "prix unitaire", 'col' => 9, 'type' => ChampsLibre::TYPE_TEXT],
-                ['label' => "date entrée", 'col' => 10, 'type' => ChampsLibre::TYPE_DATE],
-                ['label' => "péremptions", 'col' => 14, 'type' => ChampsLibre::TYPE_DATE],
+                ['label' => "prix unitaire", 'col' => 9, 'type' => ChampLibre::TYPE_TEXT],
+                ['label' => "date entrée", 'col' => 10, 'type' => ChampLibre::TYPE_DATE],
+                ['label' => "péremptions", 'col' => 14, 'type' => ChampLibre::TYPE_DATE],
             ];
 
             foreach ($listFields as $field) {
-                $vcl = new ValeurChampsLibre();
+                $vcl = new ValeurChampLibre();
                 $label = $field['label'] . ' (' . $typeCsp->getLabel() . ')';
-                $cl = $this->champsLibreRepository->findOneBy(['label' => $label]);
+                $cl = $this->champLibreRepository->findOneBy(['label' => $label]);
                 if (empty($cl)) {
                     dump('il manque le champ libre de label ' . $label);
                 } else {

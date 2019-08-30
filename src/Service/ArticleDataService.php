@@ -12,27 +12,26 @@ use App\Entity\Action;
 use App\Entity\Article;
 use App\Entity\CategorieStatut;
 use App\Entity\CategoryType;
-use App\Entity\ChampsLibre;
-use App\Entity\Demande;
+use App\Entity\ChampLibre;
 use App\Entity\Menu;
 use App\Entity\Parametre;
 use App\Entity\ParametreRole;
 use App\Entity\ReceptionReferenceArticle;
 use App\Entity\ReferenceArticle;
-use App\Entity\ValeurChampsLibre;
+use App\Entity\ValeurChampLibre;
 use App\Entity\CategorieCL;
 
 use App\Repository\ArticleRepository;
 use App\Repository\ArticleFournisseurRepository;
-use App\Repository\ChampsLibreRepository;
+use App\Repository\ChampLibreRepository;
 use App\Repository\EmplacementRepository;
-use App\Repository\FilterRepository;
+use App\Repository\FiltreRefRepository;
 use App\Repository\ParametreRepository;
 use App\Repository\ParametreRoleRepository;
 use App\Repository\ReferenceArticleRepository;
 use App\Repository\StatutRepository;
 use App\Repository\TypeRepository;
-use App\Repository\ValeurChampsLibreRepository;
+use App\Repository\ValeurChampLibreRepository;
 use App\Repository\CategorieCLRepository;
 
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -54,10 +53,10 @@ class ArticleDataService
      */
     private $articleFournisseurRepository;
 
-    /*
-     * @var ChampsLibreRepository
-     */
-    private $champsLibreRepository;
+	/**
+	 * @var ChampLibreRepository
+	 */
+    private $champLibreRepository;
 
     /**
      * @var TypeRepository
@@ -70,14 +69,14 @@ class ArticleDataService
     private $statutRepository;
 
     /**
-     * @var ValeurChampsLibreRepository
+     * @var ValeurChampLibreRepository
      */
-    private $valeurChampsLibreRepository;
+    private $valeurChampLibreRepository;
 
     /**
-     * @var FilterRepository
+     * @var FiltreRefRepository
      */
-    private $filterRepository;
+    private $filtreRefRepository;
 
     /**
      * @var \Twig_Environment
@@ -136,14 +135,14 @@ class ArticleDataService
 
     private $em;
 
-    public function __construct(ParametreRoleRepository $parametreRoleRepository, ParametreRepository $parametreRepository, SpecificService $specificService, EmplacementRepository $emplacementRepository, RouterInterface $router, UserService $userService, CategorieCLRepository $categorieCLRepository, RefArticleDataService $refArticleDataService, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, TypeRepository $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampsLibreRepository $valeurChampsLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampsLibreRepository $champsLibreRepository, FilterRepository $filterRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
+    public function __construct(ParametreRoleRepository $parametreRoleRepository, ParametreRepository $parametreRepository, SpecificService $specificService, EmplacementRepository $emplacementRepository, RouterInterface $router, UserService $userService, CategorieCLRepository $categorieCLRepository, RefArticleDataService $refArticleDataService, ArticleRepository $articleRepository, ArticleFournisseurRepository $articleFournisseurRepository, TypeRepository $typeRepository, StatutRepository $statutRepository, EntityManagerInterface $em, ValeurChampLibreRepository $valeurChampLibreRepository, ReferenceArticleRepository $referenceArticleRepository, ChampLibreRepository $champLibreRepository, FiltreRefRepository $filtreRefRepository, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
     {
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->articleRepository = $articleRepository;
-        $this->champsLibreRepository = $champsLibreRepository;
+        $this->champLibreRepository = $champLibreRepository;
         $this->statutRepository = $statutRepository;
-        $this->valeurChampsLibreRepository = $valeurChampsLibreRepository;
-        $this->filterRepository = $filterRepository;
+        $this->valeurChampLibreRepository = $valeurChampLibreRepository;
+        $this->filtreRefRepository = $filtreRefRepository;
         $this->articleFournisseurRepository = $articleFournisseurRepository;
         $this->refArticleDataService = $refArticleDataService;
         $this->typeRepository = $typeRepository;
@@ -196,7 +195,7 @@ class ArticleDataService
                 'types' => $this->typeRepository->findByCategoryLabel(CategoryType::ARTICLE),
                 'statuts' => $statuts,
                 'modifieRefArticle' => $modifieRefArticle,
-                'valeurChampsLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
+                'valeurChampLibre' => isset($data['valeurChampLibre']) ? $data['valeurChampLibre'] : null,
                 'articlesFournisseur' => ($data ? $data['listArticlesFournisseur'] : ''),
                 'totalQuantity' => ($data['totalQuantity'] ? $data['totalQuantity'] : ''),
             ]);
@@ -288,8 +287,7 @@ class ArticleDataService
             $statutArticleActif = $this->statutRepository->findOneByCategorieAndStatut(CategorieStatut::ARTICLE, Article::STATUT_ACTIF);
             $articles = $this->articleRepository->findByRefArticleAndStatutWithoutDemand($refArticle, $statutArticleActif);
 
-			$totalQuantity = $this->articleRepository->getTotalQuantiteByRefAndStatut($refArticle, $statutArticleActif);
-
+			$totalQuantity = $this->articleRepository->getTotalQuantiteByRefAndStatusLabel($refArticle, Article::STATUT_ACTIF);
 			$role = $this->user->getRole();
             $param = $this->parametreRepository->findOneBy(['label' => Parametre::LABEL_AJOUT_QUANTITE]);
             $paramQuantite = $this->parametreRoleRepository->findOneByRoleAndParam($role, $param);
@@ -333,7 +331,7 @@ class ArticleDataService
     {
         $type = $article->getType();
         if ($type) {
-            $valeurChampLibre = $this->valeurChampsLibreRepository->getByArticleAndType($article->getId(), $type->getId());
+            $valeurChampLibre = $this->valeurChampLibreRepository->getByArticleAndType($article->getId(), $type->getId());
         } else {
             $valeurChampLibre = [];
         }
@@ -356,11 +354,10 @@ class ArticleDataService
         $typeArticle = $refArticle->getType();
         $typeArticleLabel = $typeArticle->getLabel();
 
-        $champsLibresComplet = $this->champsLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
-        $champsLibres = [];
-        foreach ($champsLibresComplet as $champLibre) {
-            /** @var ChampsLibre $champLibre */
-            $valeurChampArticle = $this->valeurChampsLibreRepository->findOneByChampLibreAndArticle($champLibre->getId(), $article->getId());
+        $champLibresComplet = $this->champLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
+        $champLibres = [];
+        foreach ($champLibresComplet as $champLibre) {
+            $valeurChampArticle = $this->valeurChampLibreRepository->findOneByArticleAndChampLibre($article, $champLibre);
 //			$labelChampLibre = strtolower($champLibre->getLabel());
 //			$isCEA = $this->specificService->isCurrentClientNameFunction(ParamClient::CEA_LETI);
 
@@ -370,7 +367,7 @@ class ArticleDataService
 //			&& $isADemand) {
 //				$valeurChampArticle = null;
 //			}
-            $champsLibres[] = [
+            $champLibres[] = [
                 'id' => $champLibre->getId(),
                 'label' => $champLibre->getLabel(),
                 'typage' => $champLibre->getTypage(),
@@ -385,13 +382,13 @@ class ArticleDataService
         $typeChampLibre =
             [
                 'type' => $typeArticleLabel,
-                'champsLibres' => $champsLibres,
+                'champLibres' => $champLibres,
             ];
 
         $statut = $article->getStatut()->getNom();
 
         $view = $this->templating->render('article/modalModifyArticleContent.html.twig', [
-            'typeChampsLibres' => $typeChampLibre,
+            'typeChampLibres' => $typeChampLibre,
             'typeArticle' => $typeArticleLabel,
             'typeArticleId' => $typeArticle->getId(),
             'article' => $article,
@@ -430,18 +427,18 @@ class ArticleDataService
                 }
             }
 
-            $champsLibreKey = array_keys($data);
-            foreach ($champsLibreKey as $champ) {
+            $champLibresKey = array_keys($data);
+            foreach ($champLibresKey as $champ) {
                 if (gettype($champ) === 'integer') {
 //                    // spécifique CEA : accès pour tous aux champs libres 'Code projet' et 'Destinataire'
 //					$isCea = $this->specificService->isCurrentClientNameFunction(ParamClient::CEA_LETI);
 
-                    $champLibre = $this->champsLibreRepository->find($champ);
+                    $champLibre = $this->champLibreRepository->find($champ);
 //					$labelCL = strtolower($champLibre->getLabel());
 //                    if ($this->userService->hasRightFunction(Menu::STOCK, Action::CREATE_EDIT) || ($isCea && ($labelCL == 'code projet' || $labelCL == 'destinataire'))) {
-                    $valeurChampLibre = $this->valeurChampsLibreRepository->findOneByArticleANDChampsLibre($article->getId(), $champ);
+                    $valeurChampLibre = $this->valeurChampLibreRepository->findOneByArticleAndChampLibre($article, $champ);
                     if (!$valeurChampLibre) {
-                        $valeurChampLibre = new ValeurChampsLibre();
+                        $valeurChampLibre = new ValeurChampLibre();
                         $valeurChampLibre
                             ->addArticle($article)
                             ->setChampLibre($champLibre);
@@ -464,12 +461,18 @@ class ArticleDataService
         $entityManager = $this->em;
         $statut = $this->statutRepository->findOneByCategorieAndStatut(Article::CATEGORIE, $data['statut'] === Article::STATUT_ACTIF ? Article::STATUT_ACTIF : Article::STATUT_INACTIF);
         $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
-        $ref = $date->format('ym');
+        $formattedDate = $date->format('ym');
 
         $referenceArticle = $this->referenceArticleRepository->find($data['refArticle'])->getReference();
-        $referenceArticles = $this->articleRepository->countByReference($referenceArticle);
+        $references = $this->articleRepository->getReferencesByRefAndDate($referenceArticle, $formattedDate);
 
-        $i = $referenceArticles + 1;
+        $highestCpt = 0;
+        foreach ($references as $reference) {
+        	$cpt = (int)substr($reference, -5, 5);
+        	if ($cpt > $highestCpt) $highestCpt = $cpt;
+		}
+
+        $i = $highestCpt + 1;
         $cpt = sprintf('%05u', $i);
 
         $toInsert = new Article();
@@ -479,22 +482,22 @@ class ArticleDataService
             ->setConform(!$data['conform'])
             ->setStatut($statut)
             ->setCommentaire($data['commentaire'])
-            ->setReference($referenceArticle . $ref . $cpt)
+            ->setReference($referenceArticle . $formattedDate . $cpt)
             ->setQuantite(max((int)$data['quantite'], 0))// protection contre quantités négatives
             ->setEmplacement($this->emplacementRepository->find($data['emplacement']))
             ->setArticleFournisseur($this->articleFournisseurRepository->find($data['articleFournisseur']))
             ->setType($type);
         $entityManager->persist($toInsert);
 
-        $champsLibreKey = array_keys($data);
-        foreach ($champsLibreKey as $champ) {
+        $champLibreKey = array_keys($data);
+        foreach ($champLibreKey as $champ) {
             if (gettype($champ) === 'integer') {
-                $valeurChampLibre = $this->valeurChampsLibreRepository->findOneByArticleANDChampsLibre($toInsert->getId(), $champ);
+                $valeurChampLibre = $this->valeurChampLibreRepository->findOneByArticleAndChampLibre($toInsert, $champ);
                 if (!$valeurChampLibre) {
-                    $valeurChampLibre = new ValeurChampsLibre();
+                    $valeurChampLibre = new ValeurChampLibre();
                     $valeurChampLibre
                         ->addArticle($toInsert)
-                        ->setChampLibre($this->champsLibreRepository->find($champ));
+                        ->setChampLibre($this->champLibreRepository->find($champ));
                     $entityManager->persist($valeurChampLibre);
                 }
                 $valeurChampLibre->setValeur($data[$champ]);
@@ -613,7 +616,7 @@ class ArticleDataService
                 [
                     'id' => ($article->getId() ? $article->getId() : 'Non défini'),
                     'Référence' => ($article->getReference() ? $article->getReference() : 'Non défini'),
-                    'Statut' => false,
+                    'Statut' => '',
                     'Libellé' => ($article->getLabel() ? $article->getLabel() : 'Non défini'),
                     'Référence article' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : 'Non défini'),
                     'Quantité' => ($article->getQuantite() ? $article->getQuantite() : 0),

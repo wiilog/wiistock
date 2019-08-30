@@ -141,7 +141,7 @@ function getDataFromModal(modal) {
             let val = parseInt($(this).val());
             let min = parseInt($(this).attr('min'));
             let max = parseInt($(this).attr('max'));
-            if (val > max || val < min) {
+            if (val > max || val < min || isNaN(val)) {
                 wrongNumberInputs.push($(this));
                 $(this).addClass('is-invalid');
             }
@@ -219,7 +219,7 @@ InitialiserModalRefArticle(modalColumnVisible, submitColumnVisible, urlColumnVis
 
 let modalNewFilter = $('#modalNewFilter');
 let submitNewFilter = $('#submitNewFilter');
-let urlNewFilter = Routing.generate('filter_new', true);
+let urlNewFilter = Routing.generate('filter_ref_new', true);
 InitialiserModalRefArticle(modalNewFilter, submitNewFilter, urlNewFilter, displayNewFilter, true);
 
 let url = Routing.generate('ref_article_api', true);
@@ -350,7 +350,7 @@ function initRemove() {
 function removeFilter() {
     $(this).remove();
     let params = JSON.stringify({ 'filterId': $(this).find('.filter-id').val() });
-    $.post(Routing.generate('filter_delete', true), params, function () {
+    $.post(Routing.generate('filter_ref_delete', true), params, function () {
         tableRefArticle.clear();
         tableRefArticle.ajax.reload();
     });

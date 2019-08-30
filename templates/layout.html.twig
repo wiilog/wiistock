@@ -21,7 +21,7 @@
                 <li>
                     <div class="menu-header">
                         <img src="{{ asset('img/Logo-FollowGTpetit.png') }}" class='logoGt'>
-                        <div class="version"> V1.4.4</div>
+                        <div class="version"> V1.4.5</div>
                         <h4 class="mt-2">{{ app.user.username }}</h4>
                     </div>
                 </li>
@@ -71,14 +71,11 @@
 
                 <!-- RECEPTION -->
                 {% if hasRight(constant('App\\Entity\\Menu::RECEPTION'), constant('App\\Entity\\Action::LIST')) %}
-                    <li class="menu-item has-submenu">
-                        <a href="#">
+                    <li class="menu-item">
+                        <a href="{{ path("reception_index") }}">
                             <i class="fas fa-arrow-alt-circle-down "></i>
                             <h4>Réception</h4>
                         </a>
-                        <ul class="sidemenu-sub">
-                            <li><a href="{{ path("reception_index") }}" class="sub-item">• Réception</a></li>
-                        </ul>
                     </li>
                 {% endif %}
 
@@ -188,6 +185,9 @@
                             </li>
                             <li>
                                 <a href="{{ path('exports_params') }}" class="sub-item">• Export de données</a>
+                            </li>
+                            <li>
+                                <a href="{{ path('prefixe_demande') }}" class="sub-item">• Préfixage noms demandes</a>
                             </li>
                         </ul>
                     </li>

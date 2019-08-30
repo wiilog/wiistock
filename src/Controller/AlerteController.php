@@ -3,18 +3,24 @@
 namespace App\Controller;
 
 use App\Entity\Alerte;
+use App\Entity\Article;
 use App\Entity\Menu;
+
+use App\Entity\ReferenceArticle;
 use App\Repository\AlerteRepository;
+use App\Repository\ArticleRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\ReferenceArticleRepository;
+
 use App\Service\UserService;
+
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
-use App\Service\SeuilAlerteService;
 
 /**
  * @Route("/alerte")
@@ -36,10 +42,10 @@ class AlerteController extends AbstractController
      */
     private $utilisateurRepository;
 
-    /**
-     * @var SeuilAlerteService
-     */
-    private $seuilAlerteService;
+	/**
+	 * @var ArticleRepository
+	 */
+    private $articleRepository;
 
     /**
      * @var UserService
@@ -47,38 +53,48 @@ class AlerteController extends AbstractController
     private $userService;
 
 
-    public function __construct(SeuilAlerteService $seuilAlerteService, AlerteRepository $alerteRepository, UtilisateurRepository $utilisateurRepository, ReferenceArticleRepository $referenceArticleRepository, UserService $userService)
+    public function __construct(ArticleRepository $articleRepository, AlerteRepository $alerteRepository, UtilisateurRepository $utilisateurRepository, ReferenceArticleRepository $referenceArticleRepository, UserService $userService)
     {
         $this->alerteRepository = $alerteRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->utilisateurRepository = $utilisateurRepository;
-        $this->seuilAlerteService = $seuilAlerteService;
+        $this->articleRepository = $articleRepository;
         $this->userService = $userService;
     }
 
     /**
      * @Route("/api", name="alerte_api", options={"expose"=true}, methods="GET|POST")
      */
-    public function alerteApi(Request $request): Response
+    public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if (!$this->userService->hasRightFunction(Menu::PARAM)) {
-                return $this->redirectToRoute('access_denied');
-            }
-
             $alertes = $this->alerteRepository->findAll();
-            $seuilAtteint = $this->seuilAlerteService->thresholdReaches();
             $rows = [];
 
+
             foreach ($alertes as $alerte) {
+				$ref = $alerte->getRefArticle();
+
+				if ($ref) {
+					if ($ref->getTypeQuantite() == ReferenceArticle::TYPE_QUANTITE_REFERENCE) {
+						$quantiteStock = $ref->getQuantiteStock();
+					} else {
+						$quantiteStock = $this->articleRepository->getTotalQuantiteByRefAndStatusLabel($ref, Article::STATUT_ACTIF);
+					}
+				} else {
+					$quantiteStock = '';
+				}
+
+
                 $rows[] = [
                     'id' => $alerte->getId(),
-                    'Code' => $alerte->getAlerteNumero(),
-                    'Seuil limite' => $alerte->getAlerteSeuil(),
-                    'Seuil' => ($alerte->getSeuilAtteint() ? "<i class='fas fa-exclamation' style='color:red'></i>" : "<i class='fas fa-check' style='color:green'></i>"),
-                    'Article Référence' => $alerte->getAlerteRefArticle()->getLibelle(),
-                    'Quantité en stock' => $alerte->getAlerteRefArticle()->getQuantiteStock(),
-                    'Utilisateur' => $alerte->getAlerteUtilisateur()->getUsername(),
+                    'Code' => $alerte->getNumero(),
+                    "SeuilAlerte" => $alerte->getLimitAlert(),
+                    'SeuilSecurite' => $alerte->getLimitSecurity(),
+                    'Statut' => $alerte->getActivated() ? 'active' : 'inactive',
+                    'Référence' => $alerte->getRefArticle() ? $alerte->getRefArticle()->getLibelle() . '<br>(' . $alerte->getRefArticle()->getReference() . ')' : null,
+                    'QuantiteStock' => $quantiteStock,
+                    'Utilisateur' => $alerte->getUser() ? $alerte->getUser()->getUsername() : '',
                     'Actions' => $this->renderView('alerte/datatableAlerteRow.html.twig', [
                         'alerteId' => $alerte->getId(),
                     ]),
@@ -96,10 +112,6 @@ class AlerteController extends AbstractController
      */
     public function index(): Response
     {
-        if (!$this->userService->hasRightFunction(Menu::PARAM)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
         return $this->render('alerte/index.html.twig');
     }
 
@@ -113,23 +125,41 @@ class AlerteController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $em = $this->getDoctrine()->getEntityManager();
+            $em = $this->getDoctrine()->getManager();
+            $refArticle = $this->referenceArticleRepository->find($data['reference']);
 
-            $refArticle = $this->referenceArticleRepository->find($data['AlerteArticleReference']);
+			// on vérifie qu'une alerte n'existe pas déjà sur cette référence
+			$alertAlreadyExist = $this->alerteRepository->countByRef($refArticle);
+			if ($alertAlreadyExist) {
+				$response = [
+					'success' => false,
+					'msg' => 'Une alerte existe déjà sur cette référence.'
+				];
+			} elseif (!$refArticle) {
+				$response = [
+					'success' => false,
+					'msg' => 'Veuillez renseigner une référence.'
+				];
+			} else {
+				$alerte = new Alerte();
+				$date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
+				$alerte
+					->setNumero('A-' . $date->format('YmdHis'))
+					->setLimitAlert($data['limitAlert'] ? $data['limitAlert'] : null)
+					->setLimitSecurity($data['limitSecurity'] ? $data['limitSecurity'] : null)
+					->setUser($this->getUser())
+					->setActivated(true)
+					->setRefArticle($refArticle);
 
-            $alerte = new Alerte();
-            $date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
-            $alerte
-                ->setAlerteNumero('P-' . $date->format('YmdHis'))
-                ->setAlerteSeuil($data['AlerteSeuil'])
-                ->setAlerteUtilisateur($this->utilisateurRepository->find($data['utilisateur']))
-                ->setAlerteRefArticle($refArticle);
+				$em->persist($alerte);
+				$em->flush();
 
-            $em->persist($alerte);
-            $em->flush();
+				$response = ['success' => true];
+			}
 
-            return new JsonResponse($data);
+			return new JsonResponse($response);
         }
+
         throw new XmlHttpException('404 not found');
     }
 
@@ -164,8 +194,12 @@ class AlerteController extends AbstractController
             }
 
             $alerte = $this->alerteRepository->find($data['id']);
-            $alerte
-                ->setAlerteSeuil($data["seuil"]);
+
+            if ($alerte) {
+            	$alerte
+					->setLimitAlert($data['limitAlert'] == '' ? null : $data['limitAlert'])
+					->setLimitSecurity($data['limitSecurity'] == '' ? null : $data['limitSecurity']);
+			}
             $em = $this->getDoctrine()->getManager();
             $em->flush();
 
@@ -194,49 +228,4 @@ class AlerteController extends AbstractController
         throw new NotFoundHttpException('404');
     }
 
-    /**
-     * @Route("/verifier", name="check")
-     */
-    public function check()
-    {
-        if (!$this->userService->hasRightFunction(Menu::PARAM)) {
-            return $this->redirectToRoute('access_denied');
-        }
-
-        $this->seuilAlerteService->warnUsers();
-
-        return $this->redirectToRoute('alerte_index');
-    }
-
-    // /* Mailer */
-    // public function mailer($alertes, \Swift_Mailer $mailer)
-    // {
-    //     $message = (new \Swift_Message('Alerte Email'))
-    //         ->setFrom('contact@wiilog.com')
-    //         ->setTo($this->getUser()->getEmail())
-    //         ->setBody(
-    //             $this->renderView(
-    //             // templates/mailer/index.html.twig
-    //                 'mailer/index.html.twig',
-    //                 ['alertes' => $alertes]
-    //             ),
-    //             'text/html'
-    //         )
-    //     /*
-    //      * If you also want to include a plaintext version of the message
-    //     ->addPart(
-    //         $this->renderView(
-    //             'emails/registration.txt.twig',
-    //             ['name' => $name]
-    //         ),
-    //         'text/plain'
-    //     )
-    //      */;
-
-    //     $mailer->send($message);
-
-    //     return $this->render('mailer/index.html.twig', [
-    //         'alertes' => $alertes
-    //     ]);
-    // }
 }

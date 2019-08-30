@@ -11,7 +11,6 @@
 <div class="container-fluid">
 
     <h1>Demandes de livraison</h1>
-
     <div class="row">
         {% if hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
         <div href="" data-toggle="modal" data-target="#modalNewDemande" class="btn btn-primary"
@@ -21,7 +20,7 @@
         {% endif %}
         {% if hasRight(constant('App\\Entity\\Menu::DEM_LIVRAISON'), constant('App\\Entity\\Action::EXPORT')) %}
         <div class="btn btn-primary" onclick='generateCSVDemande()'>
-            <span class="fa fa-plus mr-2"></span>Générer CSV
+            <span class="fa fa-file-csv mr-2"></span>Exporter au format CSV
         </div>
         {% endif %}
     </div>

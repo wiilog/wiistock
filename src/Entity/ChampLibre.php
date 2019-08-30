@@ -7,9 +7,9 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity(repositoryClass="App\Repository\ChampsLibreRepository")
+ * @ORM\Entity(repositoryClass="App\Repository\ChampLibreRepository")
  */
-class ChampsLibre
+class ChampLibre
 {
     const TYPE_BOOL = 'booleen';
     const TYPE_TEXT = 'text';
@@ -18,23 +18,23 @@ class ChampsLibre
     const TYPE_DATE = 'date';
     const TYPAGE = [
         [
-            'value' => ChampsLibre::TYPE_BOOL,
+            'value' => ChampLibre::TYPE_BOOL,
             'label' => 'Oui/Non',
         ],
         [
-            'value' => ChampsLibre::TYPE_DATE,
+            'value' => ChampLibre::TYPE_DATE,
             'label' => 'Date',
         ],
         [
-            'value' => ChampsLibre::TYPE_LIST,
+            'value' => ChampLibre::TYPE_LIST,
             'label' => 'Liste',
         ],
         [
-            'value' => ChampsLibre::TYPE_NUMBER,
+            'value' => ChampLibre::TYPE_NUMBER,
             'label' => 'Nombre',
         ],
         [
-            'value' => ChampsLibre::TYPE_TEXT,
+            'value' => ChampLibre::TYPE_TEXT,
             'label' => 'Texte',
         ],
     ];
@@ -67,12 +67,12 @@ class ChampsLibre
     private $defaultValue;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\ValeurChampsLibre", mappedBy="champLibre")
+     * @ORM\OneToMany(targetEntity="App\Entity\ValeurChampLibre", mappedBy="champLibre")
      */
     private $valeurChampsLibres;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Filter", mappedBy="champLibre")
+     * @ORM\OneToMany(targetEntity="App\Entity\FiltreRef", mappedBy="champLibre")
      */
     private $filters;
 
@@ -162,30 +162,30 @@ class ChampsLibre
     }
 
     /**
-     * @return Collection|ValeurChampsLibre[]
+     * @return Collection|ValeurChampLibre[]
      */
     public function getValeurChampsLibres(): Collection
     {
         return $this->valeurChampsLibres;
     }
 
-    public function addValeurChampsLibre(ValeurChampsLibre $valeurChampsLibre): self
+    public function addValeurChampLibre(ValeurChampLibre $valeurChampLibre): self
     {
-        if (!$this->valeurChampsLibres->contains($valeurChampsLibre)) {
-            $this->valeurChampsLibres[] = $valeurChampsLibre;
-            $valeurChampsLibre->setChampLibre($this);
+        if (!$this->valeurChampsLibres->contains($valeurChampLibre)) {
+            $this->valeurChampsLibres[] = $valeurChampLibre;
+            $valeurChampLibre->setChampLibre($this);
         }
 
         return $this;
     }
 
-    public function removeValeurChampsLibre(ValeurChampsLibre $valeurChampsLibre): self
+    public function removeValeurChampLibre(ValeurChampLibre $valeurChampLibre): self
     {
-        if ($this->valeurChampsLibres->contains($valeurChampsLibre)) {
-            $this->valeurChampsLibres->removeElement($valeurChampsLibre);
+        if ($this->valeurChampsLibres->contains($valeurChampLibre)) {
+            $this->valeurChampsLibres->removeElement($valeurChampLibre);
             // set the owning side to null (unless already changed)
-            if ($valeurChampsLibre->getChampLibre() === $this) {
-                $valeurChampsLibre->setChampLibre(null);
+            if ($valeurChampLibre->getChampLibre() === $this) {
+                $valeurChampLibre->setChampLibre(null);
             }
         }
 
@@ -193,14 +193,14 @@ class ChampsLibre
     }
 
     /**
-     * @return Collection|Filter[]
+     * @return Collection|FiltreRef[]
      */
     public function getFilters(): Collection
     {
         return $this->filters;
     }
 
-    public function addFilter(Filter $filter): self
+    public function addFilter(FiltreRef $filter): self
     {
         if (!$this->filters->contains($filter)) {
             $this->filters[] = $filter;
@@ -210,7 +210,7 @@ class ChampsLibre
         return $this;
     }
 
-    public function removeFilter(Filter $filter): self
+    public function removeFilter(FiltreRef $filter): self
     {
         if ($this->filters->contains($filter)) {
             $this->filters->removeElement($filter);
@@ -267,6 +267,29 @@ class ChampsLibre
     public function setCategorieCL(?CategorieCL $categorieCL): self
     {
         $this->categorieCL = $categorieCL;
+
+        return $this;
+    }
+
+    public function addValeurChampsLibre(ValeurChampLibre $valeurChampsLibre): self
+    {
+        if (!$this->valeurChampsLibres->contains($valeurChampsLibre)) {
+            $this->valeurChampsLibres[] = $valeurChampsLibre;
+            $valeurChampsLibre->setChampLibre($this);
+        }
+
+        return $this;
+    }
+
+    public function removeValeurChampsLibre(ValeurChampLibre $valeurChampsLibre): self
+    {
+        if ($this->valeurChampsLibres->contains($valeurChampsLibre)) {
+            $this->valeurChampsLibres->removeElement($valeurChampsLibre);
+            // set the owning side to null (unless already changed)
+            if ($valeurChampsLibre->getChampLibre() === $this) {
+                $valeurChampsLibre->setChampLibre(null);
+            }
+        }
 
         return $this;
     }

@@ -2,7 +2,9 @@
 
 namespace App\Repository;
 
+use App\Entity\Demande;
 use App\Entity\LigneArticle;
+use App\Entity\ReferenceArticle;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
@@ -53,6 +55,12 @@ class LigneArticleRepository extends ServiceEntityRepository
         return $query->getOneOrNullResult();
     }
 
+	/**
+	 * @param ReferenceArticle $referenceArticle
+	 * @param Demande $demande
+	 * @return LigneArticle|null
+	 * @throws \Doctrine\ORM\NonUniqueResultException
+	 */
     public function findOneByRefArticleAndDemandeAndToSplit($referenceArticle, $demande)
     {
         $entityManager = $this->getEntityManager();
@@ -69,7 +77,11 @@ class LigneArticleRepository extends ServiceEntityRepository
         return $query->getOneOrNullResult();
     }
 
-    public function getByDemande($demande)
+	/**
+	 * @param Demande|int $demande
+	 * @return LigneArticle[]|null
+	 */
+    public function findByDemande($demande)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
@@ -112,6 +124,10 @@ class LigneArticleRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
+	/**
+	 * @param ReferenceArticle $refArticle
+	 * @return LigneArticle[]|null
+	 */
     public function findByRefArticle($refArticle)
     {
         $em = $this->getEntityManager();

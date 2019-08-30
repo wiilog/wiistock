@@ -3,8 +3,11 @@
 namespace App\Controller;
 
 use App\Entity\Menu;
+
 use App\Service\UserService;
+
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -49,7 +52,6 @@ class DimensionEtiquettesController extends AbstractController
             'dimensions_etiquettes' => $dimensions
         ]);
     }
-
 
     /**
      * @Route("/ajax-etiquettes", name="ajax_dimensions_etiquettes",  options={"expose"=true},  methods="GET|POST")

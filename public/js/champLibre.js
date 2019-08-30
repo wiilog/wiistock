@@ -36,13 +36,13 @@ InitialiserModal(dataModalEditType, ButtonSubmitEditType, urlEditType, tableType
 
 //CHAMPS LIBRE
 
-const urlApiChampsLibre = Routing.generate('champ_libre_api', { 'id': id }, true);
-let tableChampsLibre = $('#tableChampslibre_id').DataTable({
+const urlApiChampLibre = Routing.generate('champ_libre_api', { 'id': id }, true);
+let tableChampLibre = $('#tableChamplibre_id').DataTable({
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
     },
     ajax: {
-        "url": urlApiChampsLibre,
+        "url": urlApiChampLibre,
         "type": "POST"
     },
     columns: [
@@ -57,20 +57,20 @@ let tableChampsLibre = $('#tableChampslibre_id').DataTable({
     ],
 });
 
-let dataModalChampsLibreNew = $("#modalNewChampsLibre");
-let ButtonSubmitChampsLibreNew = $("#submitChampsLibreNew");
-let urlChampsLibreNew = Routing.generate('champ_libre_new', true);
-InitialiserCLModal(dataModalChampsLibreNew, ButtonSubmitChampsLibreNew, urlChampsLibreNew, tableChampsLibre, displayErrorCL, false);
+let dataModalChampLibreNew = $("#modalNewChampLibre");
+let ButtonSubmitChampLibreNew = $("#submitChampLibreNew");
+let urlChampLibreNew = Routing.generate('champ_libre_new', true);
+InitialiserCLModal(dataModalChampLibreNew, ButtonSubmitChampLibreNew, urlChampLibreNew, tableChampLibre, displayErrorCL, false);
 
-let dataModalChampsLibreDelete = $("#modalDeleteChampsLibre");
-let ButtonSubmitChampsLibreDelete = $("#submitChampsLibreDelete");
-let urlChampsLibreDelete = Routing.generate('champ_libre_delete', true);
-InitialiserCLModal(dataModalChampsLibreDelete, ButtonSubmitChampsLibreDelete, urlChampsLibreDelete, tableChampsLibre);
+let dataModalChampLibreDelete = $("#modalDeleteChampLibre");
+let submitChampLibreDelete = $("#submitChampLibreDelete");
+let urlChampLibreDelete = Routing.generate('champ_libre_delete', true);
+InitialiserCLModal(dataModalChampLibreDelete, submitChampLibreDelete, urlChampLibreDelete, tableChampLibre);
 
-let dataModalEditChampsLibre = $("#modalEditChampLibre");
-let ButtonSubmitEditChampsLibre = $("#submitEditChampsLibre");
-let urlEditChampsLibre = Routing.generate('champ_libre_edit', true);
-InitialiserCLModal(dataModalEditChampsLibre, ButtonSubmitEditChampsLibre, urlEditChampsLibre, tableChampsLibre);
+let dataModalEditChampLibre = $("#modalEditChampLibre");
+let submitEditChampLibre = $("#submitEditChampLibre");
+let urlEditChampLibre = Routing.generate('champ_libre_edit', true);
+InitialiserCLModal(dataModalEditChampLibre, submitEditChampLibre, urlEditChampLibre, tableChampLibre);
 
 function askForDeleteConfirmation(data) {
     let modal = $('#modalDeleteType');
@@ -84,7 +84,7 @@ function askForDeleteConfirmation(data) {
 
         submit.on('click', function () {
             $.post(Routing.generate('type_delete'), params, function () {
-                tableChampsLibre.ajax.reload();
+                tableChampLibre.ajax.reload();
             }, 'json');
         });
     } else {
@@ -128,7 +128,7 @@ function changeType(select) {
 }
 
 function displayErrorCL(data) {
-    let modal = $("#modalNewChampsLibre");
+    let modal = $("#modalNewChampLibre");
     let msg = 'Ce nom de champ libre existe déjà. Veuillez en choisir un autre.';
     displayError(modal, msg, data);
 }
@@ -211,7 +211,7 @@ function InitialiserCLModal(modal, submit, path, table, callback = null, close =
                 let val = parseInt($(this).val());
                 let min = parseInt($(this).attr('min'));
                 let max = parseInt($(this).attr('max'));
-                if (val > max || val < min) {
+                if (val > max || val < min || isNaN(val)) {
                     wrongNumberInputs.push($(this));
                     $(this).addClass('is-invalid');
                 }

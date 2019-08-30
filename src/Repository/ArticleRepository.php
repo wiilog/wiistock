@@ -3,6 +3,8 @@
 namespace App\Repository;
 
 use App\Entity\Article;
+use App\Entity\ArticleFournisseur;
+use App\Entity\Demande;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
@@ -19,21 +21,17 @@ class ArticleRepository extends ServiceEntityRepository
         parent::__construct($registry, Article::class);
     }
 
-    /**
-     * @param $referenceArticle
-     * @return mixed
-     * @throws \Doctrine\ORM\NonUniqueResultException
-     */
-    public function countByReference($referenceArticle)
-    {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            'SELECT COUNT(a)
+    public function getReferencesByRefAndDate($refPrefix, $date)
+	{
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+			'SELECT a.reference
             FROM App\Entity\Article a
-            WHERE a.reference LIKE :referenceArticle'
-        )->setParameter('referenceArticle', '%' . $referenceArticle . '%');
-        return $query->getSingleScalarResult();
-    }
+            WHERE a.reference LIKE :refPrefix'
+		)->setParameter('refPrefix', $refPrefix . $date . '%');
+
+		return array_column($query->execute(), 'reference');
+	}
 
     public function findByReception($id)
     {
@@ -57,7 +55,11 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function getByCollecte($id)
+	/**
+	 * @param int $id
+	 * @return Article[]|null
+	 */
+    public function findByCollecteId($id)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
@@ -70,7 +72,11 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->getResult();
     }
 
-    public function getByDemande($demande)
+	/**
+	 * @param Demande|int $demande
+	 * @return Article[]|null
+	 */
+    public function findByDemande($demande)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
@@ -212,7 +218,7 @@ class ArticleRepository extends ServiceEntityRepository
 		return $query->execute();
 	}
 
-	public function getTotalQuantiteFromRef($refArticle, $statut) {
+	public function getTotalQuantiteFromRefNotInDemand($refArticle, $statut) {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
             'SELECT SUM(a.quantite)
@@ -229,22 +235,24 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
-    public function getTotalQuantiteByRefAndStatut($refArticle, $statut) {
-        $entityManager = $this->getEntityManager();
-        $query = $entityManager->createQuery(
-            'SELECT SUM(a.quantite)
+	public function getTotalQuantiteByRefAndStatusLabel($refArticle, $statusLabel) {
+		$entityManager = $this->getEntityManager();
+		$query = $entityManager->createQuery(
+			/** @lang DQL */
+			'SELECT SUM(a.quantite)
 			FROM App\Entity\Article a
 			JOIN a.articleFournisseur af
 			JOIN af.referenceArticle ra
-			WHERE a.statut =:statut AND ra = :refArticle
+			JOIN a.statut s
+			WHERE s.nom =:statusLabel AND ra = :refArticle
 			'
-        )->setParameters([
-            'refArticle' => $refArticle,
-            'statut' => $statut
-        ]);
+		)->setParameters([
+			'refArticle' => $refArticle,
+			'statusLabel' => $statusLabel
+		]);
 
-        return $query->getSingleScalarResult();
-    }
+		return $query->getSingleScalarResult();
+	}
 
 	public function findByRefArticleAndStatutWithoutDemand($refArticle, $statut)
 	{
@@ -329,6 +337,10 @@ class ArticleRepository extends ServiceEntityRepository
             'count' => $countQuery, 'total' => $countTotal];
     }
 
+	/**
+	 * @param ArticleFournisseur[] $listAf
+	 * @return Article[]|null
+	 */
     public function findByListAF($listAf)
     {
         $em = $this->getEntityManager();
@@ -356,6 +368,10 @@ class ArticleRepository extends ServiceEntityRepository
         return $query->getSingleScalarResult();
     }
 
+	/**
+	 * @param int $limit
+	 * @return Article[]|null
+	 */
     public function findByQuantityMoreThan($limit)
 	{
 		$em = $this->getEntityManager();
@@ -368,6 +384,9 @@ class ArticleRepository extends ServiceEntityRepository
 		return $query->execute();
 	}
 
+	/**
+	 * @return Article[]|null
+	 */
 	public function findDoublons()
 	{
 		$em = $this->getEntityManager();
@@ -439,4 +458,17 @@ class ArticleRepository extends ServiceEntityRepository
 
 		return $query->getOneOrNullResult();
 	}
+
+    public function countByEmplacement($emplacementId)
+    {
+        $em = $this->getEntityManager();
+        $query = $em->createQuery(
+            "SELECT COUNT(a)
+			FROM App\Entity\Article a
+			JOIN a.emplacement e
+			WHERE e.id = :emplacementId"
+        )->setParameter('emplacementId', $emplacementId);
+
+        return $query->getSingleScalarResult();
+    }
 }

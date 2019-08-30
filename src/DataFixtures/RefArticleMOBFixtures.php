@@ -4,10 +4,10 @@ namespace App\DataFixtures;
 
 use App\Entity\ArticleFournisseur;
 use App\Entity\CategorieCL;
-use App\Entity\ChampsLibre;
+use App\Entity\ChampLibre;
 use App\Entity\Fournisseur;
 use App\Entity\Type;
-use App\Entity\ValeurChampsLibre;
+use App\Entity\ValeurChampLibre;
 use App\Repository\ArticleFournisseurRepository;
 use App\Repository\CategorieCLRepository;
 use App\Repository\FournisseurRepository;
@@ -20,7 +20,7 @@ use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 
 use App\Entity\ReferenceArticle;
 use App\Repository\TypeRepository;
-use App\Repository\ChampsLibreRepository;
+use App\Repository\ChampLibreRepository;
 
 class RefArticleMOBFixtures extends Fixture implements FixtureGroupInterface
 {
@@ -32,9 +32,9 @@ class RefArticleMOBFixtures extends Fixture implements FixtureGroupInterface
      */
     private $typeRepository;
     /**
-     * @var ChampsLibreRepository
+     * @var ChampLibreRepository
      */
-    private $champsLibreRepository;
+    private $champLibreRepository;
 
     /**
      * @var StatutRepository
@@ -62,10 +62,10 @@ class RefArticleMOBFixtures extends Fixture implements FixtureGroupInterface
     private $articleFournisseurRepository;
 
 
-    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository, CategorieCLRepository $categorieCLRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampsLibreRepository $champsLibreRepository, StatutRepository $statutRepository, FournisseurRepository $fournisseurRepository, Packages $assetsManager)
+    public function __construct(ArticleFournisseurRepository $articleFournisseurRepository, CategorieCLRepository $categorieCLRepository, UserPasswordEncoderInterface $encoder, TypeRepository $typeRepository, ChampLibreRepository $champsLibreRepository, StatutRepository $statutRepository, FournisseurRepository $fournisseurRepository, Packages $assetsManager)
     {
         $this->typeRepository = $typeRepository;
-        $this->champsLibreRepository = $champsLibreRepository;
+        $this->champLibreRepository = $champsLibreRepository;
         $this->encoder = $encoder;
         $this->statutRepository = $statutRepository;
         $this->fournisseurRepository = $fournisseurRepository;
@@ -153,9 +153,9 @@ class RefArticleMOBFixtures extends Fixture implements FixtureGroupInterface
             ];
 
             foreach($listFields as $field) {
-                $vcl = new ValeurChampsLibre();
+                $vcl = new ValeurChampLibre();
                 $label = $field['label'] . ' (' . $typeMob->getLabel() . ')';
-                $cl = $this->champsLibreRepository->findOneBy(['label' => $label]);
+                $cl = $this->champLibreRepository->findOneBy(['label' => $label]);
                 if (empty($cl)) {
                     dump('il manque le champ libre de label ' . $label);
                 } else {
