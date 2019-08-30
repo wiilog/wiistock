@@ -52,8 +52,43 @@ let tableMvt = $('#tableMvts').DataTable({
         {"data": 'operateur', 'name': 'operateur', 'title': 'Opérateur'},
         {"data": 'actions', 'name': 'Actions', 'title': 'Actions'},
     ],
-
 });
+
+$.fn.dataTable.ext.search.push(
+    function (settings, data) {
+        let emplacement = $('#emplacement').val();
+        if (emplacement !== '') {
+            let originIndex = tableMvt.column('origine:name').index();
+            let destinationIndex = tableMvt.column('destination:name').index();
+            return data[originIndex] == emplacement || data[destinationIndex] == emplacement;
+        } else {
+            return true;
+        }
+    }
+);
+
+$.fn.dataTable.ext.search.push(
+    function (settings, data) {
+        let dateMin = $('#dateMin').val();
+        let dateMax = $('#dateMax').val();
+        let indexDate = tableMvt.column('date:name').index();
+        let dateInit = (data[indexDate]).split(' ')[0].split('/').reverse().join('-') || 0;
+
+        if (
+            (dateMin == "" && dateMax == "")
+            ||
+            (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
+            ||
+            (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
+            ||
+            (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
+        ) {
+            return true;
+        }
+        return false;
+    }
+);
+
 let modalDeleteArrivage = $('#modalDeleteMvtStock');
 let submitDeleteArrivage = $('#submitDeleteMvtStock');
 let urlDeleteArrivage = Routing.generate('mvt_stock_delete', true);
@@ -75,44 +110,11 @@ $submitSearchMvt.on('click', function () {
         .columns('type:name')
         .search(statut ? '^' + statut + '$' : '', true, false)
         .draw();
+
     tableMvt
         .columns('operateur:name')
         .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
         .draw();
-
-    $.fn.dataTable.ext.search.push(
-        function (settings, data) {
-            let indexDate = tableMvt.column('date:name').index();
-            let dateInit = (data[indexDate]).split(' ')[0].split('/').reverse().join('-') || 0;
-
-            if (
-                (dateMin == "" && dateMax == "")
-                ||
-                (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
-                ||
-                (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
-                ||
-                (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
-            ) {
-                return true;
-            }
-            return false;
-        }
-    );
-
-    $.fn.dataTable.ext.search.push(
-        function (settings, data) {
-
-            if (emplacement !== '') {
-                let originIndex = tableMvt.column('origine:name').index();
-                let destinationIndex = tableMvt.column('destination:name').index();
-
-                return data[originIndex] == emplacement || data[destinationIndex] == emplacement;
-            } else {
-                return true;
-            }
-        }
-    );
 
     tableMvt.draw();
 });

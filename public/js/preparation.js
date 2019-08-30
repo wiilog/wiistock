@@ -47,6 +47,29 @@ let table = $('#table_id').DataTable({
     ],
 });
 
+$.fn.dataTable.ext.search.push(
+    function (settings, data, dataIndex) {
+        let dateMin = $('#dateMin').val();
+        let dateMax = $('#dateMax').val();
+        let indexDate = table.column('Date:name').index();
+        let dateInit = (data[indexDate]).split('/').reverse().join('-') || 0;
+
+        if (
+            (dateMin == "" && dateMax == "")
+            ||
+            (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
+            ||
+            (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
+            ||
+            (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
+
+        ) {
+            return true;
+        }
+        return false;
+    }
+);
+
 $submitSearchPrepa.on('click', function () {
     let dateMin = $('#dateMin').val();
     let dateMax = $('#dateMax').val();
@@ -73,28 +96,7 @@ $submitSearchPrepa.on('click', function () {
         .search(utilisateurPiped ? '^' + utilisateurPiped + '$' : '', true, false)
         .draw();
 
-    $.fn.dataTable.ext.search.push(
-        function (settings, data, dataIndex) {
-            let indexDate = table.column('Date:name').index();
-            let dateInit = (data[indexDate]).split('/').reverse().join('-') || 0;
-
-            if (
-                (dateMin == "" && dateMax == "")
-                ||
-                (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
-                ||
-                (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
-                ||
-                (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
-
-            ) {
-                return true;
-            }
-            return false;
-        }
-    );
-    table
-        .draw();
+    table.draw();
 });
 
 $.extend($.fn.dataTableExt.oSort, {

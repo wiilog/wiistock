@@ -33,6 +33,29 @@ let tableService = $('#tableService_id').DataTable({
     ],
 });
 
+$.fn.dataTable.ext.search.push(
+    function (settings, data) {
+        let dateMin = $('#dateMin').val();
+        let dateMax = $('#dateMax').val();
+        let indexDate = tableService.column('Date:name').index();
+        let dateInit = (data[indexDate]).split('/').reverse().join('-') || 0;
+
+        if (
+            (dateMin == "" && dateMax == "")
+            ||
+            (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
+            ||
+            (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
+            ||
+            (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
+
+        ) {
+            return true;
+        }
+        return false;
+    }
+);
+
 $.extend($.fn.dataTableExt.oSort, {
     "customDate-pre": function (a) {
         let dateParts = a.split('/'),
@@ -104,29 +127,7 @@ $submitSearchService.on('click', function () {
         .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
         .draw();
 
-    $.fn.dataTable.ext.search.push(
-        function (settings, data) {
-            let indexDate = tableService.column('Date:name').index();
-            let dateInit = (data[indexDate]).split('/').reverse().join('-') || 0;
-
-            if (
-                (dateMin == "" && dateMax == "")
-                ||
-                (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
-                ||
-                (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
-                ||
-                (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
-
-            ) {
-                return true;
-            }
-            return false;
-        }
-
-    );
-    tableService
-        .draw();
+    tableService.draw();
 });
 
 let modalNewService = $("#modalNewService");

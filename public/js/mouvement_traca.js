@@ -50,8 +50,30 @@ let tableMvt = $('#tableMvts').DataTable({
         {"data": 'operateur', 'name': 'operateur', 'title': 'Operateur'},
         {"data": 'Actions', 'name': 'Actions', 'title': 'Actions'},
     ],
-
 });
+
+$.fn.dataTable.ext.search.push(
+    function (settings, data) {
+        let dateMin = $('#dateMin').val();
+        let dateMax = $('#dateMax').val();
+        let indexDate = tableMvt.column('date:name').index();
+        let dateInit = (data[indexDate]).split(' ')[0].split('/').reverse().join('-') || 0;
+
+        if (
+            (dateMin == "" && dateMax == "")
+            ||
+            (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
+            ||
+            (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
+            ||
+            (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
+        ) {
+            return true;
+        }
+        return false;
+    }
+);
+
 let modalDeleteArrivage = $('#modalDeleteMvtTraca');
 let submitDeleteArrivage = $('#submitDeleteMvtTraca');
 let urlDeleteArrivage = Routing.generate('mvt_traca_delete', true);
@@ -87,25 +109,6 @@ $submitSearchMvt.on('click', function () {
         .search(article)
         .draw();
 
-    $.fn.dataTable.ext.search.push(
-        function (settings, data) {
-            let indexDate = tableMvt.column('date:name').index();
-            let dateInit = (data[indexDate]).split(' ')[0].split('/').reverse().join('-') || 0;
-
-            if (
-                (dateMin == "" && dateMax == "")
-                ||
-                (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
-                ||
-                (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
-                ||
-                (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
-            ) {
-                return true;
-            }
-            return false;
-        }
-    );
     tableMvt.draw();
 });
 

@@ -93,8 +93,30 @@ let tableArticle = $('#tableArticle_id').DataTable({
         {"data": 'Quantité', 'title': 'Quantité'},
         {"data": 'Actions', 'title': 'Actions'}
     ],
-
 });
+
+$.fn.dataTable.ext.search.push(
+    function (settings, data, dataIndex) {
+        let dateMin = $('#dateMin').val();
+        let dateMax = $('#dateMax').val();
+        let indexDate = table.column('Création:name').index();
+        let dateInit = (data[indexDate]).split('/').reverse().join('-') || 0;
+
+        if (
+            (dateMin == "" && dateMax == "")
+            ||
+            (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
+            ||
+            (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
+            ||
+            (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
+
+        ) {
+            return true;
+        }
+        return false;
+    }
+);
 
 let modal = $("#modalNewArticle");
 let submit = $("#submitNewArticle");
@@ -214,28 +236,7 @@ $submitSearchCollecte.on('click', function () {
         .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
         .draw();
 
-    $.fn.dataTable.ext.search.push(
-        function (settings, data, dataIndex) {
-            let indexDate = table.column('Création:name').index();
-            let dateInit = (data[indexDate]).split('/').reverse().join('-') || 0;
-
-            if (
-                (dateMin == "" && dateMax == "")
-                ||
-                (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
-                ||
-                (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
-                ||
-                (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
-
-            ) {
-                return true;
-            }
-            return false;
-        }
-    );
-    table
-        .draw();
+    table.draw();
 });
 
 function validateCollecte(collecteId) {
