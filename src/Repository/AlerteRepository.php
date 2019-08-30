@@ -51,7 +51,6 @@ class AlerteRepository extends ServiceEntityRepository
 			'qte_art' => ReferenceArticle::TYPE_QUANTITE_ARTICLE,
 			'active' => Article::STATUT_ACTIF
 		]);
-		dump($query->getSQL());
 
 		return $query->getSingleScalarResult();
 	}
