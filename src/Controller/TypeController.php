@@ -133,7 +133,7 @@ class TypeController extends AbstractController
      */
     public function new(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
             // on vérifie que le nom du type n'est pas déjà utilisé
             $typeExist = $this->typeRepository->countByLabel($data['label']);
@@ -224,7 +224,7 @@ class TypeController extends AbstractController
      */
     public function edit(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $category = $this->categoryTypeRepository->find($data['category']);
             $type = $this->typeRepository->find($data['type']);
             $type

@@ -99,6 +99,8 @@ class EmplacementDataService
                     'id' => ($emplacement->getId() ? $emplacement->getId() : 'Non défini'),
                     'Nom' => ($emplacement->getLabel() ? $emplacement->getLabel() : 'Non défini'),
                     'Description' => ($emplacement->getDescription() ? $emplacement->getDescription() : 'Non défini'),
+					'Point de livraison' => $emplacement->getIsDeliveryPoint() ? 'oui' : 'non',
+					'Actif / Inactif' => $emplacement->getIsActive() ? 'actif' : 'inactif',
                     'Actions' => $this->templating->render('emplacement/datatableEmplacementRow.html.twig', [
                         'url' => $url,
                         'emplacementId' => $emplacement->getId(),

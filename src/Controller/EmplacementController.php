@@ -106,6 +106,7 @@ class EmplacementController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
             $data = $this->emplacementDataService->getDataForDatatable($request->request);
+
             return new JsonResponse($data);
         }
         throw new NotFoundHttpException("404");
@@ -128,7 +129,7 @@ class EmplacementController extends AbstractController
      */
     public function new(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
@@ -144,6 +145,7 @@ class EmplacementController extends AbstractController
             $emplacement
 				->setLabel($data["Label"])
 				->setDescription($data["Description"])
+				->setIsActive(true)
 				->setIsDeliveryPoint($data["isDeliveryPoint"]);
             $em->persist($emplacement);
             $em->flush();
@@ -174,7 +176,7 @@ class EmplacementController extends AbstractController
      */
     public function apiEdit(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
@@ -194,7 +196,7 @@ class EmplacementController extends AbstractController
      */
     public function edit(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
@@ -202,8 +204,9 @@ class EmplacementController extends AbstractController
             $emplacement = $this->emplacementRepository->find($data['id']);
             $emplacement
                 ->setLabel($data["Label"])
-                ->setDescription($data["Description"]);
-            $emplacement->setIsDeliveryPoint($data["isDeliveryPoint"]);
+                ->setDescription($data["Description"])
+            	->setIsDeliveryPoint($data["isDeliveryPoint"])
+				->setIsActive($data['isActive']);
             $em = $this->getDoctrine()->getManager();
             $em->flush();
             return new JsonResponse();
@@ -269,32 +272,31 @@ class EmplacementController extends AbstractController
     }
 
     /**
-     * @Route("/supprimer", name="emplacement_delete", options={"expose"=true})
+     * @Route("/supprimer", name="emplacement_delete", options={"expose"=true}, methods="GET|POST")
      */
     public function delete(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
+            $entityManager = $this->getDoctrine()->getManager();
+            $response = [];
 
             if ($emplacementId = (int)$data['emplacement']) {
-
                 $emplacement = $this->emplacementRepository->find($emplacementId);
-
-                // on vérifie que l'emplacement n'est plus utilisé
                 $usedEmplacement = $this->isEmplacementUsed($emplacementId);
 
                 if (!empty($usedEmplacement)) {
-                    return new JsonResponse(false);
-                }
-
-                $entityManager = $this->getDoctrine()->getManager();
-                $entityManager->remove($emplacement);
+                	$emplacement->setIsActive(false);
+                } else {
+					$entityManager->remove($emplacement);
+					$response['delete'] = $emplacementId;
+				}
                 $entityManager->flush();
-                return new JsonResponse();
             }
-            return new JsonResponse();
+
+            return new JsonResponse($response);
         }
         throw new NotFoundHttpException("404");
     }

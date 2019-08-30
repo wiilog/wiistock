@@ -360,7 +360,7 @@ class ArrivageController extends AbstractController
      */
     public function edit(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::LIST)) {
                 return $this->redirectToRoute('access_denied');
             }
@@ -455,7 +455,7 @@ class ArrivageController extends AbstractController
      */
     public function delete(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $arrivage = $this->arrivageRepository->find($data['arrivage']);
 
             if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::DELETE)) {

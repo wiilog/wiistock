@@ -94,7 +94,7 @@ class ChauffeurController extends AbstractController
      */
     public function new(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
@@ -146,7 +146,7 @@ class ChauffeurController extends AbstractController
      */
     public function edit(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
@@ -174,7 +174,7 @@ class ChauffeurController extends AbstractController
      */
     public function delete(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 			if (!$this->userService->hasRightFunction(Menu::REFERENTIEL, Action::DELETE)) {
 				return $this->redirectToRoute('access_denied');
 			}

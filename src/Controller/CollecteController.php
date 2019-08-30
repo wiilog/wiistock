@@ -309,7 +309,7 @@ class CollecteController extends AbstractController
      */
     public function new(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::DEM_COLLECTE, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
@@ -362,7 +362,7 @@ class CollecteController extends AbstractController
      */
     public function addArticle(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::DEM_COLLECTE, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
@@ -444,7 +444,7 @@ class CollecteController extends AbstractController
      */
     public function editArticle(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::DEM_COLLECTE, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
@@ -499,7 +499,7 @@ class CollecteController extends AbstractController
      */
     public function removeArticle(Request $request)
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::DEM_COLLECTE, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
@@ -575,7 +575,7 @@ class CollecteController extends AbstractController
      */
     public function edit(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::DEM_COLLECTE, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
@@ -650,7 +650,7 @@ class CollecteController extends AbstractController
      */
     public function delete(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::DEM_COLLECTE, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }

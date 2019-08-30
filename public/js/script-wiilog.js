@@ -31,33 +31,6 @@ function InitialiserModal(modal, submit, path, table, callback = null, close = t
 }
 
 function submitAction(modal, path, table, callback, close) {
-    xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function () {
-
-        if (this.readyState == 4 && this.status == 200) {
-            $('.errorMessage').html(JSON.parse(this.responseText));
-            data = JSON.parse(this.responseText);
-
-            if (data.redirect) {
-                window.location.href = data.redirect;
-                return;
-            }
-            // pour mise à jour des données d'en-tête après modification
-            if (data.entete) {
-                $('.zone-entete').html(data.entete)
-            }
-            table.ajax.reload(function (json) {
-                if (this.responseText !== undefined) {
-                    $('#myInput').val(json.lastInput);
-                }
-            });
-
-            clearModal(modal);
-
-            if (callback !== null) callback(data);
-        }
-    };
-
     // On récupère toutes les données qui nous intéressent
     // dans les inputs...
     let inputs = modal.find(".data");
@@ -125,13 +98,31 @@ function submitAction(modal, path, table, callback, close) {
         Data[$(this).attr("name")] = $(this).attr('value');
     });
     modal.find(".elem").remove();
+
     // si tout va bien on envoie la requête ajax...
     if (missingInputs.length == 0 && wrongNumberInputs.length == 0 && passwordIsValid) {
         if (close == true) modal.find('.close').click();
-        Json = {};
-        Json = JSON.stringify(Data);
-        xhttp.open("POST", path, true);
-        xhttp.send(Json);
+
+        $.post(path, JSON.stringify(Data), function(data) {
+                if (data.redirect) {
+                    window.location.href = data.redirect;
+                    return;
+                }
+                // pour mise à jour des données d'en-tête après modification
+                if (data.entete) {
+                    $('.zone-entete').html(data.entete)
+                }
+                table.ajax.reload(function (json) {
+                    if (data !== undefined) {
+                        $('#myInput').val(json.lastInput);
+                    }
+                });
+
+                clearModal(modal);
+
+                if (callback !== null) callback(data);
+        }, 'json');
+
     } else {
 
         // ... sinon on construit les messages d'erreur
@@ -223,26 +214,7 @@ function showRow(button, path, modal) {
  */
 
 function editRow(button, path, modal, submit, editorToInit = false, editor = '.editor-container-edit', setMaxQuantity = false) {
-    xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function () {
-        if (this.readyState == 4 && this.status == 200) {
-            dataReponse = JSON.parse(this.responseText);
-            modal.find('.modal-body').html(dataReponse);
-            ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur-edit'));
-            ajaxAutoRefArticleInit($('.ajax-autocomplete-edit'));
-            ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
-            ajaxAutoUserInit($('.ajax-autocomplete-user-edit'));
-            if ($('#typageModif').val() !== undefined) {   //TODO Moche
-                defaultValueForTypage($('#typageModif'), '-edit');
-            }
 
-            toggleRequiredChampsLibres(modal.find('#typeEdit'), 'edit');
-
-            if (setMaxQuantity) setMaxQuantityEdit($('#referenceEdit'));
-
-            if (editorToInit) initEditor(editor);
-        }
-    }
     let id = button.data('id');
     let ref = button.data('ref');
 
@@ -253,8 +225,25 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
 
     modal.find(submit).attr('value', id);
     modal.find('#inputId').attr('value', id);
-    xhttp.open("POST", path, true);
-    xhttp.send(JSON.stringify(json));
+
+    $.post(path, JSON.stringify(json), function(resp) {
+
+        modal.find('.modal-body').html(resp);
+        ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur-edit'));
+        ajaxAutoRefArticleInit($('.ajax-autocomplete-edit'));
+        ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
+        ajaxAutoUserInit($('.ajax-autocomplete-user-edit'));
+        if ($('#typageModif').val() !== undefined) {   //TODO Moche
+            defaultValueForTypage($('#typageModif'), '-edit');
+        }
+
+        toggleRequiredChampsLibres(modal.find('#typeEdit'), 'edit');
+
+        if (setMaxQuantity) setMaxQuantityEdit($('#referenceEdit'));
+
+        if (editorToInit) initEditor(editor);
+    }, 'json');
+
 }
 
 function setMaxQuantityEdit(select) {
