@@ -616,7 +616,7 @@ class ArticleDataService
                 [
                     'id' => ($article->getId() ? $article->getId() : 'Non défini'),
                     'Référence' => ($article->getReference() ? $article->getReference() : 'Non défini'),
-                    'Statut' => false,
+                    'Statut' => '',
                     'Libellé' => ($article->getLabel() ? $article->getLabel() : 'Non défini'),
                     'Référence article' => ($article->getArticleFournisseur() ? $article->getArticleFournisseur()->getReferenceArticle()->getReference() : 'Non défini'),
                     'Quantité' => ($article->getQuantite() ? $article->getQuantite() : 0),
