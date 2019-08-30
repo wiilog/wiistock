@@ -703,6 +703,10 @@ em {
   font-style: italic !important;
 }
 
+.editor-container-article.ql-container.ql-snow {
+  height: 80%;
+}
+
 .dropFrame {
   border: 3px dashed #b2b2b2;
   line-height: 50px;
