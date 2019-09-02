@@ -8,15 +8,19 @@
 
 namespace App\Service;
 
-
-
 use App\Entity\Action;
 use App\Entity\Parametre;
 use App\Entity\Utilisateur;
 
 use App\Repository\ActionRepository;
+use App\Repository\CollecteRepository;
+use App\Repository\DemandeRepository;
+use App\Repository\LivraisonRepository;
+use App\Repository\OrdreCollecteRepository;
 use App\Repository\ParametreRepository;
 use App\Repository\ParametreRoleRepository;
+use App\Repository\PreparationRepository;
+use App\Repository\ServiceRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\RoleRepository;
 
@@ -59,7 +63,37 @@ class UserService
 	 */
 	private $parametreRoleRepository;
 
-    public function __construct(ParametreRepository $parametreRepository, ParametreRoleRepository $parametreRoleRepository, \Twig_Environment $templating, RoleRepository $roleRepository, UtilisateurRepository $utilisateurRepository, Security $security, ActionRepository $actionRepository)
+	/**
+	 * @var DemandeRepository
+	 */
+	private $demandeRepository;
+
+	/**
+	 * @var LivraisonRepository
+	 */
+	private $livraisonRepository;
+
+	/**
+	 * @var CollecteRepository
+	 */
+	private $collecteRepository;
+
+	/**
+	 * @var OrdreCollecteRepository
+	 */
+	private $ordreCollecteRepository;
+
+	/**
+	 * @var ServiceRepository
+	 */
+	private $manutentionRepository;
+
+	/**
+	 * @var PreparationRepository
+	 */
+	private $preparationRepository;
+
+    public function __construct(DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, CollecteRepository $collecteRepository, OrdreCollecteRepository $ordreCollecteRepository, ServiceRepository $manutentionRepository, PreparationRepository $preparationRepository, ParametreRepository $parametreRepository, ParametreRoleRepository $parametreRoleRepository, \Twig_Environment $templating, RoleRepository $roleRepository, UtilisateurRepository $utilisateurRepository, Security $security, ActionRepository $actionRepository)
     {
         $this->user = $security->getUser();
         $this->actionRepository = $actionRepository;
@@ -68,6 +102,12 @@ class UserService
         $this->templating = $templating;
         $this->parametreRepository = $parametreRepository;
         $this->parametreRoleRepository = $parametreRoleRepository;
+        $this->demandeRepository = $demandeRepository;
+        $this->livraisonRepository = $livraisonRepository;
+        $this->collecteRepository = $collecteRepository;
+        $this->ordreCollecteRepository = $ordreCollecteRepository;
+        $this->manutentionRepository = $manutentionRepository;
+        $this->preparationRepository = $preparationRepository;
     }
 
 
@@ -174,5 +214,22 @@ class UserService
 		}
 
 		return $response;
+	}
+
+	/**
+	 * @param Utilisateur|int $user
+	 * @return bool
+	 * @throws \Doctrine\ORM\NonUniqueResultException
+	 */
+	public function isUsedByDemandsOrOrders($user)
+	{
+		$nbDemandesLivraison = $this->demandeRepository->countByUser($user);
+		$nbDemandesCollecte = $this->collecteRepository->countByUser($user);
+		$nbOrdresLivraison = $this->livraisonRepository->countByUser($user);
+		$nbOrdresCollecte = $this->ordreCollecteRepository->countByUser($user);
+		$nbManutentions = $this->manutentionRepository->countByUser($user);
+		$nbPrepa = $this->preparationRepository->countByUser($user);
+
+		return $nbDemandesLivraison + $nbDemandesCollecte + $nbOrdresLivraison + $nbOrdresCollecte + $nbManutentions + $nbPrepa > 0;
 	}
 }

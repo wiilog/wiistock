@@ -5,12 +5,16 @@ namespace App\Controller;
 use App\Entity\CategoryType;
 use App\Entity\Menu;
 use App\Entity\Utilisateur;
+
 use App\Repository\RoleRepository;
 use App\Repository\TypeRepository;
 use App\Repository\UtilisateurRepository;
+
 use App\Service\PasswordService;
 use App\Service\UserService;
+
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -263,27 +267,55 @@ class UtilisateurController extends Controller
         throw new NotFoundHttpException('404');
     }
 
+	/**
+	 * @Route("/verification", name="user_check_delete", options={"expose"=true})
+	 */
+	public function checkUserCanBeDeleted(Request $request): Response
+	{
+		if ($request->isXmlHttpRequest() && $userId = json_decode($request->getContent(), true)) {
+			if (!$this->userService->hasRightFunction(Menu::PARAM)) {
+				return $this->redirectToRoute('access_denied');
+			}
+
+			$userIsUsed = $this->userService->isUsedByDemandsOrOrders($userId);
+
+			if (!$userIsUsed) {
+				$delete = true;
+				$html = $this->renderView('utilisateur/modalDeleteUtilisateurRight.html.twig');
+			} else {
+				$delete = false;
+				$html = $this->renderView('utilisateur/modalDeleteUtilisateurWrong.html.twig');
+			}
+
+			return new JsonResponse(['delete' => $delete, 'html' => $html]);
+		}
+		throw new NotFoundHttpException('404');
+	}
+
     /**
      * @Route("/supprimer", name="user_delete", options={"expose"=true}, methods="GET|POST")
      */
     public function delete(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::PARAM)) {
                 return $this->redirectToRoute('access_denied');
             }
 
             $user = $this->utilisateurRepository->find($data['user']);
-            $entityManager = $this->getDoctrine()->getManager();
-            try {
-                $entityManager->remove($user);
-                $entityManager->flush();
-            } catch (\Doctrine\DBAL\Exception\ForeignKeyConstraintViolationException $e) {
-                return new JsonResponse('Impossible de supprimer cet utilisateur, car il est lié à des demandes', 250);
-            }
 
-            return new JsonResponse();
-        }
+			// on vérifie que l'utilisateur n'est plus utilisé
+			$isUserUsed = $this->userService->isUsedByDemandsOrOrders($user);
+
+			if ($isUserUsed) {
+				return new JsonResponse(false);
+			}
+
+			$entityManager = $this->getDoctrine()->getManager();
+			$entityManager->remove($user);
+			$entityManager->flush();
+			return new JsonResponse();
+		}
         throw new NotFoundHttpException('404');
     }
 

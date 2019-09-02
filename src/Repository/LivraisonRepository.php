@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Livraison;
+use App\Entity\Utilisateur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
@@ -71,5 +72,23 @@ class LivraisonRepository extends ServiceEntityRepository
 		]);
 
 		return $query->execute();
+	}
+
+	/**
+	 * @param Utilisateur $user
+	 * @return int
+	 * @throws \Doctrine\ORM\NonUniqueResultException
+	 */
+	public function countByUser($user)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+		/** @lang DQL */
+			"SELECT COUNT(l)
+            FROM App\Entity\Livraison l
+            WHERE l.utilisateur = :user"
+		)->setParameter('user', $user);
+
+		return $query->getSingleScalarResult();
 	}
 }

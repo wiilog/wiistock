@@ -169,9 +169,8 @@ function submitAction(modal, path, table, callback, close) {
                     }
                 }
             });
-
-            modal.find('.error-msg').html(msg);
         }
+        modal.find('.error-msg').html(msg);
     }
 }
 

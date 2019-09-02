@@ -4,6 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Demande;
 use App\Entity\Livraison;
+use App\Entity\Utilisateur;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
@@ -147,4 +148,23 @@ class DemandeRepository extends ServiceEntityRepository
 		$result = $query->execute();
 		return $result ? $result[0]['numero'] : null;
 	}
+
+	/**
+	 * @param Utilisateur $user
+	 * @return int
+	 * @throws \Doctrine\ORM\NonUniqueResultException
+	 */
+	public function countByUser($user)
+	{
+		$em = $this->getEntityManager();
+		$query = $em->createQuery(
+			/** @lang DQL */
+			"SELECT COUNT(d)
+            FROM App\Entity\Demande d
+            WHERE d.utilisateur = :user"
+		)->setParameter('user', $user);
+
+		return $query->getSingleScalarResult();
+	}
+
 }
