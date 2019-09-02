@@ -57,6 +57,9 @@ $.fn.dataTable.ext.search.push(
         let dateMin = $('#dateMin').val();
         let dateMax = $('#dateMax').val();
         let indexDate = tableMvt.column('date:name').index();
+
+        if (typeof indexDate === "undefined") return true;
+
         let dateInit = (data[indexDate]).split(' ')[0].split('/').reverse().join('-') || 0;
 
         if (

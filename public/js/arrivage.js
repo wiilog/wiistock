@@ -60,6 +60,9 @@ $.fn.dataTable.ext.search.push(
         let dateMin = $('#dateMin').val();
         let dateMax = $('#dateMax').val();
         let indexDate = tableArrivage.column('Date:name').index();
+
+        if (typeof indexDate === "undefined") return true;
+
         let dateInit = (data[indexDate]).split(' ')[0].split('/').reverse().join('-') || 0;
 
         if (
@@ -70,7 +73,6 @@ $.fn.dataTable.ext.search.push(
             (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
             ||
             (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
-
         ) {
             return true;
         }

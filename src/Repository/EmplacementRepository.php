@@ -73,13 +73,16 @@ class EmplacementRepository extends ServiceEntityRepository
         return $query->execute(); 
     }
 
-    public function getIdAndLibelleBySearch($search)
+    public function getIdAndLabelActiveBySearch($search)
     {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
+        	/** @lang DQL */
           "SELECT e.id, e.label as text
           FROM App\Entity\Emplacement e
-          WHERE e.label LIKE :search"
+          WHERE e.label LIKE :search
+          AND e.isActive = 1
+          "
         )->setParameter('search', '%' . $search . '%');
 
         return $query->execute();

@@ -90,24 +90,23 @@ $.fn.dataTable.ext.search.push(
         let dateMin = $('#dateMin').val();
         let dateMax = $('#dateMax').val();
         let indexDate = tableDemande.column('Date:name').index();
-        if (typeof indexDate !== "undefined") {
-            let dateInit = (data[indexDate]).split('/').reverse().join('-') || 0;
 
-            if (
-                (dateMin == "" && dateMax == "")
-                ||
-                (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
-                ||
-                (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
-                ||
-                (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
+        if (typeof indexDate === "undefined") return true;
 
-            ) {
-                return true;
-            }
-            return false;
+        let dateInit = (data[indexDate]).split('/').reverse().join('-') || 0;
+
+        if (
+            (dateMin == "" && dateMax == "")
+            ||
+            (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
+            ||
+            (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
+            ||
+            (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
+        ) {
+            return true;
         }
-        return true;
+        return false;
     }
 );
 
