@@ -90,21 +90,24 @@ $.fn.dataTable.ext.search.push(
         let dateMin = $('#dateMin').val();
         let dateMax = $('#dateMax').val();
         let indexDate = tableDemande.column('Date:name').index();
-        let dateInit = (data[indexDate]).split('/').reverse().join('-') || 0;
+        if (typeof indexDate !== "undefined") {
+            let dateInit = (data[indexDate]).split('/').reverse().join('-') || 0;
 
-        if (
-            (dateMin == "" && dateMax == "")
-            ||
-            (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
-            ||
-            (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
-            ||
-            (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
+            if (
+                (dateMin == "" && dateMax == "")
+                ||
+                (dateMin == "" && moment(dateInit).isSameOrBefore(dateMax))
+                ||
+                (moment(dateInit).isSameOrAfter(dateMin) && dateMax == "")
+                ||
+                (moment(dateInit).isSameOrAfter(dateMin) && moment(dateInit).isSameOrBefore(dateMax))
 
-        ) {
-            return true;
+            ) {
+                return true;
+            }
+            return false;
         }
-        return false;
+        return true;
     }
 );
 
@@ -331,28 +334,23 @@ function validateLivraison(livraisonId, elem) {
 }
 
 let ajaxEditArticle = function (select) {
-    xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function () {
-        if (this.readyState == 4 && this.status == 200) {
-            dataReponse = JSON.parse(this.responseText);
-            if (dataReponse) {
-                $('#editNewArticle').html(dataReponse);
-                let quantityToTake = $('#quantityToTake');
-                let valMax = $('#quantite').val();
-
-                let attrMax = quantityToTake.find('input').attr('max');
-                if (attrMax > valMax) quantityToTake.find('input').attr('max', valMax);
-                quantityToTake.removeClass('d-none');
-                ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
-            } else {
-                //TODO gérer erreur
-            }
-        }
-    }
-    let json = {id: select.val(), isADemand: 1};
     let path = Routing.generate('article_api_edit', true);
-    xhttp.open("POST", path, true);
-    xhttp.send(JSON.stringify(json));
+    let params = {id: select.val(), isADemand: 1};
+
+    $.post(path, JSON.stringify(params), function(data) {
+        if (data) {
+            $('#editNewArticle').html(data);
+            let quantityToTake = $('#quantityToTake');
+            let valMax = $('#quantite').val();
+
+            let attrMax = quantityToTake.find('input').attr('max');
+            if (attrMax > valMax) quantityToTake.find('input').attr('max', valMax);
+            quantityToTake.removeClass('d-none');
+            ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
+        } else {
+            //TODO gérer erreur
+        }
+    });
 }
 
 let generateCSVDemande = function () {
