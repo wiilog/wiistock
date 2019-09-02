@@ -12,6 +12,9 @@ let tableArticle = $('#tableArticle_id').DataTable({
         "type": "POST",
         'dataSrc': function (json) {
             $('#listArticleIdToPrint').val(json.listId);
+            if (!$(".statutVisible").val()) {
+                tableArticle.column('Statut:name').visible(false);
+            }
             return json.data;
         }
     },
@@ -19,20 +22,13 @@ let tableArticle = $('#tableArticle_id').DataTable({
          overrideSearch();
     },
     columns: [
-        { "data": 'Référence', 'name': 'Référence' },
-        { "data": "Statut", 'name': 'Statut' },
-        { "data": 'Libellé', 'name': 'Libellé' },
-        { "data": 'Référence article', 'name': 'Référence article' },
-        { "data": 'Quantité', 'name': 'Quantité' },
-        { "data": 'Actions', 'name': 'Actions' }
+        { "data": 'Référence', 'name': 'Référence', 'title': 'Référence' },
+        { "data": "Statut", 'name': 'Statut', 'title': 'Statut' },
+        { "data": 'Libellé', 'name': 'Libellé', 'title': 'Libellé' },
+        { "data": 'Référence article', 'name': 'Référence article', 'title': 'Référence article' },
+        { "data": 'Quantité', 'name': 'Quantité', 'title': 'Quantité' },
+        { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' }
     ],
-});
-
-$(document).ready(function () {
-    let statutVisible = $(".statutVisible").val();
-    if (!statutVisible) {
-        tableArticle.column('Statut:name').visible(false);
-    }
 });
 
 let modalEditArticle = $("#modalEditArticle");

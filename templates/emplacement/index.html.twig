@@ -22,6 +22,10 @@
 
 <table id="tableEmplacement_id" class="table table-striped table-bordered w-100">
 </table>
+
+{% set statutVisible = hasRight(constant('App\\Entity\\Menu::REFERENTIEL'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+<input type="hidden" class='statutVisible' value="{{ statutVisible }}">
+
 {% include "emplacement/modalDeleteEmplacement.html.twig" %}
 {% include "emplacement/modalEditEmplacement.html.twig" %}
 {% include "emplacement/modalNewEmplacement.html.twig" %}

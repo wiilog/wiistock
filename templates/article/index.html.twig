@@ -21,21 +21,11 @@
 <input type="hidden" id="listArticleIdToPrint">
 
 <table id="tableArticle_id" class="table table-striped table-bordered w-100">
-
-    <thead>
-        <tr>
-            <th>Référence</th>
-            <th>Statut</th>
-            <th>Libellé</th>
-            <th>Référence article</th>
-            <th>Quantité</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-
 </table>
-    {% set statutVisible = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
-    <input type="hidden" class='statutVisible' name="statutVisible" value="{{statutVisible}}">
+
+{% set statutVisible = hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
+<input type="hidden" class='statutVisible' name="statutVisible" value="{{statutVisible}}">
+
 <button class="btn" id="cannotGenerate" data-target='#modalCannotGenerate' data-toggle='modal' hidden></button>
 {% include "article/modalModifyArticle.html.twig" %}
 {% include "article/modalShowArticle.html.twig" %}

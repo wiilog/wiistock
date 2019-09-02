@@ -8,8 +8,10 @@
 
 namespace App\Service;
 
+use App\Entity\Action;
 use App\Entity\Emplacement;
 
+use App\Entity\Menu;
 use App\Repository\EmplacementRepository;
 
 use Symfony\Component\Routing\RouterInterface;
@@ -34,9 +36,14 @@ class EmplacementDataService
      */
     private $router;
 
+	/**
+	 * @var UserService
+	 */
+    private $userService;
+
     private $em;
 
-    public function __construct(EmplacementRepository $emplacementRepository, RouterInterface $router, EntityManagerInterface $em, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
+    public function __construct(UserService $userService, EmplacementRepository $emplacementRepository, RouterInterface $router, EntityManagerInterface $em, \Twig_Environment $templating, TokenStorageInterface $tokenStorage)
     {
     
         $this->templating = $templating;
@@ -44,6 +51,7 @@ class EmplacementDataService
         $this->em = $em;
         $this->router = $router;
         $this->emplacementRepository = $emplacementRepository;
+        $this->userService = $userService;
     }
 
     
@@ -62,7 +70,12 @@ class EmplacementDataService
      */
     public function getEmplacementDataByParams($params = null)
     {
-        $queryResult = $this->emplacementRepository->findByParams($params);
+    	if ($this->userService->hasRightFunction(Menu::REFERENTIEL, Action::CREATE_EDIT)) {
+			$includingInactive = true;
+		} else {
+    		$includingInactive = false;
+		}
+        $queryResult = $this->emplacementRepository->findByParamsAndIncludingInactive($params, $includingInactive);
 
         $emplacements = $queryResult['data'];
         $listId = $queryResult['allEmplacementDataTable'];

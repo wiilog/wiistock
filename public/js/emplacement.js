@@ -12,6 +12,9 @@ let tableEmplacement = $('#tableEmplacement_id').DataTable({
         "url": pathEmplacement,
         "type": "POST",
         'dataSrc': function (json) {
+            if (!$(".statutVisible").val()) {
+                tableEmplacement.column('Actif / Inactif:name').visible(false);
+            }
             $('#listEmplacementIdToPrint').val(json.listId);
             return json.data;
         }

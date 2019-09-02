@@ -88,14 +88,18 @@ class EmplacementRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
-    public function findByParams($params = null)
+    public function findByParamsAndIncludingInactive($params = null, $includingInactive)
     {
         $em = $this->getEntityManager();
         $qb = $em->createQueryBuilder();
 
         $qb
-            ->select('a')
-            ->from('App\Entity\Emplacement', 'a');
+            ->select('e')
+            ->from('App\Entity\Emplacement', 'e');
+
+        if (!$includingInactive) {
+        	$qb->where('e.isActive = 1');
+		}
 
         $countQuery = $countTotal = count($qb->getQuery()->getResult());
 
@@ -106,7 +110,7 @@ class EmplacementRepository extends ServiceEntityRepository
                 $search = $params->get('search')['value'];
                 if (!empty($search)) {
                     $qb
-                        ->andWhere('a.label LIKE :value OR a.description LIKE :value')
+                        ->andWhere('e.label LIKE :value OR e.description LIKE :value')
                         ->setParameter('value', '%' . $search . '%');
                 }
                 $countQuery = count($qb->getQuery()->getResult());
@@ -124,8 +128,8 @@ class EmplacementRepository extends ServiceEntityRepository
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-            "SELECT COUNT(a)
-            FROM App\Entity\Emplacement a
+            "SELECT COUNT(e)
+            FROM App\Entity\Emplacement e
            "
         );
 
