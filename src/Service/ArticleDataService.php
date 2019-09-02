@@ -354,9 +354,9 @@ class ArticleDataService
         $typeArticle = $refArticle->getType();
         $typeArticleLabel = $typeArticle->getLabel();
 
-        $champLibresComplet = $this->champLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
-        $champLibres = [];
-        foreach ($champLibresComplet as $champLibre) {
+        $champsLibresComplet = $this->champLibreRepository->findByTypeAndCategorieCLLabel($typeArticle, CategorieCL::ARTICLE);
+        $champsLibres = [];
+        foreach ($champsLibresComplet as $champLibre) {
             $valeurChampArticle = $this->valeurChampLibreRepository->findOneByArticleAndChampLibre($article, $champLibre);
 //			$labelChampLibre = strtolower($champLibre->getLabel());
 //			$isCEA = $this->specificService->isCurrentClientNameFunction(ParamClient::CEA_LETI);
@@ -367,7 +367,7 @@ class ArticleDataService
 //			&& $isADemand) {
 //				$valeurChampArticle = null;
 //			}
-            $champLibres[] = [
+            $champsLibres[] = [
                 'id' => $champLibre->getId(),
                 'label' => $champLibre->getLabel(),
                 'typage' => $champLibre->getTypage(),
@@ -379,16 +379,16 @@ class ArticleDataService
             ];
         }
 
-        $typeChampLibre =
+        $typeChampsLibres =
             [
                 'type' => $typeArticleLabel,
-                'champLibres' => $champLibres,
+                'champsLibres' => $champsLibres,
             ];
 
         $statut = $article->getStatut()->getNom();
 
         $view = $this->templating->render('article/modalModifyArticleContent.html.twig', [
-            'typeChampLibres' => $typeChampLibre,
+            'typeChampsLibres' => $typeChampsLibres,
             'typeArticle' => $typeArticleLabel,
             'typeArticleId' => $typeArticle->getId(),
             'article' => $article,

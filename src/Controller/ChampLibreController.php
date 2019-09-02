@@ -171,7 +171,7 @@ class ChampLibreController extends AbstractController
      */
     public function editApi(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $champLibre = $this->champLibreRepository->find($data['id']);
             $typages = ChampLibre::TYPAGE;
             $json = $this->renderView('champ_libre/modalEditChampLibreContent.html.twig', [

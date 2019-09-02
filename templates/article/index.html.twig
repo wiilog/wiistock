@@ -5,7 +5,6 @@
 {% block page_content %}
 
 <h1>Articles</h1>
-<button class="btn" id="cannotDeleteArticle" data-target='#modalCannotDeleteArticle' data-toggle='modal' hidden></button>
 <div class='d-flex justify-content-end'>
     {% if hasRight(constant('App\\Entity\\Menu::STOCK'), constant('App\\Entity\\Action::CREATE_EDIT')) %}
     <div data-toggle="modal" data-target="#modalNewArticle" class="btn btn-action btn-primary"
@@ -42,7 +41,6 @@
 {% include "article/modalShowArticle.html.twig" %}
 {% include "article/modalNewArticle.html.twig" %}
 {% include "article/modalDeleteArticle.html.twig" %}
-{% include "article/modalCantDeleteArticle.html.twig" %}
 {% include "dimensions_etiquettes/modalNoParamsEtiquettes.html.twig" %}
 <div class="d-none" id="barcodes"></div>
 

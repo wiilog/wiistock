@@ -121,7 +121,7 @@ class MouvementTracaController extends AbstractController
      */
     public function delete(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $mvt = $this->mouvementRepository->find($data['mvt']);
 
             if (!$this->userService->hasRightFunction(Menu::ARRIVAGE, Action::DELETE)) {

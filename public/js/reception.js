@@ -446,23 +446,6 @@ function checkIfQuantityArticle($select){
 
 }
 
-function checkAndDeleteReception(btn) {
-    let modalBody = $('#modalDeleteReception').find('.modal-body');
-    let id = btn.data('id');
-    let param = JSON.stringify(id);
-
-    $.post(Routing.generate('reception_check_delete'), param, function (resp) {
-        modalBody.html(resp.html);
-        let $submitDeleteReception = $('#submitDeleteReception');
-        if (resp.delete == false) {
-            $submitDeleteReception.hide();
-        } else {
-            $submitDeleteReception.show();
-            $submitDeleteReception.attr('value', id);
-        }
-    });
-}
-
 function finishReception(receptionId) {
     $.post(Routing.generate('reception_finish'), JSON.stringify(receptionId), function(data) {
         if (data === true) {

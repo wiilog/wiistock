@@ -239,7 +239,7 @@ class ArticleController extends Controller
      */
     public function editApi(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
 
             $article = $this->articleRepository->find((int)$data['id']);
             if ($article) {
@@ -258,7 +258,7 @@ class ArticleController extends Controller
      */
     public function new(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $response = $this->articleDataService->newArticle($data);
 
             return new JsonResponse($response);
@@ -271,7 +271,7 @@ class ArticleController extends Controller
      */
     public function edit(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if ($data['article']) {
                 $this->articleDataService->editArticle($data);
                 $json = true;
@@ -288,16 +288,21 @@ class ArticleController extends Controller
      */
     public function delete(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::STOCK, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
 
             $article = $this->articleRepository->find($data['article']);
             $rows = $article->getId();
-            if (count($article->getCollectes()) > 0 || $article->getDemande() !== null) {
-                return new JsonResponse(false, 250);
-            }
+
+			// on vérifie que l'article n'est plus utilisé
+			$articleIsUsed = $this->isArticleUsed($article);
+
+			if ($articleIsUsed) {
+				return new JsonResponse(false);
+			}
+
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($article);
             $entityManager->flush();
@@ -307,6 +312,44 @@ class ArticleController extends Controller
         }
         throw new NotFoundHttpException("404");
     }
+
+	/**
+	 * @Route("/verification", name="article_check_delete", options={"expose"=true})
+	 */
+	public function checkArticleCanBeDeleted(Request $request): Response
+	{
+		if ($request->isXmlHttpRequest() && $articleId = json_decode($request->getContent(), true)) {
+			if (!$this->userService->hasRightFunction(Menu::STOCK, Action::LIST)) {
+				return $this->redirectToRoute('access_denied');
+			}
+
+			$article = $this->articleRepository->find($articleId);
+			$articleIsUsed = $this->isArticleUsed($article);
+
+			if (!$articleIsUsed) {
+				$delete = true;
+				$html = $this->renderView('article/modalDeleteArticleRight.html.twig');
+			} else {
+				$delete = false;
+				$html = $this->renderView('article/modalDeleteArticleWrong.html.twig');
+			}
+
+			return new JsonResponse(['delete' => $delete, 'html' => $html]);
+		}
+		throw new NotFoundHttpException('404');
+	}
+
+	/**
+	 * @param Article $article
+	 * @return bool
+	 */
+	private function isArticleUsed($article)
+	{
+		if (count($article->getCollectes()) > 0 || $article->getDemande() !== null) {
+			return true;
+		}
+		return false;
+	}
 
     /**
      * @Route("/autocompleteArticleFournisseur", name="get_articleRef_fournisseur", options={"expose"=true})

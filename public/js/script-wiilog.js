@@ -38,6 +38,7 @@ function submitAction(modal, path, table, callback, close) {
     let missingInputs = [];
     let wrongNumberInputs = [];
     let passwordIsValid = true;
+
     inputs.each(function () {
         let val = $(this).val();
         let name = $(this).attr("name");
@@ -597,4 +598,22 @@ function saveFilters(page, dateMin, dateMax, statut, user, type = null, location
     params.page = page;
 
     $.post(path, JSON.stringify(params), 'json');
+}
+
+function checkAndDeleteRow(icon, modalName, route, submit) {
+    let $modalBody = $(modalName).find('.modal-body');
+    let $submit = $(submit);
+    let id = icon.data('id');
+
+    let param = JSON.stringify(id);
+
+    $.post(Routing.generate(route), param, function(resp) {
+        $modalBody.html(resp.html);
+        if (resp.delete == false) {
+            $submit.hide();
+        } else {
+            $submit.show();
+            $submit.attr('value', id);
+        }
+    });
 }

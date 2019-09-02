@@ -148,7 +148,7 @@ class ReceptionController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
-        if (!$request->isXmlHttpRequest() &&  $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() &&  $data = json_decode($request->getContent(), true)) {
             $fournisseur = $this->fournisseurRepository->find(intval($data['fournisseur']));
             $type = $this->typeRepository->find(intval($data['type']));
             $reception = new Reception();
@@ -213,7 +213,7 @@ class ReceptionController extends AbstractController
      */
     public function edit(Request  $request): Response
     {
-        if (!$request->isXmlHttpRequest() &&  $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() &&  $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
@@ -273,7 +273,7 @@ class ReceptionController extends AbstractController
     public function apiEdit(Request  $request): Response
     {
 
-        if (!$request->isXmlHttpRequest() &&  $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() &&  $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
@@ -445,7 +445,7 @@ class ReceptionController extends AbstractController
      */
     public function delete(Request  $request): Response
     {
-        if (!$request->isXmlHttpRequest() &&  $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() &&  $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
@@ -472,7 +472,7 @@ class ReceptionController extends AbstractController
      */
     public function removeArticle(Request  $request): Response
     {
-        if (!$request->isXmlHttpRequest() &&  $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() &&  $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
@@ -507,7 +507,7 @@ class ReceptionController extends AbstractController
      */
     public function addArticle(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $contentData = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $contentData = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
@@ -561,7 +561,7 @@ class ReceptionController extends AbstractController
      */
     public function apiEditArticle(Request  $request): Response
     {
-        if (!$request->isXmlHttpRequest() &&  $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() &&  $data = json_decode($request->getContent(), true)) {
             if (!$this->userService->hasRightFunction(Menu::RECEPTION, Action::CREATE_EDIT)) {
                 return $this->redirectToRoute('access_denied');
             }
@@ -590,7 +590,7 @@ class ReceptionController extends AbstractController
             return $this->redirectToRoute('access_denied');
         }
 
-        if (!$request->isXmlHttpRequest() &&  $data = json_decode($request->getContent(), true)) { //Si la requête est de type Xml
+        if ($request->isXmlHttpRequest() &&  $data = json_decode($request->getContent(), true)) { //Si la requête est de type Xml
             $receptionReferenceArticle =  $this->receptionReferenceArticleRepository->find($data['article']);
 //            $fournisseur = $this->fournisseurRepository->find($data['fournisseur']);
             $refArticle =  $this->referenceArticleRepository->find($data['referenceArticle']);

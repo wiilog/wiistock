@@ -72,7 +72,7 @@ class FiltreRefController extends AbstractController
      */
     public function new(Request $request): Response
     {
-        if (!$request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
+        if ($request->isXmlHttpRequest() && $data = json_decode($request->getContent(), true)) {
             $em = $this->getDoctrine()->getManager();
 
             // on vérifie qu'il n'existe pas déjà un filtre sur le même champ
