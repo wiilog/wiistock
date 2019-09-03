@@ -20,7 +20,7 @@ use App\Repository\OrdreCollecteRepository;
 use App\Repository\ParametreRepository;
 use App\Repository\ParametreRoleRepository;
 use App\Repository\PreparationRepository;
-use App\Repository\ServiceRepository;
+use App\Repository\ManutentionRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\RoleRepository;
 
@@ -84,7 +84,7 @@ class UserService
 	private $ordreCollecteRepository;
 
 	/**
-	 * @var ServiceRepository
+	 * @var ManutentionRepository
 	 */
 	private $manutentionRepository;
 
@@ -93,7 +93,7 @@ class UserService
 	 */
 	private $preparationRepository;
 
-    public function __construct(DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, CollecteRepository $collecteRepository, OrdreCollecteRepository $ordreCollecteRepository, ServiceRepository $manutentionRepository, PreparationRepository $preparationRepository, ParametreRepository $parametreRepository, ParametreRoleRepository $parametreRoleRepository, \Twig_Environment $templating, RoleRepository $roleRepository, UtilisateurRepository $utilisateurRepository, Security $security, ActionRepository $actionRepository)
+    public function __construct(DemandeRepository $demandeRepository, LivraisonRepository $livraisonRepository, CollecteRepository $collecteRepository, OrdreCollecteRepository $ordreCollecteRepository, ManutentionRepository $manutentionRepository, PreparationRepository $preparationRepository, ParametreRepository $parametreRepository, ParametreRoleRepository $parametreRoleRepository, \Twig_Environment $templating, RoleRepository $roleRepository, UtilisateurRepository $utilisateurRepository, Security $security, ActionRepository $actionRepository)
     {
         $this->user = $security->getUser();
         $this->actionRepository = $actionRepository;

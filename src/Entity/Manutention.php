@@ -5,9 +5,9 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity(repositoryClass="App\Repository\ServiceRepository")
+ * @ORM\Entity(repositoryClass="App\Repository\ManutentionRepository")
  */
-class Service
+class Manutention
 {
     const CATEGORIE = 'manutention';
     const STATUT_A_TRAITER = 'à traiter';
@@ -35,13 +35,13 @@ class Service
     private $commentaire;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="services")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="manutentions")
      * @ORM\JoinColumn(nullable=false)
      */
     private $demandeur;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="services")
+     * @ORM\ManyToOne(targetEntity="App\Entity\Statut", inversedBy="manutentions")
      * @ORM\JoinColumn(nullable=false)
      */
     private $statut;

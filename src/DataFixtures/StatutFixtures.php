@@ -14,7 +14,7 @@ use App\Entity\OrdreCollecte;
 use App\Entity\Preparation;
 use App\Entity\Reception;
 use App\Entity\ReferenceArticle;
-use App\Entity\Service;
+use App\Entity\Manutention;
 use App\Entity\Statut;
 use App\Repository\StatutRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
@@ -211,14 +211,14 @@ class StatutFixtures extends Fixture implements DependentFixtureInterface, Fixtu
         $manager->flush();
 
 
-        // catégorie service
+        // catégorie manutention
         $statutsNames = [
-            Service::STATUT_A_TRAITER,
-            Service::STATUT_TRAITE,
+            Manutention::STATUT_A_TRAITER,
+            Manutention::STATUT_TRAITE,
         ];
 
         foreach ($statutsNames as $statutName) {
-            $statut = $this->statutRepository->findOneByCategorieAndStatut(Service::CATEGORIE, $statutName);
+            $statut = $this->statutRepository->findOneByCategorieAndStatut(Manutention::CATEGORIE, $statutName);
 
             if (empty($statut)) {
                 $statut = new Statut();

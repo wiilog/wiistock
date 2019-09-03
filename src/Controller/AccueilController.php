@@ -11,11 +11,11 @@ use App\Repository\AlerteRepository;
 use App\Repository\CollecteRepository;
 use App\Repository\StatutRepository;
 use App\Repository\DemandeRepository;
-use App\Repository\ServiceRepository;
+use App\Repository\ManutentionRepository;
 
 use App\Entity\Collecte;
 use App\Entity\Demande;
-use App\Entity\Service;
+use App\Entity\Manutention;
 
 /**
  * @Route("/accueil")
@@ -48,18 +48,18 @@ class AccueilController extends AbstractController
     private $demandeRepository;
 
     /**
-     * @var ServiceRepository
+     * @var ManutentionRepository
      */
-    private $serviceRepository;
+    private $manutentionRepository;
 
-    public function __construct(ServiceRepository $serviceRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, CollecteRepository $collecteRepository, AlerteRepository $alerteRepository, EmplacementRepository $emplacementRepository)
+    public function __construct(ManutentionRepository $manutentionRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, CollecteRepository $collecteRepository, AlerteRepository $alerteRepository, EmplacementRepository $emplacementRepository)
     {
         $this->alerteRepository = $alerteRepository;
         $this->emplacementRepository = $emplacementRepository;
         $this->collecteRepository = $collecteRepository;
         $this->statutRepository = $statutRepository;
         $this->demandeRepository = $demandeRepository;
-        $this->serviceRepository = $serviceRepository;
+        $this->manutentionRepository = $manutentionRepository;
     }
 
     /**
@@ -79,8 +79,8 @@ class AccueilController extends AbstractController
         $statutDemandeP = $this->statutRepository->findOneByCategorieAndStatut(Demande::CATEGORIE, Demande::STATUT_PREPARE);
         $nbrDemandeLivraisonP = $this->demandeRepository->countByStatut($statutDemandeP);
 
-        $statutServiceAT = $this->statutRepository->findOneByCategorieAndStatut(Service::CATEGORIE, Service::STATUT_A_TRAITER);
-        $nbrDemandeManutentionAT = $this->serviceRepository->countByStatut($statutServiceAT);
+        $statutManutAT = $this->statutRepository->findOneByCategorieAndStatut(Manutention::CATEGORIE, Manutention::STATUT_A_TRAITER);
+        $nbrDemandeManutentionAT = $this->manutentionRepository->countByStatut($statutManutAT);
 
         return $this->render('accueil/index.html.twig', [
             'nbAlerts' => $nbAlerts,

@@ -6,10 +6,10 @@ $('#utilisateur').select2({
     }
 });
 
-let $submitSearchService = $('#submitSearchService');
+let $submitSearchManut = $('#submitSearchManutention');
 
-let pathService = Routing.generate('service_api', true);
-let tableService = $('#tableService_id').DataTable({
+let pathManut = Routing.generate('manutention_api', true);
+let tableManutention = $('#tableManutention_id').DataTable({
     order: [[0, 'desc']],
     columnDefs: [
         {
@@ -21,15 +21,15 @@ let tableService = $('#tableService_id').DataTable({
         url: "/js/i18n/dataTableLanguage.json",
     },
     ajax: {
-        "url": pathService,
+        "url": pathManut,
         "type": "POST"
     },
     columns: [
-        { "data": 'Date', 'name': 'Date' },
-        { "data": 'Demandeur', 'name': 'Demandeur' },
-        { "data": 'Libellé', 'name': 'Libellé' },
-        { "data": 'Statut', 'name': 'Statut' },
-        { "data": 'Actions', 'name': 'Actions' },
+        { "data": 'Date', 'name': 'Date', 'title': 'Date' },
+        { "data": 'Demandeur', 'name': 'Demandeur', 'title': 'Demandeur' },
+        { "data": 'Libellé', 'name': 'Libellé', 'title': 'Libellé' },
+        { "data": 'Statut', 'name': 'Statut', 'title': 'Statut' },
+        { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' },
     ],
 });
 
@@ -37,7 +37,7 @@ $.fn.dataTable.ext.search.push(
     function (settings, data) {
         let dateMin = $('#dateMin').val();
         let dateMax = $('#dateMax').val();
-        let indexDate = tableService.column('Date:name').index();
+        let indexDate = tableManutention.column('Date:name').index();
 
         if (typeof indexDate === "undefined") return true;
 
@@ -79,7 +79,7 @@ $.extend($.fn.dataTableExt.oSort, {
 let demandeur = $('.current-username').val();
 if (demandeur !== undefined) {
     let demandeurPiped = demandeur.split(',').join('|')
-    tableService
+    tableManutention
         .columns('Demandeur:name')
         .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
         .draw();
@@ -91,7 +91,7 @@ if (demandeur !== undefined) {
 $(function() {
     let val = $('#statut').val();
     if (val != null && val != '') {
-        $submitSearchService.click();
+        $submitSearchManut.click();
     }
 
     // filtres enregistrés en base pour chaque utilisateur
@@ -105,12 +105,12 @@ $(function() {
                 $('#'+element.field).val(element.value);
             }
         });
-        if (data.length > 0) $submitSearchService.click();
+        if (data.length > 0) $submitSearchManut.click();
     }, 'json');
 });
 
 // filtres de recheches
-$submitSearchService.on('click', function () {
+$submitSearchManut.on('click', function () {
     let dateMin = $('#dateMin').val();
     let dateMax = $('#dateMax').val();
     let statut = $('#statut').val();
@@ -120,48 +120,48 @@ $submitSearchService.on('click', function () {
 
     saveFilters(PAGE_MANUT, dateMin, dateMax, statut, demandeurPiped);
 
-    tableService
+    tableManutention
         .columns('Statut:name')
         .search(statut ? '^' + statut + '$' : '', true, false)
         .draw();
 
-    tableService
+    tableManutention
         .columns('Demandeur:name')
         .search(demandeurPiped ? '^' + demandeurPiped + '$' : '', true, false)
         .draw();
 
-    tableService.draw();
+    tableManutention.draw();
 });
 
-let modalNewService = $("#modalNewService");
-let submitNewService = $("#submitNewService");
-let urlNewService = Routing.generate('service_new', true);
-InitialiserModal(modalNewService, submitNewService, urlNewService, tableService);
+let modalNewManutention = $("#modalNewManutention");
+let submitNewManutention = $("#submitNewManutention");
+let urlNewManutention = Routing.generate('manutention_new', true);
+InitialiserModal(modalNewManutention, submitNewManutention, urlNewManutention, tableManutention);
 
-let modalModifyService = $('#modalEditService');
-let submitModifyService = $('#submitEditService');
-let urlModifyService = Routing.generate('service_edit', true);
-InitialiserModal(modalModifyService, submitModifyService, urlModifyService, tableService);
+let modalModifyManutention = $('#modalEditManutention');
+let submitModifyManutention = $('#submitEditManutention');
+let urlModifyManutention = Routing.generate('manutention_edit', true);
+InitialiserModal(modalModifyManutention, submitModifyManutention, urlModifyManutention, tableManutention);
 
-let modalDeleteService = $('#modalDeleteService');
-let submitDeleteService = $('#submitDeleteService');
-let urlDeleteService = Routing.generate('service_delete', true);
-InitialiserModal(modalDeleteService, submitDeleteService, urlDeleteService, tableService);
+let modalDeleteManutention = $('#modalDeleteManutention');
+let submitDeleteManutention = $('#submitDeleteManutention');
+let urlDeleteManutention = Routing.generate('manutention_delete', true);
+InitialiserModal(modalDeleteManutention, submitDeleteManutention, urlDeleteManutention, tableManutention);
 
-let editorEditServiceAlreadyDone = false;
-function initEditServiceEditor(modal) {
-    if (!editorEditServiceAlreadyDone) {
+let editorEditManutAlreadyDone = false;
+function initEditManutEditor(modal) {
+    if (!editorEditManutAlreadyDone) {
         initEditorInModal(modal);
-        editorEditServiceAlreadyDone = true;
+        editorEditManutAlreadyDone = true;
     }
 };
 
 //initialisation editeur de texte une seule fois
-let editorNewServiceAlreadyDone = false;
-function initNewServiceEditor(modal) {
-    if (!editorNewServiceAlreadyDone) {
+let editorNewManutAlreadyDone = false;
+function initNewManutentionEditor(modal) {
+    if (!editorNewManutAlreadyDone) {
         initEditor('.editor-container-new');
-        editorNewServiceAlreadyDone = true;
+        editorNewManutAlreadyDone = true;
     }
     ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement'))
 };
@@ -181,9 +181,9 @@ function changeStatus(button) {
     $('span[data-toggle="' + tog + '"][data-title="' + sel + '"]').removeClass('not-active').addClass('active');
 }
 
-$submitSearchService.on('keypress', function(e) {
+$submitSearchManut.on('keypress', function(e) {
     if (e.which === 13) {
-        $submitSearchService.click();
+        $submitSearchManut.click();
     }
 });
 

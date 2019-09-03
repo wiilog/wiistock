@@ -105,9 +105,9 @@ class Utilisateur implements UserInterface, EquatableInterface
     private $apiKey;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Service", mappedBy="demandeur")
+     * @ORM\OneToMany(targetEntity="App\Entity\Manutention", mappedBy="demandeur")
      */
-    private $services;
+    private $manutentions;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\FiltreRef", mappedBy="utilisateur", orphanRemoval=true)
@@ -161,7 +161,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         $this->preparations = new ArrayCollection();
         $this->livraisons = new ArrayCollection();
         $this->mouvements = new ArrayCollection();
-        $this->services = new ArrayCollection();
+        $this->manutentions = new ArrayCollection();
         $this->filters = new ArrayCollection();
         $this->ordreCollectes = new ArrayCollection();
         $this->arrivagesDestinataire = new ArrayCollection();
@@ -466,30 +466,30 @@ class Utilisateur implements UserInterface, EquatableInterface
     }
 
     /**
-     * @return Collection|Service[]
+     * @return Collection|Manutention[]
      */
-    public function getServices(): Collection
+    public function getManutentions(): Collection
     {
-        return $this->services;
+        return $this->manutentions;
     }
 
-    public function addService(Service $service): self
+    public function addManutention(Manutention $manutention): self
     {
-        if (!$this->services->contains($service)) {
-            $this->services[] = $service;
-            $service->setDemandeur($this);
+        if (!$this->manutentions->contains($manutention)) {
+            $this->manutentions[] = $manutention;
+            $manutention->setDemandeur($this);
         }
 
         return $this;
     }
 
-    public function removeService(Service $service): self
+    public function removeManutention(Manutention $manutention): self
     {
-        if ($this->services->contains($service)) {
-            $this->services->removeElement($service);
+        if ($this->manutentions->contains($manutention)) {
+            $this->manutentions->removeElement($manutention);
             // set the owning side to null (unless already changed)
-            if ($service->getDemandeur() === $this) {
-                $service->setDemandeur(null);
+            if ($manutention->getDemandeur() === $this) {
+                $manutention->setDemandeur(null);
             }
         }
 
