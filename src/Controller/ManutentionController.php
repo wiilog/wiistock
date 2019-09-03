@@ -88,9 +88,10 @@ class ManutentionController extends AbstractController
 
                 $rows[] = [
                     'id' => ($manutention->getId() ? $manutention->getId() : 'Non défini'),
-                    'Date' => ($manutention->getDate() ? $manutention->getDate()->format('d/m/Y') : null),
+                    'Date demande' => ($manutention->getDate() ? $manutention->getDate()->format('d/m/Y') : null),
                     'Demandeur' => ($manutention->getDemandeur() ? $manutention->getDemandeur()->getUserName() : null),
                     'Libellé' => ($manutention->getlibelle() ? $manutention->getLibelle() : null),
+                    'Date souhaitée' => ($manutention->getDateAttendue() ? $manutention->getDateAttendue()->format('d/m/Y H:i') : null),
                     'Statut' => ($manutention->getStatut()->getNom() ? $manutention->getStatut()->getNom() : null),
                     'Actions' => $this->renderView('manutention/datatableManutentionRow.html.twig', [
                         'manut' => $manutention
@@ -169,7 +170,8 @@ class ManutentionController extends AbstractController
                 ->setDestination($data['destination'])
                 ->setStatut($status)
                 ->setDemandeur($this->utilisateurRepository->find($data['demandeur']))
-                ->setCommentaire($data['commentaire']);
+				->setDateAttendue($data['date-attendue'] ? new \DateTime($data['date-attendue']) : null)
+				->setCommentaire($data['commentaire']);
 
             $em = $this->getDoctrine()->getEntityManager();
             $em->persist($manutention);
@@ -213,7 +215,6 @@ class ManutentionController extends AbstractController
             if (!$this->userService->hasRightFunction(Menu::MANUT, Action::EDIT_DELETE)) {
                 return $this->redirectToRoute('access_denied');
             }
-            dump($data);
             $manutention = $this->manutentionRepository->find($data['id']);
             $statutLabel = (intval($data['statut']) === 1) ? Manutention::STATUT_A_TRAITER : Manutention::STATUT_TRAITE;
             $statut = $this->statutRepository->findOneByCategorieAndStatut(Manutention::CATEGORIE, $statutLabel);
@@ -223,7 +224,8 @@ class ManutentionController extends AbstractController
                 ->setSource($data['source'])
                 ->setDestination($data['destination'])
                 ->setDemandeur($this->utilisateurRepository->find($data['demandeur']))
-                ->setCommentaire($data['commentaire']);
+				->setDateAttendue($data['date-attendue'] ? new \DateTime($data['date-attendue']) : null)
+				->setCommentaire($data['commentaire']);
             $em = $this->getDoctrine()->getManager();
             $em->flush();
 

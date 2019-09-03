@@ -25,9 +25,10 @@ let tableManutention = $('#tableManutention_id').DataTable({
         "type": "POST"
     },
     columns: [
-        { "data": 'Date', 'name': 'Date', 'title': 'Date' },
+        { "data": 'Date demande', 'name': 'Date demande', 'title': 'Date demande' },
         { "data": 'Demandeur', 'name': 'Demandeur', 'title': 'Demandeur' },
         { "data": 'Libellé', 'name': 'Libellé', 'title': 'Libellé' },
+        { "data": 'Date souhaitée', 'name': 'Date souhaitée', 'title': 'Date souhaitée' },
         { "data": 'Statut', 'name': 'Statut', 'title': 'Statut' },
         { "data": 'Actions', 'name': 'Actions', 'title': 'Actions' },
     ],

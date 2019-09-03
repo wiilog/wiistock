@@ -56,6 +56,12 @@ class Manutention
      */
     private $source;
 
+	/**
+	 * @ORM\Column(type="datetime", nullable=true)
+	 */
+    private $dateAttendue;
+
+
     public function getId(): ?int
     {
         return $this->id;
@@ -141,6 +147,18 @@ class Manutention
     public function setSource(?string $source): self
     {
         $this->source = $source;
+
+        return $this;
+    }
+
+    public function getDateAttendue(): ?\DateTimeInterface
+    {
+        return $this->dateAttendue;
+    }
+
+    public function setDateAttendue(?\DateTimeInterface $dateAttendue): self
+    {
+        $this->dateAttendue = $dateAttendue;
 
         return $this;
     }

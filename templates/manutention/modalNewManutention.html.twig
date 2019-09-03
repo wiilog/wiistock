@@ -26,13 +26,19 @@
                 </div>
 
                 <div class="form-group needed">
-                    <label for="Localité">Chargement*</label>
-                    <input class="form-control data needed" name="source">
+                    <label for="source">Chargement*</label>
+                    <input class="form-control data needed" name="source" id="source">
                 </div>
                 
                 <div class="form-group needed">
-                    <label for="Localité">Déchargement*</label>
-                    <input class="form-control data needed" name="destination">
+                    <label for="destination">Déchargement*</label>
+                    <input class="form-control data needed" name="destination" id="destination">
+                </div>
+
+                <div class="form-group">
+                    <label for="date-attendue">Date attendue</label>
+                    <input class="form-control data" type="datetime-local" name="date-attendue" id="date-attendue"
+                           min="{{ 'now' | date('Y-m-d') }}">
                 </div>
 
                 <div class="form-group">
