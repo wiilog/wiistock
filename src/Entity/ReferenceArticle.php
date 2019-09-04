@@ -42,7 +42,7 @@ class ReferenceArticle
     private $quantiteDisponible;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Alerte", mappedBy="refArticle")
+     * @ORM\OneToMany(targetEntity="App\Entity\AlerteStock", mappedBy="refArticle")
      */
     private $alertesStock;
 
@@ -171,14 +171,14 @@ class ReferenceArticle
     }
 
     /**
-     * @return Collection|Alerte[]
+     * @return Collection|AlerteStock[]
      */
     public function getAlertesStock(): Collection
     {
         return $this->alertesStock;
     }
 
-    public function addRefArticleAlerte(Alerte $refArticleAlerte): self
+    public function addRefArticleAlerte(AlerteStock $refArticleAlerte): self
     {
         if (!$this->alertesStock->contains($refArticleAlerte)) {
             $this->alertesStock[] = $refArticleAlerte;
@@ -188,7 +188,7 @@ class ReferenceArticle
         return $this;
     }
 
-    public function removeRefArticleAlerte(Alerte $refArticleAlerte): self
+    public function removeRefArticleAlerte(AlerteStock $refArticleAlerte): self
     {
         if ($this->alertesStock->contains($refArticleAlerte)) {
             $this->alertesStock->removeElement($refArticleAlerte);
@@ -489,7 +489,7 @@ class ReferenceArticle
         return $this;
     }
 
-    public function addAlertesStock(Alerte $alertesStock): self
+    public function addAlertesStock(AlerteStock $alertesStock): self
     {
         if (!$this->alertesStock->contains($alertesStock)) {
             $this->alertesStock[] = $alertesStock;
@@ -499,7 +499,7 @@ class ReferenceArticle
         return $this;
     }
 
-    public function removeAlertesStock(Alerte $alertesStock): self
+    public function removeAlertesStock(AlerteStock $alertesStock): self
     {
         if ($this->alertesStock->contains($alertesStock)) {
             $this->alertesStock->removeElement($alertesStock);

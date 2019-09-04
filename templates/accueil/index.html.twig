@@ -32,9 +32,9 @@ class='accueil-back'
                 </div>
                 {% set s = nbAlertsSecurity > 1 ? 's' : '' %}
                 <div class="col-7 mb-1 mt-1 alerte">
-                    <a href={{path('alerte_index')}}>
+                    <a href={{path('alerte_stock_index')}}>
                         <p><strong> Alertes de seuil atteintes : </strong>{{ nbAlerts }}<br>
-                            dont {{ nbAlertsSecurity }} seuil{{ s }} de sécurité
+                            {% if nbAlerts > 0 %}dont {{ nbAlertsSecurity }} seuil{{ s }} de sécurité{% endif %}
                         </p>
                     </a>
                 </div>

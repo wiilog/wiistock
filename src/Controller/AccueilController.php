@@ -7,7 +7,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 use App\Repository\EmplacementRepository;
-use App\Repository\AlerteRepository;
+use App\Repository\AlerteStockRepository;
 use App\Repository\CollecteRepository;
 use App\Repository\StatutRepository;
 use App\Repository\DemandeRepository;
@@ -23,9 +23,9 @@ use App\Entity\Manutention;
 class AccueilController extends AbstractController
 {
     /**
-     * @var AlerteRepository
+     * @var AlerteStockRepository
      */
-    private $alerteRepository;
+    private $alerteStockRepository;
 
     /**
      * @var CollecteRepository
@@ -52,9 +52,9 @@ class AccueilController extends AbstractController
      */
     private $manutentionRepository;
 
-    public function __construct(ManutentionRepository $manutentionRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, CollecteRepository $collecteRepository, AlerteRepository $alerteRepository, EmplacementRepository $emplacementRepository)
+    public function __construct(ManutentionRepository $manutentionRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, CollecteRepository $collecteRepository, AlerteStockRepository $alerteStockRepository, EmplacementRepository $emplacementRepository)
     {
-        $this->alerteRepository = $alerteRepository;
+        $this->alerteStockRepository = $alerteStockRepository;
         $this->emplacementRepository = $emplacementRepository;
         $this->collecteRepository = $collecteRepository;
         $this->statutRepository = $statutRepository;
@@ -67,8 +67,8 @@ class AccueilController extends AbstractController
      */
     public function index(): Response
     {
-    	$nbAlertsSecurity = $this->alerteRepository->countActivatedLimitSecurityReached();
-    	$nbAlerts = $this->alerteRepository->countActivatedLimitReached();
+    	$nbAlertsSecurity = $this->alerteStockRepository->countActivatedLimitSecurityReached();
+    	$nbAlerts = $this->alerteStockRepository->countActivatedLimitReached();
 
         $statutCollecte = $this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, Collecte::STATUS_A_TRAITER);
         $nbrDemandeCollecte = $this->collecteRepository->countByStatut($statutCollecte);

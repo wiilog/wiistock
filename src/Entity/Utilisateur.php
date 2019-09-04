@@ -77,7 +77,7 @@ class Utilisateur implements UserInterface, EquatableInterface
      */
     private $demandes;
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Alerte", mappedBy="user")
+     * @ORM\OneToMany(targetEntity="App\Entity\AlerteStock", mappedBy="user")
      */
     private $alertesStock;
     /**
@@ -313,13 +313,13 @@ class Utilisateur implements UserInterface, EquatableInterface
         return $this;
     }
     /**
-     * @return Collection|Alerte[]
+     * @return Collection|AlerteStock[]
      */
     public function getAlertesStock(): Collection
     {
         return $this->alertesStock;
     }
-    public function addUtilisateurAlerte(Alerte $utilisateurAlerte): self
+    public function addUtilisateurAlerte(AlerteStock $utilisateurAlerte): self
     {
         if (!$this->alertesStock->contains($utilisateurAlerte)) {
             $this->alertesStock[] = $utilisateurAlerte;
@@ -327,7 +327,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         }
         return $this;
     }
-    public function removeUtilisateurAlerte(Alerte $utilisateurAlerte): self
+    public function removeUtilisateurAlerte(AlerteStock $utilisateurAlerte): self
     {
         if ($this->alertesStock->contains($utilisateurAlerte)) {
             $this->alertesStock->removeElement($utilisateurAlerte);
@@ -731,7 +731,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         return $this;
     }
 
-    public function addAlertesStock(Alerte $alertesStock): self
+    public function addAlertesStock(AlerteStock $alertesStock): self
     {
         if (!$this->alertesStock->contains($alertesStock)) {
             $this->alertesStock[] = $alertesStock;
@@ -741,7 +741,7 @@ class Utilisateur implements UserInterface, EquatableInterface
         return $this;
     }
 
-    public function removeAlertesStock(Alerte $alertesStock): self
+    public function removeAlertesStock(AlerteStock $alertesStock): self
     {
         if ($this->alertesStock->contains($alertesStock)) {
             $this->alertesStock->removeElement($alertesStock);

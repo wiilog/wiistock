@@ -457,7 +457,7 @@ a:hover {
   display: none;
   list-style-type: none;
   background-color: #cc0000;
-  width: 200px;
+  width: 250px;
   position: absolute;
   top: 0;
   left: 100%;
@@ -473,6 +473,30 @@ a:hover {
 .sidemenu .menu-item .sidemenu-sub .sub-item:hover {
   color: #424242;
   background-color: #c6c6c6;
+}
+.sidemenu .menu-item .sidemenu-sub .sub-sub-item {
+  display: none;
+  background-color: #ff6666;
+}
+.sidemenu .menu-item .sidemenu-sub .sub-sub-item:hover {
+  color: #424242;
+  background-color: #c6c6c6;
+}
+.sidemenu .menu-item .sidemenu-sub .sub-item:hover .sub-sub-item {
+  display: block;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  padding-left: 30px;
+}
+.sidemenu .menu-item .sidemenu-sub .has-subitems {
+  padding: 10px 0;
+}
+.sidemenu .menu-item .sidemenu-sub .has-subitems .sub-item-title {
+  padding: 10px 18px;
+}
+.sidemenu .menu-item .sidemenu-sub .has-subitems:hover {
+  background-color: #cc0000;
+  color: white;
 }
 .sidemenu h4 {
   font-size: 16px;

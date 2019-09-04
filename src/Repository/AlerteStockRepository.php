@@ -2,23 +2,23 @@
 
 namespace App\Repository;
 
-use App\Entity\Alerte;
+use App\Entity\AlerteStock;
 use App\Entity\Article;
 use App\Entity\ReferenceArticle;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
- * @method Alerte|null find($id, $lockMode = null, $lockVersion = null)
- * @method Alerte|null findOneBy(array $criteria, array $orderBy = null)
- * @method Alerte[]    findAll()
- * @method Alerte[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method AlerteStock|null find($id, $lockMode = null, $lockVersion = null)
+ * @method AlerteStock|null findOneBy(array $criteria, array $orderBy = null)
+ * @method AlerteStock[]    findAll()
+ * @method AlerteStock[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class AlerteRepository extends ServiceEntityRepository
+class AlerteStockRepository extends ServiceEntityRepository
 {
     public function __construct(RegistryInterface $registry)
     {
-        parent::__construct($registry, Alerte::class);
+        parent::__construct($registry, AlerteStock::class);
     }
 
 	/**
@@ -31,7 +31,7 @@ class AlerteRepository extends ServiceEntityRepository
 		$query = $entityManager->createQuery(
 			/** @lang DQL */
 			"SELECT COUNT(a)
-			FROM App\Entity\Alerte a
+			FROM App\Entity\AlerteStock a
 			JOIN a.refArticle ra
 			WHERE a.activated = 1
 			AND (
@@ -65,7 +65,7 @@ class AlerteRepository extends ServiceEntityRepository
 		$query = $entityManager->createQuery(
 		/** @lang DQL */
 			"SELECT COUNT(a)
-			FROM App\Entity\Alerte a
+			FROM App\Entity\AlerteStock a
 			JOIN a.refArticle ra
 			WHERE a.activated = 1
 			AND (
@@ -111,7 +111,7 @@ class AlerteRepository extends ServiceEntityRepository
 		$query = $entityManager->createQuery(
 			/** @lang DQL */
 			"SELECT count(a) 
-			FROM App\Entity\Alerte a
+			FROM App\Entity\AlerteStock a
 			WHERE a.refArticle = :refArticle"
 		)->setParameter('refArticle', $refArticle);
 

@@ -1,12 +1,12 @@
 $('.select2').select2();
 
-let pathAlerte = Routing.generate('alerte_api', true);
-let tableAlerte = $('#tableAlerte_id').DataTable({
+let pathAlerteStock = Routing.generate('alerte_stock_api', true);
+let tableAlerteStock = $('#tableAlerte_id').DataTable({
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
     },
     ajax: {
-        "url":pathAlerte,
+        "url":pathAlerteStock,
         "type": "POST"
     },
     'rowCallback': function (row, data) {
@@ -22,7 +22,7 @@ let tableAlerte = $('#tableAlerte_id').DataTable({
         { "data": 'Code', 'title': 'Code' },
         { "data": 'Référence', 'title': 'Référence' },
         { "data": 'QuantiteStock', 'title': 'Quantité en stock' },
-        { "data": "SeuilAlerte", 'title': 'Seuil d\'alerte' },
+        { "data": "SeuilAlerte", 'title': "Seuil d'alerte" },
         { "data": 'SeuilSecurite', 'title': 'Seuil de sécurité' },
         { "data": 'Utilisateur', 'title': 'Utilisateur' },
         { "data": 'Statut', 'title': 'Statut' },
@@ -30,20 +30,20 @@ let tableAlerte = $('#tableAlerte_id').DataTable({
     ],
 });
 
-let modalNewAlerte = $("#modalNewAlerte"); 
-let submitNewAlerte = $("#submitNewAlerte");
-let urlNewAlerte = Routing.generate('alerte_new', true);
-InitialiserModal(modalNewAlerte, submitNewAlerte, urlNewAlerte, tableAlerte, displayErrorAlert, false);
+let modalNewAlerteStock = $("#modalNewAlerteStock");
+let submitNewAlerteStock = $("#submitNewAlerteStock");
+let urlNewAlerte = Routing.generate('alerte_stock_new', true);
+InitialiserModal(modalNewAlerteStock, submitNewAlerteStock, urlNewAlerte, tableAlerteStock, displayErrorAlertStock, false);
 
-let ModalDeleteAlerte = $("#modalDeleteAlerte");
-let SubmitDeleteAlerte = $("#submitDeleteAlerte");
-let urlDeleteAlerte = Routing.generate('alerte_delete', true)
-InitialiserModal(ModalDeleteAlerte, SubmitDeleteAlerte, urlDeleteAlerte, tableAlerte);
+let ModalDeleteAlerteStock = $("#modalDeleteAlerteStock");
+let SubmitDeleteAlerteStock = $("#submitDeleteAlerteStock");
+let urlDeleteAlerteStock = Routing.generate('alerte_stock_delete', true)
+InitialiserModal(ModalDeleteAlerteStock, SubmitDeleteAlerteStock, urlDeleteAlerteStock, tableAlerteStock);
 
-let modalModifyAlerte = $('#modalEditAlerte');
-let submitModifyAlerte = $('#submitEditAlerte');
-let urlModifyAlerte = Routing.generate('alerte_edit', true);
-InitialiserModal(modalModifyAlerte, submitModifyAlerte, urlModifyAlerte, tableAlerte);
+let modalModifyAlerteStock = $('#modalEditAlerteStock');
+let submitModifyAlerteStock = $('#submitEditAlerteStock');
+let urlModifyAlerteStock = Routing.generate('alerte_stock_edit', true);
+InitialiserModal(modalModifyAlerteStock, submitModifyAlerteStock, urlModifyAlerteStock, tableAlerteStock);
 
 function updateLimitsMinMax(elem)
 {
@@ -55,8 +55,8 @@ function updateLimitsMinMax(elem)
     $limitAlert.attr('min', $limitSecurity.val());
 }
 
-function displayErrorAlert(data) {
-    let modal = $("#modalNewAlerte");
+function displayErrorAlertStock(data) {
+    let modal = $("#modalNewAlerteStock");
     let msg = data.msg;
     displayError(modal, msg, data.success);
 }
