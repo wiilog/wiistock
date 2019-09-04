@@ -8,18 +8,26 @@
                 </button>
             </div>
             <div class="modal-body modal-input container-fluid">
-                <div class="form-group w-100">
+                <div class="form-group col-12 w-100">
                     <label for="reference">Référence</label>
-                    <select name="reference" class="AlerteNom form-control ajax-autocomplete data needed" id="reference" onchange="clearErrorMsg($(this))">
+                    <select name="reference" class="form-control ajax-autocomplete data needed" id="reference" onchange="clearErrorMsg($(this))">
                     </select>
                 </div>
-                <div class="form-group">
-                    <label for="limitAlert">Seuil d'alerte</label>
-                    <input type="number" min="0" id="limitAlert" class="form-control data" name="limitAlert" onchange="updateLimitsMinMax($(this))">
+                <div class="form-group col-12">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <label class="input-group-text" for="limitAlert">Seuil d'alerte</label>
+                        </div>
+                        <input class="form-control data" type="number" min="0" name="limitAlert" id="limitAlert" onchange="updateLimitsMinMax($(this))">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="limitSecurity">Seuil de sécurité</label>
-                    <input type="number" min="0" id="limitSecurity" class="form-control data" name="limitSecurity" onchange="updateLimitsMinMax($(this))">
+                <div class="form-group col-12">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <label class="input-group-text" for="limitSecurity">Seuil de sécurité</label>
+                        </div>
+                        <input class="form-control data" type="number" min="0" name="limitSecurity" id="limitSecurity" onchange="updateLimitsMinMax($(this))">
+                    </div>
                 </div>
             </div>
             <div class="error-msg p-4"></div>

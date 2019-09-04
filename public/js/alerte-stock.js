@@ -1,7 +1,13 @@
 $('.select2').select2();
 
+$('#utilisateur').select2({
+    placeholder: {
+        text: 'Utilisateur',
+    }
+});
+
 let pathAlerteStock = Routing.generate('alerte_stock_api', true);
-let tableAlerteStock = $('#tableAlerte_id').DataTable({
+let tableAlerteStock = $('#tableAlerteStock_id').DataTable({
     "language": {
         url: "/js/i18n/dataTableLanguage.json",
     },
@@ -25,7 +31,7 @@ let tableAlerteStock = $('#tableAlerte_id').DataTable({
         { "data": "SeuilAlerte", 'title': "Seuil d'alerte" },
         { "data": 'SeuilSecurite', 'title': 'Seuil de sécurité' },
         { "data": 'Utilisateur', 'title': 'Utilisateur' },
-        { "data": 'Statut', 'title': 'Statut' },
+        // { "data": 'Statut', 'title': 'Statut' },
         { "data": 'Actions', 'title': 'Actions' },
     ],
 });
@@ -59,4 +65,16 @@ function displayErrorAlertStock(data) {
     let modal = $("#modalNewAlerteStock");
     let msg = data.msg;
     displayError(modal, msg, data.success);
+}
+
+function filterActiveAlerts($elem)
+{
+    if ($elem.is(':checked')) {
+        // tableAlerteStock
+        // .columns()
+        // .search()
+        // .draw();
+    //    TODO CG
+    } else {
+    }
 }

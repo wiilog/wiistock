@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Repository\AlerteExpiryRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -52,7 +53,12 @@ class AccueilController extends AbstractController
      */
     private $manutentionRepository;
 
-    public function __construct(ManutentionRepository $manutentionRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, CollecteRepository $collecteRepository, AlerteStockRepository $alerteStockRepository, EmplacementRepository $emplacementRepository)
+	/**
+	 * @var AlerteExpiryRepository
+	 */
+    private $alerteExpiryRepository;
+
+    public function __construct(AlerteExpiryRepository $alerteExpiryRepository, ManutentionRepository $manutentionRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, CollecteRepository $collecteRepository, AlerteStockRepository $alerteStockRepository, EmplacementRepository $emplacementRepository)
     {
         $this->alerteStockRepository = $alerteStockRepository;
         $this->emplacementRepository = $emplacementRepository;
@@ -60,6 +66,7 @@ class AccueilController extends AbstractController
         $this->statutRepository = $statutRepository;
         $this->demandeRepository = $demandeRepository;
         $this->manutentionRepository = $manutentionRepository;
+        $this->alerteExpiryRepository = $alerteExpiryRepository;
     }
 
     /**
@@ -69,6 +76,7 @@ class AccueilController extends AbstractController
     {
     	$nbAlertsSecurity = $this->alerteStockRepository->countActivatedLimitSecurityReached();
     	$nbAlerts = $this->alerteStockRepository->countActivatedLimitReached();
+//    	$nbAlertsExpiry = $this->alerteExpiryRepository->countActivatedDateReached();
 
         $statutCollecte = $this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, Collecte::STATUS_A_TRAITER);
         $nbrDemandeCollecte = $this->collecteRepository->countByStatut($statutCollecte);
@@ -85,6 +93,7 @@ class AccueilController extends AbstractController
         return $this->render('accueil/index.html.twig', [
             'nbAlerts' => $nbAlerts,
             'nbAlertsSecurity' => $nbAlertsSecurity,
+//            'nbAlertsExpiry' => $nbAlertsExpiry,
             'nbDemandeCollecte' => $nbrDemandeCollecte,
             'nbDemandeLivraisonAT' => $nbrDemandeLivraisonAT,
             'nbDemandeLivraisonP' => $nbrDemandeLivraisonP,

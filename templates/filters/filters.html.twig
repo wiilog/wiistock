@@ -1,4 +1,5 @@
 <div class="filterService filters">
+    {% block dateFilter %}
     <div>
         <div class="input-group">
             <div class="input-group-prepend">
@@ -11,10 +12,12 @@
             <input type="date" class="form-control" name="dateMax" id="dateMax" placeholder="Date de fin">
         </div>
     </div>
+    {% endblock %}
 
     {% block moreFilters %}
     {% endblock %}
 
+    {% block statusFilter %}
     <div>
         <div class="input-group">
             <select class="form-control data" name="statut" id="statut"
@@ -31,6 +34,7 @@
             </select>
         </div>
     </div>
+    {% endblock %}
     <div>
         <div class="input-group">
             <select class="form-control data" name="utilisateur" id="utilisateur" multiple="multiple" >

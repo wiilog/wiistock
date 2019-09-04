@@ -230,7 +230,7 @@ function editRow(button, path, modal, submit, editorToInit = false, editor = '.e
 
         modal.find('.modal-body').html(resp);
         ajaxAutoFournisseurInit($('.ajax-autocomplete-fournisseur-edit'));
-        ajaxAutoRefArticleInit($('.ajax-autocomplete-edit'));
+        ajaxAutoRefArticleInit($('.ajax-autocomplete-edit, .ajax-autocomplete-ref'));
         ajaxAutoCompleteEmplacementInit($('.ajax-autocompleteEmplacement-edit'));
         ajaxAutoUserInit($('.ajax-autocomplete-user-edit'));
         if ($('#typageModif').val() !== undefined) {   //TODO Moche
@@ -434,7 +434,7 @@ function ajaxAutoCompleteTransporteurInit(select) {
 }
 
 let ajaxAutoRefArticleInit = function (select) {
-
+console.log(select);
     select.select2({
         ajax: {
             url: Routing.generate('get_ref_articles'),
@@ -516,8 +516,8 @@ function clearDiv() {
     $('.clear').html('');
 }
 
-function clearErrorMsg(div) {
-    div.closest('.modal').find('.error-msg').html('');
+function clearErrorMsg($div) {
+    $div.closest('.modal').find('.error-msg').html('');
 }
 
 function displayError(modal, msg, data) {
@@ -538,6 +538,8 @@ function clearModal(modal) {
         }
         // on enlève les classes is-invalid
         $(this).removeClass('is-invalid');
+        $(this).next().find('.select2-selection').removeClass('is-invalid'); //TODO CG protection ?
+
     });
     // on vide tous les select2
     let selects = $modal.find('.modal-body').find('.ajax-autocomplete,.ajax-autocompleteEmplacement, .ajax-autocompleteFournisseur, .select2');

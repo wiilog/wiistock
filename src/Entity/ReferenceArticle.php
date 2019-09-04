@@ -111,6 +111,12 @@ class ReferenceArticle
 	 */
 	private $mouvements;
 
+	/**
+	 * @ORM\Column(type="date", nullable=true)
+	 */
+	private $expiryDate;
+
+
     public function __construct()
     {
         $this->articles = new ArrayCollection();
@@ -528,6 +534,18 @@ class ReferenceArticle
             $this->valeurChampsLibres->removeElement($valeurChampsLibre);
             $valeurChampsLibre->removeArticleReference($this);
         }
+
+        return $this;
+    }
+
+    public function getExpiryDate(): ?\DateTimeInterface
+    {
+        return $this->expiryDate;
+    }
+
+    public function setExpiryDate(?\DateTimeInterface $expiryDate): self
+    {
+        $this->expiryDate = $expiryDate;
 
         return $this;
     }

@@ -91,7 +91,7 @@ class AlerteStockController extends AbstractController
                     'Code' => $alerte->getNumero(),
                     "SeuilAlerte" => $alerte->getLimitAlert(),
                     'SeuilSecurite' => $alerte->getLimitSecurity(),
-                    'Statut' => $alerte->getActivated() ? 'active' : 'inactive',
+//                    'Statut' => $alerte->getActivated() ? 'active' : 'inactive',
                     'Référence' => $alerte->getRefArticle() ? $alerte->getRefArticle()->getLibelle() . '<br>(' . $alerte->getRefArticle()->getReference() . ')' : null,
                     'QuantiteStock' => $quantiteStock,
                     'Utilisateur' => $alerte->getUser() ? $alerte->getUser()->getUsername() : '',
@@ -112,7 +112,9 @@ class AlerteStockController extends AbstractController
      */
     public function index(): Response
     {
-        return $this->render('alerte_stock/index.html.twig');
+        return $this->render('alerte_stock/index.html.twig', [
+			'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
+		]);
     }
 
     /**
@@ -144,7 +146,7 @@ class AlerteStockController extends AbstractController
 				$alerte = new AlerteStock();
 				$date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
 				$alerte
-					->setNumero('A-' . $date->format('YmdHis'))
+					->setNumero('AS-' . $date->format('YmdHis'))
 					->setLimitAlert($data['limitAlert'] ? $data['limitAlert'] : null)
 					->setLimitSecurity($data['limitSecurity'] ? $data['limitSecurity'] : null)
 					->setUser($this->getUser())
@@ -164,7 +166,7 @@ class AlerteStockController extends AbstractController
     }
 
     /**
-     * @Route("/api-modifier", name="alerte_api_edit", options={"expose"=true}, methods="GET|POST")
+     * @Route("/api-modifier", name="alerte_stock_api_edit", options={"expose"=true}, methods="GET|POST")
      */
     public function editApi(Request $request): Response
     {

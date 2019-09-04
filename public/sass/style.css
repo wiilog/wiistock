@@ -215,6 +215,10 @@ a:hover {
   overflow: auto;
 }
 
+.label {
+  color: #b2b2b2;
+}
+
 /* Login    
  * *================= 
  * */
