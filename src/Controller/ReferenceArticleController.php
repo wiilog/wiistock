@@ -568,7 +568,7 @@ class ReferenceArticleController extends Controller
                 'champsLibres' => $champsLibres,
             ];
         }
-        $filter = $this->filtreRefRepository->findByUserAndChampFixe($this->getUser(), FiltreRef::CHAMP_FIXE_STATUT);
+        $filter = $this->filtreRefRepository->findOneByUserAndChampFixe($this->getUser(), FiltreRef::CHAMP_FIXE_STATUT);
 
         return $this->render('reference_article/index.html.twig', [
             'champs' => $champs,
@@ -1113,7 +1113,7 @@ class ReferenceArticleController extends Controller
             $user = $this->getUser();
             $statutArticle = $data['donnees'];
 
-            $filter = $this->filtreRefRepository->findByUserAndChampFixe($user, FiltreRef::CHAMP_FIXE_STATUT);
+            $filter = $this->filtreRefRepository->findOneByUserAndChampFixe($user, FiltreRef::CHAMP_FIXE_STATUT);
 
             $em = $this->getDoctrine()->getManager();
             if($filter == null){

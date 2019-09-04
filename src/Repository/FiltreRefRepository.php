@@ -75,16 +75,18 @@ class FiltreRefRepository extends ServiceEntityRepository
     /**
      * @param Utilisateur $user
 	 * @param string $champFixe
-     * @return FiltreRef
+     * @return FiltreRef|null
      */
-    public function findByUserAndChampFixe($user, $champFixe) {
+    public function findOneByUserAndChampFixe($user, $champFixe) {
         $em = $this->getEntityManager();
         $query = $em->createQuery(
             "SELECT f
             FROM App\Entity\FiltreRef f
             WHERE f.utilisateur =:user AND f.champFixe = :cf"
         )->setParameters(['user' => $user, 'cf' => $champFixe]);
-        return $query->execute();
+
+        $result = $query->execute();
+        return $result ? $result[0] : null;
     }
 
     public function findByUserExceptChampFixe($user, $champFixe) {
