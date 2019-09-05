@@ -74,7 +74,7 @@ function filterActiveAlerts($elem)
         // .columns()
         // .search()
         // .draw();
-    //    TODO CG
+        // TODO CG
     } else {
     }
 }

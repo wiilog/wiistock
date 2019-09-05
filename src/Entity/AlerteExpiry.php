@@ -11,9 +11,9 @@ use Doctrine\ORM\Mapping as ORM;
  */
 class AlerteExpiry
 {
-	const TYPE_PERIOD_DAYS = 'jours';
-	const TYPE_PERIOD_WEEKS = 'semaines';
-	const TYPE_PERIOD_MONTHS = 'mois';
+	const TYPE_PERIOD_DAY = 'jour';
+	const TYPE_PERIOD_WEEK = 'semaine';
+	const TYPE_PERIOD_MONTH = 'mois';
     /**
      * @ORM\Id()
      * @ORM\GeneratedValue()

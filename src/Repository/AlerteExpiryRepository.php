@@ -27,15 +27,26 @@ class AlerteExpiryRepository extends ServiceEntityRepository
 
 		$now = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
 		$now->setTime(0,0);
+		$now = $now->format('Y-m-d H:i:s');
 
 		$query = $entityManager->createQuery(
 			/** @lang DQL */
-			"SELECT COUNT(a)
+			"SELECT COUNT(DISTINCT(ra))
 			FROM App\Entity\AlerteExpiry a
 			LEFT JOIN a.refArticle ra
-			WHERE DATE_ADD(:now, a.nbPeriod, a.typePeriod) < ra.expiryDate" //TODO CG pb ici
-		)
-		->setParameter('now', $now);
+			WHERE a.activated = 1
+			AND (
+			(a.typePeriod = :jour AND DATE_SUB(ra.expiryDate, a.nbPeriod, 'day') <= '" . $now . "')
+			OR
+			(a.typePeriod = :semaine AND DATE_SUB(ra.expiryDate, a.nbPeriod, 'week') <= '" . $now . "')
+			OR
+			(a.typePeriod = :mois AND DATE_SUB(ra.expiryDate, a.nbPeriod, 'month') <= '" . $now . "')
+			)"
+		)->setParameters([
+			'jour' => AlerteExpiry::TYPE_PERIOD_DAY,
+			'semaine' => AlerteExpiry::TYPE_PERIOD_WEEK,
+			'mois' => AlerteExpiry::TYPE_PERIOD_MONTH
+		]);
 
 		return $query->getSingleScalarResult();
 	}

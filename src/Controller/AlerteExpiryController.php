@@ -7,6 +7,7 @@ use App\Entity\AlerteExpiry;
 use App\Entity\Menu;
 use App\Repository\AlerteExpiryRepository;
 use App\Repository\ReferenceArticleRepository;
+use App\Service\AlerteService;
 use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
@@ -36,11 +37,17 @@ class AlerteExpiryController extends AbstractController
 	 */
 	private $referenceArticleRepository;
 
-    public function __construct(AlerteExpiryRepository $alerteExpiryRepository, UserService $userService, ReferenceArticleRepository $referenceArticleRepository)
+	/**
+	 * @var AlerteService
+	 */
+	private $alerteDataService;
+
+    public function __construct(AlerteService $alerteDataService, AlerteExpiryRepository $alerteExpiryRepository, UserService $userService, ReferenceArticleRepository $referenceArticleRepository)
     {
 		$this->alerteExpiryRepository = $alerteExpiryRepository;
 		$this->userService = $userService;
 		$this->referenceArticleRepository = $referenceArticleRepository;
+		$this->alerteDataService = $alerteDataService;
     }
 
     /**
@@ -54,14 +61,15 @@ class AlerteExpiryController extends AbstractController
 
             foreach ($alertes as $alerte) {
             	$delay = $alerte->getNbPeriod() . ' ' . $alerte->getTypePeriod();
-            	if ($alerte->getNbPeriod() <= 1) $delay = substr($delay, 0, -1);
+            	if ($alerte->getNbPeriod() > 1 && $alerte->getTypePeriod() != 'mois') $delay .= 's';
 
             	$rows[] = [
 					'id' => $alerte->getId(),
 					'Code' => $alerte->getNumero(),
 					'Référence' => $alerte->getRefArticle() ? $alerte->getRefArticle()->getLibelle() . '<br>(' . $alerte->getRefArticle()->getReference() . ')' : 'toutes',
-					'Date péremption' => $alerte->getRefArticle() ? $alerte->getRefArticle()->getExpiryDate()->format('d/m/Y') : '-',
+					'Date péremption' => $alerte->getRefArticle() ? $alerte->getRefArticle()->getExpiryDate() ? $alerte->getRefArticle()->getExpiryDate()->format('d/m/Y') : '-' : '-',
 					'Délai alerte' => $delay,
+					'Alerte' => $this->alerteDataService->isAlerteExpiryReached($alerte),
 					'Utilisateur' => $alerte->getUser() ? $alerte->getUser()->getUsername() : '',
 					'Actions' => $this->renderView('alerte_expiry/datatableAlerteExpiryRow.html.twig', [
 						'alerteId' => $alerte->getId(),
@@ -80,7 +88,8 @@ class AlerteExpiryController extends AbstractController
      */
     public function index(): Response
     {
-        return $this->render('alerte_expiry/index.html.twig');
+    	$nbAlerts = $this->alerteExpiryRepository->countActivatedDateReached();
+        return $this->render('alerte_expiry/index.html.twig', ['nbAlerts' => $nbAlerts]);
     }
 
     /**
@@ -102,9 +111,9 @@ class AlerteExpiryController extends AbstractController
 			}
 
             switch($data['period']) {
-				case AlerteExpiry::TYPE_PERIOD_DAYS:
-				case AlerteExpiry::TYPE_PERIOD_WEEKS:
-				case AlerteExpiry::TYPE_PERIOD_MONTHS:
+				case AlerteExpiry::TYPE_PERIOD_DAY:
+				case AlerteExpiry::TYPE_PERIOD_WEEK:
+				case AlerteExpiry::TYPE_PERIOD_MONTH:
 					$typePeriod = $data['period'];
 					break;
 				default:
@@ -170,9 +179,9 @@ class AlerteExpiryController extends AbstractController
 			}
 
 			switch($data['period']) {
-				case AlerteExpiry::TYPE_PERIOD_DAYS:
-				case AlerteExpiry::TYPE_PERIOD_WEEKS:
-				case AlerteExpiry::TYPE_PERIOD_MONTHS:
+				case AlerteExpiry::TYPE_PERIOD_DAY:
+				case AlerteExpiry::TYPE_PERIOD_WEEK:
+				case AlerteExpiry::TYPE_PERIOD_MONTH:
 					$typePeriod = $data['period'];
 					break;
 				default:

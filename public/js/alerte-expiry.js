@@ -9,10 +9,11 @@ let tableAlerteExpiry = $('#tableAlerteExpiry_id').DataTable({
         "url":pathAlerteExpiry,
         "type": "POST"
     },
-    // 'rowCallback': function (row, data) {
-    //     if () {
-    //         $(row).addClass('bg-danger');
-    //     } else if () {
+    'drawCallback': function () {
+        tableAlerteExpiry.column('Alerte:name').visible(false);
+    },
+    // 'rowCallback': function(row, data) {
+    //     if (data.Alerte === true) {
     //         $(row).addClass('bg-warning');
     //     }
     // },
@@ -24,6 +25,7 @@ let tableAlerteExpiry = $('#tableAlerteExpiry_id').DataTable({
         { "data": 'Délai alerte', 'title': 'Délai alerte' },
         { "data": 'Utilisateur', 'title': 'Créée par' },
         { "data": 'Actions', 'title': 'Actions' },
+        { "data" : 'Alerte', 'name': 'Alerte', 'title': 'Alerte'}
     ],
 });
 
@@ -65,4 +67,15 @@ function checkboxOff($elem)
     }
 
     $elem.next().find('.select2-selection').removeClass('is-invalid');
+}
+
+function toggleActiveButton($button) {
+    $button.toggleClass('active');
+    $button.toggleClass('not-active');
+
+    let value = $button.hasClass('active') ? 'true' : '';
+    tableAlerteExpiry
+        .columns('Alerte:name')
+        .search(value)
+        .draw();
 }

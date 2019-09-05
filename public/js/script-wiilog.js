@@ -434,7 +434,6 @@ function ajaxAutoCompleteTransporteurInit(select) {
 }
 
 let ajaxAutoRefArticleInit = function (select) {
-console.log(select);
     select.select2({
         ajax: {
             url: Routing.generate('get_ref_articles'),
@@ -538,8 +537,8 @@ function clearModal(modal) {
         }
         // on enlève les classes is-invalid
         $(this).removeClass('is-invalid');
-        $(this).next().find('.select2-selection').removeClass('is-invalid'); //TODO CG protection ?
-
+        $(this).next().find('.select2-selection').removeClass('is-invalid');
+        //TODO CG protection ?
     });
     // on vide tous les select2
     let selects = $modal.find('.modal-body').find('.ajax-autocomplete,.ajax-autocompleteEmplacement, .ajax-autocompleteFournisseur, .select2');

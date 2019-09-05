@@ -24,8 +24,8 @@
         <label hidden>Délai avant alerte</label>
         <input type="number" min="0" class="form-control data needed" name="nbPeriods" value="{{ alerte.nbPeriod }}">
         <select class="form-control data needed" name="period">
-            <option value="jours" {{ alerte.typePeriod == 'jours' ? 'selected' : '' }}>jours</option>
-            <option value="semaines" {{ alerte.typePeriod == 'semaines' ? 'selected' : '' }}>semaines</option>
+            <option value="jour" {{ alerte.typePeriod == 'jour' ? 'selected' : '' }}>jours</option>
+            <option value="semaine" {{ alerte.typePeriod == 'semaine' ? 'selected' : '' }}>semaines</option>
             <option value="mois" {{ alerte.typePeriod == 'mois' ? 'selected' : '' }}>mois</option>
         </select>
         <div class="label p-2">avant la date de péremption.</div>

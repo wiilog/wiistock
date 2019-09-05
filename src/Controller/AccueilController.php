@@ -76,7 +76,7 @@ class AccueilController extends AbstractController
     {
     	$nbAlertsSecurity = $this->alerteStockRepository->countActivatedLimitSecurityReached();
     	$nbAlerts = $this->alerteStockRepository->countActivatedLimitReached();
-//    	$nbAlertsExpiry = $this->alerteExpiryRepository->countActivatedDateReached();
+    	$nbAlertsExpiry = $this->alerteExpiryRepository->countActivatedDateReached();
 
         $statutCollecte = $this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, Collecte::STATUS_A_TRAITER);
         $nbrDemandeCollecte = $this->collecteRepository->countByStatut($statutCollecte);
@@ -93,7 +93,7 @@ class AccueilController extends AbstractController
         return $this->render('accueil/index.html.twig', [
             'nbAlerts' => $nbAlerts,
             'nbAlertsSecurity' => $nbAlertsSecurity,
-//            'nbAlertsExpiry' => $nbAlertsExpiry,
+            'nbAlertsExpiry' => $nbAlertsExpiry,
             'nbDemandeCollecte' => $nbrDemandeCollecte,
             'nbDemandeLivraisonAT' => $nbrDemandeLivraisonAT,
             'nbDemandeLivraisonP' => $nbrDemandeLivraisonP,
