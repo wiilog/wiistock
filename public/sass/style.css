@@ -687,7 +687,7 @@ a:hover {
   background-color: #bd2130 !important;
   color: white !important;
 }
-.radio-btn .not-active {
+.radio-btn .btn-danger .not-active {
   color: #bd2130 !important;
   background-color: white;
 }
