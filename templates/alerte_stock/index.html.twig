@@ -21,12 +21,18 @@
         </a>
     {% endif %}
     </div>
-    <div class="offset-6 col-2">
-        <label class="switch">
-            <input class="checkbox" type="checkbox" onclick="filterActiveAlerts($(this))">
-            <span class="slider round"></span>
-        </label>
-        <label>alertes actives</label>
+    <div class="offset-4 col-4 text-right">
+        {% if nbAlerts > 0 %}
+            <div class="radio-btn">
+            <span id="filter-active" class="btn btn-danger {{ filter ? 'active' : 'not-active' }}" onclick="toggleActiveButton($(this), tableAlerteStock)">
+                {% set s = nbAlerts > 1 ? 's' : '' %}
+                <div>
+                    <span class="fa fa-exclamation-triangle mr-2"></span>
+                    {{ nbAlerts }} référence{{ s }} en alerte
+                </div>
+            </span>
+            </div>
+        {% endif %}
     </div>
 </div>
 

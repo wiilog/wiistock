@@ -40,14 +40,15 @@ class AlerteExpiryController extends AbstractController
 	/**
 	 * @var AlerteService
 	 */
-	private $alerteDataService;
+	private $alerteService;
 
-    public function __construct(AlerteService $alerteDataService, AlerteExpiryRepository $alerteExpiryRepository, UserService $userService, ReferenceArticleRepository $referenceArticleRepository)
+
+    public function __construct(AlerteService $alerteService, AlerteExpiryRepository $alerteExpiryRepository, UserService $userService, ReferenceArticleRepository $referenceArticleRepository)
     {
 		$this->alerteExpiryRepository = $alerteExpiryRepository;
 		$this->userService = $userService;
 		$this->referenceArticleRepository = $referenceArticleRepository;
-		$this->alerteDataService = $alerteDataService;
+		$this->alerteService = $alerteService;
     }
 
     /**
@@ -58,21 +59,45 @@ class AlerteExpiryController extends AbstractController
         if ($request->isXmlHttpRequest()) {
             $alertes = $this->alerteExpiryRepository->findAll();
             $rows = [];
+			$refs = [];
 
             foreach ($alertes as $alerte) {
-            	$delay = $alerte->getNbPeriod() . ' ' . $alerte->getTypePeriod();
-            	if ($alerte->getNbPeriod() > 1 && $alerte->getTypePeriod() != 'mois') $delay .= 's';
+				if (!$alerte->getRefArticle()) {
+					$refs[] = [$alerte];
+				} else {
+					$refId = $alerte->getRefArticle()->getId();
+					$refs[$refId][] = $alerte;
+				}
+			}
+
+            foreach($refs as $refId => $alertes) {
+            	$reference = $this->referenceArticleRepository->find($refId);
+
+            	$delay = $user = '';
+            	$active = false;
+            	$alertesId = [];
+
+            	foreach($alertes as $alerte) {
+					$delay .= $alerte->getNbPeriod() . ' ' . $alerte->getTypePeriod();
+					if ($alerte->getNbPeriod() > 1 && $alerte->getTypePeriod() != 'mois') $delay .= 's';
+					$delay .= '<br>';
+
+					if ($this->alerteService->isAlerteExpiryActive($alerte)) $active = true;
+
+					$user .= $alerte->getUser() ? $alerte->getUser()->getUsername() : '';
+					$user .= '<br>';
+
+					$alertesId[] = $alerte->getId();
+				}
 
             	$rows[] = [
-					'id' => $alerte->getId(),
-					'Code' => $alerte->getNumero(),
-					'Référence' => $alerte->getRefArticle() ? $alerte->getRefArticle()->getLibelle() . '<br>(' . $alerte->getRefArticle()->getReference() . ')' : 'toutes',
-					'Date péremption' => $alerte->getRefArticle() ? $alerte->getRefArticle()->getExpiryDate() ? $alerte->getRefArticle()->getExpiryDate()->format('d/m/Y') : '-' : '-',
+					'Référence' => $reference ? $reference->getReference(). '<br>(' . $reference->getLibelle() . ')' : 'toutes',
+					'Date péremption' => $reference ? $reference->getExpiryDate() ? $reference->getExpiryDate()->format('d/m/Y') : '-' : '-',
 					'Délai alerte' => $delay,
-					'Alerte' => $this->alerteDataService->isAlerteExpiryReached($alerte),
-					'Utilisateur' => $alerte->getUser() ? $alerte->getUser()->getUsername() : '',
+					'Active' => $active,
+					'Utilisateur' => $user,
 					'Actions' => $this->renderView('alerte_expiry/datatableAlerteExpiryRow.html.twig', [
-						'alerteId' => $alerte->getId(),
+						'alertesId' => $alertesId,
 					]),
                 ];
             }
@@ -88,7 +113,7 @@ class AlerteExpiryController extends AbstractController
      */
     public function index($filter = null): Response
     {
-    	$nbAlerts = $this->alerteExpiryRepository->countActivatedDateReached();
+    	$nbAlerts = $this->alerteExpiryRepository->countDateReached();
 
         return $this->render('alerte_expiry/index.html.twig', [
         	'nbAlerts' => $nbAlerts,
@@ -124,15 +149,11 @@ class AlerteExpiryController extends AbstractController
 					return new JsonResponse(false);
 			}
 
-			$date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
-
             $alerte = new AlerteExpiry();
             $alerte
-				->setNumero('AP-' . $date->format('YmdHis'))
 				->setNbPeriod($data['nbPeriods'])
 				->setTypePeriod($typePeriod)
 				->setUser($this->getUser())
-				->setActivated(true)
 				->setRefArticle($refArticle);
 
 			$em->persist($alerte);

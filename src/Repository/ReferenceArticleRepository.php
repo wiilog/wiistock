@@ -102,11 +102,12 @@ class ReferenceArticleRepository extends ServiceEntityRepository
         return $query->execute();
     }
 
+    //TODO CG remplacer par $ref->getQuantiteStock()
     public function getQuantiteStockById($id)
     {
         $entityManager = $this->getEntityManager();
         $query = $entityManager->createQuery(
-            "SELECT r. quantiteStock
+            "SELECT r.quantiteStock
             FROM App\Entity\ReferenceArticle r
             WHERE r.id = $id
            "

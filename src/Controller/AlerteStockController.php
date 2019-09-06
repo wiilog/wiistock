@@ -12,6 +12,7 @@ use App\Repository\ArticleRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\ReferenceArticleRepository;
 
+use App\Service\AlerteService;
 use App\Service\UserService;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -52,14 +53,20 @@ class AlerteStockController extends AbstractController
      */
     private $userService;
 
+	/**
+	 * @var AlerteService
+	 */
+    private $alerteService;
 
-    public function __construct(ArticleRepository $articleRepository, AlerteStockRepository $alerteStockRepository, UtilisateurRepository $utilisateurRepository, ReferenceArticleRepository $referenceArticleRepository, UserService $userService)
+
+    public function __construct(AlerteService $alerteService, ArticleRepository $articleRepository, AlerteStockRepository $alerteStockRepository, UtilisateurRepository $utilisateurRepository, ReferenceArticleRepository $referenceArticleRepository, UserService $userService)
     {
         $this->alerteStockRepository = $alerteStockRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->utilisateurRepository = $utilisateurRepository;
         $this->articleRepository = $articleRepository;
         $this->userService = $userService;
+        $this->alerteService = $alerteService;
     }
 
     /**
@@ -91,11 +98,11 @@ class AlerteStockController extends AbstractController
                     'Code' => $alerte->getNumero(),
                     "SeuilAlerte" => $alerte->getLimitAlert(),
                     'SeuilSecurite' => $alerte->getLimitSecurity(),
-//                    'Statut' => $alerte->getActivated() ? 'active' : 'inactive',
                     'Référence' => $alerte->getRefArticle() ? $alerte->getRefArticle()->getLibelle() . '<br>(' . $alerte->getRefArticle()->getReference() . ')' : null,
                     'QuantiteStock' => $quantiteStock,
                     'Utilisateur' => $alerte->getUser() ? $alerte->getUser()->getUsername() : '',
-                    'Actions' => $this->renderView('alerte_stock/datatableAlerteStockRow.html.twig', [
+					'Active' => $this->alerteService->isAlerteStockActive($alerte, false),
+					'Actions' => $this->renderView('alerte_stock/datatableAlerteStockRow.html.twig', [
                         'alerteId' => $alerte->getId(),
                     ]),
                 ];
@@ -108,12 +115,16 @@ class AlerteStockController extends AbstractController
     }
 
     /**
-     * @Route("/", name="alerte_stock_index", methods="GET")
+     * @Route("/liste/{filter}", name="alerte_stock_index", methods="GET")
      */
-    public function index(): Response
+    public function index($filter = null): Response
     {
+    	$nbAlerts = $this->alerteStockRepository->countLimitReached();
+
         return $this->render('alerte_stock/index.html.twig', [
 			'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
+			'nbAlerts' => $nbAlerts,
+			'filter' => $filter == 'active'
 		]);
     }
 
@@ -150,7 +161,6 @@ class AlerteStockController extends AbstractController
 					->setLimitAlert($data['limitAlert'] ? $data['limitAlert'] : null)
 					->setLimitSecurity($data['limitSecurity'] ? $data['limitSecurity'] : null)
 					->setUser($this->getUser())
-					->setActivated(true)
 					->setRefArticle($refArticle);
 
 				$em->persist($alerte);

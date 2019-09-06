@@ -48,11 +48,6 @@ class AlerteStock
      */
     private $refArticle;
 
-    /**
-     * @ORM\Column(type="boolean", nullable=true)
-     */
-    private $activated;
-
 
     public function getId(): ?int
     {
@@ -115,18 +110,6 @@ class AlerteStock
     public function setRefArticle(?ReferenceArticle $refArticle): self
     {
         $this->refArticle = $refArticle;
-
-        return $this;
-    }
-
-    public function getActivated(): ?bool
-    {
-        return $this->activated;
-    }
-
-    public function setActivated(?bool $activated): self
-    {
-        $this->activated = $activated;
 
         return $this;
     }

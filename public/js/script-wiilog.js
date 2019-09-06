@@ -617,3 +617,14 @@ function checkAndDeleteRow(icon, modalName, route, submit) {
         }
     });
 }
+
+function toggleActiveButton($button, table) {
+    $button.toggleClass('active');
+    $button.toggleClass('not-active');
+
+    let value = $button.hasClass('active') ? 'true' : '';
+    table
+        .columns('Active:name')
+        .search(value)
+        .draw();
+}

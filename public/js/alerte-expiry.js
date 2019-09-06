@@ -10,7 +10,7 @@ let tableAlerteExpiry = $('#tableAlerteExpiry_id').DataTable({
         "type": "POST"
     },
     'drawCallback': function () {
-        tableAlerteExpiry.column('Alerte:name').visible(false);
+        tableAlerteExpiry.column('Active:name').visible(false);
     },
     initComplete: function() {
         // applique les filtres si pré-remplis
@@ -22,15 +22,14 @@ let tableAlerteExpiry = $('#tableAlerteExpiry_id').DataTable({
                 .draw();
         }
     },
-    order: [[1, 'asc']],
+    order: [[0, 'asc']],
     columns: [
-        { "data": 'Code', 'title': 'Code' },
         { "data": 'Référence', 'title': 'Référence' },
         { "data": 'Date péremption', 'title': 'Date péremption' },
         { "data": 'Délai alerte', 'title': 'Délai alerte' },
         { "data": 'Utilisateur', 'title': 'Créée par' },
+        { "data": 'Active', 'name': 'Active', 'title': 'Active'},
         { "data": 'Actions', 'title': 'Actions' },
-        { "data" : 'Alerte', 'name': 'Alerte', 'title': 'Alerte'}
     ],
 });
 
@@ -73,15 +72,4 @@ function checkboxOff($elem)
     }
 
     $elem.next().find('.select2-selection').removeClass('is-invalid');
-}
-
-function toggleActiveButton($button) {
-    $button.toggleClass('active');
-    $button.toggleClass('not-active');
-
-    let value = $button.hasClass('active') ? 'true' : '';
-    tableAlerteExpiry
-        .columns('Alerte:name')
-        .search(value)
-        .draw();
 }

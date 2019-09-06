@@ -25,7 +25,7 @@ class AlerteStockRepository extends ServiceEntityRepository
 	 * @return int
 	 * @throws \Doctrine\ORM\NonUniqueResultException
 	 */
-    public function countActivatedLimitSecurityReached()
+    public function countLimitSecurityReached()
 	{
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager->createQuery(
@@ -33,8 +33,7 @@ class AlerteStockRepository extends ServiceEntityRepository
 			"SELECT COUNT(a)
 			FROM App\Entity\AlerteStock a
 			JOIN a.refArticle ra
-			WHERE a.activated = 1
-			AND (
+			WHERE (
 				(ra.typeQuantite = :qte_ref AND ra.quantiteStock <= a.limitSecurity)
 				OR
 				(ra.typeQuantite = :qte_art AND (
@@ -59,7 +58,7 @@ class AlerteStockRepository extends ServiceEntityRepository
 	 * @return int
 	 * @throws \Doctrine\ORM\NonUniqueResultException
 	 */
-	public function countActivatedLimitReached()
+	public function countLimitReached()
 	{
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager->createQuery(
@@ -67,8 +66,7 @@ class AlerteStockRepository extends ServiceEntityRepository
 			"SELECT COUNT(a)
 			FROM App\Entity\AlerteStock a
 			JOIN a.refArticle ra
-			WHERE a.activated = 1
-			AND (
+			WHERE (
 					(ra.typeQuantite = :qte_ref AND (ra.quantiteStock <= a.limitAlert OR ra.quantiteStock <= a.limitSecurity))
 					OR
 					(ra.typeQuantite = :qte_art AND 

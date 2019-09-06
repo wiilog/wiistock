@@ -22,11 +22,6 @@ class AlerteExpiry
     private $id;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
-     */
-    private $numero;
-
-    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="alertesStock")
      */
     private $user;
@@ -46,27 +41,10 @@ class AlerteExpiry
 	 */
     private $typePeriod;
 
-    /**
-     * @ORM\Column(type="boolean", nullable=true)
-     */
-    private $activated;
-
 
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getNumero(): ?string
-    {
-        return $this->numero;
-    }
-
-    public function setNumero(?string $numero): self
-    {
-        $this->numero = $numero;
-
-        return $this;
     }
 
     public function getNbPeriod(): ?int
@@ -77,18 +55,6 @@ class AlerteExpiry
     public function setNbPeriod(?int $nbPeriod): self
     {
         $this->nbPeriod = $nbPeriod;
-
-        return $this;
-    }
-
-    public function getActivated(): ?bool
-    {
-        return $this->activated;
-    }
-
-    public function setActivated(?bool $activated): self
-    {
-        $this->activated = $activated;
 
         return $this;
     }

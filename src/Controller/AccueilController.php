@@ -74,9 +74,9 @@ class AccueilController extends AbstractController
      */
     public function index(): Response
     {
-    	$nbAlertsSecurity = $this->alerteStockRepository->countActivatedLimitSecurityReached();
-    	$nbAlerts = $this->alerteStockRepository->countActivatedLimitReached();
-    	$nbAlertsExpiry = $this->alerteExpiryRepository->countActivatedDateReached();
+    	$nbAlertsSecurity = $this->alerteStockRepository->countLimitSecurityReached();
+    	$nbAlerts = $this->alerteStockRepository->countLimitReached();
+    	$nbAlertsExpiry = $this->alerteExpiryRepository->countDateReached();
 
         $statutCollecte = $this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, Collecte::STATUS_A_TRAITER);
         $nbrDemandeCollecte = $this->collecteRepository->countByStatut($statutCollecte);

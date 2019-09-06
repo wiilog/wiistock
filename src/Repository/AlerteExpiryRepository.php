@@ -21,7 +21,7 @@ class AlerteExpiryRepository extends ServiceEntityRepository
         parent::__construct($registry, AlerteExpiry::class);
     }
 
-	public function countActivatedDateReached()
+	public function countDateReached()
 	{
 		$entityManager = $this->getEntityManager();
 
@@ -34,8 +34,7 @@ class AlerteExpiryRepository extends ServiceEntityRepository
 			"SELECT COUNT(DISTINCT(ra))
 			FROM App\Entity\AlerteExpiry a
 			LEFT JOIN a.refArticle ra
-			WHERE a.activated = 1
-			AND (
+			WHERE (
 			(a.typePeriod = :jour AND DATE_SUB(ra.expiryDate, a.nbPeriod, 'day') <= '" . $now . "')
 			OR
 			(a.typePeriod = :semaine AND DATE_SUB(ra.expiryDate, a.nbPeriod, 'week') <= '" . $now . "')

@@ -15,14 +15,8 @@ let tableAlerteStock = $('#tableAlerteStock_id').DataTable({
         "url":pathAlerteStock,
         "type": "POST"
     },
-    'rowCallback': function (row, data) {
-        if (data.Statut == 'inactive') {
-            $(row).addClass('bg-secondary text-white')
-        } else if (data.QuantiteStock <= data.SeuilSecurite) {
-            $(row).addClass('bg-danger');
-        } else if (data.QuantiteStock <= data.SeuilAlerte) {
-            $(row).addClass('bg-warning');
-        }
+    'drawCallback': function () {
+        tableAlerteStock.column('Active:name').visible(false);
     },
     columns: [
         { "data": 'Code', 'title': 'Code' },
@@ -31,7 +25,7 @@ let tableAlerteStock = $('#tableAlerteStock_id').DataTable({
         { "data": "SeuilAlerte", 'title': "Seuil d'alerte" },
         { "data": 'SeuilSecurite', 'title': 'Seuil de sécurité' },
         { "data": 'Utilisateur', 'title': 'Utilisateur' },
-        // { "data": 'Statut', 'title': 'Statut' },
+        { "data": 'Active', 'name': 'Active', 'title': 'Active' },
         { "data": 'Actions', 'title': 'Actions' },
     ],
 });
