@@ -23,7 +23,7 @@
     <div class="input-group">
         <label hidden>Délai avant alerte</label>
         <input type="number" min="0" class="form-control data needed" name="nbPeriods" value="{{ alerte.nbPeriod }}">
-        <select class="form-control data needed" name="period">
+        <select class="form-control data needed w-22" name="period">
             <option value="jour" {{ alerte.typePeriod == 'jour' ? 'selected' : '' }}>jours</option>
             <option value="semaine" {{ alerte.typePeriod == 'semaine' ? 'selected' : '' }}>semaines</option>
             <option value="mois" {{ alerte.typePeriod == 'mois' ? 'selected' : '' }}>mois</option>

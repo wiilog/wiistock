@@ -198,6 +198,10 @@ a:hover {
   width: 49%;
 }
 
+.w-22 {
+  width: 22% !important;
+}
+
 .border-radius-light {
   border-radius: 10px !important;
 }

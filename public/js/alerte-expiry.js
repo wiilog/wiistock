@@ -12,12 +12,12 @@ let tableAlerteExpiry = $('#tableAlerteExpiry_id').DataTable({
     'drawCallback': function () {
         tableAlerteExpiry.column('Active:name').visible(false);
     },
-    initComplete: function() {
+    'initComplete': function() {
         // applique les filtres si pré-remplis
         let filterActive = $('#filter-active').hasClass('active');
         if (filterActive) {
             tableAlerteExpiry
-                .columns('Alerte:name')
+                .columns('Active:name')
                 .search('true')
                 .draw();
         }
