@@ -174,8 +174,6 @@ function setMaxQuantity(select) {
     }, 'json');
 }
 
-
-
 $('.ajax-autocomplete').select2({
     ajax: {
         url: Routing.generate('get_ref_articles'),

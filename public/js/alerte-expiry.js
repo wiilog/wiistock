@@ -12,11 +12,16 @@ let tableAlerteExpiry = $('#tableAlerteExpiry_id').DataTable({
     'drawCallback': function () {
         tableAlerteExpiry.column('Alerte:name').visible(false);
     },
-    // 'rowCallback': function(row, data) {
-    //     if (data.Alerte === true) {
-    //         $(row).addClass('bg-warning');
-    //     }
-    // },
+    initComplete: function() {
+        // applique les filtres si pré-remplis
+        let filterActive = $('#filter-active').hasClass('active');
+        if (filterActive) {
+            tableAlerteExpiry
+                .columns('Alerte:name')
+                .search('true')
+                .draw();
+        }
+    },
     order: [[1, 'asc']],
     columns: [
         { "data": 'Code', 'title': 'Code' },
@@ -28,6 +33,7 @@ let tableAlerteExpiry = $('#tableAlerteExpiry_id').DataTable({
         { "data" : 'Alerte', 'name': 'Alerte', 'title': 'Alerte'}
     ],
 });
+
 
 let modalNewAlerteExpiry = $("#modalNewAlerteExpiry");
 let submitNewAlerteExpiry = $("#submitNewAlerteExpiry");

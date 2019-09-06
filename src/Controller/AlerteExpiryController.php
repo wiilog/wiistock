@@ -84,12 +84,16 @@ class AlerteExpiryController extends AbstractController
     }
 
     /**
-     * @Route("/", name="alerte_expiry_index", methods="GET")
+     * @Route("/liste/{filter}", name="alerte_expiry_index", methods="GET")
      */
-    public function index(): Response
+    public function index($filter = null): Response
     {
     	$nbAlerts = $this->alerteExpiryRepository->countActivatedDateReached();
-        return $this->render('alerte_expiry/index.html.twig', ['nbAlerts' => $nbAlerts]);
+
+        return $this->render('alerte_expiry/index.html.twig', [
+        	'nbAlerts' => $nbAlerts,
+			'filter' => $filter == 'active'
+		]);
     }
 
     /**

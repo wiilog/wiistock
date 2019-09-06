@@ -16,12 +16,17 @@
     {% endif %}
     </div>
     <div class="offset-4 col-4 text-right">
+        {% if nbAlerts > 0 %}
         <div class="radio-btn">
-            <span class="btn not-active" onclick="toggleActiveButton($(this))">
+            <span id="filter-active" class="btn {{ filter ? 'active' : 'not-active' }}" onclick="toggleActiveButton($(this))">
                 {% set s = nbAlerts > 1 ? 's' : '' %}
-                <div>{{ nbAlerts }} référence{{ s }} en alerte</div>
+                <div>
+                    <span class="fa fa-exclamation-triangle mr-2"></span>
+                    {{ nbAlerts }} référence{{ s }} en alerte
+                </div>
             </span>
         </div>
+        {% endif %}
     </div>
 
 </div>
