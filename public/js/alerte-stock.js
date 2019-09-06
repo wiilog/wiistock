@@ -18,6 +18,16 @@ let tableAlerteStock = $('#tableAlerteStock_id').DataTable({
     'drawCallback': function () {
         tableAlerteStock.column('Active:name').visible(false);
     },
+    'initComplete': function() {
+        // applique les filtres si pré-remplis
+        let filterActive = $('#filter-active').hasClass('active');
+        if (filterActive) {
+            tableAlerteStock
+                .columns('Active:name')
+                .search('true')
+                .draw();
+        }
+    },
     columns: [
         { "data": 'Code', 'title': 'Code' },
         { "data": 'Référence', 'title': 'Référence' },
