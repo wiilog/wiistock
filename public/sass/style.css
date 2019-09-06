@@ -671,9 +671,21 @@ a:hover {
   color: #130078;
   background-color: white;
 }
-.radio-btn .active:hover {
+
+.radio-btn .btn-danger {
+  color: white;
+  background-color: #bd2130;
+  border-radius: 0;
+  margin: 0;
+  border: 1px solid #bd2130;
+}
+.radio-btn .btn-danger:hover {
+  background-color: #bd2130 !important;
+  color: white !important;
+}
+.radio-btn .not-active {
+  color: #bd2130 !important;
   background-color: white;
-  color: #130078;
 }
 
 .filter {
