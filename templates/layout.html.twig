@@ -174,8 +174,20 @@
                             <li>
                                 <a href="{{ path('champ_libre_index') }}" class="sub-item">• Champs libres</a>
                             </li>
-                            <li>
-                                <a href="{{ path('alerte_index') }}" class="sub-item">• Alertes</a>
+                            <li class="sub-item has-subitems">
+                                <a href="#" class="sub-item-title">• Alertes</a>
+                                <ul>
+                                    <li class="sub-sub-item">
+                                        <a href="{{ path('alerte_stock_index') }}">
+                                            Alertes de stock
+                                        </a>
+                                    </li>
+                                    <li  class="sub-sub-item">
+                                        <a href="{{ path('alerte_expiry_index') }}">
+                                            Alertes de péremption
+                                        </a>
+                                    </li>
+                                </ul>
                             </li>
                             <li>
                                 <a href="{{ path('mailer_server') }}" class="sub-item">• Configuration email</a>

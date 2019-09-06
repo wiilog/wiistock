@@ -2,16 +2,17 @@
 
 namespace App\Controller;
 
-use App\Entity\Alerte;
+use App\Entity\AlerteStock;
 use App\Entity\Article;
 use App\Entity\Menu;
 
 use App\Entity\ReferenceArticle;
-use App\Repository\AlerteRepository;
+use App\Repository\AlerteStockRepository;
 use App\Repository\ArticleRepository;
 use App\Repository\UtilisateurRepository;
 use App\Repository\ReferenceArticleRepository;
 
+use App\Service\AlerteService;
 use App\Service\UserService;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -23,14 +24,14 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 /**
- * @Route("/alerte")
+ * @Route("/alerte-stock")
  */
-class AlerteController extends AbstractController
+class AlerteStockController extends AbstractController
 {
     /**
-     * @var AlerteRepository
+     * @var AlerteStockRepository
      */
-    private $alerteRepository;
+    private $alerteStockRepository;
 
     /**
      * @var ReferenceArticleRepository
@@ -52,23 +53,29 @@ class AlerteController extends AbstractController
      */
     private $userService;
 
+	/**
+	 * @var AlerteService
+	 */
+    private $alerteService;
 
-    public function __construct(ArticleRepository $articleRepository, AlerteRepository $alerteRepository, UtilisateurRepository $utilisateurRepository, ReferenceArticleRepository $referenceArticleRepository, UserService $userService)
+
+    public function __construct(AlerteService $alerteService, ArticleRepository $articleRepository, AlerteStockRepository $alerteStockRepository, UtilisateurRepository $utilisateurRepository, ReferenceArticleRepository $referenceArticleRepository, UserService $userService)
     {
-        $this->alerteRepository = $alerteRepository;
+        $this->alerteStockRepository = $alerteStockRepository;
         $this->referenceArticleRepository = $referenceArticleRepository;
         $this->utilisateurRepository = $utilisateurRepository;
         $this->articleRepository = $articleRepository;
         $this->userService = $userService;
+        $this->alerteService = $alerteService;
     }
 
     /**
-     * @Route("/api", name="alerte_api", options={"expose"=true}, methods="GET|POST")
+     * @Route("/api", name="alerte_stock_api", options={"expose"=true}, methods="GET|POST")
      */
     public function api(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-            $alertes = $this->alerteRepository->findAll();
+            $alertes = $this->alerteStockRepository->findAll();
             $rows = [];
 
 
@@ -89,13 +96,13 @@ class AlerteController extends AbstractController
                 $rows[] = [
                     'id' => $alerte->getId(),
                     'Code' => $alerte->getNumero(),
-                    "SeuilAlerte" => $alerte->getLimitAlert(),
+                    "SeuilAlerte" => $alerte->getLimitWarning(),
                     'SeuilSecurite' => $alerte->getLimitSecurity(),
-                    'Statut' => $alerte->getActivated() ? 'active' : 'inactive',
                     'Référence' => $alerte->getRefArticle() ? $alerte->getRefArticle()->getLibelle() . '<br>(' . $alerte->getRefArticle()->getReference() . ')' : null,
                     'QuantiteStock' => $quantiteStock,
                     'Utilisateur' => $alerte->getUser() ? $alerte->getUser()->getUsername() : '',
-                    'Actions' => $this->renderView('alerte/datatableAlerteRow.html.twig', [
+					'Active' => $this->alerteService->isAlerteStockActive($alerte, false),
+					'Actions' => $this->renderView('alerte_stock/datatableAlerteStockRow.html.twig', [
                         'alerteId' => $alerte->getId(),
                     ]),
                 ];
@@ -108,15 +115,21 @@ class AlerteController extends AbstractController
     }
 
     /**
-     * @Route("/", name="alerte_index", methods="GET")
+     * @Route("/liste/{filter}", name="alerte_stock_index", methods="GET")
      */
-    public function index(): Response
+    public function index($filter = null): Response
     {
-        return $this->render('alerte/index.html.twig');
+    	$nbAlerts = $this->alerteStockRepository->countAlertsWarningActive();
+
+        return $this->render('alerte_stock/index.html.twig', [
+			'utilisateurs' => $this->utilisateurRepository->getIdAndUsername(),
+			'nbAlerts' => $nbAlerts,
+			'filter' => $filter == 'active'
+		]);
     }
 
     /**
-     * @Route("/creer", name="alerte_new", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/creer", name="alerte_stock_new", options={"expose"=true}, methods={"GET", "POST"})
      */
     public function new(Request $request): Response
     {
@@ -129,11 +142,11 @@ class AlerteController extends AbstractController
             $refArticle = $this->referenceArticleRepository->find($data['reference']);
 
 			// on vérifie qu'une alerte n'existe pas déjà sur cette référence
-			$alertAlreadyExist = $this->alerteRepository->countByRef($refArticle);
+			$alertAlreadyExist = $this->alerteStockRepository->countByRef($refArticle);
 			if ($alertAlreadyExist) {
 				$response = [
 					'success' => false,
-					'msg' => 'Une alerte existe déjà sur cette référence.'
+					'msg' => 'Une alerte de stock existe déjà sur cette référence.'
 				];
 			} elseif (!$refArticle) {
 				$response = [
@@ -141,14 +154,13 @@ class AlerteController extends AbstractController
 					'msg' => 'Veuillez renseigner une référence.'
 				];
 			} else {
-				$alerte = new Alerte();
+				$alerte = new AlerteStock();
 				$date = new \DateTime('now', new \DateTimeZone('Europe/Paris'));
 				$alerte
-					->setNumero('A-' . $date->format('YmdHis'))
-					->setLimitAlert($data['limitAlert'] ? $data['limitAlert'] : null)
+					->setNumero('AS-' . $date->format('YmdHis'))
+					->setLimitWarning($data['limitWarning'] ? $data['limitWarning'] : null)
 					->setLimitSecurity($data['limitSecurity'] ? $data['limitSecurity'] : null)
 					->setUser($this->getUser())
-					->setActivated(true)
 					->setRefArticle($refArticle);
 
 				$em->persist($alerte);
@@ -164,7 +176,7 @@ class AlerteController extends AbstractController
     }
 
     /**
-     * @Route("/api-modifier", name="alerte_api_edit", options={"expose"=true}, methods="GET|POST")
+     * @Route("/api-modifier", name="alerte_stock_api_edit", options={"expose"=true}, methods="GET|POST")
      */
     public function editApi(Request $request): Response
     {
@@ -173,8 +185,8 @@ class AlerteController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $alerte = $this->alerteRepository->find($data['id']);
-            $json = $this->renderView('alerte/modalEditAlerteContent.html.twig', [
+            $alerte = $this->alerteStockRepository->find($data['id']);
+            $json = $this->renderView('alerte_stock/modalEditAlerteStockContent.html.twig', [
                 'alerte' => $alerte,
             ]);
 
@@ -184,7 +196,7 @@ class AlerteController extends AbstractController
     }
 
     /**
-     * @Route("/modifier", name="alerte_edit", options={"expose"=true}, methods="GET|POST")
+     * @Route("/modifier", name="alerte_stock_edit", options={"expose"=true}, methods="GET|POST")
      */
     public function edit(Request $request): Response
     {
@@ -193,11 +205,11 @@ class AlerteController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $alerte = $this->alerteRepository->find($data['id']);
+            $alerte = $this->alerteStockRepository->find($data['id']);
 
             if ($alerte) {
             	$alerte
-					->setLimitAlert($data['limitAlert'] == '' ? null : $data['limitAlert'])
+					->setLimitWarning($data['limitWarning'] == '' ? null : $data['limitWarning'])
 					->setLimitSecurity($data['limitSecurity'] == '' ? null : $data['limitSecurity']);
 			}
             $em = $this->getDoctrine()->getManager();
@@ -209,7 +221,7 @@ class AlerteController extends AbstractController
     }
 
     /**
-     * @Route("/supprimer", name="alerte_delete", options={"expose"=true}, methods={"GET", "POST"})
+     * @Route("/supprimer", name="alerte_stock_delete", options={"expose"=true}, methods={"GET", "POST"})
      */
     public function delete(Request $request): Response
     {
@@ -218,7 +230,7 @@ class AlerteController extends AbstractController
                 return $this->redirectToRoute('access_denied');
             }
 
-            $alerte = $this->alerteRepository->find($data['alerte']);
+            $alerte = $this->alerteStockRepository->find($data['alerte']);
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->remove($alerte);
             $entityManager->flush();

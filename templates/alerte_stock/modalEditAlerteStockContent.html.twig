@@ -1,9 +1,15 @@
+<div class="form-group col-12 w-100">
+    <label for="reference">Référence</label>
+    <select name="reference" class="form-control ajax-autocomplete data needed" id="reference" disabled>
+        <option>{{ alerte.refArticle.libelle }}</option>
+    </select>
+</div>
 <div class="form-group col-12">
     <div class="input-group">
         <div class="input-group-prepend">
-            <label class="input-group-text" for="limitAlert">Seuil d'alerte</label>
+            <label class="input-group-text" for="limitWarning">Seuil d'alerte</label>
         </div>
-        <input class="form-control data" type="number" min="0" value='{{ alerte.limitAlert }}' name="limitAlert" id="limitAlert" onchange="updateLimitsMinMax($(this))">
+        <input class="form-control data" type="number" min="0" value='{{ alerte.limitWarning }}' name="limitWarning" id="limitWarning" onchange="updateLimitsMinMax($(this))">
     </div>
 </div>
 <div class="form-group col-12">

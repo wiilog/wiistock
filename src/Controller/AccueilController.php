@@ -2,12 +2,13 @@
 
 namespace App\Controller;
 
+use App\Repository\AlerteExpiryRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 use App\Repository\EmplacementRepository;
-use App\Repository\AlerteRepository;
+use App\Repository\AlerteStockRepository;
 use App\Repository\CollecteRepository;
 use App\Repository\StatutRepository;
 use App\Repository\DemandeRepository;
@@ -23,9 +24,9 @@ use App\Entity\Manutention;
 class AccueilController extends AbstractController
 {
     /**
-     * @var AlerteRepository
+     * @var AlerteStockRepository
      */
-    private $alerteRepository;
+    private $alerteStockRepository;
 
     /**
      * @var CollecteRepository
@@ -52,14 +53,20 @@ class AccueilController extends AbstractController
      */
     private $manutentionRepository;
 
-    public function __construct(ManutentionRepository $manutentionRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, CollecteRepository $collecteRepository, AlerteRepository $alerteRepository, EmplacementRepository $emplacementRepository)
+	/**
+	 * @var AlerteExpiryRepository
+	 */
+    private $alerteExpiryRepository;
+
+    public function __construct(AlerteExpiryRepository $alerteExpiryRepository, ManutentionRepository $manutentionRepository, DemandeRepository $demandeRepository, StatutRepository $statutRepository, CollecteRepository $collecteRepository, AlerteStockRepository $alerteStockRepository, EmplacementRepository $emplacementRepository)
     {
-        $this->alerteRepository = $alerteRepository;
+        $this->alerteStockRepository = $alerteStockRepository;
         $this->emplacementRepository = $emplacementRepository;
         $this->collecteRepository = $collecteRepository;
         $this->statutRepository = $statutRepository;
         $this->demandeRepository = $demandeRepository;
         $this->manutentionRepository = $manutentionRepository;
+        $this->alerteExpiryRepository = $alerteExpiryRepository;
     }
 
     /**
@@ -67,8 +74,10 @@ class AccueilController extends AbstractController
      */
     public function index(): Response
     {
-    	$nbAlertsSecurity = $this->alerteRepository->countActivatedLimitSecurityReached();
-    	$nbAlerts = $this->alerteRepository->countActivatedLimitReached();
+    	$nbAlertsSecurity = $this->alerteStockRepository->countAlertsSecurityActive();
+    	$nbAlerts = $this->alerteStockRepository->countAlertsWarningActive();
+    	$nbAlertsExpiry = $this->alerteExpiryRepository->countAlertsExpiryActive()
+			+ $this->alerteExpiryRepository->countAlertsExpiryGeneralActive();
 
         $statutCollecte = $this->statutRepository->findOneByCategorieAndStatut(Collecte::CATEGORIE, Collecte::STATUS_A_TRAITER);
         $nbrDemandeCollecte = $this->collecteRepository->countByStatut($statutCollecte);
@@ -85,6 +94,7 @@ class AccueilController extends AbstractController
         return $this->render('accueil/index.html.twig', [
             'nbAlerts' => $nbAlerts,
             'nbAlertsSecurity' => $nbAlertsSecurity,
+            'nbAlertsExpiry' => $nbAlertsExpiry,
             'nbDemandeCollecte' => $nbrDemandeCollecte,
             'nbDemandeLivraisonAT' => $nbrDemandeLivraisonAT,
             'nbDemandeLivraisonP' => $nbrDemandeLivraisonP,

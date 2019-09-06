@@ -2,39 +2,38 @@
 
 namespace App\Repository;
 
-use App\Entity\Alerte;
+use App\Entity\AlerteStock;
 use App\Entity\Article;
 use App\Entity\ReferenceArticle;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 /**
- * @method Alerte|null find($id, $lockMode = null, $lockVersion = null)
- * @method Alerte|null findOneBy(array $criteria, array $orderBy = null)
- * @method Alerte[]    findAll()
- * @method Alerte[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method AlerteStock|null find($id, $lockMode = null, $lockVersion = null)
+ * @method AlerteStock|null findOneBy(array $criteria, array $orderBy = null)
+ * @method AlerteStock[]    findAll()
+ * @method AlerteStock[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class AlerteRepository extends ServiceEntityRepository
+class AlerteStockRepository extends ServiceEntityRepository
 {
     public function __construct(RegistryInterface $registry)
     {
-        parent::__construct($registry, Alerte::class);
+        parent::__construct($registry, AlerteStock::class);
     }
 
 	/**
 	 * @return int
 	 * @throws \Doctrine\ORM\NonUniqueResultException
 	 */
-    public function countActivatedLimitSecurityReached()
+    public function countAlertsSecurityActive()
 	{
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager->createQuery(
 			/** @lang DQL */
 			"SELECT COUNT(a)
-			FROM App\Entity\Alerte a
+			FROM App\Entity\AlerteStock a
 			JOIN a.refArticle ra
-			WHERE a.activated = 1
-			AND (
+			WHERE (
 				(ra.typeQuantite = :qte_ref AND ra.quantiteStock <= a.limitSecurity)
 				OR
 				(ra.typeQuantite = :qte_art AND (
@@ -59,17 +58,16 @@ class AlerteRepository extends ServiceEntityRepository
 	 * @return int
 	 * @throws \Doctrine\ORM\NonUniqueResultException
 	 */
-	public function countActivatedLimitReached()
+	public function countAlertsWarningActive()
 	{
 		$entityManager = $this->getEntityManager();
 		$query = $entityManager->createQuery(
 		/** @lang DQL */
 			"SELECT COUNT(a)
-			FROM App\Entity\Alerte a
+			FROM App\Entity\AlerteStock a
 			JOIN a.refArticle ra
-			WHERE a.activated = 1
-			AND (
-					(ra.typeQuantite = :qte_ref AND (ra.quantiteStock <= a.limitAlert OR ra.quantiteStock <= a.limitSecurity))
+			WHERE (
+					(ra.typeQuantite = :qte_ref AND (ra.quantiteStock <= a.limitWarning OR ra.quantiteStock <= a.limitSecurity))
 					OR
 					(ra.typeQuantite = :qte_art AND 
 						(
@@ -79,7 +77,7 @@ class AlerteRepository extends ServiceEntityRepository
 							JOIN af1.referenceArticle refart1
 							JOIN art1.statut s1
 							WHERE s1.nom =:active AND refart1 = ra)
-							<= a.limitAlert
+							<= a.limitWarning
 						OR
 							(SELECT SUM(art2.quantite)
 							FROM App\Entity\Article art2
@@ -111,7 +109,7 @@ class AlerteRepository extends ServiceEntityRepository
 		$query = $entityManager->createQuery(
 			/** @lang DQL */
 			"SELECT count(a) 
-			FROM App\Entity\Alerte a
+			FROM App\Entity\AlerteStock a
 			WHERE a.refArticle = :refArticle"
 		)->setParameter('refArticle', $refArticle);
 

@@ -7,9 +7,9 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity(repositoryClass="App\Repository\AlerteRepository")
+ * @ORM\Entity(repositoryClass="App\Repository\AlerteStockRepository")
  */
-class Alerte
+class AlerteStock
 {
     /**
      * @ORM\Id()
@@ -36,7 +36,7 @@ class Alerte
 	/**
 	 * @ORM\Column(type="integer", nullable=true)
 	 */
-	private $limitAlert;
+	private $limitWarning;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Utilisateur", inversedBy="alertesStock")
@@ -47,11 +47,6 @@ class Alerte
      * @ORM\ManyToOne(targetEntity="App\Entity\ReferenceArticle", inversedBy="alertesStock")
      */
     private $refArticle;
-
-    /**
-     * @ORM\Column(type="boolean", nullable=true)
-     */
-    private $activated;
 
 
     public function getId(): ?int
@@ -119,31 +114,19 @@ class Alerte
         return $this;
     }
 
-    public function getActivated(): ?bool
-    {
-        return $this->activated;
-    }
-
-    public function setActivated(?bool $activated): self
-    {
-        $this->activated = $activated;
-
-        return $this;
-    }
-
     public function __toString()
     {
         return $this->label;
     }
 
-    public function getLimitAlert(): ?int
+    public function getLimitWarning(): ?int
     {
-        return $this->limitAlert;
+        return $this->limitWarning;
     }
 
-    public function setLimitAlert(?int $limitAlert): self
+    public function setLimitWarning(?int $limitWarning): self
     {
-        $this->limitAlert = $limitAlert;
+        $this->limitWarning = $limitWarning;
 
         return $this;
     }
